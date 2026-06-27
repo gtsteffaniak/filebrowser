@@ -171,7 +171,12 @@
     "allShares": "All shares",
     "playPause": "Play/Pause",
     "clearSelection": "Clear selection",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "transcode": "Transcode{suffix}",
+    "native": "Native{suffix}",
+    "quality": "Quality{suffix}",
+    "balanced": "Balanced{suffix}",
+    "dataSaver": "Data Saver{suffix}"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -767,7 +772,8 @@
     "transcodeUserLimitReached": "Transcode limit reached. You already have an active transcode session:",
     "transcodeSystemLimitReached": "Server transcode limit reached ({limit} concurrent). Try again when a session finishes.",
     "transcodeActiveSessions": "Active transcodes:",
-    "transcodeStart": "Transcode",
+    "transcodeLoading": "Preparing transcode stream",
+    "transcodeTimeout": "Transcode timed out. Try again or download the file.",
     "visualizer": "Visualizer"
   },
   "fileSizeAnalyzer": {

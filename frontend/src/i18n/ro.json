@@ -602,7 +602,12 @@
     "allShares": "Toate acțiunile",
     "playPause": "Redare/Pauză",
     "clearSelection": "Șterge selecția",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "transcode": "Transcodare{suffix}",
+    "native": "Nativ{suffix}",
+    "quality": "Calitate{suffix}",
+    "balanced": "Echilibrat{suffix}",
+    "dataSaver": "Economizor de date{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "S-a atins limita de transcodare. Aveți deja o sesiune de transcodare activă:",
     "transcodeSystemLimitReached": "S-a atins limita de transcodare a serverului ({limit} simultan). Încercați din nou după ce se încheie o sesiune.",
     "transcodeActiveSessions": "Transcodări active:",
-    "transcodeStart": "Transcodare"
+    "transcodeLoading": "Pregătirea fluxului de transcodare",
+    "transcodeTimeout": "A expirat timpul de transcodare. Încercați din nou sau descărcați fișierul."
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",

@@ -173,7 +173,7 @@ func GetService() *Service {
 	return service
 }
 
-func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
+func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int, preserveAspectRatio bool) ([]byte, error) {
 	if !file.HasPreview {
 		return nil, ErrUnsupportedMedia
 	}
@@ -207,7 +207,7 @@ func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, prev
 		}
 		return data, nil
 	}
-	return GeneratePreviewWithMD5(ctx, file, previewSize, url, seekPercentage, cacheHash)
+	return GeneratePreviewWithMD5(ctx, file, previewSize, url, seekPercentage, cacheHash, preserveAspectRatio)
 }
 
 // filePreviewType represents the type of preview generation needed
@@ -400,7 +400,7 @@ func handleJPEGFallback(ctx context.Context, s *Service, file iteminfo.ExtendedF
 	return imageBytes, nil
 }
 
-func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, fileMD5 string) ([]byte, error) {
+func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, fileMD5 string, preserveAspectRatio bool) ([]byte, error) {
 	// Note: fileMD5 is actually a cache hash (metadata-based), not a true file content MD5
 	// Validate that cache hash is not empty to prevent cache corruption
 	if fileMD5 == "" {
@@ -500,6 +500,9 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		if err != nil {
 			return nil, err
 		}
+		if preserveAspectRatio {
+			options.ResizeMode = ResizeModeFit
+		}
 
 		if cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(imageBytes)); cfgErr == nil && ImageFitsPreviewSize(cfg.Width, cfg.Height, previewSize) {
 			if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
@@ -545,7 +548,7 @@ func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previe
 	_, _ = hasher.Write([]byte(cacheString))
 	cacheHash := hex.EncodeToString(hasher.Sum(nil))
 
-	return GeneratePreviewWithMD5(ctx, file, previewSize, officeUrl, seekPercentage, cacheHash)
+	return GeneratePreviewWithMD5(ctx, file, previewSize, officeUrl, seekPercentage, cacheHash, false)
 }
 
 // ImageFitsPreviewSize reports whether both image dimensions are within the preview bounds.

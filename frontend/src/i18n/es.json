@@ -602,7 +602,12 @@
     "allShares": "Todos los enlaces",
     "playPause": "Reproducir/Pausar",
     "clearSelection": "Borrar selección",
-    "interval": "Intervalo{suffix}"
+    "interval": "Intervalo{suffix}",
+    "transcode": "Transcodificar{suffix}",
+    "native": "Nativo{suffix}",
+    "quality": "Calidad{suffix}",
+    "balanced": "Equilibrado{suffix}",
+    "dataSaver": "Ahorro de datos{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "Se ha alcanzado el límite de transcodificación. Ya tienes una sesión de transcodificación activa:",
     "transcodeSystemLimitReached": "Se ha alcanzado el límite de transcodificación del servidor ({limit} simultáneas). Inténtalo de nuevo cuando finalice una sesión.",
     "transcodeActiveSessions": "Transcodificaciones activas:",
-    "transcodeStart": "Transcodificar"
+    "transcodeLoading": "Preparación de la transmisión para la transcodificación",
+    "transcodeTimeout": "Se ha agotado el tiempo de espera de la transcodificación. Inténtalo de nuevo o descarga el archivo."
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",

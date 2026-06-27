@@ -694,7 +694,12 @@
     "allShares": "所有股份",
     "playPause": "播放/暂停",
     "clearSelection": "清除选择",
-    "interval": "间隔{suffix}"
+    "interval": "间隔{suffix}",
+    "transcode": "转码{suffix}",
+    "native": "原生{suffix}",
+    "quality": "质量{suffix}",
+    "balanced": "平衡的{suffix}",
+    "dataSaver": "数据节省模式{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "已达到转码限制。您已有正在进行的转码会话：",
     "transcodeSystemLimitReached": "已达到服务器转码限制（{limit} 并发）。请待一个会话结束后再试。",
     "transcodeActiveSessions": "正在进行的转码任务：",
-    "transcodeStart": "转码"
+    "transcodeLoading": "准备转码流",
+    "transcodeTimeout": "转码超时。请重试或下载该文件。"
   },
   "fileSizeAnalyzer": {
     "title": "文件大小分析器",

@@ -602,7 +602,12 @@
     "allShares": "جميع الأسهم",
     "playPause": "تشغيل/إيقاف مؤقت",
     "clearSelection": "مسح التحديد",
-    "interval": "الفاصل الزمني{suffix}"
+    "interval": "الفاصل الزمني{suffix}",
+    "transcode": "تحويل الترميز{suffix}",
+    "native": "أصلي{suffix}",
+    "quality": "الجودة{suffix}",
+    "balanced": "متوازن{suffix}",
+    "dataSaver": "موفِّر البيانات{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "تم الوصول إلى الحد الأقصى لعمليات التحويل. لديك بالفعل جلسة تحويل نشطة:",
     "transcodeSystemLimitReached": "تم الوصول إلى الحد الأقصى لعمليات التحويل على الخادم ({limit} عملية متزامنة). يرجى المحاولة مرة أخرى عند انتهاء إحدى الجلسات.",
     "transcodeActiveSessions": "عمليات التحويل الجارية:",
-    "transcodeStart": "تحويل الترميز"
+    "transcodeLoading": "تحضير دفق التحويل",
+    "transcodeTimeout": "انتهت مهلة التحويل. حاول مرة أخرى أو قم بتنزيل الملف."
   },
   "fileSizeAnalyzer": {
     "title": "محلل حجم الملف",

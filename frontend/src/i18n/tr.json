@@ -602,7 +602,12 @@
     "allShares": "Tüm hisseler",
     "playPause": "Oynat/Duraklat",
     "clearSelection": "Seçimi temizle",
-    "interval": "Aralık{suffix}"
+    "interval": "Aralık{suffix}",
+    "transcode": "Kod Dönüştürme{suffix}",
+    "native": "Yerli{suffix}",
+    "quality": "Kalite{suffix}",
+    "balanced": "Dengeli{suffix}",
+    "dataSaver": "Veri Tasarrufu{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "Kod dönüştürme sınırına ulaşıldı. Halihazırda etkin bir kod dönüştürme oturumunuz var:",
     "transcodeSystemLimitReached": "Sunucu kod dönüştürme sınırına ulaşıldı ({limit} eşzamanlı işlem). Bir oturum sona erdiğinde lütfen tekrar deneyin.",
     "transcodeActiveSessions": "Etkin kod dönüştürme işlemleri:",
-    "transcodeStart": "Kod Dönüştürme"
+    "transcodeLoading": "Transkod akışının hazırlanması",
+    "transcodeTimeout": "Kod dönüştürme işlemi zaman aşımına uğradı. Lütfen tekrar deneyin veya dosyayı indirin."
   },
   "fileSizeAnalyzer": {
     "title": "Dosya Boyutu Analizörü",

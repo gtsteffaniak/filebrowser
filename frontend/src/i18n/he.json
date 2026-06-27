@@ -602,7 +602,12 @@
     "allShares": "כל המניות",
     "playPause": "הפעל/השהה",
     "clearSelection": "נקה את הבחירה",
-    "interval": "אינטרוול{suffix}"
+    "interval": "אינטרוול{suffix}",
+    "transcode": "המרה{suffix}",
+    "native": "יליד{suffix}",
+    "quality": "איכות{suffix}",
+    "balanced": "מאוזן{suffix}",
+    "dataSaver": "חיסכון בנתונים{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "הגענו למגבלת ההמרה. כבר יש לך תהליך המרה פעיל:",
     "transcodeSystemLimitReached": "הוגעה למגבלת ההמרה של השרת ({limit} במקביל). נסה שוב לאחר סיום הפעלה.",
     "transcodeActiveSessions": "המרה פעילה:",
-    "transcodeStart": "המרה"
+    "transcodeLoading": "הכנת זרם המרה",
+    "transcodeTimeout": "ההמרה נמשכה זמן רב מדי. נסה שוב או הורד את הקובץ."
   },
   "fileSizeAnalyzer": {
     "title": "מנתח גודל קובץ",

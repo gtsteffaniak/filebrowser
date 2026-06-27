@@ -17,7 +17,7 @@ func TestMintAndValidateStreamGrant(t *testing.T) {
 	d := &requestContext{
 		user: &users.User{ID: 42, FrontendUser: users.FrontendUser{Username: "alice"}},
 	}
-	token, err := mintStreamGrant(d, "default", "/docs/readme.txt")
+	token, err := mintStreamGrant(d, "default", "/docs/readme.txt", 0, nil)
 	if err != nil {
 		t.Fatalf("mintStreamGrant: %v", err)
 	}
@@ -33,7 +33,7 @@ func TestValidateStreamGrantWrongUser(t *testing.T) {
 	t.Parallel()
 	owner := &requestContext{user: &users.User{ID: 1}}
 	other := &requestContext{user: &users.User{ID: 2}}
-	token, err := mintStreamGrant(owner, "default", "/a.txt")
+	token, err := mintStreamGrant(owner, "default", "/a.txt", 0, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestValidateStreamGrantWrongUser(t *testing.T) {
 func TestValidateStreamGrantWrongPath(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{user: &users.User{ID: 1}}
-	token, err := mintStreamGrant(d, "default", "/a.txt")
+	token, err := mintStreamGrant(d, "default", "/a.txt", 0, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +78,7 @@ func TestValidateStreamGrantShareBinding(t *testing.T) {
 		user:  &users.User{ID: 1},
 		share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
 	}
-	token, err := mintStreamGrant(d, "srv", "/file.txt")
+	token, err := mintStreamGrant(d, "srv", "/file.txt", 0, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

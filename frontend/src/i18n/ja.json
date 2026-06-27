@@ -602,7 +602,12 @@
     "allShares": "すべての株式",
     "playPause": "再生／一時停止",
     "clearSelection": "選択を解除",
-    "interval": "間隔{suffix}"
+    "interval": "間隔{suffix}",
+    "transcode": "トランスコード{suffix}",
+    "native": "ネイティブ{suffix}",
+    "quality": "品質{suffix}",
+    "balanced": "バランスが取れている{suffix}",
+    "dataSaver": "データセーバー{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "トランスコードの制限に達しました。すでにアクティブなトランスコードセッションがあります：",
     "transcodeSystemLimitReached": "サーバーのトランスコード制限に達しました（{limit} の同時処理）。セッションが終了したら、再度お試しください。",
     "transcodeActiveSessions": "進行中のトランスコード：",
-    "transcodeStart": "トランスコード"
+    "transcodeLoading": "トランスコードストリームの準備",
+    "transcodeTimeout": "トランスコードの処理がタイムアウトしました。もう一度試すか、ファイルをダウンロードしてください。"
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",

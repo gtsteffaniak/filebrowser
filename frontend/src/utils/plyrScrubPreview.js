@@ -4,7 +4,8 @@ const SCRUB_PREVIEW_CLASS = 'fb-scrub-preview';
 const SCRUB_PREVIEW_VISIBLE_CLASS = 'fb-scrub-preview--visible';
 const DEFAULT_MIN_INTERVAL_MS = 500;
 const DEFAULT_PREVIEW_WIDTH_PX = 500;
-const DEFAULT_ASPECT_RATIO = 16 / 9;
+const DEFAULT_MAX_PREVIEW_HEIGHT_PX = 1000;
+const DEFAULT_PLACEHOLDER_ASPECT = 16 / 9;
 const MAX_CACHE_ENTRIES = 24;
 const VIEWPORT_MARGIN_PX = 16;
 const GAP_ABOVE_PROGRESS_PX = 14;
@@ -100,47 +101,70 @@ export function scrubPercentFromEvent(progress, seek, event) {
 }
 
 /**
- * @param {number} aspectRatio
- * @param {number} preferredWidth
+ * Scale preview image dimensions down to fit viewport and max caps.
+ * Never upscales — returned size matches the preview image when it already fits.
+ *
+ * @param {number} imageWidth
+ * @param {number} imageHeight
  * @param {{
  *   progressTop?: number,
  *   viewportWidth?: number,
  *   viewportHeight?: number,
  * }} [viewport]
- * @returns {{ width: number, height: number }}
+ * @param {number} [maxWidthPx]
+ * @param {number} [maxHeightPx]
+ * @returns {{ width: number, height: number } | null}
  */
-export function scrubPreviewDimensions(aspectRatio, preferredWidth = DEFAULT_PREVIEW_WIDTH_PX, viewport = {}) {
-  const ratio = Number.isFinite(aspectRatio) && aspectRatio > 0
-    ? aspectRatio
-    : DEFAULT_ASPECT_RATIO;
+export function fitScrubPreviewImageSize(
+  imageWidth,
+  imageHeight,
+  viewport = {},
+  maxWidthPx = DEFAULT_PREVIEW_WIDTH_PX,
+  maxHeightPx = DEFAULT_MAX_PREVIEW_HEIGHT_PX,
+) {
+  if (!Number.isFinite(imageWidth) || !Number.isFinite(imageHeight) || imageWidth <= 0 || imageHeight <= 0) {
+    return null;
+  }
 
   const viewportWidth = viewport.viewportWidth ?? window.innerWidth;
   const viewportHeight = viewport.viewportHeight ?? window.innerHeight;
   const progressTop = viewport.progressTop ?? viewportHeight;
 
-  const maxWidth = Math.max(1, viewportWidth - VIEWPORT_MARGIN_PX * 2);
-  const maxHeight = Math.max(
+  const viewportMaxWidth = Math.max(1, viewportWidth - VIEWPORT_MARGIN_PX * 2);
+  const viewportMaxHeight = Math.max(
     1,
     progressTop - VIEWPORT_MARGIN_PX - GAP_ABOVE_PROGRESS_PX - TIME_LABEL_HEIGHT_PX,
   );
+  const maxWidth = Math.max(1, Math.min(maxWidthPx, viewportMaxWidth));
+  const maxHeight = Math.max(1, Math.min(maxHeightPx, viewportMaxHeight));
 
-  let width = Math.min(preferredWidth, maxWidth);
-  let height = Math.round(width / ratio);
+  const scale = Math.min(1, maxWidth / imageWidth, maxHeight / imageHeight);
 
-  if (height > maxHeight) {
-    height = maxHeight;
-    width = Math.round(height * ratio);
+  return {
+    width: Math.max(1, Math.round(imageWidth * scale)),
+    height: Math.max(1, Math.round(imageHeight * scale)),
+  };
+}
+
+/**
+ * DOM node that should host the scrub preview so it stays visible in fullscreen.
+ *
+ * @param {import('plyr').default} player
+ * @returns {HTMLElement}
+ */
+export function getScrubPreviewMount(player) {
+  const fsEl = document.fullscreenElement ?? document.webkitFullscreenElement ?? null;
+  const container = player?.elements?.container;
+  if (fsEl instanceof HTMLElement) {
+    if (container instanceof HTMLElement && (fsEl === container || fsEl.contains(container))) {
+      return fsEl;
+    }
+    return fsEl;
   }
-
-  if (width > maxWidth) {
-    width = maxWidth;
-    height = Math.round(width / ratio);
+  if (container instanceof HTMLElement && player?.fullscreen?.active) {
+    return container;
   }
-
-  width = Math.max(1, width);
-  height = Math.max(1, height);
-
-  return { width, height };
+  return container instanceof HTMLElement ? container : document.body;
 }
 
 /**
@@ -166,8 +190,8 @@ export function positionScrubPreviewPopup(popup, progressRect, clientX, viewport
  * @param {{
  *   buildPreviewUrl: (atPercentage: number) => string,
  *   formatTime?: (seconds: number) => string,
- *   getAspectRatio?: () => number,
  *   previewWidthPx?: number,
+ *   previewMaxHeightPx?: number,
  *   minIntervalMs?: number,
  * }} options
  * @returns {() => void}
@@ -176,8 +200,8 @@ export function enablePlyrScrubPreview(player, options) {
   const {
     buildPreviewUrl,
     formatTime = formatScrubPreviewTime,
-    getAspectRatio = () => DEFAULT_ASPECT_RATIO,
     previewWidthPx = DEFAULT_PREVIEW_WIDTH_PX,
+    previewMaxHeightPx = DEFAULT_MAX_PREVIEW_HEIGHT_PX,
     minIntervalMs = DEFAULT_MIN_INTERVAL_MS,
   } = options;
 
@@ -198,16 +222,42 @@ export function enablePlyrScrubPreview(player, options) {
   img.alt = '';
   img.decoding = 'async';
 
+  const loadingEl = document.createElement('div');
+  loadingEl.className = 'fb-scrub-preview__loading';
+  loadingEl.hidden = true;
+  loadingEl.innerHTML = '<span class="loader loader--small" aria-hidden="true"><span class="loader__comet"></span></span>';
+
   const timeEl = document.createElement('span');
   timeEl.className = 'fb-scrub-preview__time';
 
-  frame.appendChild(img);
+  frame.append(img, loadingEl);
   popup.append(frame, timeEl);
-  document.body.appendChild(popup);
+
+  const ensurePopupMounted = () => {
+    const mount = getScrubPreviewMount(player);
+    if (popup.parentElement !== mount) {
+      mount.appendChild(popup);
+    }
+  };
+
+  ensurePopupMounted();
+
+  const onFullscreenChange = () => {
+    ensurePopupMounted();
+    if (lastPositionEvent) {
+      positionPopup(lastPositionEvent);
+    }
+  };
+
+  player.on('enterfullscreen', onFullscreenChange);
+  player.on('exitfullscreen', onFullscreenChange);
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
   /** @type {Map<number, string>} */
   const cache = new Map();
   let scrubbing = false;
+  let hovering = false;
   let pendingPercent = null;
   let lastFetchedPercent = null;
   let inFlightPercent = null;
@@ -216,28 +266,89 @@ export function enablePlyrScrubPreview(player, options) {
   let debounceTimer = null;
   /** @type {AbortController | null} */
   let abortController = null;
+  /** @type {Event | null} */
+  let lastPositionEvent = null;
 
-  const updatePopupDimensions = () => {
+  const previewActive = () => scrubbing || hovering;
+
+  const getViewport = () => {
     const progressRect = progress.getBoundingClientRect();
-    const { width, height } = scrubPreviewDimensions(getAspectRatio(), previewWidthPx, {
+    return {
       progressTop: progressRect.top,
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
-    });
+    };
+  };
+
+  const applyFrameSize = (width, height) => {
     frame.style.width = `${width}px`;
     frame.style.height = `${height}px`;
   };
 
+  const clearFrameSize = () => {
+    frame.style.width = '';
+    frame.style.height = '';
+  };
+
+  const applyPlaceholderFrameSize = () => {
+    const fitted = fitScrubPreviewImageSize(
+      previewWidthPx,
+      Math.round(previewWidthPx / DEFAULT_PLACEHOLDER_ASPECT),
+      getViewport(),
+      previewWidthPx,
+      previewMaxHeightPx,
+    );
+    if (fitted) {
+      applyFrameSize(fitted.width, fitted.height);
+    }
+  };
+
+  const setLoading = (loading) => {
+    loadingEl.hidden = !loading;
+    frame.classList.toggle('fb-scrub-preview__frame--loading', loading);
+  };
+
+  const updateFrameFromImage = () => {
+    const fitted = fitScrubPreviewImageSize(
+      img.naturalWidth,
+      img.naturalHeight,
+      getViewport(),
+      previewWidthPx,
+      previewMaxHeightPx,
+    );
+    if (!fitted) {
+      return;
+    }
+    applyFrameSize(fitted.width, fitted.height);
+    if (lastPositionEvent) {
+      positionPopup(lastPositionEvent);
+    }
+  };
+
+  const onImageLoad = () => {
+    updateFrameFromImage();
+    setLoading(false);
+  };
+
+  img.addEventListener('load', onImageLoad);
+  img.addEventListener('error', () => {
+    setLoading(false);
+  });
+
   const hide = () => {
     popup.classList.remove(SCRUB_PREVIEW_VISIBLE_CLASS);
     img.removeAttribute('src');
+    clearFrameSize();
+    setLoading(false);
   };
 
   const show = () => {
+    ensurePopupMounted();
     popup.classList.add(SCRUB_PREVIEW_VISIBLE_CLASS);
   };
 
   const positionPopup = (event) => {
+    ensurePopupMounted();
     const clientX = scrubClientXFromEvent(event);
     if (clientX === null) {
       return;
@@ -246,7 +357,9 @@ export function enablePlyrScrubPreview(player, options) {
   };
 
   const updateTimeLabel = (percentInt) => {
-    const duration = player.duration;
+    const duration = typeof options.getDuration === 'function'
+      ? options.getDuration()
+      : player.duration;
     if (!Number.isFinite(duration) || duration <= 0) {
       timeEl.textContent = formatTime(0);
       return;
@@ -267,9 +380,17 @@ export function enablePlyrScrubPreview(player, options) {
 
   const applyCachedImage = (percentInt) => {
     const cached = cache.get(percentInt);
-    if (cached) {
-      img.src = cached;
+    if (!cached) {
+      return false;
     }
+    img.src = cached;
+    if (img.complete && img.naturalWidth > 0) {
+      updateFrameFromImage();
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+    return true;
   };
 
   const fetchPreview = async (percentInt) => {
@@ -283,13 +404,14 @@ export function enablePlyrScrubPreview(player, options) {
     const controller = new AbortController();
     abortController = controller;
     inFlightPercent = percentInt;
+    setLoading(true);
 
     try {
       const objectUrl = await fetchPreviewImage(buildPreviewUrl(percentInt), controller.signal);
       cache.set(percentInt, objectUrl);
       lastFetchedPercent = percentInt;
       trimCache();
-      if (scrubbing && pendingPercent === percentInt) {
+      if (previewActive() && pendingPercent === percentInt) {
         img.src = objectUrl;
       }
     } catch {
@@ -309,7 +431,7 @@ export function enablePlyrScrubPreview(player, options) {
     const delay = scrubPreviewDelayMs(lastFetchAt, Date.now(), minIntervalMs);
     debounceTimer = setTimeout(() => {
       debounceTimer = null;
-      if (!scrubbing || pendingPercent !== percentInt) {
+      if (!previewActive() || pendingPercent !== percentInt) {
         return;
       }
       lastFetchAt = Date.now();
@@ -317,14 +439,18 @@ export function enablePlyrScrubPreview(player, options) {
     }, delay);
   };
 
-  const handleScrubPosition = (event) => {
+  const handlePreviewPosition = (event) => {
     const percentInt = scrubPercentFromEvent(progress, seek, event);
     pendingPercent = percentInt;
-    updatePopupDimensions();
+    lastPositionEvent = event;
     positionPopup(event);
     updateTimeLabel(percentInt);
     show();
-    applyCachedImage(percentInt);
+    if (!applyCachedImage(percentInt)) {
+      img.removeAttribute('src');
+      applyPlaceholderFrameSize();
+      setLoading(true);
+    }
 
     if (!scrubPercentChanged(lastFetchedPercent, percentInt) || inFlightPercent === percentInt) {
       return;
@@ -336,14 +462,39 @@ export function enablePlyrScrubPreview(player, options) {
     if (!scrubbing) {
       return;
     }
-    handleScrubPosition(event);
+    handlePreviewPosition(event);
   };
 
   const onScrubMove = (event) => {
     if (!scrubbing) {
       return;
     }
-    handleScrubPosition(event);
+    handlePreviewPosition(event);
+  };
+
+  const cancelHoverPreview = () => {
+    hovering = false;
+    if (scrubbing) {
+      return;
+    }
+    pendingPercent = null;
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+    abortController?.abort();
+    abortController = null;
+    hide();
+  };
+
+  const onProgressHoverMove = (event) => {
+    if (scrubbing) {
+      return;
+    }
+    hovering = true;
+    handlePreviewPosition(event);
+  };
+
+  const onProgressHoverLeave = () => {
+    cancelHoverPreview();
   };
 
   const onScrubStart = (event) => {
@@ -353,22 +504,24 @@ export function enablePlyrScrubPreview(player, options) {
     document.addEventListener('mouseup', onScrubEnd);
     document.addEventListener('touchend', onScrubEnd);
     document.addEventListener('touchcancel', onScrubEnd);
-    handleScrubPosition(event);
+    handlePreviewPosition(event);
   };
 
   const onScrubEnd = () => {
     scrubbing = false;
-    pendingPercent = null;
     document.removeEventListener('mousemove', onDocumentMove);
-    document.removeEventListener('touchmove', onDocumentMove);
+    document.removeEventListener('touchmove', onDocumentMove, { passive: true });
     document.removeEventListener('mouseup', onScrubEnd);
     document.removeEventListener('touchend', onScrubEnd);
     document.removeEventListener('touchcancel', onScrubEnd);
-    clearTimeout(debounceTimer);
-    debounceTimer = null;
-    abortController?.abort();
-    abortController = null;
-    hide();
+    if (!hovering) {
+      pendingPercent = null;
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+      abortController?.abort();
+      abortController = null;
+      hide();
+    }
   };
 
   seek.addEventListener('mousedown', onScrubStart);
@@ -377,15 +530,24 @@ export function enablePlyrScrubPreview(player, options) {
   seek.addEventListener('mouseup', onScrubEnd);
   seek.addEventListener('touchend', onScrubEnd);
   seek.addEventListener('change', onScrubEnd);
+  progress.addEventListener('mousemove', onProgressHoverMove);
+  progress.addEventListener('mouseleave', onProgressHoverLeave);
 
   return () => {
     onScrubEnd();
+    cancelHoverPreview();
     seek.removeEventListener('mousedown', onScrubStart);
     seek.removeEventListener('touchstart', onScrubStart);
     seek.removeEventListener('input', onScrubMove);
     seek.removeEventListener('mouseup', onScrubEnd);
     seek.removeEventListener('touchend', onScrubEnd);
     seek.removeEventListener('change', onScrubEnd);
+    progress.removeEventListener('mousemove', onProgressHoverMove);
+    progress.removeEventListener('mouseleave', onProgressHoverLeave);
+    player.off('enterfullscreen', onFullscreenChange);
+    player.off('exitfullscreen', onFullscreenChange);
+    document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
     for (const url of cache.values()) {
       URL.revokeObjectURL(url);
     }

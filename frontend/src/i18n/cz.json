@@ -694,7 +694,12 @@
     "allShares": "Všechny akcie",
     "playPause": "Přehrát/Pozastavit",
     "clearSelection": "Vymazat výběr",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "transcode": "Překódovat{suffix}",
+    "native": "Rodilý{suffix}",
+    "quality": "Kvalita{suffix}",
+    "balanced": "Vyvážený{suffix}",
+    "dataSaver": "Úspora dat{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "Byl dosažen limit překódování. Již máte aktivní relaci překódování:",
     "transcodeSystemLimitReached": "Byl dosažen limit překódování na serveru ({limit} souběžných operací). Zkuste to znovu, až skončí některá relace.",
     "transcodeActiveSessions": "Aktivní překódování:",
-    "transcodeStart": "Překódovat"
+    "transcodeLoading": "Příprava transkódovaného datového toku",
+    "transcodeTimeout": "Došlo k vypršení časového limitu při překódování. Zkuste to znovu nebo si soubor stáhněte."
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor velikosti souborů",

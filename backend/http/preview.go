@@ -156,7 +156,7 @@ func getDirectoryPreview(ctx context.Context, r *http.Request, d *requestContext
 		return nil, err
 	}
 	tempCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
+	_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0, false)
 	cancel()
 	if previewErr != nil {
 		if !errors.Is(previewErr, context.Canceled) && !errors.Is(previewErr, context.DeadlineExceeded) {
@@ -186,6 +186,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 
 	seekPercentage := 0
+	videoScrub := false
 	percentage := r.URL.Query().Get("atPercentage")
 	if percentage != "" {
 		var err error
@@ -195,6 +196,9 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		}
 		if seekPercentage < 0 || seekPercentage > 100 {
 			seekPercentage = 0
+		}
+		if strings.HasPrefix(d.fileInfo.Type, "video/") || strings.HasPrefix(d.fileInfo.Type, "video") {
+			videoScrub = true
 		}
 	}
 
@@ -251,7 +255,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 			officeUrl = scheme + "://" + r.Host + pathUrl
 		}
 	}
-	previewImg, err := preview.GetPreviewForFile(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage)
+	previewImg, err := preview.GetPreviewForFile(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage, videoScrub)
 	if err != nil {
 		// Check if it was a context cancellation (client navigated away)
 		if isClientCancellation(ctx, err) {

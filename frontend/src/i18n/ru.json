@@ -602,7 +602,12 @@
     "allShares": "Все акции",
     "playPause": "Воспроизведение/Пауза",
     "clearSelection": "Очистить выбор",
-    "interval": "Интервал{suffix}"
+    "interval": "Интервал{suffix}",
+    "transcode": "Транскодирование{suffix}",
+    "native": "Родной{suffix}",
+    "quality": "Качество{suffix}",
+    "balanced": "Сбалансированный{suffix}",
+    "dataSaver": "Режим экономии трафика{suffix}"
   },
   "access": {
     "rules": "Правила доступа",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "Достигнут лимит на транскодирование. У вас уже есть активный сеанс транскодирования:",
     "transcodeSystemLimitReached": "Достигнут лимит транскодирования сервера ({limit} одновременных операций). Повторите попытку после завершения сеанса.",
     "transcodeActiveSessions": "Активные транскодирования:",
-    "transcodeStart": "Транскодирование"
+    "transcodeLoading": "Подготовка потока для транскодирования",
+    "transcodeTimeout": "Истекло время ожидания при транскодировании. Попробуйте ещё раз или скачайте файл."
   },
   "fileSizeAnalyzer": {
     "title": "Анализатор размера файлов",

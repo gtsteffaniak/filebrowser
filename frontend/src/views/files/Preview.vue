@@ -57,7 +57,7 @@
             @click="startVideoTranscode"
           >
             <div>
-              <i class="material-symbols">sync</i>{{ $t("player.transcodeStart") }}
+              <i class="material-symbols">sync</i>{{ $t("general.transcode") }}
             </div>
           </button>
           <a target="_blank" :href="downloadUrl" class="button button--flat" v-if="permissions.download">
@@ -114,6 +114,11 @@ import { isRawImageMimeType } from "@/utils/mimetype";
 import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative";
+import {
+  registerTranscodeSession,
+  releaseRegisteredTranscodeSession,
+} from "@/utils/transcodeSessionLifecycle";
 
 export default {
   name: "preview",
@@ -136,8 +141,13 @@ export default {
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
+      /** Prevents metadata patch from re-running loadPreviewForReq and tearing down transcode playback. */
+      previewReadyForPath: null,
+      previewLoadingPath: null,
       videoTranscodeOffer: null,
       transcodePlaybackActive: false,
+      activeTranscodeSource: null,
+      activeTranscodePath: null,
     };
   },
   computed: {
@@ -340,6 +350,7 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
+    void this.releaseActiveTranscodeSession();
     // Clear navigation state when leaving preview
     mutations.clearNavigation();
   },
@@ -348,81 +359,111 @@ export default {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
       }
-      this.isDeleted = false;
-      this.videoTranscodeOffer = null;
-      this.transcodePlaybackActive = false;
-
-      if (!this.listing || this.listing === "undefined") {
-        if (state.req.parentDirItems) {
-          this.listing = state.req.parentDirItems;
-        } else if (state.req.items) {
-          this.listing = state.req.items;
-        }
-      }
 
       const path = state.req.path;
-      const isAv =
-        !getters.fileViewingDisabled(state.req.name) &&
-        state.req.type !== "directory" &&
-        (this.previewType === "audio" || this.previewType === "video");
+      const previousPath = this.previewReadyForPath;
 
-      if (!isAv) {
-        this.avMetadataLoading = false;
-        this.mediaEnrichDoneForPath = null;
-        this.lyricsFetchedForPath = null;
-      } else {
-        if (this.mediaEnrichDoneForPath !== path) {
-          this.mediaEnrichDoneForPath = path;
-          this.avMetadataLoading = true;
-          try {
-            await this.enrichAvFromMediaApi(path);
-            if (state.req.path !== path) {
-              return;
-            }
-          } finally {
-            if (state.req.path === path) {
-              this.avMetadataLoading = false;
-            }
-          }
-        } else {
-          this.avMetadataLoading = false;
-        }
+      if (
+        previousPath
+        && previousPath !== path
+        && this.activeTranscodeSource
+      ) {
+        await this.releaseActiveTranscodeSession();
       }
 
-      if (state.req.path !== path) {
+      // patchRequestFileMediaMetadata replaces req for the same file; skip re-entry.
+      if (this.previewLoadingPath === path) {
         return;
       }
-      this.subtitlesList = await this.subtitles();
-      if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
-        this.lyricsFetchedForPath = state.req.path;
-        if (state.req.metadata?.hasLyrics) {
-          try {
-            if (getters.isShare()) {
-              const hash = state.shareInfo.hash;
-              const password = localStorage.getItem(`sharepass:${hash}`) || "";
-              this.lyrics = await mediaApi.getLyricsPublic(state.req.path, hash, password);
-            } else {
-              this.lyrics = await mediaApi.getLyrics(state.req.source, state.req.path);
+
+      this.previewLoadingPath = path;
+      try {
+        if (this.previewReadyForPath !== path) {
+          this.isDeleted = false;
+          this.videoTranscodeOffer = null;
+          this.transcodePlaybackActive = false;
+        }
+
+        if (!this.listing || this.listing === "undefined") {
+          if (state.req.parentDirItems) {
+            this.listing = state.req.parentDirItems;
+          } else if (state.req.items) {
+            this.listing = state.req.items;
+          }
+        }
+
+        const isAv =
+          !getters.fileViewingDisabled(state.req.name) &&
+          state.req.type !== "directory" &&
+          (this.previewType === "audio" || this.previewType === "video");
+
+        if (!isAv) {
+          this.avMetadataLoading = false;
+          this.mediaEnrichDoneForPath = null;
+          this.lyricsFetchedForPath = null;
+          this.previewReadyForPath = null;
+        } else {
+          if (this.mediaEnrichDoneForPath !== path) {
+            this.mediaEnrichDoneForPath = path;
+            this.avMetadataLoading = true;
+            try {
+              await this.enrichAvFromMediaApi(path);
+              if (state.req.path !== path) {
+                return;
+              }
+            } finally {
+              if (state.req.path === path) {
+                this.avMetadataLoading = false;
+              }
             }
-          } catch (err) {
-            console.warn("Failed to fetch lyrics:", err);
+          } else {
+            this.avMetadataLoading = false;
+          }
+        }
+
+        if (state.req.path !== path) {
+          return;
+        }
+        this.subtitlesList = await this.subtitles();
+        if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
+          this.lyricsFetchedForPath = state.req.path;
+          if (state.req.metadata?.hasLyrics) {
+            try {
+              if (getters.isShare()) {
+                const hash = state.shareInfo.hash;
+                const password = localStorage.getItem(`sharepass:${hash}`) || "";
+                this.lyrics = await mediaApi.getLyricsPublic(state.req.path, hash, password);
+              } else {
+                this.lyrics = await mediaApi.getLyrics(state.req.source, state.req.path);
+              }
+            } catch (err) {
+              console.warn("Failed to fetch lyrics:", err);
+              this.lyrics = [];
+            }
+          } else {
             this.lyrics = [];
           }
-        } else {
-          this.lyrics = [];
+        }
+        await this.updatePreview();
+        await this.checkProactiveVideoTranscodeOffer(path);
+        mutations.resetSelected();
+        mutations.addSelected({
+          name: state.req.name,
+          path: state.req.path,
+          size: state.req.size,
+          type: state.req.type,
+          source: state.req.source,
+          modified: state.req.modified,
+          hasPreview: state.req.hasPreview,
+        });
+        if (state.req.path === path) {
+          this.previewReadyForPath = path;
+        }
+      } finally {
+        if (this.previewLoadingPath === path) {
+          this.previewLoadingPath = null;
         }
       }
-      await this.updatePreview();
-      mutations.resetSelected();
-      mutations.addSelected({
-        name: state.req.name,
-        path: state.req.path,
-        size: state.req.size,
-        type: state.req.type,
-        source: state.req.source,
-        modified: state.req.modified,
-        hasPreview: state.req.hasPreview,
-      });
     },
     /** GET /api/media/metadata?albumArt=true — subtitles, duration, embedded cover for plyr. */
     async enrichAvFromMediaApi(expectedPath) {
@@ -511,17 +552,55 @@ export default {
       }
       return subs;
     },
+    /** Offer transcode UI before mounting plyr when ffprobe metadata indicates native playback will fail. */
+    async checkProactiveVideoTranscodeOffer(expectedPath) {
+      if (state.req.path !== expectedPath) {
+        return;
+      }
+      if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
+        return;
+      }
+      const meta = state.req.metadata || {};
+      if (!needsTranscodeFirst({
+        videoCodec: meta.videoCodec,
+        audioCodec: meta.audioCodec,
+        mimeType: state.req.type,
+        fileName: state.req.name,
+      })) {
+        return;
+      }
+      try {
+        const status = await resourcesApi.fetchTranscodeSessions(
+          state.req.source,
+          state.req.path,
+        );
+        if (state.req.path !== expectedPath) {
+          return;
+        }
+        this.handleVideoTranscodeOffer(status);
+      } catch (err) {
+        console.warn('Failed to check transcode for unsupported format:', err);
+      }
+    },
     /** plyrViewer failed native playback or detected an unsupported container. */
     handleVideoTranscodeOffer(status) {
       if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
         return;
       }
+      status = this.normalizeTranscodeSessionStatus(status);
       let mode = 'offer';
       if (!status.canStart) {
         if (status.blockReason === 'user_limit' || status.blockReason === 'system_limit') {
           mode = status.blockReason;
         }
       }
+      console.info('[preview] handleVideoTranscodeOffer — hiding plyrViewer', {
+        path: state.req.path,
+        offerMode: mode,
+        canStart: status.canStart,
+        blockReason: status.blockReason,
+        transcodePlaybackActive: this.transcodePlaybackActive,
+      });
       this.transcodePlaybackActive = false;
       this.videoTranscodeOffer = {
         mode,
@@ -530,12 +609,30 @@ export default {
         userLimit: status.userLimit,
       };
     },
+    /** Same-file active session is allowed; backend may still report user_limit during HLS startup. */
+    normalizeTranscodeSessionStatus(status) {
+      if (!status || status.canStart || status.blockReason !== 'user_limit') {
+        return status;
+      }
+      const sameFileActive = (status.sessions || []).some(
+        (s) => s.source === state.req.source && s.path === state.req.path,
+      );
+      if (!sameFileActive) {
+        return status;
+      }
+      return { ...status, canStart: true, blockReason: '' };
+    },
     async startVideoTranscode() {
+      if (this.transcodePlaybackActive) {
+        this.videoTranscodeOffer = null;
+        return;
+      }
       try {
-        const status = await resourcesApi.fetchTranscodeSessions(
+        let status = await resourcesApi.fetchTranscodeSessions(
           state.req.source,
           state.req.path,
         );
+        status = this.normalizeTranscodeSessionStatus(status);
         console.info('[transcode] pre-start session check', status);
         if (!status.canStart) {
           this.handleVideoTranscodeOffer(status);
@@ -543,8 +640,25 @@ export default {
         }
         this.videoTranscodeOffer = null;
         this.transcodePlaybackActive = true;
+        this.activeTranscodeSource = state.req.source;
+        this.activeTranscodePath = state.req.path;
+        console.info('[preview] startVideoTranscode — remounting plyrViewer with transcode key', {
+          path: state.req.path,
+          plyrViewerKey: `${state.req.path}-transcode`,
+        });
+        registerTranscodeSession(state.req.source, state.req.path);
       } catch (err) {
         console.error('Failed to verify transcode availability:', err);
+      }
+    },
+    async releaseActiveTranscodeSession() {
+      const source = this.activeTranscodeSource || state.req?.source;
+      this.activeTranscodeSource = null;
+      this.activeTranscodePath = null;
+      this.transcodePlaybackActive = false;
+      releaseRegisteredTranscodeSession();
+      if (source) {
+        await resourcesApi.releaseAllTranscodeSessions(source);
       }
     },
     async keyEvent(event) {
@@ -667,6 +781,7 @@ export default {
       this.fullSize = !this.fullSize;
     },
     close() {
+      void this.releaseActiveTranscodeSession();
       mutations.replaceRequest({}); // Reset request data
       const uri = `${url.removeLastDir(state.route.path)}/`;
       this.$router.push({ path: uri });
@@ -703,6 +818,7 @@ export default {
     },
     /** Same navigation as header “back” in preview (Default.vue performNavigation). */
     exitPreviewFromImageGesture() {
+      void this.releaseActiveTranscodeSession();
       mutations.closeHovers();
       if (state.previousHistoryItem?.name) {
         url.goToItem(

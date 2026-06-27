@@ -602,7 +602,12 @@
     "allShares": "Wszystkie akcje",
     "playPause": "Odtwarzaj/Wstrzymaj",
     "clearSelection": "Wyczyść wybór",
-    "interval": "Przedział{suffix}"
+    "interval": "Przedział{suffix}",
+    "transcode": "Transkodowanie{suffix}",
+    "native": "Rodzimy{suffix}",
+    "quality": "Jakość{suffix}",
+    "balanced": "Zrównoważony{suffix}",
+    "dataSaver": "Oszczędzanie danych{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -746,7 +751,8 @@
     "transcodeUserLimitReached": "Osiągnięto limit transkodowania. Masz już aktywną sesję transkodowania:",
     "transcodeSystemLimitReached": "Osiągnięto limit transkodowania serwera ({limit} jednocześnie). Spróbuj ponownie po zakończeniu sesji.",
     "transcodeActiveSessions": "Aktywne transkodowania:",
-    "transcodeStart": "Transkodowanie"
+    "transcodeLoading": "Przygotowywanie strumienia do transkodowania",
+    "transcodeTimeout": "Przekroczono limit czasu transkodowania. Spróbuj ponownie lub pobierz plik."
   },
   "fileSizeAnalyzer": {
     "title": "Analizator rozmiaru plików",

@@ -16,7 +16,7 @@ func normalizeStreamGrantPath(p string) string {
 	return filepath.ToSlash(strings.TrimSpace(p))
 }
 
-func mintStreamGrant(d *requestContext, source, filePath string) (string, error) {
+func mintStreamGrant(d *requestContext, source, filePath string, size int64, metadata *iteminfo.MediaMetadata) (string, error) {
 	token, err := utils.RandomHex(16)
 	if err != nil {
 		return "", err
@@ -27,6 +27,10 @@ func mintStreamGrant(d *requestContext, source, filePath string) (string, error)
 		Source:    source,
 		Path:      normalizeStreamGrantPath(filePath),
 		ExpiresAt: time.Now().Add(streamGrantTTL).Unix(),
+		FileSize:  size,
+	}
+	if metadata != nil && metadata.Duration > 0 {
+		grant.DurationSec = metadata.Duration
 	}
 	utils.StreamGrantsCache.Set(token, grant)
 	return token, nil
@@ -63,7 +67,7 @@ func attachStreamToken(d *requestContext, source, filePath string, file *iteminf
 	if !isStreamableMediaType(file.Type) {
 		return
 	}
-	token, err := mintStreamGrant(d, source, filePath)
+	token, err := mintStreamGrant(d, source, filePath, file.Size, file.Metadata)
 	if err != nil {
 		return
 	}
@@ -97,7 +101,8 @@ func attachStreamTokensForDirectory(d *requestContext, source, dirPath string, f
 			continue
 		}
 		childPath := indexFilePath(dirPath, file.Files[i].Name)
-		token, err := mintStreamGrant(d, source, childPath)
+		child := &file.Files[i]
+		token, err := mintStreamGrant(d, source, childPath, child.Size, child.Metadata)
 		if err != nil {
 			continue
 		}

@@ -97,11 +97,8 @@ func TestTranscodeSessionEvaluateBlocksWhenActive(t *testing.T) {
 	store.acquire(1, "alice", "default", "/a.mkv", "a.mkv")
 
 	sameFile := store.evaluate(1, "default", "/a.mkv")
-	if sameFile.CanStart {
-		t.Fatal("expected evaluate to block while stream active (same file)")
-	}
-	if sameFile.BlockReason != "user_limit" {
-		t.Fatalf("expected user_limit, got %q", sameFile.BlockReason)
+	if !sameFile.CanStart {
+		t.Fatal("expected evaluate to allow active session for same file")
 	}
 
 	otherFile := store.evaluate(1, "default", "/b.mkv")
