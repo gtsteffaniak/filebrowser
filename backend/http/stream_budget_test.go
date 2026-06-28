@@ -28,21 +28,29 @@ func TestApplyStreamFetchBudgetSequential(t *testing.T) {
 		t.Fatalf("first chunk: ok=%v start=%d end=%d", ok, start, end)
 	}
 
-	// Exhaust the forward window with sequential reads.
+	// Sequential reads should keep advancing with a rolling forward window.
 	var lastEnd int64 = (4 << 20) - 1
-	for lastEnd+maxSpan < size {
+	for i := 0; i < 20; i++ {
 		nextStart := lastEnd + 1
 		nextEnd := nextStart + (4 << 20) - 1
+		if nextEnd >= size {
+			nextEnd = size - 1
+		}
 		_, end, allowed := applyStreamFetchBudget(token, size, duration, nextStart, nextEnd, false)
 		if !allowed {
-			break
+			t.Fatalf("chunk %d: expected rolling window to allow sequential read at %d", i, nextStart)
 		}
 		lastEnd = end
+		if lastEnd+1 >= size {
+			break
+		}
 	}
 
-	_, _, allowed := applyStreamFetchBudget(token, size, duration, lastEnd+1, lastEnd+(4<<20), false)
+	// Reject reads that jump far ahead of the granted high-water mark.
+	farAhead := lastEnd + maxSpan + (4 << 20)
+	_, _, allowed := applyStreamFetchBudget(token, size, duration, farAhead, farAhead+(4<<20)-1, false)
 	if allowed {
-		t.Fatal("expected forward window to reject reads beyond ~30s span")
+		t.Fatal("expected forward window to reject reads far ahead of playback")
 	}
 }
 

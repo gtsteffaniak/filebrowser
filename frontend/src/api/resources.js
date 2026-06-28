@@ -915,7 +915,7 @@ export async function acquireTranscodeHLSSession(playlistUrl) {
 }
 
 export async function releaseTranscodeSession(source, path) {
-  if (!source) {
+  if (!source || !path) {
     return
   }
   try {

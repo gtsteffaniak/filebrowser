@@ -635,38 +635,44 @@ export default {
         this.videoTranscodeOffer = null;
         return;
       }
+      const source = state.req.source;
+      const path = state.req.path;
       try {
-        let status = await resourcesApi.fetchTranscodeSessions(
-          state.req.source,
-          state.req.path,
-        );
+        let status = await resourcesApi.fetchTranscodeSessions(source, path);
+        if (this.transcodePlaybackActive || state.req.source !== source || state.req.path !== path) {
+          return;
+        }
         status = this.normalizeTranscodeSessionStatus(status);
         console.info('[transcode] pre-start session check', status);
         if (!status.canStart) {
           this.handleVideoTranscodeOffer(status);
           return;
         }
+        if (state.req.source !== source || state.req.path !== path) {
+          return;
+        }
         this.videoTranscodeOffer = null;
         this.transcodePlaybackActive = true;
-        this.activeTranscodeSource = state.req.source;
-        this.activeTranscodePath = state.req.path;
+        this.activeTranscodeSource = source;
+        this.activeTranscodePath = path;
         console.info('[preview] startVideoTranscode — remounting plyrViewer with transcode key', {
-          path: state.req.path,
-          plyrViewerKey: `${state.req.path}-transcode`,
+          path,
+          plyrViewerKey: `${path}-transcode`,
         });
-        registerTranscodeSession(state.req.source, state.req.path);
+        registerTranscodeSession(source, path);
       } catch (err) {
         console.error('Failed to verify transcode availability:', err);
       }
     },
     async releaseActiveTranscodeSession() {
       const source = this.activeTranscodeSource || state.req?.source;
+      const path = this.activeTranscodePath || state.req?.path;
       this.activeTranscodeSource = null;
       this.activeTranscodePath = null;
       this.transcodePlaybackActive = false;
       releaseRegisteredTranscodeSession();
-      if (source) {
-        await resourcesApi.releaseAllTranscodeSessions(source);
+      if (source && path) {
+        await resourcesApi.releaseTranscodeSession(source, path);
       }
     },
     async keyEvent(event) {

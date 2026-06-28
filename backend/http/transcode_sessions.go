@@ -266,7 +266,7 @@ func (s *transcodeSessionStore) acquire(userID uint64, username, source, path, f
 	return transcodeAcquireResult{OK: true, Session: &sess, Status: status}
 }
 
-// acquireHLS starts or reuses an HLS transcode session without incrementing stream count on refresh.
+// acquireHLS starts or reuses an HLS transcode session and counts each viewer attachment.
 func (s *transcodeSessionStore) acquireHLS(userID uint64, username, source, path, fileName string) transcodeAcquireResult {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -299,8 +299,8 @@ func (s *transcodeSessionStore) acquireHLS(userID uint64, username, source, path
 		s.sessions[key] = entry
 		s.byUser[userID] = key
 		entry.streams = 1
-	} else if entry.streams <= 0 {
-		entry.streams = 1
+	} else {
+		entry.streams++
 	}
 
 	entry.ActiveStreams = entry.streams
@@ -325,6 +325,22 @@ func (s *transcodeSessionStore) getHLSEntry(sessionKey string, userID uint64) (*
 func (s *transcodeSessionStore) releaseForUserFile(userID uint64, source, path string) {
 	key := transcodeSessionKey(userID, source, path)
 	s.releaseStream(key)
+}
+
+// releaseAllForUserSource clears every transcode session for userID on the given source.
+func (s *transcodeSessionStore) releaseAllForUserSource(userID uint64, source string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var keys []string
+	for key, entry := range s.sessions {
+		if entry.UserID == userID && entry.Source == source {
+			keys = append(keys, key)
+		}
+	}
+	for _, key := range keys {
+		s.releaseStreamLocked(key)
+	}
 }
 
 // releaseAllForUser clears every transcode session owned by userID.

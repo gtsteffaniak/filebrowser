@@ -43,7 +43,7 @@ func canFMP4StreamCopy(info ffmpeg.StreamInfo) bool {
 
 func isH264VideoCodec(name string) bool {
 	switch strings.ToLower(strings.TrimSpace(name)) {
-	case "", "h264", "avc", "avc1":
+	case "h264", "avc", "avc1":
 		return true
 	default:
 		return false
@@ -343,7 +343,7 @@ func transcodeSessionReleaseHandler(w http.ResponseWriter, r *http.Request, d *r
 	}
 	targetPath := r.URL.Query().Get("file")
 	if targetPath == "" {
-		activeTranscodeSessions.releaseAllForUser(d.user.ID)
+		activeTranscodeSessions.releaseAllForUserSource(d.user.ID, source)
 		w.WriteHeader(http.StatusNoContent)
 		return http.StatusNoContent, nil
 	}

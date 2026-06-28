@@ -102,7 +102,8 @@ func applyStreamFetchBudget(token string, fileSize int64, durationSec int, start
 		win.highWater = start
 	}
 
-	windowEnd := win.anchor + win.maxSpan
+	// Rolling read-ahead cap from the farthest granted byte; anchor is only for seek detection.
+	windowEnd := win.highWater + win.maxSpan
 	if start >= windowEnd {
 		return start, end, false
 	}

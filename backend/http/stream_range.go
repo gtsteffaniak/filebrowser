@@ -153,14 +153,13 @@ func serveStreamByteRange(w http.ResponseWriter, r *http.Request, reader io.Read
 			durationSec = grant.DurationSec
 		}
 	}
+	start, end = capStreamByteRange(start, end)
 	start, end, ok := applyStreamFetchBudget(token, budgetFileSize, durationSec, start, end, isSuffix)
 	if !ok {
 		setStreamResponseHeaders(w, r, displayFileName, size)
 		w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", size))
 		return http.StatusRequestedRangeNotSatisfiable, fmt.Errorf("stream read ahead of playback window")
 	}
-
-	start, end = capStreamByteRange(start, end)
 
 	chunkSize := end - start + 1
 	if _, err := reader.Seek(start, io.SeekStart); err != nil {

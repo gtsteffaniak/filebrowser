@@ -591,35 +591,14 @@ func (entry *transcodeSessionEntry) encodeHLSSegment(ctx context.Context, svc *f
 
 	if sharedInit && index > 0 {
 		var buf bytes.Buffer
-		err = svc.HLSSegmentMedia(ctx, &buf, opts)
-		recordParams := params
-		if err != nil && !params.Remux && !params.VideoCopy {
-			hlsLogInfo(entry, "segment %d transcode media failed, retrying with video copy: %v", index, err)
-			fallback := opts
-			fallback.VideoCopy = true
-			fallback.Decode = encode.VideoDecodeProfile{}
-			fallback.Profile = encode.VideoProfile{}
-			var retryBuf bytes.Buffer
-			err = svc.HLSSegmentMedia(ctx, &retryBuf, fallback)
-			if err == nil {
-				buf = retryBuf
-				recordParams = params
-				recordParams.VideoCopy = true
-				recordParams.Decode = encode.VideoDecodeProfile{}
-				recordParams.Profile = encode.VideoProfile{}
-				entry.hls.mu.Lock()
-				entry.hls.params = recordParams
-				entry.hls.mu.Unlock()
-			}
-		}
-		if err != nil {
+		if err = svc.HLSSegmentMedia(ctx, &buf, opts); err != nil {
 			return nil, nil, err
 		}
 		media = buf.Bytes()
 		if len(media) == 0 {
 			return nil, nil, fmt.Errorf("empty segment output")
 		}
-		entry.recordSegmentMediaMetrics(index, media, recordParams)
+		entry.recordSegmentMediaMetrics(index, media, params)
 		entry.hls.storeSegment(index, media)
 		return nil, media, nil
 	}
@@ -640,14 +619,6 @@ func (entry *transcodeSessionEntry) encodeHLSSegment(ctx context.Context, svc *f
 			entry.hls.params = fallbackParams
 			entry.hls.mu.Unlock()
 		}
-	}
-	if err != nil && !params.Remux && !params.VideoCopy {
-		hlsLogInfo(entry, "segment %d transcode failed, retrying with video copy: %v", index, err)
-		fallback := opts
-		fallback.VideoCopy = true
-		fallback.Decode = encode.VideoDecodeProfile{}
-		fallback.Profile = encode.VideoProfile{}
-		init, media, err = svc.HLSInitAndSegment(ctx, fallback)
 	}
 	if err != nil {
 		return nil, nil, err

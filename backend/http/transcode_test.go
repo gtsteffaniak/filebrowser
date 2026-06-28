@@ -53,6 +53,30 @@ func TestCanFMP4StreamCopy(t *testing.T) {
 	}
 }
 
+func TestIsH264VideoCodec(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		codec string
+		want  bool
+	}{
+		{name: "h264", codec: "h264", want: true},
+		{name: "avc", codec: "AVC", want: true},
+		{name: "avc1", codec: "avc1", want: true},
+		{name: "empty unknown", codec: "", want: false},
+		{name: "hevc", codec: "hevc", want: false},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			if got := isH264VideoCodec(tc.codec); got != tc.want {
+				t.Fatalf("isH264VideoCodec(%q) = %v, want %v", tc.codec, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestCanH264VideoCopy(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -78,6 +102,11 @@ func TestCanH264VideoCopy(t *testing.T) {
 		{
 			name: "hevc eac3",
 			info: ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc", AudioCodec: "eac3"},
+			want: false,
+		},
+		{
+			name: "unknown codec eac3",
+			info: ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "", AudioCodec: "eac3"},
 			want: false,
 		},
 	}

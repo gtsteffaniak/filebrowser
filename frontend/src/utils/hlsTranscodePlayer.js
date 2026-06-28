@@ -25,6 +25,20 @@ const PLAYHEAD_JUMP_SEC = 0.35;
 
 const HLS_TRANSCODE_ALWAYS_LOG = /startup timing|fatal|error|loop|timeout|buffer append|buffer stalled|starting playback|cleanup|aborted|playhead jump/i;
 
+/** Strip query strings from media URLs so streamToken is not logged. */
+function redactMediaUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return url;
+  }
+  try {
+    const parsed = new URL(url, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+    return `${parsed.pathname}${parsed.hash || ''}`;
+  } catch {
+    const queryIndex = url.indexOf('?');
+    return queryIndex >= 0 ? url.slice(0, queryIndex) : url;
+  }
+}
+
 function hlsLog(message, detail) {
   if (!HLS_TRANSCODE_DEBUG && !HLS_TRANSCODE_ALWAYS_LOG.test(message)) {
     return;
@@ -85,7 +99,7 @@ function describeFrag(frag) {
     type: frag.type,
     start: frag.start,
     duration: frag.duration,
-    url: frag.url,
+    path: redactMediaUrl(frag.url),
   };
 }
 
@@ -178,7 +192,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
     return Promise.reject(new Error('video element required'));
   }
 
-  hlsLog('starting playback', { url, startPosition, hlsConfig });
+  hlsLog('starting playback', { url: redactMediaUrl(url), startPosition, hlsConfig });
 
   const timing = createPlaybackTiming();
   timing.mark('start');
@@ -191,6 +205,13 @@ export function startHlsTranscodePlayback(videoEl, url, {
   let watchdog = null;
   let rejectPromise = null;
   let stopPlayheadAudit = null;
+  /** @type {{ type: string, handler: EventListener, options?: boolean | AddEventListenerOptions }[]} */
+  const videoListeners = [];
+
+  const addVideoListener = (type, handler, options) => {
+    videoEl.addEventListener(type, handler, options);
+    videoListeners.push({ type, handler, options });
+  };
 
   const setLoading = (loading) => {
     hlsLog('loading state', { loading });
@@ -229,6 +250,10 @@ export function startHlsTranscodePlayback(videoEl, url, {
     stopPlayheadAudit?.();
     stopPlayheadAudit = null;
     signal?.removeEventListener('abort', onAbort);
+    for (const { type, handler, options } of videoListeners) {
+      videoEl?.removeEventListener(type, handler, options);
+    }
+    videoListeners.length = 0;
     hls?.destroy();
     hls = null;
     // Caller resets the video element when tearing down MSE mode. Avoid video.load()
@@ -291,8 +316,8 @@ export function startHlsTranscodePlayback(videoEl, url, {
         setLoading(false);
         reject(new Error('native HLS playback failed'));
       };
-      videoEl.addEventListener('canplay', onReady, { once: true });
-      videoEl.addEventListener('error', onError, { once: true });
+      addVideoListener('canplay', onReady, { once: true });
+      addVideoListener('error', onError, { once: true });
       videoEl.src = url;
     });
   }
@@ -317,6 +342,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
     };
     let playbackStarted = false;
     let firstBufferNotified = false;
+    let controllerResolved = false;
     let wasPlayingBeforeStall = false;
     let lastPlayheadSec = 0;
     const segmentRetryCounts = new Map();
@@ -421,7 +447,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
       xhrSetup(xhr, requestUrl) {
         xhr.withCredentials = true;
         if (HLS_TRANSCODE_DEBUG) {
-          hlsLog('xhr open', { url: requestUrl });
+          hlsLog('xhr open', { path: redactMediaUrl(requestUrl) });
         }
         xhr.addEventListener('load', () => {
           if (!requestUrl.includes('playlist.m3u8')) {
@@ -446,7 +472,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
 
     hls.on(Hls.Events.MANIFEST_LOADING, (_event, data) => {
       timing.mark('manifestLoading');
-      hlsLog('manifest loading', { url: data.url, elapsedMs: timing.elapsed() });
+      hlsLog('manifest loading', { path: redactMediaUrl(data.url), elapsedMs: timing.elapsed() });
     });
 
     hls.on(Hls.Events.MANIFEST_LOADED, (_event, data) => {
@@ -475,6 +501,14 @@ export function startHlsTranscodePlayback(videoEl, url, {
       }
     };
 
+    const resolveController = () => {
+      if (controllerResolved) {
+        return;
+      }
+      controllerResolved = true;
+      resolve({ destroy: cleanup, seekTo });
+    };
+
     hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
       timing.mark('manifestParsed');
       hlsLog('manifest parsed', {
@@ -486,7 +520,6 @@ export function startHlsTranscodePlayback(videoEl, url, {
       hls.startLoad(initialStartPosition);
       playbackStarted = true;
       stopPlayheadAudit = installPlayheadAudit(videoEl);
-      resolve({ destroy: cleanup, seekTo });
     });
 
     hls.on(Hls.Events.FRAG_LOADING, (_event, data) => {
@@ -533,6 +566,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
           bufferedAheadSec: bufferedAheadSec(),
         }));
         onFirstBuffered?.(videoEl, data.frag);
+        resolveController();
       }
       maybeResumeAfterStall();
     });
@@ -594,7 +628,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
       }
     });
 
-    videoEl.addEventListener('seeking', () => {
+    addVideoListener('seeking', () => {
       const t = videoEl.currentTime;
       if (!Number.isFinite(t) || t < 0) {
         return;
@@ -608,13 +642,13 @@ export function startHlsTranscodePlayback(videoEl, url, {
       });
     });
 
-    videoEl.addEventListener('timeupdate', () => {
+    addVideoListener('timeupdate', () => {
       if (Number.isFinite(videoEl.currentTime)) {
         lastPlayheadSec = videoEl.currentTime;
       }
     });
 
-    videoEl.addEventListener('waiting', () => {
+    addVideoListener('waiting', () => {
       hlsLog('video waiting', {
         currentTime: videoEl.currentTime,
         bufferedAhead: bufferedAheadSec(),
@@ -624,7 +658,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
       }
     });
 
-    videoEl.addEventListener('playing', () => {
+    addVideoListener('playing', () => {
       wasPlayingBeforeStall = false;
       hlsLog('video playing', { currentTime: videoEl.currentTime });
     });

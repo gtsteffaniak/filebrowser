@@ -95,6 +95,30 @@ func TestHLSPlaylistURLs(t *testing.T) {
 	}
 }
 
+func TestTranscodeSessionMultipleHLSViewers(t *testing.T) {
+	store := newTestSessionStore()
+	setTestTranscodeMaxConcurrent(t, 2)
+
+	acq1 := store.acquireHLS(1, "alice", "default", "/a.mkv", "a.mkv")
+	if !acq1.OK {
+		t.Fatal("expected first HLS acquire to succeed")
+	}
+	acq2 := store.acquireHLS(1, "alice", "default", "/a.mkv", "a.mkv")
+	if !acq2.OK {
+		t.Fatal("expected second HLS acquire to succeed")
+	}
+
+	store.releaseForUserFile(1, "default", "/a.mkv")
+	if _, blocked := store.userHasLiveStream(1); !blocked {
+		t.Fatal("expected session to remain while second viewer is active")
+	}
+
+	store.releaseForUserFile(1, "default", "/a.mkv")
+	if _, blocked := store.userHasLiveStream(1); blocked {
+		t.Fatal("expected session cleared after all viewers released")
+	}
+}
+
 func TestTranscodeSessionReleaseForUserFile(t *testing.T) {
 	store := newTestSessionStore()
 	setTestTranscodeMaxConcurrent(t, 2)
