@@ -98,7 +98,8 @@ func TestKeyframeSeekBefore(t *testing.T) {
 }
 
 func TestBuildHLSSegmentOptionsDelegates(t *testing.T) {
-	t.Parallel()
+	prev := ActiveHLSConfig()
+	t.Cleanup(func() { SetActiveHLSConfig(prev) })
 	SetActiveHLSConfig(DefaultOnDemandHLSConfig())
 	starts := []float64{0, 4, 8}
 	durs := []float64{4, 4, 4}
