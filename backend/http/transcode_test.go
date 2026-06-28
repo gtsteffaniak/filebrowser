@@ -1,35 +1,13 @@
 package http
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-ffmpeg/encode"
 )
-
-func testTranscodeUser(id uint64) *users.User {
-	return &users.User{
-		ID: id,
-	}
-}
-
-func TestTranscodeRejectRange(t *testing.T) {
-	t.Parallel()
-	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode", nil)
-	req.Header.Set("Range", "bytes=0-")
-	if !transcodeRejectRange(req) {
-		t.Fatal("expected range request to be rejected")
-	}
-	req.Header.Del("Range")
-	if transcodeRejectRange(req) {
-		t.Fatal("expected non-range request to be allowed")
-	}
-}
 
 func TestCanFMP4StreamCopy(t *testing.T) {
 	t.Parallel()
@@ -211,8 +189,8 @@ func TestTranscodeEncodeProfileForMode(t *testing.T) {
 	if datasaver.Bitrate.Max != datasaver.Bitrate.Target {
 		t.Fatal("expected datasaver mode to hard-cap max bitrate")
 	}
-	if datasaver.Bitrate.Target != "1500k" {
-		t.Fatalf("datasaver target = %q, want 1500k", datasaver.Bitrate.Target)
+	if datasaver.Bitrate.Target != "800k" {
+		t.Fatalf("datasaver target = %q, want 800k", datasaver.Bitrate.Target)
 	}
 }
 
@@ -252,37 +230,24 @@ func TestTranscodeMaxHeightForMode(t *testing.T) {
 	}
 }
 
-func TestTranscodeHandlerRejectsMissingToken(t *testing.T) {
+func TestSegmentIndexForPlayhead(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{user: testTranscodeUser(1)}
-	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode?source=default&file=/a.mkv", nil)
-	status, err := transcodeHandler(httptest.NewRecorder(), req, d)
-	if status != http.StatusForbidden || err == nil {
-		t.Fatalf("expected 403, got status=%d err=%v", status, err)
+	starts := []float64{0, 4.0, 8.5, 12.0}
+	if got := segmentIndexForPlayhead(0, starts); got != 0 {
+		t.Fatalf("playhead 0 = %d, want 0", got)
+	}
+	if got := segmentIndexForPlayhead(8.6, starts); got != 2 {
+		t.Fatalf("playhead 8.6 = %d, want 2", got)
 	}
 }
 
-func TestTranscodeHandlerRejectsRange(t *testing.T) {
+func TestOptimizedProfileAvoidsRemux(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{user: testTranscodeUser(1)}
-	token, err := mintStreamGrant(d, "default", "/a.mkv", 0, nil)
-	if err != nil {
-		t.Fatal(err)
+	info := ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "aac", Height: 720}
+	if !hlsNeedsFullVideoTranscode(info, transcodeProfileOptimized) {
+		t.Fatal("optimized profile should require full video transcode")
 	}
-	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode?source=default&file=/a.mkv&streamToken="+token, nil)
-	req.Header.Set("Range", "bytes=0-")
-	status, err := transcodeHandler(httptest.NewRecorder(), req, d)
-	if status != http.StatusRequestedRangeNotSatisfiable || err == nil {
-		t.Fatalf("expected 416, got status=%d err=%v", status, err)
-	}
-}
-
-func TestTranscodeHandlerRejectsMultiFile(t *testing.T) {
-	t.Parallel()
-	d := &requestContext{user: testTranscodeUser(1)}
-	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode?source=default&file=/a.mkv&file=/b.mkv&streamToken=tok", nil)
-	status, err := transcodeHandler(httptest.NewRecorder(), req, d)
-	if status != http.StatusForbidden || err == nil {
-		t.Fatalf("expected 403 for multi-file, got status=%d err=%v", status, err)
+	if canFMP4StreamCopy(info) && !hlsNeedsFullVideoTranscode(info, transcodeProfileOptimized) {
+		t.Fatal("optimized profile should not select remux for h264/aac")
 	}
 }

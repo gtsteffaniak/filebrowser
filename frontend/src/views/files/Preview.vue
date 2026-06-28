@@ -403,6 +403,7 @@ export default {
           this.lyricsFetchedForPath = null;
           this.previewReadyForPath = null;
         } else {
+          const hasSubtitles = Boolean(state.req.subtitles?.length);
           if (this.mediaEnrichDoneForPath !== path) {
             this.mediaEnrichDoneForPath = path;
             this.avMetadataLoading = true;
@@ -419,12 +420,19 @@ export default {
           } else {
             this.avMetadataLoading = false;
           }
+
+          if (state.req.path !== path) {
+            return;
+          }
+          this.subtitlesList = hasSubtitles ? await this.subtitles() : [];
         }
 
         if (state.req.path !== path) {
           return;
         }
-        this.subtitlesList = await this.subtitles();
+        if (!isAv) {
+          this.subtitlesList = [];
+        }
         if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
           this.lyricsFetchedForPath = state.req.path;
           if (state.req.metadata?.hasLyrics) {

@@ -604,10 +604,10 @@
     "clearSelection": "選択を解除",
     "interval": "間隔{suffix}",
     "transcode": "トランスコード{suffix}",
-    "native": "ネイティブ{suffix}",
     "quality": "品質{suffix}",
     "balanced": "バランスが取れている{suffix}",
-    "dataSaver": "データセーバー{suffix}"
+    "dataSaver": "データセーバー{suffix}",
+    "off": "オフ{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

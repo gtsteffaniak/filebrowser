@@ -604,10 +604,10 @@
     "clearSelection": "Seçimi temizle",
     "interval": "Aralık{suffix}",
     "transcode": "Kod Dönüştürme{suffix}",
-    "native": "Yerli{suffix}",
     "quality": "Kalite{suffix}",
     "balanced": "Dengeli{suffix}",
-    "dataSaver": "Veri Tasarrufu{suffix}"
+    "dataSaver": "Veri Tasarrufu{suffix}",
+    "off": "Kapalı{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

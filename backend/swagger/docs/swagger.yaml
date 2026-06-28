@@ -3712,59 +3712,6 @@ paths:
       summary: Get subtitle content
       tags:
       - Media
-  /api/media/transcode:
-    get:
-      description: Live fragmented MP4 stream for MSE playback. Requires streamToken
-        and authenticated user. Does not support Range requests and never counts as
-        a download.
-      parameters:
-      - description: Source name
-        in: query
-        name: source
-        required: true
-        type: string
-      - description: File path
-        in: query
-        name: file
-        required: true
-        type: string
-      - description: Opaque stream grant token from file metadata
-        in: query
-        name: streamToken
-        required: true
-        type: string
-      responses:
-        "200":
-          description: Fragmented MP4 stream
-          schema:
-            type: file
-        "403":
-          description: Missing or invalid stream token
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: User transcode limit reached
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "416":
-          description: Range requests not supported
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "503":
-          description: System transcode limit reached
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Transcode media for inline preview playback
-      tags:
-      - Media
   /api/media/transcode/sessions:
     delete:
       description: Decrements stream count and clears session state for source/file

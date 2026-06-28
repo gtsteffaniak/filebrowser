@@ -604,10 +604,10 @@
     "clearSelection": "Șterge selecția",
     "interval": "Interval{suffix}",
     "transcode": "Transcodare{suffix}",
-    "native": "Nativ{suffix}",
     "quality": "Calitate{suffix}",
     "balanced": "Echilibrat{suffix}",
-    "dataSaver": "Economizor de date{suffix}"
+    "dataSaver": "Economizor de date{suffix}",
+    "off": "Oprit{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

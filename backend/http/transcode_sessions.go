@@ -12,6 +12,12 @@ import (
 
 const transcodePerUserLimit = 1
 
+const (
+	hlsMaxCachedSegments   = 8
+	hlsSessionIdleTTL      = 5 * time.Minute
+	hlsSessionPingInterval = 30 * time.Second
+)
+
 // TranscodeSession describes an active preview transcode job.
 type TranscodeSession struct {
 	ID            string `json:"id"`
@@ -28,14 +34,16 @@ type TranscodeSession struct {
 
 // TranscodeSessionsResponse is returned by GET /api/media/transcode/sessions.
 type TranscodeSessionsResponse struct {
-	SystemLimit  int                `json:"systemLimit"`
-	UserLimit    int                `json:"userLimit"`
-	ActiveCount  int                `json:"activeCount"`
-	CanStart     bool               `json:"canStart"`
-	BlockReason  string             `json:"blockReason,omitempty"`
-	TargetSource string             `json:"targetSource,omitempty"`
-	TargetPath   string             `json:"targetPath,omitempty"`
-	Sessions     []TranscodeSession `json:"sessions"`
+	SystemLimit    int                `json:"systemLimit"`
+	UserLimit      int                `json:"userLimit"`
+	ActiveCount    int                `json:"activeCount"`
+	CanStart       bool               `json:"canStart"`
+	BlockReason    string             `json:"blockReason,omitempty"`
+	TargetSource   string             `json:"targetSource,omitempty"`
+	TargetPath     string             `json:"targetPath,omitempty"`
+	FFmpegVersion  string             `json:"ffmpegVersion,omitempty"`
+	FFmpegFeatures map[string]bool    `json:"ffmpegFeatures,omitempty"`
+	Sessions       []TranscodeSession `json:"sessions"`
 }
 
 type transcodeSessionEntry struct {
@@ -51,14 +59,21 @@ type hlsSessionState struct {
 	realPath         string
 	profileMode      string
 	keyframeTimeline bool // true when segment cuts use probed keyframes (video-copy/remux)
+	sharedInit       bool // single #EXT-X-MAP for fMP4 copy/remux sessions
 	segmentCount     int
 	durationSec      float64
 	segmentStarts    []float64
 	segmentDurations []float64
+	keyframeSeekTimes []float64 // input seek hints for stream copy; playlist uses fixed grid
+	segmentMediaEnds []float64  // cumulative decode timeline end after each encoded segment
+	delivery         ffmpeg.HLSConfig
 	params           ffmpeg.HLSSegmentParams
 	init             []byte
 	inits            map[int][]byte
 	segments         map[int][]byte
+	gopResolved      bool
+	lastActivity     time.Time
+	playheadSec      float64
 }
 
 type transcodeSessionStore struct {
@@ -385,4 +400,102 @@ func (s *transcodeSessionStore) list(userID uint64, all bool) []TranscodeSession
 		return s.snapshot()
 	}
 	return s.sessionsForUser(userID)
+}
+
+func (h *hlsSessionState) touchActivity(playheadSec float64) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.lastActivity = time.Now()
+	if playheadSec >= 0 {
+		h.playheadSec = playheadSec
+	}
+}
+
+func (h *hlsSessionState) invalidateSegmentsFrom(fromIndex int) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if fromIndex <= 0 {
+		h.init = nil
+		h.inits = make(map[int][]byte)
+		h.segments = make(map[int][]byte)
+		h.segmentMediaEnds = nil
+		return
+	}
+	for idx := range h.segments {
+		if idx >= fromIndex {
+			delete(h.segments, idx)
+		}
+	}
+	for idx := range h.inits {
+		if idx >= fromIndex {
+			delete(h.inits, idx)
+		}
+	}
+	if fromIndex < len(h.segmentMediaEnds) {
+		h.segmentMediaEnds = h.segmentMediaEnds[:fromIndex]
+	}
+}
+
+func (h *hlsSessionState) pruneSegmentCache() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if len(h.segments) <= hlsMaxCachedSegments {
+		return
+	}
+	playhead := h.playheadSec
+	type kv struct {
+		idx int
+		dist float64
+	}
+	var items []kv
+	for idx := range h.segments {
+		start := float64(idx) * ffmpeg.SegmentDurationSec()
+		if idx >= 0 && idx < len(h.segmentStarts) {
+			start = h.segmentStarts[idx]
+		}
+		items = append(items, kv{idx: idx, dist: start - playhead})
+	}
+	// Evict segments furthest behind playhead first.
+	for len(h.segments) > hlsMaxCachedSegments {
+		worst := 0
+		for i := 1; i < len(items); i++ {
+			if items[i].dist < items[worst].dist {
+				worst = i
+			}
+		}
+		delete(h.segments, items[worst].idx)
+		delete(h.inits, items[worst].idx)
+		items = append(items[:worst], items[worst+1:]...)
+	}
+}
+
+func (s *transcodeSessionStore) evictIdleSessions() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	cutoff := time.Now().Add(-hlsSessionIdleTTL)
+	for key, entry := range s.sessions {
+		if entry.hls == nil {
+			continue
+		}
+		entry.hls.mu.Lock()
+		idle := entry.hls.lastActivity.Before(cutoff)
+		entry.hls.mu.Unlock()
+		if idle {
+			delete(s.sessions, key)
+			if s.byUser[entry.UserID] == key {
+				delete(s.byUser, entry.UserID)
+			}
+			logger.Infof("transcode session evicted idle: key=%s", key)
+		}
+	}
+}
+
+func init() {
+	go func() {
+		ticker := time.NewTicker(hlsSessionPingInterval)
+		defer ticker.Stop()
+		for range ticker.C {
+			activeTranscodeSessions.evictIdleSessions()
+		}
+	}()
 }

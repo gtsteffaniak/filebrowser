@@ -50,7 +50,7 @@ describe('fitScrubPreviewImageSize', () => {
 
   it('scales down when the preview image exceeds max width', () => {
     expect(fitScrubPreviewImageSize(640, 360, { progressTop: 900, viewportWidth: 1200, viewportHeight: 900 }))
-      .toEqual({ width: 500, height: 281 });
+      .toEqual({ width: 600, height: 338 });
   });
 
   it('scales down to fit viewport width', () => {
@@ -65,7 +65,12 @@ describe('fitScrubPreviewImageSize', () => {
 
   it('caps height at the max preview height', () => {
     expect(fitScrubPreviewImageSize(800, 2000, { progressTop: 1200, viewportWidth: 1200, viewportHeight: 1200 }))
-      .toEqual({ width: 400, height: 1000 });
+      .toEqual({ width: 240, height: 600 });
+  });
+
+  it('uses 16:9 placeholder dimensions while waiting for preview image', () => {
+    expect(fitScrubPreviewImageSize(600, Math.round(600 / (16 / 9)), { progressTop: 900, viewportWidth: 1200, viewportHeight: 900 }))
+      .toEqual({ width: 600, height: 338 });
   });
 
   it('returns null for invalid image dimensions', () => {

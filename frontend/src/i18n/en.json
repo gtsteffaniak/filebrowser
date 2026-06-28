@@ -173,7 +173,7 @@
     "clearSelection": "Clear selection",
     "interval": "Interval{suffix}",
     "transcode": "Transcode{suffix}",
-    "native": "Native{suffix}",
+    "off": "Off{suffix}",
     "quality": "Quality{suffix}",
     "balanced": "Balanced{suffix}",
     "dataSaver": "Data Saver{suffix}"

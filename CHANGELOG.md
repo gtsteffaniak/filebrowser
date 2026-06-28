@@ -7,10 +7,15 @@ All notable changes to this project will be documented in this file. For commit 
 A database migration is required to go from v1.x to this version. See docs.
 
  **New Features**:
- - Download grant mechanism to distinguish between UI viewing and download.
- - ffmpeg hardware acceleration detection and support via go-ffmpeg
- - video streaming is limited to viewing only.
- - video scrubbing shows netflix-like thumbnails at percentage intervals while
+ - video/audio playback enhancements
+   - Download grant mechanism to distinguish between UI viewing and download.
+   - ffmpeg hardware acceleration detection and support via go-ffmpeg
+   - video streaming is limited to viewing only (no download)
+   - video scrubbing shows Netflix-style thumbnails at percentage intervals while dragging
+   - video URLs save timestamps on pause/play to remember position in share links and on refresh
+   - waveform visualizer for audio
+   - Playback Queue UI refresh: shared icon rendering, richer entry metadata, optional thumbnails restored via session storage, updated styling
+   - new gestures: swipe up to enter/exit fullscreen; seek hints also show in fullscreen; tap center to pause on mobile
  # - granular per source permissions and access
  # - backup/restore in UI settings
  # - New CLI options and usage

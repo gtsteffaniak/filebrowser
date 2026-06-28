@@ -2,9 +2,9 @@ import { fetchPreviewImage } from '@/utils/previewRequests';
 
 const SCRUB_PREVIEW_CLASS = 'fb-scrub-preview';
 const SCRUB_PREVIEW_VISIBLE_CLASS = 'fb-scrub-preview--visible';
-const DEFAULT_MIN_INTERVAL_MS = 500;
-const DEFAULT_PREVIEW_WIDTH_PX = 500;
-const DEFAULT_MAX_PREVIEW_HEIGHT_PX = 1000;
+const DEFAULT_MIN_INTERVAL_MS = 600;
+const DEFAULT_PREVIEW_WIDTH_PX = 600;
+const DEFAULT_MAX_PREVIEW_HEIGHT_PX = 600;
 const DEFAULT_PLACEHOLDER_ASPECT = 16 / 9;
 const MAX_CACHE_ENTRIES = 24;
 const VIEWPORT_MARGIN_PX = 16;
@@ -308,6 +308,20 @@ export function enablePlyrScrubPreview(player, options) {
     frame.classList.toggle('fb-scrub-preview__frame--loading', loading);
   };
 
+  const showLoadingPlaceholder = () => {
+    applyPlaceholderFrameSize();
+    setLoading(true);
+  };
+
+  const syncFrameToLoadedImage = () => {
+    if (!img.complete || img.naturalWidth <= 0 || img.naturalHeight <= 0) {
+      return false;
+    }
+    updateFrameFromImage();
+    setLoading(false);
+    return true;
+  };
+
   const updateFrameFromImage = () => {
     const fitted = fitScrubPreviewImageSize(
       img.naturalWidth,
@@ -326,8 +340,13 @@ export function enablePlyrScrubPreview(player, options) {
   };
 
   const onImageLoad = () => {
-    updateFrameFromImage();
-    setLoading(false);
+    if (pendingPercent !== null) {
+      const expectedSrc = cache.get(pendingPercent);
+      if (expectedSrc && img.src !== expectedSrc) {
+        return;
+      }
+    }
+    syncFrameToLoadedImage();
   };
 
   img.addEventListener('load', onImageLoad);
@@ -384,12 +403,10 @@ export function enablePlyrScrubPreview(player, options) {
       return false;
     }
     img.src = cached;
-    if (img.complete && img.naturalWidth > 0) {
-      updateFrameFromImage();
-      setLoading(false);
-    } else {
-      setLoading(true);
+    if (syncFrameToLoadedImage()) {
+      return true;
     }
+    showLoadingPlaceholder();
     return true;
   };
 
@@ -404,7 +421,7 @@ export function enablePlyrScrubPreview(player, options) {
     const controller = new AbortController();
     abortController = controller;
     inFlightPercent = percentInt;
-    setLoading(true);
+    showLoadingPlaceholder();
 
     try {
       const objectUrl = await fetchPreviewImage(buildPreviewUrl(percentInt), controller.signal);
@@ -413,6 +430,7 @@ export function enablePlyrScrubPreview(player, options) {
       trimCache();
       if (previewActive() && pendingPercent === percentInt) {
         img.src = objectUrl;
+        syncFrameToLoadedImage();
       }
     } catch {
       // Aborts and preview failures are expected while scrubbing quickly.
@@ -448,8 +466,7 @@ export function enablePlyrScrubPreview(player, options) {
     show();
     if (!applyCachedImage(percentInt)) {
       img.removeAttribute('src');
-      applyPlaceholderFrameSize();
-      setLoading(true);
+      showLoadingPlaceholder();
     }
 
     if (!scrubPercentChanged(lastFetchedPercent, percentInt) || inFlightPercent === percentInt) {

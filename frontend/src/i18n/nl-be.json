@@ -696,10 +696,10 @@
     "clearSelection": "Selectie wissen",
     "interval": "Interval{suffix}",
     "transcode": "Transcoderen{suffix}",
-    "native": "Inheems{suffix}",
     "quality": "Kwaliteit{suffix}",
     "balanced": "Evenwichtig{suffix}",
-    "dataSaver": "Databesparing{suffix}"
+    "dataSaver": "Databesparing{suffix}",
+    "off": "Uit{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

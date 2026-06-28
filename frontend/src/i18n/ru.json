@@ -604,10 +604,10 @@
     "clearSelection": "Очистить выбор",
     "interval": "Интервал{suffix}",
     "transcode": "Транскодирование{suffix}",
-    "native": "Родной{suffix}",
     "quality": "Качество{suffix}",
     "balanced": "Сбалансированный{suffix}",
-    "dataSaver": "Режим экономии трафика{suffix}"
+    "dataSaver": "Режим экономии трафика{suffix}",
+    "off": "Выкл.{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

@@ -604,10 +604,10 @@
     "clearSelection": "Kiválasztás törlése",
     "interval": "Intervallum{suffix}",
     "transcode": "Átkódolás{suffix}",
-    "native": "Eredeti{suffix}",
     "quality": "Minőség{suffix}",
     "balanced": "Kiegyensúlyozott{suffix}",
-    "dataSaver": "Adatmegtakarítás{suffix}"
+    "dataSaver": "Adatmegtakarítás{suffix}",
+    "off": "Ki{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

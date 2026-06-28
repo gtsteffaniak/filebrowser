@@ -604,10 +604,10 @@
     "clearSelection": "선택 항목 지우기",
     "interval": "간격{suffix}",
     "transcode": "트랜스코딩{suffix}",
-    "native": "원어민{suffix}",
     "quality": "품질{suffix}",
     "balanced": "균형 잡힌{suffix}",
-    "dataSaver": "데이터 절약 모드{suffix}"
+    "dataSaver": "데이터 절약 모드{suffix}",
+    "off": "꺼짐{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

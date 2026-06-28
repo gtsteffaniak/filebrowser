@@ -82,11 +82,14 @@ func TestHLSPlaylistURLs(t *testing.T) {
 		t.Fatalf("unexpected init URL for segment 1: %s", init1URL)
 	}
 
-	segURL := hlsSegURL(base, session, 3, false)
+	segURL := hlsSegURL(base, session, 3, false, 12.0)
 	if !strings.Contains(segURL, "/testing/api/media/transcode/hls/seg/3.m4s?session=") {
 		t.Fatalf("unexpected segment URL: %s", segURL)
 	}
-	tsURL := hlsSegURL(base, session, 3, true)
+	if !strings.Contains(segURL, "runtimeSec=12.000") {
+		t.Fatalf("expected runtimeSec in segment URL: %s", segURL)
+	}
+	tsURL := hlsSegURL(base, session, 3, true, 12.0)
 	if !strings.Contains(tsURL, "/testing/api/media/transcode/hls/seg/3.ts?session=") {
 		t.Fatalf("unexpected ts segment URL: %s", tsURL)
 	}

@@ -696,10 +696,10 @@
     "clearSelection": "Rensa urvalet",
     "interval": "Intervall{suffix}",
     "transcode": "Omkodning{suffix}",
-    "native": "Infödd{suffix}",
     "quality": "Kvalitet{suffix}",
     "balanced": "Balanserad{suffix}",
-    "dataSaver": "Datasparefunktion{suffix}"
+    "dataSaver": "Datasparefunktion{suffix}",
+    "off": "Av{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
