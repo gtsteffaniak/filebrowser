@@ -665,15 +665,14 @@ export default {
       }
     },
     async releaseActiveTranscodeSession() {
-      const source = this.activeTranscodeSource || state.req?.source;
-      const path = this.activeTranscodePath || state.req?.path;
+      const hadTranscode = Boolean(this.activeTranscodeSource && this.activeTranscodePath);
       this.activeTranscodeSource = null;
       this.activeTranscodePath = null;
       this.transcodePlaybackActive = false;
-      releaseRegisteredTranscodeSession();
-      if (source && path) {
-        await resourcesApi.releaseTranscodeSession(source, path);
+      if (!hadTranscode) {
+        return;
       }
+      releaseRegisteredTranscodeSession();
     },
     async keyEvent(event) {
       if (getters.currentPromptName() || event.repeat) {

@@ -333,14 +333,15 @@ func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *request
 // @Param file query string true "File path"
 // @Router /api/media/transcode/sessions [delete]
 func transcodeSessionReleaseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !settings.TranscodeEnabled() {
-		return http.StatusNotFound, fmt.Errorf("transcode not enabled")
-	}
-
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		return http.StatusBadRequest, fmt.Errorf("source required")
 	}
+	if !settings.TranscodeEnabled() {
+		w.WriteHeader(http.StatusNoContent)
+		return http.StatusNoContent, nil
+	}
+
 	targetPath := r.URL.Query().Get("file")
 	if targetPath == "" {
 		activeTranscodeSessions.releaseAllForUserSource(d.user.ID, source)

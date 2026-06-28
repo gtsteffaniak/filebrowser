@@ -1112,7 +1112,7 @@ export default {
       this.transcodeSessionPath = null;
       if (releaseSession && source && path) {
         unregisterTranscodeSession(source, path);
-        await resourcesApi.releaseAllTranscodeSessions(source);
+        await resourcesApi.releaseTranscodeSession(source, path);
       }
       this.logPlyrState('destroyTranscodePlayback done', { reason });
     },
@@ -1573,7 +1573,7 @@ export default {
       this.transcodeSessionPath = null;
       if (source && path) {
         unregisterTranscodeSession(source, path);
-        await resourcesApi.releaseAllTranscodeSessions(source);
+        await resourcesApi.releaseTranscodeSession(source, path);
       }
       this.transcodeMode = 'native';
       this.speedToastVisible = true;

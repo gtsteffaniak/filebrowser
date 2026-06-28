@@ -8,7 +8,11 @@ let pingTimer = null;
 
 const PING_INTERVAL_MS = 30_000;
 
-function buildReleaseUrl(source) {
+function buildReleaseUrl(source, path) {
+  return `${window.origin}${getApiPath('media/transcode/sessions', { source, file: path })}`;
+}
+
+function buildReleaseAllUrl(source) {
   return `${window.origin}${getApiPath('media/transcode/sessions', { source })}`;
 }
 
@@ -56,6 +60,26 @@ export function stopTranscodeSessionPing() {
 }
 
 /**
+ * Release one transcode session. Use keepalive on pagehide/tab close.
+ * @param {string} source
+ * @param {string} path
+ * @param {{ keepalive?: boolean }} [options]
+ */
+export function sendReleaseTranscodeSession(source, path, { keepalive = false } = {}) {
+  if (!source || !path) {
+    return;
+  }
+  void fetch(buildReleaseUrl(source, path), {
+    method: 'DELETE',
+    credentials: 'same-origin',
+    keepalive,
+    headers: {
+      sessionId: state.sessionId,
+    },
+  }).catch(() => {});
+}
+
+/**
  * Release all transcode sessions for a source. Use keepalive on pagehide/tab close.
  * @param {string} source
  * @param {{ keepalive?: boolean }} [options]
@@ -64,7 +88,7 @@ export function sendReleaseAllTranscodeSessions(source, { keepalive = false } = 
   if (!source) {
     return;
   }
-  void fetch(buildReleaseUrl(source), {
+  void fetch(buildReleaseAllUrl(source), {
     method: 'DELETE',
     credentials: 'same-origin',
     keepalive,
@@ -99,12 +123,12 @@ export function unregisterTranscodeSession(source, path) {
 
 export function releaseRegisteredTranscodeSession({ keepalive = false } = {}) {
   stopTranscodeSessionPing();
-  if (!activeSession?.source) {
+  if (!activeSession?.source || !activeSession?.path) {
     return;
   }
-  const { source } = activeSession;
+  const { source, path } = activeSession;
   activeSession = null;
-  sendReleaseAllTranscodeSessions(source, { keepalive });
+  sendReleaseTranscodeSession(source, path, { keepalive });
 }
 
 function installPageHook() {

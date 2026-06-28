@@ -21,7 +21,6 @@ func TestApplyStreamFetchBudgetSequential(t *testing.T) {
 
 	const size = 100 << 20
 	const duration = 1000
-	maxSpan := streamMaxForwardSpan(size, duration)
 
 	start, end, ok := applyStreamFetchBudget(token, size, duration, 0, (4<<20)-1, false)
 	if !ok || start != 0 {
@@ -46,11 +45,27 @@ func TestApplyStreamFetchBudgetSequential(t *testing.T) {
 		}
 	}
 
-	// Reject reads that jump far ahead of the granted high-water mark.
-	farAhead := lastEnd + maxSpan + (4 << 20)
-	_, _, allowed := applyStreamFetchBudget(token, size, duration, farAhead, farAhead+(4<<20)-1, false)
+	// Reject contiguous read-ahead at the rolling window boundary (not a seek-sized jump).
+	win := getStreamFetchWindow(token, size, duration)
+	win.mu.Lock()
+	highWater := win.highWater
+	span := win.maxSpan
+	win.mu.Unlock()
+
+	beyondWindow := highWater + span
+	_, _, allowed := applyStreamFetchBudget(token, size, duration, beyondWindow, beyondWindow+(4<<20)-1, false)
 	if allowed {
-		t.Fatal("expected forward window to reject reads far ahead of playback")
+		t.Fatalf("expected forward window to reject read at %d (highWater=%d span=%d)", beyondWindow, highWater, span)
+	}
+
+	// Large forward jumps within seek distance open a new window instead of being rejected.
+	jumpStart := lastEnd + span + (4 << 20)
+	if jumpStart <= highWater+streamForwardJumpGap {
+		t.Fatalf("test setup: jumpStart %d should exceed seek reset threshold %d", jumpStart, highWater+streamForwardJumpGap)
+	}
+	_, _, allowed = applyStreamFetchBudget(token, size, duration, jumpStart, jumpStart+(4<<20)-1, false)
+	if !allowed {
+		t.Fatal("expected large forward jump to open a new read window")
 	}
 }
 
