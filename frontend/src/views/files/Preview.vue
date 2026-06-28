@@ -290,7 +290,10 @@ export default {
       if (cachedMap) {
         listing.forEach(item => {
           if (cachedMap.has(item.name)) {
-            item.metadata = cachedMap.get(item.name);
+            const metadata = cachedMap.get(item.name);
+            item.metadata = item.path === state.req.path
+              ? { ...metadata, ...item.metadata }
+              : metadata;
           }
         });
         return;
@@ -304,7 +307,10 @@ export default {
         const metaMap = new Map(payload.items.filter(i => i.metadata).map(i => [i.name, i.metadata]));
         listing.forEach(item => {
           if (metaMap.has(item.name)) {
-            item.metadata = metaMap.get(item.name);
+          const metadata = metaMap.get(item.name);
+          item.metadata = item.path === state.req.path
+            ? { ...metadata, ...item.metadata }
+            : metadata;
           }
         });
         this.dirMetadataCache.set(cacheKey, metaMap);
