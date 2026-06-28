@@ -13,8 +13,11 @@ func hlsEncodeHTTPStatus(err error) int {
 	if err == nil {
 		return http.StatusOK
 	}
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+	if errors.Is(err, context.Canceled) {
 		return 0
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return http.StatusGatewayTimeout
 	}
 	msg := err.Error()
 	classifier := encode.FailureClassifier{}

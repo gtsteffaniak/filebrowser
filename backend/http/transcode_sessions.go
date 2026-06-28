@@ -464,6 +464,7 @@ func (h *hlsSessionState) pruneSegmentCache() {
 			}
 		}
 		delete(h.segments, items[worst].idx)
+		delete(h.inits, items[worst].idx)
 		items = append(items[:worst], items[worst+1:]...)
 	}
 }
@@ -479,7 +480,7 @@ func (s *transcodeSessionStore) evictIdleSessions() {
 		entry.hls.mu.Lock()
 		idle := entry.hls.lastActivity.Before(cutoff)
 		entry.hls.mu.Unlock()
-		if idle && entry.streams <= 0 {
+		if idle {
 			delete(s.sessions, key)
 			if s.byUser[entry.UserID] == key {
 				delete(s.byUser, entry.UserID)

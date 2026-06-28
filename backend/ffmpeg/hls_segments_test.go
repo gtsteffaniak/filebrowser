@@ -83,6 +83,41 @@ func TestSanitizeHLSKeyframesAllowsLongGOP(t *testing.T) {
 	}
 }
 
+func TestKeyframeSeekBefore(t *testing.T) {
+	t.Parallel()
+	kf := []float64{0, 5, 10, 15}
+	if got := KeyframeSeekBefore(kf, 12); got != 10 {
+		t.Fatalf("KeyframeSeekBefore(12) = %v, want 10", got)
+	}
+	if got := KeyframeSeekBefore(kf, 3); got != 0 {
+		t.Fatalf("KeyframeSeekBefore(3) = %v, want 0", got)
+	}
+	if got := KeyframeSeekBefore(nil, 5); got != 0 {
+		t.Fatalf("KeyframeSeekBefore(nil) = %v, want 0", got)
+	}
+}
+
+func TestBuildHLSSegmentOptionsDelegates(t *testing.T) {
+	t.Parallel()
+	SetActiveHLSConfig(DefaultOnDemandHLSConfig())
+	starts := []float64{0, 4, 8}
+	durs := []float64{4, 4, 4}
+	params := HLSSegmentParams{VideoCopy: true, GOP: 120}
+	opts := BuildHLSSegmentOptions("/media/file.mkv", 2, params, starts, durs, true, []float64{0, 4, 8})
+	if opts.Input.URL != "/media/file.mkv" {
+		t.Fatalf("Input.URL = %q", opts.Input.URL)
+	}
+	if !opts.VideoCopy {
+		t.Fatal("expected VideoCopy from params")
+	}
+	if opts.MediaTimelineSec != 8 {
+		t.Fatalf("MediaTimelineSec = %v, want 8", opts.MediaTimelineSec)
+	}
+	if opts.DurationSec != 4 {
+		t.Fatalf("DurationSec = %v, want 4", opts.DurationSec)
+	}
+}
+
 func TestSanitizeHLSKeyframesAllowsFrequentIFrames(t *testing.T) {
 	t.Parallel()
 	// ~0.5 keyframes/sec over long duration (typical for digitized tape).

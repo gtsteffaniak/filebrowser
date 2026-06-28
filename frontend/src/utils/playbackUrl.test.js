@@ -74,6 +74,13 @@ describe('playbackUrl', () => {
     });
   });
 
+  it('migrates legacy t when patching transcode only', () => {
+    expect(buildPlaybackQueryPatch({ t: '120' }, { transcodeMode: 'quality' })).toEqual({
+      time: '2m',
+      transcode: 'quality',
+    });
+  });
+
   it('detects playback query changes by position, not string form', () => {
     expect(playbackQueryChanged({ time: '1m' }, { time: '2m' })).toBe(true);
     expect(playbackQueryChanged({ time: '90s' }, { time: '1m30s' })).toBe(false);

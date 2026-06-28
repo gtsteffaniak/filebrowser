@@ -201,6 +201,10 @@ export function buildPlaybackQueryPatch(query = {}, patch = {}) {
   /** @type {Record<string, string | undefined>} */
   const next = { ...rest };
   let timeValue = queryTime;
+  if (timeValue === undefined) {
+    const parsedTime = parsePlaybackTimeFromQuery(query);
+    timeValue = parsedTime === null ? undefined : formatDurationForQuery(parsedTime);
+  }
   let transcodeValue = queryTranscode;
 
   if (Object.hasOwn(patch, 'time')) {

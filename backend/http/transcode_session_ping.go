@@ -80,7 +80,7 @@ func parseRuntimeSecQuery(r *http.Request) (float64, bool) {
 		return 0, false
 	}
 	v, err := strconv.ParseFloat(raw, 64)
-	if err != nil || v < 0 || math.IsNaN(v) {
+	if err != nil || v < 0 || math.IsNaN(v) || math.IsInf(v, 0) {
 		return 0, false
 	}
 	return v, true

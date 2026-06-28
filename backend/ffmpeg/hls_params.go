@@ -37,6 +37,10 @@ func (s *Service) BuildHLSSegmentParams(ctx context.Context, path string, in HLS
 	if s == nil || s.inner == nil {
 		return HLSSegmentParams{}, fmt.Errorf("ffmpeg service not available")
 	}
+	if err := s.Acquire(ctx); err != nil {
+		return HLSSegmentParams{}, err
+	}
+	defer s.Release()
 	return s.inner.BuildHLSSegmentParams(ctx, path, in, onDemandDefaults(), probeFPS)
 }
 
