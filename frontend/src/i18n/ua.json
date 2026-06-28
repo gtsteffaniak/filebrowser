@@ -696,10 +696,10 @@
     "clearSelection": "Очистити вибір",
     "interval": "Інтервал{suffix}",
     "transcode": "Перекодування{suffix}",
-    "native": "Рідний{suffix}",
     "quality": "Якість{suffix}",
     "balanced": "Збалансований{suffix}",
-    "dataSaver": "Економія трафіку{suffix}"
+    "dataSaver": "Економія трафіку{suffix}",
+    "off": "Вимкнено{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

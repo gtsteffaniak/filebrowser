@@ -9,6 +9,11 @@ import {
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
 import { getObjectProperty } from '@/utils/object' 
+import {
+  normalizeHLSConfig,
+  parseHLSConfigFromHeaders,
+  parseHLSConfigFromPlaylist,
+} from '@/utils/hlsTranscodeConfig'
 
 export { fetchPreviewImage } from '@/utils/previewRequests'
 
@@ -845,27 +850,6 @@ export function getStreamURL(source, path, streamToken) {
   }
 }
 
-export function getTranscodeURL(source, path, streamToken) {
-  if (!streamToken) {
-    throw new Error('stream token required')
-  }
-  if (!source) {
-    throw new Error('no source provided')
-  }
-  try {
-    const params = {
-      source: source,
-      file: path,
-      streamToken: streamToken,
-    }
-    const apiPath = getApiPath('media/transcode', params)
-    return window.origin + apiPath
-  } catch (err) {
-    notify.showError(err.message || 'Error getting transcode URL')
-    throw err
-  }
-}
-
 export function getTranscodeHLSPlaylistURL(source, path, streamToken, { profile = 'quality' } = {}) {
   if (!streamToken) {
     throw new Error('stream token required')
@@ -887,6 +871,46 @@ export function getTranscodeHLSPlaylistURL(source, path, streamToken, { profile 
   } catch (err) {
     notify.showError(err.message || 'Error getting transcode HLS URL')
     throw err
+  }
+}
+
+/** Prefetch playlist to obtain X-Transcode-Session and avoid a second manifest fetch. */
+export async function acquireTranscodeHLSSession(playlistUrl) {
+  const prefetchStart = performance.now();
+  const res = await fetch(playlistUrl, {
+    method: 'GET',
+    credentials: 'same-origin',
+    headers: {
+      sessionId: state.sessionId,
+    },
+  })
+  const headersMs = Math.round(performance.now() - prefetchStart);
+  if (!res.ok) {
+    const err = new Error(`transcode playlist failed (${res.status})`)
+    err.status = res.status
+    throw err
+  }
+  const sessionId = res.headers.get('X-Transcode-Session')
+  const playlistText = await res.text()
+  const totalMs = Math.round(performance.now() - prefetchStart);
+  const hlsConfig = normalizeHLSConfig(
+    parseHLSConfigFromHeaders(res.headers) || parseHLSConfigFromPlaylist(playlistText),
+  )
+  console.info('[hls-transcode] playlist prefetch', {
+    headersMs,
+    totalMs,
+    sessionId,
+    hlsConfig,
+    playlistBytes: playlistText.length,
+    segmentLines: (playlistText.match(/^#EXTINF:/gm) || []).length,
+  });
+  const blobUrl = URL.createObjectURL(new Blob([playlistText], { type: 'application/vnd.apple.mpegurl' }))
+  return {
+    sessionId,
+    hlsConfig,
+    playbackUrl: blobUrl,
+    revokePlaybackUrl: () => URL.revokeObjectURL(blobUrl),
+    prefetchMs: totalMs,
   }
 }
 

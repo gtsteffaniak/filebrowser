@@ -6,21 +6,43 @@ import (
 	"io"
 
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
-	"github.com/gtsteffaniak/go-ffmpeg/encode"
-	"github.com/gtsteffaniak/go-ffmpeg/ops"
-	"github.com/gtsteffaniak/go-ffmpeg/probe"
 )
 
-const HLSSegmentDurationSec = 4.0
+// HLSSegmentDurationSec is deprecated; use SegmentDurationSec().
+const HLSSegmentDurationSec = DefaultHLSSegmentDurationSec
 
 // HLSSegmentParams holds resolved encode/remux settings for one HLS session.
-type HLSSegmentParams struct {
-	Remux     bool
-	VideoCopy bool
-	Decode    encode.VideoDecodeProfile
-	Profile   encode.VideoProfile
-	MaxHeight int
-	GOP       int
+type HLSSegmentParams = goffmpeg.HLSSegmentParams
+
+// HLSSegmentBuildInput describes remux/copy/transcode path selection for one file.
+type HLSSegmentBuildInput = goffmpeg.HLSSegmentBuildInput
+
+func onDemandDefaults() goffmpeg.OnDemandHLSDefaults {
+	cfg := ActiveHLSConfig().Normalized()
+	return goffmpeg.OnDemandHLSDefaults{
+		SegmentDurationSec: cfg.SegmentDurationSec,
+		DefaultGOP:         cfg.DefaultGOP,
+	}
+}
+
+// SanitizeHLSKeyframes filters spurious keyframe probes from corrupt indexes.
+func SanitizeHLSKeyframes(keyframes []float64, durationSec float64) []float64 {
+	return goffmpeg.SanitizeHLSKeyframes(keyframes, durationSec)
+}
+
+// BuildHLSSegmentTimeline returns segment start times and durations in seconds.
+func BuildHLSSegmentTimeline(durationSec float64, keyframes []float64) (starts, durations []float64) {
+	return goffmpeg.BuildHLSSegmentTimeline(durationSec, keyframes, SegmentDurationSec())
+}
+
+// BuildHLSSegmentOptions builds go-ffmpeg segment options for segment index n.
+func BuildHLSSegmentOptions(path string, index int, params HLSSegmentParams, starts, durations []float64, keyframeTimeline bool, keyframeSeekTimes []float64) goffmpeg.HLSSegmentOptions {
+	return goffmpeg.BuildHLSSegmentOptions(path, index, params, starts, durations, keyframeTimeline, keyframeSeekTimes, SegmentDurationSec())
+}
+
+// KeyframeSeekBefore returns the largest keyframe time <= sec, or 0 when none.
+func KeyframeSeekBefore(keyframes []float64, sec float64) float64 {
+	return goffmpeg.KeyframeSeekBefore(keyframes, sec)
 }
 
 // ProbeVideoFPS returns average video frame rate for GOP sizing.
@@ -47,30 +69,6 @@ func (s *Service) ProbeVideoKeyframeTimes(ctx context.Context, path string) ([]f
 	return s.inner.ProbeVideoKeyframeTimes(ctx, path)
 }
 
-// BuildHLSSegmentOptions builds go-ffmpeg segment options for segment index n.
-func BuildHLSSegmentOptions(path string, index int, params HLSSegmentParams, starts, durations []float64) goffmpeg.HLSSegmentOptions {
-	startSec := float64(index) * HLSSegmentDurationSec
-	durSec := HLSSegmentDurationSec
-	if index >= 0 && index < len(starts) {
-		startSec = starts[index]
-	}
-	if index >= 0 && index < len(durations) {
-		durSec = durations[index]
-	}
-	return goffmpeg.HLSSegmentOptions{
-		Input:       ops.InputSource{URL: path, StreamType: probe.StreamFile},
-		StartSec:    startSec,
-		DurationSec: durSec,
-		Decode:      params.Decode,
-		Profile:     params.Profile,
-		MaxHeight:   params.MaxHeight,
-		Remux:       params.Remux,
-		VideoCopy:   params.VideoCopy,
-		GOP:         params.GOP,
-	}
-}
-
-// HLSSegment generates a self-contained MPEG-TS segment for full re-encode HLS.
 func (s *Service) HLSSegment(ctx context.Context, opts goffmpeg.HLSSegmentOptions) ([]byte, error) {
 	if s == nil || s.inner == nil {
 		return nil, fmt.Errorf("ffmpeg service not available")

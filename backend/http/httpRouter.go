@@ -207,7 +207,7 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	api.HandleFunc("GET /media/transcode/hls/init/{index}", withUser(transcodeHLSInitHandler))
 	api.HandleFunc("GET /media/transcode/hls/init.m4s", withUser(transcodeHLSInitHandler))
 	api.HandleFunc("GET /media/transcode/hls/seg/{segment}", withUser(transcodeHLSSegmentHandler))
-	api.HandleFunc("GET /media/transcode", withUser(transcodeHandler))
+	api.HandleFunc("POST /media/transcode/sessions/ping", withUser(transcodeSessionPingHandler))
 	publicApi.HandleFunc("GET /media/metadata", withHashFile(publicMetadataHandler))
 	publicApi.HandleFunc("GET /media/lyrics", withHashFile(publicLyricsHandler))
 	publicApi.HandleFunc("GET /media/stream", withHashFile(publicStreamHandler))

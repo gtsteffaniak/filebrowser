@@ -604,10 +604,10 @@
     "clearSelection": "Vymazať výber",
     "interval": "Interval{suffix}",
     "transcode": "Prekódovať{suffix}",
-    "native": "Rodný{suffix}",
     "quality": "Kvalita{suffix}",
     "balanced": "Vyvážený{suffix}",
-    "dataSaver": "Úspora dát{suffix}"
+    "dataSaver": "Úspora dát{suffix}",
+    "off": "Vypnuté{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

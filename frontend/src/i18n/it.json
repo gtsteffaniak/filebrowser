@@ -173,10 +173,10 @@
     "clearSelection": "Deseleziona",
     "interval": "Intervallo{suffix}",
     "transcode": "Transcodifica{suffix}",
-    "native": "Nativo{suffix}",
     "quality": "Qualità{suffix}",
     "balanced": "Equilibrato{suffix}",
-    "dataSaver": "Risparmio dati{suffix}"
+    "dataSaver": "Risparmio dati{suffix}",
+    "off": "Spento{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",

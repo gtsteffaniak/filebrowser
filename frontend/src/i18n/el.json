@@ -604,10 +604,10 @@
     "clearSelection": "Εκκαθάριση επιλογής",
     "interval": "Διάστημα{suffix}",
     "transcode": "Μετατροπή κωδικοποίησης{suffix}",
-    "native": "Γηγενής{suffix}",
     "quality": "Ποιότητα{suffix}",
     "balanced": "Ισορροπημένο{suffix}",
-    "dataSaver": "Εξοικονόμηση δεδομένων{suffix}"
+    "dataSaver": "Εξοικονόμηση δεδομένων{suffix}",
+    "off": "Απενεργοποίηση{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",

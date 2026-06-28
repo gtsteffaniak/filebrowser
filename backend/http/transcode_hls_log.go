@@ -2,10 +2,18 @@ package http
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+func hlsFormatMs(d time.Duration) string {
+	if d < 0 {
+		d = 0
+	}
+	return fmt.Sprintf("%.0fms", float64(d)/float64(time.Millisecond))
+}
 
 func hlsLogSession(entry *transcodeSessionEntry) string {
 	if entry == nil {

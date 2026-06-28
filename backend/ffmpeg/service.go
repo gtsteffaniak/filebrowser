@@ -9,6 +9,7 @@ import (
 
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
+	gtlogger "github.com/gtsteffaniak/go-ffmpeg/gtlogger"
 	"github.com/gtsteffaniak/go-ffmpeg/ops"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -33,6 +34,7 @@ type InitOptions struct {
 	SkipHWTests          bool
 	HardwareAcceleration bool
 	ExiftoolPath         string
+	Debug                bool
 }
 
 // Initialize creates the global ffmpeg service and runs capability detection.
@@ -51,8 +53,9 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 	svc, err := goffmpeg.New(ctx, goffmpeg.Config{
 		FFmpegPath:    opts.FFmpegPath,
 		MaxConcurrent: opts.MaxConcurrent,
-		Logger:        goffmpeg.NopLogger(),
+		Logger:        ffmpegLogger(opts.Debug),
 		SkipHWTests:   opts.SkipHWTests,
+		VerboseFFmpeg: opts.Debug,
 	})
 	if err != nil {
 		global = nil
@@ -77,6 +80,14 @@ func Get() *Service {
 // Enabled reports whether ffmpeg initialized successfully.
 func Enabled() bool {
 	return global != nil && global.inner != nil
+}
+
+// Capabilities returns detected ffmpeg capabilities, or nil when unavailable.
+func (s *Service) Capabilities() *capabilities.Capabilities {
+	if s == nil || s.inner == nil {
+		return nil
+	}
+	return s.inner.Capabilities()
 }
 
 // FFmpegPath returns the resolved ffmpeg binary path.
@@ -153,6 +164,13 @@ func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamI
 
 	SubtitleContentCache.Set(cacheKey, content)
 	return content, nil
+}
+
+func ffmpegLogger(debug bool) goffmpeg.Logger {
+	if !debug {
+		return goffmpeg.NopLogger()
+	}
+	return gtlogger.WithGroup(logger.GetGlobalLogger())
 }
 
 func logCapabilities(svc *goffmpeg.Service, detectHardware bool) {

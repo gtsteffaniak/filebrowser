@@ -198,7 +198,8 @@ export default {
 
   },
   watch: {
-    $route: "fetchData",
+    // Query-only changes (e.g. playback ?t=) must not refetch the open file.
+    '$route.path': 'fetchData',
     reload(value) {
       if (value) {
         this.fetchData();

@@ -696,10 +696,10 @@
     "clearSelection": "清除選取項目",
     "interval": "間隔{suffix}",
     "transcode": "轉碼{suffix}",
-    "native": "原生{suffix}",
     "quality": "品質{suffix}",
     "balanced": "平衡{suffix}",
-    "dataSaver": "數據節省模式{suffix}"
+    "dataSaver": "數據節省模式{suffix}",
+    "off": "關閉{suffix}"
   },
   "access": {
     "rules": "存取規則",

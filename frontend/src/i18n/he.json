@@ -604,10 +604,10 @@
     "clearSelection": "נקה את הבחירה",
     "interval": "אינטרוול{suffix}",
     "transcode": "המרה{suffix}",
-    "native": "יליד{suffix}",
     "quality": "איכות{suffix}",
     "balanced": "מאוזן{suffix}",
-    "dataSaver": "חיסכון בנתונים{suffix}"
+    "dataSaver": "חיסכון בנתונים{suffix}",
+    "off": "כבוי{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

@@ -604,10 +604,10 @@
     "clearSelection": "مسح التحديد",
     "interval": "الفاصل الزمني{suffix}",
     "transcode": "تحويل الترميز{suffix}",
-    "native": "أصلي{suffix}",
     "quality": "الجودة{suffix}",
     "balanced": "متوازن{suffix}",
-    "dataSaver": "موفِّر البيانات{suffix}"
+    "dataSaver": "موفِّر البيانات{suffix}",
+    "off": "إيقاف{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

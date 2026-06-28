@@ -604,10 +604,10 @@
     "clearSelection": "Borrar selección",
     "interval": "Intervalo{suffix}",
     "transcode": "Transcodificar{suffix}",
-    "native": "Nativo{suffix}",
     "quality": "Calidad{suffix}",
     "balanced": "Equilibrado{suffix}",
-    "dataSaver": "Ahorro de datos{suffix}"
+    "dataSaver": "Ahorro de datos{suffix}",
+    "off": "Apagado{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

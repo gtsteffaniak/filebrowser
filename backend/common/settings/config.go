@@ -396,6 +396,7 @@ func setupFFmpegIntegration() {
 		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
 		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
 		ExiftoolPath:         Config.Integrations.Media.ExiftoolPath,
+		Debug:                Config.Integrations.Media.Debug,
 	})
 	if err != nil {
 		logger.Warningf("ffmpeg unavailable: %v", err)

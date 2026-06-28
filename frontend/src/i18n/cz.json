@@ -696,10 +696,10 @@
     "clearSelection": "Vymazat výběr",
     "interval": "Interval{suffix}",
     "transcode": "Překódovat{suffix}",
-    "native": "Rodilý{suffix}",
     "quality": "Kvalita{suffix}",
     "balanced": "Vyvážený{suffix}",
-    "dataSaver": "Úspora dat{suffix}"
+    "dataSaver": "Úspora dat{suffix}",
+    "off": "Vypnuto{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

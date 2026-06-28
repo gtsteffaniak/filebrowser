@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math"
@@ -16,9 +17,15 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-ffmpeg/encode"
+	"github.com/gtsteffaniak/go-ffmpeg/mp4"
 )
 
-const hlsSegmentEncodeTimeout = 25 * time.Second
+func hlsSegmentEncodeTimeout(entry *transcodeSessionEntry) time.Duration {
+	if entry != nil && entry.hls != nil {
+		return entry.hls.delivery.Normalized().SegmentEncodeTimeout
+	}
+	return ffmpeg.ActiveHLSConfig().SegmentEncodeTimeout
+}
 
 func setTranscodeNoCacheHeaders(w http.ResponseWriter) {
 	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
@@ -85,47 +92,39 @@ func hlsSegmentCount(durationSec float64) int {
 	if durationSec <= 0 {
 		return 1
 	}
-	return int(math.Ceil(durationSec / ffmpeg.HLSSegmentDurationSec))
+	return int(math.Ceil(durationSec / ffmpeg.SegmentDurationSec()))
 }
 
-func buildHLSSegmentParams(svc *ffmpeg.Service, ctx context.Context, realPath string, info ffmpeg.StreamInfo, profileMode string) ffmpeg.HLSSegmentParams {
-	remux := canFMP4StreamCopy(info)
-	videoCopy := hlsUseVideoCopy(info, profileMode)
-	params := ffmpeg.HLSSegmentParams{
-		Remux:     remux,
-		VideoCopy: videoCopy,
-		MaxHeight: transcodeMaxHeightForMode(profileMode),
-	}
-	if !remux && !videoCopy {
-		params.Decode = transcodeDecodeProfile(info)
-		params.Profile = transcodeEncodeProfileForMode(info, profileMode)
-	}
-	fps, err := svc.ProbeVideoFPS(ctx, realPath)
-	if err != nil {
-		fps = 30
-	}
-	params.GOP = int(fps * ffmpeg.HLSSegmentDurationSec)
-	if params.GOP < 1 {
-		params.GOP = 120
-	}
-	return params
+func buildHLSSegmentParamsFast(info ffmpeg.StreamInfo, profileMode string) ffmpeg.HLSSegmentParams {
+	mode := ffmpeg.ParseHLSTranscodeProfile(profileMode)
+	maxH := transcodeMaxHeightForMode(profileMode)
+	in := ffmpeg.BuildHLSSegmentBuildInput(info, mode, maxH)
+	return ffmpeg.BuildHLSSegmentParamsFast(in)
+}
+
+func buildHLSSegmentParamsWithGOP(svc *ffmpeg.Service, ctx context.Context, realPath string, info ffmpeg.StreamInfo, profileMode string, probeFPS bool) (ffmpeg.HLSSegmentParams, error) {
+	mode := ffmpeg.ParseHLSTranscodeProfile(profileMode)
+	maxH := transcodeMaxHeightForMode(profileMode)
+	in := ffmpeg.BuildHLSSegmentBuildInput(info, mode, maxH)
+	return svc.BuildHLSSegmentParams(ctx, realPath, in, probeFPS)
 }
 
 func hlsSegmentDurationSec(index int, h *hlsSessionState) float64 {
 	if h == nil {
-		return ffmpeg.HLSSegmentDurationSec
+		return ffmpeg.SegmentDurationSec()
 	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if index >= 0 && index < len(h.segmentDurations) {
 		return h.segmentDurations[index]
 	}
-	return ffmpeg.HLSSegmentDurationSec
+	return ffmpeg.SegmentDurationSec()
 }
 
 func hlsSegmentBounds(index int, starts, durations []float64) (startSec, durSec float64) {
-	startSec = float64(index) * ffmpeg.HLSSegmentDurationSec
-	durSec = ffmpeg.HLSSegmentDurationSec
+	segDur := ffmpeg.SegmentDurationSec()
+	startSec = float64(index) * segDur
+	durSec = segDur
 	if index >= 0 && index < len(starts) {
 		startSec = starts[index]
 	}
@@ -136,58 +135,71 @@ func hlsSegmentBounds(index int, starts, durations []float64) (startSec, durSec 
 }
 
 func (entry *transcodeSessionEntry) ensureHLSState(svc *ffmpeg.Service, ctx context.Context, realPath string, info ffmpeg.StreamInfo, profileMode string) error {
+	stateStart := time.Now()
+	entry.hls.mu.Lock()
+	profileMode = parseTranscodeProfileMode(profileMode)
+	params := buildHLSSegmentParamsFast(info, profileMode)
+	needsKeyframes := params.VideoCopy || params.Remux
+	if entry.hls.realPath == realPath && entry.hls.profileMode == profileMode && entry.hls.segmentCount > 0 {
+		entry.hls.mu.Unlock()
+		hlsLogInfo(entry, "hls state cache hit total=%s", hlsFormatMs(time.Since(stateStart)))
+		return nil
+	}
+	entry.hls.mu.Unlock()
+
+	var starts, durations []float64
+	keyframeTimeline := false
+	var keyframeSeekTimes []float64
+	if needsKeyframes {
+		cfg := ffmpeg.ActiveHLSConfig()
+		probeCtx, cancel := context.WithTimeout(ctx, cfg.KeyframeProbeTimeout)
+		probeStart := time.Now()
+		keyframes, probeErr := svc.ProbeVideoKeyframeTimes(probeCtx, realPath)
+		cancel()
+		probeDur := time.Since(probeStart)
+		keyframeSeekTimes = ffmpeg.SanitizeHLSKeyframes(keyframes, info.Duration)
+		hlsLogInfo(entry, "hls state keyframe seek kf=%d probe=%s err=%v",
+			len(keyframeSeekTimes), hlsFormatMs(probeDur), probeErr)
+	}
+	// Playlist uses a fixed grid so EXTINF matches what hls.js expects; stream copy seeks
+	// to the nearest keyframe at or before each grid point via keyframeSeekTimes.
+	starts, durations = ffmpeg.BuildHLSSegmentTimeline(info.Duration, nil)
+
 	entry.hls.mu.Lock()
 	defer entry.hls.mu.Unlock()
-	profileMode = parseTranscodeProfileMode(profileMode)
-	params := buildHLSSegmentParams(svc, ctx, realPath, info, profileMode)
-	needsKeyframes := params.VideoCopy || params.Remux
-	if entry.hls.realPath == realPath && entry.hls.profileMode == profileMode {
-		if !needsKeyframes || entry.hls.keyframeTimeline {
-			return nil
-		}
-		// Video-copy with a fixed-grid fallback: retry keyframe probe on refresh instead of
-		// serving a stale playlist/encode mismatch from cached grid segments.
-		hlsLogInfo(entry, "retrying keyframe probe after fixed-grid fallback")
+	if entry.hls.realPath == realPath && entry.hls.profileMode == profileMode && entry.hls.segmentCount > 0 {
+		return nil
 	}
 
 	entry.hls.realPath = realPath
 	entry.hls.profileMode = profileMode
+	entry.hls.delivery = ffmpeg.ActiveHLSConfig()
 	entry.hls.params = params
 	entry.hls.durationSec = info.Duration
-
-	var starts, durations []float64
-	keyframeTimeline := false
-	if needsKeyframes {
-		// H.264 stream copy can only cut on keyframes; a fixed grid produces overlapping
-		// or empty fragments on sources with GOP > segment size (common on WEB-DL).
-		keyframes, err := svc.ProbeVideoKeyframeTimes(ctx, realPath)
-		if err != nil {
-			hlsLogInfo(entry, "keyframe probe failed, using fixed grid: %v", err)
-			starts, durations = ffmpeg.BuildHLSSegmentTimeline(info.Duration, nil)
-		} else {
-			sanitized := ffmpeg.SanitizeHLSKeyframes(keyframes, info.Duration)
-			if sanitized == nil {
-				hlsLogInfo(entry, "keyframe probe unusable, using fixed grid")
-				starts, durations = ffmpeg.BuildHLSSegmentTimeline(info.Duration, nil)
-			} else {
-				keyframeTimeline = true
-				starts, durations = ffmpeg.BuildHLSSegmentTimeline(info.Duration, sanitized)
-			}
-		}
-	} else {
-		starts, durations = ffmpeg.BuildHLSSegmentTimeline(info.Duration, nil)
-	}
+	entry.hls.gopResolved = false
 	entry.hls.keyframeTimeline = keyframeTimeline
 	entry.hls.segmentStarts = starts
 	entry.hls.segmentDurations = durations
+	entry.hls.keyframeSeekTimes = keyframeSeekTimes
+	entry.hls.segmentMediaEnds = nil
 	entry.hls.segmentCount = len(starts)
 	if entry.hls.segmentCount < 1 {
 		entry.hls.segmentCount = hlsSegmentCount(info.Duration)
 	}
+	entry.hls.sharedInit = true
+	entry.hls.lastActivity = time.Now()
 
 	entry.hls.init = nil
 	entry.hls.inits = make(map[int][]byte)
 	entry.hls.segments = make(map[int][]byte)
+	hlsLogInfo(entry,
+		"hls state ready total=%s segments=%d keyframes=%t %s %s",
+		hlsFormatMs(time.Since(stateStart)),
+		entry.hls.segmentCount,
+		keyframeTimeline,
+		hlsLogParams(params, profileMode),
+		svc.DescribeHLSEncodePlan(params),
+	)
 	return nil
 }
 
@@ -252,10 +264,59 @@ func (h *hlsSessionState) segmentInRange(index int) bool {
 	return index >= 0 && index < h.segmentCount
 }
 
-func (h *hlsSessionState) snapshotEncodeParams() (realPath string, params ffmpeg.HLSSegmentParams, profileMode string, starts, durations []float64) {
+func (h *hlsSessionState) snapshotEncodeParams() (realPath string, params ffmpeg.HLSSegmentParams, profileMode string, starts, durations, keyframeSeekTimes []float64) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	return h.realPath, h.params, h.profileMode, append([]float64(nil), h.segmentStarts...), append([]float64(nil), h.segmentDurations...)
+	return h.realPath, h.params, h.profileMode,
+		append([]float64(nil), h.segmentStarts...),
+		append([]float64(nil), h.segmentDurations...),
+		append([]float64(nil), h.keyframeSeekTimes...)
+}
+
+func (h *hlsSessionState) mediaTimelineSec(index int) float64 {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.mediaTimelineSecLocked(index)
+}
+
+func (h *hlsSessionState) mediaTimelineSecLocked(index int) float64 {
+	if index <= 0 {
+		return 0
+	}
+	if index-1 < len(h.segmentMediaEnds) && h.segmentMediaEnds[index-1] > 0 {
+		return h.segmentMediaEnds[index-1]
+	}
+	if index >= 0 && index < len(h.segmentStarts) {
+		return h.segmentStarts[index]
+	}
+	return float64(index) * ffmpeg.SegmentDurationSec()
+}
+
+func (h *hlsSessionState) applySegmentMediaMetrics(index int, actualDurSec float64) {
+	if actualDurSec <= 0 {
+		return
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	actualDurSec = roundSegmentDurationSec(actualDurSec)
+	if index >= 0 && index < len(h.segmentDurations) {
+		h.segmentDurations[index] = actualDurSec
+	}
+	start := h.mediaTimelineSecLocked(index)
+	end := start + actualDurSec
+	if len(h.segmentMediaEnds) < index+1 {
+		next := make([]float64, index+1)
+		copy(next, h.segmentMediaEnds)
+		h.segmentMediaEnds = next
+	}
+	h.segmentMediaEnds[index] = end
+}
+
+func roundSegmentDurationSec(sec float64) float64 {
+	if sec <= 0 {
+		return 0
+	}
+	return float64(int(sec*1000+0.5)) / 1000
 }
 
 func hlsBaseURL(r *http.Request) string {
@@ -287,16 +348,74 @@ func hlsInitIndexFromRequest(r *http.Request) int {
 	return 0
 }
 
-func hlsUsesMPEGTS(params ffmpeg.HLSSegmentParams) bool {
-	return !params.Remux && !params.VideoCopy
+func hlsUsesMPEGTS(_ ffmpeg.HLSSegmentParams) bool {
+	// fMP4 + shared init + output_ts_offset gives a continuous MSE timeline in hls.js.
+	// MPEG-TS independent segments stall the playhead around the first segment boundary.
+	return false
 }
 
-func hlsSegURL(base, sessionKey string, index int, mpegts bool) string {
+func (entry *transcodeSessionEntry) warmHLSSegments(svc *ffmpeg.Service, count int) {
+	if svc == nil || entry == nil || entry.hls == nil || count <= 0 {
+		return
+	}
+	cfg := entry.hls.delivery.Normalized()
+	if cfg.Mode != ffmpeg.HLSModeOnDemand {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.SegmentEncodeTimeout*time.Duration(count))
+	defer cancel()
+	for idx := 0; idx < count; idx++ {
+		if ctx.Err() != nil {
+			return
+		}
+		if !entry.hls.segmentInRange(idx) {
+			return
+		}
+		entry.hls.encodeMu.Lock()
+		if _, ok := entry.hls.cachedSegment(idx); ok {
+			entry.hls.encodeMu.Unlock()
+			continue
+		}
+		_, _, err := entry.encodeHLSSegment(ctx, svc, idx)
+		entry.hls.encodeMu.Unlock()
+		if err != nil {
+			hlsLogInfo(entry, "warm segment %d failed: %v", idx, err)
+			return
+		}
+	}
+}
+
+func (entry *transcodeSessionEntry) ensureSegmentGOP(ctx context.Context, svc *ffmpeg.Service, realPath string) {
+	entry.hls.mu.Lock()
+	if entry.hls.gopResolved {
+		entry.hls.mu.Unlock()
+		return
+	}
+	entry.hls.mu.Unlock()
+
+	info, err := svc.ProbeFile(ctx, realPath)
+	if err != nil || !info.IsValid {
+		return
+	}
+	params, err := buildHLSSegmentParamsWithGOP(svc, ctx, realPath, info, entry.hls.profileMode, true)
+	if err != nil {
+		return
+	}
+
+	entry.hls.mu.Lock()
+	entry.hls.params.GOP = params.GOP
+	entry.hls.gopResolved = true
+	entry.hls.mu.Unlock()
+}
+
+func hlsSegURL(base, sessionKey string, index int, mpegts bool, runtimeSec float64) string {
 	ext := ".m4s"
 	if mpegts {
 		ext = ".ts"
 	}
-	return fmt.Sprintf("%s/api/media/transcode/hls/seg/%d%s?session=%s", base, index, ext, url.QueryEscape(sessionKey))
+	url := fmt.Sprintf("%s/api/media/transcode/hls/seg/%d%s?session=%s&runtimeSec=%.3f",
+		base, index, ext, url.QueryEscape(sessionKey), runtimeSec)
+	return url
 }
 
 // transcodeHLSPlaylistHandler serves a dynamic VOD HLS playlist for on-demand transcoding.
@@ -327,46 +446,72 @@ func transcodeHLSPlaylistHandler(w http.ResponseWriter, r *http.Request, d *requ
 	}
 
 	if entry.hls == nil {
-		entry.hls = &hlsSessionState{}
+		entry.hls = &hlsSessionState{delivery: ffmpeg.ActiveHLSConfig()}
 	}
 
-	// One ffmpeg job at a time per session (probe, keyframe scan, segment encode).
-	entry.hls.encodeMu.Lock()
-	defer entry.hls.encodeMu.Unlock()
-
+	reqStart := time.Now()
+	probeStart := time.Now()
 	info, err := svc.ProbeFile(r.Context(), fileReq.realPath)
+	probeDur := time.Since(probeStart)
 	if err != nil || !info.IsValid {
 		return http.StatusInternalServerError, fmt.Errorf("probe failed: %v", err)
 	}
 
-	profileMode := parseTranscodeProfileMode(r.URL.Query().Get("profile"))
-	if err := entry.ensureHLSState(svc, r.Context(), fileReq.realPath, info, profileMode); err != nil {
+	profileMode := ffmpeg.ParseHLSTranscodeProfile(r.URL.Query().Get("profile"))
+	stateStart := time.Now()
+	if err := entry.ensureHLSState(svc, r.Context(), fileReq.realPath, info, string(profileMode)); err != nil {
 		return http.StatusInternalServerError, err
 	}
+	stateDur := time.Since(stateStart)
+
+	hlsCfg := entry.hls.delivery.Normalized()
+	if hlsCfg.Mode != ffmpeg.HLSModeOnDemand {
+		return http.StatusNotImplemented, fmt.Errorf("hls mode %q is not implemented", hlsCfg.Mode)
+	}
+
+	entry.hls.encodeMu.Lock()
+	if _, ok := entry.hls.cachedSegment(0); !ok {
+		warmCtx, warmCancel := context.WithTimeout(r.Context(), hlsCfg.SegmentEncodeTimeout)
+		_, _, warmErr := entry.encodeHLSSegment(warmCtx, svc, 0)
+		warmCancel()
+		if warmErr != nil {
+			entry.hls.encodeMu.Unlock()
+			return http.StatusInternalServerError, fmt.Errorf("warm segment 0: %w", warmErr)
+		}
+	}
+	entry.hls.encodeMu.Unlock()
+	go entry.warmHLSSegments(svc, hlsCfg.WarmPlaylistSegments)
 
 	segCount := entry.hls.segmentCount
 	durationSec := entry.hls.durationSec
-	// Each segment is encoded independently with -reset_timestamps 1; discontinuity tags
-	// tell hls.js/MSE to advance the timeline by #EXTINF duration.
-	useDiscontinuity := true
 	useMPEGTS := hlsUsesMPEGTS(entry.hls.params)
-	hlsLogInfo(entry, "playlist profile=%s segments=%d duration=%.1fs keyframes=%t discontinuity=%t mpegts=%t %s",
-		profileMode, segCount, durationSec, entry.hls.keyframeTimeline, useDiscontinuity, useMPEGTS,
-		hlsLogParams(entry.hls.params, profileMode))
+	entry.hls.mu.Lock()
+	sharedInit := entry.hls.sharedInit
+	segmentDurations := append([]float64(nil), entry.hls.segmentDurations...)
+	segmentStarts := append([]float64(nil), entry.hls.segmentStarts...)
+	entry.hls.mu.Unlock()
+	// Segments use output_ts_offset for a continuous timeline; discontinuity tags
+	// cause hls.js to jump backward at each segment boundary.
+	useDiscontinuity := false
+	hlsLogInfo(entry, "playlist profile=%s segments=%d duration=%.1fs keyframes=%t sharedInit=%t mpegts=%t probe=%s stateSetup=%s total=%s %s",
+		profileMode, segCount, durationSec, entry.hls.keyframeTimeline, sharedInit, useMPEGTS,
+		hlsFormatMs(probeDur), hlsFormatMs(stateDur), hlsFormatMs(time.Since(reqStart)),
+		hlsLogParams(entry.hls.params, string(profileMode)))
 	base := hlsBaseURL(r)
 	sessionKey := acquire.Session.ID
+	entry.hls.touchActivity(-1)
 
 	var b strings.Builder
+	b.Grow(segCount * 128)
 	b.WriteString("#EXTM3U\n")
+	b.WriteString(hlsCfg.PlaylistConfigComment())
+	b.WriteString("\n")
 	if useMPEGTS {
 		b.WriteString("#EXT-X-VERSION:3\n")
 	} else {
 		b.WriteString("#EXT-X-VERSION:7\n")
 	}
-	targetDur := 4
-	entry.hls.mu.Lock()
-	segmentDurations := append([]float64(nil), entry.hls.segmentDurations...)
-	entry.hls.mu.Unlock()
+	targetDur := int(math.Ceil(ffmpeg.SegmentDurationSec()))
 	for _, d := range segmentDurations {
 		if ceil := int(d + 0.999); ceil > targetDur {
 			targetDur = ceil
@@ -374,38 +519,62 @@ func transcodeHLSPlaylistHandler(w http.ResponseWriter, r *http.Request, d *requ
 	}
 	b.WriteString("#EXT-X-TARGETDURATION:")
 	fmt.Fprintf(&b, "%d\n", targetDur)
+	b.WriteString("#EXT-X-MEDIA-SEQUENCE:0\n")
 	b.WriteString("#EXT-X-PLAYLIST-TYPE:VOD\n")
+	if sharedInit && !useMPEGTS {
+		b.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
+		b.WriteString("#EXT-X-MAP:URI=\"")
+		b.WriteString(hlsInitURL(base, sessionKey, 0))
+		b.WriteString("\"\n")
+	}
 	for i := 0; i < segCount; i++ {
 		if useDiscontinuity && i > 0 {
 			b.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
-		if !useMPEGTS {
-			// Each on-demand fMP4 encode produces its own init; hls.js needs a MAP per fragment group.
+		if !useMPEGTS && !sharedInit {
 			b.WriteString("#EXT-X-MAP:URI=\"")
 			b.WriteString(hlsInitURL(base, sessionKey, i))
 			b.WriteString("\"\n")
 		}
-		segDur := hlsSegmentDurationSec(i, entry.hls)
+		segDur := ffmpeg.SegmentDurationSec()
+		if i >= 0 && i < len(segmentDurations) {
+			segDur = segmentDurations[i]
+		}
+		runtimeSec := float64(i) * ffmpeg.SegmentDurationSec()
+		if i >= 0 && i < len(segmentStarts) {
+			runtimeSec = segmentStarts[i]
+		}
 		b.WriteString("#EXTINF:")
 		fmt.Fprintf(&b, "%.3f,\n", segDur)
-		b.WriteString(hlsSegURL(base, sessionKey, i, useMPEGTS))
+		b.WriteString(hlsSegURL(base, sessionKey, i, useMPEGTS, runtimeSec))
 		b.WriteString("\n")
 	}
 	b.WriteString("#EXT-X-ENDLIST\n")
 
 	setTranscodeNoCacheHeaders(w)
+	ffmpeg.WriteHLSConfigHeaders(w, hlsCfg)
 	w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
+	w.Header().Set("X-Transcode-Session", sessionKey)
 	_, _ = w.Write([]byte(b.String()))
 	return http.StatusOK, nil
 }
 
 // encodeHLSSegment generates init+media for one segment index and caches both.
 func (entry *transcodeSessionEntry) encodeHLSSegment(ctx context.Context, svc *ffmpeg.Service, index int) (init, media []byte, err error) {
-	realPath, params, profileMode, starts, durations := entry.hls.snapshotEncodeParams()
+	realPath, _, _, _, _, _ := entry.hls.snapshotEncodeParams()
+	entry.ensureSegmentGOP(ctx, svc, realPath)
+	realPath, params, profileMode, starts, durations, keyframeSeekTimes := entry.hls.snapshotEncodeParams()
 	startSec, durSec := hlsSegmentBounds(index, starts, durations)
-	hlsLogInfo(entry, "segment %d encode start=%.3f dur=%.3f %s", index, startSec, durSec, hlsLogParams(params, profileMode))
+	mediaTimelineSec := entry.hls.mediaTimelineSec(index)
+	hlsLogInfo(entry, "segment %d encode start=%.3f mediaT=%.3f dur=%.3f %s plan=%s",
+		index, startSec, mediaTimelineSec, durSec, hlsLogParams(params, profileMode), svc.DescribeHLSEncodePlan(params))
 
-	opts := ffmpeg.BuildHLSSegmentOptions(realPath, index, params, starts, durations)
+	opts := ffmpeg.BuildHLSSegmentOptions(realPath, index, params, starts, durations, entry.hls.keyframeTimeline, keyframeSeekTimes)
+	opts.MediaTimelineSec = mediaTimelineSec
+
+	entry.hls.mu.Lock()
+	sharedInit := entry.hls.sharedInit
+	entry.hls.mu.Unlock()
 
 	if hlsUsesMPEGTS(params) {
 		data, segErr := svc.HLSSegment(ctx, opts)
@@ -415,11 +584,51 @@ func (entry *transcodeSessionEntry) encodeHLSSegment(ctx context.Context, svc *f
 		if len(data) == 0 {
 			return nil, nil, fmt.Errorf("empty segment output")
 		}
+		entry.recordSegmentMediaMetrics(index, data, params)
 		entry.hls.storeSegment(index, data)
 		return nil, data, nil
 	}
 
+	if sharedInit && index > 0 {
+		var buf bytes.Buffer
+		err = svc.HLSSegmentMedia(ctx, &buf, opts)
+		if err != nil && !params.Remux && !params.VideoCopy {
+			hlsLogInfo(entry, "segment %d transcode media failed, retrying with video copy: %v", index, err)
+			fallback := opts
+			fallback.VideoCopy = true
+			fallback.Decode = encode.VideoDecodeProfile{}
+			fallback.Profile = encode.VideoProfile{}
+			err = svc.HLSSegmentMedia(ctx, &buf, fallback)
+		}
+		if err != nil {
+			return nil, nil, err
+		}
+		media = buf.Bytes()
+		if len(media) == 0 {
+			return nil, nil, fmt.Errorf("empty segment output")
+		}
+		entry.recordSegmentMediaMetrics(index, media, params)
+		entry.hls.storeSegment(index, media)
+		return nil, media, nil
+	}
+
 	init, media, err = svc.HLSInitAndSegment(ctx, opts)
+	if err != nil && params.Remux {
+		hlsLogInfo(entry, "segment %d remux failed, retrying with video copy: %v", index, err)
+		fallbackParams := params
+		fallbackParams.Remux = false
+		fallbackParams.VideoCopy = true
+		fallbackParams.Decode = encode.VideoDecodeProfile{}
+		fallbackParams.Profile = encode.VideoProfile{}
+		fallbackOpts := ffmpeg.BuildHLSSegmentOptions(realPath, index, fallbackParams, starts, durations, entry.hls.keyframeTimeline, keyframeSeekTimes)
+		fallbackOpts.MediaTimelineSec = mediaTimelineSec
+		init, media, err = svc.HLSInitAndSegment(ctx, fallbackOpts)
+		if err == nil {
+			entry.hls.mu.Lock()
+			entry.hls.params = fallbackParams
+			entry.hls.mu.Unlock()
+		}
+	}
 	if err != nil && !params.Remux && !params.VideoCopy {
 		hlsLogInfo(entry, "segment %d transcode failed, retrying with video copy: %v", index, err)
 		fallback := opts
@@ -434,12 +643,25 @@ func (entry *transcodeSessionEntry) encodeHLSSegment(ctx context.Context, svc *f
 	if len(media) == 0 {
 		return nil, nil, fmt.Errorf("empty segment output")
 	}
+	entry.recordSegmentMediaMetrics(index, media, params)
 	entry.hls.storeInitAndSegment(index, init, media)
 	return init, media, nil
 }
 
+func (entry *transcodeSessionEntry) recordSegmentMediaMetrics(index int, media []byte, params ffmpeg.HLSSegmentParams) {
+	if hlsUsesMPEGTS(params) || len(media) == 0 {
+		return
+	}
+	actualDur := mp4.FragmentDurationSec(media)
+	if actualDur <= 0 {
+		actualDur = hlsSegmentDurationSec(index, entry.hls)
+	}
+	entry.hls.applySegmentMediaMetrics(index, actualDur)
+}
+
 // transcodeHLSInitHandler serves the fMP4 init segment for an HLS session.
 func transcodeHLSInitHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	reqStart := time.Now()
 	if !settings.TranscodeEnabled() {
 		return http.StatusNotFound, fmt.Errorf("transcode not enabled")
 	}
@@ -457,6 +679,13 @@ func transcodeHLSInitHandler(w http.ResponseWriter, r *http.Request, d *requestC
 	if !entry.hls.segmentInRange(index) {
 		return http.StatusNotFound, fmt.Errorf("init segment out of range")
 	}
+	entry.hls.touchActivity(-1)
+	entry.hls.mu.Lock()
+	sharedInit := entry.hls.sharedInit
+	entry.hls.mu.Unlock()
+	if sharedInit && index > 0 {
+		index = 0
+	}
 	if hlsUsesMPEGTS(entry.hls.params) {
 		return http.StatusNotFound, fmt.Errorf("init not used for mpegts sessions")
 	}
@@ -467,37 +696,49 @@ func transcodeHLSInitHandler(w http.ResponseWriter, r *http.Request, d *requestC
 	}
 
 	if init, ok := entry.hls.cachedInit(index); ok {
-		hlsLogInfo(entry, "init %d cache hit bytes=%d", index, len(init))
+		hlsLogInfo(entry, "init %d cache hit bytes=%d total=%s", index, len(init), hlsFormatMs(time.Since(reqStart)))
 		setTranscodeNoCacheHeaders(w)
+		ffmpeg.WriteHLSConfigHeaders(w, entry.hls.delivery)
 		w.Header().Set("Content-Type", "video/mp4")
 		_, _ = w.Write(init)
 		return http.StatusOK, nil
 	}
 
+	queueStart := time.Now()
 	entry.hls.encodeMu.Lock()
+	queueWait := time.Since(queueStart)
 	defer entry.hls.encodeMu.Unlock()
 
 	if init, ok := entry.hls.cachedInit(index); ok {
-		hlsLogInfo(entry, "init %d cache hit after wait bytes=%d", index, len(init))
+		hlsLogInfo(entry, "init %d cache hit after wait queue=%s bytes=%d total=%s",
+			index, hlsFormatMs(queueWait), len(init), hlsFormatMs(time.Since(reqStart)))
 		setTranscodeNoCacheHeaders(w)
+		ffmpeg.WriteHLSConfigHeaders(w, entry.hls.delivery)
 		w.Header().Set("Content-Type", "video/mp4")
 		_, _ = w.Write(init)
 		return http.StatusOK, nil
 	}
 
 	start := time.Now()
-	ctx, cancel := context.WithTimeout(r.Context(), hlsSegmentEncodeTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), hlsSegmentEncodeTimeout(entry))
 	defer cancel()
 
 	init, media, err := entry.encodeHLSSegment(ctx, svc, index)
 	if err != nil {
-		hlsLogError(entry, "init %d encode failed after %s: %v", index, time.Since(start), err)
-		return http.StatusInternalServerError, fmt.Errorf("init encode failed")
+		hlsLogError(entry, "init %d encode failed queue=%s encode=%s total=%s: %v",
+			index, hlsFormatMs(queueWait), hlsFormatMs(time.Since(start)), hlsFormatMs(time.Since(reqStart)), err)
+		if status := hlsEncodeHTTPStatus(err); status != 0 {
+			return status, fmt.Errorf("init encode failed")
+		}
+		return 0, nil
 	}
-	hlsLogInfo(entry, "init %d encode ok after %s initBytes=%d segBytes=%d cachedSeg=%t",
-		index, time.Since(start), len(init), len(media), len(media) > 0)
+	encodeDur := time.Since(start)
+	hlsLogInfo(entry, "init %d encode ok queue=%s encode=%s total=%s initBytes=%d segBytes=%d cachedSeg=%t",
+		index, hlsFormatMs(queueWait), hlsFormatMs(encodeDur), hlsFormatMs(time.Since(reqStart)),
+		len(init), len(media), len(media) > 0)
 
 	setTranscodeNoCacheHeaders(w)
+	ffmpeg.WriteHLSConfigHeaders(w, entry.hls.delivery)
 	w.Header().Set("Content-Type", "video/mp4")
 	_, _ = w.Write(init)
 	return http.StatusOK, nil
@@ -505,6 +746,7 @@ func transcodeHLSInitHandler(w http.ResponseWriter, r *http.Request, d *requestC
 
 // transcodeHLSSegmentHandler serves one on-demand fMP4 media segment.
 func transcodeHLSSegmentHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	reqStart := time.Now()
 	if !settings.TranscodeEnabled() {
 		return http.StatusNotFound, fmt.Errorf("transcode not enabled")
 	}
@@ -537,20 +779,33 @@ func transcodeHLSSegmentHandler(w http.ResponseWriter, r *http.Request, d *reque
 		hlsLogError(entry, "segment out of range index=%d", index)
 		return http.StatusNotFound, fmt.Errorf("segment out of range")
 	}
+	entry.hls.touchActivity(-1)
+	if runtimeSec, ok := parseRuntimeSecQuery(r); ok {
+		entry.hls.mu.Lock()
+		starts := append([]float64(nil), entry.hls.segmentStarts...)
+		entry.hls.mu.Unlock()
+		expected := segmentIndexForPlayhead(runtimeSec, starts)
+		if expected != index {
+			hlsLogInfo(entry, "segment index=%d runtimeSec=%.3f maps to index=%d", index, runtimeSec, expected)
+		}
+	}
 
 	if data, ok := entry.hls.cachedSegment(index); ok {
-		hlsLogInfo(entry, "segment %d cache hit bytes=%d", index, len(data))
+		hlsLogInfo(entry, "segment %d cache hit bytes=%d total=%s", index, len(data), hlsFormatMs(time.Since(reqStart)))
 		setTranscodeNoCacheHeaders(w)
 		w.Header().Set("Content-Type", hlsSegmentContentType(entry.hls.params))
 		_, _ = w.Write(data)
 		return http.StatusOK, nil
 	}
 
+	queueStart := time.Now()
 	entry.hls.encodeMu.Lock()
+	queueWait := time.Since(queueStart)
 	defer entry.hls.encodeMu.Unlock()
 
 	if data, ok := entry.hls.cachedSegment(index); ok {
-		hlsLogInfo(entry, "segment %d cache hit after wait bytes=%d", index, len(data))
+		hlsLogInfo(entry, "segment %d cache hit after wait queue=%s bytes=%d total=%s",
+			index, hlsFormatMs(queueWait), len(data), hlsFormatMs(time.Since(reqStart)))
 		setTranscodeNoCacheHeaders(w)
 		w.Header().Set("Content-Type", hlsSegmentContentType(entry.hls.params))
 		_, _ = w.Write(data)
@@ -564,17 +819,30 @@ func transcodeHLSSegmentHandler(w http.ResponseWriter, r *http.Request, d *reque
 	}
 
 	start := time.Now()
-	ctx, cancel := context.WithTimeout(r.Context(), hlsSegmentEncodeTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), hlsSegmentEncodeTimeout(entry))
 	defer cancel()
 
 	_, media, err := entry.encodeHLSSegment(ctx, svc, index)
 	if err != nil {
-		hlsLogError(entry, "segment %d encode failed after %s: %v", index, time.Since(start), err)
-		return http.StatusInternalServerError, fmt.Errorf("segment encode failed")
+		hlsLogError(entry, "segment %d encode failed queue=%s encode=%s total=%s: %v",
+			index, hlsFormatMs(queueWait), hlsFormatMs(time.Since(start)), hlsFormatMs(time.Since(reqStart)), err)
+		if status := hlsEncodeHTTPStatus(err); status != 0 {
+			return status, fmt.Errorf("segment encode failed")
+		}
+		return 0, nil
 	}
-	hlsLogInfo(entry, "segment %d encode ok after %s bytes=%d", index, time.Since(start), len(media))
+	entry.hls.pruneSegmentCache()
+	encodeDur := time.Since(start)
+	realtimeRatio := 0.0
+	if segDur := hlsSegmentDurationSec(index, entry.hls); segDur > 0 {
+		realtimeRatio = segDur / encodeDur.Seconds()
+	}
+	hlsLogInfo(entry, "segment %d encode ok queue=%s encode=%s total=%s bytes=%d segDur=%.3fs realtime=%.2fx",
+		index, hlsFormatMs(queueWait), hlsFormatMs(encodeDur), hlsFormatMs(time.Since(reqStart)),
+		len(media), hlsSegmentDurationSec(index, entry.hls), realtimeRatio)
 
 	setTranscodeNoCacheHeaders(w)
+	ffmpeg.WriteHLSConfigHeaders(w, entry.hls.delivery)
 	w.Header().Set("Content-Type", hlsSegmentContentType(entry.hls.params))
 	_, _ = w.Write(media)
 	return http.StatusOK, nil
