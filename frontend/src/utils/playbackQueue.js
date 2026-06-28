@@ -242,3 +242,19 @@ export function navigatePlaybackQueue(direction) {
 
   return true;
 }
+
+/**
+ * @param {string} artist - Artist from metadata
+ * @returns {string} Formatted artist
+ */
+export function formatArtist(artist) {
+  if (typeof artist !== 'string' || !artist.trim()) {
+    return '';
+  }
+  // by common separators like ',', ';', or ' feat. ', ' ft. '
+  const parts = artist
+    .split(/[,;]|\s+(?:feat|ft)\.?\s+/i)
+    .map(s => s.trim())
+    .filter(Boolean);
+  return parts.join(' • ');
+}

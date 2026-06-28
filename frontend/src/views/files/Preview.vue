@@ -98,6 +98,7 @@ export default {
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
+      dirMetadataCache: new Map(),
     };
   },
   computed: {
@@ -277,6 +278,46 @@ export default {
     mutations.clearNavigation();
   },
   methods: {
+    async attachDirMediaMetadata(listing, dirPath) {
+      // Fetches directory metadata and attaches it to the items for playback queue.
+      // gets cached for the current preview -- it might look similar to enrichAvFromMediaApi but
+      // this one gets called only once per dir (instead of per item) and doesn't carry album art.
+      if (!listing?.length) return;
+      const cacheKey = getters.isShare()
+        ? `${state.shareInfo.hash}:${dirPath}`
+        : `${state.req.source}:${dirPath}`;
+      const cachedMap = this.dirMetadataCache.get(cacheKey);
+      if (cachedMap) {
+        listing.forEach(item => {
+          if (cachedMap.has(item.name)) {
+            const metadata = cachedMap.get(item.name);
+            item.metadata = item.path === state.req.path
+              ? { ...metadata, ...item.metadata }
+              : metadata;
+          }
+        });
+        return;
+      }
+      try {
+        const isShare = getters.isShare();
+        const payload = isShare
+          ? await mediaApi.fetchDirectoryMediaMetadataPublic(dirPath, state.shareInfo.hash, localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '', false)
+          : await mediaApi.fetchDirectoryMediaMetadata(state.req.source, dirPath, false);
+        if (!payload?.items) return;
+        const metaMap = new Map(payload.items.filter(i => i.metadata).map(i => [i.name, i.metadata]));
+        listing.forEach(item => {
+          if (metaMap.has(item.name)) {
+          const metadata = metaMap.get(item.name);
+          item.metadata = item.path === state.req.path
+            ? { ...metadata, ...item.metadata }
+            : metadata;
+          }
+        });
+        this.dirMetadataCache.set(cacheKey, metaMap);
+      } catch (e) {
+        console.warn('dir items metadata fetch failed', e);
+      }
+    },
     async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
@@ -323,6 +364,11 @@ export default {
       if (state.req.path !== path) {
         return;
       }
+      await this.updatePreview();
+      if (isAv && this.listing) {
+        const directoryPath = url.removeLastDir(state.req.path) || '/';
+        await this.attachDirMediaMetadata(this.listing, directoryPath);
+      }
       this.subtitlesList = await this.subtitles();
       if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {
         this.lyricsFetchedForPath = state.req.path;
@@ -343,7 +389,6 @@ export default {
           this.lyrics = [];
         }
       }
-      await this.updatePreview();
       mutations.resetSelected();
       mutations.addSelected({
         name: state.req.name,

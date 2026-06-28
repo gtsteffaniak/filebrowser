@@ -14,11 +14,11 @@
         <div
           v-for="(item, index) in formattedQueue"
           :key="`${item.path}-${index}`"
-          class="play-queue-item"
+          class="queue-item"
           :class="{ 'current': index === currentQueueIndex }"
           @click="navigateToItem(index)"
         >
-          <div class="item-icon">
+          <div class="queue-item-icon">
             <Icon
               :mimetype="item.type"
               :filename="item.name"
@@ -30,15 +30,23 @@
               :size="item.size"
             />
           </div>
-          <div class="item-name">
-            <span class="name">{{ item.name }}</span>
+          <!-- Metadata -->
+          <div class="queue-item-info">
+            <div class="queue-item-title">{{ item.title }}</div>
+            <div v-if="item.artist" class="queue-item-metadata">{{ item.artist }}</div>
+            <div v-if="item.album" class="queue-item-metadata">{{ item.album }}</div>
           </div>
-          <div class="item-indicator">
-            <span v-if="index === currentQueueIndex" class="current-track">
-              <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-              <i class="material-symbols">{{ isPlaying ? 'pause' : 'play_arrow' }}</i>
+          <!-- Duration + file type + play indicator -->
+          <div class="queue-item-meta">
+            <span v-if="item.duration" class="queue-item-duration">{{ item.duration }}</span>
+            <span v-if="item.fileType" class="file-type-badge">{{ item.fileType }}</span>
+            <span class="queue-item-indicator">
+              <span v-if="index === currentQueueIndex" class="current-track">
+                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+                <i class="material-symbols">{{ isPlaying ? 'pause' : 'play_arrow' }}</i>
+              </span>
+              <span v-else class="track-number">{{ index + 1 }}</span>
             </span>
-            <span v-else class="track-number">{{ index + 1 }}</span>
           </div>
         </div>
       </div>
@@ -66,10 +74,11 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { cyclePlaybackModes as cycleModes } from '@/utils/playbackQueue.js';
+import { cyclePlaybackModes as cycleModes, formatArtist } from '@/utils/playbackQueue.js';
 import Icon from "@/components/files/Icon.vue";
 import { resourcesApi } from "@/api";
 import { globalVars } from "@/utils/constants";
+import { formatDuration, getTypeFromMime, removeExtension } from "@/utils/files.js";
 
 export default {
   name: "PlaybackQueue",
@@ -118,16 +127,42 @@ export default {
       return modeIcons[this.playbackMode] || 'music_note';
     },
     formattedQueue() {
-      return this.playbackQueue.map((item) => ({
-        name: item.name,
-        path: item.path,
-        type: item.type,
-        source: item.source,
-        modified: item.modified,
-        size: item.size,
-        hasPreview: item.hasPreview,
-        thumbnailUrl: this.getThumbnailUrl(item),
-      }));
+      return this.playbackQueue.map((item) => {
+        const metadata = item.metadata || {};
+        // Title: fallback to filename without extension
+        const title = metadata.title || removeExtension(item.name);
+        // Artist formatted
+        const artist = formatArtist(metadata.artist);
+        // Album name with year
+        let album = '';
+        if (metadata.album) {
+          album = metadata.album;
+          if (metadata.year) {
+            album += ` (${metadata.year})`;
+          }
+        } else if (metadata.year) {
+          album = metadata.year;
+        }
+        // File type
+        const fileType = getTypeFromMime(item.type);
+        // Duration
+        const duration = formatDuration(metadata.duration);
+        return {
+          name: item.name,
+          path: item.path,
+          type: item.type,
+          source: item.source,
+          modified: item.modified,
+          size: item.size,
+          hasPreview: item.hasPreview,
+          thumbnailUrl: this.getThumbnailUrl(item),
+          title: title,
+          artist: artist,
+          album: album,
+          fileType: fileType,
+          duration: duration,
+        };
+      });
     },
     isPlaying() {
       return state.playbackQueue.isPlaying || false;
@@ -232,7 +267,8 @@ export default {
       if (this.queueCount === 0) return;
       this.$nextTick(() => {
         const list = this.$refs.QueueList;
-        const currentItem = list.querySelector('.play-queue-item.current');
+        if (!list) return;
+        const currentItem = list.querySelector('.queue-item.current');
         if (!currentItem) return;
 
         const listRect = list.getBoundingClientRect();
@@ -328,39 +364,38 @@ export default {
 .queue-list {
   overflow-y: auto;
   min-height: 0;
-  align-items: center;
   border-radius: 12px;
   padding: 0;
 }
 
-.play-queue-item {
+.queue-item {
   display: flex;
   align-items: center;
-  text-align: center;
-  padding: 0.35rem 0.85rem;
+  text-align: left;
+  padding: 0.2rem 0.85rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
   gap: 0.5rem;
   border-radius: 12px;
 }
 
-.play-queue-item:hover {
+.queue-item:hover {
   background: var(--surfaceSecondary);
 }
 
-.play-queue-item.current {
+.queue-item.current {
   background: var(--primaryColor);
   color: white;
 }
 
-.play-queue-item.current .item-icon i,
-.play-queue-item.current .current-indicator,
-.item-indicator {
+.queue-item.current .queue-item-icon i,
+.queue-item.current .current-indicator,
+.queue-item-indicator {
   color: white;
   user-select: none;
 }
 
-.item-icon {
+.queue-item-icon {
   flex-shrink: 0;
   width: 2.65em;
   height: 2.65em;
@@ -368,21 +403,93 @@ export default {
   overflow: hidden;
 }
 
-.item-icon :deep(.image-preview) {
+.queue-item-icon :deep(.image-preview) {
   width: 100%;
   height: 100%;
   --icon-font-size: 1.8em;
 }
 
-.item-name {
+.queue-item-info {
   flex: 1;
-  padding: 0.2em 0.35em;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.1em 0;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.queue-item-title {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.95em;
+}
+
+.queue-item-metadata {
+  font-size: 0.8em;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-item.current .queue-item-metadata {
+  opacity: 0.85;
+}
+
+.queue-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  font-size: 0.8em;
+}
+
+.queue-item-duration {
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.file-type-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  background: var(--surfaceSecondary);
+  padding: 0.1em 0.6em;
+  border-radius: 1em;
+  opacity: 0.7;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.queue-item.current .file-type-badge {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  opacity: 1;
+}
+
+.queue-item-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8em;
+  font-size: 0.9rem;
 }
 
 .track-number {
   color: var(--textSecondary);
   font-weight: 600;
   user-select: none;
+}
+
+.queue-item.current .track-number {
+  color: white;
+}
+
+.current-track i.material-symbols {
+  font-size: 1.1rem;
 }
 
 .empty {
