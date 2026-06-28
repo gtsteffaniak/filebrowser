@@ -77,6 +77,8 @@ import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 
+const DIR_METADATA_CACHE_KEY = 'mediaMetadataCache';
+
 export default {
   name: "preview",
   components: {
@@ -277,19 +279,64 @@ export default {
     mutations.clearNavigation();
   },
   methods: {
-    // Fetches directory metadata and attaches it to listing items (for playback queue)
-    async attachMediaMetadata(listing, dirPath) {
+    getDirCachedMediaMetadata(cacheKey) {
+      try {
+        const stored = sessionStorage.getItem(DIR_METADATA_CACHE_KEY);
+        if (!stored) return null;
+        const array = JSON.parse(stored);
+        if (!Array.isArray(array)) return null;
+        const cacheMap = new Map(array);
+        const entries = cacheMap.get(cacheKey);
+        if (!entries || !Array.isArray(entries)) return null;
+        return new Map(entries);
+      } catch (_) {
+        return null;
+      }
+    },
+    setDirCachedMediaMetadata(cacheKey, metaMap) {
+      try {
+        const stored = sessionStorage.getItem(DIR_METADATA_CACHE_KEY);
+        let cacheMap = new Map();
+        if (stored) {
+          const array = JSON.parse(stored);
+          if (Array.isArray(array)) cacheMap = new Map(array);
+        }
+        cacheMap.set(cacheKey, Array.from(metaMap.entries()));
+        sessionStorage.setItem(DIR_METADATA_CACHE_KEY, JSON.stringify(Array.from(cacheMap.entries())));
+      } catch (_) { /* ignore */ }
+    },
+    async attachDirMediaMetadata(listing, dirPath) {
+      // Fetches directory metadata and attaches it to the items for playback queue.
+      // gets cached for the current dir onto session storage -- it might look similar to enrichAvFromMediaApi but
+      // this one gets called only once per dir (instead of per item) and doesn't carry album art.
       if (!listing?.length) return;
+      const cacheKey = getters.isShare()
+        ? `${state.shareInfo.hash}:${dirPath}`
+        : `${state.req.source}:${dirPath}`;
+      const cachedMap = this.getDirCachedMediaMetadata(cacheKey);
+      if (cachedMap) {
+        listing.forEach(item => {
+          if (cachedMap.has(item.name)) {
+            item.metadata = cachedMap.get(item.name);
+          }
+        });
+        return;
+      }
       try {
         const isShare = getters.isShare();
         const payload = isShare
-          ? await mediaApi.fetchDirectoryMediaMetadataPublic(dirPath, state.shareInfo.hash, localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '', true)
-          : await mediaApi.fetchDirectoryMediaMetadata(state.req.source, dirPath, true);
+          ? await mediaApi.fetchDirectoryMediaMetadataPublic(dirPath, state.shareInfo.hash, localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '', false)
+          : await mediaApi.fetchDirectoryMediaMetadata(state.req.source, dirPath, false);
         if (!payload?.items) return;
         const metaMap = new Map(payload.items.filter(i => i.metadata).map(i => [i.name, i.metadata]));
-        listing.forEach(item => { if (metaMap.has(item.name)) item.metadata = metaMap.get(item.name); });
+        listing.forEach(item => {
+          if (metaMap.has(item.name)) {
+            item.metadata = metaMap.get(item.name);
+          }
+        });
+        this.setDirCachedMediaMetadata(cacheKey, metaMap);
       } catch (e) {
-        console.warn('Preview: directory metadata fetch failed', e);
+        console.warn('dir items metadata fetch failed', e);
       }
     },
     async loadPreviewForReq() {
@@ -341,7 +388,7 @@ export default {
       await this.updatePreview();
       if (isAv && this.listing) {
         const directoryPath = url.removeLastDir(state.req.path) || '/';
-        await this.attachMediaMetadata(this.listing, directoryPath);
+        await this.attachDirMediaMetadata(this.listing, directoryPath);
       }
       this.subtitlesList = await this.subtitles();
       if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {

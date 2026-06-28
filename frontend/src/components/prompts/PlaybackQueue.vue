@@ -39,7 +39,7 @@
           <!-- Duration + file type + play indicator -->
           <div class="queue-item-meta">
             <span v-if="item.duration" class="queue-item-duration">{{ item.duration }}</span>
-            <span class="file-type-badge">{{ item.fileType }}</span>
+            <span v-if="item.fileType" class="file-type-badge">{{ item.fileType }}</span>
             <span class="queue-item-indicator">
               <span v-if="index === currentQueueIndex" class="current-track">
                 <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
