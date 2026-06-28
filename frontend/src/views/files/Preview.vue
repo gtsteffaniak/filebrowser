@@ -77,8 +77,6 @@ import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 
-const DIR_METADATA_CACHE_KEY = 'mediaMetadataCache';
-
 export default {
   name: "preview",
   components: {
@@ -100,6 +98,7 @@ export default {
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
+      dirMetadataCache: new Map(),
     };
   },
   computed: {
@@ -279,41 +278,15 @@ export default {
     mutations.clearNavigation();
   },
   methods: {
-    getDirCachedMediaMetadata(cacheKey) {
-      try {
-        const stored = sessionStorage.getItem(DIR_METADATA_CACHE_KEY);
-        if (!stored) return null;
-        const array = JSON.parse(stored);
-        if (!Array.isArray(array)) return null;
-        const cacheMap = new Map(array);
-        const entries = cacheMap.get(cacheKey);
-        if (!entries || !Array.isArray(entries)) return null;
-        return new Map(entries);
-      } catch (_) {
-        return null;
-      }
-    },
-    setDirCachedMediaMetadata(cacheKey, metaMap) {
-      try {
-        const stored = sessionStorage.getItem(DIR_METADATA_CACHE_KEY);
-        let cacheMap = new Map();
-        if (stored) {
-          const array = JSON.parse(stored);
-          if (Array.isArray(array)) cacheMap = new Map(array);
-        }
-        cacheMap.set(cacheKey, Array.from(metaMap.entries()));
-        sessionStorage.setItem(DIR_METADATA_CACHE_KEY, JSON.stringify(Array.from(cacheMap.entries())));
-      } catch (_) { /* ignore */ }
-    },
     async attachDirMediaMetadata(listing, dirPath) {
       // Fetches directory metadata and attaches it to the items for playback queue.
-      // gets cached for the current dir onto session storage -- it might look similar to enrichAvFromMediaApi but
+      // gets cached for the current preview -- it might look similar to enrichAvFromMediaApi but
       // this one gets called only once per dir (instead of per item) and doesn't carry album art.
       if (!listing?.length) return;
       const cacheKey = getters.isShare()
         ? `${state.shareInfo.hash}:${dirPath}`
         : `${state.req.source}:${dirPath}`;
-      const cachedMap = this.getDirCachedMediaMetadata(cacheKey);
+      const cachedMap = this.dirMetadataCache.get(cacheKey);
       if (cachedMap) {
         listing.forEach(item => {
           if (cachedMap.has(item.name)) {
@@ -334,7 +307,7 @@ export default {
             item.metadata = metaMap.get(item.name);
           }
         });
-        this.setDirCachedMediaMetadata(cacheKey, metaMap);
+        this.dirMetadataCache.set(cacheKey, metaMap);
       } catch (e) {
         console.warn('dir items metadata fetch failed', e);
       }
