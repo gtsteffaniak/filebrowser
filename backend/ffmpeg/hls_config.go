@@ -92,7 +92,10 @@ func (c HLSConfig) Normalized() HLSConfig {
 
 func (c HLSConfig) withDefaults() HLSConfig {
 	out := c
-	if out.Mode == "" {
+	switch out.Mode {
+	case "", HLSModeOnDemand:
+		out.Mode = HLSModeOnDemand
+	default:
 		out.Mode = HLSModeOnDemand
 	}
 	if out.SegmentDurationSec <= 0 {

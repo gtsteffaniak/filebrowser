@@ -244,10 +244,10 @@ export function playbackQueryChanged(prev = {}, next = {}) {
   const nextSec = parsePlaybackTimeFromQuery(next);
   const prevRounded = prevSec === null ? null : Math.round(prevSec);
   const nextRounded = nextSec === null ? null : Math.round(nextSec);
-  const prevTranscode = prev.transcode;
-  const nextTranscode = next.transcode;
+  const prevTranscode = parseTranscodeModeFromQuery(prev);
+  const nextTranscode = parseTranscodeModeFromQuery(next);
   return (
     prevRounded !== nextRounded
-    || String(prevTranscode ?? '') !== String(nextTranscode ?? '')
+    || prevTranscode !== nextTranscode
   );
 }

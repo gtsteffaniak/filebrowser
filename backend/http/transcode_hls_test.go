@@ -103,6 +103,10 @@ func TestTranscodeSessionMultipleHLSViewers(t *testing.T) {
 	if !acq1.OK {
 		t.Fatal("expected first HLS acquire to succeed")
 	}
+	entry, ok := store.getHLSEntry(acq1.Session.ID, 1)
+	if !ok || entry.hls == nil {
+		t.Fatal("expected HLS state to be initialized on acquire")
+	}
 	acq2 := store.acquireHLS(1, "alice", "default", "/a.mkv", "a.mkv")
 	if !acq2.OK {
 		t.Fatal("expected second HLS acquire to succeed")

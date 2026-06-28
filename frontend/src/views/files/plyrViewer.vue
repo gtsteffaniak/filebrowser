@@ -267,7 +267,9 @@ import {
   toggleLoop,
   getModeLabel,
   getModeIcon,
+  formatArtist
 } from '@/utils/playbackQueue.js';
+import { getTypeFromMime } from '@/utils/files.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { getters, mutations, state } from '@/store';
@@ -621,21 +623,10 @@ export default {
       return state.user.darkMode;
     },
     filetype() {
-      const mime = this.req.type || '';
-      const prefix = 'audio/';
-      if (mime.startsWith(prefix)) {
-        return mime.slice(prefix.length).toLowerCase();
-      }
-      return '';
+      return getTypeFromMime(this.req.type || '');
     },
     formattedArtist() {
-      if (!this.metadata?.artist) return '';
-      const parts = this.metadata.artist
-        // Common separators like 'feat.' 'ft.' ',' ';' '/' '&'
-        .split(/[,;/&]|\s+feat\.\s+|\s+ft\.\s+/i)
-        .map(s => s.trim())
-        .filter(Boolean);
-      return parts.join(' • ');
+      return formatArtist(this.metadata?.artist);
     },
     showButtons() {
       if (this.previewType === 'audio' && !this.isMobile && this.showDesktopPanel) {

@@ -25,6 +25,7 @@ func transcodeSessionPingHandler(w http.ResponseWriter, r *http.Request, d *requ
 	}
 
 	var body transcodeSessionPingRequest
+	r.Body = http.MaxBytesReader(w, r.Body, 4<<10)
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid ping body")
 	}

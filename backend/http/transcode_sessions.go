@@ -294,13 +294,16 @@ func (s *transcodeSessionStore) acquireHLS(userID uint64, username, source, path
 				MaxResolution: tc.MaxResolution,
 				Preset:        tc.Preset,
 			},
-			hls: nil,
+			hls: &hlsSessionState{delivery: ffmpeg.ActiveHLSConfig()},
 		}
 		s.sessions[key] = entry
 		s.byUser[userID] = key
 		entry.streams = 1
 	} else {
 		entry.streams++
+		if entry.hls == nil {
+			entry.hls = &hlsSessionState{delivery: ffmpeg.ActiveHLSConfig()}
+		}
 	}
 
 	entry.ActiveStreams = entry.streams

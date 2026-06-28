@@ -148,6 +148,7 @@ export default {
       transcodePlaybackActive: false,
       activeTranscodeSource: null,
       activeTranscodePath: null,
+      dirMetadataCache: new Map(),
     };
   },
   computed: {
@@ -165,6 +166,9 @@ export default {
     },
     autoPlay() {
       return getters.previewPerms().autoplayMedia;
+    },
+    useDefaultMediaPlayer() {
+      return getters.previewPerms().defaultMediaPlayer === true;
     },
     isMobileSafari() {
       const userAgent = window.navigator.userAgent;
@@ -355,6 +359,46 @@ export default {
     mutations.clearNavigation();
   },
   methods: {
+    async attachDirMediaMetadata(listing, dirPath) {
+      // Fetches directory metadata and attaches it to the items for playback queue.
+      // gets cached for the current preview -- it might look similar to enrichAvFromMediaApi but
+      // this one gets called only once per dir (instead of per item) and doesn't carry album art.
+      if (!listing?.length) return;
+      const cacheKey = getters.isShare()
+        ? `${state.shareInfo.hash}:${dirPath}`
+        : `${state.req.source}:${dirPath}`;
+      const cachedMap = this.dirMetadataCache.get(cacheKey);
+      if (cachedMap) {
+        listing.forEach(item => {
+          if (cachedMap.has(item.name)) {
+            const metadata = cachedMap.get(item.name);
+            item.metadata = item.path === state.req.path
+              ? { ...metadata, ...item.metadata }
+              : metadata;
+          }
+        });
+        return;
+      }
+      try {
+        const isShare = getters.isShare();
+        const payload = isShare
+          ? await mediaApi.fetchDirectoryMediaMetadataPublic(dirPath, state.shareInfo.hash, localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '', false)
+          : await mediaApi.fetchDirectoryMediaMetadata(state.req.source, dirPath, false);
+        if (!payload?.items) return;
+        const metaMap = new Map(payload.items.filter(i => i.metadata).map(i => [i.name, i.metadata]));
+        listing.forEach(item => {
+          if (metaMap.has(item.name)) {
+          const metadata = metaMap.get(item.name);
+          item.metadata = item.path === state.req.path
+            ? { ...metadata, ...item.metadata }
+            : metadata;
+          }
+        });
+        this.dirMetadataCache.set(cacheKey, metaMap);
+      } catch (e) {
+        console.warn('dir items metadata fetch failed', e);
+      }
+    },
     async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
@@ -375,7 +419,6 @@ export default {
       if (this.previewLoadingPath === path) {
         return;
       }
-
       this.previewLoadingPath = path;
       try {
         if (this.previewReadyForPath !== path) {
@@ -403,7 +446,6 @@ export default {
           this.lyricsFetchedForPath = null;
           this.previewReadyForPath = null;
         } else {
-          const hasSubtitles = Boolean(state.req.subtitles?.length);
           if (this.mediaEnrichDoneForPath !== path) {
             this.mediaEnrichDoneForPath = path;
             this.avMetadataLoading = true;
@@ -420,20 +462,26 @@ export default {
           } else {
             this.avMetadataLoading = false;
           }
-
-          if (state.req.path !== path) {
-            return;
-          }
-          this.subtitlesList = hasSubtitles ? await this.subtitles() : [];
         }
 
         if (state.req.path !== path) {
           return;
         }
+
+        await this.updatePreview();
+
+        if (isAv && this.listing) {
+          const directoryPath = url.removeLastDir(state.req.path) || '/';
+          await this.attachDirMediaMetadata(this.listing, directoryPath);
+        }
+
         if (!isAv) {
           this.subtitlesList = [];
+        } else {
+          this.subtitlesList = await this.subtitles();
         }
-        if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
+
+        if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {
           this.lyricsFetchedForPath = state.req.path;
           if (state.req.metadata?.hasLyrics) {
             try {
@@ -452,7 +500,7 @@ export default {
             this.lyrics = [];
           }
         }
-        await this.updatePreview();
+
         await this.checkProactiveVideoTranscodeOffer(path);
         mutations.resetSelected();
         mutations.addSelected({

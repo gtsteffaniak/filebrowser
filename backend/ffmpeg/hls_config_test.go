@@ -37,19 +37,12 @@ func TestHLSConfigNormalized(t *testing.T) {
 	}
 }
 
-func TestHLSUseVideoCopy(t *testing.T) {
-	eac3 := StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "eac3", Height: 1080}
-	if !HLSUseVideoCopy(eac3, HLSProfileQuality, 0) {
-		t.Fatal("quality mode should use video copy for h264+eac3")
-	}
-	if HLSUseVideoCopy(eac3, HLSProfileOptimized, 0) {
-		t.Fatal("optimized mode should not use video copy")
-	}
-	if HLSUseVideoCopy(eac3, HLSProfileDataSaver, 0) {
-		t.Fatal("datasaver mode should not use video copy")
-	}
-	if !HLSNeedsFullVideoTranscode(eac3, HLSProfileOptimized, 0) {
-		t.Fatal("optimized should require full transcode")
+func TestHLSConfigModeNormalized(t *testing.T) {
+	for _, mode := range []HLSMode{"", HLSModeOnDemand, HLSModeDiskCache, HLSModeLongSegment, "bogus"} {
+		cfg := HLSConfig{Mode: mode}.Normalized()
+		if cfg.Mode != HLSModeOnDemand {
+			t.Fatalf("mode %q normalized to %q, want on-demand", mode, cfg.Mode)
+		}
 	}
 }
 

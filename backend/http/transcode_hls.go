@@ -444,9 +444,8 @@ func transcodeHLSPlaylistHandler(w http.ResponseWriter, r *http.Request, d *requ
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("hls session missing")
 	}
-
 	if entry.hls == nil {
-		entry.hls = &hlsSessionState{delivery: ffmpeg.ActiveHLSConfig()}
+		return http.StatusInternalServerError, fmt.Errorf("hls session state missing")
 	}
 
 	reqStart := time.Now()

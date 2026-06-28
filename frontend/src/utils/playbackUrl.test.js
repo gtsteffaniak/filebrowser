@@ -85,5 +85,7 @@ describe('playbackUrl', () => {
     expect(playbackQueryChanged({ time: '1m' }, { time: '2m' })).toBe(true);
     expect(playbackQueryChanged({ time: '90s' }, { time: '1m30s' })).toBe(false);
     expect(playbackQueryChanged({ time: '1m' }, { time: '1m', transcode: 'quality' })).toBe(true);
+    expect(playbackQueryChanged({ transcode: 'QUALITY' }, { transcode: 'quality' })).toBe(false);
+    expect(playbackQueryChanged({ transcode: 'native' }, {})).toBe(false);
   });
 });

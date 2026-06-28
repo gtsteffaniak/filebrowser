@@ -35,3 +35,30 @@ export function removePrefix(filename, prefix = "") {
   return filename;
 }
 
+export function formatDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return '';
+  }
+  const totalSeconds = Math.floor(seconds);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+  return `${minutes}:${String(secs).padStart(2, '0')}`;
+}
+
+export function getTypeFromMime(mimeType) {
+  if (typeof mimeType !== 'string') return '';
+  const parts = mimeType.split('/');
+  return parts.length === 2 ? parts[1].toLowerCase() : '';
+}
+
+export function removeExtension(filename) {
+  if (typeof filename !== 'string') return '';
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot === -1) return filename;
+  if (lastDot === 0) return filename;
+  return filename.substring(0, lastDot);
+}

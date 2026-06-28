@@ -302,6 +302,25 @@ export function startHlsTranscodePlayback(videoEl, url, {
           }
         }
       };
+      let lastNativePlayheadSec = 0;
+      addVideoListener('seeking', () => {
+        const t = videoEl.currentTime;
+        if (!Number.isFinite(t) || t < 0) {
+          return;
+        }
+        const jumped = Math.abs(t - lastNativePlayheadSec) > deliveryTuning.seekJumpSec;
+        lastNativePlayheadSec = t;
+        onSeek?.({
+          playheadSec: t,
+          seeked: jumped,
+          session: sessionId,
+        });
+      });
+      addVideoListener('timeupdate', () => {
+        if (Number.isFinite(videoEl.currentTime)) {
+          lastNativePlayheadSec = videoEl.currentTime;
+        }
+      });
       const onReady = () => {
         hlsLog('native HLS canplay');
         if (initialStartPosition >= 0) {
@@ -409,7 +428,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
       if (data?.response?.code) {
         err.status = data.response.code;
       }
-      if (playbackStarted) {
+      if (controllerResolved) {
         onFatalError?.(err, data);
       } else {
         reject(err);
@@ -621,7 +640,7 @@ export function startHlsTranscodePlayback(videoEl, url, {
       if (status) {
         err.status = status;
       }
-      if (playbackStarted) {
+      if (controllerResolved) {
         onFatalError?.(err, data);
       } else {
         reject(err);
