@@ -463,8 +463,13 @@ func sendTransferEvent(job *TransferJob) {
 	events.SendToUsers("transferProgress", string(jsonData), []string{job.Username})
 }
 
-// HTTP handlers
-
+// transferListHandler returns all transfer jobs for the authenticated user.
+// @Summary List transfers
+// @Description Returns all background transfer jobs belonging to the current user.
+// @Tags Transfers
+// @Produce json
+// @Success 200 {array} TransferJob "List of transfer jobs"
+// @Router /api/transfers [get]
 func transferListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	jobs := transferMgr.GetJobsForUser(d.user.Username)
 	if jobs == nil {
@@ -473,6 +478,17 @@ func transferListHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	return renderJSON(w, r, jobs)
 }
 
+// transferGetHandler returns the status of a single transfer job.
+// @Summary Get transfer
+// @Description Returns the details and progress of a specific transfer job.
+// @Tags Transfers
+// @Produce json
+// @Param id path string true "Transfer job ID"
+// @Success 200 {object} TransferJob "Transfer job details"
+// @Failure 400 {object} map[string]string "Bad request - missing id"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not found"
+// @Router /api/transfers/{id} [get]
 func transferGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	id := r.PathValue("id")
 	if id == "" {
@@ -488,6 +504,17 @@ func transferGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return renderJSON(w, r, job)
 }
 
+// transferCancelHandler cancels an active transfer job.
+// @Summary Cancel transfer
+// @Description Cancels a running, calculating, or pending transfer job.
+// @Tags Transfers
+// @Produce json
+// @Param id path string true "Transfer job ID"
+// @Success 200 {object} map[string]string "Cancellation confirmed"
+// @Failure 400 {object} map[string]string "Bad request - job not active or missing id"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not found"
+// @Router /api/transfers/{id} [delete]
 func transferCancelHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	id := r.PathValue("id")
 	if id == "" {
