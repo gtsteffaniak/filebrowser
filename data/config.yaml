@@ -1,0 +1,10 @@
+server:
+  sources:
+    - path: /disk_one
+      config:
+        defaultEnabled: true
+    - path: /disk_two
+      config:
+        defaultEnabled: true
+auth:
+  adminUsername: admin

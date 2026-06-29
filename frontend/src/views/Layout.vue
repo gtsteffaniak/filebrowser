@@ -26,6 +26,7 @@
   <Tooltip />
   <NextPrevious />
   <PopupPreview v-if="popupEnabled" />
+  <TransferIndicator />
 </template>
 
 <script>
@@ -47,6 +48,7 @@ import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import Search from "@/components/Search.vue";
+import TransferIndicator from "@/components/TransferIndicator.vue";
 
 export default {
   name: "layout",
@@ -64,6 +66,7 @@ export default {
     PopupPreview,
     Shelf,
     Search,
+    TransferIndicator,
   },
   data() {
     return {

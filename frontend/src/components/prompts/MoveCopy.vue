@@ -86,6 +86,7 @@ import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { eventBus } from '@/store/eventBus';
+import { transferManager } from "@/utils/transferManager";
 
 export default {
   name: "move-copy",
@@ -291,15 +292,16 @@ export default {
           };
         });
         // Define the action function
+        const useBackground = !getters.isShare();
         const action = async (overwrite, rename) => {
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {
             result = await resourcesApi.moveCopyPublic(state.shareInfo.hash, itemsToProcess, this.operation, overwrite, rename);
           } else {
-            result = await resourcesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename, useBackground);
           }
-          return result; // Return the result to check for failures
+          return result;
         };
         let conflict = false;
         let dstResp = null;
@@ -349,6 +351,18 @@ export default {
         } else {
           // Await the action call for non-conflicting cases
           result = await action(overwrite, rename);
+        }
+
+        // Handle background transfer response
+        if (result?.background && result?.jobId) {
+          transferManager.addJob(result.jobId, this.operation, itemsToProcess);
+          mutations.closeTopPrompt(); // close conflict prompt if open
+          mutations.closeTopPrompt(); // close moveCopy prompt
+          const hasTransferPrompt = state.prompts.some(p => p.name === 'transfer');
+          if (!hasTransferPrompt) {
+            mutations.showPrompt({ name: 'transfer', pinned: true });
+          }
+          return;
         }
 
         // Check if there were any failures in the result
