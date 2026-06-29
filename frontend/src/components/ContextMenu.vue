@@ -66,7 +66,7 @@
         :counter="selectedCount"
       />
       <action
-        v-if="(showCreate || selectedCount == 1) && showShare"
+        v-if="showShare"
         icon="share"
         :label="$t('general.share')"
         @action="showShareHover"
