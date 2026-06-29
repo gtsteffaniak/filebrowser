@@ -825,6 +825,12 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusBadRequest, fmt.Errorf("action is required (copy, move, or rename)")
 	}
 
+	// Background mode: validate all items, then launch as a background transfer job
+	isBackground := r.URL.Query().Get("background") == "true" && d.share == nil
+	if isBackground {
+		return resourcePatchBackgroundHandler(w, r, d, req)
+	}
+
 	response := MoveCopyResponse{
 		Succeeded: make([]MoveCopyItem, 0),
 		Failed:    make([]MoveCopyItem, 0),
@@ -1076,6 +1082,114 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	// If all succeeded, statusCode remains 200 OK
 	return renderJSON(w, r, response, statusCode)
+}
+
+func resourcePatchBackgroundHandler(w http.ResponseWriter, r *http.Request, d *requestContext, req MoveCopyRequest) (int, error) {
+	var resolvedParams []resolvedTransferParams
+	var validItems []MoveCopyItem
+
+	for _, item := range req.Items {
+		if item.FromSource == "" || item.FromPath == "" || item.ToSource == "" || item.ToPath == "" {
+			return http.StatusBadRequest, fmt.Errorf("fromSource, fromPath, toSource, and toPath are required for all items")
+		}
+
+		cleanFromPath, err := utils.SanitizeUserPath(item.FromPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid fromPath: %v", err)
+		}
+		cleanToPath, err := utils.SanitizeUserPath(item.ToPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid toPath: %v", err)
+		}
+		item.FromPath = cleanFromPath
+		item.ToPath = cleanToPath
+
+		userscopeSrc, err := d.user.GetScopeForSourceName(item.FromSource)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("source not available: %s", item.FromSource)
+		}
+		userscopeDst, err := d.user.GetScopeForSourceName(item.ToSource)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("destination source not available: %s", item.ToSource)
+		}
+
+		srcIdx := indexing.GetIndex(item.FromSource)
+		if srcIdx == nil {
+			return http.StatusBadRequest, fmt.Errorf("source not found: %s", item.FromSource)
+		}
+		dstIdx := indexing.GetIndex(item.ToSource)
+		if dstIdx == nil {
+			return http.StatusBadRequest, fmt.Errorf("destination source not found: %s", item.ToSource)
+		}
+
+		if srcIdx.Config.ReadOnly && req.Action == "move" {
+			return http.StatusBadRequest, fmt.Errorf("source is read-only and cannot be moved")
+		}
+		if dstIdx.Config.ReadOnly {
+			return http.StatusBadRequest, fmt.Errorf("destination source is read-only")
+		}
+
+		fullSrcIndexPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
+		fullDstIndexPath := utils.JoinPathAsUnix(userscopeDst, item.ToPath)
+		if fullDstIndexPath == "/" || fullSrcIndexPath == "/" {
+			return http.StatusBadRequest, fmt.Errorf("source or destination is the root directory")
+		}
+
+		if !store.Access.Permitted(srcIdx.Path, fullSrcIndexPath, d.user.Username) {
+			return http.StatusForbidden, fmt.Errorf("access denied to source path")
+		}
+		if !store.Access.Permitted(dstIdx.Path, fullDstIndexPath, d.user.Username) {
+			return http.StatusForbidden, fmt.Errorf("access denied to destination path")
+		}
+
+		fullSrcPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
+		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("could not resolve source path: %v", err)
+		}
+
+		dstParentPath := filepath.Dir(item.ToPath)
+		fullDstParentPath := utils.JoinPathAsUnix(userscopeDst, dstParentPath)
+		parentDir, _, err := dstIdx.GetRealPath(fullDstParentPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("destination directory does not exist")
+		}
+		realDest := parentDir + "/" + filepath.Base(item.ToPath)
+
+		if req.Rename {
+			realDest = addVersionSuffix(realDest)
+		}
+
+		if req.Action == "rename" || req.Action == "move" {
+			if err = validateMoveOperation(realSrc, realDest, isSrcDir); err != nil {
+				return http.StatusBadRequest, fmt.Errorf("invalid move operation: circular reference")
+			}
+		}
+
+		resolvedParams = append(resolvedParams, resolvedTransferParams{
+			action:   req.Action,
+			srcIndex: item.FromSource,
+			dstIndex: item.ToSource,
+			realSrc:  realSrc,
+			realDst:  realDest,
+			isSrcDir: isSrcDir,
+			item:     item,
+			// Move-specific fields for thumbnail deletion
+			userScope:   userscopeSrc,
+			showHidden:  d.user.ShowHidden,
+			hideFileExt: d.user.HideFileExt,
+		})
+		validItems = append(validItems, item)
+	}
+
+	if len(resolvedParams) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("no valid items to process")
+	}
+
+	job := transferMgr.CreateJob(req.Action, d.user.Username, validItems, resolvedParams)
+	go transferMgr.RunJob(job, resolvedParams)
+
+	return renderJSON(w, r, map[string]string{"jobId": job.ID}, http.StatusAccepted)
 }
 
 func addVersionSuffix(source string) string {

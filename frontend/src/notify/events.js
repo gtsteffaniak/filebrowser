@@ -3,6 +3,8 @@ import i18n from '@/i18n'
 import { notify } from '@/notify'
 import { mutations, state } from '@/store'
 import { globalVars } from '@/utils/constants'
+import { transferManager } from '@/utils/transferManager'
+import { notifyTransferComplete, notifyTransferError } from '@/utils/appNotifications'
 
 let eventSrc = null
 let reconnectTimeout = null
@@ -211,6 +213,21 @@ async function eventRouter (eventType, message) {
         window.dispatchEvent(new CustomEvent('fileWatchEvent', { detail: watchData }))
       } catch (error) {
         console.error('Error dispatching file watch event:', error)
+      }
+      break
+
+    case 'transferProgress':
+      try {
+        const transferData = typeof message === 'string' ? JSON.parse(message) : message
+        transferManager.updateFromEvent(transferData)
+        if (transferData.status === 'completed') {
+          mutations.setReload(true)
+          notifyTransferComplete(transferData.action, transferData.itemsTotal)
+        } else if (transferData.status === 'failed') {
+          notifyTransferError(transferData.error)
+        }
+      } catch (error) {
+        console.error('Error handling transfer progress event:', error)
       }
       break
 

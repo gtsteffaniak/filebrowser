@@ -175,3 +175,20 @@ export function notifyOperationError(message) {
     "operation-error"
   );
 }
+
+export function notifyTransferComplete(action, itemCount) {
+  const t = i18n.global.t;
+  const title = action === "move"
+    ? t("notifications.moveTitle")
+    : t("notifications.copyTitle");
+  showNotification(title, `${itemCount} ${title.toLowerCase()}`, "transfer-done");
+}
+
+export function notifyTransferError(message) {
+  const t = i18n.global.t;
+  showNotification(
+    t("notifications.operationFailedTitle"),
+    message || t("prompts.transferFailed"),
+    "transfer-error"
+  );
+}

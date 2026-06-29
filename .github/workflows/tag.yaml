@@ -46,19 +46,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{github.actor}}
-          password: ${{ secrets.PAT }}
-      - name: Extract metadata (tags, labels) for Docker and GHCR
+      - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            gtstef/filebrowser
-            ghcr.io/gtsteffaniak/filebrowser
+            bhoopendrau004/filebroser
       - name: Modify tags (strip 'v' and add version tags)
         id: modify-json
         run: |
@@ -70,7 +63,7 @@ jobs:
             ) |
             # Find all version tags with suffix (X.Y.Z-suffix) and add major.minor and major tags
             .tags += [
-              .tags[] 
+              .tags[]
               | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
               | split(":")
               | .[-1] as $version
@@ -79,25 +72,20 @@ jobs:
               | ($version_split[1:] | join("-")) as $suffix
               | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
               | ($version_parts[0]) as $major
-              | "gtstef/filebrowser:\($major_minor)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-\($suffix)",
-                "gtstef/filebrowser:\($major)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
+              | "bhoopendrau004/filebroser:\($major_minor)-\($suffix)",
+                "bhoopendrau004/filebroser:\($major)-\($suffix)"
             ] |
             # Add suffix-only tags for beta (only if tag ends with -beta)
             if any(.tags[]; split(":")[-1] | endswith("-beta")) then
               .tags += [
-                "gtstef/filebrowser:beta",
-                "ghcr.io/gtsteffaniak/filebrowser:beta"
+                "bhoopendrau004/filebroser:beta"
               ]
             else . end |
             # Add suffix-only tags for stable (and latest) (only if tag ends with -stable)
             if any(.tags[]; split(":")[-1] | endswith("-stable")) then
               .tags += [
-                "gtstef/filebrowser:stable",
-                "ghcr.io/gtsteffaniak/filebrowser:stable",
-                "gtstef/filebrowser:latest",
-                "ghcr.io/gtsteffaniak/filebrowser:latest"
+                "bhoopendrau004/filebroser:stable",
+                "bhoopendrau004/filebroser:latest"
               ]
             else . end
           ')
@@ -131,19 +119,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{github.actor}}
-          password: ${{ secrets.PAT }}
-      - name: Extract metadata (tags, labels) for Docker and GHCR
+      - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            gtstef/filebrowser
-            ghcr.io/gtsteffaniak/filebrowser
+            bhoopendrau004/filebroser
       - name: Modify tags (strip 'v' and add 'slim' if needed)
         id: modify-json-slim
         run: |
@@ -156,7 +137,7 @@ jobs:
             ) |
             # Find all version tags with suffix (X.Y.Z-suffix-slim) and add major.minor and major tags
             .tags += [
-              .tags[] 
+              .tags[]
               | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
               | split(":")
               | .[-1] as $version
@@ -165,23 +146,19 @@ jobs:
               | ($version_split[1:] | join("-")) as $suffix
               | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
               | ($version_parts[0]) as $major
-              | "gtstef/filebrowser:\($major_minor)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-\($suffix)",
-                "gtstef/filebrowser:\($major)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
+              | "bhoopendrau004/filebroser:\($major_minor)-\($suffix)",
+                "bhoopendrau004/filebroser:\($major)-\($suffix)"
             ] |
             # Add suffix-only tags for beta-slim (only if tag ends with -beta-slim)
             if any(.tags[]; split(":")[-1] | endswith("-beta-slim")) then
               .tags += [
-                "gtstef/filebrowser:beta-slim",
-                "ghcr.io/gtsteffaniak/filebrowser:beta-slim"
+                "bhoopendrau004/filebroser:beta-slim"
               ]
             else . end |
             # Add suffix-only tags for stable-slim (only if tag ends with -stable-slim)
             if any(.tags[]; split(":")[-1] | endswith("-stable-slim")) then
               .tags += [
-                "gtstef/filebrowser:stable-slim",
-                "ghcr.io/gtsteffaniak/filebrowser:stable-slim"
+                "bhoopendrau004/filebroser:stable-slim"
               ]
             else . end
           ')

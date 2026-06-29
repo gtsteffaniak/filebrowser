@@ -110,6 +110,7 @@ import Archive from "./Archive.vue";
 import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
+import Transfer from "./Transfer.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -150,6 +151,7 @@ export default {
     Unarchive,
     OfficeDebug,
     ThreeJSControls,
+    Transfer,
   },
   data() {
     return {
@@ -298,6 +300,8 @@ export default {
           return this.$t("onlyoffice.debug");
         case "download":
           return this.$t("prompts.download");
+        case "transfer":
+          return this.$t("prompts.transfer");
         case "move":
           return this.$t("general.move");
     

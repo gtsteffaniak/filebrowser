@@ -204,6 +204,13 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicApi.HandleFunc("GET /office/config", withHashFile(onlyofficeClientConfigGetHandler))
 
 	// ========================================
+	// Transfer Routes - /api/transfers/
+	// ========================================
+	api.HandleFunc("GET /transfers", withUser(transferListHandler))
+	api.HandleFunc("GET /transfers/{id}", withUser(transferGetHandler))
+	api.HandleFunc("DELETE /transfers/{id}", withUser(transferCancelHandler))
+
+	// ========================================
 	// Misc Routes
 	// ========================================
 	api.HandleFunc("GET /events", withUser(sseHandler))

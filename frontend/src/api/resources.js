@@ -739,7 +739,8 @@ export async function moveCopy(
   items,
   action = 'copy',
   overwrite = false,
-  rename = false
+  rename = false,
+  background = false
 ) {
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw new Error('items array is required and must not be empty')
@@ -759,7 +760,8 @@ export async function moveCopy(
       rename: rename
     }
 
-    const apiPath = getApiPath('resources')
+    const params = background ? { background: 'true' } : {}
+    const apiPath = getApiPath('resources', params)
     // We use fetch directly here instead of fetchURL because fetchURL throws on non-2xx status,
     // consuming the response body as text. We need to parse the JSON response for 500/207 errors.
     // We need to manually add headers that fetchURL adds.
@@ -776,6 +778,11 @@ export async function moveCopy(
     })
 
     const data = await response.json()
+
+    // 202 = background transfer accepted
+    if (response.status === 202 && background) {
+      return { jobId: data.jobId, background: true }
+    }
 
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
