@@ -36,6 +36,7 @@ export function resolveHistoryNotificationButtons(buttons, activeButtons) {
 
   const resolved = buttons
     .map((button, index) => {
+      // eslint-disable-next-line security/detect-object-injection
       const activeButton = activeButtons?.[index];
       const action =
         (activeButton && typeof activeButton.action === "function" ? activeButton.action : null) ||

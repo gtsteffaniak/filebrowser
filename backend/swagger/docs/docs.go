@@ -3337,6 +3337,142 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/transfers": {
+            "get": {
+                "description": "Returns all background transfer jobs belonging to the current user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transfers"
+                ],
+                "summary": "List transfers",
+                "responses": {
+                    "200": {
+                        "description": "List of transfer jobs",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.TransferJob"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/transfers/{id}": {
+            "get": {
+                "description": "Returns the details and progress of a specific transfer job.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transfers"
+                ],
+                "summary": "Get transfer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transfer job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transfer job details",
+                        "schema": {
+                            "$ref": "#/definitions/http.TransferJob"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Cancels a running, calculating, or pending transfer job.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transfers"
+                ],
+                "summary": "Cancel transfer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transfer job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cancellation confirmed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - job not active or missing id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/users": {
             "get": {
                 "description": "Returns a user's details based on their ID, or all users if no id is provided.",
@@ -5068,6 +5204,72 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "http.TransferJob": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "copiedBytes": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currentFile": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.MoveCopyItem"
+                    }
+                },
+                "itemsCompleted": {
+                    "type": "integer"
+                },
+                "itemsTotal": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/http.TransferStatus"
+                },
+                "totalBytes": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.TransferStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "calculating",
+                "running",
+                "completed",
+                "failed",
+                "cancelled"
+            ],
+            "x-enum-varnames": [
+                "TransferStatusPending",
+                "TransferStatusCalculating",
+                "TransferStatusRunning",
+                "TransferStatusCompleted",
+                "TransferStatusFailed",
+                "TransferStatusCancelled"
+            ]
         },
         "http.archiveCreateRequest": {
             "type": "object",

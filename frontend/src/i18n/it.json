@@ -9,6 +9,9 @@
     "noCreateOptions": "Non sono disponibili opzioni di creazione"
   },
   "general": {
+    "to": "a{suffix}",
+    "and": "e{suffix}",
+    "or": "oppure{suffix}",
     "divider": "Divisore{suffix}",
     "show": "Mostra{suffix}",
     "office": "Office{suffix}",
@@ -54,6 +57,7 @@
     "users": "Utenti{suffix}",
     "scopes": "Ambiti{suffix}",
     "photos": "Foto",
+    "audio": "Audio{suffix}",
     "videos": "Video{suffix}",
     "documents": "Documenti{suffix}",
     "archives": "Archivi{suffix}",
@@ -83,6 +87,8 @@
     "download": "Scarica{suffix}",
     "file": "File{suffix}",
     "folder": "Cartella{suffix}",
+    "camera": "Fotocamera{suffix}",
+    "video": "Video{suffix}",
     "info": "Info{suffix}",
     "move": "Sposta{suffix}",
     "new": "Nuovo{suffix}",
@@ -109,22 +115,17 @@
     "lines": "Linee{suffix}",
     "lastUpdate": "Ultimo aggiornamento{suffix}",
     "latency": "Latenza{suffix}",
-    "audio": "Audio{suffix}",
     "readOnly": "Solo lettura{suffix}",
     "private": "Privato{suffix}",
     "yes": "Sì{suffix}",
-    "no": "No{suffix}",
-    "to": "a{suffix}",
-    "and": "e{suffix}",
-    "or": "oppure{suffix}",
-    "camera": "Fotocamera{suffix}",
-    "video": "Video{suffix}"
+    "no": "No{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
     "copyFailed": "Copia negli appunti fallita",
     "generateNewOtp": "Resetta e genera nuovo codice a due fattori",
     "copyFile": "Copia file",
+    "copyPath": "Percorso di copia",
     "copyToClipboard": "Copia negli appunti",
     "copyDownloadLinkToClipboard": "Copia link di download negli appunti",
     "moveFile": "Sposta file",
@@ -148,7 +149,6 @@
     "closeAnyway": "Chiudi comunque",
     "goToItem": "Vai all'elemento",
     "goToSource": "Vai alla posizione sorgente",
-    "copyPath": "Percorso di copia",
     "pinItem": "Appunta",
     "unpinItem": "Rimuovi puntina",
     "sendToApp": "Invia all'app"
@@ -210,6 +210,8 @@
     "slash": "attiva ricerca",
     "description": "Puoi visualizzare le opzioni di navigazione di base qui sotto. Per ulteriori informazioni, visita",
     "wiki": "Documentazione ufficiale FileBrowser Quantum",
+    "altArrowUp": "Vai alla cartella principale",
+    "altArrowDown": "Apri il file/la cartella selezionati",
     "media": {
       "title": "Lettore multimediale",
       "playPause": "Riproduci/Pausa",
@@ -223,9 +225,7 @@
       "playbackModes": "Passa tra le modalità di riproduzione (escluso loop e singola)",
       "fullscreen": "Attiva/disattiva schermo intero nei video",
       "captions": "Attiva/disattiva sottotitoli"
-    },
-    "altArrowUp": "Vai alla cartella principale",
-    "altArrowDown": "Apri il file/la cartella selezionati"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -268,6 +268,7 @@
   },
   "share": {
     "notice": "Nota: quando viene creata una condivisione, essa diventa pubblica e segue regole di accesso diverse. Se non configurata correttamente, chiunque potrebbe accedervi.",
+    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate.",
     "disableAnonymous": "Disabilita accesso anonimo",
     "disableThumbnails": "Disabilita miniature",
     "enableAllowedUsernames": "Condividi solo con determinati utenti",
@@ -333,8 +334,7 @@
     "shareInfo": "QR Code e Info Condivisione",
     "shareInfoDescription": "Mostra le informazioni della condivisione (titolo, descrizione, banner, QR) in un popup.",
     "downloadDescription": "Permette di scaricare l'intero contenuto della condivisione come file compresso.",
-    "deleteFailed": "Eliminazione condivisione fallita",
-    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate."
+    "deleteFailed": "Eliminazione condivisione fallita"
   },
   "prompts": {
     "operationInProgress": "Operazione in corso, attendere...",
@@ -357,6 +357,7 @@
     "displayName": "Nome visualizzato:",
     "download": "Scarica file",
     "downloadMessage": "Scegli il formato in cui vuoi scaricare.",
+    "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
     "archive": "Crea archivio",
     "archiveMessage": "Crea un archivio sul server dagli elementi selezionati.",
     "archiveDestination": "Scegli la cartella di destinazione (poi inserisci il nome dell'archivio sotto):",
@@ -370,6 +371,12 @@
     "dragAndDrop": "Trascina i file qui",
     "error": "Qualcosa è andato storto",
     "completed": "Completato",
+    "cancelled": "Cancelled",
+    "transfer": "Transfers",
+    "transferStarted": "Transfer started in background",
+    "transferFailed": "Transfer failed",
+    "noActiveTransfers": "No active transfers",
+    "calculating": "Calculating...",
     "fileInfo": "Informazioni file",
     "moveSuccess": "File spostati con successo!",
     "newFileSuccess": "File creato con successo!",
@@ -417,7 +424,6 @@
     "moveFailed": "Spostamento fallito",
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
-    "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
     "confirmPasswordToSaveUser": "Immettere la password attuale per salvare le modifiche apportate all'utente."
   },
   "search": {
@@ -426,20 +432,20 @@
     "onlyFiles": "Solo file",
     "notEnoughCharacters": "Caratteri insufficienti per la ricerca (minimo {minSearchLength})",
     "typeToSearch": "Digita {minSearchLength} o più caratteri per iniziare la ricerca.",
+    "noResults": "Nessun risultato trovato.",
     "smallerThan": "Minore di:",
     "largerThan": "Maggiore di:",
     "olderThanDate": "Più vecchio di:",
     "newerThanDate": "Più recente di:",
     "showPreviewImages": "Mostra anteprime immagini",
     "showPreviewImagesDescription": "Mostra miniature nei risultati di ricerca quando disponibili e icone grandi per tutti i risultati.",
-    "noResults": "Nessun risultato trovato.",
-    "helpText1": "La ricerca avviene per ogni carattere digitato ({minSearchLength} minimo).",
-    "helpText2": "Corrispondenza di sottostringhe solo sui nomi di file o cartelle (non sui percorsi completi). case:exact per una corrispondenza sensibile alle maiuscole e alle minuscole.\n\n per OR tra termini usare il carattere pipe; doppi apici per una frase.\n\nAbilitare la ricerca con caratteri jolly per opzioni più avanzate.",
     "useWildcardSearch": "Ricerca con caratteri jolly (sensibile alle maiuscole)",
     "useWildcardSearchDescription": "Opzioni jolly supportate:\n\n- Corrisponde a qualsiasi sequenza: *\n\n- Corrisponde a un solo carattere: ?\n\n- Classe di caratteri: [a-z], [0-9]\n\n- Negazione: [^0-9]\n\n- I caratteri letterali *, ?, o [ devono essere racchiusi tra parentesi, ad esempio [*], [?], [[]\n\n- Tutti i risultati sono sensibili alle maiuscole e alle minuscole",
-    "openInAdvancedSearch": "Aprire la ricerca avanzata",
     "caseExact": "Corrispondenza che distingue tra maiuscole e minuscole",
-    "caseExactDescription": "Abbinare i nomi di file e cartelle utilizzando la distinzione esatta tra maiuscole e minuscole, anziché ignorarla."
+    "caseExactDescription": "Abbinare i nomi di file e cartelle utilizzando la distinzione esatta tra maiuscole e minuscole, anziché ignorarla.",
+    "helpText1": "La ricerca avviene per ogni carattere digitato ({minSearchLength} minimo).",
+    "helpText2": "Corrispondenza di sottostringhe solo sui nomi di file o cartelle (non sui percorsi completi). case:exact per una corrispondenza sensibile alle maiuscole e alle minuscole.\n\n per OR tra termini usare il carattere pipe; doppi apici per una frase.\n\nAbilitare la ricerca con caratteri jolly per opzioni più avanzate.",
+    "openInAdvancedSearch": "Aprire la ricerca avanzata"
   },
   "profileSettings": {
     "hideFileExt": "Nascondere determinati file (per estensione)",
@@ -464,6 +470,7 @@
     "showHiddenFilesDescription": "Mostra i file che iniziano con un punto o quelli di sistema.",
     "showQuickDownload": "Mostra icona download rapido",
     "showQuickDownloadDescription": "Aggiunge un'icona su ogni file per scaricarlo istantaneamente con un click.",
+    "previewDescription": "Mostra le anteprime per {filetype}, mostrerà un'icona generica se disabilitata.",
     "previewMotion": "Anteprime animate",
     "previewMotionVideosDescription": "L'anteprima animata cicla i fotogrammi del video o le immagini di una cartella al passaggio del mouse.",
     "popupPreview": "Visualizzatore pop-up",
@@ -481,6 +488,10 @@
     "disableSearchOptions": "Disabilita opzioni di ricerca",
     "disableSearchOptionsDescription": "Nasconde le opzioni di ricerca nella barra laterale.",
     "hideSidebarFileActions": "Nascondi azioni file nella barra laterale",
+    "showToolsInSidebar": "Mostra gli strumenti nella barra laterale",
+    "showToolsInSidebarDescription": "Mostrate sempre il link agli strumenti nella barra laterale.",
+    "showCopyPath": "Mostra Copia percorso nel menu contestuale",
+    "showCopyPathDescription": "Mostra l'azione Copia percorso nel menu contestuale di file e cartelle.",
     "deleteWithoutConfirming": "Elimina file senza conferma",
     "deleteWithoutConfirmingDescription": "Elimina i file istantaneamente (usare con cautela).",
     "editorQuickSave": "Pulsante salvataggio rapido nell'editor",
@@ -497,9 +508,6 @@
     "thumbnailOptions": "Opzioni Miniature",
     "showThumbnails": "Mostra miniature per elementi supportati",
     "showThumbnailsDescription": "Spegni per nascondere tutte le miniature nell'elenco.",
-    "showCopyPath": "Mostra Copia percorso nel menu contestuale",
-    "showCopyPathDescription": "Mostra l'azione Copia percorso nel menu contestuale di file e cartelle.",
-    "previewDescription": "Mostra le anteprime per {filetype}, mostrerà un'icona generica se disabilitata.",
     "passkeys": "Passkey",
     "passkeysDescription": "Utilizza le passkey per un'autenticazione sicura multi-fattore senza password. Registra una passkey sul tuo dispositivo per utilizzare la verifica biometrica o il PIN invece dei codici OTP.",
     "noPasskeys": "Nessuna passkey registrata.",
@@ -511,9 +519,7 @@
     "passkeyDeleteFailed": "Impossibile eliminare la passkey",
     "created": "Creato",
     "lastUsed": "Ultimo utilizzo",
-    "passkeyDefaultName": "Passkey",
-    "showToolsInSidebar": "Mostra gli strumenti nella barra laterale",
-    "showToolsInSidebarDescription": "Mostrate sempre il link agli strumenti nella barra laterale."
+    "passkeyDefaultName": "Passkey"
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",
@@ -762,6 +768,19 @@
       "name": "Ricerca File Duplicati",
       "description": "Trova e gestisci i file duplicati per recuperare spazio"
     },
+    "advancedSearch": {
+      "name": "Ricerca avanzata",
+      "description": "Ricerca nell'indice con pieno controllo delle fonti, dei filtri e delle opzioni",
+      "searchTerms": "Termini di ricerca",
+      "matchAllTerms": "Abbinare tutti i termini",
+      "matchAllTermsDescription": "Se abilitato, tutti i termini di ricerca devono essere trovati per ogni file.",
+      "scopeAria": "Limitare la ricerca a una cartella",
+      "noTerms": "Inserite almeno un termine di ricerca.",
+      "termTooShort": "Ogni termine di ricerca deve essere composto da almeno {minSearchLength} caratteri.",
+      "resultsTitle": "Risultati della ricerca",
+      "invalidSources": "Accendere almeno una sorgente.",
+      "noResults": "Nessun file o cartella corrispondente."
+    },
     "materialIconPicker": {
       "name": "Selettore Icone Material",
       "description": "Sfoglia e cerca icone Material con anteprima live",
@@ -782,20 +801,7 @@
       "chooseFile": "Scegli un file"
     },
     "toolNotFound": "Strumento non trovato",
-    "backToTools": "Torna agli Strumenti",
-    "advancedSearch": {
-      "name": "Ricerca avanzata",
-      "description": "Ricerca nell'indice con pieno controllo delle fonti, dei filtri e delle opzioni",
-      "searchTerms": "Termini di ricerca",
-      "matchAllTerms": "Abbinare tutti i termini",
-      "matchAllTermsDescription": "Se abilitato, tutti i termini di ricerca devono essere trovati per ogni file.",
-      "scopeAria": "Limitare la ricerca a una cartella",
-      "noTerms": "Inserite almeno un termine di ricerca.",
-      "termTooShort": "Ogni termine di ricerca deve essere composto da almeno {minSearchLength} caratteri.",
-      "resultsTitle": "Risultati della ricerca",
-      "invalidSources": "Accendere almeno una sorgente.",
-      "noResults": "Nessun file o cartella corrispondente."
-    }
+    "backToTools": "Torna agli Strumenti"
   },
   "notifications": {
     "title": "Notifiche",

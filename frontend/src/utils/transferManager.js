@@ -1,5 +1,9 @@
 import { reactive } from "vue";
 import { cancelTransfer, listTransfers } from "@/api/transfers";
+import { showSuccess } from "@/notify/message.js";
+import i18n from "@/i18n";
+import { mutations } from "@/store";
+import { goToItemNotificationButton } from "@/utils/notificationActions";
 
 class TransferManager {
   constructor() {
@@ -7,11 +11,13 @@ class TransferManager {
     this._pollTimer = null;
   }
 
-  addJob(jobId, action, items) {
+  addJob(jobId, action, items, { destPath, destSource } = {}) {
     const transfer = {
       id: jobId,
       action,
       items,
+      destPath,
+      destSource,
       status: "pending",
       totalBytes: 0,
       copiedBytes: 0,
@@ -21,6 +27,8 @@ class TransferManager {
       progress: 0,
       error: "",
       startTime: Date.now(),
+      speed: 0,
+      _lastSpeedTime: Date.now(),
     };
     this.queue.push(transfer);
     this._startPolling();
@@ -34,6 +42,25 @@ class TransferManager {
   }
 
   _applyUpdate(transfer, data) {
+    const now = Date.now();
+    const prevBytes = transfer.copiedBytes || 0;
+    const prevTime = transfer._lastSpeedTime || transfer.startTime || now;
+    const timeDelta = (now - prevTime) / 1000;
+    const bytesDelta = (data.copiedBytes || 0) - prevBytes;
+
+    if (timeDelta > 0.5 && bytesDelta > 0 && data.status === "running") {
+      const instantSpeed = bytesDelta / timeDelta;
+      transfer.speed =
+        transfer.speed > 0
+          ? transfer.speed * 0.7 + instantSpeed * 0.3
+          : instantSpeed;
+      transfer._lastSpeedTime = now;
+    } else if (data.status !== "running") {
+      transfer.speed = 0;
+      transfer._lastSpeedTime = now;
+    }
+
+    const prevStatus = transfer.status;
     transfer.status = data.status;
     transfer.totalBytes = data.totalBytes;
     transfer.copiedBytes = data.copiedBytes;
@@ -43,11 +70,39 @@ class TransferManager {
     transfer.error = data.error || "";
     transfer.progress =
       data.totalBytes > 0 ? (data.copiedBytes / data.totalBytes) * 100 : 0;
+
+    if (prevStatus !== "completed" && data.status === "completed") {
+      this._onTransferComplete(transfer);
+    }
+  }
+
+  _onTransferComplete(transfer) {
+    const t = i18n.global.t;
+    const message =
+      transfer.action === "move"
+        ? t("prompts.moveSuccess")
+        : t("prompts.copySuccess");
+
+    const options = {};
+    if (transfer.destPath) {
+      options.icon = "folder";
+      options.buttons = [
+        goToItemNotificationButton(
+          t("buttons.goToItem"),
+          transfer.destSource || null,
+          transfer.destPath,
+          false
+        ),
+      ];
+    }
+
+    showSuccess(message, options);
+    mutations.setReload(true);
   }
 
   _startPolling() {
     if (this._pollTimer) return;
-    this._pollTimer = setInterval(() => this._poll(), 1000);
+    this._pollTimer = setInterval(() => void this._poll(), 1000);
   }
 
   _stopPolling() {

@@ -385,7 +385,13 @@
     "moveFailed": "__NOT_TRANSLATED__",
     "operationFailed": "__NOT_TRANSLATED__",
     "partialSuccess": "__NOT_TRANSLATED__",
-    "confirmPasswordToSaveUser": "__NOT_TRANSLATED__"
+    "confirmPasswordToSaveUser": "__NOT_TRANSLATED__",
+    "cancelled": "Cancelled",
+    "transfer": "Transfers",
+    "transferStarted": "Transfer started in background",
+    "transferFailed": "Transfer failed",
+    "noActiveTransfers": "No active transfers",
+    "calculating": "Calculating..."
   },
   "search": {
     "searchContext": "Leitarumhverfi: {context}",

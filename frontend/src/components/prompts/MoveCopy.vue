@@ -355,7 +355,10 @@ export default {
 
         // Handle background transfer response
         if (result?.background && result?.jobId) {
-          transferManager.addJob(result.jobId, this.operation, itemsToProcess);
+          transferManager.addJob(result.jobId, this.operation, itemsToProcess, {
+            destPath: this.destPath,
+            destSource: this.destSource,
+          });
           mutations.closeTopPrompt(); // close conflict prompt if open
           mutations.closeTopPrompt(); // close moveCopy prompt
           const hasTransferPrompt = state.prompts.some(p => p.name === 'transfer');

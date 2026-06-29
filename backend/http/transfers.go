@@ -62,10 +62,8 @@ type resolvedTransferParams struct {
 	realSrc  string
 	realDst  string
 	isSrcDir bool
-	item     MoveCopyItem
-	// move-specific: pre-resolved data for thumbnail deletion and share/access updates
-	srcIndexPath string
-	userScope    string
+	item      MoveCopyItem
+	userScope string
 	showHidden   bool
 	hideFileExt  string
 }

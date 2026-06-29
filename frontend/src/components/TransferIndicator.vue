@@ -96,7 +96,7 @@ export default {
 <style scoped>
 .transfer-indicator {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 4rem;
   right: 1.5rem;
   width: 48px;
   height: 48px;

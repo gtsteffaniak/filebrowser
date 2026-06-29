@@ -9,6 +9,9 @@
     "noCreateOptions": "Er zijn geen opties beschikbaar"
   },
   "general": {
+    "to": "naar{suffix}",
+    "and": "en{suffix}",
+    "or": "of{suffix}",
     "divider": "Scheiding{suffix}",
     "show": "Toon{suffix}",
     "office": "Office{suffix}",
@@ -84,6 +87,8 @@
     "download": "Downloaden{suffix}",
     "file": "Bestand{suffix}",
     "folder": "Map{suffix}",
+    "camera": "Camera{suffix}",
+    "video": "Video{suffix}",
     "info": "Info{suffix}",
     "move": "Verplaatsen{suffix}",
     "new": "Nieuw{suffix}",
@@ -113,12 +118,7 @@
     "readOnly": "Alleen-lezen{suffix}",
     "private": "Privé{suffix}",
     "yes": "Ja{suffix}",
-    "no": "Geen{suffix}",
-    "to": "naar{suffix}",
-    "and": "en{suffix}",
-    "or": "of{suffix}",
-    "camera": "Camera{suffix}",
-    "video": "Video{suffix}"
+    "no": "Geen{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -210,6 +210,8 @@
     "slash": "Zoeken inschakelen",
     "description": "U kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
     "wiki": "FileBrowser Quantum officiële documentatie",
+    "altArrowUp": "Ga naar de bovenliggende map",
+    "altArrowDown": "Open het geselecteerde bestand/de geselecteerde map",
     "media": {
       "title": "Mediaspeler",
       "playPause": "Afspelen/Pauzeren",
@@ -223,9 +225,7 @@
       "playbackModes": "Schakel tussen afspeelmodi (behalve herhalen en enkelvoudig)",
       "fullscreen": "Volledig scherm modus voor video's",
       "captions": "Ondertiteling aan/uit"
-    },
-    "altArrowUp": "Ga naar de bovenliggende map",
-    "altArrowDown": "Open het geselecteerde bestand/de geselecteerde map"
+    }
   },
   "languages": {
     "he": "עברית",
@@ -268,6 +268,7 @@
   },
   "share": {
     "notice": "Opmerking: wanneer een gedeelde map wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als uw gedeelde map niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld.",
     "disableAnonymous": "Anonieme toegang uitschakelen",
     "disableThumbnails": "Miniaturen uitschakelen",
     "enableAllowedUsernames": "Alleen delen met bepaalde gebruikers",
@@ -333,8 +334,7 @@
     "shareInfo": "QR-code en info delen",
     "shareInfoDescription": "Deze koppeling toont de informatie van de gedeelde map, inclusief titel, beschrijving, banner en QR-code in een popup.",
     "downloadDescription": "Met deze koppeling kunt u de volledige inhoud van de gedeelde map downloaden als een gecomprimeerd bestand.",
-    "deleteFailed": "Share niet verwijderd",
-    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
+    "deleteFailed": "Share niet verwijderd"
   },
   "prompts": {
     "operationInProgress": "Werk in uitvoering, even geduld...",
@@ -371,6 +371,12 @@
     "dragAndDrop": "Sleep bestanden hier naartoe",
     "error": "Er ging iets mis",
     "completed": "Voltooid",
+    "cancelled": "Cancelled",
+    "transfer": "Transfers",
+    "transferStarted": "Transfer started in background",
+    "transferFailed": "Transfer failed",
+    "noActiveTransfers": "No active transfers",
+    "calculating": "Calculating...",
     "fileInfo": "Bestandsinformatie",
     "moveSuccess": "Bestanden succesvol verplaatst!",
     "newFileSuccess": "Bestand succesvol aangemaakt!",
@@ -435,11 +441,11 @@
     "showPreviewImagesDescription": "Toon, indien beschikbaar, miniatuurvoorbeelden voor zoekresultaten en toon grotere pictogrammen voor alle resultaten.",
     "useWildcardSearch": "Zoeken met jokertekens (hoofdlettergevoelig)",
     "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
+    "caseExact": "Hoofdlettergevoelige zoekopdracht",
+    "caseExactDescription": "Pas bij het vergelijken van bestands- en mapnamen de exacte hoofdlettergebruik toe, in plaats van hoofdletters en kleine letters te negeren.",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal {minSearchLength} tekens).",
     "helpText2": "Substring match alleen op bestands- of mapnamen (geen volledige paden). case:exact voor hoofdlettergevoelig matchen\n\n voor OR tussen termen gebruik je het teken pipe; dubbele aanhalingstekens voor één zin.\n\nSchakel wildcard zoeken in voor meer geavanceerde opties.",
-    "openInAdvancedSearch": "Openen in geavanceerd zoeken",
-    "caseExact": "Hoofdlettergevoelige zoekopdracht",
-    "caseExactDescription": "Pas bij het vergelijken van bestands- en mapnamen de exacte hoofdlettergebruik toe, in plaats van hoofdletters en kleine letters te negeren."
+    "openInAdvancedSearch": "Openen in geavanceerd zoeken"
   },
   "profileSettings": {
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",

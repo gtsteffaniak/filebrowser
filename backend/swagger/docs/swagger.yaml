@@ -243,6 +243,53 @@ definitions:
           "gallery"'
         type: string
     type: object
+  http.TransferJob:
+    properties:
+      action:
+        type: string
+      completedAt:
+        type: string
+      copiedBytes:
+        type: integer
+      createdAt:
+        type: string
+      currentFile:
+        type: string
+      error:
+        type: string
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/http.MoveCopyItem'
+        type: array
+      itemsCompleted:
+        type: integer
+      itemsTotal:
+        type: integer
+      status:
+        $ref: '#/definitions/http.TransferStatus'
+      totalBytes:
+        type: integer
+      username:
+        type: string
+    type: object
+  http.TransferStatus:
+    enum:
+    - pending
+    - calculating
+    - running
+    - completed
+    - failed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - TransferStatusPending
+    - TransferStatusCalculating
+    - TransferStatusRunning
+    - TransferStatusCompleted
+    - TransferStatusFailed
+    - TransferStatusCancelled
   http.archiveCreateRequest:
     properties:
       compression:
@@ -4713,6 +4760,96 @@ paths:
       summary: Search Files
       tags:
       - Tools
+  /api/transfers:
+    get:
+      description: Returns all background transfer jobs belonging to the current user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of transfer jobs
+          schema:
+            items:
+              $ref: '#/definitions/http.TransferJob'
+            type: array
+      summary: List transfers
+      tags:
+      - Transfers
+  /api/transfers/{id}:
+    delete:
+      description: Cancels a running, calculating, or pending transfer job.
+      parameters:
+      - description: Transfer job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cancellation confirmed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request - job not active or missing id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cancel transfer
+      tags:
+      - Transfers
+    get:
+      description: Returns the details and progress of a specific transfer job.
+      parameters:
+      - description: Transfer job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transfer job details
+          schema:
+            $ref: '#/definitions/http.TransferJob'
+        "400":
+          description: Bad request - missing id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get transfer
+      tags:
+      - Transfers
   /api/users:
     delete:
       consumes:
