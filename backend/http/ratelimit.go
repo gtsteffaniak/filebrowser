@@ -101,9 +101,11 @@ func realIP(r *http.Request) string {
 	// Only trust forwarded headers when the request comes from a private address
 	if isPrivateIP(remoteIP) {
 		if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
-			// Take the first (leftmost) IP which is the original client
+			// Take the rightmost entry — the one appended by the trusted proxy. The leftmost
+			// entries are client-supplied and spoofable, which would let an attacker rotate
+			// the rate-limit key by sending a unique X-Forwarded-For per request.
 			parts := strings.Split(fwd, ",")
-			return strings.TrimSpace(parts[0])
+			return strings.TrimSpace(parts[len(parts)-1])
 		}
 		if fwd := r.Header.Get("X-Real-Ip"); fwd != "" {
 			return strings.TrimSpace(fwd)

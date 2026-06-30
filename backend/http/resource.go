@@ -101,7 +101,10 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, err
 	}
 	userscope = strings.TrimRight(userscope, "/")
-	scopePath := utils.JoinPathAsUnix(userscope, path)
+	scopePath, err := utils.SafeScopedJoin(userscope, path)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	getContent := r.URL.Query().Get("content") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username:                 d.user.Username,
@@ -296,7 +299,10 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusForbidden, err
 		}
 		userscope = strings.TrimRight(userscope, "/")
-		path = utils.JoinPathAsUnix(userscope, unescapedPath)
+		path, err = utils.SafeScopedJoin(userscope, unescapedPath)
+		if err != nil {
+			return http.StatusForbidden, err
+		}
 	}
 
 	// Determine if this is a directory based on isDir query param or trailing slash (for backwards compatibility)

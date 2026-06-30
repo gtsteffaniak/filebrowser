@@ -36,7 +36,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	// Same-origin stream — do not advertise a wildcard CORS origin on a credentialed endpoint.
 
 	sessionId := r.URL.Query().Get("sessionId")
 	username := d.user.Username

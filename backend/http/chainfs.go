@@ -542,12 +542,28 @@ func loginWithChainFsUser(w http.ResponseWriter, r *http.Request, username, disp
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	// Redirect to original destination or default
-	if redirect == "" {
-		redirect = "/"
-	}
+	// Redirect to original destination or default. Only allow local, same-origin paths to
+	// prevent an open redirect (?redirect=//evil.com or absolute URLs carried via state).
+	redirect = sanitizeLocalRedirect(redirect)
 	http.Redirect(w, r, redirect, http.StatusFound)
 	return 0, nil
+}
+
+// sanitizeLocalRedirect returns a safe, local redirect target. Anything that is not a
+// single-slash-rooted relative path (e.g. "//host", "https://host", "/\host", or a value
+// with a scheme) is rejected and replaced with "/".
+func sanitizeLocalRedirect(redirect string) string {
+	if redirect == "" {
+		return "/"
+	}
+	// Must be rooted, must not be protocol-relative ("//" or "/\"), must not contain a scheme.
+	if !strings.HasPrefix(redirect, "/") || strings.HasPrefix(redirect, "//") || strings.HasPrefix(redirect, "/\\") {
+		return "/"
+	}
+	if u, err := url.Parse(redirect); err != nil || u.IsAbs() || u.Host != "" {
+		return "/"
+	}
+	return redirect
 }
 
 // parseAndVerifyIDToken verifies the Azure AD B2C ID token signature when issuerUrl

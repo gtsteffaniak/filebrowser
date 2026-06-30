@@ -123,7 +123,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	api.HandleFunc("GET /preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
 	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
-	if version.Version == "testing" || version.Version == "untracked" {
+	// Unauthenticated debug endpoints — only in dev/test builds. Require dev mode as well so a
+	// mis-stamped ("untracked") production image cannot accidentally expose them.
+	if (version.Version == "testing" || version.Version == "untracked") && settings.Env.IsDevMode {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
 		api.HandleFunc("GET /mockData", mockData)
 	}

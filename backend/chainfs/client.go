@@ -7,6 +7,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -242,7 +243,7 @@ type AcornToolsAccess struct {
 // CheckAcornToolsAccess verifies whether a user (identified by their Azure sub claim)
 // has acorn-drive access according to the acorn.tools billing system.
 func CheckAcornToolsAccess(acornToolsBaseURL, apiSecret, azureSub string) (*AcornToolsAccess, error) {
-	endpoint := fmt.Sprintf("%s/api/internal/acorn-drive/access?azure_sub=%s", acornToolsBaseURL, azureSub)
+	endpoint := fmt.Sprintf("%s/api/internal/acorn-drive/access?azure_sub=%s", acornToolsBaseURL, url.QueryEscape(azureSub))
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create acorn.tools request: %w", err)

@@ -469,6 +469,17 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	}
 	realPath, isDir, err := iteminfo.ResolveSymlinks(absolutePath)
 	if err == nil {
+		// Containment guard: the resolved real path (after ".." collapsing and symlink
+		// resolution) must stay within this source root. Blocks scope/source escape and
+		// symlink-based escape regardless of how the relative path was constructed.
+		rootAbs, _ := filepath.Abs(idx.Path)
+		rootReal, _, rootErr := iteminfo.ResolveSymlinks(rootAbs)
+		if rootErr != nil {
+			rootReal = rootAbs
+		}
+		if !utils.WithinRoot(rootReal, realPath) && !utils.WithinRoot(rootAbs, realPath) {
+			return "", false, fmt.Errorf("resolved path escapes source root")
+		}
 		RealPathCache.Set(joinedPath, realPath)
 		IsDirCache.Set(joinedPath+":isdir", isDir)
 	}

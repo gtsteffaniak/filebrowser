@@ -175,7 +175,10 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("invalid path encoding: %v", err)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	fullPath := filepath.Join(d.share.Path, path)
+	fullPath, err := utils.SafeScopedJoin(d.share.Path, path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid upload path")
+	}
 	source := config.Server.SourceMap[d.share.Source].Name
 	// adjust query params to match resourcePostHandler
 	q := r.URL.Query()
@@ -296,7 +299,10 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	resolvedPath := utils.JoinPathAsUnix(d.share.Path, path)
+	resolvedPath, err := utils.SafeScopedJoin(d.share.Path, path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid path")
+	}
 	err = files.WriteFile(source, resolvedPath, r.Body)
 	return errToStatus(err), err
 }
@@ -314,7 +320,10 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	indexPath := utils.JoinPathAsUnix(d.share.Path, path)
+	indexPath, err := utils.SafeScopedJoin(d.share.Path, path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid path")
+	}
 	source, err := d.share.GetSourceName()
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("source not available")
@@ -370,12 +379,12 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	// get full paths for both locations
-	srcFullPath := utils.JoinPathAsUnix(d.share.Path, src)
-	if srcFullPath == "/" {
+	srcFullPath, srcErr := utils.SafeScopedJoin(d.share.Path, src)
+	if srcErr != nil || srcFullPath == "/" {
 		return http.StatusForbidden, fmt.Errorf("an error occured accessing the share")
 	}
-	dstFullPath := utils.JoinPathAsUnix(d.share.Path, dst)
-	if dstFullPath == "/" {
+	dstFullPath, dstErr := utils.SafeScopedJoin(d.share.Path, dst)
+	if dstErr != nil || dstFullPath == "/" {
 		return http.StatusForbidden, fmt.Errorf("an error occured accessing the share")
 	}
 

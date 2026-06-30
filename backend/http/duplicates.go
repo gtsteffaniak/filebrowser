@@ -84,7 +84,10 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusForbidden, err
 	}
 	userscope = strings.TrimRight(userscope, "/")
-	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
+	scopePath, err := utils.SafeScopedJoin(userscope, opts.searchScope)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fullPath := index.MakeIndexPath(scopePath)
 	if !store.Access.Permitted(index.Path, fullPath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")

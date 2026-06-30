@@ -127,7 +127,10 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 		if err != nil {
 			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 		}
-		path = utils.JoinPathAsUnix(userScope, path)
+		path, err = utils.SafeScopedJoin(userScope, path)
+		if err != nil {
+			return fmt.Errorf("path escapes permitted scope")
+		}
 	}
 	// For shares, the path is already correctly resolved by publicRawHandler
 

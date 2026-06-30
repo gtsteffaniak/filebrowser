@@ -1,6 +1,7 @@
 package http
 
 import (
+	"crypto/subtle"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,8 +14,12 @@ import (
 // internalDeleteUserHandler handles DELETE /api/internal/delete-user?email=
 // Called by the landing page during account deletion. Authenticated via x-api-key header.
 func internalDeleteUserHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// Fail closed if no secret is configured, and require a sufficiently long key. The
+	// comparison is constant-time to avoid a timing side-channel on the shared secret.
 	secret := os.Getenv("ACORN_DRIVE_API_SECRET")
-	if secret == "" || r.Header.Get("x-api-key") != secret {
+	provided := r.Header.Get("x-api-key")
+	if len(secret) < 16 || subtle.ConstantTimeCompare([]byte(provided), []byte(secret)) != 1 {
+		logger.Warningf("[internal-delete] unauthorized delete attempt from %s", r.RemoteAddr)
 		return http.StatusUnauthorized, fmt.Errorf("unauthorized")
 	}
 

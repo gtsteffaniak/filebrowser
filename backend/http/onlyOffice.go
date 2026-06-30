@@ -1,11 +1,14 @@
 package http
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -106,7 +109,11 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			logger.Errorf("OnlyOffice: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
 			return http.StatusForbidden, fmt.Errorf("source %s is not available", source)
 		}
-		path = utils.JoinPathAsUnix(userScope, path)
+		scopedPath, joinErr := utils.SafeScopedJoin(userScope, path)
+		if joinErr != nil {
+			return http.StatusForbidden, fmt.Errorf("path escapes permitted scope")
+		}
+		path = scopedPath
 		logger.Debugf("OnlyOffice user request: resolved path=%s", path)
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 			Username:       d.user.Username,
@@ -122,7 +129,11 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		d.fileInfo = *fileInfo
 	} else {
 		// path is index path, so we build from share path
-		path = utils.JoinPathAsUnix(d.share.Path, providedPath)
+		scopedPath, joinErr := utils.SafeScopedJoin(d.share.Path, providedPath)
+		if joinErr != nil {
+			return http.StatusForbidden, fmt.Errorf("invalid path")
+		}
+		path = scopedPath
 		if d.share.EnforceDarkLightMode == "dark" {
 			themeMode = "dark"
 		}
@@ -370,11 +381,19 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 			logger.Errorf("OnlyOffice callback: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
 			return returnOnlyOfficeError(w, r, 403, "source not available")
 		}
-		path = utils.JoinPathAsUnix(userScope, path)
+		scopedPath, joinErr := utils.SafeScopedJoin(userScope, path)
+		if joinErr != nil {
+			return returnOnlyOfficeError(w, r, 403, "path escapes permitted scope")
+		}
+		path = scopedPath
 	} else {
 		source = sourceInfo.Name
 		// path is index path, so we build from share path
-		path = utils.JoinPathAsUnix(d.share.Path, path)
+		scopedPath, joinErr := utils.SafeScopedJoin(d.share.Path, path)
+		if joinErr != nil {
+			return returnOnlyOfficeError(w, r, 403, "invalid path")
+		}
+		path = scopedPath
 	}
 	// Handle document closure - clean up document key cache
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
@@ -494,7 +513,13 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 			}
 		}
 
-		// Download the updated document from OnlyOffice server
+		// Download the updated document from OnlyOffice server.
+		// Restrict the fetch to the configured OnlyOffice host and block internal/loopback
+		// targets so a forged/replayed callback cannot turn this into an SSRF primitive.
+		if err := validateOnlyOfficeFetchURL(data.URL); err != nil {
+			logger.Errorf("OnlyOffice callback: refusing to fetch document URL %q: %v", data.URL, err)
+			return returnOnlyOfficeError(w, r, 400, "invalid document download URL")
+		}
 		doc, err := http.Get(data.URL)
 		if err != nil {
 			logger.Errorf("OnlyOffice callback: failed to download updated document: %v", err)
@@ -640,13 +665,72 @@ func deleteOfficeId(source, path string) {
 	utils.OnlyOfficeCache.Delete(realpath)
 }
 
+// validateOnlyOfficeFetchURL ensures the document URL provided in an OnlyOffice callback
+// points at the configured OnlyOffice Document Server and not at an internal/loopback
+// address, preventing the callback from being used as an SSRF primitive.
+func validateOnlyOfficeFetchURL(raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("unparseable URL: %w", err)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("unsupported scheme %q", u.Scheme)
+	}
+	host := strings.ToLower(u.Hostname())
+	if host == "" {
+		return fmt.Errorf("missing host")
+	}
+	// Allowlist the configured OnlyOffice server host(s). The InternalUrl may legitimately
+	// be a private address, so a host match is authoritative.
+	allowed := map[string]bool{}
+	for _, cfg := range []string{settings.Config.Integrations.OnlyOffice.Url, settings.Config.Integrations.OnlyOffice.InternalUrl} {
+		if cfg == "" {
+			continue
+		}
+		if cu, perr := url.Parse(cfg); perr == nil && cu.Hostname() != "" {
+			allowed[strings.ToLower(cu.Hostname())] = true
+		}
+	}
+	if len(allowed) > 0 {
+		if !allowed[host] {
+			return fmt.Errorf("host %q is not the configured OnlyOffice server", host)
+		}
+		return nil
+	}
+	// No configured OnlyOffice host to compare against — fall back to blocking non-routable
+	// targets (cloud metadata, loopback, link-local, private ranges).
+	ips, lookupErr := net.LookupIP(host)
+	if lookupErr != nil {
+		return fmt.Errorf("could not resolve host %q: %w", host, lookupErr)
+	}
+	for _, ip := range ips {
+		if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsUnspecified() {
+			return fmt.Errorf("host %q resolves to non-routable address %s", host, ip)
+		}
+	}
+	return nil
+}
+
 // parseOnlyOfficeJWT parses the JWT token from OnlyOffice callback
 func parseOnlyOfficeJWT(tokenString string) (*OnlyOfficeCallback, error) {
-	// Parse the JWT token without signature verification since OnlyOffice uses different signing
-	// We'll parse it manually to avoid signature validation issues
 	parts := strings.Split(tokenString, ".")
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("invalid JWT format")
+	}
+
+	// Verify the HS256 signature with the configured OnlyOffice secret. OnlyOffice signs
+	// callbacks with this shared secret; without verification the callback body (including
+	// the document download URL) is fully attacker-controlled (SSRF + arbitrary overwrite).
+	secret := settings.Config.Integrations.OnlyOffice.Secret
+	if secret != "" {
+		mac := hmac.New(sha256.New, []byte(secret))
+		mac.Write([]byte(parts[0] + "." + parts[1]))
+		expectedSig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+		if !hmac.Equal([]byte(parts[2]), []byte(expectedSig)) {
+			return nil, fmt.Errorf("OnlyOffice JWT signature verification failed")
+		}
+	} else {
+		logger.Warning("OnlyOffice secret is not configured — callback JWT signature is NOT verified. Set integrations.onlyoffice.secret to harden this deployment.")
 	}
 
 	// Decode the payload (second part) with fallback to standard base64

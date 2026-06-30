@@ -17,6 +17,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/time/rate"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/chainfs"
@@ -301,9 +302,10 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	}
 	err := storage.CreateUser(user, settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions))
 	if err != nil {
-		logger.Debug(err.Error())
-		// Return the actual error message instead of a generic one
-		return http.StatusBadRequest, err
+		// Log the real reason, but return a generic message so signup cannot be used to
+		// enumerate which usernames/emails already exist.
+		logger.Debugf("signup failed for %q: %v", username, err)
+		return http.StatusBadRequest, fmt.Errorf("could not create account")
 	}
 	return 201, nil
 }
@@ -474,6 +476,14 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 				return 200, nil
 			}
 		}
+	}
+
+	// Throttle password-guessing per share. This runs only on the password path (token-based
+	// access has already returned above), so it covers both the public share routes and the
+	// authenticated /api/raw path — including distributed brute force against one share — with
+	// no effect on normal browsing.
+	if !shareRateLimiter.getWithRate("share-pw:"+l.Token, rate.Every(time.Minute/30), 10).Allow() {
+		return http.StatusTooManyRequests, errTooManyRequests
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")

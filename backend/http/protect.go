@@ -84,10 +84,14 @@ func protectHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusForbidden, err
 	}
 	userScope = strings.TrimRight(userScope, "/")
+	scopedPath, err := utils.SafeScopedJoin(userScope, filePath)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username:   d.user.Username,
-		Path:       utils.JoinPathAsUnix(userScope, filePath),
+		Path:       scopedPath,
 		Source:     source,
 		Expand:     false,
 		ShowHidden: d.user.ShowHidden,

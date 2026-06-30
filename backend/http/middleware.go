@@ -577,6 +577,17 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+		// HSTS — only meaningful over HTTPS; protects URL-borne tokens and prevents SSL strip.
+		if getScheme(r) == "https" {
+			w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+		}
+		// Baseline CSP. Set only if a handler has not already set a more specific policy.
+		if w.Header().Get("Content-Security-Policy") == "" {
+			w.Header().Set("Content-Security-Policy",
+				"default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; "+
+					"style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; "+
+					"frame-ancestors 'none'; base-uri 'self'; object-src 'none'")
+		}
 		next.ServeHTTP(w, r)
 	})
 }

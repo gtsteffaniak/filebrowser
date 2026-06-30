@@ -120,6 +120,36 @@ func JoinPathAsUnix(parts ...string) string {
 	return joinedPath
 }
 
+// SafeScopedJoin joins a trusted scope prefix with an untrusted, user-supplied relative
+// path and guarantees the result cannot escape the scope via ".." traversal. It returns
+// an error if the cleaned path would resolve outside the scope. Use this anywhere a
+// request-supplied path is combined with a user scope or a share root.
+func SafeScopedJoin(scope, userPath string) (string, error) {
+	cleanScope := filepath.Clean("/" + strings.Trim(strings.ReplaceAll(scope, "\\", "/"), "/"))
+	joined := filepath.Clean(filepath.Join(cleanScope, filepath.FromSlash(userPath)))
+	if runtime.GOOS == "windows" {
+		joined = strings.ReplaceAll(joined, "\\", "/")
+		cleanScope = strings.ReplaceAll(cleanScope, "\\", "/")
+	}
+	if joined != cleanScope && !strings.HasPrefix(joined, strings.TrimRight(cleanScope, "/")+"/") {
+		return "", fmt.Errorf("path %q escapes its permitted scope", userPath)
+	}
+	return joined, nil
+}
+
+// WithinRoot reports whether the resolved candidate path is the root itself or lies
+// beneath it. Both paths should be absolute. Used to confirm a symlink-resolved real
+// path has not escaped its source root.
+func WithinRoot(root, candidate string) bool {
+	root = filepath.Clean(root)
+	candidate = filepath.Clean(candidate)
+	if candidate == root {
+		return true
+	}
+	sep := string(filepath.Separator)
+	return strings.HasPrefix(candidate, strings.TrimRight(root, sep)+sep)
+}
+
 func NonNilSlice[T any](in []T) []T {
 	if in == nil {
 		return []T{}

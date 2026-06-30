@@ -626,6 +626,17 @@ func loadEnvConfig() {
 		logger.Info("Using ReCaptcha Secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
 	}
 
+	// ChainFS / Azure AD B2C secrets and issuer are loaded from the environment so they
+	// are never committed to config files in source control. See SECURITY.md.
+	if v := os.Getenv("FILEBROWSER_CHAINFS_CLIENT_SECRET"); v != "" {
+		Config.Auth.Methods.ChainFsAuth.ClientSecret = v
+		logger.Info("Using ChainFS client secret from FILEBROWSER_CHAINFS_CLIENT_SECRET environment variable")
+	}
+	if v := os.Getenv("FILEBROWSER_CHAINFS_ISSUER_URL"); v != "" {
+		Config.Auth.Methods.ChainFsAuth.IssuerUrl = v
+		logger.Info("Using ChainFS issuer URL from FILEBROWSER_CHAINFS_ISSUER_URL environment variable")
+	}
+
 	if os.Getenv("FILEBROWSER_CHAINFS_BYPASS") == "true" {
 		Env.ChainFsBypass = true
 		logger.Info("ChainFS subscription check bypassed via FILEBROWSER_CHAINFS_BYPASS env var")
@@ -643,6 +654,14 @@ func loadEnvConfig() {
 		Env.AcornDriveSsoSecret = v
 	}
 
+	// The auth key signs all session JWTs and encrypts stored OAuth tokens, so it must never
+	// be committed. Production supplies it via FILEBROWSER_JWT_TOKEN_SECRET (sourced from Key
+	// Vault). When neither the env var nor a persisted key is present, the storage layer
+	// generates a random key on first init (see database/storage quickSetup) — which is the
+	// preferred, non-committed default. We only warn here so the operator notices.
+	if strings.TrimSpace(Config.Auth.Key) == "" && strings.TrimSpace(os.Getenv("FILEBROWSER_JWT_TOKEN_SECRET")) == "" {
+		logger.Warning("auth.key is empty and FILEBROWSER_JWT_TOKEN_SECRET is not set — a random key will be generated and persisted on first init. Set FILEBROWSER_JWT_TOKEN_SECRET to control rotation.")
+	}
 }
 
 func setDefaults(generate bool) Settings {
