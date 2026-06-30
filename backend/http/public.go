@@ -95,17 +95,26 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			if len(splitFile) == 2 {
 				source := splitFile[0]
 				path := splitFile[1]
-				// Join the share path with the requested path
-				filePath := utils.JoinPathAsUnix(d.share.Path, path)
+				// Join the share path with the requested path (scope-contained)
+				filePath, joinErr := utils.SafeScopedJoin(d.share.Path, path)
+				if joinErr != nil {
+					continue
+				}
 				fileList = append(fileList, source+"::"+filePath)
 			} else {
 				// Fallback: treat as plain path
-				filePath := utils.JoinPathAsUnix(d.share.Path, file)
+				filePath, joinErr := utils.SafeScopedJoin(d.share.Path, file)
+				if joinErr != nil {
+					continue
+				}
 				fileList = append(fileList, actualSourceName+"::"+filePath)
 			}
 		} else {
 			// Plain path without source prefix - use the actual source name from share
-			filePath := utils.JoinPathAsUnix(d.share.Path, file)
+			filePath, joinErr := utils.SafeScopedJoin(d.share.Path, file)
+			if joinErr != nil {
+				continue
+			}
 			fileList = append(fileList, actualSourceName+"::"+filePath)
 		}
 	}

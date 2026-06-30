@@ -133,7 +133,10 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	scopePath := utils.JoinPathAsUnix(userscope, path)
+	scopePath, err := utils.SafeScopedJoin(userscope, path)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
 	s, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == errors.ErrNotExist || len(s) == 0 {
@@ -383,7 +386,10 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, err
 	}
 	providedPath := body.Path
-	body.Path = utils.JoinPathAsUnix(userscope, providedPath)
+	body.Path, err = utils.SafeScopedJoin(userscope, providedPath)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("path escapes permitted scope")
+	}
 	body.Path = utils.AddTrailingSlashIfNotExists(body.Path)
 	// validate path exists as file or folder
 	_, _, err = idx.GetRealPath(body.Path)
@@ -521,7 +527,10 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	}
 
 	// Create the scope path
-	scopePath := utils.JoinPathAsUnix(userscope, path)
+	scopePath, err := utils.SafeScopedJoin(userscope, path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("path escapes permitted scope")
+	}
 
 	// Check if an existing share already matches these parameters
 	existingShares, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)

@@ -75,9 +75,13 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+	scopedPath, err := utils.SafeScopedJoin(userscope, path)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username: d.user.Username,
-		Path:     utils.JoinPathAsUnix(userscope, path),
+		Path:     scopedPath,
 		Source:   source,
 		AlbumArt: true, // Extract album art for audio previews
 	}, store.Access)
@@ -130,7 +134,11 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 				return nil, fmt.Errorf("source not found for share")
 			}
 			source = sourceInfo.Name
-			path = utils.JoinPathAsUnix(d.share.Path, path)
+			scopedPath, joinErr := utils.SafeScopedJoin(d.share.Path, path)
+			if joinErr != nil {
+				return nil, fmt.Errorf("invalid path")
+			}
+			path = scopedPath
 		}
 
 		fileInfo, err := files.FileInfoFaster(
