@@ -67,6 +67,7 @@
               :search-query="searchQuery"
               :search-placeholder="searchPlaceholder"
               :empty-label="emptyLabel"
+              :max-height="dropdownMaxHeight"
               @select="selectOption"
               @update:search-query="searchQuery = $event"
               @close="close"
@@ -174,6 +175,7 @@ export default {
       localInputId: `expand-dropdown-${expandDropdownIdCounter}`,
       panelResizeObserver: null,
       expandUpward: false,
+      dropdownMaxHeight: null,
     };
   },
 
@@ -350,17 +352,14 @@ export default {
         const viewportHeight = window.innerHeight;
         const spaceBelow = viewportHeight - rect.bottom;
         const spaceAbove = rect.top;
-        const minPanelHeight = 180;
-        if (spaceBelow >= minPanelHeight) {
-          this.expandUpward = false;
-        } else if (spaceAbove >= minPanelHeight) {
-          this.expandUpward = true;
-        } else {
-          // Not enough space either way, so pick the larger side
-          this.expandUpward = spaceAbove > spaceBelow;
-        }
+        this.expandUpward = spaceAbove > spaceBelow;
+        const padding = 15;
+        const cap = viewportHeight * 0.5; // 50vh
+        const availableSpace = this.expandUpward ? spaceAbove : spaceBelow;
+        this.dropdownMaxHeight = Math.max(100, Math.min(availableSpace - padding, cap));
       } else {
         this.expandUpward = false;
+        this.dropdownMaxHeight = null;
       }
       this.panelOpen = false;
       this.isExpanded = true;
@@ -398,6 +397,7 @@ export default {
       this.searchQuery = "";
       this.overlayStyle = {};
       this.expandUpward = false;
+      this.dropdownMaxHeight = null;
       this.unobservePanelResize();
     },
     onPanelAfterLeave() {
@@ -445,6 +445,14 @@ export default {
         style.top = `${anchorRect.bottom - 1}px`;
       }
       this.overlayStyle = style;
+      if (this.open) {
+        const padding = 15;
+        const cap = viewportHeight * 0.5;
+        const spaceBelow = viewportHeight - anchorRect.bottom;
+        const spaceAbove = anchorRect.top;
+        const availableSpace = this.expandUpward ? spaceAbove : spaceBelow;
+        this.dropdownMaxHeight = Math.max(100, Math.min(availableSpace - padding, cap));
+      }
     },
     onViewportChange() {
       if (this.open) {
