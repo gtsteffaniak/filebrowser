@@ -324,7 +324,10 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			}
 			return http.StatusForbidden, err
 		}
-		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
+		firstFilePath, err = utils.SafeScopedJoin(userscope, firstFilePath)
+		if err != nil {
+			return http.StatusForbidden, fmt.Errorf("path escapes permitted scope")
+		}
 	}
 	// For shares, the path is already correctly resolved by publicRawHandler
 	idx := indexing.GetIndex(firstFileSource)
@@ -537,7 +540,10 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 			if err != nil {
 				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 			}
-			path = utils.JoinPathAsUnix(userScope, path)
+			path, err = utils.SafeScopedJoin(userScope, path)
+			if err != nil {
+				return 0, fmt.Errorf("path escapes permitted scope")
+			}
 
 			// Check access control for each file in the archive
 			// Silently skip if access is denied (as if the file doesn't exist)

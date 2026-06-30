@@ -212,12 +212,17 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, err
 	}
 	userscope = strings.TrimRight(userscope, "/")
+	scopedPath, err := utils.SafeScopedJoin(userscope, path)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username:   d.user.Username,
-		Path:       utils.JoinPathAsUnix(userscope, path),
-		Source:     source,
-		Expand:     false,
-		ShowHidden: d.user.ShowHidden,
+		Username:       d.user.Username,
+		FollowSymlinks: true,
+		Path:           scopedPath,
+		Source:         source,
+		Expand:         false,
+		ShowHidden:     d.user.ShowHidden,
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
@@ -520,7 +525,11 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if d.user != nil && quotaExceeded(d.user, r.ContentLength) {
 		return http.StatusPaymentRequired, fmt.Errorf("storage quota exceeded")
 	}
-	err = files.WriteFile(source, utils.JoinPathAsUnix(userscope, path), r.Body)
+	scopedPath, joinErr := utils.SafeScopedJoin(userscope, path)
+	if joinErr != nil {
+		return http.StatusForbidden, joinErr
+	}
+	err = files.WriteFile(source, scopedPath, r.Body)
 	return errToStatus(err), err
 }
 
@@ -588,6 +597,15 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, err
 	}
 	userscopeSrc = strings.TrimRight(userscopeSrc, "/")
+
+	// Enforce per-user scope containment on both source and destination before resolving
+	// real paths — prevents ".." from moving/renaming outside the user's scope.
+	if _, scopeErr := utils.SafeScopedJoin(userscopeSrc, src); scopeErr != nil {
+		return http.StatusForbidden, scopeErr
+	}
+	if _, scopeErr := utils.SafeScopedJoin(userscopeDst, dst); scopeErr != nil {
+		return http.StatusForbidden, scopeErr
+	}
 
 	idx := indexing.GetIndex(dstIndex)
 	if idx == nil {
