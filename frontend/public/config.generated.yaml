@@ -11,7 +11,7 @@ server:
   port: 80                                # port to listen on
   listen: ""                              # address to listen on (default: 0.0.0.0)
   baseURL: "/"                            # base URL for the server, the subpath that the server is running on.
-  logging:
+  logging:                                # optional logging configs for output
     - levels: ""                          # separated list of log levels to enable. (eg. "info|warning|error|debug")
       apiLevels: ""                       # separated list of log levels to enable for the API. (eg. "info|warning|error")
       output: "stdout"                    # output location. (eg. "stdout" or "path/to/file.log")
@@ -19,10 +19,10 @@ server:
       json: false                         # output in json format
       utc: false                          # use UTC time in the output instead of local time.
       apiFilter: ""                       # regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
-  sources:                                #  validate:required,dive
+  sources:                                # required source configs  validate:required,dive
     - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
-      name: "Source Name"                 # display name
-      config:
+      name: "Source Name"                 # display name for the source in the UI
+      config:                             # advanced source configuration options
         denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
         private: false                    # designate as source as private -- currently just means no sharing permitted.
         readOnly: false                   # read-only source, changes from the UI, webdav, and API will be disabled.
@@ -231,13 +231,14 @@ userDefaults:
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
 integrations:
-  office:                                 #  validate:omitempty
+  office:                                 # office integration configuration  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
     internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
     secret: ""                            # secret: authentication key for OnlyOffice integration  validate:required
-    viewOnly: false                       # view only mode for OnlyOffice
-  media:                                  #  validate:omitempty
+    viewOnly: false                       # enforce a view-only mode for OnlyOffice
+  media:                                  # media integration configuration  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+    maxConcurrent: 2                      # system-wide concurrent media jobs such as transcode (default: 2)
     convert:                              # config for ffmpeg conversion settings
       imagePreview:                       # supported image preview formats. defaults vary by type (see individual type docs)
         heic: false
@@ -263,13 +264,12 @@ integrations:
         wmv: true
     transcode:                            # live fMP4 transcode fallback for preview playback
       enabled: false                      # master switch (default: false)
-      preset: "veryfast"                  # ffmpeg encode preset (default: veryfast)
-      maxConcurrent: 2                    # system-wide concurrent transcode jobs (default: 2)
       maxResolution: 1080                 # max output height in pixels; downscale above this (default: 1080)
-    debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
-    extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
+      dataSaverBitrateKbps: 900           # max video bitrate for data saver at 720p output (default: 900)
+    debug: false                          # output ffmpeg stdout for media integration -- warning: can produces lots of output
+    extractEmbeddedSubtitles: false       # extract embedded subtitles from media files -- warning: requires processing entire file
     exiftoolPath: ""                      # path to exiftool executable
-    hardwareAcceleration: false           # enable hardware acceleration for ffmpeg if available
+    gpu: ""                               # default=autoselect, igpu=integrated GPU, dgpu=discrete GPU, render node, or device name eg "/dev/dri/renderD129"; software=CPU only;
 http:
   trustedHeaders:                         # list of headers to trust, useful when behind a reverse proxy.
   disableRateLimit: false                 # turns off built-in auth route rate limiting and failed-login lockout (default false).

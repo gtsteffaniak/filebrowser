@@ -142,12 +142,6 @@ func TestHLSUseVideoCopy(t *testing.T) {
 }
 
 func TestTranscodeTargetVideoKbps(t *testing.T) {
-	oldMax := settings.Config.Integrations.Media.Transcode.MaxResolution
-	settings.Config.Integrations.Media.Transcode.MaxResolution = 1080
-	t.Cleanup(func() {
-		settings.Config.Integrations.Media.Transcode.MaxResolution = oldMax
-	})
-
 	tests := []struct {
 		name string
 		info ffmpeg.StreamInfo
@@ -204,8 +198,8 @@ func TestTranscodeEncodeProfileForMode(t *testing.T) {
 	}
 
 	optimized := transcodeEncodeProfileForMode(info, "optimized")
-	if optimized.Quality != encode.PresetVeryfast {
-		t.Fatalf("optimized preset = %q, want veryfast", optimized.Quality)
+	if optimized.Quality != encode.PresetFast {
+		t.Fatalf("optimized preset = %q, want fast", optimized.Quality)
 	}
 	if optimized.Bitrate.Max != optimized.Bitrate.Target {
 		t.Fatal("expected optimized mode to hard-cap max bitrate")
@@ -218,8 +212,23 @@ func TestTranscodeEncodeProfileForMode(t *testing.T) {
 	if datasaver.Bitrate.Max != datasaver.Bitrate.Target {
 		t.Fatal("expected datasaver mode to hard-cap max bitrate")
 	}
-	if datasaver.Bitrate.Target != "800k" {
-		t.Fatalf("datasaver target = %q, want 800k", datasaver.Bitrate.Target)
+	if datasaver.Bitrate.Target != "900k" {
+		t.Fatalf("datasaver target = %q, want 900k", datasaver.Bitrate.Target)
+	}
+}
+
+func TestTranscodeDataSaverBitrateFromConfig(t *testing.T) {
+	t.Parallel()
+	prev := settings.Config.Integrations.Media.Transcode.DataSaverBitrateKbps
+	settings.Config.Integrations.Media.Transcode.DataSaverBitrateKbps = 1200
+	t.Cleanup(func() {
+		settings.Config.Integrations.Media.Transcode.DataSaverBitrateKbps = prev
+	})
+
+	info := ffmpeg.StreamInfo{Height: 1080, VideoBitrate: 8_000_000}
+	datasaver := transcodeEncodeProfileForMode(info, "datasaver")
+	if datasaver.Bitrate.Target != "1200k" {
+		t.Fatalf("datasaver target = %q, want 1200k", datasaver.Bitrate.Target)
 	}
 }
 
@@ -240,12 +249,6 @@ func TestParseTranscodeProfileMode(t *testing.T) {
 }
 
 func TestTranscodeMaxHeightForMode(t *testing.T) {
-	oldMax := settings.Config.Integrations.Media.Transcode.MaxResolution
-	settings.Config.Integrations.Media.Transcode.MaxResolution = 1080
-	t.Cleanup(func() {
-		settings.Config.Integrations.Media.Transcode.MaxResolution = oldMax
-	})
-
 	if got := transcodeMaxHeightForMode(transcodeProfileQuality); got != 1080 {
 		t.Fatalf("quality maxH = %d, want 1080", got)
 	}
@@ -253,9 +256,17 @@ func TestTranscodeMaxHeightForMode(t *testing.T) {
 		t.Fatalf("datasaver maxH = %d, want 720", got)
 	}
 
-	settings.Config.Integrations.Media.Transcode.MaxResolution = 480
-	if got := transcodeMaxHeightForMode(transcodeProfileDataSaver); got != 480 {
-		t.Fatalf("datasaver respects lower global maxH = %d, want 480", got)
+	if got := transcodeMaxHeightForModeWithCap(transcodeProfileQuality, 480); got != 480 {
+		t.Fatalf("quality respects lower config maxH = %d, want 480", got)
+	}
+	if got := transcodeMaxHeightForModeWithCap(transcodeProfileQuality, 1440); got != 1080 {
+		t.Fatalf("quality caps at 1080 when config is higher = %d, want 1080", got)
+	}
+	if got := transcodeMaxHeightForModeWithCap(transcodeProfileDataSaver, 480); got != 480 {
+		t.Fatalf("datasaver respects lower config maxH = %d, want 480", got)
+	}
+	if got := transcodeMaxHeightForModeWithCap(transcodeProfileDataSaver, 1440); got != 720 {
+		t.Fatalf("datasaver caps at 720 when config is higher = %d, want 720", got)
 	}
 }
 
@@ -278,5 +289,23 @@ func TestOptimizedProfileAvoidsRemux(t *testing.T) {
 	}
 	if canFMP4StreamCopy(info) && !hlsNeedsFullVideoTranscode(info, transcodeProfileOptimized) {
 		t.Fatal("optimized profile should not select remux for h264/aac")
+	}
+}
+
+func TestQualityProfileTranscodesH264AACForHLS(t *testing.T) {
+	t.Parallel()
+	info := ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "aac", Height: 1080}
+	params := buildHLSSegmentParamsFast(info, transcodeProfileQuality)
+	if params.Remux || params.VideoCopy {
+		t.Fatalf("quality h264+aac should transcode for HLS, got remux=%v videoCopy=%v", params.Remux, params.VideoCopy)
+	}
+}
+
+func TestQualityProfileKeepsVideoCopyForEAC3(t *testing.T) {
+	t.Parallel()
+	info := ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "eac3", Height: 1080}
+	params := buildHLSSegmentParamsFast(info, transcodeProfileQuality)
+	if !params.VideoCopy || params.Remux {
+		t.Fatalf("quality h264+eac3 should video-copy, got remux=%v videoCopy=%v", params.Remux, params.VideoCopy)
 	}
 }

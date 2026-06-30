@@ -12,6 +12,9 @@ import (
 
 const transcodePerUserLimit = 1
 
+// testTranscodeSystemLimit overrides the system session cap in unit tests (0 = use default).
+var testTranscodeSystemLimit int
+
 const (
 	hlsMaxCachedSegments   = 8
 	hlsSessionIdleTTL      = 5 * time.Minute
@@ -28,7 +31,6 @@ type TranscodeSession struct {
 	FileName      string `json:"fileName"`
 	StartedAt     int64  `json:"startedAt"`
 	MaxResolution int    `json:"maxResolution"`
-	Preset        string `json:"preset,omitempty"`
 	ActiveStreams int    `json:"activeStreams,omitempty"`
 }
 
@@ -54,26 +56,26 @@ type transcodeSessionEntry struct {
 
 // hlsSessionState holds on-demand HLS transcode state for one file playback.
 type hlsSessionState struct {
-	mu               sync.Mutex
-	encodeMu         sync.Mutex // serializes ffmpeg encodes for this session (avoids init/seg-0 races)
-	realPath         string
-	profileMode      string
-	keyframeTimeline bool // true when segment cuts use probed keyframes (video-copy/remux)
-	sharedInit       bool // single #EXT-X-MAP for fMP4 copy/remux sessions
-	segmentCount     int
-	durationSec      float64
-	segmentStarts    []float64
-	segmentDurations []float64
+	mu                sync.Mutex
+	encodeMu          sync.Mutex // serializes ffmpeg encodes for this session (avoids init/seg-0 races)
+	realPath          string
+	profileMode       string
+	keyframeTimeline  bool // true when segment cuts use probed keyframes (video-copy/remux)
+	sharedInit        bool // single #EXT-X-MAP for fMP4 copy/remux sessions
+	segmentCount      int
+	durationSec       float64
+	segmentStarts     []float64
+	segmentDurations  []float64
 	keyframeSeekTimes []float64 // input seek hints for stream copy; playlist uses fixed grid
-	segmentMediaEnds []float64  // cumulative decode timeline end after each encoded segment
-	delivery         ffmpeg.HLSConfig
-	params           ffmpeg.HLSSegmentParams
-	init             []byte
-	inits            map[int][]byte
-	segments         map[int][]byte
-	gopResolved      bool
-	lastActivity     time.Time
-	playheadSec      float64
+	segmentMediaEnds  []float64 // cumulative decode timeline end after each encoded segment
+	delivery          ffmpeg.HLSConfig
+	params            ffmpeg.HLSSegmentParams
+	init              []byte
+	inits             map[int][]byte
+	segments          map[int][]byte
+	gopResolved       bool
+	lastActivity      time.Time
+	playheadSec       float64
 }
 
 type transcodeSessionStore struct {
@@ -92,11 +94,10 @@ func transcodeSessionKey(userID uint64, source, path string) string {
 }
 
 func transcodeSystemLimit() int {
-	n := settings.Config.Integrations.Media.Transcode.MaxConcurrent
-	if n < 1 {
-		return 2
+	if testTranscodeSystemLimit > 0 {
+		return testTranscodeSystemLimit
 	}
-	return n
+	return settings.MediaMaxConcurrent()
 }
 
 func (s *transcodeSessionStore) snapshot() []TranscodeSession {
@@ -222,7 +223,6 @@ func (s *transcodeSessionStore) acquire(userID uint64, username, source, path, f
 		activeStreams += entry.streams
 	}
 
-	tc := settings.Config.Integrations.Media.Transcode
 	entry := s.sessions[key]
 	if entry != nil && entry.streams > 0 {
 		status.CanStart = false
@@ -244,8 +244,7 @@ func (s *transcodeSessionStore) acquire(userID uint64, username, source, path, f
 				Path:          path,
 				FileName:      fileName,
 				StartedAt:     time.Now().Unix(),
-				MaxResolution: tc.MaxResolution,
-				Preset:        tc.Preset,
+				MaxResolution: settings.TranscodeMaxResolution(),
 			},
 		}
 		s.sessions[key] = entry
@@ -279,7 +278,6 @@ func (s *transcodeSessionStore) acquireHLS(userID uint64, username, source, path
 		return transcodeAcquireResult{OK: false, Reason: reason, Status: status}
 	}
 
-	tc := settings.Config.Integrations.Media.Transcode
 	entry := s.sessions[key]
 	if entry == nil {
 		entry = &transcodeSessionEntry{
@@ -291,8 +289,7 @@ func (s *transcodeSessionStore) acquireHLS(userID uint64, username, source, path
 				Path:          path,
 				FileName:      fileName,
 				StartedAt:     time.Now().Unix(),
-				MaxResolution: tc.MaxResolution,
-				Preset:        tc.Preset,
+				MaxResolution: settings.TranscodeMaxResolution(),
 			},
 			hls: &hlsSessionState{delivery: ffmpeg.ActiveHLSConfig()},
 		}
@@ -463,7 +460,7 @@ func (h *hlsSessionState) pruneSegmentCache() {
 	}
 	playhead := h.playheadSec
 	type kv struct {
-		idx int
+		idx  int
 		dist float64
 	}
 	var items []kv

@@ -28,13 +28,14 @@ var global *Service
 
 // InitOptions configures startup initialization.
 type InitOptions struct {
-	FFmpegPath           string
-	MaxConcurrent        int
-	CacheDir             string
-	SkipHWTests          bool
-	HardwareAcceleration bool
-	ExiftoolPath         string
-	Debug                bool
+	FFmpegPath    string
+	MaxConcurrent int
+	CacheDir      string
+	GPU           string
+	SkipHWTests   bool
+	LogHardware   bool
+	ExiftoolPath  string
+	Debug         bool
 }
 
 // Initialize creates the global ffmpeg service and runs capability detection.
@@ -46,14 +47,15 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 		opts.CacheDir = os.TempDir()
 	}
 
-	if opts.HardwareAcceleration {
-		logger.Info("Detecting ffmpeg hardware codec support...")
+	if opts.LogHardware {
+		logger.Infof("Detecting ffmpeg hardware codec support (gpu: %s)...", opts.GPU)
 	}
 
 	svc, err := goffmpeg.New(ctx, goffmpeg.Config{
 		FFmpegPath:    opts.FFmpegPath,
 		MaxConcurrent: opts.MaxConcurrent,
 		Logger:        ffmpegLogger(opts.Debug),
+		GPU:           opts.GPU,
 		SkipHWTests:   opts.SkipHWTests,
 		VerboseFFmpeg: opts.Debug,
 	})
@@ -68,7 +70,7 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 		exiftoolPath: opts.ExiftoolPath,
 	}
 
-	logCapabilities(svc, opts.HardwareAcceleration)
+	logCapabilities(svc, opts.LogHardware)
 	return nil
 }
 

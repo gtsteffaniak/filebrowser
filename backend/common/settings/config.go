@@ -28,25 +28,8 @@ import (
 var Config Settings
 
 const (
-	generatorPath           = "/relative/or/absolute/path"
-	defaultTranscodePreset  = "veryfast"
+	generatorPath = "/relative/or/absolute/path"
 )
-
-var validTranscodePresets = []string{
-	"ultrafast", "veryfast", "fast", "medium",
-}
-
-func normalizeTranscodePreset(preset string) string {
-	preset = strings.ToLower(strings.TrimSpace(preset))
-	if preset == "" {
-		return defaultTranscodePreset
-	}
-	if slices.Contains(validTranscodePresets, preset) {
-		return preset
-	}
-	logger.Warningf("invalid transcode preset %q; using %q", preset, defaultTranscodePreset)
-	return defaultTranscodePreset
-}
 
 func Initialize(configFile string) {
 	err := loadConfigWithDefaults(configFile, false)
@@ -353,13 +336,8 @@ func setupMedia(generate bool) {
 		Config.Integrations.Media.Convert.VideoPreview[k] = v
 	}
 
-	if Config.Integrations.Media.Transcode.MaxConcurrent < 1 {
-		Config.Integrations.Media.Transcode.MaxConcurrent = 2
-	}
-	Config.Integrations.Media.Transcode.Preset = normalizeTranscodePreset(Config.Integrations.Media.Transcode.Preset)
-	if Config.Integrations.Media.Transcode.MaxResolution < 1 {
-		Config.Integrations.Media.Transcode.MaxResolution = 1080
-	}
+	normalizeMediaLimits()
+	normalizeMediaTranscode()
 
 	// Resolve exiftool path once at startup: validate user path or discover via PATH
 	if Config.Integrations.Media.ExiftoolPath != "" && !generate {
@@ -389,14 +367,16 @@ func setupFFmpegIntegration() {
 		maxConcurrent = 4
 	}
 	ffmpegConcurrency := (maxConcurrent + 1) / 2
+	gpuCfg := MediaGPUSettings()
 	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
-		FFmpegPath:           Config.Integrations.Media.FfmpegPath,
-		MaxConcurrent:        ffmpegConcurrency,
-		CacheDir:             Config.Server.CacheDir,
-		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
-		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
-		ExiftoolPath:         Config.Integrations.Media.ExiftoolPath,
-		Debug:                Config.Integrations.Media.Debug,
+		FFmpegPath:    Config.Integrations.Media.FfmpegPath,
+		MaxConcurrent: ffmpegConcurrency,
+		CacheDir:      Config.Server.CacheDir,
+		GPU:           gpuCfg.GPU,
+		SkipHWTests:   !gpuCfg.Enabled,
+		LogHardware:   gpuCfg.LogHardware,
+		ExiftoolPath:  Config.Integrations.Media.ExiftoolPath,
+		Debug:         Config.Integrations.Media.Debug,
 	})
 	if err != nil {
 		logger.Warningf("ffmpeg unavailable: %v", err)
@@ -1185,9 +1165,6 @@ func SetDefaults(generate bool) Settings {
 	for _, t := range AllVideoPreviewTypes {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
-	s.Integrations.Media.Transcode.MaxConcurrent = 2
-	s.Integrations.Media.Transcode.Preset = defaultTranscodePreset
-	s.Integrations.Media.Transcode.MaxResolution = 1080
 	return s
 }
 

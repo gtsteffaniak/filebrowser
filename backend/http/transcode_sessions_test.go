@@ -2,8 +2,6 @@ package http
 
 import (
 	"testing"
-
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
 func newTestSessionStore() *transcodeSessionStore {
@@ -15,10 +13,10 @@ func newTestSessionStore() *transcodeSessionStore {
 
 func setTestTranscodeMaxConcurrent(t *testing.T, n int) {
 	t.Helper()
-	prev := settings.Config.Integrations.Media.Transcode.MaxConcurrent
-	settings.Config.Integrations.Media.Transcode.MaxConcurrent = n
+	prev := testTranscodeSystemLimit
+	testTranscodeSystemLimit = n
 	t.Cleanup(func() {
-		settings.Config.Integrations.Media.Transcode.MaxConcurrent = prev
+		testTranscodeSystemLimit = prev
 	})
 }
 

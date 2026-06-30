@@ -31,8 +31,3 @@ func ParseHLSTranscodeProfile(raw string) HLSTranscodeProfile {
 func HLSDecodeProfile(info StreamInfo) encode.VideoDecodeProfile {
 	return goffmpeg.HLSDecodeProfileForOnDemand(info)
 }
-
-// HLSEncodeProfile selects output encode settings for HLS transcode.
-func HLSEncodeProfile(info StreamInfo, mode HLSTranscodeProfile, maxHeight int) encode.VideoProfile {
-	return goffmpeg.HLSVideoProfile(info, hlsPreset(mode), maxHeight)
-}

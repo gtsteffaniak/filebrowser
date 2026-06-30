@@ -61,16 +61,16 @@ type Server struct {
 	Port                         int            `json:"port"`                                   // port to listen on
 	ListenAddress                string         `json:"listen"`                                 // address to listen on (default: 0.0.0.0)
 	BaseURL                      string         `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
-	Logging                      []LogConfig    `json:"logging" yaml:"logging"`
-	Sources                      []*Source      `json:"sources" validate:"required,dive"`
-	ExternalUrl                  string         `json:"externalUrl"`     // used by share links if set (eg. http://mydomain.com)
-	InternalUrl                  string         `json:"internalUrl"`     // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	CacheDir                     string         `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
-	CacheDirCleanup              bool           `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
-	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
-	Filesystem                   Filesystem     `json:"filesystem"`      // filesystem settings
-	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`  // Index database SQL configuration
-	DisableWebDAV                bool           `json:"disableWebDAV"`   // disable webdav support (default: false)
+	Logging                      []LogConfig    `json:"logging" yaml:"logging"`                 // optional logging configs for output
+	Sources                      []*Source      `json:"sources" validate:"required,dive"`       // required source configs
+	ExternalUrl                  string         `json:"externalUrl"`                            // used by share links if set (eg. http://mydomain.com)
+	InternalUrl                  string         `json:"internalUrl"`                            // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	CacheDir                     string         `json:"cacheDir"`                               // path to the cache directory, used for thumbnails and other cached files
+	CacheDirCleanup              bool           `json:"cacheDirCleanup"`                        // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
+	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`                         // maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
+	Filesystem                   Filesystem     `json:"filesystem"`                             // filesystem settings
+	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`                         // Index database SQL configuration
+	DisableWebDAV                bool           `json:"disableWebDAV"`                          // disable webdav support (default: false)
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
@@ -97,12 +97,9 @@ type Filesystem struct {
 
 // Index SQL startup integrity modes (IndexSqlConfig.StartupIntegrityCheck).
 const (
-	// IndexStartupIntegrityQuickCheck runs PRAGMA quick_check (default). Slower on very large DBs but thorough.
-	IndexStartupIntegrityQuickCheck = "quickCheck"
-	// IndexStartupIntegrityProbe verifies sqlite_master and optionally one row read only; fast for large indexes.
-	IndexStartupIntegrityProbe = "probe"
-	// IndexStartupIntegrityOff skips startup checks beyond sql.Open Ping; least safe, fastest boot.
-	IndexStartupIntegrityOff = "off"
+	IndexStartupIntegrityQuickCheck = "quickCheck" // IndexStartupIntegrityQuickCheck runs PRAGMA quick_check (default). Slower on very large DBs but thorough.
+	IndexStartupIntegrityProbe      = "probe"      // IndexStartupIntegrityProbe verifies sqlite_master and optionally one row read only; fast for large indexes.
+	IndexStartupIntegrityOff        = "off"        // IndexStartupIntegrityOff skips startup checks beyond sql.Open Ping; least safe, fastest boot.
 )
 
 type IndexSqlConfig struct {
@@ -114,8 +111,8 @@ type IndexSqlConfig struct {
 }
 
 type Integrations struct {
-	OnlyOffice OnlyOffice `json:"office" validate:"omitempty"`
-	Media      Media      `json:"media" validate:"omitempty"`
+	OnlyOffice OnlyOffice `json:"office" validate:"omitempty"` // office integration configuration
+	Media      Media      `json:"media" validate:"omitempty"`  // media integration configuration
 }
 
 // onlyoffice secret is stored in the local.json file
@@ -124,26 +121,25 @@ type OnlyOffice struct {
 	Url         string `json:"url" validate:"required"`    // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
 	InternalUrl string `json:"internalUrl"`                // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
 	Secret      string `json:"secret" validate:"required"` // secret: authentication key for OnlyOffice integration
-	ViewOnly    bool   `json:"viewOnly"`                   // view only mode for OnlyOffice
+	ViewOnly    bool   `json:"viewOnly"`                   // enforce a view-only mode for OnlyOffice
 }
 
 type Media struct {
 	FfmpegPath               string         `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	MaxConcurrent            int            `json:"maxConcurrent"`            // system-wide concurrent media jobs such as transcode (default: 2)
 	Convert                  FfmpegConvert  `json:"convert"`                  // config for ffmpeg conversion settings
 	Transcode                MediaTranscode `json:"transcode"`                // live fMP4 transcode fallback for preview playback
-	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
+	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration -- warning: can produces lots of output
+	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files -- warning: requires processing entire file
 	ExiftoolPath             string         `json:"exiftoolPath"`             // path to exiftool executable
-	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
+	GPU                      string         `json:"gpu,omitempty"`            // default=autoselect, igpu=integrated GPU, dgpu=discrete GPU, render node, or device name eg "/dev/dri/renderD129"; software=CPU only;
 }
 
-// MediaTranscode configures optional server-side preview transcode (fMP4 + MSE).
-// Output is always H.264 in fragmented MP4 for browser compatibility.
+// MediaTranscode configures live HLS transcode sessions for preview playback.
 type MediaTranscode struct {
-	Enabled       bool   `json:"enabled"`                 // master switch (default: false)
-	Preset        string `json:"preset,omitempty"`        // ffmpeg encode preset (default: veryfast)
-	MaxConcurrent int    `json:"maxConcurrent,omitempty"` // system-wide concurrent transcode jobs (default: 2)
-	MaxResolution int    `json:"maxResolution,omitempty"` // max output height in pixels; downscale above this (default: 1080)
+	Enabled              bool `json:"enabled"`              // master switch (default: false)
+	MaxResolution        int  `json:"maxResolution"`        // max output height in pixels; downscale above this (default: 1080)
+	DataSaverBitrateKbps int  `json:"dataSaverBitrateKbps"` // max video bitrate for data saver at 720p output (default: 900)
 }
 
 type FfmpegConvert struct {
@@ -154,7 +150,7 @@ type FfmpegConvert struct {
 type ImagePreviewType string
 
 const (
-	HEICImagePreview ImagePreviewType = "heic"
+	HEICImagePreview ImagePreviewType = "heic" // high efficiency images
 	JPEGImagePreview ImagePreviewType = "jpeg" // only used as fallback for JPEG formats that can't otherwise be decoded
 	//RAWImagePreview  ImagePreviewType = "raw"
 )
@@ -230,8 +226,8 @@ type LogConfig struct {
 }
 type Source struct {
 	Path   string       `json:"path" validate:"required"` // file system path. (Can be relative)
-	Name   string       `json:"name"`                     // display name
-	Config SourceConfig `json:"config,omitempty"`
+	Name   string       `json:"name"`                     // display name for the source in the UI
+	Config SourceConfig `json:"config,omitempty"`         // advanced source configuration options
 }
 
 type SourceConfig struct {

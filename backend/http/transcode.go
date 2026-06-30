@@ -84,9 +84,10 @@ func hlsUseVideoCopy(info ffmpeg.StreamInfo, profileMode string) bool {
 }
 
 const (
-	transcodeProfileQuality   = "quality"
-	transcodeProfileOptimized = "optimized"
-	transcodeProfileDataSaver = "datasaver"
+	transcodeProfileQuality     = "quality"
+	transcodeProfileOptimized   = "optimized"
+	transcodeProfileDataSaver   = "datasaver"
+	transcodeQualityMaxHeight   = 1080
 	transcodeDataSaverMaxHeight = 720
 )
 
@@ -106,7 +107,7 @@ func transcodeEncodeProfileForMode(info ffmpeg.StreamInfo, mode string) encode.V
 	case transcodeProfileOptimized:
 		return encode.VideoProfile{
 			Codec:   encode.CodecH264,
-			Quality: encode.PresetVeryfast,
+			Quality: encode.PresetFast,
 			Bitrate: transcodeOptimizedBitrateConfig(info),
 		}
 	case transcodeProfileDataSaver:
@@ -125,16 +126,25 @@ func transcodeEncodeProfileForMode(info ffmpeg.StreamInfo, mode string) encode.V
 }
 
 func transcodeMaxHeightForMode(profileMode string) int {
-	globalMax := transcodeMaxHeight()
-	switch parseTranscodeProfileMode(profileMode) {
-	case transcodeProfileDataSaver:
-		if globalMax > 0 && globalMax < transcodeDataSaverMaxHeight {
-			return globalMax
-		}
-		return transcodeDataSaverMaxHeight
-	default:
-		return globalMax
+	return transcodeMaxHeightForModeWithCap(profileMode, settings.TranscodeMaxResolution())
+}
+
+func transcodeMaxHeightForModeWithCap(profileMode string, configMax int) int {
+	modeMax := transcodeQualityMaxHeight
+	if parseTranscodeProfileMode(profileMode) == transcodeProfileDataSaver {
+		modeMax = transcodeDataSaverMaxHeight
 	}
+	return transcodeCapHeight(modeMax, configMax)
+}
+
+func transcodeCapHeight(modeMax, configMax int) int {
+	if configMax <= 0 {
+		return modeMax
+	}
+	if configMax < modeMax {
+		return configMax
+	}
+	return modeMax
 }
 
 func transcodeOutputHeightForMode(info ffmpeg.StreamInfo, profileMode string) int {
@@ -220,7 +230,43 @@ func transcodeOptimizedBitrateConfig(info ffmpeg.StreamInfo) encode.BitrateConfi
 
 // transcodeDataSaverBitrateConfig caps output at 720p with aggressive bitrate limits.
 func transcodeDataSaverBitrateConfig(info ffmpeg.StreamInfo) encode.BitrateConfig {
-	return encode.HLSVideoProfile(info, encode.HLSPresetConstrained, transcodeMaxHeightForMode(transcodeProfileDataSaver)).Bitrate
+	outHeight := transcodeOutputHeightForMode(info, transcodeProfileDataSaver)
+	capKbps := transcodeDataSaverCapKbps(outHeight)
+	targetKbps := capKbps
+	if info.VideoBitrate > 0 {
+		sourceKbps := info.VideoBitrate / 1000
+		if info.Height > 0 && outHeight > 0 && outHeight < info.Height {
+			scale := float64(outHeight) / float64(info.Height)
+			sourceKbps = int(float64(sourceKbps) * scale * scale)
+		}
+		if sourceKbps < targetKbps {
+			targetKbps = sourceKbps
+		}
+	}
+	const minKbps = 350
+	if targetKbps < minKbps {
+		targetKbps = minKbps
+	}
+	if targetKbps > capKbps {
+		targetKbps = capKbps
+	}
+	return encode.BitrateConfig{
+		Target:  fmt.Sprintf("%dk", targetKbps),
+		Max:     fmt.Sprintf("%dk", targetKbps),
+		BufSize: fmt.Sprintf("%dk", targetKbps*2),
+	}
+}
+
+func transcodeDataSaverCapKbps(outHeight int) int {
+	base720 := settings.TranscodeDataSaverBitrateKbps()
+	switch {
+	case outHeight >= 720:
+		return base720
+	case outHeight >= 480:
+		return base720 * 650 / 900
+	default:
+		return base720 * 450 / 900
+	}
 }
 
 func transcodeDecodeProfile(info ffmpeg.StreamInfo) encode.VideoDecodeProfile {
@@ -238,10 +284,6 @@ func isKnownInputVideoCodec(name string) bool {
 	default:
 		return false
 	}
-}
-
-func transcodeMaxHeight() int {
-	return settings.Config.Integrations.Media.Transcode.MaxResolution
 }
 
 func transcodeSessionsFFmpegMeta() (version string, features map[string]bool) {

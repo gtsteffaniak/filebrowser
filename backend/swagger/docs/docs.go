@@ -6474,10 +6474,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "media": {
-                    "$ref": "#/definitions/settings.Media"
+                    "description": "media integration configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.Media"
+                        }
+                    ]
                 },
                 "office": {
-                    "$ref": "#/definitions/settings.OnlyOffice"
+                    "description": "office integration configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.OnlyOffice"
+                        }
+                    ]
                 }
             }
         },
@@ -6665,7 +6675,7 @@ const docTemplate = `{
                     ]
                 },
                 "debug": {
-                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "description": "output ffmpeg stdout for media integration -- warning: can produces lots of output",
                     "type": "boolean"
                 },
                 "exiftoolPath": {
@@ -6673,16 +6683,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "extractEmbeddedSubtitles": {
-                    "description": "extract embedded subtitles from media files",
+                    "description": "extract embedded subtitles from media files -- warning: requires processing entire file",
                     "type": "boolean"
                 },
                 "ffmpegPath": {
                     "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
                     "type": "string"
                 },
-                "hardwareAcceleration": {
-                    "description": "enable hardware acceleration for ffmpeg if available",
-                    "type": "boolean"
+                "maxConcurrent": {
+                    "description": "system-wide concurrent media jobs such as transcode (default: 2)",
+                    "type": "integer"
+                },
+                "gpu": {
+                    "description": "default=autoselect, igpu=integrated GPU, dgpu=discrete GPU, render node, or device name eg \"/dev/dri/renderD129\"; software=CPU only;",
+                    "type": "string"
                 },
                 "transcode": {
                     "description": "live fMP4 transcode fallback for preview playback",
@@ -6697,21 +6711,17 @@ const docTemplate = `{
         "settings.MediaTranscode": {
             "type": "object",
             "properties": {
+                "dataSaverBitrateKbps": {
+                    "description": "max video bitrate for data saver at 720p output (default: 900)",
+                    "type": "integer"
+                },
                 "enabled": {
                     "description": "master switch (default: false)",
                     "type": "boolean"
                 },
-                "maxConcurrent": {
-                    "description": "system-wide concurrent transcode jobs (default: 2)",
-                    "type": "integer"
-                },
                 "maxResolution": {
                     "description": "max output height in pixels; downscale above this (default: 1080)",
                     "type": "integer"
-                },
-                "preset": {
-                    "description": "ffmpeg encode preset (default: veryfast)",
-                    "type": "string"
                 }
             }
         },
@@ -6791,7 +6801,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "viewOnly": {
-                    "description": "view only mode for OnlyOffice",
+                    "description": "enforce a view-only mode for OnlyOffice",
                     "type": "boolean"
                 }
             }
@@ -6990,6 +7000,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "logging": {
+                    "description": "optional logging configs for output",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/settings.LogConfig"
@@ -7016,6 +7027,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sources": {
+                    "description": "required source configs",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/settings.Source"
@@ -7061,10 +7073,15 @@ const docTemplate = `{
             ],
             "properties": {
                 "config": {
-                    "$ref": "#/definitions/settings.SourceConfig"
+                    "description": "advanced source configuration options",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.SourceConfig"
+                        }
+                    ]
                 },
                 "name": {
-                    "description": "display name",
+                    "description": "display name for the source in the UI",
                     "type": "string"
                 },
                 "path": {

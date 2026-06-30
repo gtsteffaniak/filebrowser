@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 )
 
 func TestHLSSegmentCount(t *testing.T) {
@@ -56,6 +57,22 @@ func TestHLSSegmentDurationSec(t *testing.T) {
 	partial.segmentDurations[29] = 2
 	if got := hlsSegmentDurationSec(29, partial); got != 2 {
 		t.Fatalf("partial last segment duration = %v, want 2", got)
+	}
+}
+
+func TestHLSMediaTimelineSecRemuxUsesPlaylistStart(t *testing.T) {
+	t.Parallel()
+	h := &hlsSessionState{
+		segmentStarts:    []float64{0, 4, 8},
+		segmentMediaEnds: []float64{2.009},
+	}
+	remux := ffmpeg.HLSSegmentParams{Remux: true}
+	if got := hlsMediaTimelineSec(1, 4, remux, h); got != 4 {
+		t.Fatalf("remux media timeline = %v, want playlist start 4", got)
+	}
+	transcode := ffmpeg.HLSSegmentParams{Remux: false, VideoCopy: false}
+	if got := hlsMediaTimelineSec(1, 4, transcode, h); got != 2.009 {
+		t.Fatalf("transcode media timeline = %v, want cumulative end 2.009", got)
 	}
 }
 

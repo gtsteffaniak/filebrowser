@@ -46,13 +46,17 @@ func (s *Service) BuildHLSSegmentParams(ctx context.Context, path string, in HLS
 
 // BuildHLSSegmentBuildInput derives remux/copy/transcode flags from stream info and profile.
 func BuildHLSSegmentBuildInput(info StreamInfo, mode HLSTranscodeProfile, maxHeight int) HLSSegmentBuildInput {
-	return goffmpeg.BuildHLSSegmentBuildInput(info, hlsPreset(mode), maxHeight)
+	return goffmpeg.BuildHLSSegmentBuildInput(info, hlsPipelineOptions(mode, maxHeight))
 }
 
 func hlsPipelineOptions(mode HLSTranscodeProfile, maxHeight int) goffmpeg.HLSPipelineOptions {
-	return goffmpeg.HLSPipelineOptions{Preset: hlsPreset(mode), MaxHeight: maxHeight}
-}
-
-func hlsPreset(mode HLSTranscodeProfile) goffmpeg.HLSPreset {
-	return goffmpeg.NormalizeHLSPreset(goffmpeg.HLSPreset(ParseHLSTranscodeProfile(string(mode))))
+	force := false
+	switch ParseHLSTranscodeProfile(string(mode)) {
+	case HLSProfileOptimized, HLSProfileDataSaver:
+		force = true
+	}
+	return goffmpeg.HLSPipelineOptions{
+		ForceVideoTranscode: force,
+		MaxHeight:           maxHeight,
+	}
 }

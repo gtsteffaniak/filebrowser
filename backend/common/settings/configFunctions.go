@@ -27,5 +27,5 @@ func MediaEnabled() bool {
 }
 
 func TranscodeEnabled() bool {
-	return MediaEnabled() && Config.Integrations.Media.Transcode.Enabled
+	return MediaEnabled()
 }

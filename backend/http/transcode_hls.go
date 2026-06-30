@@ -95,18 +95,33 @@ func hlsSegmentCount(durationSec float64) int {
 	return int(math.Ceil(durationSec / ffmpeg.SegmentDurationSec()))
 }
 
-func buildHLSSegmentParamsFast(info ffmpeg.StreamInfo, profileMode string) ffmpeg.HLSSegmentParams {
+func applyHLSDeliveryOverrides(in ffmpeg.HLSSegmentBuildInput, profileMode string) ffmpeg.HLSSegmentBuildInput {
+	// Remuxed fMP4 fragments often fail MSE buffer append (hls.js frag-load loops on sn=1).
+	// Quality transcodes with the medium preset at up to 1080p instead of stream copy.
+	if parseTranscodeProfileMode(profileMode) == transcodeProfileQuality && in.Remux {
+		in.Remux = false
+		in.VideoCopy = false
+	}
+	return in
+}
+
+func buildHLSSegmentBuildInput(info ffmpeg.StreamInfo, profileMode string) ffmpeg.HLSSegmentBuildInput {
 	mode := ffmpeg.ParseHLSTranscodeProfile(profileMode)
 	maxH := transcodeMaxHeightForMode(profileMode)
-	in := ffmpeg.BuildHLSSegmentBuildInput(info, mode, maxH)
-	return ffmpeg.BuildHLSSegmentParamsFast(in)
+	in := applyHLSDeliveryOverrides(ffmpeg.BuildHLSSegmentBuildInput(info, mode, maxH), profileMode)
+	if !in.Remux && !in.VideoCopy {
+		in.Decode = transcodeDecodeProfile(info)
+		in.Profile = transcodeEncodeProfileForMode(info, profileMode)
+	}
+	return in
+}
+
+func buildHLSSegmentParamsFast(info ffmpeg.StreamInfo, profileMode string) ffmpeg.HLSSegmentParams {
+	return ffmpeg.BuildHLSSegmentParamsFast(buildHLSSegmentBuildInput(info, profileMode))
 }
 
 func buildHLSSegmentParamsWithGOP(svc *ffmpeg.Service, ctx context.Context, realPath string, info ffmpeg.StreamInfo, profileMode string, probeFPS bool) (ffmpeg.HLSSegmentParams, error) {
-	mode := ffmpeg.ParseHLSTranscodeProfile(profileMode)
-	maxH := transcodeMaxHeightForMode(profileMode)
-	in := ffmpeg.BuildHLSSegmentBuildInput(info, mode, maxH)
-	return svc.BuildHLSSegmentParams(ctx, realPath, in, probeFPS)
+	return svc.BuildHLSSegmentParams(ctx, realPath, buildHLSSegmentBuildInput(info, profileMode), probeFPS)
 }
 
 func hlsSegmentDurationSec(index int, h *hlsSessionState) float64 {
@@ -132,6 +147,16 @@ func hlsSegmentBounds(index int, starts, durations []float64) (startSec, durSec 
 		durSec = durations[index]
 	}
 	return startSec, durSec
+}
+
+// hlsMediaTimelineSec is the fMP4 decode timeline position for segment index.
+// Stream copy/remux must follow the playlist grid (keyframe-aligned when probed).
+// Full transcode uses cumulative actual segment ends to keep tfdt continuous.
+func hlsMediaTimelineSec(index int, playlistStartSec float64, params ffmpeg.HLSSegmentParams, h *hlsSessionState) float64 {
+	if params.Remux || params.VideoCopy {
+		return playlistStartSec
+	}
+	return h.mediaTimelineSec(index)
 }
 
 func (entry *transcodeSessionEntry) ensureHLSState(svc *ffmpeg.Service, ctx context.Context, realPath string, info ffmpeg.StreamInfo, profileMode string) error {
@@ -161,9 +186,11 @@ func (entry *transcodeSessionEntry) ensureHLSState(svc *ffmpeg.Service, ctx cont
 		hlsLogInfo(entry, "hls state keyframe seek kf=%d probe=%s err=%v",
 			len(keyframeSeekTimes), hlsFormatMs(probeDur), probeErr)
 	}
-	// Playlist uses a fixed grid so EXTINF matches what hls.js expects; stream copy seeks
-	// to the nearest keyframe at or before each grid point via keyframeSeekTimes.
-	starts, durations = ffmpeg.BuildHLSSegmentTimeline(info.Duration, nil)
+	timelineKeyframes := []float64(nil)
+	if needsKeyframes && len(keyframeSeekTimes) > 0 {
+		timelineKeyframes = keyframeSeekTimes
+	}
+	starts, durations = ffmpeg.BuildHLSSegmentTimeline(info.Duration, timelineKeyframes)
 
 	entry.hls.mu.Lock()
 	defer entry.hls.mu.Unlock()
@@ -564,7 +591,7 @@ func (entry *transcodeSessionEntry) encodeHLSSegment(ctx context.Context, svc *f
 	entry.ensureSegmentGOP(ctx, svc, realPath)
 	realPath, params, profileMode, starts, durations, keyframeSeekTimes := entry.hls.snapshotEncodeParams()
 	startSec, durSec := hlsSegmentBounds(index, starts, durations)
-	mediaTimelineSec := entry.hls.mediaTimelineSec(index)
+	mediaTimelineSec := hlsMediaTimelineSec(index, startSec, params, entry.hls)
 	hlsLogInfo(entry, "segment %d encode start=%.3f mediaT=%.3f dur=%.3f %s plan=%s",
 		index, startSec, mediaTimelineSec, durSec, hlsLogParams(params, profileMode), svc.DescribeHLSEncodePlan(params))
 
