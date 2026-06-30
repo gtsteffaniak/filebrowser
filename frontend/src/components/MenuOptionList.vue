@@ -128,7 +128,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.1em;
-  max-height: 14rem;
+  max-height: 50vh;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;

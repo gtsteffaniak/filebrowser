@@ -10,7 +10,7 @@
     <div
       ref="anchor"
       class="expand-dropdown-anchor menu-panel no-select border-radius"
-      :class="{ 'dark-mode': isDarkMode }"
+      :class="{ 'dark-mode': isDarkMode, 'expand-upward': open && expandUpward }"
     >
       <button
         ref="trigger"
@@ -40,7 +40,7 @@
         v-if="open"
         ref="overlay"
         class="expand-dropdown-overlay"
-        :class="{ 'dark-mode': isDarkMode }"
+        :class="{ 'dark-mode': isDarkMode, 'expand-upward': expandUpward }"
         :style="overlayStyle"
       >
         <transition
@@ -54,6 +54,7 @@
             v-if="panelOpen"
             ref="panel"
             class="expand-dropdown-body menu-panel no-select border-radius"
+            :class="{ 'expand-upward': expandUpward }"
             role="listbox"
             :aria-multiselectable="allowMultiple ? 'true' : 'false'"
             :aria-label="resolvedAriaLabel"
@@ -172,6 +173,7 @@ export default {
       overlayStyle: {},
       localInputId: `expand-dropdown-${expandDropdownIdCounter}`,
       panelResizeObserver: null,
+      expandUpward: false,
     };
   },
 
@@ -341,6 +343,25 @@ export default {
       if (this.disabled || this.open) {
         return;
       }
+      // Decide if open upward
+      const anchor = this.$refs.anchor;
+      if (anchor) {
+        const rect = anchor.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const minPanelHeight = 180;
+        if (spaceBelow >= minPanelHeight) {
+          this.expandUpward = false;
+        } else if (spaceAbove >= minPanelHeight) {
+          this.expandUpward = true;
+        } else {
+          // Not enough space either way, so pick the larger side
+          this.expandUpward = spaceAbove > spaceBelow;
+        }
+      } else {
+        this.expandUpward = false;
+      }
       this.panelOpen = false;
       this.isExpanded = true;
       this.updateOverlayPosition();
@@ -376,6 +397,7 @@ export default {
       this.isExpanded = false;
       this.searchQuery = "";
       this.overlayStyle = {};
+      this.expandUpward = false;
       this.unobservePanelResize();
     },
     onPanelAfterLeave() {
@@ -410,14 +432,19 @@ export default {
         return;
       }
       const anchorRect = anchor.getBoundingClientRect();
-
-      this.overlayStyle = {
+      const viewportHeight = window.innerHeight;
+      const style = {
         position: "fixed",
-        top: `${anchorRect.bottom - 1}px`,
         left: `${anchorRect.left}px`,
         width: `${anchorRect.width}px`,
         zIndex: 1000,
       };
+      if (this.expandUpward) {
+        style.bottom = `${viewportHeight - anchorRect.top + 1}px`;
+      } else {
+        style.top = `${anchorRect.bottom - 1}px`;
+      }
+      this.overlayStyle = style;
     },
     onViewportChange() {
       if (this.open) {
@@ -501,11 +528,26 @@ export default {
   border-bottom-color: var(--background);
 }
 
+.expand-dropdown--open .expand-dropdown-anchor.expand-upward {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-left-radius: var(--borderRadius);
+  border-bottom-right-radius: var(--borderRadius);
+  border-bottom-color: var(--surfaceSecondary);
+  border-top-color: var(--background);
+}
+
 .expand-dropdown-overlay {
   box-sizing: border-box;
   background: transparent;
   overflow: visible;
   z-index: 1000;
+}
+
+.expand-dropdown-overlay.expand-upward {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .expand-dropdown-body {
@@ -522,6 +564,18 @@ export default {
   padding: 0 0.5em 0.5em;
   justify-content: flex-start;
   align-items: stretch;
+}
+
+.expand-dropdown-body.expand-upward {
+  border-top-left-radius: var(--borderRadius) !important;
+  border-top-right-radius: var(--borderRadius) !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-width: 1px;
+  border-bottom-width: 0;
+  margin-top: 0;
+  padding-top: 0.5em;
+  padding-bottom: 0;
 }
 
 .expand-dropdown-trigger {
