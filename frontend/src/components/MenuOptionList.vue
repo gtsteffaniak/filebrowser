@@ -96,7 +96,7 @@ export default {
       });
     },
     scrollStyle() {
-      if (this.maxHeight !== undefined) {
+      if (this.maxHeight !== undefined  && this.maxHeight !== null) {
         return { maxHeight: `${this.maxHeight}px` };
       }
       return {};
