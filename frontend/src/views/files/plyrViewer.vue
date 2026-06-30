@@ -412,7 +412,6 @@ export default {
 
       // Playback settings
       playbackMenuInitialized: false,
-      lastAppliedMode: null,
       showDesktopPanel: sessionStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
 
@@ -696,11 +695,7 @@ export default {
       return this.req.name ? this.req.name.replace(/\.[^/.]+$/, "") : '';
     },
     videoSwipeGesturesActive() {
-      return (
-        (this.previewType === 'video' || this.previewType === 'audio') &&
-        !!this.player &&
-        !this.player.fullscreen?.active
-      );
+      return ((this.previewType === 'video' || this.previewType === 'audio' && !!this.player));
     },
     videoNavigationGestureAllowed() {
       return state.navigation.enabled && getters.currentPrompt() === null;
@@ -1063,7 +1058,6 @@ export default {
         this.player = null;
         this.playbackMenuInitialized = false;
         this.captionSizeMenuInitialized = false;
-        this.lastAppliedMode = null;
         // Release DOM references
         this.playbackButtons = null;
         this.playbackValueSpan = null;
@@ -2812,7 +2806,6 @@ export default {
       this.clearVideoDismissAnimTimers();
       this.resetVideoEdgeGestureImmediate();
       this.clearLongPressTimer();
-      this.clearLongPressTimer();
       this.longPressPending = false;
       this.speedToastVisible = false;
       if (this.longPressTriggered && this.player && this.longPressPreviousSpeed !== 2) {
@@ -2821,10 +2814,6 @@ export default {
       this.longPressTriggered = false;
     },
     clearLongPressTimer() {
-      if (this.longPressTimer) {
-        clearTimeout(this.longPressTimer);
-        this.longPressTimer = null;
-      }
       if (this.longPressTimer) {
         clearTimeout(this.longPressTimer);
         this.longPressTimer = null;
@@ -2962,7 +2951,6 @@ export default {
               playbackBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentLabel}</span>`;
               this.playbackValueSpan = playbackBtn.querySelector('span .plyr__menu__value');
             }
-            this.lastAppliedMode = this.playbackMode;
             this.playbackMenuInitialized = true;
           } else {
             // Just update checked states and label
