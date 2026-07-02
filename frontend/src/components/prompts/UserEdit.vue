@@ -135,7 +135,7 @@
           @update:model-value="emitUpdate"
         />
       </div>
-      <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
+      <permissions v-if="stateUser.permissions.admin && user.permissions" :permissions="user.permissions" />
     </div>
   </div>
 
@@ -319,6 +319,31 @@ export default {
     },
   },
   methods: {
+    defaultPermissions() {
+      return {
+        admin: false,
+        api: false,
+        modify: false,
+        share: false,
+        realtime: false,
+        delete: false,
+        create: false,
+        download: true,
+      };
+    },
+    normalizeFormUser(raw) {
+      const user = { ...(raw ?? {}) };
+      if (user.permissions == null && user.account?.permissions != null) {
+        user.permissions = { ...user.account.permissions };
+        if (user.permissions.download == null) {
+          user.permissions.download = true;
+        }
+      }
+      if (user.permissions == null) {
+        user.permissions = this.defaultPermissions();
+      }
+      return user;
+    },
     /** Scope path sent to the API: trimmed, or "/" when empty (matches backend root). */
     normalizeScopeForApi(scope) {
       const t = String(scope ?? "").trim();
@@ -332,7 +357,7 @@ export default {
       try {
         if (this.isNew) {
           const defaults = await settingsApi.get("userDefaults");
-          this.user = defaults;
+          this.user = this.normalizeFormUser(defaults);
           this.user.password = "";
           // Ensure loginMethod is valid, set to first available method if not set or invalid
           const validMethods = [];
@@ -350,7 +375,7 @@ export default {
           if (!uname) {
             return;
           }
-          this.user = { ...(await usersApi.get(uname)) };
+          this.user = this.normalizeFormUser(await usersApi.get(uname));
           this.user.password = "";
           // Normalize scopes to ensure they're in {name, scope} format only
           if (this.user.scopes && Array.isArray(this.user.scopes)) {

@@ -32,6 +32,7 @@ server:
           - folderEndsWith: "Folder"
           - folderName: "folderName"
           - fileName: "fileName"
+          - fileName: "fileNames"
           - folderName: ".hiddenDir"
           - fileName: ".hidden"
 

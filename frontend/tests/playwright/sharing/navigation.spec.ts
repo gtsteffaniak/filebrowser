@@ -38,5 +38,5 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors }) => {
     const spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
     expect(spanChildrenCount).toBe(1);
 
-    checkForErrors(0,1); // redirect errors are expected and 404 for blank preview
+    checkForErrors();
   });
