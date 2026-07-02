@@ -109,16 +109,15 @@ export default {
   cursor: pointer;
   z-index: 9999;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 .transfer-indicator:hover {
-  transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .transfer-indicator:active {
-  transform: scale(0.95);
+  opacity: 0.85;
 }
 
 .progress-ring {

@@ -330,6 +330,5 @@ export default {
 
 .tab-btn:hover:not(.active) {
   color: var(--primaryColor);
-  transform: scale(1.02);
 }
 </style>

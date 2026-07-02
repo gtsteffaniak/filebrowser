@@ -277,11 +277,14 @@ export const getters = {
     return sticky
   },
   showOverlay: () => {
-    const hasPrompt =
-      getters.currentPrompt() !== null && getters.currentPromptName() !== 'more'
+    // The transfer tracker is a floating non-blocking window; don't darken the
+    // background just because it's open. 'more' was already excluded the same way.
+    const hasBlockingPrompt = state.prompts.some(
+      (p) => p.name !== 'more' && p.name !== 'transfer'
+    );
     const showForSidebar =
       getters.isSidebarVisible() && !getters.isStickySidebar()
-    return hasPrompt || showForSidebar || state.isSearchActive
+    return hasBlockingPrompt || showForSidebar || state.isSearchActive
   },
   showBreadCrumbs: () => {
     return getters.currentView() === 'listingView'

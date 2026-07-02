@@ -41,7 +41,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract branch name
         shell: bash
         run: |
@@ -57,7 +57,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           target_commitish: ${{ github.sha }}
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.extract_branch.outputs.tag_name }}
           prerelease: true
           make_latest: false

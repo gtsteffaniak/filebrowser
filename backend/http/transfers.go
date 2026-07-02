@@ -51,8 +51,9 @@ type TransferJob struct {
 }
 
 type TransferManager struct {
-	mu   sync.RWMutex
-	jobs map[string]*TransferJob
+	mu       sync.RWMutex
+	jobs     map[string]*TransferJob
+	userSems map[string]chan struct{}
 }
 
 type resolvedTransferParams struct {
@@ -69,7 +70,8 @@ type resolvedTransferParams struct {
 }
 
 var transferMgr = &TransferManager{
-	jobs: make(map[string]*TransferJob),
+	jobs:     make(map[string]*TransferJob),
+	userSems: make(map[string]chan struct{}),
 }
 
 func init() {
@@ -139,6 +141,15 @@ func (tm *TransferManager) CancelJob(id string) error {
 	return nil
 }
 
+func (tm *TransferManager) getUserSem(username string) chan struct{} {
+	tm.mu.Lock()
+	defer tm.mu.Unlock()
+	if _, ok := tm.userSems[username]; !ok {
+		tm.userSems[username] = make(chan struct{}, 1)
+	}
+	return tm.userSems[username]
+}
+
 func (tm *TransferManager) cleanupCompleted(maxAge time.Duration) {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
@@ -165,14 +176,36 @@ func (tm *TransferManager) RunJob(job *TransferJob, params []resolvedTransferPar
 	}()
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	job.mu.Lock()
 	job.cancelFunc = cancel
+	// Status stays "pending" while the job waits for its queue slot.
+	job.mu.Unlock()
+	sendTransferEvent(job)
+
+	// Acquire per-user semaphore so only one transfer runs at a time per user.
+	sem := tm.getUserSem(job.Username)
+	select {
+	case sem <- struct{}{}:
+		// acquired slot
+	case <-ctx.Done():
+		job.mu.Lock()
+		if job.Status == TransferStatusPending {
+			job.Status = TransferStatusCancelled
+			now := time.Now()
+			job.CompletedAt = &now
+		}
+		job.mu.Unlock()
+		sendTransferEvent(job)
+		return
+	}
+	defer func() { <-sem }()
+
+	job.mu.Lock()
 	job.Status = TransferStatusCalculating
 	job.mu.Unlock()
 	logger.Infof("[TRANSFER] Job %s: status=calculating, items=%d", job.ID, len(params))
 	sendTransferEvent(job)
-
-	defer cancel()
 
 	// Phase 1: Calculate total size
 	var totalBytes int64
