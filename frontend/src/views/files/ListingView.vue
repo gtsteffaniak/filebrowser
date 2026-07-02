@@ -170,7 +170,7 @@
 
   <!-- Upload Share Target -->
   <!-- Only show upload interface if password is validated (or no password required) -->
-  <div v-else-if="!shareInfo.hasPassword || state.share?.passwordValid" class="upload-share-embed">
+  <div v-else-if="!shareInfo.hasPassword || shareInfo.passwordValid" class="upload-share-embed">
     <Upload :initialItems="null" />
   </div>
 </template>
