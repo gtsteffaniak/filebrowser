@@ -18,8 +18,6 @@ const (
 	EventShareCreate   EventType = "shareCreate"
 	EventShareUpdate   EventType = "shareUpdate"
 	EventShareDelete   EventType = "shareDelete"
-	// EventShareDownload is deprecated; share downloads are recorded as EventDownload with details.shareHash.
-	EventShareDownload EventType = "shareDownload"
 	EventUserCreate    EventType = "userCreate"
 	EventUserUpdate    EventType = "userUpdate"
 	EventUserDelete    EventType = "userDelete"
@@ -144,7 +142,7 @@ func (e EventType) Valid() bool {
 	case EventDownload, EventMove, EventCopy, EventRename,
 		EventUpload, EventDelete, EventBulkDelete,
 		EventArchive, EventUnarchive,
-		EventShareCreate, EventShareUpdate, EventShareDelete, EventShareDownload,
+		EventShareCreate, EventShareUpdate, EventShareDelete,
 		EventUserCreate, EventUserUpdate, EventUserDelete, EventAccessUpdate, EventAccessCreate, EventAccessDelete,
 		EventLogin, EventLogout, EventSignup,
 		EventPasskeyRegister, EventPasskeyDelete,

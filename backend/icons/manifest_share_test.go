@@ -31,7 +31,6 @@ func TestShareHashFromHTTPPath(t *testing.T) {
 	paths := []string{
 		"/testing/public/share/hash1234567890abcdef/",
 		"/public/share/hash1234567890abcdef/files",
-		"/share/hash1234567890abcdef/",
 	}
 	for _, path := range paths {
 		hash := ShareHashFromHTTPPath(path, baseURL)

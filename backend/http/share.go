@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -653,17 +652,6 @@ func generateShortUUID() (string, error) {
 
 	// Trim the length to 22 characters for a shorter ID
 	return uuid[:22], nil
-}
-
-func redirectToShare(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Remove the base URL and "/share/" prefix to get the full path after share
-	sharePath := strings.TrimPrefix(r.URL.Path, config.Server.BaseURL+"share/")
-	newURL := config.Server.BaseURL + "public/share/" + sharePath
-	if r.URL.RawQuery != "" {
-		newURL += "?" + r.URL.RawQuery
-	}
-	http.Redirect(w, r, newURL, http.StatusMovedPermanently)
-	return http.StatusMovedPermanently, nil
 }
 
 // publicSharePatchPinnedItemsHandler adds or removes a pinned item on a share link.

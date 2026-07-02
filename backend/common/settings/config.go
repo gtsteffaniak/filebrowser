@@ -1279,11 +1279,9 @@ func loadLoginIcon() {
 	logger.Infof("Using custom login icon: %s", Env.LoginIconPath)
 }
 
-// setConditionalsMap builds optimized map structures from conditional rules for O(1) lookups
+// setConditionals builds optimized map structures from source rules for O(1) lookups.
 func setConditionals(config *Source) {
-
-	// Merge rules from both old format (Conditionals.ItemRules) and new format (Rules)
-	rules := append(config.Config.Conditionals.ItemRules, config.Config.Rules...)
+	rules := config.Config.Rules
 
 	// Initialize the maps structure (only exact match maps for Names)
 	resolved := ResolvedRulesConfig{
@@ -1351,12 +1349,6 @@ func setConditionals(config *Source) {
 		if rule.IncludeRootItem != "" {
 			resolved.IncludeRootItems[rule.IncludeRootItem] = struct{}{}
 		}
-		if rule.FileNames != "" {
-			resolved.FileNames[rule.FileNames] = rule
-		}
-		if rule.FolderNames != "" {
-			resolved.FolderNames[rule.FolderNames] = rule
-		}
 		if rule.FileName != "" {
 			resolved.FileNames[rule.FileName] = rule
 		}
@@ -1389,16 +1381,12 @@ func modifyExcludeInclude(config *Source) {
 		return normalized
 	}
 
-	// Helper to normalize a name-based value (FileNames, FolderNames, StartsWith, EndsWith)
-	// These match against baseName, so no leading slash
 	normalizeName := func(value string) string {
-		// Just trim slashes - names shouldn't have slashes
 		return strings.Trim(value, "/")
 	}
 
 	// Normalize []ConditionalRule slices for full paths
-	// Handle both old format (Conditionals.ItemRules) and new format (Rules)
-	allRules := append(config.Config.Conditionals.ItemRules, config.Config.Rules...)
+	allRules := config.Config.Rules
 
 	for i, rule := range allRules {
 		// normalize full paths
@@ -1421,15 +1409,10 @@ func modifyExcludeInclude(config *Source) {
 		}
 
 		// normalize names
-		allRules[i].FileNames = normalizeName(rule.FileNames)
-		allRules[i].FolderNames = normalizeName(rule.FolderNames)
 		allRules[i].FileName = normalizeName(rule.FileName)
 		allRules[i].FolderName = normalizeName(rule.FolderName)
 	}
 
-	// Update the original slices with normalized values
-	itemRulesLen := len(config.Config.Conditionals.ItemRules)
-	config.Config.Conditionals.ItemRules = allRules[:itemRulesLen]
-	config.Config.Rules = allRules[itemRulesLen:]
+	config.Config.Rules = allRules
 
 }

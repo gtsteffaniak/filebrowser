@@ -68,7 +68,9 @@ type Auth struct {
 	// Create real Settings with string values to test quoting
 	settings := &Settings{
 		UserDefaults: UserDefaults{
-			Locale: "en-US",
+			UI: UserDefaultsUI{
+				Locale: "en-US",
+			},
 		},
 		Auth: Auth{
 			AdminUsername: "admin",
@@ -212,8 +214,10 @@ type UserDefaults struct {
 	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			DarkMode: &trueVal, // This matches default
-			Locale:   "es",     // This differs from default ("en")
+			UserDefaultsLegacy: UserDefaultsLegacy{
+				DarkMode: &trueVal, // This matches default
+				Locale:   "es",     // This differs from default ("en")
+			},
 		},
 	}
 
@@ -249,7 +253,9 @@ func TestGenerateConfigYaml_CommentsOnOff(t *testing.T) {
 	// Use the actual settings source directory since comments work there
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			Locale: "en",
+			UI: UserDefaultsUI{
+				Locale: "en",
+			},
 		},
 	}
 
@@ -287,9 +293,11 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			Locale:                  "es",          // Non-default
-			DarkMode:                &trueVal,      // Default
-			DisableOfficePreviewExt: ".docx .xlsx", // This is deprecated
+			UserDefaultsLegacy: UserDefaultsLegacy{
+				Locale:                  "es",          // Non-default
+				DarkMode:                &trueVal,      // Default
+				DisableOfficePreviewExt: ".docx .xlsx", // This is deprecated
+			},
 		},
 		Auth: Auth{
 			Key:           "secret123", // This is secret
@@ -314,7 +322,7 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 			showFull:         true,
 			filterDeprecated: false,
 			expectSecret:     true,  // secrets should be hidden
-			expectDeprecated: true,  // deprecated should be shown
+			expectDeprecated: false, // v1 flat keys live in UserDefaultsLegacy and are not emitted in generated YAML
 			expectFull:       true,  // all fields shown
 			expectComments:   false, // no comments
 		},
@@ -440,8 +448,10 @@ func TestGenerateConfigYaml_EdgeCases(t *testing.T) {
 			name: "only_defaults",
 			config: &Settings{
 				UserDefaults: UserDefaults{
-					DarkMode: boolPtr(true), // default value
-					Locale:   "en",          // default value
+					UI: UserDefaultsUI{
+						DarkMode: boolPtr(true), // default value
+						Locale:   "en",          // default value
+					},
 				},
 			},
 			desc: "Config with only default values",

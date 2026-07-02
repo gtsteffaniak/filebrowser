@@ -9,8 +9,7 @@ test("3d file preview thumbnails in share", async({ page, checkForErrors }) => {
         throw new Error("Share hash not found in localStorage");
     }
     console.log(`shareHash: ${shareHash}`);
-    await page.goto(`/share/${shareHash}`);
-    // log current url
+    await page.goto(`/public/share/${shareHash}`);
     console.log(`current url: ${page.url()}`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
     await page.locator('a[aria-label="3dmodels"]').waitFor({ state: 'visible' });
@@ -23,7 +22,7 @@ test("3d file preview thumbnails in share", async({ page, checkForErrors }) => {
     // wait 2 seconds
     await page.waitForTimeout(2000);
     // Check for console errors
-    checkForErrors(0,1); // redirect errors are expected
+    checkForErrors();
 });
 
 // 3d file preview, cycle through all 3d files and confirm no errors
@@ -36,7 +35,7 @@ test("3d file preview next/previous", async ({ page, checkForErrors }) => {
     }
     
     // Go directly to a 3D model file in the share
-    await page.goto(`/share/${shareHash}/3dmodels/Lowpoly_tree_sample.dae`);
+    await page.goto(`/public/share/${shareHash}/3dmodels/Lowpoly_tree_sample.dae`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - Lowpoly_tree_sample.dae");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
@@ -57,5 +56,5 @@ test("3d file preview next/previous", async ({ page, checkForErrors }) => {
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - Rigged Hand.3ds");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
-    checkForErrors(0,1); // redirect errors are expected
+    checkForErrors();
 });

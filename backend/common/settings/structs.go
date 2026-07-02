@@ -225,26 +225,17 @@ type Source struct {
 }
 
 type SourceConfig struct {
-	DenyByDefault    bool              `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
-	Private          bool              `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
-	ReadOnly         bool              `json:"readOnly,omitempty"`                // read-only source, changes from the UI, webdav, and API will be disabled.
-	Disabled         bool              `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
-	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source
-	Conditionals     ConditionalFilter `json:"conditionals"`                      // deprecated: use source.rules instead
-	Rules            []ConditionalRule `json:"rules"`                             // list of item rules to apply to specific paths
-	DefaultUserScope string            `json:"defaultUserScope"`                  // defaults to root of index "/" should match folders under path
-	DefaultEnabled   bool              `json:"defaultEnabled"`                    // should be added as a default source for new users?
-	CreateUserDir    bool              `json:"createUserDir"`                     // create a user directory for each user under defaultUserScope + username
-	UseLogicalSize   bool              `json:"useLogicalSize"`                    // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
+	DenyByDefault    bool              `json:"denyByDefault,omitempty"` // deny access unless an "allow" access rule was specifically created.
+	Private          bool              `json:"private"`                 // designate as source as private -- currently just means no sharing permitted.
+	ReadOnly         bool              `json:"readOnly,omitempty"`      // read-only source, changes from the UI, webdav, and API will be disabled.
+	Disabled         bool              `json:"disabled,omitempty"`      // disable the source, this is useful so you don't need to remove it from the config file
+	Rules            []ConditionalRule `json:"rules"`                   // list of item rules to apply to specific paths
+	DefaultUserScope string            `json:"defaultUserScope"`        // defaults to root of index "/" should match folders under path
+	DefaultEnabled   bool              `json:"defaultEnabled"`          // should be added as a default source for new users?
+	CreateUserDir    bool              `json:"createUserDir"`           // create a user directory for each user under defaultUserScope + username
+	UseLogicalSize   bool              `json:"useLogicalSize"`          // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedRules ResolvedRulesConfig `json:"-"`
-}
-
-type ConditionalFilter struct {
-	Hidden          bool              `json:"hidden"`                // deprecated: use ignoreHidden instead. eg, FolderPath: "/" and ignoreHidden: true will exclude hidden files and folders under the root folder.
-	IgnoreHidden    bool              `json:"ignoreHidden"`          // deprecated: use ignoreHidden instead. eg, FolderPath: "/" and ignoreHidden: true will exclude hidden files and folders under the root folder.
-	ZeroSizeFolders bool              `json:"ignoreZeroSizeFolders"` // deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath: "/" and ignoreZeroSizeFolders: true will ignore folders with 0 size under the root folder.
-	ItemRules       []ConditionalRule `json:"rules"`                 // list of item rules to apply to specific paths
 }
 
 type ConditionalRule struct {
@@ -256,8 +247,6 @@ type ConditionalRule struct {
 	FolderEndsWith   string `json:"folderEndsWith"`   // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
 	FolderPath       string `json:"folderPath"`       // (global) exclude folders that match this path. Eg. "/path/to/folder" or "/path/to/folder/subfolder"
 	FilePath         string `json:"filePath"`         // (global) exclude files that match this path. Eg. "/path/to/file.txt" or "/path/to/file.txt/subfile.txt"
-	FileNames        string `json:"fileNames"`        // deprecated: exclude files that match these names. Eg. "file.txt" or "test.csv"
-	FolderNames      string `json:"folderNames"`      // deprecated: exclude folders that match these names. Eg. "folder" or "subfolder"
 	FileName         string `json:"fileName"`         // (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
 	FolderName       string `json:"folderName"`       // (global) exclude folders that match these names. Eg. "folder" or "subfolder"
 
@@ -267,8 +256,8 @@ type ConditionalRule struct {
 	IgnoreSymlinks        bool `json:"ignoreSymlinks"`        // Excludes symbolic links
 }
 
-// ConditionalMaps provides O(1) lookup performance for conditional rules
-// Maps are built from ConditionalFilter during initialization
+// ResolvedRulesConfig provides O(1) lookup performance for conditional rules.
+// Maps are built from Rules during initialization.
 type ResolvedRulesConfig struct {
 	// Exact match maps - O(1) lookup (only for names, not StartsWith/EndsWith)
 	FileNames   map[string]ConditionalRule // key: file name
@@ -371,22 +360,26 @@ type UserDefaultsListing struct {
 	GallerySize             int    `json:"gallerySize"`             // 0-9 - the size of the gallery thumbnails
 }
 
+// userDefaultsPreviewLegacy holds v1.x flat preview keys migrated on config load (YAML only).
+type UserDefaultsPreviewLegacy struct {
+	DisableHideSidebar bool `yaml:"disableHideSidebar,omitempty" json:"-"`
+	DefaultMediaPlayer bool `yaml:"defaultMediaPlayer,omitempty" json:"-"`
+	AutoplayMedia      bool `yaml:"autoplayMedia,omitempty" json:"-"`
+}
+
 // UserDefaultsPreview holds preview-related settings
 type UserDefaultsPreview struct {
-	Image              *bool  `json:"image"`              // show thumbnails for image files
-	Video              *bool  `json:"video"`              // show thumbnails for video files
-	Audio              *bool  `json:"audio"`              // show thumbnails for audio files
-	MotionVideoPreview *bool  `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
-	Office             *bool  `json:"office"`             // show thumbnails for office files
-	PopUp              *bool  `json:"popup"`              // show larger popup preview when hovering over thumbnail
-	DisablePreviewExt  string `json:"disablePreviewExt"`  // comma separated list of file extensions to disable preview for
-	HighQuality        *bool  `json:"highQuality"`        // high quality preview thumbnails
-	Folder             *bool  `json:"folder"`             // show thumbnails for folders that have previewable contents
-	Models             *bool  `json:"models"`             // show live thumbnails for 3D models files
-	// deprecated fields
-	DisableHideSidebar bool `json:"disableHideSidebar"` // deprecated: use sidebar.disableHideOnPreview instead. disable the hide sidebar preview for previews and editors
-	DefaultMediaPlayer bool `json:"defaultMediaPlayer"` // deprecated: use fileViewer.defaultMediaPlayer instead. disable the styled feature-rich media player for browser default
-	AutoplayMedia      bool `json:"autoplayMedia"`      // deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview
+	Image                     *bool  `json:"image"`              // show thumbnails for image files
+	Video                     *bool  `json:"video"`              // show thumbnails for video files
+	Audio                     *bool  `json:"audio"`              // show thumbnails for audio files
+	MotionVideoPreview        *bool  `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
+	Office                    *bool  `json:"office"`             // show thumbnails for office files
+	PopUp                     *bool  `json:"popup"`              // show larger popup preview when hovering over thumbnail
+	DisablePreviewExt         string `json:"disablePreviewExt"`  // comma separated list of file extensions to disable preview for
+	HighQuality               *bool  `json:"highQuality"`        // high quality preview thumbnails
+	Folder                    *bool  `json:"folder"`             // show thumbnails for folders that have previewable contents
+	Models                    *bool  `json:"models"`             // show live thumbnails for 3D models files
+	UserDefaultsPreviewLegacy `yaml:",inline"`
 }
 
 // UserDefaultsFileViewer holds file viewer/editor settings
@@ -435,51 +428,54 @@ type UserDefaultsAccountPermissions struct {
 	Download *bool `json:"download"` // allow downloading files
 }
 
+// UserDefaultsLegacy holds v1.x flat userDefaults keys migrated on config load (YAML only).
+type UserDefaultsLegacy struct {
+	EditorQuickSave            bool                    `yaml:"editorQuickSave,omitempty" json:"-"`
+	HideSidebarFileActions     bool                    `yaml:"hideSidebarFileActions,omitempty" json:"-"`
+	DisableQuickToggles        bool                    `yaml:"disableQuickToggles,omitempty" json:"-"`
+	DisableSearchOptions       bool                    `yaml:"disableSearchOptions,omitempty" json:"-"`
+	StickySidebar              bool                    `yaml:"stickySidebar,omitempty" json:"-"`
+	HideFilesInTree            bool                    `yaml:"hideFilesInTree,omitempty" json:"-"`
+	DarkMode                   *bool                   `yaml:"darkMode,omitempty" json:"-"`
+	Locale                     string                  `yaml:"locale,omitempty" json:"-"`
+	ViewMode                   string                  `yaml:"viewMode,omitempty" json:"-"`
+	SingleClick                bool                    `yaml:"singleClick,omitempty" json:"-"`
+	ShowHidden                 bool                    `yaml:"showHidden,omitempty" json:"-"`
+	HideFileExt                string                  `yaml:"hideFileExt,omitempty" json:"-"`
+	DateFormat                 bool                    `yaml:"dateFormat,omitempty" json:"-"`
+	GallerySize                int                     `yaml:"gallerySize,omitempty" json:"-"`
+	ThemeColor                 string                  `yaml:"themeColor,omitempty" json:"-"`
+	QuickDownload              bool                    `yaml:"quickDownload,omitempty" json:"-"`
+	DisablePreviewExt          string                  `yaml:"disablePreviewExt,omitempty" json:"-"`
+	DisableViewingExt          string                  `yaml:"disableViewingExt,omitempty" json:"-"`
+	LockPassword               bool                    `yaml:"lockPassword,omitempty" json:"-"`
+	DisableSettings            bool                    `yaml:"disableSettings,omitempty" json:"-"`
+	Permissions                UserDefaultsPermissions `yaml:"permissions,omitempty" json:"-"`
+	LoginMethod                string                  `yaml:"loginMethod,omitempty" json:"-"`
+	DisableUpdateNotifications bool                    `yaml:"disableUpdateNotifications,omitempty" json:"-"`
+	DeleteWithoutConfirming    bool                    `yaml:"deleteWithoutConfirming,omitempty" json:"-"`
+	DeleteAfterArchive         bool                    `yaml:"deleteAfterArchive,omitempty" json:"-"`
+	DisableOfficePreviewExt    string                  `yaml:"disableOfficePreviewExt,omitempty" json:"-"`
+	DisableOnlyOfficeExt       string                  `yaml:"disableOnlyOfficeExt,omitempty" json:"-"`
+	CustomTheme                string                  `yaml:"customTheme,omitempty" json:"-"`
+	ShowSelectMultiple         bool                    `yaml:"showSelectMultiple,omitempty" json:"-"`
+	ShowToolsInSidebar         *bool                   `yaml:"showToolsInSidebar,omitempty" json:"-"`
+	DebugOffice                bool                    `yaml:"debugOffice,omitempty" json:"-"`
+	PreferEditorForMarkdown    bool                    `yaml:"preferEditorForMarkdown,omitempty" json:"-"`
+	ShowCopyPath               bool                    `yaml:"showCopyPath,omitempty" json:"-"`
+}
+
 // UserDefaults is a type that holds the default values for some fields on User.
 type UserDefaults struct {
 	// New organized structure
-	Sidebar     UserDefaultsSidebar    `json:"sidebar,omitempty"`
-	Listing     UserDefaultsListing    `json:"listing,omitempty"`
-	Preview     UserDefaultsPreview    `json:"preview,omitempty"`
-	FileViewer  UserDefaultsFileViewer `json:"fileViewer,omitempty"`
-	Search      UserDefaultsSearch     `json:"search,omitempty"`
-	UI          UserDefaultsUI         `json:"ui,omitempty"`
-	FileLoading users.FileLoading      `json:"fileLoading,omitempty"`
-	Account     UserDefaultsAccount    `json:"account,omitempty"`
-
-	// Deprecated fields - kept for backwards compatibility
-	EditorQuickSave            bool                    `json:"editorQuickSave,omitempty"`        // deprecated: use fileViewer.editorQuickSave instead
-	HideSidebarFileActions     bool                    `json:"hideSidebarFileActions,omitempty"` // deprecated: use sidebar.hideSidebarFileActions instead
-	DisableQuickToggles        bool                    `json:"disableQuickToggles,omitempty"`    // deprecated: use sidebar.disableQuickToggles instead
-	DisableSearchOptions       bool                    `json:"disableSearchOptions,omitempty"`   // deprecated: use search.disableOptions instead
-	StickySidebar              bool                    `json:"stickySidebar,omitempty"`          // deprecated: use sidebar.stickySidebar instead
-	HideFilesInTree            bool                    `json:"hideFilesInTree,omitempty"`        // deprecated: use sidebar.hideFilesInTree instead
-	DarkMode                   *bool                   `json:"darkMode,omitempty"`               // deprecated: use sidebar.darkMode instead
-	Locale                     string                  `json:"locale,omitempty"`                 // deprecated: use ui.locale instead
-	ViewMode                   string                  `json:"viewMode,omitempty"`               // deprecated: use sidebar.viewMode instead
-	SingleClick                bool                    `json:"singleClick,omitempty"`            // deprecated: use sidebar.singleClick instead
-	ShowHidden                 bool                    `json:"showHidden,omitempty"`             // deprecated: use listing.showHidden instead
-	HideFileExt                string                  `json:"hideFileExt,omitempty"`            // deprecated: use listing.hideFileExt instead
-	DateFormat                 bool                    `json:"dateFormat,omitempty"`             // deprecated: use listing.dateFormat instead
-	GallerySize                int                     `json:"gallerySize,omitempty"`            // deprecated: use sidebar.gallerySize instead
-	ThemeColor                 string                  `json:"themeColor,omitempty"`             // deprecated: use ui.themeColor instead
-	QuickDownload              bool                    `json:"quickDownload,omitempty"`          // deprecated: use listing.quickDownload instead
-	DisablePreviewExt          string                  `json:"disablePreviewExt,omitempty"`      // deprecated: use preview.disablePreviewExt instead
-	DisableViewingExt          string                  `json:"disableViewingExt,omitempty"`      // deprecated: use fileViewer.disableViewingExt instead
-	LockPassword               bool                    `json:"lockPassword,omitempty"`           // deprecated: use account.lockPassword instead
-	DisableSettings            bool                    `json:"disableSettings,omitempty"`        // deprecated: use account.disableSettings instead
-	DefaultScopes              []users.BackendScope    `json:"-"`
-	Permissions                UserDefaultsPermissions `json:"permissions,omitempty"`                // deprecated: use account.permissions instead
-	LoginMethod                string                  `json:"loginMethod,omitempty"`                // deprecated: use account.loginMethod instead
-	DisableUpdateNotifications bool                    `json:"disableUpdateNotifications,omitempty"` // deprecated: use account.disableUpdateNotifications instead
-	DeleteWithoutConfirming    bool                    `json:"deleteWithoutConfirming,omitempty"`    // deprecated: use listing.deleteWithoutConfirming instead
-	DeleteAfterArchive         bool                    `json:"deleteAfterArchive,omitempty"`         // deprecated: use listing.deleteAfterArchive instead
-	DisableOfficePreviewExt    string                  `json:"disableOfficePreviewExt,omitempty"`    // deprecated: use disablePreviewExt instead
-	DisableOnlyOfficeExt       string                  `json:"disableOnlyOfficeExt,omitempty"`       // deprecated: use fileViewer.disableOnlyOfficeExt instead
-	CustomTheme                string                  `json:"customTheme,omitempty"`                // deprecated: use ui.customTheme instead
-	ShowSelectMultiple         bool                    `json:"showSelectMultiple,omitempty"`         // deprecated: use listing.showSelectMultiple instead
-	ShowToolsInSidebar         *bool                   `json:"showToolsInSidebar,omitempty"`         // deprecated: use sidebar.showToolsInSidebar instead
-	DebugOffice                bool                    `json:"debugOffice,omitempty"`                // deprecated: use fileViewer.debugOffice instead
-	PreferEditorForMarkdown    bool                    `json:"preferEditorForMarkdown,omitempty"`    // deprecated: use fileViewer.preferEditorForMarkdown instead
-	ShowCopyPath               bool                    `json:"showCopyPath,omitempty"`               // deprecated: use listing.showCopyPath instead
+	Sidebar            UserDefaultsSidebar    `json:"sidebar,omitempty"`
+	Listing            UserDefaultsListing    `json:"listing,omitempty"`
+	Preview            UserDefaultsPreview    `json:"preview,omitempty"`
+	FileViewer         UserDefaultsFileViewer `json:"fileViewer,omitempty"`
+	Search             UserDefaultsSearch     `json:"search,omitempty"`
+	UI                 UserDefaultsUI         `json:"ui,omitempty"`
+	FileLoading        users.FileLoading      `json:"fileLoading,omitempty"`
+	Account            UserDefaultsAccount    `json:"account,omitempty"`
+	DefaultScopes      []users.BackendScope   `json:"-"`
+	UserDefaultsLegacy `yaml:",inline"`
 }

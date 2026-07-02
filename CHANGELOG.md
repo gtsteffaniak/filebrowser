@@ -23,12 +23,18 @@ A database migration is required to go from v1.x to this version. See docs.
    - New "Audio visualizer" for audio files (only available in desktop) (#2575).
    - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, single tap to pause (#2575).
 
+ **Removed legacy (breaking)**:
+ - `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
+ - `/share/…` frontend URL redirect to `/public/share/…` — use `/public/share/…` directly.
+ - Search API: removed singular `source` param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
+ - Source config: removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules instead.
+
  **Notes**:
  - new dropdown and input styles
  - new resources/stream endpoint
  - user updates are more granular, don't include entire user payload.
  - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
- - removed legacy and deprecated properties
+ - removed legacy and deprecated properties from API responses and generated config output
 
 ## v1.5.0
 

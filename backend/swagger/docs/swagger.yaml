@@ -13,7 +13,6 @@ definitions:
     - shareCreate
     - shareUpdate
     - shareDelete
-    - shareDownload
     - userCreate
     - userUpdate
     - userDelete
@@ -42,7 +41,6 @@ definitions:
     - EventShareCreate
     - EventShareUpdate
     - EventShareDelete
-    - EventShareDownload
     - EventUserCreate
     - EventUserUpdate
     - EventUserDelete
@@ -689,29 +687,6 @@ definitions:
         description: 'secret: secret used to encrypt TOTP secrets'
         type: string
     type: object
-  settings.ConditionalFilter:
-    properties:
-      hidden:
-        description: 'deprecated: use ignoreHidden instead. eg, FolderPath: "/" and
-          ignoreHidden: true will exclude hidden files and folders under the root
-          folder.'
-        type: boolean
-      ignoreHidden:
-        description: 'deprecated: use ignoreHidden instead. eg, FolderPath: "/" and
-          ignoreHidden: true will exclude hidden files and folders under the root
-          folder.'
-        type: boolean
-      ignoreZeroSizeFolders:
-        description: 'deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath:
-          "/" and ignoreZeroSizeFolders: true will ignore folders with 0 size under
-          the root folder.'
-        type: boolean
-      rules:
-        description: list of item rules to apply to specific paths
-        items:
-          $ref: '#/definitions/settings.ConditionalRule'
-        type: array
-    type: object
   settings.ConditionalRule:
     properties:
       fileEndsWith:
@@ -721,10 +696,6 @@ definitions:
       fileName:
         description: (global) exclude files that match these names. Eg. "file.txt"
           or "test.csv"
-        type: string
-      fileNames:
-        description: 'deprecated: exclude files that match these names. Eg. "file.txt"
-          or "test.csv"'
         type: string
       filePath:
         description: (global) exclude files that match this path. Eg. "/path/to/file.txt"
@@ -741,10 +712,6 @@ definitions:
       folderName:
         description: (global) exclude folders that match these names. Eg. "folder"
           or "subfolder"
-        type: string
-      folderNames:
-        description: 'deprecated: exclude folders that match these names. Eg. "folder"
-          or "subfolder"'
         type: string
       folderPath:
         description: (global) exclude folders that match this path. Eg. "/path/to/folder"
@@ -1351,10 +1318,6 @@ definitions:
     type: object
   settings.SourceConfig:
     properties:
-      conditionals:
-        allOf:
-        - $ref: '#/definitions/settings.ConditionalFilter'
-        description: 'deprecated: use source.rules instead'
       createUserDir:
         description: create a user directory for each user under defaultUserScope
           + username
@@ -1372,10 +1335,6 @@ definitions:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
-      indexingIntervalMinutes:
-        description: 'deprecated: create a rule with indexingIntervalMinutes to set
-          the indexing interval for this source'
-        type: integer
       private:
         description: designate as source as private -- currently just means no sharing
           permitted.
@@ -1423,122 +1382,22 @@ definitions:
     properties:
       account:
         $ref: '#/definitions/settings.UserDefaultsAccount'
-      customTheme:
-        description: 'deprecated: use ui.customTheme instead'
-        type: string
-      darkMode:
-        description: 'deprecated: use sidebar.darkMode instead'
-        type: boolean
-      dateFormat:
-        description: 'deprecated: use listing.dateFormat instead'
-        type: boolean
-      debugOffice:
-        description: 'deprecated: use fileViewer.debugOffice instead'
-        type: boolean
-      deleteAfterArchive:
-        description: 'deprecated: use listing.deleteAfterArchive instead'
-        type: boolean
-      deleteWithoutConfirming:
-        description: 'deprecated: use listing.deleteWithoutConfirming instead'
-        type: boolean
-      disableOfficePreviewExt:
-        description: 'deprecated: use disablePreviewExt instead'
-        type: string
-      disableOnlyOfficeExt:
-        description: 'deprecated: use fileViewer.disableOnlyOfficeExt instead'
-        type: string
-      disablePreviewExt:
-        description: 'deprecated: use preview.disablePreviewExt instead'
-        type: string
-      disableQuickToggles:
-        description: 'deprecated: use sidebar.disableQuickToggles instead'
-        type: boolean
-      disableSearchOptions:
-        description: 'deprecated: use search.disableOptions instead'
-        type: boolean
-      disableSettings:
-        description: 'deprecated: use account.disableSettings instead'
-        type: boolean
-      disableUpdateNotifications:
-        description: 'deprecated: use account.disableUpdateNotifications instead'
-        type: boolean
-      disableViewingExt:
-        description: 'deprecated: use fileViewer.disableViewingExt instead'
-        type: string
-      editorQuickSave:
-        description: Deprecated fields - kept for backwards compatibility
-        type: boolean
       fileLoading:
         $ref: '#/definitions/users.FileLoading'
       fileViewer:
         $ref: '#/definitions/settings.UserDefaultsFileViewer'
-      gallerySize:
-        description: 'deprecated: use sidebar.gallerySize instead'
-        type: integer
-      hideFileExt:
-        description: 'deprecated: use listing.hideFileExt instead'
-        type: string
-      hideFilesInTree:
-        description: 'deprecated: use sidebar.hideFilesInTree instead'
-        type: boolean
-      hideSidebarFileActions:
-        description: 'deprecated: use sidebar.hideSidebarFileActions instead'
-        type: boolean
       listing:
         $ref: '#/definitions/settings.UserDefaultsListing'
-      locale:
-        description: 'deprecated: use ui.locale instead'
-        type: string
-      lockPassword:
-        description: 'deprecated: use account.lockPassword instead'
-        type: boolean
-      loginMethod:
-        description: 'deprecated: use account.loginMethod instead'
-        type: string
-      permissions:
-        allOf:
-        - $ref: '#/definitions/settings.UserDefaultsPermissions'
-        description: 'deprecated: use account.permissions instead'
-      preferEditorForMarkdown:
-        description: 'deprecated: use fileViewer.preferEditorForMarkdown instead'
-        type: boolean
       preview:
         $ref: '#/definitions/settings.UserDefaultsPreview'
-      quickDownload:
-        description: 'deprecated: use listing.quickDownload instead'
-        type: boolean
       search:
         $ref: '#/definitions/settings.UserDefaultsSearch'
-      showCopyPath:
-        description: 'deprecated: use listing.showCopyPath instead'
-        type: boolean
-      showHidden:
-        description: 'deprecated: use listing.showHidden instead'
-        type: boolean
-      showSelectMultiple:
-        description: 'deprecated: use listing.showSelectMultiple instead'
-        type: boolean
-      showToolsInSidebar:
-        description: 'deprecated: use sidebar.showToolsInSidebar instead'
-        type: boolean
       sidebar:
         allOf:
         - $ref: '#/definitions/settings.UserDefaultsSidebar'
         description: New organized structure
-      singleClick:
-        description: 'deprecated: use sidebar.singleClick instead'
-        type: boolean
-      stickySidebar:
-        description: 'deprecated: use sidebar.stickySidebar instead'
-        type: boolean
-      themeColor:
-        description: 'deprecated: use ui.themeColor instead'
-        type: string
       ui:
         $ref: '#/definitions/settings.UserDefaultsUI'
-      viewMode:
-        description: 'deprecated: use sidebar.viewMode instead'
-        type: string
     type: object
   settings.UserDefaultsAccount:
     properties:
@@ -1648,55 +1507,10 @@ definitions:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
     type: object
-  settings.UserDefaultsPermissions:
-    properties:
-      admin:
-        description: 'deprecated: use account.permissions.admin instead. allow admin
-          access'
-        type: boolean
-      api:
-        description: 'deprecated: use account.permissions.api instead. allow api access'
-        type: boolean
-      create:
-        description: 'deprecated: use account.permissions.create instead. allow creating
-          or uploading files'
-        type: boolean
-      delete:
-        description: 'deprecated: use account.permissions.delete instead. allow deleting
-          files'
-        type: boolean
-      download:
-        description: 'deprecated: use account.permissions.download instead. allow
-          downloading files'
-        type: boolean
-      modify:
-        description: 'deprecated: use account.permissions.modify instead. allow modifying
-          files'
-        type: boolean
-      realtime:
-        description: 'deprecated: use account.permissions.realtime instead. allow
-          realtime updates'
-        type: boolean
-      share:
-        description: 'deprecated: use account.permissions.share instead. allow sharing
-          files'
-        type: boolean
-    type: object
   settings.UserDefaultsPreview:
     properties:
       audio:
         description: show thumbnails for audio files
-        type: boolean
-      autoplayMedia:
-        description: 'deprecated: use fileViewer.autoplayMedia instead. autoplay media
-          files in preview'
-        type: boolean
-      defaultMediaPlayer:
-        description: 'deprecated: use fileViewer.defaultMediaPlayer instead. disable
-          the styled feature-rich media player for browser default'
-        type: boolean
-      disableHideSidebar:
-        description: deprecated fields
         type: boolean
       disablePreviewExt:
         description: comma separated list of file extensions to disable preview for
@@ -2401,7 +2215,6 @@ definitions:
       apiKeys:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
-        description: 'deprecated: use Tokens instead'
         type: object
       backendScopes:
         description: |-
@@ -5108,8 +4921,8 @@ paths:
         and metadata based on the user's session and scope. Supports searching across
         multiple sources when using the 'sources' parameter.
       parameters:
-      - description: Filter prefix or full legacy search text (required when no terms
-          are supplied)
+      - description: Filter prefix or full search text (required when no terms are
+          supplied)
         in: query
         name: query
         type: string
@@ -5121,18 +4934,12 @@ paths:
           type: string
         name: terms
         type: array
-      - description: Source name for the desired source (deprecated, use 'sources'
-          instead)
-        in: query
-        name: source
-        type: string
       - description: Comma-separated source names when not using repeated scope=source:path
         in: query
         name: sources
         type: string
       - collectionFormat: csv
-        description: 'Repeated: either ''sourceName:relativePath'' per source, or
-          legacy single path when one source'
+        description: 'Repeated: ''sourceName:relativePath'' per source'
         in: query
         items:
           type: string
@@ -5150,14 +4957,6 @@ paths:
           patterns)
         in: query
         name: useWildcard
-        type: boolean
-      - description: 'Deprecated: alias for useWildcard'
-        in: query
-        name: glob
-        type: boolean
-      - description: 'Deprecated: alias for useWildcard'
-        in: query
-        name: useGlob
         type: boolean
       - description: 'Optional: ''and'' to require all repeated ''terms'' match; default
           is OR'

@@ -28,16 +28,13 @@ server:
           - filePath: "/subfolderExclusions/exclusionlist.sh"
           - folderPath: "/subfolderExclusions/folderItem"
             viewable: true
-        conditionals:
-          rules:
-            - fileStartsWith: "startsWith"
-            - folderEndsWith: "Folder"
-            - folderNames: 'folderNames'
-            - fileNames: 'fileNames'
-            - folderName: 'folderName'
-            - fileName: 'fileName'
-            - folderName: '.hiddenDir'
-            - fileName: '.hidden'
+          - fileStartsWith: "startsWith"
+          - folderEndsWith: "Folder"
+          - folderName: "folderName"
+          - fileName: "fileName"
+          - fileName: "fileNames"
+          - folderName: ".hiddenDir"
+          - fileName: ".hidden"
 
 auth:
   methods:

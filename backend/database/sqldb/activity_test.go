@@ -156,14 +156,6 @@ func TestActivityShareScope(t *testing.T) {
 			Source:    "default",
 			Path:      "/plain.txt",
 		},
-		{
-			CreatedAt: now,
-			UserID:    0,
-			EventType: activitydb.EventShareDownload,
-			Source:    "default",
-			Path:      "/legacy.txt",
-			Details:   activitydb.Details{ShareHash: "legacy"},
-		},
 	}
 	if err = store.BulkInsertActivity(entries); err != nil {
 		t.Fatalf("BulkInsertActivity: %v", err)
@@ -180,8 +172,8 @@ func TestActivityShareScope(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CountActivity shares scope: %v", err)
 	}
-	if shareCount != 3 {
-		t.Fatalf("shares scope expected 3 rows (create + share download + legacy), got %d", shareCount)
+	if shareCount != 2 {
+		t.Fatalf("shares scope expected 2 rows (create + share download), got %d", shareCount)
 	}
 
 	filesFilter := activitydb.QueryFilter{
@@ -206,8 +198,8 @@ func TestActivityShareScope(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CountActivity shares download filter: %v", err)
 	}
-	if dlCount != 2 {
-		t.Fatalf("shares download filter expected 2 rows, got %d", dlCount)
+	if dlCount != 1 {
+		t.Fatalf("shares download filter expected 1 row, got %d", dlCount)
 	}
 }
 
@@ -263,7 +255,6 @@ func TestActivityShareOwnerFilter(t *testing.T) {
 		Scope:            "shares",
 		ShareOwnerUserID: 5,
 		ShareOwnerFilter: true,
-		OwnedShareHashes: []string{"owned-hash"},
 		Page:             1,
 		Limit:            50,
 	}

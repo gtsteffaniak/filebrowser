@@ -3618,7 +3618,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Filter prefix or full legacy search text (required when no terms are supplied)",
+                        "description": "Filter prefix or full search text (required when no terms are supplied)",
                         "name": "query",
                         "in": "query"
                     },
@@ -3634,12 +3634,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Source name for the desired source (deprecated, use 'sources' instead)",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "description": "Comma-separated source names when not using repeated scope=source:path",
                         "name": "sources",
                         "in": "query"
@@ -3650,7 +3644,7 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "csv",
-                        "description": "Repeated: either 'sourceName:relativePath' per source, or legacy single path when one source",
+                        "description": "Repeated: 'sourceName:relativePath' per source",
                         "name": "scope",
                         "in": "query"
                     },
@@ -3670,18 +3664,6 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "When true, match indexed file names with SQLite GLOB (wildcard patterns)",
                         "name": "useWildcard",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Deprecated: alias for useWildcard",
-                        "name": "glob",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Deprecated: alias for useWildcard",
-                        "name": "useGlob",
                         "in": "query"
                     },
                     {
@@ -5171,7 +5153,6 @@ const docTemplate = `{
                 "shareCreate",
                 "shareUpdate",
                 "shareDelete",
-                "shareDownload",
                 "userCreate",
                 "userUpdate",
                 "userDelete",
@@ -5200,7 +5181,6 @@ const docTemplate = `{
                 "EventShareCreate",
                 "EventShareUpdate",
                 "EventShareDelete",
-                "EventShareDownload",
                 "EventUserCreate",
                 "EventUserUpdate",
                 "EventUserDelete",
@@ -6118,30 +6098,6 @@ const docTemplate = `{
                 }
             }
         },
-        "settings.ConditionalFilter": {
-            "type": "object",
-            "properties": {
-                "hidden": {
-                    "description": "deprecated: use ignoreHidden instead. eg, FolderPath: \"/\" and ignoreHidden: true will exclude hidden files and folders under the root folder.",
-                    "type": "boolean"
-                },
-                "ignoreHidden": {
-                    "description": "deprecated: use ignoreHidden instead. eg, FolderPath: \"/\" and ignoreHidden: true will exclude hidden files and folders under the root folder.",
-                    "type": "boolean"
-                },
-                "ignoreZeroSizeFolders": {
-                    "description": "deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath: \"/\" and ignoreZeroSizeFolders: true will ignore folders with 0 size under the root folder.",
-                    "type": "boolean"
-                },
-                "rules": {
-                    "description": "list of item rules to apply to specific paths",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/settings.ConditionalRule"
-                    }
-                }
-            }
-        },
         "settings.ConditionalRule": {
             "type": "object",
             "properties": {
@@ -6151,10 +6107,6 @@ const docTemplate = `{
                 },
                 "fileName": {
                     "description": "(global) exclude files that match these names. Eg. \"file.txt\" or \"test.csv\"",
-                    "type": "string"
-                },
-                "fileNames": {
-                    "description": "deprecated: exclude files that match these names. Eg. \"file.txt\" or \"test.csv\"",
                     "type": "string"
                 },
                 "filePath": {
@@ -6171,10 +6123,6 @@ const docTemplate = `{
                 },
                 "folderName": {
                     "description": "(global) exclude folders that match these names. Eg. \"folder\" or \"subfolder\"",
-                    "type": "string"
-                },
-                "folderNames": {
-                    "description": "deprecated: exclude folders that match these names. Eg. \"folder\" or \"subfolder\"",
                     "type": "string"
                 },
                 "folderPath": {
@@ -6975,14 +6923,6 @@ const docTemplate = `{
         "settings.SourceConfig": {
             "type": "object",
             "properties": {
-                "conditionals": {
-                    "description": "deprecated: use source.rules instead",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.ConditionalFilter"
-                        }
-                    ]
-                },
                 "createUserDir": {
                     "description": "create a user directory for each user under defaultUserScope + username",
                     "type": "boolean"
@@ -7002,10 +6942,6 @@ const docTemplate = `{
                 "disabled": {
                     "description": "disable the source, this is useful so you don't need to remove it from the config file",
                     "type": "boolean"
-                },
-                "indexingIntervalMinutes": {
-                    "description": "deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source",
-                    "type": "integer"
                 },
                 "private": {
                     "description": "designate as source as private -- currently just means no sharing permitted.",
@@ -7062,140 +6998,20 @@ const docTemplate = `{
                 "account": {
                     "$ref": "#/definitions/settings.UserDefaultsAccount"
                 },
-                "customTheme": {
-                    "description": "deprecated: use ui.customTheme instead",
-                    "type": "string"
-                },
-                "darkMode": {
-                    "description": "deprecated: use sidebar.darkMode instead",
-                    "type": "boolean"
-                },
-                "dateFormat": {
-                    "description": "deprecated: use listing.dateFormat instead",
-                    "type": "boolean"
-                },
-                "debugOffice": {
-                    "description": "deprecated: use fileViewer.debugOffice instead",
-                    "type": "boolean"
-                },
-                "deleteAfterArchive": {
-                    "description": "deprecated: use listing.deleteAfterArchive instead",
-                    "type": "boolean"
-                },
-                "deleteWithoutConfirming": {
-                    "description": "deprecated: use listing.deleteWithoutConfirming instead",
-                    "type": "boolean"
-                },
-                "disableOfficePreviewExt": {
-                    "description": "deprecated: use disablePreviewExt instead",
-                    "type": "string"
-                },
-                "disableOnlyOfficeExt": {
-                    "description": "deprecated: use fileViewer.disableOnlyOfficeExt instead",
-                    "type": "string"
-                },
-                "disablePreviewExt": {
-                    "description": "deprecated: use preview.disablePreviewExt instead",
-                    "type": "string"
-                },
-                "disableQuickToggles": {
-                    "description": "deprecated: use sidebar.disableQuickToggles instead",
-                    "type": "boolean"
-                },
-                "disableSearchOptions": {
-                    "description": "deprecated: use search.disableOptions instead",
-                    "type": "boolean"
-                },
-                "disableSettings": {
-                    "description": "deprecated: use account.disableSettings instead",
-                    "type": "boolean"
-                },
-                "disableUpdateNotifications": {
-                    "description": "deprecated: use account.disableUpdateNotifications instead",
-                    "type": "boolean"
-                },
-                "disableViewingExt": {
-                    "description": "deprecated: use fileViewer.disableViewingExt instead",
-                    "type": "string"
-                },
-                "editorQuickSave": {
-                    "description": "Deprecated fields - kept for backwards compatibility",
-                    "type": "boolean"
-                },
                 "fileLoading": {
                     "$ref": "#/definitions/users.FileLoading"
                 },
                 "fileViewer": {
                     "$ref": "#/definitions/settings.UserDefaultsFileViewer"
                 },
-                "gallerySize": {
-                    "description": "deprecated: use sidebar.gallerySize instead",
-                    "type": "integer"
-                },
-                "hideFileExt": {
-                    "description": "deprecated: use listing.hideFileExt instead",
-                    "type": "string"
-                },
-                "hideFilesInTree": {
-                    "description": "deprecated: use sidebar.hideFilesInTree instead",
-                    "type": "boolean"
-                },
-                "hideSidebarFileActions": {
-                    "description": "deprecated: use sidebar.hideSidebarFileActions instead",
-                    "type": "boolean"
-                },
                 "listing": {
                     "$ref": "#/definitions/settings.UserDefaultsListing"
-                },
-                "locale": {
-                    "description": "deprecated: use ui.locale instead",
-                    "type": "string"
-                },
-                "lockPassword": {
-                    "description": "deprecated: use account.lockPassword instead",
-                    "type": "boolean"
-                },
-                "loginMethod": {
-                    "description": "deprecated: use account.loginMethod instead",
-                    "type": "string"
-                },
-                "permissions": {
-                    "description": "deprecated: use account.permissions instead",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.UserDefaultsPermissions"
-                        }
-                    ]
-                },
-                "preferEditorForMarkdown": {
-                    "description": "deprecated: use fileViewer.preferEditorForMarkdown instead",
-                    "type": "boolean"
                 },
                 "preview": {
                     "$ref": "#/definitions/settings.UserDefaultsPreview"
                 },
-                "quickDownload": {
-                    "description": "deprecated: use listing.quickDownload instead",
-                    "type": "boolean"
-                },
                 "search": {
                     "$ref": "#/definitions/settings.UserDefaultsSearch"
-                },
-                "showCopyPath": {
-                    "description": "deprecated: use listing.showCopyPath instead",
-                    "type": "boolean"
-                },
-                "showHidden": {
-                    "description": "deprecated: use listing.showHidden instead",
-                    "type": "boolean"
-                },
-                "showSelectMultiple": {
-                    "description": "deprecated: use listing.showSelectMultiple instead",
-                    "type": "boolean"
-                },
-                "showToolsInSidebar": {
-                    "description": "deprecated: use sidebar.showToolsInSidebar instead",
-                    "type": "boolean"
                 },
                 "sidebar": {
                     "description": "New organized structure",
@@ -7205,24 +7021,8 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "singleClick": {
-                    "description": "deprecated: use sidebar.singleClick instead",
-                    "type": "boolean"
-                },
-                "stickySidebar": {
-                    "description": "deprecated: use sidebar.stickySidebar instead",
-                    "type": "boolean"
-                },
-                "themeColor": {
-                    "description": "deprecated: use ui.themeColor instead",
-                    "type": "string"
-                },
                 "ui": {
                     "$ref": "#/definitions/settings.UserDefaultsUI"
-                },
-                "viewMode": {
-                    "description": "deprecated: use sidebar.viewMode instead",
-                    "type": "string"
                 }
             }
         },
@@ -7369,60 +7169,11 @@ const docTemplate = `{
                 }
             }
         },
-        "settings.UserDefaultsPermissions": {
-            "type": "object",
-            "properties": {
-                "admin": {
-                    "description": "deprecated: use account.permissions.admin instead. allow admin access",
-                    "type": "boolean"
-                },
-                "api": {
-                    "description": "deprecated: use account.permissions.api instead. allow api access",
-                    "type": "boolean"
-                },
-                "create": {
-                    "description": "deprecated: use account.permissions.create instead. allow creating or uploading files",
-                    "type": "boolean"
-                },
-                "delete": {
-                    "description": "deprecated: use account.permissions.delete instead. allow deleting files",
-                    "type": "boolean"
-                },
-                "download": {
-                    "description": "deprecated: use account.permissions.download instead. allow downloading files",
-                    "type": "boolean"
-                },
-                "modify": {
-                    "description": "deprecated: use account.permissions.modify instead. allow modifying files",
-                    "type": "boolean"
-                },
-                "realtime": {
-                    "description": "deprecated: use account.permissions.realtime instead. allow realtime updates",
-                    "type": "boolean"
-                },
-                "share": {
-                    "description": "deprecated: use account.permissions.share instead. allow sharing files",
-                    "type": "boolean"
-                }
-            }
-        },
         "settings.UserDefaultsPreview": {
             "type": "object",
             "properties": {
                 "audio": {
                     "description": "show thumbnails for audio files",
-                    "type": "boolean"
-                },
-                "autoplayMedia": {
-                    "description": "deprecated: use fileViewer.autoplayMedia instead. autoplay media files in preview",
-                    "type": "boolean"
-                },
-                "defaultMediaPlayer": {
-                    "description": "deprecated: use fileViewer.defaultMediaPlayer instead. disable the styled feature-rich media player for browser default",
-                    "type": "boolean"
-                },
-                "disableHideSidebar": {
-                    "description": "deprecated fields",
                     "type": "boolean"
                 },
                 "disablePreviewExt": {
@@ -8421,7 +8172,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "apiKeys": {
-                    "description": "deprecated: use Tokens instead",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"

@@ -219,7 +219,7 @@ func TestMakeIndexPathRoot(t *testing.T) {
 	}
 }
 
-// TODO: Update these tests to use new ConditionalFilter structure
+// TODO: Update these tests to use config.rules structure
 /*
 func TestCheckIndexExclude(t *testing.T) {
 	tests := []struct {

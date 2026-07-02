@@ -205,8 +205,7 @@ type QueryFilter struct {
 	PathGlob   string
 	ShareHash        string
 	ShareOwnerUserID uint64
-	ShareOwnerFilter bool     // restrict to shares owned by ShareOwnerUserID
-	OwnedShareHashes []string // legacy share-download rows without shareOwnerUserId
+	ShareOwnerFilter bool // restrict to shares owned by ShareOwnerUserID
 	Page             int
 	Limit            int
 	Interval   string // minute, hour, day, none — time bucket on the X-axis

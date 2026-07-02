@@ -4,7 +4,6 @@
 export function activityEventLabel(eventType, $t) {
   switch (eventType) {
     case "download":
-    case "shareDownload":
       return $t("general.download");
     case "move":
       return $t("general.move");
