@@ -183,6 +183,10 @@ export default {
 
 .transfer-item-wrapper {
   margin-bottom: 0.5rem;
+  background: var(--background);
+  border: 1px solid var(--divider);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
 }
 
 .transfer-item-wrapper:last-child {
@@ -190,16 +194,15 @@ export default {
 }
 
 .transfer-item-wrapper.has-error {
-  border-left: 3px solid var(--errorColor, #f44336);
-  padding-left: 0.5rem;
+  border-left: 3px solid var(--red);
 }
 
 .error-banner {
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: var(--errorBackground, rgba(244, 67, 54, 0.1));
-  color: var(--errorColor, #f44336);
-  border-radius: 4px;
+  background: color-mix(in srgb, var(--red), transparent 90%);
+  color: var(--red);
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   word-break: break-word;
 }
@@ -214,7 +217,7 @@ export default {
 .file-icon {
   flex-shrink: 0;
   margin-right: 0.5em;
-  color: #999;
+  color: var(--primaryColor);
 }
 
 .file-name {
@@ -230,7 +233,7 @@ export default {
 .transfer-speed {
   flex-shrink: 0;
   font-size: 0.8em;
-  color: #666;
+  color: var(--textSecondary);
   margin-left: 0.5em;
   white-space: nowrap;
 }
@@ -238,7 +241,7 @@ export default {
 .current-file {
   margin: 0.2em 0 0 0;
   font-size: 0.75em;
-  color: #999;
+  color: var(--textSecondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -246,14 +249,15 @@ export default {
 
 .status-badge {
   font-size: 0.75em;
-  padding: 0.1em 0.4em;
-  border-radius: 3px;
+  padding: 0.15em 0.5em;
+  border-radius: 999px;
+  font-weight: 500;
   margin-left: 0.5em;
 }
 
 .status-badge.calculating {
-  background: #fff8d6;
-  color: #9e7600;
+  background: color-mix(in srgb, var(--icon-yellow), transparent 85%);
+  color: var(--icon-orange);
 }
 
 .file-actions {

@@ -101,23 +101,26 @@ export default {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--primaryColor, #2196f3);
-  color: white;
+  background: var(--surfacePrimary);
+  border: 1px solid var(--divider);
+  color: var(--primaryColor);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 9999;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-  transition: box-shadow 0.15s ease;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .transfer-indicator:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+  transform: translateY(-1px);
 }
 
 .transfer-indicator:active {
   opacity: 0.85;
+  transform: translateY(0);
 }
 
 .progress-ring {
@@ -128,11 +131,11 @@ export default {
 }
 
 .progress-ring-bg {
-  stroke: rgba(255, 255, 255, 0.25);
+  stroke: var(--divider);
 }
 
 .progress-ring-fill {
-  stroke: white;
+  stroke: var(--primaryColor);
   stroke-linecap: round;
   transition: stroke-dashoffset 0.3s ease;
 }
@@ -146,7 +149,7 @@ export default {
   position: absolute;
   top: -4px;
   right: -4px;
-  background: #f44336;
+  background: var(--red);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -158,9 +161,5 @@ export default {
   justify-content: center;
   padding: 0 4px;
   z-index: 2;
-}
-
-.dark-mode.transfer-indicator {
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
 }
 </style>
