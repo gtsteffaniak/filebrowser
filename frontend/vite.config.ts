@@ -1,5 +1,6 @@
 import path from "node:path";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
+import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
@@ -7,8 +8,49 @@ import { compression } from "vite-plugin-compression2";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
 
+// Go template actions in statement position inside index.html <style> blocks
+// are not valid CSS, which makes the Tailwind CSS pipeline reject the file.
+// Swap them for valid CSS marker rules before Vite parses the HTML, then
+// restore them in the final HTML (post hooks run after inline CSS has been
+// processed and substituted back). Actions in custom-property value position
+// (e.g. --background: {{ .htmlVars.lightBackground }};) parse fine and need
+// no shielding.
+const goTemplateCssActions = [
+  "{{ .htmlVars.loadingSpinnersCSS }}",
+  "{{ .htmlVars.customCSS }}",
+  "{{ .htmlVars.userSelectedTheme }}",
+];
+const goTemplateCssMarker = (i: number) => `#go-tpl-${i}{--go-tpl:${i}}`;
+
+const goTemplateCssShield = () => [
+  {
+    name: "go-template-css-shield:hide",
+    transformIndexHtml: {
+      order: "pre" as const,
+      handler: (html: string) =>
+        goTemplateCssActions.reduce(
+          (out, action, i) => out.replaceAll(action, goTemplateCssMarker(i)),
+          html,
+        ),
+    },
+  },
+  {
+    name: "go-template-css-shield:restore",
+    transformIndexHtml: {
+      order: "post" as const,
+      handler: (html: string) =>
+        goTemplateCssActions.reduce(
+          (out, action, i) => out.replaceAll(goTemplateCssMarker(i), action),
+          html,
+        ),
+    },
+  },
+];
+
 const plugins = [
   vue(),
+  tailwindcss(),
+  ...goTemplateCssShield(),
   VueI18nPlugin({
     runtimeOnly: false,
     include: [path.resolve(__dirname, "./src/i18n/**/*.json")],

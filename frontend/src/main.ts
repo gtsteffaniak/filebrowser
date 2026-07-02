@@ -4,6 +4,7 @@ import { state } from "@/store"; // Adjust the path as per your setup
 import App from "./App.vue"; // Adjust the path as per your setup
 import router from "./router"; // Adjust the path as per your setup
 
+import "./css/tailwind.css";
 import "./css/styles.css";
 import "./css/dark.css";
 import { initPwaInstall } from "@/utils/pwaInstall";

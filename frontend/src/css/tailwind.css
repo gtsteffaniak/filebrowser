@@ -1,0 +1,55 @@
+/*
+ * Tailwind v4 entry. Preflight is intentionally NOT imported until the legacy
+ * global CSS is fully retired (see css cleanup phase) — importing only theme +
+ * utilities keeps Tailwind output inside @layer, so existing unlayered CSS
+ * always wins on conflicts while components are migrated incrementally.
+ */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Dark mode follows the existing runtime mechanism: a .dark-mode class
+ * toggled on <body> (see store getters.isDarkMode). */
+@custom-variant dark (&:where(.dark-mode, .dark-mode *));
+
+/* Static design tokens. */
+@theme {
+  --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-brand-500: #2196f3;
+  --color-brand-600: #1e88e5;
+  --color-danger: #f44336;
+  --color-danger-600: #d32f2f;
+
+  --color-icon-red: #da4453;
+  --color-icon-orange: #ff8c00;
+  --color-icon-yellow: #fdbc4b;
+  --color-icon-green: #2ecc71;
+  --color-icon-blue: #1d99f3;
+  --color-icon-violet: #9b59b6;
+
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.08), 0 4px 12px rgb(0 0 0 / 0.06);
+  --shadow-float: 0 4px 16px rgb(0 0 0 / 0.18);
+  --shadow-modal: 0 8px 30px rgb(0 0 0 / 0.25);
+}
+
+/*
+ * Runtime-variable bridge: semantic colors resolve at runtime so themes keep
+ * working — the Go backend injects lightBackground/darkBackground and user
+ * theme CSS into index.html, and Layout.vue sets --primaryColor from
+ * state.user.themeColor. Utilities like bg-surface or text-primary must
+ * compile to var(...) lookups, hence @theme inline.
+ */
+@theme inline {
+  --color-primary: var(--primaryColor);
+  --color-background: var(--background);
+  --color-background-alt: var(--alt-background);
+  --color-surface: var(--surfacePrimary);
+  --color-surface-2: var(--surfaceSecondary);
+  --color-surface-hover: var(--surface-hover);
+  --color-foreground: var(--textPrimary);
+  --color-muted: var(--textSecondary);
+  --color-divider: var(--divider);
+  --color-border-strong: var(--border-strong);
+  --color-overlay: var(--overlay);
+  --color-icon-bg: var(--iconBackground);
+}

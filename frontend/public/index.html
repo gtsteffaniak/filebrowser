@@ -71,6 +71,9 @@
       --textSecondary: gray;
       --iconBackground: #dddddd;
       --activeWhiteIcon: gray;
+      --surface-hover: #e0e0e0;
+      --border-strong: #b0bec5;
+      --overlay: rgba(0, 0, 0, 0.4);
     }
     .dark-mode {
       --background: {{ .htmlVars.darkBackground }};
@@ -82,6 +85,9 @@
       --textSecondary: rgba(255, 255, 255, 0.6);
       --iconBackground: #1e1f20;
       --activeWhiteIcon: white;
+      --surface-hover: #2c363d;
+      --border-strong: rgba(255, 255, 255, 0.28);
+      --overlay: rgba(0, 0, 0, 0.6);
     }
 
     {{ .htmlVars.loadingSpinnersCSS }}
