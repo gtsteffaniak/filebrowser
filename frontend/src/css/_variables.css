@@ -10,6 +10,8 @@
   --icon-green: #2ecc71;
   --icon-blue: #1d99f3;
   --icon-violet: #9b59b6;
+  --icon-gray: #9ca3af;
+  --icon-gray-light: #adb5bd;
   --primaryColor: var(--blue);
   --divider: lightgray;
   --icon-size: 3em;

@@ -318,7 +318,7 @@ export default {
 @supports (backdrop-filter: none) {
   .thumb,
   .thumb-section-id {
-    background-color: rgba(237, 237, 237, 0.1) !important;
+    background-color: color-mix(in srgb, var(--surfacePrimary) 12%, transparent) !important;
     backdrop-filter: blur(10px) invert(0.1);
   }
 }

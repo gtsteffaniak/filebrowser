@@ -160,7 +160,7 @@ input.sizeInput:disabled {
   margin: .5em;
   display: flex;
   align-items: center;
-  background-color: #f5f5f5;
+  background-color: var(--surfacePrimary);
   padding: .25em;
   -webkit-box-align: center;
   -ms-flex-align: center;

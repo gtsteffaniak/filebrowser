@@ -70,7 +70,7 @@ export default {
     },
     "bg-color": {
       type: String,
-      default: "#eee",
+      default: "var(--alt-background)",
     },
     "bar-color": {
       type: String,
@@ -106,7 +106,7 @@ export default {
     },
     "text-fg-color": {
       type: String,
-      default: "#000",
+      default: "var(--textPrimary)",
     },
     status: {
       type: String,
@@ -207,7 +207,7 @@ export default {
       };
 
       if (this.status === 'indexing') {
-        style.background = '#fff8d6'; // Muted yellow/amber color
+        style.background = 'color-mix(in srgb, var(--color-warning) 15%, var(--surfacePrimary))';
       }
 
       if (this.textPosition === "middle" || this.textPosition === "inside") {
@@ -223,11 +223,11 @@ export default {
     bar_style() {
       let barColor = this.barColor;
       if (this.status === 'error') {
-        barColor = '#f44336';
+        barColor = 'var(--color-danger)';
       } else if (this.status === 'conflict') {
-        barColor = '#ff9800';
+        barColor = 'var(--color-warning)';
       } else if (this.status === 'disk') {
-        barColor = '#9e9e9e'; // Gray for disk usage
+        barColor = 'var(--icon-gray)';
       }
 
       let percentage = this.pct >= 1 && this.pct < 7 ? 6 : this.pct;
@@ -246,7 +246,7 @@ export default {
       // Add pulse animation for indexing status
       if (this.status === 'indexing') {
         style.animation = 'progress-pulse 4s ease-in-out infinite';
-        style.background = 'rgb(237 161 41)'; // orange
+        style.background = 'var(--color-warning)';
       }
 
       if (this.barBorderRadius > 0) {
@@ -272,7 +272,7 @@ export default {
       const style = {
         width: `${percentage}%`,
         height: `${this.size_px}px`,
-        background: '#9e9e9e',
+        background: 'var(--icon-gray)',
         transition: this.barTransition,
         position: 'absolute',
         top: '0',
@@ -348,7 +348,7 @@ export default {
   background: var(--primaryColor);
 }
 .vue-simple-progress-text {
-  color: black;
+  color: var(--textPrimary);
 }
 
 .tooltip-info-icon {

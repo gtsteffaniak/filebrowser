@@ -93,7 +93,7 @@ export default {
   margin: 1em;
   display: flex;
   flex-wrap: wrap;
-  border: 1px solid #ccc;
+  border: 1px solid var(--divider);
   border-top:none;
   border-radius: 1em;
   overflow: hidden;
@@ -105,11 +105,12 @@ button {
   height: 3em;
   padding: 8px 16px;
   border: none;
-  background: #f5f5f5;
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
   transition: background-color 0.3s;
   /* Add borders */
-  border-right: 1px solid #ccc;
-  border-top: 1px solid #ccc;
+  border-right: 1px solid var(--divider);
+  border-top: 1px solid var(--divider);
 }
 
 .button-group > button:last-child {

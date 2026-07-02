@@ -143,12 +143,12 @@ export default {
   border-radius: 1em;
   border-style: solid;
   border-width: 0.2em;
-  box-shadow: 0 0 0.5em black;
+  box-shadow: var(--shadow-float);
   border-color: var(--primaryColor);
   overflow: hidden;
   z-index: 1000;
   transition: all 0.3s ease-in-out;
-  background: gray;
+  background: var(--surfacePrimary);
   display: flex;
   align-items: center;
   justify-content: center;

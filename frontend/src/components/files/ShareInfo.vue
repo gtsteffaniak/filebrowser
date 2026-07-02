@@ -124,7 +124,7 @@ export default {
   font-weight: bold;
   text-align: center;
   padding-bottom: 1em;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--divider);
   margin-bottom: 1em;
 }
 
@@ -142,7 +142,7 @@ export default {
 
 .share-info__box__icon {
   font-size: 4em;
-  color: #6c7b7f;
+  color: var(--textSecondary);
 }
 
 .share-info__box__icon i {
