@@ -129,7 +129,7 @@ export default {
   resize: vertical;
   width: 100%;
   overflow: hidden;
-  border: 1px solid #ccc;
+  border: 1px solid var(--divider);
   border-radius: 4px;
 }
 

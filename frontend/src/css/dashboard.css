@@ -37,12 +37,12 @@ a {
   display: block;
   font-size: .8em;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.57);
+  color: var(--textSecondary);
 }
 
 li code,
 p code {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--surfaceSecondary);
   padding: .1em;
   border-radius: .2em;
 }
@@ -62,7 +62,7 @@ p code {
   display: flex;
   flex-grow: 1;
   justify-content: center;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 2px solid var(--divider);
 }
 
 body.rtl #nav .wrapper {
@@ -72,7 +72,7 @@ body.rtl #nav .wrapper {
 .dashboard #nav ul {
   list-style: none;
   display: flex;
-  color: rgb(84, 110, 122);
+  color: var(--textSecondary);
   font-weight: 500;
   padding: 0;
   margin: 0 0 -2px 0;
@@ -91,7 +91,7 @@ body.rtl #nav .wrapper {
 }
 
 .dashboard #nav ul li:hover {
-  background: var(--moon-grey);
+  background: var(--surface-hover);
 }
 
 .dashboard #nav ul li.active {
@@ -121,7 +121,7 @@ table {
 }
 
 table tr {
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--divider);
 }
 
 table tr:last-child {
@@ -130,7 +130,7 @@ table tr:last-child {
 
 table th {
   font-weight: 500;
-  color: #757575;
+  color: var(--textSecondary);
   text-align: left;
 }
 
@@ -247,11 +247,11 @@ body.rtl .card-title>*:first-child {
 }
 
 .collapsible {
-  border-top: 1px solid rgba(0,0,0,0.1);
+  border-top: 1px solid var(--divider);
 }
 
 .collapsible:last-of-type {
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-bottom: 1px solid var(--divider);
 }
 
 .collapsible > input {
@@ -269,7 +269,7 @@ body.rtl .card-title>*:first-child {
 
 .collapsible > label * {
   margin: 0;
-  color: rgba(0,0,0,0.57);
+  color: var(--textSecondary);
 }
 
 .collapsible > label i {
@@ -315,8 +315,8 @@ body.rtl .card-title>*:first-child {
 .card .card-action.full .action {
   flex: 1;
   padding: 2em;
-  border-radius: 1em;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.75rem;
+  border: 1px solid var(--divider);
   text-align: center;
 }
 

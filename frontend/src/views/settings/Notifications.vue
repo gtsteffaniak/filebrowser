@@ -248,8 +248,11 @@ export default {
 }
 
 .notification-item {
-  border-radius: 1em;
-  color: #fff;
+  border-radius: 0.75rem;
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
+  border: 1px solid var(--divider);
+  border-left: 4px solid var(--primaryColor);
   position: relative;
   width: 100%;
   height: auto;
@@ -273,7 +276,7 @@ export default {
 }
 
 .notification-message {
-  color: white;
+  color: inherit;
   padding: 1em;
   flex: 1;
   word-wrap: break-word;
@@ -294,26 +297,28 @@ export default {
   margin-top: 0.25em;
 }
 
-.notification-buttons .button {
-  color: white !important;
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.notification-buttons .button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
 .notification-item.success {
-  background: var(--primaryColor);
+  border-left-color: var(--icon-green);
+}
+
+.notification-item.success .notification-icon {
+  color: var(--icon-green);
 }
 
 .notification-item.error {
-  background: var(--red);
+  border-left-color: var(--red);
+}
+
+.notification-item.error .notification-icon {
+  color: var(--red);
 }
 
 .notification-item.action {
-  background: var(--primaryColor);
+  border-left-color: var(--primaryColor);
+}
+
+.notification-item.action .notification-icon {
+  color: var(--primaryColor);
 }
 
 .notification-metadata {

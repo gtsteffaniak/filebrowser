@@ -411,7 +411,7 @@ export default {
 }
 
 .login-card {
-  padding: 1em;
+  padding: 1.5em;
 }
 
 .login-brand {
@@ -467,7 +467,7 @@ export default {
 
   top: 24px;
 
-  background-color: #aaa;
+  background-color: var(--divider);
 
   content: "";
 }
@@ -521,6 +521,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
+  background: var(--background);
 }
 
 #login h1 {
@@ -534,7 +535,7 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: 16em;
+  max-width: 22em;
   width: 90%;
 }
 
@@ -547,8 +548,10 @@ export default {
 }
 
 .wrong-login {
-  background: var(--red) !important;
-  color: #fff;
+  background: color-mix(in srgb, var(--red), transparent 88%) !important;
+  color: var(--red);
+  border: 1px solid color-mix(in srgb, var(--red), transparent 60%) !important;
+  border-radius: 0.5rem;
   padding: .5em;
   text-align: center;
   animation: .2s opac forwards;

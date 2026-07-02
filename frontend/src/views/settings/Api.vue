@@ -185,7 +185,7 @@ export default {
 }
 
 .permissions-placeholder {
-  color: #888;
+  color: var(--textSecondary);
   /* Styling for the placeholder text */
 }
 
@@ -196,9 +196,9 @@ export default {
   /* Position the popup below the cell */
   left: 0;
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--divider);
   padding: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
   z-index: 10;
   width: max-content;
 }
