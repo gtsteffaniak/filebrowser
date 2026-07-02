@@ -11,7 +11,7 @@
         @keydown.esc.prevent="$emit('close')"
       />
     </div>
-    <div ref="scroll" class="menu-option-list-scroll">
+    <div ref="scroll" class="menu-option-list-scroll" :style="scrollStyle">
       <button
         v-for="option in filteredOptions"
         :key="optionKey(option.value)"
@@ -64,6 +64,10 @@ export default {
       type: String,
       default: "",
     },
+    maxHeight: {
+      type: Number,
+      default: undefined,
+    },
   },
 
   emits: ["select", "update:searchQuery", "close"],
@@ -90,6 +94,12 @@ export default {
       return this.normalizedOptions.filter((option) => {
         return String(option.label).toLowerCase().includes(query);
       });
+    },
+    scrollStyle() {
+      if (this.maxHeight !== undefined  && this.maxHeight !== null) {
+        return { maxHeight: `${this.maxHeight}px` };
+      }
+      return {};
     },
   },
 
