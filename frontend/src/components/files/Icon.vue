@@ -529,7 +529,7 @@ export default {
 }
 
 .primary-icons.active {
-  text-shadow: 0px 0px 1px #000;
+  text-shadow: 0px 0px 1px rgb(0 0 0 / 0.6);
 }
 
 /* blue variations */
@@ -538,76 +538,76 @@ export default {
 }
 
 .deep-blue-icons {
-  color: rgb(29, 95, 191);
+  color: var(--icon-indigo);
 }
 
 .lightblue-icons {
-  color: lightskyblue;
+  color: var(--icon-cyan);
 }
 
 .skyblue-icons {
-  color: rgb(42, 170, 242);
+  color: var(--icon-sky);
 }
 
 /* purple variations */
 .purple-icons {
-  color: purple;
+  color: var(--icon-violet);
 }
 
 .plum-icons {
-  color: plum;
+  color: var(--icon-fuchsia);
 }
 
 /* yellow */
 .yellow-icons {
-  color: yellow;
+  color: var(--icon-yellow);
 }
 
 /* orange/red variations */
 .orange-icons {
-  color: orange;
+  color: var(--icon-orange);
 }
 
 .red-icons {
-  color: rgb(211, 16, 16);
+  color: var(--icon-red);
 }
 
 .deep-orange-icons {
-  color: rgb(255, 111, 0);
+  color: var(--icon-deep-orange);
 }
 
 .brown-icons {
-  color: brown;
+  color: var(--icon-brown);
 }
 
 .coral-icons {
-  color: lightcoral;
+  color: var(--icon-coral);
 }
 
 .tan-icons {
-  color: tan;
+  color: var(--icon-tan);
 }
 
 /* green variations */
 .green-icons {
-  color: rgb(23, 128, 74);
+  color: var(--icon-green);
 }
 
 .light-green-icons {
-  color: rgb(48, 207, 117);
+  color: var(--icon-lime);
 }
 
 /* white variations */
 .white-icons {
-  color: white;
+  color: var(--textPrimary);
 }
 
 .gray-icons {
-  color: gray;
+  color: var(--icon-gray);
 }
 
 .lightgray-icons {
-  color: rgb(176, 176, 176);
+  color: var(--icon-gray-light);
 }
 
 #listingView.gallery .listing-item i.white-icons,

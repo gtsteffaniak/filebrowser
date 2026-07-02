@@ -22,13 +22,6 @@
   --color-success: #4caf50;
   --color-warning: #ff9800;
 
-  --color-icon-red: #da4453;
-  --color-icon-orange: #ff8c00;
-  --color-icon-yellow: #fdbc4b;
-  --color-icon-green: #2ecc71;
-  --color-icon-blue: #1d99f3;
-  --color-icon-violet: #9b59b6;
-
   --shadow-card: 0 1px 3px rgb(0 0 0 / 0.08), 0 4px 12px rgb(0 0 0 / 0.06);
   --shadow-float: 0 4px 16px rgb(0 0 0 / 0.18);
   --shadow-modal: 0 8px 30px rgb(0 0 0 / 0.25);
@@ -54,4 +47,23 @@
   --color-border-strong: var(--border-strong);
   --color-overlay: var(--overlay);
   --color-icon-bg: var(--iconBackground);
+
+  /* File-type icon palette (defined once in _variables.css). */
+  --color-icon-red: var(--icon-red);
+  --color-icon-coral: var(--icon-coral);
+  --color-icon-deep-orange: var(--icon-deep-orange);
+  --color-icon-orange: var(--icon-orange);
+  --color-icon-yellow: var(--icon-yellow);
+  --color-icon-lime: var(--icon-lime);
+  --color-icon-green: var(--icon-green);
+  --color-icon-cyan: var(--icon-cyan);
+  --color-icon-sky: var(--icon-sky);
+  --color-icon-blue: var(--icon-blue);
+  --color-icon-indigo: var(--icon-indigo);
+  --color-icon-violet: var(--icon-violet);
+  --color-icon-fuchsia: var(--icon-fuchsia);
+  --color-icon-brown: var(--icon-brown);
+  --color-icon-tan: var(--icon-tan);
+  --color-icon-gray: var(--icon-gray);
+  --color-icon-gray-light: var(--icon-gray-light);
 }
