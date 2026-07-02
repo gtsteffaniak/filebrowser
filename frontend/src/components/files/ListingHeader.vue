@@ -148,21 +148,19 @@ export default {
 <style scoped>
 .listing-item-header {
   display: flex;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, .1);
+  background: var(--surfacePrimary);
+  border: 1px solid var(--divider);
+  color: var(--textSecondary);
+  font-size: 0.9em;
+  font-weight: 500;
   z-index: 999;
-  padding: .85em;
+  padding: .7em .85em;
   width: 100%;
   box-sizing: border-box;
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
   margin-bottom: 0 !important;
   justify-content: space-between;
-}
-
-.dark-mode {
-  border-color: var(--divider) !important;
-  background: var(--surfacePrimary) !important;
   user-select: none;
 }
 
@@ -221,12 +219,17 @@ i {
   flex-shrink: 0;
 }
 
+p:hover {
+  color: var(--textPrimary);
+}
+
 p:hover i,
 .active i {
   opacity: 1;
 }
 
 .active {
-  font-weight: bold;
+  font-weight: 700;
+  color: var(--textPrimary);
 }
 </style>
