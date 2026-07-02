@@ -1,31 +1,40 @@
 .button {
-  display:flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   outline: 0;
-  padding: .5em;
-  border-radius: 1em;
+  border: none;
+  padding: .5em 1em;
+  border-radius: .5rem;
   cursor: pointer;
   background: var(--primaryColor);
   color: white;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
-  transition: .1s ease all;
+  font-weight: 500;
+  box-shadow: none;
+  transition: .15s ease all;
   min-width: 2em;
   min-height: 2em;
-  padding-left: 1em;
-  padding-right: 1em;
+}
+
+.button:not([disabled]):hover {
+  background: color-mix(in srgb, var(--primaryColor) 85%, black);
 }
 
 button {
   padding: 0.5em;
   border: none;
+  border-radius: .5rem;
   background-color: var(--surfaceSecondary);
-  transition: background-color 0.3s;
+  transition: background-color 0.15s ease;
   min-width: 2em;
   min-height: 2em;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+button:not(:disabled):not(.button):hover {
+  background-color: var(--surface-hover);
 }
 
 button:disabled {
@@ -44,17 +53,25 @@ button:disabled {
   background: var(--red);
 }
 
+.button--red:not([disabled]):hover {
+  background: var(--dark-red);
+}
+
 .button--blue {
   background: var(--blue);
 }
 
 .button--flat {
   color: var(--primaryColor);
-  background: var(--surfaceSecondary);
-  box-shadow: 0 0 0;
-  text-transform: uppercase;
+  background: transparent;
+  box-shadow: none;
+  font-weight: 500;
   padding-left: 1em;
   padding-right: 1em;
+}
+
+.button--flat:not([disabled]):hover {
+  background: var(--surface-hover);
 }
 
 .button--flat.button--red {
@@ -62,7 +79,7 @@ button:disabled {
 }
 
 .button--flat.button--grey {
-  color: #6f6f6f;
+  color: var(--textSecondary);
 }
 
 .button[disabled] {

@@ -743,12 +743,38 @@ export default {
   }
 }
 
+/* On mobile, prompts render as full-width bottom sheets; drag offsets and
+ * resize are disabled since the position is fixed to the bottom edge. */
+@media (max-width: 768px) {
+  .floating-window {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 85dvh;
+    border-radius: 1rem 1rem 0 0;
+    border-bottom: none;
+  }
+
+  .resize-handles,
+  .prompt-resize-corner {
+    display: none;
+  }
+
+  .prompt-taskbar {
+    cursor: default;
+  }
+}
+
 @keyframes prompt-border-flash {
   from {
-    border-color: color-mix(in srgb, var(--primaryColor) 45%, var(--surfaceSecondary));
+    border-color: color-mix(in srgb, var(--primaryColor) 45%, var(--divider));
   }
   to {
-    border-color: var(--surfaceSecondary);
+    border-color: var(--divider);
   }
 }
 
@@ -844,7 +870,9 @@ export default {
   user-select: none;
   touch-action: none;
   transition: background 0.15s;
-  background: var(--surfaceSecondary);
+  background: var(--surfacePrimary);
+  border-bottom: 1px solid var(--divider);
+  padding: 0 0.5em;
   height: 3em;
   z-index: 10;
 }
@@ -876,16 +904,16 @@ export default {
   height: 2em;
   padding: 0;
   border: none;
-  border-radius: 1em;
-  background: #c62828;
-  color: #fff;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--textSecondary);
   cursor: pointer;
-  transition: background 0.15s, filter 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
-.prompt-close:hover {
-  background: #b71c1c;
-  filter: brightness(1.1);
+.prompt-close:not(:disabled):hover {
+  background: var(--red) !important;
+  color: #fff;
 }
 
 .prompt-close .material-symbols {

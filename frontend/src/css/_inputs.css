@@ -1,17 +1,21 @@
 .input {
-  border-radius: 1em;
-  padding: .5em 1em;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: .2s ease all;
+  border-radius: .5rem;
+  padding: .5em .75em;
+  border: 1px solid var(--divider);
+  transition: border-color .15s ease, box-shadow .15s ease;
   margin: 0;
   width: 100%;
-  background: var(--surfaceSecondary);
+  background: var(--background);
   color: var(--textPrimary);
 }
 
-.input:hover,
+.input:hover {
+  border-color: var(--border-strong);
+}
+
 .input:focus {
-  border-color: rgba(0, 0, 0, 0.2);
+  border-color: var(--primaryColor);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaryColor), transparent 80%);
 }
 
 .input--textarea {
@@ -34,7 +38,7 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0px 1000px var(--surfaceSecondary) inset;
+  -webkit-box-shadow: 0 0 0px 1000px var(--background) inset;
   -webkit-text-fill-color: var(--textPrimary); /* Optional: Change text color to contrast */
   border-color: unset;
 }

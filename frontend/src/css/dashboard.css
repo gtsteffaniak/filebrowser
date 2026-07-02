@@ -343,7 +343,8 @@ body.rtl .credits {
 }
 
 .overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--overlay);
+  backdrop-filter: blur(2px);
   position: fixed;
   height: 100%;
   width: 100%;
