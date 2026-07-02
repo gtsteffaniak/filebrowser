@@ -733,12 +733,12 @@ export default {
 }
 
 .error-message {
-  background: #fee;
-  color: #c33;
+  background: color-mix(in srgb, var(--color-danger), transparent 90%);
+  color: var(--color-danger);
   padding: 1rem;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   margin-bottom: 1rem;
-  border: 1px solid #fcc;
+  border: 1px solid color-mix(in srgb, var(--color-danger), transparent 60%);
 }
 
 .stats {
@@ -945,37 +945,38 @@ export default {
   -webkit-line-clamp: 3;
 }
 
-/* Type colors - solid colors for utilitarian look */
+/* Type colors — reuse the file-type icon palette so treemap tiles match
+   listing icons; directories match the folder icon (primary). */
 .type-video {
-  background: #667eea;
+  background: var(--icon-sky);
 }
 
 .type-image {
-  background: #f5576c;
+  background: var(--icon-coral);
 }
 
 .type-audio {
-  background: #4facfe;
+  background: var(--icon-fuchsia);
 }
 
 .type-archive {
-  background: #ffa726;
+  background: var(--icon-tan);
 }
 
 .type-document {
-  background: #26a69a;
+  background: var(--icon-indigo);
 }
 
 .type-binary {
-  background: #676767;
+  background: var(--icon-gray);
 }
 
 .type-directory {
-  background: #9575cd;
+  background: var(--primaryColor);
 }
 
 .type-other {
-  background: #78909c;
+  background: var(--icon-gray-light);
 }
 
 .legend {

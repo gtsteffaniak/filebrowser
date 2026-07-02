@@ -2106,6 +2106,8 @@ export default {
   width: 100%;
 }
 
+/* The --plyr-* menu/tooltip chrome below stays black-based intentionally:
+   it renders over media and must not follow the app theme. */
 .plyr {
   --plyr-color-main: var(--primaryColor);
   --plyr-video-background: rgba(0, 0, 0, 1);
@@ -2126,16 +2128,16 @@ export default {
           rgba(0, 0, 0, 0.7));
 
   overflow: visible;
-  background-color: rgb(216 216 216);
-  box-shadow: 0 2px 6px rgba(88, 88, 88, 0.45);
+  background-color: var(--surfacePrimary);
+  box-shadow: var(--shadow-float);
 }
 
 .plyr__controls {
-  color: black;
+  color: var(--textPrimary);
 }
 
 .audio-controls-container.dark-mode .plyr {
-  background-color: rgb(37 49 55 / 33%);
+  background-color: color-mix(in srgb, var(--surfacePrimary) 45%, transparent);
   color: white;
 }
 
@@ -2598,7 +2600,7 @@ export default {
   width: 100%;
   border-radius: 1em;
   overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-float);
   transition: max-height 0.3s ease, max-width 0.3s ease;
   will-change: transform;
 }
@@ -2628,7 +2630,7 @@ export default {
 }
 
 .album-art-container.no-artwork {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-card);
   height: auto;
   aspect-ratio: 1 / 1;
 }
@@ -2889,7 +2891,7 @@ export default {
   user-select: none;
   opacity: 0;
   transition: opacity 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-float);
 }
 
 .playback-toast.visible {
@@ -2915,11 +2917,11 @@ export default {
 }
 
 .status-on {
-  background: #4caf50;
+  background: var(--color-success);
 }
 
 .status-off {
-  background: #f44336;
+  background: var(--color-danger);
 }
 
 </style>

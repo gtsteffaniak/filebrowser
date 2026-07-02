@@ -526,12 +526,12 @@ export default {
 }
 
 .error-message {
-  background: #fee;
-  color: #c33;
+  background: color-mix(in srgb, var(--color-danger), transparent 90%);
+  color: var(--color-danger);
   padding: 1rem;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   margin-bottom: 1rem;
-  border: 1px solid #fcc;
+  border: 1px solid color-mix(in srgb, var(--color-danger), transparent 60%);
 }
 
 .hint {
@@ -557,7 +557,7 @@ export default {
 }
 
 .duplicate-group {
-  border: 1px solid var(--borderPrimary);
+  border: 1px solid var(--divider);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -568,7 +568,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
-  border-bottom: 1px solid var(--borderPrimary);
+  border-bottom: 1px solid var(--divider);
   border-radius: 0.5em;
 }
 
@@ -584,7 +584,7 @@ export default {
 
 .wasted-space {
   margin-left: auto;
-  color: #f5576c;
+  color: var(--color-danger);
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -599,14 +599,14 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--divider);
   border-top: 0;
   padding: 0.5em;
   border-radius: 0;
 }
 
 .file-item-wrapper:first-child {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--divider);
 }
 
 .file-item-wrapper.deleted {
@@ -615,7 +615,7 @@ export default {
 }
 
 .file-item-wrapper.failed {
-  border-left: 3px solid #f5576c;
+  border-left: 3px solid var(--color-danger);
 }
 
 .file-item-content {

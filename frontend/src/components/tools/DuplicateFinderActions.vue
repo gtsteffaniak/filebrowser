@@ -61,12 +61,12 @@ export default {
 }
 
 .delete-button {
-  background: #f5576c;
+  background: var(--color-danger);
   color: white;
 }
 
 .delete-button:hover:not(:disabled) {
-  background: #e0455a;
+  background: var(--color-danger-600);
 }
 
 .delete-button:disabled {

@@ -1,6 +1,6 @@
 .warning-banner {
-    background-color: color-mix(in srgb, var(--icon-orange), transparent 90%);
-    border: 1px solid color-mix(in srgb, var(--icon-orange), transparent 60%);
+    background-color: color-mix(in srgb, var(--color-warning), transparent 90%);
+    border: 1px solid color-mix(in srgb, var(--color-warning), transparent 60%);
     border-radius: 0.5rem;
     padding: 1em;
     margin-bottom: 1em;
@@ -10,7 +10,7 @@
 }
 
 .warning-banner i {
-    color: var(--icon-orange);
+    color: var(--color-warning);
     font-size: 24px;
 }
 
@@ -19,17 +19,17 @@
 }
 
 .warning-icon {
-    color: var(--icon-orange);
+    color: var(--color-warning);
     font-size: 20px;
 }
 
 .warning-message {
-    background: color-mix(in srgb, var(--icon-orange), transparent 90%);
+    background: color-mix(in srgb, var(--color-warning), transparent 90%);
     color: var(--textPrimary);
     padding: 1rem;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
-    border: 1px solid color-mix(in srgb, var(--icon-orange), transparent 60%);
+    border: 1px solid color-mix(in srgb, var(--color-warning), transparent 60%);
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
@@ -37,7 +37,7 @@
 
 .warning-message .material-symbols {
     font-size: 1.5rem;
-    color: var(--icon-orange);
+    color: var(--color-warning);
     flex-shrink: 0;
 }
 
@@ -47,12 +47,12 @@
 }
 
 .success-message {
-    background: color-mix(in srgb, var(--icon-green), transparent 90%);
+    background: color-mix(in srgb, var(--color-success), transparent 90%);
     color: var(--textPrimary);
     padding: 1rem;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
-    border: 1px solid color-mix(in srgb, var(--icon-green), transparent 60%);
+    border: 1px solid color-mix(in srgb, var(--color-success), transparent 60%);
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
@@ -60,7 +60,7 @@
 
 .success-message .material-symbols {
     font-size: 1.5rem;
-    color: var(--icon-green);
+    color: var(--color-success);
     flex-shrink: 0;
 }
 

@@ -683,8 +683,8 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 0.75rem 1rem;
-  background: var(--surfaceSecondary, rgba(0, 0, 0, 0.05));
-  border-bottom: 1px solid var(--borderPrimary, rgba(0, 0, 0, 0.1));
+  background: var(--surfaceSecondary);
+  border-bottom: 1px solid var(--divider);
   margin-bottom: 0;
   font-size: 0.9rem;
   border-bottom-left-radius: 0;
@@ -767,15 +767,15 @@ export default {
 }
 
 .header-value.latency-good {
-  color: #4caf50; /* Green */
+  color: var(--color-success);
 }
 
 .header-value.latency-ok {
-  color: #ff9800; /* Yellow/Orange */
+  color: var(--color-warning);
 }
 
 .header-value.latency-slow {
-  color: #f44336; /* Red */
+  color: var(--color-danger);
 }
 
 .header-value.latency-inactive {
@@ -786,7 +786,7 @@ export default {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #4caf50;
+  background: var(--color-success);
   animation: pulse 2s infinite;
 }
 
@@ -809,15 +809,15 @@ export default {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   /* Dark mode (default) */
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: var(--iconBackground);
+  color: var(--textPrimary);
 }
 
 .terminal-output:not(.dark-mode) {
   /* Light mode */
-  background: #ffffff;
-  color: #1e1e1e;
-  border: 1px solid var(--borderPrimary, rgba(0, 0, 0, 0.1));
+  background: var(--background);
+  color: var(--textPrimary);
+  border: 1px solid var(--divider);
 }
 
 .terminal-line {

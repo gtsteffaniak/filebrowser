@@ -362,6 +362,23 @@ export default {
   background-color: var(--alt-background);
   border-radius: 1em;
   padding: 1em;
+  /* GitHub-style code-reading grays: blue-tinted hues that intentionally
+     differ per mode and don't map onto the app surface tokens. */
+  --md-code-bg: #f6f8fa;
+  --md-gutter-bg: #f1f3f4;
+  --md-gutter-fg: #656d76;
+  --md-border: #d0d7de;
+  --md-hover-bg: #e1e4e8;
+  --md-hover-fg: #24292e;
+}
+
+#markedown-viewer .markdown-content-container.dark-mode {
+  --md-code-bg: #161b22;
+  --md-gutter-bg: #21262d;
+  --md-gutter-fg: #7d8590;
+  --md-border: #30363d;
+  --md-hover-bg: #30363d;
+  --md-hover-fg: #f0f6fc;
 }
 
 #markedown-viewer .markdown-content,
@@ -373,6 +390,7 @@ export default {
   box-sizing: border-box;
   border: none;
   min-height: 24em;
+  /* Sandboxed HTML documents assume a white canvas; stays mode-independent. */
   background: #fff;
   color-scheme: light dark;
 }
@@ -390,7 +408,7 @@ export default {
 /* Code block wrapper with line numbers */
 #markedown-viewer .markdown-content-container .code-block-wrapper {
   display: flex;
-  background-color: #f6f8fa;
+  background-color: var(--md-code-bg);
   border-radius: 0.5em;
   overflow: hidden;
   margin: 1em 0;
@@ -402,16 +420,11 @@ export default {
 }
 
 #markedown-viewer .markdown-content code:not(pre code) {
-  background-color: #f6f8fa;
+  background-color: var(--md-code-bg);
   padding: 0.25em 0.4em;
   border-radius: 0.5em;
   font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
   font-size: 0.85em;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode code:not(pre code),
-#markedown-viewer .markdown-content-container.dark-mode .code-block-wrapper {
-  background-color: #161b22;
 }
 
 #markedown-viewer .markdown-content-container .copy-code-button {
@@ -436,19 +449,13 @@ export default {
   user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  background-color: #f1f3f4;
-  border-right: 1px solid #d0d7de;
+  background-color: var(--md-gutter-bg);
+  border-right: 1px solid var(--md-border);
   padding: 0.625em 0.5em 0.625em 0.75em;
   text-align: right;
-  color: #656d76;
+  color: var(--md-gutter-fg);
   min-width: 2.5em;
   flex-shrink: 0;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-numbers {
-  background-color: #21262d;
-  border-right-color: #30363d;
-  color: #7d8590;
 }
 
 #markedown-viewer .markdown-content-container .line-number {
@@ -461,22 +468,12 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .line-number:hover {
-  background-color: #e1e4e8;
-  color: #24292e;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-number:hover {
-  background-color: #30363d;
-  color: #f0f6fc;
+  background-color: var(--md-hover-bg);
+  color: var(--md-hover-fg);
 }
 
 #markedown-viewer .markdown-content-container .line-number.active {
-  background-color: #0366d6;
-  color: white;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-number.active {
-  background-color: #1f6feb;
+  background-color: var(--primaryColor);
   color: white;
 }
 
@@ -490,11 +487,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .code-line.highlighted {
-  background-color: #fff8c5;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .code-line.highlighted {
-  background-color: #ffd33d20;
+  background-color: color-mix(in srgb, var(--icon-yellow) 20%, transparent);
 }
 
 /* Code content styling */
@@ -535,7 +528,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .code-content a {
-  color: #3737c9;
+  color: var(--primaryColor);
   font-weight: 500;
 }
 
