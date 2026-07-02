@@ -89,8 +89,9 @@ export default {
 .switch {
   position: relative;
   display: inline-block;
-  padding-right: 4em;
-  height: 34px;
+  width: 2.75em;
+  height: 1.5em;
+  flex-shrink: 0;
 }
 
 .switch input {
@@ -106,35 +107,36 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  transition: 0.4s;
-  background-color: gray;
+  transition: background-color 0.2s ease;
+  background-color: var(--border-strong);
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
-  left: 6px;
-  bottom: 4px;
+  height: 1.1em;
+  width: 1.1em;
+  left: 0.2em;
+  bottom: 0.2em;
   background-color: white;
-  transition: 0.4s;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  transition: transform 0.2s ease;
 }
 
 input:checked + .slider {
   background-color: var(--primaryColor);
 }
 
-input:focus + .slider {
-  box-shadow: 0 0 1px var(--primaryColor);
+input:focus-visible + .slider {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaryColor), transparent 75%);
 }
 
 input:checked + .slider:before {
-  transform: translateX(26px);
+  transform: translateX(1.25em);
 }
 
 .slider.round {
-  border-radius: 50px;
+  border-radius: 999px;
 }
 
 .slider.round:before {
@@ -147,7 +149,7 @@ input:checked + .slider:before {
 }
 
 .toggle-container.disabled .toggle-name {
-  color: #999;
+  color: var(--textSecondary);
 }
 
 .toggle-container.disabled .slider {
@@ -156,10 +158,10 @@ input:checked + .slider:before {
 
 input:disabled + .slider {
   cursor: not-allowed;
-  background-color: #ccc;
+  background-color: var(--surfaceSecondary);
 }
 
 input:disabled:checked + .slider {
-  background-color: #999;
+  background-color: color-mix(in srgb, var(--primaryColor), transparent 50%);
 }
 </style>

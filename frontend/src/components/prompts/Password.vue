@@ -86,7 +86,7 @@ export default {
 
 <style scoped>
 .wrong__password {
-  color: #ff4757;
+  color: var(--red);
   text-align: center;
   padding: 1em 0;
 }

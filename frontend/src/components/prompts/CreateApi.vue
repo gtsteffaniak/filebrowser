@@ -143,12 +143,12 @@ export default {
 }
 .description {
   font-size: 0.9em;
-  color: #666;
+  color: var(--textSecondary);
   margin-top: 0.5em;
 }
 .info-text {
   font-style: italic;
-  color: #666;
+  color: var(--textSecondary);
   margin-top: 0.5em;
 }
 

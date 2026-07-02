@@ -720,15 +720,21 @@ export default {
 .upload-prompt {
   text-align: center;
   padding: 2em;
-  border: 2px dashed #ccc;
-  border-radius: 8px;
+  border: 2px dashed var(--border-strong);
+  border-radius: 0.75rem;
   margin: 1em;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.upload-prompt:hover {
+  border-color: var(--primaryColor);
+  background-color: color-mix(in srgb, var(--primaryColor), transparent 94%);
 }
 
 .dropping {
   transform: scale(0.97);
-  border-radius: 1em;
-  box-shadow: var(--primaryColor) 0 0 1em;
+  border-color: var(--primaryColor);
+  background-color: color-mix(in srgb, var(--primaryColor), transparent 90%);
 }
 
 .upload-prompt-container {
@@ -740,7 +746,7 @@ export default {
 
 .upload-prompt i {
   font-size: 4em;
-  color: #ccc;
+  color: var(--textSecondary);
 }
 
 .upload-list {
@@ -757,7 +763,7 @@ export default {
 
 .file-icon {
   margin-right: 0.5em;
-  color: #999;
+  color: var(--textSecondary);
 }
 
 .file-info {
@@ -770,7 +776,7 @@ export default {
 }
 
 .status-label {
-  color: #777;
+  color: var(--textSecondary);
   font-size: 0.8em;
   margin-top: 5px;
 }
@@ -810,7 +816,8 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--overlay);
+  backdrop-filter: blur(2px);
   z-index: 999;
   display: flex;
   justify-content: center;
@@ -818,9 +825,9 @@ export default {
 }
 
 .conflict-overlay .card {
-  background-color: var(--card-background-color);
+  background-color: var(--surfacePrimary);
   padding: 1em;
-  border-radius: 8px;
+  border-radius: 0.75rem;
 }
 
 /* Upload settings styles */

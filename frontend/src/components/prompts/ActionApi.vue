@@ -268,11 +268,11 @@ export default {
 }
 
 .permission-status.enabled {
-  color: #4caf50;
+  color: var(--icon-green);
 }
 
 .permission-status.disabled {
-  color: #f44336;
+  color: var(--red);
 }
 
 /* Responsive adjustments */

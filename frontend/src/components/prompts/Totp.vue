@@ -172,7 +172,7 @@ export default {
 <style scoped>
 .box {
   box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
-  background: #fff;
+  background: var(--surfacePrimary);
   border-radius: 1em;
   margin: 5px;
   overflow: hidden;
@@ -185,7 +185,7 @@ export default {
 
 .box__icon i {
   font-size: 10em;
-  color: #40c4ff;
+  color: var(--primaryColor);
 }
 
 .box__center {
@@ -198,7 +198,7 @@ export default {
 
 .box__element {
   padding: 1em;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--divider);
   word-break: break-all;
 }
 

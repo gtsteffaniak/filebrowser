@@ -227,7 +227,7 @@ export default {
 
 .file-icon {
   margin-right: 0.5em;
-  color: #999;
+  color: var(--textSecondary);
 }
 
 .file-info {

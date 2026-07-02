@@ -1116,7 +1116,7 @@ export default {
 
 .description {
   font-size: 0.9em;
-  color: #666;
+  color: var(--textSecondary);
   margin-top: 4px;
   margin-bottom: 8px;
 }
@@ -1157,15 +1157,15 @@ export default {
   width: 3em;
   height: 2.5em;
   background: var(--surfaceSecondary);
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--divider);
   border-left: none;
-  border-radius: 0 0.5em 0.5em 0;
+  border-radius: 0 0.5rem 0.5rem 0;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .file-picker-button:hover {
-  background: var(--surfaceTertiary);
+  background: var(--surface-hover);
 }
 
 .file-picker-button .material-symbols {
@@ -1180,6 +1180,6 @@ export default {
 }
 
 select.input option:disabled {
-  color: #999;
+  color: var(--textSecondary);
 }
 </style>
