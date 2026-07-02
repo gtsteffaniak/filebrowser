@@ -13,6 +13,7 @@
   --primaryColor: var(--blue);
   --divider: lightgray;
   --icon-size: 3em;
+  --header-height: 3.5em;
   --layer-show: 1;
   --layer-above-show: 2;
   --layer-middle: 3;

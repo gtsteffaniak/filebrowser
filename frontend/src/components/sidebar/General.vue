@@ -295,6 +295,11 @@ export default {
   border-radius: 10em;
   background-color: var(--surfaceSecondary);
   transform: translateZ(0);
+  transition: background-color 0.15s ease;
+}
+
+.quick-toggles div:not(.active):hover {
+  background-color: var(--surface-hover);
 }
 
 .quick-toggles div i {

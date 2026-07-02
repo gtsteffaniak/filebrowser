@@ -1,5 +1,8 @@
 <template>
-  <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
+  <header
+    v-if="!isOnlyOffice"
+    class="fixed top-0 left-0 z-5 flex h-(--header-height) w-full items-center justify-between gap-1 border-b border-divider bg-surface/85 px-2 text-foreground backdrop-blur-md"
+  >
     <action
       v-if="!disableNavButtons"
       icon="close_back"
@@ -7,17 +10,22 @@
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
-    <div class="search-bar-container" :class="{ disabled: isDisabled }" 
-         v-if="showSearch && !isSearchActive" @click="openSearch" >
-      <i class="material-symbols">search</i>
-      <input 
-        type="text" 
-        id="search-bar-input" 
-        :placeholder="$t('general.search', { suffix: '...' })" 
+    <div
+      v-if="showSearch && !isSearchActive"
+      class="search-bar-container flex h-9 min-w-0 max-w-xl flex-1 cursor-pointer items-center gap-2 rounded-full bg-surface-2/70 px-3 transition-colors hover:bg-surface-2 max-md:max-w-[60%]"
+      :class="{ 'cursor-not-allowed opacity-50': isDisabled }"
+      @click="openSearch"
+    >
+      <i class="material-symbols select-none text-lg leading-none text-muted">search</i>
+      <input
+        type="text"
+        id="search-bar-input"
+        class="pointer-events-none w-full border-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
+        :placeholder="$t('general.search', { suffix: '...' })"
         readonly
       />
     </div>
-    <title v-if="!showSearch" class="topTitle">{{ getTopTitle }}</title>
+    <title v-if="!showSearch" class="topTitle block min-w-0 flex-1 truncate px-4 text-center text-lg font-medium">{{ getTopTitle }}</title>
     <action
       v-if="showHeaderSwitchView && !disableNavButtons"
       class="menu-button"
@@ -318,84 +326,20 @@ export default {
 </script>
 
 <style scoped>
-header button:hover {
-  box-shadow: unset !important;
-  -webkit-box-shadow: unset !important;
-}
-header {
-  background-color: rgb(37 49 55 / 5%) !important;
-}
-/* Header with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  header {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-  .dark-mode-header {
-    background-color: rgb(37 49 55 / 33%) !important;
-  }
+/* Action label text is hidden in the header; icons only. */
+header .action span {
+  display: none;
 }
 
-.search-bar-container {
-  display: flex;
-  align-items: center;
-  background-color: rgba(100, 100, 100, 0.2);
-  border-radius: 1em;
-  padding: 0.5em 0.75em;
-  transition: background-color 0.2s ease;
-  gap: 0.5em;
-  min-width: 35em;
-  max-width: 300px;
-  flex: 1;
-  height: 3em;
-  box-sizing: border-box;
+/* Square hover targets instead of the legacy circle + global inset-shadow hack. */
+header .action,
+header .action i {
+  border-radius: 0.5rem;
 }
 
-/* prevent open search if a prompt is open */
-.search-bar-container.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.search-bar-container.disabled #search-bar-input {
-  pointer-events: none;
-}
-
-@media (max-width: 768px) {
-  .search-bar-container {
-    min-width: unset;
-    max-width: 60%;
-  }
-}
-
-.search-bar-container:hover {
-  background-color: rgba(100, 100, 100, 0.3);
-}
-
-.search-bar-container .material-symbols {
-  font-size: 1.25em;
-  user-select: none;
-}
-
-#search-bar-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: rgba(255, 255, 255, 0.9);
-  width: 100%;
-  font-size: 0.95em;
-  user-select: none;
-}
-
-#search-bar-input::placeholder {
-  color: gray;
-}
-
-
-.dark-mode-header .search-bar-container {
-  background-color: rgba(100, 100, 100, 0.2);
-}
-
-.dark-mode-header .search-bar-container:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+header .action:not(.disabled):not(:disabled):hover {
+  background-color: var(--surface-hover);
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
 }
 </style>

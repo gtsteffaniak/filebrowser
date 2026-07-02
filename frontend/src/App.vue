@@ -3,14 +3,20 @@
 </template>
 
 <script>
-import { onMounted } from "vue";
-import { mutations } from "@/store"; // Import your store's mutations
+import { onMounted, watchEffect } from "vue";
+import { getters, mutations } from "@/store"; // Import your store's mutations
 
 mutations.setLoading("main-app", true);
 export default {
   name: "app",
   computed: {},
   setup() {
+    // Theme variables in index.html are keyed on .dark-mode; keeping the
+    // class on <body> makes them (and Tailwind's dark: variant) resolve
+    // everywhere, not only inside components that bind their own class.
+    watchEffect(() => {
+      document.body.classList.toggle("dark-mode", getters.isDarkMode());
+    });
     onMounted(() => {
       mutations.setLoading("main-app", false);
       // Query the loading element and remove it from the DOM

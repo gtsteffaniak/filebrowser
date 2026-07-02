@@ -192,32 +192,18 @@ export default {
 #sidebar {
   display: flex;
   flex-direction: column;
-  padding: 1em;
+  padding: 0.75em;
   width: 20em;
   position: fixed;
   z-index: 4;
   transform: translateZ(0);
-  height: 100%;
+  height: calc(100% - var(--header-height));
   transition: 0.4s ease;
-  top: 4em;
-  padding-bottom: 4em;
-  background-color: rgb(37 49 55 / 5%) !important;
+  top: var(--header-height);
+  background-color: var(--background);
+  border-inline-end: 1px solid var(--divider);
   will-change: left;
   backface-visibility: hidden;
-}
-
-/* sidebar with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  #sidebar {
-    backdrop-filter: blur(8px) invert(0.1);
-    isolation: isolate;
-  }
-  #sidebar.dark-mode {
-    background-color: rgb(37 49 55 / 33%) !important;
-  }
-  #sidebar:not(.active) {
-    backdrop-filter: blur(0) invert(0);
-  }
 }
 
 #sidebar.behind-overlay {
@@ -260,8 +246,8 @@ body.rtl .action {
  * * * * * * * * * * * * * * * */
 
 .credits {
-  font-size: 1em;
-  color: var(--textPrimary);
+  font-size: 0.85em;
+  color: var(--textSecondary);
   padding-left: 1em;
   padding-bottom: 1em;
 }
@@ -272,17 +258,33 @@ body.rtl .action {
   margin-left: 0;
 }
 
+.credits a:hover {
+  color: var(--primaryColor);
+}
+
 .buffer {
   flex-grow: 1;
 }
 
 .release-banner {
-  background-color: var(--primarColor);
+  background-color: color-mix(in srgb, var(--primaryColor), transparent 88%);
+  color: var(--primaryColor);
+  border: 1px solid color-mix(in srgb, var(--primaryColor), transparent 70%);
+  border-radius: 0.75rem;
+  padding: 0.5em 0.75em;
   display: flex !important;
   height: fit-content !important;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
+}
+
+.release-banner a {
+  color: inherit;
+}
+
+.release-banner i {
+  cursor: pointer;
 }
 
 #sidebar.scrollable {

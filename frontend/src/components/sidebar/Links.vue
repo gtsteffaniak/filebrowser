@@ -782,19 +782,30 @@ export default {
 .sidebar-link-button {
   margin: 0;
   margin-top: 0.25em;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-  border-radius: 0.5em;
+  padding-left: 0.75em;
+  padding-right: 0.75em;
+  border-radius: 0.5rem;
   justify-content: flex-start;
   max-width: 98%;
+  transition: background-color 0.15s ease;
 }
 
 .sidebar-link-button:first-child {
   margin-top: 0 !important;
 }
 
+.sidebar-link-button:hover {
+  background: var(--surface-hover);
+  box-shadow: none !important;
+}
+
 .sidebar-link-button.active {
-  background: var(--alt-background);
+  background: color-mix(in srgb, var(--primaryColor), transparent 88%);
+}
+
+.sidebar-link-button.active .link-container,
+.sidebar-link-button.active .source-container {
+  color: var(--primaryColor);
 }
 
 /* Make anchor tags behave like buttons */
@@ -849,7 +860,7 @@ a.sidebar-link-button {
 }
 
 .source-button.active {
-  background: var(--alt-background);
+  background: color-mix(in srgb, var(--primaryColor), transparent 88%);
 }
 
 .realtime-pulse>.pulse {

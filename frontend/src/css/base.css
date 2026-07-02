@@ -1,7 +1,8 @@
 body {
-  font-family: "Roboto", sans-serif;
-  padding-top: 4em;
-  color: #333333;
+  font-family: "Roboto", system-ui, sans-serif;
+  padding-top: var(--header-height);
+  background-color: var(--background);
+  color: var(--textPrimary);
   overflow:initial;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
@@ -70,7 +71,7 @@ i.spin {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
   position: fixed;
-  padding-top: 4em;
+  padding-top: var(--header-height);
   overflow: unset;
   top: 0;
   height: 100%;
@@ -89,7 +90,7 @@ i.spin {
 }
 
 .main-padding {
-  padding: 4em .5em .5em;
+  padding: var(--header-height) .5em .5em;
 }
 
 /* Files */
@@ -105,13 +106,13 @@ i.spin {
   top: 0;
   left: 0;
   width: 100%;
-  height: 3px;
+  height: 2px;
   z-index: 9999999999;
 }
 
 .progress div {
   height: 100%;
-  background-color: #40c4ff;
+  background-color: var(--primaryColor);
   width: 0;
   transition: 0.2s ease width;
 }
