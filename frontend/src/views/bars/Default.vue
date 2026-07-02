@@ -20,7 +20,7 @@
       <input
         type="text"
         id="search-bar-input"
-        class="pointer-events-none w-full border-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
+        class="w-full cursor-pointer border-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
         :placeholder="$t('general.search', { suffix: '...' })"
         readonly
       />

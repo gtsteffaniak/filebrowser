@@ -1,7 +1,7 @@
 .warning-banner {
-    background-color: var(--alt-background);
-    border: 1px solid var(--icon-orange);
-    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--icon-orange), transparent 90%);
+    border: 1px solid color-mix(in srgb, var(--icon-orange), transparent 60%);
+    border-radius: 0.5rem;
     padding: 1em;
     margin-bottom: 1em;
     display: flex;
@@ -24,12 +24,12 @@
 }
 
 .warning-message {
-    background: #fff3cd;
-    color: #856404;
+    background: color-mix(in srgb, var(--icon-orange), transparent 90%);
+    color: var(--textPrimary);
     padding: 1rem;
-    border-radius: 4px;
+    border-radius: 0.5rem;
     margin-bottom: 1rem;
-    border: 1px solid #ffc107;
+    border: 1px solid color-mix(in srgb, var(--icon-orange), transparent 60%);
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
@@ -37,7 +37,7 @@
 
 .warning-message .material-symbols {
     font-size: 1.5rem;
-    color: #f57c00;
+    color: var(--icon-orange);
     flex-shrink: 0;
 }
 
@@ -47,12 +47,12 @@
 }
 
 .success-message {
-    background: #d4edda;
-    color: #155724;
+    background: color-mix(in srgb, var(--icon-green), transparent 90%);
+    color: var(--textPrimary);
     padding: 1rem;
-    border-radius: 4px;
+    border-radius: 0.5rem;
     margin-bottom: 1rem;
-    border: 1px solid #28a745;
+    border: 1px solid color-mix(in srgb, var(--icon-green), transparent 60%);
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
@@ -60,7 +60,7 @@
 
 .success-message .material-symbols {
     font-size: 1.5rem;
-    color: #28a745;
+    color: var(--icon-green);
     flex-shrink: 0;
 }
 

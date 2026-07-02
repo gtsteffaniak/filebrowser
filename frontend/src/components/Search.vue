@@ -700,7 +700,7 @@ export default {
 
 <style scoped>
 .sizeInputWrapper {
-  border: 1px solid #ccc;
+  border: 1px solid var(--divider);
 }
 
 .inputWrapper {
@@ -764,13 +764,11 @@ export default {
 #results {
   -webkit-animation: SlideDown 0.5s forwards;
   animation: SlideDown 0.5s forwards;
-  border-radius: 1em;
+  border-radius: 0 0 0.75rem 0.75rem;
+  border: 1px solid var(--divider);
   border-top: none;
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
-  border: 2px solid var(--surfaceSecondary);
-  box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
-  background-color: lightgray;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.25);
+  background-color: var(--surfacePrimary);
   max-height: 80vh;
   overflow: hidden;
   display: flex;
@@ -870,13 +868,13 @@ export default {
 }
 
 #search.active .search-input-container {
-  background-color: var(--background);
-  border-color: var(--surfaceSecondary);
+  background-color: var(--surfacePrimary);
+  border-color: var(--divider);
   border-style: solid;
   border-bottom-style: none;
   border-bottom-right-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
-  border-width: 2px;
+  border-width: 1px;
 }
 
 #result-list p {
@@ -896,7 +894,7 @@ export default {
 }
 
 .search-entry:hover {
-  background-color: var(--alt-background);
+  background-color: var(--surface-hover);
 }
 
 .search-entry.active {
@@ -916,13 +914,13 @@ export default {
 #search #result {
   padding-top: 1em;
   overflow: hidden;
-  background: white;
+  background: var(--surfacePrimary);
   display: flex;
   top: -4em;
   flex-direction: column;
   align-items: center;
   text-align: left;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--textSecondary);
   height: 0;
   transition: 2s ease height, 2s ease padding, 2s ease width, 2s ease padding;
   z-index: 3;
@@ -995,7 +993,7 @@ body.rtl #search #result ul>* {
   margin: 0;
   font-weight: 500;
   font-size: 1em;
-  color: #212121;
+  color: var(--textPrimary);
   padding: 0.5em;
 }
 

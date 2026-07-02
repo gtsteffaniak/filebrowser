@@ -43,35 +43,53 @@ export default {
 }
 
 .toast {
-  padding: 1em;
+  padding: 0.85em 1em;
   display: flex;
   align-items: center;
   gap: 0.5em;
-  border-radius: 1em; /* Reuse button border-radius */
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
   font-weight: 500;
-  color: white;
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
   min-width: 250px;
   max-width: 500px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--divider);
+  border-left: 4px solid var(--primaryColor);
   transition: .1s ease all; /* Reuse button transition */
 }
 
-/* Toast Types - using existing color variables */
+/* Toast Types - severity accent bar + icon color */
 .toast--success {
-  background: var(--successColor, #4caf50);
+  border-left-color: var(--icon-green);
+}
+
+.toast--success i {
+  color: var(--icon-green);
 }
 
 .toast--error {
-  background: var(--errorColor, #f44336);
+  border-left-color: var(--red);
+}
+
+.toast--error i {
+  color: var(--red);
 }
 
 .toast--info {
-  background: var(--primaryColor);
+  border-left-color: var(--primaryColor);
+}
+
+.toast--info i {
+  color: var(--primaryColor);
 }
 
 .toast--warning {
-  background: var(--warningColor, #ff9800);
+  border-left-color: var(--icon-orange);
+}
+
+.toast--warning i {
+  color: var(--icon-orange);
 }
 
 .toast i {

@@ -944,7 +944,9 @@ export default {
 #context-menu {
   position: absolute;
   z-index: 1000;
-  background-color: var(--background);
+  background-color: var(--surfacePrimary);
+  border: 1px solid var(--divider);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
   max-width: 20em;
   min-width: 13em;
   min-height: 4em;
@@ -952,8 +954,17 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-radius: 1em;
-  padding: 0.5em;
+  border-radius: 0.75rem;
+  padding: 0.35em;
+}
+
+#context-menu .action {
+  border-radius: 0.5rem;
+  transition: background-color 0.1s ease;
+}
+
+#context-menu .action:not(.disabled):hover {
+  background-color: var(--surface-hover);
 }
 
 #context-menu.centered {
