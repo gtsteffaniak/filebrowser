@@ -1070,10 +1070,18 @@ export const mutations = {
     emitStateChanged();
   },
   setShareInfo: (shareInfo) => {
-    if (state.shareInfo === shareInfo) {
-      return;
-    }
-    state.shareInfo = shareInfo;
+   // Merge with existing state
+   const merged = { ...state.shareInfo, ...shareInfo };
+   if (shareInfo.token === undefined && state.shareInfo.token) {
+     merged.token = state.shareInfo.token;
+   }
+   if (shareInfo.passwordValid === undefined && state.shareInfo.passwordValid !== undefined) {
+     merged.passwordValid = state.shareInfo.passwordValid;
+   }
+   if (JSON.stringify(merged) === JSON.stringify(state.shareInfo)) {
+     return;
+   }
+   state.shareInfo = merged;
     updateManifestLink();
     emitStateChanged();
   },
