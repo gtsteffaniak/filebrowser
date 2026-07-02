@@ -126,7 +126,7 @@ type Index struct {
 	// WebDAV lock system for this source (isolated per source)
 	WebdavLock webdav.LockSystem
 
-	// Adaptive scheduler: shared slot map (UTC unix seconds -> scanners). Only used when IndexingInterval == 0.
+	// Adaptive scheduler: shared slot map (UTC unix seconds -> scanners).
 	scheduleSlotsMu sync.Mutex
 	scheduleSlots   map[int64][]*Scanner
 }
@@ -1547,9 +1547,9 @@ func (idx *Index) shouldInclude(baseName string) bool {
 	return false
 }
 
-// useAdaptiveScheduling is true when the index uses tiered/aligned scheduling (IndexingInterval == 0).
+// useAdaptiveScheduling reports whether the index uses tiered/aligned scheduling.
 func (idx *Index) useAdaptiveScheduling() bool {
-	return idx.Config.IndexingInterval == 0
+	return true
 }
 
 // Save persists the index and scanner information to the database and notifies clients via SSE.

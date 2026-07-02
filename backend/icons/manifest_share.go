@@ -58,7 +58,6 @@ func ShareHashFromHTTPPath(path, baseURL string) string {
 	prefixes := []string{
 		strings.TrimSuffix(baseURL, "/") + "/public/share/",
 		"/public/share/",
-		"/share/",
 	}
 	for _, prefix := range prefixes {
 		if !strings.HasPrefix(path, prefix) {

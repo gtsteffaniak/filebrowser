@@ -1069,8 +1069,6 @@ export default {
 
       /** @type {{ source: string, path: string }[]} */
       const colonPairs = [];
-      /** @type {string[]} */
-      const bareScopeLegacy = [];
 
       for (const scopeRaw of scopeRaws) {
         const raw = String(scopeRaw || "").trim();
@@ -1085,8 +1083,6 @@ export default {
           if (catalogue.includes(sourceNameFromClause)) {
             colonPairs.push({ source: sourceNameFromClause, path: relativePath });
           }
-        } else {
-          bareScopeLegacy.push(raw.startsWith("/") ? raw : `/${raw}`);
         }
       }
 
@@ -1113,13 +1109,12 @@ export default {
         const nextFlags = Object.fromEntries(nextFlagsEntries);
         this.sourceEnabledFlags = nextFlags;
 
-        const flatLegacy = bareScopeLegacy.length > 0 ? bareScopeLegacy[0] : "/";
         const enabledNames = catalogue.filter(
           (sourceName) => getObjectProperty(nextFlags, sourceName) === true
         );
-        const scopedPathEntries = enabledNames.map(enabledSourceName => [
+        const scopedPathEntries = enabledNames.map((enabledSourceName) => [
           enabledSourceName,
-          (enabledNames.length === 1 && flatLegacy !== "/") ? flatLegacy : "/"
+          "/",
         ]);
         this.sourceScopedPaths = Object.fromEntries(scopedPathEntries);
       }

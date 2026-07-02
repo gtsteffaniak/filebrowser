@@ -29,7 +29,7 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors }) => {
       throw new Error("Share hash not found in localStorage");
     }
 
-    await page.goto(`/share/${shareHash}`);
+    await page.goto(`/public/share/${shareHash}`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
     await page.dblclick('a[aria-label="testdata"]');
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");

@@ -65,7 +65,7 @@ export async function findDuplicates(base, source, minSizeMb, useChecksum = fals
     // Return both the data and metadata about completeness
     // Backend returns: { groups: [...], incomplete: bool, reason: string }
     return {
-      groups: data.groups || data, // Handle both new format and legacy format
+      groups: data.groups,
       incomplete: data.incomplete || false,
       reason: data.reason || ""
     };

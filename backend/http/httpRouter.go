@@ -150,9 +150,6 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	publicApi.HandleFunc("GET /resources/stream", withHashFile(publicStreamHandler))
 	publicApi.HandleFunc("GET /resources/preview", withTimeout(30*time.Second, withHashFileHelper(publicPreviewHandler)))
 	publicApi.HandleFunc("POST /resources/pause", withHashFile(publicPauseHandler))
-	// Legacy routes (backwards compatibility)
-	api.HandleFunc("GET /raw", withUser(downloadHandler))
-	publicApi.HandleFunc("GET /raw", withHashFile(publicDownloadHandler))
 
 	// ========================================
 	// Access Routes - /api/access/
@@ -245,11 +242,6 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 		router.Handle(webDavPath+"/{source}/{path...}", withBasicAuth(webDAVHandler))
 	}
 
-	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
-	// TODO: Playwright tests need updating to remove this redirect
-	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
-
-	// New frontend share route handler
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 
 	// Static assets

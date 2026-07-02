@@ -302,25 +302,6 @@ func (idx *Index) runIndexScheduler() {
 		}
 	}()
 
-	if !idx.useAdaptiveScheduling() {
-		idx.mu.RLock()
-		n := len(idx.scanners)
-		idx.mu.RUnlock()
-		interval := time.Duration(idx.Config.IndexingInterval) * time.Minute
-		logger.Debugf("[%s] scheduler: started fixed interval=%v scanners=%d", idx.Name, interval, n)
-		idx.runSerialScanPass()
-		for {
-			select {
-			case <-idx.schedulerStop:
-				logger.Debugf("[%s] scheduler: fixed loop stopped", idx.Name)
-				return
-			case <-time.After(interval):
-				logger.Debugf("[%s] scheduler: fixed interval wake", idx.Name)
-				idx.runSerialScanPass()
-			}
-		}
-	}
-
 	idx.mu.RLock()
 	n := len(idx.scanners)
 	idx.mu.RUnlock()

@@ -157,15 +157,6 @@ func resolveActivityShareAccess(d *requestContext, filter *activitydb.QueryFilte
 		filter.UserFilter = false
 		filter.ShareOwnerUserID = d.user.ID
 		filter.ShareOwnerFilter = true
-		shares, err := state.GetSharesByUserID(d.user.ID)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("failed to load user shares: %w", err)
-		}
-		hashes := make([]string, 0, len(shares))
-		for _, s := range shares {
-			hashes = append(hashes, s.Hash)
-		}
-		filter.OwnedShareHashes = hashes
 	}
 	return 0, nil
 }

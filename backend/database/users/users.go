@@ -133,6 +133,11 @@ type FrontendUser struct {
 // PinnedItems maps source filesystem path -> index directory path -> pinned item names.
 type PinnedItems map[string]map[string][]string
 
+// UserLegacyFields holds v1.x user JSON keys migrated on startup (Bolt/SQLite user_data).
+type UserLegacyFields struct {
+	ApiKeys map[string]AuthToken `json:"apiKeys,omitempty"`
+}
+
 // User is the persisted user: profile/settings in user_data, plus BackendScopes for source access.
 type User struct {
 	FrontendUser
@@ -140,13 +145,13 @@ type User struct {
 	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
 	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
 	BackendScopes      []BackendScope       `json:"backendScopes,omitempty"`
-	ApiKeys            map[string]AuthToken `json:"apiKeys,omitempty"` // deprecated: use Tokens instead
 	Tokens             map[string]AuthToken `json:"tokens,omitempty"`
 	TOTPSecret         string               `json:"totpSecret,omitempty"`
 	TOTPNonce          string               `json:"totpNonce,omitempty"`
 	PasskeyCredentials []WebAuthnCredential `json:"passkeyCredentials,omitempty"`
 	PinnedItems        PinnedItems          `json:"pinnedItems,omitempty"`
 	Version            int                  `json:"version"`
+	UserLegacyFields `json:",inline"`
 }
 
 type FrontendScope struct {

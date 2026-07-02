@@ -5,7 +5,6 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils";
 
 const STORAGE_PREFIX = "appNotifications_";
-const LEGACY_STORAGE_PREFIX = "desktopNotifications_";
 
 function storageKey() {
   const username = state.user?.username;
@@ -13,14 +12,6 @@ function storageKey() {
     return `${STORAGE_PREFIX}anonymous`;
   }
   return `${STORAGE_PREFIX}${url.base64Encode(username)}`;
-}
-
-function legacyStorageKey() {
-  const username = state.user?.username;
-  if (!username || username === "anonymous") {
-    return `${LEGACY_STORAGE_PREFIX}anonymous`;
-  }
-  return `${LEGACY_STORAGE_PREFIX}${url.base64Encode(username)}`;
 }
 
 export function isNotificationSupported() {
@@ -51,10 +42,7 @@ export function isAppNotificationsEnabled() {
   try {
     const key = storageKey();
     const value = localStorage.getItem(key);
-    if (value !== null) {
-      return value === "true";
-    }
-    return localStorage.getItem(legacyStorageKey()) === "true";
+    return value === "true";
   } catch {
     return false;
   }

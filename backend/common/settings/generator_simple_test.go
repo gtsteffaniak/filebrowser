@@ -12,9 +12,11 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			Locale:                  "es",          // Non-default value
-			DarkMode:                &trueVal,      // Default value
-			DisableOfficePreviewExt: ".docx .xlsx", // This field is deprecated
+			UserDefaultsLegacy: UserDefaultsLegacy{
+				Locale:                  "es",          // Non-default value
+				DarkMode:                &trueVal,      // Default value
+				DisableOfficePreviewExt: ".docx .xlsx", // This field is deprecated
+			},
 		},
 		Auth: Auth{
 			Key:           "secret123",    // This is a secret field
@@ -38,7 +40,7 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 			showFull:         true,
 			filterDeprecated: false,
 			expectSecrets:    true, // Secrets should be hidden
-			expectDeprecated: true, // Deprecated should be shown
+			expectDeprecated: false, // v1 flat keys live in UserDefaultsLegacy and are not emitted in generated YAML
 		},
 		{
 			name:             "Static_config_filter_deprecated",
@@ -192,8 +194,10 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 	// Create a temporary config for testing
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			Locale:                  "en",
-			DisableOfficePreviewExt: ".docx .xlsx", // This should be filtered out
+			UserDefaultsLegacy: UserDefaultsLegacy{
+				Locale:                  "en",
+				DisableOfficePreviewExt: ".docx .xlsx", // This should be filtered out
+			},
 		},
 		Auth: Auth{
 			Key: "test-secret", // This should be redacted

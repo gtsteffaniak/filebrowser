@@ -4,8 +4,7 @@ import { fetchURL, fetchJSON } from "./utils";
 
 // GET /api/tools/search
 // extraParams: optional { olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }
-// When perSourceScopes is a non-empty array of { source, path }, sends repeated scope=source:path and omits sources (multi-scope API).
-// Otherwise legacy: sources + optional scope path for single source.
+// perSourceScopes: non-empty array of { source, path } sends repeated scope=source:path.
 export async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
     const params = {};
@@ -29,6 +28,8 @@ export async function search(base, sources, query, largest = false, extraParams 
     }
 
     const perSource = extraParams.perSourceScopes;
+    const sourcesArray = Array.isArray(sources) ? sources : [sources];
+
     if (Array.isArray(perSource) && perSource.length > 0) {
       params.scope = perSource.map(({ source, path }) => {
         const sourceName = String(source || "").trim();
@@ -43,16 +44,20 @@ export async function search(base, sources, query, largest = false, extraParams 
         return `${sourceName}:${scopedPath}`;
       });
     } else {
-      const sourcesArray = Array.isArray(sources) ? sources : [sources];
       params.sources = sourcesArray.join(",");
-
-      if (sourcesArray.length === 1 && base) {
-        let scopeBase = base;
-        if (!scopeBase.endsWith("/")) {
-          scopeBase += "/";
+      params.scope = sourcesArray.map((sourceName) => {
+        let scopedPath = base === undefined || base === null ? "/" : String(base).trim();
+        if (scopedPath === "") {
+          scopedPath = "/";
         }
-        params.scope = scopeBase;
-      }
+        if (!scopedPath.startsWith("/")) {
+          scopedPath = `/${scopedPath}`;
+        }
+        if (!scopedPath.endsWith("/") && scopedPath !== "/") {
+          scopedPath += "/";
+        }
+        return `${String(sourceName).trim()}:${scopedPath}`;
+      });
     }
 
     if (largest) {
@@ -65,11 +70,7 @@ export async function search(base, sources, query, largest = false, extraParams 
     if (extraParams.newerThan !== undefined && extraParams.newerThan !== "") {
       params.newerThan = String(extraParams.newerThan);
     }
-    if (
-      extraParams.useWildcard === true ||
-      extraParams.useGlob === true ||
-      extraParams.glob === true
-    ) {
+    if (extraParams.useWildcard === true) {
       params.useWildcard = "true";
     }
 
@@ -105,7 +106,7 @@ export async function duplicateFinder(base, source, minSizeMb, useChecksum = fal
     const data = await res.json();
 
     return {
-      groups: data.groups || data,
+      groups: data.groups,
       incomplete: data.incomplete || false,
       reason: data.reason || ""
     };

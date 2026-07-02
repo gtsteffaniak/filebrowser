@@ -35,80 +35,38 @@ type scopedSourcePath struct {
 
 // searchHandler handles search requests for files based on the provided query.
 //
-// This endpoint processes a search query, retrieves relevant file paths, and
-// returns a JSON response with the search results. The search is performed
-// against the file index, which is built from the root directory specified in
-// the server's configuration. The results are filtered based on the user's scope.
-//
-// Per-source search scope (preferred for multi-source):
+// Per-source search scope:
 //
 //	Repeated query parameter "scope" with the value "sourceName:relativePath",
-//	split on the first colon. The path is user-relative (same as the legacy single-scope
-//	path). Encode the whole value with the normal query string rules (e.g. %3A for ':' if needed).
+//	split on the first colon. Encode the whole value with normal query string rules (e.g. %3A for ':').
 //	Examples:
 //	  ?scope=mydisk:/&scope=backup:/Photos
 //	Duplicate source names: the last repeated scope for that source wins.
 //
-// Legacy (still supported):
+// When scope is omitted, each listed source is searched from the root of the user's scope.
 //
-//   - source / sources: which catalogues to search
-//   - scope: a single path (no 'source:' prefix) applied only when exactly one source is specified.
-//     When multiple sources are listed and no "source:path" scopes are used, each source is searched
-//     from the root of the user's scope (same as before).
-//
-// The handler expects the following headers in the request:
-// - SessionId: A unique identifier for the user's session.
-//
-// The request URL should include query parameters:
-// - query: Structured filter prefix only, or full legacy search string when "terms" parameters are not used
+// Query parameters:
+// - query: Structured filter prefix, or full search string when "terms" parameters are not used
 // - terms: Repeated query parameter; each value is one literal search term. OR-combined by default; use termJoin=and for AND.
 // - termJoin: Optional; "and" requires every term to match; any other value keeps OR semantics (default).
-// - source: Source name (deprecated, use 'sources' instead)
-// - sources: Comma-separated list of source names (e.g., "source1,source2") when not using scoped scope=source:path params
-// - scope: Either (1) repeated "sourceName:relativePath" as above, or (2) legacy single path within user scope for a single-source search
+// - sources: Comma-separated list of source names when not using repeated scope=source:path params
+// - scope: Repeated "sourceName:relativePath" per source
 // - olderThan: Optional Unix time in seconds; only items modified strictly before this instant
 // - newerThan: Optional Unix time in seconds; only items modified on or after this instant
-// - useWildcard: Optional; when true, file names are matched with SQLite GLOB (wildcards) instead of substring search. Legacy query params glob and useGlob are accepted as aliases.
-//
-// Example request (single source):
-//
-//	GET api/tools/search?query=myfile&source=mysource
-//
-// Example request (multiple sources with per-source folders):
-//
-//	GET api/tools/search?query=myfile&scope=source1:/&scope=source2:/documents
-//
-// Example response:
-// [
-//
-//	{
-//	    "path": "/path/to/myfile.txt",
-//	    "type": "text",
-//	    "source": "mysource"
-//	},
-//	{
-//	    "path": "/path/to/mydir/",
-//	    "type": "directory",
-//	    "source": "mysource"
-//	}
-//
-// ]
+// - useWildcard: Optional; when true, file names are matched with SQLite GLOB (wildcards) instead of substring search
 //
 // @Summary Search Files
 // @Description Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.
 // @Tags Tools
 // @Accept json
 // @Produce json
-// @Param query query string false "Filter prefix or full legacy search text (required when no terms are supplied)"
+// @Param query query string false "Filter prefix or full search text (required when no terms are supplied)"
 // @Param terms query []string false "Repeated: one literal search term per parameter; combined with OR unless termJoin=and"
-// @Param source query string false "Source name for the desired source (deprecated, use 'sources' instead)"
 // @Param sources query string false "Comma-separated source names when not using repeated scope=source:path"
-// @Param scope query []string false "Repeated: either 'sourceName:relativePath' per source, or legacy single path when one source"
+// @Param scope query []string false "Repeated: 'sourceName:relativePath' per source"
 // @Param olderThan query int false "Unix seconds; only results modified strictly before this time"
 // @Param newerThan query int false "Unix seconds; only results modified on or after this time"
 // @Param useWildcard query bool false "When true, match indexed file names with SQLite GLOB (wildcard patterns)"
-// @Param glob query bool false "Deprecated: alias for useWildcard"
-// @Param useGlob query bool false "Deprecated: alias for useWildcard"
 // @Param termJoin query string false "Optional: 'and' to require all repeated 'terms' match; default is OR"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -126,7 +84,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 
 	var response []*indexing.SearchResult
 	if len(searchOptions.sources) == 1 {
-		// Single source - use the existing Search method for backward compatibility
 		index := indexing.GetIndex(searchOptions.sources[0])
 		if index == nil {
 			return http.StatusBadRequest, fmt.Errorf("index not found for source %s", searchOptions.sources[0])
@@ -134,7 +91,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
 		response = index.SearchParsed(searchOptions.parsed, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
 	} else {
-		// Multiple sources - use the new SearchMultiSources function
 		response = indexing.SearchMultiSourcesParsed(searchOptions.parsed, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
 	}
 
@@ -172,47 +128,33 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	return renderJSON(w, r, filteredResponse)
 }
 
-// parseRepeatedScopeParams interprets repeated "scope" query values.
-// If a value contains ':', it is "sourceName:relativePath" (first ':' separates source and path).
-// Otherwise it is a legacy single path (at most one such value across all scope params).
-func parseRepeatedScopeParams(scopeQueryValues []string) ([]scopedSourcePath, string, error) {
+// parseRepeatedScopeParams interprets repeated "scope" query values as "sourceName:relativePath".
+func parseRepeatedScopeParams(scopeQueryValues []string) ([]scopedSourcePath, error) {
 	var clauses []scopedSourcePath
-	legacyPath := ""
 	for _, raw := range scopeQueryValues {
 		raw = strings.TrimSpace(raw)
 		if raw == "" {
 			continue
 		}
 		idx := strings.IndexByte(raw, ':')
-		if idx > 0 {
-			src := strings.TrimSpace(raw[:idx])
-			if src == "" {
-				return nil, "", fmt.Errorf("invalid scope parameter %q: empty source name before ':'", raw)
-			}
-			pathPart := strings.TrimSpace(raw[idx+1:])
-			if pathPart == "" {
-				pathPart = "/"
-			}
-			cleanPath, err := utils.SanitizePath(pathPart)
-			if err != nil {
-				return nil, "", fmt.Errorf("invalid path in scope parameter %q: %v", raw, err)
-			}
-			clauses = append(clauses, scopedSourcePath{source: src, relPath: cleanPath})
-			continue
+		if idx <= 0 {
+			return nil, fmt.Errorf("invalid scope parameter %q: use scope=sourceName:relativePath", raw)
 		}
-		if idx == 0 {
-			return nil, "", fmt.Errorf("invalid scope parameter %q: source name must precede ':'", raw)
+		src := strings.TrimSpace(raw[:idx])
+		if src == "" {
+			return nil, fmt.Errorf("invalid scope parameter %q: empty source name before ':'", raw)
 		}
-		if legacyPath != "" {
-			return nil, "", fmt.Errorf("multiple legacy scope paths without a source prefix are not allowed; use scope=sourceName:path for each source")
+		pathPart := strings.TrimSpace(raw[idx+1:])
+		if pathPart == "" {
+			pathPart = "/"
 		}
-		clean, err := utils.SanitizePath(raw)
+		cleanPath, err := utils.SanitizePath(pathPart)
 		if err != nil {
-			return nil, "", fmt.Errorf("invalid scope: %v", err)
+			return nil, fmt.Errorf("invalid path in scope parameter %q: %v", raw, err)
 		}
-		legacyPath = clean
+		clauses = append(clauses, scopedSourcePath{source: src, relPath: cleanPath})
 	}
-	return clauses, legacyPath, nil
+	return clauses, nil
 }
 
 func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, error) {
@@ -221,16 +163,9 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	termJoin := strings.TrimSpace(strings.ToLower(r.URL.Query().Get("termJoin")))
 	matchAllTerms := termJoin == "and"
 	sourcesParam := r.URL.Query().Get("sources")
-	sourceParam := r.URL.Query().Get("source") // deprecated, but still supported
-	scopeValues := r.URL.Query()["scope"]      // repeated; use slice, not Get (first only)
+	scopeValues := r.URL.Query()["scope"]
 	largest := r.URL.Query().Get("largest") == "true"
 	wildRaw := strings.TrimSpace(r.URL.Query().Get("useWildcard"))
-	if wildRaw == "" {
-		wildRaw = strings.TrimSpace(r.URL.Query().Get("glob"))
-	}
-	if wildRaw == "" {
-		wildRaw = strings.TrimSpace(r.URL.Query().Get("useGlob"))
-	}
 	useWildcard := strings.EqualFold(wildRaw, "true") || wildRaw == "1"
 	olderThanUnix, err := parseOptionalUnixQueryParam("olderThan", r.URL.Query().Get("olderThan"))
 	if err != nil {
@@ -241,7 +176,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 		return nil, err
 	}
 
-	scopedClauses, legacyScopeOnly, err := parseRepeatedScopeParams(scopeValues)
+	scopedClauses, err := parseRepeatedScopeParams(scopeValues)
 	if err != nil {
 		return nil, err
 	}
@@ -276,9 +211,6 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	var searchScopeOut string
 
 	if len(scopedClauses) > 0 {
-		if legacyScopeOnly != "" {
-			return nil, fmt.Errorf("cannot mix legacy scope path with scope=sourceName:path parameters")
-		}
 		pathBySource := make(map[string]string)
 		for _, c := range scopedClauses {
 			if _, ok := pathBySource[c.source]; !ok {
@@ -299,13 +231,10 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 			combinedPathMap[source] = index.MakeIndexPath(filepath.Join(userscope, rel), true).String()
 		}
 	} else {
-		if sourcesParam != "" {
-			sources = strings.Split(sourcesParam, ",")
-		} else if sourceParam != "" {
-			sources = []string{sourceParam}
-		} else {
-			return nil, fmt.Errorf("either 'source', 'sources', or repeated scope=sourceName:path query parameters are required")
+		if sourcesParam == "" {
+			return nil, fmt.Errorf("'sources' or repeated scope=sourceName:path query parameters are required")
 		}
+		sources = strings.Split(sourcesParam, ",")
 		for i := range sources {
 			sources[i] = strings.TrimSpace(sources[i])
 		}
@@ -317,15 +246,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 			}
 		}
 
-		scope := legacyScopeOnly
-		if scope == "" {
-			scope = "/"
-		}
-		cleanScope, err := utils.SanitizePath(scope)
-		if err != nil {
-			return nil, fmt.Errorf("invalid scope: %v", err)
-		}
-		searchScopeOut = strings.TrimPrefix(cleanScope, ".")
+		searchScopeOut = "/"
 
 		if len(sources) > 1 {
 			searchScopeOut = ""

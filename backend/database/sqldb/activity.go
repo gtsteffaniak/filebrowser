@@ -346,17 +346,14 @@ func appendShareScopeEventClauses(clauses *[]string, args *[]interface{}, filter
 		return table + "." + name
 	}
 	shareHash := shareHashPresentExpr(table)
-	legacyShareDL := col("event_type") + " = ?"
-	legacyArg := string(activity.EventShareDownload)
 
 	if len(filter.EventTypes) == 0 {
-		*clauses = append(*clauses, "("+col("event_type")+" IN (?,?,?) OR ("+col("event_type")+" = ? AND "+shareHash+") OR "+legacyShareDL+")")
+		*clauses = append(*clauses, "("+col("event_type")+" IN (?,?,?) OR ("+col("event_type")+" = ? AND "+shareHash+"))")
 		*args = append(*args,
 			string(activity.EventShareCreate),
 			string(activity.EventShareUpdate),
 			string(activity.EventShareDelete),
 			string(activity.EventDownload),
-			legacyArg,
 		)
 		return
 	}
@@ -370,8 +367,6 @@ func appendShareScopeEventClauses(clauses *[]string, args *[]interface{}, filter
 		case activity.EventDownload:
 			parts = append(parts, "("+col("event_type")+" = ? AND "+shareHash+")")
 			*args = append(*args, string(et))
-			parts = append(parts, legacyShareDL)
-			*args = append(*args, legacyArg)
 		}
 	}
 	if len(parts) > 0 {
@@ -384,23 +379,13 @@ func appendShareOwnerActivityClauses(clauses *[]string, args *[]interface{}, fil
 		return table + "." + name
 	}
 	ownerID := shareUserIDDB(filter.ShareOwnerUserID)
-	shareOwnerInDetails := "json_extract(" + table + ".details, '$.shareOwnerUserId') = ?"
+	shareOwnerInDetails := "CAST(json_extract(" + table + ".details, '$.shareOwnerUserId') AS TEXT) = ?"
 
-	downloadMatch := "(" + col("event_type") + " IN (?,?) AND (" + shareOwnerInDetails
+	downloadMatch := "(" + col("event_type") + " = ? AND " + shareOwnerInDetails + ")"
 	downloadArgs := []interface{}{
 		string(activity.EventDownload),
-		string(activity.EventShareDownload),
 		ownerID,
 	}
-	if len(filter.OwnedShareHashes) > 0 {
-		placeholders := make([]string, len(filter.OwnedShareHashes))
-		for i, h := range filter.OwnedShareHashes {
-			placeholders[i] = "?"
-			downloadArgs = append(downloadArgs, h)
-		}
-		downloadMatch += " OR json_extract(" + table + ".details, '$.shareHash') IN (" + strings.Join(placeholders, ",") + ")"
-	}
-	downloadMatch += "))"
 
 	clause := "((" + col("event_type") + " IN (?,?,?) AND " + col("user_id") + " = ?) OR " + downloadMatch + ")"
 	*clauses = append(*clauses, clause)

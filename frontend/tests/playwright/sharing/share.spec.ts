@@ -16,9 +16,9 @@ test("share file works", async ({ page, checkForErrors }) => {
     throw new Error("Share hash not found in localStorage");
   }
 
-  await page.goto(`/share/${shareHashFile}`);
+  await page.goto(`/public/share/${shareHashFile}`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - 1file1.txt");
-  checkForErrors(0,1); // redirect errors are expected
+  checkForErrors();
 });
 
 test("share download single file", async ({ page, checkForErrors }) => {
@@ -30,13 +30,13 @@ test("share download single file", async ({ page, checkForErrors }) => {
     throw new Error("Share hash not found in localStorage");
   }
 
-  await page.goto(`/share/${shareHash}/testdata/`);
+  await page.goto(`/public/share/${shareHash}/testdata/`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
   await checkForNotification(page, "Downloading...");
-  checkForErrors(0,1);
+  checkForErrors();
 });
 
 test("share private source", async ({ page, checkForErrors }) => {
