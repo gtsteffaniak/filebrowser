@@ -36,6 +36,7 @@ A database migration is required to go from v1.x to this version. See docs.
  - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
  - removed legacy and deprecated properties
  - removed `defaultMediaPlayer` since the built in player is required for many of the features.
+ - the config ApiPathExclude automatically assumes the server's base URL, so the base url no longer needs specifying.
 
 ## v1.5.0
 

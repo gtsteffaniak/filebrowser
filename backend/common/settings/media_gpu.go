@@ -28,7 +28,7 @@ func normalizeMediaGPU(raw string) MediaGPUConfig {
 	}
 	return MediaGPUConfig{
 		GPU:         trimmed,
-		Enabled:     true,
+		Enabled:     trimmed != "software",
 		LogHardware: true,
 	}
 }

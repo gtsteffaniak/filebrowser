@@ -32,6 +32,10 @@ import (
 //go:embed embed/*
 var assets embed.FS
 
+const (
+	mediaHandlerTimeout = 60 * time.Second
+)
+
 // GetEmbeddedAssets returns the embedded assets filesystem
 func GetEmbeddedAssets() embed.FS {
 	return assets
@@ -197,20 +201,13 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	// ========================================
 	// Media Routes - /api/media/ (with public routes)
 	// ========================================
-	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
-	api.HandleFunc("GET /media/metadata", withUser(metadataHandler))
-	api.HandleFunc("GET /media/lyrics", withUser(lyricsHandler))
-	api.HandleFunc("GET /media/stream", withUser(streamHandler))
-	api.HandleFunc("GET /media/transcode/sessions", withUser(transcodeSessionsHandler))
-	api.HandleFunc("DELETE /media/transcode/sessions", withUser(transcodeSessionReleaseHandler))
-	api.HandleFunc("GET /media/transcode/hls/playlist.m3u8", withUser(transcodeHLSPlaylistHandler))
-	api.HandleFunc("GET /media/transcode/hls/init/{index}", withUser(transcodeHLSInitHandler))
-	api.HandleFunc("GET /media/transcode/hls/init.m4s", withUser(transcodeHLSInitHandler))
-	api.HandleFunc("GET /media/transcode/hls/seg/{segment}", withUser(transcodeHLSSegmentHandler))
-	api.HandleFunc("POST /media/transcode/sessions/ping", withUser(transcodeSessionPingHandler))
-	publicApi.HandleFunc("GET /media/metadata", withHashFile(publicMetadataHandler))
-	publicApi.HandleFunc("GET /media/lyrics", withHashFile(publicLyricsHandler))
-	publicApi.HandleFunc("GET /media/stream", withHashFile(publicStreamHandler))
+	api.HandleFunc("GET /media/subtitles", withTimeout(mediaHandlerTimeout, withUserHelper(subtitlesHandler)))
+	api.HandleFunc("GET /media/metadata", withTimeout(mediaHandlerTimeout, withUserHelper(metadataHandler)))
+	api.HandleFunc("GET /media/lyrics", withTimeout(mediaHandlerTimeout, withUserHelper(lyricsHandler)))
+	api.HandleFunc("GET /media/stream", withTimeout(mediaHandlerTimeout, withUserHelper(streamHandler)))
+	publicApi.HandleFunc("GET /media/metadata", withTimeout(mediaHandlerTimeout, withHashFileHelper(publicMetadataHandler)))
+	publicApi.HandleFunc("GET /media/lyrics", withTimeout(mediaHandlerTimeout, withHashFileHelper(publicLyricsHandler)))
+	publicApi.HandleFunc("GET /media/stream", withTimeout(mediaHandlerTimeout, withHashFileHelper(publicStreamHandler)))
 
 	// ========================================
 	// OnlyOffice Routes - /api/office/ (with public routes)

@@ -29,6 +29,19 @@ import (
 
 var reDuration = regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
 
+// Limits concurrent ffprobe/ffmpeg metadata extractions per directory listing.
+const maxConcurrentDirMetadata = 2
+
+var dirMetadataSem = make(chan struct{}, maxConcurrentDirMetadata)
+
+func acquireDirMetadataSlot() {
+	dirMetadataSem <- struct{}{}
+}
+
+func releaseDirMetadataSlot() {
+	<-dirMetadataSem
+}
+
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
 var CheckPermissionsFunc = checkPermissionsImpl
 
@@ -48,6 +61,8 @@ func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileO
 		}
 		isAudio := isItemAudio
 		wg.Go(func() {
+			acquireDirMetadataSlot()
+			defer releaseDirMetadataSlot()
 			fullPath := response.RealPath + "/" + fileItem.Name
 			if isAudio {
 				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, false, sharedFFmpegService); err != nil {

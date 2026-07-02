@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -337,7 +338,11 @@ func setupMedia(generate bool) {
 	}
 
 	normalizeMediaLimits()
-	normalizeMediaTranscode()
+	normalizeMediaPresets()
+	normalizeMediaCache()
+	if err := PrepareTranscodeCacheDir(); err != nil {
+		logger.Warningf("failed to prepare transcode cache dir: %v", err)
+	}
 
 	// Resolve exiftool path once at startup: validate user path or discover via PATH
 	if Config.Integrations.Media.ExiftoolPath != "" && !generate {
@@ -366,18 +371,20 @@ func setupFFmpegIntegration() {
 	if maxConcurrent < 1 {
 		maxConcurrent = 4
 	}
-	ffmpegConcurrency := (maxConcurrent + 1) / 2
 	gpuCfg := MediaGPUSettings()
-	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
-		FFmpegPath:    Config.Integrations.Media.FfmpegPath,
-		MaxConcurrent: ffmpegConcurrency,
-		CacheDir:      Config.Server.CacheDir,
-		GPU:           gpuCfg.GPU,
-		SkipHWTests:   !gpuCfg.Enabled,
-		LogHardware:   gpuCfg.LogHardware,
-		ExiftoolPath:  Config.Integrations.Media.ExiftoolPath,
-		Debug:         Config.Integrations.Media.Debug,
-	})
+	baseOpts := ffmpeg.InitOptions{
+		FFmpegPath:   Config.Integrations.Media.FfmpegPath,
+		CacheDir:     Config.Server.CacheDir,
+		GPU:          gpuCfg.GPU,
+		SkipHWTests:  !gpuCfg.Enabled,
+		LogHardware:  gpuCfg.LogHardware,
+		ExiftoolPath: Config.Integrations.Media.ExiftoolPath,
+		Debug:        Config.Integrations.Media.Debug,
+	}
+
+	previewOpts := baseOpts
+	previewOpts.MaxConcurrent = maxConcurrent
+	err := ffmpeg.Initialize(context.Background(), previewOpts)
 	if err != nil {
 		logger.Warningf("ffmpeg unavailable: %v", err)
 		Env.FFmpegAvailable = false
@@ -395,6 +402,8 @@ func setupFFmpegIntegration() {
 	Env.FFmpegAvailable = true
 	Env.FFmpegPath = svc.FFmpegPath()
 	Env.FFprobePath = svc.FFprobePath()
+	logger.Infof("ffmpeg preview pool enabled: maxConcurrent=%d", maxConcurrent)
+
 }
 
 func setupSources(generate bool) {
@@ -543,6 +552,29 @@ func setupAuth(generate bool) {
 
 }
 
+// defaultApiLogExcludePattern returns the default regex for excluding noisy request paths from API logs.
+// Logged paths are r.URL.Path, which includes the server baseURL prefix when configured.
+func defaultApiLogExcludePattern() string {
+	parts := []string{
+		`^/health`,
+		`^/favicon.ico`,
+		`^/static`,
+		`^/public/static`,
+		`/public/static`,
+	}
+	base := strings.Trim(Config.Server.BaseURL, "/")
+	if base != "" {
+		escaped := regexp.QuoteMeta(base)
+		parts = append(parts,
+			`^/`+escaped+`/health`,
+			`^/`+escaped+`health`,
+			`^/`+escaped+`/public/static`,
+			`^/`+escaped+`/static`,
+		)
+	}
+	return strings.Join(parts, "|")
+}
+
 func setupLogging() {
 	if len(Config.Server.Logging) == 0 {
 		Config.Server.Logging = []LogConfig{
@@ -560,7 +592,7 @@ func setupLogging() {
 		}
 		pattern := cfg.ApiFilter
 		if pattern == "" {
-			pattern = "^/health|^/favicon.ico|^/static|^/public/static"
+			pattern = defaultApiLogExcludePattern()
 		}
 		jsonCfg := logger.JsonConfig{
 			Levels:         levels,

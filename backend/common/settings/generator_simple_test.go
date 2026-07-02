@@ -186,6 +186,36 @@ func TestCollectCommentsAndSecrets_Basic(t *testing.T) {
 	t.Logf("Deprecated: %d types", len(deprecated))
 }
 
+func TestGenerateConfigYaml_OmitsJsonDashMediaFields(t *testing.T) {
+	config := &Settings{
+		Integrations: Integrations{
+			Media: Media{
+				FfmpegPath:      "/usr/bin/ffmpeg",
+				MaxConcurrent:   4,
+				CacheDurationMins: 30,
+				Transcode:       MediaTranscode{Enabled: true},
+				Presets: MediaPresets{
+					Quality: MediaPresetConfig{MaxResolution: 1080},
+				},
+			},
+		},
+	}
+
+	yamlOutput, err := GenerateConfigYamlWithSource(config, true, true, true, ".")
+	if err != nil {
+		t.Fatalf("GenerateConfigYamlWithSource failed: %v", err)
+	}
+
+	for _, hidden := range []string{"maxConcurrent:", "cacheDurationMins:", "presets:", "transcode:"} {
+		if strings.Contains(yamlOutput, hidden) {
+			t.Errorf("generated YAML should omit json:\"-\" media field %q", hidden)
+		}
+	}
+	if !strings.Contains(yamlOutput, "ffmpegPath:") {
+		t.Error("generated YAML should still include visible media fields")
+	}
+}
+
 func TestGenerateYaml_StaticGeneration(t *testing.T) {
 	// Test the static generation function that's used by FILEBROWSER_GENERATE_CONFIG=true
 

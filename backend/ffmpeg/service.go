@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
@@ -15,6 +16,7 @@ import (
 )
 
 // Service wraps go-ffmpeg for filebrowser media operations.
+// Each Service owns a single concurrency pool (go-ffmpeg MaxConcurrent).
 type Service struct {
 	inner        *goffmpeg.Service
 	cacheDir     string
@@ -24,7 +26,10 @@ type Service struct {
 // FFmpegService is kept for existing callers.
 type FFmpegService = Service
 
-var global *Service
+var (
+	// global is the preview/media pool: thumbnails, subtitles, metadata, image conversion.
+	global *Service
+)
 
 // InitOptions configures startup initialization.
 type InitOptions struct {
@@ -38,8 +43,19 @@ type InitOptions struct {
 	Debug         bool
 }
 
-// Initialize creates the global ffmpeg service and runs capability detection.
+// Initialize creates the global preview/media ffmpeg service and runs capability detection.
 func Initialize(ctx context.Context, opts InitOptions) error {
+	svc, err := newService(ctx, opts)
+	if err != nil {
+		global = nil
+		return err
+	}
+	global = svc
+	logCapabilities(svc.inner, opts.LogHardware)
+	return nil
+}
+
+func newService(ctx context.Context, opts InitOptions) (*Service, error) {
 	if opts.MaxConcurrent < 1 {
 		opts.MaxConcurrent = 4
 	}
@@ -51,7 +67,7 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 		logger.Infof("Detecting ffmpeg hardware codec support (gpu: %s)...", opts.GPU)
 	}
 
-	svc, err := goffmpeg.New(ctx, goffmpeg.Config{
+	inner, err := goffmpeg.New(ctx, goffmpeg.Config{
 		FFmpegPath:    opts.FFmpegPath,
 		MaxConcurrent: opts.MaxConcurrent,
 		Logger:        ffmpegLogger(opts.Debug),
@@ -60,21 +76,17 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 		VerboseFFmpeg: opts.Debug,
 	})
 	if err != nil {
-		global = nil
-		return err
+		return nil, err
 	}
 
-	global = &Service{
-		inner:        svc,
+	return &Service{
+		inner:        inner,
 		cacheDir:     opts.CacheDir,
 		exiftoolPath: opts.ExiftoolPath,
-	}
-
-	logCapabilities(svc, opts.LogHardware)
-	return nil
+	}, nil
 }
 
-// Get returns the initialized service, or nil when ffmpeg is unavailable.
+// Get returns the preview/media ffmpeg service, or nil when ffmpeg is unavailable.
 func Get() *Service {
 	return global
 }
@@ -112,7 +124,23 @@ func (s *Service) Acquire(ctx context.Context) error {
 	if s == nil || s.inner == nil {
 		return fmt.Errorf("ffmpeg service not available")
 	}
-	return s.inner.Acquire(ctx)
+	waitStart := time.Now()
+	err := s.inner.Acquire(ctx)
+	if wait := time.Since(waitStart); wait >= 200*time.Millisecond {
+		if err != nil {
+			logger.Infof("ffmpeg preview acquire failed after %s: %v", formatAcquireWait(wait), err)
+		} else {
+			logger.Infof("ffmpeg preview acquire waited %s", formatAcquireWait(wait))
+		}
+	}
+	return err
+}
+
+func formatAcquireWait(d time.Duration) string {
+	if d < 0 {
+		d = 0
+	}
+	return fmt.Sprintf("%.0fms", float64(d)/float64(time.Millisecond))
 }
 
 func (s *Service) Release() {
@@ -123,6 +151,42 @@ func (s *Service) Release() {
 }
 
 // VideoPreview extracts a JPEG preview frame to w.
+func (s *Service) VideoPreviewAtTime(ctx context.Context, w io.Writer, videoPath string, seekSec float64) error {
+	if s == nil || s.inner == nil {
+		return fmt.Errorf("ffmpeg service not available")
+	}
+	if err := s.Acquire(ctx); err != nil {
+		return err
+	}
+	defer s.Release()
+
+	dur, err := s.inner.GetMediaDuration(ctx, videoPath)
+	if err != nil {
+		return err
+	}
+
+	seekPct := 10.0
+	if dur > 0 {
+		if seekSec <= 0 {
+			seekPct = 0.01
+		} else {
+			seekPct = (seekSec / dur) * 100
+			if seekPct > 100 {
+				seekPct = 100
+			}
+			if seekPct < 0.01 {
+				seekPct = 0.01
+			}
+		}
+	}
+
+	return s.inner.VideoPreview(ctx, w, ops.PreviewOptions{
+		Input:       videoPath,
+		SeekPercent: seekPct,
+		Quality:     10,
+	})
+}
+
 func (s *Service) VideoPreview(ctx context.Context, w io.Writer, videoPath string, percentageSeek int) error {
 	if s == nil || s.inner == nil {
 		return fmt.Errorf("ffmpeg service not available")

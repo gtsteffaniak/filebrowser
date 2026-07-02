@@ -186,9 +186,18 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 
 	seekPercentage := 0
+	seekTimeSec := -1.0
 	videoScrub := false
+	if raw := r.URL.Query().Get("atTimeSec"); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil && v >= 0 {
+			seekTimeSec = v
+			if strings.HasPrefix(d.fileInfo.Type, "video/") || strings.HasPrefix(d.fileInfo.Type, "video") {
+				videoScrub = true
+			}
+		}
+	}
 	percentage := r.URL.Query().Get("atPercentage")
-	if percentage != "" {
+	if percentage != "" && seekTimeSec < 0 {
 		var err error
 		seekPercentage, err = strconv.Atoi(percentage)
 		if err != nil {
@@ -255,7 +264,13 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 			officeUrl = scheme + "://" + r.Host + pathUrl
 		}
 	}
-	previewImg, err := preview.GetPreviewForFile(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage, videoScrub)
+	var previewImg []byte
+	var err error
+	if seekTimeSec >= 0 && videoScrub {
+		previewImg, err = preview.GetPreviewForFileAtTime(ctx, d.fileInfo, previewSize, officeUrl, seekTimeSec, videoScrub)
+	} else {
+		previewImg, err = preview.GetPreviewForFile(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage, videoScrub)
+	}
 	if err != nil {
 		// Check if it was a context cancellation (client navigated away)
 		if isClientCancellation(ctx, err) {

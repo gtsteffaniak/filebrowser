@@ -18,7 +18,7 @@ server:
       noColors: false                     # disable colors in the output
       json: false                         # output in json format
       utc: false                          # use UTC time in the output instead of local time.
-      apiFilter: ""                       # regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
+      apiFilter: ""                       # regex filter that excludes matching full api paths from being logged. (eg. '/api/users\?id\=self'). Defaults to filter common paths.
   sources:                                # required source configs  validate:required,dive
     - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
       name: "Source Name"                 # display name for the source in the UI
@@ -238,7 +238,6 @@ integrations:
     viewOnly: false                       # enforce a view-only mode for OnlyOffice
   media:                                  # media integration configuration  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-    maxConcurrent: 2                      # system-wide concurrent media jobs such as transcode (default: 2)
     convert:                              # config for ffmpeg conversion settings
       imagePreview:                       # supported image preview formats. defaults vary by type (see individual type docs)
         heic: false
@@ -262,10 +261,6 @@ integrations:
         vob: true
         webm: true
         wmv: true
-    transcode:                            # live fMP4 transcode fallback for preview playback
-      enabled: false                      # master switch (default: false)
-      maxResolution: 1080                 # max output height in pixels; downscale above this (default: 1080)
-      dataSaverBitrateKbps: 900           # max video bitrate for data saver at 720p output (default: 900)
     debug: false                          # output ffmpeg stdout for media integration -- warning: can produces lots of output
     extractEmbeddedSubtitles: false       # extract embedded subtitles from media files -- warning: requires processing entire file
     exiftoolPath: ""                      # path to exiftool executable

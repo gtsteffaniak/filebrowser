@@ -51,6 +51,19 @@ type HttpResponse struct {
 	Token   string `json:"token,omitempty"`
 }
 
+// requestTimeoutError is returned by withTimeout when the handler exceeds its budget.
+type requestTimeoutError struct {
+	timeout time.Duration
+}
+
+func newRequestTimeoutError(timeout time.Duration) error {
+	return &requestTimeoutError{timeout: timeout}
+}
+
+func (e *requestTimeoutError) Error() string {
+	return fmt.Sprintf("request timed out after %s", e.timeout)
+}
+
 var FileInfoFasterFunc = files.FileInfoFaster
 
 // Updated handleFunc to match the new signature
@@ -597,9 +610,12 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 		status, err := fn(w, r, data)
 		// Handle the error case if there is one
 		if err != nil {
-			// Create an error response in JSON format
+			if ww, ok := w.(*ResponseWriterWrapper); ok && ww.wroteHeader {
+				logger.Infof("handler error after response started: status=%d err=%v path=%s", status, err, r.URL.Path)
+				return
+			}
 			response := &HttpResponse{
-				Status:  status, // Use the status code from the middleware
+				Status:  status,
 				Message: err.Error(),
 			}
 
@@ -732,9 +748,8 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 		// Call the handler and check for timeout
 		status, err := fn(w, r, data)
 
-		// Check if the context was cancelled due to timeout
 		if ctx.Err() == context.DeadlineExceeded {
-			return http.StatusRequestTimeout, fmt.Errorf("request timed out after %.0f seconds", timeout.Seconds())
+			return http.StatusRequestTimeout, newRequestTimeoutError(timeout)
 		}
 
 		return status, err

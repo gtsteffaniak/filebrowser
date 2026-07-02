@@ -9,11 +9,6 @@ import {
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
 import { getObjectProperty } from '@/utils/object' 
-import {
-  normalizeHLSConfig,
-  parseHLSConfigFromHeaders,
-  parseHLSConfigFromPlaylist,
-} from '@/utils/hlsTranscodeConfig'
 
 export { fetchPreviewImage } from '@/utils/previewRequests'
 
@@ -846,117 +841,6 @@ export function getStreamURL(source, path, streamToken) {
     return window.origin + apiPath
   } catch (err) {
     notify.showError(err.message || 'Error getting stream URL')
-    throw err
-  }
-}
-
-export function getTranscodeHLSPlaylistURL(source, path, streamToken, { profile = 'quality' } = {}) {
-  if (!streamToken) {
-    throw new Error('stream token required')
-  }
-  if (!source) {
-    throw new Error('no source provided')
-  }
-  try {
-    const params = {
-      source: source,
-      file: path,
-      streamToken: streamToken,
-    }
-    if (profile === 'optimized' || profile === 'quality' || profile === 'datasaver') {
-      params.profile = profile
-    }
-    const apiPath = getApiPath('media/transcode/hls/playlist.m3u8', params)
-    return window.origin + apiPath
-  } catch (err) {
-    notify.showError(err.message || 'Error getting transcode HLS URL')
-    throw err
-  }
-}
-
-/** Prefetch playlist to obtain X-Transcode-Session and avoid a second manifest fetch. */
-export async function acquireTranscodeHLSSession(playlistUrl) {
-  const prefetchStart = performance.now();
-  const res = await fetch(playlistUrl, {
-    method: 'GET',
-    credentials: 'same-origin',
-    headers: {
-      sessionId: state.sessionId,
-    },
-  })
-  const headersMs = Math.round(performance.now() - prefetchStart);
-  if (!res.ok) {
-    const err = new Error(`transcode playlist failed (${res.status})`)
-    err.status = res.status
-    throw err
-  }
-  const sessionId = res.headers.get('X-Transcode-Session')
-  const playlistText = await res.text()
-  const totalMs = Math.round(performance.now() - prefetchStart);
-  const hlsConfig = normalizeHLSConfig(
-    parseHLSConfigFromHeaders(res.headers) || parseHLSConfigFromPlaylist(playlistText),
-  )
-  console.info('[hls-transcode] playlist prefetch', {
-    headersMs,
-    totalMs,
-    sessionId,
-    hlsConfig,
-    playlistBytes: playlistText.length,
-    segmentLines: (playlistText.match(/^#EXTINF:/gm) || []).length,
-  });
-  const blobUrl = URL.createObjectURL(new Blob([playlistText], { type: 'application/vnd.apple.mpegurl' }))
-  return {
-    sessionId,
-    hlsConfig,
-    playbackUrl: blobUrl,
-    revokePlaybackUrl: () => URL.revokeObjectURL(blobUrl),
-    prefetchMs: totalMs,
-  }
-}
-
-export async function releaseTranscodeSession(source, path) {
-  if (!source || !path) {
-    return
-  }
-  try {
-    const params = { source, file: path }
-    const apiPath = getApiPath('media/transcode/sessions', params)
-    await fetchURL(apiPath, { method: 'DELETE' })
-  } catch (err) {
-    console.warn('Failed to release transcode session:', err)
-  }
-}
-
-/** Clears all active transcode sessions for the current user on the given source. */
-export async function releaseAllTranscodeSessions(source, { keepalive = false } = {}) {
-  if (!source) {
-    return
-  }
-  try {
-    const apiPath = getApiPath('media/transcode/sessions', { source })
-    await fetchURL(apiPath, { method: 'DELETE', keepalive })
-  } catch (err) {
-    if (!keepalive) {
-      console.warn('Failed to release transcode sessions:', err)
-    }
-  }
-}
-
-export async function fetchTranscodeSessions(source, path, { all = false } = {}) {
-  if (!source) {
-    throw new Error('no source provided')
-  }
-  try {
-    const params = {
-      source,
-      file: path,
-      ...(all && { all: 'true' }),
-    }
-    const apiPath = getApiPath('media/transcode/sessions', params)
-    const res = await fetchURL(apiPath)
-    return res.json()
-  } catch (err) {
-    notify.showError(err.message || 'Error fetching transcode sessions')
     throw err
   }
 }

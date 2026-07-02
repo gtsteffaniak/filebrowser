@@ -39,3 +39,22 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, pe
 
 	return previewBytes, nil
 }
+
+
+// GenerateVideoPreviewAtTime generates a preview image at an absolute timestamp.
+func (s *Service) GenerateVideoPreviewAtTime(ctx context.Context, videoPath string, seekSec float64) ([]byte, error) {
+	if s.ffmpegService == nil {
+		return nil, fmt.Errorf("FFmpeg service not available")
+	}
+	if _, err := os.Stat(videoPath); err != nil {
+		return nil, fmt.Errorf("video file not accessible: %w", err)
+	}
+	var buf bytes.Buffer
+	if err := s.ffmpegService.VideoPreviewAtTime(ctx, &buf, videoPath, seekSec); err != nil {
+		return nil, err
+	}
+	if len(buf.Bytes()) == 0 {
+		return nil, fmt.Errorf("video preview generation returned empty result")
+	}
+	return buf.Bytes(), nil
+}

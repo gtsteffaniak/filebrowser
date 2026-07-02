@@ -7,10 +7,8 @@ import (
 )
 
 func TestMediaGPUSettingsDefaultWhenEmpty(t *testing.T) {
-	t.Parallel()
-
-	prev := settings.Config.Integrations.Media
-	t.Cleanup(func() { settings.Config.Integrations.Media = prev })
+	prevGPU := settings.Config.Integrations.Media.GPU
+	t.Cleanup(func() { settings.Config.Integrations.Media.GPU = prevGPU })
 
 	settings.Config.Integrations.Media.GPU = ""
 	got := settings.MediaGPUSettings()
@@ -20,10 +18,8 @@ func TestMediaGPUSettingsDefaultWhenEmpty(t *testing.T) {
 }
 
 func TestMediaGPUSettingsEnabledWhenSet(t *testing.T) {
-	t.Parallel()
-
-	prev := settings.Config.Integrations.Media
-	t.Cleanup(func() { settings.Config.Integrations.Media = prev })
+	prevGPU := settings.Config.Integrations.Media.GPU
+	t.Cleanup(func() { settings.Config.Integrations.Media.GPU = prevGPU })
 
 	settings.Config.Integrations.Media.GPU = "default"
 	got := settings.MediaGPUSettings()
@@ -33,10 +29,8 @@ func TestMediaGPUSettingsEnabledWhenSet(t *testing.T) {
 }
 
 func TestMediaGPUSettingsDisabledWhenSoftware(t *testing.T) {
-	t.Parallel()
-
-	prev := settings.Config.Integrations.Media
-	t.Cleanup(func() { settings.Config.Integrations.Media = prev })
+	prevGPU := settings.Config.Integrations.Media.GPU
+	t.Cleanup(func() { settings.Config.Integrations.Media.GPU = prevGPU })
 
 	settings.Config.Integrations.Media.GPU = "software"
 	got := settings.MediaGPUSettings()

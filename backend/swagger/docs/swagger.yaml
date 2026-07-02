@@ -1026,7 +1026,7 @@ definitions:
     properties:
       apiFilter:
         description: regex filter that excludes matching full api paths from being
-          logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
+          logged. (eg. '/api/users\?id\=self'). Defaults to filter common paths.
         type: string
       apiLevels:
         description: separated list of log levels to enable for the API. (eg. "info|warning|error")
@@ -1086,31 +1086,10 @@ definitions:
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
         type: string
-      maxConcurrent:
-        description: 'system-wide concurrent media jobs such as transcode (default:
-          2)'
-        type: integer
       gpu:
         description: default=autoselect, igpu=integrated GPU, dgpu=discrete GPU, render
           node, or device name eg "/dev/dri/renderD129"; software=CPU only;
         type: string
-      transcode:
-        allOf:
-        - $ref: '#/definitions/settings.MediaTranscode'
-        description: live fMP4 transcode fallback for preview playback
-    type: object
-  settings.MediaTranscode:
-    properties:
-      dataSaverBitrateKbps:
-        description: 'max video bitrate for data saver at 720p output (default: 900)'
-        type: integer
-      enabled:
-        description: 'master switch (default: false)'
-        type: boolean
-      maxResolution:
-        description: 'max output height in pixels; downscale above this (default:
-          1080)'
-        type: integer
     type: object
   settings.OidcConfig:
     properties:
@@ -3721,46 +3700,6 @@ paths:
               type: string
             type: object
       summary: Get subtitle content
-      tags:
-      - Media
-  /api/media/transcode/sessions:
-    delete:
-      description: Decrements stream count and clears session state for source/file
-        owned by the current user.
-      parameters:
-      - description: Source name
-        in: query
-        name: source
-        required: true
-        type: string
-      - description: File path
-        in: query
-        name: file
-        required: true
-        type: string
-      responses: {}
-      summary: Release a transcode session
-      tags:
-      - Media
-    get:
-      description: Returns active transcode jobs for the current user, or all users
-        when all=true and caller is admin. Optional source/file query params evaluate
-        start eligibility for a target file.
-      parameters:
-      - description: Source name for start eligibility check
-        in: query
-        name: source
-        type: string
-      - description: File path for start eligibility check
-        in: query
-        name: file
-        type: string
-      - description: List all sessions (admin only)
-        in: query
-        name: all
-        type: boolean
-      responses: {}
-      summary: List active transcode sessions
       tags:
       - Media
   /api/office/callback:

@@ -1572,60 +1572,6 @@
                 }
             }
         },
-        "/api/media/transcode/sessions": {
-            "get": {
-                "description": "Returns active transcode jobs for the current user, or all users when all=true and caller is admin. Optional source/file query params evaluate start eligibility for a target file.",
-                "tags": [
-                    "Media"
-                ],
-                "summary": "List active transcode sessions",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for start eligibility check",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "File path for start eligibility check",
-                        "name": "file",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "List all sessions (admin only)",
-                        "name": "all",
-                        "in": "query"
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "description": "Decrements stream count and clears session state for source/file owned by the current user.",
-                "tags": [
-                    "Media"
-                ],
-                "summary": "Release a transcode session",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "File path",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/api/office/callback": {
             "get": {
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
@@ -6596,7 +6542,7 @@
             "type": "object",
             "properties": {
                 "apiFilter": {
-                    "description": "regex filter that excludes matching full api paths from being logged. (eg. '/user\\?id\\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'",
+                    "description": "regex filter that excludes matching full api paths from being logged. (eg. '/api/users\\?id\\=self'). Defaults to filter common paths.",
                     "type": "string"
                 },
                 "apiLevels": {
@@ -6679,38 +6625,9 @@
                     "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
                     "type": "string"
                 },
-                "maxConcurrent": {
-                    "description": "system-wide concurrent media jobs such as transcode (default: 2)",
-                    "type": "integer"
-                },
                 "gpu": {
                     "description": "default=autoselect, igpu=integrated GPU, dgpu=discrete GPU, render node, or device name eg \"/dev/dri/renderD129\"; software=CPU only;",
                     "type": "string"
-                },
-                "transcode": {
-                    "description": "live fMP4 transcode fallback for preview playback",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.MediaTranscode"
-                        }
-                    ]
-                }
-            }
-        },
-        "settings.MediaTranscode": {
-            "type": "object",
-            "properties": {
-                "dataSaverBitrateKbps": {
-                    "description": "max video bitrate for data saver at 720p output (default: 900)",
-                    "type": "integer"
-                },
-                "enabled": {
-                    "description": "master switch (default: false)",
-                    "type": "boolean"
-                },
-                "maxResolution": {
-                    "description": "max output height in pixels; downscale above this (default: 1080)",
-                    "type": "integer"
                 }
             }
         },

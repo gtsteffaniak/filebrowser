@@ -173,6 +173,74 @@ func GetService() *Service {
 	return service
 }
 
+
+func GetPreviewForFileAtTime(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekTimeSec float64, preserveAspectRatio bool) ([]byte, error) {
+	if !file.HasPreview {
+		return nil, ErrUnsupportedMedia
+	}
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	if seekTimeSec < 0 {
+		seekTimeSec = 0
+	}
+	seekMillis := int(seekTimeSec*1000 + 0.5)
+
+	var cacheHash string
+	if file.Metadata != nil && len(file.Metadata.AlbumArt) > 0 {
+		hasher := md5.New()
+		_, _ = hasher.Write(file.Metadata.AlbumArt)
+		cacheHash = hex.EncodeToString(hasher.Sum(nil))
+	} else {
+		hasher := md5.New()
+		cacheString := fmt.Sprintf("%s:%d:%s", file.RealPath, file.Size, file.ModTime.Format(time.RFC3339Nano))
+		_, _ = hasher.Write([]byte(cacheString))
+		cacheHash = hex.EncodeToString(hasher.Sum(nil))
+	}
+
+	cacheKey := cacheKeyAtTime(cacheHash, previewSize, seekMillis)
+	if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
+		return nil, fmt.Errorf("failed to load from cache: %w", err)
+	} else if found {
+		if len(data) < minPreviewSize {
+			return nil, ErrPreviewTooSmall
+		}
+		return data, nil
+	}
+	return generatePreviewAtTimeWithMD5(ctx, file, previewSize, url, seekTimeSec, cacheHash, preserveAspectRatio)
+}
+
+func generatePreviewAtTimeWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekTimeSec float64, fileMD5 string, preserveAspectRatio bool) ([]byte, error) {
+	if fileMD5 == "" {
+		return nil, fmt.Errorf("preview generation failed: cache hash is empty")
+	}
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	seekMillis := int(seekTimeSec*1000 + 0.5)
+	cacheKey := cacheKeyAtTime(fileMD5, previewSize, seekMillis)
+	if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
+		return nil, fmt.Errorf("failed to load from cache: %w", err)
+	} else if found {
+		if len(data) < minPreviewSize {
+			return nil, ErrPreviewTooSmall
+		}
+		return data, nil
+	}
+	if !strings.HasPrefix(file.Type, "video/") && file.Type != "video" {
+		return GetPreviewForFile(ctx, file, previewSize, officeUrl, 0, preserveAspectRatio)
+	}
+	imageBytes, err := service.generateVideoPreviewAtTimeBytes(ctx, file, seekTimeSec)
+	if err != nil {
+		return nil, err
+	}
+	if len(imageBytes) < minPreviewSize {
+		return nil, ErrPreviewTooSmall
+	}
+	_ = service.fileCache.Store(ctx, cacheKey, imageBytes)
+	return imageBytes, nil
+}
+
 func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int, preserveAspectRatio bool) ([]byte, error) {
 	if !file.HasPreview {
 		return nil, ErrUnsupportedMedia
@@ -317,6 +385,14 @@ func (s *Service) generateHEICPreview(ctx context.Context, file iteminfo.Extende
 }
 
 // generateVideoPreviewBytes generates preview frame from video file
+func (s *Service) generateVideoPreviewAtTimeBytes(ctx context.Context, file iteminfo.ExtendedFileInfo, seekTimeSec float64) ([]byte, error) {
+	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(file.Name)), ".")
+	if !settings.CanConvertVideo(ext) {
+		return nil, fmt.Errorf("video preview generation is disabled for .%s files in settings", ext)
+	}
+	return s.GenerateVideoPreviewAtTime(ctx, file.RealPath, seekTimeSec)
+}
+
 func (s *Service) generateVideoPreviewBytes(ctx context.Context, file iteminfo.ExtendedFileInfo, seekPercentage int) ([]byte, error) {
 	// Check if this video format is enabled for preview generation
 	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(file.Name)), ".")
@@ -631,6 +707,10 @@ func (s *Service) CreatePreview(ctx context.Context, reader io.Reader, fileSize 
 func CacheKey(md5, previewSize string, percentage int) string {
 	key := fmt.Sprintf("%x%x%x", md5, previewSize, percentage)
 	return key
+}
+
+func cacheKeyAtTime(md5, previewSize string, seekMillis int) string {
+	return fmt.Sprintf("%x%xt%d", md5, previewSize, seekMillis)
 }
 
 func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {

@@ -774,6 +774,7 @@
     "transcodeActiveSessions": "Active transcodes:",
     "transcodeLoading": "Preparing transcode stream",
     "transcodeTimeout": "Transcode timed out. Try again or download the file.",
+    "transcodeFailed": "Transcode failed. Try again or switch to Off.",
     "visualizer": "Visualizer"
   },
   "fileSizeAnalyzer": {

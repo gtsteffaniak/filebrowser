@@ -31,7 +31,6 @@
     "epubjs": "^0.3.93",
     "glob": "^9.3.5",
     "highlight.js": "^11.11.1",
-    "hls.js": "^1.6.16",
     "mammoth": "^1.9.1",
     "marked": "^15.0.6",
     "normalize.css": "^8.0.1",

@@ -9,7 +9,7 @@ func normalizeMediaLimits() {
 	}
 }
 
-// MediaMaxConcurrent returns the system-wide concurrent media job limit.
+// MediaMaxConcurrent returns configured transcode ffmpeg pool size (unused; config compatibility only).
 func MediaMaxConcurrent() int {
 	n := Config.Integrations.Media.MaxConcurrent
 	if n <= 0 {

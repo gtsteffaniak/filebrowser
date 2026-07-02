@@ -126,20 +126,33 @@ type OnlyOffice struct {
 
 type Media struct {
 	FfmpegPath               string         `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	MaxConcurrent            int            `json:"maxConcurrent"`            // system-wide concurrent media jobs such as transcode (default: 2)
 	Convert                  FfmpegConvert  `json:"convert"`                  // config for ffmpeg conversion settings
-	Transcode                MediaTranscode `json:"transcode"`                // live fMP4 transcode fallback for preview playback
 	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration -- warning: can produces lots of output
 	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files -- warning: requires processing entire file
 	ExiftoolPath             string         `json:"exiftoolPath"`             // path to exiftool executable
 	GPU                      string         `json:"gpu,omitempty"`            // default=autoselect, igpu=integrated GPU, dgpu=discrete GPU, render node, or device name eg "/dev/dri/renderD129"; software=CPU only;
+	MaxConcurrent            int            `json:"-" yaml:"-"` // reserved transcode pool size (default: 2); not used while live transcode is disabled
+	CacheDurationMins        int            `json:"-" yaml:"-"` // reserved transcode disk cache TTL in minutes; 0 = disabled (default: 0)
+	Presets                  MediaPresets   `json:"-" yaml:"-"` // reserved playback quality presets; not used while live transcode is disabled
+	Transcode                MediaTranscode `json:"-" yaml:"-"` // reserved live transcode toggle; not used while live transcode is disabled
 }
 
-// MediaTranscode configures live HLS transcode sessions for preview playback.
+// MediaTranscode configures live transcode for preview playback (reserved; not implemented).
 type MediaTranscode struct {
-	Enabled              bool `json:"enabled"`              // master switch (default: false)
-	MaxResolution        int  `json:"maxResolution"`        // max output height in pixels; downscale above this (default: 1080)
-	DataSaverBitrateKbps int  `json:"dataSaverBitrateKbps"` // max video bitrate for data saver at 720p output (default: 900)
+	Enabled bool `json:"enabled"` // master switch (default: false)
+}
+
+// MediaPresets holds playability-oriented media profiles shown in the player.
+type MediaPresets struct {
+	Quality   MediaPresetConfig `json:"quality"`
+	Balanced  MediaPresetConfig `json:"balanced"`
+	DataSaver MediaPresetConfig `json:"datasaver"`
+}
+
+// MediaPresetConfig configures output limits for one media profile.
+type MediaPresetConfig struct {
+	MaxResolution int `json:"maxResolution"` // max output height in pixels (default varies by profile)
+	MaxBitrate    int `json:"maxBitrate"`    // max video bitrate in kbps; 0 = automatic VBR for quality/balanced
 }
 
 type FfmpegConvert struct {
@@ -222,7 +235,7 @@ type LogConfig struct {
 	NoColors  bool   `json:"noColors" yaml:"noColors"`   // disable colors in the output
 	Json      bool   `json:"json" yaml:"json"`           // output in json format
 	Utc       bool   `json:"utc" yaml:"utc"`             // use UTC time in the output instead of local time.
-	ApiFilter string `json:"apiFilter" yaml:"apiFilter"` // regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
+	ApiFilter string `json:"apiFilter" yaml:"apiFilter"` // regex filter that excludes matching full api paths from being logged. (eg. '/api/users\?id\=self'). Defaults to filter common paths.
 }
 type Source struct {
 	Path   string       `json:"path" validate:"required"` // file system path. (Can be relative)

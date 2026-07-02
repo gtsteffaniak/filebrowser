@@ -5,20 +5,20 @@
       <LoadingSpinner size="medium" />
     </div>
     <div class="preview" :class="{
-      'plyr-background-light': !isDarkMode && previewType === 'audio',
-      'plyr-background-dark': isDarkMode && previewType === 'audio',
+      'plyr-background-light': !isDarkMode && previewType === 'audio' && !useDefaultMediaPlayer,
+      'plyr-background-dark': isDarkMode && previewType === 'audio' && !useDefaultMediaPlayer,
       'transitioning': isTransitioning
     }" v-if="!isDeleted">
       <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
         @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
 
       <!-- Media: load full metadata + album art from media API before mounting plyr so the correct view/art is stable. -->
-      <div v-else-if="previewType === 'audio' || (previewType === 'video' && showVideoPlayer)" class="av-preview-wrap">
+      <div v-else-if="previewType === 'audio' || previewType === 'video'" class="av-preview-wrap">
         <div v-if="avMetadataLoading" class="av-preview-loading">
           <LoadingSpinner size="medium" />
         </div>
         <plyrViewer v-else
-          :key="plyrViewerKey"
+          :key="req.path"
           ref="plyrViewer"
           :previewType="previewType"
           :raw="raw"
@@ -26,52 +26,14 @@
           :lyrics="lyrics"
           :req="req"
           :listing="listing"
+          :useDefaultMediaPlayer="useDefaultMediaPlayer"
           :autoPlayEnabled="autoPlay"
-          :startTranscode="transcodePlaybackActive"
           @play="autoPlay = true"
-          @needs-transcode="handleVideoTranscodeOffer"
-          :class="{ 'plyr-background': previewType === 'audio' }"
+          :class="{ 'plyr-background': previewType === 'audio' && !useDefaultMediaPlayer }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
           @close-preview="exitPreviewFromImageGesture"
         />
-      </div>
-
-      <div v-else-if="previewType === 'video' && videoTranscodeOffer" class="info">
-        <div class="title">
-          <i class="material-symbols">feedback</i>
-          {{ $t("files.noPreview") }}
-        </div>
-        <p class="transcode-offer-message">{{ transcodeOfferMessage }}</p>
-        <ul v-if="videoTranscodeOffer.sessions?.length" class="transcode-session-list">
-          <li v-for="sess in videoTranscodeOffer.sessions" :key="sess.id">
-            {{ sess.fileName || sess.path }}
-            <span v-if="sess.source" class="transcode-session-source">{{ `(${sess.source})` }}</span>
-          </li>
-        </ul>
-        <div class="preview-buttons">
-          <button
-            v-if="videoTranscodeOffer.mode === 'offer'"
-            type="button"
-            class="button button--flat"
-            @click="startVideoTranscode"
-          >
-            <div>
-              <i class="material-symbols">sync</i>{{ $t("general.transcode") }}
-            </div>
-          </button>
-          <a target="_blank" :href="downloadUrl" class="button button--flat" v-if="permissions.download">
-            <div>
-              <i class="material-symbols">file_download</i>{{ $t("general.download") }}
-            </div>
-          </a>
-          <a target="_blank" :href="openFileUrl" class="button button--flat" v-if="permissions.download && req.type !== 'directory'">
-            <div>
-              <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
-            </div>
-          </a>
-        </div>
-        <p>{{ req.name }}</p>
       </div>
 
       <div v-else-if="isPdf" class="pdf-wrapper">
@@ -114,11 +76,6 @@ import { isRawImageMimeType } from "@/utils/mimetype";
 import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
-import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative";
-import {
-  registerTranscodeSession,
-  releaseRegisteredTranscodeSession,
-} from "@/utils/transcodeSessionLifecycle";
 
 export default {
   name: "preview",
@@ -141,13 +98,6 @@ export default {
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
-      /** Prevents metadata patch from re-running loadPreviewForReq and tearing down transcode playback. */
-      previewReadyForPath: null,
-      previewLoadingPath: null,
-      videoTranscodeOffer: null,
-      transcodePlaybackActive: false,
-      activeTranscodeSource: null,
-      activeTranscodePath: null,
       dirMetadataCache: new Map(),
     };
   },
@@ -221,27 +171,22 @@ export default {
       return state.req.type === 'application/pdf';
     },
     raw() {
-      const shareInfo = getters.isShare()
-        ? {
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
-          }
-        : null;
-
-      if (this.previewType === "audio" || this.previewType === "video") {
-        return resourcesApi.getViewURL(
-          state.req.source,
-          state.req.path,
-          state.req.streamToken,
-          shareInfo,
-        );
-      }
-
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
 
       if (state.isSafari && isHeicOrHeif) {
-        return resourcesApi.getOpenFileURL(state.req.source, state.req.path, shareInfo);
+        if (getters.isShare()) {
+          return resourcesApi.getViewURL(
+            state.req.source,
+            state.req.path,
+            state.req.streamToken,
+            {
+              path: state.shareInfo.subPath,
+              hash: state.shareInfo.hash,
+              token: state.shareInfo.token,
+            },
+          );
+        }
+        return resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
       }
 
       const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
@@ -259,23 +204,19 @@ export default {
           )}&size=original`
         );
       }
-
-      if (this.isPdf) {
-        return resourcesApi.getOpenFileURL(state.req.source, state.req.path, shareInfo);
-      }
-
-      if (this.previewType === "image" && state.req.hasPreview) {
-        if (getters.isShare()) {
-          return resourcesApi.getPreviewURLPublic(url.removeTrailingSlash(state.req.path));
-        }
-        return resourcesApi.getPreviewURL(
+      if (getters.isShare()) {
+        return resourcesApi.getViewURL(
           state.req.source,
           state.req.path,
-          state.req.modified,
+          state.req.streamToken,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
+          },
         );
       }
-
-      return resourcesApi.getOpenFileURL(state.req.source, state.req.path, shareInfo);
+      return resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -319,27 +260,6 @@ export default {
     disableFileViewer() {
       return state.shareInfo.disableFileViewer;
     },
-    showVideoPlayer() {
-      return !this.videoTranscodeOffer;
-    },
-    plyrViewerKey() {
-      return `${state.req.path}-${this.transcodePlaybackActive ? 'transcode' : 'native'}`;
-    },
-    transcodeOfferMessage() {
-      if (!this.videoTranscodeOffer) {
-        return '';
-      }
-      switch (this.videoTranscodeOffer.mode) {
-        case 'user_limit':
-          return this.$t('player.transcodeUserLimitReached');
-        case 'system_limit':
-          return this.$t('player.transcodeSystemLimitReached', {
-            limit: this.videoTranscodeOffer.systemLimit,
-          });
-        default:
-          return this.$t('player.transcodeUnsupportedFormat');
-      }
-    },
   },
   watch: {
     req: {
@@ -354,7 +274,6 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
-    void this.releaseActiveTranscodeSession();
     // Clear navigation state when leaving preview
     mutations.clearNavigation();
   },
@@ -403,123 +322,83 @@ export default {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
       }
+      this.isDeleted = false;
+
+      if (!this.listing || this.listing === "undefined") {
+        if (state.req.parentDirItems) {
+          this.listing = state.req.parentDirItems;
+        } else if (state.req.items) {
+          this.listing = state.req.items;
+        }
+      }
 
       const path = state.req.path;
-      const previousPath = this.previewReadyForPath;
+      const isAv =
+        !getters.fileViewingDisabled(state.req.name) &&
+        state.req.type !== "directory" &&
+        (this.previewType === "audio" || this.previewType === "video");
 
-      if (
-        previousPath
-        && previousPath !== path
-        && this.activeTranscodeSource
-      ) {
-        await this.releaseActiveTranscodeSession();
+      if (!isAv) {
+        this.avMetadataLoading = false;
+        this.mediaEnrichDoneForPath = null;
+        this.lyricsFetchedForPath = null;
+      } else {
+        if (this.mediaEnrichDoneForPath !== path) {
+          this.mediaEnrichDoneForPath = path;
+          this.avMetadataLoading = true;
+          try {
+            await this.enrichAvFromMediaApi(path);
+            if (state.req.path !== path) {
+              return;
+            }
+          } finally {
+            if (state.req.path === path) {
+              this.avMetadataLoading = false;
+            }
+          }
+        } else {
+          this.avMetadataLoading = false;
+        }
       }
 
-      // patchRequestFileMediaMetadata replaces req for the same file; skip re-entry.
-      if (this.previewLoadingPath === path) {
+      if (state.req.path !== path) {
         return;
       }
-      this.previewLoadingPath = path;
-      try {
-        if (this.previewReadyForPath !== path) {
-          this.isDeleted = false;
-          this.videoTranscodeOffer = null;
-          this.transcodePlaybackActive = false;
-        }
-
-        if (!this.listing || this.listing === "undefined") {
-          if (state.req.parentDirItems) {
-            this.listing = state.req.parentDirItems;
-          } else if (state.req.items) {
-            this.listing = state.req.items;
-          }
-        }
-
-        const isAv =
-          !getters.fileViewingDisabled(state.req.name) &&
-          state.req.type !== "directory" &&
-          (this.previewType === "audio" || this.previewType === "video");
-
-        if (!isAv) {
-          this.avMetadataLoading = false;
-          this.mediaEnrichDoneForPath = null;
-          this.lyricsFetchedForPath = null;
-          this.previewReadyForPath = null;
-        } else {
-          if (this.mediaEnrichDoneForPath !== path) {
-            this.mediaEnrichDoneForPath = path;
-            this.avMetadataLoading = true;
-            try {
-              await this.enrichAvFromMediaApi(path);
-              if (state.req.path !== path) {
-                return;
-              }
-            } finally {
-              if (state.req.path === path) {
-                this.avMetadataLoading = false;
-              }
+      await this.updatePreview();
+      if (isAv && this.listing) {
+        const directoryPath = url.removeLastDir(state.req.path) || '/';
+        await this.attachDirMediaMetadata(this.listing, directoryPath);
+      }
+      this.subtitlesList = await this.subtitles();
+      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {
+        this.lyricsFetchedForPath = state.req.path;
+        if (state.req.metadata?.hasLyrics) {
+          try {
+            if (getters.isShare()) {
+              const hash = state.shareInfo.hash;
+              const password = localStorage.getItem(`sharepass:${hash}`) || "";
+              this.lyrics = await mediaApi.getLyricsPublic(state.req.path, hash, password);
+            } else {
+              this.lyrics = await mediaApi.getLyrics(state.req.source, state.req.path);
             }
-          } else {
-            this.avMetadataLoading = false;
-          }
-        }
-
-        if (state.req.path !== path) {
-          return;
-        }
-
-        await this.updatePreview();
-
-        if (isAv && this.listing) {
-          const directoryPath = url.removeLastDir(state.req.path) || '/';
-          await this.attachDirMediaMetadata(this.listing, directoryPath);
-        }
-
-        if (!isAv) {
-          this.subtitlesList = [];
-        } else {
-          this.subtitlesList = await this.subtitles();
-        }
-
-        if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {
-          this.lyricsFetchedForPath = state.req.path;
-          if (state.req.metadata?.hasLyrics) {
-            try {
-              if (getters.isShare()) {
-                const hash = state.shareInfo.hash;
-                const password = localStorage.getItem(`sharepass:${hash}`) || "";
-                this.lyrics = await mediaApi.getLyricsPublic(state.req.path, hash, password);
-              } else {
-                this.lyrics = await mediaApi.getLyrics(state.req.source, state.req.path);
-              }
-            } catch (err) {
-              console.warn("Failed to fetch lyrics:", err);
-              this.lyrics = [];
-            }
-          } else {
+          } catch (err) {
+            console.warn("Failed to fetch lyrics:", err);
             this.lyrics = [];
           }
-        }
-
-        await this.checkProactiveVideoTranscodeOffer(path);
-        mutations.resetSelected();
-        mutations.addSelected({
-          name: state.req.name,
-          path: state.req.path,
-          size: state.req.size,
-          type: state.req.type,
-          source: state.req.source,
-          modified: state.req.modified,
-          hasPreview: state.req.hasPreview,
-        });
-        if (state.req.path === path) {
-          this.previewReadyForPath = path;
-        }
-      } finally {
-        if (this.previewLoadingPath === path) {
-          this.previewLoadingPath = null;
+        } else {
+          this.lyrics = [];
         }
       }
+      mutations.resetSelected();
+      mutations.addSelected({
+        name: state.req.name,
+        path: state.req.path,
+        size: state.req.size,
+        type: state.req.type,
+        source: state.req.source,
+        modified: state.req.modified,
+        hasPreview: state.req.hasPreview,
+      });
     },
     /** GET /api/media/metadata?albumArt=true — subtitles, duration, embedded cover for plyr. */
     async enrichAvFromMediaApi(expectedPath) {
@@ -608,120 +487,6 @@ export default {
       }
       return subs;
     },
-    /** Offer transcode UI before mounting plyr when ffprobe metadata indicates native playback will fail. */
-    async checkProactiveVideoTranscodeOffer(expectedPath) {
-      if (state.req.path !== expectedPath) {
-        return;
-      }
-      if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
-        return;
-      }
-      const meta = state.req.metadata || {};
-      if (!needsTranscodeFirst({
-        videoCodec: meta.videoCodec,
-        audioCodec: meta.audioCodec,
-        mimeType: state.req.type,
-        fileName: state.req.name,
-      })) {
-        return;
-      }
-      try {
-        const status = await resourcesApi.fetchTranscodeSessions(
-          state.req.source,
-          state.req.path,
-        );
-        if (state.req.path !== expectedPath) {
-          return;
-        }
-        this.handleVideoTranscodeOffer(status);
-      } catch (err) {
-        console.warn('Failed to check transcode for unsupported format:', err);
-      }
-    },
-    /** plyrViewer failed native playback or detected an unsupported container. */
-    handleVideoTranscodeOffer(status) {
-      if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
-        return;
-      }
-      status = this.normalizeTranscodeSessionStatus(status);
-      let mode = 'offer';
-      if (!status.canStart) {
-        if (status.blockReason === 'user_limit' || status.blockReason === 'system_limit') {
-          mode = status.blockReason;
-        }
-      }
-      console.info('[preview] handleVideoTranscodeOffer — hiding plyrViewer', {
-        path: state.req.path,
-        offerMode: mode,
-        canStart: status.canStart,
-        blockReason: status.blockReason,
-        transcodePlaybackActive: this.transcodePlaybackActive,
-      });
-      this.transcodePlaybackActive = false;
-      this.videoTranscodeOffer = {
-        mode,
-        sessions: status.sessions || [],
-        systemLimit: status.systemLimit,
-        userLimit: status.userLimit,
-      };
-    },
-    /** Same-file active session is allowed; backend may still report user_limit during HLS startup. */
-    normalizeTranscodeSessionStatus(status) {
-      if (!status || status.canStart || status.blockReason !== 'user_limit') {
-        return status;
-      }
-      const sameFileActive = (status.sessions || []).some(
-        (s) => s.source === state.req.source && s.path === state.req.path,
-      );
-      if (!sameFileActive) {
-        return status;
-      }
-      return { ...status, canStart: true, blockReason: '' };
-    },
-    async startVideoTranscode() {
-      if (this.transcodePlaybackActive) {
-        this.videoTranscodeOffer = null;
-        return;
-      }
-      const source = state.req.source;
-      const path = state.req.path;
-      try {
-        let status = await resourcesApi.fetchTranscodeSessions(source, path);
-        if (this.transcodePlaybackActive || state.req.source !== source || state.req.path !== path) {
-          return;
-        }
-        status = this.normalizeTranscodeSessionStatus(status);
-        console.info('[transcode] pre-start session check', status);
-        if (!status.canStart) {
-          this.handleVideoTranscodeOffer(status);
-          return;
-        }
-        if (state.req.source !== source || state.req.path !== path) {
-          return;
-        }
-        this.videoTranscodeOffer = null;
-        this.transcodePlaybackActive = true;
-        this.activeTranscodeSource = source;
-        this.activeTranscodePath = path;
-        console.info('[preview] startVideoTranscode — remounting plyrViewer with transcode key', {
-          path,
-          plyrViewerKey: `${path}-transcode`,
-        });
-        registerTranscodeSession(source, path);
-      } catch (err) {
-        console.error('Failed to verify transcode availability:', err);
-      }
-    },
-    async releaseActiveTranscodeSession() {
-      const hadTranscode = Boolean(this.activeTranscodeSource && this.activeTranscodePath);
-      this.activeTranscodeSource = null;
-      this.activeTranscodePath = null;
-      this.transcodePlaybackActive = false;
-      if (!hadTranscode) {
-        return;
-      }
-      releaseRegisteredTranscodeSession();
-    },
     async keyEvent(event) {
       if (getters.currentPromptName() || event.repeat) {
         return;
@@ -800,15 +565,20 @@ export default {
     prefetchUrl(item) {
       if (getters.isShare()) {
         return this.fullSize
-          ? resourcesApi.getPreviewURLPublic(item.path)
+          ? resourcesApi.getViewURL(
+              state.req.source,
+              item.path,
+              item.streamToken || state.req.streamToken,
+              {
+                path: item.path,
+                hash: state.shareInfo?.hash,
+                token: state.shareInfo?.token,
+              },
+            )
           : resourcesApi.getPreviewURLPublic(item.path);
       }
       return this.fullSize
-        ? resourcesApi.getPreviewURL(
-            state.req.source,
-            item.path,
-            item.modified,
-          )
+        ? resourcesApi.getViewURL(state.req.source, item.path, item.streamToken)
         : resourcesApi.getPreviewURL(
             state.req.source,
             item.path,
@@ -842,7 +612,6 @@ export default {
       this.fullSize = !this.fullSize;
     },
     close() {
-      void this.releaseActiveTranscodeSession();
       mutations.replaceRequest({}); // Reset request data
       const uri = `${url.removeLastDir(state.route.path)}/`;
       this.$router.push({ path: uri });
@@ -879,7 +648,6 @@ export default {
     },
     /** Same navigation as header “back” in preview (Default.vue performNavigation). */
     exitPreviewFromImageGesture() {
-      void this.releaseActiveTranscodeSession();
       mutations.closeHovers();
       if (state.previousHistoryItem?.name) {
         url.goToItem(
@@ -985,26 +753,6 @@ export default {
   gap: 1em;
 }
 
-.preview-buttons :deep(.button--flat > div) {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.preview-buttons :deep(.button--flat i) {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 1.3em;
-}
-
-.preview-buttons :deep(.button--flat) {
-  display: inline-block;
-}
-
-.preview-buttons :deep(.button--flat:hover) {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
 .av-preview-wrap {
   width: 100%;
   height: 100%;
@@ -1017,36 +765,6 @@ export default {
   justify-content: center;
   width: 100%;
   min-height: 12rem;
-}
-
-.transcode-offer-message {
-  max-width: 36em;
-  margin: 0 1em 1em;
-  text-align: center;
-  font-size: 0.85em;
-  line-height: 1.4;
-}
-
-.transcode-session-list {
-  list-style: none;
-  margin: 0 0 1em;
-  padding: 0.75em 1em;
-  max-width: 36em;
-  max-height: 8em;
-  overflow-y: auto;
-  font-family: monospace;
-  font-size: 0.65em;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 0.5em;
-}
-
-.transcode-session-list li {
-  padding: 0.2em 0;
-  word-break: break-all;
-}
-
-.transcode-session-source {
-  opacity: 0.75;
 }
 
 </style>

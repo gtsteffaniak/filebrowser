@@ -3,7 +3,6 @@ package settings
 import "testing"
 
 func TestMediaMaxConcurrent(t *testing.T) {
-	t.Parallel()
 	prev := Config.Integrations.Media.MaxConcurrent
 	t.Cleanup(func() {
 		Config.Integrations.Media.MaxConcurrent = prev
@@ -21,7 +20,6 @@ func TestMediaMaxConcurrent(t *testing.T) {
 }
 
 func TestNormalizeMediaLimits(t *testing.T) {
-	t.Parallel()
 	prev := Config.Integrations.Media.MaxConcurrent
 	t.Cleanup(func() {
 		Config.Integrations.Media.MaxConcurrent = prev
