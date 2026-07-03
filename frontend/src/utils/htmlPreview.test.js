@@ -9,16 +9,43 @@ vi.mock("@/utils/constants", () => ({
 
 vi.mock("@/store", () => ({
   getters: { isShare: () => false },
-  state: { shareInfo: { subPath: "", hash: "", token: "" } },
+  state: {
+    shareInfo: { subPath: "", hash: "", token: "" },
+    req: {
+      parentDirItems: [
+        { name: "app.js", path: "/files/app.js", viewToken: "view-token" },
+        { name: "theme.css", path: "/files/theme.css", viewToken: "view-token" },
+        { name: "app.js", path: "/pages/app.js", viewToken: "view-token" },
+        { name: "theme.css", path: "/pages/theme.css", viewToken: "view-token" },
+        { name: "a.png", path: "/pages/a.png", viewToken: "view-token" },
+        { name: "small.png", path: "/docs/small.png", viewToken: "view-token" },
+        { name: "large.png", path: "/docs/large.png", viewToken: "view-token" },
+        { name: "roboto.woff2", path: "/site/fonts/roboto.woff2", viewToken: "view-token" },
+        { name: "bg.png", path: "/images/bg.png", viewToken: "view-token" },
+        { name: "photo.jpg", path: "/pages/photo.jpg", viewToken: "view-token" },
+        { name: "photo-2x.jpg", path: "/pages/photo-2x.jpg", viewToken: "view-token" },
+        { name: "other.html", path: "/pages/other.html", viewToken: "view-token" },
+      ],
+    },
+  },
 }));
 
 vi.mock("@/api/resources", () => ({
   getDownloadURL: (_source, path) =>
     `http://localhost/api/resources/download?file=${encodeURIComponent(path)}&inline=true`,
-  getViewURL: (_source, path) =>
-    `http://localhost/api/resources/stream?file=${encodeURIComponent(path)}&streamToken=test-token`,
   getDownloadURLPublic: () => "http://localhost/public/download",
+  getViewURL: (_source, path, viewToken, _share, allowDownloadFallback) => {
+    if (viewToken) {
+      return `http://localhost/api/resources/view?file=${encodeURIComponent(path)}&viewToken=${viewToken}`;
+    }
+    if (allowDownloadFallback) {
+      return `http://localhost/api/resources/download?file=${encodeURIComponent(path)}&inline=true`;
+    }
+    return null;
+  },
 }));
+
+vi.mock("@/api/media", () => ({}));
 
 import {
   buildHtmlPreview,
@@ -27,6 +54,7 @@ import {
   rewriteCssContent,
   rewriteSrcset,
 } from "./htmlPreview";
+import { state } from "@/store";
 
 describe("isLocalResourceReference", () => {
   it("treats relative paths as local", () => {
@@ -50,7 +78,7 @@ describe("isLocalResourceReference", () => {
 });
 
 describe("buildPreviewResourceUrl", () => {
-  it("rewrites relative paths for any file type", () => {
+  it("rewrites relative paths for same-directory siblings", () => {
     const base = "/files/index.html";
     expect(buildPreviewResourceUrl("./app.js", base, "src")).toContain(
       encodeURIComponent("/files/app.js"),
@@ -58,9 +86,26 @@ describe("buildPreviewResourceUrl", () => {
     expect(buildPreviewResourceUrl("theme.css", base, "src")).toContain(
       encodeURIComponent("/files/theme.css"),
     );
-    expect(buildPreviewResourceUrl("../img/a.png", base, "src")).toContain(
-      encodeURIComponent("/img/a.png"),
+  });
+
+  it("leaves paths outside the sibling directory unchanged when no token exists", () => {
+    expect(buildPreviewResourceUrl("../img/a.png", "/files/index.html", "src")).toBe(
+      "../img/a.png",
     );
+  });
+
+  it("does not match sibling tokens from a different directory", () => {
+    const original = state.req.parentDirItems;
+    state.req.parentDirItems = [
+      { name: "app.js", path: "/other/app.js", viewToken: "wrong-token" },
+    ];
+    try {
+      const url = buildPreviewResourceUrl("app.js", "/files/index.html", "src");
+      expect(url).toBe("app.js");
+      expect(url).not.toContain("wrong-token");
+    } finally {
+      state.req.parentDirItems = original;
+    }
   });
 
   it("leaves external URLs unchanged", () => {

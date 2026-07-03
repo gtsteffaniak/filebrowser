@@ -51,6 +51,19 @@ type HttpResponse struct {
 	Token   string `json:"token,omitempty"`
 }
 
+// requestTimeoutError is returned by withTimeout when the handler exceeds its budget.
+type requestTimeoutError struct {
+	timeout time.Duration
+}
+
+func newRequestTimeoutError(timeout time.Duration) error {
+	return &requestTimeoutError{timeout: timeout}
+}
+
+func (e *requestTimeoutError) Error() string {
+	return fmt.Sprintf("request timed out after %s", e.timeout)
+}
+
 var FileInfoFasterFunc = files.FileInfoFaster
 
 // Updated handleFunc to match the new signature
@@ -134,7 +147,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/media/metadata")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/download")) ||
-			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/stream")) {
+			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/view")) ||
+			(r.Method == "GET" && strings.Contains(r.URL.Path, "/media/stream")) {
 			return fn(w, r, data)
 		}
 		file, err := FileInfoFasterFunc(utils.FileOptions{
@@ -162,9 +176,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			file.OnlyOfficeId = ""
 		}
 		if file.Type != "directory" {
-			attachStreamToken(data, source.Name, path, file)
+			attachViewToken(data, source.Name, path, file)
 		} else {
-			attachStreamTokensForDirectory(data, source.Name, path, file)
+			attachViewTokensForDirectory(data, source.Name, path, file)
 		}
 		file.Path = utils.AddTrailingSlashIfNotExists(path)
 		// Set the file info in the `data` object
@@ -732,9 +746,8 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 		// Call the handler and check for timeout
 		status, err := fn(w, r, data)
 
-		// Check if the context was cancelled due to timeout
 		if ctx.Err() == context.DeadlineExceeded {
-			return http.StatusRequestTimeout, fmt.Errorf("request timed out after %.0f seconds", timeout.Seconds())
+			return http.StatusRequestTimeout, newRequestTimeoutError(timeout)
 		}
 
 		return status, err

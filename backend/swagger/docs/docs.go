@@ -1425,6 +1425,76 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/media/stream": {
+            "get": {
+                "description": "Returns raw file bytes for inline UI viewing in capped byte ranges. Requires a viewToken minted by GET /resources. Media files must use Range requests; full-file GET responses are rejected. Never counts toward download limits or activity.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Stream content of a single media file for inline viewing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for the file (required)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Opaque view grant token from file metadata",
+                        "name": "viewToken",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file content (inline)",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Missing or invalid view token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/media/subtitles": {
             "get": {
                 "description": "Returns raw subtitle content from external files or embedded streams",
@@ -2535,76 +2605,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/resources/stream": {
-            "get": {
-                "description": "Returns raw file bytes for inline UI viewing in capped byte ranges. Requires a streamToken minted by GET /resources. Media files and restricted viewers must use Range requests; full-file GET responses are rejected. Never counts toward download limits or activity.",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Stream content of a single file for inline viewing",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the file (required)",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "File path",
-                        "name": "file",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Opaque stream grant token from file metadata",
-                        "name": "streamToken",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw file content (inline)",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "403": {
-                        "description": "Missing or invalid stream token",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/resources/unarchive": {
             "post": {
                 "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: ` + "`" + `\"restored\"` + "`" + `\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: ` + "`" + `\"/downloads/data.zip\"` + "`" + `\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: ` + "`" + `\"/projects/imported\"` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: ` + "`" + `true` + "`" + `",
@@ -2668,6 +2668,76 @@ const docTemplate = `{
                     },
                     "413": {
                         "description": "Request Entity Too Large (archive size exceeds maxArchiveSizeGB limit)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/view": {
+            "get": {
+                "description": "Returns raw file bytes for inline UI viewing. Requires a viewToken minted by GET /resources. Never counts toward download limits or activity and does not require download permission.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "View content of a single non-media file inline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for the file (required)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Opaque view grant token from file metadata",
+                        "name": "viewToken",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file content (inline)",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Missing or invalid view token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -4129,6 +4199,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/media/stream": {
+            "get": {
+                "description": "Returns raw file bytes for inline UI viewing in capped byte ranges on a share link. Requires viewToken from GET /public/api/resources. Media files must use Range requests. Does not count toward download limits.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Stream a single media file from a public share for inline viewing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path within the share",
+                        "name": "file",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Opaque view grant token from share file metadata",
+                        "name": "viewToken",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file content (inline)",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Missing or invalid view token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/resources": {
             "get": {
                 "description": "Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.",
@@ -4874,9 +5017,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/api/resources/stream": {
+        "/public/api/resources/view": {
             "get": {
-                "description": "Returns raw file bytes for inline UI viewing in capped byte ranges on a share link. Requires streamToken from GET /public/api/resources. Media files and shares with downloads disabled must use Range requests. Does not count toward download limits.",
+                "description": "Returns raw file bytes for inline UI viewing on a share link. Requires viewToken from GET /public/api/resources. Does not count toward download limits.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4886,7 +5029,7 @@ const docTemplate = `{
                 "tags": [
                     "Resources"
                 ],
-                "summary": "Stream a single file from a public share for inline viewing",
+                "summary": "View a single non-media file from a public share inline",
                 "parameters": [
                     {
                         "type": "string",
@@ -4904,8 +5047,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Opaque stream grant token from share file metadata",
-                        "name": "streamToken",
+                        "description": "Opaque view grant token from share file metadata",
+                        "name": "viewToken",
                         "in": "query",
                         "required": true
                     }
@@ -4918,7 +5061,7 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Missing or invalid stream token",
+                        "description": "Missing or invalid view token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -5836,10 +5979,6 @@ const docTemplate = `{
                     "description": "associated index source for the file",
                     "type": "string"
                 },
-                "streamToken": {
-                    "description": "opaque token for inline streaming via /resources/stream",
-                    "type": "string"
-                },
                 "subtitles": {
                     "description": "subtitles for video files",
                     "type": "array",
@@ -5853,6 +5992,10 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "type of the file, either \"directory\" or a file mimetype",
+                    "type": "string"
+                },
+                "viewToken": {
+                    "description": "opaque token for inline viewing via /resources/view or /media/stream",
                     "type": "string"
                 }
             }
@@ -5892,12 +6035,12 @@ const docTemplate = `{
                     "description": "length in bytes for regular files",
                     "type": "integer"
                 },
-                "streamToken": {
-                    "description": "opaque token for inline streaming via /resources/stream",
-                    "type": "string"
-                },
                 "type": {
                     "description": "type of the file, either \"directory\" or a file mimetype",
+                    "type": "string"
+                },
+                "viewToken": {
+                    "description": "opaque token for inline viewing via /resources/view or /media/stream",
                     "type": "string"
                 }
             }

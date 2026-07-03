@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
 A database migration is required to go from v1.x to this version. See docs.
 
  **New Features**:
- - Download grant mechanism to distinguish between UI viewing and download.
+ - View grant mechanism to distinguish between UI viewing and download.
  - ffmpeg hardware acceleration detection and support via go-ffmpeg
   - video streaming is limited to viewing only.
  # - granular per source permissions and access
@@ -35,6 +35,8 @@ A database migration is required to go from v1.x to this version. See docs.
  - user updates are more granular, don't include entire user payload.
  - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
  - removed legacy and deprecated properties from API responses and generated config output
+ - Moved stream api to `/media/stream`
+ - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata.
 
 ## v1.5.0
 

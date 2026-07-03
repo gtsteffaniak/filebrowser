@@ -1,7 +1,7 @@
 import DOMPurify from "dompurify";
 import { getViewURL } from "@/api/resources";
 import { getters, state } from "@/store";
-import { resolveRelativePath } from "@/utils/url";
+import { getParentDir, resolveRelativePath } from "@/utils/url";
 
 export const HTML_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true, svg: true, svgFilters: true },
@@ -46,6 +46,43 @@ const RESOURCE_ATTRIBUTES: Array<[string, string]> = [
 
 const ALLOWED_ABSOLUTE_URI_PATTERN = /^(https?:|data:|mailto:|tel:|#)/i;
 
+function viewTokenForSibling(
+  resolvedPath: string,
+  baseFilePath: string,
+): string | undefined {
+  const items = state.req?.parentDirItems;
+  if (!items?.length) {
+    return undefined;
+  }
+
+  const exact = items.find((entry) => entry.path === resolvedPath);
+  if (exact?.viewToken) {
+    return exact.viewToken;
+  }
+
+  const resolvedDir = getParentDir(resolvedPath);
+  const baseDir = getParentDir(baseFilePath);
+  if (resolvedDir !== baseDir) {
+    return undefined;
+  }
+
+  const name = resolvedPath.split("/").filter(Boolean).pop();
+  if (!name) {
+    return undefined;
+  }
+
+  const item = items.find((entry) => {
+    if (entry.name !== name) {
+      return false;
+    }
+    if (entry.path) {
+      return getParentDir(entry.path) === resolvedDir;
+    }
+    return resolvedDir === baseDir;
+  });
+  return item?.viewToken;
+}
+
 export function isLocalResourceReference(href: string): boolean {
   if (!href || typeof href !== "string") {
     return false;
@@ -67,22 +104,27 @@ export function buildPreviewResourceUrl(
   }
 
   const resolvedPath = resolveRelativePath(baseFilePath, href);
+  const viewToken = viewTokenForSibling(resolvedPath, baseFilePath);
 
   try {
+    let viewUrl;
     if (getters.isShare()) {
-      return getViewURL(
+      viewUrl = getViewURL(
         source,
         resolvedPath,
-        null,
+        viewToken,
         {
           path: state.shareInfo.subPath,
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
         },
-        true,
+        false,
+        resolvedPath,
       );
+    } else {
+      viewUrl = getViewURL(source, resolvedPath, viewToken, null, false, resolvedPath);
     }
-    return getViewURL(source, resolvedPath, null, null, true);
+    return viewUrl ?? href;
   } catch {
     return href;
   }

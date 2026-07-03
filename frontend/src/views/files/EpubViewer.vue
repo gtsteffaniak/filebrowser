@@ -80,14 +80,23 @@ export default defineComponent({
         ? resourcesApi.getViewURL(
             state.req.source,
             state.req.path,
-            state.req.streamToken,
+            state.req.viewToken,
             {
               path: state.shareInfo.subPath,
               hash: state.shareInfo.hash,
               token: state.shareInfo.token,
             },
+            false,
+            state.req.type || state.req.name,
           )
-        : resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
+        : resourcesApi.getViewURL(
+            state.req.source,
+            state.req.path,
+            state.req.viewToken,
+            null,
+            false,
+            state.req.type || state.req.name,
+          );
 
       // 2. Initialize the EPUB book
       this.book = ePub(epubUrl);

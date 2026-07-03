@@ -20,8 +20,8 @@ type ItemInfo struct {
 // This avoids adding memory overhead to indexed items
 type ExtendedItemInfo struct {
 	ItemInfo
-	Metadata    *MediaMetadata `json:"metadata,omitempty"`    // optional media metadata (audio/video only)
-	StreamToken string         `json:"streamToken,omitempty"` // opaque token for inline streaming via /resources/stream
+	Metadata    *MediaMetadata `json:"metadata,omitempty"`  // optional media metadata (audio/video only)
+	ViewToken   string         `json:"viewToken,omitempty"` // opaque token for inline viewing via /resources/view or /media/stream
 }
 
 // FileInfo describes a file.
@@ -69,5 +69,5 @@ type ExtendedFileInfo struct {
 	Hash         string                `json:"hash,omitempty"`         // hash for the file -- used for sharing
 	RealPath     string                `json:"-"`
 	PinnedItems  []string              `json:"pinnedItems,omitempty"` // pinned item names in this directory listing
-	StreamToken  string                `json:"streamToken,omitempty"` // opaque token for inline streaming via /resources/stream
+	ViewToken    string                `json:"viewToken,omitempty"`   // opaque token for inline viewing via /resources/view or /media/stream
 }

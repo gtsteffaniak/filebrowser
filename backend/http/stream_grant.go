@@ -10,65 +10,65 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
-const streamGrantTTL = 15 * time.Minute
+const viewGrantTTL = 15 * time.Minute
 
-func normalizeStreamGrantPath(p string) string {
+func normalizeViewGrantPath(p string) string {
 	return filepath.ToSlash(strings.TrimSpace(p))
 }
 
-func mintStreamGrant(d *requestContext, source, filePath string) (string, error) {
+func mintViewGrant(d *requestContext, source, filePath string) (string, error) {
 	token, err := utils.RandomHex(16)
 	if err != nil {
 		return "", err
 	}
-	grant := utils.StreamGrant{
+	grant := utils.ViewGrant{
 		UserID:    d.user.ID,
 		ShareHash: d.share.Hash,
 		Source:    source,
-		Path:      normalizeStreamGrantPath(filePath),
-		ExpiresAt: time.Now().Add(streamGrantTTL).Unix(),
+		Path:      normalizeViewGrantPath(filePath),
+		ExpiresAt: time.Now().Add(viewGrantTTL).Unix(),
 	}
-	utils.StreamGrantsCache.Set(token, grant)
+	utils.ViewGrantsCache.Set(token, grant)
 	return token, nil
 }
 
-func validateStreamGrant(token string, d *requestContext, source, filePath string) error {
-	grant, ok := utils.StreamGrantsCache.Get(token)
+func validateViewGrant(token string, d *requestContext, source, filePath string) error {
+	grant, ok := utils.ViewGrantsCache.Get(token)
 	if !ok {
-		return fmt.Errorf("invalid or expired stream token")
+		return fmt.Errorf("invalid or expired view token")
 	}
 	if time.Now().Unix() > grant.ExpiresAt {
-		utils.StreamGrantsCache.Delete(token)
-		return fmt.Errorf("stream token expired")
+		utils.ViewGrantsCache.Delete(token)
+		return fmt.Errorf("view token expired")
 	}
 	if grant.UserID != d.user.ID {
-		return fmt.Errorf("stream token viewer mismatch")
+		return fmt.Errorf("view token viewer mismatch")
 	}
 	if grant.ShareHash != d.share.Hash {
-		return fmt.Errorf("stream token share mismatch")
+		return fmt.Errorf("view token share mismatch")
 	}
 	if grant.Source != source {
-		return fmt.Errorf("stream token source mismatch")
+		return fmt.Errorf("view token source mismatch")
 	}
-	if grant.Path != normalizeStreamGrantPath(filePath) {
-		return fmt.Errorf("stream token path mismatch")
+	if grant.Path != normalizeViewGrantPath(filePath) {
+		return fmt.Errorf("view token path mismatch")
 	}
 	return nil
 }
 
-func attachStreamToken(d *requestContext, source, filePath string, file *iteminfo.ExtendedFileInfo) {
+func attachViewToken(d *requestContext, source, filePath string, file *iteminfo.ExtendedFileInfo) {
 	if file == nil || file.Type == "directory" {
 		return
 	}
-	token, err := mintStreamGrant(d, source, filePath)
+	token, err := mintViewGrant(d, source, filePath)
 	if err != nil {
 		return
 	}
-	file.StreamToken = token
+	file.ViewToken = token
 }
 
 func indexFilePath(dirPath, name string) string {
-	dirPath = normalizeStreamGrantPath(dirPath)
+	dirPath = normalizeViewGrantPath(dirPath)
 	if dirPath == "" || dirPath == "/" {
 		return "/" + name
 	}
@@ -78,7 +78,7 @@ func indexFilePath(dirPath, name string) string {
 	return dirPath + name
 }
 
-func attachStreamTokensForDirectory(d *requestContext, source, dirPath string, file *iteminfo.ExtendedFileInfo) {
+func attachViewTokensForDirectory(d *requestContext, source, dirPath string, file *iteminfo.ExtendedFileInfo) {
 	if file == nil || file.Type != "directory" {
 		return
 	}
@@ -87,10 +87,10 @@ func attachStreamTokensForDirectory(d *requestContext, source, dirPath string, f
 			continue
 		}
 		childPath := indexFilePath(dirPath, file.Files[i].Name)
-		token, err := mintStreamGrant(d, source, childPath)
+		token, err := mintViewGrant(d, source, childPath)
 		if err != nil {
 			continue
 		}
-		file.Files[i].StreamToken = token
+		file.Files[i].ViewToken = token
 	}
 }

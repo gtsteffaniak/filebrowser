@@ -333,13 +333,13 @@ export default {
     },
     normalizeFormUser(raw) {
       const user = { ...(raw ?? {}) };
-      if (user.permissions == null && user.account?.permissions != null) {
+      if ((user.permissions === null || user.permissions === undefined) && user.account?.permissions !== null && user.account?.permissions !== undefined) {
         user.permissions = { ...user.account.permissions };
-        if (user.permissions.download == null) {
+        if (user.permissions.download === null || user.permissions.download === undefined) {
           user.permissions.download = true;
         }
       }
-      if (user.permissions == null) {
+      if (user.permissions === null || user.permissions === undefined) {
         user.permissions = this.defaultPermissions();
       }
       return user;

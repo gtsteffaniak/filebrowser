@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
@@ -66,28 +65,10 @@ func TestStreamUseRangeOnly(t *testing.T) {
 	t.Parallel()
 	mediaCtx := &requestContext{user: &users.User{FrontendUser: users.FrontendUser{Permissions: users.Permissions{Download: true}}}}
 	if !streamUseRangeOnly(mediaCtx, "clip.mp4") {
-		t.Fatal("expected range-only for video")
+		t.Fatal("expected range-only for stream endpoint")
 	}
-	if streamUseRangeOnly(mediaCtx, "notes.txt") {
-		t.Fatal("did not expect range-only for text when download allowed")
-	}
-
-	noDownload := &requestContext{user: &users.User{FrontendUser: users.FrontendUser{Permissions: users.Permissions{Download: false}}}}
-	if !streamUseRangeOnly(noDownload, "notes.txt") {
-		t.Fatal("expected range-only without download permission")
-	}
-
-	shareCtx := &requestContext{
-		user: &users.User{FrontendUser: users.FrontendUser{Permissions: users.Permissions{Download: true}}},
-		share: share.Share{
-			ShareColumns: share.ShareColumns{Hash: "abc"},
-			ShareSettings: share.ShareSettings{
-				FrontendShareInfo: share.FrontendShareInfo{DisableDownload: true},
-			},
-		},
-	}
-	if !streamUseRangeOnly(shareCtx, "notes.txt") {
-		t.Fatal("expected range-only for share with downloads disabled")
+	if !streamUseRangeOnly(mediaCtx, "notes.txt") {
+		t.Fatal("stream endpoint is always range-only")
 	}
 }
 

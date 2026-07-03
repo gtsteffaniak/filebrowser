@@ -496,9 +496,6 @@ definitions:
       source:
         description: associated index source for the file
         type: string
-      streamToken:
-        description: opaque token for inline streaming via /resources/stream
-        type: string
       subtitles:
         description: subtitles for video files
         items:
@@ -509,6 +506,9 @@ definitions:
         type: string
       type:
         description: type of the file, either "directory" or a file mimetype
+        type: string
+      viewToken:
+        description: opaque token for inline viewing via /resources/view or /media/stream
         type: string
     type: object
   iteminfo.ExtendedItemInfo:
@@ -535,11 +535,11 @@ definitions:
       size:
         description: length in bytes for regular files
         type: integer
-      streamToken:
-        description: opaque token for inline streaming via /resources/stream
-        type: string
       type:
         description: type of the file, either "directory" or a file mimetype
+        type: string
+      viewToken:
+        description: opaque token for inline viewing via /resources/view or /media/stream
         type: string
     type: object
   iteminfo.FileInfo:
@@ -3397,6 +3397,56 @@ paths:
       summary: Directory with media metadata
       tags:
       - Media
+  /api/media/stream:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing in capped byte ranges.
+        Requires a viewToken minted by GET /resources. Media files must use Range
+        requests; full-file GET responses are rejected. Never counts toward download
+        limits or activity.
+      parameters:
+      - description: Source name for the file (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque view grant token from file metadata
+        in: query
+        name: viewToken
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid view token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream content of a single media file for inline viewing
+      tags:
+      - Resources
   /api/media/subtitles:
     get:
       consumes:
@@ -4174,56 +4224,6 @@ paths:
       summary: Get image preview
       tags:
       - Resources
-  /api/resources/stream:
-    get:
-      consumes:
-      - application/json
-      description: Returns raw file bytes for inline UI viewing in capped byte ranges.
-        Requires a streamToken minted by GET /resources. Media files and restricted
-        viewers must use Range requests; full-file GET responses are rejected. Never
-        counts toward download limits or activity.
-      parameters:
-      - description: Source name for the file (required)
-        in: query
-        name: source
-        required: true
-        type: string
-      - description: File path
-        in: query
-        name: file
-        required: true
-        type: string
-      - description: Opaque stream grant token from file metadata
-        in: query
-        name: streamToken
-        required: true
-        type: string
-      responses:
-        "200":
-          description: Raw file content (inline)
-          schema:
-            type: file
-        "403":
-          description: Missing or invalid stream token
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: File not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Stream content of a single file for inline viewing
-      tags:
-      - Resources
   /api/resources/unarchive:
     post:
       consumes:
@@ -4287,6 +4287,55 @@ paths:
               type: string
             type: object
       summary: Extract an archive on the server
+      tags:
+      - Resources
+  /api/resources/view:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing. Requires a viewToken
+        minted by GET /resources. Never counts toward download limits or activity
+        and does not require download permission.
+      parameters:
+      - description: Source name for the file (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque view grant token from file metadata
+        in: query
+        name: viewToken
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid view token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View content of a single non-media file inline
       tags:
       - Resources
   /api/settings:
@@ -5278,6 +5327,57 @@ paths:
       summary: Directory with media metadata (public share)
       tags:
       - Media
+  /public/api/media/stream:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing in capped byte ranges
+        on a share link. Requires viewToken from GET /public/api/resources. Media
+        files must use Range requests. Does not count toward download limits.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque view grant token from share file metadata
+        in: query
+        name: viewToken
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid view token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream a single media file from a public share for inline viewing
+      tags:
+      - Resources
   /public/api/resources:
     get:
       consumes:
@@ -5797,14 +5897,12 @@ paths:
       summary: Get image/video preview from a public share
       tags:
       - Resources
-  /public/api/resources/stream:
+  /public/api/resources/view:
     get:
       consumes:
       - application/json
-      description: Returns raw file bytes for inline UI viewing in capped byte ranges
-        on a share link. Requires streamToken from GET /public/api/resources. Media
-        files and shares with downloads disabled must use Range requests. Does not
-        count toward download limits.
+      description: Returns raw file bytes for inline UI viewing on a share link. Requires
+        viewToken from GET /public/api/resources. Does not count toward download limits.
       parameters:
       - description: Share hash for authentication
         in: query
@@ -5816,9 +5914,9 @@ paths:
         name: file
         required: true
         type: string
-      - description: Opaque stream grant token from share file metadata
+      - description: Opaque view grant token from share file metadata
         in: query
-        name: streamToken
+        name: viewToken
         required: true
         type: string
       produces:
@@ -5829,7 +5927,7 @@ paths:
           schema:
             type: file
         "403":
-          description: Missing or invalid stream token
+          description: Missing or invalid view token
           schema:
             additionalProperties:
               type: string
@@ -5846,7 +5944,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Stream a single file from a public share for inline viewing
+      summary: View a single non-media file from a public share inline
       tags:
       - Resources
   /public/api/share/image:

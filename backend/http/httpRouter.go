@@ -32,6 +32,10 @@ import (
 //go:embed embed/*
 var assets embed.FS
 
+const (
+	mediaHandlerTimeout = 60 * time.Second
+)
+
 // GetEmbeddedAssets returns the embedded assets filesystem
 func GetEmbeddedAssets() embed.FS {
 	return assets
@@ -136,7 +140,7 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	api.HandleFunc("POST /resources/archive", withUser(archiveCreateHandler))
 	api.HandleFunc("POST /resources/unarchive", withUser(unarchiveHandler))
 	api.HandleFunc("GET /resources/download", withUser(downloadHandler))
-	api.HandleFunc("GET /resources/stream", withUser(streamHandler))
+	api.HandleFunc("GET /resources/view", withTimeout(mediaHandlerTimeout, withUserHelper(viewHandler)))
 	api.HandleFunc("GET /resources/preview", withTimeout(30*time.Second, withUserHelper(previewHandler)))
 	api.HandleFunc("POST /resources/pause", withUser(resourcePauseHandler))
 	publicApi.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
@@ -147,9 +151,12 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	publicApi.HandleFunc("DELETE /resources/bulk", withHashFile(publicBulkDeleteHandler))
 	publicApi.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
 	publicApi.HandleFunc("GET /resources/download", withHashFile(publicDownloadHandler))
-	publicApi.HandleFunc("GET /resources/stream", withHashFile(publicStreamHandler))
+	publicApi.HandleFunc("GET /resources/view", withTimeout(mediaHandlerTimeout, withHashFileHelper(publicViewHandler)))
 	publicApi.HandleFunc("GET /resources/preview", withTimeout(30*time.Second, withHashFileHelper(publicPreviewHandler)))
 	publicApi.HandleFunc("POST /resources/pause", withHashFile(publicPauseHandler))
+	// Legacy routes (backwards compatibility)
+	api.HandleFunc("GET /raw", withUser(downloadHandler))
+	publicApi.HandleFunc("GET /raw", withHashFile(publicDownloadHandler))
 
 	// ========================================
 	// Access Routes - /api/access/
@@ -196,11 +203,13 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	// ========================================
 	// Media Routes - /api/media/ (with public routes)
 	// ========================================
-	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
-	api.HandleFunc("GET /media/metadata", withUser(metadataHandler))
-	api.HandleFunc("GET /media/lyrics", withUser(lyricsHandler))
-	publicApi.HandleFunc("GET /media/metadata", withHashFile(publicMetadataHandler))
-	publicApi.HandleFunc("GET /media/lyrics", withHashFile(publicLyricsHandler))
+	api.HandleFunc("GET /media/subtitles", withTimeout(mediaHandlerTimeout, withUserHelper(subtitlesHandler)))
+	api.HandleFunc("GET /media/metadata", withTimeout(mediaHandlerTimeout, withUserHelper(metadataHandler)))
+	api.HandleFunc("GET /media/lyrics", withTimeout(mediaHandlerTimeout, withUserHelper(lyricsHandler)))
+	api.HandleFunc("GET /media/stream", withTimeout(mediaHandlerTimeout, withUserHelper(streamHandler)))
+	publicApi.HandleFunc("GET /media/metadata", withTimeout(mediaHandlerTimeout, withHashFileHelper(publicMetadataHandler)))
+	publicApi.HandleFunc("GET /media/lyrics", withTimeout(mediaHandlerTimeout, withHashFileHelper(publicLyricsHandler)))
+	publicApi.HandleFunc("GET /media/stream", withTimeout(mediaHandlerTimeout, withHashFileHelper(publicStreamHandler)))
 
 	// ========================================
 	// OnlyOffice Routes - /api/office/ (with public routes)

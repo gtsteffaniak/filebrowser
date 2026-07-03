@@ -1,8 +1,8 @@
 package utils
 
-// StreamGrant authorizes inline streaming of a single file for a specific viewer.
+// ViewGrant authorizes inline viewing/streaming of a single file for a specific viewer.
 // UserID is internal only and never exposed to clients.
-type StreamGrant struct {
+type ViewGrant struct {
 	UserID    uint64
 	ShareHash string
 	Source    string
