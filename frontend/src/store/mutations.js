@@ -934,19 +934,23 @@ export const mutations = {
     }
   },
   getPrefetchUrl: (item) => {
+    const viewToken = item.viewToken;
+    const typeHint = item.type || item.name;
     if (getters.isShare()) {
       return resourcesApi.getViewURL(
         item.source,
         item.path,
-        item.streamToken,
+        viewToken,
         {
           path: item.path,
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
         },
+        false,
+        typeHint,
       );
     }
-    return resourcesApi.getViewURL(item.source, item.path, item.streamToken);
+    return resourcesApi.getViewURL(item.source, item.path, viewToken, null, false, typeHint);
   },
   setNavigationShow: (show) => {
     if (state.navigation.show === show) {

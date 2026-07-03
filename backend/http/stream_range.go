@@ -17,18 +17,9 @@ const maxStreamRangeBytes = 4 << 20 // 4 MiB
 var errStreamRangeInvalid = errors.New("invalid byte range")
 
 // streamUseRangeOnly reports whether the stream endpoint must serve capped partial
-// content only (never a full-file 200 response).
-func streamUseRangeOnly(d *requestContext, displayFileName string) bool {
-	if isMediaStreamFile(displayFileName) {
-		return true
-	}
-	if d.share.Hash != "" && d.share.DisableDownload {
-		return true
-	}
-	if d.share.Hash == "" && d.user != nil && !d.user.Permissions.Download {
-		return true
-	}
-	return false
+// content only (never a full-file 200 response). The stream endpoint is media-only.
+func streamUseRangeOnly(_ *requestContext, _ string) bool {
+	return true
 }
 
 func isMediaStreamFile(displayFileName string) bool {

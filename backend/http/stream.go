@@ -114,19 +114,19 @@ func streamFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	})
 }
 
-// streamHandler serves inline file content for UI viewing with a valid streamToken.
-// @Summary Stream content of a single file for inline viewing
-// @Description Returns raw file bytes for inline UI viewing in capped byte ranges. Requires a streamToken minted by GET /resources. Media files and restricted viewers must use Range requests; full-file GET responses are rejected. Never counts toward download limits or activity.
+// streamHandler serves inline audio/video content with a valid viewToken.
+// @Summary Stream content of a single media file for inline viewing
+// @Description Returns raw file bytes for inline UI viewing in capped byte ranges. Requires a viewToken minted by GET /resources. Media files must use Range requests; full-file GET responses are rejected. Never counts toward download limits or activity.
 // @Tags Resources
 // @Accept json
 // @Param source query string true "Source name for the file (required)"
 // @Param file query string true "File path"
-// @Param streamToken query string true "Opaque stream grant token from file metadata"
+// @Param viewToken query string true "Opaque view grant token from file metadata"
 // @Success 200 {file} file "Raw file content (inline)"
-// @Failure 403 {object} map[string]string "Missing or invalid stream token"
+// @Failure 403 {object} map[string]string "Missing or invalid view token"
 // @Failure 404 {object} map[string]string "File not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/resources/stream [get]
+// @Router /api/media/stream [get]
 func streamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if r.URL.Query().Get("archiveToken") != "" || r.URL.Query().Get("algo") != "" {
 		return http.StatusForbidden, fmt.Errorf("archives not supported on stream endpoint")
@@ -136,16 +136,19 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if len(fileList) != 1 {
 		return http.StatusForbidden, fmt.Errorf("stream supports single file only")
 	}
-	token := r.URL.Query().Get("streamToken")
+	token := r.URL.Query().Get("viewToken")
 	if token == "" {
-		return http.StatusForbidden, fmt.Errorf("stream token required")
+		return http.StatusForbidden, fmt.Errorf("view token required")
 	}
 	cleanPath, err := utils.SanitizePath(fileList[0])
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 	}
-	if err = validateStreamGrant(token, d, source, cleanPath); err != nil {
+	if err = validateViewGrant(token, d, source, cleanPath); err != nil {
 		return http.StatusForbidden, err
+	}
+	if !isMediaStreamFile(filepath.Base(cleanPath)) {
+		return http.StatusForbidden, fmt.Errorf("stream endpoint supports audio and video only")
 	}
 
 	userscope, err := d.user.GetScopeForSourceName(source)
@@ -156,20 +159,20 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	return streamFilesHandler(w, r, d, source, []string{scopedPath})
 }
 
-// publicStreamHandler serves inline file content from a public share with a valid streamToken.
-// @Summary Stream a single file from a public share for inline viewing
-// @Description Returns raw file bytes for inline UI viewing in capped byte ranges on a share link. Requires streamToken from GET /public/api/resources. Media files and shares with downloads disabled must use Range requests. Does not count toward download limits.
+// publicStreamHandler serves inline audio/video content from a public share with a valid viewToken.
+// @Summary Stream a single media file from a public share for inline viewing
+// @Description Returns raw file bytes for inline UI viewing in capped byte ranges on a share link. Requires viewToken from GET /public/api/resources. Media files must use Range requests. Does not count toward download limits.
 // @Tags Resources
 // @Accept json
 // @Produce octet-stream
 // @Param hash query string true "Share hash for authentication"
 // @Param file query string true "File path within the share"
-// @Param streamToken query string true "Opaque stream grant token from share file metadata"
+// @Param viewToken query string true "Opaque view grant token from share file metadata"
 // @Success 200 {file} file "Raw file content (inline)"
-// @Failure 403 {object} map[string]string "Missing or invalid stream token"
+// @Failure 403 {object} map[string]string "Missing or invalid view token"
 // @Failure 404 {object} map[string]string "Share or file not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /public/api/resources/stream [get]
+// @Router /public/api/media/stream [get]
 func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("streaming is disabled for upload shares")
@@ -181,9 +184,9 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if len(files) != 1 {
 		return http.StatusForbidden, fmt.Errorf("stream supports single file only")
 	}
-	token := r.URL.Query().Get("streamToken")
+	token := r.URL.Query().Get("viewToken")
 	if token == "" {
-		return http.StatusForbidden, fmt.Errorf("stream token required")
+		return http.StatusForbidden, fmt.Errorf("view token required")
 	}
 	cleanFile, err := utils.SanitizePath(files[0])
 	if err != nil {
@@ -193,8 +196,11 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}
-	if err = validateStreamGrant(token, d, sourceInfo.Name, cleanFile); err != nil {
+	if err = validateViewGrant(token, d, sourceInfo.Name, cleanFile); err != nil {
 		return http.StatusForbidden, err
+	}
+	if !isMediaStreamFile(filepath.Base(cleanFile)) {
+		return http.StatusForbidden, fmt.Errorf("stream endpoint supports audio and video only")
 	}
 	scopedPath := utils.JoinPathAsUnix(d.share.Path, cleanFile)
 	status, err := streamFilesHandler(w, r, d, sourceInfo.Name, []string{scopedPath})

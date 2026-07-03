@@ -121,7 +121,7 @@ export default {
     isMobile() { return getters.isMobile(); },
     hasAnimations() { return this.animations && this.animations.length > 0; },
     modelUrl() {
-      return this.resourceDownloadUrl(this.fbdata.path);
+      return this.resourceViewUrl(this.fbdata.path);
     },
     fileExtension() {
       return this.fbdata.name ? this.fbdata.name.split('.').pop().toLowerCase() : '';
@@ -338,23 +338,39 @@ export default {
       }
     },
 
-    /** Download URL for a model or sibling asset. 3D loaders need full files; stream tokens only cover listed paths. */
-    resourceDownloadUrl(filePath) {
+    /** View URL for a model or sibling asset via viewToken (non-metered). */
+    resourceViewUrl(filePath) {
       if (!filePath) {
         return "";
       }
+      const viewToken = this.resolveViewTokenForPath(filePath);
+      const typeHint = filePath.split("/").pop() || filePath;
       if (getters.isShare()) {
-        return resourcesApi.getOpenFileURL(
+        return resourcesApi.getViewURL(
           this.fbdata.source,
           filePath,
+          viewToken,
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
           },
+          false,
+          typeHint,
         );
       }
-      return resourcesApi.getOpenFileURL(this.fbdata.source, filePath);
+      return resourcesApi.getViewURL(this.fbdata.source, filePath, viewToken, null, false, typeHint);
+    },
+
+    resolveViewTokenForPath(filePath) {
+      if (filePath === this.fbdata.path && this.fbdata.viewToken) {
+        return this.fbdata.viewToken;
+      }
+      const name = filePath.split("/").filter(Boolean).pop();
+      const sibling = this.fbdata.parentDirItems?.find(
+        (item) => item.name === name || item.path === filePath,
+      );
+      return sibling?.viewToken;
     },
 
     resolveTextureUrl(url) {
@@ -364,12 +380,16 @@ export default {
       if (url.startsWith("blob:") || url.startsWith("data:")) {
         return url;
       }
-      if (url.includes("/api/resources/stream?") || url.includes("/api/resources/download?")) {
+      if (
+        url.includes("/api/media/stream?") ||
+        url.includes("/api/resources/view?") ||
+        url.includes("/api/resources/download?")
+      ) {
         try {
           const parsed = new URL(url, window.origin);
           const filePath = parsed.searchParams.get("file") || parsed.searchParams.getAll("file")[0];
           if (filePath) {
-            return this.resourceDownloadUrl(filePath);
+            return this.resourceViewUrl(filePath);
           }
         } catch {
           return url;
@@ -402,7 +422,7 @@ export default {
       } else {
         texturePath = `${modelDir}/textures/${filename}`;
       }
-      return this.resourceDownloadUrl(texturePath);
+      return this.resourceViewUrl(texturePath);
     },
 
     async loadModel() {
@@ -487,7 +507,7 @@ export default {
       // Remove trailing slash if present before replacing extension
       const cleanPath = this.fbdata.path.replace(/\/$/, '');
       const mtlPath = cleanPath.replace(/\.obj$/i, '.mtl');
-      const mtlUrl = this.resourceDownloadUrl(mtlPath);
+      const mtlUrl = this.resourceViewUrl(mtlPath);
       if (!mtlUrl) {
         this.doLoad(loader);
         return;

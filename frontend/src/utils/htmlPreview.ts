@@ -46,6 +46,21 @@ const RESOURCE_ATTRIBUTES: Array<[string, string]> = [
 
 const ALLOWED_ABSOLUTE_URI_PATTERN = /^(https?:|data:|mailto:|tel:|#)/i;
 
+function viewTokenForSibling(resolvedPath: string): string | undefined {
+  const items = state.req?.parentDirItems;
+  if (!items?.length) {
+    return undefined;
+  }
+  const name = resolvedPath.split("/").filter(Boolean).pop();
+  if (!name) {
+    return undefined;
+  }
+  const item = items.find(
+    (entry) => entry.name === name || entry.path === resolvedPath || entry.path?.endsWith(`/${name}`),
+  );
+  return item?.viewToken;
+}
+
 export function isLocalResourceReference(href: string): boolean {
   if (!href || typeof href !== "string") {
     return false;
@@ -67,22 +82,24 @@ export function buildPreviewResourceUrl(
   }
 
   const resolvedPath = resolveRelativePath(baseFilePath, href);
+  const viewToken = viewTokenForSibling(resolvedPath);
 
   try {
     if (getters.isShare()) {
       return getViewURL(
         source,
         resolvedPath,
-        null,
+        viewToken,
         {
           path: state.shareInfo.subPath,
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
         },
-        true,
+        !viewToken,
+        resolvedPath,
       );
     }
-    return getViewURL(source, resolvedPath, null, null, true);
+    return getViewURL(source, resolvedPath, viewToken, null, !viewToken, resolvedPath);
   } catch {
     return href;
   }

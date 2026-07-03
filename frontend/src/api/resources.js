@@ -8,7 +8,9 @@ import {
 } from '@/utils/appNotifications'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
-import { getObjectProperty } from '@/utils/object' 
+import { getObjectProperty } from '@/utils/object'
+import { isMediaFile } from '@/utils/mediaFile'
+import { getStreamURL, getStreamURLPublic } from './media'
 
 export { fetchPreviewImage } from '@/utils/previewRequests'
 
@@ -824,49 +826,6 @@ export async function checksum(source, path, algo) {
   }
 }
 
-export function getStreamURL(source, path, streamToken) {
-  if (!source || source === undefined || source === null) {
-    throw new Error('no source provided')
-  }
-  if (!streamToken) {
-    throw new Error('stream token required')
-  }
-  try {
-    const params = {
-      source: source,
-      file: path,
-      streamToken: streamToken,
-      sessionId: state.sessionId,
-    }
-    const apiPath = getApiPath('resources/stream', params)
-    return window.origin + apiPath
-  } catch (err) {
-    notify.showError(err.message || 'Error getting stream URL')
-    throw err
-  }
-}
-
-/**
- * Stream URL for inline viewing. Requires streamToken; returns null when unavailable
- * so callers do not fall back to metered /download URLs.
- * Pass allowDownloadFallback=true only for HTML sibling assets without tokens.
- */
-export function getViewURL(source, path, streamToken, shareInfo = null, allowDownloadFallback = false) {
-  if (streamToken) {
-    if (shareInfo) {
-      return getStreamURLPublic(shareInfo, [path], streamToken)
-    }
-    return getStreamURL(source, path, streamToken)
-  }
-  if (!allowDownloadFallback) {
-    return null
-  }
-  if (shareInfo) {
-    return getDownloadURLPublic(shareInfo, [path], true)
-  }
-  return getDownloadURL(source, path, true)
-}
-
 /**
  * URL to open a file inline in a new browser tab via the download endpoint.
  * Uses inline disposition and respects download permissions and share limits.
@@ -878,20 +837,71 @@ export function getOpenFileURL(source, path, shareInfo = null) {
   return getDownloadURL(source, path, true)
 }
 
-export function getStreamURLPublic(share, files, streamToken) {
-  if (!streamToken) {
-    throw new Error('stream token required')
+// GET /api/resources/view — inline non-media bytes via viewToken (not download-metered).
+export function getRawViewURL(source, path, viewToken) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  if (!viewToken) {
+    throw new Error('view token required')
+  }
+  try {
+    const params = {
+      source: source,
+      file: path,
+      viewToken: viewToken,
+      sessionId: state.sessionId,
+    }
+    const apiPath = getApiPath('resources/view', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting view URL')
+    throw err
+  }
+}
+
+// GET /public/api/resources/view
+export function getRawViewURLPublic(share, files, viewToken) {
+  if (!viewToken) {
+    throw new Error('view token required')
   }
   const fileArray = Array.isArray(files) ? files : [files]
   const params = {
     file: fileArray,
     hash: share.hash,
     token: share.token,
-    streamToken: streamToken,
+    viewToken: viewToken,
     sessionId: state.sessionId,
   }
-  const apiPath = getPublicApiPath('resources/stream', params)
+  const apiPath = getPublicApiPath('resources/view', params)
   return window.origin + apiPath
+}
+
+/**
+ * URL for inline viewing. Routes audio/video to /media/stream and other files to /resources/view.
+ */
+export function getViewURL(source, path, viewToken, shareInfo = null, allowDownloadFallback = false, mimeOrName = '') {
+  const typeHint = mimeOrName || path
+
+  if (viewToken) {
+    if (isMediaFile(typeHint)) {
+      if (shareInfo) {
+        return getStreamURLPublic(shareInfo, [path], viewToken)
+      }
+      return getStreamURL(source, path, viewToken)
+    }
+    if (shareInfo) {
+      return getRawViewURLPublic(shareInfo, [path], viewToken)
+    }
+    return getRawViewURL(source, path, viewToken)
+  }
+  if (!allowDownloadFallback) {
+    return null
+  }
+  if (shareInfo) {
+    return getDownloadURLPublic(shareInfo, [path], true)
+  }
+  return getDownloadURL(source, path, true)
 }
 
 export function getDownloadURL(source, path, inline, useExternal) {

@@ -85,7 +85,7 @@
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
             v-bind:pinned="item.pinned"
-            v-bind:streamToken="item.streamToken"
+            v-bind:viewToken="item.viewToken"
           />
         </div>
 
@@ -116,7 +116,7 @@
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
             v-bind:pinned="item.pinned"
-            v-bind:streamToken="item.streamToken"
+            v-bind:viewToken="item.viewToken"
           />
         </div>
 
@@ -148,7 +148,7 @@
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
             v-bind:pinned="item.pinned"
-            v-bind:streamToken="item.streamToken"
+            v-bind:viewToken="item.viewToken"
           />
         </div>
 

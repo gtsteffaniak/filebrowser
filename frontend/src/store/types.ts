@@ -8,7 +8,7 @@ export interface FileListItem {
   source?: string;
   modified?: string;
   hasPreview?: boolean;
-  streamToken?: string;
+  viewToken?: string;
   isShared?: boolean;
   pinned?: boolean;
   hidden?: boolean;
@@ -34,7 +34,7 @@ export interface ReqObject {
   modified?: string;
   hasPreview?: boolean;
   subtitles?: unknown[];
-  streamToken?: string;
+  viewToken?: string;
   parentDirItems?: FileListItem[];
 
   // Directory listing properties
@@ -167,7 +167,7 @@ export interface StoreState {
       source: string;
       size?: number;
       type: string;
-      streamToken?: string;
+      viewToken?: string;
       parentDirItems?: FileListItem[];
     };
   } | null;

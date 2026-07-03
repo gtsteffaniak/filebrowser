@@ -44,7 +44,7 @@
         :source="source"
         :size="size"
         :isShared="isShared"
-        :streamToken="streamToken"
+        :viewToken="viewToken"
       />
     </div>
 
@@ -118,7 +118,7 @@
         :source="source"
         :size="size"
         :isShared="isShared"
-        :streamToken="streamToken"
+        :viewToken="viewToken"
       />
     </div>
 
@@ -226,7 +226,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    streamToken: {
+    viewToken: {
       type: String,
       default: "",
     },

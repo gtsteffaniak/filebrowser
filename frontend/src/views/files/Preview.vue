@@ -171,6 +171,8 @@ export default {
       return state.req.type === 'application/pdf';
     },
     raw() {
+      const viewToken = state.req.viewToken;
+      const typeHint = state.req.type || state.req.name;
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
 
       if (state.isSafari && isHeicOrHeif) {
@@ -178,15 +180,17 @@ export default {
           return resourcesApi.getViewURL(
             state.req.source,
             state.req.path,
-            state.req.streamToken,
+            viewToken,
             {
               path: state.shareInfo.subPath,
               hash: state.shareInfo.hash,
               token: state.shareInfo.token,
             },
+            false,
+            typeHint,
           );
         }
-        return resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
+        return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
       }
 
       const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
@@ -208,15 +212,17 @@ export default {
         return resourcesApi.getViewURL(
           state.req.source,
           state.req.path,
-          state.req.streamToken,
+        viewToken,
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
           },
+          false,
+          typeHint,
         );
       }
-      return resourcesApi.getViewURL(state.req.source, state.req.path, state.req.streamToken);
+      return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -563,22 +569,26 @@ export default {
     },
 
     prefetchUrl(item) {
+      const viewToken = item.viewToken || state.req.viewToken;
+      const typeHint = item.type || item.name;
       if (getters.isShare()) {
         return this.fullSize
           ? resourcesApi.getViewURL(
               state.req.source,
               item.path,
-              item.streamToken || state.req.streamToken,
+              viewToken,
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
                 token: state.shareInfo?.token,
               },
+              false,
+              typeHint,
             )
           : resourcesApi.getPreviewURLPublic(item.path);
       }
       return this.fullSize
-        ? resourcesApi.getViewURL(state.req.source, item.path, item.streamToken)
+        ? resourcesApi.getViewURL(state.req.source, item.path, viewToken, null, false, typeHint)
         : resourcesApi.getPreviewURL(
             state.req.source,
             item.path,

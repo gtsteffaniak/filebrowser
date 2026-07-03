@@ -9,16 +9,34 @@ vi.mock("@/utils/constants", () => ({
 
 vi.mock("@/store", () => ({
   getters: { isShare: () => false },
-  state: { shareInfo: { subPath: "", hash: "", token: "" } },
+  state: {
+    shareInfo: { subPath: "", hash: "", token: "" },
+    req: {
+      parentDirItems: [
+        { name: "app.js", viewToken: "view-token" },
+        { name: "theme.css", viewToken: "view-token" },
+        { name: "a.png", viewToken: "view-token" },
+        { name: "small.png", viewToken: "view-token" },
+        { name: "large.png", viewToken: "view-token" },
+        { name: "roboto.woff2", viewToken: "view-token" },
+        { name: "bg.png", viewToken: "view-token" },
+        { name: "photo.jpg", viewToken: "view-token" },
+        { name: "photo-2x.jpg", viewToken: "view-token" },
+        { name: "other.html", viewToken: "view-token" },
+      ],
+    },
+  },
 }));
 
 vi.mock("@/api/resources", () => ({
   getDownloadURL: (_source, path) =>
     `http://localhost/api/resources/download?file=${encodeURIComponent(path)}&inline=true`,
-  getViewURL: (_source, path) =>
-    `http://localhost/api/resources/stream?file=${encodeURIComponent(path)}&streamToken=test-token`,
   getDownloadURLPublic: () => "http://localhost/public/download",
+  getViewURL: (_source, path) =>
+    `http://localhost/api/resources/view?file=${encodeURIComponent(path)}&viewToken=test-view-token`,
 }));
+
+vi.mock("@/api/media", () => ({}));
 
 import {
   buildHtmlPreview,

@@ -15,7 +15,7 @@
         source: source,
         size: size,
         type: mimetype,
-        streamToken: streamToken,
+        viewToken: viewToken,
       }"
       :is-thumbnail="true"
       :add-load-delay="true"
@@ -91,7 +91,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    streamToken: {
+    viewToken: {
       type: String,
       default: "",
     },
@@ -339,7 +339,7 @@ export default {
             source,
             size: this.size,
             type: this.mimetype,
-            streamToken: this.streamToken,
+            viewToken: this.viewToken,
           },
         };
         return;

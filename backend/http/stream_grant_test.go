@@ -12,73 +12,73 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
-func TestMintAndValidateStreamGrant(t *testing.T) {
+func TestMintAndValidateViewGrant(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{
 		user: &users.User{ID: 42, FrontendUser: users.FrontendUser{Username: "alice"}},
 	}
-	token, err := mintStreamGrant(d, "default", "/docs/readme.txt")
+	token, err := mintViewGrant(d, "default", "/docs/track.mp3")
 	if err != nil {
-		t.Fatalf("mintStreamGrant: %v", err)
+		t.Fatalf("mintViewGrant: %v", err)
 	}
 	if token == "" {
 		t.Fatal("expected non-empty token")
 	}
-	if err := validateStreamGrant(token, d, "default", "/docs/readme.txt"); err != nil {
-		t.Fatalf("validateStreamGrant: %v", err)
+	if err := validateViewGrant(token, d, "default", "/docs/track.mp3"); err != nil {
+		t.Fatalf("validateViewGrant: %v", err)
 	}
 }
 
-func TestValidateStreamGrantWrongUser(t *testing.T) {
+func TestValidateViewGrantWrongUser(t *testing.T) {
 	t.Parallel()
 	owner := &requestContext{user: &users.User{ID: 1}}
 	other := &requestContext{user: &users.User{ID: 2}}
-	token, err := mintStreamGrant(owner, "default", "/a.txt")
+	token, err := mintViewGrant(owner, "default", "/a.mp3")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := validateStreamGrant(token, other, "default", "/a.txt"); err == nil {
+	if err := validateViewGrant(token, other, "default", "/a.mp3"); err == nil {
 		t.Fatal("expected viewer mismatch error")
 	}
 }
 
-func TestValidateStreamGrantWrongPath(t *testing.T) {
+func TestValidateViewGrantWrongPath(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{user: &users.User{ID: 1}}
-	token, err := mintStreamGrant(d, "default", "/a.txt")
+	token, err := mintViewGrant(d, "default", "/a.mp3")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := validateStreamGrant(token, d, "default", "/b.txt"); err == nil {
+	if err := validateViewGrant(token, d, "default", "/b.mp3"); err == nil {
 		t.Fatal("expected path mismatch error")
 	}
 }
 
-func TestValidateStreamGrantExpired(t *testing.T) {
+func TestValidateViewGrantExpired(t *testing.T) {
 	t.Parallel()
 	token, err := utils.RandomHex(16)
 	if err != nil {
 		t.Fatal(err)
 	}
-	utils.StreamGrantsCache.Set(token, utils.StreamGrant{
+	utils.ViewGrantsCache.Set(token, utils.ViewGrant{
 		UserID:    1,
 		Source:    "default",
-		Path:      "/a.txt",
+		Path:      "/a.mp3",
 		ExpiresAt: time.Now().Add(-time.Minute).Unix(),
 	})
 	d := &requestContext{user: &users.User{ID: 1}}
-	if err := validateStreamGrant(token, d, "default", "/a.txt"); err == nil {
+	if err := validateViewGrant(token, d, "default", "/a.mp3"); err == nil {
 		t.Fatal("expected expired token error")
 	}
 }
 
-func TestValidateStreamGrantShareBinding(t *testing.T) {
+func TestValidateViewGrantShareBinding(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{
 		user:  &users.User{ID: 1},
 		share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
 	}
-	token, err := mintStreamGrant(d, "srv", "/file.txt")
+	token, err := mintViewGrant(d, "srv", "/file.mp3")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,42 +86,108 @@ func TestValidateStreamGrantShareBinding(t *testing.T) {
 		user:  &users.User{ID: 1},
 		share: share.Share{ShareColumns: share.ShareColumns{Hash: "other"}},
 	}
-	if err := validateStreamGrant(token, wrongShare, "srv", "/file.txt"); err == nil {
+	if err := validateViewGrant(token, wrongShare, "srv", "/file.mp3"); err == nil {
 		t.Fatal("expected share mismatch error")
 	}
 }
 
+func TestAttachViewTokenForAllFileTypes(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{user: &users.User{ID: 7}}
+	audio := &iteminfo.ExtendedFileInfo{
+		FileInfo: iteminfo.FileInfo{
+			ItemInfo: iteminfo.ItemInfo{Name: "song.mp3", Type: "audio/mpeg"},
+		},
+	}
+	attachViewToken(d, "default", "/song.mp3", audio)
+	if audio.ViewToken == "" {
+		t.Fatal("expected view token on audio file")
+	}
+	doc := &iteminfo.ExtendedFileInfo{
+		FileInfo: iteminfo.FileInfo{
+			ItemInfo: iteminfo.ItemInfo{Name: "readme.txt", Type: "text/plain"},
+		},
+	}
+	attachViewToken(d, "default", "/readme.txt", doc)
+	if doc.ViewToken == "" {
+		t.Fatal("expected view token on non-media file")
+	}
+}
 
-func TestAttachStreamTokensForDirectory(t *testing.T) {
+func TestAttachViewTokensForDirectory(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{user: &users.User{ID: 7}}
 	file := &iteminfo.ExtendedFileInfo{
 		FileInfo: iteminfo.FileInfo{
 			ItemInfo: iteminfo.ItemInfo{Type: "directory"},
 			Files: []iteminfo.ExtendedItemInfo{
-				{ItemInfo: iteminfo.ItemInfo{Name: "a.jpg", Type: "image/jpeg"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "song.mp3", Type: "audio/mpeg"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "photo.jpg", Type: "image/jpeg"}},
 				{ItemInfo: iteminfo.ItemInfo{Name: "nested", Type: "directory"}},
 			},
 		},
 	}
-	attachStreamTokensForDirectory(d, "Downloads", "/photos/", file)
-	if file.Files[0].StreamToken == "" {
-		t.Fatal("expected stream token on directory child file")
+	attachViewTokensForDirectory(d, "Downloads", "/media/", file)
+	if file.Files[0].ViewToken == "" {
+		t.Fatal("expected view token on audio file")
 	}
-	if file.Files[1].StreamToken != "" {
-		t.Fatal("did not expect stream token on directory child folder")
+	if file.Files[1].ViewToken == "" {
+		t.Fatal("expected view token on image file")
 	}
-	token := file.Files[0].StreamToken
-	if err := validateStreamGrant(token, d, "Downloads", "/photos/a.jpg"); err != nil {
-		t.Fatalf("validate child grant: %v", err)
+	if file.Files[2].ViewToken != "" {
+		t.Fatal("did not expect token on directory child folder")
+	}
+	if err := validateViewGrant(file.Files[0].ViewToken, d, "Downloads", "/media/song.mp3"); err != nil {
+		t.Fatalf("validate audio grant: %v", err)
+	}
+	if err := validateViewGrant(file.Files[1].ViewToken, d, "Downloads", "/media/photo.jpg"); err != nil {
+		t.Fatalf("validate image grant: %v", err)
 	}
 }
 
 func TestStreamHandlerRejectsMissingToken(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{user: &users.User{ID: 1}}
-	req := httptest.NewRequest(http.MethodGet, "/api/resources/stream?source=default&file=/a.txt", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/media/stream?source=default&file=/a.mp3", nil)
 	status, err := streamHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusForbidden || err == nil {
+		t.Fatalf("expected 403, got status=%d err=%v", status, err)
+	}
+}
+
+func TestStreamHandlerRejectsNonMedia(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{user: &users.User{ID: 1}}
+	token, err := mintViewGrant(d, "default", "/doc.pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodGet, "/api/media/stream?source=default&file=/doc.pdf&viewToken="+token, nil)
+	status, err := streamHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusForbidden || err == nil {
+		t.Fatalf("expected 403 for non-media, got status=%d err=%v", status, err)
+	}
+}
+
+func TestViewHandlerRejectsMedia(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{user: &users.User{ID: 1}}
+	token, err := mintViewGrant(d, "default", "/clip.mp4")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/view?source=default&file=/clip.mp4&viewToken="+token, nil)
+	status, err := viewHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusForbidden || err == nil {
+		t.Fatalf("expected 403 for media on view endpoint, got status=%d err=%v", status, err)
+	}
+}
+
+func TestViewHandlerRejectsMissingToken(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{user: &users.User{ID: 1}}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/view?source=default&file=/a.txt", nil)
+	status, err := viewHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
 		t.Fatalf("expected 403, got status=%d err=%v", status, err)
 	}
@@ -130,7 +196,7 @@ func TestStreamHandlerRejectsMissingToken(t *testing.T) {
 func TestStreamHandlerRejectsMultiFile(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{user: &users.User{ID: 1}}
-	req := httptest.NewRequest(http.MethodGet, "/api/resources/stream?source=default&file=/a.txt&file=/b.txt&streamToken=tok", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/media/stream?source=default&file=/a.mp3&file=/b.mp3&viewToken=tok", nil)
 	status, err := streamHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
 		t.Fatalf("expected 403 for multi-file, got status=%d err=%v", status, err)
@@ -140,14 +206,24 @@ func TestStreamHandlerRejectsMultiFile(t *testing.T) {
 func TestStreamHandlerRejectsArchiveParams(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{user: &users.User{ID: 1}}
-	req := httptest.NewRequest(http.MethodGet, "/api/resources/stream?source=default&file=/a.txt&streamToken=tok&algo=zip", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/media/stream?source=default&file=/a.mp3&viewToken=tok&algo=zip", nil)
 	status, err := streamHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
 		t.Fatalf("expected 403 for algo param, got status=%d err=%v", status, err)
 	}
-	req = httptest.NewRequest(http.MethodGet, "/api/resources/stream?source=default&file=/a.txt&streamToken=tok&archiveToken=abc", nil)
+	req = httptest.NewRequest(http.MethodGet, "/api/media/stream?source=default&file=/a.mp3&viewToken=tok&archiveToken=abc", nil)
 	status, err = streamHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
 		t.Fatalf("expected 403 for archiveToken param, got status=%d err=%v", status, err)
+	}
+}
+
+func TestViewHandlerRejectsArchiveParams(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{user: &users.User{ID: 1}}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/view?source=default&file=/a.txt&viewToken=tok&algo=zip", nil)
+	status, err := viewHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusForbidden || err == nil {
+		t.Fatalf("expected 403 for algo param, got status=%d err=%v", status, err)
 	}
 }
