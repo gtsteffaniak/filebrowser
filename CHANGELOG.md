@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
 A database migration is required to go from v1.x to this version. See docs.
 
  **New Features**:
- - Download grant mechanism to distinguish between UI viewing and download.
+ - View grant mechanism to distinguish between UI viewing and download.
  - ffmpeg hardware acceleration detection and support via go-ffmpeg
   - video streaming is limited to viewing only.
  # - granular per source permissions and access

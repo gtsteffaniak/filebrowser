@@ -16,6 +16,7 @@
         size: size,
         type: mimetype,
         viewToken: viewToken,
+        parentDirItems: parentDirItemsForPreview,
       }"
       :is-thumbnail="true"
       :add-load-delay="true"
@@ -240,6 +241,17 @@ export default {
       const typeInfo = this.getIconForType();
       return typeInfo.simpleType === '3d-model';
     },
+    /** Directory listing items for sibling viewToken lookup in 3D previews. */
+    parentDirItemsForPreview() {
+      const req = state.req;
+      if (!req) {
+        return undefined;
+      }
+      if (req.type === "directory" && req.items?.length) {
+        return req.items;
+      }
+      return req.parentDirItems;
+    },
     gallerySizeKey() {
       // Returns gallery size to force 3D preview re-initialization on size change
       // Also includes view mode to handle view changes
@@ -340,6 +352,7 @@ export default {
             size: this.size,
             type: this.mimetype,
             viewToken: this.viewToken,
+            parentDirItems: this.parentDirItemsForPreview,
           },
         };
         return;

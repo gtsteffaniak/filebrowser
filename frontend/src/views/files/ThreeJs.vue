@@ -115,6 +115,8 @@ export default {
       loadTimer: null,
       hasInitialized: false,
       isInView: false,
+      viewTokenByPath: {},
+      fetchedDirs: new Set(),
     };
   },
   computed: {
@@ -344,9 +346,13 @@ export default {
         return "";
       }
       const viewToken = this.resolveViewTokenForPath(filePath);
+      if (!viewToken) {
+        return "";
+      }
       const typeHint = filePath.split("/").pop() || filePath;
+      let url;
       if (getters.isShare()) {
-        return resourcesApi.getViewURL(
+        url = resourcesApi.getViewURL(
           this.fbdata.source,
           filePath,
           viewToken,
@@ -358,18 +364,117 @@ export default {
           false,
           typeHint,
         );
+      } else {
+        url = resourcesApi.getViewURL(this.fbdata.source, filePath, viewToken, null, false, typeHint);
       }
-      return resourcesApi.getViewURL(this.fbdata.source, filePath, viewToken, null, false, typeHint);
+      return url || "";
+    },
+
+    normalizeAssetPath(filePath) {
+      if (!filePath) {
+        return filePath;
+      }
+      const trimmed = filePath.replace(/\/+$/, "");
+      return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+    },
+
+    indexViewTokens(items) {
+      if (!items?.length) {
+        return;
+      }
+      for (const item of items) {
+        if (item.path && item.viewToken) {
+          this.viewTokenByPath[this.normalizeAssetPath(item.path)] = item.viewToken;
+        }
+      }
+    },
+
+    directoryListingPath(dirPath) {
+      const normalized = this.normalizeAssetPath(dirPath);
+      return `${normalized}/`;
+    },
+
+    async fetchDirectoryTokens(dirPath) {
+      const listingPath = this.directoryListingPath(dirPath);
+      if (this.fetchedDirs.has(listingPath)) {
+        return;
+      }
+      this.fetchedDirs.add(listingPath);
+      try {
+        let listing;
+        if (getters.isShare()) {
+          listing = await resourcesApi.fetchFilesPublic(
+            listingPath,
+            state.shareInfo.hash,
+            "",
+            false,
+            false,
+          );
+        } else {
+          listing = await resourcesApi.fetchFiles(
+            this.fbdata.source,
+            listingPath,
+            false,
+            false,
+          );
+        }
+        if (listing?.type === "directory" && listing.items?.length) {
+          this.indexViewTokens(listing.items);
+        }
+      } catch {
+        // Missing or inaccessible directories are ignored.
+      }
+    },
+
+    async prefetchAssetViewTokens() {
+      this.indexViewTokens(this.fbdata.parentDirItems);
+      if (this.fbdata.path && this.fbdata.viewToken) {
+        this.viewTokenByPath[this.normalizeAssetPath(this.fbdata.path)] = this.fbdata.viewToken;
+      }
+
+      const modelDir = removeLastDir(this.fbdata.path);
+      await this.fetchDirectoryTokens(modelDir);
+      await this.fetchDirectoryTokens(`${modelDir}/textures`);
     },
 
     resolveViewTokenForPath(filePath) {
-      if (filePath === this.fbdata.path && this.fbdata.viewToken) {
+      const normalizedPath = this.normalizeAssetPath(filePath);
+      if (this.viewTokenByPath[normalizedPath]) {
+        return this.viewTokenByPath[normalizedPath];
+      }
+      if (
+        this.normalizeAssetPath(this.fbdata.path) === normalizedPath &&
+        this.fbdata.viewToken
+      ) {
         return this.fbdata.viewToken;
       }
-      const name = filePath.split("/").filter(Boolean).pop();
-      const sibling = this.fbdata.parentDirItems?.find(
-        (item) => item.name === name || item.path === filePath,
+      const items = this.fbdata.parentDirItems;
+      if (!items?.length) {
+        return undefined;
+      }
+
+      const exact = items.find(
+        (item) => this.normalizeAssetPath(item.path) === normalizedPath,
       );
+      if (exact?.viewToken) {
+        return exact.viewToken;
+      }
+
+      const fileDir = removeLastDir(normalizedPath);
+      const name = normalizedPath.split("/").filter(Boolean).pop();
+      if (!name) {
+        return undefined;
+      }
+
+      const sibling = items.find((item) => {
+        if (item.name !== name) {
+          return false;
+        }
+        if (item.path) {
+          return removeLastDir(this.normalizeAssetPath(item.path)) === fileDir;
+        }
+        return fileDir === removeLastDir(this.fbdata.path);
+      });
       return sibling?.viewToken;
     },
 
@@ -426,8 +531,9 @@ export default {
     },
 
     async loadModel() {
+      await this.prefetchAssetViewTokens();
       if (!this.modelUrl) {
-        this.loading = false;
+        this.handleError(new Error("No view token available for model"), "Failed to load model");
         return;
       }
       this.loading = true;
@@ -736,6 +842,8 @@ export default {
     },
     
     reinit() {
+      this.viewTokenByPath = {};
+      this.fetchedDirs = new Set();
       this.cleanup();
       this.initScene();
       void this.loadModel();
