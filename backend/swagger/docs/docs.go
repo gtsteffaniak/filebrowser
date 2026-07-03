@@ -6159,6 +6159,14 @@ const docTemplate = `{
                     "description": "track artist",
                     "type": "string"
                 },
+                "audioCodec": {
+                    "description": "audio codec name (e.g. aac)",
+                    "type": "string"
+                },
+                "container": {
+                    "description": "container/format name (e.g. mov,mp4,m4a,3gp,3g2,mj2)",
+                    "type": "string"
+                },
                 "duration": {
                     "description": "duration in seconds",
                     "type": "integer"
@@ -6185,6 +6193,10 @@ const docTemplate = `{
                 "track": {
                     "description": "track number",
                     "type": "integer"
+                },
+                "videoCodec": {
+                    "description": "video codec name (e.g. h264)",
+                    "type": "string"
                 },
                 "year": {
                     "description": "release year",

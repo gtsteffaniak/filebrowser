@@ -4,7 +4,46 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
+
+	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 )
+
+// FileProbeInfo holds ffprobe results for a local media file.
+type FileProbeInfo struct {
+	Duration   float64
+	VideoCodec string
+	AudioCodec string
+	FormatName string
+}
+
+// ProbeFile extracts duration and codec info from a media file.
+func (s *Service) ProbeFile(ctx context.Context, mediaPath string) (*FileProbeInfo, error) {
+	if s == nil || s.inner == nil {
+		return nil, fmt.Errorf("ffmpeg service not available")
+	}
+
+	if err := s.Acquire(ctx); err != nil {
+		return nil, err
+	}
+	defer s.Release()
+
+	info, err := s.inner.ProbeStream(ctx, goffmpeg.ProbeStreamOptions{
+		URL:        mediaPath,
+		StreamType: goffmpeg.StreamFile,
+		Timeout:    30 * time.Second,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &FileProbeInfo{
+		Duration:   info.Duration,
+		VideoCodec: info.VideoCodec,
+		AudioCodec: info.AudioCodec,
+		FormatName: info.FormatName,
+	}, nil
+}
 
 // GetMediaDuration extracts the duration of a media file in seconds.
 func (s *Service) GetMediaDuration(ctx context.Context, mediaPath string) (float64, error) {
