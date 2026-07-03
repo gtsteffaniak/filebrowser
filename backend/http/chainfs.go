@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	gooidc "github.com/coreos/go-oidc/v3/oidc"
@@ -778,6 +779,7 @@ type ssoPayload struct {
 	AzureSub  string `json:"azureSub"`
 	GivenName string `json:"givenName"`
 	Exp       int64  `json:"exp"`
+	Jti       string `json:"jti"`
 }
 
 // verifySsoToken validates the HMAC-SHA256 signed token from acorn.tools and
@@ -815,13 +817,43 @@ func verifySsoToken(token string) (*ssoPayload, error) {
 	if err := json.Unmarshal(payloadBytes, &p); err != nil {
 		return nil, fmt.Errorf("invalid SSO payload: %w", err)
 	}
-	if p.Email == "" || p.AzureSub == "" {
+	if p.Email == "" || p.AzureSub == "" || p.Jti == "" {
 		return nil, fmt.Errorf("SSO payload missing required fields")
 	}
 	if p.Exp <= time.Now().UnixMilli() {
 		return nil, fmt.Errorf("SSO token expired")
 	}
 	return &p, nil
+}
+
+// ssoJtiStore tracks redeemed SSO token IDs to enforce one-time use.
+// Drive runs as a single replica (min/max = 1), so an in-process store is
+// authoritative. Entries are swept on each redemption; tokens live 60s so
+// anything older than 5 minutes is garbage. A container restart clears the
+// store — acceptable because tokens expire 60s after minting regardless.
+var ssoJtiStore = struct {
+	sync.Mutex
+	used map[string]int64 // jti -> token expiry (unix ms)
+}{used: make(map[string]int64)}
+
+// markSsoJtiUsed atomically records a jti as redeemed. Returns an error if
+// the jti has already been used (replay). Callers must treat any error as a
+// rejected login (fail closed).
+func markSsoJtiUsed(jti string, exp int64) error {
+	ssoJtiStore.Lock()
+	defer ssoJtiStore.Unlock()
+	if _, exists := ssoJtiStore.used[jti]; exists {
+		return fmt.Errorf("SSO token replay detected")
+	}
+	// Sweep expired entries so the map stays small.
+	cutoff := time.Now().Add(-5 * time.Minute).UnixMilli()
+	for k, v := range ssoJtiStore.used {
+		if v < cutoff {
+			delete(ssoJtiStore.used, k)
+		}
+	}
+	ssoJtiStore.used[jti] = exp
+	return nil
 }
 
 // chainfsSSOHandler handles SSO login initiated by acorn.tools.
@@ -846,6 +878,13 @@ func chainfsSSOHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	payload, err := verifySsoToken(rawToken)
 	if err != nil {
 		logger.Warningf("SSO token verification failed: %v", err)
+		http.Redirect(w, r, loginURL, http.StatusFound)
+		return 0, nil
+	}
+
+	// One-time use: record the jti; any error (replay or store failure) rejects.
+	if err := markSsoJtiUsed(payload.Jti, payload.Exp); err != nil {
+		logger.Warningf("SSO one-time-use check failed for %s: %v", payload.Email, err)
 		http.Redirect(w, r, loginURL, http.StatusFound)
 		return 0, nil
 	}
