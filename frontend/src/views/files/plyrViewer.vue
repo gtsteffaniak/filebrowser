@@ -612,7 +612,7 @@ export default {
       return state.playbackQueue.currentIndex ?? -1;
     },
     playbackMode() {
-      return state.playbackQueue.mode || 'sequential';
+      return state.playbackQueue.mode;
     },
     loop() {
       return state.playbackQueue.loop || false;

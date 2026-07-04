@@ -539,6 +539,7 @@ export default {
             if (state.req.path !== expectedPath || this.listingContextKey(directoryPath) !== expectedListingKey) return;
             this.listing = res.items;
           } catch (error) {
+            if (state.req.path !== expectedPath) return;
             console.error("error Preview.vue", error);
             this.listing = [state.req];
           }

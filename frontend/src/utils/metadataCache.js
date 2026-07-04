@@ -35,10 +35,13 @@ export function setCachedDirMetadata(opts, promise) {
     const firstKey = cache.keys().next().value;
     cache.delete(firstKey);
   }
-
   const key = getCacheKey(opts);
   cache.set(key, promise);
-  promise.catch(() => cache.delete(key));
+  promise.catch(() => {
+    if (cache.get(key) === promise) {
+      cache.delete(key);
+    }
+  });
 }
 
 /**

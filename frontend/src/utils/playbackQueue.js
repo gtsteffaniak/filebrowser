@@ -215,8 +215,8 @@ export function getModeIcon(mode) {
  * @param {string} mode - The playback mode.
  * @returns {'next' | 'restart' | 'none'} The action to take.
  */
-export function getEndOfMediaAction(queue, currentIndex, mode) {
-  if (state.playbackQueue.loop) return 'restart';
+export function getEndOfMediaAction(queue, currentIndex, mode, loop = state.playbackQueue.loop) {
+  if (loop) return 'restart';
   if (!queue.length || currentIndex < 0) return 'none';
 
   switch (mode) {
