@@ -258,21 +258,29 @@ export default {
         });
       }
     },
-    async patchMediaMetadataIfNeeded(listing, fetchMedia) {
-      if (directoryListingHasMediaChildren(listing)) {
-        this.loadingProgress = 90;
-        try {
-          const payload = await fetchMedia();
-          if (payload?.items?.length) {
-            mutations.patchRequestMetadata(payload.items);
-          }
-          this.loadingProgress = 100;
-        } catch {
-          this.loadingProgress = 0;
-        }
+    async patchMediaMetadataIfNeeded(listing, source) {
+      if (!directoryListingHasMediaChildren(listing)) {
+        this.loadingProgress = 100;
         return;
       }
-      this.loadingProgress = 100;
+      this.loadingProgress = 90;
+      const path = listing.path;
+      try {
+        const isShare = getters.isShare();
+        const metaMap = isShare
+          ? await mediaApi.getDirectoryMetadataMap(state.shareInfo.subPath, {
+              isShare: true,
+              hash: state.shareInfo.hash,
+              password: this.sharePassword,
+            })
+          : await mediaApi.getDirectoryMetadataMap(path, { source });
+        if (state.req?.path === path && state.req.items) {
+          mutations.patchListingMetadata(state.req.items, metaMap);
+        }
+        this.loadingProgress = 100;
+      } catch {
+        this.loadingProgress = 0;
+      }
     },
 
     async fetchData() {
@@ -421,13 +429,7 @@ export default {
           const file = await fetchShareItemWithParent(this.sharePassword);
           mutations.replaceRequest(file);
           document.title = `${globalVars.name} - ${this.$t("general.share")} - ${file.name}`;
-          await this.patchMediaMetadataIfNeeded(file, () =>
-            mediaApi.fetchDirectoryMediaMetadataPublic(
-              state.shareInfo.subPath,
-              state.shareInfo.hash,
-              this.sharePassword
-            )
-          );
+          await this.patchMediaMetadataIfNeeded(file);
         }
 
         // === FILES-SPECIFIC INITIALIZATION ===
@@ -479,9 +481,7 @@ export default {
           document.title = `${globalVars.name} - ${this.$t("general.files")} - ${res.name}`;
           mutations.replaceRequest(res);
           mutations.setLoading("files", false);
-          await this.patchMediaMetadataIfNeeded(res, () =>
-            mediaApi.fetchDirectoryMediaMetadata(fetchSource, fetchPath)
-          );
+          await this.patchMediaMetadataIfNeeded(res, fetchSource);
         }
 
       } catch (e) {

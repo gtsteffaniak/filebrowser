@@ -504,16 +504,16 @@ export default {
             match = currIds.every((id, i) => id === queIds.at(i));
           }
           if (match) {
+            const byId = new Map(mediaFiles.map(item => [getId(item), item]));
+            const playbackQueue = queue.map(item => byId.get(getId(item)) || item);
             const currentItemId = getId(this.req);
-            const newIndex = queue.findIndex(item => getId(item) === currentItemId);
-            if (newIndex !== -1 && newIndex !== state.playbackQueue.currentIndex) {
-              mutations.setPlaybackQueue({
-                queue,
-                currentIndex: newIndex,
-                mode,
-                loop: this.loop
-              });
-            }
+            const newIndex = playbackQueue.findIndex(item => getId(item) === currentItemId);
+            mutations.setPlaybackQueue({
+              queue: playbackQueue,
+              currentIndex: newIndex !== -1 ? newIndex : state.playbackQueue.currentIndex,
+              mode,
+              loop: this.loop
+            });
             return;
           }
         }

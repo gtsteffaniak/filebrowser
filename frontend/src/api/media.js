@@ -102,6 +102,38 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
   return adjustedData(data);
 }
 
+const dirMetadataCache = new Map();
+function dirMetadataCacheKey({ isShare, source, hash, path, albumArt }) {
+  const scope = isShare ? `share:${hash}` : `src:${source}`;
+  return `${scope}:${path}:${albumArt ? "art" : "noart"}`;
+}
+
+/**
+ * Fetches directory media metadata, and caches it by directory, shared for all the callers
+ * to avoid unnecessary requests.
+ * @param {string} path - directory path
+ * @param {{isShare?: boolean, source?: string, hash?: string, password?: string, albumArt?: boolean}} opts
+ * @returns {Promise<Map<string, object>>}
+ */
+export async function getDirectoryMetadataMap(path, opts = {}) {
+  const { isShare = false, source, hash, password = "", albumArt = false } = opts;
+  const key = dirMetadataCacheKey({ isShare, source, hash, path, albumArt });
+  let pending = dirMetadataCache.get(key);
+  if (!pending) {
+    pending = (async () => {
+      const payload = isShare
+        ? await fetchDirectoryMediaMetadataPublic(path, hash, password, albumArt)
+        : await fetchDirectoryMediaMetadata(source, path, albumArt);
+      return new Map(
+        (payload?.items || []).filter((i) => i.metadata).map((i) => [i.name, i.metadata])
+      );
+    })();
+    dirMetadataCache.set(key, pending);
+    pending.catch(() => dirMetadataCache.delete(key));
+  }
+  return pending;
+}
+
 // GET /api/media/stream — audio/video bytes via viewToken (range-based, not download-metered).
 export function getStreamURL(source, path, viewToken) {
   if (!source || source === undefined || source === null) {
