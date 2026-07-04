@@ -265,6 +265,8 @@ export default {
       }
       this.loadingProgress = 90;
       const path = listing.path;
+      const currentSource = listing.source ?? source;
+      const currentHash = state.shareInfo?.hash;
       try {
         const isShare = getters.isShare();
         const metaMap = isShare
@@ -274,7 +276,10 @@ export default {
               password: this.sharePassword,
             })
           : await mediaApi.getDirectoryMetadataMap(path, { source });
-        if (state.req?.path === path && state.req.items) {
+        const stillCurrent = isShare
+          ? getters.isShare() && state.shareInfo?.hash === currentHash && state.req?.path === path
+          : !getters.isShare() && state.req?.source === currentSource && state.req?.path === path;
+        if (stillCurrent && state.req.items) {
           mutations.patchListingMetadata(state.req.items, metaMap);
         }
         this.loadingProgress = 100;

@@ -443,7 +443,6 @@ export default {
           this.toastType = 'mode';
           this.showToast();
         }
-        this.setupPlaybackQueue();
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });

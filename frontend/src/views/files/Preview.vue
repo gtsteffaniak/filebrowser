@@ -98,7 +98,7 @@ export default {
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
-      listingPath: null,
+      listingKey: null,
     };
   },
   computed: {
@@ -301,23 +301,29 @@ export default {
         console.warn('dir items metadata fetch failed', e);
       }
     },
+    listingContextKey(directoryPath) {
+      return getters.isShare()
+        ? `share:${state.shareInfo?.hash || ""}:${directoryPath}`
+        : `source:${state.req.source || ""}:${directoryPath}`;
+    },
     async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
       }
       this.isDeleted = false;
       const currentDirectoryPath = url.removeLastDir(state.req.path) || '/';
-      if (this.listingPath !== currentDirectoryPath) {
+      const currentListingKey = this.listingContextKey(currentDirectoryPath);
+      if (this.listingKey !== currentListingKey) {
         this.listing = null;
       }
 
       if (!this.listing || this.listing === "undefined") {
         if (state.req.parentDirItems) {
           this.listing = state.req.parentDirItems;
-          this.listingPath = currentDirectoryPath;
+          this.listingKey = currentListingKey;
         } else if (state.req.items) {
           this.listing = state.req.items;
-          this.listingPath = currentDirectoryPath;
+          this.listingKey = currentListingKey;
         }
       }
 
@@ -507,6 +513,7 @@ export default {
       if (!directoryPath || directoryPath === '') {
         directoryPath = '/';
       }
+      const expectedListingKey = this.listingContextKey(directoryPath);
 
       if (!this.listing || this.listing === "undefined") {
         // Try to use pre-fetched parent directory items first
@@ -529,7 +536,7 @@ export default {
                 directoryPath,
               );
             }
-            if (state.req.path !== expectedPath) return;
+            if (state.req.path !== expectedPath || this.listingContextKey(directoryPath) !== expectedListingKey) return;
             this.listing = res.items;
           } catch (error) {
             console.error("error Preview.vue", error);
@@ -543,7 +550,7 @@ export default {
       if (!this.listing) {
         this.listing = [state.req];
       }
-      this.listingPath = directoryPath;
+      this.listingKey = this.listingContextKey(directoryPath);
       this.name = state.req.name;
 
       // Setup navigation using the new state management
