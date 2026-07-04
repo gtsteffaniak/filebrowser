@@ -50,6 +50,9 @@ type MediaMetadata struct {
 	Genre     string  `json:"genre,omitempty"`     // music/video genre
 	Track     int     `json:"track,omitempty"`     // track number
 	Duration  int     `json:"duration,omitempty"`  // duration in seconds
+	VideoCodec string `json:"videoCodec,omitempty"` // video codec name (e.g. h264)
+	AudioCodec string `json:"audioCodec,omitempty"` // audio codec name (e.g. aac)
+	Container  string `json:"container,omitempty"`  // container/format name (e.g. mov,mp4,m4a,3gp,3g2,mj2)
 	AlbumArt  []byte  `json:"albumArt,omitempty"`  // album art image data (automatically base64-encoded in JSON)
 	Lyrics    []Lyric `json:"lyrics,omitempty"`    // lyrics (from embedded tags or .lrc files)
 	HasLyrics bool    `json:"hasLyrics,omitempty"` // checks if lyrics are available without parse them
