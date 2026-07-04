@@ -696,7 +696,8 @@
     "allShares": "Všechny akcie",
     "playPause": "Přehrát/Pozastavit",
     "clearSelection": "Vymazat výběr",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "Žádné"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -726,6 +727,8 @@
     "chars": "{count} znaků"
   },
   "player": {
+    "loop": "Smyčka",
+    "clearQueue": "Vymazat frontu",
     "LoopEnabled": "Smyčka povolena",
     "LoopDisabled": "Smyčka zakázána",
     "PlayAllOncePlayback": "Přehrát vše jednou",

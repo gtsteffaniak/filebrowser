@@ -602,7 +602,8 @@
     "allShares": "すべての株式",
     "playPause": "再生／一時停止",
     "clearSelection": "選択を解除",
-    "interval": "間隔{suffix}"
+    "interval": "間隔{suffix}",
+    "none": "なし"
   },
   "access": {
     "rules": "アクセスルール",
@@ -726,6 +727,8 @@
     "chars": "{count} 文字"
   },
   "player": {
+    "loop": "ループ",
+    "clearQueue": "キューをクリア",
     "LoopEnabled": "ループ有効",
     "LoopDisabled": "ループ無効",
     "PlayAllOncePlayback": "すべて一度再生",

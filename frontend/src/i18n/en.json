@@ -750,6 +750,7 @@
   },
   "player": {
     "loop": "Loop",
+    "clearQueue": "Clear Queue",
     "LoopEnabled": "Loop Enabled",
     "LoopDisabled": "Loop Disabled",
     "PlayAllOncePlayback": "Play All Once",
@@ -760,7 +761,6 @@
     "changePlaybackMode": "Change playback mode",
     "emptyQueue": "Queue is empty",
     "queue": "Queue",
-    "clearQueue": "Clear Queue",
     "lyrics": "Lyrics",
     "noLyrics": "No lyrics available",
     "lockLyrics": "Lock lyrics",

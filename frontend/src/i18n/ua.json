@@ -696,7 +696,8 @@
     "allShares": "Усі акції",
     "playPause": "Відтворити/Призупинити",
     "clearSelection": "Очистити вибір",
-    "interval": "Інтервал{suffix}"
+    "interval": "Інтервал{suffix}",
+    "none": "Немає"
   },
   "access": {
     "rules": "Правила доступу",
@@ -726,6 +727,8 @@
     "chars": "{count} символів"
   },
   "player": {
+    "loop": "Повтор",
+    "clearQueue": "Очистити чергу",
     "LoopEnabled": "Повтор увімкнено",
     "LoopDisabled": "Повтор вимкнено",
     "PlayAllOncePlayback": "Відтворити все один раз",

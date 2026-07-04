@@ -171,7 +171,8 @@
     "allShares": "Tutte le azioni",
     "playPause": "Riproduci/Pausa",
     "clearSelection": "Deseleziona",
-    "interval": "Intervallo{suffix}"
+    "interval": "Intervallo{suffix}",
+    "none": "Nessuno"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -735,6 +736,8 @@
     "chars": "{count} caratteri"
   },
   "player": {
+    "loop": "Ripeti",
+    "clearQueue": "Svuota coda",
     "LoopEnabled": "Loop Abilitato",
     "LoopDisabled": "Loop Disabilitato",
     "PlayAllOncePlayback": "Riproduci tutti una volta",

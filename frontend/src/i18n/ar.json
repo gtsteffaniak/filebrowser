@@ -602,7 +602,8 @@
     "allShares": "جميع الأسهم",
     "playPause": "تشغيل/إيقاف مؤقت",
     "clearSelection": "مسح التحديد",
-    "interval": "الفاصل الزمني{suffix}"
+    "interval": "الفاصل الزمني{suffix}",
+    "none": "لا شيء"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -726,6 +727,8 @@
     "chars": "{count} أحرف"
   },
   "player": {
+    "loop": "Smyčka",
+    "clearQueue": "Vymazat frontu",
     "LoopEnabled": "تفعيل التكرار",
     "LoopDisabled": "تعطيل التكرار",
     "PlayAllOncePlayback": "تشغيل الكل مرة واحدة",

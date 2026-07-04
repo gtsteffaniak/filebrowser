@@ -602,7 +602,8 @@
     "allShares": "모든 주식",
     "playPause": "재생/일시정지",
     "clearSelection": "선택 항목 지우기",
-    "interval": "간격{suffix}"
+    "interval": "간격{suffix}",
+    "none": "없음"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -726,6 +727,8 @@
     "chars": "{count} 문자"
   },
   "player": {
+    "loop": "반복",
+    "clearQueue": "대기열 지우기",
     "LoopEnabled": "반복 활성화",
     "LoopDisabled": "반복 비활성화",
     "PlayAllOncePlayback": "모두 한 번 재생",

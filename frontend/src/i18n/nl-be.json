@@ -696,7 +696,8 @@
     "allShares": "Alle aandelen",
     "playPause": "Afspelen/Pauzeren",
     "clearSelection": "Selectie wissen",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "Geen"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -726,6 +727,8 @@
     "chars": "{count} tekens"
   },
   "player": {
+    "loop": "Herhalen",
+    "clearQueue": "Wachtrij leegmaken",
     "LoopEnabled": "Herhaling ingeschakeld",
     "LoopDisabled": "Herhaling uitgeschakeld",
     "PlayAllOncePlayback": "Alles eenmaal afspelen",

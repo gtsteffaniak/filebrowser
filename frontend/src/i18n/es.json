@@ -602,7 +602,8 @@
     "allShares": "Todos los enlaces",
     "playPause": "Reproducir/Pausar",
     "clearSelection": "Borrar selección",
-    "interval": "Intervalo{suffix}"
+    "interval": "Intervalo{suffix}",
+    "none": "Ninguno"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -726,7 +727,8 @@
     "chars": "{count} caracteres"
   },
   "player": {
-    "Loop": "Bucle",
+    "loop": "Repetir",
+    "clearQueue": "Vaciar cola",
     "LoopEnabled": "Bucle activado",
     "LoopDisabled": "Bucle desactivado",
     "PlayAllOncePlayback": "Reproducir todo una vez",

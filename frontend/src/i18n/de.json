@@ -602,7 +602,8 @@
     "allShares": "Alle Aktien",
     "playPause": "Wiedergabe/Pause",
     "clearSelection": "Auswahl löschen",
-    "interval": "Intervall{suffix}"
+    "interval": "Intervall{suffix}",
+    "none": "Keine"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -726,6 +727,8 @@
     "chars": "{count} Zeichen"
   },
   "player": {
+    "loop": "Wiederholung",
+    "clearQueue": "Warteschlange leeren",
     "LoopEnabled": "Wiederholung aktiviert",
     "LoopDisabled": "Wiederholung deaktiviert",
     "PlayAllOncePlayback": "Alle einmal abspielen",

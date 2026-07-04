@@ -602,7 +602,8 @@
     "allShares": "Všetky akcie",
     "playPause": "Prehrávať/Pozastaviť",
     "clearSelection": "Vymazať výber",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "Žiadne"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -726,6 +727,8 @@
     "chars": "{count} znakov"
   },
   "player": {
+    "loop": "Slučka",
+    "clearQueue": "Vyčistiť front",
     "LoopEnabled": "Slučka povolená",
     "LoopDisabled": "Slučka zakázaná",
     "PlayAllOncePlayback": "Prehrať všetko raz",

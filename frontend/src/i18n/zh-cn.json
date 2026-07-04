@@ -696,7 +696,8 @@
     "allShares": "所有股份",
     "playPause": "播放/暂停",
     "clearSelection": "清除选择",
-    "interval": "间隔{suffix}"
+    "interval": "间隔{suffix}",
+    "none": "无"
   },
   "access": {
     "rules": "访问规则",
@@ -726,6 +727,8 @@
     "chars": "{count} 字符"
   },
   "player": {
+    "loop": "循环",
+    "clearQueue": "清空队列",
     "LoopEnabled": "循环已启用",
     "LoopDisabled": "循环已禁用",
     "PlayAllOncePlayback": "播放全部一次",

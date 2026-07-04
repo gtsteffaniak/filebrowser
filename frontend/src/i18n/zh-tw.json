@@ -696,7 +696,8 @@
     "allShares": "所有股份",
     "playPause": "播放／暫停",
     "clearSelection": "清除選取項目",
-    "interval": "間隔{suffix}"
+    "interval": "間隔{suffix}",
+    "none": "無"
   },
   "access": {
     "rules": "存取規則",
@@ -726,6 +727,8 @@
     "chars": "{count} 字元"
   },
   "player": {
+    "loop": "循環",
+    "clearQueue": "清空佇列",
     "LoopEnabled": "循環已啟用",
     "LoopDisabled": "循環已停用",
     "PlayAllOncePlayback": "播放全部一次",

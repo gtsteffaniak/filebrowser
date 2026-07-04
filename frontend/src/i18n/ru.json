@@ -602,7 +602,8 @@
     "allShares": "Все акции",
     "playPause": "Воспроизведение/Пауза",
     "clearSelection": "Очистить выбор",
-    "interval": "Интервал{suffix}"
+    "interval": "Интервал{suffix}",
+    "none": "Нет"
   },
   "access": {
     "rules": "Правила доступа",
@@ -726,6 +727,8 @@
     "chars": "{count} символов"
   },
   "player": {
+    "loop": "Повтор",
+    "clearQueue": "Очистить очередь",
     "LoopEnabled": "Повтор включен",
     "LoopDisabled": "Повтор отключен",
     "PlayAllOncePlayback": "Воспроизвести все один раз",

@@ -602,7 +602,8 @@
     "allShares": "Tüm hisseler",
     "playPause": "Oynat/Duraklat",
     "clearSelection": "Seçimi temizle",
-    "interval": "Aralık{suffix}"
+    "interval": "Aralık{suffix}",
+    "none": "Hiçbiri"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -726,6 +727,8 @@
     "chars": "{count} karakter"
   },
   "player": {
+    "loop": "Döngü",
+    "clearQueue": "Kuyruğu Temizle",
     "LoopEnabled": "Döngü Etkin",
     "LoopDisabled": "Döngü Devre Dışı",
     "PlayAllOncePlayback": "Tümünü Bir Kez Oynat",

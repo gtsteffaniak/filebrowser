@@ -602,7 +602,8 @@
     "allShares": "Όλες οι μετοχές",
     "playPause": "Αναπαραγωγή/Παύση",
     "clearSelection": "Εκκαθάριση επιλογής",
-    "interval": "Διάστημα{suffix}"
+    "interval": "Διάστημα{suffix}",
+    "none": "Κανένα"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",
@@ -726,6 +727,8 @@
     "chars": "{count} χαρακτήρες"
   },
   "player": {
+    "loop": "Επανάληψη",
+    "clearQueue": "Εκκαθάριση ουράς",
     "LoopEnabled": "Ενεργή επανάληψη",
     "LoopDisabled": "Απενεργοποιημένη επανάληψη",
     "PlayAllOncePlayback": "Αναπαραγωγή όλων μία φορά",

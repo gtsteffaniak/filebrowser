@@ -696,7 +696,8 @@
     "allShares": "Alla aktier",
     "playPause": "Spela upp/Paus",
     "clearSelection": "Rensa urvalet",
-    "interval": "Intervall{suffix}"
+    "interval": "Intervall{suffix}",
+    "none": "Ingen"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -726,6 +727,8 @@
     "chars": "{count} tecken"
   },
   "player": {
+    "loop": "Loop",
+    "clearQueue": "Rensa kö",
     "LoopEnabled": "Loop aktiverad",
     "LoopDisabled": "Loop inaktiverad",
     "PlayAllOncePlayback": "Spela alla en gång",

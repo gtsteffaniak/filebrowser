@@ -602,7 +602,8 @@
     "allShares": "כל המניות",
     "playPause": "הפעל/השהה",
     "clearSelection": "נקה את הבחירה",
-    "interval": "אינטרוול{suffix}"
+    "interval": "אינטרוול{suffix}",
+    "none": "ללא"
   },
   "access": {
     "rules": "כללי גישה",
@@ -726,6 +727,8 @@
     "chars": "{count} תווים"
   },
   "player": {
+    "loop": "לולאה",
+    "clearQueue": "רוקן תור",
     "LoopEnabled": "לולאה מופעלת",
     "LoopDisabled": "לולאה מושבתת",
     "PlayAllOncePlayback": "נגן הכל פעם אחת",
