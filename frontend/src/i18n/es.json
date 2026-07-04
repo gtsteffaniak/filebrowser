@@ -80,6 +80,7 @@
     },
     "del": "Eliminar elementos seleccionados",
     "esc": "Cancela la selección o cierra el archivo actual",
+    "f4": "actualizar las listas y metadata",
     "f2": "Cambiar nombre del archivo o carpeta",
     "f1": "Abrir ventana de ayuda",
     "description": "Aquí puedes ver todos los atajos de teclado básicos. Si quieres saber más, visita la",

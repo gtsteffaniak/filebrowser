@@ -80,6 +80,7 @@
     },
     "del": "eliminar os ficheiros selecionados",
     "esc": "limpar seleção e/ou fechar menu",
+    "f4": "atualizar a lista e os metadados",
     "f2": "alterar nome do ficheiro",
     "f1": "mostrar prompt de ajuda",
     "description": "Pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",

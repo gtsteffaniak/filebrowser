@@ -80,6 +80,7 @@
     },
     "del": "usuń zaznaczone",
     "esc": "wyczyść zaznaczenie i/lub zamknij okno z powiadomieniem",
+    "f4": "odśwież listę i metadane",
     "f2": "zmień nazwę pliku",
     "f1": "pokaż monit pomocy",
     "description": "Poniżej znajdują się podstawowe opcje nawigacji. Dodatkowe informacje można znaleźć na stronie",

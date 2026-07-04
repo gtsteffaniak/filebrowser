@@ -80,6 +80,7 @@
     },
     "del": "kijelölt elemek törlése",
     "esc": "kijelölés törlése és/vagy parancssor bezárása",
+    "f4": "lista és metaadatok frissítése",
     "f2": "fájl átnevezése",
     "f1": "show help prompt",
     "description": "Az alábbiakban megtekintheti az alapvető navigációs lehetőségeket. További információkért kérjük, látogasson el a következő weboldalra",

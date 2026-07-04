@@ -80,6 +80,7 @@
     },
     "del": "Löscht die ausgewählten Elemente",
     "esc": "Auswahl zurücksetzen und/oder Dialog schließen",
+    "f4": "Auflistung und Metadaten aktualisieren",
     "f2": "Datei umbenennen",
     "f1": "Hilfeprompt anzeigen",
     "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte das",

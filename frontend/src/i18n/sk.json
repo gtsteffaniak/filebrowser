@@ -80,6 +80,7 @@
     },
     "del": "odstráni vybraté položky",
     "esc": "zruší výber a/alebo zavrie okno",
+    "f4": "obnoviť zoznam a metadáta",
     "f2": "premenuje súbor",
     "f1": "zobraziť výzvu na pomoc",
     "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",

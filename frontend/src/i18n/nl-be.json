@@ -80,6 +80,7 @@
     },
     "del": "verwijder geselecteerde items",
     "esc": "Wis selectie en/of sluit de prompt",
+    "f4": "de lijst en metadata vernieuwen",
     "f2": "bestand herbenoemen",
     "f1": "help prompt tonen",
     "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",

@@ -80,6 +80,7 @@
     },
     "del": "seçilileri sil",
     "esc": "seçimi temizle veya kapatın",
+    "f4": "listeyi ve meta verileri yenile",
     "f2": "dosyayı yeniden adlandır",
     "f1": "yardım istemini göster",
     "description": "Temel navigasyon seçeneklerini aşağıda görüntüleyebilirsiniz. Ek bilgi için lütfen şu adresi ziyaret edin",

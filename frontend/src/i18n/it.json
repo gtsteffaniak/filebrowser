@@ -255,6 +255,7 @@
     },
     "del": "elimina elementi selezionati",
     "esc": "pulisci selezione e/o chiudi il prompt",
+    "f4": "aggiorna l'elenco e i metadati",
     "f2": "rinomina file",
     "f1": "mostra aiuto",
     "slash": "attiva ricerca",

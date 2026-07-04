@@ -80,6 +80,7 @@
     },
     "del": "supprimer les éléments sélectionnés",
     "esc": "désélectionner et/ou fermer la boîte de dialogue",
+    "f4": "actualiser la liste et les métadonnées",
     "f2": "renommer le fichier",
     "f1": "afficher l'aide",
     "description": "Vous pouvez consulter les options de navigation de base ci-dessous. Pour plus d'informations, veuillez consulter le site",
