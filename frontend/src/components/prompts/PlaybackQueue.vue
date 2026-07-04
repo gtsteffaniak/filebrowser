@@ -411,15 +411,16 @@ export default {
   align-items: center;
   gap: 0.75rem;
   justify-content: center !important;
+  padding-top: 0 !important;
 }
 
 .playback-mode {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.12rem;
   border-bottom: 1px solid var(--borderColor);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.12rem;
   flex-shrink: 0;
 }
 
@@ -657,7 +658,7 @@ export default {
   background: transparent;
   border: none;
   border-radius: 0;
-  padding: 0.25rem 0.6rem;
+  padding: 0.35rem 0.75rem;
   cursor: pointer;
   font-size: inherit;
   transition: background 0.2s, color 0.2s, transform 0.2s;
@@ -686,7 +687,7 @@ export default {
 
 .mode-btn i,
 .repeat-one-btn i {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
 }
 
 .repeat-one-btn {
