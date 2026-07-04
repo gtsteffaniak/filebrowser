@@ -1,0 +1,1261 @@
+package web
+
+import (
+	"archive/tar"
+	"archive/zip"
+	"compress/gzip"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"io/fs"
+	"net/http"
+	"os"
+	"path"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-cache/cache"
+	"github.com/gtsteffaniak/go-logger/logger"
+	"golang.org/x/time/rate"
+)
+
+// archiveMultiRequestIdle is how long without another Range/HEAD on the same archiveToken before
+// the spooled file is removed (abandoned chunked download). Each chunk request extends this window.
+const archiveMultiRequestIdle = 5 * time.Minute
+
+// archiveSpoolPathCache maps archiveToken -> temp file path on disk for chunked archive downloads.
+var archiveSpoolPathCache = cache.NewCache[string](archiveMultiRequestIdle)
+
+// archiveSpoolIdleTimers implements a sliding idle deadline per token so temp files are deleted
+// after abandonment; the in-process cache alone does not remove on-disk spool files.
+var (
+	archiveSpoolIdleMu     sync.Mutex
+	archiveSpoolIdleTimers = make(map[string]*time.Timer) // guarded by archiveSpoolIdleMu
+)
+
+func randomArchiveToken() (string, error) {
+	return utils.RandomHex(16)
+}
+
+func stopArchiveSpoolIdleTimer(token string) {
+	archiveSpoolIdleMu.Lock()
+	t, ok := archiveSpoolIdleTimers[token]
+	if ok {
+		delete(archiveSpoolIdleTimers, token)
+	}
+	archiveSpoolIdleMu.Unlock()
+	if !ok {
+		return
+	}
+	if !t.Stop() {
+		select {
+		case <-t.C:
+		default:
+		}
+	}
+}
+
+// removeSpooledArchiveNow drops token state and deletes the temp file (idle timeout or final chunk served).
+func removeSpooledArchiveNow(token, tmpPath string) {
+	stopArchiveSpoolIdleTimer(token)
+	archiveSpoolPathCache.Delete(token)
+	if err := os.Remove(tmpPath); err != nil && !os.IsNotExist(err) {
+		logger.Debugf("archive spool remove %s: %v", tmpPath, err)
+	}
+}
+
+func rescheduleArchiveSpoolIdleCleanup(token, tmpPath string) {
+	stopArchiveSpoolIdleTimer(token)
+	timer := time.AfterFunc(archiveMultiRequestIdle, func() {
+		removeSpooledArchiveNow(token, tmpPath)
+	})
+	archiveSpoolIdleMu.Lock()
+	archiveSpoolIdleTimers[token] = timer
+	archiveSpoolIdleMu.Unlock()
+}
+
+// archiveGetDeliversThroughEOF reports whether this GET serves through the last byte (full body or Range that ends at size-1).
+func archiveGetDeliversThroughEOF(r *http.Request, size int64) bool {
+	if r.Method != http.MethodGet || size <= 0 {
+		return false
+	}
+	rg := r.Header.Get("Range")
+	if rg == "" {
+		return true
+	}
+	const prefix = "bytes="
+	if !strings.HasPrefix(rg, prefix) {
+		return false
+	}
+	rg = strings.TrimSpace(rg[len(prefix):])
+	if i := strings.IndexByte(rg, ','); i >= 0 {
+		rg = rg[:i]
+	}
+	dash := strings.IndexByte(rg, '-')
+	if dash < 0 {
+		return false
+	}
+	startStr := strings.TrimSpace(rg[:dash])
+	endStr := strings.TrimSpace(rg[dash+1:])
+	if endStr == "" {
+		// "bytes=N-": suffix through EOF
+		return true
+	}
+	if startStr == "" && endStr != "" {
+		// "bytes=-N": last-N suffix includes EOF when size > 0
+		return true
+	}
+	end, err := strconv.ParseInt(endStr, 10, 64)
+	if err != nil {
+		return false
+	}
+	return end >= size-1
+}
+
+// archiveAttachmentStem is the filename stem (no extension) for Content-Disposition on multi-item /
+// directory downloads. It prefers the client file path so names match the UI (e.g. "Desktop.zip"); the
+// old filepath.Dir(realPath)+Base trick can yield "/" at filesystem root or the wrong parent if index metadata lags.
+func archiveAttachmentStem(fileList []string, realPath string) string {
+	if len(fileList) == 0 {
+		return "download"
+	}
+	first := filepath.ToSlash(strings.TrimSuffix(strings.TrimSpace(fileList[0]), "/"))
+	var stem string
+	if len(fileList) == 1 {
+		stem = path.Base(first)
+	} else {
+		stem = path.Base(path.Dir(first))
+	}
+	if stem == "" || stem == "." || stem == "/" {
+		if len(fileList) == 1 {
+			stem = filepath.Base(realPath)
+		} else {
+			stem = filepath.Base(filepath.Dir(realPath))
+		}
+	}
+	if stem == "" || stem == "." || stem == "/" {
+		return "download"
+	}
+	return stem
+}
+
+// serveArchiveWithServeContent sends a built archive using ServeContent (Range-capable).
+// For share links with MaxBandwidth > 0, outbound data is throttled via newThrottledReadSeeker (same limit as single-file download).
+func serveArchiveWithServeContent(w http.ResponseWriter, r *http.Request, d *Context, rs io.ReadSeeker, fi os.FileInfo, originalFileName string) (int, error) {
+	SetContentDisposition(w, r, originalFileName, false)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Cache-Control", "private")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	reader := rs
+	if d.Share.MaxBandwidth > 0 {
+		limit := rate.Limit(d.Share.MaxBandwidth * 1024)
+		burst := d.Share.MaxBandwidth * 1024
+		reader = NewThrottledReadSeeker(rs, limit, burst, r.Context())
+	}
+	http.ServeContent(w, r, originalFileName, fi.ModTime(), reader)
+	return 0, nil
+}
+
+// archiveCreateHandler creates an archive on the server at the given destination.
+// POST /resources/archive — server-side only; does not return archive data.
+//
+// @Summary Create an archive on the server
+// @Description Creates a zip or tar.gz archive on the server from the given paths (files and/or directories). Server-side only; no archive bytes are returned. All items must be from the same source. Folders are walked recursively; access-denied paths are silently skipped. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.
+// @Description
+// @Description **Request body parameters:**
+// @Description - **fromSource** (string, required): Source name where the paths to archive live. Example: `"default"`
+// @Description - **toSource** (string, optional): Source name where the archive file will be written. Defaults to fromSource if omitted. Example: `"backups"`
+// @Description - **paths** (array of strings, required): Paths of files or directories to add to the archive (relative to fromSource). Directories are walked; access-denied entries are skipped. Example: `["/docs/file.txt", "/photos"]`
+// @Description - **destination** (string, required): Full path where the archive file will be created (on toSource). Must end with .zip or .tar.gz (or format is inferred). Example: `"/backups/my-archive.zip"`
+// @Description - **format** (string, optional): Archive format. One of: `"zip"`, `"tar.gz"`. Default inferred from destination extension. Example: `"zip"`
+// @Description - **compression** (integer, optional): Gzip compression level for tar.gz only (0–9). 0 = default. Ignored for zip. Example: `6`
+// @Description - **deleteAfter** (boolean, optional): If true, delete source files/directories after successful creation. Requires delete permission. Example: `true`
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param body body archiveCreateRequest true "Request body: fromSource, toSource (optional), paths, destination, format (optional), compression (optional)"
+// @Success 200 {object} map[string]string "Created; returns {\"path\": \"<destination path>\"}"
+// @Failure 400 {object} map[string]string "Invalid request (e.g. missing required field, invalid path)"
+// @Failure 403 {object} map[string]string "Forbidden (create permission or access denied)"
+// @Failure 404 {object} map[string]string "Source not found"
+// @Failure 413 {object} map[string]string "Request Entity Too Large (archive size exceeds maxArchiveSizeGB limit)"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/archive [post]
+func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.Hash != "" {
+		return http.StatusForbidden, fmt.Errorf("archive create not allowed for shares")
+	}
+	if !d.User.Permissions.Create {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create resources")
+	}
+
+	var req archiveCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid JSON body: %v", err)
+	}
+	if req.FromSource == "" || len(req.Paths) == 0 || req.Destination == "" {
+		return http.StatusBadRequest, fmt.Errorf("fromSource, paths, and destination are required")
+	}
+
+	destClean, err := utils.SanitizePath(req.Destination)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid destination path: %v", err)
+	}
+	req.Destination = destClean
+	pathsClean := make([]string, 0, len(req.Paths))
+	for _, p := range req.Paths {
+		var clean string
+		clean, err = utils.SanitizePath(p)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid path %q: %v", p, err)
+		}
+		pathsClean = append(pathsClean, clean)
+	}
+	req.Paths = pathsClean
+
+	destSource := req.ToSource
+	if destSource == "" {
+		destSource = req.FromSource
+	}
+
+	idx := indexing.GetIndex(req.FromSource)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", req.FromSource)
+	}
+	userScope, err := d.User.GetScopeForSourceName(req.FromSource)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+
+	// Resolve destination on ToSource (or Source if not set)
+	idxTo := indexing.GetIndex(destSource)
+	if idxTo == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", destSource)
+	}
+	userScopeTo, err := d.User.GetScopeForSourceName(destSource)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	fullDestFile := utils.JoinPathAsUnix(userScopeTo, req.Destination)
+	if accessStore != nil && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestFile, true), d.User.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
+	}
+	fullDestParent := utils.GetParentDirectoryPath(fullDestFile)
+	if accessStore != nil && fullDestParent != fullDestFile && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestParent, true), d.User.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to destination parent of %s", req.Destination)
+	}
+	parentReal, _, err := idxTo.GetRealPath(fullDestParent)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("destination parent path invalid: %v", err)
+	}
+	if err = os.MkdirAll(parentReal, fileutils.EffectiveDirPerm()); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("cannot create destination parent directory: %v", err)
+	}
+	destRel := strings.TrimLeft(filepath.ToSlash(req.Destination), "/")
+	fileName := path.Base(destRel)
+	if fileName == "." || fileName == "/" {
+		return http.StatusBadRequest, fmt.Errorf("invalid destination file name")
+	}
+	destFileReal := filepath.Join(parentReal, fileName)
+
+	format := strings.ToLower(strings.TrimSpace(req.Format))
+	if format == "" {
+		destLower := strings.ToLower(req.Destination)
+		if strings.HasSuffix(destLower, ".tar.gz") {
+			format = "tar.gz"
+		} else if strings.HasSuffix(destLower, ".zip") || filepath.Ext(req.Destination) == ".zip" {
+			format = "zip"
+		} else {
+			format = "zip"
+		}
+	}
+	if format != "zip" && format != "tar.gz" {
+		return http.StatusBadRequest, fmt.Errorf("format must be zip or tar.gz")
+	}
+
+	compression := req.Compression
+	if compression < 0 || compression > 9 {
+		compression = 0
+	}
+
+	// Build full paths for items (same source)
+	itemPaths := make([]string, 0, len(req.Paths))
+	for _, it := range req.Paths {
+		full := utils.JoinPathAsUnix(userScope, it)
+		if accessStore != nil && !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(full, true), d.User.Username) {
+			continue // silently skip
+		}
+		itemPaths = append(itemPaths, full)
+	}
+	if len(itemPaths) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("no paths accessible; add at least one path you have access to")
+	}
+
+	// Check archive size limit if configured
+	if config.Server.MaxArchiveSizeGB > 0 {
+		var estimatedSize int64
+		estimatedSize, err = computeArchiveSize(req.FromSource, itemPaths, d)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to compute archive size: %v", err)
+		}
+		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		if estimatedSize > maxSizeBytes {
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
+		}
+	}
+
+	var createErr error
+	file, err := os.OpenFile(destFileReal, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileutils.EffectiveFilePerm())
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer file.Close()
+
+	if format == "zip" {
+		createErr = createZip(d, req.FromSource, file, itemPaths...)
+	} else {
+		createErr = createTarGzWithLevel(d, req.FromSource, file, compression, itemPaths...)
+	}
+	if createErr != nil {
+		return http.StatusInternalServerError, createErr
+	}
+
+	if req.DeleteAfter && d.User.Permissions.Delete {
+		type itemToDelete struct {
+			realPath string
+			isDir    bool
+		}
+		var toDelete []itemToDelete
+		for _, full := range itemPaths {
+			realPath, isDir, err := idx.GetRealPath(full)
+			if err != nil {
+				continue
+			}
+			toDelete = append(toDelete, itemToDelete{realPath: realPath, isDir: isDir})
+		}
+		for i := 0; i < len(toDelete); i++ {
+			for j := i + 1; j < len(toDelete); j++ {
+				if len(toDelete[j].realPath) > len(toDelete[i].realPath) {
+					toDelete[i], toDelete[j] = toDelete[j], toDelete[i]
+				}
+			}
+		}
+		for _, item := range toDelete {
+			if err := files.DeleteFiles(req.FromSource, item.realPath, item.isDir); err != nil {
+				logger.Errorf("Failed to delete source after archive: %v", err)
+			}
+		}
+	}
+
+	activity.RecordArchive(r, toActor(d), activitydb.EventArchive, req.FromSource, req.Destination, req.Paths)
+	return RenderJSON(w, r, map[string]string{"path": req.Destination}, http.StatusOK)
+}
+
+// unarchiveHandler extracts an archive on the server. POST /resources/unarchive — server-side only.
+//
+// @Summary Extract an archive on the server
+// @Description Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.
+// @Description
+// @Description **Request body parameters:**
+// @Description - **fromSource** (string, required): Source name where the archive file lives. Example: `"default"`
+// @Description - **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `"restored"`
+// @Description - **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `"/downloads/data.zip"`
+// @Description - **destination** (string, required): Directory path (on toSource) to extract into. Example: `"/projects/imported"`
+// @Description - **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param body body unarchiveRequest true "Request body: fromSource, toSource (optional), path, destination, deleteAfter (optional)"
+// @Success 200 {object} map[string]string "Extracted; returns {\"path\": \"<destination path>\", \"source\": \"<toSource>\"}"
+// @Failure 400 {object} map[string]string "Invalid request (e.g. missing required field, unsupported format)"
+// @Failure 403 {object} map[string]string "Forbidden (create permission or access denied)"
+// @Failure 404 {object} map[string]string "Source or archive file not found"
+// @Failure 413 {object} map[string]string "Request Entity Too Large (archive size exceeds maxArchiveSizeGB limit)"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/unarchive [post]
+func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.Hash != "" {
+		return http.StatusForbidden, fmt.Errorf("unarchive not allowed for shares")
+	}
+	if !d.User.Permissions.Create {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create resources")
+	}
+
+	var req unarchiveRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid JSON body: %v", err)
+	}
+	if req.FromSource == "" || req.Path == "" || req.Destination == "" {
+		return http.StatusBadRequest, fmt.Errorf("fromSource, path, and destination are required")
+	}
+	if req.ToSource == "" {
+		req.ToSource = req.FromSource
+	}
+
+	pathClean, err := utils.SanitizePath(req.Path)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	destClean, err := utils.SanitizePath(req.Destination)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid destination: %v", err)
+	}
+	req.Path = pathClean
+	req.Destination = destClean
+
+	idxFrom := indexing.GetIndex(req.FromSource)
+	if idxFrom == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", req.FromSource)
+	}
+	userScopeFrom, err := d.User.GetScopeForSourceName(req.FromSource)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+
+	fullArchivePath := utils.JoinPathAsUnix(userScopeFrom, req.Path)
+	if accessStore != nil && !accessStore.Permitted(idxFrom.Path, utils.IndexPathFromNormalized(fullArchivePath, true), d.User.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to archive %s", req.Path)
+	}
+	archiveReal, _, err := idxFrom.GetRealPath(fullArchivePath)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("archive path not found: %v", err)
+	}
+
+	idxTo := indexing.GetIndex(req.ToSource)
+	if idxTo == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", req.ToSource)
+	}
+	userScopeTo, err := d.User.GetScopeForSourceName(req.ToSource)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	fullDestPath := utils.JoinPathAsUnix(userScopeTo, req.Destination)
+	if accessStore != nil && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestPath, true), d.User.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
+	}
+	destReal, _, err := idxTo.GetRealPath(fullDestPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("destination path invalid: %v", err)
+	}
+	destInfo, err := os.Stat(destReal)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return http.StatusBadRequest, fmt.Errorf("destination directory does not exist: %s", req.Destination)
+		}
+		return http.StatusInternalServerError, fmt.Errorf("destination: %v", err)
+	}
+	if !destInfo.IsDir() {
+		return http.StatusBadRequest, fmt.Errorf("destination must be a directory: %s", req.Destination)
+	}
+
+	info, err := os.Stat(archiveReal)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("archive not found: %v", err)
+	}
+	if info.IsDir() {
+		return http.StatusBadRequest, fmt.Errorf("path is not an archive file: %s", req.Path)
+	}
+
+	// Check archive size limit if configured
+	if config.Server.MaxArchiveSizeGB > 0 {
+		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		if info.Size() > maxSizeBytes {
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
+		}
+	}
+
+	lower := strings.ToLower(archiveReal)
+	var extractErr error
+	if strings.HasSuffix(lower, ".zip") {
+		extractErr = extractZip(archiveReal, destReal)
+	} else if strings.HasSuffix(lower, ".tar.gz") || (strings.HasSuffix(lower, ".tgz")) {
+		extractErr = extractTarGz(archiveReal, destReal)
+	} else {
+		return http.StatusBadRequest, fmt.Errorf("unsupported archive format (use .zip or .tar.gz)")
+	}
+	if extractErr != nil {
+		return http.StatusInternalServerError, extractErr
+	}
+
+	if req.DeleteAfter {
+		if err := os.Remove(archiveReal); err != nil {
+			logger.Errorf("Failed to delete archive after extract: %v", err)
+		}
+	}
+
+	activity.RecordArchive(r, toActor(d), activitydb.EventUnarchive, req.FromSource, req.Destination, []string{req.Path})
+	return RenderJSON(w, r, map[string]string{"path": req.Destination, "source": req.ToSource}, http.StatusOK)
+}
+
+// addFile adds a file or directory to a tar or zip archive, respecting access rules.
+// For shares, path is already resolved; for users, access is checked via accessStore.
+func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return fmt.Errorf("source %s is not available", source)
+	}
+
+	// Check access control directly for each file and silently skip if access is denied
+	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.User.Username) {
+		return nil // Silently skip this file/folder
+	}
+
+	realPath, _, _ := idx.GetRealPath(path)
+	info, err := os.Stat(realPath)
+	if err != nil {
+		return err
+	}
+
+	// Get the base name of the top-level folder or file
+	baseName := filepath.Base(realPath)
+
+	if info.IsDir() {
+		// Walk through directory contents
+		return filepath.Walk(realPath, func(filePath string, fileInfo os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			// Calculate the relative path
+			relPath, err := filepath.Rel(realPath, filePath)
+			if err != nil {
+				return err
+			}
+
+			// Normalize for tar: convert \ to /
+			relPath = filepath.ToSlash(relPath)
+
+			// Skip adding `.` (current directory)
+			if relPath == "." {
+				return nil
+			}
+
+			// Check access control for each file/folder during walk
+			if d.Share.Hash == "" {
+				indexRelPath := utils.JoinPathAsUnix(path, relPath)
+				indexRelPath = filepath.ToSlash(indexRelPath)
+				indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
+				if !accessStore.Permitted(idx.Path, indexPath, d.User.Username) {
+					if fileInfo.IsDir() {
+						return filepath.SkipDir
+					}
+					return nil
+				}
+			}
+
+			// Prepend base folder name unless flatten is true
+			if !flatten {
+				relPath = filepath.Join(baseName, relPath)
+				relPath = filepath.ToSlash(relPath)
+			}
+
+			if fileInfo.IsDir() {
+				if tarWriter != nil {
+					header, err := tar.FileInfoHeader(fileInfo, "")
+					if err != nil {
+						return err
+					}
+					header.Name = relPath + "/"
+					return tarWriter.WriteHeader(header)
+				}
+				if zipWriter != nil {
+					zh, err := zip.FileInfoHeader(fileInfo)
+					if err != nil {
+						return err
+					}
+					zh.Name = relPath + "/"
+					zh.Method = zip.Store
+					_, err = zipWriter.CreateHeader(zh)
+					return err
+				}
+				return nil
+			}
+			return addSingleFile(filePath, relPath, zipWriter, tarWriter)
+		})
+	}
+	// For a single file, use the base name as the archive path
+	return addSingleFile(realPath, baseName, zipWriter, tarWriter)
+}
+
+// addSingleFile writes one file into the given zip or tar writer.
+func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWriter *tar.Writer) error {
+	file, err := os.Open(realPath)
+	if err != nil {
+		if strings.Contains(err.Error(), "is a directory") {
+			return nil
+		}
+		return err
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	if info.IsDir() {
+		return nil
+	}
+
+	if tarWriter != nil {
+		header, err := tar.FileInfoHeader(info, "")
+		if err != nil {
+			return err
+		}
+		header.Name = filepath.ToSlash(archivePath)
+		if err = tarWriter.WriteHeader(header); err != nil {
+			return err
+		}
+		_, err = io.Copy(tarWriter, file)
+		return err
+	}
+
+	if zipWriter != nil {
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+		header.Name = archivePath
+		writer, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(writer, file)
+		return err
+	}
+
+	return nil
+}
+
+// createZip writes a ZIP archive into w containing the given paths; access rules apply.
+func createZip(d *Context, source string, w io.Writer, filenames ...string) error {
+	zipWriter := zip.NewWriter(w)
+
+	for _, filepath := range filenames {
+		err := addFile(source, filepath, d, nil, zipWriter, false)
+		if err != nil {
+			logger.Errorf("Failed to add %s to ZIP: %v", filepath, err)
+			return err
+		}
+	}
+
+	if err := zipWriter.Close(); err != nil {
+		return fmt.Errorf("failed to finalize ZIP archive: %w", err)
+	}
+	return nil
+}
+
+// createTarGz writes a tar.gz archive into w containing the given paths; access rules apply.
+func createTarGz(d *Context, source string, w io.Writer, filenames ...string) error {
+	gzWriter := gzip.NewWriter(w)
+	tarWriter := tar.NewWriter(gzWriter)
+
+	for _, filepath := range filenames {
+		err := addFile(source, filepath, d, tarWriter, nil, false)
+		if err != nil {
+			logger.Errorf("Failed to add %s to TAR.GZ: %v", filepath, err)
+			return err
+		}
+	}
+
+	if err := tarWriter.Close(); err != nil {
+		return fmt.Errorf("failed to finalize TAR archive: %w", err)
+	}
+	if err := gzWriter.Close(); err != nil {
+		return fmt.Errorf("failed to finalize GZIP compression: %w", err)
+	}
+	return nil
+}
+
+// createTarGzWithLevel writes a tar.gz archive into w with the given gzip compression level (0=default, 1-9).
+func createTarGzWithLevel(d *Context, source string, w io.Writer, level int, filenames ...string) error {
+	var gzWriter *gzip.Writer
+	if level >= 1 && level <= 9 {
+		var err error
+		gzWriter, err = gzip.NewWriterLevel(w, level)
+		if err != nil {
+			return err
+		}
+	} else {
+		gzWriter = gzip.NewWriter(w)
+	}
+	defer gzWriter.Close()
+	tarWriter := tar.NewWriter(gzWriter)
+	defer tarWriter.Close()
+
+	for _, filepath := range filenames {
+		err := addFile(source, filepath, d, tarWriter, nil, false)
+		if err != nil {
+			logger.Errorf("Failed to add %s to TAR.GZ: %v", filepath, err)
+			return err
+		}
+	}
+	if err := tarWriter.Close(); err != nil {
+		return fmt.Errorf("failed to finalize TAR archive: %w", err)
+	}
+	return nil
+}
+
+// BuildAndStreamArchive builds a zip or tar.gz for multi-file/directory download.
+// Plain GET without Range streams the archive straight to the response (no temp file), matching
+// clients with chunked downloads disabled. HEAD or Range builds a temp file under cacheDir downloads,
+// returns X-Archive-Token on the first response, and serves via ServeContent for Range/resume;
+// follow-up GETs use ?archiveToken=.... Idle chunked sessions delete the spool file after
+// archiveMultiRequestIdle without another request.
+//
+// server.maxArchiveSizeGB is enforced only for the HEAD/Range spool path.
+func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *Context, source string, fileList []string) (int, error) {
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
+	}
+	realPath, _, err := idx.GetRealPath(fileList[0])
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to get real path for %s: %v", fileList[0], err)
+	}
+
+	algo := r.URL.Query().Get("algo")
+	var extension string
+	switch algo {
+	case "zip", "true", "":
+		extension = ".zip"
+	case "tar.gz":
+		extension = ".tar.gz"
+	default:
+		return http.StatusInternalServerError, errors.New("format not implemented")
+	}
+
+	originalFileName := archiveAttachmentStem(fileList, realPath) + extension
+
+	token := r.URL.Query().Get("archiveToken")
+	if token != "" {
+		tmpPath, ok := archiveSpoolPathCache.Get(token)
+		if !ok {
+			return http.StatusGone, fmt.Errorf("invalid or expired archiveToken")
+		}
+		archiveSpoolPathCache.SetWithExp(token, tmpPath, archiveMultiRequestIdle)
+		rescheduleArchiveSpoolIdleCleanup(token, tmpPath)
+		if _, err = os.Stat(tmpPath); err != nil {
+			archiveSpoolPathCache.Delete(token)
+			return http.StatusGone, fmt.Errorf("archive no longer available")
+		}
+		var fd *os.File
+		fd, err = os.Open(tmpPath)
+		if err != nil {
+			return http.StatusGone, err
+		}
+		var fi os.FileInfo
+		fi, err = fd.Stat()
+		if err != nil {
+			_ = fd.Close()
+			return http.StatusInternalServerError, err
+		}
+		code, srvErr := serveArchiveWithServeContent(w, r, d, fd, fi, originalFileName)
+		if closeErr := fd.Close(); closeErr != nil && srvErr == nil {
+			srvErr = closeErr
+		}
+		if srvErr == nil && archiveGetDeliversThroughEOF(r, fi.Size()) {
+			removeSpooledArchiveNow(token, tmpPath)
+		}
+		return code, srvErr
+	}
+
+	// HEAD or Range: same condition as chunked archive probing / retained spool (X-Archive-Token).
+	needMultiRequestSession := r.Method == http.MethodHead || r.Header.Get("Range") != ""
+
+	if needMultiRequestSession && config.Server.MaxArchiveSizeGB > 0 {
+		var estimatedSize int64
+		estimatedSize, err = computeArchiveSize(source, fileList, d)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to compute archive size: %v", err)
+		}
+		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		if estimatedSize > maxSizeBytes {
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
+		}
+	}
+
+	// Direct streaming: no temp file (typical browser download when chunked downloads are disabled).
+	if !needMultiRequestSession {
+		if r.Method != http.MethodGet {
+			return http.StatusMethodNotAllowed, fmt.Errorf("method not allowed")
+		}
+		SetContentDisposition(w, r, originalFileName, false)
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Cache-Control", "private")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+
+		writer := io.Writer(w)
+		if d.Share.MaxBandwidth > 0 {
+			limit := rate.Limit(d.Share.MaxBandwidth * 1024)
+			burst := d.Share.MaxBandwidth * 1024
+			writer = newThrottledWriter(w, limit, burst, r.Context())
+		}
+		if extension == ".zip" {
+			err = createZip(d, source, writer, fileList...)
+		} else {
+			err = createTarGz(d, source, writer, fileList...)
+		}
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		return 0, nil
+	}
+
+	dlDir := settings.DownloadCacheDir()
+	tmpF, err := os.CreateTemp(dlDir, "dl-archive-*"+extension)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("create temp archive: %w", err)
+	}
+	tmpPath := tmpF.Name()
+
+	if extension == ".zip" {
+		err = createZip(d, source, tmpF, fileList...)
+	} else {
+		err = createTarGz(d, source, tmpF, fileList...)
+	}
+	if err != nil {
+		_ = tmpF.Close()
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, err
+	}
+
+	if _, err = tmpF.Seek(0, 0); err != nil {
+		_ = tmpF.Close()
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, fmt.Errorf("seek temp archive: %w", err)
+	}
+	fi, err := tmpF.Stat()
+	if err != nil {
+		_ = tmpF.Close()
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, err
+	}
+
+	sizeInMB := fi.Size() / 1024 / 1024
+	if sizeInMB > 500 {
+		logger.Debugf("User %v is downloading large (%d MB) archive: %v", d.User.Username, sizeInMB, originalFileName)
+	}
+
+	// needMultiRequestSession: HEAD or Range — always spool and use ServeContent (+ token for follow-ups).
+	if err = tmpF.Close(); err != nil {
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, err
+	}
+	newTok, err := randomArchiveToken()
+	if err != nil {
+		_ = os.Remove(tmpPath)
+		return http.StatusInternalServerError, err
+	}
+	archiveSpoolPathCache.SetWithExp(newTok, tmpPath, archiveMultiRequestIdle)
+	rescheduleArchiveSpoolIdleCleanup(newTok, tmpPath)
+	w.Header().Set("X-Archive-Token", newTok)
+
+	fd, err := os.Open(tmpPath)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer fd.Close()
+	fi2, err := fd.Stat()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return serveArchiveWithServeContent(w, r, d, fd, fi2, originalFileName)
+}
+
+// archiveCreateRequest is the body for POST /resources/archive (server-side create).
+type archiveCreateRequest struct {
+	// Source name where the paths to archive live (required). Example: "default"
+	FromSource string `json:"fromSource"`
+	// Source name where the archive file will be written (optional; default: fromSource). Example: "backups"
+	ToSource string `json:"toSource"`
+	// Paths of files or directories to add; directories are walked; access-denied entries skipped (required). Example: ["/docs/file.txt", "/photos"]
+	Paths []string `json:"paths"`
+	// Full path where the archive will be created; use .zip or .tar.gz extension (required). Example: "/backups/my-archive.zip"
+	Destination string `json:"destination"`
+	// Archive format: "zip" or "tar.gz" (optional; inferred from destination if omitted). Example: "zip"
+	Format string `json:"format"`
+	// Gzip compression level for tar.gz only, 0-9; 0 = default; ignored for zip (optional). Example: 6
+	Compression int `json:"compression"`
+	// If true, delete the source files/directories after successful archive creation (optional; requires delete permission). Example: true
+	DeleteAfter bool `json:"deleteAfter"`
+}
+
+// unarchiveRequest is the body for POST /resources/unarchive (server-side extract).
+type unarchiveRequest struct {
+	// Source name where the archive file lives (required). Example: "default"
+	FromSource string `json:"fromSource"`
+	// Source name where contents will be extracted (optional; default: fromSource). Example: "restored"
+	ToSource string `json:"toSource"`
+	// Path to the archive file on fromSource; .zip, .tar.gz, or .tgz (required). Example: "/downloads/data.zip"
+	Path string `json:"path"`
+	// Directory path on toSource to extract into (required). Example: "/projects/imported"
+	Destination string `json:"destination"`
+	// If true, delete the archive file after successful extraction (optional; default: false). Example: true
+	DeleteAfter bool `json:"deleteAfter"`
+}
+
+// normalizeArchiveEntryName turns a raw zip/tar name into a safe relative path (slash-separated).
+// Many Windows zips use backslashes; some start with a leading backslash, which would make
+// filepath.Join drop destDir and write under the drive root. Backslashes are not path separators
+// on Unix, so we always normalize '\' -> '/' and trim leading '/' before path.Clean.
+func normalizeArchiveEntryName(name string) (string, error) {
+	s := strings.TrimSpace(name)
+	if s == "" {
+		return "", errors.New("empty path")
+	}
+	s = strings.ReplaceAll(s, "\\", "/")
+	if strings.HasPrefix(s, "//") {
+		return "", errors.New("UNC or invalid path")
+	}
+	s = strings.TrimLeft(s, "/")
+	// Reject e.g. "C:/path" in archive
+	if len(s) >= 3 && s[1] == ':' && s[2] == '/' {
+		if 'A' <= s[0] && s[0] <= 'Z' || 'a' <= s[0] && s[0] <= 'z' {
+			return "", errors.New("absolute path in archive")
+		}
+	}
+	if s == ".." {
+		return "", errors.New("path traversal")
+	}
+	if strings.HasPrefix(s, "../") {
+		return "", errors.New("path traversal")
+	}
+	cleaned := path.Clean(s)
+	if cleaned == "" || cleaned == "." {
+		return "", errors.New("empty path after clean")
+	}
+	if cleaned == ".." {
+		return "", errors.New("path traversal after clean")
+	}
+	if strings.HasPrefix(cleaned, "../") {
+		return "", errors.New("path traversal after clean")
+	}
+	return cleaned, nil
+}
+
+// safeExtractPath ensures name does not escape destDir (no ".." or drive-root / UNC tricks).
+func safeExtractPath(destDir, name string) (string, error) {
+	relSlash, err := normalizeArchiveEntryName(name)
+	if err != nil {
+		return "", fmt.Errorf("invalid entry path: %q: %w", name, err)
+	}
+	// Convert to platform separators so filepath.Join and os.Mkdir work correctly
+	abs := filepath.Join(destDir, filepath.FromSlash(relSlash))
+	destAbs, err := filepath.Abs(destDir)
+	if err != nil {
+		return "", err
+	}
+	entryAbs, err := filepath.Abs(abs)
+	if err != nil {
+		return "", err
+	}
+	// Case-sensitive/prefix issues on Windows: use Rel instead of HasPrefix on absolute paths
+	rel, err := filepath.Rel(destAbs, entryAbs)
+	if err != nil {
+		return "", fmt.Errorf("invalid entry path: %q: %w", name, err)
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("invalid entry path: %q", name)
+	}
+	return abs, nil
+}
+
+// applyArchivedTimesAndPerm sets permission bits and modification time from an archive entry using
+func applyArchivedTimesAndPerm(path string, mode fs.FileMode, modTime time.Time) error {
+	switch {
+	case mode.Type() == fs.ModeSymlink:
+		if !modTime.IsZero() {
+			_ = os.Chtimes(path, modTime, modTime)
+		}
+		return nil
+	case mode.Type() == fs.ModeDir:
+		if p := mode.Perm(); p != 0 {
+			_ = os.Chmod(path, p)
+		}
+		if modTime.IsZero() {
+			return nil
+		}
+		return os.Chtimes(path, modTime, modTime)
+	case mode.IsRegular():
+		if p := mode.Perm(); p != 0 {
+			_ = os.Chmod(path, p)
+		}
+		if modTime.IsZero() {
+			return nil
+		}
+		return os.Chtimes(path, modTime, modTime)
+	default:
+		if !modTime.IsZero() {
+			_ = os.Chtimes(path, modTime, modTime)
+		}
+		return nil
+	}
+}
+
+// symlinkTargetStaysUnderDest rejects absolute targets and paths that would resolve outside destRoot.
+func symlinkTargetStaysUnderDest(destRoot, destPath, linkname string) error {
+	if linkname == "" {
+		return fmt.Errorf("empty symlink target")
+	}
+	if filepath.IsAbs(linkname) {
+		return fmt.Errorf("symlink has absolute target")
+	}
+	destAbs, err := filepath.Abs(destRoot)
+	if err != nil {
+		return err
+	}
+	resolved := filepath.Clean(filepath.Join(filepath.Dir(destPath), linkname))
+	resAbs, err := filepath.Abs(resolved)
+	if err != nil {
+		return err
+	}
+	sep := string(filepath.Separator)
+	if resAbs != destAbs && !strings.HasPrefix(resAbs, destAbs+sep) {
+		return fmt.Errorf("symlink target escapes destination directory")
+	}
+	return nil
+}
+
+// extractArchivedDir creates a directory from an archive entry and reapplies mode and mtime.
+func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) error {
+	perm := mode.Perm()
+	if perm == 0 {
+		perm = fileutils.EffectiveDirPerm()
+	}
+	if err := os.MkdirAll(destPath, perm); err != nil {
+		return fmt.Errorf("mkdir %q: %w", destPath, err)
+	}
+	return applyArchivedTimesAndPerm(destPath, mode, modTime)
+}
+
+// extractArchivedRegularFile writes one regular file from src (closed by this function) and reapplies mode and mtime.
+func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.Time, src io.ReadCloser) error {
+	defer func() { _ = src.Close() }()
+	parent := filepath.Dir(destPath)
+	if err := os.MkdirAll(parent, fileutils.EffectiveDirPerm()); err != nil {
+		return fmt.Errorf("mkdir %q: %w", parent, err)
+	}
+	perm := mode.Perm()
+	if perm == 0 {
+		perm = fileutils.EffectiveFilePerm()
+	}
+	out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+	if err != nil {
+		return err
+	}
+	_, copyErr := io.Copy(out, src)
+	cerr := out.Close()
+	if copyErr != nil {
+		return copyErr
+	}
+	if cerr != nil {
+		return cerr
+	}
+	return applyArchivedTimesAndPerm(destPath, mode, modTime)
+}
+
+// extractArchivedSymlink creates a symlink after validating the target stays under destRoot.
+func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time) error {
+	target = strings.TrimSpace(target)
+	symParent := filepath.Dir(destPath)
+	if err := os.MkdirAll(symParent, fileutils.EffectiveDirPerm()); err != nil {
+		return fmt.Errorf("mkdir %q: %w", symParent, err)
+	}
+	if err := symlinkTargetStaysUnderDest(destRoot, destPath, target); err != nil {
+		return err
+	}
+	if err := os.Remove(destPath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err := os.Symlink(target, destPath); err != nil {
+		return err
+	}
+	return applyArchivedTimesAndPerm(destPath, fs.ModeSymlink, modTime)
+}
+
+func extractZip(archivePath, destDir string) error {
+	r, err := zip.OpenReader(archivePath)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	// Central directory order is arbitrary. Some zips (e.g. Windows driver packs) use names that
+	// are similar length at different tree depths, so byte length is a poor order key. Use the
+	// number of path segments in the *normalized* entry name: deeper trees first, then
+	// lexicographic, so parent dirs exist before shorter entries that might be mis-tagged.
+	type orderedName struct {
+		f     *zip.File
+		rel   string
+		depth int
+	}
+	ordered := make([]orderedName, 0, len(r.File))
+	for _, f := range r.File {
+		rel, nerr := normalizeArchiveEntryName(f.Name)
+		if nerr != nil {
+			rel = strings.TrimLeft(strings.ReplaceAll(strings.TrimSpace(f.Name), "\\", "/"), "/")
+		}
+		depth := 0
+		if rel != "" {
+			depth = strings.Count(rel, "/") + 1
+		}
+		ordered = append(ordered, orderedName{f: f, rel: rel, depth: depth})
+	}
+	sort.Slice(ordered, func(i, j int) bool {
+		if ordered[i].depth != ordered[j].depth {
+			return ordered[i].depth > ordered[j].depth
+		}
+		if ordered[i].rel != ordered[j].rel {
+			return ordered[i].rel < ordered[j].rel
+		}
+		return ordered[i].f.Name < ordered[j].f.Name
+	})
+
+	for _, o := range ordered {
+		f := o.f
+		var destPath string
+		destPath, err = safeExtractPath(destDir, f.Name)
+		if err != nil {
+			return err
+		}
+
+		fi := f.FileInfo()
+		mode := fi.Mode()
+		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(f.Name, "/") || strings.HasSuffix(f.Name, "\\")
+		if isDirEntry {
+			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
+				return err
+			}
+			continue
+		}
+
+		if mode.Type() == fs.ModeSymlink {
+			var rc io.ReadCloser
+			rc, err = f.Open()
+			if err != nil {
+				return err
+			}
+			buf, rerr := io.ReadAll(rc)
+			rc.Close()
+			if rerr != nil {
+				return rerr
+			}
+			if err = extractArchivedSymlink(destDir, destPath, string(buf), f.Modified); err != nil {
+				return err
+			}
+			continue
+		}
+
+		if !mode.IsRegular() {
+			continue
+		}
+
+		var rc io.ReadCloser
+		rc, err = f.Open()
+		if err != nil {
+			return err
+		}
+		if err = extractArchivedRegularFile(destPath, mode, f.Modified, rc); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func extractTarGz(archivePath, destDir string) error {
+	f, err := os.Open(archivePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	tr := tar.NewReader(gz)
+	for {
+		h, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		var destPath string
+		destPath, err = safeExtractPath(destDir, h.Name)
+		if err != nil {
+			return err
+		}
+
+		switch h.Typeflag {
+		case tar.TypeDir:
+			mode := h.FileInfo().Mode()
+			if err = extractArchivedDir(destPath, mode, h.ModTime); err != nil {
+				return err
+			}
+		case tar.TypeReg:
+			mode := h.FileInfo().Mode()
+			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
+				return err
+			}
+		case tar.TypeSymlink:
+			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
+				return err
+			}
+		default:
+			if h.Size > 0 {
+				if _, err = io.CopyN(io.Discard, tr, h.Size); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// computeArchiveSize returns the combined size of the given paths, respecting access rules.
+// Paths denied by access are skipped (not counted).
+func computeArchiveSize(source string, fileList []string, d *Context) (int64, error) {
+	var estimatedSize int64
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return 0, fmt.Errorf("source %s is not available", source)
+	}
+
+	for _, path := range fileList {
+		if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.User.Username) {
+			continue
+		}
+		realPath, isDir, err := idx.GetRealPath(path)
+		if err != nil {
+			return 0, err
+		}
+		info, ok := idx.GetReducedMetadata(realPath, isDir)
+		if !ok {
+			indexPath := idx.MakeIndexPath(realPath, isDir).String()
+			info, err = idx.GetFsInfo(indexPath, false, true)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)
+			}
+		}
+		estimatedSize += info.Size
+	}
+	return estimatedSize, nil
+}

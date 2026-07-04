@@ -1,183 +1,4 @@
 definitions:
-  activity.EventType:
-    enum:
-    - download
-    - move
-    - copy
-    - rename
-    - upload
-    - delete
-    - bulkDelete
-    - archive
-    - unarchive
-    - shareCreate
-    - shareUpdate
-    - shareDelete
-    - userCreate
-    - userUpdate
-    - userDelete
-    - accessUpdate
-    - accessCreate
-    - accessDelete
-    - login
-    - logout
-    - signup
-    - passkeyRegister
-    - passkeyDelete
-    - tokenCreate
-    - tokenDelete
-    - duplicateFinder
-    type: string
-    x-enum-varnames:
-    - EventDownload
-    - EventMove
-    - EventCopy
-    - EventRename
-    - EventUpload
-    - EventDelete
-    - EventBulkDelete
-    - EventArchive
-    - EventUnarchive
-    - EventShareCreate
-    - EventShareUpdate
-    - EventShareDelete
-    - EventUserCreate
-    - EventUserUpdate
-    - EventUserDelete
-    - EventAccessUpdate
-    - EventAccessCreate
-    - EventAccessDelete
-    - EventLogin
-    - EventLogout
-    - EventSignup
-    - EventPasskeyRegister
-    - EventPasskeyDelete
-    - EventTokenCreate
-    - EventTokenDelete
-    - EventDuplicateFinder
-  activity.FieldChange:
-    properties:
-      field:
-        type: string
-      from:
-        type: string
-      to:
-        type: string
-    type: object
-  activity.FrontendDetails:
-    properties:
-      affectedTokenName:
-        type: string
-      bytes:
-        type: integer
-      cached:
-        type: boolean
-      changes:
-        items:
-          $ref: '#/definitions/activity.FieldChange'
-        type: array
-      durationMs:
-        type: integer
-      error:
-        type: string
-      fileCount:
-        type: integer
-      loginMethod:
-        type: string
-      passkeyName:
-        type: string
-      path:
-        type: string
-      paths:
-        items:
-          type: string
-        type: array
-      scopes:
-        items:
-          $ref: '#/definitions/activity.ScopeDetail'
-        type: array
-      source:
-        type: string
-      targetPath:
-        type: string
-      targetUsername:
-        type: string
-      truncated:
-        type: boolean
-      updatedFields:
-        items:
-          type: string
-        type: array
-    type: object
-  activity.FrontendEntry:
-    properties:
-      authMethod:
-        type: string
-      createdAt:
-        type: integer
-      details:
-        $ref: '#/definitions/activity.FrontendDetails'
-      eventType:
-        $ref: '#/definitions/activity.EventType'
-      id:
-        type: integer
-      ipAddress:
-        type: string
-      path:
-        type: string
-      shareHash:
-        type: string
-      source:
-        type: string
-      targetPath:
-        type: string
-      tokenName:
-        type: string
-      username:
-        type: string
-    type: object
-  activity.ListResponse:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/activity.FrontendEntry'
-        type: array
-      limit:
-        type: integer
-      page:
-        type: integer
-      total:
-        type: integer
-      totalPages:
-        type: integer
-    type: object
-  activity.ScopeDetail:
-    properties:
-      path:
-        type: string
-      source:
-        type: string
-    type: object
-  activity.StatsBucket:
-    properties:
-      bucket:
-        type: integer
-      count:
-        type: integer
-      eventType:
-        type: string
-      seriesKey:
-        type: string
-      seriesLabel:
-        type: string
-    type: object
-  activity.StatsResponse:
-    properties:
-      buckets:
-        items:
-          $ref: '#/definitions/activity.StatsBucket'
-        type: array
-    type: object
   files.Items:
     properties:
       files:
@@ -188,239 +9,6 @@ definitions:
         items:
           type: string
         type: array
-    type: object
-  http.AuthTokenFrontend:
-    properties:
-      Permissions:
-        $ref: '#/definitions/users.Permissions'
-      expiresAt:
-        type: integer
-      issuedAt:
-        type: integer
-      name:
-        type: string
-      token:
-        type: string
-    type: object
-  http.BulkDeleteItem:
-    properties:
-      message:
-        type: string
-      path:
-        type: string
-      source:
-        type: string
-    type: object
-  http.BulkDeleteResponse:
-    properties:
-      failed:
-        items:
-          $ref: '#/definitions/http.BulkDeleteItem'
-        type: array
-      succeeded:
-        items:
-          $ref: '#/definitions/http.BulkDeleteItem'
-        type: array
-    type: object
-  http.DirectDownloadResponse:
-    properties:
-      hash:
-        type: string
-      shareUrl:
-        type: string
-      status:
-        type: string
-      url:
-        type: string
-    type: object
-  http.GroupListResponse:
-    properties:
-      groups:
-        items:
-          type: string
-        type: array
-    type: object
-  http.HttpResponse:
-    properties:
-      message:
-        type: string
-      status:
-        type: integer
-      token:
-        type: string
-    type: object
-  http.MoveCopyItem:
-    properties:
-      fromPath:
-        type: string
-      fromSource:
-        type: string
-      message:
-        type: string
-      toPath:
-        type: string
-      toSource:
-        type: string
-    type: object
-  http.MoveCopyRequest:
-    properties:
-      action:
-        description: '"copy", "move", or "rename"'
-        type: string
-      items:
-        items:
-          $ref: '#/definitions/http.MoveCopyItem'
-        type: array
-      overwrite:
-        description: Overwrite if destination exists
-        type: boolean
-      rename:
-        description: Auto-rename if destination exists
-        type: boolean
-    type: object
-  http.MoveCopyResponse:
-    properties:
-      failed:
-        items:
-          $ref: '#/definitions/http.MoveCopyItem'
-        type: array
-      succeeded:
-        items:
-          $ref: '#/definitions/http.MoveCopyItem'
-        type: array
-    type: object
-  http.archiveCreateRequest:
-    properties:
-      compression:
-        description: 'Gzip compression level for tar.gz only, 0-9; 0 = default; ignored
-          for zip (optional). Example: 6'
-        type: integer
-      deleteAfter:
-        description: 'If true, delete the source files/directories after successful
-          archive creation (optional; requires delete permission). Example: true'
-        type: boolean
-      destination:
-        description: 'Full path where the archive will be created; use .zip or .tar.gz
-          extension (required). Example: "/backups/my-archive.zip"'
-        type: string
-      format:
-        description: 'Archive format: "zip" or "tar.gz" (optional; inferred from destination
-          if omitted). Example: "zip"'
-        type: string
-      fromSource:
-        description: 'Source name where the paths to archive live (required). Example:
-          "default"'
-        type: string
-      paths:
-        description: 'Paths of files or directories to add; directories are walked;
-          access-denied entries skipped (required). Example: ["/docs/file.txt", "/photos"]'
-        items:
-          type: string
-        type: array
-      toSource:
-        description: 'Source name where the archive file will be written (optional;
-          default: fromSource). Example: "backups"'
-        type: string
-    type: object
-  http.duplicateGroup:
-    properties:
-      count:
-        type: integer
-      files:
-        items:
-          $ref: '#/definitions/indexing.SearchResult'
-        type: array
-      size:
-        type: integer
-    type: object
-  http.duplicateResponse:
-    properties:
-      groups:
-        items:
-          $ref: '#/definitions/http.duplicateGroup'
-        type: array
-      incomplete:
-        type: boolean
-      reason:
-        type: string
-    type: object
-  http.fileWatchMetadata:
-    properties:
-      modified:
-        description: Modification time
-        type: string
-      name:
-        description: File name
-        type: string
-      size:
-        description: File size in bytes (for directories, total size of all files)
-        type: integer
-      type:
-        description: MIME type
-        type: string
-    type: object
-  http.fileWatchResponse:
-    properties:
-      contents:
-        description: Text content for text files
-        type: string
-      isText:
-        description: Whether the file is a text file
-        type: boolean
-      metadata:
-        allOf:
-        - $ref: '#/definitions/http.fileWatchMetadata'
-        description: File metadata for non-text files
-    type: object
-  http.pinnedItemPatchRequest:
-    properties:
-      name:
-        description: item basename within path
-        type: string
-      path:
-        description: scope-relative parent directory
-        type: string
-      source:
-        type: string
-    required:
-    - name
-    - path
-    - source
-    type: object
-  http.sharePinnedItemPatchRequest:
-    properties:
-      name:
-        description: item basename within path
-        type: string
-      path:
-        description: share-relative parent directory
-        type: string
-    required:
-    - name
-    - path
-    type: object
-  http.unarchiveRequest:
-    properties:
-      deleteAfter:
-        description: 'If true, delete the archive file after successful extraction
-          (optional; default: false). Example: true'
-        type: boolean
-      destination:
-        description: 'Directory path on toSource to extract into (required). Example:
-          "/projects/imported"'
-        type: string
-      fromSource:
-        description: 'Source name where the archive file lives (required). Example:
-          "default"'
-        type: string
-      path:
-        description: 'Path to the archive file on fromSource; .zip, .tar.gz, or .tgz
-          (required). Example: "/downloads/data.zip"'
-        type: string
-      toSource:
-        description: 'Source name where contents will be extracted (optional; default:
-          fromSource). Example: "restored"'
-        type: string
     type: object
   indexing.SearchResult:
     properties:
@@ -2451,6 +2039,227 @@ definitions:
         description: title/description
         type: string
     type: object
+  web.AuthTokenFrontend:
+    properties:
+      Permissions:
+        $ref: '#/definitions/users.Permissions'
+      expiresAt:
+        type: integer
+      issuedAt:
+        type: integer
+      name:
+        type: string
+      token:
+        type: string
+    type: object
+  web.BulkDeleteItem:
+    properties:
+      message:
+        type: string
+      path:
+        type: string
+      source:
+        type: string
+    type: object
+  web.BulkDeleteResponse:
+    properties:
+      failed:
+        items:
+          $ref: '#/definitions/web.BulkDeleteItem'
+        type: array
+      succeeded:
+        items:
+          $ref: '#/definitions/web.BulkDeleteItem'
+        type: array
+    type: object
+  web.DirectDownloadResponse:
+    properties:
+      hash:
+        type: string
+      shareUrl:
+        type: string
+      status:
+        type: string
+      url:
+        type: string
+    type: object
+  web.GroupListResponse:
+    properties:
+      groups:
+        items:
+          type: string
+        type: array
+    type: object
+  web.HttpResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: integer
+      token:
+        type: string
+    type: object
+  web.MoveCopyItem:
+    properties:
+      fromPath:
+        type: string
+      fromSource:
+        type: string
+      message:
+        type: string
+      toPath:
+        type: string
+      toSource:
+        type: string
+    type: object
+  web.MoveCopyRequest:
+    properties:
+      action:
+        description: '"copy", "move", or "rename"'
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/web.MoveCopyItem'
+        type: array
+      overwrite:
+        description: Overwrite if destination exists
+        type: boolean
+      rename:
+        description: Auto-rename if destination exists
+        type: boolean
+    type: object
+  web.MoveCopyResponse:
+    properties:
+      failed:
+        items:
+          $ref: '#/definitions/web.MoveCopyItem'
+        type: array
+      succeeded:
+        items:
+          $ref: '#/definitions/web.MoveCopyItem'
+        type: array
+    type: object
+  web.archiveCreateRequest:
+    properties:
+      compression:
+        description: 'Gzip compression level for tar.gz only, 0-9; 0 = default; ignored
+          for zip (optional). Example: 6'
+        type: integer
+      deleteAfter:
+        description: 'If true, delete the source files/directories after successful
+          archive creation (optional; requires delete permission). Example: true'
+        type: boolean
+      destination:
+        description: 'Full path where the archive will be created; use .zip or .tar.gz
+          extension (required). Example: "/backups/my-archive.zip"'
+        type: string
+      format:
+        description: 'Archive format: "zip" or "tar.gz" (optional; inferred from destination
+          if omitted). Example: "zip"'
+        type: string
+      fromSource:
+        description: 'Source name where the paths to archive live (required). Example:
+          "default"'
+        type: string
+      paths:
+        description: 'Paths of files or directories to add; directories are walked;
+          access-denied entries skipped (required). Example: ["/docs/file.txt", "/photos"]'
+        items:
+          type: string
+        type: array
+      toSource:
+        description: 'Source name where the archive file will be written (optional;
+          default: fromSource). Example: "backups"'
+        type: string
+    type: object
+  web.duplicateGroup:
+    properties:
+      count:
+        type: integer
+      files:
+        items:
+          $ref: '#/definitions/indexing.SearchResult'
+        type: array
+      size:
+        type: integer
+    type: object
+  web.duplicateResponse:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/web.duplicateGroup'
+        type: array
+      incomplete:
+        type: boolean
+      reason:
+        type: string
+    type: object
+  web.fileWatchMetadata:
+    properties:
+      modified:
+        description: Modification time
+        type: string
+      name:
+        description: File name
+        type: string
+      size:
+        description: File size in bytes (for directories, total size of all files)
+        type: integer
+      type:
+        description: MIME type
+        type: string
+    type: object
+  web.fileWatchResponse:
+    properties:
+      contents:
+        description: Text content for text files
+        type: string
+      isText:
+        description: Whether the file is a text file
+        type: boolean
+      metadata:
+        allOf:
+        - $ref: '#/definitions/web.fileWatchMetadata'
+        description: File metadata for non-text files
+    type: object
+  web.pinnedItemPatchRequest:
+    properties:
+      name:
+        description: item basename within path
+        type: string
+      path:
+        description: scope-relative parent directory
+        type: string
+      source:
+        type: string
+    required:
+    - name
+    - path
+    - source
+    type: object
+  web.unarchiveRequest:
+    properties:
+      deleteAfter:
+        description: 'If true, delete the archive file after successful extraction
+          (optional; default: false). Example: true'
+        type: boolean
+      destination:
+        description: 'Directory path on toSource to extract into (required). Example:
+          "/projects/imported"'
+        type: string
+      fromSource:
+        description: 'Source name where the archive file lives (required). Example:
+          "default"'
+        type: string
+      path:
+        description: 'Path to the archive file on fromSource; .zip, .tar.gz, or .tgz
+          (required). Example: "/downloads/data.zip"'
+        type: string
+      toSource:
+        description: 'Source name where contents will be extracted (optional; default:
+          fromSource). Example: "restored"'
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -2749,7 +2558,7 @@ paths:
         "200":
           description: Object containing a list of groups
           schema:
-            $ref: '#/definitions/http.GroupListResponse'
+            $ref: '#/definitions/web.GroupListResponse'
         "403":
           description: Forbidden
           schema:
@@ -2954,7 +2763,7 @@ paths:
         "200":
           description: OTP token is valid.
           schema:
-            $ref: '#/definitions/http.HttpResponse'
+            $ref: '#/definitions/web.HttpResponse'
         "401":
           description: Unauthorized - invalid TOTP token
           schema:
@@ -3049,7 +2858,7 @@ paths:
         "200":
           description: API token deleted successfully
           schema:
-            $ref: '#/definitions/http.HttpResponse'
+            $ref: '#/definitions/web.HttpResponse'
         "404":
           description: Not found
           schema:
@@ -3081,7 +2890,7 @@ paths:
         "200":
           description: API token details
           schema:
-            $ref: '#/definitions/http.AuthTokenFrontend'
+            $ref: '#/definitions/web.AuthTokenFrontend'
         "404":
           description: Not found
           schema:
@@ -3124,7 +2933,7 @@ paths:
           description: Token created successfully, response contains json object with
             token
           schema:
-            $ref: '#/definitions/http.HttpResponse'
+            $ref: '#/definitions/web.HttpResponse'
         "400":
           description: Bad request
           schema:
@@ -3164,7 +2973,7 @@ paths:
           description: List of API tokens
           schema:
             items:
-              $ref: '#/definitions/http.AuthTokenFrontend'
+              $ref: '#/definitions/web.AuthTokenFrontend'
             type: array
         "404":
           description: Not found
@@ -3757,18 +3566,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/http.MoveCopyRequest'
+          $ref: '#/definitions/web.MoveCopyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: All operations completed successfully
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
         "207":
           description: Partial success - some operations succeeded, some failed
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
         "400":
           description: Bad request - invalid JSON or parameters
           schema:
@@ -3790,7 +3599,7 @@ paths:
         "500":
           description: All operations failed
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
       summary: Move, copy, or rename resources
       tags:
       - Resources
@@ -3922,7 +3731,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.archiveCreateRequest'
+          $ref: '#/definitions/web.archiveCreateRequest'
       produces:
       - application/json
       responses:
@@ -3979,7 +3788,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/http.BulkDeleteItem'
+            $ref: '#/definitions/web.BulkDeleteItem'
           type: array
       produces:
       - application/json
@@ -3987,11 +3796,11 @@ paths:
         "200":
           description: All resources deleted successfully
           schema:
-            $ref: '#/definitions/http.BulkDeleteResponse'
+            $ref: '#/definitions/web.BulkDeleteResponse'
         "207":
           description: Partial success - some resources deleted, some failed
           schema:
-            $ref: '#/definitions/http.BulkDeleteResponse'
+            $ref: '#/definitions/web.BulkDeleteResponse'
         "400":
           description: Bad request - invalid JSON or empty items array
           schema:
@@ -4253,7 +4062,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.unarchiveRequest'
+          $ref: '#/definitions/web.unarchiveRequest'
       produces:
       - application/json
       responses:
@@ -4567,7 +4376,7 @@ paths:
         "201":
           description: Direct download link created
           schema:
-            $ref: '#/definitions/http.DirectDownloadResponse'
+            $ref: '#/definitions/web.DirectDownloadResponse'
         "400":
           description: Bad request - invalid parameters or path is not a file
           schema:
@@ -4613,211 +4422,6 @@ paths:
       summary: List share links
       tags:
       - Shares
-  /api/tools/activity:
-    get:
-      description: Returns individual activity log rows, newest first. Paths are scope-relative
-        for non-admins.
-      parameters:
-      - description: 'Start unix timestamp (default: 7 days ago)'
-        in: query
-        name: from
-        type: integer
-      - description: 'End unix timestamp (default: now)'
-        in: query
-        name: to
-        type: integer
-      - description: 'Event category: all, files, access, or shares (default: all)'
-        in: query
-        name: scope
-        type: string
-      - description: Filter by event type (comma-separated)
-        in: query
-        name: eventType
-        type: string
-      - description: Filter by username (admin only)
-        in: query
-        name: username
-        type: string
-      - description: Filter by source name
-        in: query
-        name: source
-        type: string
-      - description: Path prefix filter
-        in: query
-        name: path
-        type: string
-      - description: Path glob filter (admin only)
-        in: query
-        name: pathGlob
-        type: string
-      - description: Share hash filter (owned shares for non-admins)
-        in: query
-        name: shareHash
-        type: string
-      - description: 'Page number (default: 1)'
-        in: query
-        name: page
-        type: integer
-      - description: 'Page size, max 500 (default: 100)'
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/activity.ListResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: List activity events
-      tags:
-      - Tools
-  /api/tools/activity/export:
-    get:
-      description: Streams matching activity rows as CSV. Details column is populated
-        for admins only.
-      parameters:
-      - description: 'Start unix timestamp (default: 7 days ago)'
-        in: query
-        name: from
-        type: integer
-      - description: 'End unix timestamp (default: now)'
-        in: query
-        name: to
-        type: integer
-      - description: 'Event category: all, files, access, or shares (default: all)'
-        in: query
-        name: scope
-        type: string
-      - description: Filter by event type (comma-separated)
-        in: query
-        name: eventType
-        type: string
-      - description: Filter by username (admin only)
-        in: query
-        name: username
-        type: string
-      - description: Filter by source name
-        in: query
-        name: source
-        type: string
-      - description: Path prefix filter
-        in: query
-        name: path
-        type: string
-      - description: Path glob filter (admin only)
-        in: query
-        name: pathGlob
-        type: string
-      - description: Share hash filter (owned shares for non-admins)
-        in: query
-        name: shareHash
-        type: string
-      produces:
-      - text/csv
-      responses:
-        "200":
-          description: CSV file
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Export activity as CSV
-      tags:
-      - Tools
-  /api/tools/activity/grouped:
-    get:
-      description: Returns time-bucketed activity counts for charts. Use interval
-        and splitBy to control grouping.
-      parameters:
-      - description: 'Start unix timestamp (default: 7 days ago)'
-        in: query
-        name: from
-        type: integer
-      - description: 'End unix timestamp (default: now)'
-        in: query
-        name: to
-        type: integer
-      - description: 'Event category: all, files, access, or shares (default: all)'
-        in: query
-        name: scope
-        type: string
-      - description: Filter by event type (comma-separated)
-        in: query
-        name: eventType
-        type: string
-      - description: Filter by username (admin only)
-        in: query
-        name: username
-        type: string
-      - description: Filter by source name
-        in: query
-        name: source
-        type: string
-      - description: Path prefix filter
-        in: query
-        name: path
-        type: string
-      - description: Path glob filter (admin only)
-        in: query
-        name: pathGlob
-        type: string
-      - description: Share hash filter (owned shares for non-admins)
-        in: query
-        name: shareHash
-        type: string
-      - description: 'Time bucket: minute, hour, day, or none (default: hour)'
-        in: query
-        name: interval
-        type: string
-      - description: 'Series dimension: eventType, user, or none (default: eventType)'
-        in: query
-        name: splitBy
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/activity.StatsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Grouped activity statistics
-      tags:
-      - Tools
   /api/tools/duplicateFinder:
     get:
       consumes:
@@ -4849,7 +4453,7 @@ paths:
           description: List of duplicate file groups with metadata. Response includes
             'incomplete' flag if processing stopped early due to resource limits.
           schema:
-            $ref: '#/definitions/http.duplicateResponse'
+            $ref: '#/definitions/web.duplicateResponse'
         "400":
           description: Bad Request
           schema:
@@ -4896,7 +4500,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.fileWatchResponse'
+            $ref: '#/definitions/web.fileWatchResponse'
         "400":
           description: Invalid request
           schema:
@@ -5234,7 +4838,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.pinnedItemPatchRequest'
+          $ref: '#/definitions/web.pinnedItemPatchRequest'
       produces:
       - application/json
       responses:
@@ -5272,7 +4876,7 @@ paths:
         "200":
           description: successful health check response
           schema:
-            $ref: '#/definitions/http.HttpResponse'
+            $ref: '#/definitions/web.HttpResponse'
       summary: Health Check
   /public/api/media/lyrics:
     get:
@@ -5462,18 +5066,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/http.MoveCopyRequest'
+          $ref: '#/definitions/web.MoveCopyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: All operations completed successfully
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
         "207":
           description: Partial success - some operations succeeded, some failed
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
         "400":
           description: Bad request - invalid JSON or parameters
           schema:
@@ -5495,7 +5099,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
       summary: Move, copy, or rename resources in a public share
       tags:
       - Resources
@@ -5653,7 +5257,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/http.BulkDeleteItem'
+            $ref: '#/definitions/web.BulkDeleteItem'
           type: array
       produces:
       - application/json
@@ -5661,11 +5265,11 @@ paths:
         "200":
           description: All resources deleted successfully
           schema:
-            $ref: '#/definitions/http.BulkDeleteResponse'
+            $ref: '#/definitions/web.BulkDeleteResponse'
         "207":
           description: Partial success - some resources deleted, some failed
           schema:
-            $ref: '#/definitions/http.BulkDeleteResponse'
+            $ref: '#/definitions/web.BulkDeleteResponse'
         "400":
           description: Bad request - invalid JSON or empty items array
           schema:
@@ -6028,60 +5632,6 @@ paths:
               type: string
             type: object
       summary: Get share information by hash
-      tags:
-      - Shares
-  /public/api/share/pinnedItems:
-    patch:
-      consumes:
-      - application/json
-      description: Patches one pinned item at a time for share owners. Defaults to
-        add; pass ?action=remove to unpin.
-      parameters:
-      - description: Share hash
-        in: query
-        name: hash
-        required: true
-        type: string
-      - description: add (default) or remove
-        in: query
-        name: action
-        type: string
-      - description: Pinned item
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/http.sharePinnedItemPatchRequest'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Share not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Add or remove a pinned item on a share
       tags:
       - Shares
 swagger: "2.0"

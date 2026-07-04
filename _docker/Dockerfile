@@ -7,8 +7,8 @@ COPY ./backend ./
 RUN apk update && apk add --no-cache gcc musl-dev
 ENV CGO_ENABLED=1
 RUN go build -tags mupdf,musl -ldflags="-w -s \
-  -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
-  -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
+  -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \
+  -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
 FROM node:jod-slim AS nbuild
@@ -36,7 +36,7 @@ COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
-COPY --from=nbuild --chown=filebrowser:1000 [ "/app/dist/", "./http/dist/" ]
+COPY --from=nbuild --chown=filebrowser:1000 [ "/app/dist/", "./internal/web/dist/" ]
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]

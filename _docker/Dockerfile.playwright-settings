@@ -12,8 +12,8 @@ COPY [ "./frontend/tests/playwright-files", "/tests/playwright-files" ]
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser", "./"]
 COPY [ "./backend/reduce-rounded-corners.css", "./no-rounded.css"]
-RUN mkdir -p ./http/dist
-COPY [ "./backend/http/embed/", "./http/dist/"]
+RUN mkdir -p ./internal/web/dist
+COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 
 # Run tests
 ENV FILEBROWSER_PLAYWRIGHT_TEST=true

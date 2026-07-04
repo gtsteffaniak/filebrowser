@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 

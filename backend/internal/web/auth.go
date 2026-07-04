@@ -1,0 +1,428 @@
+package web
+
+import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+	libError "errors"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/golang-jwt/jwt/v4/request"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
+)
+
+// Prefer Authorization header and explicit ?auth= query values over the session
+// cookie so API clients can authenticate while a revoked browser cookie is present.
+func ExtractToken(r *http.Request) (string, error) {
+	hasToken := false
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" {
+		hasToken = true
+		parts := strings.Split(authHeader, " ")
+		if len(parts) > 1 {
+			switch strings.ToLower(parts[0]) {
+			case "bearer":
+				if strings.Count(parts[1], ".") == 2 {
+					return parts[1], nil
+				}
+			case "basic":
+				// compatibility for basic auth: user ignored, password is token
+				_, token, ok := r.BasicAuth()
+				if ok && token != "" && strings.Count(token, ".") == 2 {
+					return token, nil
+				}
+			}
+		}
+	}
+
+	auth := r.URL.Query().Get("auth")
+	if auth != "" {
+		hasToken = true
+		if strings.Count(auth, ".") == 2 {
+			return auth, nil
+		}
+	}
+
+	tokenObj, err := r.Cookie("filebrowser_quantum_jwt")
+	if err == nil {
+		hasToken = true
+		token := tokenObj.Value
+		if token != "" && strings.Count(token, ".") == 2 {
+			return token, nil
+		}
+	}
+
+	if hasToken {
+		return "", fmt.Errorf("invalid token provided")
+	}
+
+	return "", request.ErrNoTokenInRequest
+}
+
+// getOrCreateAuthenticatedUser is a common helper for retrieving or auto-creating users
+// across different authentication methods (proxy, JWT, LDAP, OIDC)
+func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string) (*users.User, error) {
+	// Try to get existing user
+	userValue, err := state.GetUserByUsername(username)
+	if err != nil {
+		if !libError.Is(err, errors.ErrNotExist) {
+			return nil, err
+		}
+		// Auto-create user on first authentication
+		user := users.User{
+			FrontendUser: users.FrontendUser{
+				LoginMethod: loginMethod,
+				Username:    username,
+			},
+		}
+		settings.ApplyUserDefaults(&user)
+
+		if isAdmin {
+			user.Permissions.Admin = true
+		}
+
+		err = state.CreateUser(&user, "")
+		if err != nil {
+			return nil, err
+		}
+
+		// Fetch the created user
+		userValue, err = state.GetUserByUsername(username)
+		if err != nil {
+			return nil, err
+		}
+	}
+	allowedGroups := []string{}
+	switch loginMethod {
+	case users.LoginMethodJwt:
+		allowedGroups = config.Auth.Methods.JwtAuth.UserGroups
+	case users.LoginMethodLdap:
+		allowedGroups = config.Auth.Methods.LdapAuth.UserGroups
+	case users.LoginMethodOidc:
+		allowedGroups = config.Auth.Methods.OidcAuth.UserGroups
+	}
+	allowed := len(allowedGroups) == 0
+	for _, userGroup := range groups {
+		for _, allowedGroup := range allowedGroups {
+			if userGroup == allowedGroup {
+				allowed = true
+				break
+			}
+		}
+	}
+	if !allowed {
+		return nil, fmt.Errorf("user is not in allowed groups")
+	}
+	// Sync admin status if needed (in case admin username changed)
+	if isAdmin && !userValue.Permissions.Admin {
+		userValue.Permissions.Admin = true
+		// No password change, pass empty string
+		err = state.UpdateUser(&userValue, "")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := accessStore.SyncUserGroups(username, groups); err != nil {
+		logger.Warningf("failed to sync ldap user %s groups: %v", username, err)
+	}
+	// Verify login method matches
+	if userValue.LoginMethod != loginMethod {
+		return nil, errors.ErrWrongLoginMethod
+	}
+
+	return &userValue, nil
+}
+
+func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {
+	// Check if username matches admin username
+	isAdmin := proxyUser == config.Auth.AdminUsername
+	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, []string{})
+}
+
+// setupJwtUser retrieves or creates a user based on external JWT token claims
+func SetupJwtUser(r *http.Request, data *Context, username string, claims map[string]interface{}) (*users.User, error) {
+	// Determine if user should be admin
+	isAdmin := username == config.Auth.AdminUsername
+	// Check if user should be admin based on groups
+	groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+	for _, group := range groups {
+		if group == config.Auth.Methods.JwtAuth.AdminGroup {
+			isAdmin = true
+			break
+		}
+	}
+
+	return getOrCreateAuthenticatedUser(username, users.LoginMethodJwt, isAdmin, groups)
+}
+
+// loginHandler handles user authentication via password.
+// @Summary User login
+// @Description Authenticate a user with a username and password. The password must be URL-encoded and sent in the X-Password header to support special characters (e.g., ^, %, £, €, etc.).
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param username query string true "Username"
+// @Param recaptcha query string false "ReCaptcha response token (if enabled)"
+// @Param X-Password header string true "URL-encoded password"
+// @Param X-Secret header string false "TOTP code (if 2FA is enabled)"
+// @Success 200 {string} string "JWT token for authentication"
+// @Failure 401 {object} map[string]string "Unauthorized - authentication failed"
+// @Failure 403 {object} map[string]string "Forbidden - authentication failed"
+// @Failure 429 {object} map[string]string "Too many requests - rate limited or temporarily locked out after failed attempts"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/login [post]
+func loginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	passwordUser := d.User.LoginMethod == users.LoginMethodPassword
+	enforcedOtp := config.Auth.Methods.PasswordAuth.EnforcedOtp
+	missingOtp := d.User.TOTPSecret == ""
+	if passwordUser && enforcedOtp && missingOtp {
+		return http.StatusForbidden, errors.ErrNoTotpConfigured
+	}
+	if d.User.HasPasskeyMFA() && d.User.TOTPSecret == "" {
+		return http.StatusForbidden, errors.ErrPasskeyMFARequired
+	}
+	status, err := printToken(w, r, d.User)
+	if err != nil || status != 0 {
+		return status, err
+	}
+	activity.RecordLogin(r, d.User)
+	return 0, nil
+}
+
+// logoutHandler handles user logout
+// @Summary User Logout
+// @Description Returns a logout URL for the frontend to redirect to.
+// @Tags Auth
+// @Produce json
+// @Param auth query string false "JWT token"
+// @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
+// @Router /api/auth/logout [post]
+func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if err := auth.RevokeApiToken(accessStore, d.Token); err != nil {
+		logger.Errorf("Failed to revoke token on logout: %v", err)
+	}
+
+	// Clear the authentication cookie by setting it to expire in the past
+	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
+	cookie := &http.Cookie{
+		Name:     "filebrowser_quantum_jwt",
+		Value:    "",
+		Domain:   strings.Split(host, ":")[0],
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+		Expires:  time.Unix(0, 0), // Expire immediately
+		MaxAge:   -1,              // Delete cookie
+	}
+	http.SetCookie(w, cookie)
+
+	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL) // Default fallback
+	if d.User != nil && d.User.LoginMethod == users.LoginMethodProxy {
+		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
+		if proxyRedirectUrl != "" {
+			logoutUrl = proxyRedirectUrl
+		}
+	} else if d.User != nil && d.User.LoginMethod == users.LoginMethodOidc {
+		oidcRedirectUrl := config.Auth.Methods.OidcAuth.LogoutRedirectUrl
+		if oidcRedirectUrl != "" {
+			logoutUrl = oidcRedirectUrl
+		}
+	} else if d.User != nil && d.User.LoginMethod == users.LoginMethodLdap {
+		ldapRedirectUrl := config.Auth.Methods.LdapAuth.LogoutRedirectUrl
+		if ldapRedirectUrl != "" {
+			logoutUrl = ldapRedirectUrl
+		}
+	} else if d.User != nil && d.User.LoginMethod == users.LoginMethodJwt {
+		jwtRedirectUrl := config.Auth.Methods.JwtAuth.LogoutRedirectUrl
+		if jwtRedirectUrl != "" {
+			logoutUrl = jwtRedirectUrl
+		}
+	}
+	if logoutUrl == "" {
+		logger.Debug("no logout url found, using default")
+		logoutUrl = fmt.Sprintf("%vlogin", config.Server.BaseURL)
+	}
+	response := map[string]string{
+		"logoutUrl": logoutUrl,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	if d.User != nil {
+		activity.RecordAuth(r, d.User, activitydb.EventLogout, activitydb.Details{
+			LoginMethod: string(d.User.LoginMethod),
+		})
+	}
+
+	return http.StatusOK, nil
+}
+
+// signupHandler registers a new user account.
+// @Summary User signup
+// @Description Register a new user account with a username and password.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 201 {string} string "User created successfully"
+// @Failure 400 {object} map[string]string "Bad request - invalid input"
+// @Failure 405 {object} map[string]string "Method not allowed - signup is disabled"
+// @Failure 409 {object} map[string]string "Conflict - user already exists"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/signup [post]
+func signupHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !config.Auth.Methods.PasswordAuth.Signup {
+		return http.StatusMethodNotAllowed, fmt.Errorf("signup is disabled")
+	}
+
+	// Get credentials from query parameters
+	username := r.URL.Query().Get("username")
+	password := r.URL.Query().Get("password")
+
+	// Validate that we have both username and password
+	if username == "" || password == "" {
+		return http.StatusBadRequest, fmt.Errorf("username and password are required")
+	}
+
+	user := users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    username,
+			LoginMethod: users.LoginMethodPassword,
+			Permissions: settings.ConvertPermissionsToUsers(config.UserDefaults.Account.Permissions),
+		},
+	}
+	err := state.CreateUser(&user, password)
+	if err != nil {
+		logger.Debug(err.Error())
+		// Return the actual error message instead of a generic one
+		return http.StatusBadRequest, err
+	}
+	activity.RecordAuth(r, &user, activitydb.EventSignup, activitydb.Details{
+		LoginMethod: string(users.LoginMethodPassword),
+	})
+	return 201, nil
+}
+
+// renewHandler refreshes the authentication token for a logged-in user.
+// @Summary Renew authentication token
+// @Description Refresh the authentication token for a logged-in user.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "New JWT token generated"
+// @Failure 401 {object} map[string]string "Unauthorized - invalid token"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/renew [post]
+func renewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	return printToken(w, r, d.User)
+}
+
+func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
+	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+	tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+	if err != nil {
+		if strings.Contains(err.Error(), "key already exists with same name") {
+			return http.StatusConflict, err
+		}
+		return 401, errors.ErrUnauthorized
+	}
+
+	// Add 30 minutes buffer so expired token doesn't get automatically deleted by the browser
+	// This allows backend to identify expired sessions and provide better user feedback
+	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
+
+	SetSessionCookie(w, r, tokenString, expiresTime)
+
+	// Still return token in body for backward compatibility and state management
+	w.Header().Set("Content-Type", "text/plain")
+	if _, err := w.Write([]byte(tokenString)); err != nil {
+		return 401, errors.ErrUnauthorized
+	}
+	return 0, nil
+}
+
+func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
+	if l.PasswordHash == "" {
+		return 200, nil
+	}
+
+	tokenParam := r.URL.Query().Get("token")
+	if tokenParam != "" {
+		// Verify the token signature if it's in the new signed format
+		if strings.Contains(tokenParam, ".") {
+			parts := strings.Split(tokenParam, ".")
+			if len(parts) == 2 {
+				payload := parts[0]
+				signature := parts[1]
+
+				// Verify HMAC signature
+				mac := hmac.New(sha256.New, []byte(config.Auth.Key))
+				mac.Write([]byte(payload))
+				expectedSignature := base64.URLEncoding.EncodeToString(mac.Sum(nil))
+
+				// Use constant-time comparison to prevent timing attacks
+				if hmac.Equal([]byte(signature), []byte(expectedSignature)) {
+					// Token signature is valid, now check if it matches stored token
+					if tokenParam == l.Token {
+						return 200, nil
+					}
+				}
+			}
+		} else {
+			// Legacy token format (plain base64) - direct comparison
+			if tokenParam == l.Token {
+				return 200, nil
+			}
+		}
+	}
+
+	password := r.Header.Get("X-SHARE-PASSWORD")
+	if err := bcrypt.CompareHashAndPassword([]byte(l.PasswordHash), []byte(password)); err != nil {
+		if libError.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return http.StatusUnauthorized, nil
+		}
+		return 401, err
+	}
+	return 200, nil
+}
+
+// SetSessionCookie - sets the authentication token as an HTTP cookie
+// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+func SetSessionCookie(w http.ResponseWriter, r *http.Request, token string, expiresTime time.Time) {
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
+	cookie := &http.Cookie{
+		Name:     "filebrowser_quantum_jwt",
+		Value:    token,
+		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode, // strict mode prevents cookie from being sent to other domains
+		Expires:  expiresTime,
+	}
+	http.SetCookie(w, cookie)
+}

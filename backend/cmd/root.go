@@ -11,16 +11,16 @@ import (
 
 	_ "net/http/pprof"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
-	"github.com/gtsteffaniak/filebrowser/backend/icons"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing"
-	"github.com/gtsteffaniak/filebrowser/backend/preview"
-	"github.com/gtsteffaniak/filebrowser/backend/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
+	fbhttp "github.com/gtsteffaniak/filebrowser/backend/internal/web"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/swaggo/swag"
@@ -89,8 +89,8 @@ func StartFilebrowser() {
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
 
 	// Dev mode enables development features like template hot-reloading
-	_, err := os.Stat("http/dist")
-	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
+	_, err := os.Stat("internal/web/dist")
+	// In dev mode, always use filesystem assets. Otherwise, check if internal/web/dist exists
 	if !settings.Env.IsDevMode {
 		settings.Env.EmbeddedFs = os.IsNotExist(err)
 	}

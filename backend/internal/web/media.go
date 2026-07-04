@@ -1,0 +1,268 @@
+package web
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"net/http"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+)
+
+// subtitlesHandler handles subtitle requests for both external files and embedded streams
+// @Summary Get subtitle content
+// @Description Returns raw subtitle content from external files or embedded streams
+// @Tags Media
+// @Accept json
+// @Produce text/plain
+// @Param path query string true "Index path to the video file"
+// @Param source query string true "Source name for the desired source"
+// @Param name query string true "Subtitle track name (filename for external, descriptive name for embedded)"
+// @Param embedded query bool false "Whether this is an embedded stream (true) or external file (false), defaults to false"
+// @Success 200 {string} string "Raw subtitle content in original format"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Resource not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/media/subtitles [get]
+func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	name := r.URL.Query().Get("name")
+	embedded := r.URL.Query().Get("embedded") == "true"
+
+	if path == "" || source == "" {
+		return http.StatusBadRequest, fmt.Errorf("path and source are required")
+	}
+	if name == "" {
+		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
+	}
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		FollowSymlinks:           true,
+		Path:                     path,
+		Source:                   source,
+		Expand:                   true,
+		Content:                  false,
+		Metadata:                 true,
+		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.User.ShowHidden,
+		HideFileExt:              d.User.HideFileExt,
+		SkipExtendedAttrs:        false,
+	}, accessStore, d.User, shareStore)
+	if err != nil {
+		return ErrToStatus(err), err
+	}
+	if !strings.HasPrefix(fileInfo.Type, "video") {
+		return http.StatusNotFound, fmt.Errorf("file is not a video")
+	}
+
+	track := findSubtitleTrack(fileInfo.Subtitles, name, embedded)
+	if track == nil {
+		return http.StatusNotFound, fmt.Errorf("subtitle track '%s' not found", name)
+	}
+
+	var content string
+	if !embedded {
+		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
+		content, err = utils.GetSubtitleSidecarContent(subtitlePath)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to get subtitle sidecar content: %v", err)
+		}
+	} else {
+		if track.Index == nil {
+			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
+		}
+		svc := ffmpeg.Get()
+		if svc == nil {
+			return http.StatusInternalServerError, fmt.Errorf("ffmpeg service not available")
+		}
+		content, err = svc.ExtractSubtitle(r.Context(), fileInfo.RealPath, *track.Index)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
+		}
+	}
+
+	// Return raw content with appropriate content type
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Disposition", "inline")
+	w.Header().Set("Cache-Control", "private")
+	http.ServeContent(w, r, name, time.Now(), bytes.NewReader([]byte(content)))
+	return http.StatusOK, nil
+}
+
+func findSubtitleTrack(subtitles []utils.SubtitleTrack, name string, embedded bool) *utils.SubtitleTrack {
+	for i := range subtitles {
+		sub := &subtitles[i]
+		if sub.Name == name && sub.Embedded == embedded {
+			return sub
+		}
+	}
+	return nil
+}
+
+// metadataHandler returns the same directory resource shape as GET /api/resources with metadata enabled,
+// for client-side patching after a fast listing load.
+// @Summary Directory with media metadata
+// @Description Same ExtendedFileInfo as resources GET with metadata=true (typically used for directories).
+// @Tags Media
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the directory or file"
+// @Param source query string true "Source name"
+// @Param albumArt query bool false "When true, include embedded album art bytes in audio metadata"
+// @Success 200 {object} iteminfo.ExtendedFileInfo
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not found"
+// @Router /api/media/metadata [get]
+func metadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	albumArt := r.URL.Query().Get("albumArt") == "true"
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		FollowSymlinks:           true,
+		Path:                     path,
+		Source:                   source,
+		Expand:                   true,
+		Content:                  false,
+		Metadata:                 true,
+		AlbumArt:                 albumArt,
+		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.User.ShowHidden,
+		HideFileExt:              d.User.HideFileExt,
+		SkipExtendedAttrs:        false,
+		ShowSharedAttr:           true,
+	}, accessStore, d.User, shareStore)
+	if err != nil {
+		return ErrToStatus(err), err
+	}
+	return RenderJSON(w, r, fileInfo)
+}
+
+// publicMetadataHandler is the share-link variant of metadataHandler.
+// @Summary Directory with media metadata (public share)
+// @Tags Media
+// @Produce json
+// @Param hash query string true "Share hash"
+// @Param path query string false "Path within the share"
+// @Param albumArt query bool false "When true, include embedded album art bytes in audio metadata (heavier)"
+// @Success 200 {object} iteminfo.ExtendedFileInfo
+// @Router /public/api/media/metadata [get]
+func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
+	path := r.URL.Query().Get("path")
+	albumArt := r.URL.Query().Get("albumArt") == "true"
+	sourceCfg, ok := config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		Path:                     d.IndexPath,
+		Source:                   sourceCfg.Name,
+		Expand:                   true,
+		Content:                  false,
+		Metadata:                 true,
+		AlbumArt:                 albumArt,
+		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles && d.Share.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.Share.ShowHidden,
+		HideFileExt:              d.User.HideFileExt,
+		FollowSymlinks:           false,
+	}, accessStore, d.ShareUser, shareStore)
+	if err != nil {
+		return ErrToStatus(err), err
+	}
+	fileInfo.Path = utils.AddTrailingSlashIfNotExists(path)
+	return RenderJSON(w, r, fileInfo)
+}
+
+// lyricsHandler returns synced/unsynced lyrics (with or without timestamps) for an audio file (embedded or from .lrc files).
+// @Summary Get lyrics for an audio file
+// @Description Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.
+// @Tags Media
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the directory or file"
+// @Param source query string true "Source name"
+// @Success 200 {object} map[string]interface{} "Lyrics array"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not found"
+// @Router /api/media/lyrics [get]
+func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if path == "" || source == "" {
+		return http.StatusBadRequest, fmt.Errorf("path and source are required")
+	}
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		FollowSymlinks:    true,
+		Path:              path,
+		Source:            source,
+		Expand:            true,
+		Content:           false,
+		Metadata:          false,
+		ShowHidden:        d.User.ShowHidden,
+		HideFileExt:       d.User.HideFileExt,
+		SkipExtendedAttrs: false,
+	}, accessStore, d.User, shareStore)
+	if err != nil {
+		return ErrToStatus(err), err
+	}
+	if !strings.HasPrefix(fileInfo.Type, "audio") {
+		return http.StatusNotFound, fmt.Errorf("file is not an audio file")
+	}
+
+	lyrics, err := files.ExtractLyrics(fileInfo.RealPath)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to extract lyrics: %v", err)
+	}
+	return RenderJSON(w, r, map[string]any{"lyrics": lyrics})
+}
+
+// publicLyricsHandler is the share-link variant of lyricsHandler.
+// @Summary Get lyrics for an audio file (public share)
+// @Tags Media
+// @Produce json
+// @Param hash query string true "Share hash"
+// @Param path query string false "Path within the share"
+// @Success 200 {object} map[string]interface{} "Lyrics array"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not found"
+// @Router /public/api/media/lyrics [get]
+func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	sourceCfg, ok := config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		Path:              d.IndexPath,
+		Source:            sourceCfg.Name,
+		Expand:            true,
+		Content:           false,
+		Metadata:          false,
+		ShowHidden:        d.Share.ShowHidden,
+		HideFileExt:       d.User.HideFileExt,
+		FollowSymlinks:    false,
+		SkipExtendedAttrs: false,
+	}, accessStore, d.ShareUser, shareStore)
+	if err != nil {
+		return ErrToStatus(err), err
+	}
+	if !strings.HasPrefix(fileInfo.Type, "audio") {
+		return http.StatusNotFound, fmt.Errorf("file is not an audio file")
+	}
+
+	lyrics, err := files.ExtractLyrics(fileInfo.RealPath)
+	if err != nil {
+		return http.StatusInternalServerError, errors.New("failed to extract lyrics")
+	}
+	return RenderJSON(w, r, map[string]any{"lyrics": lyrics})
+}
