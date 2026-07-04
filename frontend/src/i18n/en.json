@@ -257,6 +257,7 @@
     },
     "del": "delete selected items",
     "esc": "clear selection and/or close the prompt",
+    "f4": "refresh the listing and metadata",
     "f2": "rename file",
     "f1": "show help prompt",
     "slash": "activate search",

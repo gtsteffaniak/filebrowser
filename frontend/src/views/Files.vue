@@ -30,6 +30,7 @@ import { extractSourceFromPath } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
+import { invalidateDirMetadataCache } from "@/utils/metadataCache.js";
 
 function directoryListingHasMediaChildren(req) {
   return (
@@ -583,6 +584,13 @@ export default {
             mutations.showPrompt({ name: "rename", props: { item, parentItems: [] } });
           }
         }
+      }
+      // F4! - refresh the listing with its metadata
+      if (event.key === "F4" && !event.ctrlKey && !event.metaKey && !event.repeat) {
+        if (getters.currentPromptName() || getters.currentView() !== 'listingView') return;
+        event.preventDefault();
+        invalidateDirMetadataCache();
+        mutations.setReload(true);
       }
       // CTRL+E - switch between editor and markdown viewer
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e') {
