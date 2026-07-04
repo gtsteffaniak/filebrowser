@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "ループ",
+    "captionSize": "キャプションサイズ",
+    "playbackMode": "再生",
     "clearQueue": "キューをクリア",
     "LoopEnabled": "ループ有効",
     "LoopDisabled": "ループ無効",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "すべてループ再生",
     "QueueButtonHint": "再生キューを表示",
     "QueuePlayback": "再生キュー",
-    "changePlaybackMode": "再生モードを変更",
     "emptyQueue": "キューは空です",
     "queue": "キュー",
     "lyrics": "歌詞",

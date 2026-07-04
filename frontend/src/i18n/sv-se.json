@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Loop",
+    "captionSize": "Textstorlek",
+    "playbackMode": "Uppspelning",
     "clearQueue": "Rensa kö",
     "LoopEnabled": "Loop aktiverad",
     "LoopDisabled": "Loop inaktiverad",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Spela alla i loop",
     "QueueButtonHint": "Visa uppspelningskö",
     "QueuePlayback": "Uppspelningskö",
-    "changePlaybackMode": "Ändra uppspelningsläge",
     "emptyQueue": "Kön är tom",
     "queue": "Kö",
     "lyrics": "Text",

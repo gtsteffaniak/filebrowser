@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Wiederholung",
+    "captionSize": "Untertitelgröße",
+    "playbackMode": "Wiedergabe",
     "clearQueue": "Warteschlange leeren",
     "LoopEnabled": "Wiederholung aktiviert",
     "LoopDisabled": "Wiederholung deaktiviert",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Alle in Wiederholung abspielen",
     "QueueButtonHint": "Wiedergabeliste anzeigen",
     "QueuePlayback": "Wiedergabeliste",
-    "changePlaybackMode": "Wiedergabemodus ändern",
     "emptyQueue": "Warteschlange ist leer",
     "queue": "Warteschlange",
     "lyrics": "Liedtext",

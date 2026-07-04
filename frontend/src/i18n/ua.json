@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Повтор",
+    "captionSize": "Розмір субтитрів",
+    "playbackMode": "Відтворення",
     "clearQueue": "Очистити чергу",
     "LoopEnabled": "Повтор увімкнено",
     "LoopDisabled": "Повтор вимкнено",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Відтворити все з повторенням",
     "QueueButtonHint": "Показати чергу відтворення",
     "QueuePlayback": "Черга Відтворення",
-    "changePlaybackMode": "Змінити режим відтворення",
     "emptyQueue": "Черга порожня",
     "queue": "Черга",
     "lyrics": "Текст пісні",

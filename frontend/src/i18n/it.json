@@ -737,6 +737,8 @@
   },
   "player": {
     "loop": "Ripeti",
+    "captionSize": "Dimensione didascalie",
+    "playbackMode": "Riproduzione",
     "clearQueue": "Svuota coda",
     "LoopEnabled": "Loop Abilitato",
     "LoopDisabled": "Loop Disabilitato",
@@ -745,7 +747,6 @@
     "PlayAllLoopedPlayback": "Riproduci tutti in loop",
     "QueueButtonHint": "Mostra coda di riproduzione",
     "QueuePlayback": "Coda di riproduzione",
-    "changePlaybackMode": "Cambia modalità riproduzione",
     "emptyQueue": "La coda è vuota",
     "queue": "Coda",
     "lyrics": "Testo",

@@ -443,7 +443,7 @@ export default {
           this.toastType = 'mode';
           this.showToast();
         }
-        this.setupPlaybackQueue(newMode === 'shuffle');
+        this.setupPlaybackQueue();
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
@@ -517,8 +517,7 @@ export default {
             return;
           }
         }
-        // rebuild reshuffle only in shuffle mode
-        this.setupPlaybackQueue(mode === 'shuffle');
+        this.setupPlaybackQueue();
       },
       immediate: true
     },
@@ -731,9 +730,9 @@ export default {
         controls: this.isMobile ? controlsMobile : controlsDesktop,
         settings: ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'],
         i18n: {
-          playback: 'Playback',
-          captionSize: 'Caption size',
-          loop: 'Loop',
+          playback: this.$t('player.playbackMode'),
+          captionSize: this.$t('player.captionSize'),
+          loop: this.$t('player.loop'),
         },
         speed: {
           selected: 1,

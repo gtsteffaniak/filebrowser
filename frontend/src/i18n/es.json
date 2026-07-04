@@ -727,7 +727,9 @@
     "chars": "{count} caracteres"
   },
   "player": {
-    "loop": "Repetir",
+    "loop": "Bucle",
+    "captionSize": "Tamaño de subtítulos",
+    "playbackMode": "Reproducción",
     "clearQueue": "Vaciar cola",
     "LoopEnabled": "Bucle activado",
     "LoopDisabled": "Bucle desactivado",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Reproducir todo en bucle",
     "QueueButtonHint": "Mostrar cola de Reproducción",
     "QueuePlayback": "Cola de Reproducción",
-    "changePlaybackMode": "Cambiar modo de Reproducción",
     "emptyQueue": "La cola de reproducción está vacia...",
     "queue": "Cola",
     "lyrics": "Letra",

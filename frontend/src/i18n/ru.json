@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Повтор",
+    "captionSize": "Размер субтитров",
+    "playbackMode": "Воспроизведение",
     "clearQueue": "Очистить очередь",
     "LoopEnabled": "Повтор включен",
     "LoopDisabled": "Повтор отключен",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Воспроизвести все с повторением",
     "QueueButtonHint": "Показать очередь воспроизведения",
     "QueuePlayback": "Очередь воспроизведения",
-    "changePlaybackMode": "Изменить режим воспроизведения",
     "emptyQueue": "Очередь пуста",
     "queue": "Очередь",
     "lyrics": "Текст песни",

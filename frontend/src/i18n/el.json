@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Επανάληψη",
+    "captionSize": "Μέγεθος υποτίτλων",
+    "playbackMode": "Αναπαραγωγή",
     "clearQueue": "Εκκαθάριση ουράς",
     "LoopEnabled": "Ενεργή επανάληψη",
     "LoopDisabled": "Απενεργοποιημένη επανάληψη",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Αναπαραγωγή όλων με επανάληψη",
     "QueueButtonHint": "Εμφάνιση ουράς αναπαραγωγής",
     "QueuePlayback": "Ουρά Αναπαραγωγής",
-    "changePlaybackMode": "Αλλαγή λειτουργίας αναπαραγωγής",
     "emptyQueue": "Η ουρά είναι άδεια",
     "queue": "Ουρά",
     "lyrics": "Στίχοι",

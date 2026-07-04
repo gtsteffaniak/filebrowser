@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Buclă",
+    "captionSize": "Dimensiunea subtitrărilor",
+    "playbackMode": "Redare",
     "clearQueue": "Golește coada",
     "LoopEnabled": "Buclă activată",
     "LoopDisabled": "Buclă dezactivată",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Redă toate în buclă",
     "QueueButtonHint": "Afișează coada de redare",
     "QueuePlayback": "Coadă de Redare",
-    "changePlaybackMode": "Schimbă modul de redare",
     "emptyQueue": "Coada este goală",
     "queue": "Coadă",
     "lyrics": "Versuri",

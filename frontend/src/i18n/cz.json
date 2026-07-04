@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Smyčka",
+    "captionSize": "Velikost titulků",
+    "playbackMode": "Přehrávání",
     "clearQueue": "Vymazat frontu",
     "LoopEnabled": "Smyčka povolena",
     "LoopDisabled": "Smyčka zakázána",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Přehrát vše ve smyčce",
     "QueueButtonHint": "Zobrazit frontu přehrávání",
     "QueuePlayback": "Fronta přehrávání",
-    "changePlaybackMode": "Změnit režim přehrávání",
     "emptyQueue": "Fronta je prázdná",
     "queue": "Fronta",
     "lyrics": "Text písně",

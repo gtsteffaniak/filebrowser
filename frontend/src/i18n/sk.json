@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Slučka",
+    "captionSize": "Veľkosť titulkov",
+    "playbackMode": "Prehrávanie",
     "clearQueue": "Vyčistiť front",
     "LoopEnabled": "Slučka povolená",
     "LoopDisabled": "Slučka zakázaná",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Prehrať všetko v slučke",
     "QueueButtonHint": "Zobraziť front prehrávania",
     "QueuePlayback": "Front Prehrávania",
-    "changePlaybackMode": "Zmeniť režim prehrávania",
     "emptyQueue": "Front je prázdny",
     "queue": "Front",
     "lyrics": "Text piesne",

@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Ismétlés",
+    "captionSize": "Felirat mérete",
+    "playbackMode": "Lejátszás",
     "clearQueue": "Sor ürítése",
     "LoopEnabled": "Hurok engedélyezve",
     "LoopDisabled": "Hurok letiltva",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Összes lejátszása hurkokban",
     "QueueButtonHint": "Lejátszási sor megjelenítése",
     "QueuePlayback": "Lejátszási Sor",
-    "changePlaybackMode": "Lejátszási mód változtatása",
     "emptyQueue": "A sor üres",
     "queue": "Sor",
     "lyrics": "Dalszöveg",

@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "반복",
+    "captionSize": "캡션 크기",
+    "playbackMode": "재생",
     "clearQueue": "대기열 지우기",
     "LoopEnabled": "반복 활성화",
     "LoopDisabled": "반복 비활성화",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "모두 반복 재생",
     "QueueButtonHint": "재생 대기열 표시",
     "QueuePlayback": "재생 대기열",
-    "changePlaybackMode": "재생 모드 변경",
     "emptyQueue": "대기열이 비어 있습니다",
     "queue": "대기열",
     "lyrics": "가사",

@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "循环",
+    "captionSize": "字幕大小",
+    "playbackMode": "播放",
     "clearQueue": "清空队列",
     "LoopEnabled": "循环已启用",
     "LoopDisabled": "循环已禁用",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "循环播放全部",
     "QueueButtonHint": "显示播放队列",
     "QueuePlayback": "播放队列",
-    "changePlaybackMode": "更改播放模式",
     "emptyQueue": "队列为空",
     "queue": "队列",
     "lyrics": "歌词",

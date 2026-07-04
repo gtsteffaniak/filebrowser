@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Répéter",
+    "captionSize": "Taille des sous-titres",
+    "playbackMode": "Lecture",
     "clearQueue": "Vider la file d'attente",
     "LoopEnabled": "Boucle activée",
     "LoopDisabled": "Boucle désactivée",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Lire tout en boucle",
     "QueueButtonHint": "Afficher la file de lecture",
     "QueuePlayback": "File de Lecture",
-    "changePlaybackMode": "Changer le mode de lecture",
     "emptyQueue": "La file est vide",
     "queue": "File d'attente",
     "lyrics": "Paroles",

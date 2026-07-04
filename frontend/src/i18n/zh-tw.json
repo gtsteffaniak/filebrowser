@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "循環",
+    "captionSize": "字幕大小",
+    "playbackMode": "播放",
     "clearQueue": "清空佇列",
     "LoopEnabled": "循環已啟用",
     "LoopDisabled": "循環已停用",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "循環播放全部",
     "QueueButtonHint": "顯示播放佇列",
     "QueuePlayback": "播放佇列",
-    "changePlaybackMode": "變更播放模式",
     "emptyQueue": "佇列為空",
     "queue": "佇列",
     "lyrics": "歌詞",

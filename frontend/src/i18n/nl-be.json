@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Herhalen",
+    "captionSize": "Ondertitelingsgrootte",
+    "playbackMode": "Afspelen",
     "clearQueue": "Wachtrij leegmaken",
     "LoopEnabled": "Herhaling ingeschakeld",
     "LoopDisabled": "Herhaling uitgeschakeld",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Alles herhaald afspelen",
     "QueueButtonHint": "Toon afspeellijst",
     "QueuePlayback": "Afspeellijst",
-    "changePlaybackMode": "Afspeelmodus wijzigen",
     "emptyQueue": "Wachtrij is leeg",
     "queue": "Wachtrij",
     "lyrics": "Songtekst",

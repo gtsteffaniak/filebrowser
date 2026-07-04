@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Pętla",
+    "captionSize": "Rozmiar napisów",
+    "playbackMode": "Odtwarzanie",
     "clearQueue": "Wyczyść kolejkę",
     "LoopEnabled": "Pętla włączona",
     "LoopDisabled": "Pętla wyłączona",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Odtwórz wszystkie w pętli",
     "QueueButtonHint": "Pokaż kolejkę odtwarzania",
     "QueuePlayback": "Kolejka Odtwarzania",
-    "changePlaybackMode": "Zmień tryb odtwarzania",
     "emptyQueue": "Kolejka jest pusta",
     "queue": "Kolejka",
     "lyrics": "Tekst piosenki",

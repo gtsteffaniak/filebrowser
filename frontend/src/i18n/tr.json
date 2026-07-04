@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Döngü",
+    "captionSize": "Altyazı boyutu",
+    "playbackMode": "Oynatma",
     "clearQueue": "Kuyruğu Temizle",
     "LoopEnabled": "Döngü Etkin",
     "LoopDisabled": "Döngü Devre Dışı",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Tümünü Döngüde Oynat",
     "QueueButtonHint": "Oynatma kuyruğunu göster",
     "QueuePlayback": "Oynatma Kuyruğu",
-    "changePlaybackMode": "Oynatma modunu değiştir",
     "emptyQueue": "Kuyruk boş",
     "queue": "Kuyruk",
     "lyrics": "Şarkı sözü",

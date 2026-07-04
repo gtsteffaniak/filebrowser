@@ -243,5 +243,5 @@ function loadPlaybackQueue() {
       };
     }
   } catch (_) { /* ignore */ }
-  return { queue: [], currentIndex: -1, mode: 'sequential', isPlaying: false, loop: false };
+  return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: false };
 }

@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "Repetir",
+    "captionSize": "Tamanho da legenda",
+    "playbackMode": "Reprodução",
     "clearQueue": "Limpar fila",
     "LoopEnabled": "Repetição ativada",
     "LoopDisabled": "Repetição desativada",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "Reproduzir tudo em repetição",
     "QueueButtonHint": "Mostrar fila de reprodução",
     "QueuePlayback": "Fila de Reprodução",
-    "changePlaybackMode": "Alterar modo de reprodução",
     "emptyQueue": "A fila está vazia",
     "queue": "Fila",
     "lyrics": "Letra",

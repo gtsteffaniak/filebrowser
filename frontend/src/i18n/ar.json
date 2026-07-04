@@ -727,8 +727,10 @@
     "chars": "{count} أحرف"
   },
   "player": {
-    "loop": "Smyčka",
-    "clearQueue": "Vymazat frontu",
+    "loop": "تكرار",
+    "captionSize": "حجم الترجمة",
+    "playbackMode": "التشغيل",
+    "clearQueue": "مسح قائمة الانتظار",
     "LoopEnabled": "تفعيل التكرار",
     "LoopDisabled": "تعطيل التكرار",
     "PlayAllOncePlayback": "تشغيل الكل مرة واحدة",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "تشغيل الكل مع التكرار",
     "QueueButtonHint": "إظهار قائمة التشغيل",
     "QueuePlayback": "قائمة التشغيل",
-    "changePlaybackMode": "تغيير وضع التشغيل",
     "emptyQueue": "قائمة التشغيل فارغة",
     "queue": "قائمة الانتظار",
     "lyrics": "كلمات الأغنية",

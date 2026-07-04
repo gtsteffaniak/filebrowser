@@ -728,6 +728,8 @@
   },
   "player": {
     "loop": "לולאה",
+    "captionSize": "גודל כתוביות",
+    "playbackMode": "ניגון",
     "clearQueue": "רוקן תור",
     "LoopEnabled": "לולאה מופעלת",
     "LoopDisabled": "לולאה מושבתת",
@@ -736,7 +738,6 @@
     "PlayAllLoopedPlayback": "נגן הכל בלולאה",
     "QueueButtonHint": "הצג תור ניגון",
     "QueuePlayback": "תור ניגון",
-    "changePlaybackMode": "שנה מצב ניגון",
     "emptyQueue": "התור ריק",
     "queue": "תור",
     "lyrics": "מילים",

@@ -291,7 +291,7 @@ export default {
     },
     setMode(mode) {
       if (mode === this.playbackMode) return;
-      const listing = state.req?.parentDirItems || state.req?.items || [];
+      const listing = state.navigation.listing || state.req?.parentDirItems || [];
       cyclePlaybackModes(this.playbackMode, {
         listing,
         currentItem: state.req,
