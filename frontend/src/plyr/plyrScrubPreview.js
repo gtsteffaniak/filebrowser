@@ -78,13 +78,14 @@ export function scrubClientXFromEvent(event) {
  * @param {HTMLElement} progress
  * @param {HTMLInputElement} seek
  * @param {Event} event
+ * @param {number} [step]
  * @returns {number}
  */
-export function scrubPercentFromEvent(progress, seek, event) {
+export function scrubPercentFromEvent(progress, seek, event, step = DEFAULT_SCRUB_PERCENT_STEP) {
   if (event?.currentTarget === seek) {
     const attr = seek.getAttribute('seek-value');
     const raw = attr !== null && attr !== '' ? Number(attr) : Number(seek.value);
-    return quantizeScrubPercent(raw);
+    return quantizeScrubPercent(raw, step);
   }
   const clientX = scrubClientXFromEvent(event);
   if (!progress || clientX === null) {
@@ -95,7 +96,7 @@ export function scrubPercentFromEvent(progress, seek, event) {
     return 0;
   }
   const raw = ((clientX - rect.left) / rect.width) * 100;
-  return quantizeScrubPercent(raw);
+  return quantizeScrubPercent(raw, step);
 }
 
 /**
@@ -443,24 +444,6 @@ export function enablePlyrScrubPreview(player, options) {
     return true;
   };
 
-  const scrubPercentFromPointer = (progress, seek, event) => {
-    if (event?.currentTarget === seek) {
-      const attr = seek.getAttribute('seek-value');
-      const raw = attr !== null && attr !== '' ? Number(attr) : Number(seek.value);
-      return quantizeScrubPercent(raw, scrubPercentStep);
-    }
-    const clientX = scrubClientXFromEvent(event);
-    if (!progress || clientX === null) {
-      return 0;
-    }
-    const rect = progress.getBoundingClientRect();
-    if (rect.width <= 0) {
-      return 0;
-    }
-    const raw = ((clientX - rect.left) / rect.width) * 100;
-    return quantizeScrubPercent(raw, scrubPercentStep);
-  };
-
   const clearFetchSchedule = () => {
     clearTimeout(debounceTimer);
     debounceTimer = null;
@@ -556,7 +539,7 @@ export function enablePlyrScrubPreview(player, options) {
   };
 
   const handlePreviewPosition = (event) => {
-    const percentInt = scrubPercentFromPointer(progress, seek, event);
+    const percentInt = scrubPercentFromEvent(progress, seek, event, scrubPercentStep);
     lastPositionEvent = event;
     positionPopup(event);
     show();

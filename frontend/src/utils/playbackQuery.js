@@ -1,3 +1,5 @@
+import { getObjectProperty, setObjectProperty } from './object.js';
+
 /** Query key for shareable playback position (`HH:MM:SS`). */
 export const PLAYBACK_TIME_QUERY_KEY = 'time';
 
@@ -8,6 +10,26 @@ export const LEGACY_PLAYBACK_TIME_QUERY_KEY = 't';
 export const PLAYBACK_TRANSCODE_QUERY_KEY = 'transcode';
 
 const VALID_TRANSCODE_MODES = new Set(['quality', 'datasaver']);
+
+/** @param {string} part */
+function isValidClockPart(part) {
+  if (!part) {
+    return false;
+  }
+  let sawDot = false;
+  for (let i = 0; i < part.length; i += 1) {
+    const ch = part.charAt(i);
+    if (ch >= '0' && ch <= '9') {
+      continue;
+    }
+    if (ch === '.' && !sawDot) {
+      sawDot = true;
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
 
 /** @param {string} str */
 function parsePlainSecondsString(str) {
@@ -65,9 +87,9 @@ export function parseClockTimeString(raw, options = {}) {
 
   /** @type {number[]} */
   const values = [];
-  for (let i = 0; i < parts.length; i += 1) {
-    const part = parts[i].trim();
-    if (!part || !/^\d+(\.\d+)?$/.test(part)) {
+  for (const partRaw of parts) {
+    const part = partRaw.trim();
+    if (!part || !isValidClockPart(part)) {
       return null;
     }
     const value = Number(part);
@@ -78,8 +100,8 @@ export function parseClockTimeString(raw, options = {}) {
   }
 
   let hours = 0;
-  let minutes = 0;
-  let seconds = 0;
+  let minutes;
+  let seconds;
   if (values.length === 3) {
     [hours, minutes, seconds] = values;
   } else {
@@ -114,11 +136,11 @@ export function parsePlaybackTimeFromQuery(query) {
   if (!query) {
     return null;
   }
-  const primary = query[PLAYBACK_TIME_QUERY_KEY];
+  const primary = getObjectProperty(query, PLAYBACK_TIME_QUERY_KEY);
   if (primary !== null && primary !== undefined && primary !== '') {
     return parseClockTimeString(primary, { requireHours: true });
   }
-  const legacy = query[LEGACY_PLAYBACK_TIME_QUERY_KEY];
+  const legacy = getObjectProperty(query, LEGACY_PLAYBACK_TIME_QUERY_KEY);
   if (legacy !== null && legacy !== undefined && legacy !== '') {
     const str = String(legacy).trim();
     const clock = parseClockTimeString(str);
@@ -139,7 +161,7 @@ export function parseTranscodeModeFromQuery(query) {
   if (!query) {
     return null;
   }
-  const raw = query[PLAYBACK_TRANSCODE_QUERY_KEY];
+  const raw = getObjectProperty(query, PLAYBACK_TRANSCODE_QUERY_KEY);
   if (raw === null || raw === undefined || raw === '') {
     return null;
   }
@@ -160,7 +182,7 @@ export function buildPlaybackQueryPatch(query = {}, patch = {}) {
     ...rest
   } = query;
   /** @type {Record<string, string | undefined>} */
-  const next = { ...rest };
+  let next = { ...rest };
   let timeValue = queryTime;
   if (timeValue === undefined) {
     const parsedTime = parsePlaybackTimeFromQuery(query);
@@ -187,10 +209,10 @@ export function buildPlaybackQueryPatch(query = {}, patch = {}) {
   }
 
   if (timeValue !== undefined) {
-    next[PLAYBACK_TIME_QUERY_KEY] = timeValue;
+    next = setObjectProperty(next, PLAYBACK_TIME_QUERY_KEY, timeValue);
   }
   if (transcodeValue !== undefined) {
-    next[PLAYBACK_TRANSCODE_QUERY_KEY] = transcodeValue;
+    next = setObjectProperty(next, PLAYBACK_TRANSCODE_QUERY_KEY, transcodeValue);
   }
   return next;
 }
