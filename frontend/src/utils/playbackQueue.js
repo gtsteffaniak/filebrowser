@@ -180,7 +180,7 @@ export function toggleLoop(currentLoop) {
  * @returns {string} The label.
  */
 export function getModeLabel(mode, t, queueLength) {
-  if (queueLength !== undefined || queueLength === 0 && mode === 'single') {
+  if (queueLength !== undefined && mode === 'single') {
     return t('general.none');
   }
   switch (mode) {
