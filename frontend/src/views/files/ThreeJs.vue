@@ -439,8 +439,9 @@ export default {
 
     resolveViewTokenForPath(filePath) {
       const normalizedPath = this.normalizeAssetPath(filePath);
-      if (this.viewTokenByPath[normalizedPath]) {
-        return this.viewTokenByPath[normalizedPath];
+      const cachedToken = getObjectProperty(this.viewTokenByPath, normalizedPath);
+      if (cachedToken) {
+        return cachedToken;
       }
       if (
         this.normalizeAssetPath(this.fbdata.path) === normalizedPath &&

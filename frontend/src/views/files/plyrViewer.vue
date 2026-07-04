@@ -123,10 +123,26 @@
     <!-- Video with plyr -->
     <div v-else-if="previewType === 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
       <div class="plyr-video-container" ref="plyrVideoContainer">
-        <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
+        <video
+          ref="videoElement"
+          :type="req.type"
+          preload="none"
+          :src="nativeVideoSrc"
+          :autoplay="shouldAutoplay"
+          @play="handlePlay"
+          playsinline
+        >
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
             :label="subtitleTrackLabel(sub)" :srclang="sub.language" />
         </video>
+      </div>
+      <div
+        v-if="videoPlaybackLoading"
+        class="video-loading-overlay"
+        aria-hidden="true"
+        aria-busy="true"
+      >
+        <LoadingSpinner size="large" />
       </div>
       <div
         ref="skipFeedbackLayer"
@@ -269,6 +285,18 @@ import { getters, mutations, state } from '@/store';
 import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
+import * as resourcesApi from '@/api/resources';
+import {
+  blockPlyrSeekOnInput,
+  enablePlyrSeekOnRelease,
+} from '@/plyr/plyrSeekOnRelease';
+import { enablePlyrScrubPreview } from '@/plyr/plyrScrubPreview';
+import { enablePlyrVideoLoadingIndicator } from '@/plyr/plyrVideoLoading';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import {
+  parsePlaybackTimeFromQuery,
+  playbackQueryChanged,
+} from '@/utils/playbackQuery';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -280,6 +308,7 @@ export default {
   name: "plyrViewer",
   components: {
     AudioPanel,
+    LoadingSpinner,
   },
   props: {
     previewType: {
@@ -395,6 +424,14 @@ export default {
       // Plyr instance
       player: null,
       captionSizeMenuInitialized: false,
+      /** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
+      videoStreamAttached: false,
+      /** Centered spinner while the video is loading or buffering. */
+      videoPlaybackLoading: false,
+      seekOnReleaseCleanup: null,
+      scrubPreviewCleanup: null,
+      videoLoadingCleanup: null,
+      querySeekMetadataHandler: null,
     };
   },
   watch: {
@@ -498,6 +535,13 @@ export default {
         }
       },
       deep: true,
+    },
+    '$route.query': {
+      handler(newQuery, oldQuery) {
+        if (playbackQueryChanged(oldQuery, newQuery)) {
+          this.applyQueryPlaybackSeek();
+        }
+      },
     },
   },
   computed: {
@@ -610,6 +654,25 @@ export default {
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
     },
+    scrubPreviewEnabled() {
+      return (
+        this.previewType === 'video'
+        && Boolean(this.req?.hasPreview)
+        && getters.previewPerms().video
+      );
+    },
+    nativeVideoSrc() {
+      if (this.previewType !== 'video' || this.useDefaultMediaPlayer) {
+        return null;
+      }
+      if (this.shouldAttachVideoStream) {
+        return this.raw;
+      }
+      return null;
+    },
+    shouldAttachVideoStream() {
+      return this.videoStreamAttached || this.shouldAutoplay;
+    },
     /** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
     plyrOptions() {
       const controlsDesktop = [
@@ -655,7 +718,7 @@ export default {
         seekTime: 10,
         hideControls: true,
         keyboard: { focused: true, global: true },
-        tooltips: { controls: true, seek: true },
+        tooltips: { controls: true, seek: !this.scrubPreviewEnabled },
         loop: { active: false },
         blankVideo: '',
         muted: false,
@@ -663,7 +726,7 @@ export default {
         playsinline: true,
         clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
         resetOnEnd: false,
-        preload: 'metadata',
+        preload: this.previewType === 'video' ? 'none' : 'metadata',
         fullscreen: {
           enabled: true,
           fallback: true,
@@ -676,6 +739,9 @@ export default {
           active: false,
           language: 'auto',
           update: true,
+        },
+        listeners: {
+          seek: blockPlyrSeekOnInput,
         },
       };
     },
@@ -808,7 +874,22 @@ export default {
       navigator.mediaSession.playbackState = 'none';
     },
     destroyPlyr() {
+      if (this.scrubPreviewCleanup) {
+        this.scrubPreviewCleanup();
+        this.scrubPreviewCleanup = null;
+      }
+      if (this.seekOnReleaseCleanup) {
+        this.seekOnReleaseCleanup();
+        this.seekOnReleaseCleanup = null;
+      }
+      if (this.videoLoadingCleanup) {
+        this.videoLoadingCleanup();
+        this.videoLoadingCleanup = null;
+      }
+      this.videoPlaybackLoading = false;
+      this.teardownQueryPlaybackSeek();
       if (this.player) {
+        this.player.off('play', this.attachVideoStreamOnPlay);
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
         this.clearMediaSession();
@@ -825,9 +906,10 @@ export default {
         this.playbackValueSpan = null;
         this.captionSizeButtons = null;
         this.captionSizeValueSpan = null;
-        // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
-        // Somehow firefox will still trying to "load" the empty source which causes the warn.
-        this.mediaElement.src = this.raw;
+        if (this.mediaElement) {
+          this.mediaElement.removeAttribute('src');
+          this.mediaElement.load();
+        }
       }
     },
     cleanupAudioVisualizer() {
@@ -1113,6 +1195,9 @@ export default {
     hookEvents() {
       if (this.useDefaultMediaPlayer) {
         this.setupDefaultPlayerEvents(this.mediaElement);
+        if (this.previewType === 'video' || this.previewType === 'audio') {
+          this.setupQueryPlaybackSeek();
+        }
         return;
       }
       
@@ -1129,18 +1214,152 @@ export default {
       this.initializePlyr();
     },
     initializePlyr() {
-      if (!this.mediaElement) return;
-      // Small delay to ensure DOM is ready
+      if (!this.mediaElement || this.player) {
+        return;
+      }
       this.$nextTick(() => {
-        // Initialize Plyr
-        this.player = new Plyr(this.mediaElement, this.plyrOptions);
-        // Set up Media Session API
-        this.setupMediaSession();
-        // Set up event listeners
-        this.setupPlyrEvents();
-        if (this.previewType === 'audio' && !this.useDefaultMediaPlayer) {
-          this.setupAudioVisualizer();
+        if (this.player) {
+          return;
         }
+        this.mountPlyrPlayer();
+      });
+    },
+    mountPlyrPlayer() {
+      if (!this.mediaElement || this.player) {
+        return;
+      }
+      this.player = new Plyr(this.mediaElement, this.plyrOptions);
+      this.setupMediaSession();
+      this.setupPlyrEvents();
+      this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
+      this.setupScrubPreview();
+      this.setupVideoLoadingIndicator();
+      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer) {
+        this.setupAudioVisualizer();
+      }
+      if (this.previewType === 'video') {
+        this.setupDeferredVideoStream();
+        this.setupQueryPlaybackSeek();
+      } else if (this.previewType === 'audio') {
+        this.setupQueryPlaybackSeek();
+      }
+    },
+    getPlaybackDuration() {
+      const fromPlayer = this.player?.duration;
+      if (Number.isFinite(fromPlayer) && fromPlayer > 0) {
+        return fromPlayer;
+      }
+      const meta = this.req?.metadata?.duration;
+      if (Number.isFinite(meta) && meta > 0) {
+        return meta;
+      }
+      return 0;
+    },
+    setupDeferredVideoStream() {
+      if (this.shouldAttachVideoStream) {
+        return;
+      }
+      this.player.on('play', this.attachVideoStreamOnPlay);
+    },
+    attachVideoStreamOnPlay() {
+      if (this.videoStreamAttached || this.previewType !== 'video') {
+        return;
+      }
+      this.player.off('play', this.attachVideoStreamOnPlay);
+      this.player.pause();
+      this.videoStreamAttached = true;
+      this.$nextTick(() => {
+        const el = this.mediaElement;
+        if (!el) return;
+        const resume = () => {
+          el.removeEventListener('loadedmetadata', resume);
+          this.applyQueryPlaybackSeek();
+          this.player?.play().catch(() => {});
+        };
+        el.addEventListener('loadedmetadata', resume);
+        if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          resume();
+        }
+      });
+    },
+    setupVideoLoadingIndicator() {
+      if (this.previewType !== 'video' || !this.player) {
+        return;
+      }
+      this.videoLoadingCleanup?.();
+      this.videoLoadingCleanup = enablePlyrVideoLoadingIndicator(
+        this.player,
+        (loading) => {
+          this.videoPlaybackLoading = loading;
+        }
+      );
+    },
+    teardownQueryPlaybackSeek() {
+      const media = this.mediaElement;
+      if (media && this.querySeekMetadataHandler) {
+        media.removeEventListener('loadedmetadata', this.querySeekMetadataHandler);
+      }
+      this.querySeekMetadataHandler = null;
+    },
+    getQueryPlaybackSeekSeconds() {
+      return parsePlaybackTimeFromQuery(this.$route?.query);
+    },
+    applyQueryPlaybackSeek() {
+      if (this.previewType !== 'video' && this.previewType !== 'audio') {
+        return;
+      }
+      const seconds = this.getQueryPlaybackSeekSeconds();
+      if (seconds === null || seconds < 0) {
+        return;
+      }
+
+      const media = this.useDefaultMediaPlayer
+        ? (this.previewType === 'video' ? this.$refs.defaultVideoPlayer : this.$refs.defaultAudioPlayer)
+        : this.mediaElement;
+      if (!media) {
+        return;
+      }
+
+      const duration = this.player?.duration
+        ?? media.duration
+        ?? this.req?.metadata?.duration
+        ?? 0;
+      const target = duration > 0 ? Math.min(seconds, duration) : seconds;
+
+      const apply = () => {
+        if (this.player) {
+          this.player.currentTime = target;
+        } else if (media) {
+          media.currentTime = target;
+        }
+      };
+
+      if (media.readyState >= HTMLMediaElement.HAVE_METADATA) {
+        apply();
+        return;
+      }
+
+      this.teardownQueryPlaybackSeek();
+      this.querySeekMetadataHandler = apply;
+      media.addEventListener('loadedmetadata', this.querySeekMetadataHandler, { once: true });
+    },
+    setupQueryPlaybackSeek() {
+      this.teardownQueryPlaybackSeek();
+      this.applyQueryPlaybackSeek();
+    },
+    setupScrubPreview() {
+      if (!this.scrubPreviewEnabled || !this.player) {
+        return;
+      }
+      this.scrubPreviewCleanup?.();
+      this.scrubPreviewCleanup = enablePlyrScrubPreview(this.player, {
+        buildPreviewUrl: (atPercentage) => {
+          const base = getters.isShare()
+            ? resourcesApi.getPreviewURLPublic(this.req.path, 'large')
+            : `${resourcesApi.getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=large`;
+          return `${base}&atPercentage=${atPercentage}`;
+        },
+        getDuration: () => this.getPlaybackDuration(),
       });
     },
     setupAudioVisualizer() {
@@ -2261,6 +2480,81 @@ export default {
   margin: 0;
 }
 
+/* Scrub preview popup (mounted on Plyr container / fullscreen root while scrubbing) */
+.fb-scrub-preview {
+  position: fixed;
+  z-index: 2147483646;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 14px));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+}
+
+.fb-scrub-preview--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.fb-scrub-preview__frame {
+  overflow: hidden;
+  position: relative;
+  max-height: 600px;
+  max-width: 600px;
+  border-radius: 4px;
+  background: #000;
+  border: 2px solid var(--primaryColor);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 12px color-mix(in srgb, var(--primaryColor) 35%, transparent);
+}
+
+.fb-scrub-preview__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.fb-scrub-preview__loading[hidden] {
+  display: none;
+}
+
+/* Spinner sits above the previous frame while the next preview loads. */
+.fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) .fb-scrub-preview__loading {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) img {
+  opacity: 1;
+}
+
+.fb-scrub-preview__loading .loader {
+  position: relative;
+  z-index: 1;
+}
+
+.fb-scrub-preview__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fb-scrub-preview__time {
+  display: block;
+  margin-top: 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
 /* Big play button when pause/start the video */
 .plyr--full-ui.plyr--video .plyr__control--overlaid {
   display: flex;
@@ -2311,6 +2605,17 @@ export default {
   width: 100%;
   height: 100%;
   background-color: #000;
+}
+
+.video-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.35);
 }
 
 /* Letterboxing and Plyr chrome: match cinema-style black (audio uses .audio-controls-container .plyr) */
