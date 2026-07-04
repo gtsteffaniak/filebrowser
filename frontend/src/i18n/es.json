@@ -726,6 +726,7 @@
     "chars": "{count} caracteres"
   },
   "player": {
+    "Loop": "Bucle",
     "LoopEnabled": "Bucle activado",
     "LoopDisabled": "Bucle desactivado",
     "PlayAllOncePlayback": "Reproducir todo una vez",

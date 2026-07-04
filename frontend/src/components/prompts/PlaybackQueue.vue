@@ -10,6 +10,16 @@
           <span class="loop-label">{{ loopLabel }}</span>
         </span>
       </div>
+      <!-- Clear queue button -->
+      <button
+        v-if="queueCount > 0"
+        class="clear-queue-btn"
+        @click="clearQueue"
+        :title="$t('player.clearQueue')"
+        :aria-label="$t('player.clearQueue')"
+      >
+        <i class="material-symbols">delete</i>
+      </button>
     </div>
 
     <!-- Queue list -->
@@ -157,7 +167,7 @@ export default {
       return state.playbackQueue.currentIndex;
     },
     playbackMode() {
-      return state.playbackQueue.mode || 'sequential';
+      return state.playbackQueue.mode || 'single';
     },
     loop() {
       return state.playbackQueue.loop || false;
@@ -166,7 +176,7 @@ export default {
       return this.playbackQueue.length;
     },
     currentModeLabel() {
-      return getModeLabel(this.playbackMode, this.$t);
+      return getModeLabel(this.playbackMode, this.$t, this.queueCount);
     },
     currentModeIcon() {
       return getModeIcon(this.playbackMode);
@@ -299,7 +309,15 @@ export default {
         loop: loop
       });
     },
-
+    clearQueue() {
+      mutations.setPlaybackQueue({
+        queue: [],
+        currentIndex: -1,
+        mode: 'single',
+        loop: this.loop
+      });
+      this.updatePromptTitle();
+    },
     navigateToItem(index) {
       if (index === this.currentQueueIndex) {
         // Toggle play/pause for current item
@@ -396,6 +414,9 @@ export default {
 }
 
 .playback-mode {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--borderColor);
   margin-bottom: 0.5rem;
@@ -429,6 +450,28 @@ export default {
 .loop-badge i.material-symbols {
   font-size: 1.1rem;
   color: var(--primaryColor);
+}
+
+.clear-queue-btn {
+  background: transparent;
+  border: none;
+  color: var(--textSecondary);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-queue-btn:hover {
+  background: var(--surfaceSecondary);
+  color: var(--dangerColor, #e74c3c);
+}
+
+.clear-queue-btn i.material-symbols {
+  font-size: 1.25rem;
 }
 
 .queue-container {

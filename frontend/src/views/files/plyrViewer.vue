@@ -341,6 +341,7 @@ export default {
 
       // Playback settings
       playbackMenuInitialized: false,
+      loopMenuInitialized: false,
       lastAppliedMode: null,
       showDesktopPanel: sessionStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
@@ -415,6 +416,9 @@ export default {
       if (newVal !== oldVal) {
         this.toastType = 'loop';
         this.showToast();
+        this.$nextTick(() => {
+          this.ensurePlaybackModeApplied();
+        });
       }
     },
     showDesktopPanel(val) {
@@ -662,10 +666,11 @@ export default {
       ];
       return {
         controls: this.isMobile ? controlsMobile : controlsDesktop,
-        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback'],
+        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'],
         i18n: {
           playback: 'Playback',
           captionSize: 'Caption size',
+          loop: 'Loop',
         },
         speed: {
           selected: 1,
@@ -839,12 +844,15 @@ export default {
         this.player = null;
         this.playbackMenuInitialized = false;
         this.captionSizeMenuInitialized = false;
+        this.loopMenuInitialized = false;
         this.lastAppliedMode = null;
         // Release DOM references
         this.playbackButtons = null;
         this.playbackValueSpan = null;
         this.captionSizeButtons = null;
         this.captionSizeValueSpan = null;
+        this.loopButtons = null;
+        this.loopValueSpan = null;
         // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
         // Somehow firefox will still trying to "load" the empty source which causes the warn.
         this.mediaElement.src = this.raw;
@@ -884,14 +892,16 @@ export default {
         const settingsMenu = this.player.elements.settings?.menu;
         const playbackBtn = this.player.elements.settings?.buttons?.playback;
         const captionSizeBtn = this.player.elements.settings?.buttons?.captionSize;
+        const loopBtn = this.player.elements.settings?.buttons?.loop;
         const menuOpen =
           settingsMenu
           && settingsMenu.style.display !== 'none'
           && settingsMenu.getAttribute('hidden') === null;
         const needPlayback = playbackBtn && !this.playbackMenuInitialized;
         const needCaptionSize = captionSizeBtn && !this.captionSizeMenuInitialized;
+        const needLoop = loopBtn && !this.loopMenuInitialized;
 
-        if (menuOpen || needPlayback || needCaptionSize) {
+        if (menuOpen || needPlayback || needCaptionSize || needLoop) {
           this.applyCustomSettings(this.player);
         }
       } catch (error) {
@@ -2010,7 +2020,7 @@ export default {
       if (!listing || !this.req) return;
       const isShare = getters.isShare();
       const currentItem = this.req;
-      const mode = state.playbackQueue.mode || 'sequential';
+      const mode = state.playbackQueue.mode || 'single';
       const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, isShare);
       mutations.setPlaybackQueue({
         queue,
@@ -2031,7 +2041,7 @@ export default {
         if (playbackBtn && playbackPanel) {
           playbackBtn.removeAttribute('hidden');
           const title = player.config.i18n?.playback || 'Playback';
-          const currentLabel = getModeLabel(this.playbackMode, this.$t);
+          const currentLabel = getModeLabel(this.playbackMode, this.$t, this.queueCount);
 
           if (!this.playbackMenuInitialized) {
             const menu = playbackPanel.querySelector('div[role="menu"]');
@@ -2088,7 +2098,69 @@ export default {
             }
           }
         }
+        // --- Loop menu ---
+        const loopBtn = player.elements.settings?.buttons?.loop;
+        const loopPanel = player.elements.settings?.panels?.loop;
+        if (loopBtn && loopPanel) {
+          loopBtn.removeAttribute('hidden');
+          const loopTitle = this.$t('player.loop');
+          const currentLoopMode = this.loop ? 'loop-single' : 'single';
+          const currentLoopLabel = getModeLabel(currentLoopMode, this.$t);
 
+          if (!this.loopMenuInitialized) {
+            const menu = loopPanel.querySelector('div[role="menu"]');
+            menu.innerHTML = `
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="single">
+                <span>${getModeLabel('single', this.$t)}</span>
+              </button>
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="loop-single">
+                <span>${getModeLabel('loop-single', this.$t)}</span>
+              </button>
+            `;
+            this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
+            // Set initial checked state
+            this.loopButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === currentLoopMode);
+            });
+            // Add click listeners
+            this.loopButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
+                const value = event.currentTarget.getAttribute('value');
+                const newLoop = value === 'loop-single';
+                if (newLoop !== this.loop) {
+                  mutations.setPlaybackQueue({
+                    queue: this.playbackQueue,
+                    currentIndex: this.currentQueueIndex,
+                    mode: this.playbackMode,
+                    loop: newLoop
+                  });
+                }
+                const newLabel = getModeLabel(value, this.$t);
+                if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
+                this.loopButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+              });
+            });
+            const valueSpan = loopBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentLoopLabel;
+              this.loopValueSpan = valueSpan;
+            } else {
+              loopBtn.querySelector('span').innerHTML = `${loopTitle}: <span class="plyr__menu__value">${currentLoopLabel}</span>`;
+              this.loopValueSpan = loopBtn.querySelector('span .plyr__menu__value');
+            }
+            this.loopMenuInitialized = true;
+          } else {
+            // Update checked states and label
+            if (this.loopButtons) {
+              this.loopButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === currentLoopMode);
+              });
+            }
+            if (this.loopValueSpan) {
+              this.loopValueSpan.textContent = currentLoopLabel;
+            }
+          }
+        }
         // --- Caption size menu ---
         if (captionSizeBtn && captionSizePanel) {
           const visible = this.previewType === 'video' && this.hasSubtitles;

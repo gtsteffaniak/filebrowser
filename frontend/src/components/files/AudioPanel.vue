@@ -110,7 +110,7 @@ export default {
   data() {
     return {
       activeTab: (() => {
-        const stored = sessionStorage.getItem(LAST_TAB_KEY);
+        const stored = localStorage.getItem(LAST_TAB_KEY);
         return stored && ['queue', 'lyrics', 'visualizer'].includes(stored) ? stored : 'queue';
       })(),
       lyricsScrollLocked: false,
@@ -172,8 +172,8 @@ export default {
   },
   watch: {
     activeTab(val) {
-      // Persist to sessionStorage
-      sessionStorage.setItem(LAST_TAB_KEY, val);
+      // Persist to localStorage
+      localStorage.setItem(LAST_TAB_KEY, val);
       if (val === "visualizer") {
         this.$nextTick(this.startVisualizer);
         return;

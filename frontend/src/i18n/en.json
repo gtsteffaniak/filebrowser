@@ -171,7 +171,8 @@
     "allShares": "All shares",
     "playPause": "Play/Pause",
     "clearSelection": "Clear selection",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "None"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -748,6 +749,7 @@
     "chars": "{count} characters"
   },
   "player": {
+    "loop": "Loop",
     "LoopEnabled": "Loop Enabled",
     "LoopDisabled": "Loop Disabled",
     "PlayAllOncePlayback": "Play All Once",
@@ -758,6 +760,7 @@
     "changePlaybackMode": "Change playback mode",
     "emptyQueue": "Queue is empty",
     "queue": "Queue",
+    "clearQueue": "Clear Queue",
     "lyrics": "Lyrics",
     "noLyrics": "No lyrics available",
     "lockLyrics": "Lock lyrics",

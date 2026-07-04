@@ -175,11 +175,15 @@ export function toggleLoop(currentLoop) {
  * Gets label for the playback modes.
  * @param {string} mode - The mode.
  * @param {Function} t - i18n translate function.
+ * @param {number} [queueLength] - Number of items in the queue. When provided, uses it
+ *                                 for the playback mode label (not the loop state)
  * @returns {string} The label.
  */
-export function getModeLabel(mode, t) {
+export function getModeLabel(mode, t, queueLength) {
+  if (queueLength !== undefined || queueLength === 0 && mode === 'single') {
+    return t('general.none');
+  }
   switch (mode) {
-    case 'single':       return t('player.LoopDisabled');
     case 'sequential':   return t('player.PlayAllOncePlayback');
     case 'shuffle':      return t('player.ShuffleAllPlayback');
     case 'loop-single':  return t('player.LoopEnabled');

@@ -220,7 +220,7 @@ function eventTheme() {
 }
 
 /**
- * Loads playback queue from sessionStorage.
+ * Loads playback queue from localStorage.
  * @returns {Object} The playback queue state
  *   @property {Array}  queue          - Array of media items
  *   @property {number} currentIndex   - Index of the currently playing item, or -1
@@ -230,14 +230,14 @@ function eventTheme() {
  */
 function loadPlaybackQueue() {
   try {
-    const storedQueue = sessionStorage.getItem('playbackQueue');
-    if (!storedQueue) return { queue: [], currentIndex: -1, mode: 'sequential', isPlaying: false, loop: false };
+    const storedQueue = localStorage.getItem('playbackQueue');
+    if (!storedQueue) return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: false };
     const playback = JSON.parse(storedQueue);
     if (Array.isArray(playback.queue) && typeof playback.currentIndex === 'number' && typeof playback.mode === 'string') {
       return {
         queue: playback.queue,
         currentIndex: playback.currentIndex,
-        mode: playback.mode, // 'sequential', 'shuffle', 'loop-all'
+        mode: playback.mode,
         isPlaying: false,
         loop: playback.loop || false,
       };
