@@ -22,11 +22,10 @@ export function shuffleArray(array) {
  * @param {Array} listing - The full list of items in the current directory.
  * @param {Object} currentItem - The item currently being played.
  * @param {string} mode - The current playback mode.
- * @param {boolean} forceReshuffle - Whether to force a reshuffle for shuffle mode.
  * @param {boolean} isShare - Whether if we're on a share (for the paths).
  * @returns {{ queue: Array, currentIndex: number }} The final queue and index of the current item.
  */
-export function buildPlaybackQueue(listing, currentItem, mode, forceReshuffle = false, isShare = false) {
+export function buildPlaybackQueue(listing, currentItem, mode = false, isShare = false) {
   // Filter only audio/video files
   const mediaFiles = listing.filter(item => {
     const type = item?.type || '';
@@ -77,21 +76,17 @@ export function buildPlaybackQueue(listing, currentItem, mode, forceReshuffle = 
     }
 
     case 'shuffle': {
-      if (forceReshuffle || state.playbackQueue.queue.length === 0) {
-        const shuffledFiles = shuffleArray([...mediaFiles]);
-        finalQueue = shuffledFiles;
-      } else {
-        // Preserve existing queue when not forcing reshuffle (basically never since we always reshuffle)
-        finalQueue = state.playbackQueue.queue;
-      }
-      if (currentIndex !== -1) {
-        const currentFile = mediaFiles.at(currentIndex);
-        finalIndex = finalQueue.findIndex(item =>
-          isShare ? item.name === currentFile.name : item.path === currentFile.path
-        );
-      } else {
-        finalIndex = 0;
-      }
+      // always reshuffle, but put current item at the top
+      const otherItems = mediaFiles.filter(item =>
+        isShare ? item.name !== currentItem.name : item.path !== currentItem.path
+      );
+      const shuffledOthers = shuffleArray([...otherItems]);
+      const currentFile = mediaFiles.find(item =>
+        isShare ? item.name === currentItem.name : item.path === currentItem.path
+      );
+      finalQueue = currentFile ? [currentFile, ...shuffledOthers] : shuffledOthers;
+      // at index 0
+      finalIndex = currentFile ? 0 : -1;
       break;
     }
 
@@ -139,29 +134,45 @@ export function getNextItem(queue, currentIndex, mode, direction) {
 }
 
 /**
- * Cycles through the available playback modes (excluding single/loop-single).
- * Order: loop-all -> shuffle -> sequential -> loop-all ...
+ * Advances to the next playback mode, or jumps to targetMode if given.
+ * Rebuilds the queue for the new mode and commits it to the store.
+ * Order: sequential -> shuffle -> loop-all -> sequential ...
  * @param {string} currentMode - The current mode.
+ * @param {Object} options - { listing, currentItem, isShare, targetMode? }
  * @returns {string} The new mode.
  */
-export function cyclePlaybackModes(currentMode) {
+export function cyclePlaybackModes(currentMode, { listing, currentItem, isShare, targetMode } = {}) {
   const modes = ['sequential', 'shuffle', 'loop-all'];
   const currentIndex = modes.indexOf(currentMode);
-  const nextIndex = (currentIndex + 1) % modes.length;
-  return modes.at(nextIndex);
+  const newMode = targetMode || modes.at((currentIndex + 1) % modes.length);
+
+  const { queue, currentIndex: newQueueIndex } = buildPlaybackQueue(
+    listing,
+    currentItem,
+    newMode,
+    isShare
+  );
+  mutations.setPlaybackQueue({
+    queue,
+    currentIndex: newQueueIndex,
+    mode: newMode,
+    loop: state.playbackQueue.loop
+  });
+
+  return newMode;
 }
 
 /**
- * Toggles between 'single' and 'loop-single'.
- * @param {string} currentMode - The current mode.
- * @returns {string} The new mode.
+ * Toggles the loop flag (single - loop-single)
+ * @param {boolean} currentLoop - current state
+ * @returns {boolean} the new state
  */
-export function toggleLoop(currentMode) {
-  return currentMode === 'loop-single' ? 'single' : 'loop-single';
+export function toggleLoop(currentLoop) {
+  return !currentLoop;
 }
 
 /**
- * Gets a human-readable label for a playback mode.
+ * Gets label for the playback modes.
  * @param {string} mode - The mode.
  * @param {Function} t - i18n translate function.
  * @returns {string} The label.
@@ -184,7 +195,7 @@ export function getModeLabel(mode, t) {
  */
 export function getModeIcon(mode) {
   switch (mode) {
-    case 'single':       return 'music_note';
+    case 'single':       return 'repeat';
     case 'sequential':   return 'playlist_play';
     case 'shuffle':      return 'shuffle';
     case 'loop-single':  return 'repeat_one';
@@ -201,13 +212,14 @@ export function getModeIcon(mode) {
  * @returns {'next' | 'restart' | 'none'} The action to take.
  */
 export function getEndOfMediaAction(queue, currentIndex, mode) {
+  if (state.playbackQueue.loop) return 'restart';
   if (!queue.length || currentIndex < 0) return 'none';
 
   switch (mode) {
     case 'single':      return 'none';
     case 'loop-single': return 'restart';
     case 'sequential':  return currentIndex + 1 < queue.length ? 'next' : 'none';
-    case 'shuffle':     return 'next';
+    case 'shuffle':     return currentIndex + 1 < queue.length ? 'next' : 'none';
     case 'loop-all':    return 'next';
     default:            return 'none';
   }
@@ -233,7 +245,8 @@ export function navigatePlaybackQueue(direction) {
   mutations.setPlaybackQueue({
     queue: queue,
     currentIndex: index,
-    mode: mode
+    mode: mode,
+    loop: state.playbackQueue.loop
   });
 
   // Trigger navigation

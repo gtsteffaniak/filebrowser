@@ -95,7 +95,7 @@ export const getters = {
   isPreviewPlaybackQueueNavMode: () => {
     const previewType = getters.previewType();
     const isMediaView = previewType === 'audio' || previewType === 'video';
-    const mode = state.playbackQueue.mode || 'single';
+    const mode = state.playbackQueue.mode;
     const queueLength = state.playbackQueue.queue.length || 0;
     return (
       isMediaView &&
@@ -107,7 +107,7 @@ export const getters = {
   playbackQueueCanGoPrevious: () => {
     const queue = state.playbackQueue.queue;
     const currentIndex = state.playbackQueue.currentIndex ?? -1;
-    const mode = state.playbackQueue.mode || 'single';
+    const mode = state.playbackQueue.mode;
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
@@ -119,7 +119,7 @@ export const getters = {
   playbackQueueCanGoNext: () => {
     const queue = state.playbackQueue.queue;
     const currentIndex = state.playbackQueue.currentIndex ?? -1;
-    const mode = state.playbackQueue.mode || 'single';
+    const mode = state.playbackQueue.mode;
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }

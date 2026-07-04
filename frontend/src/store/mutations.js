@@ -1037,12 +1037,14 @@ export const mutations = {
   setPlaybackQueue: (playback) => {
     state.playbackQueue.queue = playback.queue || [];
     state.playbackQueue.currentIndex = playback.currentIndex ?? -1;
-    state.playbackQueue.mode = playback.mode || 'single';
+    state.playbackQueue.mode = playback.mode || 'sequential';
+    state.playbackQueue.loop = playback.loop ?? false;
     try {
       sessionStorage.setItem('playbackQueue', JSON.stringify({
         queue: state.playbackQueue.queue,
         currentIndex: state.playbackQueue.currentIndex,
         mode: state.playbackQueue.mode,
+        loop: state.playbackQueue.loop,
       }));
     } catch (_) { /* ignore */ }
     emitStateChanged();

@@ -240,8 +240,8 @@
       <span>{{ playbackModeMessage }}</span>
 
       <!-- Status indicator for loop -->
-      <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
-          'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
+      <span v-if="toastType === 'loop'" :class="[
+          'status-indicator', loop ? 'status-on' : 'status-off',]"></span>
     </div>
     <!-- Speed toast (long-press) -->
     <div v-if="speedToastVisible" class="playback-toast visible">
@@ -321,6 +321,7 @@ export default {
       // Toast
       toastVisible: false,
       toastTimeout: null,
+      toastType: 'mode', // 'mode' for the playback modes and 'loop'... for loop.
 
       // Metadata & Art
       metadata: null, // Null by default, will be loaded from the audio file.
@@ -400,11 +401,20 @@ export default {
   watch: {
     playbackMode(newMode, oldMode) {
       if (newMode !== oldMode) {
-        if (oldMode !== undefined) this.showToast();
+        if (oldMode !== undefined) {
+          this.toastType = 'mode';
+          this.showToast();
+        }
         this.setupPlaybackQueue(newMode === 'shuffle');
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
+      }
+    },
+    loop(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.toastType = 'loop';
+        this.showToast();
       }
     },
     showDesktopPanel(val) {
@@ -460,6 +470,7 @@ export default {
                 queue,
                 currentIndex: newIndex,
                 mode,
+                loop: this.loop
               });
             }
             return;
@@ -555,12 +566,21 @@ export default {
       return state.playbackQueue.currentIndex ?? -1;
     },
     playbackMode() {
-      return state.playbackQueue.mode || 'single';
+      return state.playbackQueue.mode || 'sequential';
+    },
+    loop() {
+      return state.playbackQueue.loop || false;
     },
     playbackModeMessage() {
+      if (this.toastType === 'loop') {
+        return getModeLabel(this.loop ? 'loop-single' : 'single', this.$t);
+      }
       return getModeLabel(this.playbackMode, this.$t);
     },
     toastIcon() {
+      if (this.toastType === 'loop') {
+        return getModeIcon(this.loop ? 'loop-single' : 'single');
+      }
       return getModeIcon(this.playbackMode);
     },
     hasSubtitles() {
@@ -960,11 +980,12 @@ export default {
       }
     },
     toggleLoop() {
-      const newMode = toggleLoop(this.playbackMode);
+      const newMode = toggleLoop(this.loop);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
-        mode: newMode
+        mode: this.playbackMode,
+        loop: newMode
       });
     },
     handleKeydown(event) {
@@ -1005,11 +1026,10 @@ export default {
       }
     },
     cyclePlaybackModes() {
-      const newMode = cyclePlaybackModes(this.playbackMode);
-      mutations.setPlaybackQueue({
-        queue: this.playbackQueue,
-        currentIndex: this.currentQueueIndex,
-        mode: newMode
+      cyclePlaybackModes(this.playbackMode, {
+        listing: this.listing,
+        currentItem: this.req,
+        isShare: getters.isShare()
       });
     },
     // Seek the player to the given timestamp (in milliseconds)
@@ -1985,17 +2005,18 @@ export default {
         this.player.play();
       }
     },
-    setupPlaybackQueue(forceReshuffle = false) {
+    setupPlaybackQueue() {
       const listing = this.listing;
       if (!listing || !this.req) return;
       const isShare = getters.isShare();
       const currentItem = this.req;
-      const mode = state.playbackQueue.mode || 'single';
-      const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, forceReshuffle, isShare);
+      const mode = state.playbackQueue.mode || 'sequential';
+      const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, isShare);
       mutations.setPlaybackQueue({
         queue,
         currentIndex,
-        mode
+        mode,
+        loop: this.loop
       });
     },
     // Builds playback and caption menus once, then updates state without rebuilding again.
@@ -2015,17 +2036,11 @@ export default {
           if (!this.playbackMenuInitialized) {
             const menu = playbackPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="single">
-                <span>${getModeLabel('single', this.$t)}</span>
-              </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="sequential">
                 <span>${getModeLabel('sequential', this.$t)}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
                 <span>${getModeLabel('shuffle', this.$t)}</span>
-              </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-single">
-                <span>${getModeLabel('loop-single', this.$t)}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-all">
                 <span>${getModeLabel('loop-all', this.$t)}</span>
@@ -2040,10 +2055,11 @@ export default {
             this.playbackButtons.forEach(btn => {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
-                mutations.setPlaybackQueue({
-                  queue: this.playbackQueue,
-                  currentIndex: this.currentQueueIndex,
-                  mode: value
+                cyclePlaybackModes(this.playbackMode, {
+                  listing: this.listing,
+                  currentItem: this.req,
+                  isShare: getters.isShare(),
+                  targetMode: value
                 });
                 const newLabel = getModeLabel(value, this.$t);
                 if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
