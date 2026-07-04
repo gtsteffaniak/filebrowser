@@ -418,7 +418,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 0.12rem;
+  padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--borderColor);
   margin-bottom: 0.12rem;
   flex-shrink: 0;
