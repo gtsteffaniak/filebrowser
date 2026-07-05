@@ -19,10 +19,10 @@ A database migration is required to go from v1.x to this version. See docs.
    - activity tool to view data
    - reports
  - Media player improvements:
-   - Refreshed playback queue UI: Now support thumbnails, is stored into local storage, and a "clear queue" button (#2575) (#2600).
-   - Toggling loop will not longer clear the existing queue, will just loop (#2600).
+   - Refreshed playback queue UI: Now support thumbnails, is stored into session storage, and has a "clear queue" button (#2575) (#2600).
+   - Loop now has 3 states (off/single/all) and neither of them will clear the existing queue (#2600).
    - New "Audio visualizer" for audio files (only for desktop) (#2575).
-     The current tab (and if the panel was open or not), now are in local storage too.
+     The current tab state of the audio panel now is stored into storage.
    - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, single tap to pause (#2575).
  - Added `F4` shortcut to refresh the current directory and metadata (#2600).
 
