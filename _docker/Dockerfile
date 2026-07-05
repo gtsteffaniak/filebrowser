@@ -12,13 +12,14 @@ RUN go build -tags mupdf,musl -ldflags="-w -s \
   -o filebrowser .
 
 FROM node:jod-slim AS nbuild
-WORKDIR /app
-COPY ./frontend/package.json ./
+WORKDIR /build
+COPY ./frontend/package.json ./frontend/
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && git config --global url."https://github.com/".insteadOf "git@github.com:" \
     && git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-RUN npm i --maxsockets 1
-COPY  ./frontend/ ./
+RUN cd frontend && npm i --maxsockets 1
+COPY ./frontend/ ./frontend/
+WORKDIR /build/frontend
 RUN npm run build:docker
 
 FROM alpine:latest
@@ -36,7 +37,7 @@ COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
-COPY --from=nbuild --chown=filebrowser:1000 [ "/app/dist/", "./internal/web/dist/" ]
+COPY --from=nbuild --chown=filebrowser:1000 [ "/build/backend/internal/web/dist/", "./internal/web/dist/" ]
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]

@@ -2525,7 +2525,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
+                        "description": "Preview size ('small' or 'large'). Default is based on server settings.Config.",
                         "name": "size",
                         "in": "query"
                     }
@@ -4649,7 +4649,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Preview size: 'small' or 'large'. Default is based on server config.",
+                        "description": "Preview size: 'small' or 'large'. Default is based on server settings.Config.",
                         "name": "size",
                         "in": "query"
                     }

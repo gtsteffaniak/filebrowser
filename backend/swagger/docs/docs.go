@@ -2536,7 +2536,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
+                        "description": "Preview size ('small' or 'large'). Default is based on server settings.Config.",
                         "name": "size",
                         "in": "query"
                     }
@@ -4660,7 +4660,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Preview size: 'small' or 'large'. Default is based on server config.",
+                        "description": "Preview size: 'small' or 'large'. Default is based on server settings.Config.",
                         "name": "size",
                         "in": "query"
                     }
