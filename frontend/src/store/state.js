@@ -230,7 +230,7 @@ function eventTheme() {
  */
 function loadPlaybackQueue() {
   try {
-    const storedQueue = localStorage.getItem('playbackQueue');
+    const storedQueue = sessionStorage.getItem('playbackQueue');
     if (!storedQueue) return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
     const playback = JSON.parse(storedQueue);
     if (Array.isArray(playback.queue) && typeof playback.currentIndex === 'number' && typeof playback.mode === 'string') {

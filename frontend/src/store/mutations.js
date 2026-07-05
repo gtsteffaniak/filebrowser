@@ -1047,7 +1047,7 @@ export const mutations = {
     state.playbackQueue.mode = playback.mode || 'single';
     state.playbackQueue.loop = playback.loop || 'off';
     try {
-      localStorage.setItem('playbackQueue', JSON.stringify({
+      sessionStorage.setItem('playbackQueue', JSON.stringify({
         queue: state.playbackQueue.queue,
         currentIndex: state.playbackQueue.currentIndex,
         mode: state.playbackQueue.mode,
