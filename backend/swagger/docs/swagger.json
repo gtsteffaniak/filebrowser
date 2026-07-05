@@ -438,7 +438,7 @@
                     "200": {
                         "description": "Object containing a list of groups",
                         "schema": {
-                            "$ref": "#/definitions/http.GroupListResponse"
+                            "$ref": "#/definitions/web.GroupListResponse"
                         }
                     },
                     "403": {
@@ -739,7 +739,7 @@
                     "200": {
                         "description": "OTP token is valid.",
                         "schema": {
-                            "$ref": "#/definitions/http.HttpResponse"
+                            "$ref": "#/definitions/web.HttpResponse"
                         }
                     },
                     "401": {
@@ -885,7 +885,7 @@
                     "200": {
                         "description": "API token details",
                         "schema": {
-                            "$ref": "#/definitions/http.AuthTokenFrontend"
+                            "$ref": "#/definitions/web.AuthTokenFrontend"
                         }
                     },
                     "404": {
@@ -947,7 +947,7 @@
                     "200": {
                         "description": "Token created successfully, response contains json object with token",
                         "schema": {
-                            "$ref": "#/definitions/http.HttpResponse"
+                            "$ref": "#/definitions/web.HttpResponse"
                         }
                     },
                     "400": {
@@ -1013,7 +1013,7 @@
                     "200": {
                         "description": "API token deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/http.HttpResponse"
+                            "$ref": "#/definitions/web.HttpResponse"
                         }
                     },
                     "404": {
@@ -1056,7 +1056,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/http.AuthTokenFrontend"
+                                "$ref": "#/definitions/web.AuthTokenFrontend"
                             }
                         }
                     },
@@ -2083,7 +2083,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.MoveCopyRequest"
+                            "$ref": "#/definitions/web.MoveCopyRequest"
                         }
                     }
                 ],
@@ -2091,13 +2091,13 @@
                     "200": {
                         "description": "All operations completed successfully",
                         "schema": {
-                            "$ref": "#/definitions/http.MoveCopyResponse"
+                            "$ref": "#/definitions/web.MoveCopyResponse"
                         }
                     },
                     "207": {
                         "description": "Partial success - some operations succeeded, some failed",
                         "schema": {
-                            "$ref": "#/definitions/http.MoveCopyResponse"
+                            "$ref": "#/definitions/web.MoveCopyResponse"
                         }
                     },
                     "400": {
@@ -2130,7 +2130,7 @@
                     "500": {
                         "description": "All operations failed",
                         "schema": {
-                            "$ref": "#/definitions/http.MoveCopyResponse"
+                            "$ref": "#/definitions/web.MoveCopyResponse"
                         }
                     }
                 }
@@ -2156,7 +2156,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.archiveCreateRequest"
+                            "$ref": "#/definitions/web.archiveCreateRequest"
                         }
                     }
                 ],
@@ -2240,7 +2240,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/http.BulkDeleteItem"
+                                "$ref": "#/definitions/web.BulkDeleteItem"
                             }
                         }
                     }
@@ -2249,13 +2249,13 @@
                     "200": {
                         "description": "All resources deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                            "$ref": "#/definitions/web.BulkDeleteResponse"
                         }
                     },
                     "207": {
                         "description": "Partial success - some resources deleted, some failed",
                         "schema": {
-                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                            "$ref": "#/definitions/web.BulkDeleteResponse"
                         }
                     },
                     "400": {
@@ -2525,7 +2525,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
+                        "description": "Preview size ('small' or 'large'). Default is based on server settings.Config.",
                         "name": "size",
                         "in": "query"
                     }
@@ -2614,7 +2614,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.unarchiveRequest"
+                            "$ref": "#/definitions/web.unarchiveRequest"
                         }
                     }
                 ],
@@ -3069,7 +3069,7 @@
                     "201": {
                         "description": "Direct download link created",
                         "schema": {
-                            "$ref": "#/definitions/http.DirectDownloadResponse"
+                            "$ref": "#/definitions/web.DirectDownloadResponse"
                         }
                     },
                     "400": {
@@ -3137,312 +3137,6 @@
                 }
             }
         },
-        "/api/tools/activity": {
-            "get": {
-                "description": "Returns individual activity log rows, newest first. Paths are scope-relative for non-admins.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tools"
-                ],
-                "summary": "List activity events",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Start unix timestamp (default: 7 days ago)",
-                        "name": "from",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "End unix timestamp (default: now)",
-                        "name": "to",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Event category: all, files, access, or shares (default: all)",
-                        "name": "scope",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by event type (comma-separated)",
-                        "name": "eventType",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by username (admin only)",
-                        "name": "username",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by source name",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Path prefix filter",
-                        "name": "path",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Path glob filter (admin only)",
-                        "name": "pathGlob",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Share hash filter (owned shares for non-admins)",
-                        "name": "shareHash",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Page number (default: 1)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Page size, max 500 (default: 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/activity.ListResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/tools/activity/export": {
-            "get": {
-                "description": "Streams matching activity rows as CSV. Details column is populated for admins only.",
-                "produces": [
-                    "text/csv"
-                ],
-                "tags": [
-                    "Tools"
-                ],
-                "summary": "Export activity as CSV",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Start unix timestamp (default: 7 days ago)",
-                        "name": "from",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "End unix timestamp (default: now)",
-                        "name": "to",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Event category: all, files, access, or shares (default: all)",
-                        "name": "scope",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by event type (comma-separated)",
-                        "name": "eventType",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by username (admin only)",
-                        "name": "username",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by source name",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Path prefix filter",
-                        "name": "path",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Path glob filter (admin only)",
-                        "name": "pathGlob",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Share hash filter (owned shares for non-admins)",
-                        "name": "shareHash",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "CSV file",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/tools/activity/grouped": {
-            "get": {
-                "description": "Returns time-bucketed activity counts for charts. Use interval and splitBy to control grouping.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tools"
-                ],
-                "summary": "Grouped activity statistics",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Start unix timestamp (default: 7 days ago)",
-                        "name": "from",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "End unix timestamp (default: now)",
-                        "name": "to",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Event category: all, files, access, or shares (default: all)",
-                        "name": "scope",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by event type (comma-separated)",
-                        "name": "eventType",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by username (admin only)",
-                        "name": "username",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by source name",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Path prefix filter",
-                        "name": "path",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Path glob filter (admin only)",
-                        "name": "pathGlob",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Share hash filter (owned shares for non-admins)",
-                        "name": "shareHash",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Time bucket: minute, hour, day, or none (default: hour)",
-                        "name": "interval",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Series dimension: eventType, user, or none (default: eventType)",
-                        "name": "splitBy",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/activity.StatsResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/tools/duplicateFinder": {
             "get": {
                 "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
@@ -3481,7 +3175,7 @@
                     "200": {
                         "description": "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits.",
                         "schema": {
-                            "$ref": "#/definitions/http.duplicateResponse"
+                            "$ref": "#/definitions/web.duplicateResponse"
                         }
                     },
                     "400": {
@@ -3550,7 +3244,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.fileWatchResponse"
+                            "$ref": "#/definitions/web.fileWatchResponse"
                         }
                     },
                     "400": {
@@ -4037,7 +3731,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.pinnedItemPatchRequest"
+                            "$ref": "#/definitions/web.pinnedItemPatchRequest"
                         }
                     }
                 ],
@@ -4089,7 +3783,7 @@
                     "200": {
                         "description": "successful health check response",
                         "schema": {
-                            "$ref": "#/definitions/http.HttpResponse"
+                            "$ref": "#/definitions/web.HttpResponse"
                         }
                     }
                 }
@@ -4570,7 +4264,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.MoveCopyRequest"
+                            "$ref": "#/definitions/web.MoveCopyRequest"
                         }
                     }
                 ],
@@ -4578,13 +4272,13 @@
                     "200": {
                         "description": "All operations completed successfully",
                         "schema": {
-                            "$ref": "#/definitions/http.MoveCopyResponse"
+                            "$ref": "#/definitions/web.MoveCopyResponse"
                         }
                     },
                     "207": {
                         "description": "Partial success - some operations succeeded, some failed",
                         "schema": {
-                            "$ref": "#/definitions/http.MoveCopyResponse"
+                            "$ref": "#/definitions/web.MoveCopyResponse"
                         }
                     },
                     "400": {
@@ -4617,7 +4311,7 @@
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/http.MoveCopyResponse"
+                            "$ref": "#/definitions/web.MoveCopyResponse"
                         }
                     }
                 }
@@ -4652,7 +4346,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/http.BulkDeleteItem"
+                                "$ref": "#/definitions/web.BulkDeleteItem"
                             }
                         }
                     }
@@ -4661,13 +4355,13 @@
                     "200": {
                         "description": "All resources deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                            "$ref": "#/definitions/web.BulkDeleteResponse"
                         }
                     },
                     "207": {
                         "description": "Partial success - some resources deleted, some failed",
                         "schema": {
-                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                            "$ref": "#/definitions/web.BulkDeleteResponse"
                         }
                     },
                     "400": {
@@ -4955,7 +4649,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Preview size: 'small' or 'large'. Default is based on server config.",
+                        "description": "Preview size: 'small' or 'large'. Default is based on server settings.Config.",
                         "name": "size",
                         "in": "query"
                     }
@@ -5187,336 +4881,9 @@
                     }
                 }
             }
-        },
-        "/public/api/share/pinnedItems": {
-            "patch": {
-                "description": "Patches one pinned item at a time for share owners. Defaults to add; pass ?action=remove to unpin.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Shares"
-                ],
-                "summary": "Add or remove a pinned item on a share",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Share hash",
-                        "name": "hash",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "add (default) or remove",
-                        "name": "action",
-                        "in": "query"
-                    },
-                    {
-                        "description": "Pinned item",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.sharePinnedItemPatchRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Share not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "activity.EventType": {
-            "type": "string",
-            "enum": [
-                "download",
-                "move",
-                "copy",
-                "rename",
-                "upload",
-                "delete",
-                "bulkDelete",
-                "archive",
-                "unarchive",
-                "shareCreate",
-                "shareUpdate",
-                "shareDelete",
-                "userCreate",
-                "userUpdate",
-                "userDelete",
-                "accessUpdate",
-                "accessCreate",
-                "accessDelete",
-                "login",
-                "logout",
-                "signup",
-                "passkeyRegister",
-                "passkeyDelete",
-                "tokenCreate",
-                "tokenDelete",
-                "duplicateFinder"
-            ],
-            "x-enum-varnames": [
-                "EventDownload",
-                "EventMove",
-                "EventCopy",
-                "EventRename",
-                "EventUpload",
-                "EventDelete",
-                "EventBulkDelete",
-                "EventArchive",
-                "EventUnarchive",
-                "EventShareCreate",
-                "EventShareUpdate",
-                "EventShareDelete",
-                "EventUserCreate",
-                "EventUserUpdate",
-                "EventUserDelete",
-                "EventAccessUpdate",
-                "EventAccessCreate",
-                "EventAccessDelete",
-                "EventLogin",
-                "EventLogout",
-                "EventSignup",
-                "EventPasskeyRegister",
-                "EventPasskeyDelete",
-                "EventTokenCreate",
-                "EventTokenDelete",
-                "EventDuplicateFinder"
-            ]
-        },
-        "activity.FieldChange": {
-            "type": "object",
-            "properties": {
-                "field": {
-                    "type": "string"
-                },
-                "from": {
-                    "type": "string"
-                },
-                "to": {
-                    "type": "string"
-                }
-            }
-        },
-        "activity.FrontendDetails": {
-            "type": "object",
-            "properties": {
-                "affectedTokenName": {
-                    "type": "string"
-                },
-                "bytes": {
-                    "type": "integer"
-                },
-                "cached": {
-                    "type": "boolean"
-                },
-                "changes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/activity.FieldChange"
-                    }
-                },
-                "durationMs": {
-                    "type": "integer"
-                },
-                "error": {
-                    "type": "string"
-                },
-                "fileCount": {
-                    "type": "integer"
-                },
-                "loginMethod": {
-                    "type": "string"
-                },
-                "passkeyName": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "paths": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "scopes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/activity.ScopeDetail"
-                    }
-                },
-                "source": {
-                    "type": "string"
-                },
-                "targetPath": {
-                    "type": "string"
-                },
-                "targetUsername": {
-                    "type": "string"
-                },
-                "truncated": {
-                    "type": "boolean"
-                },
-                "updatedFields": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "activity.FrontendEntry": {
-            "type": "object",
-            "properties": {
-                "authMethod": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "integer"
-                },
-                "details": {
-                    "$ref": "#/definitions/activity.FrontendDetails"
-                },
-                "eventType": {
-                    "$ref": "#/definitions/activity.EventType"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "ipAddress": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "shareHash": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "targetPath": {
-                    "type": "string"
-                },
-                "tokenName": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "activity.ListResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/activity.FrontendEntry"
-                    }
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "totalPages": {
-                    "type": "integer"
-                }
-            }
-        },
-        "activity.ScopeDetail": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                }
-            }
-        },
-        "activity.StatsBucket": {
-            "type": "object",
-            "properties": {
-                "bucket": {
-                    "type": "integer"
-                },
-                "count": {
-                    "type": "integer"
-                },
-                "eventType": {
-                    "type": "string"
-                },
-                "seriesKey": {
-                    "type": "string"
-                },
-                "seriesLabel": {
-                    "type": "string"
-                }
-            }
-        },
-        "activity.StatsResponse": {
-            "type": "object",
-            "properties": {
-                "buckets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/activity.StatsBucket"
-                    }
-                }
-            }
-        },
         "files.Items": {
             "type": "object",
             "properties": {
@@ -5531,334 +4898,6 @@
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "http.AuthTokenFrontend": {
-            "type": "object",
-            "properties": {
-                "Permissions": {
-                    "$ref": "#/definitions/users.Permissions"
-                },
-                "expiresAt": {
-                    "type": "integer"
-                },
-                "issuedAt": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.BulkDeleteItem": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.BulkDeleteResponse": {
-            "type": "object",
-            "properties": {
-                "failed": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/http.BulkDeleteItem"
-                    }
-                },
-                "succeeded": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/http.BulkDeleteItem"
-                    }
-                }
-            }
-        },
-        "http.DirectDownloadResponse": {
-            "type": "object",
-            "properties": {
-                "hash": {
-                    "type": "string"
-                },
-                "shareUrl": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.GroupListResponse": {
-            "type": "object",
-            "properties": {
-                "groups": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "http.HttpResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.MoveCopyItem": {
-            "type": "object",
-            "properties": {
-                "fromPath": {
-                    "type": "string"
-                },
-                "fromSource": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "toPath": {
-                    "type": "string"
-                },
-                "toSource": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.MoveCopyRequest": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "description": "\"copy\", \"move\", or \"rename\"",
-                    "type": "string"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/http.MoveCopyItem"
-                    }
-                },
-                "overwrite": {
-                    "description": "Overwrite if destination exists",
-                    "type": "boolean"
-                },
-                "rename": {
-                    "description": "Auto-rename if destination exists",
-                    "type": "boolean"
-                }
-            }
-        },
-        "http.MoveCopyResponse": {
-            "type": "object",
-            "properties": {
-                "failed": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/http.MoveCopyItem"
-                    }
-                },
-                "succeeded": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/http.MoveCopyItem"
-                    }
-                }
-            }
-        },
-        "http.archiveCreateRequest": {
-            "type": "object",
-            "properties": {
-                "compression": {
-                    "description": "Gzip compression level for tar.gz only, 0-9; 0 = default; ignored for zip (optional). Example: 6",
-                    "type": "integer"
-                },
-                "deleteAfter": {
-                    "description": "If true, delete the source files/directories after successful archive creation (optional; requires delete permission). Example: true",
-                    "type": "boolean"
-                },
-                "destination": {
-                    "description": "Full path where the archive will be created; use .zip or .tar.gz extension (required). Example: \"/backups/my-archive.zip\"",
-                    "type": "string"
-                },
-                "format": {
-                    "description": "Archive format: \"zip\" or \"tar.gz\" (optional; inferred from destination if omitted). Example: \"zip\"",
-                    "type": "string"
-                },
-                "fromSource": {
-                    "description": "Source name where the paths to archive live (required). Example: \"default\"",
-                    "type": "string"
-                },
-                "paths": {
-                    "description": "Paths of files or directories to add; directories are walked; access-denied entries skipped (required). Example: [\"/docs/file.txt\", \"/photos\"]",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "toSource": {
-                    "description": "Source name where the archive file will be written (optional; default: fromSource). Example: \"backups\"",
-                    "type": "string"
-                }
-            }
-        },
-        "http.duplicateGroup": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "files": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/indexing.SearchResult"
-                    }
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "http.duplicateResponse": {
-            "type": "object",
-            "properties": {
-                "groups": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/http.duplicateGroup"
-                    }
-                },
-                "incomplete": {
-                    "type": "boolean"
-                },
-                "reason": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.fileWatchMetadata": {
-            "type": "object",
-            "properties": {
-                "modified": {
-                    "description": "Modification time",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "File name",
-                    "type": "string"
-                },
-                "size": {
-                    "description": "File size in bytes (for directories, total size of all files)",
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "MIME type",
-                    "type": "string"
-                }
-            }
-        },
-        "http.fileWatchResponse": {
-            "type": "object",
-            "properties": {
-                "contents": {
-                    "description": "Text content for text files",
-                    "type": "string"
-                },
-                "isText": {
-                    "description": "Whether the file is a text file",
-                    "type": "boolean"
-                },
-                "metadata": {
-                    "description": "File metadata for non-text files",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/http.fileWatchMetadata"
-                        }
-                    ]
-                }
-            }
-        },
-        "http.pinnedItemPatchRequest": {
-            "type": "object",
-            "required": [
-                "name",
-                "path",
-                "source"
-            ],
-            "properties": {
-                "name": {
-                    "description": "item basename within path",
-                    "type": "string"
-                },
-                "path": {
-                    "description": "scope-relative parent directory",
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.sharePinnedItemPatchRequest": {
-            "type": "object",
-            "required": [
-                "name",
-                "path"
-            ],
-            "properties": {
-                "name": {
-                    "description": "item basename within path",
-                    "type": "string"
-                },
-                "path": {
-                    "description": "share-relative parent directory",
-                    "type": "string"
-                }
-            }
-        },
-        "http.unarchiveRequest": {
-            "type": "object",
-            "properties": {
-                "deleteAfter": {
-                    "description": "If true, delete the archive file after successful extraction (optional; default: false). Example: true",
-                    "type": "boolean"
-                },
-                "destination": {
-                    "description": "Directory path on toSource to extract into (required). Example: \"/projects/imported\"",
-                    "type": "string"
-                },
-                "fromSource": {
-                    "description": "Source name where the archive file lives (required). Example: \"default\"",
-                    "type": "string"
-                },
-                "path": {
-                    "description": "Path to the archive file on fromSource; .zip, .tar.gz, or .tgz (required). Example: \"/downloads/data.zip\"",
-                    "type": "string"
-                },
-                "toSource": {
-                    "description": "Source name where contents will be extracted (optional; default: fromSource). Example: \"restored\"",
-                    "type": "string"
                 }
             }
         },
@@ -8628,6 +7667,317 @@
                 },
                 "title": {
                     "description": "title/description",
+                    "type": "string"
+                }
+            }
+        },
+        "web.AuthTokenFrontend": {
+            "type": "object",
+            "properties": {
+                "Permissions": {
+                    "$ref": "#/definitions/users.Permissions"
+                },
+                "expiresAt": {
+                    "type": "integer"
+                },
+                "issuedAt": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.BulkDeleteItem": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.BulkDeleteResponse": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/web.BulkDeleteItem"
+                    }
+                },
+                "succeeded": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/web.BulkDeleteItem"
+                    }
+                }
+            }
+        },
+        "web.DirectDownloadResponse": {
+            "type": "object",
+            "properties": {
+                "hash": {
+                    "type": "string"
+                },
+                "shareUrl": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.GroupListResponse": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "web.HttpResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.MoveCopyItem": {
+            "type": "object",
+            "properties": {
+                "fromPath": {
+                    "type": "string"
+                },
+                "fromSource": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "toPath": {
+                    "type": "string"
+                },
+                "toSource": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.MoveCopyRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "\"copy\", \"move\", or \"rename\"",
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/web.MoveCopyItem"
+                    }
+                },
+                "overwrite": {
+                    "description": "Overwrite if destination exists",
+                    "type": "boolean"
+                },
+                "rename": {
+                    "description": "Auto-rename if destination exists",
+                    "type": "boolean"
+                }
+            }
+        },
+        "web.MoveCopyResponse": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/web.MoveCopyItem"
+                    }
+                },
+                "succeeded": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/web.MoveCopyItem"
+                    }
+                }
+            }
+        },
+        "web.archiveCreateRequest": {
+            "type": "object",
+            "properties": {
+                "compression": {
+                    "description": "Gzip compression level for tar.gz only, 0-9; 0 = default; ignored for zip (optional). Example: 6",
+                    "type": "integer"
+                },
+                "deleteAfter": {
+                    "description": "If true, delete the source files/directories after successful archive creation (optional; requires delete permission). Example: true",
+                    "type": "boolean"
+                },
+                "destination": {
+                    "description": "Full path where the archive will be created; use .zip or .tar.gz extension (required). Example: \"/backups/my-archive.zip\"",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "Archive format: \"zip\" or \"tar.gz\" (optional; inferred from destination if omitted). Example: \"zip\"",
+                    "type": "string"
+                },
+                "fromSource": {
+                    "description": "Source name where the paths to archive live (required). Example: \"default\"",
+                    "type": "string"
+                },
+                "paths": {
+                    "description": "Paths of files or directories to add; directories are walked; access-denied entries skipped (required). Example: [\"/docs/file.txt\", \"/photos\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "toSource": {
+                    "description": "Source name where the archive file will be written (optional; default: fromSource). Example: \"backups\"",
+                    "type": "string"
+                }
+            }
+        },
+        "web.duplicateGroup": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/indexing.SearchResult"
+                    }
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "web.duplicateResponse": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/web.duplicateGroup"
+                    }
+                },
+                "incomplete": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.fileWatchMetadata": {
+            "type": "object",
+            "properties": {
+                "modified": {
+                    "description": "Modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "File name",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "File size in bytes (for directories, total size of all files)",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "MIME type",
+                    "type": "string"
+                }
+            }
+        },
+        "web.fileWatchResponse": {
+            "type": "object",
+            "properties": {
+                "contents": {
+                    "description": "Text content for text files",
+                    "type": "string"
+                },
+                "isText": {
+                    "description": "Whether the file is a text file",
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "description": "File metadata for non-text files",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/web.fileWatchMetadata"
+                        }
+                    ]
+                }
+            }
+        },
+        "web.pinnedItemPatchRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "path",
+                "source"
+            ],
+            "properties": {
+                "name": {
+                    "description": "item basename within path",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "scope-relative parent directory",
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.unarchiveRequest": {
+            "type": "object",
+            "properties": {
+                "deleteAfter": {
+                    "description": "If true, delete the archive file after successful extraction (optional; default: false). Example: true",
+                    "type": "boolean"
+                },
+                "destination": {
+                    "description": "Directory path on toSource to extract into (required). Example: \"/projects/imported\"",
+                    "type": "string"
+                },
+                "fromSource": {
+                    "description": "Source name where the archive file lives (required). Example: \"default\"",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "Path to the archive file on fromSource; .zip, .tar.gz, or .tgz (required). Example: \"/downloads/data.zip\"",
+                    "type": "string"
+                },
+                "toSource": {
+                    "description": "Source name where contents will be extracted (optional; default: fromSource). Example: \"restored\"",
                     "type": "string"
                 }
             }

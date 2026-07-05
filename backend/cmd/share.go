@@ -1,21 +1,15 @@
 package cmd
 
 import (
-	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // validateShareInfo migrates share links to add default sidebar links
 func validateShareInfo() {
-	shareStore := state.GetShareStorage()
-	if shareStore == nil {
-		return
-	}
-
-	// Get all shares
-	shares, err := shareStore.All()
+	shares, err := state.GetAllShares()
 	if err != nil {
 		logger.Debugf("No shares found or error getting shares: %v", err)
 		return

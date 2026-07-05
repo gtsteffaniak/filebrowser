@@ -1,0 +1,389 @@
+package web
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
+	_ "github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb" // Import to register SQL driver
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+)
+
+func setupTestEnv(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "test.sqlite")
+
+	// Initialize state with SQLite database
+	_, err := state.Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	app.MustWireServices(state.Default())
+	t.Cleanup(func() {
+		state.Close()
+	})
+
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {
+			Path: "/srv",
+			Name: "srv",
+		},
+	}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{
+		"srv": {
+			Path: "/srv",
+			Name: "srv",
+		},
+	}
+	// Initialize user resolvers so users package can resolve source names
+	settings.InitializeUserResolvers()
+	mockFileInfoFaster(t) // Mock FileInfoFasterFunc for this test
+}
+
+func mockFileInfoFaster(t *testing.T) {
+	// Backup the original function
+	originalFileInfoFaster := FileInfoFasterFunc
+	// Defer restoration of the original function
+	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
+
+	// Mock the function to skip execution
+	FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		return &iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{
+				Path: opts.Path,
+				ItemInfo: iteminfo.ItemInfo{
+					Name: "mocked_file",
+					Size: 12345,
+				},
+			},
+		}, nil
+	}
+}
+
+func TestWithAdminHelper(t *testing.T) {
+	setupTestEnv(t)
+	// Mock a user who has admin permissions
+	adminUser := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{
+			Username:    "admin",
+			Permissions: users.Permissions{Admin: true}, // Ensure the user is an admin
+		},
+	}
+	nonAdminUser := &users.User{
+		ID: 2,
+		FrontendUser: users.FrontendUser{
+			Username:    "non-admin",
+			Permissions: users.Permissions{Admin: false}, // Non-admin user
+		},
+	}
+	// Save the users to the mock database
+	if err := state.CreateUser(adminUser, ""); err != nil {
+		t.Fatal("failed to create admin user:", err)
+	}
+	// CreateUser runs ApplyUserDefaults, which replaces permissions from global UserDefaults.
+	adminUser.Permissions = users.Permissions{Admin: true}
+	if err := state.UpdateUser(adminUser, "", "permissions"); err != nil {
+		t.Fatal("failed to set admin permissions:", err)
+	}
+	if err := state.CreateUser(nonAdminUser, ""); err != nil {
+		t.Fatal("failed to create non-admin user:", err)
+	}
+	nonAdminUser.Permissions = users.Permissions{Admin: false}
+	if err := state.UpdateUser(nonAdminUser, "", "permissions"); err != nil {
+		t.Fatal("failed to set non-admin permissions:", err)
+	}
+	// Test cases for different scenarios
+	testCases := []struct {
+		name               string
+		expectedStatusCode int
+		user               *users.User
+	}{
+		{
+			name:               "Admin access allowed",
+			expectedStatusCode: http.StatusOK, // Admin should be able to access
+			user:               adminUser,
+		},
+		{
+			name:               "Non-admin access forbidden",
+			expectedStatusCode: http.StatusForbidden, // Non-admin should be forbidden
+			user:               nonAdminUser,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Mock the context with the current user
+			data := &requestContext{
+				User: tc.user,
+			}
+			tokenString, _, err := auth.MakeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Permissions, false)
+			if err != nil {
+				t.Fatalf("Error making token for request: %v", err)
+			}
+
+			// Wrap the usersGetHandler with the middleware
+			handler := withAdminHelper(mockHandler)
+
+			// Create a response recorder to capture the handler's output
+			recorder := httptest.NewRecorder()
+			// Create the request and apply the token as a cookie
+			req, err := http.NewRequest(http.MethodGet, "/users", http.NoBody)
+			if err != nil {
+				t.Fatalf("Error creating request: %v", err)
+			}
+			req.AddCookie(&http.Cookie{
+				Name:  "filebrowser_quantum_jwt",
+				Value: tokenString,
+			})
+
+			// Call the handler with the test request and mock context
+			status, err := handler(recorder, req, data)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			// Verify the status code
+			if status != tc.expectedStatusCode {
+				t.Errorf("\"%v\" expected status code %d, got %d", tc.name, tc.expectedStatusCode, status)
+			}
+		})
+	}
+}
+
+func TestPublicShareHandlerAuthentication(t *testing.T) {
+	setupTestEnv(t)
+
+	const passwordBcrypt = "$2y$10$TFAmdCbyd/mEZDe5fUeZJu.MaJQXRTwdqb/IQV.eTn6dWrF58gCSe" // bcrypt hashed password
+
+	// Create and save a dummy user (shares reference owner by UserID)
+	dummyUser := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{
+			Username:    "testuser",
+			Permissions: users.Permissions{Admin: false},
+		},
+		BackendScopes: []users.BackendScope{
+			{Path: "/srv", Scope: "/"}, // Must match SourceMap key (canonical path, no trailing slash)
+		},
+	}
+	if err := state.CreateUser(dummyUser, ""); err != nil {
+		t.Fatal("failed to create dummy user:", err)
+	}
+
+	testCases := []struct {
+		name               string
+		share              *share.Share
+		token              string
+		password           string
+		extraHeaders       map[string]string
+		expectedStatusCode int
+	}{
+		{
+			name: "Public share, no auth required",
+			share: &share.Share{
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
+				},
+				ShareColumns: share.ShareColumns{Hash: "public_hash", Path: "/"},
+				SourcePath:   "/srv",
+				UserID:       1,
+			},
+			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
+		},
+		{
+			name: "Private share, valid password when token exists",
+			share: &share.Share{
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
+				},
+				ShareColumns: share.ShareColumns{Hash: "pw_and_token_hash", Path: "/"},
+				SourcePath:   "/srv",
+				UserID:       1,
+				PasswordHash: passwordBcrypt,
+				Token:        "some_random_token",
+			},
+			extraHeaders: map[string]string{
+				"X-SHARE-PASSWORD": "password",
+			},
+			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
+		},
+		{
+			name: "Private share, no auth provided",
+			share: &share.Share{
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
+				},
+				ShareColumns: share.ShareColumns{Hash: "private_hash", Path: "/"},
+				SourcePath:   "/srv",
+				UserID:       1,
+				PasswordHash: passwordBcrypt,
+				Token:        "123",
+			},
+			expectedStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name: "Private share, valid token",
+			share: &share.Share{
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
+				},
+				ShareColumns: share.ShareColumns{Hash: "token_hash", Path: "/"},
+				SourcePath:   "/srv",
+				UserID:       1,
+				PasswordHash: passwordBcrypt,
+				Token:        "123",
+			},
+			token:              "123",
+			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
+		},
+		{
+			name: "Private share, invalid password",
+			share: &share.Share{
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
+				},
+				ShareColumns: share.ShareColumns{Hash: "pw_hash", Path: "/"},
+				SourcePath:   "/srv",
+				UserID:       1,
+				PasswordHash: passwordBcrypt,
+				Token:        "123",
+			},
+			extraHeaders: map[string]string{
+				"X-SHARE-PASSWORD": "wrong-password",
+			},
+			expectedStatusCode: http.StatusUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Save the share in the state
+			if err := state.CreateShare(tc.share); err != nil {
+				t.Fatal("failed to save share:", err)
+			}
+
+			// Create a response recorder to capture handler output
+			recorder := httptest.NewRecorder()
+
+			// Wrap the handler with authentication middleware
+			handler := withHashFileHelper(publicGetResourceHandler)
+			settings.Config.Auth.Key = "key"
+
+			// Prepare the request with query parameters and optional headers
+			req := newTestRequest(t, tc.share.Hash, tc.token, tc.password, tc.extraHeaders)
+
+			// Serve the request
+			status, _ := handler(recorder, req, &requestContext{})
+
+			// Check if the response matches the expected status code
+			if status != tc.expectedStatusCode {
+				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, status)
+			}
+		})
+	}
+}
+
+// Helper function to create a new HTTP request with optional parameters
+func newTestRequest(t *testing.T, hash, token, password string, headers map[string]string) *http.Request {
+	req := newHTTPRequest(t, hash, func(r *http.Request) {
+		// Set query parameters based on provided values
+		q := r.URL.Query()
+		q.Set("path", "/")
+		q.Set("hash", hash)
+		if token != "" {
+			q.Set("token", token)
+		}
+		if password != "" {
+			q.Set("password", password)
+		}
+		r.URL.RawQuery = q.Encode()
+
+		// Set any extra headers if provided
+		for key, value := range headers {
+			r.Header.Set(key, value)
+		}
+	})
+	return req
+}
+
+func mockHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	return http.StatusOK, nil // mock response
+}
+
+// Modify newHTTPRequest to accept the hash and use it in the URL path.
+func newHTTPRequest(t *testing.T, hash string, requestModifiers ...func(*http.Request)) *http.Request {
+	t.Helper()
+	url := "/public/share/" + hash + "/" // Dynamically include the hash in the URL path
+	r, err := http.NewRequest(http.MethodGet, url, http.NoBody)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+	for _, modify := range requestModifiers {
+		modify(r)
+	}
+	return r
+}
+
+func TestWithTimeoutReturnsJSONTimeoutReason(t *testing.T) {
+	t.Parallel()
+	timeout := 50 * time.Millisecond
+	handler := withTimeout(timeout, func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		<-r.Context().Done()
+		return http.StatusOK, nil
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	rec := httptest.NewRecorder()
+	handler(rec, req)
+
+	if rec.Code != http.StatusRequestTimeout {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusRequestTimeout)
+	}
+	if ct := rec.Header().Get("Content-Type"); ct != "application/json; charset=utf-8" {
+		t.Fatalf("content-type = %q", ct)
+	}
+
+	var body HttpResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if body.Status != http.StatusRequestTimeout {
+		t.Fatalf("body.status = %d", body.Status)
+	}
+	if body.Message != "request timed out after "+timeout.String() {
+		t.Fatalf("body.message = %q, want request timed out after %q", body.Message, timeout.String())
+	}
+}
+
+func TestWithTimeoutHandlerErrorBeforeDeadline(t *testing.T) {
+	t.Parallel()
+	handler := withTimeout(time.Second, func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		return http.StatusBadRequest, context.Canceled
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	rec := httptest.NewRecorder()
+	handler(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadRequest)
+	}
+	var body HttpResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if body.Message != context.Canceled.Error() {
+		t.Fatalf("body.message = %q", body.Message)
+	}
+}

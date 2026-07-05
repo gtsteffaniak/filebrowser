@@ -4,8 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 )
 
 func TestAdminHasSharePermissionAfterPlaywrightStartup(t *testing.T) {
@@ -19,6 +20,7 @@ func TestAdminHasSharePermissionAfterPlaywrightStartup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	app.MustWireServices(state.Default())
 	t.Cleanup(func() { _ = state.Close() })
 
 	validateUserInfo(true)
@@ -39,6 +41,7 @@ func TestAdminHasSharePermissionAfterPlaywrightStartup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	app.MustWireServices(state.Default())
 	admin, err = state.GetUserByUsername("admin")
 	if err != nil {
 		t.Fatal(err)

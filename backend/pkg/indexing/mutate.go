@@ -1,0 +1,371 @@
+package indexing
+
+import (
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
+)
+
+// UpdateMetadata persists a completed directory listing to the index. The directory row's has_preview
+// reflects direct previewable children only (see GetDirInfoCore).
+func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, persistListedFolders bool) bool {
+	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
+	dirItem := *info
+	items = append(items, &dirItem)
+
+	isBatchScan := scanner != nil
+	includeListedFolders := !isBatchScan || persistListedFolders
+
+	if includeListedFolders {
+		for i := range info.Folders {
+			folder := &info.Folders[i]
+			folderPath := strings.TrimRight(info.Path, "/") + "/" + folder.Name + "/"
+			folderItem := &iteminfo.FileInfo{
+				ItemInfo: *folder,
+				Path:     folderPath,
+			}
+			items = append(items, folderItem)
+		}
+	}
+
+	for i := range info.Files {
+		f := &info.Files[i]
+		filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
+		fileItem := &iteminfo.FileInfo{
+			ItemInfo: f.ItemInfo,
+			Path:     filePath,
+		}
+		items = append(items, fileItem)
+	}
+
+	if scanner != nil {
+		normalizedPath := utils.AddTrailingSlashIfNotExists(info.Path)
+		idx.mu.Lock()
+		if idx.scanUpdatedPaths == nil {
+			idx.scanUpdatedPaths = make(map[string]bool)
+		}
+		idx.scanUpdatedPaths[normalizedPath] = true
+		idx.mu.Unlock()
+
+		scanner.batchItems = append(scanner.batchItems, items...)
+		if len(scanner.batchItems) >= idx.db.BatchSize {
+			scanner.flushBatch()
+		}
+		return true
+	}
+
+	if err := idx.db.BulkInsertItems(idx.Name, items); err != nil {
+		logger.Errorf("Failed to update metadata for %s: %v", info.Path, err)
+		return false
+	}
+	return true
+}
+
+// flushBatch writes all remaining batch items to the database (Scanner method)
+// This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
+// Also clears processedInodes/foundHardLinks maps periodically to prevent unbounded memory growth
+func (s *Scanner) flushBatch() {
+	items := s.batchItems
+	s.batchItems = nil
+
+	if len(items) == 0 {
+		return
+	}
+
+	err := s.idx.db.BulkInsertItems(s.idx.Name, items)
+	if err != nil {
+		logger.Warningf("[DB_TX] Flush failed for scanner [%s] (%d items): %v", s.scanPath, len(items), err)
+	}
+
+	// Clear hardlink tracking maps periodically to prevent unbounded memory growth
+	// Clear after every batch flush (every BatchSize items) to keep memory bounded
+	// For large filesystems with many hardlinks, this prevents maps from growing to millions of entries
+	if len(s.processedInodes) > 100000 {
+		s.processedInodes = make(map[uint64]struct{})
+		s.foundHardLinks = make(map[string]uint64)
+		logger.Debugf("[MEMORY] Cleared hardlink tracking maps for scanner [%s] (prevented unbounded growth)", s.scanPath)
+	}
+}
+
+// DeleteMetadata removes the specified path from the index.
+// SQLite handles locking automatically, so no mutex needed.
+func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
+	// Normalize the path - ensure trailing slash for directories
+	indexPath := path
+	if isDir {
+		indexPath = utils.AddTrailingSlashIfNotExists(path)
+	} else {
+		indexPath = strings.TrimSuffix(indexPath, "/")
+	}
+	// indexPath is already an index path (relative to source root)
+	if err := idx.db.DeleteItem(idx.Name, indexPath, recursive); err != nil {
+		logger.Errorf("Failed to delete metadata for %s: %v", indexPath, err)
+		return false
+	}
+
+	return true
+}
+
+// GetMetadataInfo retrieves the FileInfo from the specified file or directory in the index.
+func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileInfo, bool) {
+
+	checkPath := idx.MakeIndexPath(target, isDir).String()
+
+	// checkPath is already an index path (relative to source root)
+	item, err := idx.db.GetItem(idx.Name, checkPath)
+	if err != nil {
+		return nil, false
+	}
+
+	// Guard against nil item (can happen if DB was busy/locked and GetItem returned nil, nil)
+	if item == nil {
+		return nil, false
+	}
+
+	// If this is a directory, populate size from in-memory map (prefer in-memory over DB)
+	if item.Type == "directory" {
+		dirPath := utils.AddTrailingSlashIfNotExists(checkPath)
+		inMemSize, exists := idx.GetFolderSize(dirPath)
+		if !exists {
+			inMemSize = 0
+		}
+		if inMemSize > 0 || item.Size == 0 {
+			item.Size = int64(inMemSize)
+		}
+	}
+
+	return item, true
+}
+
+// raw directory info retrieval -- does not work on files, only returns a directory
+func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*iteminfo.FileInfo, bool) {
+
+	var checkDir string
+	if !isDir {
+		checkDir = idx.MakeIndexPath(filepath.Dir(target), true).String()
+	} else {
+		checkDir = idx.MakeIndexPath(target, true).String()
+	}
+
+	// checkDir is already an index path (relative to source root)
+	dir, err := idx.db.GetItem(idx.Name, checkDir)
+	if err != nil {
+		return nil, false
+	}
+
+	// If not found in DB during scan, item might not be indexed yet
+	// (Batches are now scanner-specific, so we don't flush from API calls)
+	if dir == nil {
+		return nil, false
+	}
+
+	// If shallow is true, return only the parent item without fetching children
+	// This is much faster when we only need fields like hasPreview
+	if shallow {
+		return dir, true
+	}
+
+	// Get children
+	children, err := idx.db.GetDirectoryChildren(idx.Name, checkDir)
+	if err != nil {
+		logger.Errorf("Failed to get children for %s: %v", checkDir, err)
+		return dir, true
+	}
+
+	// Populate Files and Folders
+	for _, child := range children {
+		if child.Type == "directory" {
+			// Populate directory size from in-memory map (prefer in-memory over DB)
+			childPath := utils.AddTrailingSlashIfNotExists(child.Path)
+			inMemSize, exists := idx.GetFolderSize(childPath)
+			if !exists {
+				inMemSize = 0
+			}
+			if inMemSize > 0 || child.Size == 0 {
+				// Use in-memory if available, or if DB also shows 0
+				child.Size = int64(inMemSize)
+			}
+			// else: keep DB value if in-memory is 0 but DB has a value
+			dir.Folders = append(dir.Folders, child.ItemInfo)
+		} else {
+			dir.Files = append(dir.Files, iteminfo.ExtendedItemInfo{ItemInfo: child.ItemInfo})
+		}
+	}
+
+	// Populate the directory's own size from in-memory map (prefer in-memory over DB)
+	inMemSize, exists := idx.GetFolderSize(checkDir)
+	if !exists {
+		inMemSize = 0
+	}
+	if inMemSize > 0 || dir.Size == 0 {
+		dir.Size = int64(inMemSize)
+	}
+
+	return dir, true
+}
+
+func GetIndex(name string) *Index {
+	indexesMutex.Lock()
+	defer indexesMutex.Unlock()
+	index, ok := indexes[name]
+	if !ok {
+		// try path if name fails
+		// todo: update everywhere else so this isn't needed.
+		source, ok := settings.Config.Server.SourceMap[name]
+		if !ok {
+			logger.Errorf("index %s not found", name)
+			return nil
+		}
+		index, ok = indexes[source.Name]
+		if !ok {
+			logger.Errorf("index %s not found", name)
+			return nil
+		}
+	}
+	return index
+}
+
+// ReadOnlyOperation executes a function with read-only access to the index
+func (idx *Index) ReadOnlyOperation(fn func()) {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	fn()
+}
+
+// IterateFiles iterates over all files in the index and calls the callback function
+func (idx *Index) IterateFiles(fn func(path, name string, size, modTime int64)) error {
+	rows, err := idx.db.Query("SELECT path, name, size, mod_time FROM index_items WHERE source = ? AND is_dir = 0", idx.Name)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var path, name string
+		var size, modTime int64
+		if err := rows.Scan(&path, &name, &size, &modTime); err != nil {
+			return err
+		}
+		fn(path, name, size, modTime)
+	}
+	return nil
+}
+
+func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, error) {
+	indexesMutex.Lock()
+	idx, ok := indexes[sourceName]
+	indexesMutex.Unlock()
+	if !ok {
+		return ReducedIndex{}, fmt.Errorf("index %s not found", sourceName)
+	}
+
+	// Only update disk total if cache is missing or explicitly forced.
+	// Indexed "used" sums root-level files from SQLite; top-level folders use idx.folderSizes (scanned rollup)
+	// because directory size columns in SQLite can lag folderSizes/SyncFolderSizesToDB.
+	sourcePath := idx.Path
+	cacheKey := "usageCache-" + sourceName
+	if forceCacheRefresh {
+		// Invalidate cache to force update
+		utils.DiskUsageCache.Delete(cacheKey)
+	}
+	_, ok = utils.DiskUsageCache.Get(cacheKey)
+	if !ok {
+		// Only fetch disk total and used if not cached (this is expensive, so we cache it)
+		totalPartitionSize, err := fileutils.GetPartitionSize(sourcePath)
+		if err != nil {
+			logger.Errorf("Failed to get partition size for index %s: %v", sourceName, err)
+		}
+		itemInfo, dbErr := idx.db.GetDirectoryChildren(idx.Name, "/")
+		if dbErr != nil {
+			logger.Debugf("GetIndexInfo: could not read root listing from index DB for %s: %v", sourceName, dbErr)
+		}
+		var indexedSizeFromDB uint64
+		for _, item := range itemInfo {
+			isFolder := item.IsDir || item.Type == "directory"
+			if !isFolder {
+				indexedSizeFromDB += uint64(item.Size)
+				continue
+			}
+			folderKey := utils.AddTrailingSlashIfNotExists(item.Path)
+			if agg, ok := idx.GetFolderSize(folderKey); ok {
+				indexedSizeFromDB += agg
+			} else {
+				indexedSizeFromDB += uint64(item.Size)
+			}
+		}
+		// Also fetch OS-reported partition used space (total - free)
+		partitionUsed, err := fileutils.GetPartitionUsed(sourcePath)
+		if err != nil {
+			logger.Errorf("Failed to get partition used space for index %s: %v", sourceName, err)
+		}
+		idx.SetUsage(totalPartitionSize, partitionUsed, indexedSizeFromDB)
+		utils.DiskUsageCache.Set(cacheKey, true)
+		if metaStoreConfigured() {
+			if err := idx.writePersistedIndexInfo(); err != nil {
+				logger.Warningf("GetIndexInfo: failed to persist index disk stats for %s: %v", sourceName, err)
+			}
+		}
+	}
+
+	// Build scanner info for client
+	idx.mu.RLock()
+	adaptiveSched := idx.useAdaptiveScheduling()
+	scannerInfos := make([]*ScannerInfo, 0, len(idx.scanners))
+	for _, scanner := range idx.scanners {
+		schedule := 0
+		if adaptiveSched {
+			schedule = scanner.currentSchedule
+		}
+		scannerInfos = append(scannerInfos, &ScannerInfo{
+			Path:            scanner.scanPath,
+			CurrentSchedule: schedule,
+			Stats: Stats{
+				LastScanned:   scanner.lastScanned,
+				Complexity:    scanner.complexity,
+				QuickScanTime: scanner.quickScanTime,
+				FullScanTime:  scanner.fullScanTime,
+				NumDirs:       scanner.numDirs,
+				NumFiles:      scanner.numFiles,
+			},
+		})
+	}
+	reducedIdx := idx.ReducedIndex
+	reducedIdx.UsedAsIndexed = idx.UsedAsIndexed
+	reducedIdx.UsedDisk = idx.UsedDisk
+	reducedIdx.DiskTotal = idx.DiskTotal
+	reducedIdx.Scanners = scannerInfos
+	reducedIdx.NumDirs = idx.getNumDirsUnlocked()
+	reducedIdx.NumFiles = idx.getNumFilesUnlocked()
+	reducedIdx.QuickScanTime = idx.getQuickScanTimeUnlocked()
+	reducedIdx.FullScanTime = idx.getFullScanTimeUnlocked()
+	reducedIdx.Complexity = idx.getComplexityUnlocked()
+	lastIndexed := idx.getLastIndexedUnlocked()
+	reducedIdx.LastScanned = lastIndexed
+	reducedIdx.LastIndexedUnix = lastIndexed.Unix()
+	reducedIdx.Status = idx.getStatusUnlocked()
+	reducedIdx.ReadOnly = idx.Config.ReadOnly
+	reducedIdx.Private = idx.Config.Private
+	idx.mu.RUnlock()
+	return reducedIdx, nil
+}
+
+// SetFolderSize sets the size for a directory in the in-memory map
+func (idx *Index) SetFolderSize(path string, newSize uint64) {
+	idx.folderSizesMu.Lock()
+	defer idx.folderSizesMu.Unlock()
+	idx.folderSizes[path] = newSize
+	idx.folderSizesUnsynced[path] = struct{}{} // Mark as changed for next DB sync
+}
+
+// GetFolderSize retrieves the size for a directory from the in-memory map
+func (idx *Index) GetFolderSize(path string) (uint64, bool) {
+	idx.folderSizesMu.RLock()
+	defer idx.folderSizesMu.RUnlock()
+	size, exists := idx.folderSizes[path]
+	return size, exists
+}

@@ -8,8 +8,8 @@ COPY [ "./frontend/tests/playwright-files", "/tests/playwright-files" ]
 WORKDIR /app/backend/
 COPY [ "./_docker/src/tmp/*", "./"]
 
-RUN mkdir -p ./http/dist
-COPY [ "./backend/http/embed/", "./http/dist/"]
+RUN mkdir -p ./internal/web/dist
+COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 
 ENTRYPOINT [ "./filebrowser" ]
 ENV FILEBROWSER_PLAYWRIGHT_TEST=true

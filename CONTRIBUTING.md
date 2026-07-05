@@ -47,11 +47,12 @@ make dev
 
 ### Backend (Go)
 - **Entry Point**: `backend/main.go` → `backend/cmd/`
-- **HTTP Server**: `backend/http/` - API routes, middleware, auth
-- **Storage**: BoltDB via `backend/database/storage/`
-- **Authentication**: Multiple providers in `backend/auth/`
-- **Indexing**: Real-time search in `backend/indexing/`
-- **Previews**: Image/video/document generation in `backend/preview/`
+- **HTTP Server**: `backend/internal/web/` - API routes, middleware, auth
+- **Storage**: SQLite via `backend/internal/database/`
+- **Authentication**: Multiple providers in `backend/internal/auth/`
+- **Indexing**: Real-time search in `backend/pkg/indexing/`
+- **Previews**: Image/video/document generation in `backend/internal/preview/`
+- **Activity**: Query, recording, and export logic in `backend/internal/activity/`
 
 ### Frontend (Vue.js + TypeScript)
 - **Framework**: Vue 3 + Vite + TypeScript

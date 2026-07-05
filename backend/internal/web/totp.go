@@ -1,0 +1,113 @@
+package web
+
+import (
+	"fmt"
+	"net/http"
+	"net/url"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+)
+
+// generateOTPHandler handles the generation of a new TOTP secret and QR code.
+// @Summary Generate OTP
+// @Description Generates a new TOTP secret and QR code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param username query string true "Username"
+// @Param X-Password header string true "URL-encoded password"
+// @Success 200 {object} map[string]string "OTP secret generated successfully."
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/otp/generate [post]
+func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	err := checkPassword(r, d)
+	if err != nil {
+		return http.StatusUnauthorized, err
+	}
+	user, getErr := state.GetUserByUsername(r.URL.Query().Get("username"))
+	if getErr != nil {
+		return http.StatusNotFound, fmt.Errorf("user not found: %w", getErr)
+	}
+	url, err := auth.GenerateOtpForUser(&user)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("error generating OTP secret: %w", err)
+	}
+	response := map[string]string{
+		"message": "OTP secret generated successfully.",
+		"url":     url, // The otpauth:// URL for QR code generation
+	}
+	return RenderJSON(w, r, response)
+}
+
+// verifyOTPHandler handles the verification of a TOTP code.
+// @Summary Verify OTP
+// @Description Verifies the provided TOTP code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param username query string true "Username"
+// @Param X-Password header string true "URL-encoded password"
+// @Param X-Secret header string true "TOTP code to verify"
+// @Success 200 {object} HttpResponse "OTP token is valid."
+// @Failure 401 {object} map[string]string "Unauthorized - invalid TOTP token"
+// @Router /api/auth/otp/verify [post]
+func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	code := r.Header.Get("X-Secret")
+	if code == "" {
+		return http.StatusUnauthorized, fmt.Errorf("code is required")
+	}
+	err := checkPassword(r, d)
+	if err != nil {
+		return http.StatusUnauthorized, err
+	}
+	user, getErr := state.GetUserByUsername(r.URL.Query().Get("username"))
+	if getErr != nil {
+		return http.StatusNotFound, fmt.Errorf("user not found: %w", getErr)
+	}
+	err = auth.VerifyTotpCode(&user, code)
+	if err != nil {
+		return http.StatusUnauthorized, fmt.Errorf("invalid OTP token")
+	}
+	if err := state.UpdateUser(&user, "", "TOTPSecret", "TOTPNonce", "OtpEnabled"); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	response := HttpResponse{
+		Status:  http.StatusOK,
+		Message: "OTP token is valid.",
+	}
+	// On success, return a simple confirmation.
+	return RenderJSON(w, r, response)
+}
+
+func checkPassword(r *http.Request, d *Context) error {
+	providedPassword := r.Header.Get("X-Password")
+	username := r.URL.Query().Get("username")
+	if d.User.Permissions.Admin {
+		username = d.User.Username
+	}
+	// url decode
+	providedPassword, err := url.QueryUnescape(providedPassword)
+	if err != nil {
+		return fmt.Errorf("invalid password encoding: %v", err)
+	}
+	if providedPassword == "" {
+		return fmt.Errorf("password is required")
+	}
+	user, getErr := state.GetUserByUsername(username)
+	var passwordHash string
+	if getErr != nil {
+		passwordHash = utils.InvalidPasswordHash
+	} else {
+		passwordHash = user.Password
+	}
+	// always run checkPwd to prevent timing attacks
+	err = utils.CheckPwd(providedPassword, passwordHash)
+	if err != nil {
+		return fmt.Errorf("invalid password or user not found")
+	}
+	return nil
+}

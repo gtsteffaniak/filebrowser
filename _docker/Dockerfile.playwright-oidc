@@ -4,10 +4,10 @@ COPY [ "./_docker/src/oidc/frontend/", "./" ]
 COPY [ "./frontend/tests/", "./tests" ]
 
 WORKDIR /app/backend/
-RUN mkdir -p ./http/dist
+RUN mkdir -p ./internal/web/dist
 COPY [ "./_docker/src/oidc/backend/", "./"]
 COPY ["./backend/filebrowser", "./"]
-COPY [ "./backend/http/embed/", "./http/dist/"]
+COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 
 # Run tests
 WORKDIR /app/frontend

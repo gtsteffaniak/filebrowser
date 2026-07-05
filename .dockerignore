@@ -9,7 +9,7 @@ backend/filebrowser.sqlite*
 backend/tmp
 backend/dist
 backend/backend*
-backend/http/dist/**
+backend/internal/web/dist/**
 backend/vendor/**
 
 frontend/dist/**

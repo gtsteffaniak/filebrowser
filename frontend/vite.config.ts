@@ -6,6 +6,7 @@ import checker from "vite-plugin-checker";
 import { compression } from "vite-plugin-compression2";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
+const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
 
 const plugins = [
   vue(),
@@ -44,6 +45,8 @@ export default defineConfig(() => {
       __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
     },
     build: {
+      outDir: backendWebDist,
+      emptyOutDir: true,
       // Optimize for watch mode stability
       watch: isDevBuild ? {
         // Add buildDelay to batch multiple changes

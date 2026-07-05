@@ -1,0 +1,400 @@
+package web
+
+import (
+	"encoding/json"
+	"fmt"
+	"html/template"
+	"io/fs"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+)
+
+var templateRenderer *TemplateRenderer
+
+type TemplateRenderer struct {
+	templates *template.Template
+	devMode   bool
+}
+
+// Render renders a template document with headers and data
+func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data interface{}) error {
+	templates := t.templates
+	// If in dev mode, reload templates on every render by creating a fresh instance
+	if t.devMode {
+		var err error
+		templates = template.New("").Funcs(template.FuncMap{
+			"marshal": func(v interface{}) (string, error) {
+				var a []byte
+				a, err = json.Marshal(v)
+				return string(a), err
+			},
+		})
+		templates, err = templates.ParseFS(assetFs, "public/index.html")
+		if err != nil {
+			return fmt.Errorf("error reloading template: %w", err)
+		}
+	}
+	// Set headers
+	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("X-Accel-Expires", "0")
+	w.Header().Set("Transfer-Encoding", "identity")
+	// Execute the template with the provided data
+	return templates.ExecuteTemplate(w, name, data)
+}
+
+func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
+	w.Header().Set("Content-Type", contentType)
+	userSelectedTheme := ""
+	versionString := ""
+	commitSHAString := ""
+	externalLinks := settings.Config.Frontend.ExternalLinks
+	if settings.Env.IsPlaywright {
+		versionString = version.Version
+		commitSHAString = version.CommitSHA
+	}
+	if d.User != nil && d.User.Username != "anonymous" {
+		theme, ok := settings.Config.Frontend.Styling.CustomThemeOptions[d.User.CustomTheme]
+		if ok {
+			userSelectedTheme = theme.CssRaw
+		}
+		versionString = version.Version
+		commitSHAString = version.CommitSHA
+	} else if !settings.Env.IsPlaywright {
+		newExternalLinks := []settings.ExternalLink{}
+		// remove version and commit SHA from external links
+		for _, link := range externalLinks {
+			if link.Title == version.CommitSHA {
+				continue
+			}
+			newExternalLinks = append(newExternalLinks, link)
+		}
+		externalLinks = newExternalLinks
+	}
+
+	defaultThemeColor := "#455a64"
+	staticURL := settings.Config.Server.BaseURL + "public/static"
+	description := settings.Config.Frontend.Description
+	title := settings.Config.Frontend.Name
+	banner := staticURL + "/icons/pwa-icon-512.png" // largest generated PWA icon
+	disableSidebar := false
+
+	// Use custom favicon if configured and validated, otherwise fall back to default
+	// Determine the correct favicon extension based on type
+	faviconExt := ".svg" // Default to SVG
+	if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) != ".svg" {
+		faviconExt = ".png"
+	}
+	favicon := staticURL + "/favicon" + faviconExt
+	shareHash := ""
+	data := make(map[string]interface{})
+	disableNavButtons := settings.Config.Frontend.DisableNavButtons
+	if d.ShareValid && d.Share.Hash != "" {
+		if d.Share.Favicon != "" {
+			if strings.HasPrefix(d.Share.Favicon, "http") {
+				favicon = d.Share.Favicon
+			} else {
+				favicon = staticURL + "/" + d.Share.Favicon
+			}
+		}
+		if d.Share.Description != "" {
+			description = d.Share.Description
+		}
+		if d.Share.Title != "" {
+			title = d.Share.Title
+		}
+		if d.Share.ShareTheme != "" {
+			theme, ok := settings.Config.Frontend.Styling.CustomThemeOptions[d.Share.ShareTheme]
+			if ok {
+				userSelectedTheme = theme.CssRaw
+			}
+		}
+		if d.Share.DisableSidebar {
+			disableSidebar = true
+		}
+		banner = d.Share.BannerURL()
+		shareFavicon := d.Share.FaviconURL()
+		if shareFavicon != "" {
+			favicon = shareFavicon
+		}
+		shareHash = d.Share.Hash
+	}
+	// Set login icon URL
+	loginIcon := staticURL + "/loginIcon"
+
+	// Load loading spinners CSS from static files
+	loadingSpinnersCSS := ""
+	cssPath := "css/loadingSpinners.css"
+	cssContent, err := fs.ReadFile(assetFs, cssPath)
+	if err == nil {
+		loadingSpinnersCSS = string(cssContent)
+	}
+
+	// Determine OpenGraph image: use banner if set, otherwise use largest available icon (512x512)
+	ogImage := banner
+	if banner == staticURL+"/icons/pwa-icon-512.png" {
+		// Note: 512x512 is square; OpenGraph prefers 1200x630 (1.91:1 ratio) but square works fine
+		ogImage = staticURL + "/icons/pwa-icon-512.png"
+	}
+
+	// Construct the full URL for the current request
+	var fullURL string
+	if settings.Config.Server.ExternalUrl != "" {
+		// ExternalUrl already includes schema (e.g., http://mydomain.com)
+		fullURL = strings.TrimSuffix(settings.Config.Server.ExternalUrl, "/") + r.URL.Path
+	} else {
+		// Build URL from request
+		scheme := "http"
+		if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
+			scheme = "https"
+		}
+		fullURL = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.Path)
+	}
+
+	pwaIcon192 := staticURL + "/icons/pwa-icon-192.png"
+	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"
+	pwaIcon512 := staticURL + "/icons/pwa-icon-512.png"
+
+	manifestURL := staticURL + "/site.webmanifest"
+	if shareHash != "" {
+		pwaStartURL := settings.Config.Server.BaseURL + "public/share/" + shareHash + "/"
+		query := url.Values{}
+		query.Set("start", pwaStartURL)
+		if title != settings.Config.Frontend.Name {
+			query.Set("name", title)
+		}
+		if description != settings.Config.Frontend.Description {
+			query.Set("description", description)
+		}
+		manifestURL = staticURL + "/site.webmanifest?" + query.Encode()
+	}
+
+	data["htmlVars"] = map[string]interface{}{
+		"title":              title,
+		"customCSS":          template.CSS(settings.Config.Frontend.Styling.CustomCSSRaw),
+		"userSelectedTheme":  template.CSS(userSelectedTheme),
+		"lightBackground":    settings.Config.Frontend.Styling.LightBackground,
+		"darkBackground":     settings.Config.Frontend.Styling.DarkBackground,
+		"staticURL":          staticURL,
+		"baseURL":            settings.Config.Server.BaseURL,
+		"favicon":            favicon,
+		"loginIcon":          loginIcon,
+		"color":              defaultThemeColor,
+		"winIcon":            staticURL + "/icons/mstile-256x256.png",
+		"appIcon":            staticURL + "/icons/apple-touch-icon.png",
+		"description":        description,
+		"loadingSpinnersCSS": template.CSS(loadingSpinnersCSS),
+		"banner":             banner,
+		"image":              ogImage,
+		"url":                fullURL,
+		"pwaIcon192":         pwaIcon192,
+		"pwaIcon256":         pwaIcon256,
+		"pwaIcon512":         pwaIcon512,
+		"manifestURL":        manifestURL,
+	}
+
+	data["globalVars"] = map[string]interface{}{
+		"name":                   settings.Config.Frontend.Name,
+		"minSearchLength":        settings.Config.Server.MinSearchLength,
+		"disableExternal":        settings.Config.Frontend.DisableDefaultLinks,
+		"darkMode":               settings.Config.UserDefaults.UI.DarkMode,
+		"baseURL":                settings.Config.Server.BaseURL,
+		"version":                versionString,
+		"commitSHA":              commitSHAString,
+		"signup":                 settings.Config.Auth.Methods.PasswordAuth.Signup,
+		"noAuth":                 settings.Config.Auth.Methods.NoAuth,
+		"enableThumbs":           !settings.Config.Server.DisablePreviews,
+		"externalLinks":          externalLinks,
+		"externalUrl":            strings.TrimSuffix(settings.Config.Server.ExternalUrl, "/"),
+		"onlyOfficeUrl":          settings.Config.Integrations.OnlyOffice.Url,
+		"oidcAvailable":          settings.Config.Auth.Methods.OidcAuth.Enabled,
+		"jwtAvailable":           settings.Config.Auth.Methods.JwtAuth.Enabled,
+		"proxyAvailable":         settings.Config.Auth.Methods.ProxyAuth.Enabled,
+		"passwordAvailable":      settings.Config.Auth.Methods.PasswordAuth.Enabled,
+		"ldapAvailable":          settings.Config.Auth.Methods.LdapAuth.Enabled,
+		"mediaAvailable":         settings.MediaEnabled(),
+		"exiftoolAvailable":      settings.Config.Integrations.Media.ExiftoolPath != "",
+		"muPdfAvailable":         settings.Env.MuPdfAvailable,
+		"updateAvailable":        utils.GetUpdateAvailableUrl(),
+		"disableNavButtons":      disableNavButtons,
+		"userSelectableThemes":   settings.Config.Frontend.Styling.CustomThemeOptions,
+		"enableHeicConversion":   settings.CanConvertImage("heic"),
+		"eventBasedThemes":       !settings.Config.Frontend.Styling.DisableEventBasedThemes,
+		"loginIcon":              loginIcon,
+		"disableSidebar":         disableSidebar,
+		"shareHash":              shareHash,
+		"oidcLoginButtonText":    settings.Config.Frontend.OIDCLoginButtonText,
+		"loginButtonText":        settings.Config.Frontend.LoginButtonText,
+		"passkeyAvailable":       settings.Config.Auth.Methods.PasskeyAuth.Enabled,
+		"passkeyLoginButtonText": settings.Config.Auth.Methods.PasskeyAuth.LoginButtonText,
+	}
+
+	// Marshal each variable to JSON strings for direct template usage
+	globalVarsJSON, err := json.Marshal(data["globalVars"])
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("error marshaling globalVars: %w", err)
+	}
+
+	// Mark as JS for html/template to avoid escaping
+	data["globalVars"] = template.JS(globalVarsJSON)
+
+	// Render the template with global variables
+	if err := templateRenderer.Render(w, file, data); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
+}
+
+// setContentType sets the appropriate Content-Type header based on file extension
+func setContentType(w http.ResponseWriter, path string) {
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".js":
+		w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	case ".css":
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+	case ".svg":
+		w.Header().Set("Content-Type", "image/svg+xml")
+	case ".png":
+		w.Header().Set("Content-Type", "image/png")
+	case ".jpg", ".jpeg":
+		w.Header().Set("Content-Type", "image/jpeg")
+	case ".gif":
+		w.Header().Set("Content-Type", "image/gif")
+	case ".webp":
+		w.Header().Set("Content-Type", "image/webp")
+	case ".ico":
+		w.Header().Set("Content-Type", "image/x-icon")
+	case ".woff2":
+		w.Header().Set("Content-Type", "font/woff2")
+	case ".webmanifest":
+		w.Header().Set("Content-Type", "application/manifest+json")
+	case ".json":
+		w.Header().Set("Content-Type", "application/json")
+	}
+}
+
+// manifestHandler serves the cached PWA manifest, optionally scoped to a public share.
+func manifestHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/manifest+json")
+	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache for 1 hour
+
+	manifest := icons.CachedManifest
+	if startURL := r.URL.Query().Get("start"); startURL != "" {
+		name := r.URL.Query().Get("name")
+		description := r.URL.Query().Get("description")
+		if shareManifest, ok := icons.ManifestForShare(settings.Config.Server.BaseURL, startURL, name, description); ok {
+			manifest = shareManifest
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
+		http.Error(w, "Failed to serve manifest", http.StatusInternalServerError)
+	}
+}
+
+// staticAssetHandler serves static assets exactly as the frontend build produces them
+func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+
+	// Strip baseURL and /static/ prefix to get clean asset path
+	path := strings.TrimPrefix(r.URL.Path, "/public")
+	path = strings.TrimPrefix(path, "/static/")
+	// Handle special routes that need path mapping
+	var assetPath string
+	switch path {
+	case "site.webmanifest":
+		manifestHandler(w, r)
+		return
+	case "favicon.svg":
+		// For custom SVG favicons, serve the SVG directly
+		if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) == ".svg" {
+			http.ServeFile(w, r, settings.Env.FaviconPath)
+			return
+		}
+		// Use embedded default SVG
+		assetPath = settings.Env.FaviconEmbeddedPath
+	case "favicon.png":
+		if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) != ".svg" {
+			iconPath := filepath.Join(settings.PWAIconsCacheDir(), "pwa-icon-512.png")
+			if _, err := os.Stat(iconPath); err == nil {
+				http.ServeFile(w, r, iconPath)
+				return
+			}
+		}
+		// Fall back to embedded default favicon.png
+		assetPath = "img/icons/favicon.png"
+	case "icons/favicon-32x32.png",
+		"icons/pwa-icon-192.png", "icons/pwa-icon-256.png", "icons/pwa-icon-512.png",
+		"icons/apple-touch-icon.png", "icons/mstile-256x256.png":
+		// Files are generated as PWAIconsCacheDir()/basename (URL uses icons/ prefix only for routing)
+		rel := strings.TrimPrefix(path, "icons/")
+		iconPath := filepath.Join(settings.PWAIconsCacheDir(), rel)
+		if _, err := os.Stat(iconPath); err == nil {
+			http.ServeFile(w, r, iconPath)
+			return
+		}
+		// Fall back to embedded favicon.png if generation failed
+		assetPath = "img/icons/favicon.png"
+	case "loginIcon":
+		// Handle custom login icon from filesystem
+		if settings.Env.LoginIconIsCustom {
+			http.ServeFile(w, r, settings.Env.LoginIconPath)
+			return
+		}
+		// Use embedded default
+		assetPath = settings.Env.LoginIconEmbeddedPath
+	default:
+		assetPath = path
+	}
+
+	// Try gzipped version first for files that may be compressed
+	var fileContents []byte
+	var err error
+
+	// Check if gzipped version exists
+	if strings.HasSuffix(assetPath, ".js") || strings.HasSuffix(assetPath, ".woff2") {
+		gzPath := assetPath + ".gz"
+		fileContents, err = fs.ReadFile(assetFs, gzPath)
+		if err == nil {
+			// Gzipped version exists, serve it
+			setContentType(w, assetPath)
+			w.Header().Set("Content-Encoding", "gzip")
+			_, err = w.Write(fileContents)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+
+	// Serve uncompressed version
+	fileContents, err = fs.ReadFile(assetFs, assetPath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	setContentType(w, assetPath)
+	_, err = w.Write(fileContents)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if r.Method != http.MethodGet {
+		return http.StatusNotFound, nil
+	}
+	return handleWithStaticData(w, r, d, "index.html", "text/html")
+}

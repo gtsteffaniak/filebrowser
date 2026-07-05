@@ -29,8 +29,8 @@ frontend/tsconfig.tsbuildinfo
 /backend/*test_config.yaml
 /backend/generated.yaml
 /backend/srv
-/backend/http/dist
-/backend/http/embed
+/backend/internal/web/dist
+/backend/internal/web/embed
 /backend/debug
 
 .DS_Store

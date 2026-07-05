@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: backend/http/dist
+          path: backend/internal/web/dist
   build_backend:
     name: Build backend
     runs-on: ubuntu-latest
@@ -103,8 +103,8 @@ jobs:
         run: chmod +x backend/filebrowser
       - name: Copy frontend build to backend
         run: |
-          mkdir -p backend/http/embed
-          cp -r frontend/dist/* backend/http/embed
+          mkdir -p backend/internal/web/embed
+          cp -r frontend/dist/* backend/internal/web/embed
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
