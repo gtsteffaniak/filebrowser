@@ -13,13 +13,14 @@ import (
 
 // PrepForFrontend builds API-safe ShareFrontend copies (never exposes backend Share fields).
 // When r is non-nil, download and share URLs are derived from the request (or ExternalUrl).
-func PrepForFrontend(viewer *users.User, usersStore *users.Storage, r *http.Request, links ...*Share) []*ShareFrontend {
+// ownerLookup resolves share owner usernames from stable user ids; may be nil.
+func PrepForFrontend(viewer *users.User, r *http.Request, ownerLookup func(uint64) string, links ...*Share) []*ShareFrontend {
 	out := make([]*ShareFrontend, 0, len(links))
 	for _, link := range links {
 		if link == nil {
 			continue
 		}
-		out = append(out, prepForFrontendOne(link, viewer, usersStore, r))
+		out = append(out, prepForFrontendOne(link, viewer, r, ownerLookup))
 	}
 	return utils.NonNilSlice(out)
 }
@@ -43,14 +44,12 @@ func copyShareFrontendFromShare(link *Share) ShareFrontend {
 	return out
 }
 
-func prepForFrontendOne(link *Share, viewer *users.User, usersStore *users.Storage, r *http.Request) *ShareFrontend {
+func prepForFrontendOne(link *Share, viewer *users.User, r *http.Request, ownerLookup func(uint64) string) *ShareFrontend {
 	snap := *link
 	out := copyShareFrontendFromShare(link)
 	out.HasPassword = snap.HasPassword()
-	if snap.UserID != 0 && usersStore != nil {
-		if owner, err := usersStore.Get(snap.UserID); err == nil && owner != nil {
-			out.Username = owner.Username
-		}
+	if snap.UserID != 0 && ownerLookup != nil {
+		out.Username = ownerLookup(snap.UserID)
 	}
 	if sourceInfo, ok := resolveSource(snap.SourcePath); ok {
 		out.PathExists = utils.CheckPathExists(filepath.Join(sourceInfo.Path, out.Path))

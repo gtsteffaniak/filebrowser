@@ -20,6 +20,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -39,7 +40,12 @@ func (e *requestTimeoutError) Error() string {
 	return fmt.Sprintf("request timed out after %s", e.timeout)
 }
 
-var FileInfoFasterFunc = files.FileInfoFaster
+var FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+	if runtimeDeps.Files != nil {
+		return runtimeDeps.Files.FileInfoFaster(opts, user)
+	}
+	return files.FileInfoFaster(opts, user)
+}
 
 type handleFunc = HandleFunc
 
@@ -84,7 +90,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-		source, ok := config.Server.SourceMap[link.SourcePath]
+		source, ok := settings.Config.Server.SourceMap[link.SourcePath]
 		if !ok {
 			return http.StatusNotFound, fmt.Errorf("source not found")
 		}
@@ -132,13 +138,13 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Content:                  getContent,
 			Metadata:                 getMetadata,
 			AlbumArt:                 strings.Contains(r.URL.Path, "/preview"),
-			ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
+			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			HideFileExt:              link.HideFileExt,
 			FollowSymlinks:           true,
 			ShowPinnedItems:          true,
 			ShareHash:                hash,
-		}, accessStore, data.ShareUser, shareStore)
+		}, data.ShareUser)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return ErrToStatus(err), fmt.Errorf("error fetching share from server")
@@ -176,8 +182,8 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // extractUserFromExpiredToken attempts to extract user information from an expired token
 // This is used by withOrWithoutUserHelper to get user context even when tokens are expired
 func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.User {
-	if config.Auth.Methods.NoAuth {
-		admin := config.Auth.AdminUsername
+	if settings.Config.Auth.Methods.NoAuth {
+		admin := settings.Config.Auth.AdminUsername
 		if admin == "" {
 			admin = "admin"
 		}
@@ -194,7 +200,7 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	}
 
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Auth.Key), nil
+		return []byte(settings.Config.Auth.Key), nil
 	}
 
 	tokenString, err := ExtractToken(r)
@@ -251,8 +257,8 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 				haveSnap = true
 			}
 		} else {
-			prefix := config.Server.BaseURL + "public/share/"
-			reconstructed := config.Server.BaseURL + "public" + r.URL.Path
+			prefix := settings.Config.Server.BaseURL + "public/share/"
+			reconstructed := settings.Config.Server.BaseURL + "public" + r.URL.Path
 			if strings.HasPrefix(reconstructed, prefix) {
 				remaining := strings.TrimPrefix(reconstructed, prefix)
 				if remaining != "" {
@@ -335,8 +341,8 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 // allow user without OTP to pass
 func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		if config.Auth.Methods.ProxyAuth.Enabled {
-			proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+		if settings.Config.Auth.Methods.ProxyAuth.Enabled {
+			proxyUser := r.Header.Get(settings.Config.Auth.Methods.ProxyAuth.Header)
 			if proxyUser != "" {
 				return getProxyUser(w, r, d, fn, proxyUser)
 			}
@@ -344,11 +350,11 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 		// Check if request has a valid admin token first
 		if tokenStr, err := ExtractToken(r); err == nil && tokenStr != "" {
 			keyFunc := func(token *jwt.Token) (interface{}, error) {
-				return []byte(config.Auth.Key), nil
+				return []byte(settings.Config.Auth.Key), nil
 			}
 			var tk users.AuthToken
 			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
-				if !auth.IsRevokedApiToken(accessStore, tokenStr) {
+				if !state.IsTokenRevoked( tokenStr) {
 					userValue, err := state.UserFromAPIToken(tk, tokenStr)
 					if err == nil && userValue.Permissions.Admin {
 						u := userValue
@@ -360,7 +366,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 		}
 
 		// Try LDAP first if enabled; on success set d.User and continue to handler
-		if config.Auth.Methods.LdapAuth.Enabled {
+		if settings.Config.Auth.Methods.LdapAuth.Enabled {
 			// No valid admin token - proceed with username/password authentication
 			username := r.URL.Query().Get("username")
 			password := r.Header.Get("X-Password")
@@ -378,8 +384,8 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 			}
 			logger.Debug("ldap auth failed, calling password auth", err)
 		}
-		if config.Auth.Methods.PasswordAuth.Enabled {
-			user, err := auth.AuthenticatePassword(r, usersStore, true)
+		if settings.Config.Auth.Methods.PasswordAuth.Enabled {
+			user, err := auth.AuthenticatePassword(r, true)
 			if err != nil {
 				logger.Debug("password auth failed, calling handler:", err)
 				if err == errors.ErrNoTotpProvided {
@@ -397,8 +403,8 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		if config.Auth.Methods.NoAuth {
-			admin := config.Auth.AdminUsername
+		if settings.Config.Auth.Methods.NoAuth {
+			admin := settings.Config.Auth.AdminUsername
 			if admin == "" {
 				admin = "admin"
 			}
@@ -417,8 +423,8 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 
 		// Check for JWT external auth first (header or query param)
-		if config.Auth.Methods.JwtAuth.Enabled {
-			jwtToken := r.Header.Get(config.Auth.Methods.JwtAuth.Header)
+		if settings.Config.Auth.Methods.JwtAuth.Enabled {
+			jwtToken := r.Header.Get(settings.Config.Auth.Methods.JwtAuth.Header)
 			if jwtToken == "" {
 				// Check query parameter (hardcoded to "jwt")
 				jwtToken = r.URL.Query().Get("jwt")
@@ -429,10 +435,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 			}
 		}
 
-		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
-		isProxyUser := config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
+		proxyUser := r.Header.Get(settings.Config.Auth.Methods.ProxyAuth.Header)
+		isProxyUser := settings.Config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
-			return []byte(config.Auth.Key), nil
+			return []byte(settings.Config.Auth.Key), nil
 		}
 		if data.Token == "" {
 			var err error
@@ -454,7 +460,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if auth.IsRevokedApiToken(accessStore, data.Token) {
+		if state.IsTokenRevoked( data.Token) {
 			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
 		// ExpiresAt should always be set in valid tokens created by our system
@@ -495,9 +501,9 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	// Verify the external JWT token
 	username, claims, err := auth.VerifyExternalJWT(
 		jwtToken,
-		config.Auth.Methods.JwtAuth.Secret,
-		config.Auth.Methods.JwtAuth.Algorithm,
-		config.Auth.Methods.JwtAuth.UserIdentifier,
+		settings.Config.Auth.Methods.JwtAuth.Secret,
+		settings.Config.Auth.Methods.JwtAuth.Algorithm,
+		settings.Config.Auth.Methods.JwtAuth.UserIdentifier,
 	)
 	if err != nil {
 		logger.Debugf("JWT verification failed: %v", err)
@@ -517,7 +523,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 
 	// Generate a FileBrowser session token for JWT users if they don't have one
 	if data.Token == "" {
-		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
 		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 		if err != nil {
 			logger.Errorf("Failed to generate token for JWT user %s: %v", username, err)
@@ -547,7 +553,7 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	}
 	// Generate a token for proxy users if they don't have one
 	if data.Token == "" {
-		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
 		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 		if err != nil {
 			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)

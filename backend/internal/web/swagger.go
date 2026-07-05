@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+
 )
 
 func swaggerHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -11,7 +13,7 @@ func swaggerHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusForbidden, nil
 	}
 	httpSwagger.Handler(
-		httpSwagger.URL(config.Server.BaseURL+"swagger/doc.json"),
+		httpSwagger.URL(settings.Config.Server.BaseURL+"swagger/doc.json"),
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("none"),
 		httpSwagger.DomID("swagger-ui"),

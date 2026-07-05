@@ -35,7 +35,8 @@ func GetEmbeddedAssets() embed.FS {
 }
 
 // StartHttp starts the HTTP server and blocks until ctx is cancelled.
-func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
+func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
+	SetDeps(deps)
 	if settings.Env.IsDevMode {
 		go func() {
 			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
@@ -63,13 +64,7 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 		devMode:   settings.Env.IsDevMode,
 	}
 
-	InitGlobals(
-		&settings.Config,
-		fs,
-		state.GetAccessStorage(),
-		state.GetShareStorage(),
-		state.GetUsersStorage(),
-	)
+	InitGlobals(fs)
 
 	router := http.NewServeMux()
 	api := http.NewServeMux()
@@ -79,25 +74,25 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 	configureHTTPRouter(router, api, publicRoutes, publicApi)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%v:%v", config.Server.ListenAddress, config.Server.Port),
+		Addr:    fmt.Sprintf("%v:%v", settings.Config.Server.ListenAddress, settings.Config.Server.Port),
 		Handler: muxWithMiddleware(router),
 	}
-	listenAddress := config.Server.ListenAddress
+	listenAddress := settings.Config.Server.ListenAddress
 	go func() {
 		var listener net.Listener
 		var err error
 
-		if config.Server.Socket != "" {
-			if err := os.Remove(config.Server.Socket); err != nil && !os.IsNotExist(err) {
+		if settings.Config.Server.Socket != "" {
+			if err = os.Remove(settings.Config.Server.Socket); err != nil && !os.IsNotExist(err) {
 				logger.Fatalf("Could not remove existing socket: %v", err)
 			}
-			listener, err = net.Listen("unix", config.Server.Socket)
+			listener, err = net.Listen("unix", settings.Config.Server.Socket)
 			if err != nil {
 				logger.Fatalf("Could not listen on unix socket: %v", err)
 			}
-			logger.Infof("Running at               : unix://%s%s", config.Server.Socket, config.Server.BaseURL)
-		} else if config.Server.TLSCert != "" && config.Server.TLSKey != "" {
-			cer, err := tls.LoadX509KeyPair(config.Server.TLSCert, config.Server.TLSKey)
+			logger.Infof("Running at               : unix://%s%s", settings.Config.Server.Socket, settings.Config.Server.BaseURL)
+		} else if settings.Config.Server.TLSCert != "" && settings.Config.Server.TLSKey != "" {
+			cer, err := tls.LoadX509KeyPair(settings.Config.Server.TLSCert, settings.Config.Server.TLSKey)
 			if err != nil {
 				logger.Fatalf("Could not load certificate: %v", err)
 			}
@@ -107,10 +102,10 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 			}
 			scheme := "https"
 			port := ""
-			if config.Server.Port != 443 {
-				port = fmt.Sprintf(":%d", config.Server.Port)
+			if settings.Config.Server.Port != 443 {
+				port = fmt.Sprintf(":%d", settings.Config.Server.Port)
 			}
-			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
+			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, settings.Config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
 			socketActivationListeners, err := activation.TLSListeners(tlsConfig)
@@ -129,10 +124,10 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 		} else {
 			scheme := "http"
 			port := ""
-			if config.Server.Port != 80 {
-				port = fmt.Sprintf(":%d", config.Server.Port)
+			if settings.Config.Server.Port != 80 {
+				port = fmt.Sprintf(":%d", settings.Config.Server.Port)
 			}
-			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
+			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, settings.Config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
 			socketActivationListeners, err := activation.Listeners()
@@ -175,8 +170,8 @@ func StartHttp(ctx context.Context, shutdownComplete chan struct{}) {
 		logger.Info("HTTP server shut down gracefully.")
 	}
 
-	if config.Server.Socket != "" {
-		if err := os.Remove(config.Server.Socket); err != nil && !os.IsNotExist(err) {
+	if settings.Config.Server.Socket != "" {
+		if err := os.Remove(settings.Config.Server.Socket); err != nil && !os.IsNotExist(err) {
 			logger.Debugf("Could not remove unix socket: %v", err)
 		}
 	}

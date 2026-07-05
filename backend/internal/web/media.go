@@ -12,6 +12,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+
 )
 
 // subtitlesHandler handles subtitle requests for both external files and embedded streams
@@ -50,11 +52,11 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		Expand:                   true,
 		Content:                  false,
 		Metadata:                 true,
-		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.User.ShowHidden,
 		HideFileExt:              d.User.HideFileExt,
 		SkipExtendedAttrs:        false,
-	}, accessStore, d.User, shareStore)
+	}, d.User)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -132,12 +134,12 @@ func metadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 		Content:                  false,
 		Metadata:                 true,
 		AlbumArt:                 albumArt,
-		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.User.ShowHidden,
 		HideFileExt:              d.User.HideFileExt,
 		SkipExtendedAttrs:        false,
 		ShowSharedAttr:           true,
-	}, accessStore, d.User, shareStore)
+	}, d.User)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -159,7 +161,7 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	}
 	path := r.URL.Query().Get("path")
 	albumArt := r.URL.Query().Get("albumArt") == "true"
-	sourceCfg, ok := config.Server.SourceMap[d.Share.SourcePath]
+	sourceCfg, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
@@ -170,11 +172,11 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		Content:                  false,
 		Metadata:                 true,
 		AlbumArt:                 albumArt,
-		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles && d.Share.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.Share.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.Share.ShowHidden,
 		HideFileExt:              d.User.HideFileExt,
 		FollowSymlinks:           false,
-	}, accessStore, d.ShareUser, shareStore)
+	}, d.ShareUser)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -211,7 +213,7 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		ShowHidden:        d.User.ShowHidden,
 		HideFileExt:       d.User.HideFileExt,
 		SkipExtendedAttrs: false,
-	}, accessStore, d.User, shareStore)
+	}, d.User)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -237,7 +239,7 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 // @Failure 404 {object} map[string]string "Not found"
 // @Router /public/api/media/lyrics [get]
 func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	sourceCfg, ok := config.Server.SourceMap[d.Share.SourcePath]
+	sourceCfg, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
@@ -252,7 +254,7 @@ func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		HideFileExt:       d.User.HideFileExt,
 		FollowSymlinks:    false,
 		SkipExtendedAttrs: false,
-	}, accessStore, d.ShareUser, shareStore)
+	}, d.ShareUser)
 	if err != nil {
 		return ErrToStatus(err), err
 	}

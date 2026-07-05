@@ -45,7 +45,7 @@ func isClientCancellation(ctx context.Context, err error) bool {
 // @Accept json
 // @Produce json
 // @Param path query string true "File path of the image to preview"
-// @Param size query string false "Preview size ('small' or 'large'). Default is based on server config."
+// @Param size query string false "Preview size ('small' or 'large'). Default is based on server settings.Config."
 // @Success 200 {file} file "Preview image content"
 // @Failure 202 {object} map[string]string "Download permissions required"
 // @Failure 400 {object} map[string]string "Invalid request path"
@@ -55,7 +55,7 @@ func isClientCancellation(ctx context.Context, err error) bool {
 // @Failure 501 {object} map[string]string "Preview generation not implemented"
 // @Router /api/resources/preview [get]
 func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if config.Server.DisablePreviews {
+	if settings.Config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	path := r.URL.Query().Get("path")
@@ -71,7 +71,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 		Source:   source,
 		AlbumArt: true, // Extract album art for audio previews
 		Expand:   true,
-	}, accessStore, d.User, shareStore)
+	}, d.User)
 	if err != nil {
 		logger.Errorf("error getting file info: %v", err)
 		return ErrToStatus(err), err
@@ -95,7 +95,7 @@ func shouldServeOriginalPreview(ext string, resizable bool, realPath, previewSiz
 		return false
 	}
 	const maxSizeForOriginal = 256 * 1024 // 256KB
-	if config.Server.DisableResize || fileSize < maxSizeForOriginal {
+	if settings.Config.Server.DisableResize || fileSize < maxSizeForOriginal {
 		return true
 	}
 	return preview.ShouldServeOriginalImage(realPath, previewSize)
@@ -151,7 +151,7 @@ func getDirectoryPreview(ctx context.Context, r *http.Request, d *Context, frame
 			Source:   source,
 			AlbumArt: true,
 			Metadata: true,
-		}, accessStore, user, shareStore)
+		}, user)
 	if err != nil {
 		return nil, err
 	}
@@ -241,8 +241,8 @@ func PreviewHelperFunc(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if d.FileInfo.OnlyOfficeId != "" {
 		pathUrl := fmt.Sprintf("/api/resources/download?file=%s&source=%s", url.QueryEscape(d.FileInfo.Path), url.QueryEscape(d.FileInfo.Source))
 		pathUrl = pathUrl + "&auth=" + d.Token
-		if config.Server.InternalUrl != "" {
-			officeUrl = config.Server.InternalUrl + pathUrl
+		if settings.Config.Server.InternalUrl != "" {
+			officeUrl = settings.Config.Server.InternalUrl + pathUrl
 		} else {
 			scheme := "http"
 			if r.TLS != nil {

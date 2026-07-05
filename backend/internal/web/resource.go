@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -26,6 +26,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+
 )
 
 var pauseCache = cache.NewCache[string](1 * time.Minute)
@@ -119,13 +121,13 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		Expand:                   true,
 		Content:                  getContent,
 		Metadata:                 getMetadata,
-		ExtractEmbeddedSubtitles: config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 		ShowHidden:               d.User.ShowHidden,
 		HideFileExt:              d.User.HideFileExt,
 		SkipExtendedAttrs:        skipExtendedAttrs,
 		ShowSharedAttr:           true,
 		ShowPinnedItems:          true,
-	}, accessStore, d.User, shareStore)
+	}, d.User)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -190,7 +192,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		Expand:      false,
 		ShowHidden:  d.User.ShowHidden,
 		HideFileExt: d.User.HideFileExt,
-	}, accessStore, d.User, shareStore)
+	}, d.User)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -363,7 +365,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				Path:           indexPath,
 				Source:         sourceName,
 				ShowHidden:     true,
-			}, accessStore, filePermUser, shareStore)
+			}, filePermUser)
 			if err != nil {
 				return http.StatusNotFound, fmt.Errorf("resource not available")
 			}
@@ -428,7 +430,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				Path:           sanitizedPath,
 				Source:         item.Source,
 				ShowHidden:     true,
-			}, accessStore, filePermUser, shareStore)
+			}, filePermUser)
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -507,7 +509,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		return http.StatusForbidden, err
 	}
 	fullIndexPath := utils.JoinPathAsUnix(userscope, cleanPath)
-	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), d.User.Username) {
+	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
 	}
 	pauseCache.Set(pauseUploadCacheKey(source, fullIndexPath), "1")
@@ -530,7 +532,7 @@ func PublicPauseHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	if d.Share.ShareType != "upload" && !d.Share.AllowCreate {
 		return http.StatusForbidden, fmt.Errorf("pausing uploads is not allowed for this share")
 	}
-	src, ok := config.Server.SourceMap[d.Share.SourcePath]
+	src, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
@@ -604,7 +606,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	// get scoped path
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
 
-	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), filePermUser.Username) {
+	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), filePermUser.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
@@ -673,7 +675,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			}
 
 			var fileInfo *iteminfo.ExtendedFileInfo
-			fileInfo, err = files.FileInfoFaster(fileOpts, accessStore, filePermUser, shareStore)
+			fileInfo, err = files.FileInfoFaster(fileOpts, filePermUser)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -742,7 +744,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			// close file before moving
 			outFile.Close()
 			// Move the completed file from the temp location to the final destination
-			err = files.MoveResource(false, source, source, tempFilePath, realPath, accessStore)
+			err = files.MoveResource(false, source, source, tempFilePath, realPath)
 			if err != nil {
 				logger.Debugf("could not move file from %v to %v: %v", tempFilePath, realPath, err)
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
@@ -753,7 +755,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusOK, nil
 	}
 
-	fileInfo, err := files.FileInfoFaster(fileOpts, accessStore, filePermUser, shareStore)
+	fileInfo, err := files.FileInfoFaster(fileOpts, filePermUser)
 	if err == nil { // File exists
 		if r.URL.Query().Get("override") != "true" {
 			logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -810,7 +812,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	if idx.Config.ReadOnly {
 		return http.StatusForbidden, fmt.Errorf("source is read-only")
 	}
-	if accessStore != nil && !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), d.User.Username) {
+	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), d.User.Username) {
 		logger.Debugf("user %s denied access to path %s", d.User.Username, fullIndexPath)
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
@@ -981,7 +983,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		}
 
 		// Check access control for both source and destination paths
-		if !accessStore.Permitted(srcIdx.Path, utils.IndexPathFromNormalized(fullSrcIndexPath, true), d.User.Username) {
+		if !state.AccessPermitted(srcIdx.Path, utils.IndexPathFromNormalized(fullSrcIndexPath, true), d.User.Username) {
 			item.Message = "access denied to source path"
 			if d.Share.Hash != "" {
 				response.Failed = append(response.Failed, MoveCopyItem{
@@ -992,7 +994,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			response.Failed = append(response.Failed, item)
 			continue
 		}
-		if !accessStore.Permitted(dstIdx.Path, utils.IndexPathFromNormalized(fullDstIndexPath, true), d.User.Username) {
+		if !state.AccessPermitted(dstIdx.Path, utils.IndexPathFromNormalized(fullDstIndexPath, true), d.User.Username) {
 			item.Message = "access denied to destination path"
 			if d.Share.Hash != "" {
 				response.Failed = append(response.Failed, MoveCopyItem{
@@ -1169,7 +1171,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			IsDir:          params.isSrcDir,
 			ShowHidden:     params.d.User.ShowHidden,
 			HideFileExt:    params.d.User.HideFileExt,
-		}, accessStore, params.d.User, shareStore)
+		}, params.d.User)
 
 		if err != nil {
 			return err
@@ -1177,7 +1179,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 
 		// delete thumbnails
 		preview.DelThumbs(ctx, *fileInfo)
-		err = files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst, accessStore)
+		err = files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst)
 		if err != nil {
 			return err
 		}
@@ -1233,7 +1235,7 @@ func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 		Source:         r.URL.Query().Get("source"),
 		ShowHidden:     d.User.ShowHidden,
 		Only:           r.URL.Query().Get("only"),
-	}, accessStore, d.User)
+	}, d.User)
 	if err != nil {
 		if err == errors.ErrAccessDenied {
 			return http.StatusForbidden, err

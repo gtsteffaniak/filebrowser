@@ -156,7 +156,7 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
 	// Go automatically decodes query params
-	source := config.Server.SourceMap[d.Share.SourcePath].Name
+	source := settings.Config.Server.SourceMap[d.Share.SourcePath].Name
 	// adjust query params to match ResourcePostHandler
 	q := r.URL.Query()
 	q.Set("source", source)
@@ -195,7 +195,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 // @Produce image/jpeg
 // @Param hash query string true "Share hash for authentication"
 // @Param path query string true "File path within the share to preview"
-// @Param size query string false "Preview size: 'small' or 'large'. Default is based on server config."
+// @Param size query string false "Preview size: 'small' or 'large'. Default is based on server settings.Config."
 // @Success 200 {file} file "Preview image content (JPEG)"
 // @Failure 403 {object} map[string]string "Share unavailable or access denied"
 // @Failure 404 {object} map[string]string "File not found or preview not available"
@@ -203,7 +203,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 501 {object} map[string]string "Previews disabled globally, for this share, or for upload shares"
 // @Router /public/api/resources/preview [get]
 func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if config.Server.DisablePreviews || d.Share.DisableThumbnails {
+	if settings.Config.Server.DisablePreviews || d.Share.DisableThumbnails {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	if d.Share.ShareType == "upload" {
@@ -274,7 +274,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		FollowSymlinks: true,
 		Path:           d.IndexPath,
 		Source:         d.Share.SourcePath,
-	}, accessStore, d.ShareUser, shareStore)
+	}, d.ShareUser)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
@@ -442,7 +442,7 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		Metadata:       false,
 		ShowHidden:     false,
 		FollowSymlinks: true,
-	}, accessStore, shareCreatedByUser, shareStore)
+	}, shareCreatedByUser)
 
 	if err != nil {
 		logger.Errorf("error accessing share asset: source=%v path=%v error=%v", sourceName, assetPath, err)
@@ -489,7 +489,7 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/api/resources/items [get]
 func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	sourceInfo, ok := config.Server.SourceMap[d.Share.SourcePath]
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
@@ -499,7 +499,7 @@ func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		Source:         sourceInfo.Name,
 		ShowHidden:     d.ShareUser.ShowHidden,
 		Only:           r.URL.Query().Get("only"),
-	}, accessStore, d.ShareUser)
+	}, d.ShareUser)
 	if err != nil {
 		if err == errors.ErrAccessDenied {
 			return http.StatusForbidden, err

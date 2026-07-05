@@ -17,12 +17,12 @@ func TestExtractTokenPrefersAuthorizationOverCookie(t *testing.T) {
 	})
 	req.Header.Set("Authorization", "Bearer "+apiToken)
 
-	got, err := extractToken(req)
+	got, err := ExtractToken(req)
 	if err != nil {
-		t.Fatalf("extractToken() error = %v", err)
+		t.Fatalf("ExtractToken() error = %v", err)
 	}
 	if got != apiToken {
-		t.Fatalf("extractToken() = %q, want %q", got, apiToken)
+		t.Fatalf("ExtractToken() = %q, want %q", got, apiToken)
 	}
 }
 
@@ -35,12 +35,12 @@ func TestExtractTokenUsesCookieWhenNoAuthorizationHeader(t *testing.T) {
 		Value: cookieToken,
 	})
 
-	got, err := extractToken(req)
+	got, err := ExtractToken(req)
 	if err != nil {
-		t.Fatalf("extractToken() error = %v", err)
+		t.Fatalf("ExtractToken() error = %v", err)
 	}
 	if got != cookieToken {
-		t.Fatalf("extractToken() = %q, want %q", got, cookieToken)
+		t.Fatalf("ExtractToken() = %q, want %q", got, cookieToken)
 	}
 }
 
@@ -54,11 +54,11 @@ func TestExtractTokenUsesAuthQueryBeforeCookie(t *testing.T) {
 		Value: cookieToken,
 	})
 
-	got, err := extractToken(req)
+	got, err := ExtractToken(req)
 	if err != nil {
-		t.Fatalf("extractToken() error = %v", err)
+		t.Fatalf("ExtractToken() error = %v", err)
 	}
 	if got != queryToken {
-		t.Fatalf("extractToken() = %q, want %q", got, queryToken)
+		t.Fatalf("ExtractToken() = %q, want %q", got, queryToken)
 	}
 }

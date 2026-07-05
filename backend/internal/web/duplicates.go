@@ -12,13 +12,15 @@ import (
 	"time"
 	"unicode"
 
-	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+
 )
 
 // duplicateSearchMutex serializes duplicate searches to run one at a time
@@ -163,7 +165,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	userscope = strings.TrimRight(userscope, "/")
 	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
 	fullPath := index.MakeIndexPath(scopePath, true)
-	if !accessStore.Permitted(index.Path, fullPath, d.User.Username) {
+	if !state.AccessPermitted(index.Path, fullPath, d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
 	}
 
@@ -180,7 +182,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	userscope = strings.TrimRight(userscope, "/")
 	scopePath = utils.JoinPathAsUnix(userscope, opts.searchScope)
 	fullPath = index.MakeIndexPath(scopePath, true)
-	if !accessStore.Permitted(index.Path, fullPath, d.User.Username) {
+	if !state.AccessPermitted(index.Path, fullPath, d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
 	}
 
@@ -965,7 +967,7 @@ func groupFilesByType(files []*iteminfo.FileInfo) map[string][]*iteminfo.FileInf
 // filterFilesByPermission filters files to only include those the user is permitted to access
 // This is called early in the duplicate search process to avoid processing files the user can't see
 func filterFilesByPermission(files []*iteminfo.FileInfo, index *indexing.Index, username string) []*iteminfo.FileInfo {
-	if accessStore == nil {
+	if false {
 		// No access control configured, return all files
 		return files
 	}
@@ -973,7 +975,7 @@ func filterFilesByPermission(files []*iteminfo.FileInfo, index *indexing.Index, 
 	filtered := make([]*iteminfo.FileInfo, 0, len(files))
 	for _, file := range files {
 		// Check permission using index.Path (source root) and file.Path (index-relative path)
-		if accessStore.Permitted(index.Path, utils.IndexPathFromNormalized(file.Path, true), username) {
+		if state.AccessPermitted(index.Path, utils.IndexPathFromNormalized(file.Path, true), username) {
 			filtered = append(filtered, file)
 		}
 	}

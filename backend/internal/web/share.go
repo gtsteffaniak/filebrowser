@@ -21,6 +21,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -35,19 +36,19 @@ import (
 // @Router /api/share/list [get]
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	var (
-		shares []*share.Share
+		shares []share.Share
 		err    error
 	)
 	if d.User.Permissions.Admin {
-		shares, err = shareStore.All()
+		shares, err = state.GetAllShares()
 	} else {
-		shares, err = shareStore.FindByUserID(d.User.ID)
+		shares, err = state.GetSharesByUserID(d.User.ID)
 	}
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	logger.Debugf("api share/list: user=%q admin=%v shares=%d", d.User.Username, d.User.Permissions.Admin, len(shares))
-	return RenderJSON(w, r, shareStore.PrepForFrontend(d.User, r, shares...))
+	return RenderJSON(w, r, state.PrepShareValuesForFrontend(d.User, r, shares))
 }
 
 // shareGetsHandler retrieves share links for a specific resource path.
@@ -72,7 +73,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
 	}
 	path = cleanPath
-	sourceInfo, ok := config.Server.NameToSource[sourceName] // backend source is path
+	sourceInfo, ok := settings.Config.Server.NameToSource[sourceName] // backend source is path
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", sourceName)
 	}
@@ -88,12 +89,12 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 
 	logger.Debug("shareGetHandler querying", "sourceName", sourceName, "sourceInfoPath", sourceInfo.Path, "scopePath", scopePath, "userID", d.User.ID)
 
-	s, err := shareStore.Gets(scopePath, sourceInfo.Path, d.User.ID)
+	s, err := state.GetSharesInScope(scopePath, sourceInfo.Path, d.User.ID)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
 	logger.Debug("shareGetHandler result", "sourceName", sourceName, "scopePath", scopePath, "userID", d.User.ID, "count", len(s))
-	return RenderJSON(w, r, shareStore.PrepForFrontend(d.User, r, s...))
+	return RenderJSON(w, r, state.PrepSharesForFrontend(d.User, r, s...))
 }
 
 // shareDeleteHandler deletes a specific share link by its hash.
@@ -164,7 +165,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	body.Path = sanitizedPath
 
 	// only allow users to update their own shares
-	thisShare, err := shareStore.GetByHash(body.Hash)
+	thisShare, err := state.GetShare(body.Hash)
 	if err != nil {
 		return ErrToStatus(err), fmt.Errorf("failed to load share: %w", err)
 	}
@@ -176,12 +177,12 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		return http.StatusInternalServerError, err
 	}
 
-	updatedShare, err := shareStore.GetByHash(body.Hash)
+	updatedShare, err := state.GetShare(body.Hash)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	prepared := shareStore.PrepForFrontend(d.User, r, updatedShare)
-	if len(prepared) == 0 {
+	prepared := state.PrepShareForFrontend(d.User, r, updatedShare)
+	if prepared == nil {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
 	changes := []activitydb.FieldChange{{
@@ -190,7 +191,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		To:    updatedShare.Path,
 	}}
 	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, body.Hash, updatedShare.SourceName, updatedShare.Path, changes)
-	return RenderJSON(w, r, prepared[0])
+	return RenderJSON(w, r, prepared)
 }
 
 // sharePostHandler creates a new share link.
@@ -258,7 +259,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		}
 		payload := base64.URLEncoding.EncodeToString(payloadBuffer)
 
-		mac := hmac.New(sha256.New, []byte(config.Auth.Key))
+		mac := hmac.New(sha256.New, []byte(settings.Config.Auth.Key))
 		mac.Write([]byte(payload))
 		signature := base64.URLEncoding.EncodeToString(mac.Sum(nil))
 
@@ -302,22 +303,22 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusInternalServerError, err
 		}
 
-		updatedShare, err3 := shareStore.GetByHash(req.Hash)
+		updatedShare, err3 := state.GetShare(req.Hash)
 		if err3 != nil {
 			return http.StatusInternalServerError, err3
 		}
-		changes := activity.ShareUpdateChanges(&beforeShare, updatedShare)
-		prepared := shareStore.PrepForFrontend(d.User, r, updatedShare)
-		if len(prepared) == 0 {
+		changes := activity.ShareUpdateChanges(&beforeShare, &updatedShare)
+		prepared := state.PrepShareForFrontend(d.User, r, updatedShare)
+		if prepared == nil {
 			return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 		}
 		if len(changes) > 0 {
 			activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, req.Hash, updatedShare.SourceName, updatedShare.Path, changes)
 		}
-		return RenderJSON(w, r, prepared[0])
+		return RenderJSON(w, r, prepared)
 	}
 
-	source, ok := config.Server.NameToSource[req.SourceName]
+	source, ok := settings.Config.Server.NameToSource[req.SourceName]
 	if !ok {
 		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", req.SourceName)
 	}
@@ -381,16 +382,16 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusInternalServerError, err
 	}
 
-	created, err := shareStore.GetByHash(secureHash)
+	created, err := state.GetShare(secureHash)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	prepared := shareStore.PrepForFrontend(d.User, r, created)
-	if len(prepared) == 0 {
+	prepared := state.PrepShareForFrontend(d.User, r, created)
+	if prepared == nil {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
 	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareCreate, s.Hash, s.SourceName, s.Path, nil)
-	return RenderJSON(w, r, prepared[0])
+	return RenderJSON(w, r, prepared)
 }
 
 // DirectDownloadResponse represents the response for direct download endpoint
@@ -437,7 +438,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Conte
 	path = cleanPath
 
 	// Validate source exists
-	sourceInfo, ok := config.Server.NameToSource[source]
+	sourceInfo, ok := settings.Config.Server.NameToSource[source]
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", source)
 	}
@@ -504,7 +505,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Conte
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 
 	// Check if an existing share already matches these parameters
-	existingShares, err := shareStore.Gets(scopePath, sourceInfo.Path, d.User.ID)
+	existingShares, err := state.GetSharesInScope(scopePath, sourceInfo.Path, d.User.ID)
 	if err == nil && len(existingShares) > 0 {
 		for _, existing := range existingShares {
 			if existing.DownloadsLimit == downloadCount &&

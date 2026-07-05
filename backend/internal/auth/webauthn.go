@@ -13,6 +13,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/ports"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -26,6 +27,7 @@ type webAuthnSession struct {
 
 type WebAuthnService struct {
 	wa       *webauthn.WebAuthn
+	users    ports.UserReader
 	sessions sync.Map
 	stopCh   chan struct{}
 	originMu sync.Mutex
@@ -33,7 +35,7 @@ type WebAuthnService struct {
 
 var webAuthnInstance *WebAuthnService
 
-func InitWebAuthn() error {
+func InitWebAuthn(users ports.UserReader) error {
 	cfg := &settings.Config.Auth.Methods.PasskeyAuth
 	if !cfg.Enabled {
 		webAuthnInstance = nil
@@ -52,6 +54,7 @@ func InitWebAuthn() error {
 
 	webAuthnInstance = &WebAuthnService{
 		wa:     wa,
+		users:  users,
 		stopCh: make(chan struct{}),
 	}
 	go webAuthnInstance.cleanupExpiredSessions()
@@ -94,12 +97,23 @@ func generateSessionID() string {
 	return hex.EncodeToString(b)
 }
 
-func (s *WebAuthnService) BeginMFALogin(username, password string, rpID string, userStore *users.Storage) (sessionID string, assertion *protocol.CredentialAssertion, err error) {
+func (s *WebAuthnService) userByID(id uint64) (*users.User, error) {
+	if s.users == nil {
+		return nil, errors.ErrNotExist
+	}
+	u, err := s.users.GetUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+func (s *WebAuthnService) BeginMFALogin(username, password string, rpID string) (sessionID string, assertion *protocol.CredentialAssertion, err error) {
 	id, resErr := users.ResolveUsernameToID(username)
 	if resErr != nil {
 		return "", nil, resErr
 	}
-	user, getErr := userStore.Get(id)
+	user, getErr := s.userByID(id)
 	passwordHash := utils.InvalidPasswordHash
 	if getErr == nil {
 		passwordHash = user.Password
@@ -135,7 +149,7 @@ func (s *WebAuthnService) BeginMFALogin(username, password string, rpID string, 
 	return sessionID, assertion, nil
 }
 
-func (s *WebAuthnService) FinishMFALogin(sessionID string, r *http.Request, userStore *users.Storage) (*users.User, error) {
+func (s *WebAuthnService) FinishMFALogin(sessionID string, r *http.Request) (*users.User, error) {
 	sessionVal, ok := s.sessions.Load(sessionID)
 	if !ok {
 		return nil, errors.ErrPasskeyInvalidSession
@@ -150,7 +164,7 @@ func (s *WebAuthnService) FinishMFALogin(sessionID string, r *http.Request, user
 		return nil, errors.ErrPasskeyInvalidSession
 	}
 
-	user, err := userStore.Get(uint64(sess.UserID))
+	user, err := s.userByID(uint64(sess.UserID))
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
@@ -164,9 +178,6 @@ func (s *WebAuthnService) FinishMFALogin(sessionID string, r *http.Request, user
 	for i := range user.PasskeyCredentials {
 		if user.PasskeyCredentials[i].ID == credB64 {
 			users.UpdateCredentialFromLibrary(&user.PasskeyCredentials[i], credential)
-			if err := userStore.Update(user, false, "PasskeyCredentials"); err != nil {
-				return nil, fmt.Errorf("failed to update credential: %w", err)
-			}
 			return user, nil
 		}
 	}

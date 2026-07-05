@@ -154,16 +154,16 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// ========================================
 	// Configure Main Router
 	// ========================================
-	apiPath := config.Server.BaseURL + "api"
-	publicPath := config.Server.BaseURL + "public"
-	webDavPath := config.Server.BaseURL + "dav"
+	apiPath := settings.Config.Server.BaseURL + "api"
+	publicPath := settings.Config.Server.BaseURL + "public"
+	webDavPath := settings.Config.Server.BaseURL + "dav"
 
 	// Mount primary API and public routes
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
 	// WebDAV handler
-	if !config.Server.DisableWebDAV {
+	if !settings.Config.Server.DisableWebDAV {
 		// Uses Basic Auth where password is JWT token
 		// Note: do not trim /dav prefix here - webdav library requires it
 		router.Handle(webDavPath+"/{source}/{path...}", withBasicAuth(webDAVHandler))
@@ -176,14 +176,14 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	router.HandleFunc("GET /favicon.svg", http.HandlerFunc(staticAssetHandler))
 
 	// Index and utility routes
-	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
-	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)
-	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL), withUser(swaggerHandler))
+	router.HandleFunc(settings.Config.Server.BaseURL, withOrWithoutUser(indexHandler))
+	router.HandleFunc(fmt.Sprintf("GET %vhealth", settings.Config.Server.BaseURL), healthHandler)
+	router.Handle(fmt.Sprintf("%vswagger/", settings.Config.Server.BaseURL), withUser(swaggerHandler))
 
 	// Base URL redirect (non-root deployments)
-	if config.Server.BaseURL != "/" {
+	if settings.Config.Server.BaseURL != "/" {
 		router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, config.Server.BaseURL, http.StatusMovedPermanently)
+			http.Redirect(w, r, settings.Config.Server.BaseURL, http.StatusMovedPermanently)
 		})
 	}
 }

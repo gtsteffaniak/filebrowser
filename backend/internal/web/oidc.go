@@ -12,12 +12,14 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/oauth2"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+
 )
 
 // userInfo holds all claims dynamically, plus pre-parsed Groups.
@@ -157,7 +159,7 @@ func parseOIDCGroupsValue(groupsVal interface{}) []string {
 // @Success 302 {string} string "Redirect to OIDC provider"
 // @Router /api/auth/oidc/login [get]
 func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	oidcCfg := config.Auth.Methods.OidcAuth
+	oidcCfg := settings.Config.Auth.Methods.OidcAuth
 	if !oidcCfg.Enabled {
 		return http.StatusForbidden, fmt.Errorf("oidc authentication is not enabled")
 	}
@@ -170,7 +172,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		ClientID:     oidcCfg.ClientID,
 		ClientSecret: oidcCfg.ClientSecret,
 		Endpoint:     oidcCfg.Provider.Endpoint(),
-		RedirectURL:  fmt.Sprintf("%s%sapi/auth/oidc/callback", origin, config.Server.BaseURL),
+		RedirectURL:  fmt.Sprintf("%s%sapi/auth/oidc/callback", origin, settings.Config.Server.BaseURL),
 		Scopes:       strings.Fields(oidcCfg.Scopes),
 	}
 
@@ -195,7 +197,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 // @Router /api/auth/oidc/callback [get]
 func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	ctx := r.Context()
-	oidcCfg := config.Auth.Methods.OidcAuth
+	oidcCfg := settings.Config.Auth.Methods.OidcAuth
 	if oidcCfg.Provider == nil || oidcCfg.Verifier == nil {
 		// Ensure Provider and Verifier are initialized on application startup
 		// This check is good, keep it.
@@ -221,7 +223,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	// and used in the initial /api/auth/oidc/login handler.
 	// Using r.Host here might be tricky if running behind a proxy.
 	// Consider using a fixed redirect URL from settings if possible.
-	redirectURL := fmt.Sprintf("%s://%s%sapi/auth/oidc/callback", GetScheme(r), r.Host, config.Server.BaseURL)
+	redirectURL := fmt.Sprintf("%s://%s%sapi/auth/oidc/callback", GetScheme(r), r.Host, settings.Config.Server.BaseURL)
 
 	oauth2Config := &oauth2.Config{
 		ClientID:     oidcCfg.ClientID,
@@ -320,7 +322,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
 func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, groups []string) (int, error) {
-	oidcCfg := config.Auth.Methods.OidcAuth
+	oidcCfg := settings.Config.Auth.Methods.OidcAuth
 
 	// Check if user is in required groups (if userGroups is configured)
 	if len(oidcCfg.UserGroups) > 0 {
@@ -347,7 +349,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		}
 	} else {
 		// If no admin group configured, use default permissions
-		isAdmin = config.UserDefaults.Permissions.Admin
+		isAdmin = settings.Config.UserDefaults.Permissions.Admin
 	}
 
 	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
@@ -357,7 +359,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		return http.StatusUnauthorized, err
 	}
 
-	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+	expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
 	// Generate a signed token for the user
 	tokenString, _, err2 := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err2 != nil {
@@ -401,7 +403,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	// The 'fb_redirect' parameter is extracted from the 'state' parameter for security.
 	state := r.URL.Query().Get("state")
 
-	fbRedirect := config.Server.BaseURL // Default redirect to the base URL
+	fbRedirect := settings.Config.Server.BaseURL // Default redirect to the base URL
 	if state != "" {
 		parts := strings.SplitN(state, ":", 2)
 

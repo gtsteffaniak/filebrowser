@@ -90,7 +90,7 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	}
 
 	// Store token hash → user id mapping in access storage for fast lookups
-	err = accessStore.AddApiToken(tokenString, d.User.ID)
+	err = state.AddApiToken(tokenString, d.User.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -132,10 +132,10 @@ func deleteApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	}
 
 	// Revoke the token (adds to RevokedTokens set)
-	if err := auth.RevokeApiToken(accessStore, tokenInfo.Token); err != nil {
+	if err := state.RevokeToken( tokenInfo.Token); err != nil {
 		logger.Errorf("Failed to revoke token: %v", err)
 	}
-	if err := accessStore.RemoveApiToken(tokenInfo.Token); err != nil {
+	if err := state.RemoveApiToken(tokenInfo.Token); err != nil {
 		logger.Errorf("Failed to remove api token: %v", err)
 	}
 

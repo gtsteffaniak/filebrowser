@@ -305,7 +305,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		}
 		idx.SetUsage(totalPartitionSize, partitionUsed, indexedSizeFromDB)
 		utils.DiskUsageCache.Set(cacheKey, true)
-		if indexingStorage != nil {
+		if metaStoreConfigured() {
 			if err := idx.writePersistedIndexInfo(); err != nil {
 				logger.Warningf("GetIndexInfo: failed to persist index disk stats for %s: %v", sourceName, err)
 			}

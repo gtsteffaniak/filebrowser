@@ -8,6 +8,8 @@ import (
 	ldap "github.com/go-ldap/ldap/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+
 )
 
 // AuthenticateLDAPUser attempts LDAP authentication and returns the filebrowser user if successful.
@@ -23,7 +25,7 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 	}
 
 	// Use the configured UserIdentifier if available, otherwise use the login username
-	ldapCfg := config.Auth.Methods.LdapAuth
+	ldapCfg := settings.Config.Auth.Methods.LdapAuth
 	mappedUsername := username
 	if ldapCfg.UserIdentifier != "" {
 		if val, ok := userAttributes[ldapCfg.UserIdentifier]; ok && val != "" {
@@ -39,7 +41,7 @@ func AuthenticateLDAPUser(username, password string) (*users.User, error) {
 }
 
 func authenticateLDAP(username, password string) ([]string, map[string]string, error) {
-	c := config.Auth.Methods.LdapAuth
+	c := settings.Config.Auth.Methods.LdapAuth
 	logger.Debugf("ldap: connecting to %s", c.Server)
 
 	var opts []ldap.DialOpt
@@ -183,7 +185,7 @@ func ldapGroupMatchesAdmin(groupDN, adminGroup string) bool {
 // getOrCreateLdapUser returns the filebrowser user for an LDAP-authenticated username, creating one if configured.
 func getOrCreateLdapUser(username string, groups []string) (*users.User, error) {
 	logger.Debugf("getting or creating ldap user %s", username)
-	ldapCfg := config.Auth.Methods.LdapAuth
+	ldapCfg := settings.Config.Auth.Methods.LdapAuth
 
 	// Check if user is in required groups (if userGroups is configured)
 	if len(ldapCfg.UserGroups) > 0 {
@@ -219,7 +221,7 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		}
 	} else {
 		// If no admin group configured, use default permissions
-		isAdmin = config.UserDefaults.Permissions.Admin
+		isAdmin = settings.Config.UserDefaults.Permissions.Admin
 	}
 
 	return getOrCreateAuthenticatedUser(username, users.LoginMethodLdap, isAdmin, groups)

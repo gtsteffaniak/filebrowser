@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+
 )
 
 func viewFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source string, scopedFileList []string) (int, error) {
@@ -98,7 +100,7 @@ func PublicViewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 	}
-	sourceInfo, ok := config.Server.SourceMap[d.Share.SourcePath]
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	activityrec "github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -22,12 +23,10 @@ func setupAccessHTTPTest(t *testing.T) {
 	if _, err := state.Initialize(dbPath); err != nil {
 		t.Fatal(err)
 	}
+	app.MustWireServices(state.Default())
 	t.Cleanup(func() {
 		state.Close()
 	})
-
-	accessStore = state.GetAccessStorage()
-	usersStore = state.GetUsersStorage()
 
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/downloads": {
@@ -39,7 +38,6 @@ func setupAccessHTTPTest(t *testing.T) {
 		"Downloads": settings.Config.Server.SourceMap["/downloads"],
 	}
 	settings.InitializeUserResolvers()
-	config = &settings.Config
 
 	adminUser := &users.User{
 		ID: 1,

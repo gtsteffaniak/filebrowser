@@ -10,7 +10,7 @@ import (
 
 func TestProxyUserCreateHasSharePermission(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
-	proxyConfig := "../../_docker/src/proxy/backend/config.yaml"
+	proxyConfig := "../../../_docker/src/proxy/backend/config.yaml"
 	settings.Initialize(proxyConfig)
 	settings.Env.IsPlaywright = true
 

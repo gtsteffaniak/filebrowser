@@ -56,13 +56,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	userSelectedTheme := ""
 	versionString := ""
 	commitSHAString := ""
-	externalLinks := config.Frontend.ExternalLinks
+	externalLinks := settings.Config.Frontend.ExternalLinks
 	if settings.Env.IsPlaywright {
 		versionString = version.Version
 		commitSHAString = version.CommitSHA
 	}
 	if d.User != nil && d.User.Username != "anonymous" {
-		theme, ok := config.Frontend.Styling.CustomThemeOptions[d.User.CustomTheme]
+		theme, ok := settings.Config.Frontend.Styling.CustomThemeOptions[d.User.CustomTheme]
 		if ok {
 			userSelectedTheme = theme.CssRaw
 		}
@@ -81,9 +81,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	defaultThemeColor := "#455a64"
-	staticURL := config.Server.BaseURL + "public/static"
-	description := config.Frontend.Description
-	title := config.Frontend.Name
+	staticURL := settings.Config.Server.BaseURL + "public/static"
+	description := settings.Config.Frontend.Description
+	title := settings.Config.Frontend.Name
 	banner := staticURL + "/icons/pwa-icon-512.png" // largest generated PWA icon
 	disableSidebar := false
 
@@ -112,7 +112,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			title = d.Share.Title
 		}
 		if d.Share.ShareTheme != "" {
-			theme, ok := config.Frontend.Styling.CustomThemeOptions[d.Share.ShareTheme]
+			theme, ok := settings.Config.Frontend.Styling.CustomThemeOptions[d.Share.ShareTheme]
 			if ok {
 				userSelectedTheme = theme.CssRaw
 			}
@@ -147,9 +147,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Construct the full URL for the current request
 	var fullURL string
-	if config.Server.ExternalUrl != "" {
+	if settings.Config.Server.ExternalUrl != "" {
 		// ExternalUrl already includes schema (e.g., http://mydomain.com)
-		fullURL = strings.TrimSuffix(config.Server.ExternalUrl, "/") + r.URL.Path
+		fullURL = strings.TrimSuffix(settings.Config.Server.ExternalUrl, "/") + r.URL.Path
 	} else {
 		// Build URL from request
 		scheme := "http"
@@ -165,13 +165,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	manifestURL := staticURL + "/site.webmanifest"
 	if shareHash != "" {
-		pwaStartURL := config.Server.BaseURL + "public/share/" + shareHash + "/"
+		pwaStartURL := settings.Config.Server.BaseURL + "public/share/" + shareHash + "/"
 		query := url.Values{}
 		query.Set("start", pwaStartURL)
-		if title != config.Frontend.Name {
+		if title != settings.Config.Frontend.Name {
 			query.Set("name", title)
 		}
-		if description != config.Frontend.Description {
+		if description != settings.Config.Frontend.Description {
 			query.Set("description", description)
 		}
 		manifestURL = staticURL + "/site.webmanifest?" + query.Encode()
@@ -179,12 +179,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	data["htmlVars"] = map[string]interface{}{
 		"title":              title,
-		"customCSS":          template.CSS(config.Frontend.Styling.CustomCSSRaw),
+		"customCSS":          template.CSS(settings.Config.Frontend.Styling.CustomCSSRaw),
 		"userSelectedTheme":  template.CSS(userSelectedTheme),
-		"lightBackground":    config.Frontend.Styling.LightBackground,
-		"darkBackground":     config.Frontend.Styling.DarkBackground,
+		"lightBackground":    settings.Config.Frontend.Styling.LightBackground,
+		"darkBackground":     settings.Config.Frontend.Styling.DarkBackground,
 		"staticURL":          staticURL,
-		"baseURL":            config.Server.BaseURL,
+		"baseURL":            settings.Config.Server.BaseURL,
 		"favicon":            favicon,
 		"loginIcon":          loginIcon,
 		"color":              defaultThemeColor,
@@ -202,39 +202,39 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	data["globalVars"] = map[string]interface{}{
-		"name":                   config.Frontend.Name,
-		"minSearchLength":        config.Server.MinSearchLength,
-		"disableExternal":        config.Frontend.DisableDefaultLinks,
-		"darkMode":               config.UserDefaults.UI.DarkMode,
-		"baseURL":                config.Server.BaseURL,
+		"name":                   settings.Config.Frontend.Name,
+		"minSearchLength":        settings.Config.Server.MinSearchLength,
+		"disableExternal":        settings.Config.Frontend.DisableDefaultLinks,
+		"darkMode":               settings.Config.UserDefaults.UI.DarkMode,
+		"baseURL":                settings.Config.Server.BaseURL,
 		"version":                versionString,
 		"commitSHA":              commitSHAString,
-		"signup":                 config.Auth.Methods.PasswordAuth.Signup,
-		"noAuth":                 config.Auth.Methods.NoAuth,
-		"enableThumbs":           !config.Server.DisablePreviews,
+		"signup":                 settings.Config.Auth.Methods.PasswordAuth.Signup,
+		"noAuth":                 settings.Config.Auth.Methods.NoAuth,
+		"enableThumbs":           !settings.Config.Server.DisablePreviews,
 		"externalLinks":          externalLinks,
-		"externalUrl":            strings.TrimSuffix(config.Server.ExternalUrl, "/"),
-		"onlyOfficeUrl":          config.Integrations.OnlyOffice.Url,
-		"oidcAvailable":          config.Auth.Methods.OidcAuth.Enabled,
-		"jwtAvailable":           config.Auth.Methods.JwtAuth.Enabled,
-		"proxyAvailable":         config.Auth.Methods.ProxyAuth.Enabled,
-		"passwordAvailable":      config.Auth.Methods.PasswordAuth.Enabled,
-		"ldapAvailable":          config.Auth.Methods.LdapAuth.Enabled,
+		"externalUrl":            strings.TrimSuffix(settings.Config.Server.ExternalUrl, "/"),
+		"onlyOfficeUrl":          settings.Config.Integrations.OnlyOffice.Url,
+		"oidcAvailable":          settings.Config.Auth.Methods.OidcAuth.Enabled,
+		"jwtAvailable":           settings.Config.Auth.Methods.JwtAuth.Enabled,
+		"proxyAvailable":         settings.Config.Auth.Methods.ProxyAuth.Enabled,
+		"passwordAvailable":      settings.Config.Auth.Methods.PasswordAuth.Enabled,
+		"ldapAvailable":          settings.Config.Auth.Methods.LdapAuth.Enabled,
 		"mediaAvailable":         settings.MediaEnabled(),
-		"exiftoolAvailable":      config.Integrations.Media.ExiftoolPath != "",
+		"exiftoolAvailable":      settings.Config.Integrations.Media.ExiftoolPath != "",
 		"muPdfAvailable":         settings.Env.MuPdfAvailable,
 		"updateAvailable":        utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":      disableNavButtons,
-		"userSelectableThemes":   config.Frontend.Styling.CustomThemeOptions,
+		"userSelectableThemes":   settings.Config.Frontend.Styling.CustomThemeOptions,
 		"enableHeicConversion":   settings.CanConvertImage("heic"),
-		"eventBasedThemes":       !config.Frontend.Styling.DisableEventBasedThemes,
+		"eventBasedThemes":       !settings.Config.Frontend.Styling.DisableEventBasedThemes,
 		"loginIcon":              loginIcon,
 		"disableSidebar":         disableSidebar,
 		"shareHash":              shareHash,
-		"oidcLoginButtonText":    config.Frontend.OIDCLoginButtonText,
-		"loginButtonText":        config.Frontend.LoginButtonText,
-		"passkeyAvailable":       config.Auth.Methods.PasskeyAuth.Enabled,
-		"passkeyLoginButtonText": config.Auth.Methods.PasskeyAuth.LoginButtonText,
+		"oidcLoginButtonText":    settings.Config.Frontend.OIDCLoginButtonText,
+		"loginButtonText":        settings.Config.Frontend.LoginButtonText,
+		"passkeyAvailable":       settings.Config.Auth.Methods.PasskeyAuth.Enabled,
+		"passkeyLoginButtonText": settings.Config.Auth.Methods.PasskeyAuth.LoginButtonText,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage
@@ -291,7 +291,7 @@ func manifestHandler(w http.ResponseWriter, r *http.Request) {
 	if startURL := r.URL.Query().Get("start"); startURL != "" {
 		name := r.URL.Query().Get("name")
 		description := r.URL.Query().Get("description")
-		if shareManifest, ok := icons.ManifestForShare(config.Server.BaseURL, startURL, name, description); ok {
+		if shareManifest, ok := icons.ManifestForShare(settings.Config.Server.BaseURL, startURL, name, description); ok {
 			manifest = shareManifest
 		}
 	}

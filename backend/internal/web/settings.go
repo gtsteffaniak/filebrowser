@@ -26,20 +26,20 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		// get property by name
 		switch property {
 		case "userDefaults":
-			return RenderJSON(w, r, config.UserDefaults)
+			return RenderJSON(w, r, settings.Config.UserDefaults)
 		case "frontend":
-			return RenderJSON(w, r, config.Frontend)
+			return RenderJSON(w, r, settings.Config.Frontend)
 		case "auth":
-			return RenderJSON(w, r, config.Auth)
+			return RenderJSON(w, r, settings.Config.Auth)
 		case "server":
-			return RenderJSON(w, r, config.Server)
+			return RenderJSON(w, r, settings.Config.Server)
 		case "sources":
-			return RenderJSON(w, r, config.Server.Sources)
+			return RenderJSON(w, r, settings.Config.Server.Sources)
 		default:
 			return http.StatusNotFound, nil
 		}
 	}
-	return RenderJSON(w, r, config)
+	return RenderJSON(w, r, &settings.Config)
 }
 
 // settingsConfigHandler returns the current system settings as YAML.
@@ -78,13 +78,13 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 
 	// If we successfully read the generated YAML, use it as the comment source
 	if readErr == nil && len(embeddedYaml) > 0 {
-		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
+		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(&settings.Config, showComments, showFull, false, string(embeddedYaml))
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}
 	} else {
 		// Fallback to Go source parsing if generated YAML doesn't exist
-		yamlConfig, err = settings.GenerateConfigYaml(config, showComments, showFull, false)
+		yamlConfig, err = settings.GenerateConfigYaml(&settings.Config, showComments, showFull, false)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}

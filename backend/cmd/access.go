@@ -5,29 +5,22 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // validateAccessRules migrates old-style access rules (without trailing slashes) to new format
 func validateAccessRules() {
-	accessStore := state.GetAccessStorage()
-	if accessStore == nil {
-		return
-	}
-	// Get all sources
 	for sourcePath := range settings.Config.Server.SourceMap {
-		// Get all rules for this source
-		rules, err := accessStore.GetAllRules(sourcePath)
+		rules, err := state.GetAllRules(sourcePath)
 		if err != nil {
 			logger.Errorf("Failed to get access rules for source %s: %v", sourcePath, err)
 			continue
 		}
 
-		// Check if there are any rules that need migration
 		needsMigration := false
 		for oldPath := range rules {
 			if oldPath != "/" && !strings.HasSuffix(oldPath, "/") {
@@ -42,78 +35,55 @@ func validateAccessRules() {
 
 		migratedCount := 0
 		for oldPath, rule := range rules {
-			// Check if this path needs migration (doesn't have trailing slash and isn't root)
 			if oldPath != "/" && !strings.HasSuffix(oldPath, "/") {
-				// Create the new path with trailing slash
 				newPath := oldPath + "/"
 
-				// Migrate the rule to the new path
-				if err := migrateAccessRule(accessStore, sourcePath, oldPath, newPath, rule); err != nil {
+				if err := migrateAccessRule(sourcePath, newPath, rule); err != nil {
 					logger.Errorf("Failed to migrate rule from %s to %s: %v", oldPath, newPath, err)
 					continue
 				}
 
-				// Remove the old rule
-				if err := removeOldAccessRule(accessStore, sourcePath, oldPath); err != nil {
-					logger.Errorf("Failed to remove old rule %s: %v", oldPath, err)
-					continue
-				}
-
+				state.RemoveRuleByPathKey(sourcePath, oldPath)
 				migratedCount++
 			}
 		}
 
-		// After migration, clear cache
 		if migratedCount > 0 {
 			logger.Infof("Migrated %d access rules for source %s", migratedCount, sourcePath)
 		}
 	}
 }
 
-// migrateAccessRule creates a new access rule with the new path format
-func migrateAccessRule(accessStore *access.Storage, sourcePath, oldPath, newPath string, rule access.FrontendAccessRule) error {
-	// Add deny users
+func migrateAccessRule(sourcePath, newPath string, rule access.FrontendAccessRule) error {
 	for _, user := range rule.Deny.Users {
-		if err := accessStore.DenyUser(sourcePath, utils.IndexPathFromNormalized(newPath, true), user); err != nil && err != errors.ErrExist {
+		if err := state.DenyUser(sourcePath, utils.IndexPathFromNormalized(newPath, true), user); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add deny user %s: %w", user, err)
 		}
 	}
 
-	// Add deny groups
 	for _, group := range rule.Deny.Groups {
-		if err := accessStore.DenyGroup(sourcePath, utils.IndexPathFromNormalized(newPath, true), group); err != nil && err != errors.ErrExist {
+		if err := state.DenyGroup(sourcePath, utils.IndexPathFromNormalized(newPath, true), group); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add deny group %s: %w", group, err)
 		}
 	}
 
-	// Add allow users
 	for _, user := range rule.Allow.Users {
-		if err := accessStore.AllowUser(sourcePath, utils.IndexPathFromNormalized(newPath, true), user); err != nil && err != errors.ErrExist {
+		if err := state.AllowUser(sourcePath, utils.IndexPathFromNormalized(newPath, true), user); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add allow user %s: %w", user, err)
 		}
 	}
 
-	// Add allow groups
 	for _, group := range rule.Allow.Groups {
-		if err := accessStore.AllowGroup(sourcePath, utils.IndexPathFromNormalized(newPath, true), group); err != nil && err != errors.ErrExist {
+		if err := state.AllowGroup(sourcePath, utils.IndexPathFromNormalized(newPath, true), group); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add allow group %s: %w", group, err)
 		}
 	}
 
-	// Add deny all rule if needed
 	if rule.DenyAll {
-		if err := accessStore.DenyAll(sourcePath, utils.IndexPathFromNormalized(newPath, true)); err != nil && err != errors.ErrExist {
+		if err := state.DenyAll(sourcePath, utils.IndexPathFromNormalized(newPath, true)); err != nil && err != errors.ErrExist {
 			return fmt.Errorf("failed to add deny all rule: %w", err)
 		}
 	}
 
-	return nil
-}
-
-// removeOldAccessRule removes the old access rule by directly accessing the internal storage
-func removeOldAccessRule(accessStore *access.Storage, sourcePath, oldPath string) error {
-	// Access the internal storage directly to remove the old rule
-	// We need to use the unnormalized path since that's how it was stored originally
-	accessStore.RemoveRuleByPathKey(sourcePath, oldPath)
 	return nil
 }

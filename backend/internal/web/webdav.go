@@ -12,15 +12,16 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/net/webdav"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 // fileInfoWrapper wraps iteminfo.ItemInfo to implement os.FileInfo
@@ -89,7 +90,7 @@ func (ffs *filteredFileSystem) getFileInfo(requestPath string, expand bool) (*it
 		HideFileExt:       ffs.user.HideFileExt,
 		SkipExtendedAttrs: true,
 		FollowSymlinks:    true,
-	}, accessStore, ffs.user, shareStore)
+	}, ffs.user)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +138,7 @@ func (ffs *filteredFileSystem) checkAccess(requestPath string) error {
 		Path:           requestPath,
 		Source:         ffs.source,
 		ShowHidden:     ffs.user.ShowHidden,
-	}, accessStore, ffs.user)
+	}, ffs.user)
 	if err != nil {
 		logger.Debugf("checkAccess: CheckPermissions denied for %s: %v", requestPath, err)
 		return err
@@ -423,7 +424,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		Source:         source,
 		ShowHidden:     d.User.ShowHidden,
 		HideFileExt:    d.User.HideFileExt,
-	}, accessStore, d.User)
+	}, d.User)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -446,7 +447,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 
 	// Construct the WebDAV prefix from BaseURL
-	webDavPrefix := config.Server.BaseURL + "dav"
+	webDavPrefix := settings.Config.Server.BaseURL + "dav"
 	prefix := webDavPrefix + "/" + source
 	// Wrap the filesystem to filter directory listings using FileInfoFaster
 	// We pass requestPath (without scope) to FileInfoFaster, which applies scope internally

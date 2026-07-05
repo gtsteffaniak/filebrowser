@@ -55,6 +55,21 @@ func (m *mockUserBackend) GetBy(id uint64) (*users.User, error) {
 	return nil, fmt.Errorf("user not found: %d", id)
 }
 
+func (m *mockUserBackend) GetUserByID(id uint64) (users.User, error) {
+	u, err := m.GetBy(id)
+	if err != nil {
+		return users.User{}, err
+	}
+	return *u, nil
+}
+
+func (m *mockUserBackend) GetUserByUsername(username string) (users.User, error) {
+	if user, ok := m.usersByUsername[username]; ok {
+		return *user, nil
+	}
+	return users.User{}, errors.ErrNotExist
+}
+
 func (m *mockUserBackend) Gets() ([]*users.User, error) {
 	result := make([]*users.User, 0, len(m.usersByID))
 	for _, user := range m.usersByID {
@@ -84,8 +99,8 @@ func (m *mockUserBackend) DeleteByID(id uint64) error {
 	return fmt.Errorf("user not found: %d", id)
 }
 
-// setupTestUsers creates a user storage with 2 valid test users
-func setupTestUsers(t *testing.T) *users.Storage {
+// setupTestUsers creates mock user persistence for timing tests.
+func setupTestUsers(t *testing.T) *mockUserBackend {
 	t.Helper()
 
 	// Reduce bcrypt cost for faster tests (default is 10, min is 4)
@@ -104,7 +119,11 @@ func setupTestUsers(t *testing.T) *users.Storage {
 	}
 
 	backend := newMockUserBackend()
-	storage := users.NewStorage(backend)
+	authSvc := auth.New(backend)
+	auth.SetDefault(authSvc)
+	t.Cleanup(func() {
+		auth.SetDefault(nil)
+	})
 	users.SetUsernameToID(func(username string) (uint64, error) {
 		if u, ok := backend.usersByUsername[username]; ok {
 			return u.ID, nil
@@ -148,21 +167,21 @@ func setupTestUsers(t *testing.T) *users.Storage {
 		},
 	}
 
-	err = storage.Save(user1, false, false)
+	err = backend.Save(user1, false, false)
 	if err != nil {
 		t.Fatalf("Failed to save user1: %v", err)
 	}
 
-	err = storage.Save(user2, false, false)
+	err = backend.Save(user2, false, false)
 	if err != nil {
 		t.Fatalf("Failed to save user2: %v", err)
 	}
 
-	return storage
+	return backend
 }
 
 // measureAuthTime measures the time taken to authenticate with given credentials
-func measureAuthTime(t *testing.T, auther auth.JSONAuth, userStore *users.Storage, username, password string) time.Duration {
+func measureAuthTime(t *testing.T, auther auth.JSONAuth, username, password string) time.Duration {
 	t.Helper()
 
 	// Create a mock HTTP request
@@ -173,7 +192,7 @@ func measureAuthTime(t *testing.T, auther auth.JSONAuth, userStore *users.Storag
 	req.Header.Set("X-Password", url.QueryEscape(password))
 
 	start := time.Now()
-	_, _ = auther.Auth(req, userStore)
+	_, _ = auther.Auth(req, nil)
 	elapsed := time.Since(start)
 
 	return elapsed
@@ -181,10 +200,8 @@ func measureAuthTime(t *testing.T, auther auth.JSONAuth, userStore *users.Storag
 
 // TestJSONAuth_NoTimingAttack tests that authentication timing does not leak user existence
 func TestJSONAuth_NoTimingAttack(t *testing.T) {
-	storage := setupTestUsers(t)
+	setupTestUsers(t)
 	auther := auth.JSONAuth{}
-
-	// Test cases: mix of valid and invalid usernames
 	testCases := []struct {
 		username string
 		isValid  bool
@@ -210,7 +227,7 @@ func TestJSONAuth_NoTimingAttack(t *testing.T) {
 	for i := 0; i < samplesPerCase; i++ {
 		// Randomize order to avoid cache effects
 		for _, tc := range testCases {
-			elapsed := measureAuthTime(t, auther, storage, tc.username, "wrongpassword123")
+			elapsed := measureAuthTime(t, auther, tc.username, "wrongpassword123")
 			measurements[tc.username] = append(measurements[tc.username], elapsed)
 		}
 	}

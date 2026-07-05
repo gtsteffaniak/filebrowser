@@ -1,4 +1,4 @@
-package web
+package activity
 
 import (
 	"net"
@@ -8,8 +8,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-// GetRemoteIP resolves the client IP, honoring trusted proxy headers when configured.
-func GetRemoteIP(r *http.Request) string {
+func remoteIP(r *http.Request) string {
 	cfg := &settings.Config
 
 	xff := r.Header.Get("X-Forwarded-For")
@@ -25,15 +24,4 @@ func GetRemoteIP(r *http.Request) string {
 
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 	return ip
-}
-
-// GetScheme returns the request scheme (http or https).
-func GetScheme(r *http.Request) string {
-	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
-		return proto
-	}
-	if r.TLS != nil {
-		return "https"
-	}
-	return "http"
 }

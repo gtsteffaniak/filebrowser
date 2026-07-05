@@ -12,6 +12,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+
 )
 
 type ServeSingleFileOptions struct {
@@ -30,7 +33,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 		permUser = d.ShareUser.Username
 	}
 
-	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(scopedFilePath, true), permUser) {
+	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(scopedFilePath, true), permUser) {
 		logger.Debugf("user %s denied access to path %s", permUser, scopedFilePath)
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
 	}
@@ -40,7 +43,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 		return http.StatusInternalServerError, err
 	}
 
-	isOnlyOffice := IsOnlyOfficeCompatibleFile(displayFileName) && config.Integrations.OnlyOffice.Url != ""
+	isOnlyOffice := IsOnlyOfficeCompatibleFile(displayFileName) && settings.Config.Integrations.OnlyOffice.Url != ""
 	var documentId string
 	var logContext *OnlyOfficeLogContext
 	if isOnlyOffice {
@@ -192,7 +195,7 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 	}
-	sourceInfo, ok := config.Server.SourceMap[d.Share.SourcePath]
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}

@@ -63,7 +63,7 @@ func CreateIndexInfo(info *dbindex.IndexInfo) error {
 	}
 
 	// 2. Write to database
-	err := sqlStore.SaveIndexInfo(info)
+	err := sqlDb.SaveIndexInfo(info)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func UpdateIndexInfo(info *dbindex.IndexInfo) error {
 	}
 
 	// 2. Write to database
-	err := sqlStore.SaveIndexInfo(info)
+	err := sqlDb.SaveIndexInfo(info)
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func SaveIndexInfo(info *dbindex.IndexInfo) error {
 	defer indexMux.Unlock()
 
 	// Write through to SQL
-	err := sqlStore.SaveIndexInfo(info)
+	err := sqlDb.SaveIndexInfo(info)
 	if err != nil {
 		return err
 	}
@@ -126,7 +126,7 @@ func DeleteIndexInfo(path string) error {
 	}
 
 	// 2. Delete from database
-	err := sqlStore.DeleteIndexInfo(path)
+	err := sqlDb.DeleteIndexInfo(path)
 	if err != nil {
 		return err
 	}
@@ -153,4 +153,27 @@ func copyIndexInfo(info *dbindex.IndexInfo) dbindex.IndexInfo {
 	}
 
 	return infoCopy
+}
+
+// ResetAllIndexComplexities zeroes complexity on every cached index and its scanners, then persists.
+func ResetAllIndexComplexities() error {
+	indexMux.Lock()
+	defer indexMux.Unlock()
+
+	for path, info := range indexInfoByPath {
+		if info == nil {
+			continue
+		}
+		info.Complexity = 0
+		for _, scanner := range info.Scanners {
+			if scanner != nil {
+				scanner.Complexity = 0
+			}
+		}
+		if err := sqlDb.SaveIndexInfo(info); err != nil {
+			return err
+		}
+		indexInfoByPath[path] = info
+	}
+	return nil
 }

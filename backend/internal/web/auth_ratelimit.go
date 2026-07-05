@@ -9,6 +9,8 @@ import (
 
 	"github.com/gtsteffaniak/go-cache/cache"
 	"golang.org/x/time/rate"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+
 )
 
 // Built-in auth rate limits (per process). Toggle all off with http.disableRateLimit.
@@ -82,10 +84,10 @@ func WithRateLimitChain(kind AuthRateLimitKind, fn HandleFunc) HandleFunc {
 
 // withRateLimit registers a rate-limited route (same shape as withTimeout: option first, handler second).
 func authRateLimitActive() bool {
-	if config.Http.DisableRateLimit {
+	if settings.Config.Http.DisableRateLimit {
 		return false
 	}
-	if config.Auth.Methods.NoAuth {
+	if settings.Config.Auth.Methods.NoAuth {
 		return false
 	}
 	return true

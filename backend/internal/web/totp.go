@@ -31,7 +31,7 @@ func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	if getErr != nil {
 		return http.StatusNotFound, fmt.Errorf("user not found: %w", getErr)
 	}
-	url, err := auth.GenerateOtpForUser(&user, usersStore)
+	url, err := auth.GenerateOtpForUser(&user)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error generating OTP secret: %w", err)
 	}
@@ -68,9 +68,12 @@ func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if getErr != nil {
 		return http.StatusNotFound, fmt.Errorf("user not found: %w", getErr)
 	}
-	err = auth.VerifyTotpCode(&user, code, usersStore)
+	err = auth.VerifyTotpCode(&user, code)
 	if err != nil {
 		return http.StatusUnauthorized, fmt.Errorf("invalid OTP token")
+	}
+	if err := state.UpdateUser(&user, "", "TOTPSecret", "TOTPNonce", "OtpEnabled"); err != nil {
+		return http.StatusInternalServerError, err
 	}
 	response := HttpResponse{
 		Status:  http.StatusOK,

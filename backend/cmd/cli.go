@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/goccy/go-yaml"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
@@ -168,7 +169,6 @@ func setRule(dbConfig, backendSourcePath, indexPath, ruleCategory, value string,
 		return fmt.Errorf("value is required when ruleCategory is 'user' or 'group': use -v <username|groupname>")
 	}
 
-	accessStore := state.GetAccessStorage()
 	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
 	if err != nil {
 		return err
@@ -177,20 +177,20 @@ func setRule(dbConfig, backendSourcePath, indexPath, ruleCategory, value string,
 	if allow {
 		switch ruleCategory {
 		case "user":
-			err = accessStore.AllowUser(backendSourcePath, parsedPath, value)
+			err = state.AllowUser(backendSourcePath, parsedPath, value)
 		case "group":
-			err = accessStore.AllowGroup(backendSourcePath, parsedPath, value)
+			err = state.AllowGroup(backendSourcePath, parsedPath, value)
 		default:
 			return fmt.Errorf("invalid ruleCategory for allow: must be 'user' or 'group'")
 		}
 	} else {
 		switch ruleCategory {
 		case "user":
-			err = accessStore.DenyUser(backendSourcePath, parsedPath, value)
+			err = state.DenyUser(backendSourcePath, parsedPath, value)
 		case "group":
-			err = accessStore.DenyGroup(backendSourcePath, parsedPath, value)
+			err = state.DenyGroup(backendSourcePath, parsedPath, value)
 		case "all":
-			err = accessStore.DenyAll(backendSourcePath, parsedPath)
+			err = state.DenyAll(backendSourcePath, parsedPath)
 		default:
 			return fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
 		}
@@ -250,6 +250,9 @@ func setUser(dbConfig string, asAdmin bool) error {
 		err = state.CreateUser(&newUser, password)
 		if err != nil {
 			return fmt.Errorf("could not create user: %v", err)
+		}
+		if dirErr := files.MakeUserDirs(&newUser, true); dirErr != nil {
+			logger.Error(dirErr.Error())
 		}
 		fmt.Printf("successfully created user")
 		return nil

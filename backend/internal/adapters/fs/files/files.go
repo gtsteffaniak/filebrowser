@@ -18,8 +18,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -30,7 +28,9 @@ import (
 var reDuration = regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
 
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
-var CheckPermissionsFunc = checkPermissionsImpl
+var CheckPermissionsFunc = func(opts utils.FileOptions, user *users.User) (string, string, error) {
+	return checkPermissionsImpl(opts, user, svc())
+}
 
 // addMetadataToChildren runs concurrent ffmpeg/tag extraction for audio/video children.
 // Each goroutine is registered on wg. Caller must invoke wg.Wait() after scheduling.
@@ -106,15 +106,12 @@ func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileIn
 }
 
 // CheckPermissions validates user access and returns the resolved index path and user scope
-func CheckPermissions(opts utils.FileOptions, access *access.Storage, user *users.User) (string, string, error) {
-	return CheckPermissionsFunc(opts, access, user)
+func CheckPermissions(opts utils.FileOptions, user *users.User) (string, string, error) {
+	return CheckPermissionsFunc(opts, user)
 }
 
 // checkPermissionsImpl is the actual implementation of CheckPermissions
-func checkPermissionsImpl(opts utils.FileOptions, access *access.Storage, user *users.User) (string, string, error) {
-	if access == nil {
-		return "", "", fmt.Errorf("access not provided")
-	}
+func checkPermissionsImpl(opts utils.FileOptions, user *users.User, s *Service) (string, string, error) {
 	if user == nil {
 		return "", "", fmt.Errorf("user not provided")
 	}
@@ -147,7 +144,7 @@ func checkPermissionsImpl(opts utils.FileOptions, access *access.Storage, user *
 	if err != nil {
 		return "", "", errors.ErrAccessDenied
 	}
-	if !access.Permitted(idx.Path, parsedPath, user.Username) {
+	if !s.accessPermitted(idx.Path, parsedPath, user.Username) {
 		return indexPath, "", errors.ErrAccessDenied
 	}
 	return indexPath, userScope, nil
@@ -172,9 +169,13 @@ func filterFilesByExt(files []iteminfo.ExtendedItemInfo, hideFileExt string) []i
 	return filtered
 }
 
-func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
+func GetDirItems(opts utils.FileOptions, user *users.User) (Items, error) {
+	return getDirItemsImpl(opts, user, svc())
+}
+
+func getDirItemsImpl(opts utils.FileOptions, user *users.User, s *Service) (Items, error) {
 	items := Items{}
-	indexPath, _, topLevelErr := CheckPermissions(opts, access, user)
+	indexPath, _, topLevelErr := checkPermissionsImpl(opts, user, s)
 	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
 	if topLevelErr != nil && !accessRulesErr {
 		return items, topLevelErr
@@ -198,7 +199,7 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	if info.Type != "directory" {
 		return items, fmt.Errorf("path is not a directory: %v ", indexPath)
 	}
-	if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
+	if err := s.checkChildItemAccess(info, idx, user.Username); err != nil {
 		return items, err
 	}
 	hasAccessibleItems := len(info.Files) > 0 || len(info.Folders) > 0
@@ -222,16 +223,18 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 }
 
 // FileInfoFasterFunc is a variable that can be mocked in tests
-var FileInfoFasterFunc = fileInfoFasterImpl
+var FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+	return fileInfoFasterImpl(opts, user, svc())
+}
 
-func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User, shareStore *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
-	return FileInfoFasterFunc(opts, access, user, shareStore)
+func FileInfoFaster(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+	return FileInfoFasterFunc(opts, user)
 }
 
 // fileInfoFasterImpl is the actual implementation of FileInfoFaster
-func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *users.User, shareStore *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+func fileInfoFasterImpl(opts utils.FileOptions, user *users.User, s *Service) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
-	indexPath, userScope, topLevelErr := CheckPermissions(opts, access, user)
+	indexPath, userScope, topLevelErr := checkPermissionsImpl(opts, user, s)
 	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
 	if topLevelErr != nil && !accessRulesErr {
 		return response, topLevelErr
@@ -256,7 +259,7 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	}
 	// otherwise response keeps unfiltered Folders/Files while CheckChildItemAccess only mutates info.
 	if info.Type == "directory" {
-		if err := access.CheckChildItemAccess(info, idx, user.Username); err != nil {
+		if err := s.checkChildItemAccess(info, idx, user.Username); err != nil {
 			return response, err
 		}
 	}
@@ -272,17 +275,17 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	if user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
 			file := &response.Files[i]
-			file.IsShared = shareStore.IsShared(response.Path+file.Name, idx.Path, user.ID)
+			file.IsShared = s.pathIsShared(response.Path+file.Name, idx.Path, user.ID)
 		}
 		for i := range response.Folders {
 			folder := &response.Folders[i]
-			folder.IsShared = shareStore.IsShared(response.Path+folder.Name, idx.Path, user.ID)
+			folder.IsShared = s.pathIsShared(response.Path+folder.Name, idx.Path, user.ID)
 		}
-		response.IsShared = shareStore.IsShared(response.Path, idx.Path, user.ID)
+		response.IsShared = s.pathIsShared(response.Path, idx.Path, user.ID)
 	}
 	if info.Type == "directory" && opts.ShowPinnedItems {
 		if opts.ShareHash != "" {
-			if link, err := shareStore.GetByHash(opts.ShareHash); err == nil {
+			if link, ok := s.shareByHash(opts.ShareHash); ok {
 				if shareRelDir, err := link.ShareRelativeDir(response.Path); err == nil {
 					response.PinnedItems = link.PinnedItems.NamesForDirectory(shareRelDir)
 				}
@@ -727,7 +730,11 @@ func validateMoveDestination(src, dst string, isSrcDir bool) error {
 	return nil
 }
 
-func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, a *access.Storage) error {
+func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
+	return moveResourceImpl(isSrcDir, sourceIndex, destIndex, realsrc, realdst, svc())
+}
+
+func moveResourceImpl(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *Service) error {
 	// Check if source and destination are the same file
 	if realsrc == realdst {
 		return fmt.Errorf("cannot move a file to itself: %s", realsrc)
@@ -800,12 +807,12 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	// Share path reconciliation is handled by state.UpdateSharesForMovedResource (see http/resource.go).
 
 	// Update access rules for the moved path
-	if a != nil {
-		// If moving within the same source, update the rules
-		if srcIdx.Path == dstIdx.Path {
-			go a.UpdateRules(srcIdx.Path, srcIdx.MakeIndexPath(realsrc, isSrcDir), dstIdx.MakeIndexPath(realdst, isSrcDir)) //nolint:errcheck // IndexPath passed directly
-		}
-		// Cross-source moves don't preserve access rules (they're source-specific)
+	if srcIdx.Path == dstIdx.Path {
+		go s.updateAccessRulesOnMove(
+			srcIdx.Path,
+			srcIdx.MakeIndexPath(realsrc, isSrcDir),
+			dstIdx.MakeIndexPath(realdst, isSrcDir),
+		)
 	}
 
 	return nil

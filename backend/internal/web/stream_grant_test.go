@@ -15,7 +15,7 @@ import (
 func TestMintAndValidateViewGrant(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{
-		user: &users.User{ID: 42, FrontendUser: users.FrontendUser{Username: "alice"}},
+		User: &users.User{ID: 42, FrontendUser: users.FrontendUser{Username: "alice"}},
 	}
 	token, err := mintViewGrant(d, "default", "/docs/track.mp3")
 	if err != nil {
@@ -24,8 +24,8 @@ func TestMintAndValidateViewGrant(t *testing.T) {
 	if token == "" {
 		t.Fatal("expected non-empty token")
 	}
-	if err := validateViewGrant(token, d, "default", "/docs/track.mp3"); err != nil {
-		t.Fatalf("validateViewGrant: %v", err)
+	if err := ValidateViewGrant(token, d, "default", "/docs/track.mp3"); err != nil {
+		t.Fatalf("ValidateViewGrant: %v", err)
 	}
 }
 
@@ -37,7 +37,7 @@ func TestValidateViewGrantWrongUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := validateViewGrant(token, other, "default", "/a.mp3"); err == nil {
+	if err := ValidateViewGrant(token, other, "default", "/a.mp3"); err == nil {
 		t.Fatal("expected viewer mismatch error")
 	}
 }
@@ -49,7 +49,7 @@ func TestValidateViewGrantWrongPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := validateViewGrant(token, d, "default", "/b.mp3"); err == nil {
+	if err := ValidateViewGrant(token, d, "default", "/b.mp3"); err == nil {
 		t.Fatal("expected path mismatch error")
 	}
 }
@@ -67,7 +67,7 @@ func TestValidateViewGrantExpired(t *testing.T) {
 		ExpiresAt: time.Now().Add(-time.Minute).Unix(),
 	})
 	d := &requestContext{User: &users.User{ID: 1}}
-	if err := validateViewGrant(token, d, "default", "/a.mp3"); err == nil {
+	if err := ValidateViewGrant(token, d, "default", "/a.mp3"); err == nil {
 		t.Fatal("expected expired token error")
 	}
 }
@@ -75,18 +75,18 @@ func TestValidateViewGrantExpired(t *testing.T) {
 func TestValidateViewGrantShareBinding(t *testing.T) {
 	t.Parallel()
 	d := &requestContext{
-		user:  &users.User{ID: 1},
-		share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
+		User:  &users.User{ID: 1},
+		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
 	}
 	token, err := mintViewGrant(d, "srv", "/file.mp3")
 	if err != nil {
 		t.Fatal(err)
 	}
 	wrongShare := &requestContext{
-		user:  &users.User{ID: 1},
-		share: share.Share{ShareColumns: share.ShareColumns{Hash: "other"}},
+		User:  &users.User{ID: 1},
+		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "other"}},
 	}
-	if err := validateViewGrant(token, wrongShare, "srv", "/file.mp3"); err == nil {
+	if err := ValidateViewGrant(token, wrongShare, "srv", "/file.mp3"); err == nil {
 		t.Fatal("expected share mismatch error")
 	}
 }
@@ -99,7 +99,7 @@ func TestAttachViewTokenForAllFileTypes(t *testing.T) {
 			ItemInfo: iteminfo.ItemInfo{Name: "song.mp3", Type: "audio/mpeg"},
 		},
 	}
-	attachViewToken(d, "default", "/song.mp3", audio)
+	AttachViewToken(d, "default", "/song.mp3", audio)
 	if audio.ViewToken == "" {
 		t.Fatal("expected view token on audio file")
 	}
@@ -108,7 +108,7 @@ func TestAttachViewTokenForAllFileTypes(t *testing.T) {
 			ItemInfo: iteminfo.ItemInfo{Name: "readme.txt", Type: "text/plain"},
 		},
 	}
-	attachViewToken(d, "default", "/readme.txt", doc)
+	AttachViewToken(d, "default", "/readme.txt", doc)
 	if doc.ViewToken == "" {
 		t.Fatal("expected view token on non-media file")
 	}
@@ -127,7 +127,7 @@ func TestAttachViewTokensForDirectory(t *testing.T) {
 			},
 		},
 	}
-	attachViewTokensForDirectory(d, "Downloads", "/media/", file)
+	AttachViewTokensForDirectory(d, "Downloads", "/media/", file)
 	if file.Files[0].ViewToken == "" {
 		t.Fatal("expected view token on audio file")
 	}
@@ -137,10 +137,10 @@ func TestAttachViewTokensForDirectory(t *testing.T) {
 	if file.Files[2].ViewToken != "" {
 		t.Fatal("did not expect token on directory child folder")
 	}
-	if err := validateViewGrant(file.Files[0].ViewToken, d, "Downloads", "/media/song.mp3"); err != nil {
+	if err := ValidateViewGrant(file.Files[0].ViewToken, d, "Downloads", "/media/song.mp3"); err != nil {
 		t.Fatalf("validate audio grant: %v", err)
 	}
-	if err := validateViewGrant(file.Files[1].ViewToken, d, "Downloads", "/media/photo.jpg"); err != nil {
+	if err := ValidateViewGrant(file.Files[1].ViewToken, d, "Downloads", "/media/photo.jpg"); err != nil {
 		t.Fatalf("validate image grant: %v", err)
 	}
 }

@@ -9,13 +9,7 @@ import (
 
 // validateShareInfo migrates share links to add default sidebar links
 func validateShareInfo() {
-	shareStore := state.GetShareStorage()
-	if shareStore == nil {
-		return
-	}
-
-	// Get all shares
-	shares, err := shareStore.All()
+	shares, err := state.GetAllShares()
 	if err != nil {
 		logger.Debugf("No shares found or error getting shares: %v", err)
 		return

@@ -1,43 +1,34 @@
 package activity
 
 import (
-	"net"
-	"net/http"
-	"strings"
-
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/ports"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 )
 
-var (
-	config      *settings.Settings
-	accessStore *access.Storage
-	shareStore  *share.Storage
-)
-
-// InitDeps sets package-level dependencies used by activity query and recording.
-func InitDeps(cfg *settings.Settings, access *access.Storage, shares *share.Storage) {
-	config = cfg
-	accessStore = access
-	shareStore = shares
+// QueryDeps holds access and share dependencies for activity query filtering.
+type QueryDeps struct {
+	Access ports.AccessGate
+	Shares ports.ShareReader
 }
 
-func remoteIP(r *http.Request) string {
-	if r == nil {
-		return ""
+var queryDeps QueryDeps
+
+// SetQueryDeps registers access and share ports for activity queries (called from app.WireServices).
+func SetQueryDeps(access ports.AccessGate, shares ports.ShareReader) {
+	queryDeps = QueryDeps{Access: access, Shares: shares}
+}
+
+func accessPermitted(sourcePath string, indexPath utils.IndexPath, username string) bool {
+	if queryDeps.Access == nil {
+		return true
 	}
-	if config != nil {
-		xff := r.Header.Get("X-Forwarded-For")
-		if config.Http.TrustedHeaders["x-forwarded-for"] && xff != "" {
-			ips := strings.Split(xff, ",")
-			return strings.TrimSpace(ips[0])
-		}
-		xri := r.Header.Get("X-Real-IP")
-		if config.Http.TrustedHeaders["x-real-ip"] && xri != "" {
-			return xri
-		}
+	return queryDeps.Access.AccessPermitted(sourcePath, indexPath, username)
+}
+
+func getShare(hash string) (share.Share, error) {
+	if queryDeps.Shares == nil {
+		return share.Share{}, nil
 	}
-	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
-	return ip
+	return queryDeps.Shares.GetShare(hash)
 }

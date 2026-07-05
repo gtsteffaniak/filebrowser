@@ -8,10 +8,11 @@ import (
 
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 )
 
 // @Summary Begin passkey MFA login
@@ -40,7 +41,7 @@ func beginPasskeyLoginHandler(w http.ResponseWriter, r *http.Request, d *Context
 
 	rpID := deriveRPID(r)
 	svc := auth.GetWebAuthn()
-	sessionID, assertion, err := svc.BeginMFALogin(username, password, rpID, usersStore)
+	sessionID, assertion, err := svc.BeginMFALogin(username, password, rpID)
 	if err != nil {
 		if err == errors.ErrPasskeyNoCredential {
 			return http.StatusForbidden, err
@@ -80,9 +81,12 @@ func finishPasskeyLoginHandler(w http.ResponseWriter, r *http.Request, d *Contex
 	}
 
 	svc := auth.GetWebAuthn()
-	user, err := svc.FinishMFALogin(sessionID, r, usersStore)
+	user, err := svc.FinishMFALogin(sessionID, r)
 	if err != nil {
 		return http.StatusForbidden, err
+	}
+	if err = state.UpdateUser(user, "", "PasskeyCredentials"); err != nil {
+		return http.StatusInternalServerError, err
 	}
 
 	d.User = user
@@ -157,7 +161,7 @@ func finishPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusForbidden, err
 	}
 
-	if err := usersStore.Update(d.User, false, "PasskeyCredentials"); err != nil {
+	if err := state.UpdateUser(d.User, "", "PasskeyCredentials"); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
@@ -203,7 +207,7 @@ func deletePasskeyCredentialHandler(w http.ResponseWriter, r *http.Request, d *C
 		return http.StatusNotFound, err
 	}
 
-	if err := usersStore.Update(d.User, false, "PasskeyCredentials"); err != nil {
+	if err := state.UpdateUser(d.User, "", "PasskeyCredentials"); err != nil {
 		return http.StatusInternalServerError, err
 	}
 

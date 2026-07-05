@@ -8,6 +8,7 @@ import (
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 // resolveActivityPathFilters validates source/path filters and scopes paths to the actor's access.
@@ -22,7 +23,7 @@ func ResolvePathFilters(actor *Actor, filter *activitydb.QueryFilter) (int, erro
 		return http.StatusBadRequest, fmt.Errorf("source is required when filtering by path")
 	}
 
-	sourceInfo, ok := config.Server.NameToSource[filter.Source]
+	sourceInfo, ok := settings.Config.Server.NameToSource[filter.Source]
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source: %s", filter.Source)
 	}
@@ -83,7 +84,7 @@ func resolveActivityIndexPath(actor *Actor, idx *indexing.Index, userScope, clie
 
 	isDir := strings.HasSuffix(fullIndexPath, "/")
 	fullPath := idx.MakeIndexPath(fullIndexPath, isDir)
-	if accessStore != nil && !accessStore.Permitted(idx.Path, fullPath, actor.User.Username) {
+	if !accessPermitted(idx.Path, fullPath, actor.User.Username) {
 		return "", http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
 	}
 	return strings.TrimSuffix(fullIndexPath, "/"), 0, nil
@@ -119,7 +120,7 @@ func resolveActivityPathGlob(actor *Actor, idx *indexing.Index, userScope, glob 
 		rootPath = "/"
 	}
 	fullPath := idx.MakeIndexPath(rootPath, true)
-	if accessStore != nil && !accessStore.Permitted(idx.Path, fullPath, actor.User.Username) {
+	if !accessPermitted(idx.Path, fullPath, actor.User.Username) {
 		return "", http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
 	}
 	return scoped, 0, nil
@@ -139,7 +140,7 @@ func EnforcePathGlobFilter(r *http.Request, actor *Actor) (int, error) {
 // resolveActivityShareAccess validates share hash filters and configures share-owner scoping for non-admins.
 func ResolveShareAccess(actor *Actor, filter *activitydb.QueryFilter) (int, error) {
 	if filter.ShareHash != "" {
-		sh, err := shareStore.GetByHash(filter.ShareHash)
+		sh, err := getShare(filter.ShareHash)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("share not found")
 		}

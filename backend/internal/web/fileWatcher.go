@@ -14,6 +14,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/events"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+
 )
 
 // fileWatchResponse represents the response from file watch
@@ -177,10 +179,8 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	// Check access control
-	if accessStore != nil {
-		if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(scopePath, true), d.User.Username) {
-			return http.StatusForbidden, fmt.Errorf("access denied to file")
-		}
+	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(scopePath, true), d.User.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to file")
 	}
 
 	// Get real file path
@@ -324,10 +324,8 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 
 	// Check access control
-	if accessStore != nil {
-		if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(scopePath, true), d.User.Username) {
-			return http.StatusForbidden, fmt.Errorf("access denied to file")
-		}
+	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(scopePath, true), d.User.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to file")
 	}
 
 	// Get real file path

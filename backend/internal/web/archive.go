@@ -19,9 +19,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -29,6 +29,8 @@ import (
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+
 )
 
 // archiveMultiRequestIdle is how long without another Range/HEAD on the same archiveToken before
@@ -250,11 +252,11 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		return http.StatusForbidden, err
 	}
 	fullDestFile := utils.JoinPathAsUnix(userScopeTo, req.Destination)
-	if accessStore != nil && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestFile, true), d.User.Username) {
+	if !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestFile, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
 	fullDestParent := utils.GetParentDirectoryPath(fullDestFile)
-	if accessStore != nil && fullDestParent != fullDestFile && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestParent, true), d.User.Username) {
+	if fullDestParent != fullDestFile && !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestParent, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination parent of %s", req.Destination)
 	}
 	parentReal, _, err := idxTo.GetRealPath(fullDestParent)
@@ -295,7 +297,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	itemPaths := make([]string, 0, len(req.Paths))
 	for _, it := range req.Paths {
 		full := utils.JoinPathAsUnix(userScope, it)
-		if accessStore != nil && !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(full, true), d.User.Username) {
+		if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(full, true), d.User.Username) {
 			continue // silently skip
 		}
 		itemPaths = append(itemPaths, full)
@@ -305,15 +307,15 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	}
 
 	// Check archive size limit if configured
-	if config.Server.MaxArchiveSizeGB > 0 {
+	if settings.Config.Server.MaxArchiveSizeGB > 0 {
 		var estimatedSize int64
 		estimatedSize, err = computeArchiveSize(req.FromSource, itemPaths, d)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("failed to compute archive size: %v", err)
 		}
-		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		maxSizeBytes := settings.Config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
 		if estimatedSize > maxSizeBytes {
-			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", settings.Config.Server.MaxArchiveSizeGB)
 		}
 	}
 
@@ -426,7 +428,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	fullArchivePath := utils.JoinPathAsUnix(userScopeFrom, req.Path)
-	if accessStore != nil && !accessStore.Permitted(idxFrom.Path, utils.IndexPathFromNormalized(fullArchivePath, true), d.User.Username) {
+	if !state.AccessPermitted(idxFrom.Path, utils.IndexPathFromNormalized(fullArchivePath, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to archive %s", req.Path)
 	}
 	archiveReal, _, err := idxFrom.GetRealPath(fullArchivePath)
@@ -443,7 +445,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusForbidden, err
 	}
 	fullDestPath := utils.JoinPathAsUnix(userScopeTo, req.Destination)
-	if accessStore != nil && !accessStore.Permitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestPath, true), d.User.Username) {
+	if !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestPath, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
 	destReal, _, err := idxTo.GetRealPath(fullDestPath)
@@ -470,10 +472,10 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	// Check archive size limit if configured
-	if config.Server.MaxArchiveSizeGB > 0 {
-		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+	if settings.Config.Server.MaxArchiveSizeGB > 0 {
+		maxSizeBytes := settings.Config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
 		if info.Size() > maxSizeBytes {
-			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", settings.Config.Server.MaxArchiveSizeGB)
 		}
 	}
 
@@ -501,7 +503,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 }
 
 // addFile adds a file or directory to a tar or zip archive, respecting access rules.
-// For shares, path is already resolved; for users, access is checked via accessStore.
+// For shares, path is already resolved; for users, access is checked via state.AccessPermitted.
 func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -509,7 +511,7 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 	}
 
 	// Check access control directly for each file and silently skip if access is denied
-	if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.User.Username) {
+	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.User.Username) {
 		return nil // Silently skip this file/folder
 	}
 
@@ -548,7 +550,7 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 				indexRelPath := utils.JoinPathAsUnix(path, relPath)
 				indexRelPath = filepath.ToSlash(indexRelPath)
 				indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
-				if !accessStore.Permitted(idx.Path, indexPath, d.User.Username) {
+				if !state.AccessPermitted(idx.Path, indexPath, d.User.Username) {
 					if fileInfo.IsDir() {
 						return filepath.SkipDir
 					}
@@ -776,15 +778,15 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *Context, s
 	// HEAD or Range: same condition as chunked archive probing / retained spool (X-Archive-Token).
 	needMultiRequestSession := r.Method == http.MethodHead || r.Header.Get("Range") != ""
 
-	if needMultiRequestSession && config.Server.MaxArchiveSizeGB > 0 {
+	if needMultiRequestSession && settings.Config.Server.MaxArchiveSizeGB > 0 {
 		var estimatedSize int64
 		estimatedSize, err = computeArchiveSize(source, fileList, d)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("failed to compute archive size: %v", err)
 		}
-		maxSizeBytes := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		maxSizeBytes := settings.Config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
 		if estimatedSize > maxSizeBytes {
-			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", config.Server.MaxArchiveSizeGB)
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("archive size would exceed the maximum allowed size (maxArchiveSize: %d GB)", settings.Config.Server.MaxArchiveSizeGB)
 		}
 	}
 
@@ -1240,7 +1242,7 @@ func computeArchiveSize(source string, fileList []string, d *Context) (int64, er
 	}
 
 	for _, path := range fileList {
-		if !accessStore.Permitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.User.Username) {
+		if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.User.Username) {
 			continue
 		}
 		realPath, isDir, err := idx.GetRealPath(path)

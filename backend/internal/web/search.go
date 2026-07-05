@@ -11,6 +11,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+
 )
 
 type searchOptions struct {
@@ -100,7 +103,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		index := indexing.GetIndex(result.Source)
 		combinedPath := searchOptions.combinedPath[result.Source]
 		indexPath := utils.JoinPathAsUnix(combinedPath, result.Path)
-		if accessStore != nil && !accessStore.Permitted(index.Path, utils.IndexPathFromNormalized(indexPath, true), d.User.Username) {
+		if !state.AccessPermitted(index.Path, utils.IndexPathFromNormalized(indexPath, true), d.User.Username) {
 			continue // Silently skip this file/folder
 		}
 		// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)
@@ -191,7 +194,7 @@ func prepSearchOptions(r *http.Request, d *Context) (*searchOptions, error) {
 
 	parsed := iteminfo.BuildSearchOptionsFromQuery(query, normalizedTerms, matchAllTerms)
 
-	minLen := config.Server.MinSearchLength
+	minLen := settings.Config.Server.MinSearchLength
 	if !largest {
 		if len(normalizedTerms) > 0 {
 			for _, t := range normalizedTerms {

@@ -132,10 +132,9 @@ type Index struct {
 }
 
 var (
-	indexes         map[string]*Index
-	indexesMutex    sync.RWMutex
-	indexDB         *dbsql.IndexDB   // Shared database for all indexes
-	indexingStorage *dbindex.Storage // Persistent storage for index metadata
+	indexes      map[string]*Index
+	indexesMutex sync.RWMutex
+	indexDB      *dbsql.IndexDB // Shared database for all indexes
 )
 
 type IndexStatus string
@@ -373,10 +372,7 @@ func SetIndexDBForTesting(db *dbsql.IndexDB) {
 	indexDB = db
 }
 
-// SetIndexingStorage sets the persistent storage for index metadata.
-func SetIndexingStorage(storage *dbindex.Storage) {
-	indexingStorage = storage
-}
+// SetIndexingStorage is removed; index metadata persists via SetMetaStore from app.WireServices.
 
 func Initialize(source *settings.Source, mock bool, isNewDb bool) {
 	indexesMutex.Lock()
@@ -1565,7 +1561,7 @@ func (idx *Index) Save() error {
 
 // writePersistedIndexInfo writes scanners, stats, and disk totals to Bolt (no SSE broadcast).
 func (idx *Index) writePersistedIndexInfo() error {
-	if indexingStorage == nil {
+	if !metaStoreConfigured() {
 		return nil
 	}
 
@@ -1604,16 +1600,16 @@ func (idx *Index) writePersistedIndexInfo() error {
 		Scanners:      scanners,
 	}
 
-	return indexingStorage.Save(info)
+	return saveIndexInfo(info)
 }
 
 // Load restores index and scanner information from the database
 func (idx *Index) Load() error {
-	if indexingStorage == nil {
-		return nil // No storage available, skip loading
+	if !metaStoreConfigured() {
+		return nil
 	}
 
-	info, err := indexingStorage.GetByPath(idx.Path)
+	info, err := getIndexInfoByPath(idx.Path)
 	if err != nil {
 		if err == errors.ErrNotExist {
 			// No persisted data exists, this is fine for new indexes

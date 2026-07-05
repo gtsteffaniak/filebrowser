@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
@@ -101,6 +102,9 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 		if err != nil {
 			return nil, err
 		}
+		if dirErr := files.MakeUserDirs(&user, true); dirErr != nil {
+			logger.Error(dirErr.Error())
+		}
 
 		// Fetch the created user
 		userValue, err = state.GetUserByUsername(username)
@@ -111,11 +115,11 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	allowedGroups := []string{}
 	switch loginMethod {
 	case users.LoginMethodJwt:
-		allowedGroups = config.Auth.Methods.JwtAuth.UserGroups
+		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
 	case users.LoginMethodLdap:
-		allowedGroups = config.Auth.Methods.LdapAuth.UserGroups
+		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
 	case users.LoginMethodOidc:
-		allowedGroups = config.Auth.Methods.OidcAuth.UserGroups
+		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
 	}
 	allowed := len(allowedGroups) == 0
 	for _, userGroup := range groups {
@@ -138,7 +142,7 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 			return nil, err
 		}
 	}
-	if err := accessStore.SyncUserGroups(username, groups); err != nil {
+	if err := state.SyncUserGroups(username, groups); err != nil {
 		logger.Warningf("failed to sync ldap user %s groups: %v", username, err)
 	}
 	// Verify login method matches
@@ -151,18 +155,18 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 
 func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {
 	// Check if username matches admin username
-	isAdmin := proxyUser == config.Auth.AdminUsername
+	isAdmin := proxyUser == settings.Config.Auth.AdminUsername
 	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, []string{})
 }
 
 // setupJwtUser retrieves or creates a user based on external JWT token claims
 func SetupJwtUser(r *http.Request, data *Context, username string, claims map[string]interface{}) (*users.User, error) {
 	// Determine if user should be admin
-	isAdmin := username == config.Auth.AdminUsername
+	isAdmin := username == settings.Config.Auth.AdminUsername
 	// Check if user should be admin based on groups
-	groups := auth.ExtractGroupsFromClaims(claims, config.Auth.Methods.JwtAuth.GroupsClaim)
+	groups := auth.ExtractGroupsFromClaims(claims, settings.Config.Auth.Methods.JwtAuth.GroupsClaim)
 	for _, group := range groups {
-		if group == config.Auth.Methods.JwtAuth.AdminGroup {
+		if group == settings.Config.Auth.Methods.JwtAuth.AdminGroup {
 			isAdmin = true
 			break
 		}
@@ -189,7 +193,7 @@ func SetupJwtUser(r *http.Request, data *Context, username string, claims map[st
 // @Router /api/auth/login [post]
 func loginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	passwordUser := d.User.LoginMethod == users.LoginMethodPassword
-	enforcedOtp := config.Auth.Methods.PasswordAuth.EnforcedOtp
+	enforcedOtp := settings.Config.Auth.Methods.PasswordAuth.EnforcedOtp
 	missingOtp := d.User.TOTPSecret == ""
 	if passwordUser && enforcedOtp && missingOtp {
 		return http.StatusForbidden, errors.ErrNoTotpConfigured
@@ -214,7 +218,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, erro
 // @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if err := auth.RevokeApiToken(accessStore, d.Token); err != nil {
+	if err := state.RevokeToken( d.Token); err != nil {
 		logger.Errorf("Failed to revoke token on logout: %v", err)
 	}
 
@@ -235,31 +239,31 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 	http.SetCookie(w, cookie)
 
-	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL) // Default fallback
+	logoutUrl := fmt.Sprintf("%vlogin", settings.Config.Server.BaseURL) // Default fallback
 	if d.User != nil && d.User.LoginMethod == users.LoginMethodProxy {
-		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
+		proxyRedirectUrl := settings.Config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
 		if proxyRedirectUrl != "" {
 			logoutUrl = proxyRedirectUrl
 		}
 	} else if d.User != nil && d.User.LoginMethod == users.LoginMethodOidc {
-		oidcRedirectUrl := config.Auth.Methods.OidcAuth.LogoutRedirectUrl
+		oidcRedirectUrl := settings.Config.Auth.Methods.OidcAuth.LogoutRedirectUrl
 		if oidcRedirectUrl != "" {
 			logoutUrl = oidcRedirectUrl
 		}
 	} else if d.User != nil && d.User.LoginMethod == users.LoginMethodLdap {
-		ldapRedirectUrl := config.Auth.Methods.LdapAuth.LogoutRedirectUrl
+		ldapRedirectUrl := settings.Config.Auth.Methods.LdapAuth.LogoutRedirectUrl
 		if ldapRedirectUrl != "" {
 			logoutUrl = ldapRedirectUrl
 		}
 	} else if d.User != nil && d.User.LoginMethod == users.LoginMethodJwt {
-		jwtRedirectUrl := config.Auth.Methods.JwtAuth.LogoutRedirectUrl
+		jwtRedirectUrl := settings.Config.Auth.Methods.JwtAuth.LogoutRedirectUrl
 		if jwtRedirectUrl != "" {
 			logoutUrl = jwtRedirectUrl
 		}
 	}
 	if logoutUrl == "" {
 		logger.Debug("no logout url found, using default")
-		logoutUrl = fmt.Sprintf("%vlogin", config.Server.BaseURL)
+		logoutUrl = fmt.Sprintf("%vlogin", settings.Config.Server.BaseURL)
 	}
 	response := map[string]string{
 		"logoutUrl": logoutUrl,
@@ -294,7 +298,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/signup [post]
 func signupHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if !config.Auth.Methods.PasswordAuth.Signup {
+	if !settings.Config.Auth.Methods.PasswordAuth.Signup {
 		return http.StatusMethodNotAllowed, fmt.Errorf("signup is disabled")
 	}
 
@@ -311,14 +315,16 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		FrontendUser: users.FrontendUser{
 			Username:    username,
 			LoginMethod: users.LoginMethodPassword,
-			Permissions: settings.ConvertPermissionsToUsers(config.UserDefaults.Account.Permissions),
+			Permissions: settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Account.Permissions),
 		},
 	}
 	err := state.CreateUser(&user, password)
 	if err != nil {
 		logger.Debug(err.Error())
-		// Return the actual error message instead of a generic one
 		return http.StatusBadRequest, err
+	}
+	if dirErr := files.MakeUserDirs(&user, true); dirErr != nil {
+		logger.Error(dirErr.Error())
 	}
 	activity.RecordAuth(r, &user, activitydb.EventSignup, activitydb.Details{
 		LoginMethod: string(users.LoginMethodPassword),
@@ -341,7 +347,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, erro
 }
 
 func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
-	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+	expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
 	tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
@@ -379,7 +385,7 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 				signature := parts[1]
 
 				// Verify HMAC signature
-				mac := hmac.New(sha256.New, []byte(config.Auth.Key))
+				mac := hmac.New(sha256.New, []byte(settings.Config.Auth.Key))
 				mac.Write([]byte(payload))
 				expectedSignature := base64.URLEncoding.EncodeToString(mac.Sum(nil))
 

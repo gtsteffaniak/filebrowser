@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -105,7 +106,7 @@ func CreateShare(link *share.Share) error {
 	}
 
 	// 2. Write to database
-	err := sqlStore.SaveShare(link)
+	err := sqlDb.SaveShare(link)
 	if err != nil {
 		return err
 	}
@@ -138,7 +139,7 @@ func UpdateShare(hash string, updateFn func(*share.Share) error) error {
 	}
 
 	// 2. Write to database
-	err := sqlStore.SaveShare(link)
+	err := sqlDb.SaveShare(link)
 	if err != nil {
 		return err
 	}
@@ -162,7 +163,7 @@ func RecordShareDownload(hash, viewerUsername string) error {
 	if link.PerUserDownloadLimit {
 		link.IncrementUserDownload(viewerUsername)
 	}
-	return sqlStore.SaveShare(link)
+	return sqlDb.SaveShare(link)
 }
 
 // DeleteShare deletes a share by hash
@@ -177,7 +178,7 @@ func DeleteShare(hash string) error {
 	}
 
 	// 2. Delete from database
-	err := sqlStore.DeleteShare(hash)
+	err := sqlDb.DeleteShare(hash)
 	if err != nil {
 		return err
 	}
@@ -217,7 +218,7 @@ func UpdateSharePath(hash, newPath string) error {
 	oldPathKey := makePathKey(link.SourcePath, link.Path)
 
 	// 2. Update database
-	err := sqlStore.UpdateSharePath(hash, newPath)
+	err := sqlDb.UpdateSharePath(hash, newPath)
 	if err != nil {
 		return err
 	}
@@ -251,7 +252,7 @@ func UpdateSharesPaths(oldSource, oldPath, newSource, newPath string) error {
 	defer sharesMux.Unlock()
 
 	// Update SQL
-	err := sqlStore.UpdateSharesPaths(oldSource, oldPath, newSource, newPath)
+	err := sqlDb.UpdateSharesPaths(oldSource, oldPath, newSource, newPath)
 	if err != nil {
 		return err
 	}
@@ -328,7 +329,7 @@ func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string)
 		l.SourcePath = newSource
 		l.Path = newPath
 
-		if err := sqlStore.SaveShare(l); err != nil {
+		if err := sqlDb.SaveShare(l); err != nil {
 			logger.Error("failed to save updated share after resource move", "hash", l.Hash, "error", err)
 			return updatedHashes, err
 		}
@@ -370,6 +371,59 @@ func IsShared(source, path string, userID uint64) bool {
 	}
 
 	return false
+}
+
+// PrepSharesForFrontend builds API-safe ShareFrontend copies for share pointers.
+func PrepSharesForFrontend(viewer *users.User, r *http.Request, links ...*share.Share) []*share.ShareFrontend {
+	ownerLookup := func(userID uint64) string {
+		u, err := GetUserByID(userID)
+		if err != nil {
+			return ""
+		}
+		return u.Username
+	}
+	return share.PrepForFrontend(viewer, r, ownerLookup, links...)
+}
+
+// PrepShareValuesForFrontend builds API-safe ShareFrontend copies from immutable share values.
+func PrepShareValuesForFrontend(viewer *users.User, r *http.Request, shares []share.Share) []*share.ShareFrontend {
+	if len(shares) == 0 {
+		return nil
+	}
+	ptrs := make([]*share.Share, len(shares))
+	for i := range shares {
+		s := shares[i]
+		ptrs[i] = new(share.Share)
+		*ptrs[i] = s
+	}
+	return PrepSharesForFrontend(viewer, r, ptrs...)
+}
+
+// PrepShareForFrontend builds a single API-safe ShareFrontend copy from an immutable share value.
+func PrepShareForFrontend(viewer *users.User, r *http.Request, sh share.Share) *share.ShareFrontend {
+	prepped := PrepShareValuesForFrontend(viewer, r, []share.Share{sh})
+	if len(prepped) == 0 {
+		return nil
+	}
+	return prepped[0]
+}
+
+// GetSharesInScope returns non-expired shares for scopePath on source owned by userID.
+func GetSharesInScope(scopePath, source string, userID uint64) ([]*share.Share, error) {
+	links, err := GetSharesByPath(source, scopePath)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().Unix()
+	filtered := make([]*share.Share, 0, len(links))
+	for i := range links {
+		l := links[i]
+		if l.UserID == userID && (l.Expire == 0 || l.Expire > now || l.KeepAfterExpiration) {
+			copy := l
+			filtered = append(filtered, &copy)
+		}
+	}
+	return filtered, nil
 }
 
 // copyShareLink creates a deep copy of a share link

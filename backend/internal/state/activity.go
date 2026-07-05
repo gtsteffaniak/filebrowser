@@ -12,10 +12,10 @@ import (
 
 // InitActivityRecorder starts the global activity recorder using the SQL store.
 func InitActivityRecorder(cfg settings.Database) {
-	if sqlStore == nil {
+	if sqlDb == nil {
 		return
 	}
-	activityrec.Initialize(sqlStore, cfg)
+	activityrec.Initialize(sqlDb, cfg)
 }
 
 // StopActivityRecorder flushes pending activity and stops the recorder.
@@ -30,14 +30,14 @@ func RecordActivity(entry activitydb.Entry) {
 
 // ListActivity returns paginated activity rows with total count.
 func ListActivity(filter activitydb.QueryFilter) ([]activitydb.FrontendEntry, int, error) {
-	if sqlStore == nil {
+	if sqlDb == nil {
 		return nil, 0, fmt.Errorf("sql store not initialized")
 	}
-	total, err := sqlStore.CountActivity(filter)
+	total, err := sqlDb.CountActivity(filter)
 	if err != nil {
 		return nil, 0, err
 	}
-	rows, err := sqlStore.ListActivity(filter)
+	rows, err := sqlDb.ListActivity(filter)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -64,8 +64,8 @@ func activityActorUsername(row activitydb.Entry, joinedUsername string) string {
 
 // ListActivityStats returns aggregated activity buckets for charts.
 func ListActivityStats(filter activitydb.QueryFilter) ([]activitydb.StatsBucket, error) {
-	if sqlStore == nil {
+	if sqlDb == nil {
 		return nil, fmt.Errorf("sql store not initialized")
 	}
-	return sqlStore.ListActivityStats(filter)
+	return sqlDb.ListActivityStats(filter)
 }

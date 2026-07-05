@@ -51,7 +51,7 @@ var (
 	TotpCache     = cache.NewCache[string](5 * time.Minute)
 )
 
-func GenerateOtpForUser(user *users.User, userStore *users.Storage) (string, error) {
+func GenerateOtpForUser(user *users.User) (string, error) {
 	// Generate a new TOTP key using the defined constants.
 	key, err := totp.Generate(totp.GenerateOpts{
 		Issuer:      IssuerName,
@@ -145,7 +145,7 @@ func decryptSecret(b64Ciphertext, b64Nonce string) (string, error) {
 	return string(plaintext), nil
 }
 
-func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) error {
+func VerifyTotpCode(user *users.User, code string) error {
 	cachedSecret, found := TotpCache.Get(user.Username)
 	if !found && user.TOTPSecret == "" {
 		return fmt.Errorf("OTP token not found in cache, please generate a new one")
@@ -188,14 +188,9 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 		return fmt.Errorf("invalid OTP token")
 	}
 	if totpSecret != "" || !user.OtpEnabled {
-		user.TOTPSecret = totpSecret // The encrypted or plaintext secret
-		user.TOTPNonce = totpNonce   // The nonce if encrypted, or empty if plaintext
-		user.OtpEnabled = true       // Enable OTP for the user
-		// save user
-		if err := userStore.Update(user, true, "TOTPSecret", "TOTPNonce", "OtpEnabled"); err != nil {
-			logger.Error("error updating user with OTP token:", err)
-			return fmt.Errorf("error updating user with OTP token: %w", err)
-		}
+		user.TOTPSecret = totpSecret
+		user.TOTPNonce = totpNonce
+		user.OtpEnabled = true
 		TotpCache.Delete(user.Username)
 	} else {
 		return fmt.Errorf("opt secret is empty, cannot enable TOTP")

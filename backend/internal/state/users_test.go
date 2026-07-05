@@ -11,7 +11,7 @@ import (
 
 func TestCreateUserValidateUsername(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
-	settings.Initialize("../../_docker/src/noauth/backend/config.yaml")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
 	settings.Env.IsPlaywright = true
 
 	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")

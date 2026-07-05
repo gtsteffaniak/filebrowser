@@ -5,13 +5,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // User operations
@@ -140,7 +138,7 @@ func UserFromAPIToken(tk users.AuthToken, rawToken string) (users.User, error) {
 	if tk.BelongsTo != 0 {
 		return GetUserByID(tk.BelongsTo)
 	}
-	if uid, ok := accessStorage.GetUserIDFromToken(rawToken); ok {
+	if uid, ok := accessDb.GetUserIDFromToken(rawToken); ok {
 		return GetUserByID(uid)
 	}
 	return users.User{}, errors.ErrNotExist
@@ -189,12 +187,6 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
 	settings.ApplyUserDefaults(user)
 
-	// Create user directories and adjust scope paths if createUserDir is enabled
-	err := files.MakeUserDirs(user, true)
-	if err != nil {
-		logger.Error(err.Error())
-	}
-
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
@@ -206,8 +198,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 		user.ID = nid
 	}
 
-	err = sqlStore.CreateUser(user)
-	if err != nil {
+	if err := sqlDb.CreateUser(user); err != nil {
 		return err
 	}
 
@@ -330,12 +321,12 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	// 3. Write to database
 	var err error
 	if oldUsername != existingUser.Username {
-		if err = sqlStore.UpdateUserUsername(oldUsername, existingUser); err != nil {
+		if err = sqlDb.UpdateUserUsername(oldUsername, existingUser); err != nil {
 			return err
 		}
 		delete(usersByName, oldUsername)
 	} else {
-		if err = sqlStore.UpdateUser(existingUser); err != nil {
+		if err = sqlDb.UpdateUser(existingUser); err != nil {
 			return err
 		}
 	}
@@ -430,7 +421,7 @@ func DeleteUser(id uint64) error {
 		return fmt.Errorf("user not found in state")
 	}
 
-	err := sqlStore.DeleteUserByID(id)
+	err := sqlDb.DeleteUserByID(id)
 	if err != nil {
 		return err
 	}
@@ -438,8 +429,8 @@ func DeleteUser(id uint64) error {
 	delete(usersByID, id)
 	delete(usersByName, user.Username)
 
-	if accessStorage != nil {
-		_ = accessStorage.RemoveHashedTokensForUser(id)
+	if accessDb != nil {
+		_ = accessDb.RemoveHashedTokensForUser(id)
 	}
 
 	return nil
@@ -456,7 +447,7 @@ func DeleteUserByUsername(username string) error {
 		return fmt.Errorf("user not found in state")
 	}
 
-	err := sqlStore.DeleteUserByUsername(username)
+	err := sqlDb.DeleteUserByUsername(username)
 	if err != nil {
 		return err
 	}
@@ -467,8 +458,8 @@ func DeleteUserByUsername(username string) error {
 	}
 	delete(usersByName, username)
 
-	if accessStorage != nil && uid != 0 {
-		_ = accessStorage.RemoveHashedTokensForUser(uid)
+	if accessDb != nil && uid != 0 {
+		_ = accessDb.RemoveHashedTokensForUser(uid)
 	}
 
 	return nil
@@ -508,7 +499,7 @@ func AddUserToken(ownerUsername string, token users.AuthToken) error {
 	users.StoreToken(user.Tokens, token)
 
 	// 2. Write to database
-	err := sqlStore.UpdateUser(user)
+	err := sqlDb.UpdateUser(user)
 	if err != nil {
 		return err
 	}
@@ -540,7 +531,7 @@ func DeleteUserToken(ownerUsername string, tokenName string) error {
 	users.RemoveTokenByName(user.Tokens, tokenName)
 
 	// 2. Write to database
-	err := sqlStore.UpdateUser(user)
+	err := sqlDb.UpdateUser(user)
 	if err != nil {
 		return err
 	}

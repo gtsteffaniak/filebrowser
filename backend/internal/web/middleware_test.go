@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	_ "github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb" // Import to register SQL driver
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -28,24 +28,19 @@ func setupTestEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	app.MustWireServices(state.Default())
 	t.Cleanup(func() {
 		state.Close()
 	})
 
-	// Initialize global stores
-	accessStore = state.GetAccessStorage()
-	shareStore = state.GetShareStorage()
-	usersStore = state.GetUsersStorage()
-
-	config = &settings.Config // mocked
-	config.Server.SourceMap = map[string]*settings.Source{
-		"/srv": &settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {
 			Path: "/srv",
 			Name: "srv",
 		},
 	}
-	config.Server.NameToSource = map[string]*settings.Source{
-		"srv": &settings.Source{
+	settings.Config.Server.NameToSource = map[string]*settings.Source{
+		"srv": {
 			Path: "/srv",
 			Name: "srv",
 		},
@@ -62,7 +57,7 @@ func mockFileInfoFaster(t *testing.T) {
 	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
 
 	// Mock the function to skip execution
-	FileInfoFasterFunc = func(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+	FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
 		return &iteminfo.ExtendedFileInfo{
 			FileInfo: iteminfo.FileInfo{
 				Path: opts.Path,
@@ -130,7 +125,7 @@ func TestWithAdminHelper(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Mock the context with the current user
 			data := &requestContext{
-				user: tc.user,
+				User: tc.user,
 			}
 			tokenString, _, err := auth.MakeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Permissions, false)
 			if err != nil {

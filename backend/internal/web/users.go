@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"io"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
@@ -20,6 +20,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+
 )
 
 type UserRequest struct {
@@ -203,6 +205,9 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	if dirErr := files.MakeUserDirs(&req.User, true); dirErr != nil {
+		logger.Error(dirErr.Error())
+	}
 
 	activity.RecordUserMutation(r, toActor(d), activitydb.EventUserCreate, &req.User, nil)
 	w.Header().Set("Location", "/settings/users/"+url.PathEscape(req.User.Username))
@@ -299,8 +304,8 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 	if targetUsername == "" {
 		targetUsername = strings.TrimSpace(req.User.Username)
 	}
-	if targetUsername == "" && config.Auth.Methods.NoAuth {
-		admin := config.Auth.AdminUsername
+	if targetUsername == "" && settings.Config.Auth.Methods.NoAuth {
+		admin := settings.Config.Auth.AdminUsername
 		if admin == "" {
 			admin = "admin"
 		}
@@ -357,10 +362,10 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 	// Revoke all API keys if API permission was removed
 	if slices.Contains(req.Which, "Permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
 		users.EachNamedToken(oldUser.Tokens, func(_ string, tokenInfo users.AuthToken) {
-			if err := auth.RevokeApiToken(accessStore, tokenInfo.Token); err != nil {
+			if err := state.RevokeToken(tokenInfo.Token); err != nil {
 				logger.Errorf("Failed to revoke API key: %v", err)
 			}
-			if err := accessStore.RemoveApiToken(tokenInfo.Token); err != nil {
+			if err := state.RemoveApiToken(tokenInfo.Token); err != nil {
 				logger.Errorf("Failed to remove api token: %v", err)
 			}
 		})

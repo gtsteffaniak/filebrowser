@@ -20,22 +20,29 @@ var (
 	sharesMux sync.RWMutex
 	indexMux  sync.RWMutex
 
-	// SQL store
-	sqlStore *sqldb.SQLStore
+	// sqlDb is the SQLite persistence layer. Only state package code should call it directly;
+	// everyone else goes through exported state.* helpers and the in-memory caches below.
+	sqlDb *sqldb.SQLStore
 
-	// In-memory caches
+	// In-memory caches (authoritative at runtime after Initialize)
 	usersByID       map[uint64]*users.User
 	usersByName     map[string]*users.User
 	sharesByHash    map[string]*share.Share
 	sharesByPath    map[string][]string // "source:path" -> []hash
 	indexInfoByPath map[string]*dbindex.IndexInfo
 
-	// Access storage (manages its own state)
-	accessStorage *access.Storage
+	// accessDb holds access rules, groups, and token hashes in memory with write-through to sqlDb.
+	accessDb *access.Storage
 )
 
-// Initialize loads all data from SQL into memory
+// Initialize loads all data from SQL into memory and sets the default store handle.
+// Prefer state.Open when you need the *Store for dependency injection.
 func Initialize(dbPath string) (bool, error) {
+	_, existingDb, err := Open(dbPath)
+	return existingDb, err
+}
+
+func initialize(dbPath string) (bool, error) {
 	// Lock all mutexes during initialization
 	usersMux.Lock()
 	sharesMux.Lock()
@@ -47,9 +54,9 @@ func Initialize(dbPath string) (bool, error) {
 	logger.Info("Initializing state management system...")
 	var existingDb bool
 	var err error
-	sqlStore, existingDb, err = sqldb.NewSQLStore(dbPath)
+	sqlDb, existingDb, err = sqldb.NewSQLStore(dbPath)
 	if err != nil {
-		return false, fmt.Errorf("failed to initialize SQL store: %w", err)
+		return false, fmt.Errorf("failed to initialize SQL database: %w", err)
 	}
 
 	// Initialize caches
@@ -62,7 +69,7 @@ func Initialize(dbPath string) (bool, error) {
 	logger.Debugf("Loading all data into memory...")
 
 	// Load users
-	usersList, err := sqlStore.ListUsers()
+	usersList, err := sqlDb.ListUsers()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load users: %w", err)
 	}
@@ -77,7 +84,7 @@ func Initialize(dbPath string) (bool, error) {
 	users.SetUsernameToID(UserIDForUsername)
 
 	// Load shares
-	sharesList, err := sqlStore.ListAllShares()
+	sharesList, err := sqlDb.ListAllShares()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load shares: %w", err)
 	}
@@ -89,7 +96,7 @@ func Initialize(dbPath string) (bool, error) {
 	logger.Debugf("Loaded %d shares", len(sharesList))
 
 	// Load index info
-	allIndexInfo, err := sqlStore.ListAllIndexInfo()
+	allIndexInfo, err := sqlDb.ListAllIndexInfo()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load index info: %w", err)
 	}
@@ -98,49 +105,44 @@ func Initialize(dbPath string) (bool, error) {
 	}
 	logger.Debugf("Loaded %d index info entries", len(allIndexInfo))
 
-	// Initialize access storage
-	accessStorage = &access.Storage{
+	// Initialize access rules cache
+	accessDb = &access.Storage{
 		AllRules:      make(access.SourceRuleMap),
 		Groups:        make(access.GroupMap),
 		RevokedTokens: make(map[string]struct{}),
 		HashedTokens:  make(map[string]uint64),
 	}
 
-	// Load access rules
-	allRules, err := sqlStore.GetAllAccessRules()
+	allRules, err := sqlDb.GetAllAccessRules()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load access rules: %w", err)
 	}
-	accessStorage.AllRules = allRules
+	accessDb.AllRules = allRules
 	logger.Debugf("Loaded access rules for %d sources", len(allRules))
 
-	// Load groups
-	allGroups, err := sqlStore.GetAllGroups()
+	allGroups, err := sqlDb.GetAllGroups()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load groups: %w", err)
 	}
-	accessStorage.Groups = allGroups
+	accessDb.Groups = allGroups
 	logger.Debugf("Loaded %d groups", len(allGroups))
 
-	// Load tokens
-	revokedTokens, err := sqlStore.GetAllRevokedTokens()
+	revokedTokens, err := sqlDb.GetAllRevokedTokens()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load revoked tokens: %w", err)
 	}
-	accessStorage.RevokedTokens = revokedTokens
+	accessDb.RevokedTokens = revokedTokens
 	logger.Debugf("Loaded %d revoked tokens", len(revokedTokens))
 
-	hashedTokens, err := sqlStore.GetAllHashedTokens()
+	hashedTokens, err := sqlDb.GetAllHashedTokens()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load hashed tokens: %w", err)
 	}
-	accessStorage.HashedTokens = hashedTokens
+	accessDb.HashedTokens = hashedTokens
 	logger.Debugf("Loaded %d hashed tokens", len(hashedTokens))
 
-	// Connect access storage to SQL
-	accessStorage.SetSQLStore(sqlStore)
+	accessDb.SetSQLStore(sqlDb)
 
-	// Initialize auth encryption key for TOTP
 	err = auth.InitializeEncryption()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to initialize auth encryption: %w", err)
@@ -153,9 +155,8 @@ func Initialize(dbPath string) (bool, error) {
 	return existingDb, nil
 }
 
-// Close closes the underlying SQL store
+// Close closes the underlying SQL database
 func Close() error {
-	// Lock all mutexes during close
 	usersMux.Lock()
 	sharesMux.Lock()
 	indexMux.Lock()
@@ -165,31 +166,10 @@ func Close() error {
 
 	users.SetUsernameToID(nil)
 	StopActivityRecorder()
-	if sqlStore != nil {
-		return sqlStore.Close()
+	if sqlDb != nil {
+		return sqlDb.Close()
 	}
 	return nil
-}
-
-// GetAccessStorage returns the access storage for direct use
-func GetAccessStorage() *access.Storage {
-	return accessStorage
-}
-
-// GetShareStorage returns share.Storage backed by state (shareBackend); reads and writes use the
-// same in-memory index as package state, updated after successful database operations.
-func GetShareStorage() *share.Storage {
-	return share.NewStorage(shareBackend{}, GetUsersStorage())
-}
-
-// GetUsersStorage returns a users.Storage backed by state (for use with auth.GenerateOtpForUser, etc.)
-func GetUsersStorage() *users.Storage {
-	return users.NewStorage(usersBackend{})
-}
-
-// GetIndexingStorage returns a dbindex.Storage backed by state
-func GetIndexingStorage() *dbindex.Storage {
-	return dbindex.NewStorage(indexBackend{})
 }
 
 func makePathKey(source, path string) string {

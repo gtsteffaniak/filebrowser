@@ -257,8 +257,8 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 
 	// Load persisted scanner info if available
 	var persistedScanners map[string]*indexingdb.PersistedScannerInfo
-	if indexingStorage != nil && !isNewDb {
-		info, err := indexingStorage.GetByPath(idx.Path)
+	if !isNewDb && metaStoreConfigured() {
+		info, err := getIndexInfoByPath(idx.Path)
 		if err == nil && info != nil {
 			persistedScanners = info.Scanners
 		}

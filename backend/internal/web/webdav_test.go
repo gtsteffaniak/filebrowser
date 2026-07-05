@@ -11,8 +11,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
 	_ "github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb" // Import to register SQL driver
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
@@ -70,49 +69,34 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	app.MustWireServices(state.Default())
 	t.Cleanup(func() {
 		state.Close()
 	})
 
-	// Initialize global stores
-	accessStore = state.GetAccessStorage()
-	shareStore = state.GetShareStorage()
-	usersStore = state.GetUsersStorage()
-
 	// Set cache directory for index database
 	settings.Config.Server.CacheDir = tempDir
-
-	// Setup config with sources - update both the local config var AND the global settings.Config
-	config = &settings.Settings{
-		Server: settings.Server{
-			BaseURL:  "/", // Use / for tests to avoid prefix mismatch
-			CacheDir: tempDir,
-			SourceMap: map[string]*settings.Source{
-				source1Path: {
-					Path: source1Path,
-					Name: "source1",
-				},
-				source2Path: {
-					Path: source2Path,
-					Name: "source2",
-				},
-			},
-			NameToSource: map[string]*settings.Source{
-				"source1": {
-					Path: source1Path,
-					Name: "source1",
-				},
-				"source2": {
-					Path: source2Path,
-					Name: "source2",
-				},
-			},
+	settings.Config.Server.BaseURL = "/"
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		source1Path: {
+			Path: source1Path,
+			Name: "source1",
+		},
+		source2Path: {
+			Path: source2Path,
+			Name: "source2",
 		},
 	}
-
-	// CRITICAL: Also update the global settings.Config so access.Permitted can find sources
-	settings.Config.Server.SourceMap = config.Server.SourceMap
-	settings.Config.Server.NameToSource = config.Server.NameToSource
+	settings.Config.Server.NameToSource = map[string]*settings.Source{
+		"source1": {
+			Path: source1Path,
+			Name: "source1",
+		},
+		"source2": {
+			Path: source2Path,
+			Name: "source2",
+		},
+	}
 
 	// Initialize user resolvers
 	settings.InitializeUserResolvers()
@@ -142,7 +126,7 @@ func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 	t.Cleanup(func() { files.CheckPermissionsFunc = originalCheckPermissions })
 
 	// Mock the function
-	files.CheckPermissionsFunc = func(opts utils.FileOptions, access *access.Storage, user *users.User) (string, string, error) {
+	files.CheckPermissionsFunc = func(opts utils.FileOptions, user *users.User) (string, string, error) {
 		// Get the source path
 		var sourcePath string
 		if opts.Source == "source1" {
@@ -179,7 +163,7 @@ func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 		indexPath := utils.JoinPathAsUnix(userScope, safePath)
 
 		// Check access control
-		if access != nil && !access.Permitted(sourcePath, utils.IndexPathFromNormalized(indexPath, true), user.Username) {
+		if !state.AccessPermitted(sourcePath, utils.IndexPathFromNormalized(indexPath, true), user.Username) {
 			return "", "", commonerrors.ErrAccessDenied
 		}
 
@@ -193,7 +177,7 @@ func mockWebDAVIndexing(t *testing.T, source1Path, source2Path string) {
 	originalFileInfoFaster := files.FileInfoFasterFunc
 	t.Cleanup(func() { files.FileInfoFasterFunc = originalFileInfoFaster })
 
-	files.FileInfoFasterFunc = func(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+	files.FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
 		// Resolve source name to source path first
 		sourcePath := ""
 		if opts.Source == "source1" {
@@ -205,18 +189,14 @@ func mockWebDAVIndexing(t *testing.T, source1Path, source2Path string) {
 		}
 
 		// Simulate access control
-		if access != nil && user != nil {
-			// Simple scope check based on user's configured scopes (which use source PATH)
+		if user != nil {
 			hasAccess := false
 			for _, scope := range user.BackendScopes {
 				if scope.Path == sourcePath {
 					hasAccess = true
-					// Check if path is within user's scope
 					userScope := scope.Scope
 					fullPath := utils.JoinPathAsUnix(userScope, opts.Path)
-
-					// Check if user has permission using the access storage
-					if !access.Permitted(sourcePath, utils.IndexPathFromNormalized(fullPath, true), user.Username) {
+					if !state.AccessPermitted(sourcePath, utils.IndexPathFromNormalized(fullPath, true), user.Username) {
 						return nil, commonerrors.ErrAccessDenied
 					}
 					break
@@ -602,25 +582,10 @@ func TestWebDAV_AccessControl(t *testing.T) {
 	// Initialize index
 	initTestIndex(t, "source1", source1Path)
 
-	// Create access rules by using the internal structure
-	// User1 can access /private, user2 cannot
-	// Set up a deny rule for user2 at /private
-	// IMPORTANT: Access system requires trailing slashes for exact match
-	rule := &access.AccessRule{
-		Deny: access.RuleSet{
-			Users: access.StringSet{"user2": struct{}{}},
-		},
+	err := state.DenyUser(source1Path, utils.IndexPathFromNormalized("/private/", true), "user2")
+	if err != nil {
+		t.Fatalf("failed to set up access rule: %v", err)
 	}
-
-	// Add the rule to the access storage
-	// Access the internal AllRules map directly for testing
-	if accessStore.AllRules == nil {
-		accessStore.AllRules = make(access.SourceRuleMap)
-	}
-	if accessStore.AllRules[source1Path] == nil {
-		accessStore.AllRules[source1Path] = make(access.RuleMap)
-	}
-	accessStore.AllRules[source1Path]["/private/"] = rule
 
 	testCases := []struct {
 		name           string
