@@ -171,7 +171,8 @@
     "allShares": "All shares",
     "playPause": "Play/Pause",
     "clearSelection": "Clear selection",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "None"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -256,6 +257,7 @@
     },
     "del": "delete selected items",
     "esc": "clear selection and/or close the prompt",
+    "f4": "refresh the listing and metadata",
     "f2": "rename file",
     "f1": "show help prompt",
     "slash": "activate search",
@@ -748,15 +750,19 @@
     "chars": "{count} characters"
   },
   "player": {
-    "LoopEnabled": "Loop Enabled",
-    "LoopDisabled": "Loop Disabled",
-    "PlayAllOncePlayback": "Play All Once",
+    "loop": "Loop",
+    "captionSize": "Caption size",
+    "playbackMode": "Playback",
+    "clearQueue": "Clear queue",
+    "LoopSingle": "Loop single",
+    "LoopDisabled": "Loop disabled",
+    "PlayAllOncePlayback": "Play all once",
     "ShuffleAllPlayback": "Shuffle All",
-    "PlayAllLoopedPlayback": "Play All Looped",
+    "PlayAllLoopedPlayback": "Play all looped",
     "QueueButtonHint": "Show playback queue",
-    "QueuePlayback": "Playback Queue",
-    "changePlaybackMode": "Change playback mode",
+    "QueuePlayback": "Playback queue",
     "emptyQueue": "Queue is empty",
+    "queueCleared": "Queue cleared",
     "queue": "Queue",
     "lyrics": "Lyrics",
     "noLyrics": "No lyrics available",

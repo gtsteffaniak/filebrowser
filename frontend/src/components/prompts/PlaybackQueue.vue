@@ -5,7 +5,21 @@
       <div class="mode-info">
         <i class="material-symbols">{{ currentModeIcon }}</i>
         <span>{{ currentModeLabel }}</span>
+        <span v-if="loop !== 'off'" class="loop-badge">
+          <i class="material-symbols">{{ loopIcon }}</i>
+          <span class="loop-label">{{ loopLabel }}</span>
+        </span>
       </div>
+      <!-- Clear queue button -->
+      <button
+        v-if="queueCount > 1"
+        class="clear-queue-btn"
+        @click="clearQueue"
+        :title="$t('player.clearQueue')"
+        :aria-label="$t('player.clearQueue')"
+      >
+        <i class="material-symbols">delete</i>
+      </button>
     </div>
 
     <!-- Queue list -->
@@ -29,6 +43,10 @@
               :source="item.source"
               :size="item.size"
             />
+            <div v-if="index === currentQueueIndex" class="wave-indicator" :class="{ paused: !isPlaying }">
+              <!-- Now playing wave indicator -->
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
           </div>
           <!-- Metadata -->
           <div class="queue-item-info">
@@ -60,13 +78,42 @@
   </div>
 
   <div class="card-actions">
+    <div class="mode-buttons">
+      <div class="mode-indicator" :style="modeIndicatorStyle"></div>
+      <input
+        type="radio"
+        id="mode-sequential"
+        name="playback-mode"
+        value="sequential"
+        :checked="playbackMode === 'sequential'"
+        @change="setMode('sequential')"
+        hidden
+      />
+      <label for="mode-sequential" class="mode-btn" :class="{ active: playbackMode === 'sequential' }" :title="$t('player.PlayAllOncePlayback')">
+        <i class="material-symbols">playlist_play</i>
+      </label>
+      <input
+        type="radio"
+        id="mode-shuffle"
+        name="playback-mode"
+        value="shuffle"
+        :checked="playbackMode === 'shuffle'"
+        @change="setMode('shuffle')"
+        hidden
+      />
+      <label for="mode-shuffle" class="mode-btn" :class="{ active: playbackMode === 'shuffle' }" :title="$t('player.ShuffleAllPlayback')">
+        <i class="material-symbols">shuffle</i>
+      </label>
+    </div>
     <button
       type="button"
-      class="button button--flat"
-      @click.stop="cyclePlaybackModes"
-      :title="$t('player.changePlaybackMode')"
+      class="repeat-one-btn"
+      :class="{ active: loop !== 'off' }"
+      @click="cycleLoop"
+      :title="loopLabel"
+      :aria-label="loopLabel"
     >
-      <i class="material-symbols">swap_vert</i> {{ $t('player.changePlaybackMode') }}
+      <i class="material-symbols">{{ loopIcon }}</i>
     </button>
   </div>
 </template>
@@ -74,7 +121,17 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { cyclePlaybackModes as cycleModes, formatArtist } from '@/utils/playbackQueue.js';
+import {
+  cyclePlaybackModes,
+  cycleLoopState,
+  toggleSingleLoop,
+  clearPlaybackQueue,
+  getModeLabel,
+  getModeIcon,
+  getLoopLabel,
+  getLoopIcon,
+  formatArtist
+} from '@/utils/playbackQueue.js';
 import Icon from "@/components/files/Icon.vue";
 import { resourcesApi } from "@/api";
 import { globalVars } from "@/utils/constants";
@@ -103,28 +160,23 @@ export default {
     playbackMode() {
       return state.playbackQueue.mode || 'single';
     },
+    loop() {
+      return state.playbackQueue.loop || 'off';
+    },
     queueCount() {
       return this.playbackQueue.length;
     },
     currentModeLabel() {
-      const modeLabels = {
-        'single': this.$t('player.LoopDisabled'),
-        'sequential': this.$t('player.PlayAllOncePlayback'),
-        'shuffle': this.$t('player.ShuffleAllPlayback'),
-        'loop-single': this.$t('player.LoopEnabled'),
-        'loop-all': this.$t('player.PlayAllLoopedPlayback')
-      };
-      return modeLabels[this.playbackMode] || this.$t('player.LoopDisabled');
+      return getModeLabel(this.playbackMode, this.$t, this.queueCount);
     },
     currentModeIcon() {
-      const modeIcons = {
-        'single': 'music_note',
-        'sequential': 'playlist_play',
-        'shuffle': 'shuffle',
-        'loop-single': 'repeat_one',
-        'loop-all': 'repeat'
-      };
-      return modeIcons[this.playbackMode] || 'music_note';
+      return getModeIcon(this.playbackMode);
+    },
+    loopIcon() {
+      return getLoopIcon(this.loop);
+    },
+    loopLabel() {
+      return getLoopLabel(this.loop, this.$t);
     },
     formattedQueue() {
       return this.playbackQueue.map((item) => {
@@ -170,6 +222,14 @@ export default {
     isPromptVisible() {
       // Check if this PlaybackQueue prompt is the current active prompt
       return state.prompts.some(prompt => prompt.name === 'PlaybackQueue');
+    },
+    modeIndicatorStyle() {
+      const modes = ['sequential', 'shuffle'];
+      const index = modes.indexOf(this.playbackMode);
+      if (index === -1) return {};
+      const width = `${100 / modes.length}%`;
+      const left = `${index * (100 / modes.length)}%`;
+      return { left, width };
     }
   },
   watch: {
@@ -220,19 +280,30 @@ export default {
       }
       return resourcesApi.getPreviewURL(source, path, item.modified);
     },
-    cyclePlaybackModes() {
-      const nextMode = cycleModes(this.playbackMode);
+    setMode(mode) {
+      if (mode === this.playbackMode) return;
+      const listing = state.navigation.listing || state.req?.parentDirItems || [];
+      cyclePlaybackModes(this.playbackMode, {
+        listing,
+        currentItem: state.req,
+        isShare: getters.isShare(),
+        targetMode: mode
+      });
+      this.updatePromptTitle();
+    },
+    cycleLoop() {
+      const loop = this.queueCount <= 1 ? toggleSingleLoop(this.loop) : cycleLoopState(this.loop);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
-        mode: nextMode
-      });
-      // Auto-scroll after mode change
-      this.$nextTick(() => {
-        this.scrollToCurrentItem();
+        mode: this.playbackMode,
+        loop: loop
       });
     },
-
+    clearQueue() {
+      clearPlaybackQueue();
+      this.updatePromptTitle();
+    },
     navigateToItem(index) {
       if (index === this.currentQueueIndex) {
         // Toggle play/pause for current item
@@ -254,7 +325,8 @@ export default {
         mutations.setPlaybackQueue({
           queue: this.playbackQueue,
           currentIndex: index,
-          mode: this.playbackMode
+          mode: this.playbackMode,
+          loop: this.loop
         });
         // Trigger actual navigation
         this.triggerNavigation(item);
@@ -320,22 +392,22 @@ export default {
   padding-right: 15px;
 }
 
-.card-action {
+.card-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  justify-content: center !important;
   padding-top: 0 !important;
 }
 
-.card-title {
-  padding-bottom: 0.2em !important;
-}
-
-.card-action .button {
+.playback-mode {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--borderColor);
+  margin-bottom: 0.12rem;
+  flex-shrink: 0;
 }
 
 .mode-info {
@@ -350,8 +422,43 @@ export default {
   user-select: none;
 }
 
-.playback-mode {
-  padding-bottom: 0.75rem;
+.loop-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.5rem;
+  background: var(--surfaceSecondary);
+  padding: 0.1rem 0.6rem;
+  border-radius: 1em;
+  font-size: 0.85rem;
+  color: var(--textSecondary);
+}
+
+.loop-badge i.material-symbols {
+  font-size: 1.1rem;
+  color: var(--primaryColor);
+}
+
+.clear-queue-btn {
+  background: transparent;
+  border: none;
+  color: var(--textSecondary);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-queue-btn:hover {
+  background: var(--surfaceSecondary);
+  color: var(--dangerColor, #e74c3c);
+}
+
+.clear-queue-btn i.material-symbols {
+  font-size: 1.25rem;
 }
 
 .queue-container {
@@ -372,7 +479,7 @@ export default {
   display: flex;
   align-items: center;
   text-align: left;
-  padding: 0.2rem 0.85rem;
+  padding: 0.22rem 0.85rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
   gap: 0.5rem;
@@ -401,6 +508,7 @@ export default {
   height: 2.65em;
   border-radius: 6px;
   overflow: hidden;
+  position: relative;
 }
 
 .queue-item-icon :deep(.image-preview) {
@@ -506,5 +614,142 @@ export default {
   font-size: 3rem;
   opacity: 0.5;
   user-select: none;
+}
+
+.mode-buttons {
+  display: flex;
+  position: relative;
+  background: var(--surfaceSecondary);
+  border-radius: 2em;
+  overflow: hidden;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.mode-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--primaryColor);
+  border-radius: inherit;
+  transition: left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+              width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mode-btn,
+.repeat-one-btn {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  font-size: inherit;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mode-btn {
+  flex: 1;
+  border-radius: 0;
+  color: var(--textSecondary);
+  z-index: 1;
+  position: relative;
+}
+
+.mode-btn.active {
+  color: white;
+}
+
+.mode-btn:hover:not(.active) {
+  color: var(--primaryColor);
+  transform: scale(1.02);
+}
+
+.mode-btn i,
+.repeat-one-btn i {
+  font-size: 1.5rem;
+}
+
+.repeat-one-btn {
+  border-radius: 2em;
+  color: var(--textSecondary);
+}
+
+.repeat-one-btn.active {
+  background: var(--primaryColor);
+  color: white;
+}
+
+.repeat-one-btn:hover:not(.active) {
+  color: var(--primaryColor);
+  transform: scale(1.02);
+}
+
+.repeat-one-btn.active:hover {
+  transform: scale(1.02);
+}
+
+.wave-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.40);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.wave-indicator span {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+/* 5 bars with different animations */
+.wave-indicator:not(.paused) span:nth-child(1) { animation: wave1 2.0s ease-in-out infinite alternate; }
+.wave-indicator:not(.paused) span:nth-child(2) { animation: wave2 2.5s ease-in-out infinite alternate; }
+.wave-indicator:not(.paused) span:nth-child(3) { animation: wave3 1.8s ease-in-out infinite alternate; }
+.wave-indicator:not(.paused) span:nth-child(4) { animation: wave1 2.3s ease-in-out infinite alternate; }
+.wave-indicator:not(.paused) span:nth-child(5) { animation: wave2 1.6s ease-in-out infinite alternate; }
+
+.wave-indicator.paused span {
+  animation: none;
+  height: 3px;
+}
+
+@keyframes wave1 {
+  0%   { height: 3px; }
+  25%  { height: 12px; }
+  50%  { height: 5px; }
+  75%  { height: 14px; }
+  100% { height: 7px; }
+}
+@keyframes wave2 {
+  0%   { height: 8px; }
+  30%  { height: 3px; }
+  60%  { height: 15px; }
+  90%  { height: 5px; }
+  100% { height: 10px; }
+}
+@keyframes wave3 {
+  0%   { height: 6px; }
+  20%  { height: 14px; }
+  45%  { height: 4px; }
+  70%  { height: 11px; }
+  100% { height: 6px; }
 }
 </style>

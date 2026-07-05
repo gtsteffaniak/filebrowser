@@ -80,6 +80,7 @@
     },
     "del": "smazat označené položky",
     "esc": "zrušit označení a/nebo zavřít dialog",
+    "f4": "obnovit seznam a metadata",
     "f2": "přejmenovat soubor",
     "f1": "zobrazit výzvu nápovědy",
     "description": "Základní možnosti navigace si můžete prohlédnout níže. Další informace naleznete na adrese",
@@ -696,7 +697,8 @@
     "allShares": "Všechny akcie",
     "playPause": "Přehrát/Pozastavit",
     "clearSelection": "Vymazat výběr",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "Žádné"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -726,15 +728,19 @@
     "chars": "{count} znaků"
   },
   "player": {
-    "LoopEnabled": "Smyčka povolena",
+    "loop": "Smyčka",
+    "captionSize": "Velikost titulků",
+    "playbackMode": "Přehrávání",
+    "clearQueue": "Vymazat frontu",
+    "LoopSingle": "Opakovat jednotlivě",
     "LoopDisabled": "Smyčka zakázána",
     "PlayAllOncePlayback": "Přehrát vše jednou",
     "ShuffleAllPlayback": "Náhodné přehrávání všeho",
     "PlayAllLoopedPlayback": "Přehrát vše ve smyčce",
     "QueueButtonHint": "Zobrazit frontu přehrávání",
     "QueuePlayback": "Fronta přehrávání",
-    "changePlaybackMode": "Změnit režim přehrávání",
     "emptyQueue": "Fronta je prázdná",
+    "queueCleared": "Fronta vymazána",
     "queue": "Fronta",
     "lyrics": "Text písně",
     "noLyrics": "Text není k dispozici",

@@ -80,6 +80,7 @@
     },
     "del": "Löscht die ausgewählten Elemente",
     "esc": "Auswahl zurücksetzen und/oder Dialog schließen",
+    "f4": "Auflistung und Metadaten aktualisieren",
     "f2": "Datei umbenennen",
     "f1": "Hilfeprompt anzeigen",
     "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte das",
@@ -602,7 +603,8 @@
     "allShares": "Alle Aktien",
     "playPause": "Wiedergabe/Pause",
     "clearSelection": "Auswahl löschen",
-    "interval": "Intervall{suffix}"
+    "interval": "Intervall{suffix}",
+    "none": "Keine"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -726,15 +728,19 @@
     "chars": "{count} Zeichen"
   },
   "player": {
-    "LoopEnabled": "Wiederholung aktiviert",
+    "loop": "Wiederholung",
+    "captionSize": "Untertitelgröße",
+    "playbackMode": "Wiedergabe",
+    "clearQueue": "Warteschlange leeren",
+    "LoopSingle": "Einzeln wiederholen",
     "LoopDisabled": "Wiederholung deaktiviert",
     "PlayAllOncePlayback": "Alle einmal abspielen",
     "ShuffleAllPlayback": "Alles zufällig abspielen",
     "PlayAllLoopedPlayback": "Alle in Wiederholung abspielen",
     "QueueButtonHint": "Wiedergabeliste anzeigen",
     "QueuePlayback": "Wiedergabeliste",
-    "changePlaybackMode": "Wiedergabemodus ändern",
     "emptyQueue": "Warteschlange ist leer",
+    "queueCleared": "Warteschlange geleert",
     "queue": "Warteschlange",
     "lyrics": "Liedtext",
     "noLyrics": "Kein Liedtext verfügbar",

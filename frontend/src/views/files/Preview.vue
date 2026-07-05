@@ -98,7 +98,7 @@ export default {
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
-      dirMetadataCache: new Map(),
+      listingKey: null,
     };
   },
   computed: {
@@ -285,56 +285,45 @@ export default {
   },
   methods: {
     async attachDirMediaMetadata(listing, dirPath) {
-      // Fetches directory metadata and attaches it to the items for playback queue.
-      // gets cached for the current preview -- it might look similar to enrichAvFromMediaApi but
-      // this one gets called only once per dir (instead of per item) and doesn't carry album art.
       if (!listing?.length) return;
-      const cacheKey = getters.isShare()
-        ? `${state.shareInfo.hash}:${dirPath}`
-        : `${state.req.source}:${dirPath}`;
-      const cachedMap = this.dirMetadataCache.get(cacheKey);
-      if (cachedMap) {
-        listing.forEach(item => {
-          if (cachedMap.has(item.name)) {
-            const metadata = cachedMap.get(item.name);
-            item.metadata = item.path === state.req.path
-              ? { ...metadata, ...item.metadata }
-              : metadata;
-          }
-        });
-        return;
-      }
       try {
         const isShare = getters.isShare();
-        const payload = isShare
-          ? await mediaApi.fetchDirectoryMediaMetadataPublic(dirPath, state.shareInfo.hash, localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '', false)
-          : await mediaApi.fetchDirectoryMediaMetadata(state.req.source, dirPath, false);
-        if (!payload?.items) return;
-        const metaMap = new Map(payload.items.filter(i => i.metadata).map(i => [i.name, i.metadata]));
-        listing.forEach(item => {
-          if (metaMap.has(item.name)) {
-          const metadata = metaMap.get(item.name);
-          item.metadata = item.path === state.req.path
-            ? { ...metadata, ...item.metadata }
-            : metadata;
-          }
-        });
-        this.dirMetadataCache.set(cacheKey, metaMap);
+        const metaMap = isShare
+          ? await mediaApi.getDirectoryMetadataMap(dirPath, {
+              isShare: true,
+              hash: state.shareInfo.hash,
+              password: localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '',
+            })
+          : await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
+        if (this.listing !== listing) return;
+        mutations.patchListingMetadata(listing, metaMap, state.req.path);
       } catch (e) {
         console.warn('dir items metadata fetch failed', e);
       }
+    },
+    listingContextKey(directoryPath) {
+      return getters.isShare()
+        ? `share:${state.shareInfo?.hash || ""}:${directoryPath}`
+        : `source:${state.req.source || ""}:${directoryPath}`;
     },
     async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
       }
       this.isDeleted = false;
+      const currentDirectoryPath = url.removeLastDir(state.req.path) || '/';
+      const currentListingKey = this.listingContextKey(currentDirectoryPath);
+      if (this.listingKey !== currentListingKey) {
+        this.listing = null;
+      }
 
       if (!this.listing || this.listing === "undefined") {
         if (state.req.parentDirItems) {
           this.listing = state.req.parentDirItems;
+          this.listingKey = currentListingKey;
         } else if (state.req.items) {
           this.listing = state.req.items;
+          this.listingKey = currentListingKey;
         }
       }
 
@@ -517,12 +506,14 @@ export default {
       }
     },
     async updatePreview() {
+      const expectedPath = state.req.path;
       let directoryPath = url.removeLastDir(state.req.path);
 
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
         directoryPath = '/';
       }
+      const expectedListingKey = this.listingContextKey(directoryPath);
 
       if (!this.listing || this.listing === "undefined") {
         // Try to use pre-fetched parent directory items first
@@ -545,8 +536,10 @@ export default {
                 directoryPath,
               );
             }
+            if (state.req.path !== expectedPath || this.listingContextKey(directoryPath) !== expectedListingKey) return;
             this.listing = res.items;
           } catch (error) {
+            if (state.req.path !== expectedPath) return;
             console.error("error Preview.vue", error);
             this.listing = [state.req];
           }
@@ -558,6 +551,7 @@ export default {
       if (!this.listing) {
         this.listing = [state.req];
       }
+      this.listingKey = this.listingContextKey(directoryPath);
       this.name = state.req.name;
 
       // Setup navigation using the new state management

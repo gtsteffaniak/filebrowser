@@ -171,7 +171,8 @@
     "allShares": "Tutte le azioni",
     "playPause": "Riproduci/Pausa",
     "clearSelection": "Deseleziona",
-    "interval": "Intervallo{suffix}"
+    "interval": "Intervallo{suffix}",
+    "none": "Nessuno"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -254,6 +255,7 @@
     },
     "del": "elimina elementi selezionati",
     "esc": "pulisci selezione e/o chiudi il prompt",
+    "f4": "aggiorna l'elenco e i metadati",
     "f2": "rinomina file",
     "f1": "mostra aiuto",
     "slash": "attiva ricerca",
@@ -735,15 +737,19 @@
     "chars": "{count} caratteri"
   },
   "player": {
-    "LoopEnabled": "Loop Abilitato",
+    "loop": "Ripeti",
+    "captionSize": "Dimensione didascalie",
+    "playbackMode": "Riproduzione",
+    "clearQueue": "Svuota coda",
+    "LoopSingle": "Ripeti singolo",
     "LoopDisabled": "Loop Disabilitato",
     "PlayAllOncePlayback": "Riproduci tutti una volta",
     "ShuffleAllPlayback": "Riproduzione casuale",
     "PlayAllLoopedPlayback": "Riproduci tutti in loop",
     "QueueButtonHint": "Mostra coda di riproduzione",
     "QueuePlayback": "Coda di riproduzione",
-    "changePlaybackMode": "Cambia modalità riproduzione",
     "emptyQueue": "La coda è vuota",
+    "queueCleared": "Coda svuotata",
     "queue": "Coda",
     "lyrics": "Testo",
     "noLyrics": "Nessun testo disponibile",

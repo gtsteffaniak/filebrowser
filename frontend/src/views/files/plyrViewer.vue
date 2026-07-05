@@ -256,8 +256,8 @@
       <span>{{ playbackModeMessage }}</span>
 
       <!-- Status indicator for loop -->
-      <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
-          'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
+      <span v-if="toastType === 'loop'" :class="[
+          'status-indicator', loop !== 'off' ? 'status-on' : 'status-off',]"></span>
     </div>
     <!-- Speed toast (long-press) -->
     <div v-if="speedToastVisible" class="playback-toast visible">
@@ -274,9 +274,12 @@ import {
   navigatePlaybackQueue,
   getEndOfMediaAction,
   cyclePlaybackModes,
-  toggleLoop,
+  toggleSingleLoop,
+  clearPlaybackQueue,
   getModeLabel,
   getModeIcon,
+  getLoopLabel,
+  getLoopIcon,
   formatArtist
 } from '@/utils/playbackQueue.js';
 import { getTypeFromMime } from '@/utils/files.js';
@@ -350,6 +353,7 @@ export default {
       // Toast
       toastVisible: false,
       toastTimeout: null,
+      toastType: 'mode', // 'mode' for the playback modes and 'loop'... for loop.
 
       // Metadata & Art
       metadata: null, // Null by default, will be loaded from the audio file.
@@ -369,6 +373,7 @@ export default {
 
       // Playback settings
       playbackMenuInitialized: false,
+      loopMenuInitialized: false,
       lastAppliedMode: null,
       showDesktopPanel: sessionStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
@@ -437,8 +442,20 @@ export default {
   watch: {
     playbackMode(newMode, oldMode) {
       if (newMode !== oldMode) {
-        if (oldMode !== undefined) this.showToast();
-        this.setupPlaybackQueue(newMode === 'shuffle');
+        if (oldMode !== undefined) {
+          // can only be "single" via clearPlaybackQueue
+          this.toastType = newMode === 'single' ? 'cleared' : 'mode';
+          this.showToast();
+        }
+        this.$nextTick(() => {
+          this.ensurePlaybackModeApplied();
+        });
+      }
+    },
+    loop(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.toastType = 'loop';
+        this.showToast();
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
@@ -490,20 +507,20 @@ export default {
             match = currIds.every((id, i) => id === queIds.at(i));
           }
           if (match) {
+            const byId = new Map(mediaFiles.map(item => [getId(item), item]));
+            const playbackQueue = queue.map(item => byId.get(getId(item)) || item);
             const currentItemId = getId(this.req);
-            const newIndex = queue.findIndex(item => getId(item) === currentItemId);
-            if (newIndex !== -1 && newIndex !== state.playbackQueue.currentIndex) {
-              mutations.setPlaybackQueue({
-                queue,
-                currentIndex: newIndex,
-                mode,
-              });
-            }
+            const newIndex = playbackQueue.findIndex(item => getId(item) === currentItemId);
+            mutations.setPlaybackQueue({
+              queue: playbackQueue,
+              currentIndex: newIndex !== -1 ? newIndex : state.playbackQueue.currentIndex,
+              mode,
+              loop: this.loop
+            });
             return;
           }
         }
-        // rebuild reshuffle only in shuffle mode
-        this.setupPlaybackQueue(mode === 'shuffle');
+        this.setupPlaybackQueue();
       },
       immediate: true
     },
@@ -599,12 +616,27 @@ export default {
       return state.playbackQueue.currentIndex ?? -1;
     },
     playbackMode() {
-      return state.playbackQueue.mode || 'single';
+      return state.playbackQueue.mode;
+    },
+    loop() {
+      return state.playbackQueue.loop || 'off';
     },
     playbackModeMessage() {
+      if (this.toastType === 'loop') {
+        return getLoopLabel(this.loop, this.$t);
+      }
+      if (this.toastType === 'cleared') {
+        return this.$t('player.queueCleared');
+      }
       return getModeLabel(this.playbackMode, this.$t);
     },
     toastIcon() {
+      if (this.toastType === 'loop') {
+        return getLoopIcon(this.loop);
+      }
+      if (this.toastType === 'cleared') {
+        return 'delete';
+      }
       return getModeIcon(this.playbackMode);
     },
     hasSubtitles() {
@@ -705,10 +737,11 @@ export default {
       ];
       return {
         controls: this.isMobile ? controlsMobile : controlsDesktop,
-        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback'],
+        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'],
         i18n: {
-          playback: 'Playback',
-          captionSize: 'Caption size',
+          playback: this.$t('player.playbackMode'),
+          captionSize: this.$t('player.captionSize'),
+          loop: this.$t('player.loop'),
         },
         speed: {
           selected: 1,
@@ -900,12 +933,15 @@ export default {
         this.player = null;
         this.playbackMenuInitialized = false;
         this.captionSizeMenuInitialized = false;
+        this.loopMenuInitialized = false;
         this.lastAppliedMode = null;
         // Release DOM references
         this.playbackButtons = null;
         this.playbackValueSpan = null;
         this.captionSizeButtons = null;
         this.captionSizeValueSpan = null;
+        this.loopButtons = null;
+        this.loopValueSpan = null;
         if (this.mediaElement) {
           this.mediaElement.removeAttribute('src');
           this.mediaElement.load();
@@ -946,14 +982,16 @@ export default {
         const settingsMenu = this.player.elements.settings?.menu;
         const playbackBtn = this.player.elements.settings?.buttons?.playback;
         const captionSizeBtn = this.player.elements.settings?.buttons?.captionSize;
+        const loopBtn = this.player.elements.settings?.buttons?.loop;
         const menuOpen =
           settingsMenu
           && settingsMenu.style.display !== 'none'
           && settingsMenu.getAttribute('hidden') === null;
         const needPlayback = playbackBtn && !this.playbackMenuInitialized;
         const needCaptionSize = captionSizeBtn && !this.captionSizeMenuInitialized;
+        const needLoop = loopBtn && !this.loopMenuInitialized;
 
-        if (menuOpen || needPlayback || needCaptionSize) {
+        if (menuOpen || needPlayback || needCaptionSize || needLoop) {
           this.applyCustomSettings(this.player);
         }
       } catch (error) {
@@ -1041,12 +1079,13 @@ export default {
         default: return 'Medium';
       }
     },
-    toggleLoop() {
-      const newMode = toggleLoop(this.playbackMode);
+    toggleSingleLoop() {
+      const newLoop = toggleSingleLoop(this.loop);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
-        mode: newMode
+        mode: this.playbackMode,
+        loop: newLoop
       });
     },
     handleKeydown(event) {
@@ -1062,7 +1101,7 @@ export default {
         event.stopPropagation();
         event.preventDefault();
         if (key === 'p') this.cyclePlaybackModes();
-        if (key === 'l') this.toggleLoop();
+        if (key === 'l') this.toggleSingleLoop();
         return;
       }
       // left/right arrows for seek feedback
@@ -1087,11 +1126,10 @@ export default {
       }
     },
     cyclePlaybackModes() {
-      const newMode = cyclePlaybackModes(this.playbackMode);
-      mutations.setPlaybackQueue({
-        queue: this.playbackQueue,
-        currentIndex: this.currentQueueIndex,
-        mode: newMode
+      cyclePlaybackModes(this.playbackMode, {
+        listing: this.listing,
+        currentItem: this.req,
+        isShare: getters.isShare()
       });
     },
     // Seek the player to the given timestamp (in milliseconds)
@@ -2178,8 +2216,8 @@ export default {
     handleMediaEnd() {
       const queue = state.playbackQueue.queue;
       const currentIndex = state.playbackQueue.currentIndex;
-      const mode = state.playbackQueue.mode;
-      const action = getEndOfMediaAction(queue, currentIndex, mode);
+      const loop = state.playbackQueue.loop;
+      const action = getEndOfMediaAction(queue, currentIndex, loop);
       if (action === 'next') {
         navigatePlaybackQueue(1);
       } else if (action === 'restart') {
@@ -2204,17 +2242,18 @@ export default {
         this.player.play();
       }
     },
-    setupPlaybackQueue(forceReshuffle = false) {
+    setupPlaybackQueue() {
       const listing = this.listing;
       if (!listing || !this.req) return;
       const isShare = getters.isShare();
       const currentItem = this.req;
       const mode = state.playbackQueue.mode || 'single';
-      const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, forceReshuffle, isShare);
+      const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, isShare);
       mutations.setPlaybackQueue({
         queue,
         currentIndex,
-        mode
+        mode,
+        loop: this.loop
       });
     },
     // Builds playback and caption menus once, then updates state without rebuilding again.
@@ -2229,7 +2268,7 @@ export default {
         if (playbackBtn && playbackPanel) {
           playbackBtn.removeAttribute('hidden');
           const title = player.config.i18n?.playback || 'Playback';
-          const currentLabel = getModeLabel(this.playbackMode, this.$t);
+          const currentLabel = getModeLabel(this.playbackMode, this.$t, this.queueCount);
 
           if (!this.playbackMenuInitialized) {
             const menu = playbackPanel.querySelector('div[role="menu"]');
@@ -2243,12 +2282,6 @@ export default {
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
                 <span>${getModeLabel('shuffle', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-single">
-                <span>${getModeLabel('loop-single', this.$t)}</span>
-              </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-all">
-                <span>${getModeLabel('loop-all', this.$t)}</span>
-              </button>
             `;
             this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
             // Set initial checked state
@@ -2259,11 +2292,16 @@ export default {
             this.playbackButtons.forEach(btn => {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
-                mutations.setPlaybackQueue({
-                  queue: this.playbackQueue,
-                  currentIndex: this.currentQueueIndex,
-                  mode: value
-                });
+                if (value === 'single') {
+                  clearPlaybackQueue();
+                } else {
+                  cyclePlaybackModes(this.playbackMode, {
+                    listing: this.listing,
+                    currentItem: this.req,
+                    isShare: getters.isShare(),
+                    targetMode: value
+                  });
+                }
                 const newLabel = getModeLabel(value, this.$t);
                 if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
                 this.playbackButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
@@ -2291,7 +2329,70 @@ export default {
             }
           }
         }
+        // --- Loop menu (off, loop all, loop single) ---
+        const loopBtn = player.elements.settings?.buttons?.loop;
+        const loopPanel = player.elements.settings?.panels?.loop;
+        if (loopBtn && loopPanel) {
+          loopBtn.removeAttribute('hidden');
+          const loopTitle = this.$t('player.loop');
+          const currentLoopLabel = getLoopLabel(this.loop, this.$t);
 
+          if (!this.loopMenuInitialized) {
+            const menu = loopPanel.querySelector('div[role="menu"]');
+            menu.innerHTML = `
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="off">
+                <span>${getLoopLabel('off', this.$t)}</span>
+              </button>
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="all">
+                <span>${getLoopLabel('all', this.$t)}</span>
+              </button>
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="single">
+                <span>${getLoopLabel('single', this.$t)}</span>
+              </button>
+            `;
+            this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
+            // Set initial checked state
+            this.loopButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
+            });
+            // Add click listeners
+            this.loopButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
+                const value = event.currentTarget.getAttribute('value');
+                if (value !== this.loop) {
+                  mutations.setPlaybackQueue({
+                    queue: this.playbackQueue,
+                    currentIndex: this.currentQueueIndex,
+                    mode: this.playbackMode,
+                    loop: value
+                  });
+                }
+                const newLabel = getLoopLabel(value, this.$t);
+                if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
+                this.loopButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+              });
+            });
+            const valueSpan = loopBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentLoopLabel;
+              this.loopValueSpan = valueSpan;
+            } else {
+              loopBtn.querySelector('span').innerHTML = `${loopTitle}: <span class="plyr__menu__value">${currentLoopLabel}</span>`;
+              this.loopValueSpan = loopBtn.querySelector('span .plyr__menu__value');
+            }
+            this.loopMenuInitialized = true;
+          } else {
+            // Update checked states and label
+            if (this.loopButtons) {
+              this.loopButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
+              });
+            }
+            if (this.loopValueSpan) {
+              this.loopValueSpan.textContent = currentLoopLabel;
+            }
+          }
+        }
         // --- Caption size menu ---
         if (captionSizeBtn && captionSizePanel) {
           const visible = this.previewType === 'video' && this.hasSubtitles;

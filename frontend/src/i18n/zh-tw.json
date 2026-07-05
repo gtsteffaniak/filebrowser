@@ -80,6 +80,7 @@
     },
     "del": "刪除選取的項目",
     "esc": "清除選取項目或關閉提示視窗",
+    "f4": "重新整理清單和中繼資料",
     "f2": "重新命名檔案",
     "f1": "顯示說明提示",
     "description": "以下列出基本導覽操作。更多資訊請參閱",
@@ -696,7 +697,8 @@
     "allShares": "所有股份",
     "playPause": "播放／暫停",
     "clearSelection": "清除選取項目",
-    "interval": "間隔{suffix}"
+    "interval": "間隔{suffix}",
+    "none": "無"
   },
   "access": {
     "rules": "存取規則",
@@ -726,15 +728,19 @@
     "chars": "{count} 字元"
   },
   "player": {
-    "LoopEnabled": "循環已啟用",
+    "loop": "循環",
+    "captionSize": "字幕大小",
+    "playbackMode": "播放",
+    "clearQueue": "清空佇列",
+    "LoopSingle": "單曲循環",
     "LoopDisabled": "循環已停用",
     "PlayAllOncePlayback": "播放全部一次",
     "ShuffleAllPlayback": "隨機播放全部",
     "PlayAllLoopedPlayback": "循環播放全部",
     "QueueButtonHint": "顯示播放佇列",
     "QueuePlayback": "播放佇列",
-    "changePlaybackMode": "變更播放模式",
     "emptyQueue": "佇列為空",
+    "queueCleared": "佇列已清空",
     "queue": "佇列",
     "lyrics": "歌詞",
     "noLyrics": "沒有可用的歌詞",

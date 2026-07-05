@@ -100,18 +100,17 @@ export const getters = {
     return (
       isMediaView &&
       mode !== 'single' &&
-      mode !== 'loop-single' &&
       queueLength > 1
     );
   },
   playbackQueueCanGoPrevious: () => {
     const queue = state.playbackQueue.queue;
     const currentIndex = state.playbackQueue.currentIndex ?? -1;
-    const mode = state.playbackQueue.mode || 'single';
+    const loop = state.playbackQueue.loop || 'off';
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
-    if (mode === 'sequential' && currentIndex === 0) {
+    if (currentIndex === 0 && loop !== 'all') {
       return false;
     }
     return true;
@@ -119,11 +118,11 @@ export const getters = {
   playbackQueueCanGoNext: () => {
     const queue = state.playbackQueue.queue;
     const currentIndex = state.playbackQueue.currentIndex ?? -1;
-    const mode = state.playbackQueue.mode || 'single';
+    const loop = state.playbackQueue.loop || 'off';
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
-    if (mode === 'sequential' && currentIndex >= queue.length - 1) {
+    if (currentIndex >= queue.length - 1 && loop !== 'all') {
       return false;
     }
     return true;

@@ -668,7 +668,19 @@ export const mutations = {
     state.req = value;
     emitStateChanged();
   },
-  /** Merge media metadata into current directory listing (state.req.items) by file name. */
+  patchListingMetadata: (items, metadataMap, mergeForPath = null) => {
+    if (!items?.length || !metadataMap?.size) {
+      return;
+    }
+    for (const item of items) {
+      if (!metadataMap.has(item.name)) continue;
+      const metadata = metadataMap.get(item.name);
+      item.metadata = item.path === mergeForPath
+        ? { ...metadata, ...item.metadata }
+        : metadata;
+    }
+    emitStateChanged();
+  },
   patchRequestMetadata: (metadataItems) => {
     if (!state.req?.items || !metadataItems?.length) {
       return;
@@ -679,12 +691,7 @@ export const mutations = {
         byName.set(e.name, e.metadata);
       }
     }
-    for (const item of state.req.items) {
-      if (byName.has(item.name)) {
-        item.metadata = byName.get(item.name);
-      }
-    }
-    emitStateChanged();
+    mutations.patchListingMetadata(state.req.items, byName);
   },
   /** Merge media fields from GET /api/media/metadata (single file). Replace req object so Vue watchers see the update. */
   patchRequestFileMediaMetadata: (enriched) => {
@@ -1038,11 +1045,13 @@ export const mutations = {
     state.playbackQueue.queue = playback.queue || [];
     state.playbackQueue.currentIndex = playback.currentIndex ?? -1;
     state.playbackQueue.mode = playback.mode || 'single';
+    state.playbackQueue.loop = playback.loop || 'off';
     try {
       sessionStorage.setItem('playbackQueue', JSON.stringify({
         queue: state.playbackQueue.queue,
         currentIndex: state.playbackQueue.currentIndex,
         mode: state.playbackQueue.mode,
+        loop: state.playbackQueue.loop,
       }));
     } catch (_) { /* ignore */ }
     emitStateChanged();

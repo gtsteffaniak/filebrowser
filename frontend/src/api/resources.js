@@ -6,11 +6,12 @@ import {
   notifyDownloadComplete,
   notifyDownloadError,
 } from '@/utils/appNotifications'
-import { getApiPath, getPublicApiPath } from '@/utils/url.js'
+import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
 import { getObjectProperty } from '@/utils/object'
 import { isMediaFile } from '@/utils/mediaFile'
 import { getStreamURL, getStreamURLPublic } from './media'
+import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
 
 export { fetchPreviewImage } from '@/utils/previewRequests'
 
@@ -132,6 +133,9 @@ export async function bulkDelete(items) {
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     // Both are valid responses that should be returned, not thrown as errors
     if (response.status === 200 || response.status === 207) {
+      items.forEach((item) => {
+        invalidateDirMetadataCache({ source: item.source, path: getParentDir(item.path) })
+      })
       return data
     }
     // For other error status codes, throw an error
@@ -729,6 +733,9 @@ export function post(
     });
 
     promise.xhr = request;
+    promise.then(() => {
+      invalidateDirMetadataCache({ source, path: getParentDir(path) })
+    }).catch(() => { /* upload failed, so do nothing*/ });
     return promise;
   } catch (err) {
     notify.showError(err.message || "Error posting resource");
@@ -781,6 +788,10 @@ export async function moveCopy(
 
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
+      items.forEach((item) => {
+        invalidateDirMetadataCache({ source: item.fromSource, path: getParentDir(item.from) })
+        invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
+      })
       return data
     }
 
@@ -1204,6 +1215,9 @@ export function postPublic(
     });
 
     promise.xhr = request;
+    promise.then(() => {
+      invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(path) })
+    }).catch(() => { /* upload failed so do nothing */ });
     return promise;
   } catch (err) {
     notify.showError(err.message || "Error posting resource");
@@ -1280,6 +1294,9 @@ export async function bulkDeletePublic(items) {
     const data = await response.json()
 
     if (response.status === 200 || response.status === 207) {
+      items.forEach((item) => {
+        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.path) })
+      })
       return data
     }
 
@@ -1336,6 +1353,10 @@ export async function moveCopyPublic(
     const data = await response.json()
 
     if (response.status === 200 || response.status === 207) {
+      items.forEach((item) => {
+        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.from) })
+        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
+      })
       return data
     }
 

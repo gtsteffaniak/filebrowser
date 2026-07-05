@@ -944,8 +944,6 @@
     "PlayAllLoopedPlayback": "Spila Allt í Endurtekningu",
     "QueueButtonHint": "Sýna spilunarröð",
     "QueuePlayback": "Spilunarröð",
-    "changePlaybackMode": "Breyta spilunarmodi",
-    "changePlaybackModeHint": "Breyttu spilunarmoda til að sjá fleiri skrár",
     "emptyQueue": "Röðin er tóm"
   },
   "messages": {

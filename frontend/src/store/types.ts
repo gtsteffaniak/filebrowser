@@ -240,8 +240,9 @@ export interface StoreState {
   playbackQueue: {
     queue: unknown[];
     currentIndex: number;
-    mode: string;
+    mode: 'sequential' | 'shuffle';
     isPlaying: boolean;
+    loop: 'off' | 'all' | 'single';
   };
   notificationHistory: unknown[];
   sidebar: {

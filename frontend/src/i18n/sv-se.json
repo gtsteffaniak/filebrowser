@@ -80,6 +80,7 @@
     },
     "del": "ta bort valda objekt",
     "esc": "Rensa markeringen och/eller stänga prompten",
+    "f4": "uppdatera listan och metadata",
     "f2": "ändra namnet på filen",
     "f1": "visa hjälp prompt",
     "description": "Du kan se de grundläggande navigeringsalternativen nedan. För ytterligare information, vänligen besök",
@@ -696,7 +697,8 @@
     "allShares": "Alla aktier",
     "playPause": "Spela upp/Paus",
     "clearSelection": "Rensa urvalet",
-    "interval": "Intervall{suffix}"
+    "interval": "Intervall{suffix}",
+    "none": "Ingen"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -726,15 +728,19 @@
     "chars": "{count} tecken"
   },
   "player": {
-    "LoopEnabled": "Loop aktiverad",
+    "loop": "Loop",
+    "captionSize": "Textstorlek",
+    "playbackMode": "Uppspelning",
+    "clearQueue": "Rensa kö",
+    "LoopSingle": "Loopa enskild",
     "LoopDisabled": "Loop inaktiverad",
     "PlayAllOncePlayback": "Spela alla en gång",
     "ShuffleAllPlayback": "Blanda alla",
     "PlayAllLoopedPlayback": "Spela alla i loop",
     "QueueButtonHint": "Visa uppspelningskö",
     "QueuePlayback": "Uppspelningskö",
-    "changePlaybackMode": "Ändra uppspelningsläge",
     "emptyQueue": "Kön är tom",
+    "queueCleared": "Kön rensad",
     "queue": "Kö",
     "lyrics": "Text",
     "noLyrics": "Ingen text tillgänglig",

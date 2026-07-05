@@ -171,7 +171,8 @@
     "allShares": "Alle aandelen",
     "playPause": "Afspelen/Pauzeren",
     "clearSelection": "Selectie wissen",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "Geen"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -254,6 +255,7 @@
     },
     "del": "geselecteerde items verwijderen",
     "esc": "selectie wissen en/of opdrachtvenster sluiten",
+    "f4": "de lijst en metadata vernieuwen",
     "f2": "bestand hernoemen",
     "f1": "hulp-venster weergeven",
     "slash": "Zoeken inschakelen",
@@ -735,15 +737,19 @@
     "chars": "{count} tekens"
   },
   "player": {
-    "LoopEnabled": "Herhaling ingeschakeld",
+    "loop": "Herhalen",
+    "captionSize": "Ondertitelingsgrootte",
+    "playbackMode": "Afspelen",
+    "clearQueue": "Wachtrij leegmaken",
+    "LoopSingle": "Enkelvoudig herhalen",
     "LoopDisabled": "Herhaling uitgeschakeld",
     "PlayAllOncePlayback": "Alles eenmaal afspelen",
     "ShuffleAllPlayback": "Alles willekeurig afspelen",
     "PlayAllLoopedPlayback": "Alles herhaald afspelen",
     "QueueButtonHint": "Afspeellijst weergeven",
     "QueuePlayback": "Afspeellijst",
-    "changePlaybackMode": "Afspeelmodus wijzigen",
     "emptyQueue": "Wachtrij is leeg",
+    "queueCleared": "Wachtrij gewist",
     "queue": "Wachtrij",
     "lyrics": "Songtekst",
     "noLyrics": "Geen songtekst beschikbaar",

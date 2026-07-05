@@ -80,6 +80,7 @@
     },
     "del": "verwijder geselecteerde items",
     "esc": "Wis selectie en/of sluit de prompt",
+    "f4": "de lijst en metadata vernieuwen",
     "f2": "bestand herbenoemen",
     "f1": "help prompt tonen",
     "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
@@ -696,7 +697,8 @@
     "allShares": "Alle aandelen",
     "playPause": "Afspelen/Pauzeren",
     "clearSelection": "Selectie wissen",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "Geen"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -726,15 +728,19 @@
     "chars": "{count} tekens"
   },
   "player": {
-    "LoopEnabled": "Herhaling ingeschakeld",
+    "loop": "Herhalen",
+    "captionSize": "Ondertitelingsgrootte",
+    "playbackMode": "Afspelen",
+    "clearQueue": "Wachtrij leegmaken",
+    "LoopSingle": "Enkelvoudig herhalen",
     "LoopDisabled": "Herhaling uitgeschakeld",
     "PlayAllOncePlayback": "Alles eenmaal afspelen",
     "ShuffleAllPlayback": "Alles willekeurig afspelen",
     "PlayAllLoopedPlayback": "Alles herhaald afspelen",
     "QueueButtonHint": "Toon afspeellijst",
     "QueuePlayback": "Afspeellijst",
-    "changePlaybackMode": "Afspeelmodus wijzigen",
     "emptyQueue": "Wachtrij is leeg",
+    "queueCleared": "Wachtrij gewist",
     "queue": "Wachtrij",
     "lyrics": "Songtekst",
     "noLyrics": "Geen songtekst beschikbaar",

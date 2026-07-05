@@ -2,6 +2,7 @@ import { notify } from "@/notify";
 import { state } from "@/store";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { adjustedData, fetchURL } from "./utils";
+import { getCachedDirMetadata, setCachedDirMetadata } from "@/utils/metadataCache.js";
 
 // GET /api/media/subtitles
 export async function getSubtitleContent(source, path, subtitleName, embedded = false) {
@@ -100,6 +101,31 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
   }
   const data = await response.json();
   return adjustedData(data);
+}
+
+/**
+ * Fetches media metadata, and caches it by directory, shared for all the callers to avoid unnecessary requests.
+ * @param {string} path - directory path
+ * @param {{isShare?: boolean, source?: string, hash?: string, password?: string, albumArt?: boolean}} opts
+ * @returns {Promise<Map<string, object>>}
+ */
+export async function getDirectoryMetadataMap(path, opts = {}) {
+  const { isShare = false, source, hash, password = "", albumArt = false } = opts;
+  const cacheOpts = { isShare, source, hash, path, albumArt };
+  const cached = getCachedDirMetadata(cacheOpts);
+  if (cached !== null) {
+    return cached;
+  }
+  const promise = (async () => {
+    const payload = isShare
+      ? await fetchDirectoryMediaMetadataPublic(path, hash, password, albumArt)
+      : await fetchDirectoryMediaMetadata(source, path, albumArt);
+    return new Map(
+      (payload?.items || []).filter((i) => i.metadata).map((i) => [i.name, i.metadata])
+    );
+  })();
+  setCachedDirMetadata(cacheOpts, promise);
+  return promise;
 }
 
 // GET /api/media/stream — audio/video bytes via viewToken (range-based, not download-metered).

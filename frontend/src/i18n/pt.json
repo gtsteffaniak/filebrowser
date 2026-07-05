@@ -80,6 +80,7 @@
     },
     "del": "eliminar os ficheiros selecionados",
     "esc": "limpar seleção e/ou fechar menu",
+    "f4": "atualizar a lista e os metadados",
     "f2": "alterar nome do ficheiro",
     "f1": "mostrar prompt de ajuda",
     "description": "Pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",
@@ -696,7 +697,8 @@
     "allShares": "Todas as ações",
     "playPause": "Reproduzir/Pausar",
     "clearSelection": "Limpar seleção",
-    "interval": "Intervalo{suffix}"
+    "interval": "Intervalo{suffix}",
+    "none": "Nenhum"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -726,15 +728,19 @@
     "chars": "{count} caracteres"
   },
   "player": {
-    "LoopEnabled": "Repetição ativada",
+    "loop": "Repetir",
+    "captionSize": "Tamanho da legenda",
+    "playbackMode": "Reprodução",
+    "clearQueue": "Limpar fila",
+    "LoopSingle": "Repetir único",
     "LoopDisabled": "Repetição desativada",
     "PlayAllOncePlayback": "Reproduzir tudo uma vez",
     "ShuffleAllPlayback": "Reprodução aleatória de tudo",
     "PlayAllLoopedPlayback": "Reproduzir tudo em repetição",
     "QueueButtonHint": "Mostrar fila de reprodução",
     "QueuePlayback": "Fila de Reprodução",
-    "changePlaybackMode": "Alterar modo de reprodução",
     "emptyQueue": "A fila está vazia",
+    "queueCleared": "Fila limpa",
     "queue": "Fila",
     "lyrics": "Letra",
     "noLyrics": "Letra não disponível",

@@ -30,6 +30,7 @@ import { extractSourceFromPath } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
+import { invalidateDirMetadataCache } from "@/utils/metadataCache.js";
 
 function directoryListingHasMediaChildren(req) {
   return (
@@ -258,21 +259,39 @@ export default {
         });
       }
     },
-    async patchMediaMetadataIfNeeded(listing, fetchMedia) {
-      if (directoryListingHasMediaChildren(listing)) {
-        this.loadingProgress = 90;
-        try {
-          const payload = await fetchMedia();
-          if (payload?.items?.length) {
-            mutations.patchRequestMetadata(payload.items);
-          }
-          this.loadingProgress = 100;
-        } catch {
-          this.loadingProgress = 0;
-        }
+    async patchMediaMetadataIfNeeded(listing, source) {
+      if (!directoryListingHasMediaChildren(listing)) {
+        this.loadingProgress = 100;
         return;
       }
-      this.loadingProgress = 100;
+      this.loadingProgress = 90;
+      const path = listing.path;
+      const currentSource = listing.source ?? source;
+      const currentHash = state.shareInfo?.hash;
+      const isShare = getters.isShare();
+      const isCurrentListing = () => isShare
+        ? getters.isShare() && state.shareInfo?.hash === currentHash && state.req?.path === path
+        : !getters.isShare() && state.req?.source === currentSource && state.req?.path === path;
+      try {
+        const metaMap = isShare
+          ? await mediaApi.getDirectoryMetadataMap(state.shareInfo.subPath, {
+              isShare: true,
+              hash: state.shareInfo.hash,
+              password: this.sharePassword,
+            })
+          : await mediaApi.getDirectoryMetadataMap(path, { source });
+        if (!isCurrentListing()) {
+          return;
+        }
+        if (state.req.items) {
+          mutations.patchListingMetadata(state.req.items, metaMap);
+        }
+        this.loadingProgress = 100;
+      } catch {
+        if (isCurrentListing()) {
+          this.loadingProgress = 0;
+        }
+      }
     },
 
     async fetchData() {
@@ -421,13 +440,7 @@ export default {
           const file = await fetchShareItemWithParent(this.sharePassword);
           mutations.replaceRequest(file);
           document.title = `${globalVars.name} - ${this.$t("general.share")} - ${file.name}`;
-          await this.patchMediaMetadataIfNeeded(file, () =>
-            mediaApi.fetchDirectoryMediaMetadataPublic(
-              state.shareInfo.subPath,
-              state.shareInfo.hash,
-              this.sharePassword
-            )
-          );
+          await this.patchMediaMetadataIfNeeded(file);
         }
 
         // === FILES-SPECIFIC INITIALIZATION ===
@@ -479,9 +492,7 @@ export default {
           document.title = `${globalVars.name} - ${this.$t("general.files")} - ${res.name}`;
           mutations.replaceRequest(res);
           mutations.setLoading("files", false);
-          await this.patchMediaMetadataIfNeeded(res, () =>
-            mediaApi.fetchDirectoryMediaMetadata(fetchSource, fetchPath)
-          );
+          await this.patchMediaMetadataIfNeeded(res, fetchSource);
         }
 
       } catch (e) {
@@ -578,6 +589,13 @@ export default {
             mutations.showPrompt({ name: "rename", props: { item, parentItems: [] } });
           }
         }
+      }
+      // F4! - refresh the listing with its metadata
+      if (event.key === "F4" && !event.ctrlKey && !event.metaKey && !event.repeat) {
+        if (getters.currentPromptName() || getters.currentView() !== 'listingView') return;
+        event.preventDefault();
+        invalidateDirMetadataCache();
+        mutations.setReload(true);
       }
       // CTRL+E - switch between editor and markdown viewer
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e') {

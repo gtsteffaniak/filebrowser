@@ -80,6 +80,7 @@
     },
     "del": "선택된 파일 삭제",
     "esc": "선택 취소/프롬프트 닫기",
+    "f4": "목록 및 메타데이터 새로고침",
     "f2": "파일 이름 변경",
     "f1": "도움말 프롬프트 표시",
     "description": "아래에서 기본 탐색 옵션을 확인할 수 있습니다. 자세한 내용은 다음을 참조하세요.",
@@ -602,7 +603,8 @@
     "allShares": "모든 주식",
     "playPause": "재생/일시정지",
     "clearSelection": "선택 항목 지우기",
-    "interval": "간격{suffix}"
+    "interval": "간격{suffix}",
+    "none": "없음"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -726,15 +728,19 @@
     "chars": "{count} 문자"
   },
   "player": {
-    "LoopEnabled": "반복 활성화",
+    "loop": "반복",
+    "captionSize": "캡션 크기",
+    "playbackMode": "재생",
+    "clearQueue": "대기열 지우기",
+    "LoopSingle": "단일 반복",
     "LoopDisabled": "반복 비활성화",
     "PlayAllOncePlayback": "모두 한 번 재생",
     "ShuffleAllPlayback": "모두 셔플 재생",
     "PlayAllLoopedPlayback": "모두 반복 재생",
     "QueueButtonHint": "재생 대기열 표시",
     "QueuePlayback": "재생 대기열",
-    "changePlaybackMode": "재생 모드 변경",
     "emptyQueue": "대기열이 비어 있습니다",
+    "queueCleared": "대기열이 지워졌습니다",
     "queue": "대기열",
     "lyrics": "가사",
     "noLyrics": "사용 가능한 가사 없음",

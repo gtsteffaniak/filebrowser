@@ -80,6 +80,7 @@
     },
     "del": "kijelölt elemek törlése",
     "esc": "kijelölés törlése és/vagy parancssor bezárása",
+    "f4": "lista és metaadatok frissítése",
     "f2": "fájl átnevezése",
     "f1": "show help prompt",
     "description": "Az alábbiakban megtekintheti az alapvető navigációs lehetőségeket. További információkért kérjük, látogasson el a következő weboldalra",
@@ -602,7 +603,8 @@
     "allShares": "Minden részvény",
     "playPause": "Lejátszás/Szünet",
     "clearSelection": "Kiválasztás törlése",
-    "interval": "Intervallum{suffix}"
+    "interval": "Intervallum{suffix}",
+    "none": "Nincs"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -726,15 +728,19 @@
     "chars": "{count} karakter"
   },
   "player": {
-    "LoopEnabled": "Hurok engedélyezve",
+    "loop": "Ismétlés",
+    "captionSize": "Felirat mérete",
+    "playbackMode": "Lejátszás",
+    "clearQueue": "Sor ürítése",
+    "LoopSingle": "Egyes ismétlés",
     "LoopDisabled": "Hurok letiltva",
     "PlayAllOncePlayback": "Összes lejátszása egyszer",
     "ShuffleAllPlayback": "Összes keverése",
     "PlayAllLoopedPlayback": "Összes lejátszása hurkokban",
     "QueueButtonHint": "Lejátszási sor megjelenítése",
     "QueuePlayback": "Lejátszási Sor",
-    "changePlaybackMode": "Lejátszási mód változtatása",
     "emptyQueue": "A sor üres",
+    "queueCleared": "Sor ürítve",
     "queue": "Sor",
     "lyrics": "Dalszöveg",
     "noLyrics": "Nincs elérhető dalszöveg",

@@ -80,6 +80,7 @@
     },
     "del": "supprimer les éléments sélectionnés",
     "esc": "désélectionner et/ou fermer la boîte de dialogue",
+    "f4": "actualiser la liste et les métadonnées",
     "f2": "renommer le fichier",
     "f1": "afficher l'aide",
     "description": "Vous pouvez consulter les options de navigation de base ci-dessous. Pour plus d'informations, veuillez consulter le site",
@@ -602,7 +603,8 @@
     "allShares": "Toutes les actions",
     "playPause": "Lecture/Pause",
     "clearSelection": "Effacer la sélection",
-    "interval": "Intervalle{suffix}"
+    "interval": "Intervalle{suffix}",
+    "none": "Aucun"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -726,15 +728,19 @@
     "chars": "{count} caractères"
   },
   "player": {
-    "LoopEnabled": "Boucle activée",
+    "loop": "Répéter",
+    "captionSize": "Taille des sous-titres",
+    "playbackMode": "Lecture",
+    "clearQueue": "Vider la file d'attente",
+    "LoopSingle": "Boucle unique",
     "LoopDisabled": "Boucle désactivée",
     "PlayAllOncePlayback": "Lire tout une fois",
     "ShuffleAllPlayback": "Lecture aléatoire de tout",
     "PlayAllLoopedPlayback": "Lire tout en boucle",
     "QueueButtonHint": "Afficher la file de lecture",
     "QueuePlayback": "File de Lecture",
-    "changePlaybackMode": "Changer le mode de lecture",
     "emptyQueue": "La file est vide",
+    "queueCleared": "File d'attente vidée",
     "queue": "File d'attente",
     "lyrics": "Paroles",
     "noLyrics": "Pas de paroles disponibles",

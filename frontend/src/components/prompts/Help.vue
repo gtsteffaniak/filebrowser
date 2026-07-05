@@ -20,6 +20,10 @@
           <span>{{ $t("help.f2") }}</span>
         </div>
         <div class="shortcut-item">
+          <kbd>F4</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.f4") }}</span>
+        </div>
+        <div class="shortcut-item">
           <kbd>DEL</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.del") }}</span>
         </div>

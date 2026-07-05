@@ -80,6 +80,7 @@
     },
     "del": "删除所选的文件/文件夹",
     "esc": "清除已选项或关闭提示信息",
+    "f4": "刷新列表和元数据",
     "f2": "重命名文件/文件夹",
     "f1": "显示帮助提示",
     "description": "您可以查看下面的基本导航选项。有关其他信息，请访问",
@@ -696,7 +697,8 @@
     "allShares": "所有股份",
     "playPause": "播放/暂停",
     "clearSelection": "清除选择",
-    "interval": "间隔{suffix}"
+    "interval": "间隔{suffix}",
+    "none": "无"
   },
   "access": {
     "rules": "访问规则",
@@ -726,15 +728,19 @@
     "chars": "{count} 字符"
   },
   "player": {
-    "LoopEnabled": "循环已启用",
+    "loop": "循环",
+    "captionSize": "字幕大小",
+    "playbackMode": "播放",
+    "clearQueue": "清空队列",
+    "LoopSingle": "单曲循环",
     "LoopDisabled": "循环已禁用",
     "PlayAllOncePlayback": "播放全部一次",
     "ShuffleAllPlayback": "随机播放全部",
     "PlayAllLoopedPlayback": "循环播放全部",
     "QueueButtonHint": "显示播放队列",
     "QueuePlayback": "播放队列",
-    "changePlaybackMode": "更改播放模式",
     "emptyQueue": "队列为空",
+    "queueCleared": "队列已清空",
     "queue": "队列",
     "lyrics": "歌词",
     "noLyrics": "没有可用的歌词",

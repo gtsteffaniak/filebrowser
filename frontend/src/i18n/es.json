@@ -80,6 +80,7 @@
     },
     "del": "Eliminar elementos seleccionados",
     "esc": "Cancela la selección o cierra el archivo actual",
+    "f4": "actualizar las listas y metadata",
     "f2": "Cambiar nombre del archivo o carpeta",
     "f1": "Abrir ventana de ayuda",
     "description": "Aquí puedes ver todos los atajos de teclado básicos. Si quieres saber más, visita la",
@@ -602,7 +603,8 @@
     "allShares": "Todos los enlaces",
     "playPause": "Reproducir/Pausar",
     "clearSelection": "Borrar selección",
-    "interval": "Intervalo{suffix}"
+    "interval": "Intervalo{suffix}",
+    "none": "Ninguno"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -726,15 +728,19 @@
     "chars": "{count} caracteres"
   },
   "player": {
-    "LoopEnabled": "Bucle activado",
+    "loop": "Bucle",
+    "captionSize": "Tamaño de subtítulos",
+    "playbackMode": "Reproducción",
+    "clearQueue": "Vaciar cola",
+    "LoopSingle": "Repetir uno",
     "LoopDisabled": "Bucle desactivado",
     "PlayAllOncePlayback": "Reproducir todo una vez",
     "ShuffleAllPlayback": "Reproducción aleatoria",
     "PlayAllLoopedPlayback": "Reproducir todo en bucle",
     "QueueButtonHint": "Mostrar cola de Reproducción",
     "QueuePlayback": "Cola de Reproducción",
-    "changePlaybackMode": "Cambiar modo de Reproducción",
     "emptyQueue": "La cola de reproducción está vacia...",
+    "queueCleared": "Cola vaciada",
     "queue": "Cola",
     "lyrics": "Letra",
     "noLyrics": "No hay letra disponible",

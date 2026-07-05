@@ -80,6 +80,7 @@
     },
     "del": "seçilileri sil",
     "esc": "seçimi temizle veya kapatın",
+    "f4": "listeyi ve meta verileri yenile",
     "f2": "dosyayı yeniden adlandır",
     "f1": "yardım istemini göster",
     "description": "Temel navigasyon seçeneklerini aşağıda görüntüleyebilirsiniz. Ek bilgi için lütfen şu adresi ziyaret edin",
@@ -602,7 +603,8 @@
     "allShares": "Tüm hisseler",
     "playPause": "Oynat/Duraklat",
     "clearSelection": "Seçimi temizle",
-    "interval": "Aralık{suffix}"
+    "interval": "Aralık{suffix}",
+    "none": "Hiçbiri"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -726,15 +728,19 @@
     "chars": "{count} karakter"
   },
   "player": {
-    "LoopEnabled": "Döngü Etkin",
+    "loop": "Döngü",
+    "captionSize": "Altyazı boyutu",
+    "playbackMode": "Oynatma",
+    "clearQueue": "Kuyruğu Temizle",
+    "LoopSingle": "Tekli döngü",
     "LoopDisabled": "Döngü Devre Dışı",
     "PlayAllOncePlayback": "Tümünü Bir Kez Oynat",
     "ShuffleAllPlayback": "Tümünü Karıştır",
     "PlayAllLoopedPlayback": "Tümünü Döngüde Oynat",
     "QueueButtonHint": "Oynatma kuyruğunu göster",
     "QueuePlayback": "Oynatma Kuyruğu",
-    "changePlaybackMode": "Oynatma modunu değiştir",
     "emptyQueue": "Kuyruk boş",
+    "queueCleared": "Kuyruk temizlendi",
     "queue": "Kuyruk",
     "lyrics": "Şarkı sözü",
     "noLyrics": "Şarkı sözü mevcut değil",

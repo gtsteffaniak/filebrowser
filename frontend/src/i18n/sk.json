@@ -80,6 +80,7 @@
     },
     "del": "odstráni vybraté položky",
     "esc": "zruší výber a/alebo zavrie okno",
+    "f4": "obnoviť zoznam a metadáta",
     "f2": "premenuje súbor",
     "f1": "zobraziť výzvu na pomoc",
     "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
@@ -602,7 +603,8 @@
     "allShares": "Všetky akcie",
     "playPause": "Prehrávať/Pozastaviť",
     "clearSelection": "Vymazať výber",
-    "interval": "Interval{suffix}"
+    "interval": "Interval{suffix}",
+    "none": "Žiadne"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -726,15 +728,19 @@
     "chars": "{count} znakov"
   },
   "player": {
-    "LoopEnabled": "Slučka povolená",
+    "loop": "Slučka",
+    "captionSize": "Veľkosť titulkov",
+    "playbackMode": "Prehrávanie",
+    "clearQueue": "Vyčistiť front",
+    "LoopSingle": "Opakovať jednotlivo",
     "LoopDisabled": "Slučka zakázaná",
     "PlayAllOncePlayback": "Prehrať všetko raz",
     "ShuffleAllPlayback": "Náhodné prehrávanie všetkého",
     "PlayAllLoopedPlayback": "Prehrať všetko v slučke",
     "QueueButtonHint": "Zobraziť front prehrávania",
     "QueuePlayback": "Front Prehrávania",
-    "changePlaybackMode": "Zmeniť režim prehrávania",
     "emptyQueue": "Front je prázdny",
+    "queueCleared": "Front vyčistený",
     "queue": "Front",
     "lyrics": "Text piesne",
     "noLyrics": "Text nie je k dispozícii",
