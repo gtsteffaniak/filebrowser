@@ -224,14 +224,14 @@ function eventTheme() {
  * @returns {Object} The playback queue state
  *   @property {Array}  queue          - Array of media items
  *   @property {number} currentIndex   - Index of the currently playing item, or -1
- *   @property {string} mode           - 'single' | 'sequential' | 'shuffle' | 'loop-single' | 'loop-all'
+ *   @property {string} mode           - 'single' | 'sequential' | 'shuffle'
  *   @property {boolean} isPlaying     - False on load
- *   @property {boolean} loop          - Loop current item
+ *   @property {string} loop           - 'off' | 'all' | 'single'
  */
 function loadPlaybackQueue() {
   try {
     const storedQueue = localStorage.getItem('playbackQueue');
-    if (!storedQueue) return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: false };
+    if (!storedQueue) return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
     const playback = JSON.parse(storedQueue);
     if (Array.isArray(playback.queue) && typeof playback.currentIndex === 'number' && typeof playback.mode === 'string') {
       return {
@@ -239,9 +239,9 @@ function loadPlaybackQueue() {
         currentIndex: playback.currentIndex,
         mode: playback.mode,
         isPlaying: false,
-        loop: playback.loop || false,
+        loop: playback.loop || 'off',
       };
     }
   } catch (_) { /* ignore */ }
-  return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: false };
+  return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
 }

@@ -5,14 +5,14 @@
       <div class="mode-info">
         <i class="material-symbols">{{ currentModeIcon }}</i>
         <span>{{ currentModeLabel }}</span>
-        <span v-if="loop" class="loop-badge">
+        <span v-if="loop !== 'off'" class="loop-badge">
           <i class="material-symbols">{{ loopIcon }}</i>
           <span class="loop-label">{{ loopLabel }}</span>
         </span>
       </div>
       <!-- Clear queue button -->
       <button
-        v-if="queueCount > 0"
+        v-if="queueCount > 1"
         class="clear-queue-btn"
         @click="clearQueue"
         :title="$t('player.clearQueue')"
@@ -104,30 +104,17 @@
       <label for="mode-shuffle" class="mode-btn" :class="{ active: playbackMode === 'shuffle' }" :title="$t('player.ShuffleAllPlayback')">
         <i class="material-symbols">shuffle</i>
       </label>
-      <input
-        type="radio"
-        id="mode-loop-all"
-        name="playback-mode"
-        value="loop-all"
-        :checked="playbackMode === 'loop-all'"
-        @change="setMode('loop-all')"
-        hidden
-      />
-      <label for="mode-loop-all" class="mode-btn" :class="{ active: playbackMode === 'loop-all' }" :title="$t('player.PlayAllLoopedPlayback')">
-        <i class="material-symbols">repeat</i>
-      </label>
     </div>
-    <input
-      type="checkbox"
-      id="repeat-one"
-      :checked="loop"
-      @change="toggleLoop"
-      hidden
-    />
-    <label for="repeat-one" class="repeat-one-btn" :class="{ active: loop }" :title="loop ? $t('player.LoopEnabled') : $t('player.LoopDisabled')">
-      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-      <i class="material-symbols">{{ loop ? 'repeat_one' : 'repeat' }}</i>
-    </label>
+    <button
+      type="button"
+      class="repeat-one-btn"
+      :class="{ active: loop !== 'off' }"
+      @click="cycleLoop"
+      :title="loopLabel"
+      :aria-label="loopLabel"
+    >
+      <i class="material-symbols">{{ loopIcon }}</i>
+    </button>
   </div>
 </template>
 
@@ -136,9 +123,13 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import {
   cyclePlaybackModes,
-  toggleLoop,
+  cycleLoopState,
+  toggleSingleLoop,
+  clearPlaybackQueue,
   getModeLabel,
   getModeIcon,
+  getLoopLabel,
+  getLoopIcon,
   formatArtist
 } from '@/utils/playbackQueue.js';
 import Icon from "@/components/files/Icon.vue";
@@ -170,7 +161,7 @@ export default {
       return state.playbackQueue.mode || 'single';
     },
     loop() {
-      return state.playbackQueue.loop || false;
+      return state.playbackQueue.loop || 'off';
     },
     queueCount() {
       return this.playbackQueue.length;
@@ -182,10 +173,10 @@ export default {
       return getModeIcon(this.playbackMode);
     },
     loopIcon() {
-      return getModeIcon('loop-single');
+      return getLoopIcon(this.loop);
     },
     loopLabel() {
-      return getModeLabel('loop-single', this.$t);
+      return getLoopLabel(this.loop, this.$t);
     },
     formattedQueue() {
       return this.playbackQueue.map((item) => {
@@ -233,7 +224,7 @@ export default {
       return state.prompts.some(prompt => prompt.name === 'PlaybackQueue');
     },
     modeIndicatorStyle() {
-      const modes = ['sequential', 'shuffle', 'loop-all'];
+      const modes = ['sequential', 'shuffle'];
       const index = modes.indexOf(this.playbackMode);
       if (index === -1) return {};
       const width = `${100 / modes.length}%`;
@@ -300,8 +291,8 @@ export default {
       });
       this.updatePromptTitle();
     },
-    toggleLoop() {
-      const loop = toggleLoop(this.loop);
+    cycleLoop() {
+      const loop = this.queueCount <= 1 ? toggleSingleLoop(this.loop) : cycleLoopState(this.loop);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
@@ -310,12 +301,7 @@ export default {
       });
     },
     clearQueue() {
-      mutations.setPlaybackQueue({
-        queue: [],
-        currentIndex: -1,
-        mode: 'single',
-        loop: this.loop
-      });
+      clearPlaybackQueue();
       this.updatePromptTitle();
     },
     navigateToItem(index) {

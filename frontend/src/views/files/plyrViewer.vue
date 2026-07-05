@@ -257,7 +257,7 @@
 
       <!-- Status indicator for loop -->
       <span v-if="toastType === 'loop'" :class="[
-          'status-indicator', loop ? 'status-on' : 'status-off',]"></span>
+          'status-indicator', loop !== 'off' ? 'status-on' : 'status-off',]"></span>
     </div>
     <!-- Speed toast (long-press) -->
     <div v-if="speedToastVisible" class="playback-toast visible">
@@ -274,9 +274,12 @@ import {
   navigatePlaybackQueue,
   getEndOfMediaAction,
   cyclePlaybackModes,
-  toggleLoop,
+  toggleSingleLoop,
+  clearPlaybackQueue,
   getModeLabel,
   getModeIcon,
+  getLoopLabel,
+  getLoopIcon,
   formatArtist
 } from '@/utils/playbackQueue.js';
 import { getTypeFromMime } from '@/utils/files.js';
@@ -440,7 +443,8 @@ export default {
     playbackMode(newMode, oldMode) {
       if (newMode !== oldMode) {
         if (oldMode !== undefined) {
-          this.toastType = 'mode';
+          // can only be "single" via clearPlaybackQueue
+          this.toastType = newMode === 'single' ? 'cleared' : 'mode';
           this.showToast();
         }
         this.$nextTick(() => {
@@ -615,17 +619,23 @@ export default {
       return state.playbackQueue.mode;
     },
     loop() {
-      return state.playbackQueue.loop || false;
+      return state.playbackQueue.loop || 'off';
     },
     playbackModeMessage() {
       if (this.toastType === 'loop') {
-        return getModeLabel(this.loop ? 'loop-single' : 'single', this.$t);
+        return getLoopLabel(this.loop, this.$t);
+      }
+      if (this.toastType === 'cleared') {
+        return this.$t('player.queueCleared');
       }
       return getModeLabel(this.playbackMode, this.$t);
     },
     toastIcon() {
       if (this.toastType === 'loop') {
-        return getModeIcon(this.loop ? 'loop-single' : 'single');
+        return getLoopIcon(this.loop);
+      }
+      if (this.toastType === 'cleared') {
+        return 'delete';
       }
       return getModeIcon(this.playbackMode);
     },
@@ -1069,13 +1079,13 @@ export default {
         default: return 'Medium';
       }
     },
-    toggleLoop() {
-      const newMode = toggleLoop(this.loop);
+    toggleSingleLoop() {
+      const newLoop = toggleSingleLoop(this.loop);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
         mode: this.playbackMode,
-        loop: newMode
+        loop: newLoop
       });
     },
     handleKeydown(event) {
@@ -1091,7 +1101,7 @@ export default {
         event.stopPropagation();
         event.preventDefault();
         if (key === 'p') this.cyclePlaybackModes();
-        if (key === 'l') this.toggleLoop();
+        if (key === 'l') this.toggleSingleLoop();
         return;
       }
       // left/right arrows for seek feedback
@@ -2206,8 +2216,8 @@ export default {
     handleMediaEnd() {
       const queue = state.playbackQueue.queue;
       const currentIndex = state.playbackQueue.currentIndex;
-      const mode = state.playbackQueue.mode;
-      const action = getEndOfMediaAction(queue, currentIndex, mode);
+      const loop = state.playbackQueue.loop;
+      const action = getEndOfMediaAction(queue, currentIndex, loop);
       if (action === 'next') {
         navigatePlaybackQueue(1);
       } else if (action === 'restart') {
@@ -2263,14 +2273,14 @@ export default {
           if (!this.playbackMenuInitialized) {
             const menu = playbackPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="single">
+                <span>${getModeLabel('single', this.$t)}</span>
+              </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="sequential">
                 <span>${getModeLabel('sequential', this.$t)}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
                 <span>${getModeLabel('shuffle', this.$t)}</span>
-              </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="loop-all">
-                <span>${getModeLabel('loop-all', this.$t)}</span>
               </button>
             `;
             this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
@@ -2282,12 +2292,16 @@ export default {
             this.playbackButtons.forEach(btn => {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
-                cyclePlaybackModes(this.playbackMode, {
-                  listing: this.listing,
-                  currentItem: this.req,
-                  isShare: getters.isShare(),
-                  targetMode: value
-                });
+                if (value === 'single') {
+                  clearPlaybackQueue();
+                } else {
+                  cyclePlaybackModes(this.playbackMode, {
+                    listing: this.listing,
+                    currentItem: this.req,
+                    isShare: getters.isShare(),
+                    targetMode: value
+                  });
+                }
                 const newLabel = getModeLabel(value, this.$t);
                 if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
                 this.playbackButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
@@ -2315,44 +2329,45 @@ export default {
             }
           }
         }
-        // --- Loop menu ---
+        // --- Loop menu (off, loop all, loop single) ---
         const loopBtn = player.elements.settings?.buttons?.loop;
         const loopPanel = player.elements.settings?.panels?.loop;
         if (loopBtn && loopPanel) {
           loopBtn.removeAttribute('hidden');
           const loopTitle = this.$t('player.loop');
-          const currentLoopMode = this.loop ? 'loop-single' : 'single';
-          const currentLoopLabel = getModeLabel(currentLoopMode, this.$t);
+          const currentLoopLabel = getLoopLabel(this.loop, this.$t);
 
           if (!this.loopMenuInitialized) {
             const menu = loopPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
-              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="single">
-                <span>${getModeLabel('single', this.$t)}</span>
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="off">
+                <span>${getLoopLabel('off', this.$t)}</span>
               </button>
-              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="loop-single">
-                <span>${getModeLabel('loop-single', this.$t)}</span>
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="all">
+                <span>${getLoopLabel('all', this.$t)}</span>
+              </button>
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="single">
+                <span>${getLoopLabel('single', this.$t)}</span>
               </button>
             `;
             this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
             // Set initial checked state
             this.loopButtons.forEach(btn => {
-              btn.setAttribute('aria-checked', btn.getAttribute('value') === currentLoopMode);
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
             });
             // Add click listeners
             this.loopButtons.forEach(btn => {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
-                const newLoop = value === 'loop-single';
-                if (newLoop !== this.loop) {
+                if (value !== this.loop) {
                   mutations.setPlaybackQueue({
                     queue: this.playbackQueue,
                     currentIndex: this.currentQueueIndex,
                     mode: this.playbackMode,
-                    loop: newLoop
+                    loop: value
                   });
                 }
-                const newLabel = getModeLabel(value, this.$t);
+                const newLabel = getLoopLabel(value, this.$t);
                 if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
                 this.loopButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
               });
@@ -2370,7 +2385,7 @@ export default {
             // Update checked states and label
             if (this.loopButtons) {
               this.loopButtons.forEach(btn => {
-                btn.setAttribute('aria-checked', btn.getAttribute('value') === currentLoopMode);
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
               });
             }
             if (this.loopValueSpan) {
