@@ -150,6 +150,50 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 // @Param auth query string false "JWT token"
 // @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
+// sloHandler clears the auth cookie for cross-app single-logout. acorn.tools loads
+// this endpoint in a hidden iframe when the user logs out of the hub. No auth is
+// required (the iframe won't carry a valid token); it simply deletes the cookie and
+// returns 204. Two login paths set the cookie with different Path/Domain, so we emit
+// a deletion for each (Name+Path+Domain identify a cookie for deletion).
+func sloHandler(w http.ResponseWriter, r *http.Request, _ *requestContext) (int, error) {
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
+	cookieHost, _, err := net.SplitHostPort(host)
+	if err != nil {
+		cookieHost = host // no port present
+	}
+	secure := getScheme(r) == "https"
+
+	// Password/proxy login sets Path=/, Domain=host, SameSite=Strict.
+	http.SetCookie(w, &http.Cookie{
+		Name:     "filebrowser_quantum_jwt",
+		Value:    "",
+		Domain:   cookieHost,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteStrictMode,
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+	})
+	// ChainFS/Azure (acorn.tools) login sets Path=BaseURL, no Domain, SameSite=Lax.
+	http.SetCookie(w, &http.Cookie{
+		Name:     "filebrowser_quantum_jwt",
+		Value:    "",
+		Path:     config.Server.BaseURL,
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+	})
+
+	w.Header().Set("Cache-Control", "no-store")
+	return http.StatusNoContent, nil
+}
+
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	defer auth.RevokeAPIKey(d.token)
 
