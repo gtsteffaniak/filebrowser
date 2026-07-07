@@ -1,6 +1,6 @@
 <template>
   <!-- Unified preview container for all types -->
-  <span v-if="hasPreviewImage || shouldUse3DPreview" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+  <span v-if="hasPreviewImage || (shouldUse3DPreview && !threeJsError)" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <!-- Overlay icons (folder/animation) positioned top-left -->
     <i v-if="hasPreviewImage && hasMotion && isFile" class="material-symbols-outlined overlay-icon">animation</i>
     <i v-else-if="hasPreviewImage && !isFile" class="material-symbols overlay-icon">folder</i>
@@ -31,18 +31,18 @@
 </template>
 
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { fetchPreviewImage } from "@/api/resources";
 import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty } from '@/utils/object.js';
 import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
-import ThreeJs from "@/views/files/ThreeJs.vue";
 
 export default {
   name: "Icon",
   components: {
-    ThreeJs,
+    ThreeJs: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
   },
   props: {
     filename: {

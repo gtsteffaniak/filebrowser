@@ -13,13 +13,15 @@
 </template>
 
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
-import ThreeJs from "@/views/files/ThreeJs.vue";
 
 export default {
   name: "PopupPreview",
-  components: { ThreeJs },
+  components: {
+    ThreeJs: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
+  },
   data() {
     return {
       popupStyle: {
