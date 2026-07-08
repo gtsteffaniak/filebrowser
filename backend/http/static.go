@@ -1,6 +1,8 @@
 package http
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -42,6 +44,21 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
+
+	// FileBrowser injects its config as an inline <script> in index.html, which a
+	// strict "script-src 'self'" blocks. Emit a per-request nonce and allow only
+	// that inline script, keeping the rest of the hardened CSP intact. Set here so
+	// the baseline CSP in securityHeadersMiddleware (which only fires when no CSP is
+	// present) does not override it.
+	nonceBytes := make([]byte, 16)
+	if _, err := rand.Read(nonceBytes); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("error generating csp nonce: %w", err)
+	}
+	nonce := base64.StdEncoding.EncodeToString(nonceBytes)
+	w.Header().Set("Content-Security-Policy",
+		"default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; "+
+			"style-src 'self' 'unsafe-inline'; script-src 'self' 'nonce-"+nonce+"'; connect-src 'self'; "+
+			"frame-ancestors 'none'; base-uri 'self'; object-src 'none'")
 	userSelectedTheme := ""
 	versionString := ""
 	commitSHAString := ""
@@ -112,6 +129,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	// Set login icon URL
 	loginIcon := staticURL + "/loginIcon"
 	data["htmlVars"] = map[string]interface{}{
+		"nonce":             nonce,
 		"title":             title,
 		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
 		"userSelectedTheme": userSelectedTheme,
