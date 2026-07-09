@@ -37,14 +37,14 @@ export function loadFullIcons() {
       document.fonts.add(loaded);
       enableFullIcons();
     })
-    .catch(() => {
-      document.fonts.load("24px 'Material Symbols Outlined'").then(enableFullIcons);
-    });
+    .catch(() => document.fonts.load("24px 'Material Symbols Outlined'")
+      .then(enableFullIcons)
+      .catch(() => {}));
 }
 
 export function scheduleFullIcons() {
   const run = () => {
-    loadFullIcons();
+    void loadFullIcons();
   };
 
   if (window.requestIdleCallback) {
