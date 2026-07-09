@@ -431,8 +431,11 @@ export function enablePlyrScrubPreview(player, options) {
     if (clientX === null) {
       return;
     }
-    positionScrubPreviewPopup(popup, progress.getBoundingClientRect(), clientX);
-    positionScrubPreviewArrow(arrowEl, popup, clientX);
+    const progressRect = progress.getBoundingClientRect();
+    positionScrubPreviewPopup(popup, progressRect, clientX);
+    // clamp to the progress bar edges
+    const arrowClientX = Math.max(progressRect.left, Math.min(progressRect.right, clientX));
+    positionScrubPreviewArrow(arrowEl, popup, arrowClientX);
   };
 
   const updateTimeLabel = (percent) => {
