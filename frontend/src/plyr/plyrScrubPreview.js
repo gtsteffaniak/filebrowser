@@ -7,10 +7,11 @@ const DEFAULT_PREVIEW_WIDTH_PX = 600;
 const DEFAULT_MAX_PREVIEW_HEIGHT_PX = 600;
 const DEFAULT_PLACEHOLDER_ASPECT = 16 / 9;
 const DEFAULT_SCRUB_PERCENT_STEP = 2;
+const MAX_SCRUB_FETCH_PERCENT = 99; // 99 to never request a preview at the exact end of the media, it was causing an error.
 const MAX_CACHE_ENTRIES = 24;
 const VIEWPORT_MARGIN_PX = 16;
 const GAP_ABOVE_PROGRESS_PX = 14;
-const TIME_LABEL_HEIGHT_PX = 28;
+const ARROW_EDGE_MARGIN_PX = 14;
 
 /**
  * @param {number} percent
@@ -82,21 +83,30 @@ export function scrubClientXFromEvent(event) {
  * @returns {number}
  */
 export function scrubPercentFromEvent(progress, seek, event, step = DEFAULT_SCRUB_PERCENT_STEP) {
-  if (event?.currentTarget === seek) {
-    const attr = seek.getAttribute('seek-value');
-    const raw = attr !== null && attr !== '' ? Number(attr) : Number(seek.value);
-    return quantizeScrubPercent(raw, step);
-  }
+  return quantizeScrubPercent(scrubRawPercentFromEvent(progress, seek, event), step);
+}
+
+/**
+ * @param {HTMLElement} progress
+ * @param {HTMLInputElement} seek
+ * @param {Event} event
+ * @returns {number}
+ */
+export function scrubRawPercentFromEvent(progress, seek, event) {
   const clientX = scrubClientXFromEvent(event);
-  if (!progress || clientX === null) {
+  if (progress && clientX !== null) {
+    const rect = progress.getBoundingClientRect();
+    if (rect.width > 0) {
+      const raw = ((clientX - rect.left) / rect.width) * 100;
+      return Math.max(0, Math.min(100, raw));
+    }
+  }
+  if (!seek) {
     return 0;
   }
-  const rect = progress.getBoundingClientRect();
-  if (rect.width <= 0) {
-    return 0;
-  }
-  const raw = ((clientX - rect.left) / rect.width) * 100;
-  return quantizeScrubPercent(raw, step);
+  const attr = seek.getAttribute('seek-value');
+  const raw = attr !== null && attr !== '' ? Number(attr) : Number(seek.value);
+  return Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 0;
 }
 
 /**
@@ -129,7 +139,7 @@ export function fitScrubPreviewImageSize(
   const viewportMaxWidth = Math.max(1, viewportWidth - VIEWPORT_MARGIN_PX * 2);
   const viewportMaxHeight = Math.max(
     1,
-    progressTop - VIEWPORT_MARGIN_PX - GAP_ABOVE_PROGRESS_PX - TIME_LABEL_HEIGHT_PX,
+    progressTop - VIEWPORT_MARGIN_PX - GAP_ABOVE_PROGRESS_PX,
   );
   const maxWidth = Math.max(1, Math.min(maxWidthPx, viewportMaxWidth));
   const maxHeight = Math.max(1, Math.min(maxHeightPx, viewportMaxHeight));
@@ -159,6 +169,19 @@ export function getScrubPreviewMount(player) {
     return container;
   }
   return container instanceof HTMLElement ? container : document.body;
+}
+
+/**
+ * @param {HTMLElement} arrowEl
+ * @param {HTMLElement} popup
+ * @param {number} clientX
+ */
+export function positionScrubPreviewArrow(arrowEl, popup, clientX) {
+  const popupRect = popup.getBoundingClientRect();
+  const width = popupRect.width || 1;
+  const margin = ARROW_EDGE_MARGIN_PX;
+  const offset = Math.max(margin, Math.min(width - margin, clientX - popupRect.left));
+  arrowEl.style.left = `${offset}px`;
 }
 
 /**
@@ -224,9 +247,15 @@ export function enablePlyrScrubPreview(player, options) {
 
   const timeEl = document.createElement('span');
   timeEl.className = 'fb-scrub-preview__time';
+  timeEl.setAttribute('aria-hidden', 'true');
 
-  frame.append(img, loadingEl);
-  popup.append(frame, timeEl);
+  // small arrow below the frame that tracks the cursor
+  const arrowEl = document.createElement('div');
+  arrowEl.className = 'fb-scrub-preview__arrow';
+  arrowEl.setAttribute('aria-hidden', 'true');
+
+  frame.append(img, loadingEl, timeEl);
+  popup.append(frame, arrowEl);
 
   const ensurePopupMounted = () => {
     const mount = getScrubPreviewMount(player);
@@ -251,6 +280,7 @@ export function enablePlyrScrubPreview(player, options) {
 
   /** @type {Map<number, string>} */
   const cache = new Map();
+  let lastFailedPercent = null;
   let scrubbing = false;
   let hovering = false;
   let pendingPercent = null;
@@ -401,10 +431,14 @@ export function enablePlyrScrubPreview(player, options) {
     if (clientX === null) {
       return;
     }
-    positionScrubPreviewPopup(popup, progress.getBoundingClientRect(), clientX);
+    const progressRect = progress.getBoundingClientRect();
+    positionScrubPreviewPopup(popup, progressRect, clientX);
+    // clamp to the progress bar edges
+    const arrowClientX = Math.max(progressRect.left, Math.min(progressRect.right, clientX));
+    positionScrubPreviewArrow(arrowEl, popup, arrowClientX);
   };
 
-  const updateTimeLabel = (percentInt) => {
+  const updateTimeLabel = (percent) => {
     const duration = typeof options.getDuration === 'function'
       ? options.getDuration()
       : player.duration;
@@ -412,7 +446,7 @@ export function enablePlyrScrubPreview(player, options) {
       timeEl.textContent = formatTime(0);
       return;
     }
-    timeEl.textContent = formatTime((duration / 100) * percentInt);
+    timeEl.textContent = formatTime((duration / 100) * percent);
   };
 
   const trimCache = () => {
@@ -461,6 +495,11 @@ export function enablePlyrScrubPreview(player, options) {
       applyCachedImage(target);
       return;
     }
+    if (target === lastFailedPercent) {
+      // Don't retry, but keep the spinner for feedback since can make the use think that the image fetched when isn't.
+      setLoading(true);
+      return;
+    }
     if (inFlightPercent !== null || fetchScheduled) {
       return;
     }
@@ -480,6 +519,10 @@ export function enablePlyrScrubPreview(player, options) {
         applyCachedImage(nextTarget);
         return;
       }
+      if (nextTarget === lastFailedPercent) {
+        setLoading(true);
+        return;
+      }
       if (inFlightPercent === nextTarget) {
         return;
       }
@@ -488,6 +531,10 @@ export function enablePlyrScrubPreview(player, options) {
       lastFetchAt = Date.now();
       void fetchPreview(nextTarget).finally(() => {
         if (!previewActive() || pendingPercent === null) {
+          return;
+        }
+        if (pendingPercent === lastFailedPercent) {
+          setLoading(true);
           return;
         }
         if (
@@ -519,6 +566,9 @@ export function enablePlyrScrubPreview(player, options) {
       const objectUrl = await fetchPreviewImage(url, controller.signal);
       cache.set(percentInt, objectUrl);
       lastFetchedPercent = percentInt;
+      if (lastFailedPercent === percentInt) {
+        lastFailedPercent = null;
+      }
       trimCache();
       if (previewActive() && pendingPercent === percentInt) {
         img.src = objectUrl;
@@ -526,8 +576,14 @@ export function enablePlyrScrubPreview(player, options) {
           markDisplayed(percentInt);
         }
       }
-    } catch {
+    } catch (err) {
       // Aborts and preview failures are expected while scrubbing quickly.
+      if (err?.name !== 'AbortError') {
+        lastFailedPercent = percentInt;
+        if (pendingPercent === percentInt) {
+          setLoading(true);
+        }
+      }
     } finally {
       if (inFlightPercent === percentInt) {
         inFlightPercent = null;
@@ -539,10 +595,15 @@ export function enablePlyrScrubPreview(player, options) {
   };
 
   const handlePreviewPosition = (event) => {
-    const percentInt = scrubPercentFromEvent(progress, seek, event, scrubPercentStep);
+    const rawPercent = scrubRawPercentFromEvent(progress, seek, event);
+    const percentInt = Math.min(
+      quantizeScrubPercent(rawPercent, scrubPercentStep),
+      MAX_SCRUB_FETCH_PERCENT,
+    );
     lastPositionEvent = event;
     positionPopup(event);
     show();
+    updateTimeLabel(rawPercent);
 
     // Same bucket — only reposition the popup, no image/time churn.
     if (percentInt === displayedPercent) {
@@ -550,7 +611,9 @@ export function enablePlyrScrubPreview(player, options) {
     }
 
     pendingPercent = percentInt;
-    updateTimeLabel(percentInt);
+    if (lastFailedPercent !== null && lastFailedPercent !== percentInt) {
+      lastFailedPercent = null;
+    }
 
     if (cache.has(percentInt)) {
       applyCachedImage(percentInt);
@@ -663,6 +726,7 @@ export function enablePlyrScrubPreview(player, options) {
       URL.revokeObjectURL(url);
     }
     cache.clear();
+    lastFailedPercent = null;
     popup.remove();
   };
 }

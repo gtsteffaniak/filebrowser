@@ -2602,13 +2602,24 @@ export default {
   position: relative;
   max-height: 600px;
   max-width: 600px;
-  border-radius: 4px;
+  border-radius: 14px;
   background: #000;
   border: 2px solid var(--primaryColor);
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.35),
     0 6px 20px rgba(0, 0, 0, 0.55),
     0 0 12px color-mix(in srgb, var(--primaryColor) 35%, transparent);
+}
+
+.fb-scrub-preview__frame::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+  pointer-events: none;
 }
 
 .fb-scrub-preview__loading {
@@ -2647,13 +2658,41 @@ export default {
 }
 
 .fb-scrub-preview__time {
-  display: block;
-  margin-top: 6px;
-  text-align: center;
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 1;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.fb-scrub-preview__arrow {
+  position: absolute;
+  top: calc(100% - 2px);
+  transform: translateX(-50%);
+  width: 14px;
+  height: 8px;
+  pointer-events: none;
+}
+
+.fb-scrub-preview__arrow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid var(--primaryColor);
 }
 
 /* Big play button when pause/start the video */

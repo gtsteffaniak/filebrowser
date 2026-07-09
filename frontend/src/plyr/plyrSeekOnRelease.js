@@ -20,6 +20,19 @@ export function readPlyrSeekPercent(input) {
 }
 
 /**
+ * @param {Event} event
+ * @returns {number | null}
+ */
+function clientXFromEvent(event) {
+  if (!event) return null;
+  if (Number.isFinite(event.clientX)) {
+    return event.clientX;
+  }
+  const touch = event.changedTouches?.[0] ?? event.touches?.[0];
+  return touch && Number.isFinite(touch.clientX) ? touch.clientX : null;
+}
+
+/**
  * @param {import('plyr').default} player
  * @param {Event} [event]
  */
@@ -28,6 +41,16 @@ export function commitPlyrSeek(player, event) {
   const duration = player?.duration;
   if (!seek || !Number.isFinite(duration) || duration <= 0) {
     return;
+  }
+  const progress = player?.elements?.progress;
+  const clientX = clientXFromEvent(event);
+  if (progress && clientX !== null) {
+    const rect = progress.getBoundingClientRect();
+    if (rect.width > 0) {
+      const percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+      player.currentTime = (percent / 100) * duration;
+      return;
+    }
   }
   const target = event?.currentTarget instanceof HTMLInputElement ? event.currentTarget : seek;
   const percent = readPlyrSeekPercent(target);
