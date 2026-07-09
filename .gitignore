@@ -21,6 +21,8 @@ frontend/tsconfig.tsbuildinfo
 /frontend/playwright-files
 /frontend/screenshots
 /frontend/generated
+frontend/.venv-icons
+frontend/.tmp-icons-*
 /frontend/tests/playwright-files/demo*
 /frontend/loginAuth.json
 /frontend/sharePrepStorage.json

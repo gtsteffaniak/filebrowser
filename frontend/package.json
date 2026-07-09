@@ -8,7 +8,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
+    "build": "npm run icons:sync && rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
     "build:docker": "vite build",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
@@ -18,6 +18,8 @@
     "i18n:check": "node ./scripts/sync-translations.js --check",
     "i18n:enforce-order": "node scripts/sync-translations.js --enforce-order",
     "i18n:cleanup": "node scripts/sync-translations.js --cleanup",
+    "icons:sync": "node ./scripts/build-icon-subset.js",
+    "icons:check": "node ./scripts/build-icon-subset.js --check",
     "format": "biome format --write .",
     "test": "vitest run "
   },
