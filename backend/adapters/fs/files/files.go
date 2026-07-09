@@ -596,14 +596,40 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 		return fmt.Errorf("refusing to delete source root directory: %s", absPath)
 	}
 
-	if !index.Config.ResolvedRules.IndexingDisabled {
-		indexPath := index.MakeIndexPath(absPath, isDir)
+	trashDir := filepath.Join(index.Path, ".trash")
+	cleanTrashDir := filepath.Clean(trashDir)
 
-		// Perform the physical deletion
-		err := os.RemoveAll(absPath)
+	// Robustly check if we are deleting from inside the trash folder on Windows/Linux
+	rel, err := filepath.Rel(cleanTrashDir, cleanAbs)
+	isInTrash := false
+	if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		isInTrash = true
+	}
+
+	if isInTrash {
+		// If already in trash, perform physical permanent deletion
+		err = os.RemoveAll(cleanAbs)
 		if err != nil {
 			return err
 		}
+	} else {
+		// Move to trash
+		if err := os.MkdirAll(cleanTrashDir, 0755); err != nil {
+			return fmt.Errorf("failed to create trash directory: %w", err)
+		}
+		baseName := filepath.Base(cleanAbs)
+		timestamp := time.Now().Format("20060102_150405_000000000")
+		trashName := fmt.Sprintf("%s_%s", baseName, timestamp)
+		trashPath := filepath.Join(cleanTrashDir, trashName)
+
+		err = os.Rename(cleanAbs, trashPath)
+		if err != nil {
+			return fmt.Errorf("failed to move to trash: %w", err)
+		}
+	}
+
+	if !index.Config.ResolvedRules.IndexingDisabled {
+		indexPath := index.MakeIndexPath(absPath, isDir)
 
 		// Clear cache entries
 		indexing.RealPathCache.Delete(absPath)
@@ -612,7 +638,7 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 		// Remove metadata from index
 		deleteSuccess := index.DeleteMetadata(indexPath, isDir, isDir)
 		if !deleteSuccess {
-			logger.Errorf("Failed to delete metadata from index for %s, but filesystem deletion succeeded", indexPath)
+			logger.Errorf("Failed to delete metadata from index for %s, but deletion/move succeeded", indexPath)
 		}
 
 		// Refresh the parent directory to recalculate sizes and update counts
@@ -624,8 +650,7 @@ func DeleteFiles(source, absPath string, isDir bool) error {
 		return err
 	}
 
-	// Indexing disabled, just delete the file
-	return os.RemoveAll(absPath)
+	return nil
 }
 
 func RefreshIndex(source string, path string, isDir bool, recursive bool) error {

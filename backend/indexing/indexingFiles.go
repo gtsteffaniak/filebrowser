@@ -151,6 +151,7 @@ var omitList = map[string]bool{
 	"$RECYCLE.BIN":              true,
 	"System Volume Information": true,
 	"@eaDir":                    true,
+	".trash":                    true, // Skip trash folder indexing
 }
 
 func init() {
