@@ -10,8 +10,7 @@ const __dirname = path.dirname(__filename);
 const frontendRoot = path.resolve(__dirname, '..');
 const srcDir = path.join(frontendRoot, 'src');
 const inventoryPath = path.join(srcDir, 'utils/icon-inventory-core.json');
-const outlinedFontPath = path.join(frontendRoot, 'public/fonts/material-symbols-core-outlined.woff2');
-const filledFontPath = path.join(frontendRoot, 'public/fonts/material-symbols-core-filled.woff2');
+const coreFontPath = path.join(frontendRoot, 'public/fonts/material-symbols-core-filled.woff2');
 const venvPython = path.join(frontendRoot, '.venv-icons/bin/python');
 
 const args = process.argv.slice(2);
@@ -180,8 +179,8 @@ function inventoriesMatch(a, b) {
   return a.every((icon, index) => icon === b[index]);
 }
 
-function coreFontsExist() {
-  return fs.existsSync(outlinedFontPath) && fs.existsSync(filledFontPath);
+function coreFontExists() {
+  return fs.existsSync(coreFontPath);
 }
 
 function resolvePython() {
@@ -194,15 +193,15 @@ function resolvePython() {
   return null;
 }
 
-async function fetchGoogleSubsetCss(iconNames, fill) {
-  const family = `Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,${fill},0`;
+async function fetchGoogleSubsetCss(iconNames) {
+  const family = 'Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0';
   const iconNamesParam = iconNames.join(',');
   const url = `https://fonts.googleapis.com/css2?family=${family}&icon_names=${iconNamesParam}`;
   const response = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; filebrowser-icon-build/1.0)' },
   });
   if (!response.ok) {
-    throw new Error(`Google Fonts API returned ${response.status} for FILL=${fill} subset`);
+    throw new Error(`Google Fonts API returned ${response.status} for core filled subset`);
   }
   return response.text();
 }
@@ -248,16 +247,11 @@ function convertTtfToWoff2(ttfBuffer, outputPath) {
   }
 }
 
-async function buildCoreFontVariant(icons, fill, outputPath) {
-  const css = await fetchGoogleSubsetCss(icons, fill);
+async function buildCoreFont(icons) {
+  const css = await fetchGoogleSubsetCss(icons);
   const fontUrl = extractFontUrl(css);
   const ttfBuffer = await downloadTtf(fontUrl);
-  convertTtfToWoff2(ttfBuffer, outputPath);
-}
-
-async function buildCoreFonts(icons) {
-  await buildCoreFontVariant(icons, 0, outlinedFontPath);
-  await buildCoreFontVariant(icons, 1, filledFontPath);
+  convertTtfToWoff2(ttfBuffer, coreFontPath);
 }
 
 async function main() {
@@ -267,6 +261,10 @@ async function main() {
   if (checkOnly) {
     if (!existing) {
       console.error('❌ Missing icon-inventory-core.json. Run: make sync-icons');
+      process.exit(1);
+    }
+    if (!coreFontExists()) {
+      console.error('❌ Missing material-symbols-core-filled.woff2. Run: make sync-icons');
       process.exit(1);
     }
     if (!inventoriesMatch(existing, icons)) {
@@ -283,17 +281,15 @@ async function main() {
   }
 
   writeInventory(icons);
-  if (existing && inventoriesMatch(existing, icons) && coreFontsExist()) {
-    const outlinedKb = Math.round(fs.statSync(outlinedFontPath).size / 1024);
-    const filledKb = Math.round(fs.statSync(filledFontPath).size / 1024);
-    console.log(`✅ Core icon inventory unchanged (${icons.length} icons, ${outlinedKb}+${filledKb} KB fonts)`);
+  if (existing && inventoriesMatch(existing, icons) && coreFontExists()) {
+    const coreKb = Math.round(fs.statSync(coreFontPath).size / 1024);
+    console.log(`✅ Core icon inventory unchanged (${icons.length} icons, ${coreKb} KB font)`);
     return;
   }
 
-  await buildCoreFonts(icons);
-  const outlinedKb = Math.round(fs.statSync(outlinedFontPath).size / 1024);
-  const filledKb = Math.round(fs.statSync(filledFontPath).size / 1024);
-  console.log(`✅ Generated ${icons.length} core icons → outlined ${outlinedKb} KB + filled ${filledKb} KB`);
+  await buildCoreFont(icons);
+  const coreKb = Math.round(fs.statSync(coreFontPath).size / 1024);
+  console.log(`✅ Generated ${icons.length} core icons → filled ${coreKb} KB`);
 }
 
 main().catch((error) => {
