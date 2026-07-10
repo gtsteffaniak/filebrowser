@@ -749,7 +749,20 @@
     "toggleLyrics": "Alternar letra",
     "closePanel": "Fechar painel",
     "openPanel": "Abrir painel",
-    "visualizer": "Visualizador"
+    "visualizer": {
+      "title": "Visualizador",
+      "settings": "Configurações do visualizador",
+      "barCount": "Número de barras",
+      "fftSize": "Tamanho FFT",
+      "minFrequency": "Frequência mínima",
+      "maxFrequency": "Frequência máxima",
+      "smoothing": "Suavização",
+      "minDecibels": "Decibéis mínimos",
+      "maxDecibels": "Decibéis máximos",
+      "showPeaks": "Mostrar picos",
+      "showScales": "Mostrar escalas",
+      "resetDefaults": "Repor padrões"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analisador de tamanho de arquivo",

@@ -749,7 +749,20 @@
     "toggleLyrics": "Показати/Приховати текст",
     "closePanel": "Закрити панель",
     "openPanel": "Відкрити панель",
-    "visualizer": "Візуалізатор"
+    "visualizer": {
+      "title": "Візуалізатор",
+      "settings": "Налаштування візуалізатора",
+      "barCount": "Кількість стовпців",
+      "fftSize": "Розмір БПФ",
+      "minFrequency": "Мінімальна частота",
+      "maxFrequency": "Максимальна частота",
+      "smoothing": "Згладжування",
+      "minDecibels": "Мінімальні децибели",
+      "maxDecibels": "Максимальні децибели",
+      "showPeaks": "Показати піки",
+      "showScales": "Показати шкали",
+      "resetDefaults": "Скинути налаштування за замовчуванням"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Аналізатор розміру файлів",

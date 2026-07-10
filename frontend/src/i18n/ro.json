@@ -749,7 +749,20 @@
     "toggleLyrics": "Comută versurile",
     "closePanel": "Închide panoul",
     "openPanel": "Deschide panoul",
-    "visualizer": "Vizualizator"
+    "visualizer": {
+      "title": "Vizualizator",
+      "settings": "Setări vizualizator",
+      "barCount": "Număr de bare",
+      "fftSize": "Dimensiune FFT",
+      "minFrequency": "Frecvență minimă",
+      "maxFrequency": "Frecvență maximă",
+      "smoothing": "Netezire",
+      "minDecibels": "Decibeli minimi",
+      "maxDecibels": "Decibeli maximi",
+      "showPeaks": "Afișare vârfuri",
+      "showScales": "Afișare scale",
+      "resetDefaults": "Resetați valorile implicite"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",

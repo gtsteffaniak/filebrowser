@@ -749,7 +749,20 @@
     "toggleLyrics": "Przełącz tekst",
     "closePanel": "Zamknij panel",
     "openPanel": "Otwórz panel",
-    "visualizer": "Wizualizator"
+    "visualizer": {
+      "title": "Wizualizator",
+      "settings": "Ustawienia wizualizatora",
+      "barCount": "Liczba słupków",
+      "fftSize": "Rozmiar FFT",
+      "minFrequency": "Minimalna częstotliwość",
+      "maxFrequency": "Maksymalna częstotliwość",
+      "smoothing": "Wygładzanie",
+      "minDecibels": "Minimalne decybele",
+      "maxDecibels": "Maksymalne decybele",
+      "showPeaks": "Pokaż szczyty",
+      "showScales": "Pokaż skale",
+      "resetDefaults": "Przywróć domyślne"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analizator rozmiaru plików",

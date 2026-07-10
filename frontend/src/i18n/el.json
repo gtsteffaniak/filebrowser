@@ -749,7 +749,20 @@
     "toggleLyrics": "Εναλλαγή στίχων",
     "closePanel": "Κλείσιμο πλαισίου",
     "openPanel": "Άνοιγμα πλαισίου",
-    "visualizer": "Οπτικοποιητής"
+    "visualizer": {
+      "title": "Οπτικοποιητής",
+      "settings": "Ρυθμίσεις οπτικοποιητή",
+      "barCount": "Αριθμός ράβδων",
+      "fftSize": "Μέγεθος FFT",
+      "minFrequency": "Ελάχιστη συχνότητα",
+      "maxFrequency": "Μέγιστη συχνότητα",
+      "smoothing": "Εξομάλυνση",
+      "minDecibels": "Ελάχιστα ντεσιμπέλ",
+      "maxDecibels": "Μέγιστα ντεσιμπέλ",
+      "showPeaks": "Εμφάνιση κορυφών",
+      "showScales": "Εμφάνιση κλιμάκων",
+      "resetDefaults": "Επαναφορά προεπιλογών"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Αναλυτής μεγέθους αρχείου",

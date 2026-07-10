@@ -749,7 +749,20 @@
     "toggleLyrics": "歌詞の表示切り替え",
     "closePanel": "パネルを閉じる",
     "openPanel": "パネルを開く",
-    "visualizer": "ビジュアライザー"
+    "visualizer": {
+      "title": "ビジュアライザー",
+      "settings": "ビジュアライザー設定",
+      "barCount": "バー数",
+      "fftSize": "FFTサイズ",
+      "minFrequency": "最小周波数",
+      "maxFrequency": "最大周波数",
+      "smoothing": "スムージング",
+      "minDecibels": "最小デシベル",
+      "maxDecibels": "最大デシベル",
+      "showPeaks": "ピークを表示",
+      "showScales": "スケールを表示",
+      "resetDefaults": "デフォルトにリセット"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",

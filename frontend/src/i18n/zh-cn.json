@@ -749,7 +749,20 @@
     "toggleLyrics": "切换歌词",
     "closePanel": "关闭面板",
     "openPanel": "打开面板",
-    "visualizer": "可视化工具"
+    "visualizer": {
+      "title": "可视化工具",
+      "settings": "可视化工具设置",
+      "barCount": "条形数量",
+      "fftSize": "FFT大小",
+      "minFrequency": "最小频率",
+      "maxFrequency": "最大频率",
+      "smoothing": "平滑",
+      "minDecibels": "最小分贝",
+      "maxDecibels": "最大分贝",
+      "showPeaks": "显示峰值",
+      "showScales": "显示刻度",
+      "resetDefaults": "重置默认值"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "文件大小分析器",

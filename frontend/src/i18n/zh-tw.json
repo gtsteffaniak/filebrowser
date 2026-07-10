@@ -749,7 +749,20 @@
     "toggleLyrics": "切換歌詞",
     "closePanel": "關閉面板",
     "openPanel": "開啟面板",
-    "visualizer": "視覺化工具"
+    "visualizer": {
+      "title": "視覺化工具",
+      "settings": "視覺化工具設定",
+      "barCount": "條形數量",
+      "fftSize": "FFT大小",
+      "minFrequency": "最小頻率",
+      "maxFrequency": "最大頻率",
+      "smoothing": "平滑",
+      "minDecibels": "最小分貝",
+      "maxDecibels": "最大分貝",
+      "showPeaks": "顯示峰值",
+      "showScales": "顯示刻度",
+      "resetDefaults": "重設預設值"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "檔案大小分析器",

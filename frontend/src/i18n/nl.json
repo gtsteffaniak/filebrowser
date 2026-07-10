@@ -758,7 +758,20 @@
     "toggleLyrics": "Songtekst in-/uitschakelen",
     "closePanel": "Paneel sluiten",
     "openPanel": "Paneel openen",
-    "visualizer": "Visualisator"
+    "visualizer": {
+      "title": "Visualisator",
+      "settings": "Visualisator-instellingen",
+      "barCount": "Aantal balken",
+      "fftSize": "FFT-grootte",
+      "minFrequency": "Minimale frequentie",
+      "maxFrequency": "Maximale frequentie",
+      "smoothing": "Vervaging",
+      "minDecibels": "Minimale decibels",
+      "maxDecibels": "Maximale decibels",
+      "showPeaks": "Pieken tonen",
+      "showScales": "Schaal tonen",
+      "resetDefaults": "Standaardwaarden herstellen"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Bestandsgrootte analyseren",

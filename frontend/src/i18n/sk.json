@@ -749,7 +749,20 @@
     "toggleLyrics": "Prepnúť text",
     "closePanel": "Zavrieť panel",
     "openPanel": "Otvoriť panel",
-    "visualizer": "Vizualizér"
+    "visualizer": {
+      "title": "Vizualizér",
+      "settings": "Nastavenia vizualizéra",
+      "barCount": "Počet stĺpcov",
+      "fftSize": "Veľkosť FFT",
+      "minFrequency": "Minimálna frekvencia",
+      "maxFrequency": "Maximálna frekvencia",
+      "smoothing": "Vyhladenie",
+      "minDecibels": "Minimálne decibely",
+      "maxDecibels": "Maximálne decibely",
+      "showPeaks": "Zobraziť špičky",
+      "showScales": "Zobraziť stupnice",
+      "resetDefaults": "Obnoviť predvolené"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor veľkosti súborov",

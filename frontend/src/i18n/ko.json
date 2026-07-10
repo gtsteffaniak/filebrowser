@@ -749,7 +749,20 @@
     "toggleLyrics": "가사 토글",
     "closePanel": "패널 닫기",
     "openPanel": "패널 열기",
-    "visualizer": "시각화 도구"
+    "visualizer": {
+      "title": "시각화 도구",
+      "settings": "시각화 도구 설정",
+      "barCount": "막대 개수",
+      "fftSize": "FFT 크기",
+      "minFrequency": "최소 주파수",
+      "maxFrequency": "최대 주파수",
+      "smoothing": "스무딩",
+      "minDecibels": "최소 데시벨",
+      "maxDecibels": "최대 데시벨",
+      "showPeaks": "피크 표시",
+      "showScales": "스케일 표시",
+      "resetDefaults": "기본값 재설정"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "파일 크기 분석기",

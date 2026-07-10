@@ -749,7 +749,20 @@
     "toggleLyrics": "Mostrar letras",
     "closePanel": "Cerrar panel",
     "openPanel": "Abrir panel",
-    "visualizer": "Visualizador"
+    "visualizer": {
+      "title": "Visualizador",
+      "settings": "Configuración del visualizador",
+      "barCount": "Número de barras",
+      "fftSize": "Tamaño FFT",
+      "minFrequency": "Frecuencia mínima",
+      "maxFrequency": "Frecuencia máxima",
+      "smoothing": "Suavizado",
+      "minDecibels": "Decibeles mínimos",
+      "maxDecibels": "Decibeles máximos",
+      "showPeaks": "Mostrar picos",
+      "showScales": "Mostrar escalas",
+      "resetDefaults": "Restablecer valores"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",

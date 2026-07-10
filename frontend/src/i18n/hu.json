@@ -749,7 +749,20 @@
     "toggleLyrics": "Dalszöveg be/ki",
     "closePanel": "Panel bezárása",
     "openPanel": "Panel megnyitása",
-    "visualizer": "Vizualizátor"
+    "visualizer": {
+      "title": "Vizualizátor",
+      "settings": "Vizualizátor beállításai",
+      "barCount": "Oszlopok száma",
+      "fftSize": "FFT méret",
+      "minFrequency": "Minimális frekvencia",
+      "maxFrequency": "Maximális frekvencia",
+      "smoothing": "Simítás",
+      "minDecibels": "Minimális decibelek",
+      "maxDecibels": "Maximális decibelek",
+      "showPeaks": "Csúcsok mutatása",
+      "showScales": "Skálák mutatása",
+      "resetDefaults": "Alapértékek visszaállítása"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",

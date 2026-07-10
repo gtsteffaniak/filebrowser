@@ -749,7 +749,20 @@
     "toggleLyrics": "تبديل كلمات الأغنية",
     "closePanel": "إغلاق اللوحة",
     "openPanel": "فتح اللوحة",
-    "visualizer": "مصور"
+    "visualizer": {
+      "title": "مصور",
+      "settings": "إعدادات المصور",
+      "barCount": "عدد الأعمدة",
+      "fftSize": "حجم FFT",
+      "minFrequency": "التردد الأدنى",
+      "maxFrequency": "التردد الأقصى",
+      "smoothing": "تنعيم",
+      "minDecibels": "الحد الأدنى للديسيبل",
+      "maxDecibels": "الحد الأقصى للديسيبل",
+      "showPeaks": "إظهار القمم",
+      "showScales": "إظهار المقاييس",
+      "resetDefaults": "إعادة تعيين الافتراضيات"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "محلل حجم الملف",

@@ -749,7 +749,20 @@
     "toggleLyrics": "החלפת מילים",
     "closePanel": "סגור לוח",
     "openPanel": "פתח לוח",
-    "visualizer": "מציג חזותי"
+    "visualizer": {
+      "title": "מציג חזותי",
+      "settings": "הגדרות מציג חזותי",
+      "barCount": "מספר עמודות",
+      "fftSize": "גודל FFT",
+      "minFrequency": "תדר מינימלי",
+      "maxFrequency": "תדר מקסימלי",
+      "smoothing": "החלקה",
+      "minDecibels": "דציבלים מינימליים",
+      "maxDecibels": "דציבלים מקסימליים",
+      "showPeaks": "הצג שיאים",
+      "showScales": "הצג סולמות",
+      "resetDefaults": "איפוס לברירת מחדל"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "מנתח גודל קובץ",

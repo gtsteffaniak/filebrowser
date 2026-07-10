@@ -749,7 +749,20 @@
     "toggleLyrics": "Şarkı sözlerini göster/gizle",
     "closePanel": "Paneli kapat",
     "openPanel": "Paneli aç",
-    "visualizer": "Görselleştirici"
+    "visualizer": {
+      "title": "Görselleştirici",
+      "settings": "Görselleştirici ayarları",
+      "barCount": "Çubuk sayısı",
+      "fftSize": "FFT Boyutu",
+      "minFrequency": "Minimum frekans",
+      "maxFrequency": "Maksimum frekans",
+      "smoothing": "Yumuşatma",
+      "minDecibels": "Minimum desibel",
+      "maxDecibels": "Maksimum desibel",
+      "showPeaks": "Tepe noktalarını göster",
+      "showScales": "Ölçekleri göster",
+      "resetDefaults": "Varsayılanlara sıfırla"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Dosya Boyutu Analizörü",

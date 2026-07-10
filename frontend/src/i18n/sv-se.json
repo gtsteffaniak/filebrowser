@@ -749,7 +749,20 @@
     "toggleLyrics": "Visa/dölj text",
     "closePanel": "Stäng panel",
     "openPanel": "Öppna panel",
-    "visualizer": "Visualiserare"
+    "visualizer": {
+      "title": "Visualiserare",
+      "settings": "Visualiserarinställningar",
+      "barCount": "Antal staplar",
+      "fftSize": "FFT-storlek",
+      "minFrequency": "Minsta frekvens",
+      "maxFrequency": "Högsta frekvens",
+      "smoothing": "Utjämning",
+      "minDecibels": "Minsta decibel",
+      "maxDecibels": "Högsta decibel",
+      "showPeaks": "Visa toppar",
+      "showScales": "Visa skalor",
+      "resetDefaults": "Återställ standardvärden"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analysator för filstorlek",
