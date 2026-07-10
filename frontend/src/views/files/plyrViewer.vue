@@ -463,7 +463,7 @@ export default {
       }
     },
     showDesktopPanel(val) {
-      sessionStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
+      localStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
     },
     albumArtSize(val) {
       sessionStorage.setItem('plyrAlbumArtSize', val.toString());
