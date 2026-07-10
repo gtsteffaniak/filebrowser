@@ -139,6 +139,7 @@ export default {
       peaksLeft: [],
       peaksRight: [],
       primaryColor: "",
+      lastAppliedConfig: null,
     };
   },
   computed: {
@@ -277,7 +278,13 @@ export default {
     applyVisualizerConfig(config) {
       const analyserL = this.visualizerAnalyserLeft;
       const analyserR = this.visualizerAnalyserRight;
-      if (analyserL && analyserR) {
+      const prev = this.lastAppliedConfig;
+      const audioRelevantChanged = !prev ||
+        prev.fftSize !== config.fftSize ||
+        prev.smoothing !== config.smoothing ||
+        prev.minDecibels !== config.minDecibels ||
+        prev.maxDecibels !== config.maxDecibels;
+      if (analyserL && analyserR && audioRelevantChanged) {
         try {
           [analyserL, analyserR].forEach((analyser) => {
             analyser.fftSize = config.fftSize;
@@ -288,6 +295,12 @@ export default {
           const binCount = analyserL.frequencyBinCount;
           this.fftDataLeft = new Float32Array(binCount);
           this.fftDataRight = new Float32Array(binCount);
+          this.lastAppliedConfig = {
+            fftSize: config.fftSize,
+            smoothing: config.smoothing,
+            minDecibels: config.minDecibels,
+            maxDecibels: config.maxDecibels,
+          };
         } catch (err) {
           console.warn('Visualizer config update failed:', err);
         }
@@ -345,6 +358,7 @@ export default {
         const binCount = analyserL.frequencyBinCount;
         this.fftDataLeft  = new Float32Array(binCount);
         this.fftDataRight = new Float32Array(binCount);
+        this.lastAppliedConfig = { fftSize, smoothing, minDecibels, maxDecibels };
 
         // Read primary color once and store it
         const color = getComputedStyle(document.documentElement)
@@ -894,8 +908,7 @@ export default {
   cursor: default;
 }
 
-.audio-side-panel .lyrics-lock-btn,
-.visualizer-settings-btn {
+.audio-side-panel .lyrics-lock-btn {
   position: absolute;
   top: 0.5em;
   right: 0.5em;
@@ -913,8 +926,7 @@ export default {
   transition: 0.2s;
 }
 
-.audio-side-panel .lyrics-lock-btn:hover,
-.visualizer-settings-btn:hover {
+.audio-side-panel .lyrics-lock-btn:hover {
   background: var(--primaryColor);
   color: white;
   border-color: var(--primaryColor);

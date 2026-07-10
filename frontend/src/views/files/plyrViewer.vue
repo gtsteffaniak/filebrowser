@@ -376,7 +376,7 @@ export default {
       playbackMenuInitialized: false,
       loopMenuInitialized: false,
       lastAppliedMode: null,
-      showDesktopPanel: sessionStorage.getItem('plyrShowDesktopPanel') === '1',
+      showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
 
       // Buttons visibility
@@ -787,7 +787,10 @@ export default {
     }
     document.addEventListener('keydown', this.handleKeydown);
     this.resetButtonTimer(); // Show buttons initially
-    this.pagehideHandler = () => this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+    this.pagehideHandler = (event) => {
+      if (event.persisted) return;
+      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+    };
     window.addEventListener('pagehide', this.pagehideHandler);
   },
   beforeUnmount() {
