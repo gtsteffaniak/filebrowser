@@ -771,7 +771,20 @@
     "toggleLyrics": "Toggle lyrics",
     "closePanel": "Close panel",
     "openPanel": "Open panel",
-    "visualizer": "Visualizer"
+    "visualizer": {
+      "title": "Visualizer",
+      "settings": "Visualizer settings",
+      "barCount": "Bar count",
+      "fftSize": "FFT Size",
+      "minFrequency": "Minimum frequency",
+      "maxFrequency": "Maximum frequency",
+      "smoothing": "Smoothing",
+      "minDecibels": "Minimum decibels",
+      "maxDecibels": "Maximum decibels",
+      "showPeaks": "Show peaks",
+      "showScales": "Show scales",
+      "resetDefaults": "Reset defaults"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",
