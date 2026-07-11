@@ -40,6 +40,7 @@ A database migration is required to go from v1.x to this version. See docs.
  - removed legacy and deprecated properties from API responses and generated config output
  - Moved stream api to `/media/stream`
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata.
+ - removed exiftool as an optional helper, always built with the supported libraries.
 
 ## v1.5.0
 
