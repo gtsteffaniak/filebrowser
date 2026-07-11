@@ -76,6 +76,7 @@
             :audio-source="audioSource"
             class="lyrics-panel"
             @seek="seekToLyric"
+            @needs-audio-graph="setupAudioVisualizer"
           />
         </Transition>
       </div>
@@ -375,7 +376,7 @@ export default {
       playbackMenuInitialized: false,
       loopMenuInitialized: false,
       lastAppliedMode: null,
-      showDesktopPanel: sessionStorage.getItem('plyrShowDesktopPanel') === '1',
+      showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
 
       // Buttons visibility
@@ -462,7 +463,7 @@ export default {
       }
     },
     showDesktopPanel(val) {
-      sessionStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
+      localStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
     },
     albumArtSize(val) {
       sessionStorage.setItem('plyrAlbumArtSize', val.toString());
@@ -786,6 +787,11 @@ export default {
     }
     document.addEventListener('keydown', this.handleKeydown);
     this.resetButtonTimer(); // Show buttons initially
+    this.pagehideHandler = (event) => {
+      if (event.persisted) return;
+      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+    };
+    window.addEventListener('pagehide', this.pagehideHandler);
   },
   beforeUnmount() {
     // Cleanup timeouts
@@ -803,6 +809,7 @@ export default {
     this.mediaElement.pause();
     this.clearMediaSession();
     document.removeEventListener('keydown', this.handleKeydown);
+    window.removeEventListener('pagehide', this.pagehideHandler);
   },
   methods: {
     resetButtonTimer() {
@@ -1272,9 +1279,6 @@ export default {
       this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
       this.setupScrubPreview();
       this.setupVideoLoadingIndicator();
-      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer) {
-        this.setupAudioVisualizer();
-      }
       if (this.previewType === 'video') {
         this.setupDeferredVideoStream();
         this.setupQueryPlaybackSeek();
@@ -1401,13 +1405,18 @@ export default {
       });
     },
     setupAudioVisualizer() {
+      // This method gets called once only when in the visualizer tab of the audio panel
       if (this.audioGraphInitialized) return;
+      if (this.previewType !== 'audio' || this.useDefaultMediaPlayer) return;
+      if (this.audioContext) {
+        this.cleanupAudioVisualizer();
+      }
       const audio = this.mediaElement;
       if (!audio) return;
       try {
         const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextCtor) return;
-        const ctx = new AudioContextCtor();
+        const ctx = new AudioContextCtor({ latencyHint: 'playback' });
         const source = ctx.createMediaElementSource(audio);
         // Connect source to destination
         source.connect(ctx.destination);
@@ -2602,13 +2611,24 @@ export default {
   position: relative;
   max-height: 600px;
   max-width: 600px;
-  border-radius: 4px;
+  border-radius: 14px;
   background: #000;
   border: 2px solid var(--primaryColor);
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.35),
     0 6px 20px rgba(0, 0, 0, 0.55),
     0 0 12px color-mix(in srgb, var(--primaryColor) 35%, transparent);
+}
+
+.fb-scrub-preview__frame::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+  pointer-events: none;
 }
 
 .fb-scrub-preview__loading {
@@ -2647,13 +2667,41 @@ export default {
 }
 
 .fb-scrub-preview__time {
-  display: block;
-  margin-top: 6px;
-  text-align: center;
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 1;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.fb-scrub-preview__arrow {
+  position: absolute;
+  top: calc(100% - 2px);
+  transform: translateX(-50%);
+  width: 14px;
+  height: 8px;
+  pointer-events: none;
+}
+
+.fb-scrub-preview__arrow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid var(--primaryColor);
 }
 
 /* Big play button when pause/start the video */

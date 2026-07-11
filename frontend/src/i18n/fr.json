@@ -749,7 +749,29 @@
     "toggleLyrics": "Afficher/Masquer les paroles",
     "closePanel": "Fermer le panneau",
     "openPanel": "Ouvrir le panneau",
-    "visualizer": "Visualiseur"
+    "visualizer": {
+      "title": "Visualiseur",
+      "settings": "Paramètres du visualiseur",
+      "barCount": "Nombre de barres",
+      "fftSize": "Taille FFT",
+      "minFrequency": "Fréquence minimale",
+      "maxFrequency": "Fréquence maximale",
+      "smoothing": "Lissage",
+      "minDecibels": "Décibels minimum",
+      "maxDecibels": "Décibels maximum",
+      "showPeaks": "Afficher les pics",
+      "showScales": "Afficher les échelles",
+      "resetDefaults": "Réinitialiser les paramètres par défaut",
+      "barCountDescription": "Nombre de barres affichées, elles se répartissent entre les canaux gauche et droit, plus de barres peuvent sembler meilleures, mais utiliseront aussi plus de CPU",
+      "fftSizeDescription": "Des valeurs plus grandes rendent les barres plus réactives mais sont plus lentes à calculer (plus de CPU)",
+      "minFrequencyDescription": "Fréquence la plus basse (Hz) affichée dans le visualiseur",
+      "maxFrequencyDescription": "Fréquence la plus haute (Hz) affichée dans le visualiseur",
+      "smoothingDescription": "Degré de lissage des barres au fil du temps. Augmenter ce paramètre rendra les barres plus lisses, mais elles réagiront aussi plus lentement",
+      "minDecibelsDescription": "Niveau le plus bas (dBFS) enregistré par la barre",
+      "maxDecibelsDescription": "Niveau le plus fort (dBFS) enregistré par la barre",
+      "showScalesDescription": "Afficher les axes et les lignes de la grille sur le visualiseur",
+      "showPeaksDescription": "Petits indicateurs de crête blancs au-dessus de chaque barre"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analyseur de taille de fichier",

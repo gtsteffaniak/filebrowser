@@ -17,7 +17,7 @@
         <input type="radio" id="tab-visualizer" v-model="activeTab" value="visualizer" hidden />
         <label for="tab-visualizer" class="tab-btn" :class="{ active: activeTab === 'visualizer' }">
           <i class="material-symbols">equalizer</i>
-          <span>{{ $t('player.visualizer') }}</span>
+          <span>{{ $t('player.visualizer.title') }}</span>
         </label>
         <div class="tab-indicator" :style="indicatorStyle"></div>
       </div>
@@ -67,8 +67,9 @@
         <button
           type="button"
           class="lyrics-lock-btn"
-          :title="$t('player.visualizer')"
-          :aria-label="$t('player.visualizer')"
+          @click="showVisualizerSettings"
+          :title="$t('player.visualizer.settings')"
+          :aria-label="$t('player.visualizer.settings')"
         >
           <i class="material-symbols">tune</i>
         </button>
@@ -80,7 +81,8 @@
 
 <script>
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
-import { getters, state } from "@/store";
+import { getters, mutations, state } from "@/store";
+import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
 const LAST_TAB_KEY = 'plyrSidePanelActiveTab';
 const VIS_PAD_LEFT   = 34; // px reserved on the left for Y-axis (dB) labels
@@ -114,7 +116,7 @@ export default {
     audioContext: { type: Object, default: null },
     audioSource: { type: Object, default: null }, // MediaElementAudioSourceNode, see https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode
   },
-  emits: ["seek"],
+  emits: ["seek", "needs-audio-graph"],
   data() {
     return {
       activeTab: (() => {
@@ -127,6 +129,7 @@ export default {
       visualizerAnalyserRight: null,
       visualizerSplitter: null,
       visualizerAnimationId: null,
+      visualizerRunId: 0,
       visualizerActive: false,
       barFrequencyRanges: [], // for each bar { start, end } indices into the FFT data
       barPositions: [],       // for each bar { x, width } in pixels for rendering
@@ -136,34 +139,28 @@ export default {
       peaksLeft: [],
       peaksRight: [],
       primaryColor: "",
-      /**
-       * Visualizer config
-       * @property {number} barCount      – number of bars (split between L/R channels)
-       * @property {number} smoothing     – higher = smoother motion, but if set too high will look a bit slow
-       * @property {number} fftSize       – FFT size (must be a power of two). Larger = better frequency resolution, but slower.
-       * @property {number} minFrequency  – Hz – lowest frequency shown and maps to centre of the stereo display
-       * @property {number} maxFrequency  – Hz – highest frequency shown, which gets capped at the maxFreqLimit
-       * @property {number} minDecibels   – dBFS – the quietest level that still shows as a bar.
-       * @property {number} maxDecibels   – dBFS – the loudest level before clipping.
-       * @property {boolean} showScales   – show axis labels and grid lines (if false, bars fill all the canvas)
-       * @property {boolean} showPeaks    – show peak indicators above the bars
-       */
-      visualizerConfig: {
-        // I plan to make all of this configurable in UI, so they can be adjusted to taste!
-        barCount: 60,
-        smoothing: 0.92,
-        fftSize: 2048,
-        minFrequency: 20,
-        maxFrequency: 20000,
-        minDecibels: -100,
-        maxDecibels: 20,
-        showScales: true,
-        showPeaks: true,
-      },
+      lastAppliedConfig: null,
     };
   },
   computed: {
-    darkMode() { return getters.isDarkMode(); },
+    /**
+     * Visualizer config
+     * @property {number} barCount      – number of bars (split between L/R channels)
+     * @property {number} smoothing     – higher = smoother motion, but if set too high will look a bit slow
+     * @property {number} fftSize       – FFT size (must be a power of two). Larger = better frequency resolution, but slower.
+     * @property {number} minFrequency  – Hz – lowest frequency shown and maps to centre of the stereo display
+     * @property {number} maxFrequency  – Hz – highest frequency shown, which gets capped at the maxFreqLimit
+     * @property {number} minDecibels   – dBFS – the quietest level that still shows as a bar.
+     * @property {number} maxDecibels   – dBFS – the loudest level before clipping.
+     * @property {boolean} showScales   – show axis labels and grid lines (if false, bars fill all the canvas)
+     * @property {boolean} showPeaks    – show peak indicators above the bars
+     */
+    visualizerConfig() {
+      return visualizerConfig;
+    },
+    darkMode() {
+      return getters.isDarkMode();
+    },
     queueCount() {
       return state.playbackQueue.queue.length;
     },
@@ -183,6 +180,9 @@ export default {
       // Persist to localStorage
       localStorage.setItem(LAST_TAB_KEY, val);
       if (val === "visualizer") {
+        if (!this.audioContext || !this.audioSource) {
+          this.$emit("needs-audio-graph");
+        }
         this.$nextTick(this.startVisualizer);
         return;
       }
@@ -210,12 +210,21 @@ export default {
         this.$nextTick(() => this.scrollToActiveLine());
       }
     },
+    visualizerConfig: {
+      deep: true,
+      handler(config) {
+        this.applyVisualizerConfig(config);
+      },
+    },
     player: {
       handler(newPlayer, oldPlayer) {
         if (oldPlayer) {
           this.fullCleanup();
         }
         if (newPlayer && this.activeTab === 'visualizer') {
+          if (!this.audioContext || !this.audioSource) {
+            this.$emit("needs-audio-graph");
+          }
           this.$nextTick(this.startVisualizer);
         }
       },
@@ -235,11 +244,21 @@ export default {
       if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
     };
     window.addEventListener('resize', this.windowResizeHandler);
+    this.visibilityChangeHandler = () => {
+      if (this.activeTab !== 'visualizer') return;
+      if (document.hidden) {
+        this.stopVisualizer();
+      } else {
+        this.startVisualizer();
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityChangeHandler);
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.onKeyDown);
     this.resizeObserver?.disconnect();
     window.removeEventListener('resize', this.windowResizeHandler);
+    document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
     this.stopVisualizer();
     this.fullCleanup();
   },
@@ -252,6 +271,41 @@ export default {
       if (active) {
         active.scrollIntoView({ behavior: "smooth", block: "center" });
       }
+    },
+    showVisualizerSettings() {
+      mutations.showPrompt({ name: "VisualizerSettings" });
+    },
+    applyVisualizerConfig(config) {
+      const analyserL = this.visualizerAnalyserLeft;
+      const analyserR = this.visualizerAnalyserRight;
+      const prev = this.lastAppliedConfig;
+      const audioRelevantChanged = !prev ||
+        prev.fftSize !== config.fftSize ||
+        prev.smoothing !== config.smoothing ||
+        prev.minDecibels !== config.minDecibels ||
+        prev.maxDecibels !== config.maxDecibels;
+      if (analyserL && analyserR && audioRelevantChanged) {
+        try {
+          [analyserL, analyserR].forEach((analyser) => {
+            analyser.fftSize = config.fftSize;
+            analyser.smoothingTimeConstant = config.smoothing;
+            analyser.minDecibels = config.minDecibels;
+            analyser.maxDecibels = config.maxDecibels;
+          });
+          const binCount = analyserL.frequencyBinCount;
+          this.fftDataLeft = new Float32Array(binCount);
+          this.fftDataRight = new Float32Array(binCount);
+          this.lastAppliedConfig = {
+            fftSize: config.fftSize,
+            smoothing: config.smoothing,
+            minDecibels: config.minDecibels,
+            maxDecibels: config.maxDecibels,
+          };
+        } catch (err) {
+          console.warn('Visualizer config update failed:', err);
+        }
+      }
+      this.computeGeometry();
     },
     onKeyDown(event) {
       // 'E' shortcut to switch between tabs more easily
@@ -304,6 +358,7 @@ export default {
         const binCount = analyserL.frequencyBinCount;
         this.fftDataLeft  = new Float32Array(binCount);
         this.fftDataRight = new Float32Array(binCount);
+        this.lastAppliedConfig = { fftSize, smoothing, minDecibels, maxDecibels };
 
         // Read primary color once and store it
         const color = getComputedStyle(document.documentElement)
@@ -343,10 +398,12 @@ export default {
       this.initVisualizer();
       if (!this.visualizerAnalyserLeft || !this.visualizerAnalyserRight || this.visualizerActive) return;
       this.visualizerActive = true;
+      this.visualizerRunId += 1;
       this.resizeVisualizer();
-      this.drawVisualizer();
+      this.drawVisualizer(this.visualizerRunId);
     },
     stopVisualizer() {
+      this.visualizerRunId += 1;
       if (this.visualizerAnimationId) {
         cancelAnimationFrame(this.visualizerAnimationId);
         this.visualizerAnimationId = null;
@@ -445,27 +502,28 @@ export default {
       this.peaksLeft  = new Array(halfCount).fill(0);
       this.peaksRight = new Array(halfCount).fill(0);
     },
-    drawVisualizer() {
+    drawVisualizer(runId) {
+      if (runId !== this.visualizerRunId) return;
       if (!this.visualizerActive || this.activeTab !== 'visualizer') return;
       if (!this.visualizerAnalyserLeft || !this.visualizerAnalyserRight) {
-        this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+        this.visualizerAnimationId = requestAnimationFrame(() => this.drawVisualizer(runId));
         return;
       }
 
       const canvas = this.$refs.visualizerCanvas;
       if (!canvas) {
-        this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+        this.visualizerAnimationId = requestAnimationFrame(() => this.drawVisualizer(runId));
         return;
       }
       const ctx    = canvas.getContext('2d');
       if (!ctx) {
-        this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+        this.visualizerAnimationId = requestAnimationFrame(() => this.drawVisualizer(runId));
         return;
       }
       const width  = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (width === 0 || height === 0) {
-        this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+        this.visualizerAnimationId = requestAnimationFrame(() => this.drawVisualizer(runId));
         return;
       }
 
@@ -478,7 +536,7 @@ export default {
         this.barPositions.length !== halfCount * 2
       ) {
         this.computeGeometry();
-        this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+        this.visualizerAnimationId = requestAnimationFrame(() => this.drawVisualizer(runId));
         return;
       }
 
@@ -530,7 +588,7 @@ export default {
       }
       this.drawPeaks(ctx);
       ctx.shadowBlur = 0;
-      this.visualizerAnimationId = requestAnimationFrame(this.drawVisualizer);
+      this.visualizerAnimationId = requestAnimationFrame(() => this.drawVisualizer(runId));
     },
     // Draw the Y-axis (dB) grid lines & labels on the left and the X-axis (Hz) in the bottom.
     drawAxes(ctx) {
@@ -850,7 +908,7 @@ export default {
   cursor: default;
 }
 
-.audio-side-panel .tab-lyrics .lyrics-lock-btn {
+.audio-side-panel .lyrics-lock-btn {
   position: absolute;
   top: 0.5em;
   right: 0.5em;
@@ -868,7 +926,7 @@ export default {
   transition: 0.2s;
 }
 
-.audio-side-panel .tab-lyrics .lyrics-lock-btn:hover {
+.audio-side-panel .lyrics-lock-btn:hover {
   background: var(--primaryColor);
   color: white;
   border-color: var(--primaryColor);
@@ -880,6 +938,7 @@ export default {
 }
 
 .tab-visualizer {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -749,7 +749,29 @@
     "toggleLyrics": "Visa/dölj text",
     "closePanel": "Stäng panel",
     "openPanel": "Öppna panel",
-    "visualizer": "Visualiserare"
+    "visualizer": {
+      "title": "Visualiserare",
+      "settings": "Visualiserarinställningar",
+      "barCount": "Antal staplar",
+      "fftSize": "FFT-storlek",
+      "minFrequency": "Minsta frekvens",
+      "maxFrequency": "Högsta frekvens",
+      "smoothing": "Utjämning",
+      "minDecibels": "Minsta decibel",
+      "maxDecibels": "Högsta decibel",
+      "showPeaks": "Visa toppar",
+      "showScales": "Visa skalor",
+      "resetDefaults": "Återställ standardvärden",
+      "barCountDescription": "Antal staplar som visas, de fördelas mellan vänster och höger kanal, fler staplar kanske ser bättre ut, men använder också mer CPU",
+      "fftSizeDescription": "Större värden gör staplarna mer responsiva men är långsammare att beräkna (mer CPU)",
+      "minFrequencyDescription": "Lägsta frekvens (Hz) som visas i visualiseraren",
+      "maxFrequencyDescription": "Högsta frekvens (Hz) som visas i visualiseraren",
+      "smoothingDescription": "Hur mycket staplarna jämnas ut över tid. Att ställa in detta högre gör staplarna jämnare, men de reagerar också långsammare",
+      "minDecibelsDescription": "Tystaste nivå (dBFS) som stapeln registrerar",
+      "maxDecibelsDescription": "Högsta nivå (dBFS) som stapeln registrerar",
+      "showScalesDescription": "Visa axlar och rutnätslinjer på visualiseraren",
+      "showPeaksDescription": "Små vita toppindikatorer ovanför varje stapel"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analysator för filstorlek",

@@ -749,7 +749,29 @@
     "toggleLyrics": "تبديل كلمات الأغنية",
     "closePanel": "إغلاق اللوحة",
     "openPanel": "فتح اللوحة",
-    "visualizer": "مصور"
+    "visualizer": {
+      "title": "مصور",
+      "settings": "إعدادات المصور",
+      "barCount": "عدد الأعمدة",
+      "fftSize": "حجم FFT",
+      "minFrequency": "التردد الأدنى",
+      "maxFrequency": "التردد الأقصى",
+      "smoothing": "تنعيم",
+      "minDecibels": "الحد الأدنى للديسيبل",
+      "maxDecibels": "الحد الأقصى للديسيبل",
+      "showPeaks": "إظهار القمم",
+      "showScales": "إظهار المقاييس",
+      "resetDefaults": "إعادة تعيين الافتراضيات",
+      "barCountDescription": "عدد الأعمدة المعروضة، يتم تقسيمها بين القنوات اليسرى واليمنى، المزيد من الأعمدة قد يبدو أفضل، ولكنه سيستخدم أيضًا المزيد من المعالج",
+      "fftSizeDescription": "القيم الأكبر تجعل الأعمدة أكثر استجابة ولكنها أبطأ في الحساب (تستخدم معالجًا أكثر)",
+      "minFrequencyDescription": "أدنى تردد (هرتز) معروض في المصور",
+      "maxFrequencyDescription": "أعلى تردد (هرتز) معروض في المصور",
+      "smoothingDescription": "مدى تمليس الأعمدة بمرور الوقت. جعل هذا الإعداد أعلى سيجعل الأعمدة أكثر نعومة، ولكنها ستصبح أيضًا أبطأ في الاستجابة",
+      "minDecibelsDescription": "أقل مستوى (dBFS) يسجله العمود",
+      "maxDecibelsDescription": "أعلى مستوى (dBFS) يسجله العمود",
+      "showScalesDescription": "إظهار خطوط المحاور والشبكة على المصور",
+      "showPeaksDescription": "مؤشرات قمة بيضاء صغيرة فوق كل عمود"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "محلل حجم الملف",

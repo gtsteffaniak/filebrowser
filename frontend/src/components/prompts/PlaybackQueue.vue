@@ -230,6 +230,11 @@ export default {
       const width = `${100 / modes.length}%`;
       const left = `${index * (100 / modes.length)}%`;
       return { left, width };
+    },
+    itemLayout() {
+      const item = this.formattedQueue[this.currentQueueIndex] || null;
+      if (!item) return '';
+      return `${item.artist}|${item.album}`;
     }
   },
   watch: {
@@ -263,6 +268,11 @@ export default {
     },
     queueCount() {
       this.updatePromptTitle();
+    },
+    itemLayout() {
+      if (this.isPromptVisible || this.embedded) {
+        this.$nextTick(() => this.scrollToCurrentItem());
+      }
     },
   },
   mounted() {
@@ -343,21 +353,24 @@ export default {
         const currentItem = list.querySelector('.queue-item.current');
         if (!currentItem) return;
 
-        const listRect = list.getBoundingClientRect();
-        const itemRect = currentItem.getBoundingClientRect();
-        const itemTopRelative = itemRect.top - listRect.top + list.scrollTop;
-        const itemHeight = currentItem.offsetHeight;
-        const listHeight = list.clientHeight;
-        const maxScroll = list.scrollHeight - listHeight;
+        this.centerCurrentItem(list, currentItem);
+      });
+    },
+    centerCurrentItem(list, item) {
+      const listRect = list.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const itemTopRelative = itemRect.top - listRect.top + list.scrollTop;
+      const itemHeight = item.offsetHeight;
+      const listHeight = list.clientHeight;
+      const maxScroll = list.scrollHeight - listHeight;
 
-        // Target the item at 35% from the top
-        const viewportOffset = listHeight * 0.35;
-        const scrollTo = itemTopRelative - viewportOffset + (itemHeight / 2);
+      // Target the item at 35% from the top
+      const viewportOffset = listHeight * 0.35;
+      const scrollTo = itemTopRelative - viewportOffset + (itemHeight / 2);
 
-        list.scrollTo({
-          top: Math.max(0, Math.min(scrollTo, maxScroll)),
-          behavior: 'smooth'
-        });
+      list.scrollTo({
+        top: Math.max(0, Math.min(scrollTo, maxScroll)),
+        behavior: 'smooth'
       });
     },
     updatePromptTitle() {

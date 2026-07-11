@@ -749,7 +749,29 @@
     "toggleLyrics": "歌詞の表示切り替え",
     "closePanel": "パネルを閉じる",
     "openPanel": "パネルを開く",
-    "visualizer": "ビジュアライザー"
+    "visualizer": {
+      "title": "ビジュアライザー",
+      "settings": "ビジュアライザー設定",
+      "barCount": "バー数",
+      "fftSize": "FFTサイズ",
+      "minFrequency": "最小周波数",
+      "maxFrequency": "最大周波数",
+      "smoothing": "スムージング",
+      "minDecibels": "最小デシベル",
+      "maxDecibels": "最大デシベル",
+      "showPeaks": "ピークを表示",
+      "showScales": "スケールを表示",
+      "resetDefaults": "デフォルトにリセット",
+      "barCountDescription": "表示されるバーの数。左右のチャンネルに分割されます。バーが多いほど見た目は良くなりますが、CPUも多く使用します",
+      "fftSizeDescription": "値を大きくするとバーがより反応しやすくなりますが、計算が遅くなります（CPU使用量が増加）",
+      "minFrequencyDescription": "ビジュアライザーに表示される最低周波数（Hz）",
+      "maxFrequencyDescription": "ビジュアライザーに表示される最高周波数（Hz）",
+      "smoothingDescription": "時間経過に伴うバーの滑らかさの程度。この値を高く設定するとバーが滑らかになりますが、反応も遅くなります",
+      "minDecibelsDescription": "バーが記録する最小レベル（dBFS）",
+      "maxDecibelsDescription": "バーが記録する最大レベル（dBFS）",
+      "showScalesDescription": "ビジュアライザーに軸とグリッド線を表示",
+      "showPeaksDescription": "各バーの上に表示される小さな白いピークインジケーター"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",

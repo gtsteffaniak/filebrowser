@@ -758,7 +758,29 @@
     "toggleLyrics": "Attiva/disattiva testo",
     "closePanel": "Chiudi pannello",
     "openPanel": "Apri pannello",
-    "visualizer": "Visualizzatore"
+    "visualizer": {
+      "title": "Visualizzatore",
+      "settings": "Impostazioni visualizzatore",
+      "barCount": "Numero di barre",
+      "fftSize": "Dimensione FFT",
+      "minFrequency": "Frequenza minima",
+      "maxFrequency": "Frequenza massima",
+      "smoothing": "Smussamento",
+      "minDecibels": "Decibel minimi",
+      "maxDecibels": "Decibel massimi",
+      "showPeaks": "Mostra picchi",
+      "showScales": "Mostra scale",
+      "resetDefaults": "Ripristina valori predefiniti",
+      "barCountDescription": "Numero di barre visualizzate, si dividono tra i canali sinistro e destro, più barre potrebbero sembrare migliori, ma utilizzeranno anche più CPU",
+      "fftSizeDescription": "Valori più grandi rendono le barre più reattive ma sono più lente da calcolare (più CPU)",
+      "minFrequencyDescription": "Frequenza più bassa (Hz) visualizzata nel visualizzatore",
+      "maxFrequencyDescription": "Frequenza più alta (Hz) visualizzata nel visualizzatore",
+      "smoothingDescription": "Quanto le barre si smussano nel tempo. Impostare questo valore più alto renderà le barre più morbide, ma reagiranno anche più lentamente",
+      "minDecibelsDescription": "Livello più basso (dBFS) registrato dalla barra",
+      "maxDecibelsDescription": "Livello più alto (dBFS) registrato dalla barra",
+      "showScalesDescription": "Mostra assi e linee della griglia sul visualizzatore",
+      "showPeaksDescription": "Piccoli indicatori di picco bianchi sopra ogni barra"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analizzatore Dimensioni File",
