@@ -18,6 +18,11 @@
   --layer-middle: 3;
   --layer-below-top: 4;
   --layer-top: 10;
+  /* device insets (notch, rounded corners, home indicator) */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .border-radius {

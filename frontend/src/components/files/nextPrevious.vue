@@ -1023,7 +1023,8 @@ export default {
 
 .nav-button {
   position: fixed;
-  top: 50%;
+  /* previewer overlay spans the notch; bias the vertically-centered arrows down half the top inset */
+  top: calc(50% + var(--safe-area-top) / 2);
   transform: translateY(-50%);
   width: 50px;
   height: 50px;

@@ -637,7 +637,7 @@ export default {
 
 .progress-line {
   position: fixed;
-  top: 4em;
+  top: calc(4em + var(--safe-area-top));
   left: 0;
   right: 0;
   height: 1px;

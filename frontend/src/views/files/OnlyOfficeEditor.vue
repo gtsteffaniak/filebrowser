@@ -19,6 +19,23 @@ import { removeLastDir } from "@/utils/url";
 import { officeApi } from "@/api";
 import { toStandardLocale } from "@/i18n";
 
+// Edge-to-edge (viewport-fit=cover) leaks the notch inset into OnlyOffice's iframe, which paints it as a black
+// band; drop cover while the editor is open, restore on close. The runtime flip desyncs Safari/WebKit touch
+// hit-testing, so resync via a reflow + scroll.
+function resyncViewportHitTesting() {
+  void document.documentElement.offsetHeight; // force a synchronous reflow
+  window.scrollTo(0, window.scrollY);         // nudge safari to re-map touch coordinates
+}
+
+function setViewportFit(fit) {
+  const meta = document.querySelector('meta[name="viewport"]');
+  const content = meta?.getAttribute("content");
+  if (!content?.includes("viewport-fit=")) return;
+  meta.setAttribute("content", content.replace(/viewport-fit=\w+/, `viewport-fit=${fit}`));
+  requestAnimationFrame(resyncViewportHitTesting); // resync on the next frame
+  setTimeout(resyncViewportHitTesting, 250);       // and again once the inset change settles
+}
+
 export default {
   name: "onlyOfficeEditor",
   components: {
@@ -32,6 +49,7 @@ export default {
       source: "",
       path: "",
       debugMode: false,
+      droppedCover: false, // whether we swapped viewport-fit=cover -> auto on open (to restore on close)
     };
   },
   computed: {
@@ -46,6 +64,11 @@ export default {
     },
   },
   async mounted() {
+    // drop edge-to-edge while the editor is open (see setViewportFit) to avoid the mobile-viewer black band
+    this.droppedCover = document.querySelector('meta[name="viewport"]')
+      ?.getAttribute("content")?.includes("viewport-fit=cover") ?? false;
+    if (this.droppedCover) setViewportFit("auto");
+
     this.source = state.req.source;
     this.path = state.req.path;
 
@@ -78,12 +101,12 @@ export default {
   },
   beforeUnmount() {
     if (window.DocsAPI) delete window.DocsAPI;
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach(iframe => {
-      if (iframe.src.includes('onlyoffice')) {
-        iframe.remove();
-      }
+    // remove the onlyoffice iframe first so the viewport flip below happens on a clean layout
+    document.querySelectorAll("iframe").forEach((iframe) => {
+      if (iframe.src.includes("onlyoffice")) iframe.remove();
     });
+    // restore edge-to-edge, but only after the iframe teardown settles or safari leaves taps offset
+    if (this.droppedCover) setTimeout(() => setViewportFit("cover"), 250);
   },
   methods: {
     close() {

@@ -50,6 +50,11 @@
     margin-bottom: 5em;
   }
 
+  /* end-of-scroll room below the last item */
+  .listing-items {
+    padding-bottom: 3em;
+  }
+
   /* Don't override width for gallery and icons views - they use CSS variables */
   #listingView.list .listing-item,
   #listingView.compact .listing-item,

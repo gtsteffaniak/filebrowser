@@ -53,6 +53,7 @@ export default {
       canScroll: false,
       resizeObserver: null,
       mutationObserver: null,
+      safeTop: 0,
     };
   },
   computed: {
@@ -90,6 +91,7 @@ export default {
   methods: {
     handleResize() {
       if (!this.isReady) return;
+      this.updateSafeTop();
       // Force scroll event to re-compute thumb position
       const content = this.$refs.wrapper;
       this.updateThumbPosition(content.scrollTop);
@@ -136,17 +138,29 @@ export default {
         this.scheduleHide();
       }
     },
+    updateSafeTop() {
+      // env() resolves reliably on a standard property, but not when read back from a custom property on WebKit
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;height:env(safe-area-inset-top,0px);";
+      document.body.appendChild(probe);
+      this.safeTop = probe.getBoundingClientRect().height || 0;
+      probe.remove();
+    },
+    thumbTravel(thumbHeight) {
+      // ride within the visible viewport, not the safe-area-extended #main
+      const offsetFromBottom = getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
+      return window.innerHeight - thumbHeight - offsetFromBottom - this.safeTop;
+    },
     updateThumbPosition(scrollTop) {
       if (!this.showScrollbar || !this.canScroll) return;
       const content = this.$refs.wrapper;
-      const scrollbar = this.$refs.scrollbar;
       const thumb = this.$refs.thumb;
       const sectionId = this.$refs.sectionId;
       const scrollableHeight = content.scrollHeight - content.clientHeight;
       if (scrollableHeight <= 0) return;
       const scrollRatio = scrollTop / scrollableHeight;
       const thumbHeight = thumb.clientHeight;
-      const maxThumbTop = scrollbar.clientHeight - thumbHeight - (getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull);
+      const maxThumbTop = this.thumbTravel(thumbHeight);
       const thumbPosition = scrollRatio * maxThumbTop;
 
       // Use transform3d for better performance
@@ -191,13 +205,11 @@ export default {
       if (!this.isDragging) return;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const content = this.$refs.wrapper;
-      const scrollbar = this.$refs.scrollbar;
       const thumb = this.$refs.thumb;
 
       const deltaY = clientY - this.startY;
       const scrollableHeight = content.scrollHeight - content.clientHeight;
-      const offsetFromBottom = getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
-      const scrollbarHeight = scrollbar.clientHeight - thumb.clientHeight - offsetFromBottom;
+      const scrollbarHeight = this.thumbTravel(thumb.clientHeight);
       const scrollRatio = scrollableHeight / scrollbarHeight;
 
       let newScrollTop = this.startScrollTop + deltaY * scrollRatio;
@@ -227,6 +239,7 @@ export default {
     },
   },
   mounted() {
+    this.updateSafeTop();
     setTimeout(() => {
       this.isReady = true;
     }, 100);
@@ -303,7 +316,7 @@ export default {
   border-style: solid;
   border-color: var(--background);
   position: fixed;
-  top: 4em;
+  top: calc(4em + var(--safe-area-top));
   height: 6em;
   background-color: var(--alt-background);
   border-radius: 1em;
@@ -337,7 +350,7 @@ export default {
 }
 
 .thumb-section-id {
-  top: 5.5em;
+  top: calc(5.5em + var(--safe-area-top));
   right: 3em;
   width: 3em;
   height: 2.75em;

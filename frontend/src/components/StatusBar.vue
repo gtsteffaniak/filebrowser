@@ -243,14 +243,14 @@ export default {
   display: flex;
   align-items: center;
   position: fixed;
-  bottom: -2.5em;
+  bottom: calc(-2.5em - var(--safe-area-top));
   left: 0;
   right: 0;
   z-index: 2;
   border-radius: 2px;
   overflow: hidden;
   margin: 0;
-  padding: 0;
+  padding: 0 var(--safe-area-right) 0 var(--safe-area-left);
   transition: bottom 0.5s ease, left 0.2s ease, width 0.2s ease;
   pointer-events: none;
 }
@@ -322,7 +322,7 @@ input[type="range"] {
 @media (max-width: 768px) {
   #status-bar {
     height: 3em;
-    bottom: -3em;
+    bottom: calc(-3em - var(--safe-area-top));
     font-size: 0.9em;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   }
@@ -332,8 +332,9 @@ input[type="range"] {
     pointer-events: auto;
   }
 
+  /* keep clear of rounded screen corners */
   .status-content {
-    padding: 0 0.8em;
+    padding: 0 1.75em;
   }
 
   .status-controls {

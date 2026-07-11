@@ -2738,7 +2738,7 @@ export default {
 /* Queue detection zone for top-right corner */
 .floating-zone {
   position: fixed;
-  top: 4em; /* below header */
+  top: calc(4em + var(--safe-area-top)); /* below header */
   width: 5em;
   height: 5em;
   pointer-events: auto;
@@ -2757,8 +2757,8 @@ export default {
 
 .queue-button {
   position: fixed;
-  top: 80px;
-  right: 20px;
+  top: calc(80px + var(--safe-area-top));
+  right: calc(20px + var(--safe-area-right));
   width: 50px;
   height: 50px;
   border: none;
@@ -2777,16 +2777,16 @@ export default {
 
 /* Desktop panel toggle button */
 .panel-toggle-fab {
-  top: 80px;
-  right: 20px;
+  top: calc(80px + var(--safe-area-top));
+  right: calc(20px + var(--safe-area-right));
   position: fixed;
   z-index: 9999;
 }
 
 /* Lyrics floating button */
 .lyrics-fab-left {
-  top: 80px;
-  left: 20px;
+  top: calc(80px + var(--safe-area-top));
+  left: calc(20px + var(--safe-area-left));
   right: auto;
 }
 

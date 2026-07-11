@@ -717,7 +717,8 @@ export default {
 .floating-window {
   border-radius: 1em;
   position: fixed;
-  top: 50%;
+  /* black-translucent PWA puts the notch inside the viewport, pulling the centered dialog up; bias down by half the top inset */
+  top: calc(50% + var(--safe-area-top) / 2);
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 6;

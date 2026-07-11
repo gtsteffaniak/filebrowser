@@ -167,6 +167,16 @@ export default {
     $route() {
       this.reEval()
     },
+    // keep the OS status/navigation bar colors in sync with the app background
+    isDarkMode: {
+      immediate: true,
+      handler(dark) {
+        const color = dark ? globalVars.darkBackground : globalVars.lightBackground;
+        if (!color) return;
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", color);
+      },
+    },
   },
   methods: {
     reEval() {

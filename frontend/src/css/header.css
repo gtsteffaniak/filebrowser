@@ -12,6 +12,14 @@ header {
   padding: 0.5em;
 }
 
+/* only the app top bar absorbs the safe-area insets (top bar, landscape notch) */
+header.flexbar {
+  height: calc(4em + var(--safe-area-top));
+  padding-top: calc(0.5em + var(--safe-area-top));
+  padding-left: calc(0.5em + var(--safe-area-left));
+  padding-right: calc(0.5em + var(--safe-area-right));
+}
+
 header title {
   display: block;
   flex: 1 1 auto;
