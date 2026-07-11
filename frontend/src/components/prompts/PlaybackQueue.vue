@@ -270,7 +270,9 @@ export default {
       this.updatePromptTitle();
     },
     itemLayout() {
-      this.$nextTick(() => this.scrollToCurrentItem());
+      if (this.isPromptVisible || this.embedded) {
+        this.$nextTick(() => this.scrollToCurrentItem());
+      }
     },
   },
   mounted() {
