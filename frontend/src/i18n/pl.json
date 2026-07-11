@@ -761,7 +761,16 @@
       "maxDecibels": "Maksymalne decybele",
       "showPeaks": "Pokaż szczyty",
       "showScales": "Pokaż skale",
-      "resetDefaults": "Przywróć domyślne"
+      "resetDefaults": "Przywróć domyślne",
+      "barCountDescription": "Liczba wyświetlanych słupków, są one podzielone między lewy i prawy kanał, więcej słupków może wyglądać lepiej, ale zużyje więcej CPU",
+      "fftSizeDescription": "Większe wartości sprawiają, że słupki są bardziej responsywne, ale są wolniejsze w obliczeniach (więcej CPU)",
+      "minFrequencyDescription": "Najniższa częstotliwość (Hz) wyświetlana w wizualizatorze",
+      "maxFrequencyDescription": "Najwyższa częstotliwość (Hz) wyświetlana w wizualizatorze",
+      "smoothingDescription": "Jak bardzo słupki wygładzają się w czasie. Ustawienie wyższe sprawi, że słupki będą gładsze, ale będą też reagować wolniej",
+      "minDecibelsDescription": "Najcichszy poziom (dBFS) rejestrowany przez słupek",
+      "maxDecibelsDescription": "Najgłośniejszy poziom (dBFS) rejestrowany przez słupek",
+      "showScalesDescription": "Pokaż osie i linie siatki na wizualizatorze",
+      "showPeaksDescription": "Małe białe wskaźniki szczytów nad każdym słupkiem"
     }
   },
   "fileSizeAnalyzer": {

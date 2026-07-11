@@ -1,7 +1,14 @@
 <template>
   <div class="card-content visualizer-settings-content settings-items">
     <div class="setting-row item">
-      <label for="vis-bar-count">{{ $t("player.visualizer.barCount") }}</label>
+      <div class="setting-label">
+        <label for="vis-bar-count">{{ $t("player.visualizer.barCount") }}</label>
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('player.visualizer.barCountDescription'))"
+          @mouseleave="hideTooltip"
+        >help</i>
+      </div>
       <div class="setting-control">
         <input
           id="vis-bar-count"
@@ -15,7 +22,14 @@
       </div>
     </div>
     <div class="setting-row item">
-      <label id="vis-fft-size-label">{{ $t("player.visualizer.fftSize") }}</label>
+      <div class="setting-label">
+        <label id="vis-fft-size-label">{{ $t("player.visualizer.fftSize") }}</label>
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('player.visualizer.fftSizeDescription'))"
+          @mouseleave="hideTooltip"
+        >help</i>
+      </div>
       <div class="setting-control">
         <ExpandDropdown
           :options="fftSizeOptions"
@@ -25,7 +39,14 @@
       </div>
     </div>
     <div class="setting-row item">
-      <label id="vis-min-freq-label">{{ $t("player.visualizer.minFrequency") }}</label>
+      <div class="setting-label">
+        <label id="vis-min-freq-label">{{ $t("player.visualizer.minFrequency") }}</label>
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('player.visualizer.minFrequencyDescription'))"
+          @mouseleave="hideTooltip"
+        >help</i>
+      </div>
       <div class="setting-control">
         <ExpandDropdown
           :options="minFrequencyOptions"
@@ -35,7 +56,14 @@
       </div>
     </div>
     <div class="setting-row item">
-      <label id="vis-max-freq-label">{{ $t("player.visualizer.maxFrequency") }}</label>
+      <div class="setting-label">
+        <label id="vis-max-freq-label">{{ $t("player.visualizer.maxFrequency") }}</label>
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('player.visualizer.maxFrequencyDescription'))"
+          @mouseleave="hideTooltip"
+        >help</i>
+      </div>
       <div class="setting-control">
         <ExpandDropdown
           :options="maxFrequencyOptions"
@@ -45,21 +73,42 @@
       </div>
     </div>
     <div class="setting-row slider-setting item">
-      <label for="vis-smoothing">{{ $t("player.visualizer.smoothing") }}</label>
+      <div class="setting-label">
+        <label for="vis-smoothing">{{ $t("player.visualizer.smoothing") }}</label>
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('player.visualizer.smoothingDescription'))"
+          @mouseleave="hideTooltip"
+        >help</i>
+      </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-smoothing" type="range" min="0" max="1" step="0.01" v-model.number="smoothing" />
         <span class="slider-value">{{ smoothing.toFixed(2) }}</span>
       </div>
     </div>
     <div class="setting-row slider-setting item">
-      <label for="vis-min-db">{{ $t("player.visualizer.minDecibels") }}</label>
+      <div class="setting-label">
+        <label for="vis-min-db">{{ $t("player.visualizer.minDecibels") }}</label>
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('player.visualizer.minDecibelsDescription'))"
+          @mouseleave="hideTooltip"
+        >help</i>
+      </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-min-db" type="range" min="-120" max="-60" step="1" v-model.number="minDecibels" />
         <span class="slider-value">{{ minDecibels }}</span>
       </div>
     </div>
     <div class="setting-row slider-setting item">
-      <label for="vis-max-db">{{ $t("player.visualizer.maxDecibels") }}</label>
+      <div class="setting-label">
+        <label for="vis-max-db">{{ $t("player.visualizer.maxDecibels") }}</label>
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('player.visualizer.maxDecibelsDescription'))"
+          @mouseleave="hideTooltip"
+        >help</i>
+      </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-max-db" type="range" min="-40" max="20" step="1" v-model.number="maxDecibels" />
         <span class="slider-value">{{ maxDecibels }}</span>
@@ -68,11 +117,13 @@
     <ToggleSwitch
       class="item"
       :name="$t('player.visualizer.showScales')"
+      :description="$t('player.visualizer.showScalesDescription')"
       v-model="showScales"
     />
     <ToggleSwitch
       class="item"
       :name="$t('player.visualizer.showPeaks')"
+      :description="$t('player.visualizer.showPeaksDescription')"
       v-model="showPeaks"
     />
   </div>
@@ -164,6 +215,16 @@ export default {
     resetVisualizerConfig() {
       resetVisualizerConfig();
     },
+    showTooltip(event, text) {
+      mutations.showTooltip({
+        content: text,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    hideTooltip() {
+      mutations.hideTooltip();
+    },
   },
 };
 </script>
@@ -197,6 +258,14 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .setting-control {

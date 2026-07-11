@@ -761,7 +761,16 @@
       "maxDecibels": "최대 데시벨",
       "showPeaks": "피크 표시",
       "showScales": "스케일 표시",
-      "resetDefaults": "기본값 재설정"
+      "resetDefaults": "기본값 재설정",
+      "barCountDescription": "표시되는 막대 수로, 좌우 채널로 나뉩니다. 막대가 많을수록 더 좋아 보일 수 있지만 CPU를 더 많이 사용합니다",
+      "fftSizeDescription": "값이 클수록 막대가 더 민감해지지만 계산 속도가 느려집니다 (CPU 사용량 증가)",
+      "minFrequencyDescription": "시각화 도구에 표시되는 최소 주파수(Hz)",
+      "maxFrequencyDescription": "시각화 도구에 표시되는 최대 주파수(Hz)",
+      "smoothingDescription": "시간에 따라 막대가 얼마나 부드러워지는지 설정합니다. 이 값을 높이면 막대가 더 부드러워지지만 반응 속도도 느려집니다",
+      "minDecibelsDescription": "막대가 등록하는 가장 조용한 레벨(dBFS)",
+      "maxDecibelsDescription": "막대가 등록하는 가장 큰 레벨(dBFS)",
+      "showScalesDescription": "시각화 도구에 축과 격자선 표시",
+      "showPeaksDescription": "각 막대 위에 작은 흰색 피크 표시기"
     }
   },
   "fileSizeAnalyzer": {

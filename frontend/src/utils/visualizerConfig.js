@@ -5,7 +5,7 @@ const STORAGE_KEY = 'visualizerConfig';
 const DEFAULTS = {
   barCount: 60,
   smoothing: 0.92,
-  fftSize: 2048,
+  fftSize: 4096,
   minFrequency: 20,
   maxFrequency: 20000,
   minDecibels: -100,

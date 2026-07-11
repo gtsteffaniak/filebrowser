@@ -761,7 +761,16 @@
       "maxDecibels": "最大分貝",
       "showPeaks": "顯示峰值",
       "showScales": "顯示刻度",
-      "resetDefaults": "重設預設值"
+      "resetDefaults": "重設預設值",
+      "barCountDescription": "顯示的條形數量，它們在左右聲道之間分配，更多的條形可能看起來更好，但也會使用更多CPU",
+      "fftSizeDescription": "較大的值使條形更靈敏，但計算速度更慢（使用更多CPU）",
+      "minFrequencyDescription": "視覺化工具中顯示的最低頻率（Hz）",
+      "maxFrequencyDescription": "視覺化工具中顯示的最高頻率（Hz）",
+      "smoothingDescription": "條形隨時間平滑的程度。設定更高會使條形更平滑，但反應也會更慢",
+      "minDecibelsDescription": "條形記錄的最低音量（dBFS）",
+      "maxDecibelsDescription": "條形記錄的最高音量（dBFS）",
+      "showScalesDescription": "在視覺化工具上顯示軸和網格線",
+      "showPeaksDescription": "每個條形上方的小白色峰值指示器"
     }
   },
   "fileSizeAnalyzer": {

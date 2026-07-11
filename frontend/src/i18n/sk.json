@@ -761,7 +761,16 @@
       "maxDecibels": "Maximálne decibely",
       "showPeaks": "Zobraziť špičky",
       "showScales": "Zobraziť stupnice",
-      "resetDefaults": "Obnoviť predvolené"
+      "resetDefaults": "Obnoviť predvolené",
+      "barCountDescription": "Počet zobrazených stĺpcov, rozdeľujú sa medzi ľavý a pravý kanál, viac stĺpcov môže vyzerať lepšie, ale tiež spotrebuje viac CPU",
+      "fftSizeDescription": "Väčšie hodnoty robia stĺpce citlivejšie, ale sú pomalšie na výpočet (viac CPU)",
+      "minFrequencyDescription": "Najnižšia frekvencia (Hz) zobrazená vo vizualizéri",
+      "maxFrequencyDescription": "Najvyššia frekvencia (Hz) zobrazená vo vizualizéri",
+      "smoothingDescription": "Ako veľmi sa stĺpce v priebehu času vyhladzujú. Nastavenie vyššej hodnoty spôsobí hladšie stĺpce, ale budú reagovať pomalšie",
+      "minDecibelsDescription": "Najtichšia úroveň (dBFS), ktorú stĺpec zaznamenáva",
+      "maxDecibelsDescription": "Najhlasnejšia úroveň (dBFS), ktorú stĺpec zaznamenáva",
+      "showScalesDescription": "Zobraziť osi a mriežku na vizualizéri",
+      "showPeaksDescription": "Malé biele indikátory špičiek nad každým stĺpcom"
     }
   },
   "fileSizeAnalyzer": {

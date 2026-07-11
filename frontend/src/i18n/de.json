@@ -761,7 +761,16 @@
       "maxDecibels": "Maximale Dezibel",
       "showPeaks": "Spitzen anzeigen",
       "showScales": "Skalen anzeigen",
-      "resetDefaults": "Standardwerte wiederherstellen"
+      "resetDefaults": "Standardwerte wiederherstellen",
+      "barCountDescription": "Anzahl der angezeigten Balken, sie werden zwischen linkem und rechtem Kanal aufgeteilt, mehr Balken sehen möglicherweise besser aus, verbrauchen aber auch mehr CPU",
+      "fftSizeDescription": "Größere Werte machen die Balken reaktionsschneller, sind aber langsamer zu berechnen (mehr CPU)",
+      "minFrequencyDescription": "Niedrigste Frequenz (Hz), die im Visualisierer angezeigt wird",
+      "maxFrequencyDescription": "Höchste Frequenz (Hz), die im Visualisierer angezeigt wird",
+      "smoothingDescription": "Wie sehr die Balken im Laufe der Zeit geglättet werden. Höhere Werte machen die Balken weicher, aber sie reagieren auch langsamer",
+      "minDecibelsDescription": "Leiseste Lautstärke (dBFS), die der Balken registriert",
+      "maxDecibelsDescription": "Lauteste Lautstärke (dBFS), die der Balken registriert",
+      "showScalesDescription": "Achsen und Gitternetzlinien auf dem Visualisierer anzeigen",
+      "showPeaksDescription": "Kleine weiße Spitzenindikatoren über jedem Balken"
     }
   },
   "fileSizeAnalyzer": {

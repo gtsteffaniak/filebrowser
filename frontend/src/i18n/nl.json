@@ -770,7 +770,16 @@
       "maxDecibels": "Maximale decibels",
       "showPeaks": "Pieken tonen",
       "showScales": "Schaal tonen",
-      "resetDefaults": "Standaardwaarden herstellen"
+      "resetDefaults": "Standaardwaarden herstellen",
+      "barCountDescription": "Aantal weergegeven balken, ze worden verdeeld over het linker- en rechterkanaal, meer balken zien er misschien beter uit, maar verbruiken ook meer CPU",
+      "fftSizeDescription": "Grotere waarden maken de balken responsiever, maar zijn trager om te berekenen (meer CPU)",
+      "minFrequencyDescription": "Laagste frequentie (Hz) weergegeven in de visualisator",
+      "maxFrequencyDescription": "Hoogste frequentie (Hz) weergegeven in de visualisator",
+      "smoothingDescription": "Hoeveel de balken in de loop van de tijd worden gladgestreken. Hoger instellen maakt de balken gladder, maar ze reageren ook trager",
+      "minDecibelsDescription": "Stilste niveau (dBFS) dat de balk registreert",
+      "maxDecibelsDescription": "Luidste niveau (dBFS) dat de balk registreert",
+      "showScalesDescription": "Assen en rasterlijnen weergeven op de visualisator",
+      "showPeaksDescription": "Kleine witte piekindicatoren boven elke balk"
     }
   },
   "fileSizeAnalyzer": {
