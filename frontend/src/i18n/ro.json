@@ -749,7 +749,29 @@
     "toggleLyrics": "Comută versurile",
     "closePanel": "Închide panoul",
     "openPanel": "Deschide panoul",
-    "visualizer": "Vizualizator"
+    "visualizer": {
+      "title": "Vizualizator",
+      "settings": "Setări vizualizator",
+      "barCount": "Număr de bare",
+      "fftSize": "Dimensiune FFT",
+      "minFrequency": "Frecvență minimă",
+      "maxFrequency": "Frecvență maximă",
+      "smoothing": "Netezire",
+      "minDecibels": "Decibeli minimi",
+      "maxDecibels": "Decibeli maximi",
+      "showPeaks": "Afișare vârfuri",
+      "showScales": "Afișare scale",
+      "resetDefaults": "Resetați valorile implicite",
+      "barCountDescription": "Numărul de bare afișate, se împart între canalul stâng și drept, mai multe bare pot arăta mai bine, dar vor folosi și mai mult CPU",
+      "fftSizeDescription": "Valori mai mari fac barele mai receptive, dar sunt mai lente de calculat (mai mult CPU)",
+      "minFrequencyDescription": "Cea mai mică frecvență (Hz) afișată în vizualizator",
+      "maxFrequencyDescription": "Cea mai mare frecvență (Hz) afișată în vizualizator",
+      "smoothingDescription": "Cât de mult se netezesc barele în timp. Setarea acestui lucru la o valoare mai mare va face barele mai netede, dar vor reacționa și mai lent",
+      "minDecibelsDescription": "Cel mai silențios nivel (dBFS) înregistrat de bară",
+      "maxDecibelsDescription": "Cel mai puternic nivel (dBFS) înregistrat de bară",
+      "showScalesDescription": "Afișați axele și liniile grilei pe vizualizator",
+      "showPeaksDescription": "Indicatoare mici albe de vârf deasupra fiecărei bare"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",

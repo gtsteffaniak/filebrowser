@@ -749,7 +749,29 @@
     "toggleLyrics": "Şarkı sözlerini göster/gizle",
     "closePanel": "Paneli kapat",
     "openPanel": "Paneli aç",
-    "visualizer": "Görselleştirici"
+    "visualizer": {
+      "title": "Görselleştirici",
+      "settings": "Görselleştirici ayarları",
+      "barCount": "Çubuk sayısı",
+      "fftSize": "FFT Boyutu",
+      "minFrequency": "Minimum frekans",
+      "maxFrequency": "Maksimum frekans",
+      "smoothing": "Yumuşatma",
+      "minDecibels": "Minimum desibel",
+      "maxDecibels": "Maksimum desibel",
+      "showPeaks": "Tepe noktalarını göster",
+      "showScales": "Ölçekleri göster",
+      "resetDefaults": "Varsayılanlara sıfırla",
+      "barCountDescription": "Gösterilen çubuk sayısı, sol ve sağ kanallar arasında bölünür, daha fazla çubuk daha iyi görünebilir, ancak daha fazla CPU kullanır",
+      "fftSizeDescription": "Daha büyük değerler çubukları daha duyarlı hale getirir ancak hesaplaması daha yavaştır (daha fazla CPU)",
+      "minFrequencyDescription": "Görselleştiricide gösterilen en düşük frekans (Hz)",
+      "maxFrequencyDescription": "Görselleştiricide gösterilen en yüksek frekans (Hz)",
+      "smoothingDescription": "Çubukların zaman içinde ne kadar yumuşatılacağı. Bunu daha yüksek ayarlamak çubukları daha yumuşak yapar, ancak aynı zamanda daha yavaş tepki verirler",
+      "minDecibelsDescription": "Çubuğun kaydettiği en sessiz seviye (dBFS)",
+      "maxDecibelsDescription": "Çubuğun kaydettiği en yüksek seviye (dBFS)",
+      "showScalesDescription": "Görselleştiricide eksenleri ve ızgara çizgilerini göster",
+      "showPeaksDescription": "Her çubuğun üzerinde küçük beyaz tepe göstergeleri"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Dosya Boyutu Analizörü",

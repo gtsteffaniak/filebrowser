@@ -749,7 +749,29 @@
     "toggleLyrics": "החלפת מילים",
     "closePanel": "סגור לוח",
     "openPanel": "פתח לוח",
-    "visualizer": "מציג חזותי"
+    "visualizer": {
+      "title": "מציג חזותי",
+      "settings": "הגדרות מציג חזותי",
+      "barCount": "מספר עמודות",
+      "fftSize": "גודל FFT",
+      "minFrequency": "תדר מינימלי",
+      "maxFrequency": "תדר מקסימלי",
+      "smoothing": "החלקה",
+      "minDecibels": "דציבלים מינימליים",
+      "maxDecibels": "דציבלים מקסימליים",
+      "showPeaks": "הצג שיאים",
+      "showScales": "הצג סולמות",
+      "resetDefaults": "איפוס לברירת מחדל",
+      "barCountDescription": "מספר העמודות המוצגות, הן מתחלקות בין הערוץ השמאלי והימני, יותר עמודות עשויות להיראות טוב יותר, אך גם ישתמשו ביותר מעבד",
+      "fftSizeDescription": "ערכים גדולים יותר הופכים את העמודות למגיבות יותר אך איטיות יותר לחישוב (יותר מעבד)",
+      "minFrequencyDescription": "התדר הנמוך ביותר (Hz) המוצג במציג החזותי",
+      "maxFrequencyDescription": "התדר הגבוה ביותר (Hz) המוצג במציג החזותי",
+      "smoothingDescription": "מידת ההחלקה של העמודות לאורך זמן. הגדרת ערך גבוה יותר תהפוך את העמודות לחלקות יותר, אך הן גם יגיבו לאט יותר",
+      "minDecibelsDescription": "הרמה השקטה ביותר (dBFS) שהעמודה רושמת",
+      "maxDecibelsDescription": "הרמה הרועשת ביותר (dBFS) שהעמודה רושמת",
+      "showScalesDescription": "הצג צירים וקווי רשת על המציג החזותי",
+      "showPeaksDescription": "אינדיקטורים לבנים קטנים של שיאים מעל כל עמודה"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "מנתח גודל קובץ",

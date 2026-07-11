@@ -749,7 +749,29 @@
     "toggleLyrics": "Alternar letra",
     "closePanel": "Fechar painel",
     "openPanel": "Abrir painel",
-    "visualizer": "Visualizador"
+    "visualizer": {
+      "title": "Visualizador",
+      "settings": "Configurações do visualizador",
+      "barCount": "Número de barras",
+      "fftSize": "Tamanho FFT",
+      "minFrequency": "Frequência mínima",
+      "maxFrequency": "Frequência máxima",
+      "smoothing": "Suavização",
+      "minDecibels": "Decibéis mínimos",
+      "maxDecibels": "Decibéis máximos",
+      "showPeaks": "Mostrar picos",
+      "showScales": "Mostrar escalas",
+      "resetDefaults": "Repor padrões",
+      "barCountDescription": "Número de barras apresentadas, dividem-se entre os canais esquerdo e direito, mais barras podem parecer melhores, mas também usarão mais CPU",
+      "fftSizeDescription": "Valores maiores tornam as barras mais responsivas, mas são mais lentas para calcular (mais CPU)",
+      "minFrequencyDescription": "Frequência mais baixa (Hz) mostrada no visualizador",
+      "maxFrequencyDescription": "Frequência mais alta (Hz) mostrada no visualizador",
+      "smoothingDescription": "O quanto as barras são suavizadas ao longo do tempo. Definir este valor mais alto tornará as barras mais suaves, mas também reagirão mais lentamente",
+      "minDecibelsDescription": "Nível mais baixo (dBFS) que a barra regista",
+      "maxDecibelsDescription": "Nível mais alto (dBFS) que a barra regista",
+      "showScalesDescription": "Mostrar eixos e linhas de grelha no visualizador",
+      "showPeaksDescription": "Pequenos indicadores de pico brancos acima de cada barra"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analisador de tamanho de ficheiro",
