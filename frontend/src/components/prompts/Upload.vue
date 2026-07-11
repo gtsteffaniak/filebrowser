@@ -40,40 +40,37 @@
         <div class="upload-prompt-container">
           <i v-if="files.length === 0" class="material-symbols">cloud_upload</i>
           <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
-          <div class="button-group">
-            <button
-              type="button"
-              @click="triggerFilePicker"
-              class="button button--flat"
-            >
-              {{ $t("general.file") }}
-            </button>
-            <button
-              type="button"
-              style="margin-left: 1em"
-              @click="triggerFolderPicker"
-              class="button button--flat"
-            >
-              {{ $t("general.folder") }}
-            </button>
-            <button
-              type="button"
-              style="margin-left: 1em"
-              @click="triggerCameraPicker"
-              class="button button--flat"
-            >
-              {{ $t("general.camera") }}
-            </button>
-            <button
-              type="button"
-              style="margin-left: 1em"
-              @click="triggerVideoPicker"
-              class="button button--flat"
-            >
-              {{ $t("general.video") }}
-            </button>
-          </div>
         </div>
+      </div>
+      <div class="button-group">
+        <button
+          type="button"
+          @click="triggerFilePicker"
+          class="button button--flat"
+        >
+          {{ $t("general.file") }}
+        </button>
+        <button
+          type="button"
+          @click="triggerFolderPicker"
+          class="button button--flat"
+        >
+          {{ $t("general.folder") }}
+        </button>
+        <button
+          type="button"
+          @click="triggerCameraPicker"
+          class="button button--flat"
+        >
+          {{ $t("general.camera") }}
+        </button>
+        <button
+          type="button"
+          @click="triggerVideoPicker"
+          class="button button--flat"
+        >
+          {{ $t("general.video") }}
+        </button>
       </div>
     </div>
     <div v-if="files.length > 0" style="position: relative;">
@@ -711,6 +708,7 @@ export default {
 .button-group {
   display: flex;
   justify-content: center;
+  margin: 0em;
 }
 
 :deep(.settings-group-title) {
@@ -719,10 +717,10 @@ export default {
 
 .upload-prompt {
   text-align: center;
-  padding: 2em;
+  padding: 1.25em;
   border: 2px dashed #ccc;
   border-radius: 8px;
-  margin: 1em;
+  margin: 1em 1em 0.5em;
 }
 
 .dropping {
