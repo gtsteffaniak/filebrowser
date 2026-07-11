@@ -80,7 +80,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		externalLinks = newExternalLinks
 	}
 
-	defaultThemeColor := "#455a64"
 	staticURL := config.Server.BaseURL + "public/static"
 	description := config.Frontend.Description
 	title := config.Frontend.Name
@@ -197,7 +196,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"baseURL":            config.Server.BaseURL,
 		"favicon":            favicon,
 		"loginIcon":          loginIcon,
-		"color":              defaultThemeColor,
+		"color":              settings.DefaultBackgroundColor(),
 		"winIcon":            staticURL + "/icons/mstile-256x256.png",
 		"appIcon":            staticURL + "/icons/apple-touch-icon.png",
 		"description":        description,
@@ -216,6 +215,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"minSearchLength":        config.Server.MinSearchLength,
 		"disableExternal":        config.Frontend.DisableDefaultLinks,
 		"darkMode":               config.UserDefaults.UI.DarkMode,
+		"lightBackground":        config.Frontend.Styling.LightBackground,
+		"darkBackground":         config.Frontend.Styling.DarkBackground,
 		"baseURL":                config.Server.BaseURL,
 		"version":                versionString,
 		"commitSHA":              commitSHAString,
@@ -346,6 +347,7 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		assetPath = "img/icons/favicon.png"
 	case "icons/favicon-32x32.png",
 		"icons/pwa-icon-192.png", "icons/pwa-icon-256.png", "icons/pwa-icon-512.png",
+		"icons/pwa-icon-maskable-192.png", "icons/pwa-icon-maskable-512.png",
 		"icons/apple-touch-icon.png", "icons/mstile-256x256.png":
 		// Files are generated as PWAIconsCacheDir()/basename (URL uses icons/ prefix only for routing)
 		rel := strings.TrimPrefix(path, "icons/")

@@ -118,3 +118,11 @@ func readCustomCSS(path string) (string, error) {
 	logger.Debugf("Loaded custom CSS from: %s (%d bytes)", path, len(content))
 	return string(content), nil
 }
+
+// returns the background color of the instance's default theme
+func DefaultBackgroundColor() string {
+	if Config.UserDefaults.UI.DarkMode != nil && *Config.UserDefaults.UI.DarkMode {
+		return Config.Frontend.Styling.DarkBackground
+	}
+	return Config.Frontend.Styling.LightBackground
+}
