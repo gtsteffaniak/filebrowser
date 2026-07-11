@@ -350,13 +350,24 @@ async function main() {
     process.exit(0);
   }
 
-  writeInventory(icons);
   if (existing && inventoriesMatch(existing, icons) && coreFontExists()) {
     const coreKb = Math.round(fs.statSync(coreFontPath).size / 1024);
     console.log(`✅ Core icon inventory unchanged (${icons.length} icons, ${coreKb} KB font)`);
     return;
   }
 
+  if (!resolvePython()) {
+    const existingSet = new Set(existing ?? []);
+    const missing = icons.filter((icon) => !existingSet.has(icon));
+    const extra = (existing ?? []).filter((icon) => !new Set(icons).has(icon));
+    console.error('❌ Core icon inventory or font is out of date and fonttools is not available.');
+    console.error('   Run locally: make setup && make sync-icons');
+    if (missing.length) console.error(`   Missing from inventory (${missing.length}): ${missing.join(', ')}`);
+    if (extra.length) console.error(`   Stale in inventory (${extra.length}): ${extra.join(', ')}`);
+    process.exit(1);
+  }
+
+  writeInventory(icons);
   await buildCoreFont(icons);
   reportCoreFontDuplicates(icons);
   const coreKb = Math.round(fs.statSync(coreFontPath).size / 1024);

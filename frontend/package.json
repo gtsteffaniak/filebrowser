@@ -8,7 +8,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "npm run icons:sync && rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
+    "build": "npm run icons:check && rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
     "build:docker": "vite build",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
