@@ -71,7 +71,7 @@ func TestReadFileRangeRejectsOversizedLength(t *testing.T) {
 	}
 	defer f.Close()
 
-	if _, err := f.Write([]byte{0xff, 0xd8}); err != nil {
+	if _, err = f.Write([]byte{0xff, 0xd8}); err != nil {
 		t.Fatal(err)
 	}
 
