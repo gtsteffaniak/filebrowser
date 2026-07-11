@@ -132,7 +132,6 @@ type Media struct {
 	Convert                  FfmpegConvert `json:"convert"`                  // config for ffmpeg conversion settings
 	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
 	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
-	ExiftoolPath             string        `json:"exiftoolPath"`             // path to exiftool executable
 	HardwareAcceleration     bool          `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
 }
 

@@ -109,7 +109,7 @@ export default {
         return this.isHeicAndViewable;
       }
       if (isRawImageMimeType(state.req.type)) {
-        return globalVars.exiftoolAvailable === true;
+        return true;
       }
       return this.previewType === 'image' || this.pdfConvertable;
     },
@@ -126,10 +126,9 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
-    // Viewable when we can get embedded/original preview: (media + heic conversion) or exiftool, or Safari native
+    // Viewable when we can get embedded/original preview: (media + heic conversion) or Safari native
     isHeicAndViewable() {
       if (state.isSafari) return true;
-      if (globalVars.exiftoolAvailable) return true;
       if (globalVars.mediaAvailable && globalVars.enableHeicConversion) return true;
       return false;
     },
@@ -192,8 +191,8 @@ export default {
         return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
       }
 
-      const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
-      const getHeicPreview = isHeicOrHeif && ((globalVars.mediaAvailable && globalVars.enableHeicConversion) || globalVars.exiftoolAvailable);
+      const getRawPreview = isRawImageMimeType(state.req.type);
+      const getHeicPreview = isHeicOrHeif && globalVars.mediaAvailable && globalVars.enableHeicConversion;
       if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
           const previewPath = removeTrailingSlash(state.req.path);

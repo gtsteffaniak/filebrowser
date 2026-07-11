@@ -17,6 +17,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/imagemeta"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -448,15 +449,14 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 
 	cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
 
-	// If this file type might have an embedded preview, try exiftool first before any type-specific path.
+	// If this file type might have an embedded preview, try extracting it before any type-specific path.
 	var imageBytes []byte
-	fromExiftool := false
+	fromEmbeddedPreview := false
 	if hasEmbeddedPreview(file.Type, file.Name) {
-		if exifBytes, _ := ExtractEmbeddedPreview(ctx, file.RealPath, file.Type); len(exifBytes) >= minPreviewSize && isJPEG(exifBytes) {
-			imageBytes = exifBytes
-			fromExiftool = true
-			// Apply EXIF orientation from source file using exiftool + imaging (no FFmpeg).
-			if orient := GetOrientation(ctx, file.RealPath); orient != "" {
+		if previewBytes, _ := imagemeta.ExtractEmbeddedPreview(ctx, file.RealPath); len(previewBytes) >= minPreviewSize && isJPEG(previewBytes) {
+			imageBytes = previewBytes
+			fromEmbeddedPreview = true
+			if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
 				if corrected := applyOrientationToPreviewBytes(imageBytes, orient); len(corrected) >= minPreviewSize {
 					imageBytes = corrected
 				}
@@ -464,7 +464,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		}
 	}
 
-	if !fromExiftool {
+	if !fromEmbeddedPreview {
 		var err error
 		imageBytes, err = service.generateRawPreview(ctx, file, previewSize, officeUrl, seekPercentage, hash)
 		if err != nil {
@@ -479,10 +479,10 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ErrPreviewTooSmall
 	}
 
-	// When we got bytes from exiftool, we still need to resize to small/large/xlarge (original is never converted).
+	// When we got bytes from an embedded preview, we still need to resize to small/large/xlarge (original is never converted).
 	// When we got bytes from type-specific path, regular images are already resized; others need resize below.
 	previewType := determinePreviewType(file)
-	if !fromExiftool && previewType == previewTypeImage {
+	if !fromEmbeddedPreview && previewType == previewTypeImage {
 		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)
 		}
@@ -494,7 +494,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
-	// Resize if needed (exiftool bytes, or videos, audio, documents). Original is never converted.
+	// Resize if needed (embedded preview bytes, or videos, audio, documents). Original is never converted.
 	if previewSize != "original" {
 		options, err := getPreviewOptions(previewSize)
 		if err != nil {

@@ -276,7 +276,7 @@ func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 }
 
 // applyOrientationToPreviewBytes applies EXIF orientation to image bytes using the imaging library.
-// orientation is the string from exiftool -Orientation -s3 (e.g. "Rotate 90 CW", "Horizontal (normal)").
+// orientation is the EXIF orientation label (e.g. "Rotate 90 CW", "Horizontal (normal)").
 // Returns rotated JPEG bytes or the original bytes on error/unknown orientation. No FFmpeg required.
 func applyOrientationToPreviewBytes(imageBytes []byte, orientation string) []byte {
 	if len(imageBytes) < 100 {

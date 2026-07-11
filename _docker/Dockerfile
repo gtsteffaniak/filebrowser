@@ -28,7 +28,7 @@ ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_DATABASE_PATH="/home/filebrowser/data/database.sqlite"
 ENV FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"
 ENV PATH="$PATH:/home/filebrowser"
-RUN apk --no-cache add ca-certificates mailcap tzdata curl exiftool
+RUN apk --no-cache add ca-certificates mailcap tzdata curl
 RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
@@ -42,7 +42,6 @@ COPY --from=nbuild --chown=filebrowser:1000 [ "/build/backend/internal/web/dist/
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]
 RUN [ "ffprobe", "-version" ]
-RUN [ "exiftool", "-ver" ]
 # exposing default port for auto discovery.
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
