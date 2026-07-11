@@ -183,12 +183,21 @@ function coreFontExists() {
   return fs.existsSync(coreFontPath);
 }
 
+function pythonHasFonttools(python) {
+  const probe = spawnSync(python, ['-c', 'import fontTools'], { encoding: 'utf8' });
+  return probe.status === 0;
+}
+
 function resolvePython() {
-  if (fs.existsSync(venvPython)) return venvPython;
-  const candidates = ['python3', 'python'];
+  const candidates = [];
+  if (fs.existsSync(venvPython)) {
+    candidates.push(venvPython);
+  }
+  candidates.push('python3', 'python');
   for (const cmd of candidates) {
-    const probe = spawnSync(cmd, ['-c', 'import fontTools'], { encoding: 'utf8' });
-    if (probe.status === 0) return cmd;
+    if (pythonHasFonttools(cmd)) {
+      return cmd;
+    }
   }
   return null;
 }
@@ -247,6 +256,66 @@ function convertTtfToWoff2(ttfBuffer, outputPath) {
   }
 }
 
+/**
+ * Google Fonts FILL=1 static instances often include duplicate-looking icon glyphs
+ * (e.g. ligature + component letters). Informational only — harmless at runtime.
+ */
+function reportCoreFontDuplicates(icons) {
+  const python = resolvePython();
+  if (!python || !coreFontExists()) {
+    return;
+  }
+
+  const script = `
+from collections import defaultdict
+from fontTools.ttLib import TTFont
+
+font = TTFont(${JSON.stringify(coreFontPath)})
+icons = set(${JSON.stringify(icons)})
+glyph_order = font.getGlyphOrder()
+cmap = font.getBestCmap()
+
+icon_glyphs = sorted(g for g in glyph_order if g in icons)
+by_glyph = defaultdict(list)
+for cp, glyph_name in cmap.items():
+    by_glyph[glyph_name].append(cp)
+
+dup_icons = sorted(
+    glyph_name
+    for glyph_name in icon_glyphs
+    if len(by_glyph.get(glyph_name, [])) > 1
+)
+suffix_dupes = sorted(
+    glyph_name
+    for glyph_name in glyph_order
+    if any(
+        glyph_name in icons
+        and glyph_name != icon_name
+        and glyph_name.startswith(icon_name)
+        for icon_name in icons
+    )
+)
+
+print(f'Core font: {len(glyph_order)} glyphs, {len(icon_glyphs)} icon-named glyphs')
+if dup_icons:
+    print(f'Icons with multiple cmap entries: {len(dup_icons)} (e.g. {", ".join(dup_icons[:5])})')
+if suffix_dupes:
+    print(f'Possible duplicate icon variants: {len(suffix_dupes)} (e.g. {", ".join(suffix_dupes[:5])})')
+if not dup_icons and not suffix_dupes:
+    print('No duplicate icon glyphs detected')
+`;
+
+  const result = spawnSync(python, ['-c', script], { encoding: 'utf8' });
+  if (result.status !== 0) {
+    return;
+  }
+
+  const output = result.stdout.trim();
+  if (output) {
+    console.log(`ℹ️  ${output.replace(/\n/g, '\n   ')}`);
+  }
+}
+
 async function buildCoreFont(icons) {
   const css = await fetchGoogleSubsetCss(icons);
   const fontUrl = extractFontUrl(css);
@@ -277,6 +346,7 @@ async function main() {
       process.exit(1);
     }
     console.log(`✅ Core icon inventory up to date (${icons.length} icons).`);
+    reportCoreFontDuplicates(icons);
     process.exit(0);
   }
 
@@ -288,6 +358,7 @@ async function main() {
   }
 
   await buildCoreFont(icons);
+  reportCoreFontDuplicates(icons);
   const coreKb = Math.round(fs.statSync(coreFontPath).size / 1024);
   console.log(`✅ Generated ${icons.length} core icons → filled ${coreKb} KB`);
 }

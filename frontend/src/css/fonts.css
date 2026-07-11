@@ -121,6 +121,15 @@
   src: url(/fonts/material-symbols-core-filled.woff2) format('woff2');
 }
 
+/* Declared here but not referenced until html.icons-full — keeps the 3.8 MB font lazy. */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/fonts/material-symbols.woff2) format('woff2');
+}
+
 html:not(.icons-full) .material-symbols-outlined,
 html:not(.icons-full) .material-symbols {
   font-family: 'Material Symbols Core';
@@ -150,11 +159,10 @@ html.icons-full .material-symbols {
   transition: 0.25s ease;
 }
 
-/* Lock opsz to 24 so variable glyphs match the static core subset at any font-size (e.g. 2em). */
-html.icons-full .material-symbols {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+.material-symbols {
+  font-variation-settings: 'FILL' 1;
 }
 
-html.icons-full .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0;
 }

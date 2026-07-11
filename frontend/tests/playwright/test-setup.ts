@@ -286,6 +286,11 @@ export function setupErrorTracking(page: Page) {
   const consoleErrors: string[] = [];
   const failedResponses: { url: string; status: number }[] = [];
 
+  const isHarmlessConsoleError = (errorText: string) => (
+    // Firefox logs background lazy-load font failures; core icons still render.
+    /downloadable font: download failed.*material-symbols\.woff2/i.test(errorText)
+  );
+
   // Track console errors
   page.on("console", async (message) => {
     if (message.type() === "error") {
@@ -336,6 +341,10 @@ export function setupErrorTracking(page: Page) {
             detailedError = errorText;
           }
         }
+      }
+
+      if (isHarmlessConsoleError(detailedError)) {
+        return;
       }
 
       consoleErrors.push(detailedError);
