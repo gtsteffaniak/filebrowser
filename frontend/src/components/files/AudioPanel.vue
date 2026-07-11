@@ -64,6 +64,14 @@
         </div>
       </div>
       <div v-else-if="activeTab === 'visualizer'" class="tab-visualizer">
+        <button
+          type="button"
+          class="lyrics-lock-btn"
+          :title="$t('player.visualizer')"
+          :aria-label="$t('player.visualizer')"
+        >
+          <i class="material-symbols">tune</i>
+        </button>
         <canvas ref="visualizerCanvas" class="visualizer-canvas"></canvas>
       </div>
     </div>

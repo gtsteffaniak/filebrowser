@@ -1,9 +1,9 @@
 // scripts/build-icon-subset.js
-import { spawnSync } from 'node:child_process';
 import fs from 'fs-extra';
 import * as glob from 'glob';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import wawoff2 from 'wawoff2';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +11,6 @@ const frontendRoot = path.resolve(__dirname, '..');
 const srcDir = path.join(frontendRoot, 'src');
 const inventoryPath = path.join(srcDir, 'utils/icon-inventory-core.json');
 const coreFontPath = path.join(frontendRoot, 'public/fonts/material-symbols-core-filled.woff2');
-const venvPython = path.join(frontendRoot, '.venv-icons/bin/python');
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check') || args.includes('-c');
@@ -183,25 +182,6 @@ function coreFontExists() {
   return fs.existsSync(coreFontPath);
 }
 
-function pythonHasFonttools(python) {
-  const probe = spawnSync(python, ['-c', 'import fontTools'], { encoding: 'utf8' });
-  return probe.status === 0;
-}
-
-function resolvePython() {
-  const candidates = [];
-  if (fs.existsSync(venvPython)) {
-    candidates.push(venvPython);
-  }
-  candidates.push('python3', 'python');
-  for (const cmd of candidates) {
-    if (pythonHasFonttools(cmd)) {
-      return cmd;
-    }
-  }
-  return null;
-}
-
 async function fetchGoogleSubsetCss(iconNames) {
   const family = 'Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0';
   const iconNamesParam = iconNames.join(',');
@@ -231,96 +211,16 @@ async function downloadTtf(url) {
   return Buffer.from(await response.arrayBuffer());
 }
 
-function convertTtfToWoff2(ttfBuffer, outputPath) {
-  const python = resolvePython();
-  if (!python) {
-    console.error('❌ fonttools not found. Run: python3 -m venv .venv-icons && .venv-icons/bin/pip install fonttools brotli');
-    process.exit(1);
-  }
-
-  const tmpDir = fs.mkdtempSync(path.join(frontendRoot, '.tmp-icons-'));
-  const ttfPath = path.join(tmpDir, 'subset.ttf');
-  fs.writeFileSync(ttfPath, ttfBuffer);
-
-  const result = spawnSync(
-    python,
-    ['-m', 'fontTools.ttLib.woff2', 'compress', ttfPath, '-o', outputPath],
-    { encoding: 'utf8' },
-  );
-
-  fs.removeSync(tmpDir);
-
-  if (result.status !== 0) {
-    console.error(result.stderr || result.stdout || 'woff2 compression failed');
-    process.exit(1);
-  }
-}
-
-/**
- * Google Fonts FILL=1 static instances often include duplicate-looking icon glyphs
- * (e.g. ligature + component letters). Informational only — harmless at runtime.
- */
-function reportCoreFontDuplicates(icons) {
-  const python = resolvePython();
-  if (!python || !coreFontExists()) {
-    return;
-  }
-
-  const script = `
-from collections import defaultdict
-from fontTools.ttLib import TTFont
-
-font = TTFont(${JSON.stringify(coreFontPath)})
-icons = set(${JSON.stringify(icons)})
-glyph_order = font.getGlyphOrder()
-cmap = font.getBestCmap()
-
-icon_glyphs = sorted(g for g in glyph_order if g in icons)
-by_glyph = defaultdict(list)
-for cp, glyph_name in cmap.items():
-    by_glyph[glyph_name].append(cp)
-
-dup_icons = sorted(
-    glyph_name
-    for glyph_name in icon_glyphs
-    if len(by_glyph.get(glyph_name, [])) > 1
-)
-suffix_dupes = sorted(
-    glyph_name
-    for glyph_name in glyph_order
-    if any(
-        glyph_name in icons
-        and glyph_name != icon_name
-        and glyph_name.startswith(icon_name)
-        for icon_name in icons
-    )
-)
-
-print(f'Core font: {len(glyph_order)} glyphs, {len(icon_glyphs)} icon-named glyphs')
-if dup_icons:
-    print(f'Icons with multiple cmap entries: {len(dup_icons)} (e.g. {", ".join(dup_icons[:5])})')
-if suffix_dupes:
-    print(f'Possible duplicate icon variants: {len(suffix_dupes)} (e.g. {", ".join(suffix_dupes[:5])})')
-if not dup_icons and not suffix_dupes:
-    print('No duplicate icon glyphs detected')
-`;
-
-  const result = spawnSync(python, ['-c', script], { encoding: 'utf8' });
-  if (result.status !== 0) {
-    return;
-  }
-
-  const output = result.stdout.trim();
-  if (output) {
-    console.log(`ℹ️  ${output.replace(/\n/g, '\n   ')}`);
-  }
+async function convertTtfToWoff2(ttfBuffer, outputPath) {
+  const woff2Buffer = await wawoff2.compress(ttfBuffer);
+  fs.writeFileSync(outputPath, woff2Buffer);
 }
 
 async function buildCoreFont(icons) {
   const css = await fetchGoogleSubsetCss(icons);
   const fontUrl = extractFontUrl(css);
   const ttfBuffer = await downloadTtf(fontUrl);
-  convertTtfToWoff2(ttfBuffer, coreFontPath);
+  await convertTtfToWoff2(ttfBuffer, coreFontPath);
 }
 
 async function main() {
@@ -346,7 +246,6 @@ async function main() {
       process.exit(1);
     }
     console.log(`✅ Core icon inventory up to date (${icons.length} icons).`);
-    reportCoreFontDuplicates(icons);
     process.exit(0);
   }
 
@@ -356,20 +255,8 @@ async function main() {
     return;
   }
 
-  if (!resolvePython()) {
-    const existingSet = new Set(existing ?? []);
-    const missing = icons.filter((icon) => !existingSet.has(icon));
-    const extra = (existing ?? []).filter((icon) => !new Set(icons).has(icon));
-    console.error('❌ Core icon inventory or font is out of date and fonttools is not available.');
-    console.error('   Run locally: make setup && make sync-icons');
-    if (missing.length) console.error(`   Missing from inventory (${missing.length}): ${missing.join(', ')}`);
-    if (extra.length) console.error(`   Stale in inventory (${extra.length}): ${extra.join(', ')}`);
-    process.exit(1);
-  }
-
   writeInventory(icons);
   await buildCoreFont(icons);
-  reportCoreFontDuplicates(icons);
   const coreKb = Math.round(fs.statSync(coreFontPath).size / 1024);
   console.log(`✅ Generated ${icons.length} core icons → filled ${coreKb} KB`);
 }

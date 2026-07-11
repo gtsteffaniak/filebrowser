@@ -8,7 +8,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "npm run icons:check && rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
+    "build": "rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
     "build:docker": "vite build",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
@@ -70,6 +70,7 @@
     "vite-plugin-compression2": "^1.0.0",
     "vitest": "^4.1.8",
     "vue-eslint-parser": "^10.4.0",
-    "vue-tsc": "^2.0.7"
+    "vue-tsc": "^2.0.7",
+    "wawoff2": "^2.0.1"
   }
 }

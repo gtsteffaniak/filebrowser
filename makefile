@@ -30,8 +30,6 @@ setup:
 	cd backend/internal/web && mkdir -p embed dist && touch embed/.gitignore
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
-	echo "setting up icon build venv (fonttools)..."
-	cd frontend && python3 -m venv .venv-icons && .venv-icons/bin/pip install -q fonttools brotli
 
 update:
 	cd backend && go get -u ./... && go mod tidy
