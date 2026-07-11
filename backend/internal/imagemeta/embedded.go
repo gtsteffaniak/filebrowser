@@ -138,8 +138,13 @@ func previewCandidates(ex exif.Exif) []previewCandidate {
 	return out
 }
 
+const maxPreviewReadSize = 100 * 1024 * 1024 // embedded previews are never larger
+
 func readFileRange(f *os.File, offset, length uint32) ([]byte, error) {
 	if length == 0 {
+		return nil, nil
+	}
+	if length > maxPreviewReadSize {
 		return nil, nil
 	}
 	data := make([]byte, length)

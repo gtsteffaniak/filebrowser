@@ -1,6 +1,7 @@
 package imagemeta
 
 import (
+	"os"
 	"testing"
 
 	"github.com/evanoberholster/imagemeta/meta/exif/tag"
@@ -60,6 +61,26 @@ func TestExtractEmbeddedPreviewMissingFile(t *testing.T) {
 	}
 	if data != nil {
 		t.Fatalf("ExtractEmbeddedPreview() = %v, want nil", data)
+	}
+}
+
+func TestReadFileRangeRejectsOversizedLength(t *testing.T) {
+	f, err := os.CreateTemp(t.TempDir(), "preview-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	if _, err := f.Write([]byte{0xff, 0xd8}); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := readFileRange(f, 0, maxPreviewReadSize+1)
+	if err != nil {
+		t.Fatalf("readFileRange() err = %v, want nil", err)
+	}
+	if data != nil {
+		t.Fatalf("readFileRange() = %v, want nil", data)
 	}
 }
 

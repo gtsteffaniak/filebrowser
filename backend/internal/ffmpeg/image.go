@@ -22,9 +22,6 @@ func (s *Service) GetImageOrientation(imagePath string) (string, error) {
 
 // GetHEICOrientation returns the display orientation for HEIC/HEIF files.
 func (s *Service) GetHEICOrientation(heicPath string) (string, error) {
-	if orientation := imagemeta.GetOrientation(context.Background(), heicPath); orientation != "" {
-		return orientation, nil
-	}
 	return s.GetImageOrientation(heicPath)
 }
 
