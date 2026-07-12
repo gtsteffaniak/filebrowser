@@ -803,6 +803,9 @@ func TestWebDAV_PutIgnoresInvalidOCMtimeHeader(t *testing.T) {
 		},
 		BackendScopes: []users.BackendScope{{Path: source1Path, Scope: "/"}},
 	}
+	filePath := filepath.Join(source1Path, "public", "file2.txt")
+
+	before := time.Now()
 	req := httptest.NewRequest(http.MethodPut, "/dav/source1/public/file2.txt", strings.NewReader("hi"))
 	req.SetPathValue("source", "source1")
 	req.SetPathValue("path", "/public/file2.txt")
@@ -812,8 +815,17 @@ func TestWebDAV_PutIgnoresInvalidOCMtimeHeader(t *testing.T) {
 	if _, err := webDAVHandler(w, req, &requestContext{User: user}); err != nil {
 		t.Fatalf("webDAVHandler: %v", err)
 	}
+	after := time.Now()
 	if w.Code != http.StatusCreated {
 		t.Fatalf("expected %d, got %d", http.StatusCreated, w.Code)
+	}
+
+	got, err := os.Stat(filePath)
+	if err != nil {
+		t.Fatalf("stat file: %v", err)
+	}
+	if got.ModTime().Before(before.Add(-time.Second)) || got.ModTime().After(after.Add(time.Second)) {
+		t.Errorf("mtime = %v, want between %v and %v", got.ModTime(), before, after)
 	}
 }
 
