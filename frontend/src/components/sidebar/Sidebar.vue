@@ -63,6 +63,7 @@ export default {
       edgeSwipeStartX: null,
       edgeSwipeStartY: null,
       edgeSwipeClosing: false,
+      edgeSwipeRtl: false,
     };
   },
   mounted() {
@@ -184,19 +185,24 @@ export default {
       document.body.classList.remove('sidebar-resizing');
     },
     handleEdgeSwipeStart(event) {
-      // swipe right from the left half opens the sidebar, swipe left closes it; ignore multi-touch
+      // LTR opens on a rightward swipe from the left half and closes on a leftward one; RTL mirrors this
       if (event.touches.length > 1) return;
       const touch = event.touches?.[0];
       if (!touch || state.sidebar.isResizing) return;
       if (getters.currentPromptName() !== "" || state.isSearchActive) return;
       const cv = getters.currentView();
       if (cv !== "listingView" && cv !== "tools") return;
+      this.edgeSwipeRtl = document.body.classList.contains("rtl");
       if (getters.isSidebarVisible()) {
         if (getters.isStickySidebar()) return;
         this.edgeSwipeClosing = true;
       } else {
-        // leave the ~20px bezel to the OS back gesture
-        if (touch.clientX < 20 || touch.clientX > window.innerWidth / 2) return;
+        // leave the ~20px bezel to the OS back gesture; RTL opens from the right edge
+        if (this.edgeSwipeRtl) {
+          if (touch.clientX < window.innerWidth / 2 || touch.clientX > window.innerWidth - 20) return;
+        } else {
+          if (touch.clientX < 20 || touch.clientX > window.innerWidth / 2) return;
+        }
         this.edgeSwipeClosing = false;
       }
       this.edgeSwipeStartX = touch.clientX;
@@ -217,8 +223,11 @@ export default {
         this.stopEdgeSwipe();
         return;
       }
+      // LTR opens rightward and closes leftward; RTL inverts both
+      const wantsRightward = this.edgeSwipeClosing === this.edgeSwipeRtl;
+      const triggered = wantsRightward ? deltaX > 60 : deltaX < -60;
       // only trigger on a predominantly horizontal gesture
-      if (Math.abs(deltaX) > Math.abs(deltaY) && (this.edgeSwipeClosing ? deltaX < -60 : deltaX > 60)) {
+      if (Math.abs(deltaX) > Math.abs(deltaY) && triggered) {
         const closing = this.edgeSwipeClosing;
         this.stopEdgeSwipe();
         if (closing) {
@@ -262,7 +271,7 @@ export default {
   transform: translateZ(0);
   height: 100%;
   transition: 0.4s ease;
-  top: calc(4em + var(--safe-area-top));
+  top: var(--header-height);
   padding-bottom: 4em;
   background-color: rgb(37 49 55 / 5%) !important;
   will-change: left;

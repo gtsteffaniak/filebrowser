@@ -2738,7 +2738,7 @@ export default {
 /* Queue detection zone for top-right corner */
 .floating-zone {
   position: fixed;
-  top: calc(4em + var(--safe-area-top)); /* below header */
+  top: var(--header-height); /* below header */
   width: 5em;
   height: 5em;
   pointer-events: auto;
@@ -2755,10 +2755,19 @@ export default {
   height: 8.5em;
 }
 
+/* shared FAB offsets so the queue/panel/lyrics buttons stay aligned */
+.queue-button,
+.panel-toggle-fab,
+.lyrics-fab-left {
+  --fab-top: calc(80px + var(--safe-area-top));
+  --fab-right: calc(20px + var(--safe-area-right));
+  --fab-left: calc(20px + var(--safe-area-left));
+}
+
 .queue-button {
   position: fixed;
-  top: calc(80px + var(--safe-area-top));
-  right: calc(20px + var(--safe-area-right));
+  top: var(--fab-top);
+  right: var(--fab-right);
   width: 50px;
   height: 50px;
   border: none;
@@ -2777,16 +2786,16 @@ export default {
 
 /* Desktop panel toggle button */
 .panel-toggle-fab {
-  top: calc(80px + var(--safe-area-top));
-  right: calc(20px + var(--safe-area-right));
+  top: var(--fab-top);
+  right: var(--fab-right);
   position: fixed;
   z-index: 9999;
 }
 
 /* Lyrics floating button */
 .lyrics-fab-left {
-  top: calc(80px + var(--safe-area-top));
-  left: calc(20px + var(--safe-area-left));
+  top: var(--fab-top);
+  left: var(--fab-left);
   right: auto;
 }
 

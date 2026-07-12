@@ -316,7 +316,7 @@ export default {
   border-style: solid;
   border-color: var(--background);
   position: fixed;
-  top: calc(4em + var(--safe-area-top));
+  top: var(--header-height);
   height: 6em;
   background-color: var(--alt-background);
   border-radius: 1em;

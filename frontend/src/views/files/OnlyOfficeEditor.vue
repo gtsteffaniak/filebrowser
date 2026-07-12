@@ -36,6 +36,9 @@ function setViewportFit(fit) {
   setTimeout(resyncViewportHitTesting, 250);       // and again once the inset change settles
 }
 
+// pending viewport-fit=cover restore, shared across instances so a fast remount can cancel a predecessor's stale restore
+let restoreTimer = null;
+
 export default {
   name: "onlyOfficeEditor",
   components: {
@@ -64,10 +67,15 @@ export default {
     },
   },
   async mounted() {
+    // cancel a predecessor's pending restore so it can't flip us back to cover mid-session
+    const inheritedDrop = restoreTimer !== null;
+    clearTimeout(restoreTimer);
+    restoreTimer = null;
     // drop edge-to-edge while the editor is open (see setViewportFit) to avoid the mobile-viewer black band
-    this.droppedCover = document.querySelector('meta[name="viewport"]')
+    const stillCover = document.querySelector('meta[name="viewport"]')
       ?.getAttribute("content")?.includes("viewport-fit=cover") ?? false;
-    if (this.droppedCover) setViewportFit("auto");
+    this.droppedCover = inheritedDrop || stillCover;
+    if (stillCover) setViewportFit("auto");
 
     this.source = state.req.source;
     this.path = state.req.path;
@@ -101,12 +109,16 @@ export default {
   },
   beforeUnmount() {
     if (window.DocsAPI) delete window.DocsAPI;
-    // remove the onlyoffice iframe first so the viewport flip below happens on a clean layout
-    document.querySelectorAll("iframe").forEach((iframe) => {
-      if (iframe.src.includes("onlyoffice")) iframe.remove();
-    });
+    // remove the editor's own iframe first so the viewport flip below happens on a clean layout
+    document.getElementById("docEditor")?.querySelectorAll("iframe").forEach((iframe) => iframe.remove());
     // restore edge-to-edge, but only after the iframe teardown settles or safari leaves taps offset
-    if (this.droppedCover) setTimeout(() => setViewportFit("cover"), 250);
+    if (this.droppedCover) {
+      clearTimeout(restoreTimer);
+      restoreTimer = setTimeout(() => {
+        setViewportFit("cover");
+        restoreTimer = null;
+      }, 250);
+    }
   },
   methods: {
     close() {

@@ -23,6 +23,8 @@
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  /* app top bar height, including the top safe-area inset */
+  --header-height: calc(4em + var(--safe-area-top));
 }
 
 .border-radius {
