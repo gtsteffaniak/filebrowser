@@ -793,6 +793,30 @@ func TestWebDAV_PutSetsMtimeFromOCHeader(t *testing.T) {
 	put("updated!", time.Date(2021, 6, 7, 8, 9, 10, 0, time.UTC), http.StatusCreated)
 }
 
+func TestWebDAV_PutIgnoresInvalidOCMtimeHeader(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	user := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{
+			Username:    "mtimeuser2",
+			Permissions: users.Permissions{Download: true, Create: true, Modify: true, Delete: true},
+		},
+		BackendScopes: []users.BackendScope{{Path: source1Path, Scope: "/"}},
+	}
+	req := httptest.NewRequest(http.MethodPut, "/dav/source1/public/file2.txt", strings.NewReader("hi"))
+	req.SetPathValue("source", "source1")
+	req.SetPathValue("path", "/public/file2.txt")
+	req.Header.Set("X-OC-Mtime", "not-a-number")
+
+	w := httptest.NewRecorder()
+	if _, err := webDAVHandler(w, req, &requestContext{User: user}); err != nil {
+		t.Fatalf("webDAVHandler: %v", err)
+	}
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected %d, got %d", http.StatusCreated, w.Code)
+	}
+}
+
 // Helper function to initialize a test index - simplified for WebDAV tests
 func initTestIndex(t *testing.T, name, path string) {
 	// For WebDAV tests, indices are already initialized in setupWebDAVTestEnv
