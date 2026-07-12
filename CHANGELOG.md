@@ -42,6 +42,9 @@ A database migration is required to go from v1.x to this version. See docs.
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata.
  - removed exiftool as an optional helper, always built with the supported libraries.
 
+ **BugFixes**:
+ - Fixed OnlyOffice reopening an older editor state after a document is modified (#2628) (#2578).
+
 ## v1.5.0
 
  **New Features**:
