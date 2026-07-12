@@ -1,9 +1,14 @@
 package web
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -83,6 +88,44 @@ func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 			t.Errorf("resolveOnlyOfficeDownloadURL() = %q, want empty", got)
 		}
 	})
+}
+func TestDeleteOfficeId(t *testing.T) {
+	const rawPath = "/docs/document.docx"
+
+	tests := []struct {
+		name     string
+		resolve  func(utils.FileOptions) (*iteminfo.ExtendedFileInfo, error)
+		cacheKey string
+	}{
+		{
+			name: "deletes resolved realpath from cache",
+			resolve: func(utils.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
+				return &iteminfo.ExtendedFileInfo{RealPath: "/some/path/document.docx"}, nil
+			},
+			cacheKey: "/some/path/document.docx",
+		},
+		{
+			name: "fallback to raw path on error",
+			resolve: func(utils.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
+				return nil, fmt.Errorf("could not resolve path")
+			},
+			cacheKey: rawPath,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			origFunc := files.FileInfoFasterFunc
+			t.Cleanup(func() { files.FileInfoFasterFunc = origFunc })
+			files.FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+				return tt.resolve(opts)
+			}
+			utils.OnlyOfficeCache.Set(tt.cacheKey, "document-key")
+			deleteOfficeId("source", rawPath, &users.User{})
+			if _, err := GetOnlyOfficeId(tt.cacheKey); err == nil {
+				t.Errorf("expected cache entry %q to be deleted", tt.cacheKey)
+			}
+		})
+	}
 }
 
 func TestOnlyOfficeURLHostsMatch(t *testing.T) {

@@ -15,8 +15,8 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -482,7 +482,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 		//
 		// When the document is fully closed by all editors,
 		// the document key should no longer be re-used.
-		deleteOfficeId(source, path)
+		deleteOfficeId(source, path, user)
 
 		// Send log event for document closure and clean up log context
 		if logContext := GetOnlyOfficeLogContext(data.Key); logContext != nil {
@@ -755,14 +755,19 @@ func GetOnlyOfficeId(realpath string) (string, error) {
 	return "", fmt.Errorf("document key not found")
 }
 
-func deleteOfficeId(source, path string) {
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		logger.Errorf("deleteOfficeId: failed to find source index for user home dir creation: %s", source)
+func deleteOfficeId(source, path string, user *users.User) {
+	fi, err := files.FileInfoFaster(utils.FileOptions{
+		Path:           path,
+		Source:         source,
+		Expand:         false,
+		FollowSymlinks: true,
+	}, user)
+	if err != nil {
+		logger.Errorf("deleteOfficeId: failed to resolve realpath, source=%s, path=%s: %v", source, path, err)
+		utils.OnlyOfficeCache.Delete(path)
 		return
 	}
-	realpath, _, _ := idx.GetRealPath(path)
-	utils.OnlyOfficeCache.Delete(realpath)
+	utils.OnlyOfficeCache.Delete(fi.RealPath)
 }
 
 // parseOnlyOfficeJWT parses the JWT token from OnlyOffice callback
