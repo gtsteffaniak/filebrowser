@@ -7,8 +7,10 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
@@ -748,6 +750,47 @@ func TestWebDAV_IndexingStates(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Test that PUT with X-OC-Mtime header applies the mod time to the file on initial creation and on overwrite
+func TestWebDAV_PutSetsMtimeFromOCHeader(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+
+	user := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{
+			Username:    "mtimeuser",
+			Permissions: users.Permissions{Download: true, Create: true, Modify: true, Delete: true},
+		},
+		BackendScopes: []users.BackendScope{{Path: source1Path, Scope: "/"}},
+	}
+	filePath := filepath.Join(source1Path, "public", "file.txt")
+
+	put := func(body string, mtime time.Time, wantStatus int) {
+		t.Helper()
+		req := httptest.NewRequest(http.MethodPut, "/dav/source1/public/file.txt", strings.NewReader(body))
+		req.SetPathValue("source", "source1")
+		req.SetPathValue("path", "/public/file.txt")
+		req.Header.Set("X-OC-Mtime", strconv.FormatInt(mtime.Unix(), 10))
+
+		w := httptest.NewRecorder()
+		if _, err := webDAVHandler(w, req, &requestContext{User: user}); err != nil {
+			t.Fatalf("webDAVHandler: %v", err)
+		}
+		if w.Code != wantStatus {
+			t.Fatalf("expected %d, got %d", wantStatus, w.Code)
+		}
+
+		got, err := os.Stat(filePath)
+		if err != nil {
+			t.Fatalf("stat file: %v", err)
+		}
+		if !got.ModTime().Equal(mtime) {
+			t.Errorf("mtime = %v, want %v", got.ModTime(), mtime)
+		}
+	}
+	put("hi", time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC), http.StatusCreated)
+	put("updated!", time.Date(2021, 6, 7, 8, 9, 10, 0, time.UTC), http.StatusCreated)
 }
 
 // Helper function to initialize a test index - simplified for WebDAV tests
