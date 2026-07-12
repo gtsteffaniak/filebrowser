@@ -25,6 +25,7 @@ A database migration is required to go from v1.x to this version. See docs.
    - The current state of the audio panel now is stored into local storage.
    - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, single tap to pause (#2575).
  - Added `F4` shortcut to refresh the current directory and metadata (#2600).
+ - WebDAV now supports set modification time via the `X-OC-Mtime` header for clients that support it (#2626).
 
  **Removed legacy (breaking)**:
  - `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
