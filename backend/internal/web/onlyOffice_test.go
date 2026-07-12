@@ -93,23 +93,34 @@ func TestDeleteOfficeId(t *testing.T) {
 	const rawPath = "/docs/document.docx"
 
 	tests := []struct {
-		name     string
-		resolve  func(utils.FileOptions) (*iteminfo.ExtendedFileInfo, error)
-		cacheKey string
+		name      string
+		resolve   func(utils.FileOptions) (*iteminfo.ExtendedFileInfo, error)
+		deleteKey string
+		remainKey string
 	}{
 		{
-			name: "deletes resolved realpath from cache",
+			name: "deletes resolved realpath",
 			resolve: func(utils.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
 				return &iteminfo.ExtendedFileInfo{RealPath: "/some/path/document.docx"}, nil
 			},
-			cacheKey: "/some/path/document.docx",
+			deleteKey: "/some/path/document.docx",
+			remainKey: rawPath,
 		},
 		{
 			name: "fallback to raw path on error",
 			resolve: func(utils.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
 				return nil, fmt.Errorf("could not resolve path")
 			},
-			cacheKey: rawPath,
+			deleteKey: rawPath,
+			remainKey: "/some/path/document.docx",
+		},
+		{
+			name: "also deletes realpath when partially resolved before erroring",
+			resolve: func(utils.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
+				return &iteminfo.ExtendedFileInfo{RealPath: "/some/path/document.docx"}, fmt.Errorf("access check failed")
+			},
+			deleteKey: "/some/path/document.docx",
+			remainKey: rawPath,
 		},
 	}
 	for _, tt := range tests {
@@ -117,12 +128,25 @@ func TestDeleteOfficeId(t *testing.T) {
 			origFunc := files.FileInfoFasterFunc
 			t.Cleanup(func() { files.FileInfoFasterFunc = origFunc })
 			files.FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+				if opts.Path != rawPath {
+					t.Errorf("expected opts.Path=%q, got %q", rawPath, opts.Path)
+				}
+				if opts.Source != "source" {
+					t.Errorf("expected opts.Source=%q, got %q", "source", opts.Source)
+				}
+				if !opts.FollowSymlinks {
+					t.Error("expected FollowSymlinks=true")
+				}
 				return tt.resolve(opts)
 			}
-			utils.OnlyOfficeCache.Set(tt.cacheKey, "document-key")
+			utils.OnlyOfficeCache.Set(tt.deleteKey, "document-key")
+			utils.OnlyOfficeCache.Set(tt.remainKey, "other-key")
 			deleteOfficeId("source", rawPath, &users.User{})
-			if _, err := GetOnlyOfficeId(tt.cacheKey); err == nil {
-				t.Errorf("expected cache entry %q to be deleted", tt.cacheKey)
+			if _, err := GetOnlyOfficeId(tt.deleteKey); err == nil {
+				t.Errorf("expected cache entry %q to be deleted", tt.deleteKey)
+			}
+			if _, err := GetOnlyOfficeId(tt.remainKey); err != nil {
+				t.Errorf("expected cache entry %q to remain, but it was deleted", tt.remainKey)
 			}
 		})
 	}

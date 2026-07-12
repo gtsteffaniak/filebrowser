@@ -764,7 +764,11 @@ func deleteOfficeId(source, path string, user *users.User) {
 	}, user)
 	if err != nil {
 		logger.Errorf("deleteOfficeId: failed to resolve realpath, source=%s, path=%s: %v", source, path, err)
-		utils.OnlyOfficeCache.Delete(path)
+		if fi != nil && fi.RealPath != "" {
+			utils.OnlyOfficeCache.Delete(fi.RealPath)
+		} else {
+			utils.OnlyOfficeCache.Delete(path)
+		}
 		return
 	}
 	utils.OnlyOfficeCache.Delete(fi.RealPath)
