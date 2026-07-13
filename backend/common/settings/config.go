@@ -857,6 +857,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		"integrations": true,
 		"frontend":     true,
 		"userDefaults": true,
+		"http":         true,
 	}
 
 	filteredConfig := make(map[string]interface{})

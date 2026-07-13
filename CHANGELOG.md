@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.5.0
 
+ **BugFixes**:
+ - fix http config section being dropped so trustedHeaders and disableRateLimit apply (#2602) (#2560)
+ - fix upload shares with password (#2589) (#2573)
+ - fix token when returning from preview on shares with pass (#2588) (#2465)
+ - fix share undefined url after editing (#2567) (#2523)
+
+## v1.5.0
+
  **New Features**:
  - Added basic html viewer with relative reference support (#2522)
  - Shares can have pinned files, requires a user to have edit access to share (#2522)
