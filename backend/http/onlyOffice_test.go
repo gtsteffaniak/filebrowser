@@ -148,6 +148,10 @@ func TestDeleteOfficeId(t *testing.T) {
 			}
 			utils.OnlyOfficeCache.Set(tt.deleteKey, "document-key")
 			utils.OnlyOfficeCache.Set(tt.remainKey, "other-key")
+			t.Cleanup(func() {
+				utils.OnlyOfficeCache.Delete(tt.deleteKey)
+				utils.OnlyOfficeCache.Delete(tt.remainKey)
+			})
 			deleteOfficeId("source", rawPath, &users.User{})
 			if _, err := getOnlyOfficeId(tt.deleteKey); err == nil {
 				t.Errorf("expected cache entry %q to be deleted", tt.deleteKey)
