@@ -762,16 +762,14 @@ func deleteOfficeId(source, path string, user *users.User) {
 		Expand:         false,
 		FollowSymlinks: true,
 	}, user)
+	key := path
+	if fi != nil && fi.RealPath != "" {
+		key = fi.RealPath
+	}
 	if err != nil {
 		logger.Errorf("deleteOfficeId: failed to resolve realpath, source=%s, path=%s: %v", source, path, err)
-		if fi != nil && fi.RealPath != "" {
-			utils.OnlyOfficeCache.Delete(fi.RealPath)
-		} else {
-			utils.OnlyOfficeCache.Delete(path)
-		}
-		return
 	}
-	utils.OnlyOfficeCache.Delete(fi.RealPath)
+	utils.OnlyOfficeCache.Delete(key)
 }
 
 // parseOnlyOfficeJWT parses the JWT token from OnlyOffice callback
