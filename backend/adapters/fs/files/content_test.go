@@ -6,8 +6,53 @@ import (
 	"testing"
 	"unicode/utf8"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/stretchr/testify/require"
 )
+
+// Regression: an ASCII-heavy PDF passes utils.IsTextFile's byte heuristic, but
+// processContent must NOT return its bytes as text content -- otherwise the
+// frontend opens it in the text editor instead of the PDF viewer (#pdf-as-text).
+func TestProcessContent_PDFDoesNotReturnTextContent(t *testing.T) {
+	pdfBody := "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n" +
+		"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n" +
+		"trailer\n<< /Root 1 0 R >>\n%%EOF\n"
+	pdfFile := filepath.Join(t.TempDir(), "doc.pdf")
+	require.NoError(t, os.WriteFile(pdfFile, []byte(pdfBody), 0o644))
+
+	// Precondition: the byte heuristic really does misclassify this PDF as text,
+	// so without the type guard its raw bytes would be returned as content.
+	isText, err := utils.IsTextFile(pdfFile)
+	require.NoError(t, err)
+	require.True(t, isText, "precondition: ASCII-heavy PDF sniffs as text")
+
+	pdfInfo := &iteminfo.ExtendedFileInfo{
+		FileInfo: iteminfo.FileInfo{ItemInfo: iteminfo.ItemInfo{
+			Name: "doc.pdf",
+			Type: "application/pdf",
+			Size: int64(len(pdfBody)),
+		}},
+		RealPath: pdfFile,
+	}
+	processContent(pdfInfo, nil, utils.FileOptions{Content: true})
+	require.Empty(t, pdfInfo.Content, "PDF must not have text content populated")
+
+	// Control: a genuine text file still gets its content extracted.
+	txtBody := "hello text"
+	txtFile := filepath.Join(t.TempDir(), "notes.txt")
+	require.NoError(t, os.WriteFile(txtFile, []byte(txtBody), 0o644))
+	txtInfo := &iteminfo.ExtendedFileInfo{
+		FileInfo: iteminfo.FileInfo{ItemInfo: iteminfo.ItemInfo{
+			Name: "notes.txt",
+			Type: "text/plain",
+			Size: int64(len(txtBody)),
+		}},
+		RealPath: txtFile,
+	}
+	processContent(txtInfo, nil, utils.FileOptions{Content: true})
+	require.Equal(t, txtBody, txtInfo.Content, "text file should still return content")
+}
 
 func TestGetContent_UTF8Truncation(t *testing.T) {
 	// Get the path to the test file

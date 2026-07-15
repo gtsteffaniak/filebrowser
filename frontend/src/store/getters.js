@@ -348,6 +348,10 @@ export const getters = {
         return 'markdownViewer';
       }
 
+      // PDFs always use the iframe preview, never the text editor -- even when the
+      // backend returned a `content` field (some ASCII-heavy PDFs sniff as text).
+      if (state.req.type === 'application/pdf') return 'preview';
+
       if ('content' in state.req) return 'editor';
       if (state.req.type.startsWith('application/epub')) return 'epubViewer';
       if (state.req.type.startsWith('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) return 'docViewer';

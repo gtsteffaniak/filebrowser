@@ -365,6 +365,15 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		return
 	}
 
+	// Never extract text content for formats that must use a dedicated viewer.
+	// A PDF renders via the frontend iframe preview, not the text editor; and
+	// getContent's byte heuristic (utils.IsTextFile) misclassifies ASCII-heavy
+	// PDFs as text, which would ship the raw bytes as content and open the file
+	// in the editor instead of the PDF viewer.
+	if info.Type == "application/pdf" {
+		return
+	}
+
 	// Process text content for non-video, non-audio files
 	if info.Size < 20*1024*1024 { // 20 megabytes in bytes
 		content, err := getContent(info.RealPath)
