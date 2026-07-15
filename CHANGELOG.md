@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v1.5.0
+## v1.5.2
+
+ **BugFixes**:
+ - Fixed OnlyOffice reopening an older editor state after a document is modified (#2633) (#2578).
+
+## v1.5.1
 
  **BugFixes**:
  - fix http config section being dropped so trustedHeaders and disableRateLimit apply (#2602) (#2560)

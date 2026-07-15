@@ -17,7 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -482,7 +482,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		//
 		// When the document is fully closed by all editors,
 		// the document key should no longer be re-used.
-		deleteOfficeId(source, path)
+		deleteOfficeId(source, path, user)
 
 		// Send log event for document closure and clean up log context
 		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
@@ -755,14 +755,21 @@ func getOnlyOfficeId(realpath string) (string, error) {
 	return "", fmt.Errorf("document key not found")
 }
 
-func deleteOfficeId(source, path string) {
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		logger.Errorf("deleteOfficeId: failed to find source index for user home dir creation: %s", source)
-		return
+func deleteOfficeId(source, path string, user *users.User) {
+	fi, err := files.FileInfoFaster(utils.FileOptions{
+		Path:           path,
+		Source:         source,
+		Expand:         false,
+		FollowSymlinks: true,
+	}, store.Access, user, store.Share)
+	key := path
+	if fi != nil && fi.RealPath != "" {
+		key = fi.RealPath
 	}
-	realpath, _, _ := idx.GetRealPath(path)
-	utils.OnlyOfficeCache.Delete(realpath)
+	if err != nil {
+		logger.Errorf("deleteOfficeId: failed to resolve realpath, source=%s, path=%s: %v", source, path, err)
+	}
+	utils.OnlyOfficeCache.Delete(key)
 }
 
 // parseOnlyOfficeJWT parses the JWT token from OnlyOffice callback
