@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - Fixed OnlyOffice reopening an older editor state after a document is modified (#2633) (#2578).
+ - Cannot "Reset and generate new two-factor code" to reset the TOTP for a user (#2399) (#2641).
 
 ## v1.5.1
 
