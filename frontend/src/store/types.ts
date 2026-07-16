@@ -36,6 +36,9 @@ export interface ReqObject {
   subtitles?: unknown[];
   viewToken?: string;
   parentDirItems?: FileListItem[];
+  onlyOfficeId?: string;
+  hasUpdate?: boolean;
+  metadata?: unknown;
 
   // Directory listing properties
   listing?: FileListItem[];
@@ -54,6 +57,89 @@ export interface ShareInfoObject {
   shareType: string;
   title: string;
   description: string;
+  viewMode?: string;
+  singleFileShare?: boolean;
+  disableFileViewer?: boolean;
+  allowModify?: boolean;
+  allowCreate?: boolean;
+  allowDelete?: boolean;
+  disableDownload?: boolean;
+  showHidden?: boolean;
+}
+
+export interface Permissions {
+  share?: boolean;
+  modify?: boolean;
+  create?: boolean;
+  delete?: boolean;
+  download?: boolean;
+  admin?: boolean;
+  api?: boolean;
+  archive?: boolean;
+  realtime?: boolean;
+}
+
+export interface DisplayPreference {
+  viewMode?: string;
+  sorting?: {
+    by: string;
+    asc: boolean;
+  };
+}
+
+export interface SidebarLink {
+  category?: string;
+  sourceName?: string;
+  [key: string]: unknown;
+}
+
+export interface Prompt {
+  id?: number;
+  name?: string;
+  parentId?: number;
+  pinned?: boolean;
+  confirm?: unknown;
+  action?: unknown;
+  props?: Record<string, unknown>;
+  discard?: unknown;
+  cancel?: unknown;
+}
+
+export interface SourceInfo {
+  pathPrefix?: string;
+  used: number;
+  total: number;
+  usedAlt: number;
+  usedPercentage: number;
+  status: string;
+  name: string;
+  files: number;
+  folders: number;
+  lastIndex: number;
+  quickScanDurationSeconds: number;
+  fullScanDurationSeconds: number;
+  complexity: number;
+  scanners: unknown[];
+  readOnly: boolean;
+  private: boolean;
+}
+
+/** Raw shape of a single source entry as sent by /api/settings/sources or SSE updates. */
+export interface SourceInfoUpdate {
+  used?: number;
+  total?: number;
+  usedAlt?: number;
+  status?: string;
+  name?: string;
+  numFiles?: number;
+  numDirs?: number;
+  lastIndexedUnixTime?: number;
+  quickScanDurationSeconds?: number;
+  fullScanDurationSeconds?: number;
+  complexity?: number;
+  scanners?: unknown[];
+  readOnly?: boolean;
+  private?: boolean;
 }
 
 export interface UserObject {
@@ -65,6 +151,10 @@ export interface UserObject {
     popup: boolean;
     autoplayMedia?: boolean;
     defaultMediaPlayer?: boolean;
+    office?: boolean;
+    folder?: boolean;
+    motionVideoPreview?: boolean;
+    disableHideSidebar?: boolean;
   };
   loginType: string;
   username: string;
@@ -78,19 +168,23 @@ export interface UserObject {
   viewMode: string;
   showHidden: boolean;
   scopes: unknown[];
-  permissions: unknown;
+  permissions: Permissions;
   darkMode: boolean;
   disableSettings: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
+  hideFileExt?: string;
+  themeColor?: string;
+  sidebarLinks?: SidebarLink[];
   profile: {
     username: string;
     email: string;
     avatarUrl: string;
   };
   // Optional properties that may be added dynamically
-  disableViewingExt?: string[];
+  disableViewingExt?: string;
+  disableOnlyOfficeExt?: string;
   displayNames?: string[];
   id?: number;
   password?: string;
@@ -137,6 +231,7 @@ export interface StoreState {
     name: string;
     source: string;
     path: string;
+    isShare?: boolean;
   };
   contextMenuHasItems: boolean;
   deletedItem: boolean;
@@ -172,11 +267,13 @@ export interface StoreState {
     };
   } | null;
   shareInfo: ShareInfoObject;
+  seenUpdate?: string | null;
   sources: {
     current: string;
     count: number;
     hasSourceInfo: boolean;
-    info: unknown;
+    info: Record<string, SourceInfo>;
+    defaultSource?: string;
   };
   user: UserObject;
   req: ReqObject;
@@ -192,21 +289,23 @@ export interface StoreState {
   clipboard: {
     key: string;
     items: unknown[];
+    path?: string;
   };
   sharePassword: string;
-  loading: unknown[];
+  loading: Record<string, unknown>;
   reload: boolean;
-  selected: unknown[];
+  selected: (number | FileListItem)[];
   lastSelectedIndex: number | null;
   multiple: boolean;
   upload: {
-    uploads: unknown;
+    uploads: Record<string, { id: string | number; type: string; file: { name: string; type: string; size?: number } }>;
     queue: unknown[];
-    progress: unknown[];
-    sizes: unknown[];
+    progress: number[];
+    sizes: number[];
     isUploading: boolean;
   };
-  prompts: unknown[];
+  prompts: Prompt[];
+  promptIdCounter: number;
   show: unknown;
   showConfirm: unknown;
   route: RouteObject;
@@ -232,10 +331,13 @@ export interface StoreState {
     nextLink: string;
     previousRaw: string;
     nextRaw: string;
-    timeout: unknown;
+    timeout: ReturnType<typeof setTimeout> | null;
     enabled: boolean;
     isTransitioning: boolean;
-    transitionStartTime: unknown;
+    transitionStartTime: number | null;
+    gestureHint: 'previous' | 'next' | 'close' | null;
+    gestureHintCommitReady: boolean;
+    gestureHintFlashClose: boolean;
   };
   playbackQueue: {
     queue: unknown[];
@@ -243,6 +345,7 @@ export interface StoreState {
     mode: 'sequential' | 'shuffle';
     isPlaying: boolean;
     loop: 'off' | 'all' | 'single';
+    shouldTogglePlayPause?: boolean;
   };
   notificationHistory: unknown[];
   sidebar: {
