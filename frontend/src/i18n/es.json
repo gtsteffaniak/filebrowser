@@ -758,7 +758,29 @@
     "toggleLyrics": "Mostrar letras",
     "closePanel": "Cerrar panel",
     "openPanel": "Abrir panel",
-    "visualizer": "Visualizador"
+    "visualizer": {
+      "title": "Visualizador",
+      "settings": "Configuración del visualizador",
+      "barCount": "Número de barras",
+      "fftSize": "Tamaño FFT",
+      "minFrequency": "Frecuencia mínima",
+      "maxFrequency": "Frecuencia máxima",
+      "smoothing": "Suavizado",
+      "minDecibels": "Decibeles mínimos",
+      "maxDecibels": "Decibeles máximos",
+      "showPeaks": "Mostrar picos",
+      "showScales": "Mostrar escalas",
+      "resetDefaults": "Restablecer valores",
+      "barCountDescription": "Número de barras, se dividen entre los canales izquierdo y derecho, más barras pueden verse mejor, pero también usarán más CPU",
+      "fftSizeDescription": "Valores más grandes hacen que las barras sean más responsivas pero son más lentas de calcular (más CPU)",
+      "minFrequencyDescription": "Frecuencia más baja (Hz) mostrada en el visualizador",
+      "maxFrequencyDescription": "Frecuencia más alta (Hz) mostrada en el visualizador",
+      "smoothingDescription": "Cuánto se suavizan las barras con el tiempo. Establecer esto más alto hará que las barras sean más suaves, pero también reaccionarán más lentamente",
+      "minDecibelsDescription": "Nivel más bajo (dBFS) que registra la barra",
+      "maxDecibelsDescription": "Nivel más alto (dBFS) que registra la barra",
+      "showScalesDescription": "Mostrar ejes y líneas de cuadrícula en el visualizador",
+      "showPeaksDescription": "Pequeños indicadores blancos sobre cada barra"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",

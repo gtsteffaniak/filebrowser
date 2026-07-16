@@ -16,11 +16,6 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
   - macOS: `brew install ffmpeg`
   - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
 
-- **exiftool**: For photo metadata processing (RAW/HEIC previews, EXIF orientation)
-  - Ubuntu/Debian: `sudo apt-get install libimage-exiftool-perl`
-  - macOS: `brew install exiftool`
-  - Windows: Download from [exiftool.org](https://exiftool.org/) (install `exiftool.exe` and add it to your PATH, or set `integrations.media.exiftoolPath` in config)
-
 - **mupdf-tools**: For PDF preview generation
   - Ubuntu/Debian: `sudo apt-get install mupdf-tools`
   - macOS: `brew install mupdf-tools`

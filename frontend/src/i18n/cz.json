@@ -758,7 +758,29 @@
     "toggleLyrics": "Přepnout text",
     "closePanel": "Zavřít panel",
     "openPanel": "Otevřít panel",
-    "visualizer": "Vizualizér"
+    "visualizer": {
+      "title": "Vizualizér",
+      "settings": "Nastavení vizualizéru",
+      "barCount": "Počet sloupců",
+      "fftSize": "Velikost FFT",
+      "minFrequency": "Minimální frekvence",
+      "maxFrequency": "Maximální frekvence",
+      "smoothing": "Vyhlazení",
+      "minDecibels": "Minimální decibely",
+      "maxDecibels": "Maximální decibely",
+      "showPeaks": "Zobrazit špičky",
+      "showScales": "Zobrazit stupnice",
+      "resetDefaults": "Obnovit výchozí",
+      "barCountDescription": "Počet zobrazených sloupců, rozdělují se mezi levý a pravý kanál, více sloupců může vypadat lépe, ale také spotřebuje více CPU",
+      "fftSizeDescription": "Větší hodnoty činí sloupce citlivějšími, ale jsou pomalejší na výpočet (více CPU)",
+      "minFrequencyDescription": "Nejnižší frekvence (Hz) zobrazená ve vizualizéru",
+      "maxFrequencyDescription": "Nejvyšší frekvence (Hz) zobrazená ve vizualizéru",
+      "smoothingDescription": "Jak moc se sloupce v čase vyhlazují. Vyšší nastavení způsobí hladší sloupce, ale budou reagovat pomaleji",
+      "minDecibelsDescription": "Nejtišší úroveň (dBFS), kterou sloupec zaznamenává",
+      "maxDecibelsDescription": "Nejhlasitější úroveň (dBFS), kterou sloupec zaznamenává",
+      "showScalesDescription": "Zobrazit osy a mřížku na vizualizéru",
+      "showPeaksDescription": "Malé bílé indikátory špiček nad každým sloupcem"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor velikosti souborů",

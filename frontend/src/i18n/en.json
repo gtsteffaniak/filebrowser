@@ -780,7 +780,29 @@
     "toggleLyrics": "Toggle lyrics",
     "closePanel": "Close panel",
     "openPanel": "Open panel",
-    "visualizer": "Visualizer"
+    "visualizer": {
+      "title": "Visualizer",
+      "settings": "Visualizer settings",
+      "barCount": "Bar count",
+      "fftSize": "FFT Size",
+      "minFrequency": "Minimum frequency",
+      "maxFrequency": "Maximum frequency",
+      "smoothing": "Smoothing",
+      "minDecibels": "Minimum decibels",
+      "maxDecibels": "Maximum decibels",
+      "showPeaks": "Show peaks",
+      "showScales": "Show scales",
+      "resetDefaults": "Reset defaults",
+      "barCountDescription": "Number of bars shown, they split between the left and right channels, more bars maybe will look better, but also will use more cpu",
+      "fftSizeDescription": "Larger values makes the bars more responsive but are slower to compute (more cpu)",
+      "minFrequencyDescription": "Lowest frequency (Hz) shown in the visualizer",
+      "maxFrequencyDescription": "Highest frequency (Hz) shown in the visualizer",
+      "smoothingDescription": "How much the bars smooth out over time. Setting this more higher will make the bars more smooth, but they also will react more slowly",
+      "minDecibelsDescription": "Quietest level (dBFS) that the bar resgisters",
+      "maxDecibelsDescription": "Loudest level (dBFS) that the bar resgisters",
+      "showScalesDescription": "Show axis and grid lines on the visualizer",
+      "showPeaksDescription": "Small white peak indicators above each bar"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

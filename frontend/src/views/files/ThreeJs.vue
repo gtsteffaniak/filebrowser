@@ -31,7 +31,24 @@
 
 <script>
 import { markRaw } from 'vue';
-import * as THREE from 'three';
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  AmbientLight,
+  DirectionalLight,
+  Color,
+  LoadingManager,
+  Box3,
+  Vector3,
+  AnimationMixer,
+  Clock,
+  Mesh,
+  Points,
+  MeshStandardMaterial,
+  PointsMaterial,
+  DoubleSide,
+} from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
@@ -117,6 +134,7 @@ export default {
       isInView: false,
       viewTokenByPath: {},
       fetchedDirs: new Set(),
+      lastRender: 0,
     };
   },
   computed: {
@@ -244,15 +262,15 @@ export default {
 
     initScene() {
       // Create scene
-      this.scene = markRaw(new THREE.Scene());
+      this.scene = markRaw(new Scene());
       this.updateBackgroundColor();
-      this.clock = markRaw(new THREE.Clock());
+      this.clock = markRaw(new Clock());
       
       const container = this.$refs.container;
       const width = container.clientWidth;
       const height = container.clientHeight;
       
-      this.camera = markRaw(new THREE.PerspectiveCamera(75, width / height, 0.1, 1000));
+      this.camera = markRaw(new PerspectiveCamera(75, width / height, 0.1, 1000));
       this.camera.position.set(0, 0, 5);
       
       // OPTIMIZATION: Check if we can reuse a context or limit features
@@ -265,20 +283,21 @@ export default {
         stencil: false,
       };
       
-      this.renderer = markRaw(new THREE.WebGLRenderer(rendererConfig));
+      this.renderer = markRaw(new WebGLRenderer(rendererConfig));
       this.renderer.setSize(width, height);
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
+      const pixelRatioCap = this.isThumbnail ? 1 : 2;
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
       container.appendChild(this.renderer.domElement);
       
       // Lights - Simplify lighting for thumbnails
-      this.scene.add(markRaw(new THREE.AmbientLight(0xffffff, 0.6)));
-      const dirLight1 = markRaw(new THREE.DirectionalLight(0xffffff, 0.8));
+      this.scene.add(markRaw(new AmbientLight(0xffffff, 0.6)));
+      const dirLight1 = markRaw(new DirectionalLight(0xffffff, 0.8));
       dirLight1.position.set(1, 2, 3);
       this.scene.add(dirLight1);
       
       if (!this.isThumbnail) {
         // Only add secondary lights for full view
-        const dirLight2 = markRaw(new THREE.DirectionalLight(0xffffff, 0.4));
+        const dirLight2 = markRaw(new DirectionalLight(0xffffff, 0.4));
         dirLight2.position.set(-1, -2, -3);
         this.scene.add(dirLight2);
       }
@@ -305,7 +324,7 @@ export default {
 
     updateBackgroundColor() {
       if (this.scene) {
-        this.scene.background = new THREE.Color(this.backgroundColor);
+        this.scene.background = new Color(this.backgroundColor);
         this.updateMaterialColors();
       }
     },
@@ -320,7 +339,7 @@ export default {
     
     updateCustomBackground() {
       if (this.scene) {
-        this.scene.background = new THREE.Color(this.backgroundColor);
+        this.scene.background = new Color(this.backgroundColor);
       }
     },
     
@@ -545,7 +564,7 @@ export default {
         const LoaderClass = getObjectProperty(LOADERS, extension);
         if (!LoaderClass) throw new Error(`Unsupported 3D format: .${extension}`);
 
-        const loadingManager = markRaw(new THREE.LoadingManager());
+        const loadingManager = markRaw(new LoadingManager());
         loadingManager.onError = (url) => console.warn(`Error loading asset: ${url}`);
         loadingManager.setURLModifier((url) => this.resolveTextureUrl(url));
         
@@ -653,12 +672,12 @@ export default {
         object = loadedData;
       } else if (ext === 'vtk' || ext === 'vtp') {
         // VTK returns BufferGeometry, needs to be wrapped in Mesh
-        const material = new THREE.MeshStandardMaterial({
+        const material = new MeshStandardMaterial({
           color: 0x4fc3f7,
           metalness: 0.3,
           roughness: 0.6,
         });
-        object = new THREE.Mesh(loadedData, material);
+        object = new Mesh(loadedData, material);
       } else {
         object = loadedData; // 3mf, stl, ply, obj, amf, vox
       }
@@ -667,18 +686,18 @@ export default {
       if (ext === '3mf') object.rotation.set(-Math.PI / 2, 0, 0);
       
       if (['stl', 'ply', 'amf'].includes(ext)) {
-        const material = new THREE.MeshStandardMaterial({
+        const material = new MeshStandardMaterial({
           color: 0x4fc3f7,
           flatShading: ext === 'stl',
           metalness: 0.3,
           roughness: 0.6,
         });
-        object = new THREE.Mesh(loadedData, material);
+        object = new Mesh(loadedData, material);
       }
       
       // Point clouds need Points material
       if (['pcd', 'xyz'].includes(ext)) {
-        const material = new THREE.PointsMaterial({
+        const material = new PointsMaterial({
           size: 0.05,
           color: 0x4fc3f7,
           vertexColors: !!loadedData.geometry?.attributes?.color,
@@ -687,7 +706,7 @@ export default {
           // Use existing material if provided
           object = loadedData;
         } else {
-          object = new THREE.Points(loadedData.geometry || loadedData, material);
+          object = new Points(loadedData.geometry || loadedData, material);
         }
       }
 
@@ -709,7 +728,7 @@ export default {
           if (child.material) {
              const mats = Array.isArray(child.material) ? child.material : [child.material];
              mats.forEach(m => {
-                m.side = THREE.DoubleSide;
+                m.side = DoubleSide;
                 if (child.isSkinnedMesh) m.skinning = true;
              });
           }
@@ -729,7 +748,7 @@ export default {
     
     setupAnimations(root, animations) {
         this.animations = animations;
-        this.animationMixer = markRaw(new THREE.AnimationMixer(root));
+        this.animationMixer = markRaw(new AnimationMixer(root));
         this.animations.forEach(clip => {
             this.animationMixer.clipAction(clip).play();
         });
@@ -749,15 +768,15 @@ export default {
     centerAndScaleModel() {
       if (!this.model) return;
       this.model.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(this.model);
+      const box = new Box3().setFromObject(this.model);
       
       if (box.isEmpty()) {
         this.model.position.set(0,0,0);
         return;
       }
 
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new Vector3());
+      const size = box.getSize(new Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
       
       if (!Number.isFinite(maxDim) || maxDim === 0) return;
@@ -832,7 +851,6 @@ export default {
       
       if (this.renderer) {
         // Essential for releasing WebGL contexts
-        this.renderer.forceContextLoss();
         this.renderer.dispose();
         this.renderer.domElement?.remove();
         this.renderer = null;
@@ -901,7 +919,7 @@ export default {
     },
     
     zoomCamera(delta) {
-      const dir = new THREE.Vector3().subVectors(this.camera.position, this.controls.target).normalize();
+      const dir = new Vector3().subVectors(this.camera.position, this.controls.target).normalize();
       const dist = this.camera.position.distanceTo(this.controls.target) * (1 + delta);
       if (dist > this.camera.near * 2 && dist < this.camera.far / 2) {
         this.camera.position.copy(this.controls.target.clone().add(dir.multiplyScalar(dist)));

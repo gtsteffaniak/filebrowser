@@ -254,7 +254,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
-import { url } from "@/utils";
+import { removeTrailingSlash, removeLeadingSlash } from "@/utils/url.js";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
@@ -264,7 +264,7 @@ import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
  */
 function browsePath(scopePath, apiPath, isDirectory) {
   const context =
-    scopePath && scopePath !== "/" ? url.removeTrailingSlash(scopePath) : "";
+    scopePath && scopePath !== "/" ? removeTrailingSlash(scopePath) : "";
   const trimmedApi = String(apiPath || "").trim();
 
   if (trimmedApi === "/" || trimmedApi === "") {
@@ -274,7 +274,7 @@ function browsePath(scopePath, apiPath, isDirectory) {
     return "/";
   }
 
-  const relativeSegmentsPath = url.removeLeadingSlash(url.removeTrailingSlash(trimmedApi));
+  const relativeSegmentsPath = removeLeadingSlash(removeTrailingSlash(trimmedApi));
   let resolvedBrowsePath =
     context === "" ? `/${relativeSegmentsPath}` : `${context}/${relativeSegmentsPath}`;
 
@@ -282,7 +282,7 @@ function browsePath(scopePath, apiPath, isDirectory) {
     resolvedBrowsePath += "/";
   }
   if (!isDirectory && resolvedBrowsePath.endsWith("/") && resolvedBrowsePath.length > 1) {
-    resolvedBrowsePath = url.removeTrailingSlash(resolvedBrowsePath);
+    resolvedBrowsePath = removeTrailingSlash(resolvedBrowsePath);
   }
 
   return resolvedBrowsePath;

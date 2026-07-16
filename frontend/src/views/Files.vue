@@ -13,20 +13,14 @@
 </template>
 
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { resourcesApi, shareApi, mediaApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
-import Editor from "@/views/files/Editor.vue";
-import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
-import EpubViewer from "./files/EpubViewer.vue";
-import DocViewer from "./files/DocViewer.vue";
-import MarkdownViewer from "./files/MarkdownViewer.vue";
-import ThreeJsViewer from "./files/ThreeJs.vue";
 import { state, mutations, getters } from "@/store";
-import { url } from "@/utils";
 import router from "@/router";
-import { extractSourceFromPath } from "@/utils/url";
+import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
@@ -56,7 +50,7 @@ async function fetchShareItemWithParent(sharePassword) {
   }
 
   const content = !getters.fileViewingDisabled(file.name);
-  let directoryPath = url.removeLastDir(state.shareInfo.subPath);
+  let directoryPath = removeLastDir(state.shareInfo.subPath);
   if (!directoryPath || directoryPath === "") {
     directoryPath = "/";
   }
@@ -94,7 +88,7 @@ async function fetchAuthItemWithParent(fetchSource, fetchPath) {
     return res;
   }
   const content = !getters.fileViewingDisabled(res.name);
-  let directoryPath = url.removeLastDir(res.path);
+  let directoryPath = removeLastDir(res.path);
   if (!directoryPath || directoryPath === "") {
     directoryPath = "/";
   }
@@ -119,13 +113,13 @@ export default {
     Errors,
     Preview,
     ListingView,
-    Editor,
-    EpubViewer,
-    DocViewer,
-    OnlyOfficeEditor,
-    MarkdownViewer,
-    ThreeJsViewer,
     LoadingSpinner,
+    Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
+    OnlyOfficeEditor: createAsyncComponent(() => import('@/views/files/OnlyOfficeEditor.vue')),
+    EpubViewer: createAsyncComponent(() => import('@/views/files/EpubViewer.vue')),
+    DocViewer: createAsyncComponent(() => import('@/views/files/DocViewer.vue')),
+    MarkdownViewer: createAsyncComponent(() => import('@/views/files/MarkdownViewer.vue')),
+    ThreeJsViewer: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
   },
   data() {
     return {
@@ -235,12 +229,12 @@ export default {
           decodedName = rawHash;
         }
         targetName = decodedName;
-        scrollToId = url.base64Encode(encodeURIComponent(decodedName));
+        scrollToId = base64Encode(encodeURIComponent(decodedName));
       } else if (state.previousHistoryItem?.name &&
                  state.previousHistoryItem.path === state.req.path &&
                  state.previousHistoryItem.source === state.req.source) {
         targetName = state.previousHistoryItem?.name;
-        scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem?.name));
+        scrollToId = base64Encode(encodeURIComponent(state.previousHistoryItem?.name));
       }
       // Don't call getElementById with empty string
       if (!scrollToId || scrollToId.trim() === '') {
@@ -451,7 +445,7 @@ export default {
 
           // Clear share data when accessing files
           mutations.clearShareData();
-          const routePath = url.removeTrailingSlash(getters.routePath());
+          const routePath = removeTrailingSlash(getters.routePath());
 
           // Redirect if multiple sources and user went to /files/
           if (routePath === "/files") {

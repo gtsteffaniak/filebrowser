@@ -18,6 +18,7 @@ PLAYWRIGHT_TEST ?= "settings"
 .PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
 .PHONY: check-translations sync-translations test-playwright run-proxy screenshots
+.PHONY: check-icons generate-icons sync-icons
 
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
@@ -48,7 +49,7 @@ build-backend:
 	@echo "✓ Backend built successfully"
 
 # New dev target with hot-reloading for frontend and backend
-dev: generate-docs
+dev: generate-docs generate-icons
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	pkill -f '[t]est_config.yaml' || true
 	pkill -f '[g]o tool air' || true
@@ -96,7 +97,16 @@ lint: lint-backend lint-frontend
 
 test: test-backend test-frontend
 
-check-all: lint test check-translations
+check-all: lint test check-translations check-icons
+
+check-icons:
+	cd frontend && npm run icons:check
+
+sync-icons:
+	cd frontend && npm run icons:sync
+
+generate-icons:
+	cd frontend && npm run icons:sync
 
 check-translations:
 	cd frontend && npm run i18n:check

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -202,9 +204,28 @@ func (ffs *filteredFileSystem) checkAccess(requestPath string) error {
 // filteredFile wraps a webdav.File and filters Readdir results based on FileInfoFaster
 type filteredFile struct {
 	webdav.File
-	fs          *filteredFileSystem
-	requestPath string // The request path (without user scope)
-	isDir       bool   // Whether this is a directory
+	fs           *filteredFileSystem
+	requestPath  string    // The request path (without user scope)
+	isDir        bool      // Whether this is a directory
+	desiredMtime time.Time // client-requested mtime (with X-OC-Mtime header)
+}
+
+// closes the file and if a client-requested mtime was captured for a new file, applies it after the write completes
+func (ff *filteredFile) Close() error {
+	err := ff.File.Close()
+	if err != nil {
+		return err
+	}
+	if !ff.desiredMtime.IsZero() {
+		dir, ok := ff.fs.fs.(webdav.Dir)
+		if ok {
+			realPath := filepath.Join(string(dir), filepath.FromSlash(ff.requestPath))
+			if chtimesErr := os.Chtimes(realPath, time.Now(), ff.desiredMtime); chtimesErr != nil {
+				logger.Errorf("failed to set mtime on %s: %v", realPath, chtimesErr)
+			}
+		}
+	}
+	return nil
 }
 
 func (ff *filteredFile) Readdir(count int) ([]os.FileInfo, error) {
@@ -305,13 +326,26 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 		return nil, err
 	}
 
+	// only new uploads carry mtime
+	var desiredMtime time.Time
+	if flag&os.O_CREATE != 0 && ffs.httpReq != nil {
+		if raw := ffs.httpReq.Header.Get("X-OC-Mtime"); raw != "" {
+			if seconds, parseErr := strconv.ParseFloat(raw, 64); parseErr == nil {
+				desiredMtime = time.Unix(int64(seconds), 0)
+			} else {
+				logger.Debugf("OpenFile: invalid X-OC-Mtime header %q for %s: %v", raw, requestPath, parseErr)
+			}
+		}
+	}
+
 	// Wrap the file to filter directory listings
 	// name is the request path (without user scope)
 	return &filteredFile{
-		File:        file,
-		fs:          ffs,
-		requestPath: requestPath,
-		isDir:       stat.IsDir(),
+		File:         file,
+		fs:           ffs,
+		requestPath:  requestPath,
+		isDir:        stat.IsDir(),
+		desiredMtime: desiredMtime,
 	}, nil
 }
 

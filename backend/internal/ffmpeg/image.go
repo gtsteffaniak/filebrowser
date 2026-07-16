@@ -1,52 +1,28 @@
 package ffmpeg
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/imagemeta"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 )
 
-// GetImageOrientation extracts the EXIF orientation from an image file using exiftool.
+// GetImageOrientation extracts the EXIF orientation from an image file.
 func (s *Service) GetImageOrientation(imagePath string) (string, error) {
-	if orientation := s.getExiftoolTag(imagePath, "Orientation"); orientation != "" {
+	if orientation := imagemeta.GetOrientation(context.Background(), imagePath); orientation != "" {
 		return orientation, nil
 	}
 	return "Horizontal (normal)", nil
 }
 
 // GetHEICOrientation returns the display orientation for HEIC/HEIF files.
-// Prefer QuickTime Rotation, which ffmpeg applies via the display matrix. IFD0 Orientation
-// can disagree (e.g. stale "Mirror vertical" while Rotation is "Horizontal (normal)").
 func (s *Service) GetHEICOrientation(heicPath string) (string, error) {
-	if rot := s.getExiftoolTag(heicPath, "Rotation"); rot != "" {
-		return rot, nil
-	}
 	return s.GetImageOrientation(heicPath)
-}
-
-func (s *Service) getExiftoolTag(imagePath, tag string) string {
-	exiftoolPath := s.exiftoolPath
-	if exiftoolPath == "" || imagePath == "" {
-		return ""
-	}
-	cmd := exec.Command(exiftoolPath, "-"+tag, "-s3", imagePath)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	if err := cmd.Run(); err != nil {
-		return ""
-	}
-	orientation := strings.TrimSpace(out.String())
-	if orientation == "" {
-		return ""
-	}
-	return orientation
 }
 
 // GetOrientationFilter converts EXIF orientation to an FFmpeg filter suffix.
@@ -91,7 +67,6 @@ func (s *Service) GetOrientationFilter(orientation string) string {
 
 // ConvertHEICToJPEG decodes HEIC/HEIF to JPEG. Tile-grid iPhone HEIC cannot use ffmpeg -vf,
 // so decode is filter-free and any remaining orientation is applied in Go afterward.
-// Display orientation comes from QuickTime Rotation (see GetHEICOrientation).
 func (s *Service) ConvertHEICToJPEG(ctx context.Context, heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
 	if s == nil || s.inner == nil {
 		return nil, fmt.Errorf("ffmpeg service not available")

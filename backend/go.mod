@@ -8,6 +8,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8
 	github.com/dsoprea/go-exif/v3 v3.0.1
+	github.com/evanoberholster/imagemeta v1.0.0
 	github.com/gen2brain/go-fitz v1.24.15
 	github.com/go-ldap/ldap/v3 v3.4.13
 	github.com/go-playground/validator/v10 v10.30.3
@@ -222,6 +223,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.3.1 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect

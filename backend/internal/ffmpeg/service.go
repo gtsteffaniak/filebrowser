@@ -15,9 +15,8 @@ import (
 
 // Service wraps go-ffmpeg for filebrowser media operations.
 type Service struct {
-	inner        *goffmpeg.Service
-	cacheDir     string
-	exiftoolPath string
+	inner    *goffmpeg.Service
+	cacheDir string
 }
 
 // FFmpegService is kept for existing callers.
@@ -32,7 +31,6 @@ type InitOptions struct {
 	CacheDir             string
 	SkipHWTests          bool
 	HardwareAcceleration bool
-	ExiftoolPath         string
 }
 
 // Initialize creates the global ffmpeg service and runs capability detection.
@@ -60,9 +58,8 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 	}
 
 	global = &Service{
-		inner:        svc,
-		cacheDir:     opts.CacheDir,
-		exiftoolPath: opts.ExiftoolPath,
+		inner:    svc,
+		cacheDir: opts.CacheDir,
 	}
 
 	logCapabilities(svc, opts.HardwareAcceleration)

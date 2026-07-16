@@ -66,10 +66,9 @@
   </div>
 </template>
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { resourcesApi, mediaApi } from "@/api";
-import { url } from "@/utils";
-import ExtendedImage from "@/components/files/ExtendedImage.vue";
-import plyrViewer from "@/views/files/plyrViewer.vue";
+import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
 import { isRawImageMimeType } from "@/utils/mimetype";
@@ -80,9 +79,9 @@ import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 export default {
   name: "preview",
   components: {
-    ExtendedImage,
-    plyrViewer,
     LoadingSpinner,
+    ExtendedImage: createAsyncComponent(() => import('@/components/files/ExtendedImage.vue')),
+    plyrViewer: createAsyncComponent(() => import('@/views/files/plyrViewer.vue')),
   },
   data() {
     return {
@@ -110,7 +109,7 @@ export default {
         return this.isHeicAndViewable;
       }
       if (isRawImageMimeType(state.req.type)) {
-        return globalVars.exiftoolAvailable === true;
+        return true;
       }
       return this.previewType === 'image' || this.pdfConvertable;
     },
@@ -127,10 +126,9 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
-    // Viewable when we can get embedded/original preview: (media + heic conversion) or exiftool, or Safari native
+    // Viewable when we can get embedded/original preview: (media + heic conversion) or Safari native
     isHeicAndViewable() {
       if (state.isSafari) return true;
-      if (globalVars.exiftoolAvailable) return true;
       if (globalVars.mediaAvailable && globalVars.enableHeicConversion) return true;
       return false;
     },
@@ -193,11 +191,11 @@ export default {
         return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
       }
 
-      const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
-      const getHeicPreview = isHeicOrHeif && ((globalVars.mediaAvailable && globalVars.enableHeicConversion) || globalVars.exiftoolAvailable);
+      const getRawPreview = isRawImageMimeType(state.req.type);
+      const getHeicPreview = isHeicOrHeif && globalVars.mediaAvailable && globalVars.enableHeicConversion;
       if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
-          const previewPath = url.removeTrailingSlash(state.req.path);
+          const previewPath = removeTrailingSlash(state.req.path);
           return resourcesApi.getPreviewURLPublic(previewPath, "original");
         }
         return (
@@ -311,7 +309,7 @@ export default {
         return;
       }
       this.isDeleted = false;
-      const currentDirectoryPath = url.removeLastDir(state.req.path) || '/';
+      const currentDirectoryPath = removeLastDir(state.req.path) || '/';
       const currentListingKey = this.listingContextKey(currentDirectoryPath);
       if (this.listingKey !== currentListingKey) {
         this.listing = null;
@@ -361,7 +359,7 @@ export default {
       }
       await this.updatePreview();
       if (isAv && this.listing) {
-        const directoryPath = url.removeLastDir(state.req.path) || '/';
+        const directoryPath = removeLastDir(state.req.path) || '/';
         await this.attachDirMediaMetadata(this.listing, directoryPath);
       }
       this.subtitlesList = await this.subtitles();
@@ -507,7 +505,7 @@ export default {
     },
     async updatePreview() {
       const expectedPath = state.req.path;
-      let directoryPath = url.removeLastDir(state.req.path);
+      let directoryPath = removeLastDir(state.req.path);
 
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
@@ -617,7 +615,7 @@ export default {
     },
     close() {
       mutations.replaceRequest({}); // Reset request data
-      const uri = `${url.removeLastDir(state.route.path)}/`;
+      const uri = `${removeLastDir(state.route.path)}/`;
       this.$router.push({ path: uri });
     },
     download() {
@@ -654,7 +652,7 @@ export default {
     exitPreviewFromImageGesture() {
       mutations.closeHovers();
       if (state.previousHistoryItem?.name) {
-        url.goToItem(
+        goToItem(
           state.previousHistoryItem.source,
           state.previousHistoryItem.path,
           state.previousHistoryItem,
@@ -663,7 +661,7 @@ export default {
         );
         return;
       }
-      const parentPath = url.removeLastDir(state.route.path);
+      const parentPath = removeLastDir(state.route.path);
       this.$router.push({ path: parentPath });
     },
   },
