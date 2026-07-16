@@ -22,6 +22,26 @@ export default {
   components: {
     ToggleSwitch,
   },
+  data() {
+    return {
+      emitChanges: false,
+    };
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.emitChanges = true;
+    });
+  },
+  watch: {
+    permissions: {
+      deep: true,
+      handler() {
+        if (this.emitChanges) {
+          this.$emit("changed");
+        }
+      },
+    },
+  },
   computed: {
     viewPermissionName() {
       return this.$t("general.viewFiles");

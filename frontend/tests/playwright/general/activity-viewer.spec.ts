@@ -57,14 +57,23 @@ test.describe("Activity Viewer API", () => {
           password: "testpassword",
           permissions: {
             admin: false,
-            modify: true,
-            create: true,
-            delete: true,
-            download: true,
             share: true,
             api: false,
             realtime: false,
           },
+          scopes: [
+            {
+              name: "playwright + files",
+              scope: "/",
+              permissions: {
+                view: true,
+                download: true,
+                modify: true,
+                create: true,
+                delete: true,
+              },
+            },
+          ],
         },
       },
     });

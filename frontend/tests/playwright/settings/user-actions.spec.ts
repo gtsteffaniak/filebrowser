@@ -12,6 +12,43 @@ function editUserTrigger(row: Locator): Locator {
     return row.getByRole("button", { name: /Edit/i });
 }
 
+/** Primary source in settings Playwright docker config (`_docker/src/settings/backend/config.yaml`). */
+const SETTINGS_TEST_SOURCE = "playwright + files";
+
+/** Scope block for one source in the user edit modal (per-source permissions live here). */
+function userEditScopeBlock(modal: Locator, sourceName: string): Locator {
+    const escaped = sourceName.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return modal.locator(
+        `.scope-block:has([aria-label="user-edit-scope-path-${escaped}"])`,
+    );
+}
+
+async function expandUserEditSourceScope(modal: Locator, sourceName: string) {
+    const block = userEditScopeBlock(modal, sourceName);
+    await block.locator(".settings-group-title").click();
+    await expect(block.locator(".source-file-permissions")).toBeVisible();
+}
+
+function userEditSourcePermissionCheckbox(
+    modal: Locator,
+    sourceName: string,
+    permissionLabel: string,
+): Locator {
+    return userEditScopeBlock(modal, sourceName)
+        .locator(".source-file-permissions .toggle-container", { hasText: permissionLabel })
+        .locator('input[type="checkbox"]');
+}
+
+function userEditSourcePermissionToggle(
+    modal: Locator,
+    sourceName: string,
+    permissionLabel: string,
+): Locator {
+    return userEditScopeBlock(modal, sourceName)
+        .locator(".source-file-permissions .toggle-container", { hasText: permissionLabel })
+        .locator("label.switch");
+}
+
 /**
  * User POST/PUT/DELETE for sensitive actions return 401 until X-Password is supplied; the UI opens password-prompt on top.
  * Password must match tests/playwright/global-setup.ts (same as two factor auth check).
@@ -157,11 +194,7 @@ test.describe("User Settings Persistence", () => {
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
         // --- Open modal and check initial state (should be OFF) ---
-        // Debug: Check if the user row exists
         await expect(userRow).toBeVisible({ timeout: 5000 });
-        // Debug: Take a screenshot before clicking
-        await page.screenshot({ path: `debug-before-click-${settingName.replace(/\s+/g, '-')}.png` });
-        // Open edit modal (settings table edit control — role button, aria from general.edit).
         await editUserTrigger(userRow).click();
 
         await expect(modal).toBeVisible();
@@ -211,15 +244,17 @@ test.describe("User Settings Persistence", () => {
 
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
+        await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
 
-        const expandPermsButton = modal.locator(".scope-block .settings-group-title").first();
-        await expandPermsButton.click();
-
-        const editFilesToggle = modal
-            .locator(".source-file-permissions .toggle-container", { hasText: "Edit files" })
-            .locator("label.switch");
-        const editFilesCheckbox = modal.locator(
-            '.source-file-permissions .toggle-container:has-text("Edit files") input[type="checkbox"]'
+        const editFilesToggle = userEditSourcePermissionToggle(
+            modal,
+            SETTINGS_TEST_SOURCE,
+            "Edit files",
+        );
+        const editFilesCheckbox = userEditSourcePermissionCheckbox(
+            modal,
+            SETTINGS_TEST_SOURCE,
+            "Edit files",
         );
 
         const wasChecked = await editFilesCheckbox.isChecked();
@@ -232,7 +267,7 @@ test.describe("User Settings Persistence", () => {
 
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
-        await expandPermsButton.click();
+        await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
         await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
 
         await editFilesToggle.click();

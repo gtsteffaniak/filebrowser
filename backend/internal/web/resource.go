@@ -585,13 +585,6 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 	path = cleanPath
 
-	if d.Share.Hash == "" {
-		filePerms, permErr := effectiveFilePerms(d, source)
-		if permErr != nil || !filePerms.Create {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
-		}
-	}
-
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		logger.Debugf("source %s not found", source)
@@ -625,6 +618,20 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 
 	// get scoped path
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
+
+	if d.Share.Hash == "" {
+		filePerms, permErr := effectiveFilePerms(d, source)
+		if permErr != nil {
+			return http.StatusForbidden, permErr
+		}
+		if _, statErr := os.Stat(realPath); statErr == nil {
+			if r.URL.Query().Get("override") == "true" && !filePerms.Modify {
+				return http.StatusForbidden, fmt.Errorf("user is not allowed to modify")
+			}
+		} else if !filePerms.Create {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to create")
+		}
+	}
 
 	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), filePermUser.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
@@ -950,7 +957,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			}
 			if req.Action == "copy" {
 				toPerms, toErr := effectiveFilePerms(d, item.ToSource)
-				if toErr != nil || !toPerms.Create || !fromPerms.View {
+				if toErr != nil || !toPerms.Create || !fromPerms.Download {
 					item.Message = "user is not allowed to copy"
 					response.Failed = append(response.Failed, item)
 					continue

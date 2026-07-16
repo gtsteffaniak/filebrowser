@@ -36,8 +36,7 @@ func SeedSourcePermissionsForPath(user *User, sourcePath string, defaults Source
 		if scope.Path != sourcePath {
 			continue
 		}
-		if scope.Permissions.View || scope.Permissions.Download || scope.Permissions.Modify ||
-			scope.Permissions.Delete || scope.Permissions.Create {
+		if !scope.Permissions.IsUnset() {
 			return false
 		}
 		user.BackendScopes[i].Permissions = defaults

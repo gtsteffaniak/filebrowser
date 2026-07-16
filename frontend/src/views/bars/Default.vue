@@ -129,7 +129,7 @@ export default {
       return window.location.hash !== "#edit" && getters.permissions().modify;
     },
     showDelete() {
-      return getters.permissions().modify && getters.currentView() === "preview";
+      return getters.permissions().delete && getters.currentView() === "preview";
     },
     showSave() {
       return getters.currentView() === "editor" && getters.permissions().modify;

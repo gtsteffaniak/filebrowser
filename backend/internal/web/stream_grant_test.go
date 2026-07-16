@@ -14,50 +14,59 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 )
 
-var streamGrantTestSourcesOnce sync.Once
+var streamGrantResolverMu sync.Mutex
 
 func initStreamGrantTestSources(t *testing.T) {
 	t.Helper()
-	streamGrantTestSourcesOnce.Do(func() {
-		users.SetSourceNameResolver(func(name string) (string, error) {
+	streamGrantResolverMu.Lock()
+	t.Cleanup(func() { streamGrantResolverMu.Unlock() })
+	users.SetSourceNameResolver(func(name string) (string, error) {
+		switch name {
+		case "default", "Downloads", "srv":
+			return "/" + name, nil
+		default:
+			return "", fmt.Errorf("unknown source %q", name)
+		}
+	})
+	users.SetSourceConfig(&users.SourceConfigProvider{
+		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
+			switch path {
+			case "/default", "/Downloads", "/srv":
+				return users.SourceInfo{Path: path, Name: path[1:]}, true
+			default:
+				return users.SourceInfo{}, false
+			}
+		},
+		GetSourceByName: func(name string) (users.SourceInfo, bool) {
 			switch name {
 			case "default", "Downloads", "srv":
-				return "/" + name, nil
+				return users.SourceInfo{Path: "/" + name, Name: name}, true
 			default:
-				return "", fmt.Errorf("unknown source %q", name)
+				return users.SourceInfo{}, false
 			}
-		})
-		users.SetSourceConfig(&users.SourceConfigProvider{
-			GetSourceByPath: func(path string) (users.SourceInfo, bool) {
-				switch path {
-				case "/default", "/Downloads", "/srv":
-					return users.SourceInfo{Path: path, Name: path[1:]}, true
-				default:
-					return users.SourceInfo{}, false
-				}
-			},
-			GetSourceByName: func(name string) (users.SourceInfo, bool) {
-				switch name {
-				case "default", "Downloads", "srv":
-					return users.SourceInfo{Path: "/" + name, Name: name}, true
-				default:
-					return users.SourceInfo{}, false
-				}
-			},
-		})
+		},
 	})
 }
 
 func testUserWithView(id uint64, sources ...string) *users.User {
+	scopes := make([]users.BackendScope, 0, len(sources))
 	perms := map[string]users.SourceFilePermissions{}
 	for _, s := range sources {
-		perms["/"+s] = users.SourceFilePermissions{View: true, Download: true}
+		sourcePath := "/" + s
+		sourcePerms := users.SourceFilePermissions{View: true, Download: true}
+		perms[sourcePath] = sourcePerms
+		scopes = append(scopes, users.BackendScope{
+			Path:        sourcePath,
+			Scope:       "/",
+			Permissions: sourcePerms,
+		})
 	}
 	return &users.User{
 		ID: id,
 		FrontendUser: users.FrontendUser{
 			Username: "alice",
 		},
+		BackendScopes:            scopes,
 		BackendSourcePermissions: perms,
 		Version:                  users.SourcePermissionsMigrationVersion,
 	}

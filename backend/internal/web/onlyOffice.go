@@ -164,11 +164,19 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	// Determine modify permissions based on whether this is a share or regular request
 	var modifyPerms bool
 	if d.FileInfo.Hash != "" && d.Share.Hash != "" {
-		// Share request - check share permissions
+		if d.Share.DisableFileViewer {
+			return http.StatusForbidden, fmt.Errorf("file viewer disabled for this share")
+		}
 		modifyPerms = d.Share.AllowModify
 	} else {
 		filePerms, permErr := effectiveFilePerms(d, source)
-		modifyPerms = permErr == nil && filePerms.Modify
+		if permErr != nil {
+			return http.StatusForbidden, permErr
+		}
+		if !filePerms.View {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+		}
+		modifyPerms = filePerms.Modify
 	}
 
 	canEdit := iteminfo.CanEditOnlyOffice(modifyPerms, fileType)

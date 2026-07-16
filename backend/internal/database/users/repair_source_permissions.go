@@ -32,8 +32,7 @@ func EnsureSourcePermissionsForScopes(user *User, defaults, adminDefaults Source
 		}
 	}
 	for i, scope := range user.BackendScopes {
-		if scope.Permissions.View || scope.Permissions.Download || scope.Permissions.Modify ||
-			scope.Permissions.Delete || scope.Permissions.Create {
+		if !scope.Permissions.IsUnset() {
 			continue
 		}
 		if legacy, ok := user.BackendSourcePermissions[scope.Path]; ok {

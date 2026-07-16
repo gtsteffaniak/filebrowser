@@ -60,9 +60,7 @@ func apiTokenSourceFilePerms(d *Context) (users.SourceFilePermissions, bool) {
 		return users.SourceFilePermissions{}, false
 	}
 	// Session WEB_TOKEN claims carry global perms only after v4; intersect only when token sets file-op caps.
-	hasFileCaps := tk.Permissions.View || tk.Permissions.Download || tk.Permissions.Modify ||
-		tk.Permissions.Delete || tk.Permissions.Create
-	if !hasFileCaps {
+	if !tk.Permissions.HasAnyFilePermission() {
 		return users.SourceFilePermissions{}, false
 	}
 	return permissionsFromTokenClaims(tk), true

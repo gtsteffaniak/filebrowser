@@ -41,8 +41,7 @@ func MergeLegacySourcePermissionsIntoScopes(user *User) bool {
 		}
 	}
 	for i, scope := range user.BackendScopes {
-		if scope.Permissions.View || scope.Permissions.Download || scope.Permissions.Modify ||
-			scope.Permissions.Delete || scope.Permissions.Create {
+		if !scope.Permissions.IsUnset() {
 			continue
 		}
 		if legacy, ok := legacyByPath[scope.Path]; ok {

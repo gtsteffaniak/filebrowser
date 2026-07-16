@@ -189,11 +189,7 @@ func ApplyUserDefaults(u *users.User) {
 			}
 			u.BackendScopes[i].Permissions = perms
 			u.BackendSourcePermissions[scope.Path] = perms
-		} else if !u.BackendScopes[i].Permissions.View &&
-			!u.BackendScopes[i].Permissions.Download &&
-			!u.BackendScopes[i].Permissions.Modify &&
-			!u.BackendScopes[i].Permissions.Delete &&
-			!u.BackendScopes[i].Permissions.Create {
+		} else if u.BackendScopes[i].Permissions.IsUnset() {
 			u.BackendScopes[i].Permissions = u.BackendSourcePermissions[scope.Path]
 		}
 	}

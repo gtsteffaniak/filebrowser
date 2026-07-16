@@ -171,7 +171,7 @@ func (u *User) FilePermsForSourcePath(sourcePath string) (SourceFilePermissions,
 	for _, scope := range u.BackendScopes {
 		if scope.Path == sourcePath {
 			perms := scope.Permissions
-			if !perms.View && !perms.Download && !perms.Modify && !perms.Delete && !perms.Create {
+			if perms.IsUnset() {
 				if u.BackendSourcePermissions != nil {
 					if legacy, ok := u.BackendSourcePermissions[sourcePath]; ok {
 						return legacy, true

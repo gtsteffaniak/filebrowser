@@ -111,6 +111,16 @@ func DenyAllSourceFilePermissions() SourceFilePermissions {
 	return SourceFilePermissions{}
 }
 
+// IsUnset reports whether no permission bit is set, used as the sentinel for "not yet configured".
+func (p SourceFilePermissions) IsUnset() bool {
+	return !p.View && !p.Download && !p.Modify && !p.Delete && !p.Create
+}
+
+// HasAnyFilePermission reports whether any file-operation flag is set on token/global claims.
+func (p Permissions) HasAnyFilePermission() bool {
+	return p.View || p.Download || p.Modify || p.Delete || p.Create
+}
+
 // SortingSettings represents the sorting settings.
 type Sorting struct {
 	By  string `json:"by"`

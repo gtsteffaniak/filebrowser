@@ -240,8 +240,11 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	if !fromPerms.View {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to read source files")
+	if !fromPerms.Download {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to download source files")
+	}
+	if req.DeleteAfter && !fromPerms.Delete {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete source files")
 	}
 
 	idx := indexing.GetIndex(req.FromSource)
@@ -347,10 +350,6 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	}
 
 	if req.DeleteAfter {
-		fromPerms, permErr := effectiveFilePerms(d, req.FromSource)
-		if permErr != nil || !fromPerms.Delete {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to delete source files")
-		}
 		type itemToDelete struct {
 			realPath string
 			isDir    bool
@@ -429,8 +428,11 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	if !fromPerms.View {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to read archive source")
+	if !fromPerms.Download {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to download archive source")
+	}
+	if req.DeleteAfter && !fromPerms.Delete {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete archive source")
 	}
 
 	pathClean, err := utils.SanitizePath(req.Path)

@@ -114,15 +114,17 @@
             >
               <div class="scope-path-row">
                 <label class="scope-path-label">{{ $t("settings.scopePath") }}</label>
-                <div
+                <button
+                  type="button"
                   :aria-label="`user-edit-scope-path-${source.name}`"
                   class="clickable button scope-path-display"
                   @click="onScopePathRowClick(source)"
                 >{{ scopePathDisplay(source) }}
-                </div>
+                </button>
               </div>
               <source-file-permissions
                 :permissions="sourcePermissionsFor(source.name)"
+                @changed="markScopePermissionsExplicit(source.name)"
               />
             </SettingsItem>
           </div>
@@ -222,6 +224,7 @@ export default {
       pendingScopeSelectionContextId: null,
       pendingScopeSourceName: null,
       addingPasskey: false,
+      sourceFilePermissionDefaults: null,
     };
   },
   async created() {
@@ -303,7 +306,8 @@ export default {
           return {
             name,
             scope: "/",
-            permissions: { ...this.defaultSourceFilePermissions() },
+            permissions: undefined,
+            permissionsExplicit: false,
           };
         });
         if (
@@ -383,6 +387,9 @@ export default {
       };
     },
     defaultSourceFilePermissions() {
+      if (this.sourceFilePermissionDefaults) {
+        return { ...this.sourceFilePermissionDefaults };
+      }
       return {
         view: true,
         download: true,
@@ -390,6 +397,37 @@ export default {
         create: false,
         delete: false,
       };
+    },
+    async loadSourceFilePermissionDefaults() {
+      if (this.sourceFilePermissionDefaults) {
+        return;
+      }
+      try {
+        const defaults = await settingsApi.get("userDefaults");
+        const perms = defaults?.account?.permissions ?? {};
+        this.sourceFilePermissionDefaults = {
+          view: true,
+          download: perms.download !== false,
+          modify: !!perms.modify,
+          create: !!perms.create,
+          delete: !!perms.delete,
+        };
+      } catch (e) {
+        console.error(e);
+        this.sourceFilePermissionDefaults = {
+          view: true,
+          download: true,
+          modify: false,
+          create: false,
+          delete: false,
+        };
+      }
+    },
+    markScopePermissionsExplicit(sourceName) {
+      const scope = this.selectedSources.find((entry) => entry.name === sourceName);
+      if (scope) {
+        scope.permissionsExplicit = true;
+      }
     },
     sourcePermissionsFor(sourceName) {
       const scope = this.selectedSources.find((entry) => entry.name === sourceName);
@@ -439,6 +477,7 @@ export default {
         permissions: scope?.permissions
           ? { ...scope.permissions }
           : undefined,
+        permissionsExplicit: !!scope?.permissions,
       })) : [];
       if (legacySourcePermissions && typeof legacySourcePermissions === "object") {
         for (const entry of normalized) {
@@ -449,7 +488,7 @@ export default {
       }
       for (const entry of normalized) {
         if (!entry.permissions) {
-          entry.permissions = { ...this.defaultSourceFilePermissions() };
+          entry.permissionsExplicit = false;
         }
       }
       return normalized;
@@ -513,6 +552,7 @@ export default {
       }
     },
     async initializeForm() {
+      await this.loadSourceFilePermissionDefaults();
       if (!this.stateUser.permissions.admin) {
         this.sourceList = this.user.scopes || [];
       } else {
@@ -530,7 +570,8 @@ export default {
         scope: this.normalizeScopeForApi(scope.scope),
         permissions: scope.permissions
           ? { ...scope.permissions }
-          : { ...this.defaultSourceFilePermissions() },
+          : undefined,
+        permissionsExplicit: !!scope.permissions,
       }));
 
       if (this.isNew && this.selectedSources.length === 0 && this.sourceList.length > 0) {
@@ -571,11 +612,16 @@ export default {
         const fields = ["all"];
         // Transform selectedSources to only include {name, scope} format
         // Empty scope strings should be passed as "" for backend to handle defaults
-        const scopesToSend = this.selectedSources.map((source) => ({
-          name: source.name || "",
-          scope: this.normalizeScopeForApi(source.scope),
-          permissions: { ...this.sourcePermissionsFor(source.name) },
-        }));
+        const scopesToSend = this.selectedSources.map((source) => {
+          const entry = {
+            name: source.name || "",
+            scope: this.normalizeScopeForApi(source.scope),
+          };
+          if (source.permissionsExplicit) {
+            entry.permissions = { ...this.sourcePermissionsFor(source.name) };
+          }
+          return entry;
+        });
         const payload = {
           ...this.user,
           scopes: scopesToSend,

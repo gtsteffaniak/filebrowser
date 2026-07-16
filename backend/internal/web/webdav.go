@@ -47,10 +47,11 @@ func (f *fileInfoWrapper) mode() os.FileMode {
 
 // filteredFileSystem wraps a webdav.FileSystem and filters directory listings using FileInfoFaster
 type filteredFileSystem struct {
-	fs      webdav.FileSystem
-	source  string
-	user    *users.User
-	httpReq *http.Request
+	fs         webdav.FileSystem
+	source     string
+	user       *users.User
+	filePerms  users.SourceFilePermissions
+	httpReq    *http.Request
 	// Cache FileInfoFaster results per path to avoid redundant calls within the same request
 	fileInfoCache map[string]*iteminfo.ExtendedFileInfo
 }
@@ -273,11 +274,7 @@ func (ff *filteredFile) Readdir(count int) ([]os.FileInfo, error) {
 }
 
 func (ffs *filteredFileSystem) sourceFilePerms() users.SourceFilePermissions {
-	perms, err := ffs.user.FilePermsForSourceName(ffs.source)
-	if err != nil {
-		return users.DenyAllSourceFilePermissions()
-	}
-	return perms
+	return ffs.filePerms
 }
 
 func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.FileMode) error {
@@ -450,15 +447,8 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	if !filePerms.Download {
-		return http.StatusForbidden, fmt.Errorf("download permission required")
-	}
-	if r.Method == "DELETE" && !filePerms.Delete {
-		return http.StatusForbidden, fmt.Errorf("delete permission required")
-	}
-	isWrite := r.Method == http.MethodPut || r.Method == "MKCOL"
-	if isWrite && !sourceFilePermsCanWrite(filePerms) {
-		return http.StatusForbidden, fmt.Errorf("user has no permission to modify")
+	if status, permErr := webDAVMethodPermission(r.Method, filePerms); permErr != nil {
+		return status, permErr
 	}
 	requestPath := utils.AddTrailingSlashIfNotExists(r.PathValue("path"))
 	if !strings.HasPrefix(requestPath, "/") {
@@ -498,10 +488,11 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	// Wrap the filesystem to filter directory listings using FileInfoFaster
 	// We pass requestPath (without scope) to FileInfoFaster, which applies scope internally
 	filteredFS := &filteredFileSystem{
-		fs:      webdav.Dir(scopePath),
-		source:  source,
-		user:    d.User,
-		httpReq: r,
+		fs:        webdav.Dir(scopePath),
+		source:    source,
+		user:      d.User,
+		filePerms: filePerms,
+		httpReq:   r,
 	}
 
 	wd := &webdav.Handler{
@@ -525,6 +516,32 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	return 200, nil // errors and responses (XML-formatted) are handled by webdav handler
 }
 
-func sourceFilePermsCanWrite(perms users.SourceFilePermissions) bool {
-	return perms.Create && perms.Modify && perms.Delete
+func webDAVMethodPermission(method string, perms users.SourceFilePermissions) (int, error) {
+	switch method {
+	case "PROPFIND", http.MethodOptions:
+		if !perms.View {
+			return http.StatusForbidden, fmt.Errorf("view permission required")
+		}
+	case http.MethodGet, http.MethodHead:
+		if !perms.Download {
+			return http.StatusForbidden, fmt.Errorf("download permission required")
+		}
+	case "MKCOL":
+		if !perms.Create {
+			return http.StatusForbidden, fmt.Errorf("create permission required")
+		}
+	case http.MethodPut:
+		if !perms.Modify {
+			return http.StatusForbidden, fmt.Errorf("modify permission required")
+		}
+	case http.MethodDelete:
+		if !perms.Delete {
+			return http.StatusForbidden, fmt.Errorf("delete permission required")
+		}
+	case "COPY", "MOVE":
+		if !perms.Modify {
+			return http.StatusForbidden, fmt.Errorf("modify permission required")
+		}
+	}
+	return 0, nil
 }
