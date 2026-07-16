@@ -61,15 +61,15 @@ func TestVerifyOTP_CachedSecretTakesPrecedence(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to generate old code: %v", err)
 	}
-	if _, err := verifyOTPHandler(httptest.NewRecorder(), otpRequest(user.Username, "testPass", oldCode), d); err == nil {
+	if _, verifyErr := verifyOTPHandler(httptest.NewRecorder(), otpRequest(user.Username, "testPass", oldCode), d); verifyErr == nil {
 		t.Error("expected old secret to be rejected")
 	}
 	newCode, err := totp.GenerateCode(newSecret, time.Now())
 	if err != nil {
 		t.Fatalf("failed to generate new code: %v", err)
 	}
-	if _, err := verifyOTPHandler(httptest.NewRecorder(), otpRequest(user.Username, "testPass", newCode), d); err != nil {
-		t.Fatalf("expected new secret to be accepted: %v", err)
+	if _, verifyErr := verifyOTPHandler(httptest.NewRecorder(), otpRequest(user.Username, "testPass", newCode), d); verifyErr != nil {
+		t.Fatalf("expected new secret to be accepted: %v", verifyErr)
 	}
 	updated, err := store.Users.Get(user.Username)
 	if err != nil {
@@ -98,7 +98,7 @@ func TestLogin_EnforcedOtp(t *testing.T) {
 	}
 
 	user.TOTPSecret = "SOMESECRET123456"
-	if _, err := loginHandler(httptest.NewRecorder(), otpRequest(user.Username, "", ""), d); err != nil {
-		t.Fatalf("expected login with TOTP to succed, got err=%v", err)
+	if _, loginErr := loginHandler(httptest.NewRecorder(), otpRequest(user.Username, "", ""), d); loginErr != nil {
+		t.Fatalf("expected login with TOTP to succed, got err=%v", loginErr)
 	}
 }
