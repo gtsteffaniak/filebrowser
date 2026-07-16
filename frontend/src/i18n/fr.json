@@ -272,12 +272,21 @@
     "configViewer": "Visualiseur de configuration",
     "configViewerShowFull": "Afficher la configuration complète",
     "configViewerShowComments": "Afficher les commentaires",
-    "configViewerLoadConfig": "Configuration de la charge",
     "loginMethods": {
       "password": "Mot de passe"
     },
     "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système.",
-    "modifyOtherUserTitle": "Modifier un utilisateur : {username}"
+    "modifyOtherUserTitle": "Modifier un utilisateur : {username}",
+    "configViewerOpen": "Afficher la configuration",
+    "configViewerDescription": "Ouvrir une vue en lecture seule de la configuration actuelle du serveur.",
+    "analyticsTitle": "Analyse des déploiements",
+    "analyticsView": "Consulter les statistiques",
+    "analyticsViewDescription": "Ouvrez une vue en lecture seule de l'instantané d'analyse du déploiement collecté à partir de ce serveur.",
+    "analyticsEnabled": "Envoyer les analyses de déploiement",
+    "analyticsEnabledDescription": "Les analyses de déploiement (sur inscription) enverront des informations anonymes aux serveurs des développeurs de FileBrowser Quantum afin de contribuer à l'amélioration de l'application.",
+    "analyticsLoadFailed": "Échec du chargement des paramètres d'analyse",
+    "analyticsUpdateFailed": "Échec de la mise à jour des paramètres d'analyse",
+    "analyticsPreviewFailed": "Échec du chargement des informations de diagnostic analytique"
   },
   "sidebar": {
     "updateIsAvailable": "Une mise à jour est disponible !",

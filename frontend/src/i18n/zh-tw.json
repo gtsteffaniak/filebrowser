@@ -271,13 +271,22 @@
     "systemAdmin": "系統與管理",
     "configViewerShowFull": "顯示完整設定",
     "configViewerShowComments": "顯示註解",
-    "configViewerLoadConfig": "載入組態",
     "loginMethods": {
       "password": "密碼"
     },
     "permissionsHelp": "使用者權限決定可以執行哪些類型的操作。管理員權限可完整管理所有使用者設定，以及許多系統設定。",
     "configViewer": "組態檢視器",
-    "modifyOtherUserTitle": "修改使用者：{username}"
+    "modifyOtherUserTitle": "修改使用者：{username}",
+    "configViewerOpen": "檢視設定",
+    "configViewerDescription": "開啟當前伺服器設定的唯讀檢視。",
+    "analyticsTitle": "部署分析",
+    "analyticsView": "檢視分析資料",
+    "analyticsViewDescription": "開啟從這台伺服器收集的部署分析快照的唯讀檢視。",
+    "analyticsEnabled": "傳送部署分析資料",
+    "analyticsEnabledDescription": "若選擇啟用部署分析功能，系統將向 FileBrowser Quantum 開發者伺服器傳送匿名資訊，以協助改善應用程式。",
+    "analyticsLoadFailed": "無法載入分析設定",
+    "analyticsUpdateFailed": "無法更新分析設定",
+    "analyticsPreviewFailed": "無法載入分析診斷資訊"
   },
   "sidebar": {
     "updateIsAvailable": "有可用的更新！",

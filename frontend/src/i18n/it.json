@@ -569,7 +569,6 @@
     "configViewer": "Visualizzatore Config",
     "configViewerShowFull": "Mostra config completa",
     "configViewerShowComments": "Mostra commenti",
-    "configViewerLoadConfig": "Carica Config",
     "enterPassword": "Inserisci password",
     "enterPasswordAgain": "Inserisci di nuovo la password",
     "loginMethod": "Metodo di accesso",
@@ -596,7 +595,17 @@
     "shareDeleted": "Condivisione eliminata!",
     "userDeleted": "Utente eliminato!",
     "userUpdated": "Utente aggiornato!",
-    "modifyOtherUserTitle": "Modifica utente: {username}"
+    "modifyOtherUserTitle": "Modifica utente: {username}",
+    "configViewerOpen": "Visualizza configurazione",
+    "configViewerDescription": "Apri una vista in sola lettura della configurazione corrente del server.",
+    "analyticsTitle": "Analisi dell'implementazione",
+    "analyticsView": "Visualizza le statistiche",
+    "analyticsViewDescription": "Apri una vista in sola lettura dello snapshot delle analisi di distribuzione raccolto da questo server.",
+    "analyticsEnabled": "Invia i dati analitici relativi alla distribuzione",
+    "analyticsEnabledDescription": "L'analisi dell'implementazione con consenso esplicito invierà informazioni anonime ai server degli sviluppatori di FileBrowser Quantum per contribuire a migliorare l'applicazione.",
+    "analyticsLoadFailed": "Impossibile caricare le impostazioni di analisi",
+    "analyticsUpdateFailed": "Impossibile aggiornare le impostazioni di analisi",
+    "analyticsPreviewFailed": "Impossibile caricare le informazioni diagnostiche relative all'analisi"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",

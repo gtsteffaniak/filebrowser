@@ -12,6 +12,7 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/analytics"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
@@ -146,6 +147,7 @@ func StartFilebrowser() {
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false, isNewDb)
 	}
+	analytics.StartReporter()
 	validateUserInfo(!dbExists)
 	validateOfficeIntegration()
 	validateAccessRules()

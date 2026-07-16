@@ -271,13 +271,22 @@
     "systemAdmin": "Systém a administrátor",
     "configViewerShowFull": "Zobraziť úplnú konfiguráciu",
     "configViewerShowComments": "Zobraziť komentáre",
-    "configViewerLoadConfig": "Konfigurácia načítania",
     "loginMethods": {
       "password": "Heslo"
     },
     "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami.",
     "configViewer": "Prehliadač konfigurácie",
-    "modifyOtherUserTitle": "Úprava používateľa: {username}"
+    "modifyOtherUserTitle": "Úprava používateľa: {username}",
+    "configViewerOpen": "Zobraziť konfiguráciu",
+    "configViewerDescription": "Otvorte zobrazenie aktuálnej konfigurácie servera len na čítanie.",
+    "analyticsTitle": "Analýza nasadenia",
+    "analyticsView": "Zobraziť štatistiky",
+    "analyticsViewDescription": "Otvorte zobrazenie s právami len na čítanie pre snímku analytických údajov o nasadení, ktorá bola zozbieraná z tohto servera.",
+    "analyticsEnabled": "Odoslať analytické údaje o nasadení",
+    "analyticsEnabledDescription": "Analytika nasadenia na základe súhlasu bude odosielať anonymné informácie na vývojárske servery FileBrowser Quantum s cieľom prispieť k vylepšeniu aplikácie.",
+    "analyticsLoadFailed": "Nepodarilo sa načítať nastavenia analýzy",
+    "analyticsUpdateFailed": "Aktualizácia nastavení analytiky sa nepodarila",
+    "analyticsPreviewFailed": "Nepodarilo sa načítať diagnostické informácie o analýze"
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",

@@ -271,13 +271,22 @@
     "systemAdmin": "Sistem ve Yönetici",
     "configViewerShowFull": "Tam yapılandırmayı göster",
     "configViewerShowComments": "Yorumları göster",
-    "configViewerLoadConfig": "Yük Konfigürasyonu",
     "loginMethods": {
       "password": "Şifre"
     },
     "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar.",
     "configViewer": "Yapılandırma Görüntüleyici",
-    "modifyOtherUserTitle": "Kullanıcıyı düzenle: {username}"
+    "modifyOtherUserTitle": "Kullanıcıyı düzenle: {username}",
+    "configViewerOpen": "Yapılandırmayı görüntüle",
+    "configViewerDescription": "Mevcut sunucu yapılandırmasının salt okunur bir görünümünü açın.",
+    "analyticsTitle": "Dağıtım Analitiği",
+    "analyticsView": "Analizleri görüntüle",
+    "analyticsViewDescription": "Bu sunucudan toplanan dağıtım analitiği anlık görüntüsünün salt okunur bir görünümünü açın.",
+    "analyticsEnabled": "Dağıtım analizlerini gönder",
+    "analyticsEnabledDescription": "Kullanıcının onayıyla gerçekleştirilen dağıtım analitiği, uygulamanın geliştirilmesine katkıda bulunmak amacıyla FileBrowser Quantum geliştirici sunucularına anonim bilgiler gönderir.",
+    "analyticsLoadFailed": "Analitik ayarları yüklenemedi",
+    "analyticsUpdateFailed": "Analitik ayarları güncellenemedi",
+    "analyticsPreviewFailed": "Analitik tanılama bilgilerini yükleyemedi"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",

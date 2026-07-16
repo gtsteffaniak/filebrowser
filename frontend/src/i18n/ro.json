@@ -271,13 +271,22 @@
     "systemAdmin": "Sistem și administrare",
     "configViewerShowFull": "Afișați configurația completă",
     "configViewerShowComments": "Afișați comentariile",
-    "configViewerLoadConfig": "Configurare încărcare",
     "loginMethods": {
       "password": "Parolă"
     },
     "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem.",
     "configViewer": "Vizualizator de configurare",
-    "modifyOtherUserTitle": "Modificarea utilizatorului: {username}"
+    "modifyOtherUserTitle": "Modificarea utilizatorului: {username}",
+    "configViewerOpen": "Vizualizare configurație",
+    "configViewerDescription": "Deschideți o vizualizare numai pentru citire a configurației curente a serverului.",
+    "analyticsTitle": "Analiza implementării",
+    "analyticsView": "Vizualizează statisticile",
+    "analyticsViewDescription": "Deschideți o vizualizare numai pentru citire a instantaneului de analiză a implementării colectat de pe acest server.",
+    "analyticsEnabled": "Trimiteți analizele privind implementarea",
+    "analyticsEnabledDescription": "Analiza implementării bazată pe consimțământ va transmite informații anonime către serverele de dezvoltare FileBrowser Quantum, cu scopul de a contribui la îmbunătățirea aplicației.",
+    "analyticsLoadFailed": "Nu s-au putut încărca setările de analiză",
+    "analyticsUpdateFailed": "Nu s-a putut actualiza setările de analiză",
+    "analyticsPreviewFailed": "Nu s-au putut încărca informațiile de diagnosticare privind analizele"
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",

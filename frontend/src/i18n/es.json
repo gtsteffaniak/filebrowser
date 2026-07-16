@@ -275,9 +275,18 @@
     "systemAdmin": "Sistema y administración",
     "configViewerShowFull": "Mostrar configuración completa",
     "configViewerShowComments": "Mostrar comentarios",
-    "configViewerLoadConfig": "Cargar configuración",
     "permissionsHelp": "Los permisos de usuario controlan el acceso al tipo de acciones que el usuario puede realizar. El acceso de administrador proporciona un control total para actualizar y cambiar la configuración de cualquier usuario, así como muchos ajustes del sistema.",
-    "configViewer": "Visor de configuración"
+    "configViewer": "Visor de configuración",
+    "configViewerOpen": "Ver configuración",
+    "configViewerDescription": "Abre una vista de solo lectura de la configuración actual del servidor.",
+    "analyticsTitle": "Análisis de implementaciones",
+    "analyticsView": "Ver estadísticas",
+    "analyticsViewDescription": "Abre una vista de solo lectura de la instantánea de análisis de implementación recopilada de este servidor.",
+    "analyticsEnabled": "Enviar análisis de implementación",
+    "analyticsEnabledDescription": "Las estadísticas de implementación con consentimiento previo enviarán información anónima a los servidores de desarrollo de FileBrowser Quantum con el fin de ayudar a mejorar la aplicación.",
+    "analyticsLoadFailed": "No se han podido cargar los ajustes de análisis",
+    "analyticsUpdateFailed": "No se ha podido actualizar la configuración de análisis",
+    "analyticsPreviewFailed": "No se ha podido cargar la información de diagnóstico de análisis"
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",

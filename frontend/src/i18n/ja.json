@@ -271,13 +271,22 @@
     "systemAdmin": "システム＆管理",
     "configViewerShowFull": "全設定を表示",
     "configViewerShowComments": "コメントを表示",
-    "configViewerLoadConfig": "設定を読み込み",
     "loginMethods": {
       "password": "パスワード"
     },
     "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。",
     "configViewer": "コンフィグビューア",
-    "modifyOtherUserTitle": "ユーザーの編集：{username}"
+    "modifyOtherUserTitle": "ユーザーの編集：{username}",
+    "configViewerOpen": "設定を表示",
+    "configViewerDescription": "現在のサーバー構成の読み取り専用ビューを開きます。",
+    "analyticsTitle": "導入分析",
+    "analyticsView": "分析データを表示",
+    "analyticsViewDescription": "このサーバーから収集されたデプロイメント分析スナップショットの読み取り専用ビューを開きます。",
+    "analyticsEnabled": "デプロイメント分析データを送信する",
+    "analyticsEnabledDescription": "オプトイン型の導入分析機能により、アプリケーションの改善に役立てるため、匿名化された情報がFileBrowser Quantumの開発者サーバーに送信されます。",
+    "analyticsLoadFailed": "分析設定の読み込みに失敗しました",
+    "analyticsUpdateFailed": "アナリティクスの設定の更新に失敗しました",
+    "analyticsPreviewFailed": "分析診断情報の読み込みに失敗しました"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",

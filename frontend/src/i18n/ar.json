@@ -271,13 +271,22 @@
     "systemAdmin": "النظام والإدارة",
     "configViewerShowFull": "إظهار التكوين الكامل",
     "configViewerShowComments": "إظهار التعليقات",
-    "configViewerLoadConfig": "تكوين التحميل",
     "loginMethods": {
       "password": "كلمة المرور"
     },
     "permissionsHelp": "تتحكم أذونات المستخدم في الوصول إلى نوع الإجراءات التي يمكن للمستخدم تنفيذها. يمنح الوصول إلى المسؤول التحكم الكامل لتحديث وتغيير إعدادات أي مستخدم بالإضافة إلى العديد من إعدادات النظام.",
     "configViewer": "عارض التكوين",
-    "modifyOtherUserTitle": "تعديل المستخدم: {username}"
+    "modifyOtherUserTitle": "تعديل المستخدم: {username}",
+    "configViewerOpen": "عرض الإعدادات",
+    "configViewerDescription": "افتح عرضًا للقراءة فقط لتكوين الخادم الحالي.",
+    "analyticsTitle": "تحليلات النشر",
+    "analyticsView": "عرض الإحصائيات",
+    "analyticsViewDescription": "افتح عرضًا للقراءة فقط للقطعة اللحظية لتحليلات النشر التي تم جمعها من هذا الخادم.",
+    "analyticsEnabled": "إرسال تحليلات النشر",
+    "analyticsEnabledDescription": "ستقوم تحليلات النشر القائمة على الموافقة الطوعية بإرسال معلومات مجهولة المصدر إلى خوادم مطوري FileBrowser Quantum للمساعدة في تحسين التطبيق.",
+    "analyticsLoadFailed": "فشل تحميل إعدادات التحليلات",
+    "analyticsUpdateFailed": "فشل تحديث إعدادات التحليلات",
+    "analyticsPreviewFailed": "فشل تحميل معلومات تشخيص التحليلات"
   },
   "sidebar": {
     "updateIsAvailable": "يتوفر تحديث!",

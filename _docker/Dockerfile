@@ -6,7 +6,7 @@ WORKDIR /app
 COPY ./backend ./
 RUN apk update && apk add --no-cache gcc musl-dev
 ENV CGO_ENABLED=1
-RUN go build -tags mupdf,musl -ldflags="-w -s \
+RUN go build -tags analytics,mupdf,musl -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .

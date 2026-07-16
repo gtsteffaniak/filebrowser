@@ -271,13 +271,22 @@
     "systemAdmin": "系统与管理",
     "configViewerShowFull": "显示完整配置",
     "configViewerShowComments": "显示评论",
-    "configViewerLoadConfig": "加载配置",
     "loginMethods": {
       "password": "密码"
     },
     "permissionsHelp": "用户权限控制用户可以执行哪些类型的操作。管理员权限可完全控制更新和更改任何用户的设置以及许多系统设置。",
     "configViewer": "配置查看器",
-    "modifyOtherUserTitle": "修改用户：{username}"
+    "modifyOtherUserTitle": "修改用户：{username}",
+    "configViewerOpen": "查看配置",
+    "configViewerDescription": "打开当前服务器配置的只读视图。",
+    "analyticsTitle": "部署分析",
+    "analyticsView": "查看分析数据",
+    "analyticsViewDescription": "打开从该服务器收集的部署分析快照的只读视图。",
+    "analyticsEnabled": "发送部署分析数据",
+    "analyticsEnabledDescription": "“选择加入”式部署分析功能会将匿名信息发送至 FileBrowser Quantum 开发者服务器，以帮助改进该应用程序。",
+    "analyticsLoadFailed": "无法加载分析设置",
+    "analyticsUpdateFailed": "无法更新分析设置",
+    "analyticsPreviewFailed": "无法加载分析诊断信息"
   },
   "sidebar": {
     "updateIsAvailable": "有了最新进展！",

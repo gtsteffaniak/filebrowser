@@ -271,13 +271,22 @@
     "systemAdmin": "System i administrator",
     "configViewerShowFull": "Pokaż pełną konfigurację",
     "configViewerShowComments": "Pokaż komentarze",
-    "configViewerLoadConfig": "Konfiguracja ładowania",
     "loginMethods": {
       "password": "Hasło"
     },
     "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych.",
     "configViewer": "Przeglądarka konfiguracji",
-    "modifyOtherUserTitle": "Edytuj użytkownika: {username}"
+    "modifyOtherUserTitle": "Edytuj użytkownika: {username}",
+    "configViewerOpen": "Wyświetl konfigurację",
+    "configViewerDescription": "Otwórz widok bieżącej konfiguracji serwera w trybie tylko do odczytu.",
+    "analyticsTitle": "Analiza wdrożeń",
+    "analyticsView": "Wyświetl dane analityczne",
+    "analyticsViewDescription": "Otwórz widok tylko do odczytu migawki analizy wdrożenia zebranej z tego serwera.",
+    "analyticsEnabled": "Wyślij dane analityczne dotyczące wdrożenia",
+    "analyticsEnabledDescription": "W ramach analizy wdrożeń opartej na wyrażeniu zgody anonimowe informacje będą przesyłane na serwery deweloperskie FileBrowser Quantum w celu ulepszenia aplikacji.",
+    "analyticsLoadFailed": "Nie udało się załadować ustawień analityki",
+    "analyticsUpdateFailed": "Nie udało się zaktualizować ustawień analityki",
+    "analyticsPreviewFailed": "Nie udało się załadować informacji diagnostycznych dotyczących analityki"
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",

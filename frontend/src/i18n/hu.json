@@ -271,13 +271,22 @@
     "systemAdmin": "Rendszer és adminisztráció",
     "configViewerShowFull": "Teljes konfiguráció megjelenítése",
     "configViewerShowComments": "Hozzászólások megjelenítése",
-    "configViewerLoadConfig": "Konfiguráció betöltése",
     "loginMethods": {
       "password": "Jelszó"
     },
     "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához.",
     "configViewer": "Konfiguráció megtekintő",
-    "modifyOtherUserTitle": "Felhasználó módosítása: {username}"
+    "modifyOtherUserTitle": "Felhasználó módosítása: {username}",
+    "configViewerOpen": "Konfiguráció megtekintése",
+    "configViewerDescription": "Nyissa meg az aktuális szerverkonfiguráció írásvédett nézetét.",
+    "analyticsTitle": "Telepítési elemzés",
+    "analyticsView": "Elemzések megtekintése",
+    "analyticsViewDescription": "Nyissa meg a szerverről gyűjtött telepítési elemzési pillanatkép olvasási joggal rendelkező nézetét.",
+    "analyticsEnabled": "Telepítési elemzések elküldése",
+    "analyticsEnabledDescription": "Az önkéntes részvételű telepítési elemzés névtelen adatokat küld a FileBrowser Quantum fejlesztői szervereire az alkalmazás fejlesztése érdekében.",
+    "analyticsLoadFailed": "Az elemzési beállítások betöltése nem sikerült",
+    "analyticsUpdateFailed": "Az elemzési beállítások frissítése nem sikerült",
+    "analyticsPreviewFailed": "Az elemzési diagnosztikai adatok betöltése nem sikerült"
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",

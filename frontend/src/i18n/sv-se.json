@@ -271,13 +271,22 @@
     "systemAdmin": "System & Administration",
     "configViewerShowFull": "Visa fullständig konfiguration",
     "configViewerShowComments": "Visa kommentarer",
-    "configViewerLoadConfig": "Ladda konfig",
     "loginMethods": {
       "password": "Lösenord"
     },
     "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar.",
     "configViewer": "Konfig-visare",
-    "modifyOtherUserTitle": "Ändra användare: {username}"
+    "modifyOtherUserTitle": "Ändra användare: {username}",
+    "configViewerOpen": "Visa konfigurationen",
+    "configViewerDescription": "Öppna en skrivskyddad vy av den aktuella serverkonfigurationen.",
+    "analyticsTitle": "Analys av driftsättning",
+    "analyticsView": "Visa analysdata",
+    "analyticsViewDescription": "Öppna en skrivskyddad vy av den översikt över driftsanalys som har samlats in från den här servern.",
+    "analyticsEnabled": "Skicka driftsanalyser",
+    "analyticsEnabledDescription": "Analysdata från opt-in-distributionen skickas i anonymiserad form till FileBrowser Quantums utvecklarservrar för att bidra till att förbättra applikationen.",
+    "analyticsLoadFailed": "Det gick inte att ladda analysinställningarna",
+    "analyticsUpdateFailed": "Det gick inte att uppdatera analysinställningarna",
+    "analyticsPreviewFailed": "Det gick inte att ladda diagnostisk information om analysdata"
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",

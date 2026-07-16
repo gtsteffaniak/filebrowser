@@ -271,13 +271,22 @@
     "systemAdmin": "Systeem & Beheer",
     "configViewerShowFull": "Volledige configuratie weergeven",
     "configViewerShowComments": "Opmerkingen tonen",
-    "configViewerLoadConfig": "Configuratie laden",
     "loginMethods": {
       "password": "Wachtwoord"
     },
     "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",
     "configViewer": "Configuratiescherm",
-    "modifyOtherUserTitle": "Gebruiker aanpassen: {username}"
+    "modifyOtherUserTitle": "Gebruiker aanpassen: {username}",
+    "configViewerOpen": "Configuratie bekijken",
+    "configViewerDescription": "Open een alleen-lezen weergave van de huidige serverconfiguratie.",
+    "analyticsTitle": "Implementatieanalyses",
+    "analyticsView": "Analyses bekijken",
+    "analyticsViewDescription": "Open een alleen-lezen weergave van de momentopname van de implementatieanalyses die vanaf deze server is verzameld.",
+    "analyticsEnabled": "Implementatieanalyses verzenden",
+    "analyticsEnabledDescription": "Bij opt-in-implementatieanalyses wordt anonieme informatie naar de FileBrowser Quantum-ontwikkelaarsservers verzonden om de applicatie te verbeteren.",
+    "analyticsLoadFailed": "Het laden van de analyse-instellingen is mislukt",
+    "analyticsUpdateFailed": "Het bijwerken van de analyse-instellingen is mislukt",
+    "analyticsPreviewFailed": "Het laden van diagnostische gegevens voor Analytics is mislukt"
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",

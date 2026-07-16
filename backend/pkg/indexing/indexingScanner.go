@@ -122,6 +122,9 @@ func (s *Scanner) runRootScan(quick bool) {
 		s.fullScanTime = int(time.Since(startTime).Seconds())
 		s.statsMu.Unlock()
 		s.updateComplexity()
+		if OnSourceRootFullScanComplete != nil {
+			OnSourceRootFullScanComplete(s.idx.Name)
+		}
 	}
 
 	s.statsMu.Lock()

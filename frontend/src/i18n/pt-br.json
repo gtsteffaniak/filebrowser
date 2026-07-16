@@ -271,13 +271,22 @@
     "systemAdmin": "Sistema e administração",
     "configViewerShowFull": "Mostrar configuração completa",
     "configViewerShowComments": "Mostrar comentários",
-    "configViewerLoadConfig": "Configuração de carga",
     "loginMethods": {
       "password": "Senha"
     },
     "permissionsHelp": "As permissões de usuário controlam o acesso aos tipos de ações que o usuário pode executar. O acesso de administrador dá controle total para atualizar e alterar as configurações de qualquer usuário, bem como muitas configurações do sistema.",
     "configViewer": "Visualizador de configuração",
-    "modifyOtherUserTitle": "Modificar usuário: {username}"
+    "modifyOtherUserTitle": "Modificar usuário: {username}",
+    "configViewerOpen": "Visualizar configuração",
+    "configViewerDescription": "Abra uma visualização somente leitura da configuração atual do servidor.",
+    "analyticsTitle": "Análise de implantação",
+    "analyticsView": "Ver análises",
+    "analyticsViewDescription": "Abra uma visualização somente para leitura do instantâneo de análise de implantação coletado deste servidor.",
+    "analyticsEnabled": "Enviar análises de implantação",
+    "analyticsEnabledDescription": "A análise de implantação com consentimento prévio enviará informações anônimas aos servidores de desenvolvimento do FileBrowser Quantum para ajudar a aprimorar o aplicativo.",
+    "analyticsLoadFailed": "Falha ao carregar as configurações de análise",
+    "analyticsUpdateFailed": "Falha ao atualizar as configurações de análise",
+    "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise"
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
