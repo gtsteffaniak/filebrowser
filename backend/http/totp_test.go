@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	"net/url"
 	"testing"
 	"time"
 
@@ -26,7 +26,7 @@ func otpRequest(username, password, code string) *http.Request {
 func TestVerifyOTP_CachedSecretTakesPrecedence(t *testing.T) {
 	setupTestEnv(t)
 
-	oldSecret := "SOMEOLDSECRET123XD4"
+	oldSecret := "SOMEOLDSECRET234"
 	user := &users.User{
 		ID:               1,
 		Username:         "test",
@@ -49,15 +49,25 @@ func TestVerifyOTP_CachedSecretTakesPrecedence(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
-	newSecret := strings.SplitN(resp["url"], "secret=", 2)[1]
+	u, err := url.Parse(resp["url"])
+	if err != nil {
+		t.Fatalf("failed to parse url: %v", err)
+	}
+	newSecret := u.Query().Get("secret")
 	if newSecret == oldSecret {
 		t.Fatal("expected a fresh secret")
 	}
-	oldCode, _ := totp.GenerateCode(oldSecret, time.Now())
+	oldCode, err := totp.GenerateCode(oldSecret, time.Now())
+	if err != nil {
+		t.Fatalf("failed to generate old code: %v", err)
+	}
 	if _, err := verifyOTPHandler(httptest.NewRecorder(), otpRequest(user.Username, "testPass", oldCode), d); err == nil {
 		t.Error("expected old secret to be rejected")
 	}
-	newCode, _ := totp.GenerateCode(newSecret, time.Now())
+	newCode, err := totp.GenerateCode(newSecret, time.Now())
+	if err != nil {
+		t.Fatalf("failed to generate new code: %v", err)
+	}
 	if _, err := verifyOTPHandler(httptest.NewRecorder(), otpRequest(user.Username, "testPass", newCode), d); err != nil {
 		t.Fatalf("expected new secret to be accepted: %v", err)
 	}
