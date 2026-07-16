@@ -188,13 +188,16 @@ export const getters = {
     getters.selectedCount() === 1 &&
     getters.getFirstSelected()?.type !== 'directory',
   selectedDownloadUrl () {
+    if (!state.selected || state.selected.length === 0) return "";
+
     if (state.isSearchActive) {
       const first = state.selected[0] as FileListItem;
       return buildItemUrl(first.source, first.path)
     }
     const first = state.selected[0] as number;
     // eslint-disable-next-line security/detect-object-injection -- first is a numeric array index, not a property lookup
-    return buildItemUrl(state.req.items[first].source, state.req.items[first].path)
+    const item = state.req.items[first];
+    return item ? buildItemUrl(item.source, item.path) : "";
   },
   reqNumDirs: () => {
     let dirCount = 0
@@ -388,10 +391,8 @@ export const getters = {
     return Math.ceil((sum / totalSize) * 100)
   },
   filesInUploadCount: () => {
-    // Pre-existing: state.upload has no .length and state.queue doesn't exist (always undefined
-    // at runtime already, giving NaN). Never called anywhere. Left as-is.
-    const uploadsCount = (state.upload as unknown as { length: number }).length
-    const queueCount = (state as unknown as { queue: { length: number } }).queue.length
+    const uploadsCount = Object.keys(state.upload.uploads || {}).length
+    const queueCount = state.upload.queue?.length || 0
     return uploadsCount + queueCount
   },
   currentPrompt: () => {

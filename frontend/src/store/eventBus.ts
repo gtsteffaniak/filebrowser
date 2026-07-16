@@ -8,6 +8,10 @@ class EventBus extends EventTarget {
   }
 
   on(event: string, callback: EventCallback) {
+    if (this.listeners.get(callback)?.has(event)) {
+      return;
+    }
+
     const wrapper = (e: Event) => callback((e as CustomEvent).detail);
 
     // Store the wrapper so we can remove it later
