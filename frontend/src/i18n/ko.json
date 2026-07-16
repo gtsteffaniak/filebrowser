@@ -276,7 +276,16 @@
     },
     "permissionsHelp": "사용자 권한은 사용자가 수행할 수 있는 작업 유형에 대한 액세스를 제어합니다. 관리자 권한은 모든 사용자 설정은 물론 여러 시스템 설정을 업데이트하고 변경할 수 있는 모든 권한을 부여합니다.",
     "configViewer": "구성 뷰어",
-    "modifyOtherUserTitle": "사용자 수정: {username}"
+    "modifyOtherUserTitle": "사용자 수정: {username}",
+    "configViewerOpen": "구성 보기",
+    "configViewerDescription": "현재 서버 구성에 대한 읽기 전용 보기를 엽니다.",
+    "analyticsView": "분석 데이터 보기",
+    "analyticsViewDescription": "이 서버에서 수집된 배포 분석 스냅샷의 읽기 전용 보기를 엽니다.",
+    "analyticsEnabled": "배포 분석 데이터 전송",
+    "analyticsEnabledDescription": "옵트인 배포 분석 기능은 애플리케이션을 개선하는 데 도움을 주기 위해 익명화된 정보를 FileBrowser Quantum 개발자 서버로 전송합니다.",
+    "analyticsLoadFailed": "분석 설정을 불러오지 못했습니다.",
+    "analyticsUpdateFailed": "분석 설정 업데이트에 실패했습니다.",
+    "analyticsPreviewFailed": "분석 진단 정보를 불러오지 못했습니다."
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",

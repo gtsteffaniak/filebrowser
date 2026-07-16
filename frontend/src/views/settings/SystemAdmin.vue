@@ -1,81 +1,51 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("settings.systemAdmin") }}</h2>
-  </div>
   <div class="card-content">
     <div class="settings-items">
       <ToggleSwitch class="item" v-model="localuser.disableUpdateNotifications" @change="updateSettings"
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')" />
-      <!-- Config Viewer Section -->
-      <div class="config-viewer-section settings-items">
-        <h3>{{ $t('settings.configViewer') }}</h3>
-        <ToggleSwitch
-          class="item"
-          v-model="configOptions.showFull"
-          :name="$t('settings.configViewerShowFull')"
-        />
-        <ToggleSwitch
-          class="item"
-          v-model="configOptions.showComments"
-          :name="$t('settings.configViewerShowComments')"
-        />
-        <div class="config-editor-container">
-          <Editor :viewer-mode="true" :content="configContent" :editor-mode="'yaml'" :read-only="true" />
-        </div>
-      </div>
+      <ToggleSwitch class="item" v-model="analyticsEnabled" :disabled="analyticsLoading || !publishSupported"
+        @update:modelValue="updateAnalytics" :name="$t('settings.analyticsEnabled')"
+        :description="$t('settings.analyticsEnabledDescription')" />
+      <SettingsButton class="item" :name="$t('settings.analyticsView')"
+        :description="$t('settings.analyticsViewDescription')" @click="openAnalyticsPrompt" />
+      <SettingsButton class="item" :name="$t('settings.configViewerOpen')"
+        :description="$t('settings.configViewerDescription')" @click="openConfigViewerPrompt" />
     </div>
   </div>
 </template>
 
 <script>
-import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
 import * as settingsApi from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 
 export default {
   name: "systemAdmin",
   components: {
     ToggleSwitch,
-    Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
+    SettingsButton,
   },
   data() {
     return {
       localuser: { disableUpdateNotifications: false },
-      configOptions: {
-        showFull: false,
-        showComments: false,
-      },
-      configContent: '',
-      configLoading: false,
-      latestConfigRequestId: 0,
+      analyticsEnabled: false,
+      publishSupported: false,
+      analyticsLoading: false,
     };
   },
-  computed: {},
-  watch: {
-    "configOptions.showFull"() {
-      void this.fetchConfig();
-    },
-    "configOptions.showComments"() {
-      void this.fetchConfig();
-    },
-  },
-  mounted() {
-    // Initialize localuser with default values and merge with state.user
+  async mounted() {
     this.localuser = {
       disableUpdateNotifications: false,
-      ...state.user
+      ...state.user,
     };
-    void this.fetchConfig();
+    await this.loadAnalytics();
   },
   methods: {
-    /**
-     * @param {Event} event - The form event
-     */
     async updateSettings(event) {
-      if (event && typeof event.preventDefault === 'function') {
+      if (event && typeof event.preventDefault === "function") {
         event.preventDefault();
       }
       try {
@@ -85,62 +55,56 @@ export default {
         console.error(e);
       }
     },
-    async fetchConfig() {
-      const requestId = ++this.latestConfigRequestId;
-      this.configLoading = true;
+    async loadAnalytics() {
       try {
-        const response = await settingsApi.config(
-          this.configOptions.showFull,
-          this.configOptions.showComments
-        );
-        const text = await response.text();
-        if (requestId !== this.latestConfigRequestId) {
-          return;
-        }
-        this.configContent = text;
+        const status = await settingsApi.getAnalytics();
+        this.analyticsEnabled = status.enabled;
+        this.publishSupported = status.publishSupported;
       } catch (e) {
-        if (requestId !== this.latestConfigRequestId) {
-          return;
-        }
         console.error(e);
-        const errorMessage = (e && typeof e === 'object' && 'message' in e) ? String(e.message) : 'Unknown error';
-        this.configContent = `Error loading config: ${errorMessage}`;
-      } finally {
-        if (requestId === this.latestConfigRequestId) {
-          this.configLoading = false;
-        }
+        notify.showErrorToast(this.$t("settings.analyticsLoadFailed"));
       }
     },
+    async updateAnalytics() {
+      if (!this.publishSupported) {
+        this.analyticsEnabled = false;
+        return;
+      }
+      this.analyticsLoading = true;
+      try {
+        const status = await settingsApi.patchAnalytics({ enabled: this.analyticsEnabled });
+        this.analyticsEnabled = status.enabled;
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
+      } catch (e) {
+        console.error(e);
+        notify.showErrorToast(this.$t("settings.analyticsUpdateFailed"));
+        await this.loadAnalytics();
+      } finally {
+        this.analyticsLoading = false;
+      }
+    },
+    openAnalyticsPrompt() {
+      mutations.showPrompt({
+        name: "analytics-diagnostic",
+        props: {
+          title: this.$t("settings.analyticsView"),
+        },
+      });
+    },
+    openConfigViewerPrompt() {
+      mutations.showPrompt({
+        name: "config-viewer",
+        props: {
+          title: this.$t("settings.configViewer"),
+        },
+      });
+    },
   },
-  };
+};
 </script>
 
 <style scoped>
 .card-content {
   margin-top: 1em;
-}
-
-.config-viewer-section {
-  margin-top: 1em;
-}
-
-.config-editor-container {
-  /* Make the container resizable */
-  resize: vertical;
-  width: 100%;
-  overflow: hidden;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.config-editor-container :deep(.ace_editor) {
-  min-height: 20em;
-  width: 100%;
-  height: 100%;
-}
-
-/* Ensure the editor has a minimum height when empty */
-.config-editor-container :deep(#editor) {
-  min-height: 20em;
 }
 </style>

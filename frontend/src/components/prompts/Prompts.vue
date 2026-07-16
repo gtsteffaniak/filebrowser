@@ -10,6 +10,7 @@
         'prompt-behind': !isTopmost(prompt.id),
         'blocked': isBlocked(prompt),
         'prompt-open-flash': flashBorderIds[prompt.id],
+        'editor-prompt': isEditorPrompt(prompt),
       }"
       @mousedown="makeTopPrompt(prompt.id)"
       :style="{
@@ -113,6 +114,8 @@ import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
 import ActivityEventDetails from "./ActivityEventDetails.vue";
+import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
+import ConfigViewer from "./ConfigViewer.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -156,6 +159,8 @@ export default {
     OfficeDebug,
     ThreeJSControls,
     ActivityEventDetails,
+    AnalyticsDiagnostic,
+    ConfigViewer,
   },
   data() {
     return {
@@ -187,6 +192,9 @@ export default {
         for (const p of newVal) {
           if (!oldIds.has(p.id)) {
             this.triggerPromptBorderFlash(p.id);
+            if (this.isEditorPrompt(p)) {
+              this.ensureEditorPromptSize(p.id);
+            }
           }
         }
       },
@@ -264,6 +272,17 @@ export default {
       if (this.prompts.some(p => p.parentId === prompt.id)) return true;
       return false;
     },
+    isEditorPrompt(prompt) {
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer";
+    },
+    ensureEditorPromptSize(id) {
+      if (getObjectProperty(this.sizes, id)) {
+        return;
+      }
+      const width = Math.min(720, Math.round(window.innerWidth * 0.9));
+      const height = Math.min(Math.round(window.innerHeight * 0.65), Math.round(window.innerHeight * 0.8));
+      this.sizes = setObjectProperty(this.sizes, id, { width, height });
+    },
     getPromptProps(prompt) {
       const baseProps = {
         ...prompt.props,
@@ -319,6 +338,10 @@ export default {
           return this.$t("prompts.fileInfo");
         case "help":
           return this.$t("general.help");
+        case "analytics-diagnostic":
+          return this.$t("settings.analyticsView");
+        case "config-viewer":
+          return this.$t("settings.configViewer");
         case "upload":
           return this.$t("general.upload");
         case "createapi":
@@ -777,6 +800,17 @@ export default {
 /* No buttons variant - removes bottom padding */
 .floating-window > :deep(.card-content.no-buttons) {
   padding-bottom: 0.5em;
+}
+
+.floating-window > :deep(.card-content.prompt-panel) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.floating-window.editor-prompt:not([style*="height"]) {
+  height: min(65vh, 80vh);
+  min-height: 320px;
 }
 
 .floating-window > :deep(.card-actions) {

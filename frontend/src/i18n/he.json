@@ -276,7 +276,16 @@
     },
     "permissionsHelp": "הרשאות המשתמש שולטות בגישה לסוגי הפעולות שהמשתמש יכול לבצע. גישה לניהול מעניקה שליטה מלאה לעדכון ולשינוי הגדרות המשתמש, כמו גם הגדרות רבות של המערכת.",
     "configViewer": "מציג תצורה",
-    "modifyOtherUserTitle": "שינוי פרטי משתמש: {username}"
+    "modifyOtherUserTitle": "שינוי פרטי משתמש: {username}",
+    "configViewerOpen": "הצג את התצורה",
+    "configViewerDescription": "פתח תצוגה לקריאה בלבד של תצורת השרת הנוכחית.",
+    "analyticsView": "הצג נתונים אנליטיים",
+    "analyticsViewDescription": "פתח תצוגה לקריאה בלבד של תמונת המצב של ניתוח הפריסה שנאספה מהשרת הזה.",
+    "analyticsEnabled": "שלח נתוני ניתוח פריסה",
+    "analyticsEnabledDescription": "ניתוח נתוני הפריסה (בהסכמה) ישלח מידע אנונימי לשרתי המפתחים של FileBrowser Quantum, במטרה לסייע בשיפור היישום.",
+    "analyticsLoadFailed": "לא הצליחו לטעון את הגדרות הניתוח",
+    "analyticsUpdateFailed": "לא הצליח לעדכן את הגדרות הניתוח",
+    "analyticsPreviewFailed": "לא הצליח לטעון את מידע האבחון של Analytics"
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",

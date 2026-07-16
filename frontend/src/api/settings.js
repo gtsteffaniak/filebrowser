@@ -37,3 +37,18 @@ export async function sources() {
     throw err
   }
 }
+
+export function getAnalytics() {
+  return fetchJSON(getApiPath("settings/analytics"));
+}
+
+export async function patchAnalytics({ enabled }) {
+  return fetchJSON(getApiPath("settings/analytics"), {
+    method: "PATCH",
+    body: JSON.stringify({ enabled }),
+  });
+}
+
+export function getAnalyticsPreview() {
+  return fetchJSON(getApiPath("settings/analytics/preview"));
+}

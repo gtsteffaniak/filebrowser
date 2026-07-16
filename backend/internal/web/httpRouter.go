@@ -105,6 +105,9 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// ========================================
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 	api.HandleFunc("GET /settings/config", withAdmin(settingsConfigHandler))
+	api.HandleFunc("GET /settings/analytics", withAdmin(settingsAnalyticsGetHandler))
+	api.HandleFunc("PATCH /settings/analytics", withAdmin(settingsAnalyticsPatchHandler))
+	api.HandleFunc("GET /settings/analytics/preview", withAdmin(settingsAnalyticsPreviewHandler))
 	api.HandleFunc("GET /settings/sources", withUser(getSourceInfoHandler))
 
 	// ========================================

@@ -150,6 +150,10 @@ func initialize(dbPath string) (bool, error) {
 
 	logger.Debugf("State management system initialized successfully")
 
+	if err := InitAnalyticsSettings(); err != nil {
+		return existingDb, fmt.Errorf("failed to initialize analytics settings: %w", err)
+	}
+
 	InitActivityRecorder(settings.Config.Server.DatabaseV2)
 
 	return existingDb, nil

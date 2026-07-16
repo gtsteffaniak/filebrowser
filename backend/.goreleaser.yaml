@@ -9,6 +9,7 @@ builds:
       - CGO_ENABLED=1
       - CC=zig cc -target x86_64-linux-musl
     tags:
+      - analytics
       - mupdf
       - musl
     ldflags: &ldflags
@@ -32,6 +33,7 @@ builds:
       - CGO_ENABLED=1
       - CC=zig cc -target aarch64-linux-musl
     tags:
+      - analytics
       - mupdf
       - musl
     goos:
@@ -47,6 +49,8 @@ builds:
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    tags:
+      - analytics
     goos:
       - linux
     goarch:
@@ -64,6 +68,7 @@ builds:
       - CGO_ENABLED=1
       - CC=zig cc -target x86_64-windows
     tags:
+      - analytics
       - mupdf
     ldflags: *ldflags
     main: main.go
@@ -81,6 +86,8 @@ builds:
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    tags:
+      - analytics
     goos:
       - freebsd
     goarch:
@@ -91,6 +98,8 @@ builds:
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    tags:
+      - analytics
     goos:
       - darwin
     goarch:

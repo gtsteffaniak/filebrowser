@@ -582,7 +582,16 @@
     "shareDeleted": "Gedeelde map verwijderd!",
     "userDeleted": "Gebruiker verwijderd!",
     "userUpdated": "Gebruiker bijgewerkt!",
-    "modifyOtherUserTitle": "Gebruiker aanpassen: {username}"
+    "modifyOtherUserTitle": "Gebruiker aanpassen: {username}",
+    "configViewerOpen": "Configuratie bekijken",
+    "configViewerDescription": "Open een alleen-lezen weergave van de huidige serverconfiguratie.",
+    "analyticsView": "Analyses bekijken",
+    "analyticsViewDescription": "Open een alleen-lezen weergave van de momentopname van de implementatieanalyses die vanaf deze server is verzameld.",
+    "analyticsEnabled": "Analyses van de implementatie verzenden",
+    "analyticsEnabledDescription": "Bij opt-in-implementatieanalyses wordt anonieme informatie naar de FileBrowser Quantum-ontwikkelaarsservers verzonden om de applicatie te verbeteren.",
+    "analyticsLoadFailed": "Het laden van de analyse-instellingen is mislukt",
+    "analyticsUpdateFailed": "Het bijwerken van de analyse-instellingen is mislukt",
+    "analyticsPreviewFailed": "Het laden van diagnostische gegevens voor Analytics is mislukt"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",

@@ -276,7 +276,16 @@
     },
     "permissionsHelp": "As permissões de utilizador controlam o acesso ao tipo de acções que o utilizador pode executar. O acesso de administrador dá controlo total para atualizar e alterar as definições de qualquer utilizador, bem como muitas definições do sistema.",
     "configViewer": "Visualizador de configuração",
-    "modifyOtherUserTitle": "Modificar utilizador: {username}"
+    "modifyOtherUserTitle": "Modificar utilizador: {username}",
+    "configViewerOpen": "Ver configuração",
+    "configViewerDescription": "Abrir uma visualização apenas para leitura da configuração atual do servidor.",
+    "analyticsView": "Ver análises",
+    "analyticsViewDescription": "Abra uma visualização apenas para leitura do instantâneo de análise de implementação recolhido deste servidor.",
+    "analyticsEnabled": "Enviar análises de implementação",
+    "analyticsEnabledDescription": "A análise de implementação com consentimento prévio enviará informações anónimas para os servidores de desenvolvimento do FileBrowser Quantum, com o objetivo de ajudar a melhorar a aplicação.",
+    "analyticsLoadFailed": "Não foi possível carregar as definições de análise",
+    "analyticsUpdateFailed": "Não foi possível atualizar as definições de análise",
+    "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise"
   },
   "sidebar": {
     "updateIsAvailable": "Está disponível uma atualização!",

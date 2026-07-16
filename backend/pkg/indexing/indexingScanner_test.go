@@ -86,3 +86,69 @@ func TestCheckFolderModtime_unchangedPreservesHasPreviewAndHidden(t *testing.T) 
 		t.Error("Hidden should be preserved on unchanged modtime touch update")
 	}
 }
+
+func newRootScannerForHookTest(t *testing.T) (*Scanner, string) {
+	t.Helper()
+
+	if indexDB == nil {
+		var err error
+		indexDB, _, err = dbsql.NewIndexDB("test_scanner_hook", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
+	root := t.TempDir()
+	sourceName := "test-hook-source"
+	idx := &Index{
+		ReducedIndex: ReducedIndex{},
+		Source: settings.Source{
+			Name: sourceName,
+			Path: root,
+		},
+		db:                  indexDB,
+		scanUpdatedPaths:    make(map[string]bool),
+		folderSizes:         make(map[string]uint64),
+		folderSizesUnsynced: make(map[string]struct{}),
+	}
+
+	return &Scanner{
+		scanPath: "/",
+		idx:      idx,
+	}, sourceName
+}
+
+func TestOnSourceRootFullScanComplete(t *testing.T) {
+	tests := []struct {
+		name       string
+		quick      bool
+		wantCalled bool
+	}{
+		{"rootFullScan", false, true},
+		{"quickScanSkipsHook", true, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner, sourceName := newRootScannerForHookTest(t)
+
+			var calledWith string
+			prev := OnSourceRootFullScanComplete
+			OnSourceRootFullScanComplete = func(name string) {
+				calledWith = name
+			}
+			t.Cleanup(func() {
+				OnSourceRootFullScanComplete = prev
+			})
+
+			scanner.runRootScan(tt.quick)
+
+			if tt.wantCalled && calledWith != sourceName {
+				t.Fatalf("OnSourceRootFullScanComplete = %q, want %q", calledWith, sourceName)
+			}
+			if !tt.wantCalled && calledWith != "" {
+				t.Fatalf("OnSourceRootFullScanComplete should not run for quick scans, got %q for source %q", calledWith, sourceName)
+			}
+		})
+	}
+}

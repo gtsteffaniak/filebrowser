@@ -1,5 +1,5 @@
 <template>
-  <div id="editor-container">
+  <div id="editor-container" :class="{ 'viewer-mode': viewerMode }">
     <div id="editor"></div>
   </div>
 </template>
@@ -46,6 +46,7 @@ export default {
     navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
     isPromptOpen: false, // Track if prompt is currently open for avoid navigation
     pendingNavigation: null, // Store pending navigation while prompt is open
+    viewerResizeObserver: null,
   }),
   computed: {
     permissions() {
@@ -155,6 +156,13 @@ export default {
           this.isDirty = false;
           mutations.setEditorDirty(false);
         }
+        if (this.viewerMode) {
+          this.$nextTick(() => {
+            if (this.editor) {
+              this.editor.resize();
+            }
+          });
+        }
       }
     },
     // Update editor language mode
@@ -196,6 +204,11 @@ export default {
     this.setupNavigationGuard();
   },
   beforeUnmount() {
+    if (this.viewerResizeObserver) {
+      this.viewerResizeObserver.disconnect();
+      this.viewerResizeObserver = null;
+    }
+
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
 
@@ -218,6 +231,20 @@ export default {
     }
   },
   mounted: function () {
+    if (this.viewerMode) {
+      this.$nextTick(() => {
+        this.$nextTick(() => {
+          this.initializeEditor();
+          this.applyFontSize();
+          this.setupViewerResizeObserver();
+        });
+      });
+      this.$watch(() => state.editorFontSize, () => {
+        this.applyFontSize();
+      });
+      return;
+    }
+
     this.initializeEditor();
     this.originalReq = this.req;
 
@@ -230,6 +257,22 @@ export default {
     });
   },
   methods: {
+    setupViewerResizeObserver() {
+      if (!this.viewerMode || typeof ResizeObserver === "undefined") {
+        return;
+      }
+      this.viewerResizeObserver = new ResizeObserver(() => {
+        if (this.editor) {
+          this.editor.resize();
+        }
+      });
+      this.viewerResizeObserver.observe(this.$el);
+      this.$nextTick(() => {
+        if (this.editor) {
+          this.editor.resize();
+        }
+      });
+    },
     initializeNavigation() {
       if (!this.req || this.req.type === 'directory') {
         return;
@@ -533,6 +576,18 @@ export default {
 };
 
 </script>
+
+<style scoped>
+#editor-container.viewer-mode {
+  position: absolute;
+  inset: 0;
+}
+
+#editor-container.viewer-mode #editor {
+  position: absolute;
+  inset: 0;
+}
+</style>
 
 <style>
 .ace_editor {

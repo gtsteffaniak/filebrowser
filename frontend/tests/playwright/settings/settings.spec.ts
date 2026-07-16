@@ -1,4 +1,15 @@
 import { checkForNotification, expect, selectExpandDropdownOption, test } from '../test-setup'
+import type { Page } from '@playwright/test';
+
+async function openSystemAdminSettings(page: Page) {
+  await page.locator('i[aria-label="settings"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
+  const analyticsResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/settings/analytics") && response.ok(),
+  );
+  await page.locator('#systemAdmin-sidebar').click();
+  await analyticsResponse;
+}
 
 test("adjusting theme colors", async({ page, checkForErrors }) => {
   await page.goto("/files/");
@@ -38,14 +49,37 @@ test("choose custom theme", async({ page, checkForErrors }) => {
 test("view config", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('i[aria-label="settings"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
+  await openSystemAdminSettings(page);
+
   const configResponse = page.waitForResponse(
     (response) => response.url().includes("/api/settings/config") && response.ok(),
   );
-  await page.locator('#systemAdmin-sidebar').click();
+  await page.getByRole("button", { name: "View configuration" }).click();
   await configResponse;
-  await expect(page.locator('.ace_text-layer .ace_line').first()).toContainText('server:');
-  // Check for console errors
+  await expect(page.locator(".ace_text-layer .ace_line").first()).toContainText("server:");
+  checkForErrors();
+});
+
+test("view analytics diagnostic", async({ page, checkForErrors }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await openSystemAdminSettings(page);
+
+  await expect(page.getByText("Send deployment analytics")).toBeVisible();
+  await expect(page.getByRole("button", { name: "View analytics" })).toBeVisible();
+
+  const previewResponsePromise = page.waitForResponse(
+    (response) => response.url().includes("/api/settings/analytics/preview") && response.ok(),
+  );
+  await page.getByRole("button", { name: "View analytics" }).click();
+  const previewResponse = await previewResponsePromise;
+  const preview = await previewResponse.json();
+
+  expect(preview.schema_version).toBe("1");
+  expect(preview.event_type).toBe("deployment_snapshot");
+  expect(typeof preview.installation_id).toBe("string");
+  expect(preview.installation_id.length).toBeGreaterThan(0);
+
+  await expect(page.locator(".ace_text-layer")).toContainText("deployment_snapshot");
   checkForErrors();
 });
