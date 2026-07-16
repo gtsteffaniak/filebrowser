@@ -20,7 +20,6 @@ const masterLocaleFile = path.join(localesDir, 'en.json');
 const masterLanguageCode = 'en';
 const targetLocaleFiles = glob.sync(path.join(localesDir, '*.json'))
   .filter(file => path.basename(file) !== `${masterLanguageCode}.json`)
-  .filter(file => path.basename(file) !== 'is.json'); // Exclude Icelandic - DeepL doesn't support it
 
 const requireApiKey = !checkOnly && !enforceOrder && !cleanupOnly;
 const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
@@ -42,8 +41,8 @@ const deeplLangMap = {
   'sv-se': 'SV',
   'ua': 'UK',
   'nl-be': 'NL',
-  'is': 'IS',
   'cz': 'CS',
+  'bg': 'BG',
   // Add more as needed
 };
 
