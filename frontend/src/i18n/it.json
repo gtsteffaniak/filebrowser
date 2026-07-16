@@ -585,7 +585,6 @@
     "modifyOtherUserTitle": "Modifica utente: {username}",
     "configViewerOpen": "Visualizza configurazione",
     "configViewerDescription": "Apri una vista in sola lettura della configurazione corrente del server.",
-    "analyticsTitle": "Analisi dell'implementazione",
     "analyticsView": "Visualizza le statistiche",
     "analyticsViewDescription": "Apri una vista in sola lettura dello snapshot delle analisi di distribuzione raccolto da questo server.",
     "analyticsEnabled": "Invia i dati analitici relativi alla distribuzione",

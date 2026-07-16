@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Felhasználó módosítása: {username}",
     "configViewerOpen": "Konfiguráció megtekintése",
     "configViewerDescription": "Nyissa meg az aktuális szerverkonfiguráció írásvédett nézetét.",
-    "analyticsTitle": "Telepítési elemzés",
     "analyticsView": "Elemzések megtekintése",
     "analyticsViewDescription": "Nyissa meg a szerverről gyűjtött telepítési elemzési pillanatkép olvasási joggal rendelkező nézetét.",
     "analyticsEnabled": "Telepítési elemzések elküldése",

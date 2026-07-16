@@ -423,7 +423,6 @@
     "modifyOtherUserTitle": "Upravit uživatele: {username}",
     "configViewerOpen": "Zobrazit konfiguraci",
     "configViewerDescription": "Otevřete zobrazení aktuální konfigurace serveru pouze pro čtení.",
-    "analyticsTitle": "Analýza nasazení",
     "analyticsView": "Zobrazit analytické údaje",
     "analyticsViewDescription": "Otevřete zobrazení snímku analytických údajů o nasazení, který byl shromážděn z tohoto serveru, pouze pro čtení.",
     "analyticsEnabled": "Odeslat analytické údaje o nasazení",

@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Ändra användare: {username}",
     "configViewerOpen": "Visa konfigurationen",
     "configViewerDescription": "Öppna en skrivskyddad vy av den aktuella serverkonfigurationen.",
-    "analyticsTitle": "Analys av driftsättning",
     "analyticsView": "Visa analysdata",
     "analyticsViewDescription": "Öppna en skrivskyddad vy av den översikt över driftsanalys som har samlats in från den här servern.",
     "analyticsEnabled": "Skicka driftsanalyser",

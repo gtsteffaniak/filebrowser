@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Benutzer bearbeiten: {username}",
     "configViewerOpen": "Konfiguration anzeigen",
     "configViewerDescription": "Öffnen Sie eine schreibgeschützte Ansicht der aktuellen Serverkonfiguration.",
-    "analyticsTitle": "Bereitstellungsanalyse",
     "analyticsView": "Analysen anzeigen",
     "analyticsViewDescription": "Öffnen Sie eine schreibgeschützte Ansicht des Snapshots der Bereitstellungsanalyse, der von diesem Server erfasst wurde.",
     "analyticsEnabled": "Bereitstellungsanalysen senden",

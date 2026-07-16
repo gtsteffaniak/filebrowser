@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Kullanıcıyı düzenle: {username}",
     "configViewerOpen": "Yapılandırmayı görüntüle",
     "configViewerDescription": "Mevcut sunucu yapılandırmasının salt okunur bir görünümünü açın.",
-    "analyticsTitle": "Dağıtım Analitiği",
     "analyticsView": "Analizleri görüntüle",
     "analyticsViewDescription": "Bu sunucudan toplanan dağıtım analitiği anlık görüntüsünün salt okunur bir görünümünü açın.",
     "analyticsEnabled": "Dağıtım analizlerini gönder",

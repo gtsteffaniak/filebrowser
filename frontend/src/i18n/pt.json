@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Modificar utilizador: {username}",
     "configViewerOpen": "Ver configuração",
     "configViewerDescription": "Abrir uma visualização apenas para leitura da configuração atual do servidor.",
-    "analyticsTitle": "Análise de Implementação",
     "analyticsView": "Ver análises",
     "analyticsViewDescription": "Abra uma visualização apenas para leitura do instantâneo de análise de implementação recolhido deste servidor.",
     "analyticsEnabled": "Enviar análises de implementação",

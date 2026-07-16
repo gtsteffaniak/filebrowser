@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Modificarea utilizatorului: {username}",
     "configViewerOpen": "Vizualizare configurație",
     "configViewerDescription": "Deschideți o vizualizare numai pentru citire a configurației curente a serverului.",
-    "analyticsTitle": "Analiza implementării",
     "analyticsView": "Vizualizează statisticile",
     "analyticsViewDescription": "Deschideți o vizualizare numai pentru citire a instantaneului de analiză a implementării colectat de pe acest server.",
     "analyticsEnabled": "Trimiteți analizele privind implementarea",

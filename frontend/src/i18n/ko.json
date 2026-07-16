@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "사용자 수정: {username}",
     "configViewerOpen": "구성 보기",
     "configViewerDescription": "현재 서버 구성에 대한 읽기 전용 보기를 엽니다.",
-    "analyticsTitle": "배포 분석",
     "analyticsView": "분석 데이터 보기",
     "analyticsViewDescription": "이 서버에서 수집된 배포 분석 스냅샷의 읽기 전용 보기를 엽니다.",
     "analyticsEnabled": "배포 분석 데이터 전송",

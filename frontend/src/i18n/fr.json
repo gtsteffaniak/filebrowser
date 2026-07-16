@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Modifier un utilisateur : {username}",
     "configViewerOpen": "Afficher la configuration",
     "configViewerDescription": "Ouvrir une vue en lecture seule de la configuration actuelle du serveur.",
-    "analyticsTitle": "Analyse des déploiements",
     "analyticsView": "Consulter les statistiques",
     "analyticsViewDescription": "Ouvrez une vue en lecture seule de l'instantané d'analyse du déploiement collecté à partir de ce serveur.",
     "analyticsEnabled": "Envoyer les analyses de déploiement",

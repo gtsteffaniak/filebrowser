@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Úprava používateľa: {username}",
     "configViewerOpen": "Zobraziť konfiguráciu",
     "configViewerDescription": "Otvorte zobrazenie aktuálnej konfigurácie servera len na čítanie.",
-    "analyticsTitle": "Analýza nasadenia",
     "analyticsView": "Zobraziť štatistiky",
     "analyticsViewDescription": "Otvorte zobrazenie s právami len na čítanie pre snímku analytických údajov o nasadení, ktorá bola zozbieraná z tohto servera.",
     "analyticsEnabled": "Odoslať analytické údaje o nasadení",

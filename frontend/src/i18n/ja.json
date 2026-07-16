@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "ユーザーの編集：{username}",
     "configViewerOpen": "設定を表示",
     "configViewerDescription": "現在のサーバー構成の読み取り専用ビューを開きます。",
-    "analyticsTitle": "導入分析",
     "analyticsView": "分析データを表示",
     "analyticsViewDescription": "このサーバーから収集されたデプロイメント分析スナップショットの読み取り専用ビューを開きます。",
     "analyticsEnabled": "デプロイメント分析データを送信する",

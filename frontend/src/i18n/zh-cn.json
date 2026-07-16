@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "修改用户：{username}",
     "configViewerOpen": "查看配置",
     "configViewerDescription": "打开当前服务器配置的只读视图。",
-    "analyticsTitle": "部署分析",
     "analyticsView": "查看分析数据",
     "analyticsViewDescription": "打开从该服务器收集的部署分析快照的只读视图。",
     "analyticsEnabled": "发送部署分析数据",

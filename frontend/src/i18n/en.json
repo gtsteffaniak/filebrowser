@@ -559,7 +559,6 @@
     "configViewerShowComments": "Show comments",
     "configViewerOpen": "View configuration",
     "configViewerDescription": "Open a read-only view of the current server configuration.",
-    "analyticsTitle": "Deployment Analytics",
     "analyticsView": "View analytics",
     "analyticsViewDescription": "Open a read-only view of the deployment analytics snapshot collected from this server.",
     "analyticsEnabled": "Send deployment analytics",

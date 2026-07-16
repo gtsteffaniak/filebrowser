@@ -109,7 +109,9 @@ func TestNotifySourceFullScanCompleteRebuildsCache(t *testing.T) {
 }
 
 func TestCacheConcurrency(t *testing.T) {
-	resetCacheForTest(t)
+	setupAnalyticsTest(t)
+	setCachedEnvelopeForTest([]byte(`{"concurrent":true}`))
+
 	const workers = 32
 	var wg sync.WaitGroup
 	wg.Add(workers * 3)
@@ -126,7 +128,7 @@ func TestCacheConcurrency(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			setCachedEnvelopeForTest([]byte(`{"concurrent":true}`))
-			_, _ = PreviewSnapshot()
+			_, _ = cachedSnapshotCopy()
 		}()
 	}
 

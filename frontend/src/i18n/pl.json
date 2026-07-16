@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "Edytuj użytkownika: {username}",
     "configViewerOpen": "Wyświetl konfigurację",
     "configViewerDescription": "Otwórz widok bieżącej konfiguracji serwera w trybie tylko do odczytu.",
-    "analyticsTitle": "Analiza wdrożeń",
     "analyticsView": "Wyświetl dane analityczne",
     "analyticsViewDescription": "Otwórz widok tylko do odczytu migawki analizy wdrożenia zebranej z tego serwera.",
     "analyticsEnabled": "Wyślij dane analityczne dotyczące wdrożenia",

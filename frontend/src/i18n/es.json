@@ -279,7 +279,6 @@
     "configViewer": "Visor de configuración",
     "configViewerOpen": "Ver configuración",
     "configViewerDescription": "Abre una vista de solo lectura de la configuración actual del servidor.",
-    "analyticsTitle": "Análisis de implementaciones",
     "analyticsView": "Ver estadísticas",
     "analyticsViewDescription": "Abre una vista de solo lectura de la instantánea de análisis de implementación recopilada de este servidor.",
     "analyticsEnabled": "Enviar análisis de implementación",

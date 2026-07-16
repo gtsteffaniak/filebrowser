@@ -279,7 +279,6 @@
     "modifyOtherUserTitle": "تعديل المستخدم: {username}",
     "configViewerOpen": "عرض الإعدادات",
     "configViewerDescription": "افتح عرضًا للقراءة فقط لتكوين الخادم الحالي.",
-    "analyticsTitle": "تحليلات النشر",
     "analyticsView": "عرض الإحصائيات",
     "analyticsViewDescription": "افتح عرضًا للقراءة فقط للقطعة اللحظية لتحليلات النشر التي تم جمعها من هذا الخادم.",
     "analyticsEnabled": "إرسال تحليلات النشر",
