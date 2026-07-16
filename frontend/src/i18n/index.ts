@@ -9,6 +9,7 @@ type MessageSchema = typeof en;
 export const availableLocales: Record<string, string> = {
   // internal keys: 'display value'
   ar: 'ar',
+  bg: 'bg',
   cz: 'cz',
   de: 'de',
   el: 'el',
@@ -17,7 +18,6 @@ export const availableLocales: Record<string, string> = {
   fr: 'fr',
   he: 'he',
   hu: 'hu',
-  is: 'is',
   it: 'it',
   ja: 'ja',
   ko: 'ko',

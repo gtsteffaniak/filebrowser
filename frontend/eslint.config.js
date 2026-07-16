@@ -13,7 +13,6 @@ export default defineConfig(
       "**/dist/**",
       "**/node_modules/**",
       "**/public/**",
-      "**/*.json",
     ],
   },
 
