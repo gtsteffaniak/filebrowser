@@ -100,6 +100,7 @@ import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
+import VisualizerSettings from "./VisualizerSettings.vue";
 import SharePicker from "./SharePicker.vue";
 import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
@@ -144,6 +145,7 @@ export default {
     Access,
     Password,
     PlaybackQueue,
+    VisualizerSettings,
     PathPicker,
     SharePicker,
     SaveBeforeExit,
@@ -352,6 +354,8 @@ export default {
           return this.$t("general.password");
         case "playbackqueue":
           return this.$t("player.QueuePlayback");
+        case "visualizersettings":
+          return this.$t("player.visualizer.settings");
         case "pathpicker":
           return this.$t("prompts.selectPath");
         case "savebeforeexit":

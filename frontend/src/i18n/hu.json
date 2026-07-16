@@ -758,7 +758,29 @@
     "toggleLyrics": "Dalszöveg be/ki",
     "closePanel": "Panel bezárása",
     "openPanel": "Panel megnyitása",
-    "visualizer": "Vizualizátor"
+    "visualizer": {
+      "title": "Vizualizátor",
+      "settings": "Vizualizátor beállításai",
+      "barCount": "Oszlopok száma",
+      "fftSize": "FFT méret",
+      "minFrequency": "Minimális frekvencia",
+      "maxFrequency": "Maximális frekvencia",
+      "smoothing": "Simítás",
+      "minDecibels": "Minimális decibelek",
+      "maxDecibels": "Maximális decibelek",
+      "showPeaks": "Csúcsok mutatása",
+      "showScales": "Skálák mutatása",
+      "resetDefaults": "Alapértékek visszaállítása",
+      "barCountDescription": "Megjelenített oszlopok száma, ezek a bal és jobb csatorna között oszlanak meg, több oszlop talán jobban néz ki, de több CPU-t is használ",
+      "fftSizeDescription": "Nagyobb értékek érzékenyebbé teszik az oszlopokat, de lassabb a számítás (több CPU)",
+      "minFrequencyDescription": "Legalacsonyabb frekvencia (Hz), ami a vizualizátorban megjelenik",
+      "maxFrequencyDescription": "Legmagasabb frekvencia (Hz), ami a vizualizátorban megjelenik",
+      "smoothingDescription": "Mennyire simulnak el az oszlopok az idő múlásával. Magasabb érték simább oszlopokat eredményez, de lassabban reagálnak",
+      "minDecibelsDescription": "A leghalkabb szint (dBFS), amit az oszlop érzékel",
+      "maxDecibelsDescription": "A leghangosabb szint (dBFS), amit az oszlop érzékel",
+      "showScalesDescription": "Tengelyek és rácsvonalak megjelenítése a vizualizátoron",
+      "showPeaksDescription": "Kis fehér csúcsjelzők minden oszlop felett"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",

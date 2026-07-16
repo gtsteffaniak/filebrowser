@@ -7,7 +7,7 @@
 <script>
 import { state, getters, mutations } from "@/store";
 import { resourcesApi } from "@/api";
-import { url } from "@/utils";
+import {pathsMatch, removeLastDir } from "@/utils/url.js";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
@@ -71,8 +71,8 @@ export default {
       if (getters.isShare()) {
         const subPath = state.shareInfo?.subPath;
         if (subPath === undefined || subPath === null) return false;
-        if (!url.pathsMatch(this.req.path, subPath)) return false;
-        return url.pathsMatch(this.originalReq.path, this.req.path);
+        if (!pathsMatch(this.req.path, subPath)) return false;
+        return pathsMatch(this.originalReq.path, this.req.path);
       }
       if (!this.routeFilename) return false;
       return this.originalReq.name === this.routeFilename;
@@ -297,7 +297,7 @@ export default {
         return;
       }
 
-      let directoryPath = url.removeLastDir(this.req.path);
+      let directoryPath = removeLastDir(this.req.path);
 
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {

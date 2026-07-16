@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -336,19 +335,6 @@ func setupMedia(generate bool) {
 		Config.Integrations.Media.Convert.VideoPreview[k] = v
 	}
 
-	// Resolve exiftool path once at startup: validate user path or discover via PATH
-	if Config.Integrations.Media.ExiftoolPath != "" && !generate {
-		if err := exec.Command(Config.Integrations.Media.ExiftoolPath, "-ver").Run(); err != nil {
-			logger.Warningf("exiftool path is invalid or not executable: %q (%v); disabling exiftool", Config.Integrations.Media.ExiftoolPath, err)
-			Config.Integrations.Media.ExiftoolPath = ""
-		}
-	}
-	if Config.Integrations.Media.ExiftoolPath == "" && !generate {
-		if path, err := exec.LookPath("exiftool"); err == nil && path != "" {
-			Config.Integrations.Media.ExiftoolPath = path
-		}
-	}
-
 	if !generate && !isGoTest() {
 		setupFFmpegIntegration()
 	}
@@ -370,7 +356,6 @@ func setupFFmpegIntegration() {
 		CacheDir:             Config.Server.CacheDir,
 		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
 		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
-		ExiftoolPath:         Config.Integrations.Media.ExiftoolPath,
 	})
 	if err != nil {
 		logger.Warningf("ffmpeg unavailable: %v", err)

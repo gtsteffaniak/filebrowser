@@ -11,7 +11,7 @@ import { defineComponent } from "vue";
 import * as mammoth from "mammoth";
 import { resourcesApi } from "@/api";
 import { state, mutations, getters } from "@/store";
-import { url } from "@/utils";
+import { removeLastDir } from "@/utils/url.js";
 
 export default defineComponent({
   name: "DocxViewer",
@@ -100,7 +100,7 @@ export default defineComponent({
       }
 
       // Use same directory path calculation as Preview.vue
-      let directoryPath = url.removeLastDir(state.req.path);
+      let directoryPath = removeLastDir(state.req.path);
       
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {

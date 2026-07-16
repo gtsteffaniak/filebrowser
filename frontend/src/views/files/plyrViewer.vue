@@ -76,6 +76,7 @@
             :audio-source="audioSource"
             class="lyrics-panel"
             @seek="seekToLyric"
+            @needs-audio-graph="setupAudioVisualizer"
           />
         </Transition>
       </div>
@@ -375,7 +376,7 @@ export default {
       playbackMenuInitialized: false,
       loopMenuInitialized: false,
       lastAppliedMode: null,
-      showDesktopPanel: sessionStorage.getItem('plyrShowDesktopPanel') === '1',
+      showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
 
       // Buttons visibility
@@ -462,7 +463,7 @@ export default {
       }
     },
     showDesktopPanel(val) {
-      sessionStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
+      localStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
     },
     albumArtSize(val) {
       sessionStorage.setItem('plyrAlbumArtSize', val.toString());
@@ -786,6 +787,11 @@ export default {
     }
     document.addEventListener('keydown', this.handleKeydown);
     this.resetButtonTimer(); // Show buttons initially
+    this.pagehideHandler = (event) => {
+      if (event.persisted) return;
+      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+    };
+    window.addEventListener('pagehide', this.pagehideHandler);
   },
   beforeUnmount() {
     // Cleanup timeouts
@@ -803,6 +809,7 @@ export default {
     this.mediaElement.pause();
     this.clearMediaSession();
     document.removeEventListener('keydown', this.handleKeydown);
+    window.removeEventListener('pagehide', this.pagehideHandler);
   },
   methods: {
     resetButtonTimer() {
@@ -1272,9 +1279,6 @@ export default {
       this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
       this.setupScrubPreview();
       this.setupVideoLoadingIndicator();
-      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer) {
-        this.setupAudioVisualizer();
-      }
       if (this.previewType === 'video') {
         this.setupDeferredVideoStream();
         this.setupQueryPlaybackSeek();
@@ -1401,13 +1405,18 @@ export default {
       });
     },
     setupAudioVisualizer() {
+      // This method gets called once only when in the visualizer tab of the audio panel
       if (this.audioGraphInitialized) return;
+      if (this.previewType !== 'audio' || this.useDefaultMediaPlayer) return;
+      if (this.audioContext) {
+        this.cleanupAudioVisualizer();
+      }
       const audio = this.mediaElement;
       if (!audio) return;
       try {
         const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextCtor) return;
-        const ctx = new AudioContextCtor();
+        const ctx = new AudioContextCtor({ latencyHint: 'playback' });
         const source = ctx.createMediaElementSource(audio);
         // Connect source to destination
         source.connect(ctx.destination);

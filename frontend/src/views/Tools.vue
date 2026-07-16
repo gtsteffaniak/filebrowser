@@ -38,24 +38,19 @@
 </template>
 
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { tools } from "@/utils/constants";
-import SizeViewer from "@/views/tools/SizeViewer.vue";
-import DuplicateFinder from "@/views/tools/DuplicateFinder.vue";
-import MaterialIconPicker from "@/views/tools/MaterialIconPicker.vue";
-import FileWatcher from "@/views/tools/FileWatcher.vue";
-import AdvancedSearch from "@/views/tools/AdvancedSearch.vue";
-import ActivityViewer from "@/views/tools/ActivityViewer.vue";
 import { getters } from "@/store";
 
 export default {
   name: "Tools",
   components: {
-    SizeViewer,
-    DuplicateFinder,
-    MaterialIconPicker,
-    FileWatcher,
-    AdvancedSearch,
-    ActivityViewer,
+    SizeViewer: createAsyncComponent(() => import('@/views/tools/SizeViewer.vue')),
+    DuplicateFinder: createAsyncComponent(() => import('@/views/tools/DuplicateFinder.vue')),
+    MaterialIconPicker: createAsyncComponent(() => import('@/views/tools/MaterialIconPicker.vue')),
+    FileWatcher: createAsyncComponent(() => import('@/views/tools/FileWatcher.vue')),
+    AdvancedSearch: createAsyncComponent(() => import('@/views/tools/AdvancedSearch.vue')),
+    ActivityViewer: createAsyncComponent(() => import('@/views/tools/ActivityViewer.vue')),
   },
   computed: {
     tools() {

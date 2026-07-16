@@ -216,7 +216,6 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 	}
 	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
 	logger.Debugf("Media Enabled            : %v", settings.MediaEnabled())
-	logger.Debugf("Exiftool Enabled         : %v", settings.Config.Integrations.Media.ExiftoolPath != "")
 
 	// Generate PWA icons after preview service is initialized
 	if err := icons.GeneratePWAIcons(); err != nil {

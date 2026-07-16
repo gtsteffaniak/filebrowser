@@ -19,16 +19,17 @@ A database migration is required to go from v1.x to this version. See docs.
    - activity tool to view data
    - reports
  - Media player improvements:
-   - Refreshed playback queue UI: Now support thumbnails, is stored into session storage, and has a "clear queue" button (#2575) (#2600).
+   - Refreshed playback queue UI: Supports thumbnails, stored into session storage, and has a "clear queue" button (#2575) (#2600).
    - Loop now has 3 states (off/single/all) and neither of them will clear the existing queue (#2600).
-   - New "Audio visualizer" for audio files (only for desktop) (#2575).
-     The current tab state of the audio panel now is stored into storage.
+   - New "Audio visualizer" for audio files (desktop-only), you can configure some basic things to your taste (#2575) (#2620).
+   - The current state of the audio panel now is stored into local storage.
    - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, single tap to pause (#2575).
  - Added `F4` shortcut to refresh the current directory and metadata (#2600).
  - opt-in feature to send deployment analytrics to filebrowser quantum developer servers
    - anonymized with a viewer so users can see what info would be sent.
    - if opt-in, every month a snapshot of your deployment config would be sent to developer servers
    - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future. 
+ - WebDAV now supports set modification time via the `X-OC-Mtime` header for clients that support it (#2626).
 
  **Removed legacy (breaking)**:
  - `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
@@ -44,6 +45,7 @@ A database migration is required to go from v1.x to this version. See docs.
  - removed legacy and deprecated properties from API responses and generated config output
  - Moved stream api to `/media/stream`
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata.
+ - removed exiftool as an optional helper, always built with the supported libraries.
 
 ## v1.5.0
 

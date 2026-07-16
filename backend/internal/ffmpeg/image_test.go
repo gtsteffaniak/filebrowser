@@ -130,7 +130,6 @@ func TestGetImageOrientation(t *testing.T) {
 		nonExistentFile := filepath.Join(tempDir, "non_existent.heic")
 		orientation, err := service.GetImageOrientation(nonExistentFile)
 
-		// Should return default orientation when exiftool fails
 		if err != nil {
 			t.Errorf("Expected no error for non-existent file, got: %v", err)
 		}
@@ -142,18 +141,11 @@ func TestGetImageOrientation(t *testing.T) {
 	t.Run("Empty file path", func(t *testing.T) {
 		orientation, err := service.GetImageOrientation("")
 
-		// Should return default orientation when exiftool fails
 		if err != nil {
 			t.Errorf("Expected no error for empty file path, got: %v", err)
 		}
 		if orientation != "Horizontal (normal)" {
 			t.Errorf("Expected default orientation 'Horizontal (normal)', got: %q", orientation)
-		}
-	})
-
-	t.Run("getExiftoolTag returns empty without exiftool", func(t *testing.T) {
-		if got := service.getExiftoolTag(tempDir, "Orientation"); got != "" {
-			t.Errorf("getExiftoolTag() = %q, want empty", got)
 		}
 	})
 }

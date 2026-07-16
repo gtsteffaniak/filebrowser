@@ -16,6 +16,7 @@
 </template>
 
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
 import * as settingsApi from "@/api/settings";
@@ -27,6 +28,7 @@ export default {
   components: {
     ToggleSwitch,
     SettingsButton,
+    Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
   },
   data() {
     return {

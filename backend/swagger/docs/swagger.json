@@ -5727,10 +5727,6 @@
                     "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
                     "type": "boolean"
                 },
-                "exiftoolPath": {
-                    "description": "path to exiftool executable",
-                    "type": "string"
-                },
                 "extractEmbeddedSubtitles": {
                     "description": "extract embedded subtitles from media files",
                     "type": "boolean"
