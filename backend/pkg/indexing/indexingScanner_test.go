@@ -118,40 +118,37 @@ func newRootScannerForHookTest(t *testing.T) (*Scanner, string) {
 	}, sourceName
 }
 
-func TestOnSourceRootFullScanComplete_rootFullScan(t *testing.T) {
-	scanner, sourceName := newRootScannerForHookTest(t)
-
-	var calledWith string
-	prev := OnSourceRootFullScanComplete
-	OnSourceRootFullScanComplete = func(name string) {
-		calledWith = name
+func TestOnSourceRootFullScanComplete(t *testing.T) {
+	tests := []struct {
+		name       string
+		quick      bool
+		wantCalled bool
+	}{
+		{"rootFullScan", false, true},
+		{"quickScanSkipsHook", true, false},
 	}
-	t.Cleanup(func() {
-		OnSourceRootFullScanComplete = prev
-	})
 
-	scanner.runRootScan(false)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner, sourceName := newRootScannerForHookTest(t)
 
-	if calledWith != sourceName {
-		t.Fatalf("OnSourceRootFullScanComplete = %q, want %q", calledWith, sourceName)
-	}
-}
+			var calledWith string
+			prev := OnSourceRootFullScanComplete
+			OnSourceRootFullScanComplete = func(name string) {
+				calledWith = name
+			}
+			t.Cleanup(func() {
+				OnSourceRootFullScanComplete = prev
+			})
 
-func TestOnSourceRootFullScanComplete_quickScanSkipsHook(t *testing.T) {
-	scanner, sourceName := newRootScannerForHookTest(t)
+			scanner.runRootScan(tt.quick)
 
-	var calledWith string
-	prev := OnSourceRootFullScanComplete
-	OnSourceRootFullScanComplete = func(name string) {
-		calledWith = name
-	}
-	t.Cleanup(func() {
-		OnSourceRootFullScanComplete = prev
-	})
-
-	scanner.runRootScan(true)
-
-	if calledWith != "" {
-		t.Fatalf("OnSourceRootFullScanComplete should not run for quick scans, got %q for source %q", calledWith, sourceName)
+			if tt.wantCalled && calledWith != sourceName {
+				t.Fatalf("OnSourceRootFullScanComplete = %q, want %q", calledWith, sourceName)
+			}
+			if !tt.wantCalled && calledWith != "" {
+				t.Fatalf("OnSourceRootFullScanComplete should not run for quick scans, got %q for source %q", calledWith, sourceName)
+			}
+		})
 	}
 }
