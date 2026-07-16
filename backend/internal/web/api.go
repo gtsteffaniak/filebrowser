@@ -56,12 +56,13 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		permissions = users.Permissions{
 			Api:      strings.Contains(permissionsStr, "api") && d.User.Permissions.Api,
 			Admin:    strings.Contains(permissionsStr, "admin") && d.User.Permissions.Admin,
-			Modify:   strings.Contains(permissionsStr, "modify") && d.User.Permissions.Modify,
-			Delete:   strings.Contains(permissionsStr, "delete") && d.User.Permissions.Delete,
-			Create:   strings.Contains(permissionsStr, "create") && d.User.Permissions.Create,
+			Modify:   strings.Contains(permissionsStr, "modify") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.Modify }),
+			Delete:   strings.Contains(permissionsStr, "delete") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.Delete }),
+			Create:   strings.Contains(permissionsStr, "create") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.Create }),
 			Share:    strings.Contains(permissionsStr, "share") && d.User.Permissions.Share,
 			Realtime: strings.Contains(permissionsStr, "realtime") && d.User.Permissions.Realtime,
-			Download: strings.Contains(permissionsStr, "download") && d.User.Permissions.Download,
+			Download: strings.Contains(permissionsStr, "download") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.Download }),
+			View:     strings.Contains(permissionsStr, "view") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.View }),
 		}
 	}
 

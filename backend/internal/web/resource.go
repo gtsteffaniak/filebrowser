@@ -111,6 +111,13 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
 	getContent := r.URL.Query().Get("content") == "true"
 	getMetadata := r.URL.Query().Get("metadata") == "true"
 	skipExtendedAttrs := r.URL.Query().Get("skipExtendedAttrs") == "true"
@@ -131,7 +138,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	if err != nil {
 		return ErrToStatus(err), err
 	}
-	if !d.User.Permissions.Download && fileInfo.Content != "" {
+	if !filePerms.Download && fileInfo.Content != "" {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to get content, requires download permission")
 	}
 	if fileInfo.Type == "directory" {
@@ -166,12 +173,15 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-
-	if !d.User.Permissions.Delete {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
-	}
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if d.Share.Hash == "" && !filePerms.Delete {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
+	}
 
 	if path == "/" {
 		return http.StatusForbidden, fmt.Errorf("cannot delete your user's root directory")
@@ -262,12 +272,6 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 	filePermUser := d.User
 	if d.Share.Hash != "" {
 		filePermUser = d.ShareUser
-	}
-	// Check permissions - either user delete permission or share delete permission
-	if d.Share.Hash == "" {
-		if !d.User.Permissions.Delete {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
-		}
 	}
 
 	// Parse request body
@@ -404,6 +408,15 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				})
 				continue
 			}
+			filePerms, permErr := effectiveFilePerms(d, item.Source)
+			if permErr != nil || !filePerms.Delete {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    sanitizedPath,
+					Message: "user is not allowed to delete",
+				})
+				continue
+			}
 
 			idx := indexing.GetIndex(item.Source)
 			if idx == nil {
@@ -490,11 +503,15 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if d.Share.Hash != "" {
 		return http.StatusBadRequest, fmt.Errorf("use public pause endpoint for share uploads")
 	}
-	if !d.User.Permissions.Create {
+	source := r.URL.Query().Get("source")
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.Create {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to pause uploads")
 	}
 	path := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
 	cleanPath, err := utils.SanitizePath(path)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -568,8 +585,11 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 	path = cleanPath
 
-	if d.Share.Hash == "" && !d.User.Permissions.Create {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
+	if d.Share.Hash == "" {
+		filePerms, permErr := effectiveFilePerms(d, source)
+		if permErr != nil || !filePerms.Create {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
+		}
 	}
 
 	idx := indexing.GetIndex(source)
@@ -798,6 +818,13 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusBadRequest, err
 	}
 	path = cleanPath
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if d.Share.Hash == "" && !filePerms.Modify {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to modify files in this source")
+	}
 	// Get user scope to resolve full index path for write operation
 	userScope, err := d.User.GetScopeForSourceName(source)
 	if err != nil {
@@ -842,10 +869,6 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 // @Failure 500 {object} MoveCopyResponse "All operations failed"
 // @Router /api/resources [patch]
 func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if !d.User.Permissions.Modify && d.Share.Hash == "" {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
-	}
-
 	req, ok := d.Data.(MoveCopyRequest)
 	if req.Action == "" || !ok {
 		// Parse request body
@@ -918,6 +941,31 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				item.Message = "destination source not available"
 				response.Failed = append(response.Failed, item)
 				continue
+			}
+			fromPerms, permErr := effectiveFilePerms(d, item.FromSource)
+			if permErr != nil {
+				item.Message = "permission denied"
+				response.Failed = append(response.Failed, item)
+				continue
+			}
+			if req.Action == "copy" {
+				toPerms, toErr := effectiveFilePerms(d, item.ToSource)
+				if toErr != nil || !toPerms.Create || !fromPerms.View {
+					item.Message = "user is not allowed to copy"
+					response.Failed = append(response.Failed, item)
+					continue
+				}
+			} else if !fromPerms.Modify {
+				item.Message = "user is not allowed to modify"
+				response.Failed = append(response.Failed, item)
+				continue
+			} else if item.ToSource != item.FromSource {
+				toPerms, toErr := effectiveFilePerms(d, item.ToSource)
+				if toErr != nil || !toPerms.Modify {
+					item.Message = "user is not allowed to modify destination source"
+					response.Failed = append(response.Failed, item)
+					continue
+				}
 			}
 		}
 
@@ -1229,6 +1277,14 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/items [get]
 func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	source := r.URL.Query().Get("source")
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
 	items, err := files.GetDirItems(utils.FileOptions{
 		FollowSymlinks: true,
 		Path:           r.URL.Query().Get("path"),

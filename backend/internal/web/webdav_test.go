@@ -119,6 +119,30 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 	return source1Path, source2Path
 }
 
+func webDAVPermsForPaths(download, modify, create, delete bool, paths ...string) map[string]users.SourceFilePermissions {
+	m := make(map[string]users.SourceFilePermissions, len(paths))
+	perms := users.SourceFilePermissions{
+		View:     true,
+		Download: download,
+		Modify:   modify,
+		Create:   create,
+		Delete:   delete,
+	}
+	for _, path := range paths {
+		m[path] = perms
+	}
+	return m
+}
+
+func applyBackendSourcePerms(user *users.User, perms map[string]users.SourceFilePermissions) {
+	user.BackendSourcePermissions = perms
+	for i, scope := range user.BackendScopes {
+		if p, ok := perms[scope.Path]; ok {
+			user.BackendScopes[i].Permissions = p
+		}
+	}
+}
+
 // mockCheckPermissions mocks the CheckPermissions function to bypass index lookups
 func mockCheckPermissions(t *testing.T, source1Path, source2Path string) {
 	t.Helper()
@@ -270,43 +294,40 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 		FrontendUser: users.FrontendUser{
 			Username: "admin",
 			Permissions: users.Permissions{
-				Admin:    true,
-				Download: true,
-				Create:   true,
-				Delete:   true,
-				Modify:   true,
+				Admin: true,
 			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/"},
 			{Path: source2Path, Scope: "/"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path, source2Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
+	applyBackendSourcePerms(adminUser, adminUser.BackendSourcePermissions)
 
 	scopedUser := &users.User{
 		ID: 2,
 		FrontendUser: users.FrontendUser{
 			Username: "scoped",
-			Permissions: users.Permissions{
-				Download: true,
-			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/_docker"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, false, false, false, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 
 	restrictedUser := &users.User{
 		ID: 3,
 		FrontendUser: users.FrontendUser{
 			Username: "restricted",
-			Permissions: users.Permissions{
-				Download: true,
-			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/public"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, false, false, false, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 
 	// Users are passed in requestContext only; do not call state.CreateUser here.
@@ -409,45 +430,36 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 		ID: 1,
 		FrontendUser: users.FrontendUser{
 			Username: "fullaccess",
-			Permissions: users.Permissions{
-				Download: true,
-				Create:   true,
-				Delete:   true,
-				Modify:   true,
-			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 
 	readOnlyUser := &users.User{
 		ID: 2,
 		FrontendUser: users.FrontendUser{
 			Username: "readonly",
-			Permissions: users.Permissions{
-				Download: true,
-			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, false, false, false, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 
 	scopedUser := &users.User{
 		ID: 3,
 		FrontendUser: users.FrontendUser{
 			Username: "scoped",
-			Permissions: users.Permissions{
-				Download: true,
-				Create:   true,
-				Modify:   true,
-				Delete:   true,
-			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/public"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 
 	initTestIndex(t, "source1", source1Path)
@@ -558,27 +570,24 @@ func TestWebDAV_AccessControl(t *testing.T) {
 		ID: 1,
 		FrontendUser: users.FrontendUser{
 			Username: "user1",
-			Permissions: users.Permissions{
-				Download: true,
-				Create:   true,
-			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, false, false, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 
 	user2 := &users.User{
 		ID: 2,
 		FrontendUser: users.FrontendUser{
 			Username: "user2",
-			Permissions: users.Permissions{
-				Download: true,
-			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, false, false, false, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 
 	// Initialize index
@@ -656,16 +665,12 @@ func TestWebDAV_IndexingStates(t *testing.T) {
 		ID: 1,
 		FrontendUser: users.FrontendUser{
 			Username: "testuser",
-			Permissions: users.Permissions{
-				Download: true,
-				Create:   true,
-				Modify:   true,
-				Delete:   true,
-			},
 		},
 		BackendScopes: []users.BackendScope{
 			{Path: source1Path, Scope: "/"},
 		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 
 	initTestIndex(t, "source1", source1Path)
@@ -759,10 +764,11 @@ func TestWebDAV_PutSetsMtimeFromOCHeader(t *testing.T) {
 	user := &users.User{
 		ID: 1,
 		FrontendUser: users.FrontendUser{
-			Username:    "mtimeuser",
-			Permissions: users.Permissions{Download: true, Create: true, Modify: true, Delete: true},
+			Username: "mtimeuser",
 		},
-		BackendScopes: []users.BackendScope{{Path: source1Path, Scope: "/"}},
+		BackendScopes:            []users.BackendScope{{Path: source1Path, Scope: "/"}},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 	filePath := filepath.Join(source1Path, "public", "file.txt")
 
@@ -798,10 +804,11 @@ func TestWebDAV_PutIgnoresInvalidOCMtimeHeader(t *testing.T) {
 	user := &users.User{
 		ID: 1,
 		FrontendUser: users.FrontendUser{
-			Username:    "mtimeuser2",
-			Permissions: users.Permissions{Download: true, Create: true, Modify: true, Delete: true},
+			Username: "mtimeuser2",
 		},
-		BackendScopes: []users.BackendScope{{Path: source1Path, Scope: "/"}},
+		BackendScopes:            []users.BackendScope{{Path: source1Path, Scope: "/"}},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
 	}
 	filePath := filepath.Join(source1Path, "public", "file2.txt")
 

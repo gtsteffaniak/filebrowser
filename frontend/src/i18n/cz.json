@@ -418,7 +418,6 @@
     "loginMethods": {
       "password": "Heslo"
     },
-    "permissionsHelp": "Oprávnění uživatele řídí přístup k typům akcí, které může uživatel provádět. Přístup administrátora poskytuje plnou kontrolu nad aktualizací a změnou nastavení libovolného uživatele i nad mnoha nastaveními systému.",
     "configViewer": "Prohlížeč konfigurace",
     "modifyOtherUserTitle": "Upravit uživatele: {username}",
     "configViewerOpen": "Zobrazit konfiguraci",
@@ -429,7 +428,10 @@
     "analyticsEnabledDescription": "Analýza nasazení na základě souhlasu bude odesílat anonymní informace na vývojářské servery FileBrowser Quantum, což pomůže vylepšit aplikaci.",
     "analyticsLoadFailed": "Načtení nastavení analytiky se nezdařilo",
     "analyticsUpdateFailed": "Aktualizaci nastavení analytiky se nepodařilo provést",
-    "analyticsPreviewFailed": "Nepodařilo se načíst diagnostické údaje o analytice"
+    "analyticsPreviewFailed": "Nepodařilo se načíst diagnostické údaje o analytice",
+    "scopePath": "Trasa dalekohledu",
+    "sourcePermissionsHelp": "Rozbalte řádek zdroje, abyste mohli nastavit oprávnění k prohlížení, stahování, úpravám, vytváření a mazání pro daný zdroj.",
+    "permissionsHelp": "Globální oprávnění pro daného uživatele platí všude, včetně všech zdrojů a sdílených složek."
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",
@@ -556,7 +558,6 @@
     "permanent": "Permanentní",
     "hash": "Hash",
     "of": "z",
-    "source": "Zdroj:{suffix}",
     "percentage": "{percentage}%",
     "type": "Typ{suffix}",
     "size": "Velikost{suffix}",
@@ -566,7 +567,6 @@
     "logout": "Odhlášení{suffix}",
     "preview": "Náhled{suffix}",
     "settings": "Nastavení{suffix}",
-    "sources": "Zdroje{suffix}",
     "links": "Odkazy{suffix}",
     "tool": "Nástroj{suffix}",
     "status": "Stav{suffix}",
@@ -693,7 +693,10 @@
     "playPause": "Přehrát/Pozastavit",
     "clearSelection": "Vymazat výběr",
     "interval": "Interval{suffix}",
-    "none": "Žádné"
+    "none": "Žádné",
+    "viewFiles": "Zobrazení a seznam souborů",
+    "source": "{prefix}Zdroj{suffix}",
+    "sources": "{prefix}Zdroje{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

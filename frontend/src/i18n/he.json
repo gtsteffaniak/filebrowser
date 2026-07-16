@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "סיסמה"
     },
-    "permissionsHelp": "הרשאות המשתמש שולטות בגישה לסוגי הפעולות שהמשתמש יכול לבצע. גישה לניהול מעניקה שליטה מלאה לעדכון ולשינוי הגדרות המשתמש, כמו גם הגדרות רבות של המערכת.",
     "configViewer": "מציג תצורה",
     "modifyOtherUserTitle": "שינוי פרטי משתמש: {username}",
     "configViewerOpen": "הצג את התצורה",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "ניתוח נתוני הפריסה (בהסכמה) ישלח מידע אנונימי לשרתי המפתחים של FileBrowser Quantum, במטרה לסייע בשיפור היישום.",
     "analyticsLoadFailed": "לא הצליחו לטעון את הגדרות הניתוח",
     "analyticsUpdateFailed": "לא הצליח לעדכן את הגדרות הניתוח",
-    "analyticsPreviewFailed": "לא הצליח לטעון את מידע האבחון של Analytics"
+    "analyticsPreviewFailed": "לא הצליח לטעון את מידע האבחון של Analytics",
+    "scopePath": "נתיב ההיקף",
+    "sourcePermissionsHelp": "הרחב שורת מקור כדי להגדיר הרשאות לצפייה, הורדה, עריכה, יצירה ומחיקה עבור אותו מקור.",
+    "permissionsHelp": "ההרשאות הגלובליות של המשתמש חלות בכל מקום, כולל כל המקורות והמשאבים המשותפים."
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",
@@ -462,7 +464,6 @@
     "permanent": "קבוע",
     "hash": "חשיש",
     "of": "של",
-    "source": "מקור{suffix}",
     "percentage": "{percentage}%",
     "type": "סוג{suffix}",
     "size": "גודל{suffix}",
@@ -472,7 +473,6 @@
     "logout": "התנתק{suffix}",
     "preview": "תצוגה מקדימה{suffix}",
     "settings": "הגדרות{suffix}",
-    "sources": "מקורות{suffix}",
     "links": "קישורים{suffix}",
     "tool": "כלי{suffix}",
     "status": "סטטוס{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "הפעל/השהה",
     "clearSelection": "נקה את הבחירה",
     "interval": "אינטרוול{suffix}",
-    "none": "ללא"
+    "none": "ללא",
+    "viewFiles": "הצגת קבצים ורשימת קבצים",
+    "source": "{prefix}מקור{suffix}",
+    "sources": "{prefix}מקורות{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

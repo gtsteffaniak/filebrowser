@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // User SQL operations
@@ -24,20 +23,16 @@ type UserData struct {
 	OtpEnabled       bool                       `json:"otpEnabled"`
 	Version          int                        `json:"version"`
 	ShowFirstLogin   bool                       `json:"showFirstLogin"`
-	PinnedItems      users.PinnedItems          `json:"pinnedItems,omitempty"`
-	NonAdminEditable users.NonAdminEditable     `json:"settings"`
-	FilePermissions  *users.Permissions         `json:"filePermissions,omitempty"`
+	PinnedItems              users.PinnedItems                      `json:"pinnedItems,omitempty"`
+	NonAdminEditable         users.NonAdminEditable                 `json:"settings"`
+	BackendSourcePermissions map[string]users.SourceFilePermissions `json:"backendSourcePermissions,omitempty"`
+	Share                    bool                                   `json:"share,omitempty"`
+	// FilePermissions is read only for v3 users pending startup migration to v4.
+	FilePermissions *users.Permissions `json:"filePermissions,omitempty"`
 }
 
-func applyFilePermissionsFromJSON(user *users.User, data *UserData) {
+func applyLegacyFilePermissionsFromJSON(user *users.User, data *UserData) {
 	if data.FilePermissions == nil {
-		logger.Debug("user load missing filePermissions in user_data",
-			"username", user.Username,
-			"userID", user.ID,
-			"permAdmin", user.Permissions.Admin,
-			"permApi", user.Permissions.Api,
-			"permRealtime", user.Permissions.Realtime,
-		)
 		return
 	}
 	fp := data.FilePermissions
@@ -46,16 +41,6 @@ func applyFilePermissionsFromJSON(user *users.User, data *UserData) {
 	user.Permissions.Delete = fp.Delete
 	user.Permissions.Create = fp.Create
 	user.Permissions.Download = fp.Download
-}
-
-func filePermissionsForJSON(user *users.User) *users.Permissions {
-	return &users.Permissions{
-		Modify:   user.Permissions.Modify,
-		Share:    user.Permissions.Share,
-		Delete:   user.Permissions.Delete,
-		Create:   user.Permissions.Create,
-		Download: user.Permissions.Download,
-	}
 }
 
 func finishUserLoad(user *users.User, userDataJSON []byte) error {
@@ -75,8 +60,34 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 	user.ShowFirstLogin = userData.ShowFirstLogin
 	user.PinnedItems = userData.PinnedItems
 	user.NonAdminEditable = userData.NonAdminEditable
-	applyFilePermissionsFromJSON(user, &userData)
+	user.BackendSourcePermissions = userData.BackendSourcePermissions
+	if userData.Share {
+		user.Permissions.Share = true
+	}
+	if user.Version < users.SourcePermissionsMigrationVersion {
+		applyLegacyFilePermissionsFromJSON(user, &userData)
+	}
+	users.MergeLegacySourcePermissionsIntoScopes(user)
+	users.SyncBackendSourcePermissionsMap(user)
 	return nil
+}
+
+func userDataForPersist(user *users.User) UserData {
+	return UserData{
+		Password:                 user.Password,
+		BackendScopes:            user.BackendScopes,
+		Tokens:                   users.TokensForPersist(user.Tokens),
+		TOTPSecret:               user.TOTPSecret,
+		TOTPNonce:                user.TOTPNonce,
+		LoginMethod:              user.LoginMethod,
+		OtpEnabled:               user.OtpEnabled,
+		Version:                  user.Version,
+		ShowFirstLogin:           user.ShowFirstLogin,
+		PinnedItems:              user.PinnedItems,
+		NonAdminEditable:         user.NonAdminEditable,
+		BackendSourcePermissions: user.BackendSourcePermissions,
+		Share:                    user.Permissions.Share,
+	}
 }
 
 func scanUint64UserID(s string, dest *uint64) error {
@@ -215,22 +226,7 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 		return fmt.Errorf("user id must be set before insert")
 	}
 
-	userData := UserData{
-		Password:         user.Password,
-		BackendScopes:    user.BackendScopes,
-		Tokens:           users.TokensForPersist(user.Tokens),
-		TOTPSecret:       user.TOTPSecret,
-		TOTPNonce:        user.TOTPNonce,
-		LoginMethod:      user.LoginMethod,
-		OtpEnabled:       user.OtpEnabled,
-		Version:          user.Version,
-		ShowFirstLogin:   user.ShowFirstLogin,
-		PinnedItems:      user.PinnedItems,
-		NonAdminEditable: user.NonAdminEditable,
-		FilePermissions:  filePermissionsForJSON(user),
-	}
-
-	userDataJSON, err := json.Marshal(userData)
+	userDataJSON, err := json.Marshal(userDataForPersist(user))
 	if err != nil {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}
@@ -261,22 +257,7 @@ func (s *SQLStore) CreateUser(user *users.User) error {
 
 // UpdateUser updates an existing user by username
 func (s *SQLStore) UpdateUser(user *users.User) error {
-	userData := UserData{
-		Password:         user.Password,
-		BackendScopes:    user.BackendScopes,
-		Tokens:           users.TokensForPersist(user.Tokens),
-		TOTPSecret:       user.TOTPSecret,
-		TOTPNonce:        user.TOTPNonce,
-		LoginMethod:      user.LoginMethod,
-		OtpEnabled:       user.OtpEnabled,
-		Version:          user.Version,
-		ShowFirstLogin:   user.ShowFirstLogin,
-		PinnedItems:      user.PinnedItems,
-		NonAdminEditable: user.NonAdminEditable,
-		FilePermissions:  filePermissionsForJSON(user),
-	}
-
-	userDataJSON, err := json.Marshal(userData)
+	userDataJSON, err := json.Marshal(userDataForPersist(user))
 	if err != nil {
 		return fmt.Errorf("failed to marshal user data: %w", err)
 	}

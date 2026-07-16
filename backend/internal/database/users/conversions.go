@@ -40,8 +40,8 @@ func (u *User) GetSourceNames() []string {
 	return sources
 }
 
-// APIScopesToBackend maps json "scopes" payloads (source display name or filesystem path + scope path)
-func APIScopesToBackend(apiScopes []FrontendScope) ([]BackendScope, error) {
+// APIScopesToBackend maps json "scopes" payloads (source display name or filesystem path + scope path + permissions)
+func APIScopesToBackend(apiScopes []FrontendScope, defaults SourceFilePermissions) ([]BackendScope, error) {
 	if len(apiScopes) == 0 {
 		return []BackendScope{}, nil
 	}
@@ -51,7 +51,6 @@ func APIScopesToBackend(apiScopes []FrontendScope) ([]BackendScope, error) {
 
 	newScopes := []BackendScope{}
 	for _, scope := range apiScopes {
-		// Check if its the name of a source and convert it to a path
 		source, ok := sourceConfig.GetSourceByName(scope.Name)
 		if !ok {
 			continue
@@ -61,14 +60,15 @@ func APIScopesToBackend(apiScopes []FrontendScope) ([]BackendScope, error) {
 		}
 		scope.Scope = normalizeScope(scope.Scope)
 		newScopes = append(newScopes, BackendScope{
-			Path:  source.Path,
-			Scope: scope.Scope,
+			Path:        source.Path,
+			Scope:       scope.Scope,
+			Permissions: frontendScopePermissions(scope, defaults),
 		})
 	}
 	return newScopes, nil
 }
 
-// GetFrontendScopes returns API-style scopes from BackendScopes only (source display names).
+// GetFrontendScopes returns API-style scopes from BackendScopes (source display names + permissions).
 func (u *User) GetFrontendScopes() []FrontendScope {
 	if sourceConfig == nil {
 		return []FrontendScope{}
@@ -80,9 +80,11 @@ func (u *User) GetFrontendScopes() []FrontendScope {
 		if !ok {
 			continue
 		}
+		perms := scope.Permissions
 		newScopes = append(newScopes, FrontendScope{
-			Name:  source.Name,
-			Scope: scope.Scope,
+			Name:        source.Name,
+			Scope:       scope.Scope,
+			Permissions: &perms,
 		})
 	}
 	return newScopes
@@ -126,4 +128,88 @@ func normalizeScope(scope string) string {
 		scope = strings.TrimSuffix(scope, "/")
 	}
 	return scope
+}
+
+// APISourcePermsToBackend maps API sourcePermissions (display name keys) to backend path keys.
+func APISourcePermsToBackend(apiPerms map[string]SourceFilePermissions) (map[string]SourceFilePermissions, error) {
+	if len(apiPerms) == 0 {
+		return map[string]SourceFilePermissions{}, nil
+	}
+	if sourceConfig == nil {
+		return nil, fmt.Errorf("source config not initialized")
+	}
+	out := make(map[string]SourceFilePermissions, len(apiPerms))
+	for key, perms := range apiPerms {
+		source, ok := ResolveSourceKey(key)
+		if !ok {
+			continue
+		}
+		out[source.Path] = perms
+	}
+	return out, nil
+}
+
+// GetFrontendSourcePermissions returns API-style sourcePermissions from BackendSourcePermissions.
+func (u *User) GetFrontendSourcePermissions() map[string]SourceFilePermissions {
+	if sourceConfig == nil || len(u.BackendSourcePermissions) == 0 {
+		return map[string]SourceFilePermissions{}
+	}
+	out := make(map[string]SourceFilePermissions, len(u.BackendSourcePermissions))
+	for path, perms := range u.BackendSourcePermissions {
+		source, ok := sourceConfig.GetSourceByPath(path)
+		if !ok {
+			continue
+		}
+		out[source.Name] = perms
+	}
+	return out
+}
+
+// FilePermsForSourcePath returns per-source file permissions for a backend source path.
+func (u *User) FilePermsForSourcePath(sourcePath string) (SourceFilePermissions, bool) {
+	for _, scope := range u.BackendScopes {
+		if scope.Path == sourcePath {
+			perms := scope.Permissions
+			if !perms.View && !perms.Download && !perms.Modify && !perms.Delete && !perms.Create {
+				if u.BackendSourcePermissions != nil {
+					if legacy, ok := u.BackendSourcePermissions[sourcePath]; ok {
+						return legacy, true
+					}
+				}
+			}
+			return perms, true
+		}
+	}
+	if u.BackendSourcePermissions != nil {
+		perms, ok := u.BackendSourcePermissions[sourcePath]
+		return perms, ok
+	}
+	return DenyAllSourceFilePermissions(), false
+}
+
+// FilePermsForSourceName resolves a source display name and returns per-source file permissions.
+func (u *User) FilePermsForSourceName(sourceName string) (SourceFilePermissions, error) {
+	if sourceNameResolver == nil {
+		return DenyAllSourceFilePermissions(), fmt.Errorf("source name resolver not initialized")
+	}
+	sourcePath, err := sourceNameResolver(sourceName)
+	if err != nil {
+		return DenyAllSourceFilePermissions(), err
+	}
+	perms, ok := u.FilePermsForSourcePath(sourcePath)
+	if !ok {
+		return DenyAllSourceFilePermissions(), nil
+	}
+	return perms, nil
+}
+
+// IntersectSourceFilePermissions returns the intersection of two SourceFilePermissions (token caps).
+func IntersectSourceFilePermissions(a, b SourceFilePermissions) SourceFilePermissions {
+	return SourceFilePermissions{
+		View:     a.View && b.View,
+		Download: a.Download && b.Download,
+		Modify:   a.Modify && b.Modify,
+		Delete:   a.Delete && b.Delete,
+		Create:   a.Create && b.Create,
+	}
 }

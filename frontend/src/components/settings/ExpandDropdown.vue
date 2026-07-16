@@ -144,6 +144,12 @@ export default {
       type: String,
       default: "",
     },
+    /** When allowMultiple: "labels" joins names; "count" uses general.source / general.sources with a numeric prefix. */
+    multiSummaryMode: {
+      type: String,
+      default: "labels",
+      validator: (value) => value === "labels" || value === "count",
+    },
     allValue: {
       type: [String, Number],
       default: undefined,
@@ -260,6 +266,12 @@ export default {
         const selected = this.normalizedModelArray;
         if (selected.length === 0) {
           return this.defaultPlaceholderIfEmpty || this.labelForValue(this.defaultValue) || "";
+        }
+        if (this.multiSummaryMode === "count") {
+          if (selected.length === 1) {
+            return this.$t("general.source", { prefix: "1 " });
+          }
+          return this.$t("general.sources", { prefix: `${selected.length} ` });
         }
         const labels = selected
           .map((key) => this.labelForKey(key))

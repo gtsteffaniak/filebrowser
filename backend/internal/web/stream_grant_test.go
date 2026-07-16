@@ -1,8 +1,10 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -12,11 +14,59 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 )
 
+var streamGrantTestSourcesOnce sync.Once
+
+func initStreamGrantTestSources(t *testing.T) {
+	t.Helper()
+	streamGrantTestSourcesOnce.Do(func() {
+		users.SetSourceNameResolver(func(name string) (string, error) {
+			switch name {
+			case "default", "Downloads", "srv":
+				return "/" + name, nil
+			default:
+				return "", fmt.Errorf("unknown source %q", name)
+			}
+		})
+		users.SetSourceConfig(&users.SourceConfigProvider{
+			GetSourceByPath: func(path string) (users.SourceInfo, bool) {
+				switch path {
+				case "/default", "/Downloads", "/srv":
+					return users.SourceInfo{Path: path, Name: path[1:]}, true
+				default:
+					return users.SourceInfo{}, false
+				}
+			},
+			GetSourceByName: func(name string) (users.SourceInfo, bool) {
+				switch name {
+				case "default", "Downloads", "srv":
+					return users.SourceInfo{Path: "/" + name, Name: name}, true
+				default:
+					return users.SourceInfo{}, false
+				}
+			},
+		})
+	})
+}
+
+func testUserWithView(id uint64, sources ...string) *users.User {
+	perms := map[string]users.SourceFilePermissions{}
+	for _, s := range sources {
+		perms["/"+s] = users.SourceFilePermissions{View: true, Download: true}
+	}
+	return &users.User{
+		ID: id,
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+		BackendSourcePermissions: perms,
+		Version:                  users.SourcePermissionsMigrationVersion,
+	}
+}
+
 func TestMintAndValidateViewGrant(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{
-		User: &users.User{ID: 42, FrontendUser: users.FrontendUser{Username: "alice"}},
-	}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(42, "default")}
 	token, err := mintViewGrant(d, "default", "/docs/track.mp3")
 	if err != nil {
 		t.Fatalf("mintViewGrant: %v", err)
@@ -31,8 +81,9 @@ func TestMintAndValidateViewGrant(t *testing.T) {
 
 func TestValidateViewGrantWrongUser(t *testing.T) {
 	t.Parallel()
-	owner := &requestContext{User: &users.User{ID: 1}}
-	other := &requestContext{User: &users.User{ID: 2}}
+	initStreamGrantTestSources(t)
+	owner := &requestContext{User: testUserWithView(1, "default")}
+	other := &requestContext{User: testUserWithView(2, "default")}
 	token, err := mintViewGrant(owner, "default", "/a.mp3")
 	if err != nil {
 		t.Fatal(err)
@@ -44,7 +95,8 @@ func TestValidateViewGrantWrongUser(t *testing.T) {
 
 func TestValidateViewGrantWrongPath(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 1}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
 	token, err := mintViewGrant(d, "default", "/a.mp3")
 	if err != nil {
 		t.Fatal(err)
@@ -56,6 +108,7 @@ func TestValidateViewGrantWrongPath(t *testing.T) {
 
 func TestValidateViewGrantExpired(t *testing.T) {
 	t.Parallel()
+	initStreamGrantTestSources(t)
 	token, err := utils.RandomHex(16)
 	if err != nil {
 		t.Fatal(err)
@@ -66,7 +119,7 @@ func TestValidateViewGrantExpired(t *testing.T) {
 		Path:      "/a.mp3",
 		ExpiresAt: time.Now().Add(-time.Minute).Unix(),
 	})
-	d := &requestContext{User: &users.User{ID: 1}}
+	d := &requestContext{User: testUserWithView(1, "default")}
 	if err := ValidateViewGrant(token, d, "default", "/a.mp3"); err == nil {
 		t.Fatal("expected expired token error")
 	}
@@ -74,8 +127,9 @@ func TestValidateViewGrantExpired(t *testing.T) {
 
 func TestValidateViewGrantShareBinding(t *testing.T) {
 	t.Parallel()
+	initStreamGrantTestSources(t)
 	d := &requestContext{
-		User:  &users.User{ID: 1},
+		User:  testUserWithView(1, "srv"),
 		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
 	}
 	token, err := mintViewGrant(d, "srv", "/file.mp3")
@@ -83,7 +137,7 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 		t.Fatal(err)
 	}
 	wrongShare := &requestContext{
-		User:  &users.User{ID: 1},
+		User:  testUserWithView(1, "srv"),
 		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "other"}},
 	}
 	if err := ValidateViewGrant(token, wrongShare, "srv", "/file.mp3"); err == nil {
@@ -93,7 +147,8 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 
 func TestAttachViewTokenForAllFileTypes(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 7}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(7, "default")}
 	audio := &iteminfo.ExtendedFileInfo{
 		FileInfo: iteminfo.FileInfo{
 			ItemInfo: iteminfo.ItemInfo{Name: "song.mp3", Type: "audio/mpeg"},
@@ -116,7 +171,8 @@ func TestAttachViewTokenForAllFileTypes(t *testing.T) {
 
 func TestAttachViewTokensForDirectory(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 7}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(7, "Downloads")}
 	file := &iteminfo.ExtendedFileInfo{
 		FileInfo: iteminfo.FileInfo{
 			ItemInfo: iteminfo.ItemInfo{Type: "directory"},
@@ -145,9 +201,33 @@ func TestAttachViewTokensForDirectory(t *testing.T) {
 	}
 }
 
+func TestAttachViewTokenDeniedWithoutViewPermission(t *testing.T) {
+	t.Parallel()
+	initStreamGrantTestSources(t)
+	d := &requestContext{
+		User: &users.User{
+			ID: 9,
+			BackendSourcePermissions: map[string]users.SourceFilePermissions{
+				"/default": {View: false, Download: true},
+			},
+			Version: users.SourcePermissionsMigrationVersion,
+		},
+	}
+	doc := &iteminfo.ExtendedFileInfo{
+		FileInfo: iteminfo.FileInfo{
+			ItemInfo: iteminfo.ItemInfo{Name: "readme.txt", Type: "text/plain"},
+		},
+	}
+	AttachViewToken(d, "default", "/readme.txt", doc)
+	if doc.ViewToken != "" {
+		t.Fatal("expected no view token without view permission")
+	}
+}
+
 func TestStreamHandlerRejectsMissingToken(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 1}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
 	req := httptest.NewRequest(http.MethodGet, "/api/media/stream?source=default&file=/a.mp3", nil)
 	status, err := streamHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
@@ -157,7 +237,8 @@ func TestStreamHandlerRejectsMissingToken(t *testing.T) {
 
 func TestStreamHandlerRejectsNonMedia(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 1}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
 	token, err := mintViewGrant(d, "default", "/doc.pdf")
 	if err != nil {
 		t.Fatal(err)
@@ -171,7 +252,8 @@ func TestStreamHandlerRejectsNonMedia(t *testing.T) {
 
 func TestViewHandlerRejectsMedia(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 1}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
 	token, err := mintViewGrant(d, "default", "/clip.mp4")
 	if err != nil {
 		t.Fatal(err)
@@ -185,7 +267,8 @@ func TestViewHandlerRejectsMedia(t *testing.T) {
 
 func TestViewHandlerRejectsMissingToken(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 1}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
 	req := httptest.NewRequest(http.MethodGet, "/api/resources/view?source=default&file=/a.txt", nil)
 	status, err := viewHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
@@ -195,7 +278,8 @@ func TestViewHandlerRejectsMissingToken(t *testing.T) {
 
 func TestStreamHandlerRejectsMultiFile(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 1}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
 	req := httptest.NewRequest(http.MethodGet, "/api/media/stream?source=default&file=/a.mp3&file=/b.mp3&viewToken=tok", nil)
 	status, err := streamHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
@@ -205,7 +289,8 @@ func TestStreamHandlerRejectsMultiFile(t *testing.T) {
 
 func TestStreamHandlerRejectsArchiveParams(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 1}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
 	req := httptest.NewRequest(http.MethodGet, "/api/media/stream?source=default&file=/a.mp3&viewToken=tok&algo=zip", nil)
 	status, err := streamHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
@@ -220,7 +305,8 @@ func TestStreamHandlerRejectsArchiveParams(t *testing.T) {
 
 func TestViewHandlerRejectsArchiveParams(t *testing.T) {
 	t.Parallel()
-	d := &requestContext{User: &users.User{ID: 1}}
+	initStreamGrantTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
 	req := httptest.NewRequest(http.MethodGet, "/api/resources/view?source=default&file=/a.txt&viewToken=tok&algo=zip", nil)
 	status, err := viewHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {

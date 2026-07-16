@@ -272,8 +272,16 @@ func (ff *filteredFile) Readdir(count int) ([]os.FileInfo, error) {
 	return entries, nil
 }
 
+func (ffs *filteredFileSystem) sourceFilePerms() users.SourceFilePermissions {
+	perms, err := ffs.user.FilePermsForSourceName(ffs.source)
+	if err != nil {
+		return users.DenyAllSourceFilePermissions()
+	}
+	return perms
+}
+
 func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.FileMode) error {
-	if !ffs.user.Permissions.Create {
+	if !ffs.sourceFilePerms().Create {
 		return fmt.Errorf("create permission required")
 	}
 
@@ -304,7 +312,7 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 
 	if isWrite {
 		// Check user permissions first
-		if !ffs.user.Permissions.Create && !ffs.user.Permissions.Modify {
+		if !ffs.sourceFilePerms().Create && !ffs.sourceFilePerms().Modify {
 			return nil, fmt.Errorf("write permission required")
 		}
 
@@ -350,7 +358,7 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 }
 
 func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string) error {
-	if !ffs.user.Permissions.Delete {
+	if !ffs.sourceFilePerms().Delete {
 		return fmt.Errorf("delete permission required")
 	}
 
@@ -376,7 +384,7 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 }
 
 func (ffs *filteredFileSystem) Rename(ctx context.Context, oldPath, newPath string) error {
-	if !ffs.user.Permissions.Modify {
+	if !ffs.sourceFilePerms().Modify {
 		return fmt.Errorf("modify permission required")
 	}
 
@@ -437,18 +445,22 @@ func (ffs *filteredFileSystem) Stat(ctx context.Context, requestPath string) (os
 
 // webDAVHandler serves WebDAV requests.
 func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if !d.User.Permissions.Download {
+	source := r.PathValue("source")
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.Download {
 		return http.StatusForbidden, fmt.Errorf("download permission required")
 	}
-	if r.Method == "DELETE" && !d.User.Permissions.Delete {
+	if r.Method == "DELETE" && !filePerms.Delete {
 		return http.StatusForbidden, fmt.Errorf("delete permission required")
 	}
 	isWrite := r.Method == http.MethodPut || r.Method == "MKCOL"
-	if isWrite && !userCanWrite(d.User.Permissions) {
+	if isWrite && !sourceFilePermsCanWrite(filePerms) {
 		return http.StatusForbidden, fmt.Errorf("user has no permission to modify")
 	}
 	requestPath := utils.AddTrailingSlashIfNotExists(r.PathValue("path"))
-	source := r.PathValue("source")
 	if !strings.HasPrefix(requestPath, "/") {
 		requestPath = "/" + requestPath
 	}
@@ -513,6 +525,6 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	return 200, nil // errors and responses (XML-formatted) are handled by webdav handler
 }
 
-func userCanWrite(permissions users.Permissions) bool {
-	return permissions.Create && permissions.Modify && permissions.Delete
+func sourceFilePermsCanWrite(perms users.SourceFilePermissions) bool {
+	return perms.Create && perms.Modify && perms.Delete
 }

@@ -280,7 +280,7 @@ export default {
       return state.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      return this.readOnly === undefined && state.user.permissions?.modify || state.shareInfo.allowCreate;
+      return this.readOnly === undefined && getters.permissions().modify || state.shareInfo.allowCreate;
     },
     canDrop() {
       if (!this.isDir) return false;

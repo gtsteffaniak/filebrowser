@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Passwort"
     },
-    "permissionsHelp": "Die Benutzerrechte steuern den Zugriff auf die Art der Aktionen, die der Benutzer durchführen kann. Der Administrator-Zugang gibt Ihnen die volle Kontrolle über die Aktualisierung und Änderung der Benutzereinstellungen sowie vieler Systemeinstellungen.",
     "configViewer": "Config Viewer",
     "modifyOtherUserTitle": "Benutzer bearbeiten: {username}",
     "configViewerOpen": "Konfiguration anzeigen",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "Im Rahmen der Opt-in-Nutzungsanalyse werden anonyme Informationen an die FileBrowser Quantum-Entwicklerserver gesendet, um die Anwendung zu verbessern.",
     "analyticsLoadFailed": "Die Analyseeinstellungen konnten nicht geladen werden",
     "analyticsUpdateFailed": "Die Aktualisierung der Analyseeinstellungen ist fehlgeschlagen",
-    "analyticsPreviewFailed": "Die Analyse-Diagnoseinformationen konnten nicht geladen werden"
+    "analyticsPreviewFailed": "Die Analyse-Diagnoseinformationen konnten nicht geladen werden",
+    "scopePath": "Gültigkeitsbereichspfad",
+    "sourcePermissionsHelp": "Erweitern Sie eine Quellzeile, um Berechtigungen zum Anzeigen, Herunterladen, Ändern, Erstellen und Löschen für diese Quelle festzulegen.",
+    "permissionsHelp": "Die globalen Berechtigungen für den Benutzer gelten überall, einschließlich aller Quellen und Freigaben."
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",
@@ -462,7 +464,6 @@
     "permanent": "Dauerhaft",
     "hash": "Hash",
     "of": "von",
-    "source": "Quelle{suffix}",
     "percentage": "{percentage}%",
     "type": "Typ{suffix}",
     "size": "Größe{suffix}",
@@ -472,7 +473,6 @@
     "logout": "Abmeldung{suffix}",
     "preview": "Vorschau{suffix}",
     "settings": "Einstellungen{suffix}",
-    "sources": "Quellen{suffix}",
     "links": "Links{suffix}",
     "tool": "Werkzeug{suffix}",
     "status": "Status{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "Wiedergabe/Pause",
     "clearSelection": "Auswahl löschen",
     "interval": "Intervall{suffix}",
-    "none": "Keine"
+    "none": "Keine",
+    "viewFiles": "Dateien anzeigen und auflisten",
+    "source": "{prefix}Quelle{suffix}",
+    "sources": "{prefix}Quellen{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

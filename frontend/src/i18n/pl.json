@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Hasło"
     },
-    "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych.",
     "configViewer": "Przeglądarka konfiguracji",
     "modifyOtherUserTitle": "Edytuj użytkownika: {username}",
     "configViewerOpen": "Wyświetl konfigurację",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "W ramach analizy wdrożeń opartej na wyrażeniu zgody anonimowe informacje będą przesyłane na serwery deweloperskie FileBrowser Quantum w celu ulepszenia aplikacji.",
     "analyticsLoadFailed": "Nie udało się załadować ustawień analityki",
     "analyticsUpdateFailed": "Nie udało się zaktualizować ustawień analityki",
-    "analyticsPreviewFailed": "Nie udało się załadować informacji diagnostycznych dotyczących analityki"
+    "analyticsPreviewFailed": "Nie udało się załadować informacji diagnostycznych dotyczących analityki",
+    "scopePath": "Ścieżka zakresu",
+    "sourcePermissionsHelp": "Rozwiń wiersz źródła, aby ustawić uprawnienia do przeglądania, pobierania, modyfikowania, tworzenia i usuwania dla tego źródła.",
+    "permissionsHelp": "Uprawnienia globalne użytkownika mają zastosowanie wszędzie, w tym do wszystkich źródeł i udziałów."
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",
@@ -462,7 +464,6 @@
     "permanent": "Na stałe",
     "hash": "Hash",
     "of": "z",
-    "source": "Źródło{suffix}",
     "percentage": "{percentage}%",
     "type": "Typ{suffix}",
     "size": "Rozmiar{suffix}",
@@ -472,7 +473,6 @@
     "logout": "Wylogowanie{suffix}",
     "preview": "Podgląd{suffix}",
     "settings": "Ustawienia{suffix}",
-    "sources": "Źródła{suffix}",
     "links": "Linki{suffix}",
     "tool": "Narzędzie{suffix}",
     "status": "Status{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "Odtwarzaj/Wstrzymaj",
     "clearSelection": "Wyczyść wybór",
     "interval": "Przedział{suffix}",
-    "none": "Brak"
+    "none": "Brak",
+    "viewFiles": "Wyświetlanie i wyświetlanie listy plików",
+    "source": "{prefix}Źródło{suffix}",
+    "sources": "{prefix}Źródła{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

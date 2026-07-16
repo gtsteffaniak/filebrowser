@@ -119,7 +119,7 @@ func normalizeUserScopesBeforeSQLite(user *users.User) error {
 	if len(user.BackendScopes) > 0 {
 		return nil
 	}
-	backendScopes, err := users.APIScopesToBackend(user.FrontendScopes)
+	backendScopes, err := users.APIScopesToBackend(user.FrontendScopes, users.SourceFilePermissions{View: true, Download: true})
 	if err != nil {
 		return fmt.Errorf("convert frontend scopes to backend: %w", err)
 	}
@@ -150,6 +150,7 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		if len(user.BackendScopes) == 0 {
 			settings.ApplyUserDefaults(user)
 		}
+		users.MigrateToSourcePermissions(user)
 		if newScopesCount > oldScopesCount {
 			promoted++
 			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",

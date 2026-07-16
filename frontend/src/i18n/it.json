@@ -32,7 +32,6 @@
     "permanent": "Permanente{suffix}",
     "hash": "Hash{suffix}",
     "of": "di{suffix}",
-    "source": "Sorgente{suffix}",
     "percentage": "{percentage}%",
     "type": "Tipo{suffix}",
     "size": "Dimensione{suffix}",
@@ -42,7 +41,6 @@
     "logout": "Esci{suffix}",
     "preview": "Anteprima{suffix}",
     "settings": "Impostazioni{suffix}",
-    "sources": "Sorgenti{suffix}",
     "links": "Link{suffix}",
     "tool": "Strumento{suffix}",
     "status": "Stato{suffix}",
@@ -159,7 +157,10 @@
     "playPause": "Riproduci/Pausa",
     "clearSelection": "Deseleziona",
     "interval": "Intervallo{suffix}",
-    "none": "Nessuno"
+    "none": "Nessuno",
+    "viewFiles": "Visualizza ed elenca i file",
+    "source": "{prefix}Fonte{suffix}",
+    "sources": "{prefix}Fonti{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -577,7 +578,6 @@
       "api": "Gestione Token API a lunga durata",
       "realtime": "Abilita connessioni in tempo reale"
     },
-    "permissionsHelp": "I permessi controllano le azioni eseguibili. L'accesso Admin dà il controllo totale sul sistema.",
     "settingsUpdated": "Impostazioni aggiornate!",
     "shareDeleted": "Condivisione eliminata!",
     "userDeleted": "Utente eliminato!",
@@ -591,7 +591,10 @@
     "analyticsEnabledDescription": "L'analisi dell'implementazione con consenso esplicito invierà informazioni anonime ai server degli sviluppatori di FileBrowser Quantum per contribuire a migliorare l'applicazione.",
     "analyticsLoadFailed": "Impossibile caricare le impostazioni di analisi",
     "analyticsUpdateFailed": "Impossibile aggiornare le impostazioni di analisi",
-    "analyticsPreviewFailed": "Impossibile caricare le informazioni diagnostiche relative all'analisi"
+    "analyticsPreviewFailed": "Impossibile caricare le informazioni diagnostiche relative all'analisi",
+    "scopePath": "Percorso di copertura",
+    "sourcePermissionsHelp": "Espandi una riga di origine per impostare le autorizzazioni di visualizzazione, download, modifica, creazione ed eliminazione per quella origine.",
+    "permissionsHelp": "Le autorizzazioni globali dell'utente si applicano ovunque, comprese tutte le fonti e le condivisioni."
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",

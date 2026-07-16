@@ -69,7 +69,6 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     const settingsToToggle = [
         "Administrator",
         "Prevent the user from changing the password",
-        "Edit files",
         "Share files",
         "Create and manage long-live API tokens",
         "Enable real-time connections and updates",
@@ -206,8 +205,40 @@ test.describe("User Settings Persistence", () => {
         await checkTogglePersistence(page, "Administrator");
     });
 
-    test('should persist "Edit files" setting', async ({ page }) => {
-        await checkTogglePersistence(page, "Edit files");
+    test('should persist per-source "Edit files" setting', async ({ page }) => {
+        const userRow = userRowInSettingsUsersTable(page, username);
+        const modal = page.locator('div[aria-label="user-edit-prompt"]');
+
+        await editUserTrigger(userRow).click();
+        await expect(modal).toBeVisible();
+
+        const expandPermsButton = modal.locator(".scope-block .settings-group-title").first();
+        await expandPermsButton.click();
+
+        const editFilesToggle = modal
+            .locator(".source-file-permissions .toggle-container", { hasText: "Edit files" })
+            .locator("label.switch");
+        const editFilesCheckbox = modal.locator(
+            '.source-file-permissions .toggle-container:has-text("Edit files") input[type="checkbox"]'
+        );
+
+        const wasChecked = await editFilesCheckbox.isChecked();
+        await editFilesToggle.click();
+        await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
+
+        await modal.locator('button[aria-label="Save"]').click();
+        await confirmActorPasswordPrompt(page);
+        await expect(modal).not.toBeVisible();
+
+        await editUserTrigger(userRow).click();
+        await expect(modal).toBeVisible();
+        await expandPermsButton.click();
+        await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
+
+        await editFilesToggle.click();
+        await modal.locator('button[aria-label="Save"]').click();
+        await confirmActorPasswordPrompt(page);
+        await expect(modal).not.toBeVisible();
     });
 
     test('should persist "Share files" setting', async ({ page }) => {

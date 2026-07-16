@@ -72,7 +72,7 @@
 
 <script>
 import { authApi } from "@/api";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { copyToClipboard } from "@/utils/clipboard";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -167,7 +167,10 @@ export default {
     createPrompt() {
       mutations.showPrompt({
         name: "CreateApi",
-        props: { permissions: this.user.permissions, userPermissions: this.user.permissions },
+        props: {
+          permissions: getters.apiTokenPermissionCaps(),
+          userPermissions: getters.apiTokenPermissionCaps(),
+        },
       });
     },
     infoPrompt(name, info) {

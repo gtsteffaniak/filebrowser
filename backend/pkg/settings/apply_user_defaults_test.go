@@ -109,12 +109,8 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 			Permissions: users.Permissions{
 				Api:      true,
 				Admin:    true,
-				Modify:   true,
 				Share:    true,
 				Realtime: true,
-				Delete:   true,
-				Create:   true,
-				Download: false,
 			},
 			NonAdminEditable: users.NonAdminEditable{
 				EditorQuickSave:            true,

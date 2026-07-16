@@ -56,6 +56,20 @@ export interface ShareInfoObject {
   description: string;
 }
 
+export interface SourceFilePermissions {
+  view: boolean;
+  download: boolean;
+  modify: boolean;
+  create: boolean;
+  delete: boolean;
+}
+
+export interface UserScope {
+  name: string;
+  scope: string;
+  permissions?: SourceFilePermissions;
+}
+
 export interface UserObject {
   preview: {
     video: boolean;
@@ -77,7 +91,7 @@ export interface UserObject {
   locale: string;
   viewMode: string;
   showHidden: boolean;
-  scopes: unknown[];
+  scopes: UserScope[];
   permissions: unknown;
   darkMode: boolean;
   disableSettings: boolean;

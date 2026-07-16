@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Wachtwoord"
     },
-    "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen.",
     "configViewer": "Configuratiescherm",
     "modifyOtherUserTitle": "Gebruiker aanpassen: {username}",
     "configViewerOpen": "Configuratie bekijken",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "Bij opt-in-implementatieanalyses wordt anonieme informatie naar de FileBrowser Quantum-ontwikkelaarsservers verzonden om de applicatie te verbeteren.",
     "analyticsLoadFailed": "Het laden van de analyse-instellingen is mislukt",
     "analyticsUpdateFailed": "Het bijwerken van de analyse-instellingen is mislukt",
-    "analyticsPreviewFailed": "Het laden van diagnostische gegevens voor Analytics is mislukt"
+    "analyticsPreviewFailed": "Het laden van diagnostische gegevens voor Analytics is mislukt",
+    "scopePath": "Bereikpad",
+    "sourcePermissionsHelp": "Vouw een bronrij uit om de rechten voor het bekijken, downloaden, wijzigen, aanmaken en verwijderen van die bron in te stellen.",
+    "permissionsHelp": "Algemene machtigingen voor de gebruiker gelden overal, inclusief alle bronnen en gedeelde mappen."
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",
@@ -556,7 +558,6 @@
     "permanent": "Permanent",
     "hash": "Hash",
     "of": "van",
-    "source": "Bron{suffix}",
     "percentage": "{percentage}%",
     "type": "Type{suffix}",
     "size": "Maat{suffix}",
@@ -566,7 +567,6 @@
     "logout": "Afmelden{suffix}",
     "preview": "Voorbeeld{suffix}",
     "settings": "Instellingen{suffix}",
-    "sources": "Bronnen{suffix}",
     "links": "Links{suffix}",
     "tool": "Gereedschap{suffix}",
     "status": "Status{suffix}",
@@ -693,7 +693,10 @@
     "playPause": "Afspelen/Pauzeren",
     "clearSelection": "Selectie wissen",
     "interval": "Interval{suffix}",
-    "none": "Geen"
+    "none": "Geen",
+    "viewFiles": "Bestanden bekijken en weergeven",
+    "source": "{prefix}Bron{suffix}",
+    "sources": "{prefix}Bronnen{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

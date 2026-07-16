@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Heslo"
     },
-    "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami.",
     "configViewer": "Prehliadač konfigurácie",
     "modifyOtherUserTitle": "Úprava používateľa: {username}",
     "configViewerOpen": "Zobraziť konfiguráciu",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "Analytika nasadenia na základe súhlasu bude odosielať anonymné informácie na vývojárske servery FileBrowser Quantum s cieľom prispieť k vylepšeniu aplikácie.",
     "analyticsLoadFailed": "Nepodarilo sa načítať nastavenia analýzy",
     "analyticsUpdateFailed": "Aktualizácia nastavení analytiky sa nepodarila",
-    "analyticsPreviewFailed": "Nepodarilo sa načítať diagnostické informácie o analýze"
+    "analyticsPreviewFailed": "Nepodarilo sa načítať diagnostické informácie o analýze",
+    "scopePath": "Trasa rozsahu",
+    "sourcePermissionsHelp": "Rozbaľte riadok zdroja, aby ste mohli nastaviť oprávnenia na zobrazenie, stiahnutie, úpravu, vytvorenie a vymazanie pre daný zdroj.",
+    "permissionsHelp": "Globálne oprávnenia pre daného používateľa platia všade, vrátane všetkých zdrojov a zdieľaných priečinkov."
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",
@@ -462,7 +464,6 @@
     "permanent": "Trvalé",
     "hash": "Hash",
     "of": "z",
-    "source": "Zdroj{suffix}",
     "percentage": "{percentage}%",
     "type": "Typ{suffix}",
     "size": "Veľkosť{suffix}",
@@ -472,7 +473,6 @@
     "logout": "Odhlásenie{suffix}",
     "preview": "Náhľad{suffix}",
     "settings": "Nastavenia{suffix}",
-    "sources": "Zdroje{suffix}",
     "links": "Odkazy{suffix}",
     "tool": "Nástroj{suffix}",
     "status": "Stav{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "Prehrávať/Pozastaviť",
     "clearSelection": "Vymazať výber",
     "interval": "Interval{suffix}",
-    "none": "Žiadne"
+    "none": "Žiadne",
+    "viewFiles": "Zobraziť a vymenovať súbory",
+    "source": "{prefix}Zdroj{suffix}",
+    "sources": "{prefix}Zdroje{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

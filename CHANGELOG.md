@@ -10,7 +10,7 @@ A database migration is required to go from v1.x to this version. See docs.
  - View grant mechanism to distinguish between UI viewing and download.
  - ffmpeg hardware acceleration detection and support via go-ffmpeg
   - video streaming is limited to viewing only.
- # - granular per source permissions and access
+ - granular per-source file permissions (view, download, modify, create, delete) with automatic migration from global permissions
  # - backup/restore in UI settings
  # - New CLI options and usage
  # - user setting enforcement preferences

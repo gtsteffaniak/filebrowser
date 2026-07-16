@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Lösenord"
     },
-    "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar.",
     "configViewer": "Konfig-visare",
     "modifyOtherUserTitle": "Ändra användare: {username}",
     "configViewerOpen": "Visa konfigurationen",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "Analysdata från opt-in-distributionen skickas i anonymiserad form till FileBrowser Quantums utvecklarservrar för att bidra till att förbättra applikationen.",
     "analyticsLoadFailed": "Det gick inte att ladda analysinställningarna",
     "analyticsUpdateFailed": "Det gick inte att uppdatera analysinställningarna",
-    "analyticsPreviewFailed": "Det gick inte att ladda diagnostisk information om analysdata"
+    "analyticsPreviewFailed": "Det gick inte att ladda diagnostisk information om analysdata",
+    "scopePath": "Omfattningsväg",
+    "sourcePermissionsHelp": "Veckla ut en källrad för att ställa in behörigheter för visning, nedladdning, redigering, skapande och radering för den källan.",
+    "permissionsHelp": "Användarens globala behörigheter gäller överallt, inklusive alla källor och delade resurser."
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",
@@ -556,7 +558,6 @@
     "permanent": "Permanent",
     "hash": "Hash",
     "of": "av",
-    "source": "Källa{suffix}",
     "percentage": "{percentage}%",
     "type": "Typ{suffix}",
     "size": "Storlek{suffix}",
@@ -566,7 +567,6 @@
     "logout": "Logga ut{suffix}",
     "preview": "Förhandsgranskning{suffix}",
     "settings": "Inställningar{suffix}",
-    "sources": "Källor{suffix}",
     "links": "Länkar{suffix}",
     "tool": "Verktyg{suffix}",
     "status": "Status{suffix}",
@@ -693,7 +693,10 @@
     "playPause": "Spela upp/Paus",
     "clearSelection": "Rensa urvalet",
     "interval": "Intervall{suffix}",
-    "none": "Ingen"
+    "none": "Ingen",
+    "viewFiles": "Visa och lista filer",
+    "source": "{prefix}Källa{suffix}",
+    "sources": "{prefix}Källor{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

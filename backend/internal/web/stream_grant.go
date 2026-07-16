@@ -53,11 +53,23 @@ func ValidateViewGrant(token string, d *Context, source, filePath string) error 
 	if grant.Path != normalizeViewGrantPath(filePath) {
 		return fmt.Errorf("view token path mismatch")
 	}
+	perms, err := effectiveFilePerms(d, source)
+	if err != nil || !perms.View {
+		return fmt.Errorf("view permission required")
+	}
 	return nil
+}
+
+func canMintViewToken(d *Context, source string) bool {
+	perms, err := effectiveFilePerms(d, source)
+	return err == nil && perms.View
 }
 
 func AttachViewToken(d *Context, source, filePath string, file *iteminfo.ExtendedFileInfo) {
 	if file == nil || file.Type == "directory" {
+		return
+	}
+	if !canMintViewToken(d, source) {
 		return
 	}
 	token, err := mintViewGrant(d, source, filePath)
@@ -80,6 +92,9 @@ func indexFilePath(dirPath, name string) string {
 
 func AttachViewTokensForDirectory(d *Context, source, dirPath string, file *iteminfo.ExtendedFileInfo) {
 	if file == nil || file.Type != "directory" {
+		return
+	}
+	if !canMintViewToken(d, source) {
 		return
 	}
 	for i := range file.Files {

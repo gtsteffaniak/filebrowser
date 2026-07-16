@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "密碼"
     },
-    "permissionsHelp": "使用者權限決定可以執行哪些類型的操作。管理員權限可完整管理所有使用者設定，以及許多系統設定。",
     "configViewer": "組態檢視器",
     "modifyOtherUserTitle": "修改使用者：{username}",
     "configViewerOpen": "檢視設定",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "若選擇啟用部署分析功能，系統將向 FileBrowser Quantum 開發者伺服器傳送匿名資訊，以協助改善應用程式。",
     "analyticsLoadFailed": "無法載入分析設定",
     "analyticsUpdateFailed": "無法更新分析設定",
-    "analyticsPreviewFailed": "無法載入分析診斷資訊"
+    "analyticsPreviewFailed": "無法載入分析診斷資訊",
+    "scopePath": "範圍路徑",
+    "sourcePermissionsHelp": "展開來源列，以設定該來源的檢視、下載、修改、建立及刪除權限。",
+    "permissionsHelp": "該使用者的全域權限適用於所有位置，包括所有來源和共享資料夾。"
   },
   "sidebar": {
     "updateIsAvailable": "有可用的更新！",
@@ -556,7 +558,6 @@
     "permanent": "永久{suffix}",
     "hash": "雜湊{suffix}",
     "of": "之{suffix}",
-    "source": "來源{suffix}",
     "percentage": "{percentage}%",
     "type": "類型{suffix}",
     "size": "大小{suffix}",
@@ -566,7 +567,6 @@
     "logout": "登出{suffix}",
     "preview": "預覽{suffix}",
     "settings": "設定{suffix}",
-    "sources": "來源{suffix}",
     "links": "連結{suffix}",
     "tool": "工具{suffix}",
     "status": "狀態{suffix}",
@@ -693,7 +693,10 @@
     "playPause": "播放／暫停",
     "clearSelection": "清除選取項目",
     "interval": "間隔{suffix}",
-    "none": "無"
+    "none": "無",
+    "viewFiles": "檢視及列出檔案",
+    "source": "{prefix}來源{suffix}",
+    "sources": "{prefix}資料來源{suffix}"
   },
   "access": {
     "rules": "存取規則",

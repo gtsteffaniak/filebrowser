@@ -31,6 +31,9 @@ func validateUserInfo(newDB bool) {
 		if updatePermissions(user) {
 			updateUser = true
 		}
+		if updateSourcePermissions(user) {
+			updateUser = true
+		}
 		if updatePreviewSettings(user) {
 			updateUser = true
 		}
@@ -75,7 +78,7 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			fields := []string{"backendScopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
+			fields := []string{"backendScopes", "backendSourcePermissions", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
 			if changePass {
 				fields = append(fields, "Password")
 			}
@@ -156,6 +159,25 @@ func updateUserScopes(user *users.User) bool {
 	}
 	changed := !reflect.DeepEqual(user.BackendScopes, newScopes)
 	user.BackendScopes = newScopes
+
+	return changed
+}
+
+func updateSourcePermissions(user *users.User) bool {
+	changed := false
+	if user.Version < users.SourcePermissionsMigrationVersion {
+		if users.MigrateToSourcePermissions(user) {
+			changed = true
+			createBackup = true
+		}
+	}
+	if users.EnsureSourcePermissionsForScopes(
+		user,
+		settings.DefaultSourceFilePermissions(),
+		settings.AdminSourceFilePermissions(),
+	) {
+		changed = true
+	}
 	return changed
 }
 

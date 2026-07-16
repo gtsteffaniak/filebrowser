@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Şifre"
     },
-    "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar.",
     "configViewer": "Yapılandırma Görüntüleyici",
     "modifyOtherUserTitle": "Kullanıcıyı düzenle: {username}",
     "configViewerOpen": "Yapılandırmayı görüntüle",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "Kullanıcının onayıyla gerçekleştirilen dağıtım analitiği, uygulamanın geliştirilmesine katkıda bulunmak amacıyla FileBrowser Quantum geliştirici sunucularına anonim bilgiler gönderir.",
     "analyticsLoadFailed": "Analitik ayarları yüklenemedi",
     "analyticsUpdateFailed": "Analitik ayarları güncellenemedi",
-    "analyticsPreviewFailed": "Analitik tanılama bilgilerini yükleyemedi"
+    "analyticsPreviewFailed": "Analitik tanılama bilgilerini yükleyemedi",
+    "scopePath": "Kapsam yolu",
+    "sourcePermissionsHelp": "Bir kaynak satırını genişleterek, o kaynak için görüntüleme, indirme, değiştirme, oluşturma ve silme izinlerini ayarlayın.",
+    "permissionsHelp": "Kullanıcının genel izinleri, tüm kaynaklar ve paylaşımlar dahil olmak üzere her yerde geçerlidir."
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
@@ -462,7 +464,6 @@
     "permanent": "Daimi",
     "hash": "Hash",
     "of": ".",
-    "source": "Kaynak{suffix}",
     "percentage": "{percentage}%",
     "type": "Tip{suffix}",
     "size": "Boyut{suffix}",
@@ -472,7 +473,6 @@
     "logout": "Oturum Kapatma{suffix}",
     "preview": "Önizleme{suffix}",
     "settings": "Ayarlar{suffix}",
-    "sources": "Kaynaklar{suffix}",
     "links": "Bağlantılar{suffix}",
     "tool": "Alet{suffix}",
     "status": "Durum{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "Oynat/Duraklat",
     "clearSelection": "Seçimi temizle",
     "interval": "Aralık{suffix}",
-    "none": "Hiçbiri"
+    "none": "Hiçbiri",
+    "viewFiles": "Dosyaları görüntüleme ve listeleme",
+    "source": "{prefix}Kaynak{suffix}",
+    "sources": "{prefix}Kaynaklar{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Jelszó"
     },
-    "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához.",
     "configViewer": "Konfiguráció megtekintő",
     "modifyOtherUserTitle": "Felhasználó módosítása: {username}",
     "configViewerOpen": "Konfiguráció megtekintése",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "Az önkéntes részvételű telepítési elemzés névtelen adatokat küld a FileBrowser Quantum fejlesztői szervereire az alkalmazás fejlesztése érdekében.",
     "analyticsLoadFailed": "Az elemzési beállítások betöltése nem sikerült",
     "analyticsUpdateFailed": "Az elemzési beállítások frissítése nem sikerült",
-    "analyticsPreviewFailed": "Az elemzési diagnosztikai adatok betöltése nem sikerült"
+    "analyticsPreviewFailed": "Az elemzési diagnosztikai adatok betöltése nem sikerült",
+    "scopePath": "A hatókör útvonala",
+    "sourcePermissionsHelp": "Bontsa ki a forrás sorát, hogy beállítsa az adott forrás megtekintési, letöltési, módosítási, létrehozási és törlési jogosultságait.",
+    "permissionsHelp": "A felhasználó globális jogosultságai mindenhol érvényesek, beleértve az összes forrást és megosztást is."
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",
@@ -462,7 +464,6 @@
     "permanent": "Állandó",
     "hash": "Hash",
     "of": "a",
-    "source": "Forrás{suffix}",
     "percentage": "{percentage}%",
     "type": "Típus{suffix}",
     "size": "Méret{suffix}",
@@ -472,7 +473,6 @@
     "logout": "Kijelentkezés{suffix}",
     "preview": "Előnézet{suffix}",
     "settings": "Beállítások{suffix}",
-    "sources": "Források{suffix}",
     "links": "Linkek{suffix}",
     "tool": "Szerszám{suffix}",
     "status": "Állapot{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "Lejátszás/Szünet",
     "clearSelection": "Kiválasztás törlése",
     "interval": "Intervallum{suffix}",
-    "none": "Nincs"
+    "none": "Nincs",
+    "viewFiles": "Fájlok megtekintése és felsorolása",
+    "source": "{prefix}Forrás{suffix}",
+    "sources": "{prefix}Források{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

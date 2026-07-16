@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "パスワード"
     },
-    "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。",
     "configViewer": "コンフィグビューア",
     "modifyOtherUserTitle": "ユーザーの編集：{username}",
     "configViewerOpen": "設定を表示",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "オプトイン型の導入分析機能により、アプリケーションの改善に役立てるため、匿名化された情報がFileBrowser Quantumの開発者サーバーに送信されます。",
     "analyticsLoadFailed": "分析設定の読み込みに失敗しました",
     "analyticsUpdateFailed": "アナリティクスの設定の更新に失敗しました",
-    "analyticsPreviewFailed": "分析診断情報の読み込みに失敗しました"
+    "analyticsPreviewFailed": "分析診断情報の読み込みに失敗しました",
+    "scopePath": "スコープパス",
+    "sourcePermissionsHelp": "ソース行を展開して、そのソースに対する表示、ダウンロード、変更、作成、および削除の権限を設定します。",
+    "permissionsHelp": "そのユーザーのグローバル権限は、すべてのソースおよび共有を含め、あらゆる場所で適用されます。"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",
@@ -462,7 +464,6 @@
     "permanent": "永続",
     "hash": "ハッシュ",
     "of": "の",
-    "source": "ソース{suffix}",
     "percentage": "{percentage}%",
     "type": "タイプ{suffix}",
     "size": "サイズ{suffix}",
@@ -472,7 +473,6 @@
     "logout": "ログアウト{suffix}",
     "preview": "プレビュー{suffix}",
     "settings": "設定{suffix}",
-    "sources": "情報源{suffix}",
     "links": "リンク{suffix}",
     "tool": "工具{suffix}",
     "status": "ステータス{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "再生／一時停止",
     "clearSelection": "選択を解除",
     "interval": "間隔{suffix}",
-    "none": "なし"
+    "none": "なし",
+    "viewFiles": "ファイルの表示と一覧表示",
+    "source": "{prefix}出典{suffix}",
+    "sources": "{prefix}出典{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
