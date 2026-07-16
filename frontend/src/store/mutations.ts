@@ -8,8 +8,9 @@ import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/util
 import { sortedItems } from "@/utils/sort.js";
 import { updateManifestLink } from "@/utils/pwaManifest";
 import { emitStateChanged } from './eventBus';
-import { getters } from "./getters.js";
-import { state } from "./state.js";
+import { getters } from "./getters";
+import { state } from "./state";
+import type { SourceInfo, SourceInfoUpdate, UserObject } from "./types";
 
 export const mutations = {
   disableEventThemes: () => {
@@ -119,27 +120,27 @@ export const mutations = {
   },
   updateSource: (sourcename, value) => {
     if (getObjectProperty(state.sources.info, sourcename)) {
-      state.sources.info = setObjectProperty(state.sources.info, sourcename, value);
+      state.sources.info = setObjectProperty(state.sources.info, sourcename, value) as Record<string, SourceInfo>;
     }
     emitStateChanged();
   },
-  updateSourceInfo: (value) => {
+  updateSourceInfo: (value: Record<string, SourceInfoUpdate> | "error") => {
     if (value === "error") {
       state.realtimeActive = false;
       let info = state.sources.info;
       for (const k of Object.keys(info)) {
-        info = setObjectProperty(info, k, { ...getObjectProperty(info, k), status: "error" });
+        info = setObjectProperty(info, k, { ...(getObjectProperty(info, k) as SourceInfo), status: "error" }) as Record<string, SourceInfo>;
       }
       state.sources.info = info;
     } else {
       let info = state.sources.info;
       let hasAny = false;
       for (const [k, source] of Object.entries(value)) {
-        const existing = getObjectProperty(info, k);
+        const existing = getObjectProperty(info, k) as SourceInfo | undefined;
         if (existing) {
           const used = Number(source.used) || 0;
           const total = Number(source.total) || 0;
-          const updated = {
+          const updated: SourceInfo = {
             ...existing,
             used,
             usedAlt: source.usedAlt || 0,
@@ -157,7 +158,7 @@ export const mutations = {
             readOnly: source.readOnly || false,
             private: source.private || false,
           };
-          info = setObjectProperty(info, k, updated);
+          info = setObjectProperty(info, k, updated) as Record<string, SourceInfo>;
           if (updated.total > 0 || updated.used > 0 || updated.usedAlt > 0) hasAny = true;
         }
       }
@@ -193,7 +194,13 @@ export const mutations = {
     ) {
       currentSource = state.sources.current;
     }
-    const sources = {info: {}, current: currentSource, count: user.scopes.length};
+    const sources: {
+      info: Record<string, SourceInfo>;
+      current: string;
+      count: number;
+      hasSourceInfo: boolean;
+      defaultSource?: string;
+    } = { info: {}, current: currentSource, count: user.scopes.length, hasSourceInfo: false };
     for (const source of user.scopes) {
       const prev = prevInfo[source.name];
       const merge = Boolean(prev);
@@ -329,7 +336,9 @@ export const mutations = {
       if (idx === -1) return;
       state.prompts.splice(idx, 1);
     }
-    if (state.prompts.length === 0 && !state.stickySidebar) {
+    // Pre-existing: no top-level state.stickySidebar (only state.user.stickySidebar), so this
+    // is always truthy-negated. Left as-is; see PR description.
+    if (state.prompts.length === 0 && !(state as unknown as { stickySidebar?: boolean }).stickySidebar) {
       state.showSidebar = false;
     }
     emitStateChanged();
@@ -417,7 +426,7 @@ export const mutations = {
         await i18n.setLocale(value.locale);
       }
       state.user = value;
-      state.user.sorting = {};
+      state.user.sorting = {} as { by: string; asc: boolean };
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
 
@@ -465,7 +474,7 @@ export const mutations = {
 
       if (!isAnonymous) {
         localStorage.setItem(`ViewMode_${encoded}`, viewMode);
-        localStorage.setItem(`GallerySize_${encoded}`, gallerySize);
+        localStorage.setItem(`GallerySize_${encoded}`, String(gallerySize));
       }
 
       // Load display preferences for the current user
@@ -571,7 +580,7 @@ export const mutations = {
 
     // Initialize state.user if it's null
     if (!state.user) {
-      state.user = {};
+      state.user = {} as UserObject;
     }
     // Store previous state for comparison
     const previousUser = { ...state.user };
@@ -593,7 +602,9 @@ export const mutations = {
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
       await i18n.setLocale(state.user.locale);
-      i18n.default.locale = state.user.locale;
+      // Pre-existing: no-op in composition mode (i18n.setLocale above already updates the
+      // active locale via i18n.global.locale.value). Left as-is; see PR description.
+      (i18n.default as unknown as { locale: string }).locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
     }
     // Update users if there's any change in state.user
@@ -733,7 +744,7 @@ export const mutations = {
   },
   updateListingSortConfig: ({ field, asc }) => {
     if (!state.user.sorting) {
-      state.user.sorting = {};
+      state.user.sorting = {} as { by: string; asc: boolean };
     }
     state.user.sorting.by = field;
     state.user.sorting.asc = asc;
@@ -831,7 +842,7 @@ export const mutations = {
     let sourceLevel = getObjectProperty(prefs, source);
     if (!sourceLevel) sourceLevel = {};
 
-    let pathLevel = getObjectProperty(sourceLevel, path);
+    let pathLevel = getObjectProperty(sourceLevel, path) as Record<string, unknown> | undefined;
     if (!pathLevel) pathLevel = {};
 
     const newPathLevel = { ...pathLevel, ...payload };
@@ -973,10 +984,7 @@ export const mutations = {
     state.navigation.hoverNav = hover;
     emitStateChanged();
   },
-  /**
-   * @param {{ kind?: null | 'previous' | 'next' | 'close', commitReady?: boolean, flashClose?: boolean }} [payload]
-   */
-  setNavigationGestureHint: (payload = {}) => {
+  setNavigationGestureHint: (payload: { kind?: null | 'previous' | 'next' | 'close', commitReady?: boolean, flashClose?: boolean } = {}) => {
     const kind = payload.kind ?? null;
     const commitReady = !!payload.commitReady;
     const flashClose = !!payload.flashClose;

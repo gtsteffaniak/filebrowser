@@ -1,7 +1,8 @@
 import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
+import type { StoreState } from "./types";
 
-export const state = reactive({
+export const state: StoreState = reactive({
   disableEventThemes: eventTheme(),
   tooltip: {
     show: false,
@@ -108,7 +109,7 @@ export const state = reactive({
     items: [],
   },
   sharePassword: "",
-  loading: [],
+  loading: {}, // map of loadType -> true, see mutations.setLoading
   reload: false,
   selected: [],
   lastSelectedIndex: null,
