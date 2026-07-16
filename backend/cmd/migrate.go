@@ -119,9 +119,18 @@ func normalizeUserScopesBeforeSQLite(user *users.User) error {
 	if len(user.BackendScopes) > 0 {
 		return nil
 	}
-	backendScopes, err := users.APIScopesToBackend(user.FrontendScopes, users.SourceFilePermissions{View: true, Download: true})
+	backendScopes, err := users.APIScopesToBackend(user.FrontendScopes)
 	if err != nil {
 		return fmt.Errorf("convert frontend scopes to backend: %w", err)
+	}
+	for i := range backendScopes {
+		backendScopes[i].Permissions = users.SourceFilePermissions{
+			View:     true,
+			Download: user.Permissions.Download,
+			Modify:   user.Permissions.Modify,
+			Delete:   user.Permissions.Delete,
+			Create:   user.Permissions.Create,
+		}
 	}
 	user.FrontendScopes = nil
 	user.BackendScopes = backendScopes

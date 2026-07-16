@@ -145,8 +145,9 @@ func updateUserScopes(user *users.User) bool {
 			continue
 		}
 		newScopes = append(newScopes, users.BackendScope{
-			Path:  src.Path,
-			Scope: existingScope.Scope,
+			Path:        src.Path,
+			Scope:       existingScope.Scope,
+			Permissions: existingScope.Permissions,
 		})
 		seen[src.Path] = struct{}{}
 	}
@@ -168,7 +169,6 @@ func updateSourcePermissions(user *users.User) bool {
 	if user.Version < users.SourcePermissionsMigrationVersion {
 		if users.MigrateToSourcePermissions(user) {
 			changed = true
-			createBackup = true
 		}
 	}
 	if users.EnsureSourcePermissionsForScopes(

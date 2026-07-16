@@ -393,8 +393,18 @@ func applyScopesFromAPI(user *users.User) error {
 		}
 	}
 	defaults := settings.DefaultSourceFilePermissions()
+	if user.Permissions.Admin {
+		defaults = settings.AdminSourceFilePermissions()
+	}
+	for i, scope := range user.FrontendScopes {
+		if scope.Permissions != nil {
+			continue
+		}
+		p := defaults
+		user.FrontendScopes[i].Permissions = &p
+	}
 	if len(user.FrontendScopes) > 0 {
-		backend, convErr := users.APIScopesToBackend(user.FrontendScopes, defaults)
+		backend, convErr := users.APIScopesToBackend(user.FrontendScopes)
 		if convErr != nil {
 			return convErr
 		}

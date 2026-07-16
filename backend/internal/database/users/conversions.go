@@ -40,8 +40,9 @@ func (u *User) GetSourceNames() []string {
 	return sources
 }
 
-// APIScopesToBackend maps json "scopes" payloads (source display name or filesystem path + scope path + permissions)
-func APIScopesToBackend(apiScopes []FrontendScope, defaults SourceFilePermissions) ([]BackendScope, error) {
+// APIScopesToBackend maps json "scopes" payloads (source display name or filesystem path + scope path + permissions).
+// Omitted scope permissions become deny-all; callers must pre-fill defaults before conversion when needed.
+func APIScopesToBackend(apiScopes []FrontendScope) ([]BackendScope, error) {
 	if len(apiScopes) == 0 {
 		return []BackendScope{}, nil
 	}
@@ -62,7 +63,7 @@ func APIScopesToBackend(apiScopes []FrontendScope, defaults SourceFilePermission
 		newScopes = append(newScopes, BackendScope{
 			Path:        source.Path,
 			Scope:       scope.Scope,
-			Permissions: frontendScopePermissions(scope, defaults),
+			Permissions: frontendScopePermissions(scope),
 		})
 	}
 	return newScopes, nil

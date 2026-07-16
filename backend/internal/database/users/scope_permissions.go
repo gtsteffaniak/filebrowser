@@ -10,18 +10,11 @@ func GlobalPermissionsOnly(p Permissions) Permissions {
 	}
 }
 
-func scopePermissionsOrDefault(perms SourceFilePermissions, defaults SourceFilePermissions) SourceFilePermissions {
-	if perms.View || perms.Download || perms.Modify || perms.Delete || perms.Create {
-		return perms
-	}
-	return defaults
-}
-
-func frontendScopePermissions(fs FrontendScope, defaults SourceFilePermissions) SourceFilePermissions {
+func frontendScopePermissions(fs FrontendScope) SourceFilePermissions {
 	if fs.Permissions == nil {
-		return defaults
+		return DenyAllSourceFilePermissions()
 	}
-	return scopePermissionsOrDefault(*fs.Permissions, defaults)
+	return *fs.Permissions
 }
 
 // MergeLegacySourcePermissionsIntoScopes copies deprecated sourcePermissions / backendSourcePermissions
