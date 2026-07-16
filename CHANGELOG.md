@@ -25,7 +25,7 @@ A database migration is required to go from v1.x to this version. See docs.
    - The current state of the audio panel now is stored into local storage.
    - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, single tap to pause (#2575).
  - Added `F4` shortcut to refresh the current directory and metadata (#2600).
- - opt-in feature to send deployment analytrics to filebrowser quantum developer servers
+ - opt-in feature to send deployment analytics to filebrowser quantum developer servers
    - anonymized with a viewer so users can see what info would be sent.
    - if opt-in, every month a snapshot of your deployment config would be sent to developer servers
    - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future. 
