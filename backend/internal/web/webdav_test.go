@@ -836,6 +836,45 @@ func TestWebDAV_PutIgnoresInvalidOCMtimeHeader(t *testing.T) {
 	}
 }
 
+func TestWebDAV_CopyPreservesModTime(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	user := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{
+			Username: "testcopy",
+		},
+		BackendScopes:            []users.BackendScope{{Path: source1Path, Scope: "/"}},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
+	}
+	fileTime := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	readme := filepath.Join(source1Path, "public", "readme.txt")
+	if err := os.Chtimes(readme, fileTime, fileTime); err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest("COPY", "/dav/source1/public/", nil)
+	req.SetPathValue("source", "source1")
+	req.SetPathValue("path", "/public/")
+	req.Header.Set("Destination", "/dav/source1/copy")
+	req.Header.Set("Depth", "infinity")
+
+	w := httptest.NewRecorder()
+	if _, err := webDAVHandler(w, req, &requestContext{User: user}); err != nil {
+		t.Fatalf("webDAVHandler: %v", err)
+	}
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected %d, got %d", http.StatusCreated, w.Code)
+	}
+	got, err := os.Stat(filepath.Join(source1Path, "copy", "readme.txt"))
+	if err != nil {
+		t.Fatalf("stat copy: %v", err)
+	}
+	if !got.ModTime().Equal(fileTime) {
+		t.Errorf("mtime = %v, want %v", got.ModTime(), fileTime)
+	}
+}
+
+
 // Helper function to initialize a test index - simplified for WebDAV tests
 func initTestIndex(t *testing.T, name, path string) {
 	// For WebDAV tests, indices are already initialized in setupWebDAVTestEnv

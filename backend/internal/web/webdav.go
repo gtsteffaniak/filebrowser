@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -511,7 +513,17 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 			}
 		},
 	}
-
+	if r.Method == "COPY" {
+		srcRealPath := filepath.Join(scopePath, requestPath)
+		sw := &statusResponseWriter{ResponseWriter: w, status: http.StatusOK}
+		wd.ServeHTTP(sw, r)
+		if destRealPath, ok := resolveDestination(r, prefix, scopePath); sw.status < 300 && ok {
+			if err := fileutils.PreserveModTimes(srcRealPath, destRealPath); err != nil {
+				logger.Debugf("could not preserve modification time on webdav copy: %v", err)
+			}
+		}
+		return 200, nil
+	}
 	wd.ServeHTTP(w, r)
 	return 200, nil // errors and responses (XML-formatted) are handled by webdav handler
 }
@@ -550,4 +562,36 @@ func webDAVMethodPermission(method string, perms users.SourceFilePermissions) (i
 		return http.StatusForbidden, fmt.Errorf("webdav method %s not permitted", method)
 	}
 	return 0, nil
+}
+
+// statusResponseWriter records the status code written by the wrapped handler
+type statusResponseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (sw *statusResponseWriter) WriteHeader(status int) {
+	sw.status = status
+	sw.ResponseWriter.WriteHeader(status)
+}
+
+// resolveDestination resolves the real fs path when doing a copy request
+func resolveDestination(r *http.Request, prefix, scopePath string) (string, bool) {
+	raw := r.Header.Get("Destination")
+	if raw == "" {
+		return "", false
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "", false
+	}
+	rest, ok := strings.CutPrefix(u.Path, prefix)
+	if !ok || (rest != "" && rest[0] != '/') {
+		return "", false
+	}
+	rel := path.Clean("/" + rest)
+	if rel == "/" {
+		return "", false
+	}
+	return filepath.Join(scopePath, rel), true
 }
