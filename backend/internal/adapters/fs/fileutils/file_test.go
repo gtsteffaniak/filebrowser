@@ -2,7 +2,9 @@ package fileutils
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestUnixModeToFileMode_setgid(t *testing.T) {
@@ -56,6 +58,55 @@ func TestCommonPrefix(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			if got := CommonPrefix('/', tt.paths...); got != tt.want {
 				t.Errorf("CommonPrefix() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCopyFilePreservesModTime(t *testing.T) {
+	fileTime := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	testCases := map[string]struct {
+		isDir     bool
+		checkPath string
+	}{
+		"file":      {checkPath: ""},
+		"directory": {isDir: true, checkPath: "nested.txt"},
+	}
+	for name, tt := range testCases {
+		t.Run(name, func(t *testing.T) {
+			src := t.TempDir()
+			dst := filepath.Join(t.TempDir(), "dst")
+			srcPath := src
+			if tt.isDir {
+				nested := filepath.Join(src, "nested.txt")
+				if err := os.WriteFile(nested, []byte("hi"), 0644); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Chtimes(nested, fileTime, fileTime); err != nil {
+					t.Fatal(err)
+				}
+			} else {
+				srcPath = filepath.Join(src, "file.txt")
+				if err := os.WriteFile(srcPath, []byte("hi"), 0644); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Chtimes(srcPath, fileTime, fileTime); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := CopyFile(srcPath, dst); err != nil {
+				t.Fatal(err)
+			}
+			p := dst
+			if tt.checkPath != "" {
+				p = filepath.Join(dst, tt.checkPath)
+			}
+			got, err := os.Stat(p)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !got.ModTime().Equal(fileTime) {
+				t.Errorf("%s: got mtime = %v, want %v", p, got.ModTime(), fileTime)
 			}
 		})
 	}
