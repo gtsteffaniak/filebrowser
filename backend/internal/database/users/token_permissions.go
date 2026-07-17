@@ -22,3 +22,9 @@ func HasAnyGlobalPermission(p Permissions) bool {
 	g := GlobalPermissionsOnly(p)
 	return g.Admin || g.Api || g.Share || g.Realtime
 }
+
+// IsMinimalApiToken reports whether the token inherits the owner's globals at auth time
+// rather than embedding its own global permission caps in the JWT.
+func IsMinimalApiToken(t AuthToken) bool {
+	return t.BelongsTo == 0 || !HasAnyGlobalPermission(t.Permissions)
+}

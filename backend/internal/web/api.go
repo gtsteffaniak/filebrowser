@@ -147,7 +147,24 @@ type AuthTokenFrontend struct {
 	Name        string            `json:"name"`
 	IssuedAt    int64             `json:"issuedAt"`
 	ExpiresAt   int64             `json:"expiresAt"`
+	Minimal     bool              `json:"minimal"`
 	Permissions users.Permissions `json:"Permissions,omitempty"`
+}
+
+func authTokenForFrontend(name string, token users.AuthToken, owner *users.User) AuthTokenFrontend {
+	minimal := users.IsMinimalApiToken(token)
+	perms := users.SanitizeTokenPermissions(token.Permissions)
+	if minimal && owner != nil {
+		perms = users.SanitizeTokenPermissions(owner.Permissions)
+	}
+	return AuthTokenFrontend{
+		Token:       token.Token,
+		Name:        name,
+		IssuedAt:    authTokenIssuedUnix(token),
+		ExpiresAt:   authTokenExpiresUnix(token),
+		Minimal:     minimal,
+		Permissions: perms,
+	}
 }
 
 // authTokenIssuedUnix returns iat from JWT claims when set, otherwise the persisted int64 (e.g. loaded from DB).
@@ -185,13 +202,7 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	}
 	AuthTokensFrontend := make([]AuthTokenFrontend, 0)
 	users.EachNamedToken(d.User.Tokens, func(name string, token users.AuthToken) {
-		AuthTokensFrontend = append(AuthTokensFrontend, AuthTokenFrontend{
-			Token:       token.Token,
-			Name:        name,
-			IssuedAt:    authTokenIssuedUnix(token),
-			ExpiresAt:   authTokenExpiresUnix(token),
-			Permissions: users.SanitizeTokenPermissions(token.Permissions),
-		})
+		AuthTokensFrontend = append(AuthTokensFrontend, authTokenForFrontend(name, token, d.User))
 	})
 	if len(AuthTokensFrontend) == 0 {
 		return http.StatusNotFound, fmt.Errorf("no api tokens found")
@@ -224,12 +235,6 @@ func getApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("api token not found")
 	}
-	AuthTokenFrontendResponse := AuthTokenFrontend{
-		Token:       tokenInfo.Token,
-		Name:        name,
-		IssuedAt:    authTokenIssuedUnix(tokenInfo),
-		ExpiresAt:   authTokenExpiresUnix(tokenInfo),
-		Permissions: users.SanitizeTokenPermissions(tokenInfo.Permissions),
-	}
+	AuthTokenFrontendResponse := authTokenForFrontend(name, tokenInfo, d.User)
 	return RenderJSON(w, r, AuthTokenFrontendResponse)
 }

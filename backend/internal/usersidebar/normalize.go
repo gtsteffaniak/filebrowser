@@ -1,11 +1,9 @@
 package usersidebar
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // NormalizeSidebarLinks canonicalizes persisted sidebar links for storage.
@@ -24,25 +22,16 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 	seenSourcePaths := make(map[string]struct{})
 	hasTools := false
 	out := make([]users.SidebarLink, 0, len(links))
-	skipped := []string{}
 	changed := false
 
 	for _, link := range links {
 		if strings.HasPrefix(link.Category, "source") {
 			source, ok := resolveSourceLink(link)
 			if !ok {
-				skipped = append(skipped, fmt.Sprintf(
-					"{name:%q sourceName:%q reason:unresolvable}",
-					link.Name, link.SourceName,
-				))
 				changed = true
 				continue
 			}
 			if _, dup := seenSourcePaths[source.Path]; dup {
-				skipped = append(skipped, fmt.Sprintf(
-					"{name:%q sourceName:%q reason:duplicate path %q}",
-					link.Name, link.SourceName, source.Path,
-				))
 				changed = true
 				continue
 			}
@@ -63,7 +52,6 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 
 		if link.Category == "tool" && link.Target == "/tools" {
 			if hasTools {
-				skipped = append(skipped, fmt.Sprintf("{name:%q reason:duplicate tools link}", link.Name))
 				changed = true
 				continue
 			}
@@ -72,12 +60,6 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 		out = append(out, link)
 	}
 
-	if changed {
-		logger.Debugf(
-			"sidebar_normalize in=%d out=%d skipped=%v out=%s",
-			len(links), len(out), skipped, FormatSidebarLinksForLog(out),
-		)
-	}
 	return out, changed
 }
 

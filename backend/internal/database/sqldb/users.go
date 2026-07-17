@@ -7,8 +7,6 @@ import (
 	"strconv"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // User SQL operations
@@ -71,10 +69,6 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 	}
 	users.MergeLegacySourcePermissionsIntoScopes(user)
 	users.SyncBackendSourcePermissionsMap(user)
-	logger.Debugf(
-		"sidebar_sqlite_load user=%q settings.sidebarLinks count=%d links=%s",
-		user.Username, len(user.SidebarLinks), usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
-	)
 	return nil
 }
 

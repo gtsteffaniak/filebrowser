@@ -64,11 +64,6 @@ func validateUserInfo(newDB bool) {
 		if user.Username == adminUser && user.Permissions.Admin {
 			adminPerms := settings.AdminPerms()
 			if user.Permissions.Share != adminPerms.Share || user.Permissions.Api != adminPerms.Api {
-				logger.Debug("validateUserInfo repairing admin global permissions",
-					"userID", user.ID,
-					"permShare", user.Permissions.Share,
-					"permApi", user.Permissions.Api,
-				)
 				user.Permissions.Share = adminPerms.Share
 				user.Permissions.Api = adminPerms.Api
 				user.Permissions.Admin = true
@@ -77,17 +72,6 @@ func validateUserInfo(newDB bool) {
 		}
 		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
-			logger.Debug("validateUserInfo admin reset permissions before update",
-				"userID", user.ID,
-				"permAdmin", user.Permissions.Admin,
-				"permShare", user.Permissions.Share,
-				"permModify", user.Permissions.Modify,
-				"permCreate", user.Permissions.Create,
-				"permDelete", user.Permissions.Delete,
-				"permDownload", user.Permissions.Download,
-				"permApi", user.Permissions.Api,
-				"version", user.Version,
-			)
 			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
 			updateUser = true
@@ -107,38 +91,9 @@ func validateUserInfo(newDB bool) {
 				fields = append(fields, "Password")
 			}
 
-			logger.Debug("validateUserInfo patching user",
-				"username", user.Username,
-				"userID", user.ID,
-				"fields", fields,
-				"permAdmin", user.Permissions.Admin,
-				"permShare", user.Permissions.Share,
-				"permModify", user.Permissions.Modify,
-				"permCreate", user.Permissions.Create,
-				"permDelete", user.Permissions.Delete,
-				"permDownload", user.Permissions.Download,
-				"permApi", user.Permissions.Api,
-			)
-
 			err := state.UpdateUser(user, user.Password, fields...)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
-			} else if user.Username == adminUser {
-				reloaded, reloadErr := state.GetUserByUsername(user.Username)
-				if reloadErr != nil {
-					logger.Errorf("could not reload admin after update: %v", reloadErr)
-				} else {
-					logger.Debug("validateUserInfo admin permissions after UpdateUser",
-						"userID", reloaded.ID,
-						"permAdmin", reloaded.Permissions.Admin,
-						"permShare", reloaded.Permissions.Share,
-						"permModify", reloaded.Permissions.Modify,
-						"permCreate", reloaded.Permissions.Create,
-						"permDelete", reloaded.Permissions.Delete,
-						"permDownload", reloaded.Permissions.Download,
-						"permApi", reloaded.Permissions.Api,
-					)
-				}
 			}
 		}
 
@@ -288,29 +243,16 @@ func updatePreviewSettings(user *users.User) bool {
 
 // updateSidebarLinks normalizes sidebar links and rebuilds from scopes when none resolve.
 func updateSidebarLinks(user *users.User) bool {
-	beforeLinks := usersidebar.FormatSidebarLinksForLog(user.SidebarLinks)
 	updated := false
 
 	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
 		user.SidebarLinks = normalized
 		updated = true
-		logger.Debugf(
-			"sidebar_startup user=%q normalized=true after=%s",
-			user.Username, usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
-		)
 	}
 
 	sourceLinksCount, validSourceLinksCount := countSidebarSourceLinks(user.SidebarLinks)
-	invalidSourceLinksCount := sourceLinksCount - validSourceLinksCount
-	logger.Debugf(
-		"sidebar_startup user=%q sourceLinks=%d valid=%d invalid=%d links=%s",
-		user.Username, sourceLinksCount, validSourceLinksCount, invalidSourceLinksCount, beforeLinks,
-	)
 
 	if sourceLinksCount == 0 {
-		if !updated {
-			logger.Debugf("sidebar_startup user=%q rebuilt=false", user.Username)
-		}
 		return updated
 	}
 
@@ -340,16 +282,9 @@ func updateSidebarLinks(user *users.User) bool {
 		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
 			user.SidebarLinks = normalized
 		}
-		logger.Debugf(
-			"sidebar_startup user=%q rebuilt=true after=%s",
-			user.Username, usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
-		)
 		return true
 	}
 
-	if !updated {
-		logger.Debugf("sidebar_startup user=%q rebuilt=false", user.Username)
-	}
 	return updated
 }
 

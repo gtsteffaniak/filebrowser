@@ -229,10 +229,6 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 
 	promoted := 0
 	for _, user := range usersList {
-		logger.Debugf(
-			"sidebar_migrate bolt_read user=%q count=%d links=%s",
-			user.Username, len(user.SidebarLinks), usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
-		)
 		oldScopesCount := len(user.FrontendScopes)
 		newScopesCount := len(user.BackendScopes)
 		if err := normalizeUserScopesBeforeSQLite(user); err != nil {
@@ -241,26 +237,12 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
 			user.SidebarLinks = normalized
 		}
-		logger.Debugf(
-			"sidebar_migrate after_normalize user=%q backendScopes=%d sidebarCount=%d links=%s",
-			user.Username, len(user.BackendScopes), len(user.SidebarLinks),
-			usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
-		)
 		if len(user.BackendScopes) == 0 {
 			settings.ApplyUserDefaults(user)
-			logger.Debugf(
-				"sidebar_migrate after_apply_defaults user=%q backendScopes=%d sidebarCount=%d links=%s",
-				user.Username, len(user.BackendScopes), len(user.SidebarLinks),
-				usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
-			)
 			if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
 				user.SidebarLinks = normalized
 			}
 		}
-		logger.Debugf(
-			"sidebar_migrate after_normalize_links user=%q sidebarCount=%d links=%s",
-			user.Username, len(user.SidebarLinks), usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
-		)
 		users.MigrateToSourcePermissions(user)
 		normalizeUserTokensBeforeSQLite(user)
 		updateTokens(user)
@@ -269,10 +251,6 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",
 				user.Username, oldScopesCount, newScopesCount)
 		}
-		logger.Debugf(
-			"sidebar_migrate before_sqlite_insert user=%q sidebarCount=%d links=%s",
-			user.Username, len(user.SidebarLinks), usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
-		)
 		boltID := user.ID
 		if err := sqlStore.CreateUser(user); err != nil {
 			return fmt.Errorf("failed to save user %s (bolt id: %d): %w", user.Username, boltID, err)

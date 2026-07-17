@@ -1,5 +1,10 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "../test-setup";
+import {
+    ACCESS_SOURCE_RULES_AFTER_DOCKER_SETUP,
+    sortAccessRules,
+    type AccessRuleExpectation,
+} from "./access-behavior-fixture";
 
 /**
  * Snapshot of the settings Playwright docker fixture after BoltDB → SQLite migration.
@@ -161,26 +166,23 @@ const EXPECTED_API_TOKENS: ApiTokenExpectation[] = [
     {
         name: "full",
         minimal: true,
+        permissions: {
+            admin: true,
+            api: true,
+            share: true,
+            realtime: false,
+        },
     },
 ];
 
-type AccessRuleExpectation = {
-    path: string;
-    denyTotal: number;
-    allowTotal: number;
-};
-
-/** Access rules per source after migration. */
+/** Access rules per source in the settings Playwright docker image. */
 const EXPECTED_ACCESS_RULES: Array<[string, AccessRuleExpectation[]]> = [
     [
         "playwright + files",
         [{ path: "/text-files/bash.sh/", denyTotal: 1, allowTotal: 0 }],
     ],
     ["docker", []],
-    [
-        "access",
-        [{ path: "/", denyTotal: 1, allowTotal: 0 }],
-    ],
+    ["access", ACCESS_SOURCE_RULES_AFTER_DOCKER_SETUP],
 ];
 
 type ShareExpectation = {
@@ -470,6 +472,7 @@ test.describe("Migration fixture verification", () => {
         const listResp = await tokenListResponse;
         const apiTokens = (await listResp.json()) as Array<{
             name: string;
+            minimal?: boolean;
             Permissions?: Record<string, boolean>;
         }>;
         expect(apiTokens.map((token) => token.name).sort()).toEqual(
@@ -486,10 +489,12 @@ test.describe("Migration fixture verification", () => {
             expect(apiToken).toBeDefined();
 
             if (expected.minimal) {
-                expect(
-                    !apiToken?.Permissions ||
-                        Object.values(apiToken.Permissions).every((value) => !value),
-                ).toBe(true);
+                expect(apiToken?.minimal).toBe(true);
+                if (expected.permissions) {
+                    for (const [permission, enabled] of Object.entries(expected.permissions)) {
+                        expect(apiToken?.Permissions?.[permission]).toBe(enabled);
+                    }
+                }
             } else if (expected.permissions) {
                 for (const [permission, enabled] of Object.entries(expected.permissions)) {
                     expect(apiToken?.Permissions?.[permission]).toBe(enabled);
@@ -506,6 +511,9 @@ test.describe("Migration fixture verification", () => {
 
             if (expected.minimal) {
                 await expect(prompt.locator(".minimal-info")).toBeVisible();
+                if (expected.permissions) {
+                    await expect(prompt.locator(".permissions-grid")).toBeVisible();
+                }
             } else if (expected.permissions) {
                 await expect(prompt.locator(".permissions-grid")).toBeVisible();
             }
@@ -588,8 +596,8 @@ test.describe("Migration fixture verification", () => {
             }
 
             await expect
-                .poll(async () => readAccessRuleRows(page))
-                .toEqual(rules);
+                .poll(async () => sortAccessRules(await readAccessRuleRows(page)))
+                .toEqual(sortAccessRules(rules));
         }
 
         checkForErrors();

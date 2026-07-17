@@ -1,46 +1,9 @@
 import { checkForNotification, expect, getOrCreateShareViaApi, selectExpandDropdownOption, test } from '../test-setup'
 
-type AccessRuleSetup = {
-  path: string;
-  allow: boolean;
-  ruleCategory: "user";
-  value: string;
-};
-
-const ACCESS_BEHAVIOR_RULES: AccessRuleSetup[] = [
-  { path: "/", allow: true, ruleCategory: "user", value: "admin" },
-  { path: "/excluded/showme.txt/", allow: true, ruleCategory: "user", value: "admin" },
-  { path: "/denied/", allow: false, ruleCategory: "user", value: "admin" },
-  { path: "/excluded/", allow: false, ruleCategory: "user", value: "admin" },
-];
+// Access behavior rules are seeded at image build time in Dockerfile.playwright-settings
+// (see access-behavior-fixture.ts for the expected rule set).
 
 test.describe("Access rules behavior", () => {
-  test.beforeAll(async ({ playwright }) => {
-    const request = await playwright.request.newContext({
-      baseURL: "http://127.0.0.1/",
-      storageState: "loginAuth.json",
-    });
-    for (const rule of ACCESS_BEHAVIOR_RULES) {
-      const response = await request.post(
-        `/api/access?source=${encodeURIComponent("access")}&path=${encodeURIComponent(rule.path)}`,
-        {
-          data: {
-            allow: rule.allow,
-            ruleCategory: rule.ruleCategory,
-            value: rule.value,
-          },
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-      if (!response.ok()) {
-        throw new Error(
-          `failed to seed access rule ${rule.path}: ${response.status()} ${await response.text()}`,
-        );
-      }
-    }
-    await request.dispose();
-  });
-
   test("access rules - deny folder does not show in folder listing", async ({ page, checkForErrors }) => {
     await page.goto("/files/access");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");

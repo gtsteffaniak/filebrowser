@@ -30,9 +30,9 @@
         <template #cell-issuedAt="{ row }">{{ formatTime(row.issuedAt) }}</template>
         <template #cell-expiresAt="{ row }">{{ formatTime(row.expiresAt) }}</template>
         <template #cell-permissions="{ row }">
-          <template v-if="!row.minimal">
+          <template v-if="permissionsForRow(row)">
             <span
-              v-for="(value, permission) in row.Permissions"
+              v-for="(value, permission) in permissionsForRow(row)"
               :key="permission"
               :title="`${permission}: ${value ? $t('general.enabled') : $t('general.disabled')}`"
               class="clickable"
@@ -163,6 +163,15 @@ export default {
     },
     showResult(value) {
       return value ? "✓" : "✗";
+    },
+    permissionsForRow(row) {
+      if (row?.Permissions && Object.keys(row.Permissions).length > 0) {
+        return row.Permissions;
+      }
+      if (row?.minimal && state.user?.permissions) {
+        return getters.apiTokenPermissionCaps();
+      }
+      return null;
     },
     createPrompt() {
       mutations.showPrompt({

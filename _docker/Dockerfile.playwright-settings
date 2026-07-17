@@ -18,4 +18,8 @@ COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 # Run tests
 ENV FILEBROWSER_PLAYWRIGHT_TEST=true
 RUN ./filebrowser set -u testuser1,testuser1
+RUN ./filebrowser set rule -s access -p / -r user -v admin -allow -c config.yaml
+RUN ./filebrowser set rule -s access -p /excluded/showme.txt -r user -v admin -allow -c config.yaml
+RUN ./filebrowser set rule -s access -p /denied -r user -v admin -c config.yaml
+RUN ./filebrowser set rule -s access -p /excluded -r user -v admin -c config.yaml
 RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

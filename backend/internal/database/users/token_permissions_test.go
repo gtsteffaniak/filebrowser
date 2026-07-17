@@ -36,3 +36,15 @@ func TestHasAnyGlobalPermission(t *testing.T) {
 		t.Fatal("expected api to count as global")
 	}
 }
+
+func TestIsMinimalApiToken(t *testing.T) {
+	if !IsMinimalApiToken(AuthToken{}) {
+		t.Fatal("empty token should be minimal")
+	}
+	if IsMinimalApiToken(AuthToken{BelongsTo: 1, Permissions: Permissions{Admin: true}}) {
+		t.Fatal("custom token with global caps should not be minimal")
+	}
+	if !IsMinimalApiToken(AuthToken{BelongsTo: 1, Permissions: Permissions{Modify: true}}) {
+		t.Fatal("token without global caps should be minimal")
+	}
+}
