@@ -192,16 +192,21 @@ func PreserveModTimes(src, dst string) error {
 	if !info.IsDir() {
 		return os.Chtimes(dst, info.ModTime(), info.ModTime())
 	}
-	return filepath.Walk(src, func(p string, info os.FileInfo, err error) error {
+	return filepath.WalkDir(src, func(p string, d os.DirEntry, err error) error {
 		if err != nil {
 			logger.Debugf("Error accessing %s to set mod time: %v", p, err)
 			return nil
 		}
-		if info.IsDir() {
+		if d.IsDir() {
 			return nil
 		}
 		rel, err := filepath.Rel(src, p)
 		if err != nil {
+			return nil
+		}
+		info, err := d.Info()
+		if err != nil {
+			logger.Debugf("Error getting info for %s: %v", p, err)
 			return nil
 		}
 		if err := os.Chtimes(filepath.Join(dst, rel), info.ModTime(), info.ModTime()); err != nil {
