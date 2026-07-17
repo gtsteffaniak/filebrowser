@@ -8,7 +8,7 @@ import (
 )
 
 // CurrentUserMigrationVersion is persisted for newly created accounts and after legacy migrations finish.
-const CurrentUserMigrationVersion = 3
+const CurrentUserMigrationVersion = 4
 
 type LoginMethod string
 
@@ -88,12 +88,37 @@ type MinimalAuthToken struct {
 type Permissions struct {
 	Api      bool `json:"api"`      // allow api access
 	Admin    bool `json:"admin"`    // allow admin access
-	Modify   bool `json:"modify"`   // allow modifying files
+	Modify   bool `json:"modify,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
 	Share    bool `json:"share"`    // allow sharing files
 	Realtime bool `json:"realtime"` // allow realtime updates
-	Delete   bool `json:"delete"`   // allow deleting files
-	Create   bool `json:"create"`   // allow creating or uploading files
-	Download bool `json:"download"` // allow downloading files
+	Delete   bool `json:"delete,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Create   bool `json:"create,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Download bool `json:"download,omitempty"` // deprecated: legacy user migration only; not used for API tokens
+	View     bool `json:"view,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
+}
+
+// SourceFilePermissions holds per-source file operation permissions (v4+).
+type SourceFilePermissions struct {
+	View     bool `json:"view"`
+	Download bool `json:"download"`
+	Modify   bool `json:"modify"`
+	Delete   bool `json:"delete"`
+	Create   bool `json:"create"`
+}
+
+// DenyAllSourceFilePermissions returns a SourceFilePermissions with all flags false.
+func DenyAllSourceFilePermissions() SourceFilePermissions {
+	return SourceFilePermissions{}
+}
+
+// IsUnset reports whether no permission bit is set, used as the sentinel for "not yet configured".
+func (p SourceFilePermissions) IsUnset() bool {
+	return !p.View && !p.Download && !p.Modify && !p.Delete && !p.Create
+}
+
+// HasAnyFilePermission reports whether any file-operation flag is set on token/global claims.
+func (p Permissions) HasAnyFilePermission() bool {
+	return p.View || p.Download || p.Modify || p.Delete || p.Create
 }
 
 // SortingSettings represents the sorting settings.
@@ -119,15 +144,16 @@ type Preview struct {
 // FrontendUser holds fields safe to return from user APIs (embedded on User).
 type FrontendUser struct {
 	NonAdminEditable
-	DisableSettings bool            `json:"disableSettings"`
-	Username        string          `json:"username"`
-	FrontendScopes  []FrontendScope `json:"scopes"`
-	LockPassword    bool            `json:"lockPassword"`
-	Permissions     Permissions     `json:"permissions"`
-	LoginMethod     LoginMethod     `json:"loginMethod"`
-	OtpEnabled      bool            `json:"otpEnabled"`
-	ShowFirstLogin  bool            `json:"showFirstLogin"`
-	Perm            Permissions     `json:"perm,omitzero"`
+	DisableSettings   bool                             `json:"disableSettings"`
+	Username          string                           `json:"username"`
+	FrontendScopes    []FrontendScope                  `json:"scopes"`
+	LockPassword      bool                             `json:"lockPassword"`
+	Permissions       Permissions                      `json:"permissions"` // global: admin, api, share, realtime
+	SourcePermissions map[string]SourceFilePermissions `json:"sourcePermissions,omitempty"` // deprecated: use scopes[].permissions
+	LoginMethod       LoginMethod                      `json:"loginMethod"`
+	OtpEnabled        bool                             `json:"otpEnabled"`
+	ShowFirstLogin    bool                             `json:"showFirstLogin"`
+	Perm              Permissions                      `json:"perm,omitzero"`
 }
 
 // PinnedItems maps source filesystem path -> index directory path -> pinned item names.
@@ -144,24 +170,27 @@ type User struct {
 	ID uint64 `json:"id,omitempty"`
 	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
 	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
-	BackendScopes      []BackendScope       `json:"backendScopes,omitempty"`
-	Tokens             map[string]AuthToken `json:"tokens,omitempty"`
-	TOTPSecret         string               `json:"totpSecret,omitempty"`
-	TOTPNonce          string               `json:"totpNonce,omitempty"`
-	PasskeyCredentials []WebAuthnCredential `json:"passkeyCredentials,omitempty"`
-	PinnedItems        PinnedItems          `json:"pinnedItems,omitempty"`
-	Version            int                  `json:"version"`
-	UserLegacyFields `json:",inline"`
+	BackendScopes            []BackendScope                   `json:"backendScopes,omitempty"`
+	BackendSourcePermissions map[string]SourceFilePermissions `json:"backendSourcePermissions,omitempty"` // key = source path
+	Tokens                   map[string]AuthToken             `json:"tokens,omitempty"`
+	TOTPSecret               string                           `json:"totpSecret,omitempty"`
+	TOTPNonce                string                           `json:"totpNonce,omitempty"`
+	PasskeyCredentials       []WebAuthnCredential             `json:"passkeyCredentials,omitempty"`
+	PinnedItems              PinnedItems                      `json:"pinnedItems,omitempty"`
+	Version                  int                              `json:"version"`
+	UserLegacyFields         `json:",inline"`
 }
 
 type FrontendScope struct {
-	Name  string `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
-	Scope string `json:"scope"` // index path within that source
+	Name        string                `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
+	Scope       string                `json:"scope"` // index path within that source
+	Permissions *SourceFilePermissions `json:"permissions,omitempty"`
 }
 
 type BackendScope struct {
-	Path  string `json:"path"`  // real path for the source
-	Scope string `json:"scope"` // index path within that source
+	Path        string               `json:"path"`  // real path for the source
+	Scope       string               `json:"scope"` // index path within that source
+	Permissions SourceFilePermissions `json:"permissions,omitempty"`
 }
 
 // json tags must match variable name with smaller case first letter

@@ -1,5 +1,7 @@
 *.db
 *.db.old
+# Playwright settings migration fixture (BoltDB → SQLite tests + Docker settings image)
+!_docker/src/settings/backend/database.db.old
 *.sqlite
 *.bak
 *.log

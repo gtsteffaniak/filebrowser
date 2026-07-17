@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -12,6 +13,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -19,19 +21,95 @@ import (
 // database.path (SQLite) does not exist yet or is empty.
 func checkMigrationNeeded() bool {
 	boltPath := settings.Config.Server.DatabaseV2.MigrateFrom
-	sqlitePath := settings.Config.Server.DatabaseV2.Path
 	if boltPath == "" {
 		return false
 	}
-	boltOK := false
-	if stat, err := os.Stat(boltPath); err == nil && stat.Size() > 0 {
-		boltOK = true
+	if sqliteDatabasePopulated(settings.Config.Server.DatabaseV2.Path) {
+		return false
 	}
-	sqliteExists := false
-	if stat, err := os.Stat(sqlitePath); err == nil && stat.Size() > 0 {
-		sqliteExists = true
+	return legacyBoltDatabasePopulated(boltPath)
+}
+
+// validateDatabasePaths enforces database path rules before opening or creating SQLite:
+//  1. On a fresh install, fail if the configured SQLite path is database.db or an unrenamed
+//     legacy Bolt file (database.db) is present in the working directory.
+//  2. On a fresh install with database.migrateFrom set, fail if the legacy Bolt file is missing
+//     or empty.
+//  3. When SQLite already exists and database.migrateFrom is set, fail if the legacy Bolt file
+//     is missing or empty.
+//
+// Otherwise the existing SQLite database is used, or a new one is created on first open.
+func validateDatabasePaths() error {
+	sqlitePath := settings.Config.Server.DatabaseV2.Path
+	boltPath := settings.Config.Server.DatabaseV2.MigrateFrom
+	sqliteExists := sqliteDatabasePopulated(sqlitePath)
+
+	if !sqliteExists {
+		if filepath.Base(sqlitePath) == "database.db" {
+			return fmt.Errorf(
+				"server.database path cannot be %q; use a different filename for the SQLite database (e.g. filebrowser.sqlite)",
+				sqlitePath,
+			)
+		}
+		if _, err := os.Stat("database.db"); err == nil {
+			return fmt.Errorf(
+				"old version of database file found at database.db, please rename it to database.db.old and set database.migrateFrom",
+			)
+		}
+		if boltPath != "" {
+			return legacyBoltDatabaseError(boltPath, sqlitePath, true)
+		}
+		return nil
 	}
-	return boltOK && !sqliteExists
+
+	if boltPath != "" {
+		return legacyBoltDatabaseError(boltPath, sqlitePath, false)
+	}
+	return nil
+}
+
+func legacyBoltDatabaseError(boltPath, sqlitePath string, freshInstall bool) error {
+	stat, err := os.Stat(boltPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if freshInstall {
+				return fmt.Errorf(
+					"database.migrateFrom is %q but that file does not exist and no SQLite database exists at %q",
+					boltPath,
+					sqlitePath,
+				)
+			}
+			return fmt.Errorf(
+				"database.migrateFrom is %q but that file does not exist; remove migrateFrom from config or restore the legacy database file",
+				boltPath,
+			)
+		}
+		return fmt.Errorf("database.migrateFrom is %q but cannot be read: %w", boltPath, err)
+	}
+	if stat.Size() == 0 {
+		if freshInstall {
+			return fmt.Errorf(
+				"database.migrateFrom is %q but that file is empty and no SQLite database exists at %q",
+				boltPath,
+				sqlitePath,
+			)
+		}
+		return fmt.Errorf(
+			"database.migrateFrom is %q but that file is empty; remove migrateFrom from config or restore the legacy database file",
+			boltPath,
+		)
+	}
+	return nil
+}
+
+func sqliteDatabasePopulated(path string) bool {
+	stat, err := os.Stat(path)
+	return err == nil && stat.Size() > 0
+}
+
+func legacyBoltDatabasePopulated(path string) bool {
+	stat, err := os.Stat(path)
+	return err == nil && stat.Size() > 0
 }
 
 // migrateFromBoltToSQLite migrates essential data from BoltDB to SQLite
@@ -123,6 +201,15 @@ func normalizeUserScopesBeforeSQLite(user *users.User) error {
 	if err != nil {
 		return fmt.Errorf("convert frontend scopes to backend: %w", err)
 	}
+	for i := range backendScopes {
+		backendScopes[i].Permissions = users.SourceFilePermissions{
+			View:     true,
+			Download: user.Permissions.Download,
+			Modify:   user.Permissions.Modify,
+			Delete:   user.Permissions.Delete,
+			Create:   user.Permissions.Create,
+		}
+	}
 	user.FrontendScopes = nil
 	user.BackendScopes = backendScopes
 	return nil
@@ -147,9 +234,18 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		if err := normalizeUserScopesBeforeSQLite(user); err != nil {
 			return fmt.Errorf("failed to normalize scopes for user %s: %w", user.Username, err)
 		}
+		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+			user.SidebarLinks = normalized
+		}
 		if len(user.BackendScopes) == 0 {
 			settings.ApplyUserDefaults(user)
+			if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+				user.SidebarLinks = normalized
+			}
 		}
+		users.MigrateToSourcePermissions(user)
+		normalizeUserTokensBeforeSQLite(user)
+		updateTokens(user)
 		if newScopesCount > oldScopesCount {
 			promoted++
 			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",
@@ -166,6 +262,34 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	}
 	logger.Infof("  ✓ Migrated %d users", len(usersList))
 	return nil
+}
+
+// normalizeUserTokensBeforeSQLite ensures Bolt name-keyed tokens have Name set so
+// TokensForPersist retains them in SQLite user_data (Bolt often stores the name only as the map key).
+func normalizeUserTokensBeforeSQLite(user *users.User) {
+	if len(user.Tokens) == 0 {
+		return
+	}
+	normalized := make(map[string]users.AuthToken)
+	for key, token := range user.Tokens {
+		name := token.Name
+		if name == "" {
+			if key == token.Token {
+				continue
+			}
+			name = key
+		}
+		if _, exists := normalized[name]; exists {
+			continue
+		}
+		token.Name = name
+		if token.Token == "" {
+			token.Token = token.Key
+		}
+		token.Permissions = users.SanitizeTokenPermissions(token.Permissions)
+		users.StoreToken(normalized, token)
+	}
+	user.Tokens = normalized
 }
 
 // migrateShares migrates all shares from BoltDB to SQLite.
@@ -257,8 +381,14 @@ func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	// Migrate access rules
 	ruleCount := 0
 	for source, rules := range storage.AllRules {
+		resolvedSource := source
+		if info, ok := users.ResolveSourceKey(source); ok {
+			resolvedSource = info.Path
+		} else if src, ok := settings.Config.Server.NameToSource[source]; ok {
+			resolvedSource = src.Path
+		}
 		for path, rule := range rules {
-			err := sqlStore.SaveAccessRule(source, path, rule)
+			err := sqlStore.SaveAccessRule(resolvedSource, path, rule)
 			if err != nil {
 				return fmt.Errorf("failed to save access rule: %w", err)
 			}

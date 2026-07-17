@@ -1012,11 +1012,6 @@ func SetDefaults(generate bool) Settings {
 		logger.Fatalf("FILEBROWSER_DATABASE environment variable is deprecated, please migrate your database to SQLite.")
 	}
 
-	// if old version of database exists, error out
-	if _, err := os.Stat("database.db"); err == nil && !generate {
-		logger.Fatalf("old version of database file found, please rename it to database.db.old and follow the migration instructions.")
-	}
-
 	// New SQLite database path
 	databaseV2 := os.Getenv("FILEBROWSER_DATABASE_PATH")
 	if databaseV2 == "" {

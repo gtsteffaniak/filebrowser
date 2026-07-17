@@ -14,6 +14,39 @@ import (
 
 // User operations
 
+// copyBackendSourcePermissions returns a shallow copy of the per-source permissions map.
+func copyBackendSourcePermissions(m map[string]users.SourceFilePermissions) map[string]users.SourceFilePermissions {
+	if m == nil {
+		return nil
+	}
+	out := make(map[string]users.SourceFilePermissions, len(m))
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
+}
+
+// copyUserSlices deep-copies user slice/map fields into userCopy.
+func copyUserSlices(userCopy *users.User, user *users.User) {
+	if user.BackendScopes != nil {
+		userCopy.BackendScopes = make([]users.BackendScope, len(user.BackendScopes))
+		copy(userCopy.BackendScopes, user.BackendScopes)
+	}
+	if user.BackendSourcePermissions != nil {
+		userCopy.BackendSourcePermissions = copyBackendSourcePermissions(user.BackendSourcePermissions)
+	}
+	if user.Tokens != nil {
+		userCopy.Tokens = make(map[string]users.AuthToken, len(user.Tokens))
+		for k, v := range user.Tokens {
+			userCopy.Tokens[k] = v
+		}
+	}
+	if user.SidebarLinks != nil {
+		userCopy.SidebarLinks = make([]users.SidebarLink, len(user.SidebarLinks))
+		copy(userCopy.SidebarLinks, user.SidebarLinks)
+	}
+}
+
 // GetUserByID retrieves a user by stable numeric id from the in-memory cache (JWT belongsTo, admin APIs).
 // Returns a value (not pointer) to prevent modifications to the cache
 func GetUserByID(id uint64) (users.User, error) {
@@ -32,28 +65,12 @@ func GetUserByID(id uint64) (users.User, error) {
 	userCopy := *user
 
 	// Deep copy slices and maps
-	if user.BackendScopes != nil {
-		userCopy.BackendScopes = make([]users.BackendScope, len(user.BackendScopes))
-		copy(userCopy.BackendScopes, user.BackendScopes)
-	}
-
-	if user.Tokens != nil {
-		userCopy.Tokens = make(map[string]users.AuthToken, len(user.Tokens))
-		for k, v := range user.Tokens {
-			userCopy.Tokens[k] = v
-		}
-	}
-
-	if user.SidebarLinks != nil {
-		userCopy.SidebarLinks = make([]users.SidebarLink, len(user.SidebarLinks))
-		copy(userCopy.SidebarLinks, user.SidebarLinks)
-	}
+	copyUserSlices(&userCopy, user)
 
 	return userCopy, nil
 }
 
-// GetAllUsers returns all users from the in-memory cache
-// Returns a value (not pointer) to prevent modifications to the cache
+// GetUserByUsername returns a user by username from the in-memory cache.
 func GetUserByUsername(username string) (users.User, error) {
 	usersMux.RLock()
 	defer usersMux.RUnlock()
@@ -67,22 +84,7 @@ func GetUserByUsername(username string) (users.User, error) {
 	userCopy := *user
 
 	// Deep copy slices and maps
-	if user.BackendScopes != nil {
-		userCopy.BackendScopes = make([]users.BackendScope, len(user.BackendScopes))
-		copy(userCopy.BackendScopes, user.BackendScopes)
-	}
-
-	if user.Tokens != nil {
-		userCopy.Tokens = make(map[string]users.AuthToken, len(user.Tokens))
-		for k, v := range user.Tokens {
-			userCopy.Tokens[k] = v
-		}
-	}
-
-	if user.SidebarLinks != nil {
-		userCopy.SidebarLinks = make([]users.SidebarLink, len(user.SidebarLinks))
-		copy(userCopy.SidebarLinks, user.SidebarLinks)
-	}
+	copyUserSlices(&userCopy, user)
 
 	return userCopy, nil
 }
@@ -110,22 +112,7 @@ func GetAllUsers() ([]users.User, error) {
 		userCopy := *user
 
 		// Deep copy slices and maps
-		if user.BackendScopes != nil {
-			userCopy.BackendScopes = make([]users.BackendScope, len(user.BackendScopes))
-			copy(userCopy.BackendScopes, user.BackendScopes)
-		}
-
-		if user.Tokens != nil {
-			userCopy.Tokens = make(map[string]users.AuthToken, len(user.Tokens))
-			for k, v := range user.Tokens {
-				userCopy.Tokens[k] = v
-			}
-		}
-
-		if user.SidebarLinks != nil {
-			userCopy.SidebarLinks = make([]users.SidebarLink, len(user.SidebarLinks))
-			copy(userCopy.SidebarLinks, user.SidebarLinks)
-		}
+		copyUserSlices(&userCopy, user)
 
 		usersList = append(usersList, userCopy)
 	}
@@ -175,17 +162,13 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 
 	// Incoming API "scopes" → BackendScopes; FrontendScopes must not remain on the persisted user.
-	if len(user.FrontendScopes) > 0 {
-		backend, convErr := users.APIScopesToBackend(user.FrontendScopes)
-		if convErr != nil {
-			return convErr
-		}
-		user.BackendScopes = backend
+	if err := applyScopesFromAPI(user); err != nil {
+		return err
 	}
-	user.FrontendScopes = nil
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
 	settings.ApplyUserDefaults(user)
+	users.SyncBackendSourcePermissionsMap(user)
 
 	usersMux.Lock()
 	defer usersMux.Unlock()
@@ -294,29 +277,28 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 
 	// Request JSON "scopes" → BackendScopes only; FrontendScopes are never persisted (see PrepForFrontend).
 	if updateAll {
-		if len(existingUser.FrontendScopes) > 0 {
-			backend, convErr := users.APIScopesToBackend(existingUser.FrontendScopes)
-			if convErr != nil {
-				return convErr
-			}
-			existingUser.BackendScopes = backend
+		if err := applyScopesFromAPI(existingUser); err != nil {
+			return err
 		}
 	} else {
-		if !fieldListPatchesBackendScopes(fields) {
+		if fieldListPatchesBackendScopes(fields) || fieldListPatchesAPISourcePermissions(fields) {
+			if err := applyScopesFromAPI(existingUser); err != nil {
+				return err
+			}
+		} else {
 			for _, jsonFieldName := range fields {
-				if strings.EqualFold(jsonFieldName, "scopes") {
-					backend, convErr := users.APIScopesToBackend(existingUser.FrontendScopes)
-					if convErr != nil {
-						return convErr
+				if strings.EqualFold(jsonFieldName, "scopes") || strings.EqualFold(jsonFieldName, "sourcePermissions") {
+					if err := applyScopesFromAPI(existingUser); err != nil {
+						return err
 					}
-					existingUser.BackendScopes = backend
 					break
 				}
 			}
 		}
 	}
-	// Keep cache aligned with SQL: derive FrontendScopes only when serving GET.
+	users.SyncBackendSourcePermissionsMap(existingUser)
 	existingUser.FrontendScopes = nil
+	existingUser.SourcePermissions = nil
 
 	// 3. Write to database
 	var err error
@@ -358,6 +340,9 @@ func preserveServerManagedFields(old, new *users.User) {
 	if new.PinnedItems == nil && old.PinnedItems != nil {
 		new.PinnedItems = old.PinnedItems
 	}
+	if new.BackendSourcePermissions == nil && old.BackendSourcePermissions != nil {
+		new.BackendSourcePermissions = copyBackendSourcePermissions(old.BackendSourcePermissions)
+	}
 	if new.OtpEnabled && new.TOTPSecret == "" && new.TOTPNonce == "" && old.TOTPSecret != "" {
 		new.TOTPSecret = old.TOTPSecret
 		new.TOTPNonce = old.TOTPNonce
@@ -377,6 +362,67 @@ func fieldListPatchesBackendScopes(fields []string) bool {
 		}
 	}
 	return false
+}
+
+func fieldListPatchesAPISourcePermissions(fields []string) bool {
+	for _, f := range fields {
+		f = strings.TrimSpace(f)
+		if strings.EqualFold(f, "sourcePermissions") || strings.EqualFold(f, "scopes") {
+			return true
+		}
+	}
+	return false
+}
+
+// applyScopesFromAPI converts API scopes (with nested permissions) into BackendScopes.
+// Legacy sourcePermissions map is merged into scopes when permissions are omitted per scope.
+func applyScopesFromAPI(user *users.User) error {
+	if len(user.SourcePermissions) > 0 && len(user.FrontendScopes) > 0 {
+		byName := make(map[string]users.SourceFilePermissions, len(user.SourcePermissions))
+		for name, perms := range user.SourcePermissions {
+			byName[name] = perms
+		}
+		for i, scope := range user.FrontendScopes {
+			if scope.Permissions != nil {
+				continue
+			}
+			if perms, ok := byName[scope.Name]; ok {
+				p := perms
+				user.FrontendScopes[i].Permissions = &p
+			}
+		}
+	}
+	defaults := settings.DefaultSourceFilePermissions()
+	if user.Permissions.Admin {
+		defaults = settings.AdminSourceFilePermissions()
+	}
+	for i, scope := range user.FrontendScopes {
+		if scope.Permissions != nil {
+			continue
+		}
+		p := defaults
+		user.FrontendScopes[i].Permissions = &p
+	}
+	if len(user.FrontendScopes) > 0 {
+		backend, convErr := users.APIScopesToBackend(user.FrontendScopes)
+		if convErr != nil {
+			return convErr
+		}
+		user.BackendScopes = backend
+	} else if len(user.SourcePermissions) > 0 {
+		backendPerms, convErr := users.APISourcePermsToBackend(user.SourcePermissions)
+		if convErr != nil {
+			return convErr
+		}
+		for i, scope := range user.BackendScopes {
+			if perms, ok := backendPerms[scope.Path]; ok {
+				user.BackendScopes[i].Permissions = perms
+			}
+		}
+	}
+	user.FrontendScopes = nil
+	user.SourcePermissions = nil
+	return nil
 }
 
 // findFieldByJSONTag recursively searches for a struct field by its JSON tag name

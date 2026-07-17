@@ -446,7 +446,7 @@ export const getters = {
         return true
       }
     } else {
-      if (!state.user.permissions.download) {
+      if (!getters.permissions().view) {
         return true
       }
     }
@@ -592,10 +592,11 @@ export const getters = {
     const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
     return getters.currentView() === "listingView" || isAdvancedSearchRoute;
   },
-  permissions: () => {
+  permissions: (source) => {
     if (getters.isShare()) {
       return {
         share: false,
+        view: !state.shareInfo?.disableFileViewer,
         modify: state.shareInfo?.allowModify,
         create: state.shareInfo?.allowCreate,
         delete: state.shareInfo?.allowDelete,
@@ -606,16 +607,43 @@ export const getters = {
         archive: false,
       };
     }
+    const activeSource =
+      source ?? state.req?.source ?? state.sources?.current ?? "";
+    const globalPerms = state.user?.permissions ?? {};
+    const denyFile = {
+      view: false,
+      download: false,
+      modify: false,
+      create: false,
+      delete: false,
+    };
+    const filePerms = (() => {
+      if (!activeSource || !Array.isArray(state.user?.scopes)) {
+        return denyFile;
+      }
+      const scopeEntry = state.user.scopes.find((entry) => entry?.name === activeSource);
+      return scopeEntry?.permissions ?? denyFile;
+    })();
     return {
-      share:
-      !!(state.user?.permissions?.share || state.user?.permissions?.admin),
-      modify: state.user?.permissions?.modify,
-      create: state.user?.permissions?.create,
-      delete: state.user?.permissions?.delete,
-      download: state.user?.permissions?.download,
-      admin: state.user?.permissions?.admin,
-      api: state.user?.permissions?.api,
-      archive: state.user?.permissions?.archive,
+      share: !!(globalPerms.share || globalPerms.admin),
+      admin: globalPerms.admin,
+      api: globalPerms.api,
+      realtime: globalPerms.realtime,
+      archive: globalPerms.archive,
+      view: filePerms.view,
+      modify: filePerms.modify,
+      create: filePerms.create,
+      delete: filePerms.delete,
+      download: filePerms.download,
+    };
+  },
+  apiTokenPermissionCaps: () => {
+    const globalPerms = state.user?.permissions ?? {};
+    return {
+      admin: !!globalPerms.admin,
+      api: !!globalPerms.api,
+      share: !!globalPerms.share,
+      realtime: !!globalPerms.realtime,
     };
   },
   previewPerms: () => {

@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "كلمة المرور"
     },
-    "permissionsHelp": "تتحكم أذونات المستخدم في الوصول إلى نوع الإجراءات التي يمكن للمستخدم تنفيذها. يمنح الوصول إلى المسؤول التحكم الكامل لتحديث وتغيير إعدادات أي مستخدم بالإضافة إلى العديد من إعدادات النظام.",
     "configViewer": "عارض التكوين",
     "modifyOtherUserTitle": "تعديل المستخدم: {username}",
     "configViewerOpen": "عرض الإعدادات",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "ستقوم تحليلات النشر القائمة على الموافقة الطوعية بإرسال معلومات مجهولة المصدر إلى خوادم مطوري FileBrowser Quantum للمساعدة في تحسين التطبيق.",
     "analyticsLoadFailed": "فشل تحميل إعدادات التحليلات",
     "analyticsUpdateFailed": "فشل تحديث إعدادات التحليلات",
-    "analyticsPreviewFailed": "فشل تحميل معلومات تشخيص التحليلات"
+    "analyticsPreviewFailed": "فشل تحميل معلومات تشخيص التحليلات",
+    "scopePath": "مسار النطاق",
+    "sourcePermissionsHelp": "قم بتوسيع صف المصدر لتعيين أذونات العرض والتنزيل والتعديل والإنشاء والحذف لهذا المصدر.",
+    "permissionsHelp": "تسري الأذونات العامة للمستخدم في كل مكان، بما في ذلك جميع المصادر والمشاركات."
   },
   "sidebar": {
     "updateIsAvailable": "يتوفر تحديث!",
@@ -462,7 +464,6 @@
     "permanent": "دائم",
     "hash": "تجزئة",
     "of": "من",
-    "source": "المصدر{suffix}",
     "percentage": "{percentage}%",
     "type": "النوع{suffix}",
     "size": "الحجم{suffix}",
@@ -472,7 +473,6 @@
     "logout": "تسجيل الخروج{suffix}",
     "preview": "معاينة{suffix}",
     "settings": "الإعدادات{suffix}",
-    "sources": "المصادر{suffix}",
     "links": "الروابط{suffix}",
     "tool": "الأداة{suffix}",
     "status": "الحالة{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "تشغيل/إيقاف مؤقت",
     "clearSelection": "مسح التحديد",
     "interval": "الفاصل الزمني{suffix}",
-    "none": "لا شيء"
+    "none": "لا شيء",
+    "viewFiles": "عرض الملفات وإدراجها في قائمة",
+    "source": "{prefix}المصدر{suffix}",
+    "sources": "{prefix}المصادر{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

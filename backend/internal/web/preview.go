@@ -66,6 +66,13 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 	if source == "" {
 		return http.StatusBadRequest, fmt.Errorf("source is required")
 	}
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Path:     path,
 		Source:   source,

@@ -291,7 +291,7 @@ export default {
       if (getters.isShare()) {
         return !!getters.permissions().create;
       }
-      return getters.isAdmin() || !!state.user?.permissions?.create;
+      return getters.isAdmin() || !!getters.permissions().create;
     },
     /** New folder / new file / upload — requires permissions.create only (not admin alone). */
     showCreateFileActions() {

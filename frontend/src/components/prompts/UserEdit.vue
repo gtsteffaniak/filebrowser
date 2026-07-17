@@ -94,32 +94,42 @@
 
       <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">
         <label for="scopes">{{ $t("settings.scopes") }}</label>
-        <div class="scope-list" :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
-          v-for="(source, index) in selectedSources" :key="index">
-          <ExpandDropdown
-            :model-value="source.name"
-            class="flat-right form-compact source-dropdown"
-            :options="scopeSourceOptionsFor(source.name)"
-            :aria-label="$t('settings.scopes')"
-            @update:model-value="(newName) => handleSourceChange(source, newName)"
-          />
-
-          <div
-            :aria-label="`user-edit-scope-path-${index}`"
-            class="clickable button flat-left scope-path-display"
-            :class="{ 'flat-right': selectedSources.length > 1 }"
-            @click="onScopePathRowClick(index, source)"
-          >{{ scopePathDisplay(source) }}
+        <p class="small">{{ $t("settings.sourcePermissionsHelp") }}</p>
+        <ExpandDropdown
+          v-model="selectedSourceNames"
+          class="source-dropdown-select"
+          :options="allSourceOptions"
+          allow-multiple
+          multi-summary-mode="count"
+          :default-placeholder-if-empty="noSourcesPlaceholder"
+          :aria-label="$t('settings.scopes')"
+        />
+        <div class="scope-blocks">
+          <div class="scope-block" v-for="source in selectedSources" :key="source.name">
+            <SettingsItem
+              :title="sourceBlockTitle(source)"
+              :collapsable="true"
+              :force-collapsed="expandedSourceName !== source.name"
+              @toggle="onSourceExpandToggle(source.name)"
+            >
+              <div class="scope-path-row">
+                <label class="scope-path-label">{{ $t("settings.scopePath") }}</label>
+                <button
+                  type="button"
+                  :aria-label="`user-edit-scope-path-${source.name}`"
+                  class="clickable button scope-path-display"
+                  @click="onScopePathRowClick(source)"
+                >{{ scopePathDisplay(source) }}
+                </button>
+              </div>
+              <source-file-permissions
+                :permissions="sourcePermissionsFor(source.name)"
+                @changed="markScopePermissionsExplicit(source.name)"
+              />
+            </SettingsItem>
           </div>
-          <button v-if="selectedSources.length > 1" type="button" class="button flat-left no-height" @click="removeScope(index)">
-            <i class="material-symbols material-size">delete</i>
-          </button>
         </div>
       </div>
-
-      <button v-if="hasMoreSources" @click="addNewScopeSource" type="button" class="button no-height">
-        <i class="material-symbols material-size">add</i>
-      </button>
 
       <p v-if="stateUser.username !== user.username">
         <label for="locale">{{ $t("general.language") }}</label>
@@ -135,7 +145,7 @@
           @update:model-value="emitUpdate"
         />
       </div>
-      <permissions v-if="stateUser.permissions.admin && user.permissions" :permissions="user.permissions" />
+      <global-permissions v-if="stateUser.permissions.admin && user.permissions" :permissions="user.permissions" />
     </div>
   </div>
 
@@ -159,7 +169,9 @@ import { mutations, state } from "@/store";
 import { usersApi, settingsApi, authApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import Permissions from "@/components/settings/Permissions.vue";
+import GlobalPermissions from "@/components/settings/GlobalPermissions.vue";
+import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
+import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
@@ -172,7 +184,9 @@ export default {
   components: {
     Languages,
     ExpandDropdown,
-    Permissions,
+    GlobalPermissions,
+    SourceFilePermissions,
+    SettingsItem,
     ToggleSwitch,
     Errors,
   },
@@ -204,12 +218,13 @@ export default {
       loaded: false,
       originalUserScope: ".",
       sourceList: [],
-      availableSources: [],
       selectedSources: [],
+      expandedSourceName: null,
       passwordRef: "",
       pendingScopeSelectionContextId: null,
-      pendingScopeIndex: null,
+      pendingScopeSourceName: null,
       addingPasskey: false,
+      sourceFilePermissionDefaults: null,
     };
   },
   async created() {
@@ -237,6 +252,11 @@ export default {
     stateUser() {
       return state.user;
     },
+    noSourcesPlaceholder() {
+      return this.$t("general.sources", {
+        prefix: this.$t("general.no", { suffix: " " }),
+      });
+    },
     invalidPassword() {
       const matching =
         this.user.password !== this.passwordRef && this.user.password.length > 0;
@@ -253,12 +273,51 @@ export default {
     },
     passwordAvailable: () => globalVars.passwordAvailable,
     globalVars: () => globalVars,
-    duplicateSources() {
-      const names = this.selectedSources.map((s) => s.name);
-      return names.filter((name, idx) => names.indexOf(name) !== idx);
+    allSourceOptions() {
+      return (this.sourceList || []).map((source) => ({
+        value: source.name,
+        label: source.name,
+      }));
     },
-    hasMoreSources() {
-      return this.selectedSources.length < this.sourceList.length;
+    selectedSourceNames: {
+      get() {
+        return this.selectedSources.map((source) => source.name).filter(Boolean);
+      },
+      set(names) {
+        const selected = Array.isArray(names) ? names.filter(Boolean) : [];
+        const previousByName = new Map(
+          this.selectedSources
+            .filter((source) => source.name)
+            .map((source) => [source.name, source])
+        );
+        const previousNames = this.selectedSourceNames;
+        for (const name of previousNames) {
+          if (!selected.includes(name)) {
+            const idx = this.selectedSources.findIndex((source) => source.name === name);
+            if (idx >= 0) {
+              this.selectedSources.splice(idx, 1);
+            }
+          }
+        }
+        this.selectedSources = selected.map((name) => {
+          if (previousByName.has(name)) {
+            return previousByName.get(name);
+          }
+          return {
+            name,
+            scope: "/",
+            permissions: undefined,
+            permissionsExplicit: false,
+          };
+        });
+        if (
+          this.expandedSourceName !== null
+          && !selected.includes(this.expandedSourceName)
+        ) {
+          this.expandedSourceName = null;
+        }
+        this.emitUserUpdate();
+      },
     },
     loginMethodOptions() {
       const options = [];
@@ -323,13 +382,71 @@ export default {
       return {
         admin: false,
         api: false,
-        modify: false,
         share: false,
         realtime: false,
-        delete: false,
-        create: false,
-        download: true,
       };
+    },
+    defaultSourceFilePermissions() {
+      if (this.sourceFilePermissionDefaults) {
+        return { ...this.sourceFilePermissionDefaults };
+      }
+      return {
+        view: true,
+        download: true,
+        modify: false,
+        create: false,
+        delete: false,
+      };
+    },
+    async loadSourceFilePermissionDefaults() {
+      if (this.sourceFilePermissionDefaults) {
+        return;
+      }
+      try {
+        const defaults = await settingsApi.get("userDefaults");
+        const perms = defaults?.account?.permissions ?? {};
+        this.sourceFilePermissionDefaults = {
+          view: true,
+          download: perms.download !== false,
+          modify: !!perms.modify,
+          create: !!perms.create,
+          delete: !!perms.delete,
+        };
+      } catch (e) {
+        console.error(e);
+        this.sourceFilePermissionDefaults = {
+          view: true,
+          download: true,
+          modify: false,
+          create: false,
+          delete: false,
+        };
+      }
+    },
+    markScopePermissionsExplicit(sourceName) {
+      const scope = this.selectedSources.find((entry) => entry.name === sourceName);
+      if (scope) {
+        scope.permissionsExplicit = true;
+      }
+    },
+    sourcePermissionsFor(sourceName) {
+      const scope = this.selectedSources.find((entry) => entry.name === sourceName);
+      if (!scope) {
+        return this.defaultSourceFilePermissions();
+      }
+      if (!scope.permissions) {
+        scope.permissions = { ...this.defaultSourceFilePermissions() };
+      }
+      return scope.permissions;
+    },
+    toggleSourceExpanded(sourceName) {
+      this.expandedSourceName = this.expandedSourceName === sourceName ? null : sourceName;
+    },
+    onSourceExpandToggle(sourceName) {
+      this.toggleSourceExpanded(sourceName);
+    },
+    sourceBlockTitle(source) {
+      return source?.name || "";
     },
     normalizeFormUser(raw) {
       const user = { ...(raw ?? {}) };
@@ -339,10 +456,42 @@ export default {
           user.permissions.download = true;
         }
       }
+      if (user.permissions) {
+        delete user.permissions.modify;
+        delete user.permissions.create;
+        delete user.permissions.delete;
+        delete user.permissions.download;
+        delete user.permissions.view;
+      }
       if (user.permissions === null || user.permissions === undefined) {
         user.permissions = this.defaultPermissions();
       }
+      user.scopes = this.normalizeScopesForForm(user.scopes, user.sourcePermissions);
+      delete user.sourcePermissions;
       return user;
+    },
+    normalizeScopesForForm(scopes, legacySourcePermissions) {
+      const normalized = Array.isArray(scopes) ? scopes.map((scope) => ({
+        name: scope?.name || "",
+        scope: this.normalizeScopeForApi(scope?.scope),
+        permissions: scope?.permissions
+          ? { ...scope.permissions }
+          : undefined,
+        permissionsExplicit: !!scope?.permissions,
+      })) : [];
+      if (legacySourcePermissions && typeof legacySourcePermissions === "object") {
+        for (const entry of normalized) {
+          if (!entry.permissions && legacySourcePermissions[entry.name]) {
+            entry.permissions = { ...legacySourcePermissions[entry.name] };
+          }
+        }
+      }
+      for (const entry of normalized) {
+        if (!entry.permissions) {
+          entry.permissionsExplicit = false;
+        }
+      }
+      return normalized;
     },
     /** Scope path sent to the API: trimmed, or "/" when empty (matches backend root). */
     normalizeScopeForApi(scope) {
@@ -379,24 +528,7 @@ export default {
           this.user.password = "";
           // Normalize scopes to ensure they're in {name, scope} format only
           if (this.user.scopes && Array.isArray(this.user.scopes)) {
-            this.user.scopes = this.user.scopes.map((scope) => {
-              // If it's already in the correct format, use it
-              if (scope.name !== undefined && scope.scope !== undefined) {
-                return {
-                  name: scope.name,
-                  scope: this.normalizeScopeForApi(scope.scope),
-                };
-              }
-              // If it's a full source object, extract just name and scope
-              if (scope.name && typeof scope.name === "string") {
-                return {
-                  name: scope.name,
-                  scope: this.normalizeScopeForApi(scope.scope),
-                };
-              }
-              // Fallback: try to extract from any object structure
-              return { name: "", scope: "/" };
-            });
+            this.user.scopes = this.normalizeScopesForForm(this.user.scopes);
           }
           // Ensure loginMethod is valid, set to first available method if not set or invalid
           const validMethods = [];
@@ -420,6 +552,7 @@ export default {
       }
     },
     async initializeForm() {
+      await this.loadSourceFilePermissionDefaults();
       if (!this.stateUser.permissions.admin) {
         this.sourceList = this.user.scopes || [];
       } else {
@@ -429,21 +562,20 @@ export default {
       this.user.password = this.user.password || "";
       // Set default login method
       this.setDefaultLoginMethod();
-      this.selectedSources = this.user.scopes || [];
-      this.availableSources = this.sourceList.filter(
-        (s) => !this.selectedSources.some((sel) => sel.name === s.name)
-      );
+      const catalogueNames = new Set((this.sourceList || []).map((source) => source.name));
+      this.selectedSources = (this.user.scopes || [])
+        .filter((scope) => scope?.name && catalogueNames.has(scope.name))
+        .map((scope) => ({
+        name: scope.name || "",
+        scope: this.normalizeScopeForApi(scope.scope),
+        permissions: scope.permissions
+          ? { ...scope.permissions }
+          : undefined,
+        permissionsExplicit: !!scope.permissions,
+      }));
 
-      if (this.isNew && this.availableSources.length) {
-        const newSource = this.availableSources.shift();
-        if (newSource) {
-          // Only store {name, scope} format, not the full source config
-          this.selectedSources.push({
-            name: newSource.name || "",
-            scope: "/",
-          });
-          this.emitUserUpdate();
-        }
+      if (this.isNew && this.selectedSources.length === 0 && this.sourceList.length > 0) {
+        this.selectedSourceNames = [this.sourceList[0].name];
       }
     },
     deletePrompt() {
@@ -480,10 +612,21 @@ export default {
         const fields = ["all"];
         // Transform selectedSources to only include {name, scope} format
         // Empty scope strings should be passed as "" for backend to handle defaults
-        const scopesToSend = this.selectedSources.map((source) => ({
-          name: source.name || "",
-          scope: this.normalizeScopeForApi(source.scope),
-        }));
+        const scopesToSend = this.selectedSources.map((source) => {
+          const entry = {
+            name: source.name || "",
+            scope: this.normalizeScopeForApi(source.scope),
+          };
+          if (source.permissionsExplicit) {
+            entry.permissions = { ...this.sourcePermissionsFor(source.name) };
+          }
+          return entry;
+        });
+        const payload = {
+          ...this.user,
+          scopes: scopesToSend,
+        };
+        delete payload.sourcePermissions;
 
         if (this.isNew) {
           if (!state.user.permissions.admin) {
@@ -491,7 +634,7 @@ export default {
             return;
           }
           await usersApi.create(
-            { ...this.user, scopes: scopesToSend },
+            payload,
             {
               actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
             }
@@ -501,7 +644,7 @@ export default {
           // Close the prompt
           mutations.closeTopPrompt();
         } else {
-          await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
+          await usersApi.update(payload, fields);
           eventBus.emit('usersChanged');
           notify.showSuccessToast(this.$t("settings.userUpdated"));
           mutations.closeTopPrompt();
@@ -563,11 +706,11 @@ export default {
     setUpdatePassword() {
       // This method is kept for compatibility but not used in the new structure
     },
-    onScopePathRowClick(index, source) {
+    onScopePathRowClick(source) {
       if (!source?.name) {
         return;
       }
-      this.openScopePicker(index);
+      this.openScopePicker(source);
     },
     scopePathDisplay(source) {
       const s = source?.scope;
@@ -576,21 +719,22 @@ export default {
       }
       return "/";
     },
-    openScopePicker(index) {
-      const row = this.selectedSources.at(index);
-      if (!row?.name) {
+    openScopePicker(source) {
+      if (!source?.name) {
         return;
       }
       const selectionContextId = `user-scope-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
       this.pendingScopeSelectionContextId = selectionContextId;
-      this.pendingScopeIndex = index;
+      this.pendingScopeSourceName = source.name;
       const initialPath =
-        row.scope && typeof row.scope === "string" && row.scope.length > 0 ? row.scope : "/";
+        source.scope && typeof source.scope === "string" && source.scope.length > 0
+          ? source.scope
+          : "/";
       mutations.showPrompt({
         name: "pathPicker",
         props: {
           currentPath: initialPath,
-          currentSource: row.name,
+          currentSource: source.name,
           hideDestinationSource: true,
           selectionContextId,
         },
@@ -604,7 +748,7 @@ export default {
         return;
       }
       this.pendingScopeSelectionContextId = null;
-      this.pendingScopeIndex = null;
+      this.pendingScopeSourceName = null;
     },
     onPathSelectedFromPicker(data) {
       if (!this.pendingScopeSelectionContextId) {
@@ -614,43 +758,15 @@ export default {
         return;
       }
       this.pendingScopeSelectionContextId = null;
-      const idx = this.pendingScopeIndex;
-      this.pendingScopeIndex = null;
-      if (idx === null || idx === undefined || typeof data.path !== "string") {
+      const sourceName = this.pendingScopeSourceName;
+      this.pendingScopeSourceName = null;
+      if (!sourceName || typeof data.path !== "string") {
         return;
       }
       const path = data.path;
-      const next = this.selectedSources.map((s, i) =>
-        i === idx ? { ...s, scope: path } : s
+      this.selectedSources = this.selectedSources.map((source) =>
+        source.name === sourceName ? { ...source, scope: path } : source
       );
-      this.selectedSources = next;
-      this.emitUserUpdate();
-    },
-    addNewScopeSource(event) {
-      event.preventDefault();
-      if (this.hasMoreSources) {
-        this.selectedSources.push({ name: "", scope: "" });
-        this.emitUserUpdate();
-      }
-    },
-    removeScope(index) {
-      const removed = this.selectedSources.splice(index, 1)[0];
-      this.availableSources.push({ name: removed.name });
-      this.emitUserUpdate();
-    },
-    scopeSourceOptionsFor(currentName) {
-      const taken = new Set(this.selectedSources.map((s) => s.name).filter(Boolean));
-      return this.sourceList
-        .filter((s) => s.name === currentName || !taken.has(s.name))
-        .map((s) => ({ value: s.name, label: s.name }));
-    },
-    handleSourceChange(source, newName) {
-      const oldName = source.name;
-      this.availableSources = this.availableSources.filter((s) => s.name !== newName);
-      if (oldName && !this.availableSources.find((s) => s.name === oldName)) {
-        this.availableSources.push({ name: oldName });
-      }
-      source.name = newName;
       this.emitUserUpdate();
     },
     updateUserField(field, value) {
@@ -711,29 +827,41 @@ export default {
 </script>
 
 <style scoped>
-.scope-list {
+.scope-blocks {
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
+  gap: 0.75em;
+  margin-top: 0.75em;
 }
 
-.scope-list > .expand-dropdown.flat-right .expand-dropdown-anchor {
-  border-right-width: 0;
+.source-dropdown-select {
+  width: 100%;
 }
 
-.source-dropdown {
-  width: unset;
+.scope-path-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  margin-bottom: 0.75em;
+}
+
+.scope-path-label {
+  font-size: 0.9em;
+  color: var(--textSecondary, #888);
+}
+
+.scope-block :deep(.settings-group) {
+  margin-top: 0.35em;
+}
+
+.scope-block :deep(.settings-group-title) {
+  padding: 0.5em 0.75em;
+  border: 1px solid var(--borderColor, #ddd);
+  border-radius: var(--borderRadius, 4px);
 }
 
 .scope-path-display {
   width: 100%;
-}
-
-.no-height {
-  height: unset;
-}
-
-.material-size {
-  font-size: 1em !important;
 }
 
 .passkey-list {

@@ -24,7 +24,7 @@ import (
 // @Produce json
 // @Param name query string true "Name of the API token"
 // @Param days query string true "Duration of the API token in days"
-// @Param permissions query string true "Permissions for the API token (comma-separated)"
+// @Param permissions query string false "Global permissions for the API token (comma-separated: admin, api, share, realtime). Omit for minimal token."
 // @Success 200 {object} HttpResponse "Token created successfully, response contains json object with token"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "Not found"
@@ -52,17 +52,13 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	// For minimal tokens (minimal=true), permissions are not in the token
 	var permissions users.Permissions
 	if !minimal {
-		// Parse permissions from the query parameter
 		permissions = users.Permissions{
 			Api:      strings.Contains(permissionsStr, "api") && d.User.Permissions.Api,
 			Admin:    strings.Contains(permissionsStr, "admin") && d.User.Permissions.Admin,
-			Modify:   strings.Contains(permissionsStr, "modify") && d.User.Permissions.Modify,
-			Delete:   strings.Contains(permissionsStr, "delete") && d.User.Permissions.Delete,
-			Create:   strings.Contains(permissionsStr, "create") && d.User.Permissions.Create,
 			Share:    strings.Contains(permissionsStr, "share") && d.User.Permissions.Share,
 			Realtime: strings.Contains(permissionsStr, "realtime") && d.User.Permissions.Realtime,
-			Download: strings.Contains(permissionsStr, "download") && d.User.Permissions.Download,
 		}
+		permissions = users.SanitizeTokenPermissions(permissions)
 	}
 
 	// Convert the duration string to an int64
@@ -151,7 +147,24 @@ type AuthTokenFrontend struct {
 	Name        string            `json:"name"`
 	IssuedAt    int64             `json:"issuedAt"`
 	ExpiresAt   int64             `json:"expiresAt"`
+	Minimal     bool              `json:"minimal"`
 	Permissions users.Permissions `json:"Permissions,omitempty"`
+}
+
+func authTokenForFrontend(name string, token users.AuthToken, owner *users.User) AuthTokenFrontend {
+	minimal := users.IsMinimalApiToken(token)
+	perms := users.SanitizeTokenPermissions(token.Permissions)
+	if minimal && owner != nil {
+		perms = users.SanitizeTokenPermissions(owner.Permissions)
+	}
+	return AuthTokenFrontend{
+		Token:       token.Token,
+		Name:        name,
+		IssuedAt:    authTokenIssuedUnix(token),
+		ExpiresAt:   authTokenExpiresUnix(token),
+		Minimal:     minimal,
+		Permissions: perms,
+	}
 }
 
 // authTokenIssuedUnix returns iat from JWT claims when set, otherwise the persisted int64 (e.g. loaded from DB).
@@ -189,13 +202,7 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	}
 	AuthTokensFrontend := make([]AuthTokenFrontend, 0)
 	users.EachNamedToken(d.User.Tokens, func(name string, token users.AuthToken) {
-		AuthTokensFrontend = append(AuthTokensFrontend, AuthTokenFrontend{
-			Token:       token.Token,
-			Name:        name,
-			IssuedAt:    authTokenIssuedUnix(token),
-			ExpiresAt:   authTokenExpiresUnix(token),
-			Permissions: token.Permissions,
-		})
+		AuthTokensFrontend = append(AuthTokensFrontend, authTokenForFrontend(name, token, d.User))
 	})
 	if len(AuthTokensFrontend) == 0 {
 		return http.StatusNotFound, fmt.Errorf("no api tokens found")
@@ -228,12 +235,6 @@ func getApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("api token not found")
 	}
-	AuthTokenFrontendResponse := AuthTokenFrontend{
-		Token:       tokenInfo.Token,
-		Name:        name,
-		IssuedAt:    authTokenIssuedUnix(tokenInfo),
-		ExpiresAt:   authTokenExpiresUnix(tokenInfo),
-		Permissions: tokenInfo.Permissions,
-	}
+	AuthTokenFrontendResponse := authTokenForFrontend(name, tokenInfo, d.User)
 	return RenderJSON(w, r, AuthTokenFrontendResponse)
 }

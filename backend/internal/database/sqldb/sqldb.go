@@ -184,6 +184,12 @@ func (s *SQLStore) quickSetup() error {
 
 		user.LockPassword = false
 		user.Permissions = settings.AdminPerms()
+		adminPerms := settings.AdminSourceFilePermissions()
+		for i := range user.BackendScopes {
+			user.BackendScopes[i].Permissions = adminPerms
+		}
+		users.SyncBackendSourcePermissionsMap(user)
+		user.Version = users.CurrentUserMigrationVersion
 		user.ShowFirstLogin = settings.Env.IsFirstLoad && user.Permissions.Admin
 
 		logger.Debugf("Creating user as admin: %v", user.Username)

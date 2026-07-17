@@ -95,3 +95,50 @@ func TestPreserveServerManagedFieldsClearsTOTPWhenDisabled(t *testing.T) {
 		t.Fatalf("expected TOTP not preserved when disabled, got secret=%q nonce=%q", incoming.TOTPSecret, incoming.TOTPNonce)
 	}
 }
+
+func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	scopePerms := users.SourceFilePermissions{View: true, Download: true, Modify: true}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			Permissions: users.Permissions{Admin: true},
+		},
+		BackendScopes: []users.BackendScope{{Path: "/data/a", Scope: "/", Permissions: scopePerms}},
+		Version:     users.SourcePermissionsMigrationVersion,
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	patch := &users.User{
+		ID: u.ID,
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+		BackendScopes: []users.BackendScope{{Path: "/data/a", Scope: "/", Permissions: scopePerms}},
+		Version:       users.SourcePermissionsMigrationVersion,
+	}
+	if err = UpdateUser(patch, "", "backendScopes"); err != nil {
+		t.Fatal(err)
+	}
+
+	reloaded, err := GetUserByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reloaded.BackendScopes) == 0 || !reloaded.BackendScopes[0].Permissions.View || !reloaded.BackendScopes[0].Permissions.Modify {
+		t.Fatalf("expected perms preserved after patch, got %#v", reloaded.BackendScopes)
+	}
+}
+

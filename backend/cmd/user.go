@@ -10,6 +10,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -31,6 +32,9 @@ func validateUserInfo(newDB bool) {
 		if updatePermissions(user) {
 			updateUser = true
 		}
+		if updateSourcePermissions(user) {
+			updateUser = true
+		}
 		if updatePreviewSettings(user) {
 			updateUser = true
 		}
@@ -46,22 +50,29 @@ func validateUserInfo(newDB bool) {
 		if updateTokens(user) {
 			updateUser = true
 		}
+		if normalizeApiTokenPermissions(user) {
+			updateUser = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
+		if adminUser == "" {
+			adminUser = "admin"
+		}
 		adminPass := settings.Config.Auth.AdminPassword
+		if adminPass == "" {
+			adminPass = "admin"
+		}
+		if user.Username == adminUser && user.Permissions.Admin {
+			adminPerms := settings.AdminPerms()
+			if user.Permissions.Share != adminPerms.Share || user.Permissions.Api != adminPerms.Api {
+				user.Permissions.Share = adminPerms.Share
+				user.Permissions.Api = adminPerms.Api
+				user.Permissions.Admin = true
+				updateUser = true
+			}
+		}
 		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
-			logger.Debug("validateUserInfo admin reset permissions before update",
-				"userID", user.ID,
-				"permAdmin", user.Permissions.Admin,
-				"permShare", user.Permissions.Share,
-				"permModify", user.Permissions.Modify,
-				"permCreate", user.Permissions.Create,
-				"permDelete", user.Permissions.Delete,
-				"permDownload", user.Permissions.Download,
-				"permApi", user.Permissions.Api,
-				"version", user.Version,
-			)
-			user.Permissions.Admin = true
+			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
 			updateUser = true
 			changePass = true
@@ -75,43 +86,14 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			fields := []string{"backendScopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
+			fields := []string{"backendScopes", "backendSourcePermissions", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
 			if changePass {
 				fields = append(fields, "Password")
 			}
 
-			logger.Debug("validateUserInfo patching user",
-				"username", user.Username,
-				"userID", user.ID,
-				"fields", fields,
-				"permAdmin", user.Permissions.Admin,
-				"permShare", user.Permissions.Share,
-				"permModify", user.Permissions.Modify,
-				"permCreate", user.Permissions.Create,
-				"permDelete", user.Permissions.Delete,
-				"permDownload", user.Permissions.Download,
-				"permApi", user.Permissions.Api,
-			)
-
 			err := state.UpdateUser(user, user.Password, fields...)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
-			} else if user.Username == adminUser {
-				reloaded, reloadErr := state.GetUserByUsername(user.Username)
-				if reloadErr != nil {
-					logger.Errorf("could not reload admin after update: %v", reloadErr)
-				} else {
-					logger.Debug("validateUserInfo admin permissions after UpdateUser",
-						"userID", reloaded.ID,
-						"permAdmin", reloaded.Permissions.Admin,
-						"permShare", reloaded.Permissions.Share,
-						"permModify", reloaded.Permissions.Modify,
-						"permCreate", reloaded.Permissions.Create,
-						"permDelete", reloaded.Permissions.Delete,
-						"permDownload", reloaded.Permissions.Download,
-						"permApi", reloaded.Permissions.Api,
-					)
-				}
 			}
 		}
 
@@ -142,8 +124,9 @@ func updateUserScopes(user *users.User) bool {
 			continue
 		}
 		newScopes = append(newScopes, users.BackendScope{
-			Path:  src.Path,
-			Scope: existingScope.Scope,
+			Path:        src.Path,
+			Scope:       existingScope.Scope,
+			Permissions: existingScope.Permissions,
 		})
 		seen[src.Path] = struct{}{}
 	}
@@ -156,6 +139,24 @@ func updateUserScopes(user *users.User) bool {
 	}
 	changed := !reflect.DeepEqual(user.BackendScopes, newScopes)
 	user.BackendScopes = newScopes
+
+	return changed
+}
+
+func updateSourcePermissions(user *users.User) bool {
+	changed := false
+	if user.Version < users.SourcePermissionsMigrationVersion {
+		if users.MigrateToSourcePermissions(user) {
+			changed = true
+		}
+	}
+	if users.EnsureSourcePermissionsForScopes(
+		user,
+		settings.DefaultSourceFilePermissions(),
+		settings.AdminSourceFilePermissions(),
+	) {
+		changed = true
+	}
 	return changed
 }
 
@@ -240,34 +241,24 @@ func updatePreviewSettings(user *users.User) bool {
 	return false
 }
 
-// updateSidebarLinks checks if user has stale source links and rebuilds them if needed
+// updateSidebarLinks normalizes sidebar links and rebuilds from scopes when none resolve.
 func updateSidebarLinks(user *users.User) bool {
-	// Count source links and check if any are still valid
-	sourceLinksCount := 0
-	validSourceLinksCount := 0
+	updated := false
 
-	for _, link := range user.SidebarLinks {
-		if strings.HasPrefix(link.Category, "source") {
-			sourceLinksCount++
-			// Check if this source still exists
-			if link.SourceName != "" {
-				if _, ok := settings.Config.Server.SourceMap[link.SourceName]; ok {
-					validSourceLinksCount++
-				}
-			}
-		}
+	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+		user.SidebarLinks = normalized
+		updated = true
 	}
 
-	// If user has no source links, don't update anything
+	sourceLinksCount, validSourceLinksCount := countSidebarSourceLinks(user.SidebarLinks)
+
 	if sourceLinksCount == 0 {
-		return false
+		return updated
 	}
 
-	// If user has source links but NONE are valid, rebuild from their scopes
 	if validSourceLinksCount == 0 {
 		logger.Infof("User %s has %d stale source links, rebuilding from scopes", user.Username, sourceLinksCount)
 
-		// Remove all existing source links
 		newLinks := []users.SidebarLink{}
 		for _, link := range user.SidebarLinks {
 			if !strings.HasPrefix(link.Category, "source") {
@@ -275,10 +266,8 @@ func updateSidebarLinks(user *users.User) bool {
 			}
 		}
 
-		// Add new source links based on user's scopes
 		for _, scope := range user.BackendScopes {
 			if source, ok := settings.Config.Server.SourceMap[scope.Path]; ok {
-				// User has access to this source, add it to sidebar
 				newLinks = append(newLinks, users.SidebarLink{
 					Name:       source.Name,
 					Category:   "source",
@@ -290,11 +279,34 @@ func updateSidebarLinks(user *users.User) bool {
 		}
 
 		user.SidebarLinks = newLinks
+		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+			user.SidebarLinks = normalized
+		}
 		return true
 	}
 
-	// User has at least one valid source link, no update needed
-	return false
+	return updated
+}
+
+func countSidebarSourceLinks(links []users.SidebarLink) (total, valid int) {
+	for _, link := range links {
+		if !strings.HasPrefix(link.Category, "source") {
+			continue
+		}
+		total++
+		if link.SourceName != "" {
+			if _, ok := users.ResolveSourceKey(link.SourceName); ok {
+				valid++
+				continue
+			}
+		}
+		if link.Name != "" {
+			if _, ok := users.ResolveSourceKey(link.Name); ok {
+				valid++
+			}
+		}
+	}
+	return total, valid
 }
 
 func updateTokens(user *users.User) bool {
@@ -311,4 +323,23 @@ func updateTokens(user *users.User) bool {
 	}
 	user.Version = 2
 	return true
+}
+
+func normalizeApiTokenPermissions(user *users.User) bool {
+	if user == nil || len(user.Tokens) == 0 {
+		return false
+	}
+	changed := false
+	for name, token := range user.Tokens {
+		if token.Name == "" || name != token.Name {
+			continue
+		}
+		sanitized := users.SanitizeTokenPermissions(token.Permissions)
+		if sanitized != token.Permissions {
+			token.Permissions = sanitized
+			user.Tokens[name] = token
+			changed = true
+		}
+	}
+	return changed
 }

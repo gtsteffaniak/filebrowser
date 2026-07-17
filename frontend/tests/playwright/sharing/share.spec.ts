@@ -12,7 +12,7 @@ test("share file works", async ({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   const shareHashFile = await page.evaluate(() => localStorage.getItem('shareHashFile'));
-  if (shareHashFile === "") {
+  if (!shareHashFile) {
     throw new Error("Share hash not found in localStorage");
   }
 
@@ -56,7 +56,7 @@ test("share file creation actions", async ({ page, checkForErrors, openContextMe
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   const rootShareHash = await page.evaluate(() => localStorage.getItem('rootShareHash'));
-  if (rootShareHash === "") {
+  if (!rootShareHash) {
     throw new Error("Share hash not found in localStorage");
   }
   await page.goto(`public/share/${rootShareHash}`);

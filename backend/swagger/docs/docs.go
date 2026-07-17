@@ -948,10 +948,9 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Permissions for the API token (comma-separated)",
+                        "description": "Global permissions for the API token (comma-separated: admin, api, share, realtime). Omit for minimal token.",
                         "name": "permissions",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -6990,6 +6989,9 @@ const docTemplate = `{
                     "description": "real path for the source",
                     "type": "string"
                 },
+                "permissions": {
+                    "$ref": "#/definitions/users.SourceFilePermissions"
+                },
                 "scope": {
                     "description": "index path within that source",
                     "type": "string"
@@ -7019,6 +7021,9 @@ const docTemplate = `{
                 "name": {
                     "description": "Bolt: filesystem path; JSON API: display name after prepForFrontend",
                     "type": "string"
+                },
+                "permissions": {
+                    "$ref": "#/definitions/users.SourceFilePermissions"
                 },
                 "scope": {
                     "description": "index path within that source",
@@ -7138,7 +7143,12 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "permissions": {
-                    "$ref": "#/definitions/users.Permissions"
+                    "description": "global: admin, api, share, realtime",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.Permissions"
+                        }
+                    ]
                 },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",
@@ -7190,6 +7200,13 @@ const docTemplate = `{
                 "sorting": {
                     "$ref": "#/definitions/users.Sorting"
                 },
+                "sourcePermissions": {
+                    "description": "deprecated: use scopes[].permissions",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/users.SourceFilePermissions"
+                    }
+                },
                 "stickySidebar": {
                     "description": "keep sidebar open when navigating",
                     "type": "boolean"
@@ -7236,19 +7253,19 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "create": {
-                    "description": "allow creating or uploading files",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 },
                 "delete": {
-                    "description": "allow deleting files",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 },
                 "download": {
-                    "description": "allow downloading files",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 },
                 "modify": {
-                    "description": "allow modifying files",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 },
                 "realtime": {
@@ -7257,6 +7274,10 @@ const docTemplate = `{
                 },
                 "share": {
                     "description": "allow sharing files",
+                    "type": "boolean"
+                },
+                "view": {
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 }
             }
@@ -7358,6 +7379,26 @@ const docTemplate = `{
                 }
             }
         },
+        "users.SourceFilePermissions": {
+            "type": "object",
+            "properties": {
+                "create": {
+                    "type": "boolean"
+                },
+                "delete": {
+                    "type": "boolean"
+                },
+                "download": {
+                    "type": "boolean"
+                },
+                "modify": {
+                    "type": "boolean"
+                },
+                "view": {
+                    "type": "boolean"
+                }
+            }
+        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -7372,6 +7413,13 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/users.BackendScope"
+                    }
+                },
+                "backendSourcePermissions": {
+                    "description": "key = source path",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/users.SourceFilePermissions"
                     }
                 },
                 "customTheme": {
@@ -7486,7 +7534,12 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "permissions": {
-                    "$ref": "#/definitions/users.Permissions"
+                    "description": "global: admin, api, share, realtime",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.Permissions"
+                        }
+                    ]
                 },
                 "pinnedItems": {
                     "$ref": "#/definitions/users.PinnedItems"
@@ -7540,6 +7593,13 @@ const docTemplate = `{
                 },
                 "sorting": {
                     "$ref": "#/definitions/users.Sorting"
+                },
+                "sourcePermissions": {
+                    "description": "deprecated: use scopes[].permissions",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/users.SourceFilePermissions"
+                    }
                 },
                 "stickySidebar": {
                     "description": "keep sidebar open when navigating",
@@ -7689,6 +7749,9 @@ const docTemplate = `{
                 },
                 "issuedAt": {
                     "type": "integer"
+                },
+                "minimal": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"

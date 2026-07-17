@@ -275,7 +275,6 @@
     "systemAdmin": "Sistema y administración",
     "configViewerShowFull": "Mostrar configuración completa",
     "configViewerShowComments": "Mostrar comentarios",
-    "permissionsHelp": "Los permisos de usuario controlan el acceso al tipo de acciones que el usuario puede realizar. El acceso de administrador proporciona un control total para actualizar y cambiar la configuración de cualquier usuario, así como muchos ajustes del sistema.",
     "configViewer": "Visor de configuración",
     "configViewerOpen": "Ver configuración",
     "configViewerDescription": "Abre una vista de solo lectura de la configuración actual del servidor.",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "Las estadísticas de implementación con consentimiento previo enviarán información anónima a los servidores de desarrollo de FileBrowser Quantum con el fin de ayudar a mejorar la aplicación.",
     "analyticsLoadFailed": "No se han podido cargar los ajustes de análisis",
     "analyticsUpdateFailed": "No se ha podido actualizar la configuración de análisis",
-    "analyticsPreviewFailed": "No se ha podido cargar la información de diagnóstico de análisis"
+    "analyticsPreviewFailed": "No se ha podido cargar la información de diagnóstico de análisis",
+    "scopePath": "Ruta de alcance",
+    "sourcePermissionsHelp": "Despliega una fila de origen para configurar los permisos de visualización, descarga, modificación, creación y eliminación de ese origen.",
+    "permissionsHelp": "Los permisos globales del usuario se aplican en todas partes, incluidas todas las fuentes y recursos compartidos."
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",
@@ -462,7 +464,6 @@
     "permanent": "Permanente",
     "hash": "Hash",
     "of": "de",
-    "source": "Fuente{suffix}",
     "percentage": "{percentage}%",
     "type": "Tipo{suffix}",
     "size": "Tamaño{suffix}",
@@ -472,7 +473,6 @@
     "logout": "Cerrar sesión{suffix}",
     "preview": "Vista previa{suffix}",
     "settings": "Ajustes{suffix}",
-    "sources": "Fuentes{suffix}",
     "links": "Accesos directos{suffix}",
     "tool": "Herramienta{suffix}",
     "status": "Estado{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "Reproducir/Pausar",
     "clearSelection": "Borrar selección",
     "interval": "Intervalo{suffix}",
-    "none": "Ninguno"
+    "none": "Ninguno",
+    "viewFiles": "Ver y enumerar archivos",
+    "source": "{prefix}Fuente{suffix}",
+    "sources": "{prefix}Fuentes{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

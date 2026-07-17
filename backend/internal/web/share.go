@@ -22,7 +22,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // shareListHandler returns a list of all share links.
@@ -47,7 +46,6 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	logger.Debugf("api share/list: user=%q admin=%v shares=%d", d.User.Username, d.User.Permissions.Admin, len(shares))
 	return RenderJSON(w, r, state.PrepShareValuesForFrontend(d.User, r, shares))
 }
 
@@ -87,13 +85,10 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 		return http.StatusBadRequest, fmt.Errorf("index not found for source: %s", sourceName)
 	}
 
-	logger.Debug("shareGetHandler querying", "sourceName", sourceName, "sourceInfoPath", sourceInfo.Path, "scopePath", scopePath, "userID", d.User.ID)
-
 	s, err := state.GetSharesInScope(scopePath, sourceInfo.Path, d.User.ID)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
-	logger.Debug("shareGetHandler result", "sourceName", sourceName, "scopePath", scopePath, "userID", d.User.ID, "count", len(s))
 	return RenderJSON(w, r, state.PrepSharesForFrontend(d.User, r, s...))
 }
 

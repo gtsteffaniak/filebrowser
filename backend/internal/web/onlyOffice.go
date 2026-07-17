@@ -164,11 +164,19 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	// Determine modify permissions based on whether this is a share or regular request
 	var modifyPerms bool
 	if d.FileInfo.Hash != "" && d.Share.Hash != "" {
-		// Share request - check share permissions
+		if d.Share.DisableFileViewer {
+			return http.StatusForbidden, fmt.Errorf("file viewer disabled for this share")
+		}
 		modifyPerms = d.Share.AllowModify
 	} else {
-		// Regular user request - check user permissions
-		modifyPerms = d.User.Permissions.Modify
+		filePerms, permErr := effectiveFilePerms(d, source)
+		if permErr != nil {
+			return http.StatusForbidden, permErr
+		}
+		if !filePerms.View {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+		}
+		modifyPerms = filePerms.Modify
 	}
 
 	canEdit := iteminfo.CanEditOnlyOffice(modifyPerms, fileType)
@@ -583,10 +591,10 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 				return returnOnlyOfficeError(w, r, 403, "edit permission not allowed for this share")
 			}
 		} else {
-			// Verify user has modify permissions
-			if !user.Permissions.Modify {
-				logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for path=%s",
-					d.User.Username, path)
+			filePerms, permErr := effectiveFilePerms(d, source)
+			if permErr != nil || !filePerms.Modify {
+				logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for source=%s path=%s",
+					d.User.Username, source, path)
 				return returnOnlyOfficeError(w, r, 403, "user lacks modify permissions")
 			}
 		}

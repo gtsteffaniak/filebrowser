@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Palavra-passe"
     },
-    "permissionsHelp": "As permissões de utilizador controlam o acesso ao tipo de acções que o utilizador pode executar. O acesso de administrador dá controlo total para atualizar e alterar as definições de qualquer utilizador, bem como muitas definições do sistema.",
     "configViewer": "Visualizador de configuração",
     "modifyOtherUserTitle": "Modificar utilizador: {username}",
     "configViewerOpen": "Ver configuração",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "A análise de implementação com consentimento prévio enviará informações anónimas para os servidores de desenvolvimento do FileBrowser Quantum, com o objetivo de ajudar a melhorar a aplicação.",
     "analyticsLoadFailed": "Não foi possível carregar as definições de análise",
     "analyticsUpdateFailed": "Não foi possível atualizar as definições de análise",
-    "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise"
+    "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise",
+    "scopePath": "Percurso do alcance",
+    "sourcePermissionsHelp": "Expanda uma linha de fonte para definir permissões de visualização, descarregamento, modificação, criação e eliminação para essa fonte.",
+    "permissionsHelp": "As permissões globais do utilizador aplicam-se em todo o lado, incluindo todas as fontes e partilhas."
   },
   "sidebar": {
     "updateIsAvailable": "Está disponível uma atualização!",
@@ -556,7 +558,6 @@
     "permanent": "Permanente",
     "hash": "Haxixe",
     "of": "de",
-    "source": "Fonte{suffix}",
     "percentage": "{percentage}%",
     "type": "Tipo{suffix}",
     "size": "Tamanho{suffix}",
@@ -566,7 +567,6 @@
     "logout": "Terminar sessão{suffix}",
     "preview": "Pré-visualização{suffix}",
     "settings": "Definições{suffix}",
-    "sources": "Fontes{suffix}",
     "links": "Ligações{suffix}",
     "tool": "Ferramenta{suffix}",
     "status": "Estado{suffix}",
@@ -693,7 +693,10 @@
     "playPause": "Reproduzir/Pausar",
     "clearSelection": "Limpar seleção",
     "interval": "Intervalo{suffix}",
-    "none": "Nenhum"
+    "none": "Nenhum",
+    "viewFiles": "Ver e listar ficheiros",
+    "source": "{prefix}Fonte{suffix}",
+    "sources": "{prefix}Fontes{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

@@ -44,6 +44,13 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if name == "" {
 		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
 	}
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
 
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		FollowSymlinks:           true,
@@ -125,6 +132,13 @@ func findSubtitleTrack(subtitles []utils.SubtitleTrack, name string, embedded bo
 func metadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
 	albumArt := r.URL.Query().Get("albumArt") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		FollowSymlinks:           true,
@@ -201,6 +215,13 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	source := r.URL.Query().Get("source")
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
+	}
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
 	}
 
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{

@@ -227,6 +227,7 @@ export default {
           this.originalPath = this.tempPath;
           this.currentPath = this.tempPath;
           this.currentSource = this.tempSource;
+          this.pathExists = true;
           this.isEditingPath = false;
           this.isReassigningPath = false;
           await this.fetchRule();

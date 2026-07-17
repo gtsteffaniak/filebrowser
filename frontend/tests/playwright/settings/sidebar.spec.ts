@@ -3,12 +3,15 @@ import { expect, test } from "../test-setup";
 test("check default sidebar links are added to sidebar", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-    // sidebar should have 4 items
-    await expect(page.locator('.sidebar-links .inner-card').locator('a')).toHaveCount(4);
+    const sidebarAnchors = page.locator(".sidebar-links .inner-card > a");
+    await expect(sidebarAnchors).toHaveCount(4);
 
-    // check items exist
-    await page.locator('a[aria-label="playwright + files"]').waitFor({ state: 'visible' });
-    await page.locator('a[aria-label="docker"]').waitFor({ state: 'visible' });
+    const pwFiles = page.getByRole("link", { name: "playwright + files", exact: true });
+    await expect(pwFiles).toBeVisible();
+    await expect(sidebarAnchors.first()).toHaveAttribute("aria-label", "playwright + files");
+
+    await page.getByRole("link", { name: "docker", exact: true }).waitFor({ state: "visible" });
+    await page.getByRole("link", { name: "access", exact: true }).waitFor({ state: "visible" });
     checkForErrors();
 });
 
@@ -16,7 +19,6 @@ test("check sidebar source links are formatted correctly", async ({ page, checkF
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
-    // Prefer accessible name (aria-label + visible text); scopes all assertions to this link.
     const pwFiles = page.getByRole("link", { name: "playwright + files", exact: true });
 
     await expect(pwFiles).toBeVisible();
@@ -91,9 +93,6 @@ test("Edit Links opens customize prompt; Show tools in sidebar is on", async ({ 
 test("docker source link goes to /files/docker; home returns to playwright + files", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-
-    const sidebarAnchors = page.locator(".sidebar-links .inner-card > a");
-    await expect(sidebarAnchors.nth(1)).toHaveAttribute("aria-label", "docker");
 
     const dockerLink = page.getByRole("link", { name: "docker", exact: true });
     await dockerLink.click();

@@ -386,6 +386,8 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 // persisted BackendScopes (GetFrontendScopes); they are not read from SQL and must not be written back as-is.
 func PrepForFrontend(u users.User) users.User {
 	u.FrontendScopes = u.GetFrontendScopes()
+	u.Permissions = users.GlobalPermissionsOnly(u.Permissions)
+	u.SourcePermissions = nil
 	u.SidebarLinks = usersidebar.FrontendLinks(u.SidebarLinks, u.ShowToolsInSidebar)
 	u.Password = ""
 	u.ApiKeys = nil

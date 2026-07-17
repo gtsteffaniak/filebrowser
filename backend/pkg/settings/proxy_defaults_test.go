@@ -19,6 +19,6 @@ func TestProxyConfigUserDefaults(t *testing.T) {
 	u := &users.User{FrontendUser: users.FrontendUser{Username: "demo-127.0.0.1", LoginMethod: users.LoginMethodProxy}}
 	ApplyUserDefaults(u)
 	if !u.Permissions.Share {
-		t.Fatalf("ApplyUserDefaults Share=false, want true (modify=%v create=%v)", u.Permissions.Modify, u.Permissions.Create)
+		t.Fatalf("ApplyUserDefaults Share=false, want true")
 	}
 }

@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Parolă"
     },
-    "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem.",
     "configViewer": "Vizualizator de configurare",
     "modifyOtherUserTitle": "Modificarea utilizatorului: {username}",
     "configViewerOpen": "Vizualizare configurație",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "Analiza implementării bazată pe consimțământ va transmite informații anonime către serverele de dezvoltare FileBrowser Quantum, cu scopul de a contribui la îmbunătățirea aplicației.",
     "analyticsLoadFailed": "Nu s-au putut încărca setările de analiză",
     "analyticsUpdateFailed": "Nu s-a putut actualiza setările de analiză",
-    "analyticsPreviewFailed": "Nu s-au putut încărca informațiile de diagnosticare privind analizele"
+    "analyticsPreviewFailed": "Nu s-au putut încărca informațiile de diagnosticare privind analizele",
+    "scopePath": "Calea de acoperire",
+    "sourcePermissionsHelp": "Extindeți un rând sursă pentru a seta permisiunile de vizualizare, descărcare, modificare, creare și ștergere pentru sursa respectivă.",
+    "permissionsHelp": "Permisiunile globale ale utilizatorului se aplică peste tot, inclusiv în toate sursele și partajările."
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",
@@ -462,7 +464,6 @@
     "permanent": "Permanent",
     "hash": "Hash",
     "of": "de",
-    "source": "Sursa{suffix}",
     "percentage": "{percentage}%",
     "type": "Tip{suffix}",
     "size": "Mărime{suffix}",
@@ -472,7 +473,6 @@
     "logout": "Ieșire{suffix}",
     "preview": "Previzualizare{suffix}",
     "settings": "Setări{suffix}",
-    "sources": "Surse{suffix}",
     "links": "Legături{suffix}",
     "tool": "Instrument{suffix}",
     "status": "Statut{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "Redare/Pauză",
     "clearSelection": "Șterge selecția",
     "interval": "Interval{suffix}",
-    "none": "Niciunul"
+    "none": "Niciunul",
+    "viewFiles": "Vizualizarea și listarea fișierelor",
+    "source": "{prefix}Sursă{suffix}",
+    "sources": "{prefix}Surse{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

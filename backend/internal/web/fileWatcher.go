@@ -165,7 +165,11 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	// Check download permission (required to read file content)
-	if !d.User.Permissions.Download {
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.Download {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to read file content")
 	}
 
@@ -259,16 +263,19 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusForbidden, fmt.Errorf("realtime permission required for SSE file watching")
 	}
 
-	if !d.User.Permissions.Download {
+	source := r.URL.Query().Get("source")
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.Download {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to read file content")
 	}
 
 	path := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
 	linesStr := r.URL.Query().Get("lines")
 	intervalStr := r.URL.Query().Get("interval")
 
-	var err error
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}

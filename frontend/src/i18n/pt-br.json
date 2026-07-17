@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "Senha"
     },
-    "permissionsHelp": "As permissões de usuário controlam o acesso aos tipos de ações que o usuário pode executar. O acesso de administrador dá controle total para atualizar e alterar as configurações de qualquer usuário, bem como muitas configurações do sistema.",
     "configViewer": "Visualizador de configuração",
     "modifyOtherUserTitle": "Modificar usuário: {username}",
     "configViewerOpen": "Visualizar configuração",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "A análise de implantação com consentimento prévio enviará informações anônimas aos servidores de desenvolvimento do FileBrowser Quantum para ajudar a aprimorar o aplicativo.",
     "analyticsLoadFailed": "Falha ao carregar as configurações de análise",
     "analyticsUpdateFailed": "Falha ao atualizar as configurações de análise",
-    "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise"
+    "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise",
+    "scopePath": "Caminho do escopo",
+    "sourcePermissionsHelp": "Expanda uma linha de fonte para definir permissões de visualização, download, modificação, criação e exclusão para essa fonte.",
+    "permissionsHelp": "As permissões globais do usuário se aplicam a todos os locais, incluindo todas as fontes e compartilhamentos."
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
@@ -462,7 +464,6 @@
     "permanent": "Permanente",
     "hash": "Hash",
     "of": "de",
-    "source": "Fonte{suffix}",
     "percentage": "{percentage}%",
     "type": "Tipo{suffix}",
     "size": "Tamanho{suffix}",
@@ -472,7 +473,6 @@
     "logout": "Sair{suffix}",
     "preview": "Prévia{suffix}",
     "settings": "Configurações{suffix}",
-    "sources": "Fontes{suffix}",
     "links": "Links{suffix}",
     "tool": "Ferramenta{suffix}",
     "status": "Status{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "Reproduzir/Pausar",
     "clearSelection": "Limpar seleção",
     "interval": "Intervalo{suffix}",
-    "none": "Nenhum"
+    "none": "Nenhum",
+    "viewFiles": "Visualizar e listar arquivos",
+    "source": "{prefix}Fonte{suffix}",
+    "sources": "{prefix}Fontes{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

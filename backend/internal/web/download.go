@@ -81,8 +81,14 @@ func downloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 }
 
 func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source string, fileList []string) (int, error) {
-	if !d.User.Permissions.Download && d.Share.Hash == "" {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to download")
+	if d.Share.Hash == "" {
+		filePerms, err := effectiveFilePerms(d, source)
+		if err != nil {
+			return http.StatusForbidden, err
+		}
+		if !filePerms.Download {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to download")
+		}
 	}
 
 	if len(fileList) == 0 && d.Share.Hash == "" {

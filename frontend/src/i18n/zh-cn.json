@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "密码"
     },
-    "permissionsHelp": "用户权限控制用户可以执行哪些类型的操作。管理员权限可完全控制更新和更改任何用户的设置以及许多系统设置。",
     "configViewer": "配置查看器",
     "modifyOtherUserTitle": "修改用户：{username}",
     "configViewerOpen": "查看配置",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "“选择加入”式部署分析功能会将匿名信息发送至 FileBrowser Quantum 开发者服务器，以帮助改进该应用程序。",
     "analyticsLoadFailed": "无法加载分析设置",
     "analyticsUpdateFailed": "无法更新分析设置",
-    "analyticsPreviewFailed": "无法加载分析诊断信息"
+    "analyticsPreviewFailed": "无法加载分析诊断信息",
+    "scopePath": "作用域路径",
+    "sourcePermissionsHelp": "展开源行，以设置该源的查看、下载、修改、创建和删除权限。",
+    "permissionsHelp": "该用户的全局权限适用于所有位置，包括所有源和共享。"
   },
   "sidebar": {
     "updateIsAvailable": "有了最新进展！",
@@ -556,7 +558,6 @@
     "permanent": "永久性",
     "hash": "散列",
     "of": "的",
-    "source": "资料来源{suffix}",
     "percentage": "{percentage}%",
     "type": "类型{suffix}",
     "size": "尺寸{suffix}",
@@ -566,7 +567,6 @@
     "logout": "注销{suffix}",
     "preview": "预览{suffix}",
     "settings": "设置{suffix}",
-    "sources": "资料来源{suffix}",
     "links": "链接{suffix}",
     "tool": "工具{suffix}",
     "status": "现状{suffix}",
@@ -693,7 +693,10 @@
     "playPause": "播放/暂停",
     "clearSelection": "清除选择",
     "interval": "间隔{suffix}",
-    "none": "无"
+    "none": "无",
+    "viewFiles": "查看和列出文件",
+    "source": "{prefix}来源{suffix}",
+    "sources": "{prefix}来源{suffix}"
   },
   "access": {
     "rules": "访问规则",

@@ -32,6 +32,10 @@ var runtimeApp *app.App
 func initializeDatabase(configFile string) bool {
 	settings.Initialize(configFile)
 
+	if err := validateDatabasePaths(); err != nil {
+		logger.Fatalf("%v", err)
+	}
+
 	if checkMigrationNeeded() {
 		logger.Info("Old BoltDB database detected, starting migration to SQLite...")
 		err := migrateFromBoltToSQLite()

@@ -81,7 +81,7 @@ export default {
       return state.req.name;
     },
     showQuickSave() {
-      if (getters.currentView() !== "editor" || !state.user.permissions.modify) {
+      if (getters.currentView() !== "editor" || !getters.permissions().modify) {
         return false;
       }
       return state.user.editorQuickSave;
@@ -126,13 +126,13 @@ export default {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
     showEdit() {
-      return window.location.hash !== "#edit" && state.user.permissions.modify;
+      return window.location.hash !== "#edit" && getters.permissions().modify;
     },
     showDelete() {
-      return state.user.permissions.modify && getters.currentView() === "preview";
+      return getters.permissions().delete && getters.currentView() === "preview";
     },
     showSave() {
-      return getters.currentView() === "editor" && state.user.permissions.modify;
+      return getters.currentView() === "editor" && getters.permissions().modify;
     },
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();

@@ -274,7 +274,6 @@
     "loginMethods": {
       "password": "비밀번호"
     },
-    "permissionsHelp": "사용자 권한은 사용자가 수행할 수 있는 작업 유형에 대한 액세스를 제어합니다. 관리자 권한은 모든 사용자 설정은 물론 여러 시스템 설정을 업데이트하고 변경할 수 있는 모든 권한을 부여합니다.",
     "configViewer": "구성 뷰어",
     "modifyOtherUserTitle": "사용자 수정: {username}",
     "configViewerOpen": "구성 보기",
@@ -285,7 +284,10 @@
     "analyticsEnabledDescription": "옵트인 배포 분석 기능은 애플리케이션을 개선하는 데 도움을 주기 위해 익명화된 정보를 FileBrowser Quantum 개발자 서버로 전송합니다.",
     "analyticsLoadFailed": "분석 설정을 불러오지 못했습니다.",
     "analyticsUpdateFailed": "분석 설정 업데이트에 실패했습니다.",
-    "analyticsPreviewFailed": "분석 진단 정보를 불러오지 못했습니다."
+    "analyticsPreviewFailed": "분석 진단 정보를 불러오지 못했습니다.",
+    "scopePath": "범위 경로",
+    "sourcePermissionsHelp": "소스 행을 확장하여 해당 소스에 대한 보기, 다운로드, 수정, 생성 및 삭제 권한을 설정합니다.",
+    "permissionsHelp": "해당 사용자의 전체 권한은 모든 소스 및 공유 항목을 포함하여 모든 곳에 적용됩니다."
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",
@@ -462,7 +464,6 @@
     "permanent": "영구",
     "hash": "해시",
     "of": "의",
-    "source": "출처{suffix}",
     "percentage": "{percentage}%",
     "type": "유형{suffix}",
     "size": "크기{suffix}",
@@ -472,7 +473,6 @@
     "logout": "로그아웃{suffix}",
     "preview": "미리 보기{suffix}",
     "settings": "설정{suffix}",
-    "sources": "출처{suffix}",
     "links": "링크{suffix}",
     "tool": "도구{suffix}",
     "status": "상태{suffix}",
@@ -599,7 +599,10 @@
     "playPause": "재생/일시정지",
     "clearSelection": "선택 항목 지우기",
     "interval": "간격{suffix}",
-    "none": "없음"
+    "none": "없음",
+    "viewFiles": "파일 보기 및 목록 표시",
+    "source": "{prefix}출처{suffix}",
+    "sources": "{prefix}출처{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

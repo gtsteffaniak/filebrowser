@@ -12,6 +12,43 @@ function editUserTrigger(row: Locator): Locator {
     return row.getByRole("button", { name: /Edit/i });
 }
 
+/** Primary source in settings Playwright docker config (`_docker/src/settings/backend/config.yaml`). */
+const SETTINGS_TEST_SOURCE = "playwright + files";
+
+/** Scope block for one source in the user edit modal (per-source permissions live here). */
+function userEditScopeBlock(modal: Locator, sourceName: string): Locator {
+    const escaped = sourceName.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return modal.locator(
+        `.scope-block:has([aria-label="user-edit-scope-path-${escaped}"])`,
+    );
+}
+
+async function expandUserEditSourceScope(modal: Locator, sourceName: string) {
+    const block = userEditScopeBlock(modal, sourceName);
+    await block.locator(".settings-group-title").click();
+    await expect(block.locator(".source-file-permissions")).toBeVisible();
+}
+
+function userEditSourcePermissionCheckbox(
+    modal: Locator,
+    sourceName: string,
+    permissionLabel: string,
+): Locator {
+    return userEditScopeBlock(modal, sourceName)
+        .locator(".source-file-permissions .toggle-container", { hasText: permissionLabel })
+        .locator('input[type="checkbox"]');
+}
+
+function userEditSourcePermissionToggle(
+    modal: Locator,
+    sourceName: string,
+    permissionLabel: string,
+): Locator {
+    return userEditScopeBlock(modal, sourceName)
+        .locator(".source-file-permissions .toggle-container", { hasText: permissionLabel })
+        .locator("label.switch");
+}
+
 /**
  * User POST/PUT/DELETE for sensitive actions return 401 until X-Password is supplied; the UI opens password-prompt on top.
  * Password must match tests/playwright/global-setup.ts (same as two factor auth check).
@@ -69,7 +106,6 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     const settingsToToggle = [
         "Administrator",
         "Prevent the user from changing the password",
-        "Edit files",
         "Share files",
         "Create and manage long-live API tokens",
         "Enable real-time connections and updates",
@@ -157,43 +193,41 @@ test.describe("User Settings Persistence", () => {
         const userRow = userRowInSettingsUsersTable(page, username);
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
-        // --- Open modal and check initial state (should be OFF) ---
-        // Debug: Check if the user row exists
+        // --- Open modal and read initial toggle state ---
         await expect(userRow).toBeVisible({ timeout: 5000 });
-        // Debug: Take a screenshot before clicking
-        await page.screenshot({ path: `debug-before-click-${settingName.replace(/\s+/g, '-')}.png` });
-        // Open edit modal (settings table edit control — role button, aria from general.edit).
         await editUserTrigger(userRow).click();
 
         await expect(modal).toBeVisible();
         const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).not.toBeChecked();
+        const initialChecked = await checkbox.isChecked();
 
-        // --- Toggle ON and save ---
+        // --- Toggle to opposite state and save ---
         const toggleSwitch = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
         await toggleSwitch.click();
+        await expect(checkbox).toBeChecked({ checked: !initialChecked });
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
-        // --- Re-open and check persisted state (should be ON) ---
+        // --- Re-open and check persisted state ---
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
-        const checkboxOn = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkboxOn).toBeChecked();
+        const checkboxToggled = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await expect(checkboxToggled).toBeChecked({ checked: !initialChecked });
 
-        // --- Toggle OFF to restore state and save ---
-        const toggleSwitchOn = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
-        await toggleSwitchOn.click();
+        // --- Toggle back to initial state and save ---
+        const toggleSwitchBack = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
+        await toggleSwitchBack.click();
+        await expect(checkboxToggled).toBeChecked({ checked: initialChecked });
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
-        // --- Re-open and check state is restored (should be OFF) ---
+        // --- Re-open and check state is restored ---
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
-        const checkboxOff = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkboxOff).not.toBeChecked();
+        const checkboxRestored = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await expect(checkboxRestored).toBeChecked({ checked: initialChecked });
 
         await modal.locator('button[aria-label="Cancel"]').click();
     }
@@ -206,8 +240,42 @@ test.describe("User Settings Persistence", () => {
         await checkTogglePersistence(page, "Administrator");
     });
 
-    test('should persist "Edit files" setting', async ({ page }) => {
-        await checkTogglePersistence(page, "Edit files");
+    test('should persist per-source "Edit files" setting', async ({ page }) => {
+        const userRow = userRowInSettingsUsersTable(page, username);
+        const modal = page.locator('div[aria-label="user-edit-prompt"]');
+
+        await editUserTrigger(userRow).click();
+        await expect(modal).toBeVisible();
+        await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
+
+        const editFilesToggle = userEditSourcePermissionToggle(
+            modal,
+            SETTINGS_TEST_SOURCE,
+            "Edit files",
+        );
+        const editFilesCheckbox = userEditSourcePermissionCheckbox(
+            modal,
+            SETTINGS_TEST_SOURCE,
+            "Edit files",
+        );
+
+        const wasChecked = await editFilesCheckbox.isChecked();
+        await editFilesToggle.click();
+        await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
+
+        await modal.locator('button[aria-label="Save"]').click();
+        await confirmActorPasswordPrompt(page);
+        await expect(modal).not.toBeVisible();
+
+        await editUserTrigger(userRow).click();
+        await expect(modal).toBeVisible();
+        await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
+        await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
+
+        await editFilesToggle.click();
+        await modal.locator('button[aria-label="Save"]').click();
+        await confirmActorPasswordPrompt(page);
+        await expect(modal).not.toBeVisible();
     });
 
     test('should persist "Share files" setting', async ({ page }) => {

@@ -20,17 +20,25 @@ func boolValueOrDefault(ptr *bool, defaultValue bool) bool {
 	return defaultValue
 }
 
-// ConvertPermissionsToUsers converts UserDefaultsPermissions to users.Permissions
+// ConvertPermissionsToUsers converts UserDefaultsPermissions to users.Permissions (global only).
 func ConvertPermissionsToUsers(p UserDefaultsAccountPermissions) users.Permissions {
 	return users.Permissions{
 		Api:      p.Api,
 		Admin:    p.Admin,
-		Modify:   p.Modify,
 		Share:    p.Share,
 		Realtime: p.Realtime,
-		Delete:   p.Delete,
-		Create:   p.Create,
-		Download: boolValueOrDefault(p.Download, true),
+	}
+}
+
+// DefaultSourceFilePermissions returns default per-source file permissions from user defaults.
+func DefaultSourceFilePermissions() users.SourceFilePermissions {
+	d := Config.UserDefaults.Account.Permissions
+	return users.SourceFilePermissions{
+		View:     true,
+		Download: boolValueOrDefault(d.Download, true),
+		Modify:   d.Modify,
+		Delete:   d.Delete,
+		Create:   d.Create,
 	}
 }
 
@@ -57,14 +65,21 @@ func GetSettingsConfig(nameType string, Value string) string {
 
 func AdminPerms() users.Permissions {
 	return users.Permissions{
-		Modify:   true,
 		Share:    true,
 		Admin:    true,
 		Api:      true,
+		Realtime: false,
+	}
+}
+
+// AdminSourceFilePermissions returns full per-source file permissions for admin users.
+func AdminSourceFilePermissions() users.SourceFilePermissions {
+	return users.SourceFilePermissions{
+		View:     true,
 		Download: true,
+		Modify:   true,
 		Delete:   true,
 		Create:   true,
-		Realtime: false,
 	}
 }
 
@@ -137,19 +152,13 @@ func ApplyUserDefaults(u *users.User) {
 		return
 	}
 
-	// Permissions
+	// Global permissions (admin, api, share, realtime)
 	u.Permissions.Api = d.Account.Permissions.Api
 	u.Permissions.Admin = d.Account.Permissions.Admin
-	u.Permissions.Modify = d.Account.Permissions.Modify
 	u.Permissions.Share = d.Account.Permissions.Share
 	u.Permissions.Realtime = d.Account.Permissions.Realtime
-	u.Permissions.Delete = d.Account.Permissions.Delete
-	u.Permissions.Create = d.Account.Permissions.Create
-	u.Permissions.Download = boolValueOrDefault(d.Account.Permissions.Download, true)
 
-	if u.LoginMethod == "" && d.Account.LoginMethod != "" {
-		u.LoginMethod = users.LoginMethod(d.Account.LoginMethod)
-	}
+	sourceDefaults := DefaultSourceFilePermissions()
 
 	if len(u.BackendScopes) == 0 {
 		for _, source := range Config.Server.Sources {
@@ -158,15 +167,37 @@ func ApplyUserDefaults(u *users.User) {
 					Path:  source.Path,
 					Scope: source.Config.DefaultUserScope,
 				})
-				u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
-					Name:       source.Name,
-					Category:   "source",
-					Target:     "/",
-					Icon:       "",
-					SourceName: source.Path,
-				})
+				if len(u.SidebarLinks) == 0 {
+					u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
+						Name:       source.Name,
+						Category:   "source",
+						Target:     "/",
+						Icon:       "",
+						SourceName: source.Path,
+					})
+				}
 			}
 		}
+	}
+
+	if u.BackendSourcePermissions == nil {
+		u.BackendSourcePermissions = make(map[string]users.SourceFilePermissions)
+	}
+	for i, scope := range u.BackendScopes {
+		if _, ok := u.BackendSourcePermissions[scope.Path]; !ok {
+			perms := sourceDefaults
+			if u.Permissions.Admin {
+				perms = AdminSourceFilePermissions()
+			}
+			u.BackendScopes[i].Permissions = perms
+			u.BackendSourcePermissions[scope.Path] = perms
+		} else if u.BackendScopes[i].Permissions.IsUnset() {
+			u.BackendScopes[i].Permissions = u.BackendSourcePermissions[scope.Path]
+		}
+	}
+
+	if u.LoginMethod == "" && d.Account.LoginMethod != "" {
+		u.LoginMethod = users.LoginMethod(d.Account.LoginMethod)
 	}
 
 	u.Version = users.CurrentUserMigrationVersion
