@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -20,19 +21,95 @@ import (
 // database.path (SQLite) does not exist yet or is empty.
 func checkMigrationNeeded() bool {
 	boltPath := settings.Config.Server.DatabaseV2.MigrateFrom
-	sqlitePath := settings.Config.Server.DatabaseV2.Path
 	if boltPath == "" {
 		return false
 	}
-	boltOK := false
-	if stat, err := os.Stat(boltPath); err == nil && stat.Size() > 0 {
-		boltOK = true
+	if sqliteDatabasePopulated(settings.Config.Server.DatabaseV2.Path) {
+		return false
 	}
-	sqliteExists := false
-	if stat, err := os.Stat(sqlitePath); err == nil && stat.Size() > 0 {
-		sqliteExists = true
+	return legacyBoltDatabasePopulated(boltPath)
+}
+
+// validateDatabasePaths enforces database path rules before opening or creating SQLite:
+//  1. On a fresh install, fail if the configured SQLite path is database.db or an unrenamed
+//     legacy Bolt file (database.db) is present in the working directory.
+//  2. On a fresh install with database.migrateFrom set, fail if the legacy Bolt file is missing
+//     or empty.
+//  3. When SQLite already exists and database.migrateFrom is set, fail if the legacy Bolt file
+//     is missing or empty.
+//
+// Otherwise the existing SQLite database is used, or a new one is created on first open.
+func validateDatabasePaths() error {
+	sqlitePath := settings.Config.Server.DatabaseV2.Path
+	boltPath := settings.Config.Server.DatabaseV2.MigrateFrom
+	sqliteExists := sqliteDatabasePopulated(sqlitePath)
+
+	if !sqliteExists {
+		if filepath.Base(sqlitePath) == "database.db" {
+			return fmt.Errorf(
+				"server.database path cannot be %q; use a different filename for the SQLite database (e.g. filebrowser.sqlite)",
+				sqlitePath,
+			)
+		}
+		if _, err := os.Stat("database.db"); err == nil {
+			return fmt.Errorf(
+				"old version of database file found at database.db, please rename it to database.db.old and set database.migrateFrom",
+			)
+		}
+		if boltPath != "" {
+			return legacyBoltDatabaseError(boltPath, sqlitePath, true)
+		}
+		return nil
 	}
-	return boltOK && !sqliteExists
+
+	if boltPath != "" {
+		return legacyBoltDatabaseError(boltPath, sqlitePath, false)
+	}
+	return nil
+}
+
+func legacyBoltDatabaseError(boltPath, sqlitePath string, freshInstall bool) error {
+	stat, err := os.Stat(boltPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if freshInstall {
+				return fmt.Errorf(
+					"database.migrateFrom is %q but that file does not exist and no SQLite database exists at %q",
+					boltPath,
+					sqlitePath,
+				)
+			}
+			return fmt.Errorf(
+				"database.migrateFrom is %q but that file does not exist; remove migrateFrom from config or restore the legacy database file",
+				boltPath,
+			)
+		}
+		return fmt.Errorf("database.migrateFrom is %q but cannot be read: %w", boltPath, err)
+	}
+	if stat.Size() == 0 {
+		if freshInstall {
+			return fmt.Errorf(
+				"database.migrateFrom is %q but that file is empty and no SQLite database exists at %q",
+				boltPath,
+				sqlitePath,
+			)
+		}
+		return fmt.Errorf(
+			"database.migrateFrom is %q but that file is empty; remove migrateFrom from config or restore the legacy database file",
+			boltPath,
+		)
+	}
+	return nil
+}
+
+func sqliteDatabasePopulated(path string) bool {
+	stat, err := os.Stat(path)
+	return err == nil && stat.Size() > 0
+}
+
+func legacyBoltDatabasePopulated(path string) bool {
+	stat, err := os.Stat(path)
+	return err == nil && stat.Size() > 0
 }
 
 // migrateFromBoltToSQLite migrates essential data from BoltDB to SQLite
