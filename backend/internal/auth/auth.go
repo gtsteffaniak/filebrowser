@@ -52,7 +52,7 @@ func MakeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 		},
 	}
 	if !minimal {
-		claim.Permissions = perms
+		claim.Permissions = users.SanitizeTokenPermissions(perms)
 		claim.BelongsTo = user.ID
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)

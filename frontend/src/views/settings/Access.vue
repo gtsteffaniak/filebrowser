@@ -134,15 +134,25 @@ export default {
   },
   methods: {
     async fetchRules() {
+      const source = this.selectedSource;
       this.loading = true;
       this.error = null;
       this.accessPath = state.req.path || '/';
       try {
-        this.rules = await accessApi.getAll(this.selectedSource);
+        const rules = await accessApi.getAll(source);
+        if (source !== this.selectedSource) {
+          return;
+        }
+        this.rules = rules;
       } catch (e) {
+        if (source !== this.selectedSource) {
+          return;
+        }
         this.error = e;
       } finally {
-        this.loading = false;
+        if (source === this.selectedSource) {
+          this.loading = false;
+        }
       }
     },
     addAccess() {

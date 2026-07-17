@@ -88,13 +88,13 @@ type MinimalAuthToken struct {
 type Permissions struct {
 	Api      bool `json:"api"`      // allow api access
 	Admin    bool `json:"admin"`    // allow admin access
-	Modify   bool `json:"modify,omitempty"`   // allow modifying files (API token claims only after v4)
+	Modify   bool `json:"modify,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
 	Share    bool `json:"share"`    // allow sharing files
 	Realtime bool `json:"realtime"` // allow realtime updates
-	Delete   bool `json:"delete,omitempty"`   // allow deleting files (API token claims only after v4)
-	Create   bool `json:"create,omitempty"`   // allow creating or uploading files (API token claims only after v4)
-	Download bool `json:"download,omitempty"` // allow downloading files (API token claims only after v4)
-	View     bool `json:"view,omitempty"`     // allow viewing/listing files (API token claims only after v4)
+	Delete   bool `json:"delete,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Create   bool `json:"create,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Download bool `json:"download,omitempty"` // deprecated: legacy user migration only; not used for API tokens
+	View     bool `json:"view,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
 }
 
 // SourceFilePermissions holds per-source file operation permissions (v4+).

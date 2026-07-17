@@ -1,4 +1,4 @@
-import { checkForNotification, expect, selectExpandDropdownOption, test } from '../test-setup'
+import { checkForNotification, expect, getOrCreateShareViaApi, selectExpandDropdownOption, test } from '../test-setup'
 
 test("access rules - deny folder does not show in folder listing", async ({ page, checkForErrors }) => {
   await page.goto("/files/access");
@@ -53,12 +53,13 @@ test("navigate from search item", async({ page, checkForErrors }) => {
 test("share access controls exist", async ({ page, checkForErrors }) => {
   // localStorage is not available on about:blank; Firefox throws "The operation is insecure."
   await page.goto("/files/");
-  // Leaving /files/ while fetches are still in flight aborts them; Firefox logs NetworkError to the console.
   await page.waitForLoadState("networkidle");
-  const rootShareHash = await page.evaluate(() => localStorage.getItem("rootShareHash"));
-  if (!rootShareHash) {
-    throw new Error("Share hash not found in localStorage");
-  }
+  const rootShareHash = await getOrCreateShareViaApi(page, {
+    path: "/",
+    source: "playwright + files",
+    allowCreate: true,
+    allowModify: true,
+  });
   await page.goto(`/public/share/${rootShareHash}`);
   // Document title stays at router default until Files.vue loads share metadata (see router beforeResolve vs Files.vue).
   await expect(page.locator('a[aria-label="excludedButVisible"]')).toBeVisible();

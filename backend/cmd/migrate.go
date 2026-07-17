@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -151,20 +152,50 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 
 	promoted := 0
 	for _, user := range usersList {
+		logger.Debugf(
+			"sidebar_migrate bolt_read user=%q count=%d links=%s",
+			user.Username, len(user.SidebarLinks), usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
+		)
 		oldScopesCount := len(user.FrontendScopes)
 		newScopesCount := len(user.BackendScopes)
 		if err := normalizeUserScopesBeforeSQLite(user); err != nil {
 			return fmt.Errorf("failed to normalize scopes for user %s: %w", user.Username, err)
 		}
+		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+			user.SidebarLinks = normalized
+		}
+		logger.Debugf(
+			"sidebar_migrate after_normalize user=%q backendScopes=%d sidebarCount=%d links=%s",
+			user.Username, len(user.BackendScopes), len(user.SidebarLinks),
+			usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
+		)
 		if len(user.BackendScopes) == 0 {
 			settings.ApplyUserDefaults(user)
+			logger.Debugf(
+				"sidebar_migrate after_apply_defaults user=%q backendScopes=%d sidebarCount=%d links=%s",
+				user.Username, len(user.BackendScopes), len(user.SidebarLinks),
+				usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
+			)
+			if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+				user.SidebarLinks = normalized
+			}
 		}
+		logger.Debugf(
+			"sidebar_migrate after_normalize_links user=%q sidebarCount=%d links=%s",
+			user.Username, len(user.SidebarLinks), usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
+		)
 		users.MigrateToSourcePermissions(user)
+		normalizeUserTokensBeforeSQLite(user)
+		updateTokens(user)
 		if newScopesCount > oldScopesCount {
 			promoted++
 			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",
 				user.Username, oldScopesCount, newScopesCount)
 		}
+		logger.Debugf(
+			"sidebar_migrate before_sqlite_insert user=%q sidebarCount=%d links=%s",
+			user.Username, len(user.SidebarLinks), usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
+		)
 		boltID := user.ID
 		if err := sqlStore.CreateUser(user); err != nil {
 			return fmt.Errorf("failed to save user %s (bolt id: %d): %w", user.Username, boltID, err)
@@ -176,6 +207,34 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	}
 	logger.Infof("  ✓ Migrated %d users", len(usersList))
 	return nil
+}
+
+// normalizeUserTokensBeforeSQLite ensures Bolt name-keyed tokens have Name set so
+// TokensForPersist retains them in SQLite user_data (Bolt often stores the name only as the map key).
+func normalizeUserTokensBeforeSQLite(user *users.User) {
+	if len(user.Tokens) == 0 {
+		return
+	}
+	normalized := make(map[string]users.AuthToken)
+	for key, token := range user.Tokens {
+		name := token.Name
+		if name == "" {
+			if key == token.Token {
+				continue
+			}
+			name = key
+		}
+		if _, exists := normalized[name]; exists {
+			continue
+		}
+		token.Name = name
+		if token.Token == "" {
+			token.Token = token.Key
+		}
+		token.Permissions = users.SanitizeTokenPermissions(token.Permissions)
+		users.StoreToken(normalized, token)
+	}
+	user.Tokens = normalized
 }
 
 // migrateShares migrates all shares from BoltDB to SQLite.

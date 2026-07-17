@@ -480,6 +480,9 @@ func withUserHelper(fn handleFunc) handleFunc {
 			logger.Errorf("Failed to get user from token: %v", err)
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
+		if tokenName, ok := state.TokenNameForRawToken(data.User, data.Token); ok {
+			applyNamedApiTokenGlobalCaps(data.User, tk, tokenName)
+		}
 
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
 		if tk.RegisteredClaims.ExpiresAt != nil {

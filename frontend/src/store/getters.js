@@ -639,28 +639,12 @@ export const getters = {
   },
   apiTokenPermissionCaps: () => {
     const globalPerms = state.user?.permissions ?? {};
-    const caps = {
+    return {
       admin: !!globalPerms.admin,
       api: !!globalPerms.api,
       share: !!globalPerms.share,
       realtime: !!globalPerms.realtime,
-      view: false,
-      download: false,
-      modify: false,
-      create: false,
-      delete: false,
     };
-    const scopes = state.user?.scopes ?? [];
-    for (const scope of scopes) {
-      const perms = scope?.permissions;
-      if (!perms) continue;
-      if (perms.view) caps.view = true;
-      if (perms.download) caps.download = true;
-      if (perms.modify) caps.modify = true;
-      if (perms.create) caps.create = true;
-      if (perms.delete) caps.delete = true;
-    }
-    return caps;
   },
   previewPerms: () => {
     if (getters.isShare()) {

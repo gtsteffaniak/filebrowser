@@ -665,7 +665,7 @@
     "swaggerLinkText": "swagger page",
     "clickToCopyKey": "Click to copy token (hidden)",
     "customizeToken": "Customize Token",
-    "customizeTokenInfo": "Customize the token permissions and attributes. This will create a longer token which may not work some WebDAV clients.",
+    "customizeTokenInfo": "Customize global token permissions (admin, API, share, realtime). File permissions always come from the associated user account per source.",
     "minimalInfo": "Excludes token customizations, permissions will match the associated user and have no other attributes."
   },
   "index": {

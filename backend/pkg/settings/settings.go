@@ -167,13 +167,15 @@ func ApplyUserDefaults(u *users.User) {
 					Path:  source.Path,
 					Scope: source.Config.DefaultUserScope,
 				})
-				u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
-					Name:       source.Name,
-					Category:   "source",
-					Target:     "/",
-					Icon:       "",
-					SourceName: source.Path,
-				})
+				if len(u.SidebarLinks) == 0 {
+					u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
+						Name:       source.Name,
+						Category:   "source",
+						Target:     "/",
+						Icon:       "",
+						SourceName: source.Path,
+					})
+				}
 			}
 		}
 	}

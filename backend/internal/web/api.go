@@ -24,7 +24,7 @@ import (
 // @Produce json
 // @Param name query string true "Name of the API token"
 // @Param days query string true "Duration of the API token in days"
-// @Param permissions query string true "Permissions for the API token (comma-separated)"
+// @Param permissions query string false "Global permissions for the API token (comma-separated: admin, api, share, realtime). Omit for minimal token."
 // @Success 200 {object} HttpResponse "Token created successfully, response contains json object with token"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "Not found"
@@ -52,18 +52,13 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	// For minimal tokens (minimal=true), permissions are not in the token
 	var permissions users.Permissions
 	if !minimal {
-		// Parse permissions from the query parameter
 		permissions = users.Permissions{
 			Api:      strings.Contains(permissionsStr, "api") && d.User.Permissions.Api,
 			Admin:    strings.Contains(permissionsStr, "admin") && d.User.Permissions.Admin,
-			Modify:   strings.Contains(permissionsStr, "modify") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.Modify }),
-			Delete:   strings.Contains(permissionsStr, "delete") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.Delete }),
-			Create:   strings.Contains(permissionsStr, "create") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.Create }),
 			Share:    strings.Contains(permissionsStr, "share") && d.User.Permissions.Share,
 			Realtime: strings.Contains(permissionsStr, "realtime") && d.User.Permissions.Realtime,
-			Download: strings.Contains(permissionsStr, "download") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.Download }),
-			View:     strings.Contains(permissionsStr, "view") && userHasAnySourcePerm(d.User, func(p users.SourceFilePermissions) bool { return p.View }),
 		}
+		permissions = users.SanitizeTokenPermissions(permissions)
 	}
 
 	// Convert the duration string to an int64
@@ -195,7 +190,7 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			Name:        name,
 			IssuedAt:    authTokenIssuedUnix(token),
 			ExpiresAt:   authTokenExpiresUnix(token),
-			Permissions: token.Permissions,
+			Permissions: users.SanitizeTokenPermissions(token.Permissions),
 		})
 	})
 	if len(AuthTokensFrontend) == 0 {
@@ -234,7 +229,7 @@ func getApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		Name:        name,
 		IssuedAt:    authTokenIssuedUnix(tokenInfo),
 		ExpiresAt:   authTokenExpiresUnix(tokenInfo),
-		Permissions: tokenInfo.Permissions,
+		Permissions: users.SanitizeTokenPermissions(tokenInfo.Permissions),
 	}
 	return RenderJSON(w, r, AuthTokenFrontendResponse)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -49,8 +50,31 @@ func validateUserInfo(newDB bool) {
 		if updateTokens(user) {
 			updateUser = true
 		}
+		if normalizeApiTokenPermissions(user) {
+			updateUser = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
+		if adminUser == "" {
+			adminUser = "admin"
+		}
 		adminPass := settings.Config.Auth.AdminPassword
+		if adminPass == "" {
+			adminPass = "admin"
+		}
+		if user.Username == adminUser && user.Permissions.Admin {
+			adminPerms := settings.AdminPerms()
+			if user.Permissions.Share != adminPerms.Share || user.Permissions.Api != adminPerms.Api {
+				logger.Debug("validateUserInfo repairing admin global permissions",
+					"userID", user.ID,
+					"permShare", user.Permissions.Share,
+					"permApi", user.Permissions.Api,
+				)
+				user.Permissions.Share = adminPerms.Share
+				user.Permissions.Api = adminPerms.Api
+				user.Permissions.Admin = true
+				updateUser = true
+			}
+		}
 		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
 			logger.Debug("validateUserInfo admin reset permissions before update",
@@ -64,7 +88,7 @@ func validateUserInfo(newDB bool) {
 				"permApi", user.Permissions.Api,
 				"version", user.Version,
 			)
-			user.Permissions.Admin = true
+			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
 			updateUser = true
 			changePass = true
@@ -262,34 +286,37 @@ func updatePreviewSettings(user *users.User) bool {
 	return false
 }
 
-// updateSidebarLinks checks if user has stale source links and rebuilds them if needed
+// updateSidebarLinks normalizes sidebar links and rebuilds from scopes when none resolve.
 func updateSidebarLinks(user *users.User) bool {
-	// Count source links and check if any are still valid
-	sourceLinksCount := 0
-	validSourceLinksCount := 0
+	beforeLinks := usersidebar.FormatSidebarLinksForLog(user.SidebarLinks)
+	updated := false
 
-	for _, link := range user.SidebarLinks {
-		if strings.HasPrefix(link.Category, "source") {
-			sourceLinksCount++
-			// Check if this source still exists
-			if link.SourceName != "" {
-				if _, ok := settings.Config.Server.SourceMap[link.SourceName]; ok {
-					validSourceLinksCount++
-				}
-			}
-		}
+	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+		user.SidebarLinks = normalized
+		updated = true
+		logger.Debugf(
+			"sidebar_startup user=%q normalized=true after=%s",
+			user.Username, usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
+		)
 	}
 
-	// If user has no source links, don't update anything
+	sourceLinksCount, validSourceLinksCount := countSidebarSourceLinks(user.SidebarLinks)
+	invalidSourceLinksCount := sourceLinksCount - validSourceLinksCount
+	logger.Debugf(
+		"sidebar_startup user=%q sourceLinks=%d valid=%d invalid=%d links=%s",
+		user.Username, sourceLinksCount, validSourceLinksCount, invalidSourceLinksCount, beforeLinks,
+	)
+
 	if sourceLinksCount == 0 {
-		return false
+		if !updated {
+			logger.Debugf("sidebar_startup user=%q rebuilt=false", user.Username)
+		}
+		return updated
 	}
 
-	// If user has source links but NONE are valid, rebuild from their scopes
 	if validSourceLinksCount == 0 {
 		logger.Infof("User %s has %d stale source links, rebuilding from scopes", user.Username, sourceLinksCount)
 
-		// Remove all existing source links
 		newLinks := []users.SidebarLink{}
 		for _, link := range user.SidebarLinks {
 			if !strings.HasPrefix(link.Category, "source") {
@@ -297,10 +324,8 @@ func updateSidebarLinks(user *users.User) bool {
 			}
 		}
 
-		// Add new source links based on user's scopes
 		for _, scope := range user.BackendScopes {
 			if source, ok := settings.Config.Server.SourceMap[scope.Path]; ok {
-				// User has access to this source, add it to sidebar
 				newLinks = append(newLinks, users.SidebarLink{
 					Name:       source.Name,
 					Category:   "source",
@@ -312,11 +337,41 @@ func updateSidebarLinks(user *users.User) bool {
 		}
 
 		user.SidebarLinks = newLinks
+		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+			user.SidebarLinks = normalized
+		}
+		logger.Debugf(
+			"sidebar_startup user=%q rebuilt=true after=%s",
+			user.Username, usersidebar.FormatSidebarLinksForLog(user.SidebarLinks),
+		)
 		return true
 	}
 
-	// User has at least one valid source link, no update needed
-	return false
+	if !updated {
+		logger.Debugf("sidebar_startup user=%q rebuilt=false", user.Username)
+	}
+	return updated
+}
+
+func countSidebarSourceLinks(links []users.SidebarLink) (total, valid int) {
+	for _, link := range links {
+		if !strings.HasPrefix(link.Category, "source") {
+			continue
+		}
+		total++
+		if link.SourceName != "" {
+			if _, ok := users.ResolveSourceKey(link.SourceName); ok {
+				valid++
+				continue
+			}
+		}
+		if link.Name != "" {
+			if _, ok := users.ResolveSourceKey(link.Name); ok {
+				valid++
+			}
+		}
+	}
+	return total, valid
 }
 
 func updateTokens(user *users.User) bool {
@@ -333,4 +388,23 @@ func updateTokens(user *users.User) bool {
 	}
 	user.Version = 2
 	return true
+}
+
+func normalizeApiTokenPermissions(user *users.User) bool {
+	if user == nil || len(user.Tokens) == 0 {
+		return false
+	}
+	changed := false
+	for name, token := range user.Tokens {
+		if token.Name == "" || name != token.Name {
+			continue
+		}
+		sanitized := users.SanitizeTokenPermissions(token.Permissions)
+		if sanitized != token.Permissions {
+			token.Permissions = sanitized
+			user.Tokens[name] = token
+			changed = true
+		}
+	}
+	return changed
 }

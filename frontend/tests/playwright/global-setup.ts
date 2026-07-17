@@ -2,9 +2,7 @@ import { writeFile } from "node:fs/promises";
 import type { Browser, Page } from "@playwright/test";
 import { expect, firefox } from "@playwright/test";
 import {
-  closeSharePromptIfOpen,
-  createShareViaApi,
-  openShareAndExpectPath,
+  getOrCreateShareViaApi,
 } from "./test-setup";
 
 // Perform authentication and store auth state
@@ -27,58 +25,36 @@ async function globalSetup() {
 
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
-  // Create a share of folder
-  await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
-  await openShareAndExpectPath(page, 'Path: /myfolder/', async () => {
-    await page.locator('a[aria-label="myfolder"]').click({ button: "right" });
-    await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-    await expect(page.locator('.selected-count-header')).toHaveText('1');
-    await page.locator('button[aria-label="Share"]').click();
-  });
-  await page.locator('button[aria-label="Share-Confirm"]').click();
-  await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
-  const shareHash = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
-  if (!shareHash) {
-    throw new Error("Failed to retrieve shareHash");
-  }
-  // Store shareHash in localStorage
-  await page.evaluate((hash) => {
-    localStorage.setItem('shareHash', hash);
-  }, shareHash);
-  await closeSharePromptIfOpen(page);
+  const source = "playwright + files";
 
-  await page.goto("http://127.0.0.1/files/playwright%20%2B%20files/", { timeout: 1000 });
-  // Create a share of file
-  await page.locator('a[aria-label="1file1.txt"]').waitFor({ state: 'visible' });
-  await openShareAndExpectPath(page, 'Path: /1file1.txt', async () => {
-    await page.locator('a[aria-label="1file1.txt"]').click({ button: "right" });
-    await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-    await expect(page.locator('.selected-count-header')).toHaveText('1');
-    await page.locator('button[aria-label="Share"]').click();
-  });
-  await page.locator('button[aria-label="Share-Confirm"]').click();
-  await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
-  const shareHashFile = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
-  if (!shareHashFile) {
-    throw new Error("Failed to retrieve shareHash");
-  }
-  // Store shareHash in localStorage
-  await page.evaluate((hash) => {
-    localStorage.setItem('shareHashFile', hash);
-  }, shareHashFile);
-  await closeSharePromptIfOpen(page);
-
-  // Create a share of root folder "/" (API — avoids flaky File-Actions UI in Docker global setup)
-  const rootShareHash = await createShareViaApi(page, {
-    path: "/",
-    source: "playwright + files",
+  const shareHash = await getOrCreateShareViaApi(page, {
+    path: "/myfolder/",
+    source,
     allowCreate: true,
     allowModify: true,
   });
-  // Store shareHash in localStorage
-  await page.evaluate((hash) => {
-    localStorage.setItem('rootShareHash', hash);
-  }, rootShareHash);
+
+  const shareHashFile = await getOrCreateShareViaApi(page, {
+    path: "/1file1.txt",
+    source,
+  });
+
+  const rootShareHash = await getOrCreateShareViaApi(page, {
+    path: "/",
+    source,
+    allowCreate: true,
+    allowModify: true,
+  });
+
+  // Authenticated sharing tests read these from loginAuth.json localStorage.
+  await page.evaluate(
+    ({ shareHash, shareHashFile, rootShareHash }) => {
+      localStorage.setItem("shareHash", shareHash);
+      localStorage.setItem("shareHashFile", shareHashFile);
+      localStorage.setItem("rootShareHash", rootShareHash);
+    },
+    { shareHash, shareHashFile, rootShareHash },
+  );
 
   // Anonymous share tests: same share hashes in localStorage, no JWT cookies.
   await writeFile(

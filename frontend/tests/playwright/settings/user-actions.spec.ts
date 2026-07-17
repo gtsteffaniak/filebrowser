@@ -193,39 +193,41 @@ test.describe("User Settings Persistence", () => {
         const userRow = userRowInSettingsUsersTable(page, username);
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
-        // --- Open modal and check initial state (should be OFF) ---
+        // --- Open modal and read initial toggle state ---
         await expect(userRow).toBeVisible({ timeout: 5000 });
         await editUserTrigger(userRow).click();
 
         await expect(modal).toBeVisible();
         const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).not.toBeChecked();
+        const initialChecked = await checkbox.isChecked();
 
-        // --- Toggle ON and save ---
+        // --- Toggle to opposite state and save ---
         const toggleSwitch = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
         await toggleSwitch.click();
+        await expect(checkbox).toBeChecked({ checked: !initialChecked });
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
-        // --- Re-open and check persisted state (should be ON) ---
+        // --- Re-open and check persisted state ---
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
-        const checkboxOn = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkboxOn).toBeChecked();
+        const checkboxToggled = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await expect(checkboxToggled).toBeChecked({ checked: !initialChecked });
 
-        // --- Toggle OFF to restore state and save ---
-        const toggleSwitchOn = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
-        await toggleSwitchOn.click();
+        // --- Toggle back to initial state and save ---
+        const toggleSwitchBack = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
+        await toggleSwitchBack.click();
+        await expect(checkboxToggled).toBeChecked({ checked: initialChecked });
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
-        // --- Re-open and check state is restored (should be OFF) ---
+        // --- Re-open and check state is restored ---
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
-        const checkboxOff = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkboxOff).not.toBeChecked();
+        const checkboxRestored = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await expect(checkboxRestored).toBeChecked({ checked: initialChecked });
 
         await modal.locator('button[aria-label="Cancel"]').click();
     }
