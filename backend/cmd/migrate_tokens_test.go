@@ -12,8 +12,7 @@ import (
 )
 
 func TestMigrateAdminTokensRoundTripSQLite(t *testing.T) {
-	repoRoot := filepath.Join("..", "..")
-	boltPath := filepath.Join(repoRoot, "_docker", "src", "settings", "backend", "database.db.old")
+	boltPath := settingsMigrationBoltPath(t)
 	sqlitePath := filepath.Join(t.TempDir(), "migrate-tokens.sqlite")
 
 	oldDB, err := storm.Open(boltPath)

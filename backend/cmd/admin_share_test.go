@@ -55,13 +55,12 @@ func TestAdminHasSharePermissionAfterPlaywrightStartup(t *testing.T) {
 
 func TestAdminHasSharePermissionAfterSettingsMigration(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
-	settingsConfig := "../../_docker/src/settings/backend/config.yaml"
-	settings.Initialize(settingsConfig)
+	settings.Initialize(settingsMigrationConfigPath(t))
 	settings.Env.IsPlaywright = true
 
 	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
 	settings.Config.Server.DatabaseV2.Path = dbPath
-	settings.Config.Server.DatabaseV2.MigrateFrom = "../../_docker/src/settings/backend/database.db.old"
+	settings.Config.Server.DatabaseV2.MigrateFrom = settingsMigrationBoltPath(t)
 
 	if err := migrateFromBoltToSQLite(); err != nil {
 		t.Fatal(err)
