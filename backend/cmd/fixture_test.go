@@ -4,9 +4,18 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 const settingsMigrationBoltMinSize = 1024
+
+// Docker source paths stored in the committed database.db.old Bolt fixture.
+const (
+	fixturePlaywrightSource = "/app/frontend/tests/playwright-files"
+	fixtureDockerSource     = "/app/backend"
+	fixtureAccessSource     = "/tests/playwright-files"
+)
 
 // settingsMigrationBoltPath returns the committed BoltDB fixture used by settings
 // migration tests and the Playwright settings Docker image.
@@ -40,4 +49,35 @@ func settingsMigrationConfigPath(t *testing.T) string {
 		t.Fatalf("settings migration config not found at %s: %v", path, err)
 	}
 	return path
+}
+
+// alignSettingsSourcesForMigrationFixture maps config sources to the Docker paths
+// stored in database.db.old so migration tests can run locally without modifying
+// the committed Bolt fixture.
+func alignSettingsSourcesForMigrationFixture(t *testing.T) {
+	t.Helper()
+	byName := map[string]string{
+		"playwright + files": fixturePlaywrightSource,
+		"docker":             fixtureDockerSource,
+		"access":             fixtureAccessSource,
+	}
+	newSourceMap := make(map[string]*settings.Source, len(byName))
+	for name, dockerPath := range byName {
+		source, ok := settings.Config.Server.NameToSource[name]
+		if !ok {
+			t.Fatalf("source %q not in config", name)
+		}
+		if source.Path != dockerPath {
+			delete(settings.Config.Server.SourceMap, source.Path)
+			source.Path = dockerPath
+		}
+		newSourceMap[dockerPath] = source
+		settings.Config.Server.NameToSource[name] = source
+	}
+	settings.Config.Server.SourceMap = newSourceMap
+	sources := make([]*settings.Source, 0, len(byName))
+	for _, name := range []string{"playwright + files", "docker", "access"} {
+		sources = append(sources, settings.Config.Server.NameToSource[name])
+	}
+	settings.Config.Server.Sources = sources
 }

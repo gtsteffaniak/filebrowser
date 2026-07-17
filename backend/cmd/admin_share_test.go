@@ -57,6 +57,7 @@ func TestAdminHasSharePermissionAfterSettingsMigration(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	settings.Initialize(settingsMigrationConfigPath(t))
 	settings.Env.IsPlaywright = true
+	alignSettingsSourcesForMigrationFixture(t)
 
 	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
 	settings.Config.Server.DatabaseV2.Path = dbPath

@@ -1,70 +1,112 @@
 import { checkForNotification, expect, getOrCreateShareViaApi, selectExpandDropdownOption, test } from '../test-setup'
 
-test("access rules - deny folder does not show in folder listing", async ({ page, checkForErrors }) => {
-  await page.goto("/files/access");
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  // expect the excluded folder to not be visible
-  await expect(page.locator('a[aria-label="excluded"]')).toBeHidden();
-  checkForErrors();
-});
+type AccessRuleSetup = {
+  path: string;
+  allow: boolean;
+  ruleCategory: "user";
+  value: string;
+};
 
-test("access rules - deny folder with child access-allowed item shows", async ({ page, checkForErrors }) => {
-  await page.goto("/files/access");
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  // expect the excluded folder to not be visible (because its denied and rules only check direct child items)
-  await expect(page.locator('a[aria-label="excluded"]')).toBeHidden();
+const ACCESS_BEHAVIOR_RULES: AccessRuleSetup[] = [
+  { path: "/", allow: true, ruleCategory: "user", value: "admin" },
+  { path: "/excluded/showme.txt/", allow: true, ruleCategory: "user", value: "admin" },
+  { path: "/denied/", allow: false, ruleCategory: "user", value: "admin" },
+  { path: "/excluded/", allow: false, ruleCategory: "user", value: "admin" },
+];
 
-  // go into folder to see items within it
-  await page.goto("/files/access/excluded");
-  await expect(page.locator('a[aria-label="no-access.txt"]')).toBeHidden();
-  await expect(page.locator('a[aria-label="showme.txt"]')).toBeVisible();
-
-  checkForErrors();
-});
-
-test("access rules - main denyByDefault root exception works", async ({ page, checkForErrors }) => {
-  await page.goto("/files/access");
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await expect(page.locator('a[aria-label="text-files"]')).toBeVisible();
-  checkForErrors();
-});
-
-test("access rules - deny folder has access denied message", async ({ page, checkForErrors }) => {
-  await page.goto("/files/access/denied");
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files");
-  const msg = "403: access denied"
-  await checkForNotification(page, msg);
-  // expect the denied folder to have an access denied message
-  checkForErrors(1,1);
-});
-
-test("navigate from search item", async({ page, checkForErrors }) => {
-  await page.goto("/files/");
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('#search-bar-input').click()
-  await selectExpandDropdownOption(page, 'search sources dropdown', 'access');
-  await page.locator('#search-input').fill('no-access.txt');
-  await expect(page.locator('.searchPrompt p')).toHaveText('No results found.');
-  await page.locator('#search-input').fill('showme.txt');
-  await expect(page.locator('#result-list ul li.search-entry')).toHaveCount(1);
-  checkForErrors()
-});
-
-test("share access controls exist", async ({ page, checkForErrors }) => {
-  // localStorage is not available on about:blank; Firefox throws "The operation is insecure."
-  await page.goto("/files/");
-  await page.waitForLoadState("networkidle");
-  const rootShareHash = await getOrCreateShareViaApi(page, {
-    path: "/",
-    source: "playwright + files",
-    allowCreate: true,
-    allowModify: true,
+test.describe("Access rules behavior", () => {
+  test.beforeAll(async ({ playwright }) => {
+    const request = await playwright.request.newContext({
+      baseURL: "http://127.0.0.1/",
+      storageState: "loginAuth.json",
+    });
+    for (const rule of ACCESS_BEHAVIOR_RULES) {
+      const response = await request.post(
+        `/api/access?source=${encodeURIComponent("access")}&path=${encodeURIComponent(rule.path)}`,
+        {
+          data: {
+            allow: rule.allow,
+            ruleCategory: rule.ruleCategory,
+            value: rule.value,
+          },
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      if (!response.ok()) {
+        throw new Error(
+          `failed to seed access rule ${rule.path}: ${response.status()} ${await response.text()}`,
+        );
+      }
+    }
+    await request.dispose();
   });
-  await page.goto(`/public/share/${rootShareHash}`);
-  // Document title stays at router default until Files.vue loads share metadata (see router beforeResolve vs Files.vue).
-  await expect(page.locator('a[aria-label="excludedButVisible"]')).toBeVisible();
-  await expect(page.locator('div[aria-label="excluded"]')).toBeHidden();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
 
-  checkForErrors();
+  test("access rules - deny folder does not show in folder listing", async ({ page, checkForErrors }) => {
+    await page.goto("/files/access");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    // expect the excluded folder to not be visible
+    await expect(page.locator('a[aria-label="excluded"]')).toBeHidden();
+    checkForErrors();
+  });
+
+  test("access rules - deny folder with child access-allowed item shows", async ({ page, checkForErrors }) => {
+    await page.goto("/files/access");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    // expect the excluded folder to not be visible (because its denied and rules only check direct child items)
+    await expect(page.locator('a[aria-label="excluded"]')).toBeHidden();
+
+    // go into folder to see items within it
+    await page.goto("/files/access/excluded");
+    await expect(page.locator('a[aria-label="no-access.txt"]')).toBeHidden();
+    await expect(page.locator('a[aria-label="showme.txt"]')).toBeVisible();
+
+    checkForErrors();
+  });
+
+  test("access rules - main denyByDefault root exception works", async ({ page, checkForErrors }) => {
+    await page.goto("/files/access");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    await expect(page.locator('a[aria-label="text-files"]')).toBeVisible();
+    checkForErrors();
+  });
+
+  test("access rules - deny folder has access denied message", async ({ page, checkForErrors }) => {
+    await page.goto("/files/access/denied");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files");
+    const msg = "403: access denied"
+    await checkForNotification(page, msg);
+    // expect the denied folder to have an access denied message
+    checkForErrors(1,1);
+  });
+
+  test("navigate from search item", async({ page, checkForErrors }) => {
+    await page.goto("/files/");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    await page.locator('#search-bar-input').click()
+    await selectExpandDropdownOption(page, 'search sources dropdown', 'access');
+    await page.locator('#search-input').fill('no-access.txt');
+    await expect(page.locator('.searchPrompt p')).toHaveText('No results found.');
+    await page.locator('#search-input').fill('showme.txt');
+    await expect(page.locator('#result-list ul li.search-entry')).toHaveCount(1);
+    checkForErrors()
+  });
+
+  test("share access controls exist", async ({ page, checkForErrors }) => {
+    // localStorage is not available on about:blank; Firefox throws "The operation is insecure."
+    await page.goto("/files/");
+    await page.waitForLoadState("networkidle");
+    const rootShareHash = await getOrCreateShareViaApi(page, {
+      path: "/",
+      source: "playwright + files",
+      allowCreate: true,
+      allowModify: true,
+    });
+    await page.goto(`/public/share/${rootShareHash}`);
+    // Document title stays at router default until Files.vue loads share metadata (see router beforeResolve vs Files.vue).
+    await expect(page.locator('a[aria-label="excludedButVisible"]')).toBeVisible();
+    await expect(page.locator('div[aria-label="excluded"]')).toBeHidden();
+    await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
+
+    checkForErrors();
+  });
 });

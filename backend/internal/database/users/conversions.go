@@ -52,7 +52,7 @@ func APIScopesToBackend(apiScopes []FrontendScope) ([]BackendScope, error) {
 
 	newScopes := []BackendScope{}
 	for _, scope := range apiScopes {
-		source, ok := sourceConfig.GetSourceByName(scope.Name)
+		source, ok := ResolveSourceKey(scope.Name)
 		if !ok {
 			continue
 		}

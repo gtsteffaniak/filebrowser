@@ -58,8 +58,11 @@ func TestMigrateAdminTokensRoundTripSQLite(t *testing.T) {
 	if !customized.Permissions.Admin {
 		t.Fatalf("customized admin permission missing after reload: %#v", customized.Permissions)
 	}
-	if customized.Permissions.Modify || customized.Permissions.Create || customized.Permissions.Delete {
-		t.Fatalf("file-op permissions should be stripped from token metadata: %#v", customized.Permissions)
+	if customized.Permissions.Api || customized.Permissions.Share || customized.Permissions.Realtime {
+		t.Fatalf("customized should only retain admin global after reload: %#v", customized.Permissions)
+	}
+	if customized.Permissions.Modify || customized.Permissions.Create || customized.Permissions.Delete || customized.Permissions.Download {
+		t.Fatalf("customized legacy file ops should be stripped: %#v", customized.Permissions)
 	}
 
 	out, _ := json.MarshalIndent(map[string]any{

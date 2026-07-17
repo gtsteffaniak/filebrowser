@@ -403,8 +403,14 @@ func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 	// Migrate access rules
 	ruleCount := 0
 	for source, rules := range storage.AllRules {
+		resolvedSource := source
+		if info, ok := users.ResolveSourceKey(source); ok {
+			resolvedSource = info.Path
+		} else if src, ok := settings.Config.Server.NameToSource[source]; ok {
+			resolvedSource = src.Path
+		}
 		for path, rule := range rules {
-			err := sqlStore.SaveAccessRule(source, path, rule)
+			err := sqlStore.SaveAccessRule(resolvedSource, path, rule)
 			if err != nil {
 				return fmt.Errorf("failed to save access rule: %w", err)
 			}

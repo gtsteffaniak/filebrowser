@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { expect, selectExpandDropdownOption, test } from "../test-setup";
+import { expect, test } from "../test-setup";
 
 /**
  * Snapshot of the settings Playwright docker fixture after BoltDB → SQLite migration.
@@ -41,6 +41,8 @@ type UserExpectation = {
     sources: Record<string, SourceFilePerms>;
 };
 
+const ALL_SOURCES = ["playwright + files", "docker", "access"] as const;
+
 const DEFAULT_SOURCE_PERMS: SourceFilePerms = {
     view: true,
     download: true,
@@ -49,13 +51,26 @@ const DEFAULT_SOURCE_PERMS: SourceFilePerms = {
     delete: false,
 };
 
-const ALL_SOURCES = ["playwright + files", "docker", "access"] as const;
+const GRAHAM_SOURCE_PERMS: SourceFilePerms = {
+    view: true,
+    download: true,
+    modify: true,
+    create: true,
+    delete: false,
+};
 
 function sourcePermissionsForAllSources(
     overrides?: Partial<SourceFilePerms>,
 ): Record<string, SourceFilePerms> {
     const perms = { ...DEFAULT_SOURCE_PERMS, ...overrides };
     return Object.fromEntries(ALL_SOURCES.map((name) => [name, { ...perms }]));
+}
+
+function sourcePermissionsForSources(
+    sourceNames: readonly string[],
+    perms: SourceFilePerms,
+): Record<string, SourceFilePerms> {
+    return Object.fromEntries(sourceNames.map((name) => [name, { ...perms }]));
 }
 
 /** Migrated users + testuser1 (added in Dockerfile.playwright-settings). */
@@ -70,19 +85,31 @@ const EXPECTED_USER_DETAILS: UserExpectation[] = [
             lockPassword: false,
         },
         loginMethod: "Password",
-        sources: sourcePermissionsForAllSources(),
+        sources: sourcePermissionsForAllSources({
+            view: true,
+            download: true,
+            modify: true,
+            create: true,
+            delete: true,
+        }),
     },
     {
         username: "basic",
         global: {
             administrator: false,
-            shareFiles: false,
+            shareFiles: true,
             apiTokens: false,
             realtime: false,
             lockPassword: false,
         },
         loginMethod: "Password",
-        sources: sourcePermissionsForAllSources(),
+        sources: sourcePermissionsForAllSources({
+            view: true,
+            download: false,
+            modify: false,
+            create: false,
+            delete: false,
+        }),
     },
     {
         username: "graham",
@@ -94,7 +121,10 @@ const EXPECTED_USER_DETAILS: UserExpectation[] = [
             lockPassword: false,
         },
         loginMethod: "Password",
-        sources: sourcePermissionsForAllSources(),
+        sources: sourcePermissionsForSources(
+            ["playwright + files", "docker"],
+            GRAHAM_SOURCE_PERMS,
+        ),
     },
     {
         username: "testuser1",
@@ -123,8 +153,8 @@ const EXPECTED_API_TOKENS: ApiTokenExpectation[] = [
         minimal: false,
         permissions: {
             admin: true,
-            api: false,
             share: false,
+            api: false,
             realtime: false,
         },
     },
@@ -140,7 +170,7 @@ type AccessRuleExpectation = {
     allowTotal: number;
 };
 
-/** Access rules per source after migration + Dockerfile.playwright-settings setup. */
+/** Access rules per source after migration. */
 const EXPECTED_ACCESS_RULES: Array<[string, AccessRuleExpectation[]]> = [
     [
         "playwright + files",
@@ -149,18 +179,49 @@ const EXPECTED_ACCESS_RULES: Array<[string, AccessRuleExpectation[]]> = [
     ["docker", []],
     [
         "access",
-        [
-            { path: "/", denyTotal: 1, allowTotal: 1 },
-            { path: "/denied/", denyTotal: 1, allowTotal: 0 },
-            { path: "/excluded/", denyTotal: 1, allowTotal: 0 },
-            { path: "/excluded/showme.txt/", denyTotal: 0, allowTotal: 1 },
-        ],
+        [{ path: "/", denyTotal: 1, allowTotal: 0 }],
     ],
+];
+
+type ShareExpectation = {
+    hash: string;
+    path: string;
+    username: string;
+    allowModify: boolean;
+    allowCreate: boolean;
+    allowDelete: boolean;
+};
+
+/** Shares migrated from database.db.old (admin user). */
+const EXPECTED_SHARES: ShareExpectation[] = [
+    {
+        hash: "lMhwHkF-hqCN92-QIJJZow",
+        path: "/myfolder/",
+        username: "admin",
+        allowModify: true,
+        allowCreate: true,
+        allowDelete: true,
+    },
+    {
+        hash: "dGhQi4AcMhva2Ne-7x7fvw",
+        path: "/test & test.txt/",
+        username: "admin",
+        allowModify: false,
+        allowCreate: false,
+        allowDelete: false,
+    },
 ];
 
 function userRowInSettingsUsersTable(page: Page, usernameText: string): Locator {
     return page.locator("table.settings-table tbody tr").filter({
         has: page.locator("td").first().filter({ hasText: new RegExp(`^${usernameText}$`) }),
+    });
+}
+
+function shareRowInSettingsSharesTable(page: Page, hash: string): Locator {
+    return sharesTable(page).locator("tbody tr").filter({
+        has: page.locator("td").first().filter({ hasText: new RegExp(`^${hash}$`) }),
+        hasNot: page.locator(".settings-table__empty-cell, .settings-table__loading-cell"),
     });
 }
 
@@ -195,6 +256,10 @@ function sourcePermissionCheckbox(
         .locator('input[type="checkbox"]');
 }
 
+function sharePermissionCheckbox(modal: Locator, ariaLabel: string): Locator {
+    return modal.locator(`input[type="checkbox"][aria-label="${ariaLabel}"]`);
+}
+
 async function openSettingsSection(page: Page, sidebarId: string) {
     await page.goto("/settings");
     await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
@@ -206,7 +271,11 @@ async function expectCheckboxState(checkbox: Locator, checked: boolean) {
 }
 
 function accessRulesTable(page: Page) {
-    return page.locator('table.settings-table[aria-label="Access Management"]');
+    return page.getByRole("table", { name: "Access Management" });
+}
+
+function sharesTable(page: Page) {
+    return page.getByRole("table", { name: "Share management" });
 }
 
 async function readAccessRuleRows(page: Page): Promise<AccessRuleExpectation[]> {
@@ -351,7 +420,7 @@ test.describe("Migration fixture verification", () => {
                 expected.loginMethod,
             );
 
-            for (const sourceName of ALL_SOURCES) {
+            for (const sourceName of Object.keys(expected.sources)) {
                 const sourcePerms = expected.sources[sourceName];
                 await expandUserEditSourceScope(modal, sourceName);
 
@@ -448,9 +517,61 @@ test.describe("Migration fixture verification", () => {
         checkForErrors();
     });
 
+    test("migrated shares exist with expected properties", async ({ page, checkForErrors }) => {
+        await page.goto("/settings");
+        await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
+
+        const shareListResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/share/list") && response.status() === 200,
+        );
+        await page.locator("#shares-sidebar").click();
+        await expect(page.locator(".card-title h2")).toHaveText(/Share management/i);
+        const listResp = await shareListResponse;
+        const shares = (await listResp.json()) as Array<{ hash: string }>;
+        for (const expected of EXPECTED_SHARES) {
+            expect(shares.some((share) => share.hash === expected.hash)).toBe(true);
+        }
+
+        await expect(sharesTable(page)).not.toHaveAttribute("aria-busy", "true");
+
+        for (const expected of EXPECTED_SHARES) {
+            const row = shareRowInSettingsSharesTable(page, expected.hash);
+            await expect(row).toHaveCount(1);
+            await expect(row.locator("td").nth(1)).toHaveText(expected.path);
+            await expect(row.locator("td").nth(2)).toHaveText("Permanent");
+            await expect(row.locator("td").nth(4)).toHaveText(expected.username);
+
+            await row.getByRole("button", { name: /Edit/i }).click();
+            const prompt = page.locator('[aria-label="share-prompt"]');
+            await expect(prompt).toBeVisible();
+
+            await expectCheckboxState(
+                sharePermissionCheckbox(prompt, "allow editing files toggle"),
+                expected.allowModify,
+            );
+            await expectCheckboxState(
+                sharePermissionCheckbox(
+                    prompt,
+                    "allow creating and uploading files and folders toggle",
+                ),
+                expected.allowCreate,
+            );
+            await expectCheckboxState(
+                sharePermissionCheckbox(prompt, "allow deleting files toggle"),
+                expected.allowDelete,
+            );
+
+            await prompt.getByRole("button", { name: "Close" }).click();
+            await expect(prompt).not.toBeVisible();
+        }
+
+        checkForErrors();
+    });
+
     test("access rules exist for each source", async ({ page, checkForErrors }) => {
         await openSettingsSection(page, "access-sidebar");
-        await expect(page.locator("h2")).toHaveText(/Access Management/i);
+        await expect(page.locator(".card-title h2")).toHaveText(/Access Management/i);
         await expect(accessRulesTable(page)).not.toHaveAttribute("aria-busy", "true");
 
         for (const [sourceName, rules] of EXPECTED_ACCESS_RULES) {
