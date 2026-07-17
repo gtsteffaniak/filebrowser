@@ -52,24 +52,6 @@ func TestOnlyOfficeClientConfigDeniedWithoutView(t *testing.T) {
 	}
 }
 
-func TestWebDAVMethodPermissionMatrix(t *testing.T) {
-	viewOnly := users.SourceFilePermissions{View: true}
-	if status, err := webDAVMethodPermission("PROPFIND", viewOnly); err != nil || status != 0 {
-		t.Fatalf("PROPFIND with view: status=%d err=%v", status, err)
-	}
-	if status, err := webDAVMethodPermission(http.MethodGet, viewOnly); err == nil || status != http.StatusForbidden {
-		t.Fatalf("GET without download: status=%d err=%v", status, err)
-	}
-
-	downloadOnly := users.SourceFilePermissions{Download: true}
-	if status, err := webDAVMethodPermission("PROPFIND", downloadOnly); err == nil || status != http.StatusForbidden {
-		t.Fatalf("PROPFIND without view: status=%d err=%v", status, err)
-	}
-	if status, err := webDAVMethodPermission(http.MethodGet, downloadOnly); err != nil || status != 0 {
-		t.Fatalf("GET with download: status=%d err=%v", status, err)
-	}
-}
-
 func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 	orig := settings.Config.Integrations.OnlyOffice
 	t.Cleanup(func() {

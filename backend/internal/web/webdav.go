@@ -538,10 +538,16 @@ func webDAVMethodPermission(method string, perms users.SourceFilePermissions) (i
 		if !perms.Delete {
 			return http.StatusForbidden, fmt.Errorf("delete permission required")
 		}
-	case "COPY", "MOVE":
+	case "COPY":
+		if !perms.Download || !perms.Create {
+			return http.StatusForbidden, fmt.Errorf("copy permission required")
+		}
+	case "MOVE":
 		if !perms.Modify {
 			return http.StatusForbidden, fmt.Errorf("modify permission required")
 		}
+	default:
+		return http.StatusForbidden, fmt.Errorf("webdav method %s not permitted", method)
 	}
 	return 0, nil
 }

@@ -624,12 +624,9 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		if permErr != nil {
 			return http.StatusForbidden, permErr
 		}
-		if _, statErr := os.Stat(realPath); statErr == nil {
-			if r.URL.Query().Get("override") == "true" && !filePerms.Modify {
-				return http.StatusForbidden, fmt.Errorf("user is not allowed to modify")
-			}
-		} else if !filePerms.Create {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to create")
+		_, statErr := os.Stat(realPath)
+		if status, gateErr := resourcePostPermCheck(statErr == nil, r.URL.Query().Get("override") == "true", filePerms); gateErr != nil {
+			return status, gateErr
 		}
 	}
 
@@ -955,24 +952,20 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				response.Failed = append(response.Failed, item)
 				continue
 			}
-			if req.Action == "copy" {
-				toPerms, toErr := effectiveFilePerms(d, item.ToSource)
-				if toErr != nil || !toPerms.Create || !fromPerms.Download {
-					item.Message = "user is not allowed to copy"
+			toPerms := fromPerms
+			if item.ToSource != item.FromSource {
+				var toErr error
+				toPerms, toErr = effectiveFilePerms(d, item.ToSource)
+				if toErr != nil {
+					item.Message = "permission denied"
 					response.Failed = append(response.Failed, item)
 					continue
 				}
-			} else if !fromPerms.Modify {
-				item.Message = "user is not allowed to modify"
+			}
+			if msg := resourcePatchPermCheck(req.Action, item.FromSource, item.ToSource, fromPerms, toPerms); msg != "" {
+				item.Message = msg
 				response.Failed = append(response.Failed, item)
 				continue
-			} else if item.ToSource != item.FromSource {
-				toPerms, toErr := effectiveFilePerms(d, item.ToSource)
-				if toErr != nil || !toPerms.Modify {
-					item.Message = "user is not allowed to modify destination source"
-					response.Failed = append(response.Failed, item)
-					continue
-				}
 			}
 		}
 
