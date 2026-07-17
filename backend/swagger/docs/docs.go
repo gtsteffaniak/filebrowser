@@ -948,10 +948,9 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Permissions for the API token (comma-separated)",
+                        "description": "Global permissions for the API token (comma-separated: admin, api, share, realtime). Omit for minimal token.",
                         "name": "permissions",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -7254,19 +7253,19 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "create": {
-                    "description": "allow creating or uploading files (API token claims only after v4)",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 },
                 "delete": {
-                    "description": "allow deleting files (API token claims only after v4)",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 },
                 "download": {
-                    "description": "allow downloading files (API token claims only after v4)",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 },
                 "modify": {
-                    "description": "allow modifying files (API token claims only after v4)",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 },
                 "realtime": {
@@ -7278,7 +7277,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "view": {
-                    "description": "allow viewing/listing files (API token claims only after v4)",
+                    "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"
                 }
             }
