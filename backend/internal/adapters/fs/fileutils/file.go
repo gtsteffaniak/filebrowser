@@ -113,7 +113,7 @@ func copySingleFile(source, dest string) error {
 	defer src.Close()
 
 	// Create the destination directory if needed.
-	err = os.MkdirAll(filepath.Dir(dest), PermDir)
+	err = os.MkdirAll(filepath.Dir(dest), EffectiveDirPerm())
 	if err != nil {
 		return err
 	}
@@ -139,14 +139,17 @@ func copySingleFile(source, dest string) error {
 		// The file was copied successfully, so we continue
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", dest, err)
 	}
-
+	// Preserve source file mod time
+	if err := os.Chtimes(dest, srcInfo.ModTime(), srcInfo.ModTime()); err != nil {
+		logger.Debugf("Could not preserve modification time for %s: %v", dest, err)
+	}
 	return nil
 }
 
 // copyDirectory handles copying directories recursively.
 func copyDirectory(source, dest string) error {
 	// Create the destination directory.
-	err := os.MkdirAll(dest, PermDir)
+	err := os.MkdirAll(dest, EffectiveDirPerm())
 	if err != nil {
 		return err
 	}
@@ -178,6 +181,27 @@ func copyDirectory(source, dest string) error {
 	}
 
 	return nil
+}
+
+// PreserveModTimes copies the mod times from src onto dst, this is used by the webdav COPY handler
+func PreserveModTimes(src, dst string) error {
+	info, err := os.Lstat(src)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return os.Chtimes(dst, info.ModTime(), info.ModTime())
+	}
+	return filepath.Walk(src, func(p string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return err
+		}
+		rel, err := filepath.Rel(src, p)
+		if err != nil {
+			return err
+		}
+		return os.Chtimes(filepath.Join(dst, rel), info.ModTime(), info.ModTime())
+	})
 }
 
 // CommonPrefix returns the common directory path of provided files.
