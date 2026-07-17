@@ -29,7 +29,7 @@ func TestMigrateAdminTokensRoundTripSQLite(t *testing.T) {
 	defer sqlStore.Close()
 
 	var list []*users.User
-	if err := oldDB.All(&list); err != nil {
+	if err = oldDB.All(&list); err != nil {
 		t.Fatal(err)
 	}
 	var admin *users.User
@@ -44,7 +44,7 @@ func TestMigrateAdminTokensRoundTripSQLite(t *testing.T) {
 	}
 
 	normalizeUserTokensBeforeSQLite(admin)
-	if err := sqlStore.CreateUser(admin); err != nil {
+	if err = sqlStore.CreateUser(admin); err != nil {
 		t.Fatal(err)
 	}
 
