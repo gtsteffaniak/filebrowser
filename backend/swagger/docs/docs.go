@@ -7750,6 +7750,9 @@ const docTemplate = `{
                 "issuedAt": {
                     "type": "integer"
                 },
+                "minimal": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
