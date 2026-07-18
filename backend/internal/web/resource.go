@@ -18,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -42,6 +43,38 @@ func pauseUploadCacheKey(source, path string) string {
 
 func publicPauseUploadCacheKey(shareHash, source, indexPath string) string {
 	return shareHash + pauseCacheKeySep + source + pauseCacheKeySep + indexPath
+}
+
+// resourcePostPermCheck validates create vs overwrite permissions for ResourcePostHandler.
+func resourcePostPermCheck(exists bool, override bool, perms users.SourceFilePermissions) (int, error) {
+	if exists {
+		if override && !perms.Modify {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to modify")
+		}
+		return 0, nil
+	}
+	if !perms.Create {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create")
+	}
+	return 0, nil
+}
+
+// resourcePatchPermCheck validates move/copy/rename permissions. Returns a failure message when denied.
+func resourcePatchPermCheck(action, fromSource, toSource string, fromPerms, toPerms users.SourceFilePermissions) string {
+	switch action {
+	case "copy":
+		if !fromPerms.Download || !toPerms.Create {
+			return "user is not allowed to copy"
+		}
+	case "move", "rename":
+		if !fromPerms.Modify {
+			return "user is not allowed to modify"
+		}
+		if toSource != fromSource && !toPerms.Modify {
+			return "user is not allowed to modify destination source"
+		}
+	}
+	return ""
 }
 
 // reconcileSharesAfterMove updates authoritative share rows in state after a filesystem move.
@@ -159,6 +192,29 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	return RenderJSON(w, r, fileInfo)
 }
 
+// publicGetResourceHandler returns file or directory information from a public share.
+// @Summary Get file/directory information from a public share
+// @Description Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string false "Path within the share to retrieve information for. Defaults to share root."
+// @Param content query string false "Include file content if true"
+// @Param metadata query string false "Extract audio/video metadata if true"
+// @Success 200 {object} iteminfo.FileInfo "File or directory metadata"
+// @Failure 403 {object} map[string]string "Share unavailable or access denied"
+// @Failure 404 {object} map[string]string "Share not found or file not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 501 {object} map[string]string "Browsing disabled for upload shares"
+// @Router /public/api/resources [get]
+func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
+	return RenderJSON(w, r, d.FileInfo)
+}
+
 // resourceDeleteHandler deletes a resource at a specified path.
 // @Summary Delete a resource
 // @Description Deletes a resource located at the specified path.
@@ -217,6 +273,28 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	activity.RecordDelete(r, toActor(d), source, path)
 	return http.StatusOK, nil
 
+}
+
+// deprecated -- see publicBulkDeleteHandler
+func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !d.Share.AllowDelete {
+		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
+	}
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		FollowSymlinks: true,
+		Path:           d.IndexPath,
+		Source:         d.Share.SourcePath,
+	}, d.ShareUser)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("resource not available")
+	}
+	err = files.DeleteFiles(d.Share.SourcePath, fileInfo.RealPath, fileInfo.Type == "directory")
+	if err != nil {
+		logger.Errorf("public delete handler: error deleting resource with error %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
+	}
+	preview.DelThumbs(r.Context(), *fileInfo)
+	return http.StatusOK, nil
 }
 
 // BulkDeleteItem represents a single item in a bulk delete request
@@ -483,6 +561,32 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 	}
 
 	return RenderJSON(w, r, response, statusCode)
+}
+
+// publicBulkDeleteHandler deletes multiple resources from a public share in a single request.
+// @Summary Bulk delete resources from public share
+// @Description Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param items body []BulkDeleteItem true "Array of items to delete, each with source and path"
+// @Success 200 {object} BulkDeleteResponse "All resources deleted successfully"
+// @Success 207 {object} BulkDeleteResponse "Partial success - some resources deleted, some failed"
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON or empty items array"
+// @Failure 403 {object} map[string]string "Forbidden - delete not allowed for this share"
+// @Failure 500 {object} map[string]string "Internal server error - all deletions failed"
+// @Router /public/api/resources/bulk [delete]
+func publicBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !d.Share.AllowDelete {
+		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
+	}
+	status, err := ResourceBulkDeleteHandler(w, r, d)
+	if err != nil {
+		logger.Errorf("public bulk delete handler: error deleting resources with error %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("an error occurred while processing the request")
+	}
+	return status, nil
 }
 
 // resourcePauseHandler registers a graceful pause for an in-flight chunked upload.
@@ -798,6 +902,45 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	return http.StatusOK, nil
 }
 
+// publicUploadHandler processes file uploads to a public upload share.
+// @Summary Upload files to a public upload share
+// @Description Handles file and directory uploads to an upload-only public share. Supports chunked uploads, conflict resolution (override), and directory creation.
+// @Tags Resources
+// @Accept multipart/form-data
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string true "path within the share to upload to. Must be relative to share root."
+// @Param override query bool false "If true, overwrite existing files/folders. Defaults to false."
+// @Param action query string false "Upload action: 'override' to replace files, 'rename' to auto-rename"
+// @Param file formData file true "File to upload"
+// @Success 200 {object} map[string]string "Upload successful"
+// @Failure 400 {object} map[string]string "Invalid request or parameters"
+// @Failure 403 {object} map[string]string "Share unavailable or upload not allowed"
+// @Failure 404 {object} map[string]string "Share not found"
+// @Failure 409 {object} map[string]string "File or directory already exists (conflict)"
+// @Failure 500 {object} map[string]string "Internal server error during upload"
+// @Failure 501 {object} map[string]string "Uploading disabled for non-upload shares"
+// @Router /public/api/resources [post]
+func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.ShareType != "upload" && !d.Share.AllowCreate {
+		return http.StatusForbidden, fmt.Errorf("uploading is disabled for this share")
+	}
+	if !d.Share.AllowReplacements && r.URL.Query().Get("action") == "override" {
+		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
+	}
+	source := settings.Config.Server.SourceMap[d.Share.SourcePath].Name
+	q := r.URL.Query()
+	q.Set("source", source)
+	q.Set("path", d.IndexPath)
+	r.URL.RawQuery = q.Encode()
+	status, err := ResourcePostHandler(w, r, d)
+	if err != nil {
+		logger.Errorf("public upload handler: error uploading with error %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("upload failure occured on backend")
+	}
+	return status, nil
+}
+
 // resourcePutHandler updates an existing file resource.
 // @Summary Update a file resource
 // @Description Updates an existing file at the specified path.
@@ -856,6 +999,49 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 
 	err = files.WriteFile(source, fullIndexPath, r.Body)
 	return ErrToStatus(err), err
+}
+
+// publicPutHandler handles the PUT request for a public share.
+// @Summary Update a file in a public share
+// @Description Updates the content of a file in a public share.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string true "Path to the file to update"
+// @Param content body string true "New content for the file"
+// @Success 200 {object} map[string]string "File updated successfully"
+// @Failure 400 {object} map[string]string "Invalid request or parameters"
+// @Failure 403 {object} map[string]string "Share unavailable or update not allowed"
+// @Failure 404 {object} map[string]string "Share not found or file not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /public/api/resources [put]
+func publicPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !d.Share.AllowModify {
+		return http.StatusForbidden, fmt.Errorf("create is not allowed for this share")
+	}
+	sourceName := d.Share.GetSourceName()
+	if sourceName == "" {
+		return http.StatusNotFound, fmt.Errorf("source not available")
+	}
+
+	if !d.Share.AllowModify {
+		return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
+	}
+	path := r.URL.Query().Get("path")
+
+	cleanPath, err := utils.SanitizePath(path)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	resolvedPath := utils.JoinPathAsUnix(d.Share.Path, cleanPath)
+	err = files.WriteFile(sourceName, resolvedPath, r.Body)
+	if err != nil {
+		logger.Errorf("public put handler: error updating resource with error %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("an error occurred while updating the resource")
+	}
+	return http.StatusOK, nil
 }
 
 // resourcePatchHandler performs a patch operation (e.g., move, copy, rename) on resources.
@@ -1171,6 +1357,76 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	return RenderJSON(w, r, response, statusCode)
 }
 
+// publicPatchHandler performs a patch operation (e.g., move, copy, rename) on resources in a public share.
+// @Summary Move, copy, or rename resources in a public share
+// @Description Performs move, copy, or rename operations on multiple resources within a public share. All operations are performed atomically.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param request body MoveCopyRequest true "Move/copy request with items and action"
+// @Success 200 {object} MoveCopyResponse "All operations completed successfully"
+// @Success 207 {object} MoveCopyResponse "Partial success - some operations succeeded, some failed"
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON or parameters"
+// @Failure 403 {object} map[string]string "Forbidden - modify not allowed for this share"
+// @Failure 404 {object} map[string]string "Share or resource not found"
+// @Failure 500 {object} MoveCopyResponse "Internal server error"
+// @Router /public/api/resources [patch]
+func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !d.Share.AllowModify {
+		return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
+	}
+
+	sourceName := d.Share.GetSourceName()
+	if sourceName == "" {
+		return http.StatusNotFound, fmt.Errorf("source not available")
+	}
+
+	var shareCreatedByUser *users.User
+	userValue, err := state.UserForShareOwner(d.Share)
+	if err == nil {
+		shareCreatedByUser = &userValue
+	}
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
+	}
+	d.User = shareCreatedByUser
+
+	var req MoveCopyRequest
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid JSON body: %v", err)
+	}
+
+	if req.Action == "" {
+		return http.StatusBadRequest, fmt.Errorf("action is required (copy, move, or rename)")
+	}
+
+	for i := range req.Items {
+		var sanitizedPath string
+		sanitizedPath, err = utils.SanitizePath(req.Items[i].FromPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid from path: %w", err)
+		}
+		req.Items[i].FromSource = sourceName
+		req.Items[i].FromPath = utils.JoinPathAsUnix(d.Share.Path, sanitizedPath)
+		sanitizedPath, err = utils.SanitizePath(req.Items[i].ToPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid to path: %w", err)
+		}
+		req.Items[i].ToSource = sourceName
+		req.Items[i].ToPath = utils.JoinPathAsUnix(d.Share.Path, sanitizedPath)
+	}
+	d.Data = req
+
+	status, err := ResourcePatchHandler(w, r, d)
+	if err != nil {
+		logger.Errorf("public patch handler: error processing patch with error %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("an error occurred while processing the request")
+	}
+
+	return status, err
+}
+
 func addVersionSuffix(source string) string {
 	counter := 1
 	dir, name := path.Split(source)
@@ -1292,6 +1548,41 @@ func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 		ShowHidden:     d.User.ShowHidden,
 		Only:           r.URL.Query().Get("only"),
 	}, d.User)
+	if err != nil {
+		if err == errors.ErrAccessDenied {
+			return http.StatusForbidden, err
+		}
+		return http.StatusInternalServerError, err
+	}
+	return RenderJSON(w, r, items)
+}
+
+// publicItemsGetHandler efficiently returns a basic list of items for a directory in a public share.
+// @Summary Get directory items (public share)
+// @Description Efficiently returns a basic list of items for the specified path in a public share. Use hash for authentication instead of source. Use 'only' parameter to filter by only files or folders.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string false "Path within the share to list child items. Defaults to share root."
+// @Param only query string false "Filter: 'files', 'folders', or omit for both"
+// @Success 200 {object} files.Items "lists files and folders"
+// @Failure 403 {object} map[string]string "Forbidden (access denied)"
+// @Failure 404 {object} map[string]string "Share not found or source not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /public/api/resources/items [get]
+func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	items, err := files.GetDirItems(utils.FileOptions{
+		FollowSymlinks: true,
+		Path:           d.IndexPath,
+		Source:         sourceInfo.Name,
+		ShowHidden:     d.ShareUser.ShowHidden,
+		Only:           r.URL.Query().Get("only"),
+	}, d.ShareUser)
 	if err != nil {
 		if err == errors.ErrAccessDenied {
 			return http.StatusForbidden, err

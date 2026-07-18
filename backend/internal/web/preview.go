@@ -92,6 +92,36 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 	return status, nil
 }
 
+// publicPreviewHandler handles the preview request for images from public shares.
+// @Summary Get image/video preview from a public share
+// @Description Returns a preview (thumbnail) for images or videos accessible via a public share. Preview generation can be disabled globally or per-share. Not available for upload-only shares.
+// @Tags Resources
+// @Accept json
+// @Produce image/jpeg
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string true "File path within the share to preview"
+// @Param size query string false "Preview size: 'small' or 'large'. Default is based on server settings.Config."
+// @Success 200 {file} file "Preview image content (JPEG)"
+// @Failure 403 {object} map[string]string "Share unavailable or access denied"
+// @Failure 404 {object} map[string]string "File not found or preview not available"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 501 {object} map[string]string "Previews disabled globally, for this share, or for upload shares"
+// @Router /public/api/resources/preview [get]
+func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if settings.Config.Server.DisablePreviews || d.Share.DisableThumbnails {
+		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
+	}
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("preview is disabled for upload shares")
+	}
+	status, err := PreviewHelperFunc(w, r, d)
+	if err != nil {
+		logger.Errorf("public preview handler: error getting preview with error %v", err)
+		return http.StatusNotFound, fmt.Errorf("preview not available for this item")
+	}
+	return status, err
+}
+
 func shouldServeOriginalPreview(ext string, resizable bool, realPath, previewSize string, fileSize int64) bool {
 	if !resizable {
 		return false

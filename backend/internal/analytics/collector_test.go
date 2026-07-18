@@ -100,14 +100,6 @@ func TestRefreshSnapshotBuildsCache(t *testing.T) {
 	}
 }
 
-func TestNotifySourceFullScanCompleteRebuildsCache(t *testing.T) {
-	setupAnalyticsTest(t)
-	NotifySourceFullScanComplete("test-source")
-	if !Ready() {
-		t.Fatal("expected Ready() true after full scan notification")
-	}
-}
-
 func TestCacheConcurrency(t *testing.T) {
 	setupAnalyticsTest(t)
 	setCachedEnvelopeForTest([]byte(`{"concurrent":true}`))

@@ -14,9 +14,11 @@ import (
 )
 
 const (
+	time24h             = 24 * time.Hour
+	time30d             = 30 * time24h
+	initialSendDelay    = time24h
+	recurringSendPeriod = time30d
 	analyticsURL        = "https://api.filebrowserquantum.com/v1/events"
-	initialSendDelay    = 24 * time.Hour
-	recurringSendPeriod = 30 * 24 * time.Hour
 )
 
 var (

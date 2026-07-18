@@ -62,7 +62,7 @@ export default {
         this.publishSupported = status.publishSupported;
       } catch (e) {
         console.error(e);
-        notify.showErrorToast(this.$t("settings.analyticsLoadFailed"));
+        notify.showErrorToast(e?.message || this.$t("settings.analyticsLoadFailed"));
       }
     },
     async updateAnalytics() {
@@ -77,7 +77,7 @@ export default {
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         console.error(e);
-        notify.showErrorToast(this.$t("settings.analyticsUpdateFailed"));
+        notify.showErrorToast(e?.message || this.$t("settings.analyticsUpdateFailed"));
         await this.loadAnalytics();
       } finally {
         this.analyticsLoading = false;

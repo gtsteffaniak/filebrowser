@@ -14,7 +14,7 @@ import (
 )
 
 func TestOnlyOfficeClientConfigDeniedWithoutView(t *testing.T) {
-	initStreamGrantTestSources(t)
+	initStreamTestSources(t)
 
 	origOnlyOffice := settings.Config.Integrations.OnlyOffice
 	origNameToSource := settings.Config.Server.NameToSource
@@ -145,5 +145,18 @@ func TestOnlyOfficeURLHostsMatch(t *testing.T) {
 	}
 	if onlyOfficeURLHostsMatch(mustParse("http://evil.example/x"), mustParse("http://office.local/x")) {
 		t.Fatal("expected different hostnames not to match")
+	}
+}
+
+func testUserWithSourcePerms(sourcePath string, perms users.SourceFilePermissions) *users.User {
+	return &users.User{
+		FrontendUser: users.FrontendUser{Username: "alice"},
+		BackendScopes: []users.BackendScope{
+			{Path: sourcePath, Scope: "/", Permissions: perms},
+		},
+		BackendSourcePermissions: map[string]users.SourceFilePermissions{
+			sourcePath: perms,
+		},
+		Version: users.SourcePermissionsMigrationVersion,
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -12,19 +11,6 @@ var (
 	cacheMu        sync.RWMutex
 	cachedEnvelope []byte
 )
-
-func init() {
-	indexing.OnSourceRootFullScanComplete = NotifySourceFullScanComplete
-}
-
-// NotifySourceFullScanComplete rebuilds the in-memory snapshot after a source root full scan.
-func NotifySourceFullScanComplete(sourceName string) {
-	cacheMu.Lock()
-	defer cacheMu.Unlock()
-	if rebuildSnapshotLocked(false) {
-		logger.Debugf("analytics deployment snapshot updated after full scan of source %q", sourceName)
-	}
-}
 
 // Ready reports whether a snapshot is cached and available to preview or publish.
 func Ready() bool {

@@ -8,8 +8,12 @@ import (
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
 )
 
@@ -38,6 +42,35 @@ func (tw *throttledWriter) Write(p []byte) (n int, err error) {
 		}
 	}
 	return
+}
+
+type throttledReadSeeker struct {
+	rs      io.ReadSeeker
+	limiter *rate.Limiter
+	ctx     context.Context
+}
+
+// NewThrottledReadSeeker rate-limits reads from an io.ReadSeeker.
+func NewThrottledReadSeeker(rs io.ReadSeeker, limit rate.Limit, burst int, ctx context.Context) io.ReadSeeker {
+	return &throttledReadSeeker{
+		rs:      rs,
+		limiter: rate.NewLimiter(limit, burst),
+		ctx:     ctx,
+	}
+}
+
+func (r *throttledReadSeeker) Read(p []byte) (n int, err error) {
+	n, err = r.rs.Read(p)
+	if n > 0 {
+		if waitErr := r.limiter.WaitN(r.ctx, n); waitErr != nil && err == nil {
+			err = waitErr
+		}
+	}
+	return
+}
+
+func (r *throttledReadSeeker) Seek(offset int64, whence int) (int64, error) {
+	return r.rs.Seek(offset, whence)
 }
 
 // downloadHandler serves the raw content of a file, multiple files, or directory in various formats.
@@ -78,6 +111,85 @@ func downloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 	}
 
 	return RawFilesHandler(w, r, d, source, fileList)
+}
+
+// publicDownloadHandler serves the raw content of a file, multiple files, or directory via a public share.
+// @Summary Download files from a public share
+// @Description Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
+// @Description
+// @Description **Multiple Files:**
+// @Description - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+// @Description - This supports filenames containing commas and special characters
+// @Tags Resources
+// @Accept json
+// @Produce octet-stream
+// @Param hash query string true "Share hash for authentication"
+// @Param file query []string true "File path (can be repeated for multiple files)"
+// @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
+// @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
+// @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
+// @Failure 400 {object} map[string]string "Invalid request path or encoding"
+// @Failure 403 {object} map[string]string "Download limit reached, anonymous access blocked, or share unavailable"
+// @Failure 404 {object} map[string]string "Share not found or file not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 501 {object} map[string]string "Downloads disabled for upload shares"
+// @Router /public/api/resources/download [get]
+func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
+	}
+
+	if d.Share.DisableDownload {
+		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
+	}
+
+	if !d.Share.PerUserDownloadLimit && d.Share.DownloadsLimit > 0 && d.Share.Downloads >= d.Share.DownloadsLimit {
+		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
+	}
+
+	if d.Share.PerUserDownloadLimit {
+		if d.User.Username == "anonymous" {
+			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
+		}
+		if d.Share.HasReachedUserLimit(d.User.Username) {
+			return http.StatusForbidden, fmt.Errorf("user download limit reached for this share")
+		}
+	}
+
+	if err := state.RecordShareDownload(d.Share.Hash, d.User.Username); err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	files := r.URL.Query()["file"]
+	if len(files) == 0 {
+		files = []string{"/"}
+	}
+
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
+	}
+	actualSourceName := sourceInfo.Name
+
+	fileList := []string{}
+	for _, file := range files {
+		cleanFile, err := utils.SanitizePath(file)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
+		}
+		filePath := utils.JoinPathAsUnix(d.Share.Path, cleanFile)
+		fileList = append(fileList, filePath)
+	}
+
+	status, err := RawFilesHandler(w, r, d, actualSourceName, fileList)
+	if err != nil {
+		if err == errors.ErrDownloadNotAllowed {
+			return http.StatusForbidden, errors.ErrDownloadNotAllowed
+		}
+		logger.Errorf("public share handler: error processing filelist: %v with error %v", files, err)
+		return status, fmt.Errorf("error processing filelist: %v", files)
+	}
+	return status, nil
 }
 
 func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source string, fileList []string) (int, error) {

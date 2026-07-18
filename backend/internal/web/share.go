@@ -8,13 +8,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -22,6 +23,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // shareListHandler returns a list of all share links.
@@ -560,6 +562,77 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Conte
 	return RenderJSON(w, r, response)
 }
 
+// getShareImage serves banner or favicon files for shares as resizable previews
+// @Summary Get share image (banner or favicon) as preview
+// @Description Returns a resizable preview (large size) for the banner or favicon file of a share
+// @Tags Shares
+// @Produce image/jpeg
+// @Param hash query string true "Share hash"
+// @Param banner query bool false "Request banner file"
+// @Param favicon query bool false "Request favicon file"
+// @Success 200 {file} file "Preview image content (JPEG)"
+// @Failure 400 {object} map[string]string "Invalid request"
+// @Failure 403 {object} map[string]string "Permission denied"
+// @Failure 404 {object} map[string]string "Asset not found"
+// @Router /public/api/share/image [get]
+func getShareImage(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	isBanner := r.URL.Query().Get("banner") == "true"
+	isFavicon := r.URL.Query().Get("favicon") == "true"
+
+	if !isBanner && !isFavicon {
+		return http.StatusBadRequest, fmt.Errorf("either banner or favicon parameter must be true")
+	}
+
+	userValue, err := state.UserForShareOwner(d.Share)
+	var shareCreatedByUser *users.User
+	if err == nil {
+		shareCreatedByUser = &userValue
+	}
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
+	}
+
+	sourceName, assetPath, err := d.Share.GetShareImagePartsHelper(isBanner)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid asset configuration: %v", err)
+	}
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		Path:           assetPath,
+		Source:         sourceName,
+		Expand:         false,
+		Content:        false,
+		Metadata:       false,
+		ShowHidden:     false,
+		FollowSymlinks: true,
+	}, shareCreatedByUser)
+	if err != nil {
+		logger.Errorf("error accessing share asset: source=%v path=%v error=%v", sourceName, assetPath, err)
+		return http.StatusNotFound, fmt.Errorf("asset file not found or not accessible")
+	}
+
+	if !strings.HasPrefix(fileInfo.Type, "image/") {
+		return http.StatusBadRequest, fmt.Errorf("invalid file type, must be image")
+	}
+
+	d.FileInfo = *fileInfo
+	q := r.URL.Query()
+	if isBanner {
+		q.Set("size", "xlarge")
+	} else {
+		q.Set("size", "small")
+	}
+	r.URL.RawQuery = q.Encode()
+
+	status, err := PreviewHelperFunc(w, r, d)
+	if err != nil {
+		logger.Errorf("error generating preview for share asset: source=%v path=%v error=%v", sourceName, assetPath, err)
+		return http.StatusNotFound, fmt.Errorf("preview not available for this asset")
+	}
+
+	return status, err
+}
+
 // shareInfoHandler retrieves share information by hash.
 // @Summary Get share information by hash
 // @Description Returns information about a share link based on its hash. This endpoint is publicly accessible and can be used with or without authentication.
@@ -598,6 +671,86 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		})
 	}
 	return RenderJSON(w, r, frontendShareInfo)
+}
+
+type sharePinnedItemPatchRequest struct {
+	Path string `json:"path" validate:"required"`
+	Name string `json:"name" validate:"required"`
+}
+
+func normalizeShareRelativeDir(shareRelDir string) (string, error) {
+	if shareRelDir == "" || shareRelDir == "/" {
+		return "/", nil
+	}
+	cleanDir, err := utils.SanitizePath(shareRelDir)
+	if err != nil {
+		return "", fmt.Errorf("invalid path: %w", err)
+	}
+	return utils.AddTrailingSlashIfNotExists(cleanDir), nil
+}
+
+// sharePatchPinnedItemsHandler adds or removes a pinned item on a share.
+func sharePatchPinnedItemsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	hash := r.URL.Query().Get("hash")
+	if hash == "" {
+		return http.StatusBadRequest, fmt.Errorf("hash is required")
+	}
+
+	link, err := state.GetShare(hash)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("share hash not found")
+	}
+
+	if d.User.Username == "anonymous" || !link.UserCanEdit(d.User) {
+		return http.StatusForbidden, fmt.Errorf("share pin editing is not allowed for this user")
+	}
+
+	if link.ShareType == "upload" {
+		return http.StatusForbidden, fmt.Errorf("pinning is disabled for upload shares")
+	}
+
+	var body sharePinnedItemPatchRequest
+	if err = json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+	}
+	defer r.Body.Close()
+
+	action := pinnedItemAction(r)
+	if action != "add" && action != "remove" {
+		return http.StatusBadRequest, fmt.Errorf("action must be add or remove")
+	}
+
+	if body.Path == "" || body.Name == "" {
+		return http.StatusBadRequest, fmt.Errorf("path and name are required")
+	}
+
+	shareRelDir, err := normalizeShareRelativeDir(body.Path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path: %s", body.Path)
+	}
+
+	cleanName, err := utils.SanitizePath(body.Name)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid name: %s", body.Name)
+	}
+	body.Name = cleanName
+
+	pinned := link.EnsurePinnedItems()
+	switch action {
+	case "add":
+		pinned.Add(shareRelDir, body.Name)
+	case "remove":
+		pinned.Remove(shareRelDir, body.Name)
+	}
+
+	if err := state.UpdateShare(hash, func(existing *share.Share) error {
+		existing.PinnedItems = link.PinnedItems
+		return nil
+	}); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to save share: %w", err)
+	}
+
+	return http.StatusNoContent, nil
 }
 
 func getSharePasswordHash(plaintextPassword string) (data []byte, statuscode int, err error) {

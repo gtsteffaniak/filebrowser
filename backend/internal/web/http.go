@@ -1,17 +1,72 @@
 package web
 
 import (
+	"compress/gzip"
+	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
+	"net"
 	"net/http"
+	"net/url"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
+	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"golang.org/x/time/rate"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-
 )
+
+// Context carries per-request state for HTTP handlers.
+type Context struct {
+	User         *users.User
+	ShareUser    *users.User
+	FileInfo     iteminfo.ExtendedFileInfo
+	Token        string
+	Share        share.Share
+	ShareValid   bool
+	Ctx          context.Context
+	MaxBandwidth int
+	Data         interface{}
+	IndexPath    string
+}
+
+// HandleFunc is the signature used by middleware-wrapped handlers.
+type HandleFunc func(w http.ResponseWriter, r *http.Request, d *Context) (int, error)
+
+func effectiveFilePerms(d *Context, sourceName string) (users.SourceFilePermissions, error) {
+	if d == nil {
+		return users.DenyAllSourceFilePermissions(), fmt.Errorf("user context not set")
+	}
+	var link *share.Share
+	if d.Share.Hash != "" {
+		link = &d.Share
+	}
+	return share.EffectiveFilePermissions(d.User, link, sourceName)
+}
+
+// HttpResponse is the standard JSON error/success envelope.
+type HttpResponse struct {
+	Status  int    `json:"status,omitempty"`
+	Message string `json:"message,omitempty"`
+	Token   string `json:"token,omitempty"`
+}
+
+// ResponseWriterWrapper wraps http.ResponseWriter to capture status code and username.
+type ResponseWriterWrapper struct {
+	http.ResponseWriter
+	StatusCode  int
+	WroteHeader bool
+	PayloadSize int
+	User        string
+}
 
 // Built-in auth rate limits (per process). Toggle all off with http.disableRateLimit.
 //
@@ -33,23 +88,6 @@ const (
 	authLimiterEntryTTL = 24 * time.Hour
 )
 
-// In-memory failed-attempt counters and lockout flags (per server process).
-var (
-	authFailCounts = cache.NewCache[int](time.Minute, 10*time.Minute)
-	authLockouts   = cache.NewCache[bool](time.Minute, 10*time.Minute)
-)
-
-// Per-route-class token buckets (keys: IP or username). Expired entries are dropped by go-cache.
-var (
-	authRateLimitCredentialByIP       = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
-	authRateLimitCredentialByUsername = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
-	authRateLimitModerateByIP         = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
-	authRateLimitOIDCByIP             = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
-	authRateLimitAuthenticatedByUser  = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
-)
-
-const authRateKeySep = "\x1e"
-
 // AuthRateLimitKind selects which /api/auth rate limit tier applies (see withRateLimit and withRateLimitChain).
 type AuthRateLimitKind int
 
@@ -64,7 +102,174 @@ const (
 	AuthRateLimitAuthenticated
 )
 
-// withRateLimitChain applies a rate limit tier then fn for nesting inside withUser / withOrWithoutUser / withoutUser.
+const authRateKeySep = "\x1e"
+
+// In-memory failed-attempt counters and lockout flags (per server process).
+var (
+	authFailCounts = cache.NewCache[int](time.Minute, 10*time.Minute)
+	authLockouts   = cache.NewCache[bool](time.Minute, 10*time.Minute)
+)
+
+// Per-route-class token buckets (keys: IP or username). Expired entries are dropped by go-cache.
+var (
+	authRateLimitCredentialByIP       = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitCredentialByUsername   = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitModerateByIP         = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitOIDCByIP             = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitAuthenticatedByUser  = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+)
+
+// ErrToStatus maps domain errors to HTTP status codes.
+func ErrToStatus(err error) int {
+	switch {
+	case err == nil:
+		return http.StatusOK
+	case os.IsPermission(err):
+		return http.StatusForbidden
+	case errors.Is(err, libErrors.ErrAccessDenied):
+		return http.StatusForbidden
+	case os.IsNotExist(err), err == libErrors.ErrNotExist:
+		return http.StatusNotFound
+	case os.IsExist(err), err == libErrors.ErrExist:
+		return http.StatusConflict
+	case errors.Is(err, libErrors.ErrPermissionDenied):
+		return http.StatusForbidden
+	case errors.Is(err, libErrors.ErrInvalidRequestParams):
+		return http.StatusBadRequest
+	case errors.Is(err, libErrors.ErrIsDirectory):
+		return http.StatusMethodNotAllowed
+	default:
+		return http.StatusInternalServerError
+	}
+}
+
+// RenderJSON writes a JSON response, optionally gzip-compressed.
+func RenderJSON(w http.ResponseWriter, r *http.Request, data interface{}, statusCode ...int) (int, error) {
+	code := http.StatusOK
+	if len(statusCode) > 0 && statusCode[0] != 0 {
+		code = statusCode[0]
+	}
+
+	marsh, err := json.Marshal(data)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	payloadSizeKB := len(marsh) / 1024
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if acceptsGzip(r) && payloadSizeKB > 10 {
+		w.Header().Set("Content-Encoding", "gzip")
+		w.WriteHeader(code)
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		if _, err := gz.Write(marsh); err != nil {
+			return http.StatusInternalServerError, err
+		}
+	} else {
+		w.WriteHeader(code)
+		if _, err := w.Write(marsh); err != nil {
+			return http.StatusInternalServerError, err
+		}
+	}
+	return code, nil
+}
+
+func acceptsGzip(r *http.Request) bool {
+	ae := r.Header.Get("Accept-Encoding")
+	return ae != "" && strings.Contains(ae, "gzip")
+}
+
+// WriteHeader captures the status code and ensures it is only written once.
+func (w *ResponseWriterWrapper) WriteHeader(statusCode int) {
+	if !w.WroteHeader {
+		if statusCode == 0 {
+			statusCode = http.StatusInternalServerError
+		}
+		w.StatusCode = statusCode
+		w.ResponseWriter.WriteHeader(statusCode)
+		w.WroteHeader = true
+	}
+}
+
+// Write ensures WriteHeader is called before writing the body.
+func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
+	if !w.WroteHeader {
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(b)
+}
+
+// Flush implements http.Flusher when the underlying writer supports it.
+func (w *ResponseWriterWrapper) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+// SetUserInResponseWriter records the authenticated username on the wrapper when present.
+func SetUserInResponseWriter(w http.ResponseWriter, user *users.User) {
+	if wrappedWriter, ok := w.(*ResponseWriterWrapper); ok && user != nil {
+		wrappedWriter.User = user.Username
+	}
+}
+
+// GetRemoteIP resolves the client IP, honoring trusted proxy headers when configured.
+func GetRemoteIP(r *http.Request) string {
+	cfg := &settings.Config
+
+	xff := r.Header.Get("X-Forwarded-For")
+	if cfg.Http.TrustedHeaders["x-forwarded-for"] && xff != "" {
+		ips := strings.Split(xff, ",")
+		return strings.TrimSpace(ips[0])
+	}
+
+	xri := r.Header.Get("X-Real-IP")
+	if cfg.Http.TrustedHeaders["x-real-ip"] && xri != "" {
+		return xri
+	}
+
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	return ip
+}
+
+// GetScheme returns the request scheme (http or https).
+func GetScheme(r *http.Request) string {
+	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
+		return proto
+	}
+	if r.TLS != nil {
+		return "https"
+	}
+	return "http"
+}
+
+func toASCIIFilename(fileName string) string {
+	var result strings.Builder
+	for _, r := range fileName {
+		if r > 127 {
+			result.WriteRune('_')
+		} else {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
+}
+
+func SetContentDisposition(w http.ResponseWriter, r *http.Request, fileName string, forceInline bool) {
+	dispositionType := "attachment"
+	if forceInline || r.URL.Query().Get("inline") == "true" {
+		dispositionType = "inline"
+		w.Header().Set("Content-Security-Policy", "script-src 'none'")
+	}
+	asciiFileName := toASCIIFilename(fileName)
+	encodedFileName := url.PathEscape(fileName)
+	w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename=%q; filename*=utf-8''%s", dispositionType, asciiFileName, encodedFileName))
+}
+
+func IsOnlyOfficeCompatibleFile(fileName string) bool {
+	return iteminfo.IsOnlyOffice(fileName)
+}
+
+// WithRateLimitChain applies a rate limit tier then fn for nesting inside withUser / withOrWithoutUser / withoutUser.
 func WithRateLimitChain(kind AuthRateLimitKind, fn HandleFunc) HandleFunc {
 	switch kind {
 	case AuthRateLimitCredential:
@@ -82,7 +287,6 @@ func WithRateLimitChain(kind AuthRateLimitKind, fn HandleFunc) HandleFunc {
 	}
 }
 
-// withRateLimit registers a rate-limited route (same shape as withTimeout: option first, handler second).
 func authRateLimitActive() bool {
 	if settings.Config.Http.DisableRateLimit {
 		return false
@@ -210,7 +414,6 @@ func withRateLimitChain(kind AuthRateLimitKind, fn HandleFunc) HandleFunc {
 	return WithRateLimitChain(kind, fn)
 }
 
-// withRateLimitInternal applies token-bucket allow checks: when inactive, calls fn; when denied, 429 + Retry-After.
 func withRateLimitInternal(fn HandleFunc, allow func(*http.Request, *Context) (retryAfter int, ok bool)) HandleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 		if !authRateLimitActive() {
@@ -274,4 +477,13 @@ func withAuthRateLimitAuthenticated(fn HandleFunc) HandleFunc {
 		}
 		return allowAuthenticated(d.User.Username)
 	})
+}
+
+// healthHandler returns a simple JSON health check response.
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	response := HttpResponse{Message: "ok"}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 }

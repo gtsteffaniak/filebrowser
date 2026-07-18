@@ -9,12 +9,30 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type GroupListResponse struct {
 	Groups []string `json:"groups"`
+}
+
+// parseAccessQueryPath validates and parses an index path from an API query parameter.
+func parseAccessQueryPath(path string) (utils.IndexPath, error) {
+	if path == "" {
+		return utils.IndexPath{}, fmt.Errorf("path is required")
+	}
+	return utils.ParseSanitizedIndexPath(path, true)
+}
+
+// parseAccessQueryPathOrBadRequest wraps parseAccessQueryPath with a standard HTTP 400 response.
+func parseAccessQueryPathOrBadRequest(path string) (utils.IndexPath, int, error) {
+	parsed, err := parseAccessQueryPath(path)
+	if err != nil {
+		return utils.IndexPath{}, http.StatusBadRequest, err
+	}
+	return parsed, 0, nil
 }
 
 // accessGetHandler lists all access rules or retrieves a specific rule.
