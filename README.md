@@ -1,6 +1,5 @@
 <div align="center">
 
-  [![Go Report Card](https://goreportcard.com/badge/github.com/gtsteffaniak/filebrowser/backend)](https://goreportcard.com/report/github.com/gtsteffaniak/filebrowser/backend)
   [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0b548794f2ac4871a0cf7aa9ecab049f)](https://app.codacy.com/gh/gtsteffaniak/filebrowser/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
   [![latest version](https://img.shields.io/github/v/release/gtsteffaniak/filebrowser)](https://github.com/gtsteffaniak/filebrowser/releases)
   [![DockerHub Pulls](https://img.shields.io/docker/pulls/gtstef/filebrowser?label=latest%20Docker%20pulls)](https://hub.docker.com/r/gtstef/filebrowser)
