@@ -1,36 +1,38 @@
 <template>
   <nav
     id="sidebar"
-    :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
+    :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay }"
     :style="{ width: `${sidebarWidth}em`, left: active ? '0' : `-${sidebarWidth}em` }"
   >
-    <div v-if="shouldShow" class="button release-banner">
-      <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
-      <i @click="setSeenUpdate" aria-label="close-banner" class="material-symbols">close</i>
-    </div>
-    <div v-if="showPwaInstall" class="button release-banner">
-      <a href="#" @click.prevent="installPwa">{{ $t("pwa.install") }}</a>
-      <i @click="dismissPwaInstall" aria-label="close-banner" class="material-symbols">close</i>
-    </div>
-    <SidebarSettings v-if="isSettings"></SidebarSettings>
-    <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
-    <div class="buffer"></div>
-    <div v-if="!isSettings" class="credits">
-      <span v-for="item in externalLinks" :key="item.title">
-        <a
-          v-if="item.url === 'help prompt'"
-          href="#"
-          @click.prevent="help"
-          :title="$t('general.help')"
-          >{{ $t("general.help") }}</a
-        >
-        <a v-else :href="item.url" target="_blank" :title="item.title">{{
-          item.text
-        }}</a>
-      </span>
-      <span v-if="name !== ''">
-        <h4 style="margin: 0">{{ name }}</h4>
-      </span>
+    <div class="sidebar-scroll">
+      <div v-if="shouldShow" class="button release-banner">
+        <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
+        <i @click="setSeenUpdate" aria-label="close-banner" class="material-symbols">close</i>
+      </div>
+      <div v-if="showPwaInstall" class="button release-banner">
+        <a href="#" @click.prevent="installPwa">{{ $t("pwa.install") }}</a>
+        <i @click="dismissPwaInstall" aria-label="close-banner" class="material-symbols">close</i>
+      </div>
+      <SidebarSettings v-if="isSettings"></SidebarSettings>
+      <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
+      <div class="buffer"></div>
+      <div v-if="!isSettings" class="credits">
+        <span v-for="item in externalLinks" :key="item.title">
+          <a
+            v-if="item.url === 'help prompt'"
+            href="#"
+            @click.prevent="help"
+            :title="$t('general.help')"
+            >{{ $t("general.help") }}</a
+          >
+          <a v-else :href="item.url" target="_blank" :title="item.title">{{
+            item.text
+          }}</a>
+        </span>
+        <span v-if="name !== ''">
+          <h4 style="margin: 0">{{ name }}</h4>
+        </span>
+      </div>
     </div>
     <!-- Resize Handle -->
     <div v-if="active && !isMobile" class="sidebar-resizer" @mousedown="startResize" @touchstart="startResize" >
@@ -58,6 +60,10 @@ export default {
       resizeStartWidth: 0,
       previousSidebarSize: null, // Remember the previous width when switching from desktop to mobile.
       pwaInstallDismissed: sessionStorage.getItem("pwaInstallDismissed") === "true",
+      edgeSwipeStartX: null,
+      edgeSwipeStartY: null,
+      edgeSwipeClosing: false,
+      edgeSwipeRtl: false,
     };
   },
   mounted() {
@@ -84,6 +90,10 @@ export default {
     document.addEventListener('touchmove', this.handleResize, { passive: true });
     document.addEventListener('mouseup', this.stopResize);
     document.addEventListener('touchend', this.stopResize);
+    document.addEventListener('touchstart', this.handleEdgeSwipeStart, { passive: true });
+    document.addEventListener('touchmove', this.handleEdgeSwipeMove, { passive: true });
+    document.addEventListener('touchend', this.stopEdgeSwipe);
+    document.addEventListener('touchcancel', this.stopEdgeSwipe);
   },
   beforeUnmount() {
     // Clean up event listener
@@ -94,6 +104,10 @@ export default {
     document.removeEventListener('touchmove', this.handleResize);
     document.removeEventListener('mouseup', this.stopResize);
     document.removeEventListener('touchend', this.stopResize);
+    document.removeEventListener('touchstart', this.handleEdgeSwipeStart);
+    document.removeEventListener('touchmove', this.handleEdgeSwipeMove);
+    document.removeEventListener('touchend', this.stopEdgeSwipe);
+    document.removeEventListener('touchcancel', this.stopEdgeSwipe);
   },
   watch: {
     isMobile(newIsMobile, oldIsMobile) {
@@ -170,6 +184,64 @@ export default {
       mutations.setSidebarResizing(false);
       document.body.classList.remove('sidebar-resizing');
     },
+    handleEdgeSwipeStart(event) {
+      // LTR opens on a rightward swipe from the left half and closes on a leftward one; RTL mirrors this
+      if (event.touches.length > 1) return;
+      const touch = event.touches?.[0];
+      if (!touch || state.sidebar.isResizing) return;
+      if (getters.currentPromptName() !== "" || state.isSearchActive) return;
+      const cv = getters.currentView();
+      if (cv !== "listingView" && cv !== "tools") return;
+      this.edgeSwipeRtl = document.body.classList.contains("rtl");
+      if (getters.isSidebarVisible()) {
+        if (getters.isStickySidebar()) return;
+        this.edgeSwipeClosing = true;
+      } else {
+        // leave the ~20px bezel to the OS back gesture; RTL opens from the right edge
+        if (this.edgeSwipeRtl) {
+          if (touch.clientX < window.innerWidth / 2 || touch.clientX > window.innerWidth - 20) return;
+        } else {
+          if (touch.clientX < 20 || touch.clientX > window.innerWidth / 2) return;
+        }
+        this.edgeSwipeClosing = false;
+      }
+      this.edgeSwipeStartX = touch.clientX;
+      this.edgeSwipeStartY = touch.clientY;
+    },
+    handleEdgeSwipeMove(event) {
+      if (this.edgeSwipeStartX === null) return;
+      if (event.touches.length > 1) {
+        this.stopEdgeSwipe();
+        return;
+      }
+      const touch = event.touches?.[0];
+      if (!touch) return;
+      const deltaX = touch.clientX - this.edgeSwipeStartX;
+      const deltaY = touch.clientY - this.edgeSwipeStartY;
+      // vertical movement is scrolling, not a swipe
+      if (Math.abs(deltaY) > 40 && Math.abs(deltaY) > Math.abs(deltaX)) {
+        this.stopEdgeSwipe();
+        return;
+      }
+      // LTR opens rightward and closes leftward; RTL inverts both
+      const wantsRightward = this.edgeSwipeClosing === this.edgeSwipeRtl;
+      const triggered = wantsRightward ? deltaX > 60 : deltaX < -60;
+      // only trigger on a predominantly horizontal gesture
+      if (Math.abs(deltaX) > Math.abs(deltaY) && triggered) {
+        const closing = this.edgeSwipeClosing;
+        this.stopEdgeSwipe();
+        if (closing) {
+          mutations.closeSidebar();
+        } else {
+          mutations.toggleSidebar();
+        }
+      }
+    },
+    stopEdgeSwipe() {
+      this.edgeSwipeStartX = null;
+      this.edgeSwipeStartY = null;
+      this.edgeSwipeClosing = false;
+    },
     // Show the help overlay
     help() {
       mutations.showPrompt("help");
@@ -199,11 +271,26 @@ export default {
   transform: translateZ(0);
   height: 100%;
   transition: 0.4s ease;
-  top: 4em;
+  top: var(--header-height);
   padding-bottom: 4em;
   background-color: rgb(37 49 55 / 5%) !important;
   will-change: left;
   backface-visibility: hidden;
+}
+
+/* scroll an inner wrapper so the resize handle is not clipped by the scroll container */
+.sidebar-scroll {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
 }
 
 /* sidebar with backdrop-filter support */
@@ -283,16 +370,6 @@ body.rtl .action {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
-}
-
-#sidebar.scrollable {
-  overflow: auto;
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-
-#sidebar.scrollable::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, and Opera */
 }
 
 .sidebar-resizer {

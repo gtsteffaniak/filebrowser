@@ -957,7 +957,8 @@ export default {
 }
 
 #context-menu.centered {
-  top: 50% !important;
+  /* match the dialog centering bias so the notch doesn't pull it up in the black-translucent PWA */
+  top: calc(50% + var(--safe-area-top)) !important;
   left: 50% !important;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);

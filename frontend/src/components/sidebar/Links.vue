@@ -704,6 +704,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 12.25em;
   padding: 1em;
   overflow: auto;
 }

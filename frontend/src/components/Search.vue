@@ -1111,7 +1111,8 @@ body.rtl #search .boxes h3 {
   #search.active .search-input-container {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(6px);
-    height: 4em;
+    height: var(--header-height);
+    padding-top: var(--safe-area-top);
   }
 
   #search.active>div {
@@ -1146,7 +1147,7 @@ body.rtl #search .boxes h3 {
     width: 100vw !important;
     max-width: 100vw !important;
     left: 0;
-    top: 4em;
+    top: var(--header-height);
     -webkit-box-direction: normal;
     -ms-flex-direction: column;
     overflow: scroll;

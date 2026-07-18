@@ -1,7 +1,7 @@
 <template>
   <div v-if="isMobile" class="card item clickable settings-card" @click="closeSettings">
-    <span>
-      <span class="material-symbols-outlined">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+    <span class="settings-item-content">
+      <span class="material-symbols-outlined settings-icon">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       {{ $t("general.exit") }}
     </span>
   </div>
