@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v1.5.0
+## v1.5.2
+
+ **Notes**:
+ - [docker] upgraded ffmpeg version 8.1.1 to 8.1.2
+
+ **BugFixes**:
+ - Fixed OnlyOffice reopening an older editor state after a document is modified (#2633) (#2578).
+ - Cannot "Reset and generate new two-factor code" to reset the TOTP for a user (#2399) (#2641).
+
+## v1.5.1
 
  **BugFixes**:
  - fix http config section being dropped so trustedHeaders and disableRateLimit apply (#2602) (#2560)
