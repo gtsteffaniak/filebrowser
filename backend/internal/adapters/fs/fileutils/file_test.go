@@ -65,12 +65,13 @@ func TestCommonPrefix(t *testing.T) {
 
 func TestCopyFilePreservesModTime(t *testing.T) {
 	fileTime := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	dirTime := time.Date(2026, 6, 7, 8, 9, 0, 0, time.UTC)
 	testCases := map[string]struct {
 		isDir     bool
-		checkPath string
+		checkPath map[string]time.Time
 	}{
-		"file":      {checkPath: ""},
-		"directory": {isDir: true, checkPath: "nested.txt"},
+		"file":      {checkPath: map[string]time.Time{"": fileTime}},
+		"directory": {isDir: true, checkPath: map[string]time.Time{"": dirTime, "nested.txt": fileTime}},
 	}
 	for name, tt := range testCases {
 		t.Run(name, func(t *testing.T) {
@@ -85,6 +86,9 @@ func TestCopyFilePreservesModTime(t *testing.T) {
 				if err := os.Chtimes(nested, fileTime, fileTime); err != nil {
 					t.Fatal(err)
 				}
+				if err := os.Chtimes(src, dirTime, dirTime); err != nil {
+					t.Fatal(err)
+				}
 			} else {
 				srcPath = filepath.Join(src, "file.txt")
 				if err := os.WriteFile(srcPath, []byte("hi"), 0644); err != nil {
@@ -97,16 +101,18 @@ func TestCopyFilePreservesModTime(t *testing.T) {
 			if err := CopyFile(srcPath, dst); err != nil {
 				t.Fatal(err)
 			}
-			p := dst
-			if tt.checkPath != "" {
-				p = filepath.Join(dst, tt.checkPath)
-			}
-			got, err := os.Stat(p)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !got.ModTime().Equal(fileTime) {
-				t.Errorf("%s: got mtime = %v, want %v", p, got.ModTime(), fileTime)
+			for rel, want := range tt.checkPath {
+				p := dst
+				if rel != "" {
+					p = filepath.Join(dst, rel)
+				}
+				got, err := os.Stat(p)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !got.ModTime().Equal(want) {
+					t.Errorf("%s: got mtime = %v, want %v", p, got.ModTime(), want)
+				}
 			}
 		})
 	}

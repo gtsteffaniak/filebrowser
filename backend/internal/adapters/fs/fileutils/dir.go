@@ -53,6 +53,10 @@ func CopyDir(source, dest string) error {
 			}
 		}
 	}
+	// Preserve directory mod times
+	if err := os.Chtimes(dest, srcinfo.ModTime(), srcinfo.ModTime()); err != nil {
+		errs = append(errs, err)
+	}
 
 	var errString string
 	for _, err := range errs {
