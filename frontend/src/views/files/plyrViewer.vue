@@ -307,6 +307,8 @@ const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 const PLYR_LOCALSTORAGE_KEY = 'plyr';
 /** Custom field inside Plyr’s JSON blob so caption size travels with other Plyr prefs. */
 const PLYR_CAPTION_SIZE_FIELD = 'captionSize';
+let pendingFullscreenResume = false;
+let pendingPipResume = false;
 
 export default {
   name: "plyrViewer",
@@ -929,6 +931,11 @@ export default {
       this.videoPlaybackLoading = false;
       this.teardownQueryPlaybackSeek();
       if (this.player) {
+        if (state.navigation.isTransitioning) {
+          pendingFullscreenResume = this.player.fullscreen?.active || false;
+          pendingPipResume = typeof this.mediaElement?.requestPictureInPicture === 'function'
+            && document.pictureInPictureElement === this.mediaElement;
+        }
         this.player.off('play', this.attachVideoStreamOnPlay);
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
@@ -1284,6 +1291,23 @@ export default {
         this.setupQueryPlaybackSeek();
       } else if (this.previewType === 'audio') {
         this.setupQueryPlaybackSeek();
+      }
+      this.resumeFullscreenAndPip();
+    },
+    resumeFullscreenAndPip() {
+      if (pendingFullscreenResume) {
+        pendingFullscreenResume = false;
+        this.player.fullscreen?.enter();
+      }
+      if (pendingPipResume) {
+        pendingPipResume = false;
+        const el = this.mediaElement;
+        const attempt = () => el?.requestPictureInPicture?.().catch(() => {});
+        if (el && el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          attempt();
+        } else {
+          el?.addEventListener('loadedmetadata', attempt, { once: true });
+        }
       }
     },
     getPlaybackDuration() {

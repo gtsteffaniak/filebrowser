@@ -1,4 +1,5 @@
 import { fetchPreviewImage } from '@/utils/previewRequests';
+import { getters } from '@/store';
 
 const SCRUB_PREVIEW_CLASS = 'fb-scrub-preview';
 const SCRUB_PREVIEW_VISIBLE_CLASS = 'fb-scrub-preview--visible';
@@ -6,8 +7,9 @@ const DEFAULT_MIN_INTERVAL_MS = 500;
 const DEFAULT_PREVIEW_WIDTH_PX = 600;
 const DEFAULT_MAX_PREVIEW_HEIGHT_PX = 600;
 const DEFAULT_PLACEHOLDER_ASPECT = 16 / 9;
-const DEFAULT_SCRUB_PERCENT_STEP = 2;
+const DEFAULT_SCRUB_PERCENT_STEP = 1;
 const MAX_SCRUB_FETCH_PERCENT = 99; // 99 to never request a preview at the exact end of the media, it was causing an error.
+const MIN_SCRUB_FETCH_PERCENT = 1; // same as above, but difference is that there it wasn't an error, it was showing a wrong thumbnail instead.
 const MAX_CACHE_ENTRIES = 24;
 const VIEWPORT_MARGIN_PX = 16;
 const GAP_ABOVE_PROGRESS_PX = 14;
@@ -23,7 +25,7 @@ export function quantizeScrubPercent(percent, step = DEFAULT_SCRUB_PERCENT_STEP)
     return 0;
   }
   const clamped = Math.max(0, Math.min(100, percent));
-  if (step <= 1) {
+  if (!(step > 0)) {
     return Math.round(clamped);
   }
   const bucket = Math.round(clamped / step) * step;
@@ -172,6 +174,34 @@ export function getScrubPreviewMount(player) {
 }
 
 /**
+ * bounds for the popup accounting for the sidebar width if open
+ * @param {import('plyr').default} player
+ * @returns {{ left: number, right: number }}
+ */
+export function getScrubPreviewHorizontalBounds(player) {
+  let left = 0;
+  let right = window.innerWidth;
+
+  const container = player?.elements?.container;
+  if (container instanceof HTMLElement) {
+    const rect = container.getBoundingClientRect();
+    if (rect.width > 0) {
+      left = rect.left;
+      right = rect.right;
+    }
+  }
+  if (getters.isSidebarVisible()) {
+    const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    left = Math.max(left, getters.sidebarWidth() * remPx);
+  }
+  if (right <= left) {
+    // fallback to viewport when no sidebar
+    return { left: 0, right: window.innerWidth };
+  }
+  return { left, right };
+}
+
+/**
  * @param {HTMLElement} arrowEl
  * @param {HTMLElement} popup
  * @param {number} clientX
@@ -188,13 +218,17 @@ export function positionScrubPreviewArrow(arrowEl, popup, clientX) {
  * @param {HTMLElement} popup
  * @param {DOMRect} progressRect
  * @param {number} clientX
- * @param {number} [viewportWidth]
+ * @param {{ left: number, right: number }} [bounds]
  */
-export function positionScrubPreviewPopup(popup, progressRect, clientX, viewportWidth = window.innerWidth) {
+export function positionScrubPreviewPopup(popup, progressRect, clientX, bounds = { left: 0, right: window.innerWidth }) {
   const width = popup.offsetWidth || DEFAULT_PREVIEW_WIDTH_PX;
   const half = width / 2;
   const margin = 8;
-  const clampedX = Math.max(half + margin, Math.min(viewportWidth - half - margin, clientX));
+  const minX = bounds.left + half + margin;
+  const maxX = bounds.right - half - margin;
+  const clampedX = maxX >= minX
+    ? Math.max(minX, Math.min(maxX, clientX))
+    : (bounds.left + bounds.right) / 2;
 
   popup.style.left = `${clampedX}px`;
   popup.style.top = `${progressRect.top}px`;
@@ -309,9 +343,10 @@ export function enablePlyrScrubPreview(player, options) {
 
   const getViewport = () => {
     const progressRect = progress.getBoundingClientRect();
+    const bounds = getScrubPreviewHorizontalBounds(player);
     return {
       progressTop: progressRect.top,
-      viewportWidth: window.innerWidth,
+      viewportWidth: bounds.right - bounds.left,
       viewportHeight: window.innerHeight,
     };
   };
@@ -326,10 +361,22 @@ export function enablePlyrScrubPreview(player, options) {
     frame.style.height = '';
   };
 
-  const applyPlaceholderFrameSize = () => {
+  let lastKnownAspect = null;
+  const getPlaceholderAspect = () => {
+    const media = player?.media;
+    const w = media?.videoWidth;
+    const h = media?.videoHeight;
+    if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+      return w / h;
+    }
+    return lastKnownAspect ?? DEFAULT_PLACEHOLDER_ASPECT;
+  };
+
+  /** Fit the frame from an aspect ratio alone */
+  const applyFrameSizeForAspect = (aspect) => {
     const fitted = fitScrubPreviewImageSize(
       previewWidthPx,
-      Math.round(previewWidthPx / DEFAULT_PLACEHOLDER_ASPECT),
+      Math.round(previewWidthPx / aspect),
       getViewport(),
       previewWidthPx,
       previewMaxHeightPx,
@@ -337,6 +384,9 @@ export function enablePlyrScrubPreview(player, options) {
     if (fitted) {
       applyFrameSize(fitted.width, fitted.height);
     }
+  };
+  const applyPlaceholderFrameSize = () => {
+    applyFrameSizeForAspect(getPlaceholderAspect());
   };
 
   const setLoading = (loading) => {
@@ -366,17 +416,11 @@ export function enablePlyrScrubPreview(player, options) {
   };
 
   const updateFrameFromImage = () => {
-    const fitted = fitScrubPreviewImageSize(
-      img.naturalWidth,
-      img.naturalHeight,
-      getViewport(),
-      previewWidthPx,
-      previewMaxHeightPx,
-    );
-    if (!fitted) {
+    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) {
       return;
     }
-    applyFrameSize(fitted.width, fitted.height);
+    lastKnownAspect = img.naturalWidth / img.naturalHeight;
+    applyFrameSizeForAspect(lastKnownAspect);
     if (lastPositionEvent) {
       positionPopup(lastPositionEvent);
     }
@@ -432,7 +476,8 @@ export function enablePlyrScrubPreview(player, options) {
       return;
     }
     const progressRect = progress.getBoundingClientRect();
-    positionScrubPreviewPopup(popup, progressRect, clientX);
+    const bounds = getScrubPreviewHorizontalBounds(player);
+    positionScrubPreviewPopup(popup, progressRect, clientX, bounds);
     // clamp to the progress bar edges
     const arrowClientX = Math.max(progressRect.left, Math.min(progressRect.right, clientX));
     positionScrubPreviewArrow(arrowEl, popup, arrowClientX);
@@ -596,9 +641,9 @@ export function enablePlyrScrubPreview(player, options) {
 
   const handlePreviewPosition = (event) => {
     const rawPercent = scrubRawPercentFromEvent(progress, seek, event);
-    const percentInt = Math.min(
-      quantizeScrubPercent(rawPercent, scrubPercentStep),
-      MAX_SCRUB_FETCH_PERCENT,
+    const percentInt = Math.max(
+      MIN_SCRUB_FETCH_PERCENT,
+      Math.min(quantizeScrubPercent(rawPercent, scrubPercentStep), MAX_SCRUB_FETCH_PERCENT),
     );
     lastPositionEvent = event;
     positionPopup(event);
