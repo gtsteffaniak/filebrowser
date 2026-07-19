@@ -30,7 +30,9 @@ A database migration is required to go from v1.x to this version. See docs.
    - if opt-in, every month a snapshot of your deployment config would be sent to developer servers
    - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future. 
  - WebDAV now supports set modification time via the `X-OC-Mtime` header for clients that support it (#2626).
- - Copy file operations (WebUI and WebDAV `COPY`) now will preserve their original modification time too (#2642).
+ - Copy operations now will preserve their original modification time too (#2642) (#2647): 
+    - WebUI preserves both, files and directories.
+    - WebDAV `COPY` only preserve files, is limitation we have with webdav.
 
  **Removed legacy (breaking)**:
  - `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
