@@ -190,9 +190,15 @@ export function getScrubPreviewHorizontalBounds(player) {
       right = rect.right;
     }
   }
-  if (getters.isSidebarVisible()) {
-    const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-    left = Math.max(left, getters.sidebarWidth() * remPx);
+  if (getters.isSidebarVisible() && !player?.fullscreen?.active) {
+    if (!getScrubPreviewHorizontalBounds.cachedRemPx) {
+      getScrubPreviewHorizontalBounds.cachedRemPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      if (!getScrubPreviewHorizontalBounds.isResizeBound) {
+        window.addEventListener('resize', () => { getScrubPreviewHorizontalBounds.cachedRemPx = null; }, { passive: true });
+        getScrubPreviewHorizontalBounds.isResizeBound = true;
+      }
+    }
+    left = Math.max(left, getters.sidebarWidth() * getScrubPreviewHorizontalBounds.cachedRemPx);
   }
   if (right <= left) {
     // fallback to viewport when no sidebar

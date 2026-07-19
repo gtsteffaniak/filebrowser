@@ -309,6 +309,7 @@ const PLYR_LOCALSTORAGE_KEY = 'plyr';
 const PLYR_CAPTION_SIZE_FIELD = 'captionSize';
 let pendingFullscreenResume = false;
 let pendingPipResume = false;
+let pendingResumeTimestamp = 0;
 
 export default {
   name: "plyrViewer",
@@ -935,6 +936,7 @@ export default {
           pendingFullscreenResume = this.player.fullscreen?.active || false;
           pendingPipResume = typeof this.mediaElement?.requestPictureInPicture === 'function'
             && document.pictureInPictureElement === this.mediaElement;
+            pendingResumeTimestamp = Date.now();
         }
         this.player.off('play', this.attachVideoStreamOnPlay);
         this.teardownVideoSwipeGestures();
@@ -1295,18 +1297,21 @@ export default {
       this.resumeFullscreenAndPip();
     },
     resumeFullscreenAndPip() {
+      const isStale = Date.now() - pendingResumeTimestamp > 3000;
       if (pendingFullscreenResume) {
         pendingFullscreenResume = false;
-        this.player.fullscreen?.enter();
+        if (!isStale) this.player.fullscreen?.enter();
       }
       if (pendingPipResume) {
         pendingPipResume = false;
-        const el = this.mediaElement;
-        const attempt = () => el?.requestPictureInPicture?.().catch(() => {});
-        if (el && el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-          attempt();
-        } else {
-          el?.addEventListener('loadedmetadata', attempt, { once: true });
+        if (!isStale) {
+          const el = this.mediaElement;
+          const attempt = () => el?.requestPictureInPicture?.().catch(() => {});
+          if (el && el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+            attempt();
+          } else {
+            el?.addEventListener('loadedmetadata', attempt, { once: true });
+          }
         }
       }
     },
