@@ -202,7 +202,8 @@
     "notFound": "Questa posizione non può essere raggiunta.",
     "connection": "Il server non può essere raggiunto.",
     "shareNotFound": "Condivisione non valida o scaduta.",
-    "failedToConnectToServer": "Impossibile connettersi al server. È ancora in esecuzione?"
+    "failedToConnectToServer": "Impossibile connettersi al server. È ancora in esecuzione?",
+    "requestTimedOut": "La richiesta ha superato il limite di tempo. Controlla le impostazioni di rete o del proxy inverso."
   },
   "files": {
     "lastModified": "Ultima modifica{suffix}",

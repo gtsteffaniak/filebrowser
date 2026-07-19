@@ -39,7 +39,8 @@
     "notFound": "Deze locatie kan niet worden bereikt.",
     "connection": "De server kan niet worden bereikt.",
     "shareNotFound": "Ongeldig of verlopen aandeel.",
-    "failedToConnectToServer": "Kan geen verbinding maken met de server, draait deze nog?"
+    "failedToConnectToServer": "Kan geen verbinding maken met de server, draait deze nog?",
+    "requestTimedOut": "De tijdlimiet voor het verzoek is verstreken. Controleer je netwerk- of reverse-proxy-instellingen."
   },
   "files": {
     "lastModified": "Laatst bewerkt",

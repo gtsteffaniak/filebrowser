@@ -39,7 +39,8 @@
     "notFound": "Ten adres nie jest poprawny.",
     "connection": "Nie można uzyskać dostępu do serwera.",
     "shareNotFound": "Nieprawidłowy lub wygasły udział.",
-    "failedToConnectToServer": "Nie udało się połączyć z serwerem, czy nadal działa?"
+    "failedToConnectToServer": "Nie udało się połączyć z serwerem, czy nadal działa?",
+    "requestTimedOut": "Wystąpił limit czasu żądania. Sprawdź ustawienia sieci lub serwera proxy odwrotnego."
   },
   "files": {
     "lastModified": "Ostatnio modyfikowane",

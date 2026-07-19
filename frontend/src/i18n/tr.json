@@ -39,7 +39,8 @@
     "notFound": "Bu konuma ulaşılamıyor.",
     "connection": "Sunucuya ulaşılamıyor.",
     "shareNotFound": "Geçersiz veya süresi dolmuş paylaşım.",
-    "failedToConnectToServer": "Sunucuya bağlanılamadı, hala çalışıyor mu?"
+    "failedToConnectToServer": "Sunucuya bağlanılamadı, hala çalışıyor mu?",
+    "requestTimedOut": "İstek zaman aşımına uğradı. Ağ ayarlarınızı veya ters proxy ayarlarınızı kontrol edin."
   },
   "files": {
     "lastModified": "Son güncellenme",

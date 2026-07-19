@@ -39,7 +39,8 @@
     "notFound": "No se encontró el directorio",
     "connection": "No se puede conectar al servidor.",
     "shareNotFound": "No pudimos encontrar lo que buscas, quizá enlace expiró",
-    "failedToConnectToServer": "No se pudo conectar con el servidor"
+    "failedToConnectToServer": "No se pudo conectar con el servidor",
+    "requestTimedOut": "La solicitud ha superado el tiempo de espera. Comprueba la configuración de tu red o del proxy inverso."
   },
   "files": {
     "lastModified": "Última modificación",

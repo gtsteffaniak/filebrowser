@@ -39,7 +39,8 @@
     "notFound": "Impossible d'accéder à cet emplacement.",
     "connection": "Le serveur n'est pas accessible.",
     "shareNotFound": "Action non valide ou expirée.",
-    "failedToConnectToServer": "Échec de la connexion au serveur, est-il toujours en cours d'exécution ?"
+    "failedToConnectToServer": "Échec de la connexion au serveur, est-il toujours en cours d'exécution ?",
+    "requestTimedOut": "La requête a dépassé le délai d'attente. Vérifiez votre connexion réseau ou les paramètres de votre proxy inverse."
   },
   "files": {
     "lastModified": "Dernière modification",

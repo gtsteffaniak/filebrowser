@@ -39,7 +39,8 @@
     "notFound": "Aceasta locație nu poate fi accesată.",
     "connection": "Serverul nu poate fi accesat.",
     "shareNotFound": "Acțiune invalidă sau expirată.",
-    "failedToConnectToServer": "Nu a reușit să se conecteze la server, mai funcționează?"
+    "failedToConnectToServer": "Nu a reușit să se conecteze la server, mai funcționează?",
+    "requestTimedOut": "S-a depășit timpul de așteptare pentru cerere. Verificați setările rețelei sau ale proxy-ului invers."
   },
   "files": {
     "lastModified": "Ultima modificare",

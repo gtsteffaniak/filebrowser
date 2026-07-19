@@ -3779,26 +3779,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/health": {
-            "get": {
-                "description": "Returns the health status of the API.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Health Check",
-                "responses": {
-                    "200": {
-                        "description": "successful health check response",
-                        "schema": {
-                            "$ref": "#/definitions/web.HttpResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/public/api/media/lyrics": {
             "get": {
                 "produces": [

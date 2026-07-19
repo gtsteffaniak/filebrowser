@@ -39,7 +39,8 @@
     "notFound": "Ops! Nada foi encontrado.",
     "connection": "O servidor não pode ser alcançado.",
     "shareNotFound": "Compartilhamento inválido ou expirado.",
-    "failedToConnectToServer": "Falha ao conectar-se ao servidor, ele ainda está em execução?"
+    "failedToConnectToServer": "Falha ao conectar-se ao servidor, ele ainda está em execução?",
+    "requestTimedOut": "A solicitação atingiu o tempo limite. Verifique as configurações da sua rede ou do proxy reverso."
   },
   "files": {
     "lastModified": "Última modificação",

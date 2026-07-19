@@ -39,7 +39,8 @@
     "notFound": "無法存取這個位置。",
     "connection": "無法連線到伺服器。",
     "shareNotFound": "分享連結無效或已過期。",
-    "failedToConnectToServer": "無法連線到伺服器，請確認服務是否仍在執行。"
+    "failedToConnectToServer": "無法連線到伺服器，請確認服務是否仍在執行。",
+    "requestTimedOut": "請求已超時。請檢查您的網路或反向代理設定。"
   },
   "files": {
     "lastModified": "最後修改{suffix}",

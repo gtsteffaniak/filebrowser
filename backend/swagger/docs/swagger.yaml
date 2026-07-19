@@ -4903,19 +4903,6 @@ paths:
       summary: Add or remove a pinned item
       tags:
       - Users
-  /health:
-    get:
-      consumes:
-      - application/json
-      description: Returns the health status of the API.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: successful health check response
-          schema:
-            $ref: '#/definitions/web.HttpResponse'
-      summary: Health Check
   /public/api/media/lyrics:
     get:
       parameters:

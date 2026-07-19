@@ -39,7 +39,8 @@
     "notFound": "Túto položku nie je možné nájsť.",
     "connection": "Nepodarilo sa pripojiť k serveru.",
     "shareNotFound": "Neplatná alebo neplatná akcia.",
-    "failedToConnectToServer": "Nepodarilo sa pripojiť k serveru, je stále spustený?"
+    "failedToConnectToServer": "Nepodarilo sa pripojiť k serveru, je stále spustený?",
+    "requestTimedOut": "Došlo k časovému limitu požiadavky. Skontrolujte nastavenia siete alebo reverzného proxy."
   },
   "files": {
     "lastModified": "Posledná zmena",

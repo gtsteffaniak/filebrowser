@@ -39,7 +39,8 @@
     "notFound": "找不到文件。",
     "connection": "无法连接到服务器。",
     "shareNotFound": "无效或过期共享。",
-    "failedToConnectToServer": "连接服务器失败，服务器还在运行吗？"
+    "failedToConnectToServer": "连接服务器失败，服务器还在运行吗？",
+    "requestTimedOut": "请求超时。请检查您的网络或反向代理设置。"
   },
   "files": {
     "lastModified": "最后修改",
