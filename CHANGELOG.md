@@ -24,6 +24,7 @@ A database migration is required to go from v1.x to this version. See docs.
    - New "Audio visualizer" for audio files (desktop-only), you can configure some basic things to your taste (#2575) (#2620).
    - The current state of the audio panel now is stored into local storage.
    - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, single tap to pause (#2575).
+   - Videos now will resume fullscreen and PiP when navigating (queue auto-navigation, swipes gestures or next/previous) (#2649).
  - Added `F4` shortcut to refresh the current directory and metadata (#2600).
  - opt-in feature to send deployment analytics to filebrowser quantum developer servers
    - anonymized with a viewer so users can see what info would be sent.

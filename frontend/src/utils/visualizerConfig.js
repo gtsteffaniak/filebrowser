@@ -5,11 +5,11 @@ const STORAGE_KEY = 'visualizerConfig';
 const DEFAULTS = {
   barCount: 60,
   smoothing: 0.92,
-  fftSize: 4096,
+  fftSize: 8192,
   minFrequency: 20,
   maxFrequency: 20000,
-  minDecibels: -100,
-  maxDecibels: 20,
+  minDecibels: -70,
+  maxDecibels: 0,
   showScales: true,
   showPeaks: true,
 };
