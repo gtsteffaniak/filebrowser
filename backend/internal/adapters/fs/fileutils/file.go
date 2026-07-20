@@ -148,8 +148,12 @@ func copySingleFile(source, dest string) error {
 
 // copyDirectory handles copying directories recursively.
 func copyDirectory(source, dest string) error {
+	srcInfo, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
 	// Create the destination directory.
-	err := os.MkdirAll(dest, EffectiveDirPerm())
+	err = os.MkdirAll(dest, EffectiveDirPerm())
 	if err != nil {
 		return err
 	}
@@ -179,8 +183,7 @@ func copyDirectory(source, dest string) error {
 			}
 		}
 	}
-
-	return nil
+	return os.Chtimes(dest, srcInfo.ModTime(), srcInfo.ModTime())
 }
 
 // PreserveModTimes copies the mod times from src onto dst, this is used by the webdav COPY handler
