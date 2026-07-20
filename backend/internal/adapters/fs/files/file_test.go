@@ -600,7 +600,11 @@ func TestDeleteFilesRootProtection(t *testing.T) {
 // accidentally delete the root.
 // Regression test for path handling bug where /srv/srv could be mistaken for /srv.
 func TestDeleteFilesSubfolderWithRootName(t *testing.T) {
-	for iter := 1; iter <= raceStressIterations; iter++ {
+	iters := raceStressIterations
+	if testing.Short() {
+		iters = 1
+	}
+	for iter := 1; iter <= iters; iter++ {
 		iter := iter
 		t.Run(fmt.Sprintf("stress-iter-%d", iter), func(t *testing.T) {
 			runDeleteFilesSubfolderWithRaceStress(t, iter)

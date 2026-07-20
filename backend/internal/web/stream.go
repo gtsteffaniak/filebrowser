@@ -78,6 +78,8 @@ func ValidateViewGrant(token string, d *Context, source, filePath string) error 
 	if err != nil || !perms.View {
 		return fmt.Errorf("view permission required")
 	}
+	grant.ExpiresAt = time.Now().Add(viewGrantTTL).Unix()
+	utils.ViewGrantsCache.Set(token, grant)
 	return nil
 }
 
@@ -245,15 +247,8 @@ func serveStreamByteRange(w http.ResponseWriter, r *http.Request, reader io.Read
 		return http.StatusInternalServerError, err
 	}
 
-	SetContentDisposition(w, r, displayFileName, true)
-	w.Header().Set("Accept-Ranges", "bytes")
-	w.Header().Set("Cache-Control", "private")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	if contentType := mime.TypeByExtension(strings.ToLower(filepathExt(displayFileName))); contentType != "" {
-		w.Header().Set("Content-Type", contentType)
-	}
+	setStreamResponseHeaders(w, r, displayFileName, chunkSize)
 	w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, size))
-	w.Header().Set("Content-Length", strconv.FormatInt(chunkSize, 10))
 	w.WriteHeader(http.StatusPartialContent)
 
 	if _, err := io.CopyN(w, reader, chunkSize); err != nil && !errors.Is(err, io.EOF) {

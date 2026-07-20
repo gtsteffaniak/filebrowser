@@ -46,7 +46,7 @@ export function getAnalytics() {
   });
 }
 
-export async function patchAnalytics({ enabled }) {
+export async function updateAnalytics({ enabled }) {
   return fetchJSON(getApiPath("settings/analytics"), {
     method: "PUT",
     body: JSON.stringify({ enabled }),

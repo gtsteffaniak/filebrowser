@@ -928,7 +928,11 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if !d.Share.AllowReplacements && r.URL.Query().Get("action") == "override" {
 		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
-	source := settings.Config.Server.SourceMap[d.Share.SourcePath].Name
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	source := sourceInfo.Name
 	q := r.URL.Query()
 	q.Set("source", source)
 	q.Set("path", d.IndexPath)
@@ -936,7 +940,10 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	status, err := ResourcePostHandler(w, r, d)
 	if err != nil {
 		logger.Errorf("public upload handler: error uploading with error %v", err)
-		return http.StatusInternalServerError, fmt.Errorf("upload failure occured on backend")
+		if status == 0 {
+			status = http.StatusInternalServerError
+		}
+		return status, err
 	}
 	return status, nil
 }
@@ -1018,15 +1025,11 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 // @Router /public/api/resources [put]
 func publicPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if !d.Share.AllowModify {
-		return http.StatusForbidden, fmt.Errorf("create is not allowed for this share")
+		return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
 	}
 	sourceName := d.Share.GetSourceName()
 	if sourceName == "" {
 		return http.StatusNotFound, fmt.Errorf("source not available")
-	}
-
-	if !d.Share.AllowModify {
-		return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
 	}
 	path := r.URL.Query().Get("path")
 

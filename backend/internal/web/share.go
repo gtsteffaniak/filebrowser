@@ -48,7 +48,8 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return RenderJSON(w, r, state.PrepShareValuesForFrontend(d.User, r, shares))
+	host, scheme := shareURLParams(r)
+	return RenderJSON(w, r, state.PrepShareValuesForFrontend(d.User, r, host, scheme, shares))
 }
 
 // shareGetsHandler retrieves share links for a specific resource path.
@@ -91,7 +92,8 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
-	return RenderJSON(w, r, state.PrepSharesForFrontend(d.User, r, s...))
+	host, scheme := shareURLParams(r)
+	return RenderJSON(w, r, state.PrepSharesForFrontend(d.User, r, host, scheme, s...))
 }
 
 // shareDeleteHandler deletes a specific share link by its hash.
@@ -178,7 +180,8 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	prepared := state.PrepShareForFrontend(d.User, r, updatedShare)
+	host, scheme := shareURLParams(r)
+	prepared := state.PrepShareForFrontend(d.User, r, host, scheme, updatedShare)
 	if prepared == nil {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
@@ -305,7 +308,8 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusInternalServerError, err3
 		}
 		changes := activity.ShareUpdateChanges(&beforeShare, &updatedShare)
-		prepared := state.PrepShareForFrontend(d.User, r, updatedShare)
+		host, scheme := shareURLParams(r)
+	prepared := state.PrepShareForFrontend(d.User, r, host, scheme, updatedShare)
 		if prepared == nil {
 			return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 		}
@@ -383,7 +387,8 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	prepared := state.PrepShareForFrontend(d.User, r, created)
+	host, scheme := shareURLParams(r)
+	prepared := state.PrepShareForFrontend(d.User, r, host, scheme, created)
 	if prepared == nil {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
@@ -513,8 +518,8 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Conte
 				response := DirectDownloadResponse{
 					Status:      "201",
 					Hash:        existing.Hash,
-					DownloadURL: share.URLFromRequest(r, existing.Hash, true, existing.Token),
-					ShareURL:    share.URLFromRequest(r, existing.Hash, false, existing.Token),
+					DownloadURL: ShareURLFromRequest(r, existing.Hash, true, existing.Token),
+					ShareURL:    ShareURLFromRequest(r, existing.Hash, false, existing.Token),
 				}
 				return RenderJSON(w, r, response)
 			}
@@ -554,8 +559,8 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Conte
 	response := DirectDownloadResponse{
 		Status:      "200",
 		Hash:        secureHash,
-		DownloadURL: share.URLFromRequest(r, secureHash, true, snap.Token),
-		ShareURL:    share.URLFromRequest(r, secureHash, false, snap.Token),
+		DownloadURL: ShareURLFromRequest(r, secureHash, true, snap.Token),
+		ShareURL:    ShareURLFromRequest(r, secureHash, false, snap.Token),
 	}
 
 	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareCreate, secureHash, snap.SourceName, snap.Path, nil)
@@ -584,13 +589,10 @@ func getShareImage(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 
 	userValue, err := state.UserForShareOwner(d.Share)
-	var shareCreatedByUser *users.User
-	if err == nil {
-		shareCreatedByUser = &userValue
-	}
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 	}
+	shareCreatedByUser := &userValue
 
 	sourceName, assetPath, err := d.Share.GetShareImagePartsHelper(isBanner)
 	if err != nil {
@@ -650,7 +652,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}
 	frontendShareInfo := shareInfo.FrontendShareInfo
-	frontendShareInfo.ShareURL = share.URLFromRequest(r, hash, false, "")
+	frontendShareInfo.ShareURL = ShareURLFromRequest(r, hash, false, "")
 	frontendShareInfo.BannerUrl = shareInfo.BannerURL()
 	frontendShareInfo.FaviconUrl = shareInfo.FaviconURL()
 	filtered := make([]users.SidebarLink, 0, len(frontendShareInfo.SidebarLinks))

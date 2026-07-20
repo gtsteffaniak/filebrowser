@@ -64,7 +64,6 @@ type ResponseWriterWrapper struct {
 	http.ResponseWriter
 	StatusCode  int
 	WroteHeader bool
-	PayloadSize int
 	User        string
 }
 
@@ -233,13 +232,7 @@ func GetRemoteIP(r *http.Request) string {
 
 // GetScheme returns the request scheme (http or https).
 func GetScheme(r *http.Request) string {
-	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
-		return proto
-	}
-	if r.TLS != nil {
-		return "https"
-	}
-	return "http"
+	return requestScheme(r)
 }
 
 func toASCIIFilename(fileName string) string {

@@ -72,7 +72,7 @@ export default {
       }
       this.analyticsLoading = true;
       try {
-        const status = await settingsApi.patchAnalytics({ enabled: this.analyticsEnabled });
+        const status = await settingsApi.updateAnalytics({ enabled: this.analyticsEnabled });
         this.analyticsEnabled = status.enabled;
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {

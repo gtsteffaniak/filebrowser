@@ -137,6 +137,33 @@ func TestValidateViewGrantExpired(t *testing.T) {
 	}
 }
 
+func TestValidateViewGrantExtendsExpiry(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	token, err := utils.RandomHex(16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	almostExpired := time.Now().Add(30 * time.Second).Unix()
+	utils.ViewGrantsCache.Set(token, utils.ViewGrant{
+		UserID:    1,
+		Source:    "default",
+		Path:      "/a.mp3",
+		ExpiresAt: almostExpired,
+	})
+	d := &requestContext{User: testUserWithView(1, "default")}
+	if err := ValidateViewGrant(token, d, "default", "/a.mp3"); err != nil {
+		t.Fatalf("ValidateViewGrant: %v", err)
+	}
+	grant, ok := utils.ViewGrantsCache.Get(token)
+	if !ok {
+		t.Fatal("grant missing from cache after validate")
+	}
+	if grant.ExpiresAt <= almostExpired {
+		t.Fatalf("ExpiresAt = %d, want extension beyond %d", grant.ExpiresAt, almostExpired)
+	}
+}
+
 func TestValidateViewGrantShareBinding(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)

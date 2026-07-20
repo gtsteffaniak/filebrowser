@@ -17,6 +17,24 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// waitLimiterBytes applies rate limiting in chunks no larger than the limiter burst.
+func waitLimiterBytes(ctx context.Context, lim *rate.Limiter, n int) error {
+	for remaining := n; remaining > 0; {
+		chunk := remaining
+		if burst := lim.Burst(); burst > 0 && chunk > burst {
+			chunk = burst
+		}
+		if chunk < 1 {
+			chunk = 1
+		}
+		if err := lim.WaitN(ctx, chunk); err != nil {
+			return err
+		}
+		remaining -= chunk
+	}
+	return nil
+}
+
 // throttledWriter wraps an io.Writer and rate-limits outbound bytes (streaming archives to the client).
 type throttledWriter struct {
 	w       io.Writer
@@ -35,10 +53,8 @@ func newThrottledWriter(w io.Writer, limit rate.Limit, burst int, ctx context.Co
 func (tw *throttledWriter) Write(p []byte) (n int, err error) {
 	n, err = tw.w.Write(p)
 	if n > 0 {
-		if waitErr := tw.limiter.WaitN(tw.ctx, n); waitErr != nil {
-			if err == nil {
-				err = waitErr
-			}
+		if waitErr := waitLimiterBytes(tw.ctx, tw.limiter, n); waitErr != nil && err == nil {
+			err = waitErr
 		}
 	}
 	return
@@ -62,7 +78,7 @@ func NewThrottledReadSeeker(rs io.ReadSeeker, limit rate.Limit, burst int, ctx c
 func (r *throttledReadSeeker) Read(p []byte) (n int, err error) {
 	n, err = r.rs.Read(p)
 	if n > 0 {
-		if waitErr := r.limiter.WaitN(r.ctx, n); waitErr != nil && err == nil {
+		if waitErr := waitLimiterBytes(r.ctx, r.limiter, n); waitErr != nil && err == nil {
 			err = waitErr
 		}
 	}
@@ -156,10 +172,6 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		}
 	}
 
-	if err := state.RecordShareDownload(d.Share.Hash, d.User.Username); err != nil {
-		return http.StatusInternalServerError, err
-	}
-
 	files := r.URL.Query()["file"]
 	if len(files) == 0 {
 		files = []string{"/"}
@@ -188,6 +200,11 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		}
 		logger.Errorf("public share handler: error processing filelist: %v with error %v", files, err)
 		return status, fmt.Errorf("error processing filelist: %v", files)
+	}
+	if downloadResponseRecordsActivity(status, err) {
+		if recErr := state.RecordShareDownload(d.Share.Hash, d.User.Username); recErr != nil {
+			logger.Errorf("public share handler: failed to record download for share %s: %v", d.Share.Hash, recErr)
+		}
 	}
 	return status, nil
 }

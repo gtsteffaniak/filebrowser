@@ -12,15 +12,15 @@ import (
 )
 
 // PrepForFrontend builds API-safe ShareFrontend copies (never exposes backend Share fields).
-// When r is non-nil, download and share URLs are derived from the request (or ExternalUrl).
+// publicHost and publicScheme must be set when building share/download URLs (resolved in web/proxy.go).
 // ownerLookup resolves share owner usernames from stable user ids; may be nil.
-func PrepForFrontend(viewer *users.User, r *http.Request, ownerLookup func(uint64) string, links ...*Share) []*ShareFrontend {
+func PrepForFrontend(viewer *users.User, r *http.Request, publicHost, publicScheme string, ownerLookup func(uint64) string, links ...*Share) []*ShareFrontend {
 	out := make([]*ShareFrontend, 0, len(links))
 	for _, link := range links {
 		if link == nil {
 			continue
 		}
-		out = append(out, prepForFrontendOne(link, viewer, r, ownerLookup))
+		out = append(out, prepForFrontendOne(link, viewer, r, publicHost, publicScheme, ownerLookup))
 	}
 	return utils.NonNilSlice(out)
 }
@@ -44,7 +44,7 @@ func copyShareFrontendFromShare(link *Share) ShareFrontend {
 	return out
 }
 
-func prepForFrontendOne(link *Share, viewer *users.User, r *http.Request, ownerLookup func(uint64) string) *ShareFrontend {
+func prepForFrontendOne(link *Share, viewer *users.User, r *http.Request, publicHost, publicScheme string, ownerLookup func(uint64) string) *ShareFrontend {
 	snap := *link
 	out := copyShareFrontendFromShare(link)
 	out.HasPassword = snap.HasPassword()
@@ -60,15 +60,15 @@ func prepForFrontendOne(link *Share, viewer *users.User, r *http.Request, ownerL
 			out.SourceURL = snap.SourceURL(viewer)
 		}
 	}
-	if r != nil {
-		out.DownloadURL = URLFromRequest(r, out.Hash, true, snap.Token)
-		out.ShareURL = URLFromRequest(r, out.Hash, false, snap.Token)
+	if r != nil && publicHost != "" {
+		out.DownloadURL = PublicShareURL(publicHost, publicScheme, out.Hash, true, snap.Token)
+		out.ShareURL = PublicShareURL(publicHost, publicScheme, out.Hash, false, snap.Token)
 	}
 	return &out
 }
 
-// URLFromRequest builds a public share or direct-download URL from the request and server config.
-func URLFromRequest(r *http.Request, hash string, isDirectDownload bool, token string) string {
+// PublicShareURL builds share/download URLs using pre-resolved host and scheme (see web/proxy.go).
+func PublicShareURL(host, scheme, hash string, isDirectDownload bool, token string) string {
 	tokenParam := ""
 	if token != "" && isDirectDownload {
 		tokenParam = fmt.Sprintf("&token=%s", url.QueryEscape(token))
@@ -83,29 +83,9 @@ func URLFromRequest(r *http.Request, hash string, isDirectDownload bool, token s
 			settings.Config.Server.ExternalUrl, settings.Config.Server.BaseURL, hash)
 	}
 
-	host := r.Host
-	scheme := requestScheme(r)
-	if forwardedHost := r.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
-		host = forwardedHost
-		if forwardedProto := r.Header.Get("X-Forwarded-Proto"); forwardedProto != "" {
-			scheme = forwardedProto
-		} else {
-			scheme = "https"
-		}
-	}
 	if isDirectDownload {
 		return fmt.Sprintf("%s://%s%spublic/api/resources/download?hash=%s%s",
 			scheme, host, settings.Config.Server.BaseURL, hash, tokenParam)
 	}
 	return fmt.Sprintf("%s://%s%spublic/share/%s", scheme, host, settings.Config.Server.BaseURL, hash)
-}
-
-func requestScheme(r *http.Request) string {
-	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
-		return proto
-	}
-	if r.TLS != nil {
-		return "https"
-	}
-	return "http"
 }

@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 
 	"golang.org/x/tools/go/packages"
 	"gopkg.in/yaml.v3"
@@ -26,6 +27,45 @@ type SecretFieldsMap map[string]map[string]bool
 
 // DeprecatedFieldsMap[typeName][fieldName] = true if field is deprecated
 type DeprecatedFieldsMap map[string]map[string]bool
+
+var (
+	collectCommentsCacheMu sync.RWMutex
+	collectCommentsCache   = map[string]collectCommentsCacheEntry{}
+)
+
+type collectCommentsCacheEntry struct {
+	comments   CommentsMap
+	secrets    SecretFieldsMap
+	deprecated DeprecatedFieldsMap
+}
+
+func cloneCommentsMap(src CommentsMap) CommentsMap {
+	if src == nil {
+		return nil
+	}
+	out := make(CommentsMap, len(src))
+	for typeName, fieldMap := range src {
+		out[typeName] = make(map[string]string, len(fieldMap))
+		for fieldName, comment := range fieldMap {
+			out[typeName][fieldName] = comment
+		}
+	}
+	return out
+}
+
+func cloneBoolFieldMap(src map[string]map[string]bool) map[string]map[string]bool {
+	if src == nil {
+		return nil
+	}
+	out := make(map[string]map[string]bool, len(src))
+	for typeName, fieldMap := range src {
+		out[typeName] = make(map[string]bool, len(fieldMap))
+		for fieldName, v := range fieldMap {
+			out[typeName][fieldName] = v
+		}
+	}
+	return out
+}
 
 // getStringStyle determines whether a string should be quoted in YAML
 func getStringStyle(value string) yaml.Style {
@@ -49,6 +89,13 @@ func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, De
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
+	collectCommentsCacheMu.RLock()
+	if cached, ok := collectCommentsCache[settingsDir]; ok && shouldCacheCollectComments(settingsDir) {
+		collectCommentsCacheMu.RUnlock()
+		return cloneCommentsMap(cached.comments), cloneBoolFieldMap(cached.secrets), cloneBoolFieldMap(cached.deprecated), nil
+	}
+	collectCommentsCacheMu.RUnlock()
 
 	// settings lives at backend/pkg/settings; users at backend/internal/database/users
 	dirsToparse := []string{
@@ -98,7 +145,26 @@ func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, De
 		}
 	}
 
-	return comments, secrets, deprecated, nil
+	entry := collectCommentsCacheEntry{
+		comments:   cloneCommentsMap(comments),
+		secrets:    cloneBoolFieldMap(secrets),
+		deprecated: cloneBoolFieldMap(deprecated),
+	}
+	collectCommentsCacheMu.Lock()
+	if shouldCacheCollectComments(settingsDir) {
+		collectCommentsCache[settingsDir] = entry
+	}
+	collectCommentsCacheMu.Unlock()
+
+	return cloneCommentsMap(comments), cloneBoolFieldMap(secrets), cloneBoolFieldMap(deprecated), nil
+}
+
+// shouldCacheCollectComments avoids caching parses of ephemeral test fixture dirs under os.TempDir().
+func shouldCacheCollectComments(settingsDir string) bool {
+	if _, err := os.Stat(filepath.Join(settingsDir, "structs.go")); err == nil {
+		return true
+	}
+	return !strings.HasPrefix(settingsDir, os.TempDir())
 }
 
 // parseDirectoryComments parses a single directory for comments, secrets, and deprecated fields.
