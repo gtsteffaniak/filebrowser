@@ -171,7 +171,16 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if !thisShare.UserCanEdit(d.User) {
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 	}
-	err = state.UpdateSharePath(body.Hash, body.Path)
+	sourceName := thisShare.GetSourceName()
+	if sourceName == "" {
+		return http.StatusBadRequest, fmt.Errorf("source not available for share")
+	}
+	userscope, err := d.User.GetScopeForSourceName(sourceName)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	storedPath := utils.JoinPathAsUnix(userscope, body.Path)
+	err = state.UpdateSharePath(body.Hash, storedPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
