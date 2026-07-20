@@ -288,7 +288,11 @@
     "analyticsPreviewFailed": "無法載入分析診斷資訊",
     "scopePath": "範圍路徑",
     "sourcePermissionsHelp": "展開來源列，以設定該來源的檢視、下載、修改、建立及刪除權限。",
-    "permissionsHelp": "該使用者的全域權限適用於所有位置，包括所有來源和共享資料夾。"
+    "permissionsHelp": "該使用者的全域權限適用於所有位置，包括所有來源和共享資料夾。",
+    "userDefaults": "使用者預設值",
+    "userDefaultsDescription": "設定適用於新用戶的預設設定，並對所有用戶強制執行相關政策。",
+    "accountDefaults": "帳戶預設值",
+    "disableUserSettings": "停用使用者設定頁面"
   },
   "sidebar": {
     "updateIsAvailable": "有可用的更新！",
@@ -512,7 +516,11 @@
     "lastUsed": "上次使用",
     "passkeyDefaultName": "通行密鑰",
     "showToolsInSidebar": "在側邊欄顯示工具",
-    "showToolsInSidebarDescription": "總是在側邊欄顯示工具連結。"
+    "showToolsInSidebarDescription": "總是在側邊欄顯示工具連結。",
+    "enforcedByAdmin": "您的系統管理員已禁止使用者變更此屬性",
+    "singleClick": "單擊即可開啟檔案",
+    "stickySidebar": "固定側邊欄",
+    "darkMode": "深色模式"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -697,7 +705,8 @@
     "none": "無",
     "viewFiles": "檢視及列出檔案",
     "source": "{prefix}來源{suffix}",
-    "sources": "{prefix}資料來源{suffix}"
+    "sources": "{prefix}資料來源{suffix}",
+    "enforce": "執行{suffix}"
   },
   "access": {
     "rules": "存取規則",

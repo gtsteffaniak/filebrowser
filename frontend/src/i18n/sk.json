@@ -288,7 +288,11 @@
     "analyticsPreviewFailed": "Nepodarilo sa načítať diagnostické informácie o analýze",
     "scopePath": "Trasa rozsahu",
     "sourcePermissionsHelp": "Rozbaľte riadok zdroja, aby ste mohli nastaviť oprávnenia na zobrazenie, stiahnutie, úpravu, vytvorenie a vymazanie pre daný zdroj.",
-    "permissionsHelp": "Globálne oprávnenia pre daného používateľa platia všade, vrátane všetkých zdrojov a zdieľaných priečinkov."
+    "permissionsHelp": "Globálne oprávnenia pre daného používateľa platia všade, vrátane všetkých zdrojov a zdieľaných priečinkov.",
+    "userDefaults": "Predvolené nastavenia používateľa",
+    "userDefaultsDescription": "Nakonfigurujte predvolené nastavenia, ktoré sa budú uplatňovať na nových používateľov, a vynútiteľné zásady pre všetkých používateľov.",
+    "accountDefaults": "Predvolené nastavenia účtu",
+    "disableUserSettings": "Deaktivovať stránku nastavení používateľa"
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",
@@ -603,7 +607,8 @@
     "none": "Žiadne",
     "viewFiles": "Zobraziť a vymenovať súbory",
     "source": "{prefix}Zdroj{suffix}",
-    "sources": "{prefix}Zdroje{suffix}"
+    "sources": "{prefix}Zdroje{suffix}",
+    "enforce": "Uplatniť{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -716,7 +721,11 @@
     "lastUsed": "Naposledy použité",
     "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Zobrazenie nástrojov v bočnom paneli",
-    "showToolsInSidebarDescription": "V bočnom paneli vždy zobrazte odkaz na nástroje."
+    "showToolsInSidebarDescription": "V bočnom paneli vždy zobrazte odkaz na nástroje.",
+    "enforcedByAdmin": "Váš správca zakázal používateľom meniť túto vlastnosť",
+    "singleClick": "Otvorenie súborov jedným kliknutím",
+    "stickySidebar": "Lepivý bočný panel",
+    "darkMode": "Tmavý režim"
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

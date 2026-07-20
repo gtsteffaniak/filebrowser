@@ -47,8 +47,7 @@ func copyUserSlices(userCopy *users.User, user *users.User) {
 	}
 }
 
-// GetUserByID retrieves a user by stable numeric id from the in-memory cache (JWT belongsTo, admin APIs).
-// Returns a value (not pointer) to prevent modifications to the cache
+// GetUserByID retrieves a user by stable numeric id (JWT belongsTo, admin APIs).
 func GetUserByID(id uint64) (users.User, error) {
 	if id == 0 {
 		return users.User{}, errors.ErrNotExist
@@ -56,67 +55,67 @@ func GetUserByID(id uint64) (users.User, error) {
 	usersMux.RLock()
 	defer usersMux.RUnlock()
 
-	user, exists := usersByID[id]
-	if !exists {
-		return users.User{}, errors.ErrNotExist
+	if cached, ok := getCachedUserByID(id); ok {
+		return *cached, nil
 	}
 
-	// Return a value copy - automatically immutable
+	user, err := loadUserByIDFromDB(id)
+	if err != nil {
+		return users.User{}, err
+	}
+	putUserInCache(user)
 	userCopy := *user
-
-	// Deep copy slices and maps
 	copyUserSlices(&userCopy, user)
-
 	return userCopy, nil
 }
 
-// GetUserByUsername returns a user by username from the in-memory cache.
+// GetUserByUsername returns a user by username (30m cache, SQLite on miss).
 func GetUserByUsername(username string) (users.User, error) {
 	usersMux.RLock()
 	defer usersMux.RUnlock()
 
-	user, exists := usersByName[username]
-	if !exists {
-		return users.User{}, errors.ErrNotExist
+	if cached, ok := getCachedUserByUsername(username); ok {
+		return *cached, nil
 	}
 
-	// Return a value copy - automatically immutable
+	user, err := loadUserByUsernameFromDB(username)
+	if err != nil {
+		return users.User{}, err
+	}
+	putUserInCache(user)
 	userCopy := *user
-
-	// Deep copy slices and maps
 	copyUserSlices(&userCopy, user)
-
 	return userCopy, nil
 }
 
 // UserIDForUsername returns the stable id for a login name (for id-keyed user storage).
 func UserIDForUsername(username string) (uint64, error) {
-	usersMux.RLock()
-	defer usersMux.RUnlock()
-	u, ok := usersByName[username]
-	if !ok {
-		return 0, errors.ErrNotExist
+	u, err := GetUserByUsername(username)
+	if err != nil {
+		return 0, err
 	}
 	return u.ID, nil
 }
 
-// GetAllUsers returns all users from the in-memory cache
-// Returns values (not pointers) to prevent modifications to the cache
+// GetAllUsers returns all users from SQLite (not a long-lived memory map).
 func GetAllUsers() ([]users.User, error) {
 	usersMux.RLock()
 	defer usersMux.RUnlock()
 
-	usersList := make([]users.User, 0, len(usersByName))
-	for _, user := range usersByName {
-		// Return value copies - automatically immutable
-		userCopy := *user
-
-		// Deep copy slices and maps
-		copyUserSlices(&userCopy, user)
-
-		usersList = append(usersList, userCopy)
+	usersList, err := sqlDb.ListUsers()
+	if err != nil {
+		return nil, err
 	}
-	return usersList, nil
+	out := make([]users.User, 0, len(usersList))
+	for _, user := range usersList {
+		if user == nil {
+			continue
+		}
+		userCopy := *user
+		copyUserSlices(&userCopy, user)
+		out = append(out, userCopy)
+	}
+	return out, nil
 }
 
 // UserFromAPIToken resolves the user for a validated API JWT: numeric belongsTo id, or minimal tokens
@@ -149,8 +148,10 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	if err := users.ValidateUsername(user.Username); err != nil {
 		return err
 	}
-	if _, exists := usersByName[user.Username]; exists {
+	if _, err := GetUserByUsername(user.Username); err == nil {
 		return fmt.Errorf("user with username %s already exists", user.Username)
+	} else if err != errors.ErrNotExist {
+		return err
 	}
 	// Hash password if provided
 	if plaintextPassword != "" {
@@ -167,7 +168,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
-	settings.ApplyUserDefaults(user)
+	ApplyUserDefaults(user)
 	users.SyncBackendSourcePermissionsMap(user)
 
 	usersMux.Lock()
@@ -185,8 +186,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 		return err
 	}
 
-	usersByName[user.Username] = user
-	usersByID[user.ID] = user
+	putUserInCache(user)
 
 	return nil
 }
@@ -199,20 +199,13 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
-	// 1. Check if user exists in cache (state)
-	var existingUser *users.User
-	var exists bool
-	if user.ID != 0 {
-		existingUser, exists = usersByID[user.ID]
-	}
-	if !exists {
-		existingUser, exists = usersByName[user.Username]
-	}
-	if !exists || existingUser == nil {
+	storedSnapshot, err := loadExistingUserLocked(user)
+	if err != nil {
 		return fmt.Errorf("user %s not found in cache", user.Username)
 	}
-	oldUsername := existingUser.Username
-	oldUserID := existingUser.ID
+	existingUser := cloneUserPtr(storedSnapshot)
+	oldUsername := storedSnapshot.Username
+	oldUserID := storedSnapshot.ID
 
 	// If no fields specified, or the API sends which=["all"], replace the entire user (full update).
 	// Client UX sends "all" as a broad save; it must not be interpreted as a single JSON field name.
@@ -272,7 +265,7 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		preserveServerManagedFields(existingUser, user)
 
 		// Replace entire user pointer
-		existingUser = user
+		existingUser = cloneUserPtr(user)
 	}
 
 	// Request JSON "scopes" → BackendScopes only; FrontendScopes are never persisted (see PrepForFrontend).
@@ -300,27 +293,27 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	existingUser.FrontendScopes = nil
 	existingUser.SourcePermissions = nil
 
+	defaults := EffectiveUserDefaults()
+	enforced := EffectiveEnforced()
+	settings.ApplyEnforcedDefaultsFrom(existingUser, defaults, enforced)
+
 	// 3. Write to database
-	var err error
+	var updateErr error
 	if oldUsername != existingUser.Username {
-		if err = sqlDb.UpdateUserUsername(oldUsername, existingUser); err != nil {
-			return err
+		if updateErr = sqlDb.UpdateUserUsername(oldUsername, existingUser); updateErr != nil {
+			return updateErr
 		}
-		delete(usersByName, oldUsername)
+		if oldUserID != 0 && oldUserID != existingUser.ID {
+			userRecordCache.Delete(userCacheKeyID(oldUserID))
+		}
+		userRecordCache.Delete(userCacheKeyName(oldUsername))
 	} else {
-		if err = sqlDb.UpdateUser(existingUser); err != nil {
-			return err
+		if updateErr = sqlDb.UpdateUser(existingUser); updateErr != nil {
+			return updateErr
 		}
 	}
 
-	// 4. Update cache to match database
-	if oldUserID != 0 && oldUserID != existingUser.ID {
-		delete(usersByID, oldUserID)
-	}
-	if existingUser.ID != 0 {
-		usersByID[existingUser.ID] = existingUser
-	}
-	usersByName[existingUser.Username] = existingUser
+	putUserInCache(existingUser)
 
 	return nil
 }
@@ -462,18 +455,16 @@ func DeleteUser(id uint64) error {
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
-	user, exists := usersByID[id]
-	if !exists {
+	user, err := loadExistingUserLocked(&users.User{ID: id})
+	if err != nil {
 		return fmt.Errorf("user not found in state")
 	}
 
-	err := sqlDb.DeleteUserByID(id)
-	if err != nil {
+	if err := sqlDb.DeleteUserByID(id); err != nil {
 		return err
 	}
 
-	delete(usersByID, id)
-	delete(usersByName, user.Username)
+	deleteUserFromCache(user)
 
 	if accessDb != nil {
 		_ = accessDb.RemoveHashedTokensForUser(id)
@@ -487,22 +478,17 @@ func DeleteUserByUsername(username string) error {
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
-	// 1. Check if user exists in state
-	user, exists := usersByName[username]
-	if !exists {
+	user, err := loadExistingUserLocked(&users.User{FrontendUser: users.FrontendUser{Username: username}})
+	if err != nil {
 		return fmt.Errorf("user not found in state")
 	}
 
-	err := sqlDb.DeleteUserByUsername(username)
-	if err != nil {
+	uid := user.ID
+	if err := sqlDb.DeleteUserByUsername(username); err != nil {
 		return err
 	}
 
-	uid := user.ID
-	if user.ID != 0 {
-		delete(usersByID, user.ID)
-	}
-	delete(usersByName, username)
+	deleteUserFromCache(user)
 
 	if accessDb != nil && uid != 0 {
 		_ = accessDb.RemoveHashedTokensForUser(uid)
@@ -526,8 +512,8 @@ func AddUserToken(ownerUsername string, token users.AuthToken) error {
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
-	user, exists := usersByName[ownerUsername]
-	if !exists {
+	user, err := loadExistingUserLocked(&users.User{FrontendUser: users.FrontendUser{Username: ownerUsername}})
+	if err != nil {
 		return fmt.Errorf("user not found in state")
 	}
 
@@ -544,13 +530,11 @@ func AddUserToken(ownerUsername string, token users.AuthToken) error {
 	}
 	users.StoreToken(user.Tokens, token)
 
-	// 2. Write to database
-	err := sqlDb.UpdateUser(user)
-	if err != nil {
+	if err := sqlDb.UpdateUser(user); err != nil {
 		return err
 	}
 
-	// 3. Cache is already updated since we modified the pointer directly
+	putUserInCache(user)
 
 	return nil
 }
@@ -560,8 +544,8 @@ func DeleteUserToken(ownerUsername string, tokenName string) error {
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
-	user, exists := usersByName[ownerUsername]
-	if !exists {
+	user, err := loadExistingUserLocked(&users.User{FrontendUser: users.FrontendUser{Username: ownerUsername}})
+	if err != nil {
 		return fmt.Errorf("user not found in state")
 	}
 
@@ -573,16 +557,13 @@ func DeleteUserToken(ownerUsername string, tokenName string) error {
 		return fmt.Errorf("token with name %s not found for user", tokenName)
 	}
 
-	// Prepare the update
 	users.RemoveTokenByName(user.Tokens, tokenName)
 
-	// 2. Write to database
-	err := sqlDb.UpdateUser(user)
-	if err != nil {
+	if err := sqlDb.UpdateUser(user); err != nil {
 		return err
 	}
 
-	// 3. Cache is already updated since we modified the pointer directly
+	putUserInCache(user)
 
 	return nil
 }

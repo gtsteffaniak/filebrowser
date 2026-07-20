@@ -70,6 +70,18 @@ export const getters = {
   
     return getters.displayPreferenceFor(source, path);
   },
+  viewModeChangeLocked: () => {
+    if (state.user?.enforcedPreferences?.listing?.viewMode) {
+      return true;
+    }
+    if (getters.isShare()) {
+      const shareView = String(state.shareInfo?.viewMode ?? "").trim();
+      if (shareView !== "") {
+        return true;
+      }
+    }
+    return false;
+  },
   viewMode: () => {
     if (!state.user || state.user?.username === "") {
       return "normal";

@@ -288,7 +288,11 @@
     "analyticsPreviewFailed": "分析診断情報の読み込みに失敗しました",
     "scopePath": "スコープパス",
     "sourcePermissionsHelp": "ソース行を展開して、そのソースに対する表示、ダウンロード、変更、作成、および削除の権限を設定します。",
-    "permissionsHelp": "そのユーザーのグローバル権限は、すべてのソースおよび共有を含め、あらゆる場所で適用されます。"
+    "permissionsHelp": "そのユーザーのグローバル権限は、すべてのソースおよび共有を含め、あらゆる場所で適用されます。",
+    "userDefaults": "ユーザーのデフォルト設定",
+    "userDefaultsDescription": "新規ユーザーに適用されるデフォルト設定と、すべてのユーザーに適用されるポリシーを設定します。",
+    "accountDefaults": "アカウントのデフォルト設定",
+    "disableUserSettings": "ユーザー設定ページを無効にする"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",
@@ -603,7 +607,8 @@
     "none": "なし",
     "viewFiles": "ファイルの表示と一覧表示",
     "source": "{prefix}出典{suffix}",
-    "sources": "{prefix}出典{suffix}"
+    "sources": "{prefix}出典{suffix}",
+    "enforce": "適用する{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -716,7 +721,11 @@
     "lastUsed": "最終使用",
     "passkeyDefaultName": "パスキー",
     "showToolsInSidebar": "サイドバーにツールを表示",
-    "showToolsInSidebarDescription": "サイドバーにツールリンクを常に表示する。"
+    "showToolsInSidebarDescription": "サイドバーにツールリンクを常に表示する。",
+    "enforcedByAdmin": "管理者が、ユーザーによるこのプロパティの変更を禁止しています",
+    "singleClick": "ワンクリックでファイルを開く",
+    "stickySidebar": "固定サイドバー",
+    "darkMode": "ダークモード"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

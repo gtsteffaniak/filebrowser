@@ -11,9 +11,10 @@ A database migration is required to go from v1.x to this version. See docs.
  - ffmpeg hardware acceleration detection and support via go-ffmpeg
   - video streaming is limited to viewing only.
  - granular per-source file permissions (view, download, modify, create, delete) with automatic migration from global permissions
+   - per-source defaults configurable in `settings > access management`
+   - `view` permission is automatically set to true unless explicitly set to false.
  # - backup/restore in UI settings
  # - New CLI options and usage
- # - user setting enforcement preferences
  - New activity logs for user activity.
    - charts and historical data
    - activity tool to view data
@@ -32,24 +33,29 @@ A database migration is required to go from v1.x to this version. See docs.
    - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future. 
  - WebDAV now supports set modification time via the `X-OC-Mtime` header for clients that support it (#2626).
  - Copy operations now preserve their original modification times (#2642) (#2647):
-    - WebUI preserves both, files and directories.
-    - WebDAV `COPY` preserves modification times only for files, is limitation we have with webdav.
+   - WebUI preserves both, files and directories.
+   - WebDAV `COPY` preserves modification times only for files, is limitation we have with webdav.
+ - User default enhancements
+   - User defaults can be configured by admin in `settings > user management > user defaults`
+   - User defaults can be enforced
+   - User defaults can be applied differently based on user's login method.
 
  **Removed legacy (breaking)**:
  - `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
  - `/share/…` frontend URL redirect to `/public/share/…` — use `/public/share/…` directly.
  - Search API: removed singular `source` param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
- - Source config: removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules instead.
+ - Source config: removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules 
+ - `PUT /api/users` moved to the more appropriate `PATCH` method.
 
  **Notes**:
  - new dropdown and input styles
- - new resources/stream endpoint
  - user updates are more granular, don't include entire user payload.
  - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
  - removed legacy and deprecated properties from API responses and generated config output
  - Moved stream api to `/media/stream`
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata.
  - removed exiftool as an optional helper, always built with the supported libraries.
+ - `userDefaults` section of the config has been deprecated.
 
 ## v1.5.0
 

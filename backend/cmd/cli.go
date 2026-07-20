@@ -379,7 +379,14 @@ func createConfig(configpath string) {
 	config.Auth.AdminPassword = askQuestion(reader, "What should the default admin password be?", "admin")
 
 	// 6. Ask boolean (Yes/No) questions using the helper
-	config.UserDefaults.Account.Permissions.Modify = askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
+	modifyDefault := askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
+	config.Server.Sources[0].Config.DefaultFilePermissions = settings.NormalizeSourceFilePermissions(users.SourceFilePermissions{
+		View:     true,
+		Download: true,
+		Modify:   modifyDefault,
+		Create:   modifyDefault,
+		Delete:   modifyDefault,
+	})
 	config.UserDefaults.Account.Permissions.Share = askYesNoQuestion(reader, "Should a new user be able to create shares by default?", "no")
 
 	fmt.Println("--- 	Configuration Complete 	---")

@@ -15,7 +15,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 	defer func() { Config = saved }()
 
 	dark := false
-	dlFalse := false
 	Config = Settings{
 		Server: Server{},
 		UserDefaults: UserDefaults{
@@ -79,12 +78,8 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				Permissions: UserDefaultsAccountPermissions{
 					Api:      true,
 					Admin:    true,
-					Modify:   true,
 					Share:    true,
 					Realtime: true,
-					Delete:   true,
-					Create:   true,
-					Download: &dlFalse,
 				},
 				LockPassword:               true,
 				DisableSettings:            true,

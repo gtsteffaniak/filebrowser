@@ -91,7 +91,7 @@ export async function create(user, options = {}) {
   }
 }
 
-// PUT /api/users (update user)
+// PATCH /api/users (update user)
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
 // options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
@@ -131,7 +131,7 @@ export async function update(user, which = ['all'], options = {}) {
 
   try {
     await fetchURL(apiPath, {
-      method: 'PUT',
+      method: 'PATCH',
       body,
       headers: mergedHeaders,
     })

@@ -315,6 +315,11 @@
     margin-right: 0.2rem;
 }
 
+.settings-checkbox {
+    margin-right: 0.2rem;
+    cursor: pointer;
+}
+
 .rules input[type="text"] {
     border: 1px solid#ddd;
     padding: 0.2rem;

@@ -288,7 +288,11 @@
     "analyticsPreviewFailed": "Het laden van diagnostische gegevens voor Analytics is mislukt",
     "scopePath": "Bereikpad",
     "sourcePermissionsHelp": "Vouw een bronrij uit om de rechten voor het bekijken, downloaden, wijzigen, aanmaken en verwijderen van die bron in te stellen.",
-    "permissionsHelp": "Algemene machtigingen voor de gebruiker gelden overal, inclusief alle bronnen en gedeelde mappen."
+    "permissionsHelp": "Algemene machtigingen voor de gebruiker gelden overal, inclusief alle bronnen en gedeelde mappen.",
+    "userDefaults": "Standaardinstellingen voor gebruikers",
+    "userDefaultsDescription": "Stel de standaardinstellingen in die voor nieuwe gebruikers gelden en het beleid dat voor alle gebruikers moet worden nageleefd.",
+    "accountDefaults": "Standaardinstellingen voor accounts",
+    "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen"
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",
@@ -543,7 +547,11 @@
     "lastUsed": "Laatst gebruikt",
     "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Toon gereedschappen in de zijbalk",
-    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk."
+    "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk.",
+    "enforcedByAdmin": "Uw beheerder heeft ervoor gezorgd dat gebruikers deze eigenschap niet kunnen wijzigen",
+    "singleClick": "Bestanden openen met één muisklik",
+    "stickySidebar": "Vaste zijbalk",
+    "darkMode": "Donkere modus"
   },
   "general": {
     "name": "Naam",
@@ -697,7 +705,8 @@
     "none": "Geen",
     "viewFiles": "Bestanden bekijken en weergeven",
     "source": "{prefix}Bron{suffix}",
-    "sources": "{prefix}Bronnen{suffix}"
+    "sources": "{prefix}Bronnen{suffix}",
+    "enforce": "Handhaven{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

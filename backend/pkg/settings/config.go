@@ -805,12 +805,6 @@ func migrateUserDefaults() {
 		logger.Warning("userDefaults: migrating deprecated field 'permissions.admin' to 'account.permissions.admin'")
 	}
 
-	if !ud.Account.Permissions.Modify && ud.Permissions.Modify {
-		ud.Account.Permissions.Modify = ud.Permissions.Modify
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'permissions.modify' to 'account.permissions.modify'")
-	}
-
 	if !ud.Account.Permissions.Share && ud.Permissions.Share {
 		ud.Account.Permissions.Share = ud.Permissions.Share
 		hasOldFields = true
@@ -821,24 +815,6 @@ func migrateUserDefaults() {
 		ud.Account.Permissions.Realtime = ud.Permissions.Realtime
 		hasOldFields = true
 		logger.Warning("userDefaults: migrating deprecated field 'permissions.realtime' to 'account.permissions.realtime'")
-	}
-
-	if !ud.Account.Permissions.Delete && ud.Permissions.Delete {
-		ud.Account.Permissions.Delete = ud.Permissions.Delete
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'permissions.delete' to 'account.permissions.delete'")
-	}
-
-	if !ud.Account.Permissions.Create && ud.Permissions.Create {
-		ud.Account.Permissions.Create = ud.Permissions.Create
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'permissions.create' to 'account.permissions.create'")
-	}
-
-	if isUnsetBoolPtr(ud.Account.Permissions.Download) && ud.Permissions.Download != nil {
-		ud.Account.Permissions.Download = ud.Permissions.Download
-		hasOldFields = true
-		logger.Warning("userDefaults: migrating deprecated field 'permissions.download' to 'account.permissions.download'")
 	}
 
 	if hasOldFields {
@@ -892,6 +868,10 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		if validFields[key] {
 			filteredConfig[key] = value
 		}
+	}
+
+	if _, ok := filteredConfig["userDefaults"]; ok {
+		Env.ConfigUserDefaultsSpecified = true
 	}
 
 	// check if database is set in the config
@@ -1123,12 +1103,8 @@ func SetDefaults(generate bool) Settings {
 				Permissions: UserDefaultsAccountPermissions{
 					Api:      false,
 					Admin:    false,
-					Modify:   false,
 					Share:    false,
 					Realtime: false,
-					Delete:   false,
-					Create:   false,
-					Download: boolPtr(true), // defaults to true
 				},
 				LockPassword:               false,
 				DisableSettings:            false,

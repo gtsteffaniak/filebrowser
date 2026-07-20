@@ -46,6 +46,12 @@ server:
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user under defaultUserScope + username
         useLogicalSize: false             # calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
+        defaultFilePermissions:           # DefaultFilePermissions is the template for new user scopes on this source (also synced globally via Access settings).
+          view: false
+          download: false
+          modify: false
+          delete: false
+          create: false
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
@@ -166,71 +172,6 @@ frontend:
   loginIcon: ""                           # path to an image file for the login page icon
   loginButtonText: ""                     # text to display on the login button
   oidcLoginButtonText: ""                 # text to display on the OIDC login button
-userDefaults:
-  sidebar:                                # New organized structure
-    disableQuickToggles: false            # disable the quick toggles in the sidebar
-    hideFileActions: false                # hide the file actions in the sidebar
-    disableHideOnPreview: false           # keep sidebar open when previewing files (was preview.disableHideSidebar)
-    sticky: true                          # keep sidebar open when navigating
-    hideFiles: false                      # hide files in the sidebar tree navigation, when true, will show only directories
-    showTools: true                       # show sidebar links with category "tool"; default is true
-  listing:
-    deleteWithoutConfirming: false        # delete files without confirmation
-    dateFormat: false                     # when false, the date is relative, when true, the date is an exact timestamp
-    showHidden: false                     # show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
-    quickDownload: false                  # show icon to download in one click
-    showSelectMultiple: false             # show select multiple files on desktop
-    singleClick: false                    # open directory on single click, also enables middle click to open in new tab
-    hideFileExt: ""                       # space separated list of file extensions to hide in UI
-    showCopyPath: false                   # show copy path button in the context menu
-    deleteAfterArchive: true              # delete source files after successful creation/extraction of archives
-    viewMode: "normal"                    # view mode to use: eg. normal, list, grid, or compact
-    gallerySize: 3                        # 0-9 - the size of the gallery thumbnails
-  preview:
-    image: true                           # show thumbnails for image files
-    video: true                           # show thumbnails for video files
-    audio: true                           # show thumbnails for audio files
-    motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering
-    office: true                          # show thumbnails for office files
-    popup: true                           # show larger popup preview when hovering over thumbnail
-    disablePreviewExt: ""                 # comma separated list of file extensions to disable preview for
-    highQuality: true                     # high quality preview thumbnails
-    folder: true                          # show thumbnails for folders that have previewable contents
-    models: true                          # show live thumbnails for 3D models files
-  fileViewer:
-    editorQuickSave: false                # show quick save button in editor
-    autoplayMedia: true                   # autoplay media files in preview
-    disableViewingExt: ""                 # comma separated list of file extensions to disable viewing for
-    disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
-    preferEditorForMarkdown: false        # prefer editor first for markdown files instead of the Markdown Viewer
-    debugOffice: false                    # debug onlyoffice editor
-    defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
-  search:
-    disableOptions: false                 # disable the search options in the search bar
-  ui:
-    darkMode: true                        # should dark mode be enabled
-    themeColor: "var(--blue)"             # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-    customTheme: ""                       # Name of theme to use chosen from custom themes config
-    locale: "en"                          # language to use: eg. de, en, or fr
-  fileLoading:
-    maxConcurrentUpload: 10
-    uploadChunkSizeMb: 10
-    clearAll: false
-    downloadChunkSizeMb: 0
-  account:
-    permissions:
-      api: false                          # allow api access
-      admin: false                        # allow admin access
-      modify: false                       # allow modifying files
-      share: false                        # allow sharing files
-      realtime: false                     # allow realtime updates
-      delete: false                       # allow deleting files
-      create: false                       # allow creating or uploading files
-      download: true                      # allow downloading files
-    lockPassword: false                   # disable the user from changing their password
-    disableSettings: false                # disable the user from viewing the settings page
-    loginMethod: "password"               # login method to use: eg. password, proxy, oidc
-    disableUpdateNotifications: false     # disable update notifications banner for admin users
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

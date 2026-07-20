@@ -1,14 +1,18 @@
 package users
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
+// ProfileStorageVersion is the user version after nested profile JSON in user_data.
+const ProfileStorageVersion = 5
+
 // CurrentUserMigrationVersion is persisted for newly created accounts and after legacy migrations finish.
-const CurrentUserMigrationVersion = 4
+const CurrentUserMigrationVersion = ProfileStorageVersion
 
 type LoginMethod string
 
@@ -152,8 +156,9 @@ type FrontendUser struct {
 	SourcePermissions map[string]SourceFilePermissions `json:"sourcePermissions,omitempty"` // deprecated: use scopes[].permissions
 	LoginMethod       LoginMethod                      `json:"loginMethod"`
 	OtpEnabled        bool                             `json:"otpEnabled"`
-	ShowFirstLogin    bool                             `json:"showFirstLogin"`
-	Perm              Permissions                      `json:"perm,omitzero"`
+	ShowFirstLogin       bool             `json:"showFirstLogin"`
+	Perm                 Permissions      `json:"perm,omitzero"`
+	EnforcedPreferences  json.RawMessage  `json:"enforcedPreferences,omitempty"`
 }
 
 // PinnedItems maps source filesystem path -> index directory path -> pinned item names.

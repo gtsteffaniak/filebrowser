@@ -30,18 +30,6 @@ func ConvertPermissionsToUsers(p UserDefaultsAccountPermissions) users.Permissio
 	}
 }
 
-// DefaultSourceFilePermissions returns default per-source file permissions from user defaults.
-func DefaultSourceFilePermissions() users.SourceFilePermissions {
-	d := Config.UserDefaults.Account.Permissions
-	return users.SourceFilePermissions{
-		View:     true,
-		Download: boolValueOrDefault(d.Download, true),
-		Modify:   d.Modify,
-		Delete:   d.Delete,
-		Create:   d.Create,
-	}
-}
-
 const DefaultUsersHomeBasePath = "/users"
 
 // AuthMethod describes an authentication method.
@@ -83,70 +71,16 @@ func AdminSourceFilePermissions() users.SourceFilePermissions {
 	}
 }
 
-// Apply applies the default options to a user.
+// ApplyUserDefaults applies Config.UserDefaults to a user (tests and legacy callers).
+func ApplyUserDefaults(u *users.User) {
+	ApplyUserDefaultsFrom(u, Config.UserDefaults)
+}
+
+// ApplyUserDefaultsFrom applies the given defaults template to a user.
 // Keep this in sync with [UserDefaults]: every user-facing field there should be copied
 // here (except DefaultScopes, which is wired through source config rather than this helper).
-func ApplyUserDefaults(u *users.User) {
-	d := Config.UserDefaults
-
-	// Account settings
-	u.DisableSettings = d.Account.DisableSettings
-	u.LockPassword = d.Account.LockPassword
-	u.DisableUpdateNotifications = d.Account.DisableUpdateNotifications
-
-	// Sidebar settings
-	u.DisableQuickToggles = d.Sidebar.DisableQuickToggles
-	u.HideSidebarFileActions = d.Sidebar.HideFileActions
-	u.StickySidebar = d.Sidebar.Sticky
-	u.HideFilesInTree = d.Sidebar.HideFiles
-	u.ShowToolsInSidebar = boolValueOrDefault(d.Sidebar.ShowTools, true)
-
-	// Listing settings
-	u.DeleteWithoutConfirming = d.Listing.DeleteWithoutConfirming
-	u.DateFormat = d.Listing.DateFormat
-	u.ShowHidden = d.Listing.ShowHidden
-	u.QuickDownload = d.Listing.QuickDownload
-	u.ShowSelectMultiple = d.Listing.ShowSelectMultiple
-	u.SingleClick = d.Listing.SingleClick
-	u.HideFileExt = d.Listing.HideFileExt
-	u.ShowCopyPath = d.Listing.ShowCopyPath
-	u.DeleteAfterArchive = d.Listing.DeleteAfterArchive
-	u.ViewMode = d.Listing.ViewMode
-	u.GallerySize = d.Listing.GallerySize
-
-	// Preview settings
-	u.Preview.DisableHideSidebar = d.Sidebar.DisableHideOnPreview
-	u.Preview.Image = boolValueOrDefault(d.Preview.Image, true)
-	u.Preview.Video = boolValueOrDefault(d.Preview.Video, true)
-	u.Preview.Audio = boolValueOrDefault(d.Preview.Audio, true)
-	u.Preview.MotionVideoPreview = boolValueOrDefault(d.Preview.MotionVideoPreview, true)
-	u.Preview.Office = boolValueOrDefault(d.Preview.Office, true)
-	u.Preview.PopUp = boolValueOrDefault(d.Preview.PopUp, true)
-	u.Preview.Folder = boolValueOrDefault(d.Preview.Folder, true)
-	u.Preview.Models = boolValueOrDefault(d.Preview.Models, true)
-	u.DisablePreviewExt = d.Preview.DisablePreviewExt
-
-	// FileViewer settings
-	u.EditorQuickSave = d.FileViewer.EditorQuickSave
-	u.Preview.AutoplayMedia = boolValueOrDefault(d.FileViewer.AutoplayMedia, true)
-	u.Preview.DefaultMediaPlayer = d.FileViewer.DefaultMediaPlayer
-	u.DisableViewingExt = d.FileViewer.DisableViewingExt
-	u.DisableOnlyOfficeExt = d.FileViewer.DisableOnlyOfficeExt
-	u.DisableOfficePreviewExt = d.FileViewer.DisableOnlyOfficeExt // deprecated field, map to same source
-	u.PreferEditorForMarkdown = d.FileViewer.PreferEditorForMarkdown
-	u.DebugOffice = d.FileViewer.DebugOffice
-
-	// Search settings
-	u.DisableSearchOptions = d.Search.DisableOptions
-
-	// UI settings
-	u.DarkMode = boolValueOrDefault(d.UI.DarkMode, true)
-	u.ThemeColor = d.UI.ThemeColor
-	u.CustomTheme = d.UI.CustomTheme
-	u.Locale = d.UI.Locale
-
-	// FileLoading settings
-	u.FileLoading = d.FileLoading
+func ApplyUserDefaultsFrom(u *users.User, d UserDefaults) {
+	ApplyFullProfileFromDefaults(u, d)
 
 	if u.Username == "anonymous" {
 		return

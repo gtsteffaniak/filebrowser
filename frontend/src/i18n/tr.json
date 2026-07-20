@@ -288,7 +288,11 @@
     "analyticsPreviewFailed": "Analitik tanılama bilgilerini yükleyemedi",
     "scopePath": "Kapsam yolu",
     "sourcePermissionsHelp": "Bir kaynak satırını genişleterek, o kaynak için görüntüleme, indirme, değiştirme, oluşturma ve silme izinlerini ayarlayın.",
-    "permissionsHelp": "Kullanıcının genel izinleri, tüm kaynaklar ve paylaşımlar dahil olmak üzere her yerde geçerlidir."
+    "permissionsHelp": "Kullanıcının genel izinleri, tüm kaynaklar ve paylaşımlar dahil olmak üzere her yerde geçerlidir.",
+    "userDefaults": "Kullanıcı varsayılan ayarları",
+    "userDefaultsDescription": "Yeni kullanıcılara uygulanacak varsayılan ayarları ve tüm kullanıcılar için geçerli olacak kuralı yapılandırın.",
+    "accountDefaults": "Hesap varsayılan ayarları",
+    "disableUserSettings": "Kullanıcı ayarları sayfasını devre dışı bırak"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
@@ -603,7 +607,8 @@
     "none": "Hiçbiri",
     "viewFiles": "Dosyaları görüntüleme ve listeleme",
     "source": "{prefix}Kaynak{suffix}",
-    "sources": "{prefix}Kaynaklar{suffix}"
+    "sources": "{prefix}Kaynaklar{suffix}",
+    "enforce": "Uygula{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -716,7 +721,11 @@
     "lastUsed": "Son kullanım",
     "passkeyDefaultName": "Geçiş Anahtarı",
     "showToolsInSidebar": "Araçları kenar çubuğunda göster",
-    "showToolsInSidebarDescription": "Araçlar bağlantısını her zaman kenar çubuğunda gösterin."
+    "showToolsInSidebarDescription": "Araçlar bağlantısını her zaman kenar çubuğunda gösterin.",
+    "enforcedByAdmin": "Yöneticiniz, kullanıcıların bu özelliği değiştirmesini engellemiştir",
+    "singleClick": "Dosyaları tek tıklamayla açın",
+    "stickySidebar": "Sabit kenar çubuğu",
+    "darkMode": "Karanlık mod"
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

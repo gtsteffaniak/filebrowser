@@ -202,22 +202,10 @@ func TestMigrateUserDefaults_OldToNew(t *testing.T) {
 	if !ud.Account.Permissions.Admin {
 		t.Error("account.permissions.admin should be true")
 	}
-	if !ud.Account.Permissions.Modify {
-		t.Error("account.permissions.modify should be true")
-	}
 	if !ud.Account.Permissions.Share {
 		t.Error("account.permissions.share should be true")
 	}
 	if !ud.Account.Permissions.Realtime {
 		t.Error("account.permissions.realtime should be true")
-	}
-	if !ud.Account.Permissions.Delete {
-		t.Error("account.permissions.delete should be true")
-	}
-	if !ud.Account.Permissions.Create {
-		t.Error("account.permissions.create should be true")
-	}
-	if ud.Account.Permissions.Download == nil || *ud.Account.Permissions.Download != false {
-		t.Error("account.permissions.download should be false")
 	}
 }

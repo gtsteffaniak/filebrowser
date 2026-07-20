@@ -10,7 +10,6 @@
   <div class="card-title">
     <h2>{{ $t("access.accessManagement") }}</h2>
     <div class="form-flex-group">
-      <label for="source-select">{{ $t("general.source",{suffix: ":"})  }}</label>
       <ExpandDropdown
         input-id="source-select"
         v-model="selectedSource"
@@ -22,6 +21,19 @@
     <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
   <div class="card-content full">
+    <SettingsItem
+      :title="$t('general.permissions')"
+      :collapsable="true"
+      :start-collapsed="true"
+    >
+      <p class="small">{{ $t('settings.sourcePermissionsHelp') }}</p>
+      <SourceFilePermissions
+        v-if="!defaultsLoading"
+        :permissions="sourceAccessDefaults"
+        @changed="onSourceAccessDefaultsChange"
+      />
+      <div v-else class="loading-hint">{{ $t('general.loading') }}</div>
+    </SettingsItem>
     <settings-table
       :columns="accessTableColumns"
       :items="accessTableRows"
@@ -54,10 +66,14 @@
 
 <script>
 import { accessApi } from "@/api";
+import * as settingsApi from "@/api/settings";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import SettingsItem from "@/components/settings/SettingsItem.vue";
+import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import { notify } from "@/notify";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 export default {
@@ -65,6 +81,8 @@ export default {
   components: {
     Errors,
     SettingsTable,
+    SettingsItem,
+    SourceFilePermissions,
     ExpandDropdown,
   },
   data: () => ({
@@ -74,10 +92,19 @@ export default {
     selectedSource: "",
     /** True until first `fetchRules` completes so the table does not flash the empty state. */
     loading: true,
+    defaultsLoading: true,
+    savingDefaults: false,
+    sourceAccessDefaults: {
+      view: true,
+      download: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
   }),
   async mounted() {
     this.selectedSource = state.sources.current;
-    await this.fetchRules();
+    await Promise.all([this.fetchRules(), this.loadSourceAccessDefaults()]);
     // Listen for access rule changes
     eventBus.on('accessRulesChanged', this.fetchRules);
   },
@@ -133,6 +160,55 @@ export default {
     },
   },
   methods: {
+    async loadSourceAccessDefaults() {
+      this.defaultsLoading = true;
+      try {
+        const settings = await settingsApi.getSourceSettings();
+        const perms = settings?.defaultFilePermissions ?? {};
+        this.sourceAccessDefaults = {
+          view: perms.view !== false,
+          download: perms.download !== false,
+          modify: !!perms.modify,
+          create: !!perms.create,
+          delete: !!perms.delete,
+        };
+      } catch (e) {
+        console.error(e);
+        if (e?.message) {
+          notify.showError(e.message);
+        }
+      } finally {
+        this.defaultsLoading = false;
+      }
+    },
+    async onSourceAccessDefaultsChange() {
+      if (this.savingDefaults) {
+        return;
+      }
+      this.savingDefaults = true;
+      try {
+        const settings = await settingsApi.patchSourceSettings({
+          defaultFilePermissions: this.sourceAccessDefaults,
+        });
+        const perms = settings?.defaultFilePermissions ?? {};
+        this.sourceAccessDefaults = {
+          view: perms.view !== false,
+          download: perms.download !== false,
+          modify: !!perms.modify,
+          create: !!perms.create,
+          delete: !!perms.delete,
+        };
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
+      } catch (e) {
+        console.error(e);
+        if (e?.message) {
+          notify.showError(e.message);
+        }
+        await this.loadSourceAccessDefaults();
+      } finally {
+        this.savingDefaults = false;
+      }
+    },
     async fetchRules() {
       const source = this.selectedSource;
       this.loading = true;
@@ -179,5 +255,11 @@ export default {
 <style scoped>
 .form-flex-group {
   margin-bottom: 1em;
+}
+.card-content.full :deep(.settings-group) {
+  margin-bottom: 0.75rem;
+}
+.loading-hint {
+  opacity: 0.7;
 }
 </style>

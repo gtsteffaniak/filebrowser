@@ -116,6 +116,7 @@ import ThreeJSControls from "./ThreeJSControls.vue";
 import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
+import UserDefaults from "./UserDefaults.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -161,6 +162,7 @@ export default {
     ActivityEventDetails,
     AnalyticsDiagnostic,
     ConfigViewer,
+    UserDefaults,
   },
   data() {
     return {
@@ -273,7 +275,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -342,6 +344,8 @@ export default {
           return this.$t("settings.analyticsView");
         case "config-viewer":
           return this.$t("settings.configViewer");
+        case "user-defaults":
+          return this.$t("settings.userDefaults");
         case "upload":
           return this.$t("general.upload");
         case "createapi":

@@ -194,9 +194,11 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 	// Create a temporary config for testing
 	config := &Settings{
 		UserDefaults: UserDefaults{
+			UI: UserDefaultsUI{
+				Locale: "es",
+			},
 			UserDefaultsLegacy: UserDefaultsLegacy{
-				Locale:                  "en",
-				DisableOfficePreviewExt: ".docx .xlsx", // This should be filtered out
+				DisableOfficePreviewExt: ".docx .xlsx", // filtered from generated YAML
 			},
 		},
 		Auth: Auth{

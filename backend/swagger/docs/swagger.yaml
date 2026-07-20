@@ -895,7 +895,10 @@ definitions:
       server:
         $ref: '#/definitions/settings.Server'
       userDefaults:
-        $ref: '#/definitions/settings.UserDefaults'
+        allOf:
+        - $ref: '#/definitions/settings.UserDefaults'
+        description: 'deprecated: user defaults are now set in the UI or applied by
+          CLI'
     type: object
   settings.Source:
     properties:
@@ -919,6 +922,11 @@ definitions:
       defaultEnabled:
         description: should be added as a default source for new users?
         type: boolean
+      defaultFilePermissions:
+        allOf:
+        - $ref: '#/definitions/users.SourceFilePermissions'
+        description: DefaultFilePermissions is the template for new user scopes on
+          this source (also synced globally via Access settings).
       defaultUserScope:
         description: defaults to root of index "/" should match folders under path
         type: string
@@ -1017,18 +1025,6 @@ definitions:
         type: boolean
       api:
         description: allow api access
-        type: boolean
-      create:
-        description: allow creating or uploading files
-        type: boolean
-      delete:
-        description: allow deleting files
-        type: boolean
-      download:
-        description: allow downloading files
-        type: boolean
-      modify:
-        description: allow modifying files
         type: boolean
       realtime:
         description: allow realtime updates
@@ -4757,52 +4753,7 @@ paths:
       summary: List users or get one by username
       tags:
       - Users
-    post:
-      consumes:
-      - application/json
-      description: Adds a new user to the system. When the authenticated actor uses
-        password login, they must send their current password in the X-Password header.
-      parameters:
-      - description: Actor's current password (URL-encoded); required for password-login
-          actors
-        in: header
-        name: X-Password
-        type: string
-      - description: User data to create a new user
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/users.User'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created user
-          schema:
-            $ref: '#/definitions/users.User'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized - invalid or missing actor password when required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create a new user
-      tags:
-      - Users
-    put:
+    patch:
       consumes:
       - application/json
       description: Updates the details of a user identified by ID. When the authenticated
@@ -4858,6 +4809,51 @@ paths:
               type: string
             type: object
       summary: Update a user's details
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Adds a new user to the system. When the authenticated actor uses
+        password login, they must send their current password in the X-Password header.
+      parameters:
+      - description: Actor's current password (URL-encoded); required for password-login
+          actors
+        in: header
+        name: X-Password
+        type: string
+      - description: User data to create a new user
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/users.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created user
+          schema:
+            $ref: '#/definitions/users.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - invalid or missing actor password when required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new user
       tags:
       - Users
   /api/users/pinnedItems:

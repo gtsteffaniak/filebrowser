@@ -246,6 +246,7 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		users.MigrateToSourcePermissions(user)
 		normalizeUserTokensBeforeSQLite(user)
 		updateTokens(user)
+		user.Version = users.ProfileStorageVersion
 		if newScopesCount > oldScopesCount {
 			promoted++
 			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",

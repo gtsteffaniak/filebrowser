@@ -288,7 +288,11 @@
     "analyticsPreviewFailed": "Nu s-au putut încărca informațiile de diagnosticare privind analizele",
     "scopePath": "Calea de acoperire",
     "sourcePermissionsHelp": "Extindeți un rând sursă pentru a seta permisiunile de vizualizare, descărcare, modificare, creare și ștergere pentru sursa respectivă.",
-    "permissionsHelp": "Permisiunile globale ale utilizatorului se aplică peste tot, inclusiv în toate sursele și partajările."
+    "permissionsHelp": "Permisiunile globale ale utilizatorului se aplică peste tot, inclusiv în toate sursele și partajările.",
+    "userDefaults": "Setări implicite ale utilizatorului",
+    "userDefaultsDescription": "Configurați setările implicite aplicate utilizatorilor noi și politica impusă tuturor utilizatorilor.",
+    "accountDefaults": "Setări implicite ale contului",
+    "disableUserSettings": "Dezactivare pagină setări utilizator"
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",
@@ -603,7 +607,8 @@
     "none": "Niciunul",
     "viewFiles": "Vizualizarea și listarea fișierelor",
     "source": "{prefix}Sursă{suffix}",
-    "sources": "{prefix}Surse{suffix}"
+    "sources": "{prefix}Surse{suffix}",
+    "enforce": "Aplicare{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -716,7 +721,11 @@
     "lastUsed": "Ultima utilizare",
     "passkeyDefaultName": "Cheie de acces",
     "showToolsInSidebar": "Afișați instrumentele în bara laterală",
-    "showToolsInSidebarDescription": "Afișați întotdeauna link-ul de instrumente în bara laterală."
+    "showToolsInSidebarDescription": "Afișați întotdeauna link-ul de instrumente în bara laterală.",
+    "enforcedByAdmin": "Administratorul a blocat utilizatorilor posibilitatea de a modifica această proprietate",
+    "singleClick": "Deschideți fișierele cu un singur clic",
+    "stickySidebar": "Bară laterală fixă",
+    "darkMode": "Modul întunecat"
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

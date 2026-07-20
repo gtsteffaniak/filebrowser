@@ -18,7 +18,7 @@ type Settings struct {
 	Server       Server       `json:"server"`
 	Auth         Auth         `json:"auth"`
 	Frontend     Frontend     `json:"frontend"`
-	UserDefaults UserDefaults `json:"userDefaults"`
+	UserDefaults UserDefaults `json:"userDefaults"` // optional signup/CLI defaults; per-user values are managed in the UI
 	Integrations Integrations `json:"integrations"`
 	Http         Http         `json:"http"`
 }
@@ -32,20 +32,21 @@ type Http struct {
 }
 
 type Environment struct {
-	IsPlaywright          bool   `json:"-"`
-	IsDevMode             bool   `json:"-"`
-	IsFirstLoad           bool   `json:"-"` // used internally to track if this is the first load of the application
-	MuPdfAvailable        bool   `json:"-"` // used internally if compiled with mupdf support
-	EmbeddedFs            bool   `json:"-"` // used internally if compiled with embedded fs support
-	FFmpegPath            string `json:"-"`
-	FFprobePath           string `json:"-"`
-	FFmpegAvailable       bool   `json:"-"`
-	LoginIconPath         string `json:"-"` // resolved login icon path (filesystem or embedded)
-	LoginIconIsCustom     bool   `json:"-"` // true if login icon is from custom filesystem path
-	LoginIconEmbeddedPath string `json:"-"` // embedded asset path for default icon
-	FaviconPath           string `json:"-"` // resolved favicon path (filesystem or embedded)
-	FaviconIsCustom       bool   `json:"-"` // true if favicon is from custom filesystem path
-	FaviconEmbeddedPath   string `json:"-"` // embedded asset path for default favicon
+	IsPlaywright                bool   `json:"-"`
+	IsDevMode                   bool   `json:"-"`
+	IsFirstLoad                 bool   `json:"-"` // used internally to track if this is the first load of the application
+	ConfigUserDefaultsSpecified bool   `json:"-"` // true when the config file contained a userDefaults section
+	MuPdfAvailable              bool   `json:"-"` // used internally if compiled with mupdf support
+	EmbeddedFs                  bool   `json:"-"` // used internally if compiled with embedded fs support
+	FFmpegPath                  string `json:"-"`
+	FFprobePath                 string `json:"-"`
+	FFmpegAvailable             bool   `json:"-"`
+	LoginIconPath               string `json:"-"` // resolved login icon path (filesystem or embedded)
+	LoginIconIsCustom           bool   `json:"-"` // true if login icon is from custom filesystem path
+	LoginIconEmbeddedPath       string `json:"-"` // embedded asset path for default icon
+	FaviconPath                 string `json:"-"` // resolved favicon path (filesystem or embedded)
+	FaviconIsCustom             bool   `json:"-"` // true if favicon is from custom filesystem path
+	FaviconEmbeddedPath         string `json:"-"` // embedded asset path for default favicon
 }
 
 type Server struct {
@@ -233,6 +234,8 @@ type SourceConfig struct {
 	DefaultEnabled   bool              `json:"defaultEnabled"`          // should be added as a default source for new users?
 	CreateUserDir    bool              `json:"createUserDir"`           // create a user directory for each user under defaultUserScope + username
 	UseLogicalSize   bool              `json:"useLogicalSize"`          // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
+	// DefaultFilePermissions is the template for new user scopes on this source (also synced globally via Access settings).
+	DefaultFilePermissions users.SourceFilePermissions `json:"defaultFilePermissions,omitempty" yaml:"defaultFilePermissions,omitempty"`
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedRules ResolvedRulesConfig `json:"-"`
 }
@@ -415,16 +418,12 @@ type UserDefaultsAccount struct {
 	DisableUpdateNotifications bool                           `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 }
 
-// UserDefaultsAccountPermissions holds permission settings
+// UserDefaultsAccountPermissions holds global permission settings (not per-source file operations).
 type UserDefaultsAccountPermissions struct {
-	Api      bool  `json:"api"`      // allow api access
-	Admin    bool  `json:"admin"`    // allow admin access
-	Modify   bool  `json:"modify"`   // allow modifying files
-	Share    bool  `json:"share"`    // allow sharing files
-	Realtime bool  `json:"realtime"` // allow realtime updates
-	Delete   bool  `json:"delete"`   // allow deleting files
-	Create   bool  `json:"create"`   // allow creating or uploading files
-	Download *bool `json:"download"` // allow downloading files
+	Api      bool `json:"api"`      // allow api access
+	Admin    bool `json:"admin"`    // allow admin access
+	Share    bool `json:"share"`    // allow sharing files
+	Realtime bool `json:"realtime"` // allow realtime updates
 }
 
 // UserDefaultsLegacy holds v1.x flat userDefaults keys migrated on config load (YAML only).

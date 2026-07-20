@@ -86,12 +86,6 @@
         </div>
       </div>
 
-      <div v-if="user.loginMethod === 'password' && globalVars.passwordAvailable" class="settings-items">
-        <ToggleSwitch v-if="user.loginMethod === 'password' && stateUser.permissions?.admin" class="item"
-          :modelValue="user.lockPassword" @update:modelValue="(val) => updateUserField('lockPassword', val)"
-          :name="$t('settings.lockPassword')" />
-      </div>
-
       <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">
         <label for="scopes">{{ $t("settings.scopes") }}</label>
         <p class="small">{{ $t("settings.sourcePermissionsHelp") }}</p>
@@ -145,7 +139,14 @@
           @update:model-value="emitUpdate"
         />
       </div>
-      <global-permissions v-if="stateUser.permissions.admin && user.permissions" :permissions="user.permissions" />
+
+      <UserDefaultsAccountSection
+        v-if="stateUser.permissions.admin"
+        :enforceable="false"
+        :start-collapsed="false"
+        :account="editAccount"
+        @account-change="onEditAccountChange"
+      />
     </div>
   </div>
 
@@ -169,10 +170,10 @@ import { mutations, state } from "@/store";
 import { usersApi, settingsApi, authApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import GlobalPermissions from "@/components/settings/GlobalPermissions.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants";
@@ -184,10 +185,10 @@ export default {
   components: {
     Languages,
     ExpandDropdown,
-    GlobalPermissions,
     SourceFilePermissions,
     SettingsItem,
     ToggleSwitch,
+    UserDefaultsAccountSection,
     Errors,
   },
   props: {
@@ -225,6 +226,17 @@ export default {
       pendingScopeSourceName: null,
       addingPasskey: false,
       sourceFilePermissionDefaults: null,
+      editAccount: {
+        lockPassword: false,
+        disableSettings: false,
+        disableUpdateNotifications: false,
+        permissions: {
+          admin: false,
+          share: false,
+          api: false,
+          realtime: false,
+        },
+      },
     };
   },
   async created() {
@@ -403,14 +415,14 @@ export default {
         return;
       }
       try {
-        const defaults = await settingsApi.get("userDefaults");
-        const perms = defaults?.account?.permissions ?? {};
+        const settings = await settingsApi.getSourceSettings();
+        const defaults = settings?.defaultFilePermissions ?? {};
         this.sourceFilePermissionDefaults = {
-          view: true,
-          download: perms.download !== false,
-          modify: !!perms.modify,
-          create: !!perms.create,
-          delete: !!perms.delete,
+          view: defaults.view !== false,
+          download: defaults.download !== false,
+          modify: !!defaults.modify,
+          create: !!defaults.create,
+          delete: !!defaults.delete,
         };
       } catch (e) {
         console.error(e);
@@ -577,6 +589,35 @@ export default {
       if (this.isNew && this.selectedSources.length === 0 && this.sourceList.length > 0) {
         this.selectedSourceNames = [this.sourceList[0].name];
       }
+      this.syncEditAccountForm();
+    },
+    syncEditAccountForm() {
+      const p = this.user.permissions || {};
+      this.editAccount.lockPassword = !!this.user.lockPassword;
+      this.editAccount.disableSettings = !!this.user.disableSettings;
+      this.editAccount.disableUpdateNotifications = !!this.user.disableUpdateNotifications;
+      this.editAccount.permissions = {
+        admin: !!p.admin,
+        share: !!p.share,
+        api: !!p.api,
+        realtime: !!p.realtime,
+      };
+    },
+    applyEditAccountToUser() {
+      this.user.lockPassword = this.editAccount.lockPassword;
+      this.user.disableSettings = this.editAccount.disableSettings;
+      this.user.disableUpdateNotifications = this.editAccount.disableUpdateNotifications;
+      if (!this.user.permissions) {
+        this.user.permissions = this.defaultPermissions();
+      }
+      this.user.permissions.admin = this.editAccount.permissions.admin;
+      this.user.permissions.share = this.editAccount.permissions.share;
+      this.user.permissions.api = this.editAccount.permissions.api;
+      this.user.permissions.realtime = this.editAccount.permissions.realtime;
+    },
+    onEditAccountChange() {
+      this.applyEditAccountToUser();
+      this.emitUpdate();
     },
     deletePrompt() {
       mutations.showPrompt({

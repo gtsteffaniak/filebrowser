@@ -57,3 +57,26 @@ export async function updateAnalytics({ enabled }) {
 export function getAnalyticsPreview() {
   return fetchJSON(getApiPath("settings/analytics/preview"));
 }
+
+export function getUserDefaults() {
+  return fetchJSON(getApiPath("settings/user-defaults"));
+}
+
+export async function patchUserDefaults(partial) {
+  await fetchURL(getApiPath("settings/user-defaults"), {
+    method: "PATCH",
+    body: JSON.stringify(partial),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+export function getSourceSettings() {
+  return fetchJSON(getApiPath("settings/source"));
+}
+
+export async function patchSourceSettings(partial) {
+  return fetchJSON(getApiPath("settings/source"), {
+    method: "PATCH",
+    body: JSON.stringify(partial),
+  });
+}

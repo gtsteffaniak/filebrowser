@@ -288,7 +288,11 @@
     "analyticsPreviewFailed": "فشل تحميل معلومات تشخيص التحليلات",
     "scopePath": "مسار النطاق",
     "sourcePermissionsHelp": "قم بتوسيع صف المصدر لتعيين أذونات العرض والتنزيل والتعديل والإنشاء والحذف لهذا المصدر.",
-    "permissionsHelp": "تسري الأذونات العامة للمستخدم في كل مكان، بما في ذلك جميع المصادر والمشاركات."
+    "permissionsHelp": "تسري الأذونات العامة للمستخدم في كل مكان، بما في ذلك جميع المصادر والمشاركات.",
+    "userDefaults": "الإعدادات الافتراضية للمستخدم",
+    "userDefaultsDescription": "تكوين الإعدادات الافتراضية التي تُطبق على المستخدمين الجدد، وفرض السياسة على جميع المستخدمين.",
+    "accountDefaults": "التخلف عن سداد الالتزامات المتعلقة بالحساب",
+    "disableUserSettings": "تعطيل صفحة إعدادات المستخدم"
   },
   "sidebar": {
     "updateIsAvailable": "يتوفر تحديث!",
@@ -603,7 +607,8 @@
     "none": "لا شيء",
     "viewFiles": "عرض الملفات وإدراجها في قائمة",
     "source": "{prefix}المصدر{suffix}",
-    "sources": "{prefix}المصادر{suffix}"
+    "sources": "{prefix}المصادر{suffix}",
+    "enforce": "تطبيق{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -708,7 +713,11 @@
     "lastUsed": "آخر استخدام",
     "passkeyDefaultName": "مفتاح المرور",
     "showToolsInSidebar": "إظهار الأدوات في الشريط الجانبي",
-    "showToolsInSidebarDescription": "اعرض دائمًا رابط الأدوات في الشريط الجانبي."
+    "showToolsInSidebarDescription": "اعرض دائمًا رابط الأدوات في الشريط الجانبي.",
+    "enforcedByAdmin": "لقد منع المسؤول المستخدمين من تغيير هذه الخاصية",
+    "singleClick": "انقر مرة واحدة لفتح الملفات",
+    "stickySidebar": "الشريط الجانبي الثابت",
+    "darkMode": "الوضع المظلم"
   },
   "colors": {
     "red": "أحمر",

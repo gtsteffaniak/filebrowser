@@ -638,7 +638,25 @@ export const mutations = {
             JSON.stringify(getObjectProperty(value, key)),
       );
       if (updatedProperties.length > 0) {
-        await usersApi.update(state.user, updatedProperties).catch((e) => notify.showError(e));
+        try {
+          await usersApi.update(state.user, updatedProperties);
+        } catch (e) {
+          state.user = { ...previousUser };
+          if (
+            value.locale !== undefined &&
+            value.locale !== previousUser.locale
+          ) {
+            const prevLocale = previousUser.locale || "en";
+            await i18n.setLocale(prevLocale);
+            i18n.default.locale = prevLocale;
+            if (previousUser.locale) {
+              localStorage.setItem("userLocale", previousUser.locale);
+            }
+          }
+          notify.showError(e);
+          emitStateChanged();
+          throw e;
+        }
       }
     }
     // Emit state change event

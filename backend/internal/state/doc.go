@@ -5,7 +5,7 @@
 //   - sqlDb (*sqldb.SQLStore): the on-disk SQLite database. All durable writes go here first
 //     (or atomically with cache updates in the same critical section).
 //
-//   - In-memory caches (usersByID, sharesByHash, accessDb, indexInfoByPath, …): authoritative
+//   - TTL user record cache (30m) with SQLite on miss; sharesByHash, accessDb, indexInfoByPath, … remain authoritative
 //     for reads at runtime after Open/Initialize. Handlers and business logic must call exported
 //     state.* functions or *state.Store methods—not sqlDb directly and not package globals in internal/web.
 //

@@ -288,7 +288,11 @@
     "analyticsPreviewFailed": "No se ha podido cargar la información de diagnóstico de análisis",
     "scopePath": "Ruta de alcance",
     "sourcePermissionsHelp": "Despliega una fila de origen para configurar los permisos de visualización, descarga, modificación, creación y eliminación de ese origen.",
-    "permissionsHelp": "Los permisos globales del usuario se aplican en todas partes, incluidas todas las fuentes y recursos compartidos."
+    "permissionsHelp": "Los permisos globales del usuario se aplican en todas partes, incluidas todas las fuentes y recursos compartidos.",
+    "userDefaults": "Configuración predeterminada del usuario",
+    "userDefaultsDescription": "Configurar los ajustes predeterminados que se aplican a los nuevos usuarios y la política que se exige a todos los usuarios.",
+    "accountDefaults": "Configuración predeterminada de la cuenta",
+    "disableUserSettings": "Desactivar la página de configuración del usuario"
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",
@@ -603,7 +607,8 @@
     "none": "Ninguno",
     "viewFiles": "Ver y enumerar archivos",
     "source": "{prefix}Fuente{suffix}",
-    "sources": "{prefix}Fuentes{suffix}"
+    "sources": "{prefix}Fuentes{suffix}",
+    "enforce": "Aplicar{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -716,7 +721,11 @@
     "lastUsed": "Último uso",
     "passkeyDefaultName": "Clave de acceso",
     "showToolsInSidebar": "Mostrar herramientas en la barra lateral",
-    "showToolsInSidebarDescription": "Mostrar siempre el enlace de herramientas en la barra lateral."
+    "showToolsInSidebarDescription": "Mostrar siempre el enlace de herramientas en la barra lateral.",
+    "enforcedByAdmin": "El administrador ha desactivado la posibilidad de que los usuarios modifiquen esta propiedad.",
+    "singleClick": "Abre los archivos con un solo clic",
+    "stickySidebar": "Barra lateral fija",
+    "darkMode": "Modo oscuro"
   },
   "editor": {
     "uninitialized": "No se pudo iniciar el editor",

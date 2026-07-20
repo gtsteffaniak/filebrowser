@@ -22,9 +22,9 @@
       v-if="showHeaderSwitchView && !disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
-      :label="$t('buttons.switchView')"
+      :label="viewModeActionLabel"
       @action="switchView"
-      :disabled="isDisabled"
+      :disabled="isDisabled || viewModeChangeLocked"
     />
     <action
       class="overflow-menu-button"
@@ -142,6 +142,15 @@ export default {
     },
     isDisabled() {
       return state.isSearchActive || getters.currentPromptName() !== "";
+    },
+    viewModeChangeLocked() {
+      return getters.viewModeChangeLocked();
+    },
+    viewModeActionLabel() {
+      if (this.viewModeChangeLocked) {
+        return this.$t("profileSettings.enforcedByAdmin");
+      }
+      return this.$t("buttons.switchView");
     },
     isDisabledMultiAction() {
       const regularDisabled = getters.isStickySidebar() && getters.multibuttonState() === "menu";

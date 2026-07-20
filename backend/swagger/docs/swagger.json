@@ -3513,86 +3513,6 @@
                     }
                 }
             },
-            "put": {
-                "description": "Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or \"all\") or any admin-only field require confirmation.",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update a user's details",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "user ID to update",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "usename to update",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable",
-                        "name": "X-Password",
-                        "in": "header"
-                    },
-                    {
-                        "description": "User data to update",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content - User updated successfully"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized - invalid or missing actor password when required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Adds a new user to the system. When the authenticated actor uses password login, they must send their current password in the X-Password header.",
                 "consumes": [
@@ -3682,6 +3602,86 @@
                 "responses": {
                     "200": {
                         "description": "User deleted successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or \"all\") or any admin-only field require confirmation.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user's details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user ID to update",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "usename to update",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable",
+                        "name": "X-Password",
+                        "in": "header"
+                    },
+                    {
+                        "description": "User data to update",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content - User updated successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing actor password when required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "403": {
                         "description": "Forbidden",
@@ -6055,7 +6055,12 @@
                     "$ref": "#/definitions/settings.Server"
                 },
                 "userDefaults": {
-                    "$ref": "#/definitions/settings.UserDefaults"
+                    "description": "deprecated: user defaults are now set in the UI or applied by CLI",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.UserDefaults"
+                        }
+                    ]
                 }
             }
         },
@@ -6088,6 +6093,14 @@
                 "defaultEnabled": {
                     "description": "should be added as a default source for new users?",
                     "type": "boolean"
+                },
+                "defaultFilePermissions": {
+                    "description": "DefaultFilePermissions is the template for new user scopes on this source (also synced globally via Access settings).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.SourceFilePermissions"
+                        }
+                    ]
                 },
                 "defaultUserScope": {
                     "description": "defaults to root of index \"/\" should match folders under path",
@@ -6217,22 +6230,6 @@
                 },
                 "api": {
                     "description": "allow api access",
-                    "type": "boolean"
-                },
-                "create": {
-                    "description": "allow creating or uploading files",
-                    "type": "boolean"
-                },
-                "delete": {
-                    "description": "allow deleting files",
-                    "type": "boolean"
-                },
-                "download": {
-                    "description": "allow downloading files",
-                    "type": "boolean"
-                },
-                "modify": {
-                    "description": "allow modifying files",
                     "type": "boolean"
                 },
                 "realtime": {

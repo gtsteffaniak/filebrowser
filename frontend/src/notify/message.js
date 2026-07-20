@@ -559,7 +559,7 @@ export function showSuccessToast(message, options = {}) {
 }
 
 /**
- * Show an error toast
+ * Show an error toast (short, simple UI feedback).
  * @param {string} message
  * @param {Object} [options]
  * @param {string} [options.icon]

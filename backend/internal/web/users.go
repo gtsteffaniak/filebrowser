@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
@@ -273,7 +274,7 @@ func verifyActorPasswordForUserActions(r *http.Request, d *Context) (int, error)
 	return 0, nil
 }
 
-// userPutHandler updates an existing user's details.
+// userPatchHandler updates an existing user's details.
 // @Summary Update a user's details
 // @Description Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or "all") or any admin-only field require confirmation.
 // @Tags Users
@@ -287,8 +288,8 @@ func verifyActorPasswordForUserActions(r *http.Request, d *Context) (int, error)
 // @Failure 401 {object} map[string]string "Unauthorized - invalid or missing actor password when required"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
-// @Router /api/users [put]
-func userPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+// @Router /api/users [patch]
+func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -354,6 +355,16 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 		}
 	}
 
+	if targetUsername == d.User.Username {
+		if enfErr := settings.ValidateSelfUserUpdateNotEnforced(req.Which, state.GetEnforcedUserDefaults()); enfErr != nil {
+			var locked settings.ErrEnforcedUserField
+			if stderrors.As(enfErr, &locked) {
+				return http.StatusForbidden, enfErr
+			}
+			return http.StatusBadRequest, enfErr
+		}
+	}
+
 	err = state.UpdateUser(&req.User, req.User.Password, req.Which...)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -397,6 +408,11 @@ func PrepForFrontend(u users.User) users.User {
 	u.TOTPNonce = ""
 	u.PinnedItems = nil
 	u.Locale = NormalizeLocaleForFrontend(u.Locale)
+	if u.Username != "" && u.Username != users.AnonymousUserName {
+		if b, err := json.Marshal(state.GetEnforcedUserDefaults()); err == nil && len(b) > 2 {
+			u.EnforcedPreferences = b
+		}
+	}
 	for i := range u.PasskeyCredentials {
 		u.PasskeyCredentials[i].PublicKey = ""
 		u.PasskeyCredentials[i].AttestationType = ""

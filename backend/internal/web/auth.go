@@ -92,7 +92,7 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 				Username:    username,
 			},
 		}
-		settings.ApplyUserDefaults(&user)
+		state.ApplyUserDefaults(&user)
 
 		if isAdmin {
 			user.Permissions.Admin = true

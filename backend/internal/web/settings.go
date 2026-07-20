@@ -1,11 +1,15 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
 	"os"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -26,7 +30,7 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		// get property by name
 		switch property {
 		case "userDefaults":
-			return RenderJSON(w, r, settings.Config.UserDefaults)
+			return RenderJSON(w, r, state.GetDefaultUserDefaults())
 		case "frontend":
 			return RenderJSON(w, r, settings.Config.Frontend)
 		case "auth":
@@ -115,4 +119,103 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		reducedIndexes[source] = reducedIndex
 	}
 	return RenderJSON(w, r, reducedIndexes)
+}
+
+type userDefaultsResponse struct {
+	Values   settings.UserDefaults            `json:"values"`
+	Enforced settings.UserDefaultsEnforcement `json:"enforced"`
+}
+
+func settingsUserDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if scope := r.URL.Query().Get("scope"); scope != "" && scope != "default" {
+		return http.StatusBadRequest, fmt.Errorf("per-login user defaults scopes are no longer supported")
+	}
+	values := state.GetUserDefaults()
+	enforced := state.GetEnforcedUserDefaults()
+	return RenderJSON(w, r, userDefaultsResponse{
+		Values:   values,
+		Enforced: enforced,
+	})
+}
+
+func settingsUserDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if scope := r.URL.Query().Get("scope"); scope != "" && scope != "default" {
+		return http.StatusBadRequest, fmt.Errorf("per-login user defaults scopes are no longer supported")
+	}
+	patchJSON, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("read user defaults patch: %w", err)
+	}
+	if len(patchJSON) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty user defaults patch body")
+	}
+
+	var top map[string]json.RawMessage
+	if err = json.Unmarshal(patchJSON, &top); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid user defaults patch JSON: %w", err)
+	}
+	var enforcedPatch []byte
+	if raw, ok := top["enforced"]; ok {
+		enforcedPatch = raw
+		delete(top, "enforced")
+	}
+	valuesPatch, err := json.Marshal(top)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("marshal user defaults values patch: %w", err)
+	}
+
+	hasValues := len(valuesPatch) > 2
+	hasEnforced := len(enforcedPatch) > 0
+	if hasValues && hasEnforced {
+		return http.StatusBadRequest, fmt.Errorf("patch values and enforced in a single request is not supported")
+	}
+	if !hasValues && !hasEnforced {
+		return http.StatusBadRequest, fmt.Errorf("empty user defaults patch body")
+	}
+
+	if hasValues {
+		if err := settings.ValidateSinglePropertyUserDefaultsPatch(valuesPatch); err != nil {
+			return http.StatusBadRequest, err
+		}
+		if err := state.PatchUserDefaults(valuesPatch); err != nil {
+			logger.Errorf("failed to patch user defaults: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to update user defaults")
+		}
+	}
+	if hasEnforced {
+		if err := settings.ValidateSinglePropertyUserDefaultsPatch(enforcedPatch); err != nil {
+			return http.StatusBadRequest, err
+		}
+		if err := state.PatchUserDefaultsEnforced(enforcedPatch); err != nil {
+			logger.Errorf("failed to patch enforced user defaults: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to update enforced user defaults")
+		}
+	}
+	return http.StatusNoContent, nil
+}
+
+type sourceSettingsPatch struct {
+	DefaultFilePermissions *users.SourceFilePermissions `json:"defaultFilePermissions,omitempty"`
+}
+
+func settingsSourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	return RenderJSON(w, r, state.GetSourceSettings())
+}
+
+func settingsSourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	var body sourceSettingsPatch
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode source settings patch: %w", err)
+	}
+	defer r.Body.Close()
+
+	if body.DefaultFilePermissions == nil {
+		return http.StatusBadRequest, fmt.Errorf("source settings patch must include defaultFilePermissions")
+	}
+
+	if err := state.SetSourceAccessDefaults(*body.DefaultFilePermissions); err != nil {
+		logger.Errorf("failed to update source settings: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to update source settings")
+	}
+	return RenderJSON(w, r, state.GetSourceSettings())
 }

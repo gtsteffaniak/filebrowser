@@ -317,7 +317,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			data.User = &users.User{
 				FrontendUser: users.FrontendUser{Username: "anonymous"},
 			}
-			settings.ApplyUserDefaults(data.User)
+			state.ApplyUserDefaults(data.User)
 			// Clear any user data that might have been partially set
 			data.Token = ""
 			if data.ShareValid && data.Share.Hash != "" {

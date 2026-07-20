@@ -5,12 +5,12 @@ import (
 	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/dbindex"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -21,12 +21,10 @@ var (
 	indexMux  sync.RWMutex
 
 	// sqlDb is the SQLite persistence layer. Only state package code should call it directly;
-	// everyone else goes through exported state.* helpers and the in-memory caches below.
+	// everyone else goes through exported state.* helpers and the caches below.
 	sqlDb *sqldb.SQLStore
 
-	// In-memory caches (authoritative at runtime after Initialize)
-	usersByID       map[uint64]*users.User
-	usersByName     map[string]*users.User
+	// In-memory caches (authoritative at runtime after Initialize for shares/access/index; users use TTL cache)
 	sharesByHash    map[string]*share.Share
 	sharesByPath    map[string][]string // "source:path" -> []hash
 	indexInfoByPath map[string]*dbindex.IndexInfo
@@ -59,27 +57,27 @@ func initialize(dbPath string) (bool, error) {
 		return false, fmt.Errorf("failed to initialize SQL database: %w", err)
 	}
 
+	if err = InitUserDefaultsSettings(); err != nil {
+		return existingDb, fmt.Errorf("failed to initialize user defaults settings: %w", err)
+	}
+
+	if err = InitSourceAccessDefaults(); err != nil {
+		return existingDb, fmt.Errorf("failed to initialize source access defaults: %w", err)
+	}
+
+	var userCount int
+	if countErr := sqlDb.DB().QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount); countErr != nil || userCount == 0 {
+		if err = QuickSetup(); err != nil {
+			return existingDb, fmt.Errorf("failed to run initial setup: %w", err)
+		}
+	}
+
 	// Initialize caches
-	usersByID = make(map[uint64]*users.User)
-	usersByName = make(map[string]*users.User)
 	sharesByHash = make(map[string]*share.Share)
 	sharesByPath = make(map[string][]string)
 	indexInfoByPath = make(map[string]*dbindex.IndexInfo)
 
-	logger.Debugf("Loading all data into memory...")
-
-	// Load users
-	usersList, err := sqlDb.ListUsers()
-	if err != nil {
-		return existingDb, fmt.Errorf("failed to load users: %w", err)
-	}
-	for _, user := range usersList {
-		usersByName[user.Username] = user
-		if user.ID != 0 {
-			usersByID[user.ID] = user
-		}
-	}
-	logger.Debugf("Loaded %d users", len(usersList))
+	logger.Debugf("Loading shares and index data into memory...")
 
 	users.SetUsernameToID(UserIDForUsername)
 
@@ -169,6 +167,7 @@ func Close() error {
 	defer indexMux.Unlock()
 
 	users.SetUsernameToID(nil)
+	clearUserRecordCache()
 	StopActivityRecorder()
 	if sqlDb != nil {
 		return sqlDb.Close()
