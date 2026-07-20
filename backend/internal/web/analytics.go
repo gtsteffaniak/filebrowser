@@ -16,7 +16,7 @@ type analyticsStatusResponse struct {
 	PublishSupported bool `json:"publishSupported"`
 }
 
-type analyticsPatchRequest struct {
+type analyticsUpdateRequest struct {
 	Enabled bool `json:"enabled"`
 }
 
@@ -28,8 +28,8 @@ func settingsAnalyticsGetHandler(w http.ResponseWriter, r *http.Request, d *Cont
 	})
 }
 
-func settingsAnalyticsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	var body analyticsPatchRequest
+func settingsAnalyticsUpdateHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	var body analyticsUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
 	}
@@ -64,9 +64,8 @@ func settingsAnalyticsPreviewHandler(w http.ResponseWriter, r *http.Request, d *
 		return http.StatusServiceUnavailable, fmt.Errorf("failed to build analytics preview: %w", err)
 	}
 
-	var payload any
-	if err := json.Unmarshal(preview, &payload); err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to format analytics preview: %w", err)
+	if !json.Valid(preview) {
+		return http.StatusInternalServerError, fmt.Errorf("failed to format analytics preview")
 	}
-	return RenderJSON(w, r, payload)
+	return RenderJSON(w, r, json.RawMessage(preview))
 }

@@ -202,7 +202,8 @@
     "notFound": "This location can't be reached.",
     "connection": "The server can't be reached.",
     "shareNotFound": "Invalid or expired share.",
-    "failedToConnectToServer": "Failed to connect to the server, is it still running?"
+    "failedToConnectToServer": "Failed to connect to the server, is it still running?",
+    "requestTimedOut": "The request timed out. Check your network or reverse proxy settings."
   },
   "files": {
     "lastModified": "Last modified{suffix}",

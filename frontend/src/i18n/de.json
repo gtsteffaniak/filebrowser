@@ -39,7 +39,8 @@
     "notFound": "Dieser Ort kann nicht angezeigt werden.",
     "connection": "Der Server ist nicht erreichbar.",
     "shareNotFound": "Ungültige oder abgelaufene Freigabe.",
-    "failedToConnectToServer": "Verbindung zum Server fehlgeschlagen, läuft er noch?"
+    "failedToConnectToServer": "Verbindung zum Server fehlgeschlagen, läuft er noch?",
+    "requestTimedOut": "Die Anfrage ist abgelaufen. Überprüfen Sie Ihre Netzwerk- oder Reverse-Proxy-Einstellungen."
   },
   "files": {
     "lastModified": "Zuletzt geändert",

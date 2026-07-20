@@ -14,9 +14,11 @@ import (
 )
 
 const (
+	time24h             = 24 * time.Hour
+	time30d             = 30 * time24h
+	initialSendDelay    = time24h
+	recurringSendPeriod = time30d
 	analyticsURL        = "https://api.filebrowserquantum.com/v1/events"
-	initialSendDelay    = 24 * time.Hour
-	recurringSendPeriod = 30 * 24 * time.Hour
 )
 
 var (
@@ -142,17 +144,22 @@ func sendSnapshot() {
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("X-App", xApp)
 
-	client := &http.Client{Timeout: 15 * time.Second}
+	client := &http.Client{Timeout: 60 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Debugf("analytics send failed: %v", err)
 		return
 	}
 	defer resp.Body.Close()
-	io.Copy(io.Discard, resp.Body)
+
+	respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	if readErr != nil {
+		logger.Debugf("analytics send returned status %d (failed to read body: %v)", resp.StatusCode, readErr)
+		return
+	}
 
 	if resp.StatusCode != http.StatusCreated {
-		logger.Debugf("analytics send returned status %d", resp.StatusCode)
+		logger.Debugf("analytics send returned status %d: %s", resp.StatusCode, bytes.TrimSpace(respBody))
 		return
 	}
 	logger.Debug("analytics deployment snapshot sent")

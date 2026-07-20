@@ -39,7 +39,8 @@
     "notFound": "Ez a hely nem érhető el.",
     "connection": "A kiszolgáló nem érhető el.",
     "shareNotFound": "Érvénytelen vagy lejárt részvény.",
-    "failedToConnectToServer": "Nem sikerült csatlakozni a szerverhez, még mindig fut?"
+    "failedToConnectToServer": "Nem sikerült csatlakozni a szerverhez, még mindig fut?",
+    "requestTimedOut": "A kérés időtúllépése történt. Ellenőrizze a hálózati vagy a fordított proxy beállításait."
   },
   "files": {
     "lastModified": "Utoljára módosítva",

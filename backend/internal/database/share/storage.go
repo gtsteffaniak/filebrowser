@@ -85,7 +85,7 @@ func (s *Storage) FindByUserID(userID uint64) ([]*Share, error) {
 
 // PrepForFrontend returns API-safe ShareFrontend copies for one or more shares.
 func (s *Storage) PrepForFrontend(viewer *users.User, r *http.Request, links ...*Share) []*ShareFrontend {
-	return PrepForFrontend(viewer, r, nil, links...)
+	return PrepForFrontend(viewer, r, "", "", nil, links...)
 }
 
 // GetByHash wraps StorageBackend.GetByHash and handles expiry.

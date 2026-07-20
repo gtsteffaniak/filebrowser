@@ -39,7 +39,8 @@
     "notFound": "לא ניתן להגיע למיקום זה",
     "connection": "לא ניתן להגיע לשרת",
     "shareNotFound": "שיתוף לא חוקי או פג תוקף.",
-    "failedToConnectToServer": "לא הצלחת להתחבר לשרת, האם הוא עדיין פועל?"
+    "failedToConnectToServer": "לא הצלחת להתחבר לשרת, האם הוא עדיין פועל?",
+    "requestTimedOut": "הבקשה פקעה. בדוק את הגדרות הרשת או את הגדרות ה-proxy ההפוך."
   },
   "files": {
     "lastModified": "שונה לאחרונה",

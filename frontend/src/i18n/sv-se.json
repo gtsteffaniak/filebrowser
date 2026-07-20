@@ -39,7 +39,8 @@
     "notFound": "Det går inte att nå den här platsen.",
     "connection": "Det går inte att nå servern.",
     "shareNotFound": "Ogiltig eller utgången andel.",
-    "failedToConnectToServer": "Det gick inte att ansluta till servern, är den fortfarande igång?"
+    "failedToConnectToServer": "Det gick inte att ansluta till servern, är den fortfarande igång?",
+    "requestTimedOut": "Begäran gick ut. Kontrollera dina nätverksinställningar eller inställningarna för omvänd proxy."
   },
   "files": {
     "lastModified": "Senast ändrad",

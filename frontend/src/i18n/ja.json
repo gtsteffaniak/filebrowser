@@ -39,7 +39,8 @@
     "notFound": "リソースが見つかりませんでした。",
     "connection": "サーバーにアクセスできません。",
     "shareNotFound": "無効または期限切れの共有です。",
-    "failedToConnectToServer": "サーバーへの接続に失敗しました。"
+    "failedToConnectToServer": "サーバーへの接続に失敗しました。",
+    "requestTimedOut": "リクエストがタイムアウトしました。ネットワークまたはリバースプロキシの設定を確認してください。"
   },
   "files": {
     "lastModified": "最終変更",

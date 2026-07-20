@@ -2,6 +2,7 @@ package settings
 
 import (
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -24,23 +25,14 @@ type TestNested struct {
 	NestedDeprecated string `json:"nestedDeprecated"` // deprecated: nested deprecated field
 }
 
-// Helper to create test source files for comment parsing
+// Helper to create test source files for comment parsing (isolated dir per test for go/packages).
 func createTestSourceFile(t *testing.T, content string) (string, func()) {
-	tmpFile, err := os.CreateTemp("", "test_*.go")
-	if err != nil {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "fixture.go")
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
 	}
-
-	if _, err := tmpFile.WriteString(content); err != nil {
-		t.Fatal(err)
-	}
-	tmpFile.Close()
-
-	cleanup := func() {
-		os.Remove(tmpFile.Name())
-	}
-
-	return tmpFile.Name(), cleanup
+	return path, func() {}
 }
 
 func TestGenerateConfigYaml_StringQuoting(t *testing.T) {
@@ -460,13 +452,16 @@ func TestGenerateConfigYaml_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Spot-check a few flag combinations (full cartesian product is slow: each calls go/packages)
+			// Spot-check flag combinations (full cartesian product is slow without comment-parse cache)
 			cases := []struct {
 				showComments, showFull, filterDeprecated bool
 			}{
 				{false, true, false},
 				{true, true, true},
 				{false, false, true},
+			}
+			if testing.Short() {
+				cases = cases[:1]
 			}
 			for _, tc := range cases {
 				yamlOutput, err := GenerateConfigYaml(tt.config, tc.showComments, tc.showFull, tc.filterDeprecated)

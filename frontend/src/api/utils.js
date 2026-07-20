@@ -2,6 +2,20 @@ import i18n from "@/i18n";
 import { state } from "@/store";
 import { renew } from "@/utils/auth";
 
+const defaultRequestTimeoutMs = 5000;
+
+export function requestTimeoutSignal(ms = defaultRequestTimeoutMs) {
+  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+    return AbortSignal.timeout(ms);
+  }
+
+  const controller = new AbortController();
+  setTimeout(() => {
+    controller.abort(new DOMException("The operation timed out.", "TimeoutError"));
+  }, ms);
+  return controller.signal;
+}
+
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
   opts.headers = opts.headers || {};
@@ -20,10 +34,13 @@ export async function fetchURL(url, opts, auth = true) {
     });
   } catch (e) {
     let message = e.message;
-    if (e instanceof TypeError && e.message === "Failed to fetch") {
+    if (e?.name === "TimeoutError" || e?.name === "AbortError") {
+      message = i18n.global.t("errors.requestTimedOut");
+    } else if (e instanceof TypeError && e.message === "Failed to fetch") {
       message = i18n.global.t("errors.failedToConnectToServer");
     }
     const error = new Error(message);
+    error.name = e?.name || error.name;
     throw error;
   }
 
@@ -42,6 +59,14 @@ export async function fetchURL(url, opts, auth = true) {
 }
 
 export async function fetchJSON(url, opts) {
+  opts = opts || {};
+  if (opts.body && !opts.headers?.["Content-Type"] && !opts.headers?.["content-type"]) {
+    opts.headers = {
+      "Content-Type": "application/json",
+      ...opts.headers,
+    };
+  }
+
   const res = await fetchURL(url, opts);
   if (res.status < 300) {
     return res.json();

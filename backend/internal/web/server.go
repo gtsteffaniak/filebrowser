@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"net"
 	"net/http"
 	"os"
@@ -16,18 +17,35 @@ import (
 
 	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/events"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+// Deps holds injected dependencies for HTTP handlers and middleware.
+type Deps struct {
+	Store *state.Store
+	Files *files.Service
+	Auth  *auth.Service
+}
+
+var (
+	runtimeDeps Deps
+	assetFs     fs.FS
+)
+
+func initRuntime(deps Deps, assets fs.FS) {
+	runtimeDeps = deps
+	assetFs = assets
+}
+
 // Embed the files in the frontend/dist directory
 //
 //go:embed embed/*
 var assets embed.FS
-
-const mediaHandlerTimeout = 60 * time.Second
 
 // GetEmbeddedAssets returns the embedded assets filesystem
 func GetEmbeddedAssets() embed.FS {
@@ -36,7 +54,6 @@ func GetEmbeddedAssets() embed.FS {
 
 // StartHttp starts the HTTP server and blocks until ctx is cancelled.
 func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
-	SetDeps(deps)
 	if settings.Env.IsDevMode {
 		go func() {
 			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
@@ -64,7 +81,7 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 		devMode:   settings.Env.IsDevMode,
 	}
 
-	InitGlobals(fs)
+	initRuntime(deps, fs)
 
 	router := http.NewServeMux()
 	api := http.NewServeMux()

@@ -39,7 +39,8 @@
     "notFound": "Esta localização não é alcançável.",
     "connection": "O servidor não pode ser contactado.",
     "shareNotFound": "Ação inválida ou expirada.",
-    "failedToConnectToServer": "Falha na ligação ao servidor, ainda está a funcionar?"
+    "failedToConnectToServer": "Falha na ligação ao servidor, ainda está a funcionar?",
+    "requestTimedOut": "A solicitação atingiu o tempo limite. Verifique as configurações da sua rede ou do proxy inverso."
   },
   "files": {
     "lastModified": "Última alteração",

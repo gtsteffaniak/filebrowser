@@ -202,7 +202,8 @@
     "notFound": "Geen toegang tot deze locatie.",
     "connection": "Geen toegang tot de server.",
     "shareNotFound": "Ongeldige of verlopen gedeelde map.",
-    "failedToConnectToServer": "Kan geen verbinding maken met de server, draait deze nog?"
+    "failedToConnectToServer": "Kan geen verbinding maken met de server, draait deze nog?",
+    "requestTimedOut": "De tijdlimiet voor het verzoek is verstreken. Controleer je netwerk- of reverse-proxy-instellingen."
   },
   "files": {
     "lastModified": "Laatst gewijzigd{suffix}",

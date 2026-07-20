@@ -374,7 +374,7 @@ func IsShared(source, path string, userID uint64) bool {
 }
 
 // PrepSharesForFrontend builds API-safe ShareFrontend copies for share pointers.
-func PrepSharesForFrontend(viewer *users.User, r *http.Request, links ...*share.Share) []*share.ShareFrontend {
+func PrepSharesForFrontend(viewer *users.User, r *http.Request, publicHost, publicScheme string, links ...*share.Share) []*share.ShareFrontend {
 	ownerLookup := func(userID uint64) string {
 		u, err := GetUserByID(userID)
 		if err != nil {
@@ -382,11 +382,11 @@ func PrepSharesForFrontend(viewer *users.User, r *http.Request, links ...*share.
 		}
 		return u.Username
 	}
-	return share.PrepForFrontend(viewer, r, ownerLookup, links...)
+	return share.PrepForFrontend(viewer, r, publicHost, publicScheme, ownerLookup, links...)
 }
 
 // PrepShareValuesForFrontend builds API-safe ShareFrontend copies from immutable share values.
-func PrepShareValuesForFrontend(viewer *users.User, r *http.Request, shares []share.Share) []*share.ShareFrontend {
+func PrepShareValuesForFrontend(viewer *users.User, r *http.Request, publicHost, publicScheme string, shares []share.Share) []*share.ShareFrontend {
 	if len(shares) == 0 {
 		return nil
 	}
@@ -396,12 +396,12 @@ func PrepShareValuesForFrontend(viewer *users.User, r *http.Request, shares []sh
 		ptrs[i] = new(share.Share)
 		*ptrs[i] = s
 	}
-	return PrepSharesForFrontend(viewer, r, ptrs...)
+	return PrepSharesForFrontend(viewer, r, publicHost, publicScheme, ptrs...)
 }
 
 // PrepShareForFrontend builds a single API-safe ShareFrontend copy from an immutable share value.
-func PrepShareForFrontend(viewer *users.User, r *http.Request, sh share.Share) *share.ShareFrontend {
-	prepped := PrepShareValuesForFrontend(viewer, r, []share.Share{sh})
+func PrepShareForFrontend(viewer *users.User, r *http.Request, publicHost, publicScheme string, sh share.Share) *share.ShareFrontend {
+	prepped := PrepShareValuesForFrontend(viewer, r, publicHost, publicScheme, []share.Share{sh})
 	if len(prepped) == 0 {
 		return nil
 	}
