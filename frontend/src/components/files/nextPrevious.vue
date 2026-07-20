@@ -560,8 +560,8 @@ export default {
         return;
       }
 
-      // If we're in plyr, don't handle arrow keys to use fast-forward/rewind shortcuts, even if the media is paused.
-      if (this.isMediaFile) {
+      // If we're in plyr, only handle arrow keys if Ctrl is pressed
+      if (this.isMediaFile && !event.ctrlKey || event.repeat) {
         return;
       }
       // If we're in the editor, don't handle arrow keys to avoid change of file mistakenly.
