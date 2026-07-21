@@ -40,7 +40,6 @@ A database migration is required to go from v1.x to this version. See docs.
    - Added administrator controls for universal user defaults and enforced preferences in `settings > user management > user defaults`.
    - Added configurable default file permissions per source in `settings > access management`.
    - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt.
-   - Run `./filebrowser config migrate -c config.yaml` to convert deprecated flat `userDefaults` keys to the nested v2 structure.
  - Database env var rename: `FILEBROWSER_DATABASE` is removed (startup fails if set). Use `FILEBROWSER_DATABASE_PATH` (default `filebrowser.sqlite`) or `server.database.path` in config.
  - Bolt→SQLite sidebar migration preserves custom source link names, icons, and categories; missing scoped sources are merged into sidebar links.
 
@@ -50,7 +49,7 @@ A database migration is required to go from v1.x to this version. See docs.
  - Search API: removed singular `source` param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
  - Source config: removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules 
  - `PUT /api/users` moved to the more appropriate `PATCH` method.
- - removed support for deprecated userDefaults config format; use `./filebrowser config migrate -c config.yaml` to convert flat keys to the nested v2 structure.
+ - removed support for deprecated flat `userDefaults` config format; use the nested v2 structure documented in the configuration reference.
  - `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead (see migration notes above).
 
  **Notes**:

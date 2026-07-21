@@ -64,7 +64,6 @@ commands:
 	setup   		Interactive config setup
 	set -u 		Username and password: set -u <user>,<password> [-c config.yaml]
 	set rule	Access rules: set rule -s <sourceName> -p <indexPath> -r user|group|all -v <name> [-allow] [-c config.yaml] (-sourceName/-sourcePath same as -s/-p)
-	config migrate	Migrate deprecated flat userDefaults to nested v2 structure: config migrate [-c config.yaml] [-o migrated.yaml]
 `)
 }
 
