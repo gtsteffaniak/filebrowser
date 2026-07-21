@@ -292,7 +292,8 @@
     "userDefaults": "Setări implicite ale utilizatorului",
     "userDefaultsDescription": "Configurați setările implicite aplicate utilizatorilor noi și politica impusă tuturor utilizatorilor.",
     "accountDefaults": "Setări implicite ale contului",
-    "disableUserSettings": "Dezactivare pagină setări utilizator"
+    "disableUserSettings": "Dezactivare pagină setări utilizator",
+    "userDefaultsLockedFromConfig": "Setările implicite ale utilizatorului au fost configurate în fișierul de configurare și nu pot fi modificate până când un administrator nu elimină secțiunea „userDefaults” din fișierul de configurare."
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",

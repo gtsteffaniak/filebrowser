@@ -292,7 +292,8 @@
     "userDefaults": "Användarinställningar",
     "userDefaultsDescription": "Konfigurera standardinställningar som ska tillämpas på nya användare och policyer som ska gälla för alla användare.",
     "accountDefaults": "Standardinställningar för konton",
-    "disableUserSettings": "Inaktivera sidan för användarinställningar"
+    "disableUserSettings": "Inaktivera sidan för användarinställningar",
+    "userDefaultsLockedFromConfig": "Användarinställningarna har angetts i konfigurationsfilen och kan inte ändras förrän en administratör tar bort ”userDefaults” från konfigurationsfilen."
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",

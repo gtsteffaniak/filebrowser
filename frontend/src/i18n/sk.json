@@ -292,7 +292,8 @@
     "userDefaults": "Predvolené nastavenia používateľa",
     "userDefaultsDescription": "Nakonfigurujte predvolené nastavenia, ktoré sa budú uplatňovať na nových používateľov, a vynútiteľné zásady pre všetkých používateľov.",
     "accountDefaults": "Predvolené nastavenia účtu",
-    "disableUserSettings": "Deaktivovať stránku nastavení používateľa"
+    "disableUserSettings": "Deaktivovať stránku nastavení používateľa",
+    "userDefaultsLockedFromConfig": "Predvolené nastavenia používateľa boli nastavené v konfiguračnom súbore a nie je možné ich zmeniť, kým správca neodstráni položku „userDefaults“ z konfiguračného súboru."
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",

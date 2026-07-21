@@ -292,7 +292,8 @@
     "userDefaults": "Paramètres par défaut de l'utilisateur",
     "userDefaultsDescription": "Configurer les paramètres par défaut appliqués aux nouveaux utilisateurs et la politique imposée à tous les utilisateurs.",
     "accountDefaults": "Paramètres par défaut du compte",
-    "disableUserSettings": "Désactiver la page des paramètres utilisateur"
+    "disableUserSettings": "Désactiver la page des paramètres utilisateur",
+    "userDefaultsLockedFromConfig": "Les paramètres par défaut de l'utilisateur ont été définis dans le fichier de configuration et ne peuvent pas être modifiés tant qu'un administrateur n'a pas supprimé la section « userDefaults » de ce fichier."
   },
   "sidebar": {
     "updateIsAvailable": "Une mise à jour est disponible !",

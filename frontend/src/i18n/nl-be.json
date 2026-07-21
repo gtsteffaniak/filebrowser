@@ -292,7 +292,8 @@
     "userDefaults": "Standaardinstellingen voor gebruikers",
     "userDefaultsDescription": "Stel de standaardinstellingen in die voor nieuwe gebruikers gelden en het beleid dat voor alle gebruikers moet worden nageleefd.",
     "accountDefaults": "Standaardinstellingen voor accounts",
-    "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen"
+    "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
+    "userDefaultsLockedFromConfig": "De standaardinstellingen voor de gebruiker zijn vastgelegd in het configuratiebestand en kunnen pas worden gewijzigd als een beheerder de `userDefaults` uit het configuratiebestand verwijdert."
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",

@@ -169,6 +169,10 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		t.Fatal("failed to create dummy user:", err)
 	}
 
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
 	testCases := []struct {
 		name               string
 		share              *share.Share
@@ -266,7 +270,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 			// Wrap the handler with authentication middleware
 			handler := withHashFile(publicGetResourceHandler)
-			settings.Config.Auth.Key = "key"
 
 			// Prepare the request with query parameters and optional headers
 			req := newTestRequest(t, tc.share.Hash, tc.token, tc.password, tc.extraHeaders)

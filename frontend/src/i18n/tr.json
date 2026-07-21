@@ -292,7 +292,8 @@
     "userDefaults": "Kullanıcı varsayılan ayarları",
     "userDefaultsDescription": "Yeni kullanıcılara uygulanacak varsayılan ayarları ve tüm kullanıcılar için geçerli olacak kuralı yapılandırın.",
     "accountDefaults": "Hesap varsayılan ayarları",
-    "disableUserSettings": "Kullanıcı ayarları sayfasını devre dışı bırak"
+    "disableUserSettings": "Kullanıcı ayarları sayfasını devre dışı bırak",
+    "userDefaultsLockedFromConfig": "Kullanıcı varsayılan ayarları yapı dosyasında belirlenmiştir ve bir yönetici yapı dosyasından userDefaults öğesini kaldırana kadar değiştirilemez."
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",

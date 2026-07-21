@@ -604,7 +604,8 @@
     "userDefaults": "Impostazioni predefinite dell'utente",
     "userDefaultsDescription": "Configurare le impostazioni predefinite da applicare ai nuovi utenti e le politiche da far rispettare a tutti gli utenti.",
     "accountDefaults": "Impostazioni predefinite dell'account",
-    "disableUserSettings": "Disattiva la pagina delle impostazioni utente"
+    "disableUserSettings": "Disattiva la pagina delle impostazioni utente",
+    "userDefaultsLockedFromConfig": "Le impostazioni predefinite dell'utente sono state configurate nel file di configurazione e non possono essere modificate finché un amministratore non rimuove la voce \"userDefaults\" dal file di configurazione."
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",

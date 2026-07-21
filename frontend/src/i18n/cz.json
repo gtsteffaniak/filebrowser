@@ -440,7 +440,8 @@
     "userDefaults": "Výchozí nastavení uživatele",
     "userDefaultsDescription": "Nastavte výchozí nastavení pro nové uživatele a vynuťte dodržování zásad pro všechny uživatele.",
     "accountDefaults": "Výchozí nastavení účtu",
-    "disableUserSettings": "Zakázat stránku uživatelských nastavení"
+    "disableUserSettings": "Zakázat stránku uživatelských nastavení",
+    "userDefaultsLockedFromConfig": "Výchozí nastavení uživatele bylo nastaveno v konfiguračním souboru a nelze jej změnit, dokud správce neodstraní položku „userDefaults“ z konfiguračního souboru."
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",
