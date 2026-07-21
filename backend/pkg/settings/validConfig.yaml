@@ -1,12 +1,8 @@
-server:
-  numImageProcessors: 4
-  socket: ""
-  tlsKey: ""
-  tlsCert: ""
-  disablePreviews: false
-  disablePreviewResize: false
+http:
   port: 80
   baseURL: "/"
+server:
+  numImageProcessors: 4
   database:
     path: "mydb.db"
   sources:

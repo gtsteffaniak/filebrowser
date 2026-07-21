@@ -170,16 +170,16 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// ========================================
 	// Configure Main Router
 	// ========================================
-	apiPath := settings.Config.Server.BaseURL + "api"
-	publicPath := settings.Config.Server.BaseURL + "public"
-	webDavPath := settings.Config.Server.BaseURL + "dav"
+	apiPath := settings.Config.Http.BaseURL + "api"
+	publicPath := settings.Config.Http.BaseURL + "public"
+	webDavPath := settings.Config.Http.BaseURL + "dav"
 
 	// Mount primary API and public routes
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
 	// WebDAV handler
-	if !settings.Config.Server.DisableWebDAV {
+	if !settings.Config.Http.DisableWebDAV {
 		// Uses Basic Auth where password is JWT token
 		// Note: do not trim /dav prefix here - webdav library requires it
 		router.Handle(webDavPath+"/{source}/{path...}", withBasicAuth(webDAVHandler))
@@ -192,14 +192,14 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	router.HandleFunc("GET /favicon.svg", http.HandlerFunc(staticAssetHandler))
 
 	// Index and utility routes
-	router.HandleFunc(settings.Config.Server.BaseURL, withOrWithoutUser(indexHandler))
-	router.HandleFunc(fmt.Sprintf("GET %vhealth", settings.Config.Server.BaseURL), healthHandler)
-	router.Handle(fmt.Sprintf("%vswagger/", settings.Config.Server.BaseURL), withUser(swaggerHandler))
+	router.HandleFunc(settings.Config.Http.BaseURL, withOrWithoutUser(indexHandler))
+	router.HandleFunc(fmt.Sprintf("GET %vhealth", settings.Config.Http.BaseURL), healthHandler)
+	router.Handle(fmt.Sprintf("%vswagger/", settings.Config.Http.BaseURL), withUser(swaggerHandler))
 
 	// Base URL redirect (non-root deployments)
-	if settings.Config.Server.BaseURL != "/" {
+	if settings.Config.Http.BaseURL != "/" {
 		router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, settings.Config.Server.BaseURL, http.StatusMovedPermanently)
+			http.Redirect(w, r, settings.Config.Http.BaseURL, http.StatusMovedPermanently)
 		})
 	}
 }

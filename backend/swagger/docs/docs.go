@@ -5476,9 +5476,45 @@ const docTemplate = `{
         "settings.Http": {
             "type": "object",
             "properties": {
+                "baseURL": {
+                    "description": "base URL for the server, the subpath that the server is running on.",
+                    "type": "string"
+                },
                 "disableRateLimit": {
                     "description": "turns off built-in auth route rate limiting and failed-login lockout (default false).",
                     "type": "boolean"
+                },
+                "disableWebDAV": {
+                    "description": "disable webdav support (default: false)",
+                    "type": "boolean"
+                },
+                "externalUrl": {
+                    "description": "used by share links if set (eg. http://mydomain.com)",
+                    "type": "string"
+                },
+                "internalUrl": {
+                    "description": "used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)",
+                    "type": "string"
+                },
+                "listen": {
+                    "description": "address to listen on (default: 0.0.0.0)",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "port to listen on",
+                    "type": "integer"
+                },
+                "socket": {
+                    "description": "socket to listen on - eg. /var/run/filebrowser.sock",
+                    "type": "string"
+                },
+                "tlsCert": {
+                    "description": "path to TLS cert",
+                    "type": "string"
+                },
+                "tlsKey": {
+                    "description": "path to TLS key",
+                    "type": "string"
                 },
                 "trustedHeaders": {
                     "description": "list of headers to trust, useful when behind a reverse proxy.",
@@ -5937,10 +5973,6 @@ const docTemplate = `{
                 "sources"
             ],
             "properties": {
-                "baseURL": {
-                    "description": "base URL for the server, the subpath that the server is running on.",
-                    "type": "string"
-                },
                 "cacheDir": {
                     "description": "path to the cache directory, used for thumbnails and other cached files",
                     "type": "string"
@@ -5973,14 +6005,6 @@ const docTemplate = `{
                     "description": "disables backend update check service",
                     "type": "boolean"
                 },
-                "disableWebDAV": {
-                    "description": "disable webdav support (default: false)",
-                    "type": "boolean"
-                },
-                "externalUrl": {
-                    "description": "used by share links if set (eg. http://mydomain.com)",
-                    "type": "string"
-                },
                 "filesystem": {
                     "description": "filesystem settings",
                     "allOf": [
@@ -5996,14 +6020,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/settings.IndexSqlConfig"
                         }
                     ]
-                },
-                "internalUrl": {
-                    "description": "used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)",
-                    "type": "string"
-                },
-                "listen": {
-                    "description": "address to listen on (default: 0.0.0.0)",
-                    "type": "string"
                 },
                 "logging": {
                     "type": "array",
@@ -6023,27 +6039,11 @@ const docTemplate = `{
                     "description": "number of concurrent image processing jobs used to create previews, default is 4.",
                     "type": "integer"
                 },
-                "port": {
-                    "description": "port to listen on",
-                    "type": "integer"
-                },
-                "socket": {
-                    "description": "socket to listen on - eg. /var/run/filebrowser.sock",
-                    "type": "string"
-                },
                 "sources": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/settings.Source"
                     }
-                },
-                "tlsCert": {
-                    "description": "path to TLS cert",
-                    "type": "string"
-                },
-                "tlsKey": {
-                    "description": "path to TLS key",
-                    "type": "string"
                 }
             }
         },

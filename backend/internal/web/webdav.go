@@ -485,7 +485,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 
 	// Construct the WebDAV prefix from BaseURL
-	webDavPrefix := settings.Config.Server.BaseURL + "dav"
+	webDavPrefix := settings.Config.Http.BaseURL + "dav"
 	prefix := webDavPrefix + "/" + source
 	// Wrap the filesystem to filter directory listings using FileInfoFaster
 	// We pass requestPath (without scope) to FileInfoFaster, which applies scope internally

@@ -1,6 +1,7 @@
-server:
+http:
   port: 8080
   baseURL:  "/subpath"
+server:
   logging:
     - levels: "info|error|warning|debug"
       apiFilter: 'disabled'

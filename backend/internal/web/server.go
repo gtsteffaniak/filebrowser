@@ -91,25 +91,25 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 	configureHTTPRouter(router, api, publicRoutes, publicApi)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%v:%v", settings.Config.Server.ListenAddress, settings.Config.Server.Port),
+		Addr:    fmt.Sprintf("%v:%v", settings.Config.Http.ListenAddress, settings.Config.Http.Port),
 		Handler: muxWithMiddleware(router),
 	}
-	listenAddress := settings.Config.Server.ListenAddress
+	listenAddress := settings.Config.Http.ListenAddress
 	go func() {
 		var listener net.Listener
 		var err error
 
-		if settings.Config.Server.Socket != "" {
-			if err = os.Remove(settings.Config.Server.Socket); err != nil && !os.IsNotExist(err) {
+		if settings.Config.Http.Socket != "" {
+			if err = os.Remove(settings.Config.Http.Socket); err != nil && !os.IsNotExist(err) {
 				logger.Fatalf("Could not remove existing socket: %v", err)
 			}
-			listener, err = net.Listen("unix", settings.Config.Server.Socket)
+			listener, err = net.Listen("unix", settings.Config.Http.Socket)
 			if err != nil {
 				logger.Fatalf("Could not listen on unix socket: %v", err)
 			}
-			logger.Infof("Running at               : unix://%s%s", settings.Config.Server.Socket, settings.Config.Server.BaseURL)
-		} else if settings.Config.Server.TLSCert != "" && settings.Config.Server.TLSKey != "" {
-			cer, err := tls.LoadX509KeyPair(settings.Config.Server.TLSCert, settings.Config.Server.TLSKey)
+			logger.Infof("Running at               : unix://%s%s", settings.Config.Http.Socket, settings.Config.Http.BaseURL)
+		} else if settings.Config.Http.TLSCert != "" && settings.Config.Http.TLSKey != "" {
+			cer, err := tls.LoadX509KeyPair(settings.Config.Http.TLSCert, settings.Config.Http.TLSKey)
 			if err != nil {
 				logger.Fatalf("Could not load certificate: %v", err)
 			}
@@ -119,10 +119,10 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 			}
 			scheme := "https"
 			port := ""
-			if settings.Config.Server.Port != 443 {
-				port = fmt.Sprintf(":%d", settings.Config.Server.Port)
+			if settings.Config.Http.Port != 443 {
+				port = fmt.Sprintf(":%d", settings.Config.Http.Port)
 			}
-			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, settings.Config.Server.BaseURL)
+			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, settings.Config.Http.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
 			socketActivationListeners, err := activation.TLSListeners(tlsConfig)
@@ -141,10 +141,10 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 		} else {
 			scheme := "http"
 			port := ""
-			if settings.Config.Server.Port != 80 {
-				port = fmt.Sprintf(":%d", settings.Config.Server.Port)
+			if settings.Config.Http.Port != 80 {
+				port = fmt.Sprintf(":%d", settings.Config.Http.Port)
 			}
-			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, settings.Config.Server.BaseURL)
+			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, settings.Config.Http.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
 			socketActivationListeners, err := activation.Listeners()
@@ -187,8 +187,8 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 		logger.Info("HTTP server shut down gracefully.")
 	}
 
-	if settings.Config.Server.Socket != "" {
-		if err := os.Remove(settings.Config.Server.Socket); err != nil && !os.IsNotExist(err) {
+	if settings.Config.Http.Socket != "" {
+		if err := os.Remove(settings.Config.Http.Socket); err != nil && !os.IsNotExist(err) {
 			logger.Debugf("Could not remove unix socket: %v", err)
 		}
 	}

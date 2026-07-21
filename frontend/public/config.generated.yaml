@@ -2,15 +2,9 @@ server:
   minSearchLength: 3                      # minimum length of search query to begin searching (default: 3)
   disableUpdateCheck: false               # disables backend update check service
   numImageProcessors: 4                   # number of concurrent image processing jobs used to create previews, default is 4.
-  socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
-  tlsKey: ""                              # path to TLS key
-  tlsCert: ""                             # path to TLS cert
   disablePreviews: false                  # disable all previews thumbnails, simple icons will be used
   disablePreviewResize: false             # disable resizing of previews for faster loading over slow connections
   disableTypeDetectionByHeader: false     # disable type detection by header, useful if filesystem is slow.
-  port: 80                                # port to listen on
-  listen: ""                              # address to listen on (default: 0.0.0.0)
-  baseURL: "/"                            # base URL for the server, the subpath that the server is running on.
   logging:
     - levels: ""                          # separated list of log levels to enable. (eg. "info|warning|error|debug")
       apiLevels: ""                       # separated list of log levels to enable for the API. (eg. "info|warning|error")
@@ -53,8 +47,6 @@ server:
           delete: false
           create: false
           configured: false               # true when explicitly set (allows intentional deny-all)
-  externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
-  internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
   cacheDirCleanup: false                  # whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
   maxArchiveSize: 20                      # maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
@@ -67,7 +59,6 @@ server:
     walMode: false                        # enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
     disableReuse: false                   # enable to always create a new indexing database on startup.
     startupIntegrityCheck: "quickCheck"   # the method used to check the integrity of the index database on startup (default: quickCheck)  validate:omitempty,oneof=quickCheck probe off
-  disableWebDAV: false                    # disable webdav support (default: false)
   database:                               # SQLite database configuration
     path: "filebrowser.sqlite"            # path to SQLite database file
     migrateFrom: ""                       # path to old BoltDB database file for migration (optional)
@@ -269,5 +260,14 @@ integrations:
     extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
     hardwareAcceleration: false           # enable hardware acceleration for ffmpeg if available
 http:
+  socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
+  tlsKey: ""                              # path to TLS key
+  tlsCert: ""                             # path to TLS cert
+  port: 80                                # port to listen on
+  listen: ""                              # address to listen on (default: 0.0.0.0)
+  baseURL: "/"                            # base URL for the server, the subpath that the server is running on.
+  externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
+  internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+  disableWebDAV: false                    # disable webdav support (default: false)
   trustedHeaders:                         # list of headers to trust, useful when behind a reverse proxy.
   disableRateLimit: false                 # turns off built-in auth route rate limiting and failed-login lockout (default false).

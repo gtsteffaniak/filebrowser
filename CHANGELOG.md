@@ -4,7 +4,16 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.0
 
-A database migration is required to go from v1.x to this version. See docs.
+This version represents the most significant change to date. It **requires** both a database migration and config structural changes.
+
+ **Breaking Changes**:
+ - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
+ - Removed: `/share/…` URL redirect to `/public/share/…` — use `/public/share/…` directly.
+ - Removed: singular `source` search api param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
+ - Removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules.
+ - Removed: support for deprecated userDefaults config format, users must use config migration tool to update userDefaults.
+ - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method.
+ - Changed: http related config options in `server` config key moved to `http` config key.
 
  **New Features**:
  - View grant mechanism to distinguish between UI viewing and download.
@@ -40,14 +49,6 @@ A database migration is required to go from v1.x to this version. See docs.
    - Added administrator controls for universal user defaults and enforced preferences in `settings > user management > user defaults`.
    - Added configurable default file permissions per source in `settings > access management`.
    - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt.
-
- **Removed legacy (breaking)**:
- - `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
- - `/share/…` frontend URL redirect to `/public/share/…` — use `/public/share/…` directly.
- - Search API: removed singular `source` param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
- - Source config: removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules 
- - `PUT /api/users` moved to the more appropriate `PATCH` method.
- - removed support for deprecated userDefaults config format, users must use config migration tool to update userDefaults.
 
  **Notes**:
  - new dropdown and input styles

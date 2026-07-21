@@ -1,6 +1,7 @@
-server:
+http:
   port: 80
   baseURL:  "/"
+server:
   database:
     migrateFrom: "database.db.old"
   logging:

@@ -172,7 +172,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		ClientID:     oidcCfg.ClientID,
 		ClientSecret: oidcCfg.ClientSecret,
 		Endpoint:     oidcCfg.Provider.Endpoint(),
-		RedirectURL:  fmt.Sprintf("%s%sapi/auth/oidc/callback", origin, settings.Config.Server.BaseURL),
+		RedirectURL:  fmt.Sprintf("%s%sapi/auth/oidc/callback", origin, settings.Config.Http.BaseURL),
 		Scopes:       strings.Fields(oidcCfg.Scopes),
 	}
 
@@ -223,7 +223,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	// and used in the initial /api/auth/oidc/login handler.
 	// Using r.Host here might be tricky if running behind a proxy.
 	// Consider using a fixed redirect URL from settings if possible.
-	redirectURL := fmt.Sprintf("%s://%s%sapi/auth/oidc/callback", GetScheme(r), r.Host, settings.Config.Server.BaseURL)
+	redirectURL := fmt.Sprintf("%s://%s%sapi/auth/oidc/callback", GetScheme(r), r.Host, settings.Config.Http.BaseURL)
 
 	oauth2Config := &oauth2.Config{
 		ClientID:     oidcCfg.ClientID,
@@ -403,7 +403,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	// The 'fb_redirect' parameter is extracted from the 'state' parameter for security.
 	state := r.URL.Query().Get("state")
 
-	fbRedirect := settings.Config.Server.BaseURL // Default redirect to the base URL
+	fbRedirect := settings.Config.Http.BaseURL // Default redirect to the base URL
 	if state != "" {
 		parts := strings.SplitN(state, ":", 2)
 

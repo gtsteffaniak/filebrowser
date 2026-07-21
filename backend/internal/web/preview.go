@@ -278,8 +278,8 @@ func PreviewHelperFunc(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if d.FileInfo.OnlyOfficeId != "" {
 		pathUrl := fmt.Sprintf("/api/resources/download?file=%s&source=%s", url.QueryEscape(d.FileInfo.Path), url.QueryEscape(d.FileInfo.Source))
 		pathUrl = pathUrl + "&auth=" + d.Token
-		if settings.Config.Server.InternalUrl != "" {
-			officeUrl = settings.Config.Server.InternalUrl + pathUrl
+		if settings.Config.Http.InternalUrl != "" {
+			officeUrl = settings.Config.Http.InternalUrl + pathUrl
 		} else {
 			scheme := "http"
 			if r.TLS != nil {

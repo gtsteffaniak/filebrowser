@@ -37,9 +37,10 @@ simple_auth: &simple_auth
 
 	// Create main config file that references the anchors
 	mainConfig := `
-server:
+http:
   port: 9000
   baseURL: "/test/"
+server:
   minSearchLength: 2
   sources: *simple_sources
   logging: *simple_logging
@@ -71,12 +72,12 @@ userDefaults:
 	}
 
 	// Verify that values from different files were loaded correctly
-	if Config.Server.Port != 9000 {
-		t.Errorf("Expected server port 9000, got %d", Config.Server.Port)
+	if Config.Http.Port != 9000 {
+		t.Errorf("Expected server port 9000, got %d", Config.Http.Port)
 	}
 
-	if Config.Server.BaseURL != "/test/" {
-		t.Errorf("Expected baseURL '/test/', got '%s'", Config.Server.BaseURL)
+	if Config.Http.BaseURL != "/test/" {
+		t.Errorf("Expected baseURL '/test/', got '%s'", Config.Http.BaseURL)
 	}
 
 	if Config.Server.MinSearchLength != 2 {
@@ -114,9 +115,10 @@ func TestMultiConfigFallback(t *testing.T) {
 
 	// Create a simple config file (no anchors)
 	simpleConfig := `
-server:
+http:
   port: 8080
   baseURL: "/"
+server:
   sources:
     - path: "/srv"
 
@@ -139,8 +141,8 @@ frontend:
 	}
 
 	// Verify values were loaded correctly
-	if Config.Server.Port != 8080 {
-		t.Errorf("Expected server port 8080, got %d", Config.Server.Port)
+	if Config.Http.Port != 8080 {
+		t.Errorf("Expected server port 8080, got %d", Config.Http.Port)
 	}
 
 	if Config.Frontend.Name != "Simple FileBrowser" {
@@ -175,8 +177,9 @@ base_permissions: &base_permissions
 
 	// Create main config that uses references
 	mainConfig := `
-server:
+http:
   port: 8080
+server:
   sources:
     - path: "/srv"
   logging: *base_logging
