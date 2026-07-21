@@ -1816,6 +1816,9 @@ definitions:
     type: object
   users.SourceFilePermissions:
     properties:
+      configured:
+        description: true when explicitly set (allows intentional deny-all)
+        type: boolean
       create:
         type: boolean
       delete:

@@ -7359,6 +7359,10 @@ const docTemplate = `{
         "users.SourceFilePermissions": {
             "type": "object",
             "properties": {
+                "configured": {
+                    "description": "true when explicitly set (allows intentional deny-all)",
+                    "type": "boolean"
+                },
                 "create": {
                     "type": "boolean"
                 },

@@ -109,7 +109,7 @@ export default {
         if (state.user.preview) {
           this.localuser.preview = { ...state.user.preview };
         }
-        notify.showError(e?.message || this.$t("settings.settingsUpdateFailed"));
+        notify.showError(e?.message || e);
       }
     },
   },
