@@ -9,10 +9,12 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("api.title") }}</h2>
-    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
 
   <div class="card-content full">
+    <div class="settings-items">
+      <ActivityViewerButton class="item" :href="activityViewerHref" />
+    </div>
     <template v-if="links.length > 0">
       <p>
         {{ $t("api.description") }}
@@ -76,6 +78,7 @@ import { state, mutations, getters } from "@/store";
 import { copyToClipboard } from "@/utils/clipboard";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
@@ -84,6 +87,7 @@ export default {
   components: {
     Errors,
     SettingsTable,
+    ActivityViewerButton,
   },
   data: () => ({
     error: null,

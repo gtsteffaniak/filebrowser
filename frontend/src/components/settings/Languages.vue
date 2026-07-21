@@ -3,6 +3,7 @@
     :model-value="locale"
     :options="languageOptions"
     :aria-label="$t('general.language')"
+    :disabled="disabled"
     @update:model-value="$emit('update:locale', $event)"
   />
 </template>
@@ -21,6 +22,10 @@ export default defineComponent({
     locale: {
       type: String,
       required: true,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ["update:locale"],

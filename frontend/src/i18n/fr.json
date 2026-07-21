@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "Échec du chargement des informations de diagnostic analytique",
     "scopePath": "Chemin d'accès à la portée",
     "sourcePermissionsHelp": "Développez une ligne de source pour définir les autorisations d'affichage, de téléchargement, de modification, de création et de suppression pour cette source.",
-    "permissionsHelp": "Les autorisations globales attribuées à l'utilisateur s'appliquent partout, y compris à toutes les sources et à tous les partages."
+    "permissionsHelp": "Les autorisations globales attribuées à l'utilisateur s'appliquent partout, y compris à toutes les sources et à tous les partages.",
+    "userDefaults": "Paramètres par défaut de l'utilisateur",
+    "userDefaultsDescription": "Configurer les paramètres par défaut appliqués aux nouveaux utilisateurs et la politique imposée à tous les utilisateurs.",
+    "accountDefaults": "Paramètres par défaut du compte",
+    "disableUserSettings": "Désactiver la page des paramètres utilisateur",
+    "userDefaultsLockedFromConfig": "Les paramètres par défaut de l'utilisateur ont été définis dans le fichier de configuration et ne peuvent pas être modifiés tant qu'un administrateur n'a pas supprimé la section « userDefaults » de ce fichier."
   },
   "sidebar": {
     "updateIsAvailable": "Une mise à jour est disponible !",
@@ -603,7 +608,8 @@
     "none": "Aucun",
     "viewFiles": "Afficher et répertorier les fichiers",
     "source": "{prefix}Source{suffix}",
-    "sources": "{prefix}Sources{suffix}"
+    "sources": "{prefix}Sources{suffix}",
+    "enforce": "Appliquer{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -716,7 +722,11 @@
     "lastUsed": "Dernière utilisation",
     "passkeyDefaultName": "Clé d'accès",
     "showToolsInSidebar": "Afficher les outils dans la barre latérale",
-    "showToolsInSidebarDescription": "Le lien vers les outils doit toujours figurer dans la barre latérale."
+    "showToolsInSidebarDescription": "Le lien vers les outils doit toujours figurer dans la barre latérale.",
+    "enforcedByAdmin": "Votre administrateur a désactivé la possibilité pour les utilisateurs de modifier cette propriété.",
+    "singleClick": "Un simple clic pour ouvrir les fichiers",
+    "stickySidebar": "Barre latérale fixe",
+    "darkMode": "Mode sombre"
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

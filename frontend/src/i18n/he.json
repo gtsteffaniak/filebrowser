@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "לא הצליח לטעון את מידע האבחון של Analytics",
     "scopePath": "נתיב ההיקף",
     "sourcePermissionsHelp": "הרחב שורת מקור כדי להגדיר הרשאות לצפייה, הורדה, עריכה, יצירה ומחיקה עבור אותו מקור.",
-    "permissionsHelp": "ההרשאות הגלובליות של המשתמש חלות בכל מקום, כולל כל המקורות והמשאבים המשותפים."
+    "permissionsHelp": "ההרשאות הגלובליות של המשתמש חלות בכל מקום, כולל כל המקורות והמשאבים המשותפים.",
+    "userDefaults": "הגדרות ברירת מחדל של המשתמש",
+    "userDefaultsDescription": "הגדר את הגדרות ברירת המחדל שיוחלו על משתמשים חדשים ואת המדיניות שתאכף על כל המשתמשים.",
+    "accountDefaults": "הגדרות ברירת מחדל של החשבון",
+    "disableUserSettings": "השבת את דף הגדרות המשתמש",
+    "userDefaultsLockedFromConfig": "הגדרות ברירת המחדל של המשתמש הוגדרו בקובץ התצורה, ולא ניתן לשנותן עד שמנהל המערכת יסיר את ה-userDefaults מקובץ התצורה."
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",
@@ -603,7 +608,8 @@
     "none": "ללא",
     "viewFiles": "הצגת קבצים ורשימת קבצים",
     "source": "{prefix}מקור{suffix}",
-    "sources": "{prefix}מקורות{suffix}"
+    "sources": "{prefix}מקורות{suffix}",
+    "enforce": "לאכוף{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -716,7 +722,11 @@
     "lastUsed": "בשימוש לאחרונה",
     "passkeyDefaultName": "מפתח גישה",
     "showToolsInSidebar": "הצג כלים בסרגל הצד",
-    "showToolsInSidebarDescription": "הצג תמיד את הקישור 'כלים' בסרגל הצדדי."
+    "showToolsInSidebarDescription": "הצג תמיד את הקישור 'כלים' בסרגל הצדדי.",
+    "enforcedByAdmin": "המנהל שלך מנע ממשתמשים לשנות מאפיין זה",
+    "singleClick": "לחיצה אחת לפתיחת קבצים",
+    "stickySidebar": "סרגל צדדי קבוע",
+    "darkMode": "מצב כהה"
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

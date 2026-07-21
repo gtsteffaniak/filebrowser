@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -24,6 +23,7 @@ func MakeUserDirs(u *users.User, createDir bool) error {
 	if cleanedUserName == "" || cleanedUserName == "-" || cleanedUserName == "." {
 		return fmt.Errorf("MakeUserDirs: invalid user for home dir creation: [%s]", u.Username)
 	}
+	settings.ExpandBackendScopesForCreateUserDir(u)
 	for i, scope := range u.BackendScopes {
 		source, ok := settings.Config.Server.SourceMap[scope.Path]
 		if !ok {
@@ -32,10 +32,6 @@ func MakeUserDirs(u *users.User, createDir bool) error {
 		fullPath := filepath.Join(source.Path, scope.Scope)
 		parentDir := filepath.Dir(fullPath)
 		if createDir {
-			if source.Config.CreateUserDir && filepath.Base(scope.Scope) != cleanedUserName {
-				scope.Scope = utils.JoinPathAsUnix(scope.Scope, cleanedUserName)
-				fullPath = filepath.Join(fullPath, cleanedUserName)
-			}
 			if !Exists(parentDir) {
 				if err := MakeUserDir(parentDir); err != nil {
 					logger.Errorf("MakeUserDirs: failed to create parent scope directory: %s - %v", scope.Scope, err)

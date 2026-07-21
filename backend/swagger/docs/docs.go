@@ -3147,7 +3147,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tools/duplicateFinder": {
+        "/api/tools/duplicate-finder": {
             "get": {
                 "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
                 "consumes": [
@@ -3209,7 +3209,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tools/fileWatcher": {
+        "/api/tools/file-watcher": {
             "get": {
                 "description": "Returns the last N lines of a file",
                 "consumes": [
@@ -3296,7 +3296,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tools/fileWatcher/sse": {
+        "/api/tools/file-watcher/sse": {
             "get": {
                 "description": "Establishes an SSE connection to receive periodic file updates",
                 "tags": [
@@ -3524,86 +3524,6 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
-                "description": "Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or \"all\") or any admin-only field require confirmation.",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update a user's details",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "user ID to update",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "usename to update",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable",
-                        "name": "X-Password",
-                        "in": "header"
-                    },
-                    {
-                        "description": "User data to update",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content - User updated successfully"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized - invalid or missing actor password when required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Adds a new user to the system. When the authenticated actor uses password login, they must send their current password in the X-Password header.",
                 "consumes": [
@@ -3713,9 +3633,89 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or \"all\") or any admin-only field require confirmation.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user's details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user ID to update",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "usename to update",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable",
+                        "name": "X-Password",
+                        "in": "header"
+                    },
+                    {
+                        "description": "User data to update",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content - User updated successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing actor password when required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
-        "/api/users/pinnedItems": {
+        "/api/users/pinned-items": {
             "patch": {
                 "description": "Patches one pinned item at a time. Defaults to add; pass ?action=remove to unpin.",
                 "consumes": [
@@ -6066,7 +6066,12 @@ const docTemplate = `{
                     "$ref": "#/definitions/settings.Server"
                 },
                 "userDefaults": {
-                    "$ref": "#/definitions/settings.UserDefaults"
+                    "description": "optional signup/CLI defaults; per-user values are managed in the UI",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.UserDefaults"
+                        }
+                    ]
                 }
             }
         },
@@ -6099,6 +6104,14 @@ const docTemplate = `{
                 "defaultEnabled": {
                     "description": "should be added as a default source for new users?",
                     "type": "boolean"
+                },
+                "defaultPermissions": {
+                    "description": "DefaultPermissions is the template for new user scopes on this source (also synced globally via Access settings).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.SourceFilePermissions"
+                        }
+                    ]
                 },
                 "defaultUserScope": {
                     "description": "defaults to root of index \"/\" should match folders under path",
@@ -6183,12 +6196,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/settings.UserDefaultsSearch"
                 },
                 "sidebar": {
-                    "description": "New organized structure",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.UserDefaultsSidebar"
-                        }
-                    ]
+                    "$ref": "#/definitions/settings.UserDefaultsSidebar"
                 },
                 "ui": {
                     "$ref": "#/definitions/settings.UserDefaultsUI"
@@ -6228,22 +6236,6 @@ const docTemplate = `{
                 },
                 "api": {
                     "description": "allow api access",
-                    "type": "boolean"
-                },
-                "create": {
-                    "description": "allow creating or uploading files",
-                    "type": "boolean"
-                },
-                "delete": {
-                    "description": "allow deleting files",
-                    "type": "boolean"
-                },
-                "download": {
-                    "description": "allow downloading files",
-                    "type": "boolean"
-                },
-                "modify": {
-                    "description": "allow modifying files",
                     "type": "boolean"
                 },
                 "realtime": {
@@ -7362,6 +7354,10 @@ const docTemplate = `{
         "users.SourceFilePermissions": {
             "type": "object",
             "properties": {
+                "configured": {
+                    "description": "true when explicitly set (allows intentional deny-all)",
+                    "type": "boolean"
+                },
                 "create": {
                     "type": "boolean"
                 },

@@ -18,8 +18,10 @@ export async function validateLogin(isPublicRoute = false) {
   }
   const userInfo = await res.json();
   await mutations.setCurrentUser(userInfo);
+  await mutations.syncEnforcedUserDefaults();
   getters.isLoggedIn()
-  if (state.user.loginMethod === "proxy") {
+  // Public share/static routes use the public API; proxy session cookie login is protected-only.
+  if (state.user.loginMethod === "proxy" && !isPublicRoute) {
     const apiPath = getApiPath("auth/login")
     const res = await fetch(apiPath, {
       method: "POST",

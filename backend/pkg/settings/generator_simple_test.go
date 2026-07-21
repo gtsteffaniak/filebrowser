@@ -12,10 +12,9 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			UserDefaultsLegacy: UserDefaultsLegacy{
-				Locale:                  "es",          // Non-default value
-				DarkMode:                &trueVal,      // Default value
-				DisableOfficePreviewExt: ".docx .xlsx", // This field is deprecated
+			UI: UserDefaultsUI{
+				Locale:   "es",
+				DarkMode: &trueVal,
 			},
 		},
 		Auth: Auth{
@@ -40,7 +39,7 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 			showFull:         true,
 			filterDeprecated: false,
 			expectSecrets:    true, // Secrets should be hidden
-			expectDeprecated: false, // v1 flat keys live in UserDefaultsLegacy and are not emitted in generated YAML
+			expectDeprecated: false,
 		},
 		{
 			name:             "Static_config_filter_deprecated",
@@ -194,9 +193,11 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 	// Create a temporary config for testing
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			UserDefaultsLegacy: UserDefaultsLegacy{
-				Locale:                  "en",
-				DisableOfficePreviewExt: ".docx .xlsx", // This should be filtered out
+			UI: UserDefaultsUI{
+				Locale: "es",
+			},
+			FileViewer: UserDefaultsFileViewer{
+				DisableOnlyOfficeExt: ".docx .xlsx",
 			},
 		},
 		Auth: Auth{
@@ -217,7 +218,7 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 
 	// Verify deprecated field is filtered out
 	if strings.Contains(yamlOutput, "disableOfficePreviewExt") {
-		t.Error("Static generation should filter out deprecated field disableOfficePreviewExt")
+		t.Error("Static generation should not emit removed legacy disableOfficePreviewExt key")
 	}
 
 	// Verify secrets are redacted
@@ -237,4 +238,16 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 	}
 
 	t.Logf("Static generation successful with comments and proper filtering")
+}
+
+func TestGenerateConfigYaml_defaultPermissionsDocumentsView(t *testing.T) {
+	cfg := SetDefaults(true)
+	cfg.Server.Sources = []*Source{{Path: ".", Config: SourceConfig{}}}
+	out, err := GenerateConfigYamlWithSource(&cfg, true, true, true, ".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "defaultPermissions:") || !strings.Contains(out, "view:") {
+		t.Fatalf("expected defaultPermissions to include view, got excerpt around block")
+	}
 }

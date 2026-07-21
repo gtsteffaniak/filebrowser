@@ -18,7 +18,7 @@ type Settings struct {
 	Server       Server       `json:"server"`
 	Auth         Auth         `json:"auth"`
 	Frontend     Frontend     `json:"frontend"`
-	UserDefaults UserDefaults `json:"userDefaults"`
+	UserDefaults UserDefaults `json:"userDefaults"` // optional signup/CLI defaults; per-user values are managed in the UI
 	Integrations Integrations `json:"integrations"`
 	Http         Http         `json:"http"`
 }
@@ -32,20 +32,21 @@ type Http struct {
 }
 
 type Environment struct {
-	IsPlaywright          bool   `json:"-"`
-	IsDevMode             bool   `json:"-"`
-	IsFirstLoad           bool   `json:"-"` // used internally to track if this is the first load of the application
-	MuPdfAvailable        bool   `json:"-"` // used internally if compiled with mupdf support
-	EmbeddedFs            bool   `json:"-"` // used internally if compiled with embedded fs support
-	FFmpegPath            string `json:"-"`
-	FFprobePath           string `json:"-"`
-	FFmpegAvailable       bool   `json:"-"`
-	LoginIconPath         string `json:"-"` // resolved login icon path (filesystem or embedded)
-	LoginIconIsCustom     bool   `json:"-"` // true if login icon is from custom filesystem path
-	LoginIconEmbeddedPath string `json:"-"` // embedded asset path for default icon
-	FaviconPath           string `json:"-"` // resolved favicon path (filesystem or embedded)
-	FaviconIsCustom       bool   `json:"-"` // true if favicon is from custom filesystem path
-	FaviconEmbeddedPath   string `json:"-"` // embedded asset path for default favicon
+	IsPlaywright                bool   `json:"-"`
+	IsDevMode                   bool   `json:"-"`
+	IsFirstLoad                 bool   `json:"-"` // used internally to track if this is the first load of the application
+	ConfigUserDefaultsSpecified bool   `json:"-"` // true when the config file contained a userDefaults section
+	MuPdfAvailable              bool   `json:"-"` // used internally if compiled with mupdf support
+	EmbeddedFs                  bool   `json:"-"` // used internally if compiled with embedded fs support
+	FFmpegPath                  string `json:"-"`
+	FFprobePath                 string `json:"-"`
+	FFmpegAvailable             bool   `json:"-"`
+	LoginIconPath               string `json:"-"` // resolved login icon path (filesystem or embedded)
+	LoginIconIsCustom           bool   `json:"-"` // true if login icon is from custom filesystem path
+	LoginIconEmbeddedPath       string `json:"-"` // embedded asset path for default icon
+	FaviconPath                 string `json:"-"` // resolved favicon path (filesystem or embedded)
+	FaviconIsCustom             bool   `json:"-"` // true if favicon is from custom filesystem path
+	FaviconEmbeddedPath         string `json:"-"` // embedded asset path for default favicon
 }
 
 type Server struct {
@@ -233,6 +234,8 @@ type SourceConfig struct {
 	DefaultEnabled   bool              `json:"defaultEnabled"`          // should be added as a default source for new users?
 	CreateUserDir    bool              `json:"createUserDir"`           // create a user directory for each user under defaultUserScope + username
 	UseLogicalSize   bool              `json:"useLogicalSize"`          // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
+	// DefaultPermissions is the template for new user scopes on this source (also synced globally via Access settings).
+	DefaultPermissions users.SourceFilePermissions `json:"defaultPermissions,omitempty" yaml:"defaultPermissions,omitempty"`
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedRules ResolvedRulesConfig `json:"-"`
 }
@@ -320,19 +323,13 @@ type ExternalLink struct {
 	Url   string `json:"url" validate:"required"`  // the url to link to
 }
 
-// UserDefaultsPermissions holds permission settings with pointer types for defaults
-type UserDefaultsPermissions struct {
-	Api      bool  `json:"api"`      // deprecated: use account.permissions.api instead. allow api access
-	Admin    bool  `json:"admin"`    // deprecated: use account.permissions.admin instead. allow admin access
-	Modify   bool  `json:"modify"`   // deprecated: use account.permissions.modify instead. allow modifying files
-	Share    bool  `json:"share"`    // deprecated: use account.permissions.share instead. allow sharing files
-	Realtime bool  `json:"realtime"` // deprecated: use account.permissions.realtime instead. allow realtime updates
-	Delete   bool  `json:"delete"`   // deprecated: use account.permissions.delete instead. allow deleting files
-	Create   bool  `json:"create"`   // deprecated: use account.permissions.create instead. allow creating or uploading files
-	Download *bool `json:"download"` // deprecated: use account.permissions.download instead. allow downloading files
+// UserDefaultsAccountPermissions holds global permission settings (not per-source file operations).
+type UserDefaultsAccountPermissions struct {
+	Api      bool `json:"api"`      // allow api access
+	Admin    bool `json:"admin"`    // allow admin access
+	Share    bool `json:"share"`    // allow sharing files
+	Realtime bool `json:"realtime"` // allow realtime updates
 }
-
-// New organized structures for UserDefaults
 
 // UserDefaultsSidebar holds sidebar-related settings
 type UserDefaultsSidebar struct {
@@ -359,26 +356,18 @@ type UserDefaultsListing struct {
 	GallerySize             int    `json:"gallerySize"`             // 0-9 - the size of the gallery thumbnails
 }
 
-// userDefaultsPreviewLegacy holds v1.x flat preview keys migrated on config load (YAML only).
-type UserDefaultsPreviewLegacy struct {
-	DisableHideSidebar bool `yaml:"disableHideSidebar,omitempty" json:"-"`
-	DefaultMediaPlayer bool `yaml:"defaultMediaPlayer,omitempty" json:"-"`
-	AutoplayMedia      bool `yaml:"autoplayMedia,omitempty" json:"-"`
-}
-
 // UserDefaultsPreview holds preview-related settings
 type UserDefaultsPreview struct {
-	Image                     *bool  `json:"image"`              // show thumbnails for image files
-	Video                     *bool  `json:"video"`              // show thumbnails for video files
-	Audio                     *bool  `json:"audio"`              // show thumbnails for audio files
-	MotionVideoPreview        *bool  `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
-	Office                    *bool  `json:"office"`             // show thumbnails for office files
-	PopUp                     *bool  `json:"popup"`              // show larger popup preview when hovering over thumbnail
-	DisablePreviewExt         string `json:"disablePreviewExt"`  // comma separated list of file extensions to disable preview for
-	HighQuality               *bool  `json:"highQuality"`        // high quality preview thumbnails
-	Folder                    *bool  `json:"folder"`             // show thumbnails for folders that have previewable contents
-	Models                    *bool  `json:"models"`             // show live thumbnails for 3D models files
-	UserDefaultsPreviewLegacy `yaml:",inline"`
+	Image              *bool  `json:"image"`              // show thumbnails for image files
+	Video              *bool  `json:"video"`              // show thumbnails for video files
+	Audio              *bool  `json:"audio"`              // show thumbnails for audio files
+	MotionVideoPreview *bool  `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
+	Office             *bool  `json:"office"`             // show thumbnails for office files
+	PopUp              *bool  `json:"popup"`              // show larger popup preview when hovering over thumbnail
+	DisablePreviewExt  string `json:"disablePreviewExt"`  // comma separated list of file extensions to disable preview for
+	HighQuality        *bool  `json:"highQuality"`        // high quality preview thumbnails
+	Folder             *bool  `json:"folder"`             // show thumbnails for folders that have previewable contents
+	Models             *bool  `json:"models"`             // show live thumbnails for 3D models files
 }
 
 // UserDefaultsFileViewer holds file viewer/editor settings
@@ -415,66 +404,15 @@ type UserDefaultsAccount struct {
 	DisableUpdateNotifications bool                           `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 }
 
-// UserDefaultsAccountPermissions holds permission settings
-type UserDefaultsAccountPermissions struct {
-	Api      bool  `json:"api"`      // allow api access
-	Admin    bool  `json:"admin"`    // allow admin access
-	Modify   bool  `json:"modify"`   // allow modifying files
-	Share    bool  `json:"share"`    // allow sharing files
-	Realtime bool  `json:"realtime"` // allow realtime updates
-	Delete   bool  `json:"delete"`   // allow deleting files
-	Create   bool  `json:"create"`   // allow creating or uploading files
-	Download *bool `json:"download"` // allow downloading files
-}
-
-// UserDefaultsLegacy holds v1.x flat userDefaults keys migrated on config load (YAML only).
-type UserDefaultsLegacy struct {
-	EditorQuickSave            bool                    `yaml:"editorQuickSave,omitempty" json:"-"`
-	HideSidebarFileActions     bool                    `yaml:"hideSidebarFileActions,omitempty" json:"-"`
-	DisableQuickToggles        bool                    `yaml:"disableQuickToggles,omitempty" json:"-"`
-	DisableSearchOptions       bool                    `yaml:"disableSearchOptions,omitempty" json:"-"`
-	StickySidebar              bool                    `yaml:"stickySidebar,omitempty" json:"-"`
-	HideFilesInTree            bool                    `yaml:"hideFilesInTree,omitempty" json:"-"`
-	DarkMode                   *bool                   `yaml:"darkMode,omitempty" json:"-"`
-	Locale                     string                  `yaml:"locale,omitempty" json:"-"`
-	ViewMode                   string                  `yaml:"viewMode,omitempty" json:"-"`
-	SingleClick                bool                    `yaml:"singleClick,omitempty" json:"-"`
-	ShowHidden                 bool                    `yaml:"showHidden,omitempty" json:"-"`
-	HideFileExt                string                  `yaml:"hideFileExt,omitempty" json:"-"`
-	DateFormat                 bool                    `yaml:"dateFormat,omitempty" json:"-"`
-	GallerySize                int                     `yaml:"gallerySize,omitempty" json:"-"`
-	ThemeColor                 string                  `yaml:"themeColor,omitempty" json:"-"`
-	QuickDownload              bool                    `yaml:"quickDownload,omitempty" json:"-"`
-	DisablePreviewExt          string                  `yaml:"disablePreviewExt,omitempty" json:"-"`
-	DisableViewingExt          string                  `yaml:"disableViewingExt,omitempty" json:"-"`
-	LockPassword               bool                    `yaml:"lockPassword,omitempty" json:"-"`
-	DisableSettings            bool                    `yaml:"disableSettings,omitempty" json:"-"`
-	Permissions                UserDefaultsPermissions `yaml:"permissions,omitempty" json:"-"`
-	LoginMethod                string                  `yaml:"loginMethod,omitempty" json:"-"`
-	DisableUpdateNotifications bool                    `yaml:"disableUpdateNotifications,omitempty" json:"-"`
-	DeleteWithoutConfirming    bool                    `yaml:"deleteWithoutConfirming,omitempty" json:"-"`
-	DeleteAfterArchive         bool                    `yaml:"deleteAfterArchive,omitempty" json:"-"`
-	DisableOfficePreviewExt    string                  `yaml:"disableOfficePreviewExt,omitempty" json:"-"`
-	DisableOnlyOfficeExt       string                  `yaml:"disableOnlyOfficeExt,omitempty" json:"-"`
-	CustomTheme                string                  `yaml:"customTheme,omitempty" json:"-"`
-	ShowSelectMultiple         bool                    `yaml:"showSelectMultiple,omitempty" json:"-"`
-	ShowToolsInSidebar         *bool                   `yaml:"showToolsInSidebar,omitempty" json:"-"`
-	DebugOffice                bool                    `yaml:"debugOffice,omitempty" json:"-"`
-	PreferEditorForMarkdown    bool                    `yaml:"preferEditorForMarkdown,omitempty" json:"-"`
-	ShowCopyPath               bool                    `yaml:"showCopyPath,omitempty" json:"-"`
-}
-
 // UserDefaults is a type that holds the default values for some fields on User.
 type UserDefaults struct {
-	// New organized structure
-	Sidebar            UserDefaultsSidebar    `json:"sidebar,omitempty"`
-	Listing            UserDefaultsListing    `json:"listing,omitempty"`
-	Preview            UserDefaultsPreview    `json:"preview,omitempty"`
-	FileViewer         UserDefaultsFileViewer `json:"fileViewer,omitempty"`
-	Search             UserDefaultsSearch     `json:"search,omitempty"`
-	UI                 UserDefaultsUI         `json:"ui,omitempty"`
-	FileLoading        users.FileLoading      `json:"fileLoading,omitempty"`
-	Account            UserDefaultsAccount    `json:"account,omitempty"`
-	DefaultScopes      []users.BackendScope   `json:"-"`
-	UserDefaultsLegacy `yaml:",inline"`
+	Sidebar       UserDefaultsSidebar    `json:"sidebar,omitempty"`
+	Listing       UserDefaultsListing    `json:"listing,omitempty"`
+	Preview       UserDefaultsPreview    `json:"preview,omitempty"`
+	FileViewer    UserDefaultsFileViewer `json:"fileViewer,omitempty"`
+	Search        UserDefaultsSearch     `json:"search,omitempty"`
+	UI            UserDefaultsUI         `json:"ui,omitempty"`
+	FileLoading   users.FileLoading      `json:"fileLoading,omitempty"`
+	Account       UserDefaultsAccount    `json:"account,omitempty"`
+	DefaultScopes []users.BackendScope   `json:"-"`
 }

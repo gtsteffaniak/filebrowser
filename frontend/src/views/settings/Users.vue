@@ -11,10 +11,18 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("general.users") }}</h2>
-    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
 
   <div class="card-content full">
+    <div v-if="isAdmin" class="settings-items user-defaults-entry">
+      <SettingsButton
+        class="item"
+        :name="$t('settings.userDefaults')"
+        :description="$t('settings.userDefaultsDescription')"
+        @click="openUserDefaultsPrompt"
+      />
+      <ActivityViewerButton class="item" :href="activityViewerHref" />
+    </div>
     <settings-table
       :columns="userTableColumns"
       :items="users"
@@ -52,6 +60,8 @@ import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
@@ -60,6 +70,8 @@ export default {
   components: {
     Errors,
     SettingsTable,
+    SettingsButton,
+    ActivityViewerButton,
   },
   data: function () {
     return {
@@ -148,6 +160,14 @@ export default {
       } else {
         mutations.showPrompt({ name: "user-edit" });
       }
+    },
+    openUserDefaultsPrompt() {
+      mutations.showPrompt({
+        name: "user-defaults",
+        props: {
+          title: this.$t("settings.userDefaults"),
+        },
+      });
     },
   },
 };

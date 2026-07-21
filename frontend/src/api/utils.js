@@ -1,6 +1,10 @@
 import i18n from "@/i18n";
-import { state } from "@/store";
+import { getters, state } from "@/store";
 import { renew } from "@/utils/auth";
+
+function isPublicApiUrl(url) {
+  return typeof url === "string" && url.includes("public/api/");
+}
 
 const defaultRequestTimeoutMs = 5000;
 
@@ -44,8 +48,14 @@ export async function fetchURL(url, opts, auth = true) {
     throw error;
   }
 
-  if (auth && res.headers.get("X-Renew-Token") === "true") {
-    // Cookie is automatically sent, no need to pass JWT from state
+  if (
+    auth &&
+    res.headers.get("X-Renew-Token") === "true" &&
+    !getters.isShare() &&
+    !isPublicApiUrl(url)
+  ) {
+    // Cookie is automatically sent, no need to pass JWT from state.
+    // Skip on public share routes: renew hits /api/auth/renew, which may sit behind proxy basic auth.
     await renew();
   }
 

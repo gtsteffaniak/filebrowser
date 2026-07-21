@@ -1,10 +1,9 @@
 <template>
   <div class="card-content info-content">
-    <a
+    <ActivityViewerButton
       v-if="source"
-      class="button button--flat button--blue activity-viewer-link"
       :href="activityViewerHref"
-    >{{ $t("tools.activityViewer.viewActivity") }}</a>
+    />
     <div class="info-grid">
       <!-- Basic Information Section -->
       <div class="info-section">
@@ -104,11 +103,13 @@ import { state } from "@/store";
 import { notify } from "@/notify";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 
 export default {
   name: "info",
   components: {
     ExpandDropdown,
+    ActivityViewerButton,
   },
   props: {
     item: {

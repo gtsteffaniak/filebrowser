@@ -29,6 +29,7 @@ export const state = reactive({
   isSearchActive: false,
   showSidebar: false,
   displayPreferences: {},
+  enforcedUserDefaults: {},
   usages: {},
   editor: null,
   editorDirty: false,

@@ -1,5 +1,6 @@
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
+import * as settingsApi from "@/api/settings";
 import * as i18n from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
@@ -404,6 +405,7 @@ export const mutations = {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
         state.user = value;
+        state.enforcedUserDefaults = {};
         emitStateChanged();
         return;
       }
@@ -474,6 +476,24 @@ export const mutations = {
 
     } catch (_error) {
       // Silently ignore errors when loading preferences
+    }
+    emitStateChanged();
+  },
+  syncEnforcedUserDefaults: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.enforcedUserDefaults = {};
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await settingsApi.getEnforcedUserDefaults();
+      state.enforcedUserDefaults = data.enforced || {};
+    } catch {
+      state.enforcedUserDefaults = {};
     }
     emitStateChanged();
   },
@@ -638,7 +658,27 @@ export const mutations = {
             JSON.stringify(getObjectProperty(value, key)),
       );
       if (updatedProperties.length > 0) {
-        await usersApi.update(state.user, updatedProperties).catch((e) => notify.showError(e));
+        try {
+          await usersApi.update(state.user, updatedProperties);
+        } catch (e) {
+          state.user = { ...previousUser };
+          if (
+            value.locale !== undefined &&
+            value.locale !== previousUser.locale
+          ) {
+            const prevLocale = previousUser.locale || "en";
+            await i18n.setLocale(prevLocale);
+            i18n.default.locale = prevLocale;
+            if (previousUser.locale) {
+              localStorage.setItem("userLocale", previousUser.locale);
+            } else {
+              localStorage.removeItem("userLocale");
+            }
+          }
+          notify.showError(e);
+          emitStateChanged();
+          throw e;
+        }
       }
     }
     // Emit state change event

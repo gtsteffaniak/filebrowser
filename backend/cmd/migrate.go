@@ -237,15 +237,18 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
 			user.SidebarLinks = normalized
 		}
+		prevVersion := user.Version
 		if len(user.BackendScopes) == 0 {
 			settings.ApplyUserDefaults(user)
-			if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
-				user.SidebarLinks = normalized
-			}
 		}
-		users.MigrateToSourcePermissions(user)
+		if prevVersion < users.SourcePermissionsMigrationVersion {
+			// ApplyUserDefaults bumps Version; restore pre-defaults version so legacy global file ops migrate to scopes.
+			user.Version = prevVersion
+			users.MigrateToSourcePermissions(user)
+		}
 		normalizeUserTokensBeforeSQLite(user)
 		updateTokens(user)
+		user.Version = users.ProfileStorageVersion
 		if newScopesCount > oldScopesCount {
 			promoted++
 			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",

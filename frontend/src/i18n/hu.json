@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "Az elemzési diagnosztikai adatok betöltése nem sikerült",
     "scopePath": "A hatókör útvonala",
     "sourcePermissionsHelp": "Bontsa ki a forrás sorát, hogy beállítsa az adott forrás megtekintési, letöltési, módosítási, létrehozási és törlési jogosultságait.",
-    "permissionsHelp": "A felhasználó globális jogosultságai mindenhol érvényesek, beleértve az összes forrást és megosztást is."
+    "permissionsHelp": "A felhasználó globális jogosultságai mindenhol érvényesek, beleértve az összes forrást és megosztást is.",
+    "userDefaults": "Felhasználói alapbeállítások",
+    "userDefaultsDescription": "Állítsa be az új felhasználókra alkalmazandó alapértelmezett beállításokat, valamint az összes felhasználóra vonatkozó érvényes szabályzatot.",
+    "accountDefaults": "Fiók alapbeállításai",
+    "disableUserSettings": "A felhasználói beállítások oldal letiltása",
+    "userDefaultsLockedFromConfig": "A felhasználói alapbeállítások a konfigurációs fájlban lettek megadva, és addig nem módosíthatók, amíg egy rendszergazda ki nem távolítja a „userDefaults” bejegyzést a konfigurációs fájlból."
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",
@@ -603,7 +608,8 @@
     "none": "Nincs",
     "viewFiles": "Fájlok megtekintése és felsorolása",
     "source": "{prefix}Forrás{suffix}",
-    "sources": "{prefix}Források{suffix}"
+    "sources": "{prefix}Források{suffix}",
+    "enforce": "Kötelezővé tenni{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -716,7 +722,11 @@
     "lastUsed": "Utoljára használva",
     "passkeyDefaultName": "Jelszókulcs",
     "showToolsInSidebar": "Eszközök megjelenítése az oldalsávban",
-    "showToolsInSidebarDescription": "Mindig jelenítse meg az eszközök linket az oldalsávban."
+    "showToolsInSidebarDescription": "Mindig jelenítse meg az eszközök linket az oldalsávban.",
+    "enforcedByAdmin": "A rendszergazda letiltotta a felhasználók számára ennek a tulajdonságnak a módosítását",
+    "singleClick": "A fájlok megnyitásához elég egy kattintás",
+    "stickySidebar": "Rögzített oldalsáv",
+    "darkMode": "Sötét mód"
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

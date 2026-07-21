@@ -23,14 +23,16 @@ frontend:
   name: ""
   disableUsedPercentage: true
 userDefaults:
-  locale: ""
-  viewMode: ""
-  darkMode: true
-  disableSettings: false
-  singleClick: true
-  permissions:
-    admin: true
-    modify: true
-    share: true
-    api: true
-  dateFormat: false
+  ui:
+    darkMode: true
+    locale: ""
+  listing:
+    singleClick: true
+    dateFormat: false
+    viewMode: ""
+  account:
+    disableSettings: false
+    permissions:
+      admin: true
+      share: true
+      api: true

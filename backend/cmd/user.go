@@ -53,6 +53,13 @@ func validateUserInfo(newDB bool) {
 		if normalizeApiTokenPermissions(user) {
 			updateUser = true
 		}
+		if state.ApplyEnforcedSyncToUser(user) {
+			updateUser = true
+		}
+		if user.Version < users.ProfileStorageVersion {
+			user.Version = users.ProfileStorageVersion
+			updateUser = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
 		if adminUser == "" {
 			adminUser = "admin"
@@ -86,12 +93,12 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			fields := []string{"backendScopes", "backendSourcePermissions", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
+			plainPass := ""
 			if changePass {
-				fields = append(fields, "Password")
+				plainPass = user.Password
 			}
-
-			err := state.UpdateUser(user, user.Password, fields...)
+			// Full update: migration may touch enforced profile fields beyond the legacy whitelist.
+			err := state.UpdateUser(user, plainPass)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
 			}
@@ -252,40 +259,42 @@ func updateSidebarLinks(user *users.User) bool {
 
 	sourceLinksCount, validSourceLinksCount := countSidebarSourceLinks(user.SidebarLinks)
 
-	if sourceLinksCount == 0 {
+	shouldRebuildFromScopes := len(user.BackendScopes) > 0 &&
+		(sourceLinksCount == 0 || validSourceLinksCount == 0)
+	if !shouldRebuildFromScopes {
 		return updated
 	}
 
-	if validSourceLinksCount == 0 {
+	if sourceLinksCount > 0 && validSourceLinksCount == 0 {
 		logger.Infof("User %s has %d stale source links, rebuilding from scopes", user.Username, sourceLinksCount)
-
-		newLinks := []users.SidebarLink{}
-		for _, link := range user.SidebarLinks {
-			if !strings.HasPrefix(link.Category, "source") {
-				newLinks = append(newLinks, link)
-			}
-		}
-
-		for _, scope := range user.BackendScopes {
-			if source, ok := settings.Config.Server.SourceMap[scope.Path]; ok {
-				newLinks = append(newLinks, users.SidebarLink{
-					Name:       source.Name,
-					Category:   "source",
-					Target:     "/",
-					Icon:       "",
-					SourceName: source.Path,
-				})
-			}
-		}
-
-		user.SidebarLinks = newLinks
-		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
-			user.SidebarLinks = normalized
-		}
-		return true
+	} else if sourceLinksCount == 0 {
+		logger.Infof("User %s has no source sidebar links, building from scopes", user.Username)
 	}
 
-	return updated
+	newLinks := []users.SidebarLink{}
+	for _, link := range user.SidebarLinks {
+		if !strings.HasPrefix(link.Category, "source") {
+			newLinks = append(newLinks, link)
+		}
+	}
+
+	for _, scope := range user.BackendScopes {
+		if source, ok := settings.Config.Server.SourceMap[scope.Path]; ok {
+			newLinks = append(newLinks, users.SidebarLink{
+				Name:       source.Name,
+				Category:   "source",
+				Target:     "/",
+				Icon:       "",
+				SourceName: source.Path,
+			})
+		}
+	}
+
+	user.SidebarLinks = newLinks
+	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+		user.SidebarLinks = normalized
+	}
+	return true
 }
 
 func countSidebarSourceLinks(links []users.SidebarLink) (total, valid int) {

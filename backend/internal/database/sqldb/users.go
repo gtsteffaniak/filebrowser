@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 // User SQL operations
@@ -24,7 +25,8 @@ type UserData struct {
 	Version          int                        `json:"version"`
 	ShowFirstLogin   bool                       `json:"showFirstLogin"`
 	PinnedItems              users.PinnedItems                      `json:"pinnedItems,omitempty"`
-	NonAdminEditable         users.NonAdminEditable                 `json:"settings"`
+	Profile                  json.RawMessage                        `json:"profile,omitempty"`
+	NonAdminEditable         users.NonAdminEditable                 `json:"settings,omitempty"`
 	BackendSourcePermissions map[string]users.SourceFilePermissions `json:"backendSourcePermissions,omitempty"`
 	Share                    bool                                   `json:"share,omitempty"`
 	// FilePermissions is read only for v3 users pending startup migration to v4.
@@ -59,8 +61,14 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 	user.Version = userData.Version
 	user.ShowFirstLogin = userData.ShowFirstLogin
 	user.PinnedItems = userData.PinnedItems
-	user.NonAdminEditable = userData.NonAdminEditable
 	user.BackendSourcePermissions = userData.BackendSourcePermissions
+	if len(userData.Profile) > 0 {
+		if err := settings.ApplyProfileToUser(user, userData.Profile); err != nil {
+			return fmt.Errorf("apply user profile: %w", err)
+		}
+	} else {
+		user.NonAdminEditable = userData.NonAdminEditable
+	}
 	if userData.Share {
 		user.Permissions.Share = true
 	}
@@ -73,6 +81,14 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 }
 
 func userDataForPersist(user *users.User) UserData {
+	profileJSON, err := settings.ProfileJSONFromUser(user)
+	if err != nil {
+		profileJSON = nil
+	}
+	legacySettings := user.NonAdminEditable
+	if user.Version >= users.ProfileStorageVersion {
+		legacySettings = users.NonAdminEditable{}
+	}
 	return UserData{
 		Password:                 user.Password,
 		BackendScopes:            user.BackendScopes,
@@ -84,7 +100,8 @@ func userDataForPersist(user *users.User) UserData {
 		Version:                  user.Version,
 		ShowFirstLogin:           user.ShowFirstLogin,
 		PinnedItems:              user.PinnedItems,
-		NonAdminEditable:         user.NonAdminEditable,
+		Profile:                  profileJSON,
+		NonAdminEditable:         legacySettings,
 		BackendSourcePermissions: user.BackendSourcePermissions,
 		Share:                    user.Permissions.Share,
 	}

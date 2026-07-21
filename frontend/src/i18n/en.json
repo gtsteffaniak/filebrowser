@@ -160,7 +160,8 @@
     "playPause": "Play/Pause",
     "clearSelection": "Clear selection",
     "interval": "Interval{suffix}",
-    "none": "None"
+    "none": "None",
+    "enforce": "Enforce{suffix}"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -481,6 +482,7 @@
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
+    "enforcedByAdmin": "Your administrator has prevented users from changing this property",
     "hideFileExt": "Hide certain files (by extension)",
     "hideFileExtDescription": "A space-separated list of file extensions. Extensions in this field will be hidden from all the UI (visually, like the listing or FileTree) -- The files still accessible.",
     "preferEditorForMarkdown": "Prefer editor first for Markdown files",
@@ -499,6 +501,9 @@
     "customTheme": "Choose your theme",
     "defaultThemeDescription": "default - The default theme",
     "setDateFormat": "Set exact date format",
+    "singleClick": "Single-click to open files",
+    "stickySidebar": "Sticky sidebar",
+    "darkMode": "Dark mode",
     "showHiddenFiles": "Show hidden files",
     "showHiddenFilesDescription": "Show hidden files in listing (e.g. .thumbnails, ProgramData), but they are still manually accessible if configured to be indexed.",
     "showQuickDownload": "Show download icon for quick access",
@@ -561,6 +566,11 @@
     "configViewerShowComments": "Show comments",
     "configViewerOpen": "View configuration",
     "configViewerDescription": "Open a read-only view of the current server configuration.",
+    "userDefaults": "User defaults",
+    "userDefaultsDescription": "Configure default settings applied to new users and enforced policy for all users.",
+    "userDefaultsLockedFromConfig": "User defaults have been set in the config file and cannot be changed until an admin removes the userDefaults from the config file.",
+    "accountDefaults": "Account defaults",
+    "disableUserSettings": "Disable user settings page",
     "analyticsView": "View analytics",
     "analyticsViewDescription": "Open a read-only view of the deployment analytics snapshot collected from this server.",
     "analyticsEnabled": "Send deployment analytics",

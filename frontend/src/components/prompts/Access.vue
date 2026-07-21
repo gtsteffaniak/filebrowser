@@ -26,10 +26,7 @@
         :placeholder="$t('sidebar.chooseSource')"
         @navigate="onPathPickerNavigate"
       />
-      <a
-        class="button button--flat button--blue activity-viewer-link"
-        :href="activityViewerHref"
-      >{{ $t("tools.activityViewer.viewActivity") }}</a>
+      <ActivityViewerButton :href="activityViewerHref" />
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
@@ -119,12 +116,20 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "access",
-  components: { FileList, ToggleSwitch, LoadingSpinner, PathPickerButton, ExpandDropdown },
+  components: {
+    FileList,
+    ToggleSwitch,
+    LoadingSpinner,
+    PathPickerButton,
+    ExpandDropdown,
+    ActivityViewerButton,
+  },
   props: {
     sourceName: { type: String, required: true },
     path: { type: String, required: true, default: "/" }

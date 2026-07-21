@@ -58,7 +58,7 @@ export async function findDuplicates(base, source, minSizeMb, useChecksum = fals
       params.useChecksum = "true";
     }
 
-    const apiPath = getApiPath("tools/duplicateFinder", params);
+    const apiPath = getApiPath("tools/duplicate-finder", params);
     const res = await fetchURL(apiPath);
     const data = await res.json();
 

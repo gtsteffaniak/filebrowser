@@ -47,3 +47,33 @@ func TestUpdateSidebarLinks_dedupesDuplicateMigratedLinks(t *testing.T) {
 		t.Fatalf("got %d source links, want 3: %v", count, user.SidebarLinks)
 	}
 }
+
+func TestUpdateSidebarLinks_buildsFromScopesWhenNoSourceLinks(t *testing.T) {
+	settings.Initialize(settingsMigrationConfigPath(t))
+	alignSettingsSourcesForMigrationFixture(t)
+
+	user := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "admin",
+		},
+		BackendScopes: []users.BackendScope{
+			{Path: fixturePlaywrightSource, Scope: "/"},
+			{Path: fixtureDockerSource, Scope: "/"},
+			{Path: fixtureAccessSource, Scope: "/"},
+		},
+	}
+
+	if !updateSidebarLinks(user) {
+		t.Fatal("expected updateSidebarLinks to return true")
+	}
+
+	count := 0
+	for _, link := range user.SidebarLinks {
+		if strings.HasPrefix(link.Category, "source") {
+			count++
+		}
+	}
+	if count != 3 {
+		t.Fatalf("got %d source links, want 3: %v", count, user.SidebarLinks)
+	}
+}

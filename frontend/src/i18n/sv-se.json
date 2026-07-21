@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "Det gick inte att ladda diagnostisk information om analysdata",
     "scopePath": "Omfattningsväg",
     "sourcePermissionsHelp": "Veckla ut en källrad för att ställa in behörigheter för visning, nedladdning, redigering, skapande och radering för den källan.",
-    "permissionsHelp": "Användarens globala behörigheter gäller överallt, inklusive alla källor och delade resurser."
+    "permissionsHelp": "Användarens globala behörigheter gäller överallt, inklusive alla källor och delade resurser.",
+    "userDefaults": "Användarinställningar",
+    "userDefaultsDescription": "Konfigurera standardinställningar som ska tillämpas på nya användare och policyer som ska gälla för alla användare.",
+    "accountDefaults": "Standardinställningar för konton",
+    "disableUserSettings": "Inaktivera sidan för användarinställningar",
+    "userDefaultsLockedFromConfig": "Användarinställningarna har angetts i konfigurationsfilen och kan inte ändras förrän en administratör tar bort ”userDefaults” från konfigurationsfilen."
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",
@@ -543,7 +548,11 @@
     "lastUsed": "Senast använd",
     "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Visa verktyg i sidofältet",
-    "showToolsInSidebarDescription": "Visa alltid verktygslänken i sidofältet."
+    "showToolsInSidebarDescription": "Visa alltid verktygslänken i sidofältet.",
+    "enforcedByAdmin": "Din administratör har spärrat användarnas möjlighet att ändra den här egenskapen",
+    "singleClick": "Öppna filer med ett enda klick",
+    "stickySidebar": "Fast sidomeny",
+    "darkMode": "Mörkt läge"
   },
   "general": {
     "name": "Namn",
@@ -697,7 +706,8 @@
     "none": "Ingen",
     "viewFiles": "Visa och lista filer",
     "source": "{prefix}Källa{suffix}",
-    "sources": "{prefix}Källor{suffix}"
+    "sources": "{prefix}Källor{suffix}",
+    "enforce": "Tillämpa{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

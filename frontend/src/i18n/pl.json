@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "Nie udało się załadować informacji diagnostycznych dotyczących analityki",
     "scopePath": "Ścieżka zakresu",
     "sourcePermissionsHelp": "Rozwiń wiersz źródła, aby ustawić uprawnienia do przeglądania, pobierania, modyfikowania, tworzenia i usuwania dla tego źródła.",
-    "permissionsHelp": "Uprawnienia globalne użytkownika mają zastosowanie wszędzie, w tym do wszystkich źródeł i udziałów."
+    "permissionsHelp": "Uprawnienia globalne użytkownika mają zastosowanie wszędzie, w tym do wszystkich źródeł i udziałów.",
+    "userDefaults": "Ustawienia domyślne użytkownika",
+    "userDefaultsDescription": "Skonfiguruj ustawienia domyślne dla nowych użytkowników oraz zasady obowiązujące wszystkich użytkowników.",
+    "accountDefaults": "Ustawienia domyślne konta",
+    "disableUserSettings": "Wyłącz stronę ustawień użytkownika",
+    "userDefaultsLockedFromConfig": "Domyślne ustawienia użytkownika zostały zdefiniowane w pliku konfiguracyjnym i nie można ich zmienić, dopóki administrator nie usunie wpisu „userDefaults” z tego pliku."
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",
@@ -603,7 +608,8 @@
     "none": "Brak",
     "viewFiles": "Wyświetlanie i wyświetlanie listy plików",
     "source": "{prefix}Źródło{suffix}",
-    "sources": "{prefix}Źródła{suffix}"
+    "sources": "{prefix}Źródła{suffix}",
+    "enforce": "Egzekwować{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -716,7 +722,11 @@
     "lastUsed": "Ostatnio użyty",
     "passkeyDefaultName": "Klucz dostępu",
     "showToolsInSidebar": "Pokaż narzędzia na pasku bocznym",
-    "showToolsInSidebarDescription": "Zawsze wyświetlaj link do narzędzi na pasku bocznym."
+    "showToolsInSidebarDescription": "Zawsze wyświetlaj link do narzędzi na pasku bocznym.",
+    "enforcedByAdmin": "Administrator zablokował użytkownikom możliwość zmiany tej właściwości",
+    "singleClick": "Wystarczy jedno kliknięcie, aby otworzyć pliki",
+    "stickySidebar": "Przyklejony pasek boczny",
+    "darkMode": "Tryb ciemny"
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

@@ -9,6 +9,11 @@ server-main: &server-main
       name: "playwright + files"
       config:
         defaultEnabled: true
+        defaultPermissions:
+          view: true
+          download: true
+          modify: true
+          create: true
     - path: "."
       name: "docker"
       config:

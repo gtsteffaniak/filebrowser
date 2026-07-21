@@ -895,7 +895,10 @@ definitions:
       server:
         $ref: '#/definitions/settings.Server'
       userDefaults:
-        $ref: '#/definitions/settings.UserDefaults'
+        allOf:
+        - $ref: '#/definitions/settings.UserDefaults'
+        description: optional signup/CLI defaults; per-user values are managed in
+          the UI
     type: object
   settings.Source:
     properties:
@@ -919,6 +922,11 @@ definitions:
       defaultEnabled:
         description: should be added as a default source for new users?
         type: boolean
+      defaultPermissions:
+        allOf:
+        - $ref: '#/definitions/users.SourceFilePermissions'
+        description: DefaultPermissions is the template for new user scopes on this
+          source (also synced globally via Access settings).
       defaultUserScope:
         description: defaults to root of index "/" should match folders under path
         type: string
@@ -987,9 +995,7 @@ definitions:
       search:
         $ref: '#/definitions/settings.UserDefaultsSearch'
       sidebar:
-        allOf:
-        - $ref: '#/definitions/settings.UserDefaultsSidebar'
-        description: New organized structure
+        $ref: '#/definitions/settings.UserDefaultsSidebar'
       ui:
         $ref: '#/definitions/settings.UserDefaultsUI'
     type: object
@@ -1017,18 +1023,6 @@ definitions:
         type: boolean
       api:
         description: allow api access
-        type: boolean
-      create:
-        description: allow creating or uploading files
-        type: boolean
-      delete:
-        description: allow deleting files
-        type: boolean
-      download:
-        description: allow downloading files
-        type: boolean
-      modify:
-        description: allow modifying files
         type: boolean
       realtime:
         description: allow realtime updates
@@ -1820,6 +1814,9 @@ definitions:
     type: object
   users.SourceFilePermissions:
     properties:
+      configured:
+        description: true when explicitly set (allows intentional deny-all)
+        type: boolean
       create:
         type: boolean
       delete:
@@ -4460,7 +4457,7 @@ paths:
       summary: List share links
       tags:
       - Shares
-  /api/tools/duplicateFinder:
+  /api/tools/duplicate-finder:
     get:
       consumes:
       - application/json
@@ -4508,7 +4505,7 @@ paths:
       summary: Find Duplicate Files
       tags:
       - Tools
-  /api/tools/fileWatcher:
+  /api/tools/file-watcher:
     get:
       consumes:
       - application/json
@@ -4566,7 +4563,7 @@ paths:
       summary: Watch a file
       tags:
       - Tools
-  /api/tools/fileWatcher/sse:
+  /api/tools/file-watcher/sse:
     get:
       description: Establishes an SSE connection to receive periodic file updates
       parameters:
@@ -4757,52 +4754,7 @@ paths:
       summary: List users or get one by username
       tags:
       - Users
-    post:
-      consumes:
-      - application/json
-      description: Adds a new user to the system. When the authenticated actor uses
-        password login, they must send their current password in the X-Password header.
-      parameters:
-      - description: Actor's current password (URL-encoded); required for password-login
-          actors
-        in: header
-        name: X-Password
-        type: string
-      - description: User data to create a new user
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/users.User'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created user
-          schema:
-            $ref: '#/definitions/users.User'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized - invalid or missing actor password when required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create a new user
-      tags:
-      - Users
-    put:
+    patch:
       consumes:
       - application/json
       description: Updates the details of a user identified by ID. When the authenticated
@@ -4860,7 +4812,52 @@ paths:
       summary: Update a user's details
       tags:
       - Users
-  /api/users/pinnedItems:
+    post:
+      consumes:
+      - application/json
+      description: Adds a new user to the system. When the authenticated actor uses
+        password login, they must send their current password in the X-Password header.
+      parameters:
+      - description: Actor's current password (URL-encoded); required for password-login
+          actors
+        in: header
+        name: X-Password
+        type: string
+      - description: User data to create a new user
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/users.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created user
+          schema:
+            $ref: '#/definitions/users.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - invalid or missing actor password when required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new user
+      tags:
+      - Users
+  /api/users/pinned-items:
     patch:
       consumes:
       - application/json

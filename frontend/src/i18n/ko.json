@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "분석 진단 정보를 불러오지 못했습니다.",
     "scopePath": "범위 경로",
     "sourcePermissionsHelp": "소스 행을 확장하여 해당 소스에 대한 보기, 다운로드, 수정, 생성 및 삭제 권한을 설정합니다.",
-    "permissionsHelp": "해당 사용자의 전체 권한은 모든 소스 및 공유 항목을 포함하여 모든 곳에 적용됩니다."
+    "permissionsHelp": "해당 사용자의 전체 권한은 모든 소스 및 공유 항목을 포함하여 모든 곳에 적용됩니다.",
+    "userDefaults": "사용자 기본 설정",
+    "userDefaultsDescription": "신규 사용자에게 적용될 기본 설정을 구성하고, 모든 사용자에게 적용될 정책을 설정합니다.",
+    "accountDefaults": "계정 기본 설정",
+    "disableUserSettings": "사용자 설정 페이지 비활성화",
+    "userDefaultsLockedFromConfig": "사용자 기본값은 구성 파일에 설정되어 있으며, 관리자가 구성 파일에서 userDefaults를 삭제하기 전까지는 변경할 수 없습니다."
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",
@@ -603,7 +608,8 @@
     "none": "없음",
     "viewFiles": "파일 보기 및 목록 표시",
     "source": "{prefix}출처{suffix}",
-    "sources": "{prefix}출처{suffix}"
+    "sources": "{prefix}출처{suffix}",
+    "enforce": "적용{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -716,7 +722,11 @@
     "lastUsed": "마지막 사용",
     "passkeyDefaultName": "패스키",
     "showToolsInSidebar": "사이드바에 도구 표시",
-    "showToolsInSidebarDescription": "사이드바에 항상 도구 링크를 표시합니다."
+    "showToolsInSidebarDescription": "사이드바에 항상 도구 링크를 표시합니다.",
+    "enforcedByAdmin": "관리자가 사용자가 이 속성을 변경하지 못하도록 제한했습니다.",
+    "singleClick": "한 번의 클릭으로 파일 열기",
+    "stickySidebar": "고정 사이드바",
+    "darkMode": "다크 모드"
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

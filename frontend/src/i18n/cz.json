@@ -389,7 +389,11 @@
     "lastUsed": "Naposledy použito",
     "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Zobrazení nástrojů v postranním panelu",
-    "showToolsInSidebarDescription": "V postranním panelu vždy zobrazte odkaz na nástroje."
+    "showToolsInSidebarDescription": "V postranním panelu vždy zobrazte odkaz na nástroje.",
+    "enforcedByAdmin": "Váš správce zakázal uživatelům měnit tuto vlastnost",
+    "singleClick": "Otevření souborů jedním kliknutím",
+    "stickySidebar": "Lepivý postranní panel",
+    "darkMode": "Tmavý režim"
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -432,7 +436,12 @@
     "analyticsPreviewFailed": "Nepodařilo se načíst diagnostické údaje o analytice",
     "scopePath": "Trasa dalekohledu",
     "sourcePermissionsHelp": "Rozbalte řádek zdroje, abyste mohli nastavit oprávnění k prohlížení, stahování, úpravám, vytváření a mazání pro daný zdroj.",
-    "permissionsHelp": "Globální oprávnění pro daného uživatele platí všude, včetně všech zdrojů a sdílených složek."
+    "permissionsHelp": "Globální oprávnění pro daného uživatele platí všude, včetně všech zdrojů a sdílených složek.",
+    "userDefaults": "Výchozí nastavení uživatele",
+    "userDefaultsDescription": "Nastavte výchozí nastavení pro nové uživatele a vynuťte dodržování zásad pro všechny uživatele.",
+    "accountDefaults": "Výchozí nastavení účtu",
+    "disableUserSettings": "Zakázat stránku uživatelských nastavení",
+    "userDefaultsLockedFromConfig": "Výchozí nastavení uživatele bylo nastaveno v konfiguračním souboru a nelze jej změnit, dokud správce neodstraní položku „userDefaults“ z konfiguračního souboru."
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",
@@ -697,7 +706,8 @@
     "none": "Žádné",
     "viewFiles": "Zobrazení a seznam souborů",
     "source": "{prefix}Zdroj{suffix}",
-    "sources": "{prefix}Zdroje{suffix}"
+    "sources": "{prefix}Zdroje{suffix}",
+    "enforce": "Vynutit{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

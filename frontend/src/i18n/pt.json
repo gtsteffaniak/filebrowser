@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise",
     "scopePath": "Percurso do alcance",
     "sourcePermissionsHelp": "Expanda uma linha de fonte para definir permissões de visualização, descarregamento, modificação, criação e eliminação para essa fonte.",
-    "permissionsHelp": "As permissões globais do utilizador aplicam-se em todo o lado, incluindo todas as fontes e partilhas."
+    "permissionsHelp": "As permissões globais do utilizador aplicam-se em todo o lado, incluindo todas as fontes e partilhas.",
+    "userDefaults": "Definições predefinidas do utilizador",
+    "userDefaultsDescription": "Configure as definições predefinidas aplicadas aos novos utilizadores e a política imposta a todos os utilizadores.",
+    "accountDefaults": "Definições predefinidas da conta",
+    "disableUserSettings": "Desativar a página de definições do utilizador",
+    "userDefaultsLockedFromConfig": "As predefinições do utilizador foram definidas no ficheiro de configuração e não podem ser alteradas até que um administrador elimine o «userDefaults» do ficheiro de configuração."
   },
   "sidebar": {
     "updateIsAvailable": "Está disponível uma atualização!",
@@ -543,7 +548,11 @@
     "lastUsed": "Última utilização",
     "passkeyDefaultName": "Chave de acesso",
     "showToolsInSidebar": "Mostrar ferramentas na barra lateral",
-    "showToolsInSidebarDescription": "Mostrar sempre a ligação para as ferramentas na barra lateral."
+    "showToolsInSidebarDescription": "Mostrar sempre a ligação para as ferramentas na barra lateral.",
+    "enforcedByAdmin": "O seu administrador impediu que os utilizadores alterem esta propriedade",
+    "singleClick": "Basta um clique para abrir ficheiros",
+    "stickySidebar": "Barra lateral fixa",
+    "darkMode": "Modo escuro"
   },
   "general": {
     "name": "Nome",
@@ -697,7 +706,8 @@
     "none": "Nenhum",
     "viewFiles": "Ver e listar ficheiros",
     "source": "{prefix}Fonte{suffix}",
-    "sources": "{prefix}Fontes{suffix}"
+    "sources": "{prefix}Fontes{suffix}",
+    "enforce": "Aplicar{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

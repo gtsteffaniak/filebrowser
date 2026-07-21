@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "Die Analyse-Diagnoseinformationen konnten nicht geladen werden",
     "scopePath": "Gültigkeitsbereichspfad",
     "sourcePermissionsHelp": "Erweitern Sie eine Quellzeile, um Berechtigungen zum Anzeigen, Herunterladen, Ändern, Erstellen und Löschen für diese Quelle festzulegen.",
-    "permissionsHelp": "Die globalen Berechtigungen für den Benutzer gelten überall, einschließlich aller Quellen und Freigaben."
+    "permissionsHelp": "Die globalen Berechtigungen für den Benutzer gelten überall, einschließlich aller Quellen und Freigaben.",
+    "userDefaults": "Benutzervorgaben",
+    "userDefaultsDescription": "Konfigurieren Sie die Standardeinstellungen für neue Benutzer und die für alle Benutzer geltenden Richtlinien.",
+    "accountDefaults": "Standardwerte für Konten",
+    "disableUserSettings": "Seite „Benutzereinstellungen“ deaktivieren",
+    "userDefaultsLockedFromConfig": "Die Benutzervorgaben wurden in der Konfigurationsdatei festgelegt und können erst geändert werden, wenn ein Administrator die „userDefaults“ aus der Konfigurationsdatei entfernt."
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",
@@ -603,7 +608,8 @@
     "none": "Keine",
     "viewFiles": "Dateien anzeigen und auflisten",
     "source": "{prefix}Quelle{suffix}",
-    "sources": "{prefix}Quellen{suffix}"
+    "sources": "{prefix}Quellen{suffix}",
+    "enforce": "Durchsetzen{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -716,7 +722,11 @@
     "lastUsed": "Zuletzt verwendet",
     "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Werkzeuge in der Seitenleiste anzeigen",
-    "showToolsInSidebarDescription": "Zeigen Sie immer den Link \"Tools\" in der Seitenleiste an."
+    "showToolsInSidebarDescription": "Zeigen Sie immer den Link \"Tools\" in der Seitenleiste an.",
+    "enforcedByAdmin": "Ihr Administrator hat verhindert, dass Benutzer diese Eigenschaft ändern können.",
+    "singleClick": "Dateien mit einem Klick öffnen",
+    "stickySidebar": "Feste Seitenleiste",
+    "darkMode": "Dunkler Modus"
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

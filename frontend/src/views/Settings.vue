@@ -174,6 +174,10 @@ export default {
   opacity: 1;
 }
 
+.settings-items {
+  margin-bottom: 0.5em;
+}
+
 .settings-items > .item {
   padding: 1em;
   border-radius: 1em;

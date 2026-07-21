@@ -123,21 +123,14 @@ func TestWithAdminHelper(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Mock the context with the current user
-			data := &requestContext{
-				User: tc.user,
-			}
 			tokenString, _, err := auth.MakeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Permissions, false)
 			if err != nil {
 				t.Fatalf("Error making token for request: %v", err)
 			}
 
-			// Wrap the usersGetHandler with the middleware
-			handler := withAdminHelper(mockHandler)
+			handler := withAdmin(mockHandler)
 
-			// Create a response recorder to capture the handler's output
 			recorder := httptest.NewRecorder()
-			// Create the request and apply the token as a cookie
 			req, err := http.NewRequest(http.MethodGet, "/users", http.NoBody)
 			if err != nil {
 				t.Fatalf("Error creating request: %v", err)
@@ -147,15 +140,10 @@ func TestWithAdminHelper(t *testing.T) {
 				Value: tokenString,
 			})
 
-			// Call the handler with the test request and mock context
-			status, err := handler(recorder, req, data)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
+			handler(recorder, req)
 
-			// Verify the status code
-			if status != tc.expectedStatusCode {
-				t.Errorf("\"%v\" expected status code %d, got %d", tc.name, tc.expectedStatusCode, status)
+			if recorder.Code != tc.expectedStatusCode {
+				t.Errorf("\"%v\" expected status code %d, got %d", tc.name, tc.expectedStatusCode, recorder.Code)
 			}
 		})
 	}
@@ -180,6 +168,10 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 	if err := state.CreateUser(dummyUser, ""); err != nil {
 		t.Fatal("failed to create dummy user:", err)
 	}
+
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
 
 	testCases := []struct {
 		name               string
@@ -277,18 +269,16 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			recorder := httptest.NewRecorder()
 
 			// Wrap the handler with authentication middleware
-			handler := withHashFileHelper(publicGetResourceHandler)
-			settings.Config.Auth.Key = "key"
+			handler := withHashFile(publicGetResourceHandler)
 
 			// Prepare the request with query parameters and optional headers
 			req := newTestRequest(t, tc.share.Hash, tc.token, tc.password, tc.extraHeaders)
 
 			// Serve the request
-			status, _ := handler(recorder, req, &requestContext{})
+			handler(recorder, req)
 
-			// Check if the response matches the expected status code
-			if status != tc.expectedStatusCode {
-				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, status)
+			if recorder.Code != tc.expectedStatusCode {
+				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, recorder.Code)
 			}
 		})
 	}

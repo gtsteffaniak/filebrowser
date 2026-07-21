@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "无法加载分析诊断信息",
     "scopePath": "作用域路径",
     "sourcePermissionsHelp": "展开源行，以设置该源的查看、下载、修改、创建和删除权限。",
-    "permissionsHelp": "该用户的全局权限适用于所有位置，包括所有源和共享。"
+    "permissionsHelp": "该用户的全局权限适用于所有位置，包括所有源和共享。",
+    "userDefaults": "用户默认设置",
+    "userDefaultsDescription": "配置适用于新用户的默认设置，并为所有用户强制执行相关策略。",
+    "accountDefaults": "账户默认设置",
+    "disableUserSettings": "禁用“用户设置”页面",
+    "userDefaultsLockedFromConfig": "用户默认设置已在配置文件中设定，除非管理员从配置文件中删除 userDefaults，否则无法更改。"
   },
   "sidebar": {
     "updateIsAvailable": "有了最新进展！",
@@ -543,7 +548,11 @@
     "lastUsed": "上次使用",
     "passkeyDefaultName": "通行密钥",
     "showToolsInSidebar": "在侧边栏显示工具",
-    "showToolsInSidebarDescription": "始终在侧边栏显示工具链接。"
+    "showToolsInSidebarDescription": "始终在侧边栏显示工具链接。",
+    "enforcedByAdmin": "系统管理员已禁止用户更改此属性",
+    "singleClick": "单击即可打开文件",
+    "stickySidebar": "固定侧边栏",
+    "darkMode": "深色模式"
   },
   "general": {
     "name": "名称",
@@ -697,7 +706,8 @@
     "none": "无",
     "viewFiles": "查看和列出文件",
     "source": "{prefix}来源{suffix}",
-    "sources": "{prefix}来源{suffix}"
+    "sources": "{prefix}来源{suffix}",
+    "enforce": "执行{suffix}"
   },
   "access": {
     "rules": "访问规则",

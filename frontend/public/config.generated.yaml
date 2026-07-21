@@ -46,6 +46,13 @@ server:
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user under defaultUserScope + username
         useLogicalSize: false             # calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
+        defaultPermissions:               # DefaultPermissions is the template for new user scopes on this source (also synced globally via Access settings).
+          view: false
+          download: false
+          modify: false
+          delete: false
+          create: false
+          configured: false               # true when explicitly set (allows intentional deny-all)
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
@@ -166,8 +173,8 @@ frontend:
   loginIcon: ""                           # path to an image file for the login page icon
   loginButtonText: ""                     # text to display on the login button
   oidcLoginButtonText: ""                 # text to display on the OIDC login button
-userDefaults:
-  sidebar:                                # New organized structure
+userDefaults:                             # optional signup/CLI defaults; per-user values are managed in the UI
+  sidebar:
     disableQuickToggles: false            # disable the quick toggles in the sidebar
     hideFileActions: false                # hide the file actions in the sidebar
     disableHideOnPreview: false           # keep sidebar open when previewing files (was preview.disableHideSidebar)
@@ -221,12 +228,8 @@ userDefaults:
     permissions:
       api: false                          # allow api access
       admin: false                        # allow admin access
-      modify: false                       # allow modifying files
       share: false                        # allow sharing files
       realtime: false                     # allow realtime updates
-      delete: false                       # allow deleting files
-      create: false                       # allow creating or uploading files
-      download: true                      # allow downloading files
     lockPassword: false                   # disable the user from changing their password
     disableSettings: false                # disable the user from viewing the settings page
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc

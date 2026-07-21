@@ -8,6 +8,11 @@ server:
       config:
         defaultEnabled: true
         createUserDir: true
+        defaultPermissions:
+          view: true
+          download: true
+          modify: true
+          create: true
 
 frontend:
   name: "Graham's Filebrowser"
@@ -31,19 +36,17 @@ auth:
       groupsClaim: "mygroup"
       adminGroup: "admin"
 userDefaults:
+  ui:
+    darkMode: true
+  account:
+    disableSettings: false
+    permissions:
+      share: true
+  listing:
+    singleClick: false
   preview:
     image: true
     popup: true
     video: true
     office: true
     highQuality: true
-  darkMode: true
-  disableSettings: false
-  singleClick: false
-  permissions:
-    admin: false
-    modify: true
-    share: true
-    api: false
-    download: true
-    create: true

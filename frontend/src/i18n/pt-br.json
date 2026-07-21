@@ -288,7 +288,12 @@
     "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise",
     "scopePath": "Caminho do escopo",
     "sourcePermissionsHelp": "Expanda uma linha de fonte para definir permissões de visualização, download, modificação, criação e exclusão para essa fonte.",
-    "permissionsHelp": "As permissões globais do usuário se aplicam a todos os locais, incluindo todas as fontes e compartilhamentos."
+    "permissionsHelp": "As permissões globais do usuário se aplicam a todos os locais, incluindo todas as fontes e compartilhamentos.",
+    "userDefaults": "Configurações padrão do usuário",
+    "userDefaultsDescription": "Configure as configurações padrão aplicadas aos novos usuários e a política obrigatória para todos os usuários.",
+    "accountDefaults": "Configurações padrão da conta",
+    "disableUserSettings": "Desativar a página de configurações do usuário",
+    "userDefaultsLockedFromConfig": "As configurações padrão do usuário foram definidas no arquivo de configuração e não podem ser alteradas até que um administrador remova o parâmetro `userDefaults` do arquivo de configuração."
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
@@ -603,7 +608,8 @@
     "none": "Nenhum",
     "viewFiles": "Visualizar e listar arquivos",
     "source": "{prefix}Fonte{suffix}",
-    "sources": "{prefix}Fontes{suffix}"
+    "sources": "{prefix}Fontes{suffix}",
+    "enforce": "Aplicar{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -716,7 +722,11 @@
     "lastUsed": "Último uso",
     "passkeyDefaultName": "Chave de acesso",
     "showToolsInSidebar": "Mostrar ferramentas na barra lateral",
-    "showToolsInSidebarDescription": "Sempre mostre o link de ferramentas na barra lateral."
+    "showToolsInSidebarDescription": "Sempre mostre o link de ferramentas na barra lateral.",
+    "enforcedByAdmin": "O administrador impediu que os usuários alterem essa propriedade",
+    "singleClick": "Basta um clique para abrir os arquivos",
+    "stickySidebar": "Barra lateral fixa",
+    "darkMode": "Modo escuro"
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

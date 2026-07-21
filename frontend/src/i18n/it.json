@@ -160,7 +160,8 @@
     "none": "Nessuno",
     "viewFiles": "Visualizza ed elenca i file",
     "source": "{prefix}Fonte{suffix}",
-    "sources": "{prefix}Fonti{suffix}"
+    "sources": "{prefix}Fonti{suffix}",
+    "enforce": "Applicare{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -552,7 +553,11 @@
     "lastUsed": "Ultimo utilizzo",
     "passkeyDefaultName": "Passkey",
     "showToolsInSidebar": "Mostra gli strumenti nella barra laterale",
-    "showToolsInSidebarDescription": "Mostrate sempre il link agli strumenti nella barra laterale."
+    "showToolsInSidebarDescription": "Mostrate sempre il link agli strumenti nella barra laterale.",
+    "enforcedByAdmin": "L'amministratore ha impedito agli utenti di modificare questa proprietà",
+    "singleClick": "Basta un clic per aprire i file",
+    "stickySidebar": "Barra laterale fissa",
+    "darkMode": "Modalità scura"
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",
@@ -595,7 +600,12 @@
     "analyticsPreviewFailed": "Impossibile caricare le informazioni diagnostiche relative all'analisi",
     "scopePath": "Percorso di copertura",
     "sourcePermissionsHelp": "Espandi una riga di origine per impostare le autorizzazioni di visualizzazione, download, modifica, creazione ed eliminazione per quella origine.",
-    "permissionsHelp": "Le autorizzazioni globali dell'utente si applicano ovunque, comprese tutte le fonti e le condivisioni."
+    "permissionsHelp": "Le autorizzazioni globali dell'utente si applicano ovunque, comprese tutte le fonti e le condivisioni.",
+    "userDefaults": "Impostazioni predefinite dell'utente",
+    "userDefaultsDescription": "Configurare le impostazioni predefinite da applicare ai nuovi utenti e le politiche da far rispettare a tutti gli utenti.",
+    "accountDefaults": "Impostazioni predefinite dell'account",
+    "disableUserSettings": "Disattiva la pagina delle impostazioni utente",
+    "userDefaultsLockedFromConfig": "Le impostazioni predefinite dell'utente sono state configurate nel file di configurazione e non possono essere modificate finché un amministratore non rimuove la voce \"userDefaults\" dal file di configurazione."
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",

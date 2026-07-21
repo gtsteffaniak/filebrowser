@@ -79,8 +79,7 @@ func TestConfigLoadEnvVars(t *testing.T) {
 
 	defaultConfig := SetDefaults(true)
 	expectedKey := "MYKEY"
-	// mock environment variables
-	os.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", expectedKey)
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", expectedKey)
 	err = loadConfigWithDefaults(configFile, true)
 	if err != nil {
 		t.Fatalf("error loading config file: %v", err)
