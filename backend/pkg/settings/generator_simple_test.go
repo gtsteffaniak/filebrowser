@@ -12,10 +12,9 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			UserDefaultsLegacy: UserDefaultsLegacy{
-				Locale:                  "es",          // Non-default value
-				DarkMode:                &trueVal,      // Default value
-				DisableOfficePreviewExt: ".docx .xlsx", // This field is deprecated
+			UI: UserDefaultsUI{
+				Locale:   "es",
+				DarkMode: &trueVal,
 			},
 		},
 		Auth: Auth{
@@ -40,7 +39,7 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 			showFull:         true,
 			filterDeprecated: false,
 			expectSecrets:    true, // Secrets should be hidden
-			expectDeprecated: false, // v1 flat keys live in UserDefaultsLegacy and are not emitted in generated YAML
+			expectDeprecated: false,
 		},
 		{
 			name:             "Static_config_filter_deprecated",
@@ -197,8 +196,8 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 			UI: UserDefaultsUI{
 				Locale: "es",
 			},
-			UserDefaultsLegacy: UserDefaultsLegacy{
-				DisableOfficePreviewExt: ".docx .xlsx", // filtered from generated YAML
+			FileViewer: UserDefaultsFileViewer{
+				DisableOnlyOfficeExt: ".docx .xlsx",
 			},
 		},
 		Auth: Auth{
@@ -219,7 +218,7 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 
 	// Verify deprecated field is filtered out
 	if strings.Contains(yamlOutput, "disableOfficePreviewExt") {
-		t.Error("Static generation should filter out deprecated field disableOfficePreviewExt")
+		t.Error("Static generation should not emit removed legacy disableOfficePreviewExt key")
 	}
 
 	// Verify secrets are redacted

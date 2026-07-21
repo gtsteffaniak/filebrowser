@@ -349,7 +349,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		}
 	} else {
 		// If no admin group configured, use default permissions
-		isAdmin = settings.Config.UserDefaults.Permissions.Admin
+		isAdmin = settings.Config.UserDefaults.Account.Permissions.Admin
 	}
 
 	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)

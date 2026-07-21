@@ -20,7 +20,7 @@ func boolValueOrDefault(ptr *bool, defaultValue bool) bool {
 	return defaultValue
 }
 
-// ConvertPermissionsToUsers converts UserDefaultsPermissions to users.Permissions (global only).
+// ConvertPermissionsToUsers converts account permission defaults to users.Permissions (global only).
 func ConvertPermissionsToUsers(p UserDefaultsAccountPermissions) users.Permissions {
 	return users.Permissions{
 		Api:      p.Api,

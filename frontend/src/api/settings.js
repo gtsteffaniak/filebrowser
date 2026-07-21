@@ -1,5 +1,5 @@
 import { notify } from "@/notify";
-import { getApiPath } from "@/utils/url.js";
+import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils";
 
 const analyticsRequestTimeoutMs = 5000;
@@ -58,12 +58,13 @@ export function getAnalyticsPreview() {
   return fetchJSON(getApiPath("settings/analytics/preview"));
 }
 
-export function getEnforcedUserDefaults() {
-  return fetchJSON(getApiPath("settings/enforced-user-defaults"));
-}
-
 export function getUserDefaults() {
   return fetchJSON(getApiPath("settings/user-defaults"));
+}
+
+/** Enforcement flags for profile UI (works on public routes behind proxy basic auth). */
+export function getEnforcedUserDefaults() {
+  return fetchJSON(getPublicApiPath("settings/user-defaults"));
 }
 
 export async function patchUserDefaults(partial) {

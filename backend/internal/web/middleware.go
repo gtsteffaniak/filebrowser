@@ -650,8 +650,6 @@ func withPermShareHelper(fn handleFunc) handleFunc {
 	})
 }
 
-// withBasicAuthHelper extracts Basic Auth credentials and uses the password as a JWT token
-// to authenticate the user. The username is ignored, and the password should be a JWT token.
 func withBasicAuthHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		_, password, ok := r.BasicAuth()
@@ -702,7 +700,7 @@ func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withSelfOrAdminHelper(fn))
 }
 
-// withTimeoutHelper adds a configurable timeout context to any operation
+// withTimeoutHelper adds a configurable timeout context to any operation.
 func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// Create a context with the specified timeout

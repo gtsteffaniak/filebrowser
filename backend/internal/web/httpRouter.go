@@ -27,7 +27,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("GET /users", withUser(userGetHandler))
 	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
 	api.HandleFunc("PATCH /users", withUser(userPatchHandler))
-	api.HandleFunc("PATCH /users/pinnedItems", withUser(userPatchPinnedItemsHandler))
+	api.HandleFunc("PATCH /users/pinned-items", withUser(userPatchPinnedItemsHandler))
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
 	publicApi.HandleFunc("GET /users", withUser(userGetHandler))
 
@@ -104,7 +104,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("PATCH /share", withPermShare(sharePatchHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 	publicApi.HandleFunc("GET /share/info", withOrWithoutUser(shareInfoHandler))
-	publicApi.HandleFunc("PATCH /share/pinnedItems", withPermShare(sharePatchPinnedItemsHandler))
+	publicApi.HandleFunc("PATCH /share/pinned-items", withPermShare(sharePatchPinnedItemsHandler))
 	publicApi.HandleFunc("GET /share/image", withHashFile(getShareImage))
 
 	// ========================================
@@ -116,10 +116,10 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("PUT /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("PATCH /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("GET /settings/analytics/preview", withTimeout(time30s, withAdminHelper(settingsAnalyticsPreviewHandler)))
-	api.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withAdminHelper(settingsUserDefaultsGetHandler)))
+	api.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
 	api.HandleFunc("PATCH /settings/user-defaults", withTimeout(time5s, withAdminHelper(settingsUserDefaultsPatchHandler)))
-	api.HandleFunc("GET /settings/enforced-user-defaults", withTimeout(time5s, withUserHelper(settingsEnforcedUserDefaultsGetHandler)))
-	api.HandleFunc("GET /settings/source", withTimeout(time5s, withAdminHelper(settingsSourceGetHandler)))
+	publicApi.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
+	api.HandleFunc("GET /settings/source", withTimeout(time5s, withUserHelper(settingsSourceGetHandler)))
 	api.HandleFunc("PATCH /settings/source", withTimeout(time5s, withAdminHelper(settingsSourcePatchHandler)))
 	api.HandleFunc("GET /settings/sources", withUser(getSourceInfoHandler))
 
@@ -127,9 +127,9 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// Tools Routes - /api/tools/
 	// ========================================
 	api.HandleFunc("GET /tools/search", withUser(searchHandler))
-	api.HandleFunc("GET /tools/duplicateFinder", withUser(duplicatesHandler))
-	api.HandleFunc("GET /tools/fileWatcher", withUser(fileWatchHandler))
-	api.HandleFunc("GET /tools/fileWatcher/sse", withUser(fileWatchSSEHandler))
+	api.HandleFunc("GET /tools/duplicate-finder", withUser(duplicatesHandler))
+	api.HandleFunc("GET /tools/file-watcher", withUser(fileWatchHandler))
+	api.HandleFunc("GET /tools/file-watcher/sse", withUser(fileWatchSSEHandler))
 	api.HandleFunc("GET /tools/activity", withUser(ListHandler))
 	api.HandleFunc("GET /tools/activity/grouped", withUser(GroupedHandler))
 	api.HandleFunc("GET /tools/activity/export", withUser(ExportHandler))
@@ -160,8 +160,8 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// ========================================
 	api.HandleFunc("GET /events", withUser(SSEHandler))
 	if settings.Env.IsDevMode {
-		api.HandleFunc("GET /inspectIndex", inspectIndex)
-		api.HandleFunc("GET /mockData", mockData)
+		api.HandleFunc("GET /inspect-index", inspectIndex)
+		api.HandleFunc("GET /mock-data", mockData)
 	}
 
 	// Mount public API

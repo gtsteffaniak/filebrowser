@@ -46,20 +46,3 @@ func DefaultSourceFilePermissions() users.SourceFilePermissions {
 	}
 	return BuiltinDefaultSourceFilePermissions()
 }
-
-// SourceFilePermissionsFromLegacyUserDefaults maps deprecated user-defaults permission fields.
-func SourceFilePermissionsFromLegacyUserDefaults(d UserDefaults) users.SourceFilePermissions {
-	p := d.Permissions
-	download := true
-	if p.Download != nil {
-		download = *p.Download
-	}
-	return users.SourceFilePermissions{
-		View:       true,
-		Download:   download,
-		Modify:     p.Modify,
-		Create:     p.Create,
-		Delete:     p.Delete,
-		Configured: true,
-	}
-}

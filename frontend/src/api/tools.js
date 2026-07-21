@@ -85,7 +85,7 @@ export async function search(base, sources, query, largest = false, extraParams 
   }
 }
 
-// GET /api/tools/duplicateFinder
+// GET /api/tools/duplicate-finder
 export async function duplicateFinder(base, source, minSizeMb, useChecksum = false) {
   try {
     if (!base.endsWith("/")) {
@@ -101,7 +101,7 @@ export async function duplicateFinder(base, source, minSizeMb, useChecksum = fal
       params.useChecksum = "true";
     }
 
-    const apiPath = getApiPath("tools/duplicateFinder", params);
+    const apiPath = getApiPath("tools/duplicate-finder", params);
     const res = await fetchURL(apiPath);
     const data = await res.json();
 
@@ -116,10 +116,10 @@ export async function duplicateFinder(base, source, minSizeMb, useChecksum = fal
   }
 }
 
-// GET /api/tools/fileWatcher
+// GET /api/tools/file-watcher
 export async function fileWatcherLatencyCheck() {
   try {
-    const apiPath = getApiPath("tools/fileWatcher", { latencyCheck: "true" });
+    const apiPath = getApiPath("tools/file-watcher", { latencyCheck: "true" });
     await fetchURL(apiPath);
   } catch (err) {
     notify.showError(err.message || "Error occurred while checking latency");
@@ -127,11 +127,11 @@ export async function fileWatcherLatencyCheck() {
   }
 }
 
-// GET /api/tools/fileWatcher
+// GET /api/tools/file-watcher
 export async function fileWatcher(source, path, lines) {
   try {
     const params = { source, path, lines: lines };
-    const apiPath = getApiPath("tools/fileWatcher", params);
+    const apiPath = getApiPath("tools/file-watcher", params);
     const res = await fetchURL(apiPath);
     return await res.json();
   } catch (err) {
@@ -140,7 +140,7 @@ export async function fileWatcher(source, path, lines) {
   }
 }
 
-// GET /api/tools/fileWatcher/sse
+// GET /api/tools/file-watcher/sse
 export function fileWatcherSSE(source, path, lines, interval, onMessage, onError) {
   try {
     const params = { 
@@ -149,7 +149,7 @@ export function fileWatcherSSE(source, path, lines, interval, onMessage, onError
       lines: lines.toString(),
       interval: interval.toString()
     };
-    const apiPath = getApiPath("tools/fileWatcher/sse", params);
+    const apiPath = getApiPath("tools/file-watcher/sse", params);
     const eventSource = new EventSource(apiPath);
     
     eventSource.onmessage = onMessage;

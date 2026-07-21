@@ -124,7 +124,7 @@ func readLastNLines(filePath string, n int) (string, error) {
 // @Failure 403 {object} map[string]string "Permission denied"
 // @Failure 404 {object} map[string]string "File not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/tools/fileWatcher [get]
+// @Router /api/tools/file-watcher [get]
 func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	// Check for latency check request - return immediately with minimal response
 	if r.URL.Query().Get("latencyCheck") != "" {
@@ -256,7 +256,7 @@ type fileWatchSSEEvent struct {
 // @Failure 400 {object} map[string]string "Invalid request"
 // @Failure 403 {object} map[string]string "Permission denied"
 // @Failure 404 {object} map[string]string "File not found"
-// @Router /api/tools/fileWatcher/sse [get]
+// @Router /api/tools/file-watcher/sse [get]
 func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	// Check realtime permissions
 	if !(d.User.Permissions.Realtime) {

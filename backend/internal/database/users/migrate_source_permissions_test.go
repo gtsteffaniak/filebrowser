@@ -62,3 +62,20 @@ func TestSeedSourcePermissionsForPath(t *testing.T) {
 		t.Fatal("expected defaults applied on new scope path")
 	}
 }
+
+func TestMigrateToSourcePermissions_viewTrueWhenLegacyDownloadOnly(t *testing.T) {
+	user := &User{
+		FrontendUser: FrontendUser{
+			Permissions: Permissions{Download: true, Share: true},
+		},
+		BackendScopes: []BackendScope{{Path: "/data", Scope: "/"}},
+		Version:       2,
+	}
+	if !MigrateToSourcePermissions(user) {
+		t.Fatal("expected migration")
+	}
+	p := user.BackendScopes[0].Permissions
+	if !p.View || !p.Download || p.Modify {
+		t.Fatalf("unexpected perms: %+v", p)
+	}
+}

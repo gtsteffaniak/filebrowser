@@ -206,9 +206,9 @@ type UserDefaults struct {
 	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			UserDefaultsLegacy: UserDefaultsLegacy{
-				DarkMode: &trueVal, // This matches default
-				Locale:   "es",     // This differs from default ("en")
+			UI: UserDefaultsUI{
+				DarkMode: &trueVal,
+				Locale:   "es",
 			},
 		},
 	}
@@ -285,10 +285,12 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			UserDefaultsLegacy: UserDefaultsLegacy{
-				Locale:                  "es",          // Non-default
-				DarkMode:                &trueVal,      // Default
-				DisableOfficePreviewExt: ".docx .xlsx", // This is deprecated
+			UI: UserDefaultsUI{
+				Locale:   "es",
+				DarkMode: &trueVal,
+			},
+			FileViewer: UserDefaultsFileViewer{
+				DisableOnlyOfficeExt: ".docx .xlsx",
 			},
 		},
 		Auth: Auth{
@@ -314,7 +316,7 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 			showFull:         true,
 			filterDeprecated: false,
 			expectSecret:     true,  // secrets should be hidden
-			expectDeprecated: false, // v1 flat keys live in UserDefaultsLegacy and are not emitted in generated YAML
+			expectDeprecated: false,
 			expectFull:       true,  // all fields shown
 			expectComments:   false, // no comments
 		},

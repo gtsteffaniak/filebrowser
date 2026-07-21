@@ -474,18 +474,26 @@ export const mutations = {
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       state.displayPreferences = allPreferences[state.user.username] || {};
 
-      if (!isAnonymous) {
-        try {
-          state.enforcedUserDefaults = await settingsApi.getEnforcedUserDefaults();
-        } catch {
-          state.enforcedUserDefaults = {};
-        }
-      } else {
-        state.enforcedUserDefaults = {};
-      }
-
     } catch (_error) {
       // Silently ignore errors when loading preferences
+    }
+    emitStateChanged();
+  },
+  syncEnforcedUserDefaults: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.enforcedUserDefaults = {};
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await settingsApi.getEnforcedUserDefaults();
+      state.enforcedUserDefaults = data.enforced || {};
+    } catch {
+      state.enforcedUserDefaults = {};
     }
     emitStateChanged();
   },

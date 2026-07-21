@@ -63,6 +63,7 @@ export default {
   },
   mounted() {
     this.localuser = { ...state.user };
+    void mutations.syncEnforcedUserDefaults();
     if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
       this.localuser.themeColor = "";
     }

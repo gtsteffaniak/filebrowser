@@ -3147,7 +3147,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tools/duplicateFinder": {
+        "/api/tools/duplicate-finder": {
             "get": {
                 "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
                 "consumes": [
@@ -3209,7 +3209,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tools/fileWatcher": {
+        "/api/tools/file-watcher": {
             "get": {
                 "description": "Returns the last N lines of a file",
                 "consumes": [
@@ -3296,7 +3296,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tools/fileWatcher/sse": {
+        "/api/tools/file-watcher/sse": {
             "get": {
                 "description": "Establishes an SSE connection to receive periodic file updates",
                 "tags": [
@@ -3715,7 +3715,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/users/pinnedItems": {
+        "/api/users/pinned-items": {
             "patch": {
                 "description": "Patches one pinned item at a time. Defaults to add; pass ?action=remove to unpin.",
                 "consumes": [
@@ -6196,12 +6196,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/settings.UserDefaultsSearch"
                 },
                 "sidebar": {
-                    "description": "New organized structure",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.UserDefaultsSidebar"
-                        }
-                    ]
+                    "$ref": "#/definitions/settings.UserDefaultsSidebar"
                 },
                 "ui": {
                     "$ref": "#/definitions/settings.UserDefaultsUI"

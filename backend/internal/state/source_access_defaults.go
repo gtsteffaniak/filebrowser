@@ -40,14 +40,6 @@ func deriveInitialSourceAccessDefaults() users.SourceFilePermissions {
 			return settings.NormalizeSourceFilePermissions(src.Config.DefaultPermissions)
 		}
 	}
-	legacy := settings.SourceFilePermissionsFromLegacyUserDefaults(settings.Config.UserDefaults)
-	if !legacy.IsUnset() {
-		return settings.NormalizeSourceFilePermissions(legacy)
-	}
-	legacy = settings.SourceFilePermissionsFromLegacyUserDefaults(EffectiveUserDefaults())
-	if !legacy.IsUnset() {
-		return settings.NormalizeSourceFilePermissions(legacy)
-	}
 	return settings.BuiltinDefaultSourceFilePermissions()
 }
 

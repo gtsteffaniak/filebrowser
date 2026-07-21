@@ -221,7 +221,7 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		}
 	} else {
 		// If no admin group configured, use default permissions
-		isAdmin = settings.Config.UserDefaults.Permissions.Admin
+		isAdmin = settings.Config.UserDefaults.Account.Permissions.Admin
 	}
 
 	return getOrCreateAuthenticatedUser(username, users.LoginMethodLdap, isAdmin, groups)

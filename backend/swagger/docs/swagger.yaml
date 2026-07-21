@@ -995,9 +995,7 @@ definitions:
       search:
         $ref: '#/definitions/settings.UserDefaultsSearch'
       sidebar:
-        allOf:
-        - $ref: '#/definitions/settings.UserDefaultsSidebar'
-        description: New organized structure
+        $ref: '#/definitions/settings.UserDefaultsSidebar'
       ui:
         $ref: '#/definitions/settings.UserDefaultsUI'
     type: object
@@ -4459,7 +4457,7 @@ paths:
       summary: List share links
       tags:
       - Shares
-  /api/tools/duplicateFinder:
+  /api/tools/duplicate-finder:
     get:
       consumes:
       - application/json
@@ -4507,7 +4505,7 @@ paths:
       summary: Find Duplicate Files
       tags:
       - Tools
-  /api/tools/fileWatcher:
+  /api/tools/file-watcher:
     get:
       consumes:
       - application/json
@@ -4565,7 +4563,7 @@ paths:
       summary: Watch a file
       tags:
       - Tools
-  /api/tools/fileWatcher/sse:
+  /api/tools/file-watcher/sse:
     get:
       description: Establishes an SSE connection to receive periodic file updates
       parameters:
@@ -4859,7 +4857,7 @@ paths:
       summary: Create a new user
       tags:
       - Users
-  /api/users/pinnedItems:
+  /api/users/pinned-items:
     patch:
       consumes:
       - application/json

@@ -122,7 +122,7 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 }
 
 type userDefaultsResponse struct {
-	Values   settings.UserDefaults            `json:"values"`
+	Values   *settings.UserDefaults            `json:"values,omitempty"`
 	Enforced settings.UserDefaultsEnforcement `json:"enforced"`
 }
 
@@ -130,16 +130,15 @@ func settingsUserDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *C
 	if scope := r.URL.Query().Get("scope"); scope != "" && scope != "default" {
 		return http.StatusBadRequest, fmt.Errorf("per-login user defaults scopes are no longer supported")
 	}
-	values := state.GetUserDefaults()
 	enforced := state.GetEnforcedUserDefaults()
+	if !d.User.Permissions.Admin {
+		return RenderJSON(w, r, userDefaultsResponse{Enforced: enforced})
+	}
+	values := state.GetUserDefaults()
 	return RenderJSON(w, r, userDefaultsResponse{
-		Values:   values,
+		Values:   &values,
 		Enforced: enforced,
 	})
-}
-
-func settingsEnforcedUserDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	return RenderJSON(w, r, state.GetEnforcedUserDefaults())
 }
 
 func settingsUserDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
@@ -203,6 +202,7 @@ type sourceSettingsPatch struct {
 }
 
 func settingsSourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	// Read-only global source file permission defaults (used by user edit/create UI).
 	return RenderJSON(w, r, state.GetSourceSettings())
 }
 

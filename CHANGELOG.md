@@ -46,6 +46,7 @@ A database migration is required to go from v1.x to this version. See docs.
  - Search API: removed singular `source` param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
  - Source config: removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules 
  - `PUT /api/users` moved to the more appropriate `PATCH` method.
+ - removed support for deprecated userDefaults config format, users must use config migration tool to update userDefaults.
 
  **Notes**:
  - new dropdown and input styles

@@ -168,10 +168,10 @@ export async function update(user, which = ['all'], options = {}) {
   }
 }
 
-// PATCH /api/users/pinnedItems (add by default; ?action=remove to unpin)
+// PATCH /api/users/pinned-items (add by default; ?action=remove to unpin)
 export async function patchPinnedItem({ source, path, name, action = 'add' }) {
   const params = { action }
-  const apiPath = getApiPath('users/pinnedItems', params)
+  const apiPath = getApiPath('users/pinned-items', params)
   await fetchURL(apiPath, {
     method: 'PATCH',
     body: JSON.stringify({ source, path, name }),

@@ -174,7 +174,7 @@ frontend:
   loginButtonText: ""                     # text to display on the login button
   oidcLoginButtonText: ""                 # text to display on the OIDC login button
 userDefaults:                             # optional signup/CLI defaults; per-user values are managed in the UI
-  sidebar:                                # New organized structure
+  sidebar:
     disableQuickToggles: false            # disable the quick toggles in the sidebar
     hideFileActions: false                # hide the file actions in the sidebar
     disableHideOnPreview: false           # keep sidebar open when previewing files (was preview.disableHideSidebar)

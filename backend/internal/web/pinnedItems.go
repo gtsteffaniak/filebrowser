@@ -12,7 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 )
 
-// pinnedItemPatchRequest is the JSON body for PATCH /api/users/pinnedItems.
+// pinnedItemPatchRequest is the JSON body for PATCH /api/users/pinned-items.
 type pinnedItemPatchRequest struct {
 	Source string `json:"source" validate:"required"`
 	Path   string `json:"path" validate:"required"` // scope-relative parent directory
@@ -61,7 +61,7 @@ func pinnedItemAction(r *http.Request) string {
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
-// @Router /api/users/pinnedItems [patch]
+// @Router /api/users/pinned-items [patch]
 func userPatchPinnedItemsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	var body pinnedItemPatchRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
