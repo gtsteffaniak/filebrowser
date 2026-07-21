@@ -29,6 +29,12 @@ import {
   applySectionsToFlatUser,
 } from "@/utils/userProfileSections.js";
 
+function cloneUser(user) {
+  return JSON.parse(
+    JSON.stringify(user ?? { preview: {}, permissions: {} })
+  );
+}
+
 export default {
   name: "settings",
   components: {
@@ -59,7 +65,7 @@ export default {
     },
   },
   mounted() {
-    this.localuser = JSON.parse(JSON.stringify(state.user));
+    this.localuser = cloneUser(state.user);
     void mutations.syncEnforcedUserDefaults();
     if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
       this.localuser.themeColor = "";
@@ -96,7 +102,7 @@ export default {
       try {
         const themeChanged = state.user.customTheme !== this.localuser.customTheme;
         await mutations.updateCurrentUser(this.localuser);
-        this.localuser = JSON.parse(JSON.stringify(state.user));
+        this.localuser = cloneUser(state.user);
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
         if (themeChanged) {
           setTimeout(() => {
@@ -104,7 +110,7 @@ export default {
           }, 1000);
         }
       } catch (e) {
-        this.localuser = JSON.parse(JSON.stringify(state.user));
+        this.localuser = cloneUser(state.user);
         if (state.user.preview) {
           this.localuser.preview = { ...state.user.preview };
         }
