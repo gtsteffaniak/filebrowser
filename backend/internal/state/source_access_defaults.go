@@ -88,7 +88,7 @@ func SetSourceAccessDefaults(perms users.SourceFilePermissions) error {
 	if sqlDb == nil {
 		return fmt.Errorf("sqlDb not initialized")
 	}
-	normalized := settings.NormalizeSourceFilePermissions(perms)
+	normalized := settings.NormalizeSourceFilePermissions(users.MarkSourceFilePermissionsConfigured(perms))
 	if err := sqlDb.SaveSetting(sourceAccessDefaultsSettingKey, normalized); err != nil {
 		return err
 	}

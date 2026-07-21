@@ -25,7 +25,7 @@ func NormalizeSourceFilePermissions(p users.SourceFilePermissions) users.SourceF
 
 // ApplySourceAccessDefaultsToAllSources copies the same template onto every configured source.
 func ApplySourceAccessDefaultsToAllSources(perms users.SourceFilePermissions) {
-	p := NormalizeSourceFilePermissions(perms)
+	p := users.MarkSourceFilePermissionsConfigured(NormalizeSourceFilePermissions(perms))
 	for _, src := range Config.Server.Sources {
 		if src == nil {
 			continue
@@ -55,10 +55,11 @@ func SourceFilePermissionsFromLegacyUserDefaults(d UserDefaults) users.SourceFil
 		download = *p.Download
 	}
 	return users.SourceFilePermissions{
-		View:     true,
-		Download: download,
-		Modify:   p.Modify,
-		Create:   p.Create,
-		Delete:   p.Delete,
+		View:       true,
+		Download:   download,
+		Modify:     p.Modify,
+		Create:     p.Create,
+		Delete:     p.Delete,
+		Configured: true,
 	}
 }

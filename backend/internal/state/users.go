@@ -45,6 +45,51 @@ func copyUserSlices(userCopy *users.User, user *users.User) {
 		userCopy.SidebarLinks = make([]users.SidebarLink, len(user.SidebarLinks))
 		copy(userCopy.SidebarLinks, user.SidebarLinks)
 	}
+	if user.FrontendScopes != nil {
+		userCopy.FrontendScopes = make([]users.FrontendScope, len(user.FrontendScopes))
+		copy(userCopy.FrontendScopes, user.FrontendScopes)
+	}
+	if user.SourcePermissions != nil {
+		userCopy.SourcePermissions = copyBackendSourcePermissions(user.SourcePermissions)
+	}
+	if user.ApiKeys != nil {
+		userCopy.ApiKeys = make(map[string]users.AuthToken, len(user.ApiKeys))
+		for k, v := range user.ApiKeys {
+			userCopy.ApiKeys[k] = v
+		}
+	}
+	if user.PasskeyCredentials != nil {
+		userCopy.PasskeyCredentials = copyWebAuthnCredentials(user.PasskeyCredentials)
+	}
+	if user.PinnedItems != nil {
+		userCopy.PinnedItems = copyPinnedItems(user.PinnedItems)
+	}
+}
+
+func copyWebAuthnCredentials(in []users.WebAuthnCredential) []users.WebAuthnCredential {
+	out := make([]users.WebAuthnCredential, len(in))
+	for i, c := range in {
+		out[i] = c
+		if c.Transport != nil {
+			out[i].Transport = append([]string(nil), c.Transport...)
+		}
+	}
+	return out
+}
+
+func copyPinnedItems(in users.PinnedItems) users.PinnedItems {
+	if in == nil {
+		return nil
+	}
+	out := make(users.PinnedItems, len(in))
+	for srcPath, dirs := range in {
+		dirCopy := make(map[string][]string, len(dirs))
+		for dirPath, names := range dirs {
+			dirCopy[dirPath] = append([]string(nil), names...)
+		}
+		out[srcPath] = dirCopy
+	}
+	return out
 }
 
 // GetUserByID retrieves a user by stable numeric id (JWT belongsTo, admin APIs).

@@ -102,20 +102,30 @@ type Permissions struct {
 
 // SourceFilePermissions holds per-source file operation permissions (v4+).
 type SourceFilePermissions struct {
-	View     bool `json:"view"`
-	Download bool `json:"download"`
-	Modify   bool `json:"modify"`
-	Delete   bool `json:"delete"`
-	Create   bool `json:"create"`
+	View        bool `json:"view"`
+	Download    bool `json:"download"`
+	Modify      bool `json:"modify"`
+	Delete      bool `json:"delete"`
+	Create      bool `json:"create"`
+	Configured  bool `json:"configured,omitempty"` // true when explicitly set (allows intentional deny-all)
 }
 
-// DenyAllSourceFilePermissions returns a SourceFilePermissions with all flags false.
+// MarkSourceFilePermissionsConfigured marks permissions as explicitly set (including deny-all).
+func MarkSourceFilePermissionsConfigured(p SourceFilePermissions) SourceFilePermissions {
+	p.Configured = true
+	return p
+}
+
+// DenyAllSourceFilePermissions returns a SourceFilePermissions with all flags false and Configured set.
 func DenyAllSourceFilePermissions() SourceFilePermissions {
-	return SourceFilePermissions{}
+	return MarkSourceFilePermissionsConfigured(SourceFilePermissions{})
 }
 
-// IsUnset reports whether no permission bit is set, used as the sentinel for "not yet configured".
+// IsUnset reports whether no permission bit is set and the value was never explicitly configured.
 func (p SourceFilePermissions) IsUnset() bool {
+	if p.Configured {
+		return false
+	}
 	return !p.View && !p.Download && !p.Modify && !p.Delete && !p.Create
 }
 

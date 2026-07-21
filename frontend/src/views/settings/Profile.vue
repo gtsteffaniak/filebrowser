@@ -104,11 +104,12 @@ export default {
             window.location.reload();
           }, 1000);
         }
-      } catch {
+      } catch (e) {
         this.localuser = { ...state.user };
         if (state.user.preview) {
           this.localuser.preview = { ...state.user.preview };
         }
+        notify.showError(e?.message || this.$t("settings.settingsUpdateFailed"));
       }
     },
   },

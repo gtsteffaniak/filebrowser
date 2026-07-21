@@ -93,12 +93,12 @@ func validateUserInfo(newDB bool) {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			fields := []string{"backendScopes", "backendSourcePermissions", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version"}
+			plainPass := ""
 			if changePass {
-				fields = append(fields, "Password")
+				plainPass = user.Password
 			}
-
-			err := state.UpdateUser(user, user.Password, fields...)
+			// Full update: migration may touch enforced profile fields beyond the legacy whitelist.
+			err := state.UpdateUser(user, plainPass)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
 			}

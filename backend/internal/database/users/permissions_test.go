@@ -11,6 +11,7 @@ func TestSourceFilePermissionsIsUnset(t *testing.T) {
 		unset  bool
 	}{
 		{name: "all false", perms: SourceFilePermissions{}, unset: true},
+		{name: "configured deny-all", perms: DenyAllSourceFilePermissions(), unset: false},
 		{name: "view only", perms: SourceFilePermissions{View: true}, unset: false},
 		{name: "download only", perms: SourceFilePermissions{Download: true}, unset: false},
 		{name: "full", perms: SourceFilePermissions{View: true, Download: true, Modify: true, Create: true, Delete: true}, unset: false},

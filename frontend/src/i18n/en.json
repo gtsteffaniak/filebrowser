@@ -602,6 +602,7 @@
     "permissionsHelp": "Global permissions for the user apply everywhere, including all sources and shares.",
     "sourcePermissionsHelp": "Expand a source row to set view, download, modify, create, and delete permissions for that source.",
     "settingsUpdated": "Settings updated!",
+    "settingsUpdateFailed": "Could not save settings. Your changes were reverted.",
     "shareDeleted": "Share deleted!",
     "userDeleted": "User deleted!",
     "userUpdated": "User updated!"

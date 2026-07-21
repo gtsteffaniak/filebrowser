@@ -66,7 +66,10 @@ func initialize(dbPath string) (bool, error) {
 	}
 
 	var userCount int
-	if countErr := sqlDb.DB().QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount); countErr != nil || userCount == 0 {
+	if countErr := sqlDb.DB().QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount); countErr != nil {
+		return existingDb, fmt.Errorf("failed to count users: %w", countErr)
+	}
+	if userCount == 0 {
 		if err = QuickSetup(); err != nil {
 			return existingDb, fmt.Errorf("failed to run initial setup: %w", err)
 		}

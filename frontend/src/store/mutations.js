@@ -663,6 +663,8 @@ export const mutations = {
             i18n.default.locale = prevLocale;
             if (previousUser.locale) {
               localStorage.setItem("userLocale", previousUser.locale);
+            } else {
+              localStorage.removeItem("userLocale");
             }
           }
           notify.showError(e);
