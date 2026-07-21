@@ -12,14 +12,14 @@
 </template>
 
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { notify } from "@/notify";
 import * as settingsApi from "@/api/settings";
-import Editor from "@/views/files/Editor.vue";
 
 export default {
   name: "AnalyticsDiagnostic",
   components: {
-    Editor,
+    Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
   },
   data() {
     return {
