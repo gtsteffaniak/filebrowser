@@ -27,12 +27,13 @@ var (
 
 // InitUserDefaultsSettings loads persisted user defaults from SQLite and seeds from config when missing.
 func InitUserDefaultsSettings() error {
-	if settings.Env.ConfigUserDefaultsSpecified {
+	seed := settings.Config.UserDefaults
+	_, existingDefaultsErr := sqlDb.GetSetting(userDefaultsDefaultSettingKey)
+	if settings.Env.ConfigUserDefaultsSpecified && existingDefaultsErr == nil {
 		logger.Warning("userDefaults in the config file is deprecated; manage defaults in Settings → Users → User defaults. Values in the database are authoritative after the initial seed.")
 	}
 
-	seed := settings.Config.UserDefaults
-	if _, err := sqlDb.GetSetting(userDefaultsDefaultSettingKey); err != nil {
+	if existingDefaultsErr != nil {
 		if err := sqlDb.SaveSetting(userDefaultsDefaultSettingKey, seed); err != nil {
 			return fmt.Errorf("seed user defaults: %w", err)
 		}

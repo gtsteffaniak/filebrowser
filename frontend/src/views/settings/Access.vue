@@ -164,7 +164,7 @@ export default {
       this.defaultsLoading = true;
       try {
         const settings = await settingsApi.getSourceSettings();
-        const perms = settings?.defaultFilePermissions ?? {};
+        const perms = settings?.defaultPermissions ?? {};
         this.sourceAccessDefaults = {
           view: perms.view !== false,
           download: perms.download !== false,
@@ -188,9 +188,9 @@ export default {
       this.savingDefaults = true;
       try {
         const settings = await settingsApi.patchSourceSettings({
-          defaultFilePermissions: this.sourceAccessDefaults,
+          defaultPermissions: this.sourceAccessDefaults,
         });
-        const perms = settings?.defaultFilePermissions ?? {};
+        const perms = settings?.defaultPermissions ?? {};
         this.sourceAccessDefaults = {
           view: perms.view !== false,
           download: perms.download !== false,

@@ -1,10 +1,32 @@
 package settings
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
+
+func TestValidateUserAgainstEnforcedDefaults_rejectsMismatch(t *testing.T) {
+	u := &users.User{
+		FrontendUser: users.FrontendUser{Username: "demo"},
+	}
+	u.ShowHidden = false
+	defaults := UserDefaults{Listing: UserDefaultsListing{ShowHidden: true}}
+	enforced := UserDefaultsEnforcement{Listing: UserDefaultsListingEnforcement{ShowHidden: true}}
+	err := ValidateUserAgainstEnforcedDefaults(u, defaults, enforced)
+	if err == nil {
+		t.Fatal("expected mismatch error")
+	}
+	var mismatch ErrEnforcedUserValueMismatch
+	if !errors.As(err, &mismatch) {
+		t.Fatalf("expected ErrEnforcedUserValueMismatch, got %T", err)
+	}
+	u.ShowHidden = true
+	if err := ValidateUserAgainstEnforcedDefaults(u, defaults, enforced); err != nil {
+		t.Fatalf("expected match, got %v", err)
+	}
+}
 
 func TestApplyEnforcedDefaultsFrom_onlyEnforcedSubset(t *testing.T) {
 	u := &users.User{

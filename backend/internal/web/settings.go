@@ -138,6 +138,10 @@ func settingsUserDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *C
 	})
 }
 
+func settingsEnforcedUserDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	return RenderJSON(w, r, state.GetEnforcedUserDefaults())
+}
+
 func settingsUserDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if scope := r.URL.Query().Get("scope"); scope != "" && scope != "default" {
 		return http.StatusBadRequest, fmt.Errorf("per-login user defaults scopes are no longer supported")
@@ -195,7 +199,7 @@ func settingsUserDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d 
 }
 
 type sourceSettingsPatch struct {
-	DefaultFilePermissions *users.SourceFilePermissions `json:"defaultFilePermissions,omitempty"`
+	DefaultPermissions *users.SourceFilePermissions `json:"defaultPermissions,omitempty"`
 }
 
 func settingsSourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
@@ -209,11 +213,11 @@ func settingsSourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Conte
 	}
 	defer r.Body.Close()
 
-	if body.DefaultFilePermissions == nil {
-		return http.StatusBadRequest, fmt.Errorf("source settings patch must include defaultFilePermissions")
+	if body.DefaultPermissions == nil {
+		return http.StatusBadRequest, fmt.Errorf("source settings patch must include defaultPermissions")
 	}
 
-	if err := state.SetSourceAccessDefaults(*body.DefaultFilePermissions); err != nil {
+	if err := state.SetSourceAccessDefaults(*body.DefaultPermissions); err != nil {
 		logger.Errorf("failed to update source settings: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to update source settings")
 	}

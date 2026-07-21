@@ -36,8 +36,8 @@ func InitSourceAccessDefaults() error {
 
 func deriveInitialSourceAccessDefaults() users.SourceFilePermissions {
 	for _, src := range settings.Config.Server.Sources {
-		if src != nil && !src.Config.DefaultFilePermissions.IsUnset() {
-			return settings.NormalizeSourceFilePermissions(src.Config.DefaultFilePermissions)
+		if src != nil && !src.Config.DefaultPermissions.IsUnset() {
+			return settings.NormalizeSourceFilePermissions(src.Config.DefaultPermissions)
 		}
 	}
 	legacy := settings.SourceFilePermissionsFromLegacyUserDefaults(settings.Config.UserDefaults)
@@ -73,13 +73,13 @@ func GetSourceAccessDefaults() users.SourceFilePermissions {
 
 // SourceSettings is the admin API payload for GET/PATCH /api/settings/source.
 type SourceSettings struct {
-	DefaultFilePermissions users.SourceFilePermissions `json:"defaultFilePermissions"`
+	DefaultPermissions users.SourceFilePermissions `json:"defaultPermissions"`
 }
 
 // GetSourceSettings returns admin-editable source-wide settings.
 func GetSourceSettings() SourceSettings {
 	return SourceSettings{
-		DefaultFilePermissions: GetSourceAccessDefaults(),
+		DefaultPermissions: GetSourceAccessDefaults(),
 	}
 }
 

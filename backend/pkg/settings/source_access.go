@@ -30,7 +30,7 @@ func ApplySourceAccessDefaultsToAllSources(perms users.SourceFilePermissions) {
 		if src == nil {
 			continue
 		}
-		src.Config.DefaultFilePermissions = p
+		src.Config.DefaultPermissions = p
 	}
 }
 
@@ -40,8 +40,8 @@ func DefaultSourceFilePermissions() users.SourceFilePermissions {
 		if src == nil {
 			continue
 		}
-		if !src.Config.DefaultFilePermissions.IsUnset() {
-			return NormalizeSourceFilePermissions(src.Config.DefaultFilePermissions)
+		if !src.Config.DefaultPermissions.IsUnset() {
+			return NormalizeSourceFilePermissions(src.Config.DefaultPermissions)
 		}
 	}
 	return BuiltinDefaultSourceFilePermissions()

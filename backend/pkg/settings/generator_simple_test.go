@@ -240,3 +240,15 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 
 	t.Logf("Static generation successful with comments and proper filtering")
 }
+
+func TestGenerateConfigYaml_defaultPermissionsDocumentsView(t *testing.T) {
+	cfg := SetDefaults(true)
+	cfg.Server.Sources = []*Source{{Path: ".", Config: SourceConfig{}}}
+	out, err := GenerateConfigYamlWithSource(&cfg, true, true, true, ".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "defaultPermissions:") || !strings.Contains(out, "view:") {
+		t.Fatalf("expected defaultPermissions to include view, got excerpt around block")
+	}
+}

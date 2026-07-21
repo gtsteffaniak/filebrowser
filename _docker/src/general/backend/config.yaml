@@ -12,7 +12,6 @@ userDefaults:
     models: true
     office: true
     highQuality: true
-  permissions:
-    download: true
-    create: true
-    share: true
+  account:
+    permissions:
+      share: true

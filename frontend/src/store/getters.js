@@ -71,7 +71,7 @@ export const getters = {
     return getters.displayPreferenceFor(source, path);
   },
   viewModeChangeLocked: () => {
-    if (state.user?.enforcedPreferences?.listing?.viewMode) {
+    if (state.enforcedUserDefaults?.listing?.viewMode) {
       return true;
     }
     if (getters.isShare()) {

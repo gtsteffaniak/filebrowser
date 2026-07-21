@@ -58,6 +58,10 @@ export function getAnalyticsPreview() {
   return fetchJSON(getApiPath("settings/analytics/preview"));
 }
 
+export function getEnforcedUserDefaults() {
+  return fetchJSON(getApiPath("settings/enforced-user-defaults"));
+}
+
 export function getUserDefaults() {
   return fetchJSON(getApiPath("settings/user-defaults"));
 }

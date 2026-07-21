@@ -169,6 +169,10 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
 	ApplyUserDefaults(user)
+	defaults := EffectiveUserDefaults()
+	enforced := EffectiveEnforced()
+	settings.ApplyEnforcedDefaultsFrom(user, defaults, enforced)
+
 	users.SyncBackendSourcePermissionsMap(user)
 
 	usersMux.Lock()
@@ -295,7 +299,9 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 
 	defaults := EffectiveUserDefaults()
 	enforced := EffectiveEnforced()
-	settings.ApplyEnforcedDefaultsFrom(existingUser, defaults, enforced)
+	if err := settings.ValidateUserAgainstEnforcedDefaults(existingUser, defaults, enforced); err != nil {
+		return err
+	}
 
 	// 3. Write to database
 	var updateErr error

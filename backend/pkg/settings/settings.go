@@ -130,6 +130,8 @@ func ApplyUserDefaultsFrom(u *users.User, d UserDefaults) {
 		}
 	}
 
+	ExpandBackendScopesForCreateUserDir(u)
+
 	if u.LoginMethod == "" && d.Account.LoginMethod != "" {
 		u.LoginMethod = users.LoginMethod(d.Account.LoginMethod)
 	}

@@ -367,6 +367,11 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	err = state.UpdateUser(&req.User, req.User.Password, req.Which...)
 	if err != nil {
+		var locked settings.ErrEnforcedUserField
+		var mismatch settings.ErrEnforcedUserValueMismatch
+		if stderrors.As(err, &locked) || stderrors.As(err, &mismatch) {
+			return http.StatusForbidden, err
+		}
 		return http.StatusBadRequest, err
 	}
 
@@ -408,11 +413,6 @@ func PrepForFrontend(u users.User) users.User {
 	u.TOTPNonce = ""
 	u.PinnedItems = nil
 	u.Locale = NormalizeLocaleForFrontend(u.Locale)
-	if u.Username != "" && u.Username != users.AnonymousUserName {
-		if b, err := json.Marshal(state.GetEnforcedUserDefaults()); err == nil && len(b) > 2 {
-			u.EnforcedPreferences = b
-		}
-	}
 	for i := range u.PasskeyCredentials {
 		u.PasskeyCredentials[i].PublicKey = ""
 		u.PasskeyCredentials[i].AttestationType = ""

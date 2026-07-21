@@ -6066,7 +6066,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/settings.Server"
                 },
                 "userDefaults": {
-                    "description": "deprecated: user defaults are now set in the UI or applied by CLI",
+                    "description": "optional signup/CLI defaults; per-user values are managed in the UI",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.UserDefaults"
@@ -6105,8 +6105,8 @@ const docTemplate = `{
                     "description": "should be added as a default source for new users?",
                     "type": "boolean"
                 },
-                "defaultFilePermissions": {
-                    "description": "DefaultFilePermissions is the template for new user scopes on this source (also synced globally via Access settings).",
+                "defaultPermissions": {
+                    "description": "DefaultPermissions is the template for new user scopes on this source (also synced globally via Access settings).",
                     "allOf": [
                         {
                             "$ref": "#/definitions/users.SourceFilePermissions"

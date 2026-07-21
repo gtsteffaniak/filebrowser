@@ -16,6 +16,58 @@ func ApplyFullProfileFromDefaults(u *users.User, d UserDefaults) {
 	ExpandProfileIntoUser(u, ProfileFromUserDefaults(d))
 }
 
+// ErrEnforcedUserValueMismatch is returned when a user profile field differs from the enforced default value.
+type ErrEnforcedUserValueMismatch struct {
+	Path string
+}
+
+func (e ErrEnforcedUserValueMismatch) Error() string {
+	return "user value does not match enforced default: " + e.Path
+}
+
+// ValidateUserAgainstEnforcedDefaults rejects users whose enforced fields differ from universal defaults.
+func ValidateUserAgainstEnforcedDefaults(u *users.User, defaults UserDefaults, enforced UserDefaultsEnforcement) error {
+	paths := EnforcedPathSet(enforced)
+	if len(paths) == 0 || u == nil || u.Username == "" || u.Username == users.AnonymousUserName {
+		return nil
+	}
+	userBytes, err := json.Marshal(ProfileFromUser(u))
+	if err != nil {
+		return fmt.Errorf("marshal user profile: %w", err)
+	}
+	defBytes, err := json.Marshal(ProfileFromUserDefaults(defaults))
+	if err != nil {
+		return fmt.Errorf("marshal default profile: %w", err)
+	}
+	var userMap, defMap map[string]interface{}
+	if err := json.Unmarshal(userBytes, &userMap); err != nil {
+		return fmt.Errorf("parse user profile: %w", err)
+	}
+	if err := json.Unmarshal(defBytes, &defMap); err != nil {
+		return fmt.Errorf("parse default profile: %w", err)
+	}
+	for path := range paths {
+		expected, ok := valueAtJSONPath(defMap, path)
+		if !ok {
+			continue
+		}
+		actual, ok := valueAtJSONPath(userMap, path)
+		if !ok || !jsonValuesEqual(expected, actual) {
+			return ErrEnforcedUserValueMismatch{Path: path}
+		}
+	}
+	return nil
+}
+
+func jsonValuesEqual(a, b interface{}) bool {
+	ab, errA := json.Marshal(a)
+	bb, errB := json.Marshal(b)
+	if errA != nil || errB != nil {
+		return false
+	}
+	return string(ab) == string(bb)
+}
+
 // ApplyEnforcedDefaultsFrom merges enforced default paths from d onto u's profile.
 func ApplyEnforcedDefaultsFrom(u *users.User, d UserDefaults, e UserDefaultsEnforcement) {
 	if u == nil || u.Username == "anonymous" {

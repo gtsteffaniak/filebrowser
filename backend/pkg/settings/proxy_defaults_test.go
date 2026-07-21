@@ -12,9 +12,8 @@ func TestProxyConfigUserDefaults(t *testing.T) {
 	if err := loadConfigWithDefaults(proxyConfig, true); err != nil {
 		t.Fatal(err)
 	}
-	migrateUserDefaults()
 	if !Config.UserDefaults.Account.Permissions.Share {
-		t.Fatalf("expected account.permissions.share true after migration, got false (deprecated=%v)", Config.UserDefaults.Permissions.Share)
+		t.Fatalf("expected account.permissions.share true, got false")
 	}
 	u := &users.User{FrontendUser: users.FrontendUser{Username: "demo-127.0.0.1", LoginMethod: users.LoginMethodProxy}}
 	ApplyUserDefaults(u)

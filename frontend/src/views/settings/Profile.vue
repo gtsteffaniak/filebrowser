@@ -24,7 +24,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { state, mutations, getters } from "@/store";
+import { mutations, state, getters } from "@/store";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import {
   sectionsFromFlatUser,
@@ -58,7 +58,7 @@ export default {
       },
     },
     enforcedPreferences() {
-      return this.user?.enforcedPreferences || {};
+      return state.enforcedUserDefaults || {};
     },
   },
   mounted() {

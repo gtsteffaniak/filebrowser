@@ -1,7 +1,6 @@
 package users
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -158,7 +157,6 @@ type FrontendUser struct {
 	OtpEnabled        bool                             `json:"otpEnabled"`
 	ShowFirstLogin       bool             `json:"showFirstLogin"`
 	Perm                 Permissions      `json:"perm,omitzero"`
-	EnforcedPreferences  json.RawMessage  `json:"enforcedPreferences,omitempty"`
 }
 
 // PinnedItems maps source filesystem path -> index directory path -> pinned item names.

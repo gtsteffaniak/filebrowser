@@ -1,5 +1,6 @@
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
+import * as settingsApi from "@/api/settings";
 import * as i18n from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
@@ -404,6 +405,7 @@ export const mutations = {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
         state.user = value;
+        state.enforcedUserDefaults = {};
         emitStateChanged();
         return;
       }
@@ -471,6 +473,16 @@ export const mutations = {
       // Load display preferences for the current user
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       state.displayPreferences = allPreferences[state.user.username] || {};
+
+      if (!isAnonymous) {
+        try {
+          state.enforcedUserDefaults = await settingsApi.getEnforcedUserDefaults();
+        } catch {
+          state.enforcedUserDefaults = {};
+        }
+      } else {
+        state.enforcedUserDefaults = {};
+      }
 
     } catch (_error) {
       // Silently ignore errors when loading preferences

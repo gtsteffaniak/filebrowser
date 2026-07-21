@@ -9,6 +9,11 @@ server:
       name: "exclude"
       config:
         defaultEnabled: true
+        defaultPermissions:
+          view: true
+          download: true
+          modify: true
+          create: true
         rules:
           - folderPath: "excluded"
           - folderPath: "excludedButVisible"
@@ -51,13 +56,11 @@ frontend:
     disableEventThemes: true
 
 userDefaults:
-  showHidden: true
+  listing:
+    showHidden: true
   preview:
     image: true
     popup: true
     video: true
     office: true
     highQuality: true
-  permissions:
-    download: true
-    create: true

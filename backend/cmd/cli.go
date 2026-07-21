@@ -380,7 +380,7 @@ func createConfig(configpath string) {
 
 	// 6. Ask boolean (Yes/No) questions using the helper
 	modifyDefault := askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
-	config.Server.Sources[0].Config.DefaultFilePermissions = settings.NormalizeSourceFilePermissions(users.SourceFilePermissions{
+	config.Server.Sources[0].Config.DefaultPermissions = settings.NormalizeSourceFilePermissions(users.SourceFilePermissions{
 		View:     true,
 		Download: true,
 		Modify:   modifyDefault,

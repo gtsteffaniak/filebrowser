@@ -9,6 +9,11 @@ server:
       config:
         defaultEnabled: true
         createUserDir: true
+        defaultPermissions:
+          view: true
+          download: true
+          modify: true
+          create: true
 
 frontend:
   name: "Graham's Filebrowser"
@@ -30,19 +35,6 @@ auth:
       logoutRedirectUrl: "https://localhost/api/auth/logout2"
 
 userDefaults:
-  preview:
-    image: true
-    popup: true
-    video: true
-    office: true
-    highQuality: true
-  darkMode: true
-  disableSettings: false
-  singleClick: false
-  permissions:
-    admin: false
-    modify: true
-    share: true
-    api: false
-    download: true
-    create: true
+  account:
+    permissions:
+      share: true

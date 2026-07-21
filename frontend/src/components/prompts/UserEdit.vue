@@ -416,7 +416,7 @@ export default {
       }
       try {
         const settings = await settingsApi.getSourceSettings();
-        const defaults = settings?.defaultFilePermissions ?? {};
+        const defaults = settings?.defaultPermissions ?? {};
         this.sourceFilePermissionDefaults = {
           view: defaults.view !== false,
           download: defaults.download !== false,
