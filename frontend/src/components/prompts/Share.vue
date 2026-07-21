@@ -48,11 +48,10 @@
       <p> {{ $t('share.notice') }} </p>
       <p v-if="sourceReadOnly" class="read-only-notice">{{ $t('share.readOnlySourceNotice') }}</p>
 
-      <a
+      <ActivityViewerButton
         v-if="!isEditingPath"
-        class="button button--flat button--blue activity-viewer-link"
         :href="activityViewerHref"
-      >{{ $t("tools.activityViewer.viewActivity") }}</a>
+      />
 
       <div v-if="listing">
         <settings-table
@@ -400,6 +399,7 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import FileList from "../files/FileList.vue";
 import { globalVars } from "@/utils/constants";
@@ -414,6 +414,7 @@ export default {
     SettingsTable,
     FileList,
     ExpandDropdown,
+    ActivityViewerButton,
     //ViewMode,
   },
   props: {

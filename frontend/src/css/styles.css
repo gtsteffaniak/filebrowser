@@ -538,7 +538,3 @@ button.flat-right.flat-left,
         transform: rotate(360deg);
     }
 }
-
-a.activity-viewer-link {
-    margin-bottom: 0.5em;
-}

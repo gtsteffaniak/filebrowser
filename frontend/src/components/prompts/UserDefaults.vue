@@ -1,26 +1,29 @@
 <template>
   <div class="card-content no-buttons prompt-panel user-defaults-prompt">
     <div class="user-defaults-scroll">
+      <p v-if="lockedFromConfig" class="lock-message">{{ lockMessage }}</p>
       <div v-if="loading" class="loading-hint">{{ $t("general.loading") }}</div>
 
       <template v-else>
-        <UserProfilePreferences
-          v-model="preferenceSections"
-          enforceable
-          :enforced="enforced"
-          show-extension-inputs
-          :show-thumbnail-master="false"
-          @change="onPreferenceSectionChange"
-          @enforced-change="onEnforcedChange"
-        />
-        <UserDefaultsAccountSection
-          :account="values.account"
-          :enforced="enforced.account || {}"
-          :enforced-permissions="enforced.account?.permissions || {}"
-          @account-change="onAccountFieldChange"
-          @enforced-change="(field, value) => patchEnforcedFlag('account', field, value)"
-          @enforced-permission-change="(field, value) => patchEnforcedFlag('account', `permissions.${field}`, value)"
-        />
+        <div :class="{ 'user-defaults-readonly': lockedFromConfig }">
+          <UserProfilePreferences
+            v-model="preferenceSections"
+            enforceable
+            :enforced="enforced"
+            show-extension-inputs
+            :show-thumbnail-master="false"
+            @change="onPreferenceSectionChange"
+            @enforced-change="onEnforcedChange"
+          />
+          <UserDefaultsAccountSection
+            :account="values.account"
+            :enforced="enforced.account || {}"
+            :enforced-permissions="enforced.account?.permissions || {}"
+            @account-change="onAccountFieldChange"
+            @enforced-change="(field, value) => patchEnforcedFlag('account', field, value)"
+            @enforced-permission-change="(field, value) => patchEnforcedFlag('account', `permissions.${field}`, value)"
+          />
+        </div>
       </template>
     </div>
   </div>
@@ -70,6 +73,8 @@ export default {
       loading: true,
       saving: false,
       hydrating: false,
+      lockedFromConfig: false,
+      lockMessage: "",
       values: emptyDefaults(),
       enforced: emptyEnforced(),
     };
@@ -115,6 +120,9 @@ export default {
     },
     applyResponse(data) {
       this.hydrating = true;
+      this.lockedFromConfig = !!data.lockedFromConfig;
+      this.lockMessage =
+        data.lockMessage || this.$t("settings.userDefaultsLockedFromConfig");
       const v = data.values || {};
       const enf = data.enforced || {};
       this.values = {
@@ -161,7 +169,7 @@ export default {
       });
     },
     canPatch() {
-      return !this.loading && !this.saving && !this.hydrating;
+      return !this.loading && !this.saving && !this.hydrating && !this.lockedFromConfig;
     },
     async load() {
       this.loading = true;
@@ -270,6 +278,19 @@ export default {
 
 .loading-hint {
   opacity: 0.7;
+}
+
+.lock-message {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--primaryColor) 12%, transparent);
+  color: var(--textPrimary);
+}
+
+.user-defaults-readonly {
+  pointer-events: none;
+  opacity: 0.65;
 }
 .user-defaults-prompt :deep(.settings-group) {
   margin-bottom: 0.75rem;

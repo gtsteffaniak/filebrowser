@@ -36,6 +36,7 @@ A database migration is required to go from v1.x to this version. See docs.
    - WebUI preserves both, files and directories.
    - WebDAV `COPY` preserves modification times only for files, is limitation we have with webdav.
  - User default enhancements
+   - Editing user defaults in the UI is disabled when user defaults are set in the config.yaml
    - Added administrator controls for universal user defaults and enforced preferences in `settings > user management > user defaults`.
    - Added configurable default file permissions per source in `settings > access management`.
    - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt.

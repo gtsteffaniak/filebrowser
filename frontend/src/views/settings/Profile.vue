@@ -8,8 +8,6 @@
         <UserProfilePreferences
           v-model="profileSections"
           :enforced="enforcedPreferences"
-          :accordion-expanded="expandedSection"
-          @update:accordion-expanded="expandedSection = $event"
           show-extension-inputs
           show-thumbnail-master
           @change="onPreferenceChange"
@@ -39,7 +37,6 @@ export default {
   data() {
     return {
       localuser: { preview: {}, permissions: {} },
-      expandedSection: "listingOptions",
     };
   },
   computed: {

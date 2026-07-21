@@ -11,7 +11,6 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("general.users") }}</h2>
-    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
 
   <div class="card-content full">
@@ -22,6 +21,7 @@
         :description="$t('settings.userDefaultsDescription')"
         @click="openUserDefaultsPrompt"
       />
+      <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
     <settings-table
       :columns="userTableColumns"
@@ -61,6 +61,7 @@ import { usersApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
@@ -70,6 +71,7 @@ export default {
     Errors,
     SettingsTable,
     SettingsButton,
+    ActivityViewerButton,
   },
   data: function () {
     return {

@@ -2,7 +2,8 @@
   <div class="settings-items source-file-permissions">
     <ToggleSwitch
       class="item"
-      v-model="permissions.view"
+      :modelValue="permissions.view"
+      @update:modelValue="(v) => setPermission('view', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.view"
       @update:enforced="(v) => $emit('enforced-change', 'view', v)"
@@ -10,7 +11,8 @@
     />
     <ToggleSwitch
       class="item"
-      v-model="permissions.download"
+      :modelValue="permissions.download"
+      @update:modelValue="(v) => setPermission('download', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.download"
       @update:enforced="(v) => $emit('enforced-change', 'download', v)"
@@ -18,7 +20,8 @@
     />
     <ToggleSwitch
       class="item"
-      v-model="permissions.modify"
+      :modelValue="permissions.modify"
+      @update:modelValue="(v) => setPermission('modify', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.modify"
       @update:enforced="(v) => $emit('enforced-change', 'modify', v)"
@@ -26,7 +29,8 @@
     />
     <ToggleSwitch
       class="item"
-      v-model="permissions.create"
+      :modelValue="permissions.create"
+      @update:modelValue="(v) => setPermission('create', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.create"
       @update:enforced="(v) => $emit('enforced-change', 'create', v)"
@@ -34,7 +38,8 @@
     />
     <ToggleSwitch
       class="item"
-      v-model="permissions.delete"
+      :modelValue="permissions.delete"
+      @update:modelValue="(v) => setPermission('delete', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.delete"
       @update:enforced="(v) => $emit('enforced-change', 'delete', v)"
@@ -76,14 +81,15 @@ export default {
       this.emitChanges = true;
     });
   },
-  watch: {
-    permissions: {
-      deep: true,
-      handler() {
-        if (this.emitChanges) {
-          this.$emit("changed");
-        }
-      },
+  methods: {
+    setPermission(key, value) {
+      if (this.permissions[key] === value) {
+        return;
+      }
+      this.permissions[key] = value;
+      if (this.emitChanges) {
+        this.$emit("changed");
+      }
     },
   },
   computed: {

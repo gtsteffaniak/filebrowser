@@ -2,10 +2,12 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ shareManagementLabel() }}</h2>
-    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
 
   <div class="card-content full">
+    <div class="settings-items">
+      <ActivityViewerButton class="item" :href="activityViewerHref" />
+    </div>
     <settings-table
       :columns="sharesTableColumns"
       :items="links"
@@ -88,6 +90,7 @@ import { shareApi } from "@/api";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { fromNow } from '@/utils/moment';
 import { eventBus } from "@/store/eventBus";
@@ -98,6 +101,7 @@ export default {
   components: {
     Errors,
     SettingsTable,
+    ActivityViewerButton,
   },
   data: () => ({
     /** @type {any} */

@@ -207,6 +207,9 @@ func GetEnforcedUserDefaults() settings.UserDefaultsEnforcement {
 
 // PatchUserDefaults merges patch JSON into the universal defaults and persists.
 func PatchUserDefaults(patchJSON []byte) error {
+	if settings.UserDefaultsLockedFromConfig() {
+		return fmt.Errorf("%s", settings.UserDefaultsConfigLockMessage)
+	}
 	userDefaultsMu.Lock()
 	merged, mergeErr := settings.MergeUserDefaultsPatchJSON(userDefaultsDefault, patchJSON)
 	if mergeErr != nil {
@@ -226,6 +229,9 @@ func PatchUserDefaults(patchJSON []byte) error {
 
 // PatchUserDefaultsEnforced merges enforcement patch JSON into the universal config.
 func PatchUserDefaultsEnforced(patchJSON []byte) error {
+	if settings.UserDefaultsLockedFromConfig() {
+		return fmt.Errorf("%s", settings.UserDefaultsConfigLockMessage)
+	}
 	userDefaultsMu.Lock()
 	merged, mergeErr := settings.MergeEnforcedPatchJSON(userDefaultsEnforcedDefault, patchJSON)
 	if mergeErr != nil {

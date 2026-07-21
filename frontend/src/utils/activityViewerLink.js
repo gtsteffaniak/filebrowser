@@ -1,10 +1,10 @@
 import { formatActivityViewerQueryString } from "@/utils/activityViewerQuery.js";
 import { globalVars } from "@/utils/constants";
+import { router } from "@/router";
 
 /** @typedef {Record<string, string>} ActivityViewerQuery */
 
 export const ACTIVITY_VIEWER_PATH = "tools/activityViewer";
-export const ACTIVITY_VIEWER_LINK_CLASS = "activity-viewer-link";
 
 /**
  * @param {ActivityViewerQuery} [params]
@@ -48,6 +48,28 @@ export function activityViewerUrl(params = {}) {
   const path = `${normalizedBase}${ACTIVITY_VIEWER_PATH}`;
   const qs = formatActivityViewerQueryString(query);
   return qs ? `${path}?${qs}` : path;
+}
+
+/**
+ * Navigate to the activity viewer using vue-router (SPA navigation).
+ * @param {string} href Full activity viewer URL from {@link activityViewerUrl}.
+ */
+export function navigateActivityViewerHref(href) {
+  const url = new URL(href, window.location.origin);
+  let path = url.pathname;
+  const base = (globalVars.baseURL || "/").replace(/\/$/, "");
+  if (base && base !== "/" && path.startsWith(base)) {
+    path = path.slice(base.length) || "/";
+  }
+  if (!path.startsWith("/")) {
+    path = `/${path}`;
+  }
+  /** @type {Record<string, string>} */
+  const query = {};
+  url.searchParams.forEach((value, key) => {
+    query[key] = value;
+  });
+  void router.push({ path, query });
 }
 
 export const ACCESS_EVENT_TYPES = ["accessCreate", "accessUpdate", "accessDelete"];

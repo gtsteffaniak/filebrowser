@@ -18,9 +18,11 @@
         @update:model-value="fetchRules"
       />
     </div>
-    <a class="button button--flat button--blue activity-viewer-link" :href="activityViewerHref">{{ $t("tools.activityViewer.viewActivity") }}</a>
   </div>
   <div class="card-content full">
+    <div class="settings-items">
+      <ActivityViewerButton class="item" :href="activityViewerHref" />
+    </div>
     <SettingsItem
       :title="$t('general.permissions')"
       :collapsable="true"
@@ -73,6 +75,7 @@ import SettingsTable from "@/components/settings/Table.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { notify } from "@/notify";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
@@ -84,6 +87,7 @@ export default {
     SettingsItem,
     SourceFilePermissions,
     ExpandDropdown,
+    ActivityViewerButton,
   },
   data: () => ({
     rules: {},
@@ -94,6 +98,7 @@ export default {
     loading: true,
     defaultsLoading: true,
     savingDefaults: false,
+    hydratingDefaults: false,
     sourceAccessDefaults: {
       view: true,
       download: true,
@@ -162,6 +167,7 @@ export default {
   methods: {
     async loadSourceAccessDefaults() {
       this.defaultsLoading = true;
+      this.hydratingDefaults = true;
       try {
         const settings = await settingsApi.getSourceSettings();
         const perms = settings?.defaultPermissions ?? {};
@@ -179,10 +185,20 @@ export default {
         }
       } finally {
         this.defaultsLoading = false;
+        this.$nextTick(() => {
+          this.hydratingDefaults = false;
+        });
       }
     },
+    canSaveSourceDefaults() {
+      return (
+        !this.defaultsLoading &&
+        !this.savingDefaults &&
+        !this.hydratingDefaults
+      );
+    },
     async onSourceAccessDefaultsChange() {
-      if (this.savingDefaults) {
+      if (!this.canSaveSourceDefaults()) {
         return;
       }
       this.savingDefaults = true;
@@ -190,6 +206,7 @@ export default {
         const settings = await settingsApi.patchSourceSettings({
           defaultPermissions: this.sourceAccessDefaults,
         });
+        this.hydratingDefaults = true;
         const perms = settings?.defaultPermissions ?? {};
         this.sourceAccessDefaults = {
           view: perms.view !== false,
@@ -207,6 +224,9 @@ export default {
         await this.loadSourceAccessDefaults();
       } finally {
         this.savingDefaults = false;
+        this.$nextTick(() => {
+          this.hydratingDefaults = false;
+        });
       }
     },
     async fetchRules() {

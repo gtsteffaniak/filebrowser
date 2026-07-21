@@ -4,7 +4,7 @@
       aria-label="listingOptions"
       :title="$t('settings.listingOptions')"
       :collapsable="true"
-      :start-collapsed="listingStartCollapsed"
+      :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('listingOptions')"
       @toggle="onSectionToggle('listingOptions')"
     >
@@ -573,19 +573,11 @@ export default {
       type: Boolean,
       default: false,
     },
-    /** When set, sections use accordion collapse (Profile settings page). */
-    accordionExpanded: {
-      type: String,
-      default: null,
-    },
-    listingStartCollapsed: {
-      type: Boolean,
-      default: false,
-    },
   },
-  emits: ["update:modelValue", "change", "enforced-change", "update:accordionExpanded", "theme-color", "locale-change"],
+  emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
   data() {
     return {
+      expandedSection: "listingOptions",
       formDisablePreviews: "",
       formDisabledViewing: "",
       formDisableOfficeViewing: "",
@@ -719,17 +711,11 @@ export default {
       this.formDisableOfficeViewing = this.sections.fileViewer?.disableOnlyOfficeExt || "";
     },
     sectionForceCollapsed(sectionKey) {
-      if (this.accordionExpanded === null) {
-        return null;
-      }
-      return this.accordionExpanded !== sectionKey;
+      return this.expandedSection !== sectionKey;
     },
     onSectionToggle(sectionKey) {
-      if (this.accordionExpanded === null) {
-        return;
-      }
-      const next = this.accordionExpanded === sectionKey ? null : sectionKey;
-      this.$emit("update:accordionExpanded", next);
+      this.expandedSection =
+        this.expandedSection === sectionKey ? null : sectionKey;
     },
     enforcedFlag(section, field) {
       if (section === "account" && field.includes(".")) {
