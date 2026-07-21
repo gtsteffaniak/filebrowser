@@ -40,11 +40,8 @@ func InitUserDefaultsSettings() error {
 	}
 
 	if _, err := sqlDb.GetSetting(userDefaultsEnforcedDefaultKey); err != nil {
-		enforced := settings.UserDefaultsEnforcement{}
-		if len(settings.Env.ConfigUserDefaultsSpecifiedPaths) > 0 {
-			settings.ApplyEnforcementFromPaths(&enforced, settings.Env.ConfigUserDefaultsSpecifiedPaths)
-		}
-		if saveErr := sqlDb.SaveSetting(userDefaultsEnforcedDefaultKey, enforced); saveErr != nil {
+		// Config-specified paths lock admin UI edits only; enforcement is opt-in via Settings.
+		if saveErr := sqlDb.SaveSetting(userDefaultsEnforcedDefaultKey, settings.UserDefaultsEnforcement{}); saveErr != nil {
 			return fmt.Errorf("seed enforced user defaults: %w", saveErr)
 		}
 	}

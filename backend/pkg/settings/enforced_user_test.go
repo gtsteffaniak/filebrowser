@@ -7,6 +7,22 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
+func TestValidateUserAgainstEnforcedDefaults_skipsAuthManagedAdmin(t *testing.T) {
+	u := &users.User{
+		FrontendUser: users.FrontendUser{Username: "admin-from-oidc"},
+	}
+	u.Permissions.Admin = true
+	defaults := UserDefaults{Account: UserDefaultsAccount{Permissions: UserDefaultsAccountPermissions{Admin: false}}}
+	enforced := UserDefaultsEnforcement{
+		Account: UserDefaultsAccountEnforcement{
+			Permissions: UserDefaultsAccountPermissionsEnforcement{Admin: true},
+		},
+	}
+	if err := ValidateUserAgainstEnforcedDefaults(u, defaults, enforced); err != nil {
+		t.Fatalf("auth-granted admin should not be blocked by enforced defaults: %v", err)
+	}
+}
+
 func TestValidateUserAgainstEnforcedDefaults_rejectsMismatch(t *testing.T) {
 	u := &users.User{
 		FrontendUser: users.FrontendUser{Username: "demo"},
