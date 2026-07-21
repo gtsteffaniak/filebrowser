@@ -293,7 +293,7 @@
     "userDefaultsDescription": "Configurar los ajustes predeterminados que se aplican a los nuevos usuarios y la política que se exige a todos los usuarios.",
     "accountDefaults": "Configuración predeterminada de la cuenta",
     "disableUserSettings": "Desactivar la página de configuración del usuario",
-    "userDefaultsLockedFromConfig": "Los valores predeterminados del usuario se han establecido en el archivo de configuración y no se pueden modificar hasta que un administrador elimine «userDefaults» del archivo de configuración."
+    "userDefaultFieldLockedFromConfig": "Este valor por defecto se establece en el archivo de configuración y no se puede modificar aquí."
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",

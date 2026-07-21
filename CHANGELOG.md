@@ -36,10 +36,13 @@ A database migration is required to go from v1.x to this version. See docs.
    - WebUI preserves both, files and directories.
    - WebDAV `COPY` preserves modification times only for files, is limitation we have with webdav.
  - User default enhancements
-   - Editing user defaults in the UI is disabled when user defaults are set in the config.yaml
+   - Config `userDefaults` seeds SQLite on first run; only fields explicitly set in config stay locked in **Settings → User defaults** (other defaults remain editable)
    - Added administrator controls for universal user defaults and enforced preferences in `settings > user management > user defaults`.
    - Added configurable default file permissions per source in `settings > access management`.
    - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt.
+   - Run `./filebrowser config migrate -c config.yaml` to convert deprecated flat `userDefaults` keys to the nested v2 structure.
+ - Database env var rename: `FILEBROWSER_DATABASE` is removed (startup fails if set). Use `FILEBROWSER_DATABASE_PATH` (default `filebrowser.sqlite`) or `server.database.path` in config.
+ - Bolt→SQLite sidebar migration preserves custom source link names, icons, and categories; missing scoped sources are merged into sidebar links.
 
  **Removed legacy (breaking)**:
  - `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
@@ -47,7 +50,8 @@ A database migration is required to go from v1.x to this version. See docs.
  - Search API: removed singular `source` param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
  - Source config: removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules 
  - `PUT /api/users` moved to the more appropriate `PATCH` method.
- - removed support for deprecated userDefaults config format, users must use config migration tool to update userDefaults.
+ - removed support for deprecated userDefaults config format; use `./filebrowser config migrate -c config.yaml` to convert flat keys to the nested v2 structure.
+ - `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead (see migration notes above).
 
  **Notes**:
  - new dropdown and input styles
@@ -57,7 +61,7 @@ A database migration is required to go from v1.x to this version. See docs.
  - Moved stream api to `/media/stream`
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata.
  - removed exiftool as an optional helper, always built with the supported libraries.
- - `userDefaults` section of the config has been deprecated.
+ - `userDefaults` in config.yaml bootstraps SQLite on first run (initial values + lock mask for configured fields only). After seeding, manage defaults in **Settings → User management → User defaults**. Remove `userDefaults` from config when you no longer want fields re-locked on fresh installs.
 
 ## v1.5.0
 

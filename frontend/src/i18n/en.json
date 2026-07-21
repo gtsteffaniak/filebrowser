@@ -568,7 +568,7 @@
     "configViewerDescription": "Open a read-only view of the current server configuration.",
     "userDefaults": "User defaults",
     "userDefaultsDescription": "Configure default settings applied to new users and enforced policy for all users.",
-    "userDefaultsLockedFromConfig": "User defaults have been set in the config file and cannot be changed until an admin removes the userDefaults from the config file.",
+    "userDefaultFieldLockedFromConfig": "This default is set in the config file and cannot be changed here.",
     "accountDefaults": "Account defaults",
     "disableUserSettings": "Disable user settings page",
     "analyticsView": "View analytics",

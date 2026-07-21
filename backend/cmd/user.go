@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -248,7 +247,7 @@ func updatePreviewSettings(user *users.User) bool {
 	return false
 }
 
-// updateSidebarLinks normalizes sidebar links and rebuilds from scopes when none resolve.
+// updateSidebarLinks normalizes sidebar links and ensures scoped sources have sidebar entries.
 func updateSidebarLinks(user *users.User) bool {
 	updated := false
 
@@ -257,65 +256,28 @@ func updateSidebarLinks(user *users.User) bool {
 		updated = true
 	}
 
-	sourceLinksCount, validSourceLinksCount := countSidebarSourceLinks(user.SidebarLinks)
-
-	shouldRebuildFromScopes := len(user.BackendScopes) > 0 &&
-		(sourceLinksCount == 0 || validSourceLinksCount == 0)
-	if !shouldRebuildFromScopes {
+	if !usersidebar.NeedsSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes) {
 		return updated
 	}
 
-	if sourceLinksCount > 0 && validSourceLinksCount == 0 {
-		logger.Infof("User %s has %d stale source links, rebuilding from scopes", user.Username, sourceLinksCount)
-	} else if sourceLinksCount == 0 {
+	if usersidebar.ValidSourceSidebarLinkCount(user.SidebarLinks) == 0 && len(user.SidebarLinks) > 0 {
+		logger.Infof("User %s has stale source sidebar links, merging missing links from scopes", user.Username)
+	} else if usersidebar.ValidSourceSidebarLinkCount(user.SidebarLinks) == 0 {
 		logger.Infof("User %s has no source sidebar links, building from scopes", user.Username)
+	} else {
+		logger.Infof("User %s is missing sidebar links for some scoped sources, merging from scopes", user.Username)
 	}
 
-	newLinks := []users.SidebarLink{}
-	for _, link := range user.SidebarLinks {
-		if !strings.HasPrefix(link.Category, "source") {
-			newLinks = append(newLinks, link)
-		}
+	merged, changed := usersidebar.EnsureSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes)
+	if changed {
+		user.SidebarLinks = merged
+		updated = true
 	}
-
-	for _, scope := range user.BackendScopes {
-		if source, ok := settings.Config.Server.SourceMap[scope.Path]; ok {
-			newLinks = append(newLinks, users.SidebarLink{
-				Name:       source.Name,
-				Category:   "source",
-				Target:     "/",
-				Icon:       "",
-				SourceName: source.Path,
-			})
-		}
-	}
-
-	user.SidebarLinks = newLinks
 	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
 		user.SidebarLinks = normalized
+		updated = true
 	}
-	return true
-}
-
-func countSidebarSourceLinks(links []users.SidebarLink) (total, valid int) {
-	for _, link := range links {
-		if !strings.HasPrefix(link.Category, "source") {
-			continue
-		}
-		total++
-		if link.SourceName != "" {
-			if _, ok := users.ResolveSourceKey(link.SourceName); ok {
-				valid++
-				continue
-			}
-		}
-		if link.Name != "" {
-			if _, ok := users.ResolveSourceKey(link.Name); ok {
-				valid++
-			}
-		}
-	}
-	return total, valid
+	return updated
 }
 
 func updateTokens(user *users.User) bool {

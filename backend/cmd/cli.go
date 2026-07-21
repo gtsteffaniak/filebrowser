@@ -91,6 +91,8 @@ func runCLI() (bool, bool) {
 			return false, false
 		case "setup":
 			cliSubcmd = "setup"
+		case "config":
+			cliSubcmd = "config"
 		case "set":
 			cliSubcmd = "set"
 			if len(os.Args) < 3 {
@@ -117,6 +119,16 @@ func runCLI() (bool, bool) {
 	switch cliSubcmd {
 	case "setup":
 		createConfig(configPath)
+		return false, false
+	case "config":
+		if len(os.Args) < 3 {
+			fmt.Printf("error: missing subcommand for 'config'. Use 'config migrate'\n")
+			os.Exit(1)
+		}
+		if err := runConfigCommand(os.Args[2:]); err != nil {
+			fmt.Printf("error: %v\n", err)
+			os.Exit(1)
+		}
 		return false, false
 	case "set":
 		if setKind == "-u" {

@@ -122,45 +122,43 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 }
 
 type userDefaultsResponse struct {
-	Values           *settings.UserDefaults            `json:"values,omitempty"`
-	Enforced         settings.UserDefaultsEnforcement `json:"enforced"`
-	LockedFromConfig bool                             `json:"lockedFromConfig,omitempty"`
-	LockMessage      string                           `json:"lockMessage,omitempty"`
+	Values                  *settings.UserDefaults            `json:"values,omitempty"`
+	Enforced                settings.UserDefaultsEnforcement `json:"enforced"`
+	LockedFromConfigPaths   []string                         `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage             string                           `json:"lockMessage,omitempty"`
 }
 
-func userDefaultsLockMeta() (locked bool, message string) {
-	if settings.UserDefaultsLockedFromConfig() {
-		return true, settings.UserDefaultsConfigLockMessage
+func userDefaultsLockMeta() (paths []string, message string) {
+	paths = settings.ConfigSpecifiedUserDefaultPaths()
+	if len(paths) == 0 {
+		return nil, ""
 	}
-	return false, ""
+	return paths, settings.UserDefaultsConfigLockMessage
 }
 
 func settingsUserDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if scope := r.URL.Query().Get("scope"); scope != "" && scope != "default" {
 		return http.StatusBadRequest, fmt.Errorf("per-login user defaults scopes are no longer supported")
 	}
-	locked, lockMessage := userDefaultsLockMeta()
+	lockedPaths, lockMessage := userDefaultsLockMeta()
 	enforced := state.GetEnforcedUserDefaults()
 	if !d.User.Permissions.Admin {
 		return RenderJSON(w, r, userDefaultsResponse{
-			Enforced:         enforced,
-			LockedFromConfig: locked,
-			LockMessage:      lockMessage,
+			Enforced:              enforced,
+			LockedFromConfigPaths: lockedPaths,
+			LockMessage:           lockMessage,
 		})
 	}
 	values := state.GetUserDefaults()
 	return RenderJSON(w, r, userDefaultsResponse{
-		Values:           &values,
-		Enforced:         enforced,
-		LockedFromConfig: locked,
-		LockMessage:      lockMessage,
+		Values:                &values,
+		Enforced:              enforced,
+		LockedFromConfigPaths: lockedPaths,
+		LockMessage:           lockMessage,
 	})
 }
 
 func settingsUserDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if settings.UserDefaultsLockedFromConfig() {
-		return http.StatusForbidden, fmt.Errorf("%s", settings.UserDefaultsConfigLockMessage)
-	}
 	if scope := r.URL.Query().Get("scope"); scope != "" && scope != "default" {
 		return http.StatusBadRequest, fmt.Errorf("per-login user defaults scopes are no longer supported")
 	}

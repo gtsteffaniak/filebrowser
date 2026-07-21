@@ -293,7 +293,7 @@
     "userDefaultsDescription": "Állítsa be az új felhasználókra alkalmazandó alapértelmezett beállításokat, valamint az összes felhasználóra vonatkozó érvényes szabályzatot.",
     "accountDefaults": "Fiók alapbeállításai",
     "disableUserSettings": "A felhasználói beállítások oldal letiltása",
-    "userDefaultsLockedFromConfig": "A felhasználói alapbeállítások a konfigurációs fájlban lettek megadva, és addig nem módosíthatók, amíg egy rendszergazda ki nem távolítja a „userDefaults” bejegyzést a konfigurációs fájlból."
+    "userDefaultFieldLockedFromConfig": "Ez az alapértelmezett beállítás a konfigurációs fájlban van megadva, és itt nem módosítható."
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",

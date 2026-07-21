@@ -66,6 +66,14 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 		if err := settings.ApplyProfileToUser(user, userData.Profile); err != nil {
 			return fmt.Errorf("apply user profile: %w", err)
 		}
+		if len(userData.NonAdminEditable.SidebarLinks) > 0 {
+			user.SidebarLinks = userData.NonAdminEditable.SidebarLinks
+		}
+		user.ShowFirstLogin = userData.NonAdminEditable.ShowFirstLogin
+		user.PasskeyCredentials = userData.NonAdminEditable.PasskeyCredentials
+		if userData.NonAdminEditable.Sorting.By != "" || userData.NonAdminEditable.Sorting.Asc {
+			user.Sorting = userData.NonAdminEditable.Sorting
+		}
 	} else {
 		user.NonAdminEditable = userData.NonAdminEditable
 	}
@@ -87,7 +95,12 @@ func userDataForPersist(user *users.User) UserData {
 	}
 	legacySettings := user.NonAdminEditable
 	if user.Version >= users.ProfileStorageVersion {
-		legacySettings = users.NonAdminEditable{}
+		legacySettings = users.NonAdminEditable{
+			SidebarLinks:       user.SidebarLinks,
+			ShowFirstLogin:     user.ShowFirstLogin,
+			PasskeyCredentials: user.PasskeyCredentials,
+			Sorting:            user.Sorting,
+		}
 	}
 	return UserData{
 		Password:                 user.Password,

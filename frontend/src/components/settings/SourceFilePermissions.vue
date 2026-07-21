@@ -83,12 +83,47 @@ export default {
   },
   methods: {
     setPermission(key, value) {
-      if (this.permissions[key] === value) {
+      const current = this.permissionValue(key);
+      if (current === undefined || current === value) {
         return;
       }
-      this.permissions[key] = value;
+      switch (key) {
+        case "view":
+          this.permissions.view = value;
+          break;
+        case "download":
+          this.permissions.download = value;
+          break;
+        case "modify":
+          this.permissions.modify = value;
+          break;
+        case "create":
+          this.permissions.create = value;
+          break;
+        case "delete":
+          this.permissions.delete = value;
+          break;
+        default:
+          return;
+      }
       if (this.emitChanges) {
         this.$emit("changed");
+      }
+    },
+    permissionValue(key) {
+      switch (key) {
+        case "view":
+          return this.permissions.view;
+        case "download":
+          return this.permissions.download;
+        case "modify":
+          return this.permissions.modify;
+        case "create":
+          return this.permissions.create;
+        case "delete":
+          return this.permissions.delete;
+        default:
+          return undefined;
       }
     },
   },

@@ -293,7 +293,7 @@
     "userDefaultsDescription": "신규 사용자에게 적용될 기본 설정을 구성하고, 모든 사용자에게 적용될 정책을 설정합니다.",
     "accountDefaults": "계정 기본 설정",
     "disableUserSettings": "사용자 설정 페이지 비활성화",
-    "userDefaultsLockedFromConfig": "사용자 기본값은 구성 파일에 설정되어 있으며, 관리자가 구성 파일에서 userDefaults를 삭제하기 전까지는 변경할 수 없습니다."
+    "userDefaultFieldLockedFromConfig": "이 기본값은 설정 파일에서 지정되며, 여기서는 변경할 수 없습니다."
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",
