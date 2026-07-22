@@ -27,15 +27,15 @@
 </template>
 
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import * as settingsApi from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import Editor from "@/views/files/Editor.vue";
 
 export default {
   name: "ConfigViewer",
   components: {
     ToggleSwitch,
-    Editor,
+    Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
   },
   data() {
     return {
