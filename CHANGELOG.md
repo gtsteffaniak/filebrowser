@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.0
 
-This version represents the most significant change to date. It **requires** both a database migration and config structural changes.
+This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions.
 
  **Breaking Changes**:
  - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
@@ -16,6 +16,8 @@ This version represents the most significant change to date. It **requires** bot
  - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method.
  - Changed: http related config options in `server` config key moved to `http` config key.
  - Changed: `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead (see migration notes above).
+ - Changed: Moved stream api to `/api/media/stream`
+ - Changed: CLI user management — canonical commands are `user set <username> --password [value]` and `user promote <username>`; `set -u username,password` is deprecated
 
  **New Features**:
  - View grant mechanism to distinguish between UI viewing and download.
@@ -25,7 +27,6 @@ This version represents the most significant change to date. It **requires** bot
    - per-source defaults configurable in `settings > access management`
    - `view` permission is automatically set to true unless explicitly set to false.
  # - backup/restore in UI settings
- # - New CLI options and usage
  - New activity logs for user activity.
    - charts and historical data
    - activity tool to view data
@@ -52,17 +53,17 @@ This version represents the most significant change to date. It **requires** bot
    - Added configurable default file permissions per source in `settings > access management`.
    - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt.
  - Database env var rename: `FILEBROWSER_DATABASE` is removed (startup fails if set). Use `FILEBROWSER_DATABASE_PATH` (default `filebrowser.sqlite`) or `server.database.path` in config.
- - Bolt→SQLite sidebar migration preserves custom source link names, icons, and categories; missing scoped sources are merged into sidebar links.
+ - CLI: `user set` with `--password` (inline value, interactive prompt on TTY, or piped stdin); `user promote` for admin grant without password reset
 
  **Notes**:
+ - v2.x.x uses a new write-through backend state management. Changes go through a fast memory layer and also write changes to database to stay in sync.
+ - CLI server start (`./filebrowser`), `setup`, `version`, and `set rule` syntax unchanged; see [CLI docs](https://filebrowserquantum.com/en/docs/reference/cli/)
  - new dropdown and input styles
  - user updates are more granular, don't include entire user payload.
  - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated.
  - removed legacy and deprecated properties from API responses and generated config output
- - Moved stream api to `/media/stream`
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata.
  - removed exiftool as an optional helper, always built with the supported libraries.
- - `userDefaults` in config.yaml bootstraps SQLite on first run (initial values + lock mask for configured fields only). After seeding, manage defaults in **Settings → User management → User defaults**. Remove `userDefaults` from config when you no longer want fields re-locked on fresh installs.
 
 ## v1.5.0
 

@@ -21,6 +21,10 @@
 
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
+## v2.0.0 Breaking Changes
+
+Upgrading to v2.x.x **requires** database migration and config structural changes. See the [migration docs](https://filebrowserquantum.com/en/docs/getting-started/v2/migration) for full details.
+
 ## About
 
 FileBrowser Quantum provides an easy way to access and manage your files from the web. It has a modern responsive interface that has many advanced features to manage users, access, sharing, and file preview and editing.
