@@ -12,8 +12,10 @@ This version represents the most significant change to date. It **requires** bot
  - Removed: singular `source` search api param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
  - Removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules.
  - Removed: support for deprecated userDefaults config format, users must use config migration tool to update userDefaults.
+ - Removed: support for deprecated flat `userDefaults` config format.
  - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method.
  - Changed: http related config options in `server` config key moved to `http` config key.
+ - Changed: `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead (see migration notes above).
 
  **New Features**:
  - View grant mechanism to distinguish between UI viewing and download.
