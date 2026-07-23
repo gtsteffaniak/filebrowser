@@ -20,6 +20,12 @@
   border-color: var(--primaryColor);
 }
 
+.input:disabled {
+  cursor: not-allowed;
+  color: var(--textSecondary);
+  opacity: 0.75;
+}
+
 .input--textarea {
   line-height: 1.15;
   font-family: monospace;

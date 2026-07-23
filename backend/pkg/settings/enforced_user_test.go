@@ -7,6 +7,32 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
+func TestEnforcementAppliesToUser(t *testing.T) {
+	admin := &users.User{
+		FrontendUser: users.FrontendUser{Username: "admin"},
+	}
+	admin.Permissions.Admin = true
+
+	tests := []struct {
+		name string
+		u    *users.User
+		want bool
+	}{
+		{name: "nil user", u: nil, want: false},
+		{name: "empty username", u: &users.User{FrontendUser: users.FrontendUser{Username: ""}}, want: false},
+		{name: "anonymous", u: &users.User{FrontendUser: users.FrontendUser{Username: users.AnonymousUserName}}, want: false},
+		{name: "regular user", u: &users.User{FrontendUser: users.FrontendUser{Username: "alice"}}, want: true},
+		{name: "admin", u: admin, want: false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := EnforcementAppliesToUser(tc.u); got != tc.want {
+				t.Fatalf("EnforcementAppliesToUser() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestValidateUserAgainstEnforcedDefaults_skipsAuthManagedAdmin(t *testing.T) {
 	u := &users.User{
 		FrontendUser: users.FrontendUser{Username: "admin-from-oidc"},
@@ -41,6 +67,19 @@ func TestValidateUserAgainstEnforcedDefaults_rejectsMismatch(t *testing.T) {
 	u.ShowHidden = true
 	if err := ValidateUserAgainstEnforcedDefaults(u, defaults, enforced); err != nil {
 		t.Fatalf("expected match, got %v", err)
+	}
+}
+
+func TestValidateUserAgainstEnforcedDefaults_skipsAdmin(t *testing.T) {
+	u := &users.User{
+		FrontendUser: users.FrontendUser{Username: "admin"},
+	}
+	u.Permissions.Admin = true
+	u.ShowHidden = false
+	defaults := UserDefaults{Listing: UserDefaultsListing{ShowHidden: true}}
+	enforced := UserDefaultsEnforcement{Listing: UserDefaultsListingEnforcement{ShowHidden: true}}
+	if err := ValidateUserAgainstEnforcedDefaults(u, defaults, enforced); err != nil {
+		t.Fatalf("admin should bypass enforced value validation: %v", err)
 	}
 }
 

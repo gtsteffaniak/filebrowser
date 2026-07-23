@@ -23,6 +23,7 @@
           transparent
           :options="searchSourceOptions"
           all-value="__all__"
+          :all-selected-label="$t('general.all')"
           aria-label="search sources dropdown"
           @update:model-value="updateSource"
         />
@@ -374,10 +375,14 @@ export default {
       return Object.keys(state.sources.info).length > 1;
     },
     searchSourceOptions() {
-      return Object.keys(this.sourceInfo).map((name) => ({
+      const sources = Object.keys(this.sourceInfo).map((name) => ({
         value: name,
         label: name,
       }));
+      return [
+        { value: "__all__", label: this.$t("general.all") },
+        ...sources,
+      ];
     },
     isSearchingMultipleSources() {
       return this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources);
@@ -785,6 +790,59 @@ export default {
 
 .searchContext.expand-dropdown :deep(.expand-dropdown-trigger i),
 .searchContext.expand-dropdown :deep(.expand-dropdown-chevron) {
+  padding: 0;
+  line-height: 1;
+}
+
+:global(.searchContext.expand-dropdown.expand-dropdown-overlay--anchored) {
+  flex: 0 0 auto;
+  width: 25%;
+  min-width: 7em;
+  max-width: 15em;
+  padding: 0.5em 0.75em;
+  align-self: stretch;
+  min-height: 0;
+  background: var(--primaryColor);
+  color: white;
+  box-sizing: border-box;
+}
+
+:global(.searchContext.expand-dropdown.expand-dropdown-overlay--anchored) .expand-dropdown-anchor {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+:global(.searchContext.expand-dropdown.expand-dropdown-overlay--anchored) .expand-dropdown-trigger {
+  align-items: center;
+  line-height: 1.2;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  box-sizing: border-box;
+  color: inherit;
+}
+
+:global(.searchContext.expand-dropdown.expand-dropdown-overlay--anchored) .expand-dropdown-trigger:hover:not(:disabled) {
+  width: 100% !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  background-color: transparent;
+}
+
+:global(.searchContext.expand-dropdown.expand-dropdown-overlay--anchored) .expand-dropdown-trigger-label,
+:global(.searchContext.expand-dropdown.expand-dropdown-overlay--anchored) .expand-dropdown-chevron {
+  color: inherit;
+}
+
+:global(.searchContext.expand-dropdown.expand-dropdown-overlay--anchored) .expand-dropdown-trigger i,
+:global(.searchContext.expand-dropdown.expand-dropdown-overlay--anchored) .expand-dropdown-chevron {
   padding: 0;
   line-height: 1;
 }

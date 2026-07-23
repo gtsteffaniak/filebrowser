@@ -1,6 +1,10 @@
 package settings
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+)
 
 // userJSONFieldEnforcementPaths maps flat user JSON field names (PATCH which / data keys)
 // to user-defaults enforcement dot-paths (see UserDefaultsEnforcement).
@@ -112,7 +116,10 @@ func (e ErrEnforcedUserField) Error() string {
 }
 
 // ValidateSelfUserUpdateNotEnforced rejects PATCH fields that are locked by user-defaults enforcement.
-func ValidateSelfUserUpdateNotEnforced(which []string, enforced UserDefaultsEnforcement) error {
+func ValidateSelfUserUpdateNotEnforced(which []string, enforced UserDefaultsEnforcement, u *users.User) error {
+	if !EnforcementAppliesToUser(u) {
+		return nil
+	}
 	paths := EnforcedPathSet(enforced)
 	if len(paths) == 0 {
 		return nil

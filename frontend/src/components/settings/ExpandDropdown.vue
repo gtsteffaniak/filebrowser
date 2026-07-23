@@ -10,7 +10,11 @@
     <div
       ref="anchor"
       class="expand-dropdown-anchor menu-panel no-select border-radius"
-      :class="{ 'dark-mode': isDarkMode, 'expand-upward': open && expandUpward }"
+      :class="{
+        'dark-mode': isDarkMode,
+        'expand-upward': open && expandUpward && !transparent,
+        'expand-dropdown-anchor--placeholder': open && transparent,
+      }"
     >
       <button
         ref="trigger"
@@ -39,11 +43,74 @@
       <div
         v-if="open"
         ref="overlay"
-        class="expand-dropdown-overlay"
-        :class="{ 'dark-mode': isDarkMode, 'expand-upward': expandUpward }"
+        class="expand-dropdown expand-dropdown--open expand-dropdown-overlay"
+        :class="overlayRootClasses"
         :style="overlayStyle"
       >
+        <div
+          v-if="transparent"
+          class="expand-dropdown-overlay-shell"
+          :class="{ 'expand-upward': expandUpward }"
+        >
+          <div
+            class="expand-dropdown-anchor menu-panel no-select border-radius"
+            :class="{
+              'dark-mode': isDarkMode,
+              'expand-upward': expandUpward,
+            }"
+            :style="overlayAnchorStyle"
+          >
+            <button
+              ref="overlayTrigger"
+              type="button"
+              class="action expand-dropdown-trigger"
+              aria-expanded="true"
+              aria-haspopup="listbox"
+              :aria-label="resolvedAriaLabel"
+              :disabled="disabled"
+              @click="togglePanel"
+              @keydown.esc.prevent="close"
+            >
+              <span class="expand-dropdown-trigger-label">{{ displayLabel }}</span>
+              <i
+                class="material-symbols expand-dropdown-chevron expand-dropdown-chevron--open"
+              >expand_more</i>
+            </button>
+          </div>
+          <transition
+            name="expand"
+            @before-enter="beforeEnter"
+            @enter="enter"
+            @leave="leave"
+            @after-leave="onPanelAfterLeave"
+          >
+            <div
+              v-if="panelOpen"
+              ref="panel"
+              class="expand-dropdown-body menu-panel no-select border-radius"
+              :class="{ 'expand-upward': expandUpward }"
+              role="listbox"
+              :aria-multiselectable="allowMultiple ? 'true' : 'false'"
+              :aria-label="resolvedAriaLabel"
+            >
+              <MenuOptionList
+                ref="menuOptions"
+                :options="normalizedOptions"
+                :selected-keys="selectedKeys"
+                :allow-search="allowSearch"
+                :search-query="searchQuery"
+                :search-placeholder="searchPlaceholder"
+                :empty-label="emptyLabel"
+                :max-height="dropdownMaxHeight"
+                @select="selectOption"
+                @update:search-query="searchQuery = $event"
+                @close="close"
+              />
+            </div>
+          </transition>
+        </div>
         <transition
+          v-else
           name="expand"
           @before-enter="beforeEnter"
           @enter="enter"
@@ -178,10 +245,12 @@ export default {
       isExpanded: false,
       searchQuery: "",
       overlayStyle: {},
+      overlayAnchorStyle: {},
       localInputId: `expand-dropdown-${expandDropdownIdCounter}`,
       panelResizeObserver: null,
       expandUpward: false,
       dropdownMaxHeight: null,
+      overlayContextClassSnapshot: [],
     };
   },
 
@@ -194,6 +263,20 @@ export default {
     },
     resolvedAriaLabel() {
       return this.ariaLabel || this.displayLabel;
+    },
+    overlayContextClassNames() {
+      return this.overlayContextClassSnapshot;
+    },
+    overlayRootClasses() {
+      return [
+        {
+          "expand-dropdown--transparent": this.transparent,
+          "expand-dropdown-overlay--anchored": this.transparent,
+          "dark-mode": this.isDarkMode,
+          "expand-upward": this.expandUpward,
+        },
+        ...this.overlayContextClassNames,
+      ];
     },
     normalizedOptions() {
       return (this.options || []).map((option) => ({
@@ -353,6 +436,19 @@ export default {
       );
       return match ? match.label : key;
     },
+    syncOverlayContextClasses() {
+      const el = this.$refs.root;
+      if (!el) {
+        this.overlayContextClassSnapshot = [];
+        return;
+      }
+      const skip = new Set([
+        "expand-dropdown",
+        "expand-dropdown--open",
+        "expand-dropdown--transparent",
+      ]);
+      this.overlayContextClassSnapshot = [...el.classList].filter((name) => !skip.has(name));
+    },
     openPanel() {
       if (this.disabled || this.open) {
         return;
@@ -375,10 +471,14 @@ export default {
       }
       this.panelOpen = false;
       this.isExpanded = true;
+      this.syncOverlayContextClasses();
       this.updateOverlayPosition();
       this.open = true;
       this.$nextTick(() => {
         this.panelOpen = true;
+        if (this.transparent) {
+          this.$refs.overlayTrigger?.focus();
+        }
       });
     },
     togglePanel() {
@@ -408,9 +508,13 @@ export default {
       this.isExpanded = false;
       this.searchQuery = "";
       this.overlayStyle = {};
+      this.overlayAnchorStyle = {};
       this.expandUpward = false;
       this.dropdownMaxHeight = null;
       this.unobservePanelResize();
+      if (this.transparent) {
+        this.$nextTick(() => this.$refs.trigger?.focus());
+      }
     },
     onPanelAfterLeave() {
       if (!this.panelOpen) {
@@ -451,7 +555,16 @@ export default {
         width: `${anchorRect.width}px`,
         zIndex: 1000,
       };
-      if (this.expandUpward) {
+      if (this.transparent) {
+        if (this.expandUpward) {
+          style.bottom = `${viewportHeight - anchorRect.bottom}px`;
+        } else {
+          style.top = `${anchorRect.top}px`;
+        }
+        this.overlayAnchorStyle = {
+          minHeight: `${anchorRect.height}px`,
+        };
+      } else if (this.expandUpward) {
         style.bottom = `${viewportHeight - anchorRect.top + 1}px`;
       } else {
         style.top = `${anchorRect.bottom - 1}px`;
@@ -536,25 +649,64 @@ export default {
   transition:
     border-bottom-left-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     border-bottom-right-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    border-bottom-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-top-left-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-top-right-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-bottom-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-top-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.expand-dropdown--open .expand-dropdown-anchor {
+.expand-dropdown--open .expand-dropdown-anchor:not(.expand-upward) {
   position: relative;
   z-index: 1000;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  /* Keep border width; hide the seam without shrinking the anchor box. */
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
   border-bottom-color: var(--background);
 }
 
 .expand-dropdown--open .expand-dropdown-anchor.expand-upward {
+  position: relative;
+  z-index: 1000;
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
-  border-bottom-left-radius: var(--borderRadius);
-  border-bottom-right-radius: var(--borderRadius);
-  border-bottom-color: var(--surfaceSecondary);
   border-top-color: var(--background);
+  border-bottom-color: var(--surfaceSecondary);
+}
+
+.expand-dropdown-anchor--placeholder {
+  visibility: hidden;
+}
+
+.expand-dropdown--open .expand-dropdown-anchor--placeholder {
+  z-index: auto;
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.expand-dropdown-overlay.expand-dropdown-overlay--anchored {
+  display: flex;
+  flex-direction: column;
+}
+
+.expand-dropdown-overlay.expand-dropdown-overlay--anchored.expand-upward {
+  flex-direction: column-reverse;
+}
+
+.expand-dropdown-overlay-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.expand-dropdown-overlay-shell.expand-upward {
+  flex-direction: column-reverse;
+}
+
+.expand-dropdown-overlay--anchored .expand-dropdown-trigger:hover:not(:disabled) {
+  width: 100% !important;
+  margin-left: 0 !important;
 }
 
 .expand-dropdown-overlay {
@@ -574,25 +726,26 @@ export default {
   box-sizing: border-box;
   overflow: hidden;
   width: 100%;
-  margin-top: -2px;
   background-color: var(--background);
   border-style: solid;
   border-color: var(--surfaceSecondary);
-  border-width: 0 1px 1px;
-  border-top-left-radius: 0 !important;
-  border-top-right-radius: 0 !important;
   padding: 0 0.5em 0.5em;
   justify-content: flex-start;
   align-items: stretch;
 }
 
+.expand-dropdown-body:not(.expand-upward) {
+  margin-top: -2px;
+  border-width: 0 1px 1px;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
 .expand-dropdown-body.expand-upward {
-  border-top-left-radius: var(--borderRadius) !important;
-  border-top-right-radius: var(--borderRadius) !important;
+  margin-bottom: -2px;
+  border-width: 1px 1px 0;
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
-  border-top-width: 1px;
-  border-bottom-width: 0;
   margin-top: 0;
   padding-top: 0.5em;
   padding-bottom: 0;
@@ -636,8 +789,14 @@ export default {
   font-size: 1.25rem;
   color: var(--textSecondary);
   padding: 0;
+  border-radius: 0;
   transform: rotate(0deg);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.expand-dropdown-trigger.action i {
+  padding: 0;
+  border-radius: 0;
 }
 
 .expand-dropdown-chevron--open {

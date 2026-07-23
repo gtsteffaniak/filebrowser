@@ -71,6 +71,9 @@ export const getters = {
     return getters.displayPreferenceFor(source, path);
   },
   viewModeChangeLocked: () => {
+    if (getters.isAdmin()) {
+      return false;
+    }
     if (state.enforcedUserDefaults?.listing?.viewMode) {
       return true;
     }

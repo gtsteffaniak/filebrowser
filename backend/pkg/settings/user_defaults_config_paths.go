@@ -133,6 +133,48 @@ func CollectJSONPatchLeafPaths(patchJSON []byte) ([]string, error) {
 	return CollectMapLeafPaths(raw, ""), nil
 }
 
+// UserDefaultsPatchJSONForPaths builds a partial JSON patch containing only the given dot-paths from source.
+func UserDefaultsPatchJSONForPaths(source UserDefaults, paths []string) ([]byte, error) {
+	if len(paths) == 0 {
+		return []byte("{}"), nil
+	}
+	pathSet := make(map[string]struct{}, len(paths))
+	for _, path := range paths {
+		pathSet[path] = struct{}{}
+	}
+	srcBytes, err := json.Marshal(source)
+	if err != nil {
+		return nil, fmt.Errorf("marshal user defaults: %w", err)
+	}
+	var srcMap map[string]interface{}
+	if err := json.Unmarshal(srcBytes, &srcMap); err != nil {
+		return nil, fmt.Errorf("unmarshal user defaults map: %w", err)
+	}
+	patchMap := make(map[string]interface{})
+	for path := range pathSet {
+		if val, ok := valueAtJSONPath(srcMap, path); ok {
+			setAtJSONPath(patchMap, path, val)
+		}
+	}
+	return json.Marshal(patchMap)
+}
+
+// ApplyConfigSpecifiedPathsToUserDefaults overlays config userDefaults onto stored values for config paths.
+func ApplyConfigSpecifiedPathsToUserDefaults(stored, config UserDefaults) (UserDefaults, error) {
+	paths := ConfigSpecifiedUserDefaultPaths()
+	if len(paths) == 0 {
+		return stored, nil
+	}
+	patchJSON, err := UserDefaultsPatchJSONForPaths(config, paths)
+	if err != nil {
+		return UserDefaults{}, err
+	}
+	if len(patchJSON) == 0 || string(patchJSON) == "{}" || string(patchJSON) == "null" {
+		return stored, nil
+	}
+	return MergeUserDefaultsPatchJSON(stored, patchJSON)
+}
+
 // ValidateUserDefaultsPatchNotConfigLocked rejects patches touching config-locked paths.
 func ValidateUserDefaultsPatchNotConfigLocked(patchJSON []byte) error {
 	if !Env.ConfigUserDefaultsSpecified {

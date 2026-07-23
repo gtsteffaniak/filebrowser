@@ -9,6 +9,8 @@
     <div
       class="toggle-row toggle-row--value"
       :class="{ 'border-radius': enforceable }"
+      @mouseenter="showEnforcedTooltipIfNeeded"
+      @mouseleave="hideTooltip"
     >
       <div class="toggle-name-container">
         <span class="toggle-name">{{ name }}</span>
@@ -91,6 +93,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    enforcementLocked: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     enforcedIdCounter += 1;
@@ -118,6 +124,16 @@ export default {
           y: event.clientY,
         });
       }
+    },
+    showEnforcedTooltipIfNeeded(event) {
+      if (!this.disabled || !this.enforcementLocked) {
+        return;
+      }
+      mutations.showTooltip({
+        content: this.$t("profileSettings.enforcedByAdmin"),
+        x: event.clientX,
+        y: event.clientY,
+      });
     },
     hideTooltip() {
       mutations.hideTooltip();

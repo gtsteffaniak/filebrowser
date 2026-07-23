@@ -72,7 +72,11 @@
               help
             </i>
           </div>
-          <div class="form-flex-group">
+          <div
+            class="form-flex-group"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'hideFileExt')"
+            @mouseleave="hideTooltip"
+          >
             <input
               class="input form-form flat-right disable-viewing"
               :class="{ 'form-invalid': !validateExtensions(formHideExt) }"
@@ -118,6 +122,7 @@
           @change="onThumbnailMasterChange"
           @update:enforced="(v) => emitEnforced('preview', 'image', v)"
           :disabled="fieldDisabled('preview', 'image')"
+          :enforcement-locked="isEnforcementLocked('preview', 'image')"
           :name="$t('profileSettings.showThumbnails')"
           :description="helpText('preview', 'image', $t('profileSettings.showThumbnailsDescription'))"
         />
@@ -188,7 +193,11 @@
               help
             </i>
           </div>
-          <div class="form-flex-group">
+          <div
+            class="form-flex-group"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'preview', 'disablePreviewExt')"
+            @mouseleave="hideTooltip"
+          >
             <input
               class="input form-form flat-right disable-viewing"
               :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }"
@@ -263,6 +272,7 @@
           @change="() => emitSectionChange('sidebar', 'showTools')"
           @update:enforced="(v) => emitEnforced('sidebar', 'showTools', v)"
           :disabled="fieldDisabled('sidebar', 'showTools')"
+          :enforcement-locked="isEnforcementLocked('sidebar', 'showTools')"
           :name="$t('profileSettings.showToolsInSidebar')"
           :description="helpText('sidebar', 'showTools', $t('profileSettings.showToolsInSidebarDescription'))"
         />
@@ -310,6 +320,7 @@
           @change="() => emitSectionChange('fileViewer', 'autoplayMedia')"
           @update:enforced="(v) => emitEnforced('fileViewer', 'autoplayMedia', v)"
           :disabled="fieldDisabled('fileViewer', 'autoplayMedia')"
+          :enforcement-locked="isEnforcementLocked('fileViewer', 'autoplayMedia')"
           :name="$t('profileSettings.autoplayMedia')"
           :description="helpText('fileViewer', 'autoplayMedia', $t('profileSettings.autoplayMediaDescription'))"
         />
@@ -341,7 +352,11 @@
               help
             </i>
           </div>
-          <div class="form-flex-group">
+          <div
+            class="form-flex-group"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'fileViewer', 'disableViewingExt')"
+            @mouseleave="hideTooltip"
+          >
             <input
               class="input form-form flat-right disable-viewing"
               :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }"
@@ -381,7 +396,11 @@
                 help
               </i>
             </div>
-            <div class="form-flex-group">
+            <div
+              class="form-flex-group"
+              @mouseenter="showEnforcedTooltipIfLocked($event, 'fileViewer', 'disableOnlyOfficeExt')"
+              @mouseleave="hideTooltip"
+            >
               <input
                 class="input form-form flat-right"
                 :class="{ 'form-invalid': !validateExtensions(formDisableOfficeViewing) }"
@@ -453,6 +472,7 @@
           @change="() => emitSectionChange('ui', 'darkMode')"
           @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
           :disabled="fieldDisabled('ui', 'darkMode')"
+          :enforcement-locked="isEnforcementLocked('ui', 'darkMode')"
           :name="$t('profileSettings.darkMode')"
           :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
         />
@@ -461,13 +481,17 @@
           :class="{ 'preference-field-block--enforceable': enforceable }"
         >
           <h4>{{ $t("settings.themeColor") }}</h4>
-          <ButtonGroup
-            :buttons="colorChoices"
-            @button-clicked="setColor"
-            :initialActive="themeColorValue"
-            :is-disabled="fieldDisabled('ui', 'themeColor')"
-            :disable-message="$t('profileSettings.enforcedByAdmin')"
-          />
+          <div
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'themeColor')"
+            @mouseleave="hideTooltip"
+          >
+            <ButtonGroup
+              :buttons="colorChoices"
+              @button-clicked="setColor"
+              :initialActive="themeColorValue"
+              :is-disabled="fieldDisabled('ui', 'themeColor')"
+            />
+          </div>
           <ProfileEnforceSwitch
             :visible="enforceable"
             :enforced="enforcedFlag('ui', 'themeColor')"
@@ -481,7 +505,11 @@
           :class="{ 'preference-field-block--enforceable': enforceable }"
         >
           <h4>{{ $t("profileSettings.customTheme") }}</h4>
-          <div class="form-flex-group">
+          <div
+            class="form-flex-group"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'customTheme')"
+            @mouseleave="hideTooltip"
+          >
             <ExpandDropdown
               v-model="selectedTheme"
               :options="themeOptions"
@@ -502,7 +530,11 @@
           :class="{ 'preference-field-block--enforceable': enforceable }"
         >
           <h4>{{ $t("general.language") }}</h4>
-          <div class="form-flex-group">
+          <div
+            class="form-flex-group"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'locale')"
+            @mouseleave="hideTooltip"
+          >
             <Languages
               :locale="localeValue"
               :disabled="fieldDisabled('ui', 'locale')"
@@ -743,6 +775,9 @@ export default {
       return this.configLockedPaths.includes(this.configLockedPath(section, field));
     },
     fieldLocked(section, field) {
+      if (getters.isAdmin()) {
+        return false;
+      }
       if (this.isConfigLocked(section, field)) {
         return true;
       }
@@ -755,10 +790,22 @@ export default {
       if (this.isConfigLocked(section, field)) {
         return this.$t("settings.userDefaultFieldLockedFromConfig");
       }
-      if (!this.enforceable && this.enforcedFlag(section, field)) {
-        return this.$t("profileSettings.enforcedByAdmin");
-      }
       return description || "";
+    },
+    isEnforcementLocked(section, field) {
+      if (getters.isAdmin() || this.enforceable) {
+        return false;
+      }
+      if (this.isConfigLocked(section, field)) {
+        return false;
+      }
+      return this.enforcedFlag(section, field);
+    },
+    showEnforcedTooltipIfLocked(event, section, field) {
+      if (!this.fieldDisabled(section, field) || !this.isEnforcementLocked(section, field)) {
+        return;
+      }
+      this.showTooltip(event, this.$t("profileSettings.enforcedByAdmin"));
     },
     showFieldHelp(event, section, field, description) {
       this.showTooltip(event, this.helpText(section, field, description));

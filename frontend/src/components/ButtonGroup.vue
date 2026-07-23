@@ -1,6 +1,6 @@
 <template>
   <div @click="preventDefaults" class="button-group border-radius">
-    <button type="button" v-if="isDisabled" disabled>
+    <button v-if="isDisabled && buttons.length === 0" type="button" disabled>
       {{ disableMessage }}
     </button>
     <template v-else>
@@ -10,6 +10,7 @@
         :key="index"
         class="clickable"
         :class="{ active: activeButton === index }"
+        :disabled="isDisabled"
         @click="setActiveButton(index, btn.value)"
       >
         {{ btn.label }}
@@ -49,6 +50,9 @@ export default {
       e.stopPropagation();
     },
     setActiveButton(index, value) {
+      if (this.isDisabled) {
+        return;
+      }
       if (value === "type:folder" && this.activeButton !== index) {
         this.$emit("disableAll");
       }
@@ -118,6 +122,8 @@ button {
 
 button:disabled {
   cursor: not-allowed !important;
+  color: var(--textSecondary);
+  opacity: 0.75;
 }
 
 button.active {
