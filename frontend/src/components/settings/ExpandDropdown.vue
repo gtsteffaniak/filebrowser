@@ -250,6 +250,7 @@ export default {
       panelResizeObserver: null,
       expandUpward: false,
       dropdownMaxHeight: null,
+      overlayContextClassSnapshot: [],
     };
   },
 
@@ -264,16 +265,7 @@ export default {
       return this.ariaLabel || this.displayLabel;
     },
     overlayContextClassNames() {
-      const el = this.$el;
-      if (!el) {
-        return [];
-      }
-      const skip = new Set([
-        "expand-dropdown",
-        "expand-dropdown--open",
-        "expand-dropdown--transparent",
-      ]);
-      return [...el.classList].filter((name) => !skip.has(name));
+      return this.overlayContextClassSnapshot;
     },
     overlayRootClasses() {
       return [
@@ -444,6 +436,19 @@ export default {
       );
       return match ? match.label : key;
     },
+    syncOverlayContextClasses() {
+      const el = this.$refs.root;
+      if (!el) {
+        this.overlayContextClassSnapshot = [];
+        return;
+      }
+      const skip = new Set([
+        "expand-dropdown",
+        "expand-dropdown--open",
+        "expand-dropdown--transparent",
+      ]);
+      this.overlayContextClassSnapshot = [...el.classList].filter((name) => !skip.has(name));
+    },
     openPanel() {
       if (this.disabled || this.open) {
         return;
@@ -466,6 +471,7 @@ export default {
       }
       this.panelOpen = false;
       this.isExpanded = true;
+      this.syncOverlayContextClasses();
       this.updateOverlayPosition();
       this.open = true;
       this.$nextTick(() => {
@@ -506,6 +512,9 @@ export default {
       this.expandUpward = false;
       this.dropdownMaxHeight = null;
       this.unobservePanelResize();
+      if (this.transparent) {
+        this.$nextTick(() => this.$refs.trigger?.focus());
+      }
     },
     onPanelAfterLeave() {
       if (!this.panelOpen) {

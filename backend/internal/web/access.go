@@ -291,10 +291,10 @@ func groupGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 	user := r.URL.Query().Get("user")
 	if user != "" {
 		groups := state.GetUserGroups(user)
-		return RenderJSON(w, r, &GroupListResponse{Groups: utils.NonNilSlice(groups)})
+		return RenderJSON(w, r, &GroupListResponse{Groups: groups})
 	}
 	groups := state.GetAllGroups()
-	return RenderJSON(w, r, &GroupListResponse{Groups: utils.NonNilSlice(groups)})
+	return RenderJSON(w, r, &GroupListResponse{Groups: groups})
 }
 
 // groupPostHandler adds a user to a group.

@@ -1,16 +1,21 @@
 <template>
   <div @click="preventDefaults" class="button-group border-radius">
-    <button
-      v-for="(btn, index) in buttons"
-      type="button"
-      :key="index"
-      class="clickable"
-      :class="{ active: activeButton === index }"
-      :disabled="isDisabled"
-      @click="setActiveButton(index, btn.value)"
-    >
-      {{ btn.label }}
+    <button v-if="isDisabled && buttons.length === 0" type="button" disabled>
+      {{ disableMessage }}
     </button>
+    <template v-else>
+      <button
+        v-for="(btn, index) in buttons"
+        type="button"
+        :key="index"
+        class="clickable"
+        :class="{ active: activeButton === index }"
+        :disabled="isDisabled"
+        @click="setActiveButton(index, btn.value)"
+      >
+        {{ btn.label }}
+      </button>
+    </template>
   </div>
 </template>
 

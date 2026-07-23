@@ -124,7 +124,7 @@
           :disabled="fieldDisabled('preview', 'image')"
           :enforcement-locked="isEnforcementLocked('preview', 'image')"
           :name="$t('profileSettings.showThumbnails')"
-          :description="$t('profileSettings.showThumbnailsDescription')"
+          :description="helpText('preview', 'image', $t('profileSettings.showThumbnailsDescription'))"
         />
         <template v-if="!showThumbnailMaster || showThumbnailsForPreviews">
           <ProfilePreferenceToggle
@@ -274,7 +274,7 @@
           :disabled="fieldDisabled('sidebar', 'showTools')"
           :enforcement-locked="isEnforcementLocked('sidebar', 'showTools')"
           :name="$t('profileSettings.showToolsInSidebar')"
-          :description="$t('profileSettings.showToolsInSidebarDescription')"
+          :description="helpText('sidebar', 'showTools', $t('profileSettings.showToolsInSidebarDescription'))"
         />
       </div>
     </SettingsItem>
@@ -322,7 +322,7 @@
           :disabled="fieldDisabled('fileViewer', 'autoplayMedia')"
           :enforcement-locked="isEnforcementLocked('fileViewer', 'autoplayMedia')"
           :name="$t('profileSettings.autoplayMedia')"
-          :description="$t('profileSettings.autoplayMediaDescription')"
+          :description="helpText('fileViewer', 'autoplayMedia', $t('profileSettings.autoplayMediaDescription'))"
         />
         <ProfilePreferenceToggle
           field="editorQuickSave"
@@ -474,7 +474,7 @@
           :disabled="fieldDisabled('ui', 'darkMode')"
           :enforcement-locked="isEnforcementLocked('ui', 'darkMode')"
           :name="$t('profileSettings.darkMode')"
-          :description="$t('index.toggleDark')"
+          :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
         />
         <div
           class="preference-field-block"

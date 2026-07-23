@@ -7,7 +7,22 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
+func snapshotUserDefaultsGlobals(t *testing.T) {
+	t.Helper()
+	userDefaultsMu.Lock()
+	prevDefault := userDefaultsDefault
+	prevEnforced := userDefaultsEnforcedDefault
+	userDefaultsMu.Unlock()
+	t.Cleanup(func() {
+		userDefaultsMu.Lock()
+		userDefaultsDefault = prevDefault
+		userDefaultsEnforcedDefault = prevEnforced
+		userDefaultsMu.Unlock()
+	})
+}
+
 func TestApplyEnforcedSyncToUser_mutatesProfile(t *testing.T) {
+	snapshotUserDefaultsGlobals(t)
 	userDefaultsMu.Lock()
 	userDefaultsDefault = settings.UserDefaults{
 		Listing: settings.UserDefaultsListing{ShowHidden: true},
@@ -37,6 +52,7 @@ func TestApplyEnforcedSyncToUser_mutatesProfile(t *testing.T) {
 }
 
 func TestApplyEnforcedSyncToUser_skipsAdmin(t *testing.T) {
+	snapshotUserDefaultsGlobals(t)
 	userDefaultsMu.Lock()
 	userDefaultsDefault = settings.UserDefaults{
 		Listing: settings.UserDefaultsListing{ShowHidden: true},

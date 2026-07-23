@@ -49,7 +49,7 @@ func GetAllShares() ([]share.Share, error) {
 		}
 	}
 
-	return utils.NonNilSlice(shares), nil
+	return shares, nil
 }
 
 // GetSharesByUserID retrieves all non-expired shares owned by userID.
@@ -69,7 +69,7 @@ func GetSharesByUserID(userID uint64) ([]share.Share, error) {
 		}
 	}
 
-	return utils.NonNilSlice(shares), nil
+	return shares, nil
 }
 
 // GetSharesByPath retrieves shares for a specific source and path

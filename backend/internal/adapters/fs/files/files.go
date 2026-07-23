@@ -105,6 +105,21 @@ func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileIn
 	}
 }
 
+// normalizeFileInfoListing shapes files/folders for FileInfoFaster JSON:
+// non-directories omit children (nil + omitempty); directories use empty slices instead of null.
+func normalizeFileInfoListing(info *iteminfo.ExtendedFileInfo) {
+	if info == nil {
+		return
+	}
+	if info.Type == "directory" {
+		info.Files = utils.NonNilSlice(info.Files)
+		info.Folders = utils.NonNilSlice(info.Folders)
+		return
+	}
+	info.Files = nil
+	info.Folders = nil
+}
+
 // CheckPermissions validates user access and returns the resolved index path and user scope
 func CheckPermissions(opts utils.FileOptions, user *users.User) (string, string, error) {
 	return CheckPermissionsFunc(opts, user)
@@ -219,8 +234,6 @@ func getDirItemsImpl(opts utils.FileOptions, user *users.User, s *Service) (Item
 			items.Folders = append(items.Folders, folder.Name)
 		}
 	}
-	items.Files = utils.NonNilSlice(items.Files)
-	items.Folders = utils.NonNilSlice(items.Folders)
 	return items, nil
 }
 
@@ -297,7 +310,10 @@ func fileInfoFasterImpl(opts utils.FileOptions, user *users.User, s *Service) (*
 		}
 	}
 
-	defer finalizeResponse(response, info, response.RealPath, user, userScope)
+	defer func() {
+		finalizeResponse(response, info, response.RealPath, user, userScope)
+		normalizeFileInfoListing(response)
+	}()
 	if opts.SkipExtendedAttrs {
 		if info.Type == "directory" && opts.HideFileExt != "" {
 			response.Files = filterFilesByExt(response.Files, opts.HideFileExt)

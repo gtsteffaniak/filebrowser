@@ -128,7 +128,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 			filteredResponse = filtered
 		}
 	}
-	return RenderJSON(w, r, utils.NonNilSlice(filteredResponse))
+	return RenderJSON(w, r, filteredResponse)
 }
 
 // parseRepeatedScopeParams interprets repeated "scope" query values as "sourceName:relativePath".

@@ -47,8 +47,6 @@ func copyShareFrontendFromShare(link *Share) ShareFrontend {
 func prepForFrontendOne(link *Share, viewer *users.User, r *http.Request, publicHost, publicScheme string, ownerLookup func(uint64) string) *ShareFrontend {
 	snap := *link
 	out := copyShareFrontendFromShare(link)
-	out.AllowedUsernames = utils.NonNilSlice(out.AllowedUsernames)
-	out.SidebarLinks = utils.NonNilSlice(out.SidebarLinks)
 	out.HasPassword = snap.HasPassword()
 	if snap.UserID != 0 && ownerLookup != nil {
 		out.Username = ownerLookup(snap.UserID)
