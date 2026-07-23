@@ -108,7 +108,9 @@ func promptPassword() (string, error) {
 	return password, nil
 }
 
-var rootCLI struct {
+var rootCLI cliRoot
+
+type cliRoot struct {
 	Globals `embed:""`
 
 	Run     runCmd     `cmd:"" default:"1" hidden:"" help:"Start the FileBrowser server"`

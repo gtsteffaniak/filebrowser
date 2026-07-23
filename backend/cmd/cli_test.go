@@ -13,74 +13,85 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newCLIParser(t *testing.T) *kong.Kong {
+func freshCLI() cliRoot {
+	return cliRoot{}
+}
+
+func newCLIParser(t *testing.T, cli *cliRoot) *kong.Kong {
 	t.Helper()
-	parser, err := kong.New(&rootCLI, kong.Name("filebrowser"), kong.Bind(&rootCLI.Globals))
+	parser, err := kong.New(cli, kong.Name("filebrowser"), kong.Bind(&cli.Globals))
 	require.NoError(t, err)
 	return parser
 }
 
 func TestParseDefaultServerCommand(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	ctx, err := parser.Parse([]string{})
 	require.NoError(t, err)
 	assert.Equal(t, "run", ctx.Command())
 }
 
 func TestParseVersionCommand(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	ctx, err := parser.Parse([]string{"version"})
 	require.NoError(t, err)
 	assert.Equal(t, "version", ctx.Command())
 }
 
 func TestParseGlobalConfigFlag(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	_, err := parser.Parse([]string{"-c", "/tmp/custom.yaml", "version"})
 	require.NoError(t, err)
-	assert.Equal(t, "/tmp/custom.yaml", rootCLI.Config)
+	assert.Equal(t, "/tmp/custom.yaml", cli.Config)
 }
 
 func TestParseUserSetWithPasswordFlag(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	ctx, err := parser.Parse([]string{"user", "set", "alice", "--password", "secret", "--admin"})
 	require.NoError(t, err)
 	assert.Equal(t, "user set <username>", ctx.Command())
-	assert.Equal(t, "alice", rootCLI.User.Set.Username)
-	assert.True(t, rootCLI.User.Set.Password.Provided)
-	assert.Equal(t, "secret", rootCLI.User.Set.Password.Inline)
-	assert.True(t, rootCLI.User.Set.Admin)
+	assert.Equal(t, "alice", cli.User.Set.Username)
+	assert.True(t, cli.User.Set.Password.Provided)
+	assert.Equal(t, "secret", cli.User.Set.Password.Inline)
+	assert.True(t, cli.User.Set.Admin)
 }
 
 func TestParseUserSetConfigFlagOrder(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	_, err := parser.Parse([]string{"-c", "other.yaml", "user", "set", "bob", "--password", "x"})
 	require.NoError(t, err)
-	assert.Equal(t, "other.yaml", rootCLI.Config)
+	assert.Equal(t, "other.yaml", cli.Config)
 }
 
 func TestParseSetRuleFlags(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	ctx, err := parser.Parse([]string{
 		"set", "rule",
 		"-s", "access", "-p", "/", "-r", "user", "-v", "admin", "--allow",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "set rule", ctx.Command())
-	assert.Equal(t, "access", rootCLI.Set.Rule.Source)
-	assert.Equal(t, "/", rootCLI.Set.Rule.Path)
-	assert.Equal(t, "user", rootCLI.Set.Rule.Role)
-	assert.Equal(t, "admin", rootCLI.Set.Rule.Value)
-	assert.True(t, rootCLI.Set.Rule.Allow)
+	assert.Equal(t, "access", cli.Set.Rule.Source)
+	assert.Equal(t, "/", cli.Set.Rule.Path)
+	assert.Equal(t, "user", cli.Set.Rule.Role)
+	assert.Equal(t, "admin", cli.Set.Rule.Value)
+	assert.True(t, cli.Set.Rule.Allow)
 }
 
 func TestParseLegacySetUser(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	ctx, err := parser.Parse([]string{"set", "-u", "alice,secret", "-a"})
 	require.NoError(t, err)
 	assert.Equal(t, "set", ctx.Command())
-	assert.Equal(t, "alice,secret", rootCLI.Set.User)
-	assert.True(t, rootCLI.Set.Admin)
+	assert.Equal(t, "alice,secret", cli.Set.User)
+	assert.True(t, cli.Set.Admin)
 }
 
 func TestPasswordFlagResolveInline(t *testing.T) {
@@ -126,21 +137,21 @@ func TestSplitByMultiple(t *testing.T) {
 }
 
 func TestSetCmdRunSkipsWhenRuleSelected(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	ctx, err := parser.Parse([]string{"set", "rule", "-s", "x", "-p", "/", "-r", "all"})
 	require.NoError(t, err)
-	setCmd := &rootCLI.Set
-	setCmd.User = "should-not-run"
-	err = setCmd.Run(ctx)
+	cli.Set.User = "should-not-run"
+	err = cli.Set.Run(ctx)
 	require.NoError(t, err)
 }
 
 func TestSetCmdRunLegacyUser(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	ctx, err := parser.Parse([]string{"set", "-u", "bad"})
 	require.NoError(t, err)
-	setCmd := &rootCLI.Set
-	err = setCmd.Run(ctx)
+	err = cli.Set.Run(ctx)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not enough info")
 }
@@ -156,15 +167,16 @@ func TestPasswordReadAllFromReader(t *testing.T) {
 func TestResolveConfigPathEnvMissingFile(t *testing.T) {
 	missing := filepath.Join(t.TempDir(), "does-not-exist.yaml")
 	t.Setenv("FILEBROWSER_CONFIG", missing)
-	rootCLI.Config = ""
-	resolveConfigPath(&rootCLI.Config)
-	assert.Equal(t, missing, rootCLI.Config)
-	_, err := os.Stat(rootCLI.Config)
+	config := ""
+	resolveConfigPath(&config)
+	assert.Equal(t, missing, config)
+	_, err := os.Stat(config)
 	assert.Error(t, err)
 }
 
 func TestSetupNoInputRejected(t *testing.T) {
-	parser := newCLIParser(t)
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
 	ctx, err := parser.Parse([]string{"setup", "--no-input"})
 	require.NoError(t, err)
 	err = ctx.Run()
