@@ -109,6 +109,7 @@ func validateUserInfo(newDB bool) {
 func updateUserScopes(user *users.User) bool {
 	newScopes := []users.BackendScope{}
 	seen := make(map[string]struct{})
+	hadScopes := len(user.BackendScopes) > 0
 
 	// Build map for existing scopes by Name
 	existing := make(map[string]users.BackendScope)
@@ -125,6 +126,11 @@ func updateUserScopes(user *users.User) bool {
 				existingScope.Scope = src.Config.DefaultUserScope
 			}
 		} else if src.Config.DefaultEnabled {
+			// Only seed default-enabled sources for users with no scopes yet.
+			// Partial-scope users (e.g. migrated graham) must not gain extra sources on startup.
+			if hadScopes {
+				continue
+			}
 			existingScope.Scope = src.Config.DefaultUserScope
 		} else {
 			continue

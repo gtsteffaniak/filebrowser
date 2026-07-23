@@ -3,6 +3,13 @@ package settings
 import "testing"
 
 func TestUserDefaultsLockedFromConfig(t *testing.T) {
+	prevSpecified := Env.ConfigUserDefaultsSpecified
+	prevPaths := Env.ConfigUserDefaultsSpecifiedPaths
+	t.Cleanup(func() {
+		Env.ConfigUserDefaultsSpecified = prevSpecified
+		Env.ConfigUserDefaultsSpecifiedPaths = prevPaths
+	})
+
 	Env.ConfigUserDefaultsSpecified = false
 	Env.ConfigUserDefaultsSpecifiedPaths = nil
 	if UserDefaultsLockedFromConfig() {
@@ -15,5 +22,13 @@ func TestUserDefaultsLockedFromConfig(t *testing.T) {
 	}
 	if UserDefaultsConfigLockMessage == "" {
 		t.Fatal("expected non-empty lock message")
+	}
+}
+
+func TestUserDefaultsFieldConfigLockMessage(t *testing.T) {
+	got := UserDefaultsFieldConfigLockMessage("listing.showHidden")
+	want := `user default "listing.showHidden" is locked from config file`
+	if got != want {
+		t.Fatalf("message = %q, want %q", got, want)
 	}
 }

@@ -28,7 +28,7 @@ const EXPECTED_USERS = [
 ] as const;
 
 const SOURCE_SIDEBAR_URLS: Record<(typeof ADMIN_SOURCE_SIDEBAR_LINKS)[number], RegExp> = {
-    "playwright + files": /\/files\/playwright%20%2B%20files\/?$/,
+    "playwright + files": /\/files\/playwright%20(?:%2B|\+)%20files\/?$/,
     docker: /\/files\/docker\/?$/,
     access: /\/files\/access\/?$/,
 };
@@ -675,14 +675,14 @@ test.describe("Migration fixture verification", () => {
     });
 
     test.describe("non-admin migrated users", () => {
-        test.use({ storageState: undefined });
+        test.use({ storageState: { cookies: [], origins: [] } });
 
         test("graham login keeps scoped sources and file access", async ({
             page,
             checkForErrors,
         }) => {
             await loginAs(page, "graham", "password");
-            await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+            await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
 
             await expect(sourceSidebarLink(page, "playwright + files")).toBeVisible();
             await expect(sourceSidebarLink(page, "docker")).toBeVisible();
@@ -694,7 +694,7 @@ test.describe("Migration fixture verification", () => {
             await expect(sourceSidebarLink(page, "docker").locator(".warning-icon")).toHaveCount(0);
 
             await expect(page.getByRole("link", { name: "copyme.txt", exact: true })).toHaveCount(0);
-            await expect(page.getByRole("link", { name: "3dmodels", exact: true })).toBeVisible();
+            await expect(page.locator('a[aria-label="3dmodels"]')).toBeVisible();
 
             checkForErrors();
         });
