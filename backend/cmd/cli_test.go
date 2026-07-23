@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -14,7 +15,7 @@ import (
 
 func newCLIParser(t *testing.T) *kong.Kong {
 	t.Helper()
-	parser, err := kong.New(&rootCLI, kong.Name("filebrowser"))
+	parser, err := kong.New(&rootCLI, kong.Name("filebrowser"), kong.Bind(&rootCLI.Globals))
 	require.NoError(t, err)
 	return parser
 }
@@ -150,4 +151,23 @@ func TestPasswordReadAllFromReader(t *testing.T) {
 	data, err := io.ReadAll(&buf)
 	require.NoError(t, err)
 	assert.Equal(t, "trimmed", strings.TrimSpace(string(data)))
+}
+
+func TestResolveConfigPathEnvMissingFile(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "does-not-exist.yaml")
+	t.Setenv("FILEBROWSER_CONFIG", missing)
+	rootCLI.Config = ""
+	resolveConfigPath(&rootCLI.Config)
+	assert.Equal(t, missing, rootCLI.Config)
+	_, err := os.Stat(rootCLI.Config)
+	assert.Error(t, err)
+}
+
+func TestSetupNoInputRejected(t *testing.T) {
+	parser := newCLIParser(t)
+	ctx, err := parser.Parse([]string{"setup", "--no-input"})
+	require.NoError(t, err)
+	err = ctx.Run()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "interactive input")
 }

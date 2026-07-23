@@ -16,7 +16,7 @@ This version represents the most significant change to date. It **requires** bot
  - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method.
  - Changed: http related config options in `server` config key moved to `http` config key.
  - Changed: `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead (see migration notes above).
- - Changed: Moved stream api to `/media/stream`
+ - Changed: Moved stream api to `/api/media/stream`
  - Changed: CLI user management — canonical commands are `user set <username> --password [value]` and `user promote <username>`; `set -u username,password` is deprecated
 
  **New Features**:

@@ -179,7 +179,11 @@ func askYesNoQuestion(reader *bufio.Reader, prompt string, defaultValue string) 
 	}
 }
 
-func createConfig(configpath string) {
+func createConfig(configpath string, noInput bool) error {
+	if noInput {
+		return fmt.Errorf("'setup' requires interactive input; rerun without --no-input")
+	}
+
 	reader := bufio.NewReader(os.Stdin)
 	config := settings.SetDefaults(false)
 	config.Server.Sources = []*settings.Source{{Path: "./"}}
@@ -258,17 +262,17 @@ func createConfig(configpath string) {
 
 	yamlData, err := yaml.Marshal(&config)
 	if err != nil {
-		return
+		return fmt.Errorf("marshaling config: %w", err)
 	}
 
-	err = os.WriteFile(configpath, yamlData, 0644)
+	err = os.WriteFile(configpath, yamlData, 0600)
 	if err != nil {
-		return
+		return fmt.Errorf("writing config file: %w", err)
 	}
 	if _, err := os.Stat(config.Server.DatabaseV2.Path); err == nil {
 		response := askYesNoQuestion(reader, "Database specified already exists. Move database file to backup to start fresh?", "no")
 		if !response {
-			return
+			return nil
 		}
 		backupPath := config.Server.DatabaseV2.Path + ".bak"
 		err = os.Rename(config.Server.DatabaseV2.Path, backupPath)
@@ -278,6 +282,7 @@ func createConfig(configpath string) {
 			fmt.Printf("Database file moved to backup: %s\n", backupPath)
 		}
 	}
+	return nil
 }
 
 func generateYaml() {

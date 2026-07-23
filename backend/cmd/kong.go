@@ -128,8 +128,7 @@ func (versionCmd) Run() error {
 }
 
 func (setupCmd) Run(globals *Globals) error {
-	createConfig(globals.Config)
-	return nil
+	return createConfig(globals.Config, globals.NoInput)
 }
 
 func (s *SetCmd) Run(ctx *kong.Context) error {
@@ -176,9 +175,13 @@ func resolveConfigPath(config *string) {
 			*config = "config.yaml"
 		}
 	}
-	if envConfig != "" && *config == envConfig {
-		if _, err := os.Stat(*config); err != nil {
-			logger.Fatalf("config file %v does not exist, please create it or set the FILEBROWSER_CONFIG environment variable to a valid config file path", *config)
+}
+
+func requireExistingConfig(config string) {
+	envConfig := os.Getenv("FILEBROWSER_CONFIG")
+	if envConfig != "" && config == envConfig {
+		if _, err := os.Stat(config); err != nil {
+			logger.Fatalf("config file %v does not exist, please create it or set the FILEBROWSER_CONFIG environment variable to a valid config file path", config)
 		}
 	}
 }
@@ -189,6 +192,7 @@ func runCLI() (keepGoing bool, dbExists bool) {
 	parser, err := kong.New(&rootCLI,
 		kong.Name("filebrowser"),
 		kong.Description("FileBrowser Quantum - A modern web-based file manager"),
+		kong.Bind(&rootCLI.Globals),
 	)
 	if err != nil {
 		logger.Fatalf("failed to configure CLI: %v", err)
@@ -203,12 +207,14 @@ func runCLI() (keepGoing bool, dbExists bool) {
 	cmd := ctx.Command()
 	switch {
 	case cmd == "" || cmd == "run":
+		requireExistingConfig(configPath)
 		dbExists = initializeDatabase(configPath)
 		return true, dbExists
 	case cmd == "version" || cmd == "setup":
 		parser.FatalIfErrorf(ctx.Run(&rootCLI))
 		return false, false
 	case cmd == "set rule" || cmd == "set" || strings.HasPrefix(cmd, "user set") || strings.HasPrefix(cmd, "user promote"):
+		requireExistingConfig(configPath)
 		dbExists = initializeDatabase(configPath)
 		parser.FatalIfErrorf(ctx.Run(&rootCLI))
 		return false, dbExists
