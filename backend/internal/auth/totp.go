@@ -150,7 +150,7 @@ func VerifyTotpCode(user *users.User, code string) error {
 	if !found && user.TOTPSecret == "" {
 		return fmt.Errorf("OTP token not found in cache, please generate a new one")
 	}
-	useCache := found && user.TOTPSecret == ""
+	useCache := found
 	totpSecret := user.TOTPSecret // The encrypted or plaintext secret
 	totpNonce := user.TOTPNonce   // The nonce if encrypted, or empty if plaintext
 	if useCache {
