@@ -158,7 +158,7 @@ func logCapabilities(svc *goffmpeg.Service, detectHardware bool) {
 		return
 	}
 
-	logger.Infof("Media Enabled: version %s @ %s", caps.FFmpegVersion, caps.FFmpegPath)
+	logger.Debugf("Media Enabled: version %s @ %s", caps.FFmpegVersion, caps.FFmpegPath)
 
 	if !detectHardware {
 		return
@@ -169,7 +169,7 @@ func logCapabilities(svc *goffmpeg.Service, detectHardware bool) {
 		logger.Warning("no ffmpeg hardware codec support found")
 		return
 	}
-	logger.Infof("supported ffmpeg hardware codecs: %s", hw)
+	logger.Debugf("supported ffmpeg hardware codecs: %s", hw)
 }
 
 func hardwareCodecSummary(svc *goffmpeg.Service) string {
