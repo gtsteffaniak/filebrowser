@@ -91,7 +91,7 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 	configureHTTPRouter(router, api, publicRoutes, publicApi)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%v:%v", settings.Config.Http.ListenAddress, settings.Config.Http.Port),
+		Addr:    settings.HTTPListenAddr(settings.Config.Http.ListenAddress, settings.Config.Http.Port),
 		Handler: muxWithMiddleware(router),
 	}
 	listenAddress := settings.Config.Http.ListenAddress

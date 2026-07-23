@@ -80,8 +80,8 @@ func setupEnv() {
 }
 
 func setupHttp() {
-	if Config.Http.Socket != "" && (Config.Http.TLSCert != "" || Config.Http.TLSKey != "") {
-		logger.Fatal("http.socket cannot be used with tlsCert or tlsKey")
+	if err := ValidateHttpConfig(Config.Http); err != nil {
+		logger.Fatal(err.Error())
 	}
 	if Config.Http.ListenAddress == "" {
 		Config.Http.ListenAddress = "0.0.0.0"

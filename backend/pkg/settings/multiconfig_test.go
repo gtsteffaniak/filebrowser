@@ -73,7 +73,7 @@ userDefaults:
 
 	// Verify that values from different files were loaded correctly
 	if Config.Http.Port != 9000 {
-		t.Errorf("Expected server port 9000, got %d", Config.Http.Port)
+		t.Errorf("Expected HTTP port 9000, got %d", Config.Http.Port)
 	}
 
 	if Config.Http.BaseURL != "/test/" {
@@ -142,7 +142,10 @@ frontend:
 
 	// Verify values were loaded correctly
 	if Config.Http.Port != 8080 {
-		t.Errorf("Expected server port 8080, got %d", Config.Http.Port)
+		t.Errorf("Expected HTTP port 8080, got %d", Config.Http.Port)
+	}
+	if Config.Http.BaseURL != "/" {
+		t.Errorf("Expected HTTP baseURL '/', got '%s'", Config.Http.BaseURL)
 	}
 
 	if Config.Frontend.Name != "Simple FileBrowser" {
@@ -212,6 +215,10 @@ frontend:
 	}
 
 	// Verify nested references work
+	if Config.Http.Port != 8080 {
+		t.Errorf("Expected HTTP port 8080, got %d", Config.Http.Port)
+	}
+
 	if len(Config.Server.Logging) == 0 {
 		t.Error("Expected logging configuration to be loaded")
 	}
