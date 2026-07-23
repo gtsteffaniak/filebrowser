@@ -239,7 +239,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 	http.SetCookie(w, cookie)
 
-	logoutUrl := fmt.Sprintf("%vlogin", settings.Config.Server.BaseURL) // Default fallback
+	logoutUrl := fmt.Sprintf("%vlogin", settings.Config.Http.BaseURL) // Default fallback
 	if d.User != nil && d.User.LoginMethod == users.LoginMethodProxy {
 		proxyRedirectUrl := settings.Config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
 		if proxyRedirectUrl != "" {
@@ -263,7 +263,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 	if logoutUrl == "" {
 		logger.Debug("no logout url found, using default")
-		logoutUrl = fmt.Sprintf("%vlogin", settings.Config.Server.BaseURL)
+		logoutUrl = fmt.Sprintf("%vlogin", settings.Config.Http.BaseURL)
 	}
 	response := map[string]string{
 		"logoutUrl": logoutUrl,

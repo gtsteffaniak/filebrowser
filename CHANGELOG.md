@@ -4,7 +4,18 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.0
 
-A database migration is required to go from v1.x to this version. See docs.
+This version represents the most significant change to date. It **requires** both a database migration and config structural changes.
+
+ **Breaking Changes**:
+ - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
+ - Removed: `/share/…` URL redirect to `/public/share/…` — use `/public/share/…` directly.
+ - Removed: singular `source` search api param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
+ - Removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules.
+ - Removed: support for deprecated userDefaults config format, users must use config migration tool to update userDefaults.
+ - Removed: support for deprecated flat `userDefaults` config format.
+ - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method.
+ - Changed: http related config options in `server` config key moved to `http` config key.
+ - Changed: `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead (see migration notes above).
 
  **New Features**:
  - View grant mechanism to distinguish between UI viewing and download.
@@ -42,15 +53,6 @@ A database migration is required to go from v1.x to this version. See docs.
    - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt.
  - Database env var rename: `FILEBROWSER_DATABASE` is removed (startup fails if set). Use `FILEBROWSER_DATABASE_PATH` (default `filebrowser.sqlite`) or `server.database.path` in config.
  - Bolt→SQLite sidebar migration preserves custom source link names, icons, and categories; missing scoped sources are merged into sidebar links.
-
- **Removed legacy (breaking)**:
- - `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
- - `/share/…` frontend URL redirect to `/public/share/…` — use `/public/share/…` directly.
- - Search API: removed singular `source` param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
- - Source config: removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules 
- - `PUT /api/users` moved to the more appropriate `PATCH` method.
- - removed support for deprecated flat `userDefaults` config format; use the nested v2 structure documented in the configuration reference.
- - `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead (see migration notes above).
 
  **Notes**:
  - new dropdown and input styles

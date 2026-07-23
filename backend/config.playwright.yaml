@@ -1,6 +1,7 @@
-server:
+http:
   port: 8080
   baseURL:  "/"
+server:
   database: "playwright-files.db"
   logging:
     - levels: "info|warning|debug|error"

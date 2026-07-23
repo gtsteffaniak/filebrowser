@@ -1,5 +1,7 @@
 server:
   <<: *server-main
+http:
+  <<: *http-main
 frontend:
   <<: *frontend-main
 

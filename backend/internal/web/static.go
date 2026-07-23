@@ -81,7 +81,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	defaultThemeColor := "#455a64"
-	staticURL := settings.Config.Server.BaseURL + "public/static"
+	staticURL := settings.Config.Http.BaseURL + "public/static"
 	description := settings.Config.Frontend.Description
 	title := settings.Config.Frontend.Name
 	banner := staticURL + "/icons/pwa-icon-512.png" // largest generated PWA icon
@@ -147,9 +147,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Construct the full URL for the current request
 	var fullURL string
-	if settings.Config.Server.ExternalUrl != "" {
+	if settings.Config.Http.ExternalUrl != "" {
 		// ExternalUrl already includes schema (e.g., http://mydomain.com)
-		fullURL = strings.TrimSuffix(settings.Config.Server.ExternalUrl, "/") + r.URL.Path
+		fullURL = strings.TrimSuffix(settings.Config.Http.ExternalUrl, "/") + r.URL.Path
 	} else {
 		// Build URL from request
 		scheme := "http"
@@ -165,7 +165,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	manifestURL := staticURL + "/site.webmanifest"
 	if shareHash != "" {
-		pwaStartURL := settings.Config.Server.BaseURL + "public/share/" + shareHash + "/"
+		pwaStartURL := settings.Config.Http.BaseURL + "public/share/" + shareHash + "/"
 		query := url.Values{}
 		query.Set("start", pwaStartURL)
 		if title != settings.Config.Frontend.Name {
@@ -184,7 +184,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"lightBackground":    settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":     settings.Config.Frontend.Styling.DarkBackground,
 		"staticURL":          staticURL,
-		"baseURL":            settings.Config.Server.BaseURL,
+		"baseURL":            settings.Config.Http.BaseURL,
 		"favicon":            favicon,
 		"loginIcon":          loginIcon,
 		"color":              defaultThemeColor,
@@ -206,14 +206,14 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"minSearchLength":        settings.Config.Server.MinSearchLength,
 		"disableExternal":        settings.Config.Frontend.DisableDefaultLinks,
 		"darkMode":               settings.Config.UserDefaults.UI.DarkMode,
-		"baseURL":                settings.Config.Server.BaseURL,
+		"baseURL":                settings.Config.Http.BaseURL,
 		"version":                versionString,
 		"commitSHA":              commitSHAString,
 		"signup":                 settings.Config.Auth.Methods.PasswordAuth.Signup,
 		"noAuth":                 settings.Config.Auth.Methods.NoAuth,
 		"enableThumbs":           !settings.Config.Server.DisablePreviews,
 		"externalLinks":          externalLinks,
-		"externalUrl":            strings.TrimSuffix(settings.Config.Server.ExternalUrl, "/"),
+		"externalUrl":            strings.TrimSuffix(settings.Config.Http.ExternalUrl, "/"),
 		"onlyOfficeUrl":          settings.Config.Integrations.OnlyOffice.Url,
 		"oidcAvailable":          settings.Config.Auth.Methods.OidcAuth.Enabled,
 		"jwtAvailable":           settings.Config.Auth.Methods.JwtAuth.Enabled,
@@ -290,7 +290,7 @@ func manifestHandler(w http.ResponseWriter, r *http.Request) {
 	if startURL := r.URL.Query().Get("start"); startURL != "" {
 		name := r.URL.Query().Get("name")
 		description := r.URL.Query().Get("description")
-		if shareManifest, ok := icons.ManifestForShare(settings.Config.Server.BaseURL, startURL, name, description); ok {
+		if shareManifest, ok := icons.ManifestForShare(settings.Config.Http.BaseURL, startURL, name, description); ok {
 			manifest = shareManifest
 		}
 	}

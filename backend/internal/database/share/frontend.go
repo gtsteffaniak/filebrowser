@@ -74,18 +74,18 @@ func PublicShareURL(host, scheme, hash string, isDirectDownload bool, token stri
 		tokenParam = fmt.Sprintf("&token=%s", url.QueryEscape(token))
 	}
 
-	if settings.Config.Server.ExternalUrl != "" {
+	if settings.Config.Http.ExternalUrl != "" {
 		if isDirectDownload {
 			return fmt.Sprintf("%s%spublic/api/resources/download?hash=%s%s",
-				settings.Config.Server.ExternalUrl, settings.Config.Server.BaseURL, hash, tokenParam)
+				settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, hash, tokenParam)
 		}
 		return fmt.Sprintf("%s%spublic/share/%s",
-			settings.Config.Server.ExternalUrl, settings.Config.Server.BaseURL, hash)
+			settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, hash)
 	}
 
 	if isDirectDownload {
 		return fmt.Sprintf("%s://%s%spublic/api/resources/download?hash=%s%s",
-			scheme, host, settings.Config.Server.BaseURL, hash, tokenParam)
+			scheme, host, settings.Config.Http.BaseURL, hash, tokenParam)
 	}
-	return fmt.Sprintf("%s://%s%spublic/share/%s", scheme, host, settings.Config.Server.BaseURL, hash)
+	return fmt.Sprintf("%s://%s%spublic/share/%s", scheme, host, settings.Config.Http.BaseURL, hash)
 }

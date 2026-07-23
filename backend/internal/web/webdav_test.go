@@ -78,7 +78,7 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 
 	// Set cache directory for index database
 	settings.Config.Server.CacheDir = tempDir
-	settings.Config.Server.BaseURL = "/"
+	settings.Config.Http.BaseURL = "/"
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		source1Path: {
 			Path: source1Path,

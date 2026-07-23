@@ -62,12 +62,6 @@ func Initialize(configFile string) {
 }
 
 func setupServer() {
-	if Config.Server.Socket != "" && (Config.Server.TLSCert != "" || Config.Server.TLSKey != "") {
-		logger.Fatal("server.socket cannot be used with tlsCert or tlsKey")
-	}
-	if Config.Server.ListenAddress == "" {
-		Config.Server.ListenAddress = "0.0.0.0"
-	}
 	// Check environment variable first (overrides config file)
 	if os.Getenv("FILEBROWSER_SQL_WAL") == "true" {
 		Config.Server.IndexSqlConfig.WalMode = true
@@ -86,6 +80,12 @@ func setupEnv() {
 }
 
 func setupHttp() {
+	if err := ValidateHttpConfig(Config.Http); err != nil {
+		logger.Fatal(err.Error())
+	}
+	if Config.Http.ListenAddress == "" {
+		Config.Http.ListenAddress = "0.0.0.0"
+	}
 	if len(Config.Http.TrustedHeadersArray) > 0 {
 		Config.Http.TrustedHeaders = make(map[string]bool)
 		for _, header := range Config.Http.TrustedHeadersArray {
@@ -448,20 +448,20 @@ func setupSources(generate bool) {
 }
 
 func setupUrls() {
-	baseurl := strings.Trim(Config.Server.BaseURL, "/")
+	baseurl := strings.Trim(Config.Http.BaseURL, "/")
 	if baseurl == "" {
-		Config.Server.BaseURL = "/"
+		Config.Http.BaseURL = "/"
 	} else {
-		Config.Server.BaseURL = "/" + baseurl + "/"
+		Config.Http.BaseURL = "/" + baseurl + "/"
 	}
-	if Config.Server.BaseURL != "/" {
-		if Config.Server.ExternalUrl != "" {
-			Config.Server.ExternalUrl = strings.TrimSuffix(Config.Server.ExternalUrl, "/") + "/"
-			Config.Server.ExternalUrl = strings.TrimSuffix(Config.Server.ExternalUrl, Config.Server.BaseURL)
+	if Config.Http.BaseURL != "/" {
+		if Config.Http.ExternalUrl != "" {
+			Config.Http.ExternalUrl = strings.TrimSuffix(Config.Http.ExternalUrl, "/") + "/"
+			Config.Http.ExternalUrl = strings.TrimSuffix(Config.Http.ExternalUrl, Config.Http.BaseURL)
 		}
-		if Config.Server.InternalUrl != "" {
-			Config.Server.InternalUrl = strings.TrimSuffix(Config.Server.InternalUrl, "/") + "/"
-			Config.Server.InternalUrl = strings.TrimSuffix(Config.Server.InternalUrl, Config.Server.BaseURL)
+		if Config.Http.InternalUrl != "" {
+			Config.Http.InternalUrl = strings.TrimSuffix(Config.Http.InternalUrl, "/") + "/"
+			Config.Http.InternalUrl = strings.TrimSuffix(Config.Http.InternalUrl, Config.Http.BaseURL)
 		}
 	}
 	Config.Integrations.OnlyOffice.Url = strings.Trim(Config.Integrations.OnlyOffice.Url, "/")
@@ -595,6 +595,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		"integrations": true,
 		"frontend":     true,
 		"userDefaults": true,
+		"http":         true,
 	}
 
 	filteredConfig := make(map[string]interface{})
@@ -736,10 +737,12 @@ func SetDefaults(generate bool) Settings {
 	}
 
 	s := Settings{
+		Http: Http{
+			Port:    80,
+			BaseURL: "",
+		},
 		Server: Server{
-			Port:               80,
 			NumImageProcessors: 4,
-			BaseURL:            "",
 			DatabaseV2: Database{
 				Path: databaseV2,
 				Activity: ActivityConfig{

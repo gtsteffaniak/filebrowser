@@ -208,10 +208,10 @@ func collectPayload(versionLabel string) (snapshotPayload, error) {
 		},
 		Features: featuresPayload{
 			DisablePreviews:        settings.Config.Server.DisablePreviews,
-			DisableWebDAV:          settings.Config.Server.DisableWebDAV,
+			DisableWebDAV:          settings.Config.Http.DisableWebDAV,
 			DisableUpdateCheck:     settings.Config.Server.DisableUpdateCheck,
 			ActivityLoggingEnabled: !settings.Config.Server.DatabaseV2.Activity.Disabled,
-			TLSEnabled:             strings.TrimSpace(settings.Config.Server.TLSCert) != "" && strings.TrimSpace(settings.Config.Server.TLSKey) != "",
+			TLSEnabled:             strings.TrimSpace(settings.Config.Http.TLSCert) != "" && strings.TrimSpace(settings.Config.Http.TLSKey) != "",
 			RateLimitDisabled:      settings.Config.Http.DisableRateLimit,
 			IndexWALMode:           settings.Config.Server.IndexSqlConfig.WalMode,
 			CacheDirCleanup:        settings.Config.Server.CacheDirCleanup,

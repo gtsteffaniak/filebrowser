@@ -13,7 +13,7 @@ func swaggerHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusForbidden, nil
 	}
 	httpSwagger.Handler(
-		httpSwagger.URL(settings.Config.Server.BaseURL+"swagger/doc.json"),
+		httpSwagger.URL(settings.Config.Http.BaseURL+"swagger/doc.json"),
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("none"),
 		httpSwagger.DomID("swagger-ui"),

@@ -24,6 +24,15 @@ type Settings struct {
 }
 
 type Http struct {
+	Socket              string   `json:"socket"`           // socket to listen on - eg. /var/run/filebrowser.sock
+	TLSKey              string   `json:"tlsKey"`           // path to TLS key
+	TLSCert             string   `json:"tlsCert"`          // path to TLS cert
+	Port                int      `json:"port"`             // port to listen on
+	ListenAddress       string   `json:"listen"`           // address to listen on (default: 0.0.0.0)
+	BaseURL             string   `json:"baseURL"`          // base URL for the server, the subpath that the server is running on.
+	ExternalUrl         string   `json:"externalUrl"`      // used by share links if set (eg. http://mydomain.com)
+	InternalUrl         string   `json:"internalUrl"`      // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	DisableWebDAV       bool     `json:"disableWebDAV"`    // disable webdav support (default: false)
 	TrustedHeadersArray []string `json:"trustedHeaders"`   // list of headers to trust, useful when behind a reverse proxy.
 	DisableRateLimit    bool     `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
 
@@ -54,25 +63,16 @@ type Server struct {
 	MinSearchLength              int            `json:"minSearchLength" yaml:"minSearchLength"` // minimum length of search query to begin searching (default: 3)
 	DisableUpdateCheck           bool           `json:"disableUpdateCheck"`                     // disables backend update check service
 	NumImageProcessors           int            `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is 4.
-	Socket                       string         `json:"socket"`                                 // socket to listen on - eg. /var/run/filebrowser.sock
-	TLSKey                       string         `json:"tlsKey"`                                 // path to TLS key
-	TLSCert                      string         `json:"tlsCert"`                                // path to TLS cert
 	DisablePreviews              bool           `json:"disablePreviews"`                        // disable all previews thumbnails, simple icons will be used
 	DisableResize                bool           `json:"disablePreviewResize"`                   // disable resizing of previews for faster loading over slow connections
 	DisableTypeDetectionByHeader bool           `json:"disableTypeDetectionByHeader"`           // disable type detection by header, useful if filesystem is slow.
-	Port                         int            `json:"port"`                                   // port to listen on
-	ListenAddress                string         `json:"listen"`                                 // address to listen on (default: 0.0.0.0)
-	BaseURL                      string         `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
 	Logging                      []LogConfig    `json:"logging" yaml:"logging"`
 	Sources                      []*Source      `json:"sources" validate:"required,dive"`
-	ExternalUrl                  string         `json:"externalUrl"`     // used by share links if set (eg. http://mydomain.com)
-	InternalUrl                  string         `json:"internalUrl"`     // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
 	CacheDir                     string         `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
 	CacheDirCleanup              bool           `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
 	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
 	Filesystem                   Filesystem     `json:"filesystem"`      // filesystem settings
 	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`  // Index database SQL configuration
-	DisableWebDAV                bool           `json:"disableWebDAV"`   // disable webdav support (default: false)
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key

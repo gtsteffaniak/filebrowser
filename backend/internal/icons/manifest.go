@@ -77,7 +77,7 @@ func generatePWAManifest(name, description, baseURL, themeColor, pwaIcon192, pwa
 // favicon (custom SVG uses a raster sidecar as the raster source).
 func InitializePWAManifest() {
 	config := &settings.Config
-	staticURL := config.Server.BaseURL + "public/static"
+	staticURL := config.Http.BaseURL + "public/static"
 	title := config.Frontend.Name
 	description := config.Frontend.Description
 	defaultThemeColor := "#455a64"
@@ -86,5 +86,5 @@ func InitializePWAManifest() {
 	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"
 	pwaIcon512 := staticURL + "/icons/pwa-icon-512.png"
 
-	CachedManifest = generatePWAManifest(title, description, config.Server.BaseURL, defaultThemeColor, pwaIcon192, pwaIcon256, pwaIcon512)
+	CachedManifest = generatePWAManifest(title, description, config.Http.BaseURL, defaultThemeColor, pwaIcon192, pwaIcon256, pwaIcon512)
 }

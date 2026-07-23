@@ -184,7 +184,7 @@ func (l *Share) SourceURL(user *users.User) string {
 func (l *Share) BannerURL() string {
 	_, _, err := l.GetShareImagePartsHelper(true)
 	if err == nil {
-		return fmt.Sprintf("%s%spublic/api/share/image?banner=true&hash=%s", settings.Config.Server.ExternalUrl, settings.Config.Server.BaseURL, l.Hash)
+		return fmt.Sprintf("%s%spublic/api/share/image?banner=true&hash=%s", settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, l.Hash)
 	}
 	return l.Banner
 }
@@ -192,7 +192,7 @@ func (l *Share) BannerURL() string {
 func (l *Share) FaviconURL() string {
 	_, _, err := l.GetShareImagePartsHelper(false)
 	if err == nil {
-		return fmt.Sprintf("%s%spublic/api/share/image?favicon=true&hash=%s", settings.Config.Server.ExternalUrl, settings.Config.Server.BaseURL, l.Hash)
+		return fmt.Sprintf("%s%spublic/api/share/image?favicon=true&hash=%s", settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, l.Hash)
 	}
 	return l.Favicon
 }

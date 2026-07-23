@@ -278,8 +278,8 @@ func (s *WebAuthnService) cleanupExpiredSessions() {
 func deriveWebAuthnConfig(cfg *settings.PasskeyAuthConfig) (*webauthn.Config, error) {
 	rpID := cfg.RPID
 	if rpID == "" {
-		if settings.Config.Server.ExternalUrl != "" {
-			if u, err := url.Parse(settings.Config.Server.ExternalUrl); err == nil {
+		if settings.Config.Http.ExternalUrl != "" {
+			if u, err := url.Parse(settings.Config.Http.ExternalUrl); err == nil {
 				rpID = u.Hostname()
 			}
 		}
@@ -298,11 +298,11 @@ func deriveWebAuthnConfig(cfg *settings.PasskeyAuthConfig) (*webauthn.Config, er
 
 	origins := cfg.RPOrigins
 	if len(origins) == 0 {
-		if settings.Config.Server.ExternalUrl != "" {
-			origins = append(origins, settings.Config.Server.ExternalUrl)
+		if settings.Config.Http.ExternalUrl != "" {
+			origins = append(origins, settings.Config.Http.ExternalUrl)
 		}
-		if settings.Config.Server.InternalUrl != "" && settings.Config.Server.InternalUrl != settings.Config.Server.ExternalUrl {
-			origins = append(origins, settings.Config.Server.InternalUrl)
+		if settings.Config.Http.InternalUrl != "" && settings.Config.Http.InternalUrl != settings.Config.Http.ExternalUrl {
+			origins = append(origins, settings.Config.Http.InternalUrl)
 		}
 		if len(origins) == 0 {
 			origins = append(origins, "http://localhost")

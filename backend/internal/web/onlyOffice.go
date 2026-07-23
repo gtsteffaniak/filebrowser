@@ -266,10 +266,10 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token string) string {
 	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
 	var baseURL string
-	if settings.Config.Server.InternalUrl != "" {
+	if settings.Config.Http.InternalUrl != "" {
 		// InternalUrl is a full URL (e.g., http://localhost:8080), so use it directly
-		internalURL := strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
-		baseURLPath := strings.TrimPrefix(settings.Config.Server.BaseURL, "/")
+		internalURL := strings.TrimSuffix(settings.Config.Http.InternalUrl, "/")
+		baseURLPath := strings.TrimPrefix(settings.Config.Http.BaseURL, "/")
 		if baseURLPath != "" {
 			baseURL = internalURL + "/" + baseURLPath
 		} else {
@@ -293,7 +293,7 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 			host = r.Host
 			scheme = GetScheme(r)
 		}
-		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Server.BaseURL)
+		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Http.BaseURL)
 	}
 
 	escapedPath := url.QueryEscape(path)
@@ -310,10 +310,10 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token string) string {
 	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
 	var baseURL string
-	if settings.Config.Server.InternalUrl != "" {
+	if settings.Config.Http.InternalUrl != "" {
 		// InternalUrl is a full URL (e.g., http://localhost:8080), so use it directly
-		internalURL := strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
-		baseURLPath := strings.TrimPrefix(settings.Config.Server.BaseURL, "/")
+		internalURL := strings.TrimSuffix(settings.Config.Http.InternalUrl, "/")
+		baseURLPath := strings.TrimPrefix(settings.Config.Http.BaseURL, "/")
 		if baseURLPath != "" {
 			baseURL = internalURL + "/" + baseURLPath
 		} else {
@@ -337,7 +337,7 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 			host = r.Host
 			scheme = GetScheme(r)
 		}
-		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Server.BaseURL)
+		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Http.BaseURL)
 	}
 
 	var callbackURL string

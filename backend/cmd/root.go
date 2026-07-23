@@ -128,7 +128,7 @@ func StartFilebrowser() {
 	}
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
-	swagInfo.BasePath = serverConfig.BaseURL
+	swagInfo.BasePath = settings.Config.Http.BaseURL
 	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
 	if len(settings.Config.Server.SourceMap) == 0 {

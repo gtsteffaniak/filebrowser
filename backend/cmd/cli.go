@@ -343,7 +343,7 @@ func createConfig(configpath string) {
 		portStr := askQuestion(reader, "What port should the server listen on?", "80")
 		port, err := strconv.Atoi(portStr)
 		if err == nil && (port >= 1 && port <= 65535) {
-			config.Server.Port = port
+			config.Http.Port = port
 			break // Port is valid, exit loop
 		}
 		fmt.Printf("Error: '%s' is not a valid port. Please enter a number between 1 and 65535.\n", portStr)

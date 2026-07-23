@@ -257,8 +257,8 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 				haveSnap = true
 			}
 		} else {
-			prefix := settings.Config.Server.BaseURL + "public/share/"
-			reconstructed := settings.Config.Server.BaseURL + "public" + r.URL.Path
+			prefix := settings.Config.Http.BaseURL + "public/share/"
+			reconstructed := settings.Config.Http.BaseURL + "public" + r.URL.Path
 			if strings.HasPrefix(reconstructed, prefix) {
 				remaining := strings.TrimPrefix(reconstructed, prefix)
 				if remaining != "" {
