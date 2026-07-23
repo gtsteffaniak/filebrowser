@@ -158,7 +158,7 @@ func logCapabilities(svc *goffmpeg.Service, detectHardware bool) {
 		return
 	}
 
-	logger.Infof("ffmpeg enabled: version %s @ %s", caps.FFmpegVersion, caps.FFmpegPath)
+	logger.Infof("Media Enabled: version %s @ %s", caps.FFmpegVersion, caps.FFmpegPath)
 
 	if !detectHardware {
 		return

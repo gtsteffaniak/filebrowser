@@ -7,18 +7,24 @@ import (
 	"path/filepath"
 
 	storm "github.com/asdine/storm/v3"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/dbindex"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// checkMigrationNeeded is true when database.migrateFrom points at a BoltDB file to import and
-// database.path (SQLite) does not exist yet or is empty.
+const migrationGuideURL = "https://filebrowserquantum.com/en/docs/getting-started/v2/migration"
+
+func migrationErrf(format string, args ...any) error {
+	return fmt.Errorf(format+" See the v2 migration guide: "+migrationGuideURL, args...)
+}
+
+// checkMigrationNeeded is true when server.database.migrateFrom points at a BoltDB file to import and
+// server.database.path (SQLite) does not exist yet or is empty.
 func checkMigrationNeeded() bool {
 	boltPath := settings.Config.Server.DatabaseV2.MigrateFrom
 	if boltPath == "" {
@@ -31,11 +37,11 @@ func checkMigrationNeeded() bool {
 }
 
 // validateDatabasePaths enforces database path rules before opening or creating SQLite:
-//  1. On a fresh install, fail if the configured SQLite path is database.db or an unrenamed
-//     legacy Bolt file (database.db) is present in the working directory.
-//  2. On a fresh install with database.migrateFrom set, fail if the legacy Bolt file is missing
+//  1. On a fresh install, fail if server.database.path is database.db or an unrenamed
+//     legacy BoltDB file (database.db) is present in the working directory.
+//  2. On a fresh install with server.database.migrateFrom set, fail if the legacy BoltDB file is missing
 //     or empty.
-//  3. When SQLite already exists and database.migrateFrom is set, fail if the legacy Bolt file
+//  3. When SQLite already exists and server.database.migrateFrom is set, fail if the legacy BoltDB file
 //     is missing or empty.
 //
 // Otherwise the existing SQLite database is used, or a new one is created on first open.
@@ -46,14 +52,16 @@ func validateDatabasePaths() error {
 
 	if !sqliteExists {
 		if filepath.Base(sqlitePath) == "database.db" {
-			return fmt.Errorf(
-				"server.database path cannot be %q; use a different filename for the SQLite database (e.g. filebrowser.sqlite)",
-				sqlitePath,
+			return migrationErrf(
+				`server.database.path cannot be "database.db": that name is reserved for the legacy database file. ` +
+					`Rename database.db to database.db.old, set server.database.path to a new SQLite filename ` +
+					`and set server.database.migrateFrom to "database.db.old".`,
 			)
 		}
 		if _, err := os.Stat("database.db"); err == nil {
-			return fmt.Errorf(
-				"old version of database file found at database.db, please rename it to database.db.old and set database.migrateFrom",
+			return migrationErrf(
+				`legacy database file found in the working directory. ` +
+					`Rename it to database.db.old, set server.database.migrateFrom to "database.db.old".`,
 			)
 		}
 		if boltPath != "" {
@@ -73,29 +81,31 @@ func legacyBoltDatabaseError(boltPath, sqlitePath string, freshInstall bool) err
 	if err != nil {
 		if os.IsNotExist(err) {
 			if freshInstall {
-				return fmt.Errorf(
-					"database.migrateFrom is %q but that file does not exist and no SQLite database exists at %q",
-					boltPath,
-					sqlitePath,
+				return migrationErrf(
+					`server.database.migrateFrom is %q but that file does not exist, and no SQLite database exists at server.database.path (%q). `+
+						`Check the migrateFrom path or restore your renamed legacy database backup.`,
+					boltPath, sqlitePath,
 				)
 			}
-			return fmt.Errorf(
-				"database.migrateFrom is %q but that file does not exist; remove migrateFrom from config or restore the legacy database file",
+			return migrationErrf(
+				`server.database.migrateFrom is %q but that file does not exist. `+
+					`Migration appears complete — remove server.database.migrateFrom from your config.`,
 				boltPath,
 			)
 		}
-		return fmt.Errorf("database.migrateFrom is %q but cannot be read: %w", boltPath, err)
+		return fmt.Errorf("server.database.migrateFrom is %q but cannot be read: %w", boltPath, err)
 	}
 	if stat.Size() == 0 {
 		if freshInstall {
-			return fmt.Errorf(
-				"database.migrateFrom is %q but that file is empty and no SQLite database exists at %q",
-				boltPath,
-				sqlitePath,
+			return migrationErrf(
+				`server.database.migrateFrom is %q but that file is empty, and no SQLite database exists at server.database.path (%q). `+
+					`Restore your backed-up BoltDB file or fix the migrateFrom path.`,
+				boltPath, sqlitePath,
 			)
 		}
-		return fmt.Errorf(
-			"database.migrateFrom is %q but that file is empty; remove migrateFrom from config or restore the legacy database file",
+		return migrationErrf(
+			`server.database.migrateFrom is %q but that file is empty. `+
+				`Remove server.database.migrateFrom from your config, or restore the legacy database backup if migration is not complete.`,
 			boltPath,
 		)
 	}
@@ -184,7 +194,7 @@ func migrateFromBoltToSQLite() error {
 	logger.Info("========================================")
 	logger.Info("Migration completed successfully!")
 	logger.Info("========================================")
-	logger.Infof("Your old BoltDB file is unchanged at: %s", oldDBPath)
+	logger.Infof("Your legacy database file is unchanged at: %s", oldDBPath)
 	logger.Infof("New SQLite database created at: %s", newDBPath)
 
 	return nil
@@ -257,7 +267,7 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		user.Version = users.ProfileStorageVersion
 		if newScopesCount > oldScopesCount {
 			promoted++
-			logger.Infof("  user %q: Bolt had %d scopes, SQLite now has %d",
+			logger.Infof("  user %q: legacy database had %d scopes, SQLite now has %d",
 				user.Username, oldScopesCount, newScopesCount)
 		}
 		boltID := user.ID
@@ -318,7 +328,7 @@ func migrateShares(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		var batch []*share.LegacyShare
 		err := oldDB.Select().Bucket(bucket).Find(&batch)
 		if err != nil && err != storm.ErrNotFound {
-			return fmt.Errorf("failed to read shares from old DB bucket %q: %w", bucket, err)
+			return fmt.Errorf("failed to read shares from legacy DB bucket %q: %w", bucket, err)
 		}
 		if len(batch) > 0 {
 			sharesList = append(sharesList, batch...)
