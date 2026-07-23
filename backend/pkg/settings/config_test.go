@@ -93,6 +93,34 @@ func TestConfigLoadEnvVars(t *testing.T) {
 	}
 }
 
+func TestConfigLoadHttpSection(t *testing.T) {
+	testDir := t.TempDir()
+	configContent := []byte(`
+server:
+  sources:
+    - path: "."
+http:
+  trustedHeaders:
+    - X-Forwarded-For
+  disableRateLimit: true
+`)
+	configFile := filepath.Join(testDir, "config.yaml")
+	if err := os.WriteFile(configFile, configContent, 0644); err != nil {
+		t.Fatalf("failed to write test config: %v", err)
+	}
+
+	if err := loadConfigWithDefaults(configFile, true); err != nil {
+		t.Fatalf("error loading config file: %v", err)
+	}
+
+	if len(Config.Http.TrustedHeadersArray) != 1 || Config.Http.TrustedHeadersArray[0] != "X-Forwarded-For" {
+		t.Fatalf("expected trusted headers to contain X-Forwarded-For, got %v", Config.Http.TrustedHeadersArray)
+	}
+	if !Config.Http.DisableRateLimit {
+		t.Fatal("expected http.disableRateLimit to be true")
+	}
+}
+
 func TestConfigLoadSpecificValues(t *testing.T) {
 	// Create isolated test directory
 	testDir := t.TempDir()

@@ -871,24 +871,16 @@ export default {
           payload.enableOnlyOffice = false;
         }
 
-        const res = await shareApi.create(payload);
+        await shareApi.create(payload);
 
-        if (!this.isEditMode && !this.editingLink) {
-          this.links.push(res);
-          this.sort();
-        } else if (this.editingLink) {
-          // Update the link in the local list
-          const index = this.links.findIndex(l => l.hash === this.editingLink.hash);
-          if (index !== -1) {
-            this.links.splice(index, 1, res);
-          }
-          this.editingLink = null;
-          // emit event to reload shares in settings view
-          eventBus.emit('sharesChanged');
-        } else {
-          // emit event to reload shares in settings view
+        if (this.isEditMode) {
           eventBus.emit('sharesChanged');
           mutations.closeTopPrompt();
+        } else {
+          const refreshed = await this.refreshShares();
+          if (!refreshed) return;
+          this.editingLink = null;
+          eventBus.emit('sharesChanged');
         }
 
         this.time = "";
@@ -902,6 +894,21 @@ export default {
           // didn't come from api, show error to user
           notify.showError(err);
         }
+      }
+    },
+    async refreshShares() {
+      if (this.isEditMode) return true;
+      this.linksLoading = true;
+      try {
+        const links = await shareApi.get(this.item.path, this.item.source);
+        this.links = links;
+        this.sort();
+        return true;
+      } catch (err) {
+        console.error(err);
+        return false;
+      } finally {
+        this.linksLoading = false;
       }
     },
     /**
