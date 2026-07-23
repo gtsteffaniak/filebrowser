@@ -374,16 +374,25 @@ export default {
       this.$router.push('/');
     },
     getDefaultLinks() {
-      // Generate default links from sources
+      // Generate default links from sources the user can access.
       const defaultLinks = [];
+      const scopedSourceNames = new Set(
+        (this.user?.scopes || [])
+          .map((scope) => scope?.name)
+          .filter((name) => typeof name === "string" && name.length > 0),
+      );
+      const limitToScopes = scopedSourceNames.size > 0;
 
       if (this.sourceInfo) {
-        Object.keys(this.sourceInfo).forEach(sourceName => {
+        Object.keys(this.sourceInfo).forEach((sourceName) => {
+          if (limitToScopes && !scopedSourceNames.has(sourceName)) {
+            return;
+          }
           defaultLinks.push({
             name: sourceName,
-            category: 'source',
-            target: '/', // Relative path to source root
-            icon: '', // No icon by default - will show animated status indicator
+            category: "source",
+            target: "/",
+            icon: "",
             sourceName: sourceName,
           });
         });

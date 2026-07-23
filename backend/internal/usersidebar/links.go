@@ -1,8 +1,6 @@
 package usersidebar
 
 import (
-	"strings"
-
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
@@ -15,7 +13,7 @@ func FrontendLinks(links []users.SidebarLink, showToolsInSidebar bool) []users.S
 	hasTools := false
 	newLinks := []users.SidebarLink{}
 	for _, link := range links {
-		if strings.HasPrefix(link.Category, "source") {
+		if users.IsSourceSidebarCategory(link.Category) {
 			if link.SourceName == "" {
 				continue
 			}
@@ -24,8 +22,9 @@ func FrontendLinks(links []users.SidebarLink, showToolsInSidebar bool) []users.S
 				continue
 			}
 			if full, ok := settings.Config.Server.SourceMap[source.Path]; ok {
-				if full.Config.ResolvedRules.IndexingDisabled && link.Category != "source-minimal" {
-					link.Category = "source-alt"
+				category := users.NormalizeSidebarLinkCategory(link.Category)
+				if full.Config.ResolvedRules.IndexingDisabled && category == string(users.SidebarLinkSource) {
+					link.Category = string(users.SidebarLinkSourceAlt)
 				}
 			}
 			link.SourceName = source.Name

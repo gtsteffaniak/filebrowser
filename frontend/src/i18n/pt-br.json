@@ -293,7 +293,7 @@
     "userDefaultsDescription": "Configure as configurações padrão aplicadas aos novos usuários e a política obrigatória para todos os usuários.",
     "accountDefaults": "Configurações padrão da conta",
     "disableUserSettings": "Desativar a página de configurações do usuário",
-    "userDefaultsLockedFromConfig": "As configurações padrão do usuário foram definidas no arquivo de configuração e não podem ser alteradas até que um administrador remova o parâmetro `userDefaults` do arquivo de configuração."
+    "userDefaultFieldLockedFromConfig": "Essa configuração padrão é definida no arquivo de configuração e não pode ser alterada aqui."
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",

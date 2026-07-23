@@ -237,6 +237,12 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
 			user.SidebarLinks = normalized
 		}
+		if merged, changed := usersidebar.EnsureSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes); changed {
+			user.SidebarLinks = merged
+		}
+		if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+			user.SidebarLinks = normalized
+		}
 		prevVersion := user.Version
 		if len(user.BackendScopes) == 0 {
 			settings.ApplyUserDefaults(user)

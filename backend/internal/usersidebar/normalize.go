@@ -25,7 +25,7 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 	changed := false
 
 	for _, link := range links {
-		if strings.HasPrefix(link.Category, "source") {
+		if users.IsSourceSidebarCategory(link.Category) {
 			source, ok := resolveSourceLink(link)
 			if !ok {
 				changed = true
@@ -38,8 +38,11 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 			seenSourcePaths[source.Path] = struct{}{}
 
 			normalized := link
-			normalized.Name = source.Name
+			normalized.Category = users.NormalizeSidebarLinkCategory(normalized.Category)
 			normalized.SourceName = source.Path
+			if strings.TrimSpace(normalized.Name) == "" {
+				normalized.Name = source.Name
+			}
 			if normalized.Target == "" {
 				normalized.Target = "/"
 			}

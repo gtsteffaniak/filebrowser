@@ -27,7 +27,7 @@ func (e ErrEnforcedUserValueMismatch) Error() string {
 
 // ValidateUserAgainstEnforcedDefaults rejects users whose enforced fields differ from universal defaults.
 func ValidateUserAgainstEnforcedDefaults(u *users.User, defaults UserDefaults, enforced UserDefaultsEnforcement) error {
-	paths := EnforcedPathSet(enforced)
+	paths := withoutAuthManagedEnforcementPaths(EnforcedPathSet(enforced))
 	if len(paths) == 0 || u == nil || u.Username == "" || u.Username == users.AnonymousUserName {
 		return nil
 	}
@@ -73,7 +73,7 @@ func ApplyEnforcedDefaultsFrom(u *users.User, d UserDefaults, e UserDefaultsEnfo
 	if u == nil || u.Username == "anonymous" {
 		return
 	}
-	paths := EnforcedPathSet(e)
+	paths := withoutAuthManagedEnforcementPaths(EnforcedPathSet(e))
 	if len(paths) == 0 {
 		return
 	}

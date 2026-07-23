@@ -17,8 +17,8 @@ const (
 	fixtureAccessSource     = "/tests/playwright-files"
 )
 
-// settingsMigrationBoltPath returns the committed BoltDB fixture used by settings
-// migration tests and the Playwright settings Docker image.
+// settingsMigrationBoltPath returns the committed read-only BoltDB reference used by
+// migration tests and the Playwright settings Docker image. Tests must never write to it.
 func settingsMigrationBoltPath(t *testing.T) string {
 	t.Helper()
 	path, err := filepath.Abs(filepath.Join("..", "..", "_docker", "src", "settings", "backend", "database.db.old"))

@@ -293,7 +293,7 @@
     "userDefaultsDescription": "Configure as definições predefinidas aplicadas aos novos utilizadores e a política imposta a todos os utilizadores.",
     "accountDefaults": "Definições predefinidas da conta",
     "disableUserSettings": "Desativar a página de definições do utilizador",
-    "userDefaultsLockedFromConfig": "As predefinições do utilizador foram definidas no ficheiro de configuração e não podem ser alteradas até que um administrador elimine o «userDefaults» do ficheiro de configuração."
+    "userDefaultFieldLockedFromConfig": "Esta configuração por predefinição é definida no ficheiro de configuração e não pode ser alterada aqui."
   },
   "sidebar": {
     "updateIsAvailable": "Está disponível uma atualização!",

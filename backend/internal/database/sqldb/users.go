@@ -23,10 +23,10 @@ type UserData struct {
 	LoginMethod      users.LoginMethod          `json:"loginMethod"`
 	OtpEnabled       bool                       `json:"otpEnabled"`
 	Version          int                        `json:"version"`
-	ShowFirstLogin   bool                       `json:"showFirstLogin"`
+	ShowFirstLogin           bool                                   `json:"showFirstLogin"`
 	PinnedItems              users.PinnedItems                      `json:"pinnedItems,omitempty"`
 	Profile                  json.RawMessage                        `json:"profile,omitempty"`
-	NonAdminEditable         users.NonAdminEditable                 `json:"settings,omitempty"`
+	Settings                 json.RawMessage                        `json:"settings,omitempty"`
 	BackendSourcePermissions map[string]users.SourceFilePermissions `json:"backendSourcePermissions,omitempty"`
 	Share                    bool                                   `json:"share,omitempty"`
 	// FilePermissions is read only for v3 users pending startup migration to v4.
@@ -43,6 +43,45 @@ func applyLegacyFilePermissionsFromJSON(user *users.User, data *UserData) {
 	user.Permissions.Delete = fp.Delete
 	user.Permissions.Create = fp.Create
 	user.Permissions.Download = fp.Download
+}
+
+func applyProfileSettingsOverlay(user *users.User, settingsJSON json.RawMessage) error {
+	if user == nil || len(settingsJSON) == 0 || string(settingsJSON) == "null" {
+		return nil
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(settingsJSON, &raw); err != nil {
+		return fmt.Errorf("parse profile settings overlay: %w", err)
+	}
+	if v, ok := raw["sidebarLinks"]; ok {
+		var links []users.SidebarLink
+		if err := json.Unmarshal(v, &links); err != nil {
+			return fmt.Errorf("parse sidebarLinks: %w", err)
+		}
+		user.SidebarLinks = links
+	}
+	if v, ok := raw["showFirstLogin"]; ok {
+		var showFirstLogin bool
+		if err := json.Unmarshal(v, &showFirstLogin); err != nil {
+			return fmt.Errorf("parse showFirstLogin: %w", err)
+		}
+		user.ShowFirstLogin = showFirstLogin
+	}
+	if v, ok := raw["passkeyCredentials"]; ok {
+		var creds []users.WebAuthnCredential
+		if err := json.Unmarshal(v, &creds); err != nil {
+			return fmt.Errorf("parse passkeyCredentials: %w", err)
+		}
+		user.PasskeyCredentials = creds
+	}
+	if v, ok := raw["sorting"]; ok {
+		var sorting users.Sorting
+		if err := json.Unmarshal(v, &sorting); err != nil {
+			return fmt.Errorf("parse sorting: %w", err)
+		}
+		user.Sorting = sorting
+	}
+	return nil
 }
 
 func finishUserLoad(user *users.User, userDataJSON []byte) error {
@@ -66,8 +105,15 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 		if err := settings.ApplyProfileToUser(user, userData.Profile); err != nil {
 			return fmt.Errorf("apply user profile: %w", err)
 		}
-	} else {
-		user.NonAdminEditable = userData.NonAdminEditable
+		if err := applyProfileSettingsOverlay(user, userData.Settings); err != nil {
+			return err
+		}
+	} else if len(userData.Settings) > 0 {
+		var legacySettings users.NonAdminEditable
+		if err := json.Unmarshal(userData.Settings, &legacySettings); err != nil {
+			return fmt.Errorf("parse legacy settings: %w", err)
+		}
+		user.NonAdminEditable = legacySettings
 	}
 	if userData.Share {
 		user.Permissions.Share = true
@@ -86,8 +132,18 @@ func userDataForPersist(user *users.User) UserData {
 		profileJSON = nil
 	}
 	legacySettings := user.NonAdminEditable
+	var settingsJSON json.RawMessage
 	if user.Version >= users.ProfileStorageVersion {
-		legacySettings = users.NonAdminEditable{}
+		legacySettings = users.NonAdminEditable{
+			SidebarLinks:       user.SidebarLinks,
+			ShowFirstLogin:     user.ShowFirstLogin,
+			PasskeyCredentials: user.PasskeyCredentials,
+			Sorting:            user.Sorting,
+		}
+	}
+	settingsJSON, err = json.Marshal(legacySettings)
+	if err != nil {
+		settingsJSON = nil
 	}
 	return UserData{
 		Password:                 user.Password,
@@ -101,7 +157,7 @@ func userDataForPersist(user *users.User) UserData {
 		ShowFirstLogin:           user.ShowFirstLogin,
 		PinnedItems:              user.PinnedItems,
 		Profile:                  profileJSON,
-		NonAdminEditable:         legacySettings,
+		Settings:                 settingsJSON,
 		BackendSourcePermissions: user.BackendSourcePermissions,
 		Share:                    user.Permissions.Share,
 	}

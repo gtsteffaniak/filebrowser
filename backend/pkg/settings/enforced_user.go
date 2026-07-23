@@ -6,6 +6,27 @@ import (
 	"strings"
 )
 
+// AuthManagedEnforcementPaths are default paths owned by authentication (adminGroup,
+// AdminUsername) rather than the user-defaults template. Enforcement must not block
+// or overwrite auth-granted admin privileges.
+var AuthManagedEnforcementPaths = map[string]struct{}{
+	"account.permissions.admin": {},
+}
+
+func withoutAuthManagedEnforcementPaths(paths map[string]struct{}) map[string]struct{} {
+	if len(paths) == 0 {
+		return paths
+	}
+	out := make(map[string]struct{}, len(paths))
+	for path := range paths {
+		if _, authManaged := AuthManagedEnforcementPaths[path]; authManaged {
+			continue
+		}
+		out[path] = struct{}{}
+	}
+	return out
+}
+
 // EnforcedPathSet returns dot-paths with enforcement enabled.
 func EnforcedPathSet(e UserDefaultsEnforcement) map[string]struct{} {
 	var paths []string

@@ -1,29 +1,28 @@
 <template>
   <div class="card-content no-buttons prompt-panel user-defaults-prompt">
     <div class="user-defaults-scroll">
-      <p v-if="lockedFromConfig" class="lock-message">{{ lockMessage }}</p>
       <div v-if="loading" class="loading-hint">{{ $t("general.loading") }}</div>
 
       <template v-else>
-        <div :class="{ 'user-defaults-readonly': lockedFromConfig }">
-          <UserProfilePreferences
-            v-model="preferenceSections"
-            enforceable
-            :enforced="enforced"
-            show-extension-inputs
-            :show-thumbnail-master="false"
-            @change="onPreferenceSectionChange"
-            @enforced-change="onEnforcedChange"
-          />
-          <UserDefaultsAccountSection
-            :account="values.account"
-            :enforced="enforced.account || {}"
-            :enforced-permissions="enforced.account?.permissions || {}"
-            @account-change="onAccountFieldChange"
-            @enforced-change="(field, value) => patchEnforcedFlag('account', field, value)"
-            @enforced-permission-change="(field, value) => patchEnforcedFlag('account', `permissions.${field}`, value)"
-          />
-        </div>
+        <UserProfilePreferences
+          v-model="preferenceSections"
+          enforceable
+          :enforced="enforced"
+          :config-locked-paths="lockedFromConfigPaths"
+          show-extension-inputs
+          :show-thumbnail-master="false"
+          @change="onPreferenceSectionChange"
+          @enforced-change="onEnforcedChange"
+        />
+        <UserDefaultsAccountSection
+          :account="values.account"
+          :enforced="enforced.account || {}"
+          :enforced-permissions="enforced.account?.permissions || {}"
+          :config-locked-paths="lockedFromConfigPaths"
+          @account-change="onAccountFieldChange"
+          @enforced-change="(field, value) => patchEnforcedFlag('account', field, value)"
+          @enforced-permission-change="(field, value) => patchEnforcedFlag('account', `permissions.${field}`, value)"
+        />
       </template>
     </div>
   </div>
@@ -73,8 +72,7 @@ export default {
       loading: true,
       saving: false,
       hydrating: false,
-      lockedFromConfig: false,
-      lockMessage: "",
+      lockedFromConfigPaths: [],
       values: emptyDefaults(),
       enforced: emptyEnforced(),
     };
@@ -120,9 +118,9 @@ export default {
     },
     applyResponse(data) {
       this.hydrating = true;
-      this.lockedFromConfig = !!data.lockedFromConfig;
-      this.lockMessage =
-        data.lockMessage || this.$t("settings.userDefaultsLockedFromConfig");
+      this.lockedFromConfigPaths = Array.isArray(data.lockedFromConfigPaths)
+        ? data.lockedFromConfigPaths
+        : [];
       const v = data.values || {};
       const enf = data.enforced || {};
       this.values = {
@@ -169,7 +167,10 @@ export default {
       });
     },
     canPatch() {
-      return !this.loading && !this.saving && !this.hydrating && !this.lockedFromConfig;
+      return !this.loading && !this.saving && !this.hydrating;
+    },
+    isConfigLockedPath(path) {
+      return this.lockedFromConfigPaths.includes(path);
     },
     async load() {
       this.loading = true;
@@ -211,6 +212,12 @@ export default {
         return;
       }
       const keyStr = String(key);
+      const path = section === "account" && keyStr.startsWith("permissions.")
+        ? `account.${keyStr}`
+        : `${section}.${keyStr}`;
+      if (this.isConfigLockedPath(path)) {
+        return;
+      }
       if (section === "account" && keyStr.startsWith("permissions.")) {
         const permKey = keyStr.slice("permissions.".length);
         void this.sendPatch({ enforced: { account: { permissions: { [permKey]: value } } } });
@@ -225,6 +232,10 @@ export default {
       if (!this.canPatch() || !section || !field) {
         return;
       }
+      const path = `${section}.${field}`;
+      if (this.isConfigLockedPath(path)) {
+        return;
+      }
       const sectionData = getObjectProperty(this.values, section);
       if (!sectionData) {
         return;
@@ -237,6 +248,13 @@ export default {
     },
     onAccountFieldChange(field) {
       if (!this.canPatch() || !field) {
+        return;
+      }
+      const fieldStr = String(field);
+      const path = fieldStr.startsWith("permissions.")
+        ? `account.${fieldStr}`
+        : `account.${fieldStr}`;
+      if (this.isConfigLockedPath(path)) {
         return;
       }
       if (String(field).startsWith("permissions.")) {
@@ -280,18 +298,6 @@ export default {
   opacity: 0.7;
 }
 
-.lock-message {
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.25rem;
-  background: color-mix(in srgb, var(--primaryColor) 12%, transparent);
-  color: var(--textPrimary);
-}
-
-.user-defaults-readonly {
-  pointer-events: none;
-  opacity: 0.65;
-}
 .user-defaults-prompt :deep(.settings-group) {
   margin-bottom: 0.75rem;
 }
