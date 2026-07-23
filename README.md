@@ -21,9 +21,11 @@
 
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
-## v2.0.0 Breaking Changes
+## v2.0.0
 
-Upgrading to v2.x.x **requires** database migration and config structural changes. See the [migration docs](https://filebrowserquantum.com/en/docs/getting-started/v2/migration) for full details.
+This release is the largest upgrade to date. It **requires** both a database migration and config structural changes.
+
+**Start here:** [Migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) · [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) · [Config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) · [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/Migration/troubleshooting/)
 
 ## About
 
@@ -129,7 +131,7 @@ Office file support           | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Office file previews          | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Themes                        | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Branding support              | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
-activity log                  | :construction: | ❌ | ✅ | ✅ | ✅ | ✅ |
+activity log                  | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Comments support              | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 trash support                 | :construction: | ❌ | ✅ | ✅ | ✅ | ✅ |
 Starred/pinned files          | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ |
