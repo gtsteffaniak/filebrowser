@@ -364,6 +364,8 @@
     "disableShareCardDescription": "サイドバーの共有ページ、またはモバイルのページ上部にある共有カードを無効にする",
     "disableSidebar": "サイドバーを無効にする",
     "disableSidebarDescription": "共有ページのサイドバーを無効にする",
+    "enforceDarkLightMode": "テーマモードの強制",
+    "enforceDarkLightModeDescription": "この共有に特定のテーマモード（ダークまたはライト）を強制します",
     "default": "モードを強制しない",
     "dark": "ダーク",
     "light": "ライト",

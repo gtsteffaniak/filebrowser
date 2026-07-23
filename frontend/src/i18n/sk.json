@@ -364,6 +364,8 @@
     "disableShareCardDescription": "Zakážte kartu zdieľania na zdieľanej stránke v bočnom paneli alebo v hornej časti stránky na mobilnom zariadení.",
     "disableSidebar": "Zakázanie bočného panela",
     "disableSidebarDescription": "Zakážte bočný panel na zdieľanej stránke.",
+    "enforceDarkLightMode": "Vynútiť režim témy",
+    "enforceDarkLightModeDescription": "Vynútenie konkrétneho režimu motívu (tmavý alebo svetlý) pre túto akciu, ktorý je nadradený používateľským nastaveniam.",
     "default": "Nevynucujte režim",
     "dark": "Dark",
     "light": "Svetlo",

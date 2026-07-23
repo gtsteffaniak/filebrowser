@@ -364,6 +364,8 @@
     "disableShareCardDescription": "停用分享頁面側邊欄中的分享卡片；在行動裝置上則不會顯示於頁面頂端。",
     "disableSidebar": "停用側邊欄",
     "disableSidebarDescription": "停用分享頁面上的側邊欄。",
+    "enforceDarkLightMode": "強制執行主題模式",
+    "enforceDarkLightModeDescription": "強制此分享使用特定主題模式（深色或淺色），覆蓋使用者偏好設定。",
     "default": "使用使用者偏好設定",
     "dark": "深色",
     "light": "淺色",

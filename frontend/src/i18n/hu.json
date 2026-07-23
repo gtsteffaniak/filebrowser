@@ -364,6 +364,8 @@
     "disableShareCardDescription": "Kapcsolja ki a megosztási kártyát a megosztott oldalon az oldalsávban vagy mobilon az oldal tetején.",
     "disableSidebar": "Oldalsáv kikapcsolása",
     "disableSidebarDescription": "Kapcsolja ki az oldalsávot a megosztott oldalon.",
+    "enforceDarkLightMode": "Témamód érvényesítése",
+    "enforceDarkLightModeDescription": "Egy adott témamód (sötét vagy világos) kikényszerítése a megosztás számára, felülírva a felhasználói beállításokat.",
     "default": "Ne kényszerítsen ki üzemmódot",
     "dark": "Sötét",
     "light": "Fény",

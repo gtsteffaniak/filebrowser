@@ -364,6 +364,8 @@
     "disableShareCardDescription": "Desative o cartão de compartilhamento na página compartilhada na barra lateral ou na parte superior da página no celular.",
     "disableSidebar": "Desativar a barra lateral",
     "disableSidebarDescription": "Desative a barra lateral na página compartilhada.",
+    "enforceDarkLightMode": "Aplicar o modo de tema",
+    "enforceDarkLightModeDescription": "Força um modo de tema específico (escuro ou claro) para esse compartilhamento, substituindo as preferências do usuário.",
     "default": "Não imponha um modo",
     "dark": "Escuro",
     "light": "Luz",

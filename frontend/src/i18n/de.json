@@ -364,6 +364,8 @@
     "disableShareCardDescription": "Deaktivieren Sie die Freigabekarte auf der freigegebenen Seite in der Seitenleiste oder oben auf der Seite auf dem Handy.",
     "disableSidebar": "Seitenleiste deaktivieren",
     "disableSidebarDescription": "Deaktivieren Sie die Seitenleiste auf der gemeinsamen Seite.",
+    "enforceDarkLightMode": "Erscheinungsbild erzwingen",
+    "enforceDarkLightModeDescription": "Erzwingt ein bestimmtes Erscheinungsbild (dunkel oder hell) für diese Freigabe und setzt die Benutzereinstellungen außer Kraft.",
     "default": "Keinen Modus erzwingen",
     "dark": "Dunkel",
     "light": "Hell",
