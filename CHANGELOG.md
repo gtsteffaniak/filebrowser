@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.0
 
-This version represents the most significant change to date. It **requires** both a database migration and config structural changes.
+This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions.
 
  **Breaking Changes**:
  - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
@@ -56,6 +56,7 @@ This version represents the most significant change to date. It **requires** bot
  - CLI: `user set` with `--password` (inline value, interactive prompt on TTY, or piped stdin); `user promote` for admin grant without password reset
 
  **Notes**:
+ - v2.x.x uses a new write-through backend state management. Changes go through a fast memory layer and also write changes to database to stay in sync.
  - CLI server start (`./filebrowser`), `setup`, `version`, and `set rule` syntax unchanged; see [CLI docs](https://filebrowserquantum.com/en/docs/reference/cli/)
  - new dropdown and input styles
  - user updates are more granular, don't include entire user payload.
