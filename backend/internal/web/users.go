@@ -104,7 +104,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 		}
 		userListFE = selfOnly
 	}
-	return RenderJSON(w, r, userListFE)
+	return RenderJSON(w, r, utils.NonNilSlice(userListFE))
 }
 
 // userDeleteHandler deletes a user by username (query ?username=).
@@ -401,10 +401,11 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 // PrepForFrontend fills response-only fields for GET handlers. FrontendScopes are derived from
 // persisted BackendScopes (GetFrontendScopes); they are not read from SQL and must not be written back as-is.
 func PrepForFrontend(u users.User) users.User {
-	u.FrontendScopes = u.GetFrontendScopes()
+	u.FrontendScopes = utils.NonNilSlice(u.GetFrontendScopes())
 	u.Permissions = users.GlobalPermissionsOnly(u.Permissions)
 	u.SourcePermissions = nil
-	u.SidebarLinks = usersidebar.FrontendLinks(u.SidebarLinks, u.ShowToolsInSidebar)
+	u.SidebarLinks = utils.NonNilSlice(usersidebar.FrontendLinks(u.SidebarLinks, u.ShowToolsInSidebar))
+	u.PasskeyCredentials = utils.NonNilSlice(u.PasskeyCredentials)
 	u.Password = ""
 	u.ApiKeys = nil
 	u.Tokens = nil

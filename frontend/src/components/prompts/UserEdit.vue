@@ -462,10 +462,21 @@ export default {
     },
     normalizeFormUser(raw) {
       const user = { ...(raw ?? {}) };
-      if ((user.permissions === null || user.permissions === undefined) && user.account?.permissions !== null && user.account?.permissions !== undefined) {
-        user.permissions = { ...user.account.permissions };
-        if (user.permissions.download === null || user.permissions.download === undefined) {
-          user.permissions.download = true;
+      if (user.account && typeof user.account === "object") {
+        const account = user.account;
+        user.lockPassword = !!account.lockPassword;
+        user.disableSettings = !!account.disableSettings;
+        user.disableUpdateNotifications = !!account.disableUpdateNotifications;
+        if (account.loginMethod) {
+          user.loginMethod = account.loginMethod;
+        }
+        if (account.permissions && typeof account.permissions === "object") {
+          user.permissions = {
+            admin: !!account.permissions.admin,
+            share: !!account.permissions.share,
+            api: !!account.permissions.api,
+            realtime: !!account.permissions.realtime,
+          };
         }
       }
       if (user.permissions) {
@@ -478,6 +489,17 @@ export default {
       if (user.permissions === null || user.permissions === undefined) {
         user.permissions = this.defaultPermissions();
       }
+      if (!user.locale && user.ui?.locale) {
+        user.locale = user.ui.locale;
+      }
+      delete user.account;
+      delete user.sidebar;
+      delete user.listing;
+      delete user.preview;
+      delete user.fileViewer;
+      delete user.search;
+      delete user.ui;
+      delete user.fileLoading;
       user.scopes = this.normalizeScopesForForm(user.scopes, user.sourcePermissions);
       delete user.sourcePermissions;
       return user;
@@ -517,7 +539,8 @@ export default {
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
-          const defaults = await settingsApi.get("userDefaults");
+          const response = await settingsApi.getUserDefaults();
+          const defaults = response?.values ?? response;
           this.user = this.normalizeFormUser(defaults);
           this.user.password = "";
           // Ensure loginMethod is valid, set to first available method if not set or invalid

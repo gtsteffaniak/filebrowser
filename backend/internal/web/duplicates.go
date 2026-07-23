@@ -250,7 +250,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 
 	// Build response with metadata about completeness
 	response := duplicateResponse{
-		Groups:     duplicateGroups,
+		Groups:     utils.NonNilSlice(duplicateGroups),
 		Incomplete: stats.stopped,
 		Reason:     stats.stopReason,
 	}
@@ -476,7 +476,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 		duplicateGroups = append(duplicateGroups, duplicateGroup{
 			Size:  group.Size,
 			Count: len(group.Files),
-			Files: group.Files,
+			Files: utils.NonNilSlice(group.Files),
 		})
 	}
 

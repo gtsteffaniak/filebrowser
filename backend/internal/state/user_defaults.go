@@ -3,6 +3,7 @@ package state
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -53,6 +54,19 @@ func InitUserDefaultsSettings() error {
 	defaults, err := loadUserDefaultsSetting(userDefaultsDefaultSettingKey)
 	if err != nil {
 		return fmt.Errorf("load user defaults: %w", err)
+	}
+
+	if settings.Env.ConfigUserDefaultsSpecified {
+		overlaid, overlayErr := settings.ApplyConfigSpecifiedPathsToUserDefaults(defaults, settings.Config.UserDefaults)
+		if overlayErr != nil {
+			return fmt.Errorf("overlay config user defaults: %w", overlayErr)
+		}
+		if !reflect.DeepEqual(defaults, overlaid) {
+			if saveErr := sqlDb.SaveSetting(userDefaultsDefaultSettingKey, overlaid); saveErr != nil {
+				return fmt.Errorf("save config-synced user defaults: %w", saveErr)
+			}
+			defaults = overlaid
+		}
 	}
 
 	enforcedDefault, err := loadUserDefaultsEnforcedSetting(userDefaultsEnforcedDefaultKey)

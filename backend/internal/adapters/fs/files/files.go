@@ -219,6 +219,8 @@ func getDirItemsImpl(opts utils.FileOptions, user *users.User, s *Service) (Item
 			items.Folders = append(items.Folders, folder.Name)
 		}
 	}
+	items.Files = utils.NonNilSlice(items.Files)
+	items.Folders = utils.NonNilSlice(items.Folders)
 	return items, nil
 }
 

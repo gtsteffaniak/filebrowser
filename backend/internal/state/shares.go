@@ -49,7 +49,7 @@ func GetAllShares() ([]share.Share, error) {
 		}
 	}
 
-	return shares, nil
+	return utils.NonNilSlice(shares), nil
 }
 
 // GetSharesByUserID retrieves all non-expired shares owned by userID.
@@ -69,7 +69,7 @@ func GetSharesByUserID(userID uint64) ([]share.Share, error) {
 		}
 	}
 
-	return shares, nil
+	return utils.NonNilSlice(shares), nil
 }
 
 // GetSharesByPath retrieves shares for a specific source and path
@@ -388,7 +388,7 @@ func PrepSharesForFrontend(viewer *users.User, r *http.Request, publicHost, publ
 // PrepShareValuesForFrontend builds API-safe ShareFrontend copies from immutable share values.
 func PrepShareValuesForFrontend(viewer *users.User, r *http.Request, publicHost, publicScheme string, shares []share.Share) []*share.ShareFrontend {
 	if len(shares) == 0 {
-		return nil
+		return utils.NonNilSlice([]*share.ShareFrontend(nil))
 	}
 	ptrs := make([]*share.Share, len(shares))
 	for i := range shares {
