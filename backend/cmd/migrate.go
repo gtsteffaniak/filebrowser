@@ -93,7 +93,11 @@ func legacyBoltDatabaseError(boltPath, sqlitePath string, freshInstall bool) err
 				boltPath,
 			)
 		}
-		return fmt.Errorf("server.database.migrateFrom is %q but cannot be read: %w", boltPath, err)
+		return migrationErrf(
+			`server.database.migrateFrom is %q but cannot be read: %v. `+
+				`Check file permissions or restore your backed-up BoltDB file.`,
+			boltPath, err,
+		)
 	}
 	if stat.Size() == 0 {
 		if freshInstall {

@@ -7,13 +7,12 @@ All notable changes to this project will be documented in this file. For commit 
 This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions, [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) for a full summary, and the [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to convert legacy config.
 
  **Breaking Changes**:
- - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
- - Removed: `/share/…` URL redirect to `/public/share/…` — use `/public/share/…` directly. See [Share options](https://filebrowserquantum.com/en/docs/shares/options/).
- - Removed: singular `source` search api param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`). See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
+ - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
+ - Removed: `/share/…` URL redirect to `/public/share/…` — use `/public/share/…` directly.
+ - Removed: singular `source` search api param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
  - Removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules. See [Exclusion rules](https://filebrowserquantum.com/en/docs/user-guides/general-configuration/exclusion-rules/).
- - Removed: support for deprecated userDefaults config format, users must use [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to update userDefaults.
- - Removed: support for deprecated flat `userDefaults` config format.
- - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
+ - Removed: deprecated `userDefaults` config formats (nested and flat) — use the [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to convert before upgrading.
+ - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method.
  - Changed: http related config options in `server` config key moved to `http` config key. See [HTTP settings](https://filebrowserquantum.com/en/docs/configuration/http/).
  - Changed: `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead. See [Environment variables](https://filebrowserquantum.com/en/docs/reference/environment-variables/) and [Server settings](https://filebrowserquantum.com/en/docs/configuration/server/).
  - Changed: Moved stream api to `/api/media/stream`. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
@@ -22,7 +21,7 @@ This version represents the most significant change to date. It **requires** bot
  **New Features**:
  - View grant mechanism to distinguish between UI viewing and download. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
  - ffmpeg hardware acceleration detection and support via go-ffmpeg
-  - video streaming is limited to viewing only. See [Media integration](https://filebrowserquantum.com/en/docs/integrations/media/about/).
+   - video streaming is limited to viewing only. See [Media integration](https://filebrowserquantum.com/en/docs/integrations/media/about/).
  - granular per-source file permissions (view, download, modify, create, delete) with automatic migration from global permissions
    - per-source defaults configurable in `settings > access management`
    - `view` permission is automatically set to true unless explicitly set to false. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
@@ -63,7 +62,7 @@ This version represents the most significant change to date. It **requires** bot
  - removed legacy and deprecated properties from API responses and generated config output
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
  - removed exiftool as an optional helper, always built with the supported libraries.
- - If migration issues arise, see [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/Migration/troubleshooting/).
+ - If migration issues arise, see [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/migration/troubleshooting/).
 
 ## v1.5.2
 
