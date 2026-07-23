@@ -55,18 +55,6 @@ func initializeDatabase(configFile string) bool {
 	return existingDb
 }
 
-func generalUsage() {
-	fmt.Printf(`usage: ./filebrowser <command> [options]
-commands:
-	-h    		Print help
-	-c    		Path to config file (global default: config.yaml)
-	version 	Print version information
-	setup   		Interactive config setup
-	set -u 		Username and password: set -u <user>,<password> [-c config.yaml]
-	set rule	Access rules: set rule -s <sourceName> -p <indexPath> -r user|group|all -v <name> [-allow] [-c config.yaml] (-sourceName/-sourcePath same as -s/-p)
-`)
-}
-
 func StartFilebrowser() {
 	keepGoing, dbExists := runCLI()
 	if !keepGoing {

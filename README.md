@@ -21,6 +21,20 @@
 
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
+## v2.0.0 Breaking Changes
+
+This release requires database migration and config structural changes. See [CHANGELOG.md](CHANGELOG.md) and the [migration docs](https://filebrowserquantum.com/en/docs/getting-started/Migration/) for full details.
+
+**Highlights:**
+- API: removed `/api/raw`; use `/api/resources/download`
+- Config: `userDefaults` format changes; HTTP options moved from `server` to `http`
+- Env: `FILEBROWSER_DATABASE` removed — use `FILEBROWSER_DATABASE_PATH`
+- Permissions: file permissions are per-source on `scopes[].permissions`
+- CLI: use `user set <user> --password <pass>` instead of `set -u user,pass`; use `user promote <user>` for admin without password reset (`set -u` deprecated but still works with warning)
+- Unchanged: `./filebrowser`, `-c`, `setup`, `version`, `set rule …`
+
+See the [CLI reference](https://filebrowserquantum.com/en/docs/reference/cli/) for migration examples.
+
 ## About
 
 FileBrowser Quantum provides an easy way to access and manage your files from the web. It has a modern responsive interface that has many advanced features to manage users, access, sharing, and file preview and editing.
