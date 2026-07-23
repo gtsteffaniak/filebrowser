@@ -10,13 +10,18 @@ export function canNativeShare() {
   );
 }
 
-function canShareFiles() {
+/**
+ * Checks whether the OS/browser share sheet can accept the given File.
+ * navigator.canShare({ files }) validates the specific file being shared
+ * (name, MIME type, size) — many platforms only allow a safe subset
+ * (images, audio, video, plain text, PDF) and reject everything else.
+ */
+function canShareFile(file) {
   if (typeof navigator.canShare !== "function") {
     return false;
   }
   try {
-    const probe = new File(["x"], "share-probe.txt", { type: "text/plain" });
-    return navigator.canShare({ files: [probe] });
+    return navigator.canShare({ files: [file] });
   } catch {
     return false;
   }
@@ -43,7 +48,14 @@ export async function nativeShareFile(item) {
   const url = buildDownloadUrl(item);
 
   try {
-    if (canShareFiles()) {
+    // Only attempt to share the file's actual bytes if navigator.canShare
+    // exists at all. We must check the real file (fetched below), not a
+    // synthetic stand-in: this previously probed with a fixed text/plain
+    // file, which always reported success even for file types (e.g.
+    // .xlsx, .docx, .zip) that the OS share sheet then silently rejected
+    // once navigator.share() was actually called, surfacing as an opaque
+    // "permission denied" error to the user (see #2659).
+    if (typeof navigator.canShare === "function") {
       const response = await fetch(url, { credentials: "same-origin" });
       if (!response.ok) {
         const detail = response.statusText ? ` (${response.statusText})` : "";
@@ -53,10 +65,15 @@ export async function nativeShareFile(item) {
       const blob = await response.blob();
       const type = blob.type || item.type || "application/octet-stream";
       const file = new File([blob], filename, { type });
-      await navigator.share({ files: [file], title: filename });
-      return;
+
+      if (canShareFile(file)) {
+        await navigator.share({ files: [file], title: filename });
+        return;
+      }
     }
 
+    // Fall back to sharing a link when the platform can't share the file's
+    // actual bytes/type (or doesn't support file sharing at all).
     await navigator.share({ url, title: filename });
   } catch (e) {
     if (e?.name === "AbortError") {
