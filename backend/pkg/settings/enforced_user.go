@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"reflect"
 	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
 // AuthManagedEnforcementPaths are default paths owned by authentication (adminGroup,
@@ -11,6 +13,15 @@ import (
 // or overwrite auth-granted admin privileges.
 var AuthManagedEnforcementPaths = map[string]struct{}{
 	"account.permissions.admin": {},
+}
+
+// EnforcementAppliesToUser reports whether user-default enforcement should affect u.
+// Admins are exempt; anonymous and nil users are not subject to enforcement.
+func EnforcementAppliesToUser(u *users.User) bool {
+	if u == nil || u.Username == "" || u.Username == users.AnonymousUserName {
+		return false
+	}
+	return !u.Permissions.Admin
 }
 
 func withoutAuthManagedEnforcementPaths(paths map[string]struct{}) map[string]struct{} {

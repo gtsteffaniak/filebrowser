@@ -364,8 +364,6 @@
     "disableShareCardDescription": "Schakel de deelkaart uit op de gedeelde pagina in de zijbalk of bovenaan de pagina op mobiel.",
     "disableSidebar": "Zijbalk uitschakelen",
     "disableSidebarDescription": "Schakel de zijbalk op de gedeelde pagina uit.",
-    "enforceDarkLightMode": "Themamodus afdwingen",
-    "enforceDarkLightModeDescription": "Forceer een specifieke themamodus (donker of licht) voor deze share, waarbij gebruikersvoorkeuren worden overschreven.",
     "default": "Een modus niet afdwingen",
     "dark": "Donker",
     "light": "Licht",

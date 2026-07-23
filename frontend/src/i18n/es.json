@@ -365,8 +365,6 @@
     "disableSidebar": "Desactivar el panel lateral",
     "disableSidebarDescription": "Desactivar el panel lateral en la página compartida.",
     "disableFileViewer": "Desactivar visor de archivos",
-    "enforceDarkLightMode": "Tema",
-    "enforceDarkLightModeDescription": "Forzar un tema (claro u oscuro) para el recurso compartido, anulando las preferencias del usuario - Ocultará el botón de cambio de tema",
     "default": "Por defecto",
     "dark": "Oscuro",
     "light": "Claro",

@@ -1,20 +1,16 @@
 <template>
   <div @click="preventDefaults" class="button-group border-radius">
-    <button type="button" v-if="isDisabled" disabled>
-      {{ disableMessage }}
+    <button
+      v-for="(btn, index) in buttons"
+      type="button"
+      :key="index"
+      class="clickable"
+      :class="{ active: activeButton === index }"
+      :disabled="isDisabled"
+      @click="setActiveButton(index, btn.value)"
+    >
+      {{ btn.label }}
     </button>
-    <template v-else>
-      <button
-        v-for="(btn, index) in buttons"
-        type="button"
-        :key="index"
-        class="clickable"
-        :class="{ active: activeButton === index }"
-        @click="setActiveButton(index, btn.value)"
-      >
-        {{ btn.label }}
-      </button>
-    </template>
   </div>
 </template>
 
@@ -49,6 +45,9 @@ export default {
       e.stopPropagation();
     },
     setActiveButton(index, value) {
+      if (this.isDisabled) {
+        return;
+      }
       if (value === "type:folder" && this.activeButton !== index) {
         this.$emit("disableAll");
       }
@@ -118,6 +117,8 @@ button {
 
 button:disabled {
   cursor: not-allowed !important;
+  color: var(--textSecondary);
+  opacity: 0.75;
 }
 
 button.active {

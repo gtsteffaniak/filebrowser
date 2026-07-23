@@ -44,6 +44,19 @@ func TestValidateUserAgainstEnforcedDefaults_rejectsMismatch(t *testing.T) {
 	}
 }
 
+func TestValidateUserAgainstEnforcedDefaults_skipsAdmin(t *testing.T) {
+	u := &users.User{
+		FrontendUser: users.FrontendUser{Username: "admin"},
+	}
+	u.Permissions.Admin = true
+	u.ShowHidden = false
+	defaults := UserDefaults{Listing: UserDefaultsListing{ShowHidden: true}}
+	enforced := UserDefaultsEnforcement{Listing: UserDefaultsListingEnforcement{ShowHidden: true}}
+	if err := ValidateUserAgainstEnforcedDefaults(u, defaults, enforced); err != nil {
+		t.Fatalf("admin should bypass enforced value validation: %v", err)
+	}
+}
+
 func TestApplyEnforcedDefaultsFrom_onlyEnforcedSubset(t *testing.T) {
 	u := &users.User{
 		FrontendUser: users.FrontendUser{

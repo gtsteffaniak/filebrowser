@@ -174,8 +174,6 @@
     "disableShareCardDescription": "Zakázat kartu sdílení na sdílené stránce v postranním panelu nebo v horní části stránky na mobilním telefonu.",
     "disableSidebar": "Zakázat postranní panel",
     "disableSidebarDescription": "Zakázat postranní panel na sdílené stránce.",
-    "enforceDarkLightMode": "Vynucení režimu tématu",
-    "enforceDarkLightModeDescription": "Vynucení určitého režimu motivu (tmavého nebo světlého) pro tuto sdílenou složku, který je nadřazen uživatelským preferencím.",
     "default": "Nevynucujte režim",
     "dark": "Dark",
     "light": "Světlo",

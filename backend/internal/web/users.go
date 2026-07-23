@@ -356,7 +356,7 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	if targetUsername == d.User.Username {
-		if enfErr := settings.ValidateSelfUserUpdateNotEnforced(req.Which, state.GetEnforcedUserDefaults()); enfErr != nil {
+		if enfErr := settings.ValidateSelfUserUpdateNotEnforced(req.Which, state.GetEnforcedUserDefaults(), d.User); enfErr != nil {
 			var locked settings.ErrEnforcedUserField
 			if stderrors.As(enfErr, &locked) {
 				return http.StatusForbidden, enfErr

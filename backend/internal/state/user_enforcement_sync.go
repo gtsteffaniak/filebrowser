@@ -40,6 +40,9 @@ func ResyncEnforcedDefaultsForAllUsers() error {
 			continue
 		}
 		u := cloneUserPtr(row)
+		if !settings.EnforcementAppliesToUser(u) {
+			continue
+		}
 		if !settings.SyncEnforcedDefaultsOntoUser(u, d, e) {
 			continue
 		}

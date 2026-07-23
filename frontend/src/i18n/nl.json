@@ -341,8 +341,6 @@
     "disableSidebar": "Zijbalk uitschakelen",
     "disableFileViewer": "Bestandsverkenner uitschakelen",
     "disableSidebarDescription": "De zijbalk op de gedeelde pagina uitschakelen.",
-    "enforceDarkLightMode": "Themamodus afdwingen",
-    "enforceDarkLightModeDescription": "Een specifieke themamodus (donker of licht) afdwingen voor deze gedeelde map, waarbij gebruikersvoorkeuren worden overschreven.",
     "defaultViewMode": "Standaard weergavemodus",
     "defaultViewModeDescription": "Stel de standaard weergavemodus in voor anonieme gebruikers die deze gedeelde map bekijken. Aangemelde gebruikers kunnen nog steeds hun weergavevoorkeur wijzigen.",
     "default": "Gebruikersvoorkeuren toepassen",

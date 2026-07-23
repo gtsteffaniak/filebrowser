@@ -364,8 +364,6 @@
     "disableShareCardDescription": "禁用共享页面侧边栏或手机页面顶部的共享卡。",
     "disableSidebar": "禁用侧边栏",
     "disableSidebarDescription": "禁用共享页面上的边栏。",
-    "enforceDarkLightMode": "执行主题模式",
-    "enforceDarkLightModeDescription": "为该共享强制设置特定主题模式（深色或浅色），覆盖用户偏好。",
     "default": "不执行模式",
     "dark": "黑暗",
     "light": "灯光",

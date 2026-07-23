@@ -236,18 +236,11 @@
             <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice"
               :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')"
               :disabled="sourceReadOnly" />
-            <p>
-              {{ $t("share.enforceDarkLightMode") }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))"
-                @mouseleave="hideTooltip">
-                help
-              </i>
-            </p>
+            <p>{{ $t("general.enforce", { suffix: " theme mode" }) }}</p>
             <ExpandDropdown
               v-model="enforceDarkLightMode"
               :options="enforceDarkLightModeOptions"
-              :aria-label="$t('share.enforceDarkLightMode')"
+              :aria-label="$t('general.enforce', { suffix: ' theme mode' })"
             />
             <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')"
               :description="$t('share.keepAfterExpirationDescription')" />

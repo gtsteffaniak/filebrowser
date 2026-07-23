@@ -364,8 +364,6 @@
     "disableShareCardDescription": "Desativar o cartão de partilha na página partilhada na barra lateral ou na parte superior da página no telemóvel.",
     "disableSidebar": "Desativar a barra lateral",
     "disableSidebarDescription": "Desativar a barra lateral na página partilhada.",
-    "enforceDarkLightMode": "Aplicar o modo de tema",
-    "enforceDarkLightModeDescription": "Força um modo de tema específico (escuro ou claro) para esta partilha, substituindo as preferências do utilizador.",
     "default": "Não impor um modo",
     "dark": "Escuro",
     "light": "Luz",

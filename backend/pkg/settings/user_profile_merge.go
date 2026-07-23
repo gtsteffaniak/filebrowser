@@ -27,6 +27,9 @@ func (e ErrEnforcedUserValueMismatch) Error() string {
 
 // ValidateUserAgainstEnforcedDefaults rejects users whose enforced fields differ from universal defaults.
 func ValidateUserAgainstEnforcedDefaults(u *users.User, defaults UserDefaults, enforced UserDefaultsEnforcement) error {
+	if !EnforcementAppliesToUser(u) {
+		return nil
+	}
 	paths := withoutAuthManagedEnforcementPaths(EnforcedPathSet(enforced))
 	if len(paths) == 0 || u == nil || u.Username == "" || u.Username == users.AnonymousUserName {
 		return nil
@@ -70,6 +73,9 @@ func jsonValuesEqual(a, b interface{}) bool {
 
 // ApplyEnforcedDefaultsFrom merges enforced default paths from d onto u's profile.
 func ApplyEnforcedDefaultsFrom(u *users.User, d UserDefaults, e UserDefaultsEnforcement) {
+	if !EnforcementAppliesToUser(u) {
+		return
+	}
 	if u == nil || u.Username == "anonymous" {
 		return
 	}
@@ -94,6 +100,9 @@ func ApplyEnforcedDefaultsFrom(u *users.User, d UserDefaults, e UserDefaultsEnfo
 
 // SyncEnforcedDefaultsOntoUser applies enforced defaults onto u. Returns true if profile changed.
 func SyncEnforcedDefaultsOntoUser(u *users.User, d UserDefaults, e UserDefaultsEnforcement) bool {
+	if !EnforcementAppliesToUser(u) {
+		return false
+	}
 	if u == nil || u.Username == "anonymous" {
 		return false
 	}

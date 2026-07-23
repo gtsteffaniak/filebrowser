@@ -341,8 +341,6 @@
     "disableSidebar": "Disabilita barra laterale",
     "disableFileViewer": "Disabilita visualizzatore file",
     "disableSidebarDescription": "Disabilita la barra laterale nella pagina di condivisione.",
-    "enforceDarkLightMode": "Forza modalità tema",
-    "enforceDarkLightModeDescription": "Forza una modalità specifica (scura o chiara), ignorando le preferenze dell'utente.",
     "defaultViewMode": "Modalità di visualizzazione predefinita",
     "defaultViewModeDescription": "Imposta la vista predefinita per gli utenti anonimi. Gli utenti loggati possono comunque cambiarla.",
     "default": "Usa preferenza utente",

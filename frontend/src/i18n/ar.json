@@ -364,8 +364,6 @@
     "disableShareCardDescription": "قم بتعطيل بطاقة المشاركة على الصفحة المشتركة في الشريط الجانبي أو في أعلى الصفحة على الهاتف المحمول.",
     "disableSidebar": "تعطيل الشريط الجانبي",
     "disableSidebarDescription": "تعطيل الشريط الجانبي في الصفحة المشتركة.",
-    "enforceDarkLightMode": "فرض وضع السمة",
-    "enforceDarkLightModeDescription": "فرض وضع سمة معينة (داكنة أو فاتحة) لهذه المشاركة، وتجاوز تفضيلات المستخدم.",
     "default": "لا تفرض وضعاً",
     "dark": "داكن",
     "light": "خفيف",

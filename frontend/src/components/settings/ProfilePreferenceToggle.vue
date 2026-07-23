@@ -8,6 +8,7 @@
     @change="profilePrefs.emitSectionChange(section, field)"
     @update:enforced="(v) => profilePrefs.emitEnforced(section, field, v)"
     :disabled="effectiveDisabled"
+    :enforcement-locked="profilePrefs.isEnforcementLocked(section, field)"
     :name="name"
     :description="effectiveDescription"
   />
