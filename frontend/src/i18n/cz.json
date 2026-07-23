@@ -441,7 +441,7 @@
     "userDefaultsDescription": "Nastavte výchozí nastavení pro nové uživatele a vynuťte dodržování zásad pro všechny uživatele.",
     "accountDefaults": "Výchozí nastavení účtu",
     "disableUserSettings": "Zakázat stránku uživatelských nastavení",
-    "userDefaultsLockedFromConfig": "Výchozí nastavení uživatele bylo nastaveno v konfiguračním souboru a nelze jej změnit, dokud správce neodstraní položku „userDefaults“ z konfiguračního souboru."
+    "userDefaultFieldLockedFromConfig": "Toto výchozí nastavení je definováno v konfiguračním souboru a zde jej nelze změnit."
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",

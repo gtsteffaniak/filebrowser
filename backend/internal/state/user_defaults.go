@@ -40,6 +40,7 @@ func InitUserDefaultsSettings() error {
 	}
 
 	if _, err := sqlDb.GetSetting(userDefaultsEnforcedDefaultKey); err != nil {
+		// Config-specified paths lock admin UI edits only; enforcement is opt-in via Settings.
 		if saveErr := sqlDb.SaveSetting(userDefaultsEnforcedDefaultKey, settings.UserDefaultsEnforcement{}); saveErr != nil {
 			return fmt.Errorf("seed enforced user defaults: %w", saveErr)
 		}
@@ -207,8 +208,8 @@ func GetEnforcedUserDefaults() settings.UserDefaultsEnforcement {
 
 // PatchUserDefaults merges patch JSON into the universal defaults and persists.
 func PatchUserDefaults(patchJSON []byte) error {
-	if settings.UserDefaultsLockedFromConfig() {
-		return fmt.Errorf("%s", settings.UserDefaultsConfigLockMessage)
+	if err := settings.ValidateUserDefaultsPatchNotConfigLocked(patchJSON); err != nil {
+		return err
 	}
 	userDefaultsMu.Lock()
 	merged, mergeErr := settings.MergeUserDefaultsPatchJSON(userDefaultsDefault, patchJSON)
@@ -229,8 +230,8 @@ func PatchUserDefaults(patchJSON []byte) error {
 
 // PatchUserDefaultsEnforced merges enforcement patch JSON into the universal config.
 func PatchUserDefaultsEnforced(patchJSON []byte) error {
-	if settings.UserDefaultsLockedFromConfig() {
-		return fmt.Errorf("%s", settings.UserDefaultsConfigLockMessage)
+	if err := settings.ValidateUserDefaultsPatchNotConfigLocked(patchJSON); err != nil {
+		return err
 	}
 	userDefaultsMu.Lock()
 	merged, mergeErr := settings.MergeEnforcedPatchJSON(userDefaultsEnforcedDefault, patchJSON)

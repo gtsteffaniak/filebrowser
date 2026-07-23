@@ -565,6 +565,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    configLockedPaths: {
+      type: Array,
+      default: () => [],
+    },
     showExtensionInputs: {
       type: Boolean,
       default: false,
@@ -729,14 +733,29 @@ export default {
       const sectionEnforced = getObjectProperty(this.enforced, section);
       return !!getObjectProperty(sectionEnforced, field);
     },
+    configLockedPath(section, field) {
+      return `${section}.${field}`;
+    },
+    isConfigLocked(section, field) {
+      if (!this.configLockedPaths?.length) {
+        return false;
+      }
+      return this.configLockedPaths.includes(this.configLockedPath(section, field));
+    },
     fieldLocked(section, field) {
+      if (this.isConfigLocked(section, field)) {
+        return true;
+      }
       return !this.enforceable && this.enforcedFlag(section, field);
     },
     fieldDisabled(section, field) {
       return this.disabled || this.fieldLocked(section, field);
     },
     helpText(section, field, description) {
-      if (this.fieldLocked(section, field)) {
+      if (this.isConfigLocked(section, field)) {
+        return this.$t("settings.userDefaultFieldLockedFromConfig");
+      }
+      if (!this.enforceable && this.enforcedFlag(section, field)) {
         return this.$t("profileSettings.enforcedByAdmin");
       }
       return description || "";

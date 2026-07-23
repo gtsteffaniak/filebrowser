@@ -293,7 +293,7 @@
     "userDefaultsDescription": "新規ユーザーに適用されるデフォルト設定と、すべてのユーザーに適用されるポリシーを設定します。",
     "accountDefaults": "アカウントのデフォルト設定",
     "disableUserSettings": "ユーザー設定ページを無効にする",
-    "userDefaultsLockedFromConfig": "ユーザーデフォルトは設定ファイルに設定されており、管理者が設定ファイルから「userDefaults」を削除するまで変更することはできません。"
+    "userDefaultFieldLockedFromConfig": "このデフォルト設定は設定ファイルで指定されており、ここでは変更できません。"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",

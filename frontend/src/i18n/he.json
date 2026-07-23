@@ -293,7 +293,7 @@
     "userDefaultsDescription": "הגדר את הגדרות ברירת המחדל שיוחלו על משתמשים חדשים ואת המדיניות שתאכף על כל המשתמשים.",
     "accountDefaults": "הגדרות ברירת מחדל של החשבון",
     "disableUserSettings": "השבת את דף הגדרות המשתמש",
-    "userDefaultsLockedFromConfig": "הגדרות ברירת המחדל של המשתמש הוגדרו בקובץ התצורה, ולא ניתן לשנותן עד שמנהל המערכת יסיר את ה-userDefaults מקובץ התצורה."
+    "userDefaultFieldLockedFromConfig": "הגדרה ברירת המחדל הזו נקבעת בקובץ התצורה ואינה ניתנת לשינוי כאן."
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",

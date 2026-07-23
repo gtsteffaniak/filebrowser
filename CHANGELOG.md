@@ -45,10 +45,12 @@ This version represents the most significant change to date. It **requires** bot
    - WebUI preserves both, files and directories.
    - WebDAV `COPY` preserves modification times only for files, is limitation we have with webdav.
  - User default enhancements
-   - Editing user defaults in the UI is disabled when user defaults are set in the config.yaml
+   - Config `userDefaults` seeds SQLite on first run; only fields explicitly set in config stay locked in **Settings → User defaults** (other defaults remain editable)
    - Added administrator controls for universal user defaults and enforced preferences in `settings > user management > user defaults`.
    - Added configurable default file permissions per source in `settings > access management`.
    - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt.
+ - Database env var rename: `FILEBROWSER_DATABASE` is removed (startup fails if set). Use `FILEBROWSER_DATABASE_PATH` (default `filebrowser.sqlite`) or `server.database.path` in config.
+ - Bolt→SQLite sidebar migration preserves custom source link names, icons, and categories; missing scoped sources are merged into sidebar links.
 
  **Notes**:
  - new dropdown and input styles
@@ -58,7 +60,7 @@ This version represents the most significant change to date. It **requires** bot
  - Moved stream api to `/media/stream`
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata.
  - removed exiftool as an optional helper, always built with the supported libraries.
- - `userDefaults` section of the config has been deprecated.
+ - `userDefaults` in config.yaml bootstraps SQLite on first run (initial values + lock mask for configured fields only). After seeding, manage defaults in **Settings → User management → User defaults**. Remove `userDefaults` from config when you no longer want fields re-locked on fresh installs.
 
 ## v1.5.0
 

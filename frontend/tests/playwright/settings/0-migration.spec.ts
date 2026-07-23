@@ -18,12 +18,20 @@ const EXPECTED_ADMIN_SIDEBAR_LINKS = [
     "Tools",
 ] as const;
 
+const ADMIN_SOURCE_SIDEBAR_LINKS = ["playwright + files", "docker", "access"] as const;
+
 const EXPECTED_USERS = [
     "admin",
     "basic",
     "graham",
     "testuser1",
 ] as const;
+
+const SOURCE_SIDEBAR_URLS: Record<(typeof ADMIN_SOURCE_SIDEBAR_LINKS)[number], RegExp> = {
+    "playwright + files": /\/files\/playwright%20(?:%2B|\+)%20files\/?$/,
+    docker: /\/files\/docker\/?$/,
+    access: /\/files\/access\/?$/,
+};
 
 type SourceFilePerms = {
     view: boolean;
@@ -44,6 +52,8 @@ type UserExpectation = {
     };
     loginMethod: string;
     sources: Record<string, SourceFilePerms>;
+    scopePaths: Record<string, string>;
+    absentSources?: string[];
 };
 
 const ALL_SOURCES = ["playwright + files", "docker", "access"] as const;
@@ -78,6 +88,16 @@ function sourcePermissionsForSources(
     return Object.fromEntries(sourceNames.map((name) => [name, { ...perms }]));
 }
 
+function scopePathsForAllSources(scope = "/"): Record<string, string> {
+    return Object.fromEntries(ALL_SOURCES.map((name) => [name, scope]));
+}
+
+function scopePathsForSources(
+    entries: Array<[string, string]>,
+): Record<string, string> {
+    return Object.fromEntries(entries);
+}
+
 /** Migrated users + testuser1 (added in Dockerfile.playwright-settings). */
 const EXPECTED_USER_DETAILS: UserExpectation[] = [
     {
@@ -97,6 +117,7 @@ const EXPECTED_USER_DETAILS: UserExpectation[] = [
             create: true,
             delete: true,
         }),
+        scopePaths: scopePathsForAllSources("/"),
     },
     {
         username: "basic",
@@ -115,6 +136,7 @@ const EXPECTED_USER_DETAILS: UserExpectation[] = [
             create: false,
             delete: false,
         }),
+        scopePaths: scopePathsForAllSources("/"),
     },
     {
         username: "graham",
@@ -130,6 +152,11 @@ const EXPECTED_USER_DETAILS: UserExpectation[] = [
             ["playwright + files", "docker"],
             GRAHAM_SOURCE_PERMS,
         ),
+        scopePaths: scopePathsForSources([
+            ["playwright + files", "/myfolder"],
+            ["docker", "/"],
+        ]),
+        absentSources: ["access"],
     },
     {
         username: "testuser1",
@@ -142,6 +169,7 @@ const EXPECTED_USER_DETAILS: UserExpectation[] = [
         },
         loginMethod: "Password",
         sources: sourcePermissionsForAllSources(),
+        scopePaths: scopePathsForAllSources("/"),
     },
 ];
 
@@ -214,21 +242,42 @@ const EXPECTED_SHARES: ShareExpectation[] = [
     },
 ];
 
-function userRowInSettingsUsersTable(page: Page, usernameText: string): Locator {
+async function loginAs(page: Page, username: string, password: string) {
+    await page.goto("/login");
+    await page.getByPlaceholder("Username").fill(username);
+    await page.getByPlaceholder("Password").fill(password);
+    await page.getByRole("button", { name: "Login" }).click();
+    await page.waitForURL("**/files/**");
+}
+
+function sourceSidebarLink(page: Page, sourceName: string): Locator {
+    return page.getByRole("link", { name: sourceName, exact: true });
+}
+
+async function expectSourceSidebarLinkWorks(page: Page, sourceName: string) {
+    const link = sourceSidebarLink(page, sourceName);
+    await expect(link).toBeVisible();
+    await expect(link).not.toHaveClass(/disabled/);
+    await expect(link.locator(".warning-icon")).toHaveCount(0);
+    await link.click();
+    await expect(page).toHaveURL(SOURCE_SIDEBAR_URLS[sourceName as keyof typeof SOURCE_SIDEBAR_URLS]);
+}
+
+function userRowInSettingsUsersTable(page: Page, username: string): Locator {
     return page.locator("table.settings-table tbody tr").filter({
-        has: page.locator("td").first().filter({ hasText: new RegExp(`^${usernameText}$`) }),
+        has: page.getByRole("cell", { name: username, exact: true }),
     });
 }
 
 function shareRowInSettingsSharesTable(page: Page, hash: string): Locator {
     return sharesTable(page).locator("tbody tr").filter({
-        has: page.locator("td").first().filter({ hasText: new RegExp(`^${hash}$`) }),
+        has: page.getByRole("cell", { name: hash, exact: true }),
         hasNot: page.locator(".settings-table__empty-cell, .settings-table__loading-cell"),
     });
 }
 
 function editUserTrigger(row: Locator): Locator {
-    return row.getByRole("button", { name: /Edit/i });
+    return row.getByRole("button", { name: "Edit" });
 }
 
 function userEditScopeBlock(modal: Locator, sourceName: string): Locator {
@@ -238,13 +287,17 @@ function userEditScopeBlock(modal: Locator, sourceName: string): Locator {
     );
 }
 
+function scopePathButton(modal: Locator, sourceName: string): Locator {
+    return userEditScopeBlock(modal, sourceName).locator(".scope-path-display");
+}
+
 async function expandUserEditSourceScope(modal: Locator, sourceName: string) {
     const block = userEditScopeBlock(modal, sourceName);
     await block.locator(".settings-group-title").click();
     await expect(block.locator(".source-file-permissions")).toBeVisible();
 }
 
-function globalPermissionCheckbox(modal: Locator, label: string | RegExp): Locator {
+function globalPermissionCheckbox(modal: Locator, label: string): Locator {
     return modal.locator(".toggle-container", { hasText: label }).locator('input[type="checkbox"]');
 }
 
@@ -299,7 +352,7 @@ async function readAccessRuleRows(page: Page): Promise<AccessRuleExpectation[]> 
 
 async function selectAccessSource(page: Page, sourceName: string) {
     const accessCard = page.locator(".card-title").filter({
-        has: page.locator("h2", { hasText: /Access Management/i }),
+        has: page.getByRole("heading", { name: "Access Management" }),
     });
     const sourceButton = accessCard.locator('button[aria-label="Source"]');
     const currentSource = (
@@ -341,7 +394,7 @@ async function selectAccessSource(page: Page, sourceName: string) {
 
 function apiTokenRow(page: Page, tokenName: string): Locator {
     return page.locator("table.settings-table tbody tr").filter({
-        has: page.locator("td").first().filter({ hasText: new RegExp(`^${tokenName}$`) }),
+        has: page.getByRole("cell", { name: tokenName, exact: true }),
         hasNot: page.locator(".settings-table__empty-cell, .settings-table__loading-cell"),
     });
 }
@@ -362,6 +415,16 @@ test.describe("Migration fixture verification", () => {
             anchors.map((anchor) => anchor.getAttribute("aria-label")),
         );
         expect(sidebarLabels).toEqual([...EXPECTED_ADMIN_SIDEBAR_LINKS]);
+
+        for (const sourceName of ADMIN_SOURCE_SIDEBAR_LINKS) {
+            await page.goto("/files/");
+            await expectSourceSidebarLinkWorks(page, sourceName);
+        }
+
+        const toolsLink = page.getByRole("link", { name: "Tools", exact: true });
+        await page.goto("/files/");
+        await expect(toolsLink).toBeVisible();
+        await expect(toolsLink).not.toHaveClass(/disabled/);
 
         await page.getByLabel("Edit Links").click();
         const prompt = page.locator('[aria-label="SidebarLinks-prompt"]');
@@ -406,7 +469,7 @@ test.describe("Migration fixture verification", () => {
                 expected.global.shareFiles,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, /Create and manage long-live API tokens/i),
+                globalPermissionCheckbox(modal, "Create and manage long-live API tokens"),
                 expected.global.apiTokens,
             );
             await expectCheckboxState(
@@ -425,6 +488,10 @@ test.describe("Migration fixture verification", () => {
             for (const sourceName of Object.keys(expected.sources)) {
                 const sourcePerms = expected.sources[sourceName];
                 await expandUserEditSourceScope(modal, sourceName);
+
+                await expect(scopePathButton(modal, sourceName)).toHaveText(
+                    expected.scopePaths[sourceName],
+                );
 
                 await expectCheckboxState(
                     sourcePermissionCheckbox(modal, sourceName, "View and list files"),
@@ -448,7 +515,11 @@ test.describe("Migration fixture verification", () => {
                 );
             }
 
-            await modal.locator('button[aria-label="Cancel"]').click();
+            for (const absentSource of expected.absentSources ?? []) {
+                await expect(userEditScopeBlock(modal, absentSource)).toHaveCount(0);
+            }
+
+            await modal.getByRole("button", { name: "Cancel" }).click();
             await expect(modal).not.toBeVisible();
         }
 
@@ -468,7 +539,7 @@ test.describe("Migration fixture verification", () => {
                 response.status() === 200,
         );
         await page.locator("#api-sidebar").click();
-        await expect(page.locator(".card-title h2")).toHaveText(/API Tokens/i);
+        await expect(page.getByRole("heading", { name: "API Tokens" })).toBeVisible();
         const listResp = await tokenListResponse;
         const apiTokens = (await listResp.json()) as Array<{
             name: string;
@@ -503,7 +574,7 @@ test.describe("Migration fixture verification", () => {
 
             await expect(apiTokenRow(page, expected.name)).toHaveCount(1);
             const row = apiTokenRow(page, expected.name);
-            await row.getByRole("button", { name: /Actions/i }).click();
+            await row.getByRole("button", { name: "Actions" }).click();
 
             const prompt = page.locator('[aria-label="ActionApi-prompt"]');
             await expect(prompt).toBeVisible();
@@ -518,7 +589,7 @@ test.describe("Migration fixture verification", () => {
                 await expect(prompt.locator(".permissions-grid")).toBeVisible();
             }
 
-            await prompt.getByRole("button", { name: /Close/i }).click();
+            await prompt.getByRole("button", { name: "Close" }).click();
             await expect(prompt).not.toBeVisible();
         }
 
@@ -534,7 +605,7 @@ test.describe("Migration fixture verification", () => {
                 response.url().includes("/api/share/list") && response.status() === 200,
         );
         await page.locator("#shares-sidebar").click();
-        await expect(page.locator(".card-title h2")).toHaveText(/Share management/i);
+        await expect(page.getByRole("heading", { name: "Share management" })).toBeVisible();
         const listResp = await shareListResponse;
         const shares = (await listResp.json()) as Array<{ hash: string }>;
         for (const expected of EXPECTED_SHARES) {
@@ -550,7 +621,7 @@ test.describe("Migration fixture verification", () => {
             await expect(row.locator("td").nth(2)).toHaveText("Permanent");
             await expect(row.locator("td").nth(4)).toHaveText(expected.username);
 
-            await row.getByRole("button", { name: /Edit/i }).click();
+            await row.getByRole("button", { name: "Edit" }).click();
             const prompt = page.locator('[aria-label="share-prompt"]');
             await expect(prompt).toBeVisible();
 
@@ -579,7 +650,7 @@ test.describe("Migration fixture verification", () => {
 
     test("access rules exist for each source", async ({ page, checkForErrors }) => {
         await openSettingsSection(page, "access-sidebar");
-        await expect(page.locator(".card-title h2")).toHaveText(/Access Management/i);
+        await expect(page.getByRole("heading", { name: "Access Management" })).toBeVisible();
         await expect(accessRulesTable(page)).not.toHaveAttribute("aria-busy", "true");
 
         for (const [sourceName, rules] of EXPECTED_ACCESS_RULES) {
@@ -601,5 +672,31 @@ test.describe("Migration fixture verification", () => {
         }
 
         checkForErrors();
+    });
+
+    test.describe("non-admin migrated users", () => {
+        test.use({ storageState: { cookies: [], origins: [] } });
+
+        test("graham login keeps scoped sources and file access", async ({
+            page,
+            checkForErrors,
+        }) => {
+            await loginAs(page, "graham", "password");
+            await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
+
+            await expect(sourceSidebarLink(page, "playwright + files")).toBeVisible();
+            await expect(sourceSidebarLink(page, "docker")).toBeVisible();
+            await expect(sourceSidebarLink(page, "access")).toHaveCount(0);
+
+            await expect(sourceSidebarLink(page, "playwright + files")).not.toHaveClass(/disabled/);
+            await expect(sourceSidebarLink(page, "docker")).not.toHaveClass(/disabled/);
+            await expect(sourceSidebarLink(page, "playwright + files").locator(".warning-icon")).toHaveCount(0);
+            await expect(sourceSidebarLink(page, "docker").locator(".warning-icon")).toHaveCount(0);
+
+            await expect(page.getByRole("link", { name: "copyme.txt", exact: true })).toHaveCount(0);
+            await expect(page.locator('a[aria-label="3dmodels"]')).toBeVisible();
+
+            checkForErrors();
+        });
     });
 });

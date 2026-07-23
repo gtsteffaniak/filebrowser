@@ -605,7 +605,7 @@
     "userDefaultsDescription": "Stel de standaardinstellingen in die voor nieuwe gebruikers gelden en het beleid dat voor alle gebruikers moet worden nageleefd.",
     "accountDefaults": "Standaardinstellingen voor accounts",
     "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
-    "userDefaultsLockedFromConfig": "De standaardinstellingen voor de gebruiker zijn vastgelegd in het configuratiebestand en kunnen pas worden gewijzigd als een beheerder de `userDefaults` uit het configuratiebestand verwijdert."
+    "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd."
   },
   "sidebar": {
     "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",

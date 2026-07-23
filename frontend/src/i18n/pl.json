@@ -293,7 +293,7 @@
     "userDefaultsDescription": "Skonfiguruj ustawienia domyślne dla nowych użytkowników oraz zasady obowiązujące wszystkich użytkowników.",
     "accountDefaults": "Ustawienia domyślne konta",
     "disableUserSettings": "Wyłącz stronę ustawień użytkownika",
-    "userDefaultsLockedFromConfig": "Domyślne ustawienia użytkownika zostały zdefiniowane w pliku konfiguracyjnym i nie można ich zmienić, dopóki administrator nie usunie wpisu „userDefaults” z tego pliku."
+    "userDefaultFieldLockedFromConfig": "To domyślne ustawienie jest określone w pliku konfiguracyjnym i nie można go tutaj zmienić."
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",

@@ -293,7 +293,7 @@
     "userDefaultsDescription": "Configurați setările implicite aplicate utilizatorilor noi și politica impusă tuturor utilizatorilor.",
     "accountDefaults": "Setări implicite ale contului",
     "disableUserSettings": "Dezactivare pagină setări utilizator",
-    "userDefaultsLockedFromConfig": "Setările implicite ale utilizatorului au fost configurate în fișierul de configurare și nu pot fi modificate până când un administrator nu elimină secțiunea „userDefaults” din fișierul de configurare."
+    "userDefaultFieldLockedFromConfig": "Această setare implicită este definită în fișierul de configurare și nu poate fi modificată aici."
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",

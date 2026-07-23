@@ -64,12 +64,10 @@ export function navigateActivityViewerHref(href) {
   if (!path.startsWith("/")) {
     path = `/${path}`;
   }
-  /** @type {Record<string, string>} */
-  const query = {};
-  url.searchParams.forEach((value, key) => {
-    query[key] = value;
+  void router.push({
+    path,
+    query: Object.fromEntries(url.searchParams.entries()),
   });
-  void router.push({ path, query });
 }
 
 export const ACCESS_EVENT_TYPES = ["accessCreate", "accessUpdate", "accessDelete"];

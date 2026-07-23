@@ -293,7 +293,7 @@
     "userDefaultsDescription": "Konfigurieren Sie die Standardeinstellungen für neue Benutzer und die für alle Benutzer geltenden Richtlinien.",
     "accountDefaults": "Standardwerte für Konten",
     "disableUserSettings": "Seite „Benutzereinstellungen“ deaktivieren",
-    "userDefaultsLockedFromConfig": "Die Benutzervorgaben wurden in der Konfigurationsdatei festgelegt und können erst geändert werden, wenn ein Administrator die „userDefaults“ aus der Konfigurationsdatei entfernt."
+    "userDefaultFieldLockedFromConfig": "Diese Standardeinstellung wird in der Konfigurationsdatei festgelegt und kann hier nicht geändert werden."
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",

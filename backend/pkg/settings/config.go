@@ -605,8 +605,11 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		}
 	}
 
-	if _, ok := filteredConfig["userDefaults"]; ok {
+	if udRaw, ok := filteredConfig["userDefaults"]; ok {
 		Env.ConfigUserDefaultsSpecified = true
+		if udMap, ok := udRaw.(map[string]interface{}); ok {
+			Env.ConfigUserDefaultsSpecifiedPaths = CollectMapLeafPaths(udMap, "")
+		}
 	}
 
 	// check if database is set in the config

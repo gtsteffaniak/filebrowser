@@ -44,7 +44,8 @@ type Environment struct {
 	IsPlaywright                bool   `json:"-"`
 	IsDevMode                   bool   `json:"-"`
 	IsFirstLoad                 bool   `json:"-"` // used internally to track if this is the first load of the application
-	ConfigUserDefaultsSpecified bool   `json:"-"` // true when the config file contained a userDefaults section
+	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
+	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
 	MuPdfAvailable              bool   `json:"-"` // used internally if compiled with mupdf support
 	EmbeddedFs                  bool   `json:"-"` // used internally if compiled with embedded fs support
 	FFmpegPath                  string `json:"-"`

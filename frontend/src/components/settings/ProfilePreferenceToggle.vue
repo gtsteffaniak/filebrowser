@@ -31,13 +31,10 @@ export default {
       return this.profilePrefs.fieldLocked(this.section, this.field);
     },
     effectiveDisabled() {
-      return this.profilePrefs.disabled || this.isLocked;
+      return this.profilePrefs.fieldDisabled(this.section, this.field);
     },
     effectiveDescription() {
-      if (this.isLocked) {
-        return this.$t("profileSettings.enforcedByAdmin");
-      }
-      return this.description;
+      return this.profilePrefs.helpText(this.section, this.field, this.description);
     },
   },
 };
