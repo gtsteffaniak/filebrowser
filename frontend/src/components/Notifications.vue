@@ -77,6 +77,16 @@ export default {
     // Register callback to receive notification updates
     notify.setUpdateCallback((notifications) => {
       this.notifications = notifications;
+      const activeIds = new Set(notifications.map(n => n.id));
+      for (const id of this.pause.keys()) {
+        if (!activeIds.has(id)) this.pause.delete(id);
+      }
+      for (const id of this.swipe.keys()) {
+        if (!activeIds.has(id)) this.swipe.delete(id);
+      }
+      if (this.selectionId && !activeIds.has(this.selectionId)) {
+        this.selectionId = null;
+      }
     });
     window.addEventListener('pointerup', this.handleWindowPointerEnd);
     window.addEventListener('pointercancel', this.handleWindowPointerEnd);
