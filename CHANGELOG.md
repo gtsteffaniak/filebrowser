@@ -61,7 +61,7 @@ This version represents the most significant change to date. It **requires** bot
  - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
  - removed legacy and deprecated properties from API responses and generated config output
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
- - removed exiftool as an optional helper, always built with the supported libraries.
+ - removed exiftool as an optional helper, always built with the supported libraries (requires 64 bit os)
  - If migration issues arise, see [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/migration/troubleshooting/).
 
 ## v1.5.2
