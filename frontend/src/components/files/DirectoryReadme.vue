@@ -1,8 +1,7 @@
 <template>
-  <details
+  <section
     class="directory-readme"
     aria-label="Directory README"
-    open
     @click.stop
     @contextmenu.stop
     @dblclick.stop
@@ -11,21 +10,35 @@
     @touchend.stop
     @touchstart.stop="handleInteraction"
   >
-    <summary class="directory-readme-header">
+    <header class="directory-readme-header">
       <span class="directory-readme-title">
         <span class="material-symbols-outlined" aria-hidden="true">{{ titleIcon }}</span>
         <span>README.md</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </span>
-      <span class="directory-readme-chevron material-symbols-outlined" aria-hidden="true">{{ chevronIcon }}</span>
-    </summary>
-    <div class="directory-readme-body">
+    </header>
+    <div
+      ref="body"
+      class="directory-readme-body"
+      :class="{ 'is-collapsed': !expanded, 'has-overflow': isOverflowing }"
+    >
       <div
+        ref="content"
         class="directory-readme-content"
         :class="{ 'dark-mode': darkMode }"
         v-html="renderedContent"
       ></div>
     </div>
-  </details>
+    <button
+      v-if="isOverflowing"
+      type="button"
+      class="directory-readme-toggle"
+      :aria-expanded="expanded"
+      @click="toggleExpanded"
+    >
+      <span>{{ toggleLabel }}</span>
+      <span class="material-symbols-outlined" aria-hidden="true">{{ toggleIcon }}</span>
+    </button>
+  </section>
 </template>
 
 <script lang="ts">
@@ -33,6 +46,13 @@ import { renderMarkdown } from "@/utils/markdown";
 
 export default {
   name: "DirectoryReadme",
+  data() {
+    return {
+      expanded: false,
+      isOverflowing: false,
+      resizeObserver: null as ResizeObserver | null,
+    };
+  },
   props: {
     content: {
       type: String,
@@ -55,16 +75,43 @@ export default {
     titleIcon() {
       return "markdown";
     },
-    chevronIcon() {
-      return "expand_more";
+    toggleIcon() {
+      return this.expanded ? "expand_less" : "expand_more";
+    },
+    toggleLabel() {
+      return this.expanded ? "Show less" : "Show full README";
     },
     renderedContent() {
       return renderMarkdown(this.content, this.filePath, this.source, true);
     },
   },
+  watch: {
+    renderedContent() {
+      this.expanded = false;
+      this.$nextTick(this.checkOverflow);
+    },
+  },
+  mounted() {
+    this.resizeObserver = new ResizeObserver(() => {
+      if (!this.expanded) this.checkOverflow();
+    });
+    this.resizeObserver.observe(this.$refs.content as Element);
+    this.$nextTick(this.checkOverflow);
+  },
+  beforeUnmount() {
+    this.resizeObserver?.disconnect();
+  },
   methods: {
     handleInteraction() {
       this.$emit("interact");
+    },
+    checkOverflow() {
+      const body = this.$refs.body as HTMLElement | undefined;
+      if (body) this.isOverflowing = body.scrollHeight > body.clientHeight + 1;
+    },
+    toggleExpanded() {
+      this.expanded = !this.expanded;
+      if (!this.expanded) this.$nextTick(this.checkOverflow);
     },
   },
 };
@@ -79,37 +126,16 @@ export default {
   user-select: text;
   background: var(--alt-background);
   border: 1px solid color-mix(in srgb, var(--textPrimary) 16%, transparent);
-  border-left: 0.2em solid var(--primaryColor);
   border-radius: 0.65em;
 }
 
 .directory-readme-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   min-height: 2.6em;
-  padding: 0.2em 0.35em 0.2em 0.8em;
-  cursor: pointer;
-  list-style: none;
+  padding: 0.2em 0.8em;
   user-select: none;
-  transition: background-color 150ms ease;
-}
-
-.directory-readme-header::-webkit-details-marker {
-  display: none;
-}
-
-.directory-readme[open] .directory-readme-header {
   border-bottom: 1px solid color-mix(in srgb, var(--textPrimary) 10%, transparent);
-}
-
-.directory-readme-header:hover {
-  background: color-mix(in srgb, var(--primaryColor) 5%, transparent);
-}
-
-.directory-readme-header:focus-visible {
-  outline: 2px solid var(--primaryColor);
-  outline-offset: -2px;
 }
 
 .directory-readme-title {
@@ -127,21 +153,25 @@ export default {
   font-size: 1.25em;
 }
 
-.directory-readme-chevron {
-  margin-left: auto;
-  color: var(--textPrimary);
-  font-size: 1.4em;
-  transition: color 150ms ease, transform 180ms ease;
-}
-
-.directory-readme[open] .directory-readme-chevron {
-  color: var(--primaryColor);
-  transform: rotate(180deg);
-}
-
 .directory-readme-body {
+  position: relative;
   min-height: 0;
+}
+
+.directory-readme-body.is-collapsed {
+  max-height: 24rem;
   overflow: hidden;
+}
+
+.directory-readme-body.is-collapsed.has-overflow::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 5rem;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(to bottom, transparent, var(--alt-background));
 }
 
 .directory-readme-content {
@@ -150,6 +180,37 @@ export default {
   padding: 1em 1.25em;
   overflow-wrap: break-word;
   word-break: break-word;
+}
+
+.directory-readme-toggle {
+  display: flex;
+  gap: 0.35em;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.75em;
+  padding: 0.45em 1em;
+  color: var(--primaryColor);
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--alt-background);
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--textPrimary) 10%, transparent);
+}
+
+.directory-readme-toggle:hover {
+  background: color-mix(in srgb, var(--primaryColor) 7%, var(--alt-background));
+}
+
+.directory-readme-toggle:focus-visible {
+  outline: 2px solid var(--primaryColor);
+  outline-offset: -2px;
+}
+
+.directory-readme-toggle .material-symbols-outlined {
+  font-size: 1.3em;
 }
 
 .directory-readme-content :deep(> :first-child) {
@@ -212,10 +273,4 @@ export default {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .directory-readme-chevron,
-  .directory-readme-header {
-    transition: none;
-  }
-}
 </style>
