@@ -124,8 +124,8 @@ export default {
   margin: 0 1em 1.25em;
   overflow: hidden;
   user-select: text;
-  background: var(--alt-background);
-  border: 1px solid color-mix(in srgb, var(--textPrimary) 16%, transparent);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--textPrimary) 10%, transparent);
   border-radius: 0.65em;
 }
 
@@ -135,7 +135,7 @@ export default {
   min-height: 2.6em;
   padding: 0.2em 0.8em;
   user-select: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--textPrimary) 10%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--textPrimary) 7%, transparent);
 }
 
 .directory-readme-title {
@@ -171,7 +171,7 @@ export default {
   height: 5rem;
   pointer-events: none;
   content: "";
-  background: linear-gradient(to bottom, transparent, var(--alt-background));
+  background: linear-gradient(to bottom, transparent, var(--background));
 }
 
 .directory-readme-content {
@@ -195,13 +195,13 @@ export default {
   font-size: 0.9em;
   font-weight: 600;
   cursor: pointer;
-  background: var(--alt-background);
+  background: transparent;
   border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--textPrimary) 10%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--textPrimary) 7%, transparent);
 }
 
 .directory-readme-toggle:hover {
-  background: color-mix(in srgb, var(--primaryColor) 7%, var(--alt-background));
+  background: color-mix(in srgb, var(--primaryColor) 5%, transparent);
 }
 
 .directory-readme-toggle:focus-visible {
