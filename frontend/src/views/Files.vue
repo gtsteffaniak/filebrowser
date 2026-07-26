@@ -237,7 +237,7 @@ export default {
           resourcesApi.getDownloadURL(listing.source, readmeItem.path, true, false),
           {
             credentials: "same-origin",
-            headers: { Range: `bytes=0-${DIRECTORY_README_MAX_BYTES}` },
+            headers: { Range: `bytes=0-${DIRECTORY_README_MAX_BYTES - 1}` },
           },
         );
         if (!response.ok) {

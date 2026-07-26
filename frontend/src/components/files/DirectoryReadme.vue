@@ -1,8 +1,8 @@
 <template>
-  <section
+  <details
     class="directory-readme"
     aria-label="Directory README"
-    tabindex="0"
+    open
     @click.stop
     @contextmenu.stop
     @dblclick.stop
@@ -11,12 +11,21 @@
     @touchend.stop
     @touchstart.stop="handleInteraction"
   >
-    <div
-      class="directory-readme-content"
-      :class="{ 'dark-mode': darkMode }"
-      v-html="renderedContent"
-    ></div>
-  </section>
+    <summary class="directory-readme-header">
+      <div class="directory-readme-title">
+        <span class="material-symbols-outlined">{{ titleIcon }}</span>
+        <span>README.md</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      </div>
+      <span class="directory-readme-chevron material-symbols-outlined">{{ chevronIcon }}</span>
+    </summary>
+    <div class="directory-readme-body">
+      <div
+        class="directory-readme-content"
+        :class="{ 'dark-mode': darkMode }"
+        v-html="renderedContent"
+      ></div>
+    </div>
+  </details>
 </template>
 
 <script lang="ts">
@@ -43,15 +52,18 @@ export default {
     },
   },
   computed: {
+    titleIcon() {
+      return "markdown";
+    },
+    chevronIcon() {
+      return "expand_more";
+    },
     renderedContent() {
       return renderMarkdown(this.content, this.filePath, this.source, true);
     },
   },
   methods: {
-    handleInteraction(event: Event) {
-      if (event.currentTarget instanceof HTMLElement) {
-        event.currentTarget.focus({ preventScroll: true });
-      }
+    handleInteraction() {
       this.$emit("interact");
     },
   },
@@ -63,7 +75,73 @@ export default {
   box-sizing: border-box;
   width: calc(100% - 2em);
   margin: 0 1em 1.25em;
+  overflow: hidden;
   user-select: text;
+  background: var(--alt-background);
+  border: 1px solid color-mix(in srgb, var(--textPrimary) 16%, transparent);
+  border-left: 0.2em solid var(--primaryColor);
+  border-radius: 0.65em;
+}
+
+.directory-readme-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.6em;
+  padding: 0.2em 0.35em 0.2em 0.8em;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background-color 150ms ease;
+}
+
+.directory-readme-header::-webkit-details-marker {
+  display: none;
+}
+
+.directory-readme[open] .directory-readme-header {
+  border-bottom: 1px solid color-mix(in srgb, var(--textPrimary) 10%, transparent);
+}
+
+.directory-readme-header:hover {
+  background: color-mix(in srgb, var(--primaryColor) 5%, transparent);
+}
+
+.directory-readme-header:focus-visible {
+  outline: 2px solid var(--primaryColor);
+  outline-offset: -2px;
+}
+
+.directory-readme-title {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  color: var(--textPrimary);
+  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', monospace;
+  font-size: 0.82em;
+  font-weight: 500;
+}
+
+.directory-readme-title .material-symbols-outlined {
+  color: var(--primaryColor);
+  font-size: 1.25em;
+}
+
+.directory-readme-chevron {
+  margin-left: auto;
+  color: var(--textPrimary);
+  font-size: 1.4em;
+  transition: color 150ms ease, transform 180ms ease;
+}
+
+.directory-readme[open] .directory-readme-chevron {
+  color: var(--primaryColor);
+  transform: rotate(180deg);
+}
+
+.directory-readme-body {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .directory-readme-content {
@@ -72,9 +150,6 @@ export default {
   padding: 1em 1.25em;
   overflow-wrap: break-word;
   word-break: break-word;
-  background: var(--alt-background);
-  border: 1px solid color-mix(in srgb, var(--textPrimary) 12%, transparent);
-  border-radius: 1em;
 }
 
 .directory-readme-content :deep(> :first-child) {
@@ -86,8 +161,26 @@ export default {
 }
 
 .directory-readme-content :deep(img) {
+  display: block;
   max-width: 100%;
+  max-height: 32rem;
   height: auto;
+  margin: 1em 0;
+  object-fit: contain;
+  border: 1px solid color-mix(in srgb, var(--textPrimary) 10%, transparent);
+  border-radius: 0.5em;
+}
+
+.directory-readme-content :deep(a) {
+  color: var(--primaryColor);
+  text-underline-offset: 0.15em;
+}
+
+.directory-readme-content :deep(blockquote) {
+  margin-left: 0;
+  padding-left: 1em;
+  color: color-mix(in srgb, var(--textPrimary) 72%, transparent);
+  border-left: 0.2em solid color-mix(in srgb, var(--primaryColor) 55%, transparent);
 }
 
 .directory-readme-content :deep(pre) {
@@ -112,6 +205,17 @@ export default {
 
   .directory-readme-content {
     padding: 0.8em 1em;
+  }
+
+  .directory-readme-content :deep(img) {
+    max-height: 22rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .directory-readme-chevron,
+  .directory-readme-header {
+    transition: none;
   }
 }
 </style>

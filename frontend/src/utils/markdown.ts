@@ -39,7 +39,7 @@ const INLINE_MARKDOWN_SANITIZE_CONFIG = {
     "tr",
     "ul",
   ],
-  ALLOWED_ATTR: ["alt", "href", "loading", "referrerpolicy", "rel", "src", "title"],
+  ALLOWED_ATTR: ["alt", "decoding", "href", "loading", "referrerpolicy", "rel", "src", "title"],
   FORBID_TAGS: [
     "audio",
     "button",
@@ -66,8 +66,11 @@ function hardenInlineMarkdown(html: string): string {
     const src = image.getAttribute("src") || "";
     try {
       const resourceUrl = new URL(src, window.location.origin);
-      if (resourceUrl.origin !== window.location.origin ||
-          !resourceUrl.pathname.endsWith("/api/resources/download")) {
+      const sameOriginDownload = resourceUrl.origin === window.location.origin &&
+        resourceUrl.pathname.endsWith("/api/resources/download");
+      const externalHttpsImage = resourceUrl.origin !== window.location.origin &&
+        resourceUrl.protocol === "https:";
+      if (!sameOriginDownload && !externalHttpsImage) {
         image.remove();
         continue;
       }
@@ -75,6 +78,7 @@ function hardenInlineMarkdown(html: string): string {
       image.remove();
       continue;
     }
+    image.setAttribute("decoding", "async");
     image.setAttribute("loading", "lazy");
     image.setAttribute("referrerpolicy", "no-referrer");
   }
