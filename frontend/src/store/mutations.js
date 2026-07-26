@@ -651,6 +651,13 @@ export const mutations = {
     state.req = value;
     emitStateChanged();
   },
+  setDirectoryReadme: ({ source, path, readme }) => {
+    if (state.req?.type !== "directory" || state.req.source !== source || state.req.path !== path) {
+      return;
+    }
+    state.req = { ...state.req, readme };
+    emitStateChanged();
+  },
   /** Merge media metadata into current directory listing (state.req.items) by file name. */
   patchRequestMetadata: (metadataItems) => {
     if (!state.req?.items || !metadataItems?.length) {

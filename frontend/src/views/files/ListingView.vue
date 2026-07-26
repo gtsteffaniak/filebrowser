@@ -22,6 +22,15 @@
       :style="itemStyles"
       class="listing-items"
     >
+      <DirectoryReadme
+        v-if="req.readme?.content"
+        :content="req.readme.content"
+        :file-path="req.readme.path"
+        :source="req.readme.source"
+        :dark-mode="isDarkMode"
+        @interact="clearReadmeSelection"
+      />
+
       <!-- Rectangle selection overlay -->
       <div class="selection-rectangle" :style="rectangleStyle"></div>
 
@@ -188,6 +197,7 @@ import { readAllDirectoryEntries } from "@/utils/upload";
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import DirectoryReadme from "@/components/files/DirectoryReadme.vue";
 
 export default {
   name: "listingView",
@@ -195,6 +205,7 @@ export default {
     Item,
     Upload,
     LoadingSpinner,
+    DirectoryReadme,
   },
   data() {
     return {
@@ -561,6 +572,9 @@ export default {
     }
   },
   methods: {
+    clearReadmeSelection() {
+      mutations.resetSelected();
+    },
     handleGlobalDragEnd() {
       // Reset drag state for all items (replaces per-item dragend listeners)
       const items = this.$el?.querySelectorAll('.listing-item.drag-hover, .listing-item.half-selected');
@@ -766,6 +780,14 @@ export default {
       }
     },
     keyEvent(event) {
+      const selection = window.getSelection();
+      const selectionElement = selection?.anchorNode instanceof Element
+        ? selection.anchorNode
+        : selection?.anchorNode?.parentElement;
+      if (event.target?.closest?.('.directory-readme') ||
+          (selection?.toString() && selectionElement?.closest?.('.directory-readme'))) {
+        return;
+      }
       const { key, ctrlKey, metaKey, altKey, which } = event;
       const isArrowKey = key === 'ArrowUp' ||
                          key === 'ArrowDown' ||
@@ -1266,7 +1288,7 @@ export default {
     },
     startRectangleSelection(event) {
       // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
-      if (event.target.closest('.listing-item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
+      if (event.target.closest('.listing-item') || event.target.closest('.directory-readme') || event.target.closest('.header') || event.target.closest('#status-bar')) {
         return;
       }
 

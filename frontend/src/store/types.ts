@@ -23,6 +23,11 @@ export interface ReqObject {
 
   // Directory listing properties
   listing?: unknown[];
+  readme?: {
+    content: string;
+    path: string;
+    source: string;
+  };
 }
 
 export interface ShareInfoObject {

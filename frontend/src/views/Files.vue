@@ -30,6 +30,11 @@ import { extractSourceFromPath } from "@/utils/url";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
+import {
+  DIRECTORY_README_MAX_BYTES,
+  findDirectoryReadme,
+  readTextResponseUpTo,
+} from "@/utils/markdown";
 
 function directoryListingHasMediaChildren(req) {
   return (
@@ -37,6 +42,8 @@ function directoryListingHasMediaChildren(req) {
     req.items?.some((i) => i.type?.startsWith("audio") || i.type?.startsWith("video"))
   );
 }
+
+let directoryReadmeRequestGeneration = 0;
 
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, hash?: string, token?: string, parentDirItems?: object[] }>} */
 async function fetchShareItemWithParent(sharePassword) {
@@ -210,12 +217,48 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
   },
   beforeUnmount() {
+    directoryReadmeRequestGeneration++;
     window.removeEventListener("keydown", this.keyEvent);
   },
   unmounted() {
     mutations.replaceRequest({}); // Use mutation
   },
   methods: {
+    async attachDirectoryReadme(listing, requestGeneration) {
+      const readmeItem = findDirectoryReadme(listing);
+      if (!readmeItem ||
+          getters.fileViewingDisabled(readmeItem.name) ||
+          Number(readmeItem.size) > DIRECTORY_README_MAX_BYTES) {
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          resourcesApi.getDownloadURL(listing.source, readmeItem.path, true, false),
+          {
+            credentials: "same-origin",
+            headers: { Range: `bytes=0-${DIRECTORY_README_MAX_BYTES}` },
+          },
+        );
+        if (!response.ok) {
+          return;
+        }
+        const content = await readTextResponseUpTo(response, DIRECTORY_README_MAX_BYTES);
+        if (content && requestGeneration === directoryReadmeRequestGeneration) {
+          mutations.setDirectoryReadme({
+            source: listing.source,
+            path: listing.path,
+            readme: {
+            content,
+            path: readmeItem.path,
+            source: readmeItem.source || listing.source,
+            },
+          });
+        }
+      } catch (error) {
+        console.warn("Unable to load directory README", error);
+      }
+    },
     scrollToHash() {
       let scrollToId = "";
       let targetName = "";
@@ -276,6 +319,7 @@ export default {
     },
 
     async fetchData() {
+      const readmeRequestGeneration = ++directoryReadmeRequestGeneration;
       const hash = getters.shareHash();
       const isShare = hash !== "";
 
@@ -478,6 +522,7 @@ export default {
           }
           document.title = `${globalVars.name} - ${this.$t("general.files")} - ${res.name}`;
           mutations.replaceRequest(res);
+          void this.attachDirectoryReadme(res, readmeRequestGeneration);
           mutations.setLoading("files", false);
           await this.patchMediaMetadataIfNeeded(res, () =>
             mediaApi.fetchDirectoryMediaMetadata(fetchSource, fetchPath)

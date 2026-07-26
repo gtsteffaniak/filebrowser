@@ -18,8 +18,6 @@
 </template>
 
 <script lang="ts">
-import { Marked } from "marked";
-import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
 import { copyToClipboard } from "@/utils/clipboard";
@@ -27,8 +25,8 @@ import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
 import {
   buildHtmlPreview,
-  buildPreviewResourceUrl,
 } from "@/utils/htmlPreview";
+import { renderMarkdown } from "@/utils/markdown";
 
 import githubLightCss from "highlight.js/styles/github.min.css?raw";
 import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
@@ -256,21 +254,6 @@ export default {
       div.textContent = text;
       return div.innerHTML;
     },
-    parseMarkdown(content: string, filePath: string, source: string): string {
-      const parser = new Marked({ gfm: true });
-      parser.use({
-        walkTokens(token) {
-          if (token.type === "image" && token.href) {
-            token.href = buildPreviewResourceUrl(token.href, filePath, source);
-          }
-        },
-      });
-      const result = parser.parse(content);
-      if (typeof result !== "string") {
-        return DOMPurify.sanitize("Loading...");
-      }
-      return DOMPurify.sanitize(result);
-    },
     updateEditorStats() {
       const text = this.content.trim();
       const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
@@ -332,7 +315,7 @@ export default {
       return buildHtmlPreview(this.content, state.req.path, state.req.source);
     },
     renderedContent() {
-      return this.parseMarkdown(this.content, state.req.path, state.req.source);
+      return renderMarkdown(this.content, state.req.path, state.req.source);
     },
     spaceForStatusBar() {
       return state.isMobile ? 3.1 : 3.5;
