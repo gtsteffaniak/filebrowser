@@ -12,11 +12,11 @@
     @touchstart.stop="handleInteraction"
   >
     <summary class="directory-readme-header">
-      <div class="directory-readme-title">
-        <span class="material-symbols-outlined">{{ titleIcon }}</span>
+      <span class="directory-readme-title">
+        <span class="material-symbols-outlined" aria-hidden="true">{{ titleIcon }}</span>
         <span>README.md</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </div>
-      <span class="directory-readme-chevron material-symbols-outlined">{{ chevronIcon }}</span>
+      </span>
+      <span class="directory-readme-chevron material-symbols-outlined" aria-hidden="true">{{ chevronIcon }}</span>
     </summary>
     <div class="directory-readme-body">
       <div

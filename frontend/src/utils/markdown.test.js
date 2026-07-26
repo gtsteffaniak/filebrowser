@@ -79,15 +79,12 @@ describe("renderMarkdown", () => {
     expect(rendered).toContain('href="https://example.com"');
     expect(rendered).toContain('rel="noopener noreferrer"');
     expect(rendered).not.toContain("style=");
-    expect(rendered).toContain('src="https://tracker.example/pixel.png"');
-    expect(rendered).toContain('loading="lazy"');
-    expect(rendered).toContain('decoding="async"');
-    expect(rendered).toContain('referrerpolicy="no-referrer"');
+    expect(rendered).not.toContain("tracker.example");
     expect(rendered).not.toContain("<form");
     expect(rendered).not.toContain("<input");
   });
 
-  it("blocks insecure external images", () => {
+  it("blocks external images", () => {
     const rendered = renderMarkdown(
       "![Tracker](http://tracker.example/pixel.png)",
       "/README.md",

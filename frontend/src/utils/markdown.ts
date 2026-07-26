@@ -68,9 +68,7 @@ function hardenInlineMarkdown(html: string): string {
       const resourceUrl = new URL(src, window.location.origin);
       const sameOriginDownload = resourceUrl.origin === window.location.origin &&
         resourceUrl.pathname.endsWith("/api/resources/download");
-      const externalHttpsImage = resourceUrl.origin !== window.location.origin &&
-        resourceUrl.protocol === "https:";
-      if (!sameOriginDownload && !externalHttpsImage) {
+      if (!sameOriginDownload) {
         image.remove();
         continue;
       }
