@@ -197,7 +197,8 @@ export default {
 
       // Absolute source line the code content starts on, gives each line its own anchor
       const blockEl = codeBlock.closest<HTMLElement>('.md-block');
-      const codeStartLine = blockEl?.dataset.codeLine !== undefined ? Number(blockEl.dataset.codeLine) : null;
+      const parsedStart = Number(blockEl?.dataset.codeLine);
+      const codeStartLine = Number.isFinite(parsedStart) ? parsedStart : null;
 
       // Create code lines with preserved highlighting
       const codeLines = htmlLines.map((lineHTML, index) => {
@@ -320,7 +321,8 @@ export default {
       let tokens: Token[] | null;
       try {
         tokens = parser.lexer(content);
-      } catch (_e) {
+      } catch (err) {
+        console.error("Failed to lex markdown:", err);
         tokens = null;
       }
       if (!tokens) {
@@ -430,7 +432,7 @@ export default {
         ? (this.scrollTarget as HTMLElement | null) || (this.$refs.scrollContainer as HTMLElement | null)
         : document.getElementById("main");
     },
-    getLineAnchors() {
+    getLineAnchors(): { line: number; top: number }[] {
       const viewer = this.$refs.viewer as HTMLElement | null;
       const container = this.getScrollContainer();
       if (!viewer || !container) return [];
@@ -451,7 +453,11 @@ export default {
       return Math.max(0, this.content.split('\n').length - 1);
     },
     // Finds the pair of adjacent anchors 'value' along whatever axis 'getValue' reads off each anchor (top or line).
-    bracketAnchors(anchors, getValue, value) {
+    bracketAnchors(
+      anchors: { line: number; top: number }[],
+      getValue: (anchor: { line: number; top: number }) => number,
+      value: number,
+    ): [{ line: number; top: number }, { line: number; top: number }] {
       for (let i = 0; i < anchors.length - 1; i++) {
         if (getValue(anchors.at(i)) <= value && getValue(anchors.at(i + 1)) > value) {
           return [anchors.at(i), anchors.at(i + 1)];
@@ -573,11 +579,13 @@ export default {
       this.attachScrollListener(this.getScrollContainer());
     });
   },
-  unmounted() {
-    this.attachScrollListener(null);
+  beforeUnmount() {
     if (this.scrollGuard.cancel()) {
       this.syncScrollRatio();
     }
+  },
+  unmounted() {
+    this.attachScrollListener(null);
     if (this.liveContentTimer) {
       clearTimeout(this.liveContentTimer);
       this.liveContentTimer = null;

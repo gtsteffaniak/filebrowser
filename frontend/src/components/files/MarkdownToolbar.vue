@@ -184,7 +184,7 @@ export default {
           if (match) {
             session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, "");
           }
-        } else {
+        } else if (line.trim() !== "") {
           const prefix = `${num}. `;
           if (match) {
             session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, prefix);
@@ -231,18 +231,19 @@ export default {
       const range = editor.getSelectionRange();
       const label = selectedText || "text";
       const linkText = `[${label}](url)`;
+      let insertionEnd: Ace.Point;
       if (selectedText) {
-        editor.session.replace(range, linkText);
+        insertionEnd = editor.session.replace(range, linkText);
       } else {
         editor.insert(linkText);
+        insertionEnd = editor.getCursorPosition();
       }
-      const pos = editor.getCursorPosition();
-      const urlEnd = pos.column - 1; // before the closing ')'
+      const urlEnd = insertionEnd.column - 1; // before the closing ')'
       const urlStart = urlEnd - "url".length;
       if (urlStart >= 0) {
         editor.selection.setRange({
-          start: { row: pos.row, column: urlStart },
-          end: { row: pos.row, column: urlEnd },
+          start: { row: insertionEnd.row, column: urlStart },
+          end: { row: insertionEnd.row, column: urlEnd },
         });
       }
       this.focusEditor();
@@ -265,15 +266,16 @@ export default {
       const range = editor.getSelectionRange();
       const alt = selectedText || "alt text";
       const imageText = `![${alt}](url)`;
+      let insertionEnd: Ace.Point;
       if (selectedText) {
-        editor.session.replace(range, imageText);
+        insertionEnd = editor.session.replace(range, imageText);
       } else {
         editor.insert(imageText);
+        insertionEnd = editor.getCursorPosition();
       }
-      const pos = editor.getCursorPosition();
       editor.selection.setRange({
-        start: { row: pos.row, column: pos.column - 4 },
-        end: { row: pos.row, column: pos.column - 1 },
+        start: { row: insertionEnd.row, column: insertionEnd.column - 4 },
+        end: { row: insertionEnd.row, column: insertionEnd.column - 1 },
       });
       this.focusEditor();
     },

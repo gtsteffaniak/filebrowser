@@ -157,7 +157,8 @@ export default {
       return state.editor.markdownSplitView && getters.canSplitView();
     },
     showSplitViewToggle() {
-      return getters.canSplitView() && getters.isEditorOrMarkdownView();
+      return getters.canSplitView() && getters.isEditorOrMarkdownView() &&
+        (this.isSplitViewActive || getters.permissions().modify);
     },
     splitViewActionLabel() {
       return this.isSplitViewActive

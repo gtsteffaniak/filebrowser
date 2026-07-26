@@ -1,5 +1,5 @@
 <template>
-  <div id="editor-root" :class="{ 'split-active': isSplitActive }">
+  <div id="editor-root" ref="editorRoot" :class="{ 'split-active': isSplitActive }">
     <div
       id="editor-container"
       :class="{ 'viewer-mode': viewerMode }"
@@ -13,6 +13,7 @@
       ref="splitView"
       :editor="editor"
       :active="isSplitActive"
+      :resize-container="resizeContainerEl"
       @resize="editorPanePercent = $event"
     />
   </div>
@@ -72,6 +73,7 @@ export default {
     pendingNavigation: null, // Store pending navigation while prompt is open
     viewerResizeObserver: null,
     editorPanePercent: 50, // split-view editor pane width
+    resizeContainerEl: null, // #editor-root element, passed to MarkdownSplitView for divider drag geometry
   }),
   computed: {
     permissions() {
@@ -283,6 +285,12 @@ export default {
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
     window.removeEventListener("popstate", this.popStateHandler);
 
+    if (this.editor) {
+      this.editor.session.off('changeScrollTop', this.handleEditorScroll);
+      this.editor.destroy();
+      this.editor = null;
+    }
+
     if (this.readOnly) {
       return;
     }
@@ -296,14 +304,9 @@ export default {
     mutations.setEditorDirty(false);
     mutations.setEditorSaveHandler(null);
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
-
-    if (this.editor) {
-      this.editor.session.off('changeScrollTop', this.handleEditorScroll);
-      this.editor.destroy();
-      this.editor = null;
-    }
   },
   mounted: function () {
+    this.resizeContainerEl = this.$refs.editorRoot || null;
     if (this.viewerMode) {
       this.$nextTick(() => {
         this.$nextTick(() => {
@@ -448,8 +451,9 @@ export default {
 
         this.editor.on('change', () => {
           if (this.suppressDirtyTracking) return;
-          this.isDirty = true;
-          mutations.setEditorDirty(true);
+          const dirty = this.editor.getValue() !== this.editorContent;
+          this.isDirty = dirty;
+          mutations.setEditorDirty(dirty);
           this.updateEditorStats();
           this.$refs.splitView?.handleEditorChange();
         });

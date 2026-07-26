@@ -11,6 +11,11 @@ export function createScrollSyncGuard(suppressMs = 300): ScrollSyncGuard {
   let frame: number | null = null;
   let suppressed = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  const suppress = (ms = suppressMs) => {
+    suppressed = true;
+    clearTimeout(timer);
+    timer = setTimeout(() => { suppressed = false; }, ms);
+  };
   return {
     // Throttle outgoing publishes to one per frame, skipped while suppressed.
     schedule(publish: () => void) {
@@ -20,13 +25,9 @@ export function createScrollSyncGuard(suppressMs = 300): ScrollSyncGuard {
         publish();
       });
     },
-    suppress(ms = suppressMs) {
-      suppressed = true;
-      clearTimeout(timer);
-      timer = setTimeout(() => { suppressed = false; }, ms);
-    },
+    suppress,
     applyRemote(write: () => void) {
-      this.suppress();
+      suppress();
       write();
     },
     cancel() {

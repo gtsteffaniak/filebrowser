@@ -10,6 +10,7 @@
       aria-valuemax="80"
       tabindex="0"
       @mousedown="startResize"
+      @touchstart="startResize"
       @keydown="handleKeydown"
     ></div>
     <div class="split-preview-pane" :style="{ flexBasis: `${previewPercent}%` }">
@@ -47,7 +48,12 @@ export default {
       type: Boolean,
       default: false,
     },
+    resizeContainer: {
+      type: Object as PropType<HTMLElement | null>,
+      default: null,
+    },
   },
+  emits: ["resize"],
   data: () => ({
     liveMarkdownContent: "", // editor current buffer
     liveContentTimer: null as ReturnType<typeof setTimeout> | null, // debounce for updating liveMarkdownContent
@@ -89,30 +95,45 @@ export default {
     previewScrollWrapperEl(): HTMLElement | undefined {
       return (this.$refs.previewScrollWrapper as InstanceType<typeof Scrollbar> | undefined)?.$el;
     },
-    startResize(e: MouseEvent) {
+    startResize(e: MouseEvent | TouchEvent) {
       e.preventDefault();
       this.isResizing = true;
-      const container = this.$el.parentElement;
+      const container = this.resizeContainer;
       const prevUserSelect = document.body.style.userSelect;
       document.body.style.userSelect = "none";
 
-      const onMove = (moveEvent: MouseEvent) => {
-        if (!container) return;
+      const clientXFrom = (event: MouseEvent | TouchEvent): number | null => {
+        if ("touches" in event) {
+          return event.touches[0]?.clientX ?? event.changedTouches[0]?.clientX ?? null;
+        }
+        return event.clientX;
+      };
+
+      const updatePercent = (clientX: number | null) => {
+        if (!container || clientX === null) return;
         const rect = container.getBoundingClientRect();
-        const previewPercent = ((rect.right - moveEvent.clientX) / rect.width) * 100;
+        const previewPercent = ((rect.right - clientX) / rect.width) * 100;
         this.previewPercent = Math.min(80, Math.max(20, previewPercent));
         this.$emit("resize", 100 - this.previewPercent);
       };
+      const onMove = (moveEvent: MouseEvent) => updatePercent(clientXFrom(moveEvent));
+      const onTouchMove = (moveEvent: TouchEvent) => updatePercent(clientXFrom(moveEvent));
       const onUp = () => {
         this.isResizing = false;
         document.body.style.userSelect = prevUserSelect;
         this.stopResize = null;
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
+        window.removeEventListener("touchmove", onTouchMove);
+        window.removeEventListener("touchend", onUp);
+        window.removeEventListener("touchcancel", onUp);
       };
       this.stopResize = onUp;
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
+      window.addEventListener("touchmove", onTouchMove, { passive: false });
+      window.addEventListener("touchend", onUp);
+      window.addEventListener("touchcancel", onUp);
     },
     handleKeydown(e: KeyboardEvent) {
       const step = e.shiftKey ? 10 : 2;
@@ -165,7 +186,8 @@ export default {
       const lineHeight = this.editor.renderer.lineHeight || 16;
       const maxRow = Math.max(0, this.editor.session.getLength() - 1);
       const session = this.editor.session;
-      const target = row >= maxRow ? Number.MAX_SAFE_INTEGER : row * lineHeight;
+      const screenRow = session.documentToScreenPosition(Math.floor(row), 0).row;
+      const target = row >= maxRow ? Number.MAX_SAFE_INTEGER : screenRow * lineHeight;
       this.scrollGuard.applyRemote(() => session.setScrollTop(target));
     },
   },
