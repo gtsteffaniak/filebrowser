@@ -371,7 +371,7 @@ export default {
     },
     async checkForUnsavedChanges() {
       // Check if editor has unsaved changes
-      const editorDirty = state.editorDirty || false;
+      const editorDirty = state.editor.dirty || false;
       if (!editorDirty) {
         return true; // No unsaved changes, allow navigation
       }
@@ -384,7 +384,7 @@ export default {
           confirm: async () => {
             // Save and proceed
             try {
-              const saveHandler = state.editorSaveHandler;
+              const saveHandler = state.editor.saveHandler;
               if (saveHandler && typeof saveHandler === 'function') {
                 await saveHandler();
               }

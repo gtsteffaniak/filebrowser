@@ -149,7 +149,7 @@ export default {
       return {};
     },
     editorStatsText() {
-      const { lines, words, chars } = state.editorStats;
+      const { lines, words, chars } = state.editor.stats;
       const parts = [];
       if (words !== null) parts.push(this.$t('editor.words', { count: words }));
       if (chars !== null) parts.push(this.$t('editor.chars', { count: chars }));
@@ -158,7 +158,7 @@ export default {
     },
     editorFontSize: {
       get() {
-        return state.editorFontSize;
+        return state.editor.fontSize;
       },
       set(value) {
         mutations.setEditorFontSize(value);

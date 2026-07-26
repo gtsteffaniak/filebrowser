@@ -237,10 +237,14 @@ export default {
         editor.insert(linkText);
       }
       const pos = editor.getCursorPosition();
-      editor.selection.setRange({
-        start: { row: pos.row, column: pos.column - 4 },
-        end: { row: pos.row, column: pos.column - 1 },
-      });
+      const urlEnd = pos.column - 1; // before the closing ')'
+      const urlStart = urlEnd - "url".length;
+      if (urlStart >= 0) {
+        editor.selection.setRange({
+          start: { row: pos.row, column: urlStart },
+          end: { row: pos.row, column: urlEnd },
+        });
+      }
       this.focusEditor();
     },
     insertHorizontalRule() {

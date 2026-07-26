@@ -887,8 +887,8 @@ export default {
       buttons.loading("save");
       try {
         // Call the editor save handler directly and await completion
-        if (state.editorSaveHandler) {
-          await state.editorSaveHandler();
+        if (state.editor.saveHandler) {
+          await state.editor.saveHandler();
         } else {
           throw new Error("Editor save handler not found");
         }

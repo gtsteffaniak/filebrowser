@@ -148,10 +148,10 @@ export default {
       return this.isMarkdownFile && !this.editorReadOnly;
     },
     isSplitActive() {
-      return !this.viewerMode && this.isMarkdownFile && state.markdownSplitView && !state.isMobile;
+      return !this.viewerMode && this.isMarkdownFile && state.editor.markdownSplitView && !state.isMobile;
     },
     editorScrollRatio() {
-      return state.editorScrollRatio;
+      return state.editor.scrollRatio;
     },
   },
   watch: {
@@ -238,8 +238,8 @@ export default {
     },
     editorScrollRatio() {
       if (this.viewerMode || !this.isMarkdownFile) return;
-      if (state.editorScrollSource === 'editor') return;
-      this.$refs.splitView?.applyScrollRatio(state.editorScrollRatio);
+      if (state.editor.scrollSource === 'editor') return;
+      this.$refs.splitView?.applyScrollRatio(state.editor.scrollRatio);
     },
     isSplitActive() {
       this.$nextTick(() => {
@@ -312,7 +312,7 @@ export default {
           this.setupViewerResizeObserver();
         });
       });
-      this.$watch(() => state.editorFontSize, () => {
+      this.$watch(() => state.editor.fontSize, () => {
         this.applyFontSize();
       });
       return;
@@ -329,7 +329,7 @@ export default {
     this.applyFontSize();
     this.setupViewerResizeObserver();
     // Watch font size changes
-    this.$watch(() => state.editorFontSize, () => {
+    this.$watch(() => state.editor.fontSize, () => {
       this.applyFontSize();
     });
   },
@@ -440,7 +440,7 @@ export default {
           animatedScroll: true,
           displayIndentGuides: true,
           fixedWidthGutter: true,
-          fontSize: `${state.editorFontSize}px`,
+          fontSize: `${state.editor.fontSize}px`,
         });
 
         this.editor.setOption('displayIndentGuides', true);
@@ -465,7 +465,7 @@ export default {
         if (!this.viewerMode) {
           if (this.isMarkdownFile) {
             this.$nextTick(() => {
-              this.$refs.splitView?.applyScrollRatio(state.editorScrollRatio, true);
+              this.$refs.splitView?.applyScrollRatio(state.editor.scrollRatio, true);
               requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                   if (!this.editor) return;
@@ -660,7 +660,7 @@ export default {
     },
     applyFontSize() {
       if (this.editor) {
-        this.editor.setOption('fontSize', `${state.editorFontSize}px`);
+        this.editor.setOption('fontSize', `${state.editor.fontSize}px`);
       }
     },
     handleEditorScroll() {

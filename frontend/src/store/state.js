@@ -31,19 +31,21 @@ export const state = reactive({
   displayPreferences: {},
   enforcedUserDefaults: {},
   usages: {},
-  editor: null,
-  editorDirty: false,
-  editorSaveHandler: null, // Function to save editor content
-  editorStats: {
-    lines: 0,
-    words: 0,
-    chars: 0,
+  editor: {
+    instance: null,
+    dirty: false,
+    saveHandler: null,
+    stats: {
+      lines: 0,
+      words: 0,
+      chars: 0,
+    },
+    fontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
+    markdownSplitView: false,
+    scrollRatio: 0,
+    scrollSource: null,
+    scrollPath: "", // if the path differs to always start at the top of the file
   },
-  editorFontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
-  markdownSplitView: false,
-  editorScrollRatio: 0,
-  editorScrollSource: null,
-  editorScrollPath: "", // file path the scroll ratio above belongs to
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering

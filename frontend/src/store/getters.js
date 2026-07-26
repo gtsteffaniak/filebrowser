@@ -355,7 +355,7 @@ export const getters = {
         const preferEditor = state.user.preferEditorForMarkdown;
         const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
-        if (isMarkdown && state.markdownSplitView && !state.isMobile) {
+        if (isMarkdown && state.editor.markdownSplitView && !state.isMobile) {
           return 'editor';
         }
         switch (hash) {

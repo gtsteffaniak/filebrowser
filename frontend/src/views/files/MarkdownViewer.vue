@@ -406,7 +406,7 @@ export default {
       const newContent = (this.splitMode && this.liveContent !== null) ? this.liveContent : fileContent;
       if (newContent === this.content) {
         this.scrollGuard.suppress();
-        this.finalizeContentRender(state.editorScrollRatio);
+        this.finalizeContentRender(state.editor.scrollRatio);
       } else {
         this.isLoadingNewContent = true;
         this.content = newContent;
@@ -506,7 +506,7 @@ export default {
   watch: {
     // We now watch the `content` property.
     content() {
-      const target = this.isLoadingNewContent ? state.editorScrollRatio : this.currentLine();
+      const target = this.isLoadingNewContent ? state.editor.scrollRatio : this.currentLine();
       this.isLoadingNewContent = false;
       this.scrollGuard.suppress();
       this.finalizeContentRender(target);
@@ -520,8 +520,8 @@ export default {
       this.setHighlightTheme(getters.isDarkMode());
     },
     editorScrollRatio() {
-      if (this.isHtml || state.editorScrollSource === 'viewer') return;
-      this.applyScrollRatio(state.editorScrollRatio);
+      if (this.isHtml || state.editor.scrollSource === 'viewer') return;
+      this.applyScrollRatio(state.editor.scrollRatio);
     },
     liveContent(newVal) {
       if (!this.splitMode || newVal === null) return;
@@ -536,7 +536,7 @@ export default {
     scrollTarget(newEl) {
       this.attachScrollListener(newEl);
       if (newEl && !this.isHtml) {
-        this.applyScrollRatio(state.editorScrollRatio);
+        this.applyScrollRatio(state.editor.scrollRatio);
       }
     },
   },
@@ -564,7 +564,7 @@ export default {
       return state.isMobile ? 3.1 : 3.5;
     },
     editorScrollRatio() {
-      return state.editorScrollRatio;
+      return state.editor.scrollRatio;
     },
   },
   mounted() {

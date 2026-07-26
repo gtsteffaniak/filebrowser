@@ -154,7 +154,7 @@ export default {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
     isSplitViewActive() {
-      return state.markdownSplitView && getters.canSplitView();
+      return state.editor.markdownSplitView && getters.canSplitView();
     },
     showSplitViewToggle() {
       return getters.canSplitView() && getters.isEditorOrMarkdownView();
@@ -235,8 +235,8 @@ export default {
       buttons.loading("save");
       try {
         // Call the editor's save handler directly
-        if (state.editorSaveHandler) {
-          await state.editorSaveHandler();
+        if (state.editor.saveHandler) {
+          await state.editor.saveHandler();
           buttons.success(button);
           // Note: Success notification is shown by the editor
         } else {
@@ -258,7 +258,7 @@ export default {
       }
     },
     toggleSplitView() {
-      if (state.markdownSplitView && state.editorDirty) {
+      if (state.editor.markdownSplitView && state.editor.dirty) {
         const hash = window.location.hash;
         const staysInEditor = hash === "#edit" || (hash !== "#preview" && state.user.preferEditorForMarkdown);
         if (!staysInEditor) {
@@ -266,7 +266,7 @@ export default {
           return;
         }
       }
-      mutations.setMarkdownSplitView(!state.markdownSplitView);
+      mutations.setMarkdownSplitView(!state.editor.markdownSplitView);
     },
     goToEdit() {
       void router.replace({ hash: "#edit" });
@@ -312,7 +312,7 @@ export default {
       const cv = getters.currentView();
 
       // Check for unsaved editor changes before navigation
-      if (cv === "editor" && state.editorDirty) {
+      if (cv === "editor" && state.editor.dirty) {
         this.showSaveBeforeExitPrompt(() => this.performNavigation(cv));
         return;
       }

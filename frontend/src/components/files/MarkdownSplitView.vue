@@ -158,16 +158,15 @@ export default {
       this.scrollGuard.schedule(() => this.syncScrollRatio());
     },
     // Called by the editor when a remote scroll ratio needs to be applied. Ignored for a bit after
-    // typing, unless force is set (used for the one-time initial restore on mount).
+    // typing unless force is set (used for the initial restore on mount)
     applyScrollRatio(row: number, force = false) {
       if (!this.editor) return;
       if (!force && Date.now() - this.lastEditAt < 500) return;
       const lineHeight = this.editor.renderer.lineHeight || 16;
       const maxRow = Math.max(0, this.editor.session.getLength() - 1);
-      // Ace clamps setScrollTop to its real max (including scrollPastEnd) on render,
-      // so an oversized target reliably lands at the true bottom.
+      const session = this.editor.session;
       const target = row >= maxRow ? Number.MAX_SAFE_INTEGER : row * lineHeight;
-      this.scrollGuard.applyRemote(() => this.editor.session.setScrollTop(target));
+      this.scrollGuard.applyRemote(() => session.setScrollTop(target));
     },
   },
 };
