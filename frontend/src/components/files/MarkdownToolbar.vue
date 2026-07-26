@@ -187,7 +187,10 @@ export default {
           if (line.startsWith(prefix)) {
             session.replace({ start: { row, column: 0 }, end: { row, column: prefix.length } }, "");
           }
-        } else if (!line.startsWith(prefix)) {
+        } else if (
+          !line.startsWith(prefix)
+          && (prefix === "> " || nonBlank.length === 0 || line.trim() !== "")
+        ) {
           session.insert({ row, column: 0 }, prefix);
         }
       }
@@ -360,7 +363,7 @@ export default {
           if (match) {
             session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, "");
           }
-        } else if (!match) {
+        } else if (!match && (nonBlank.length === 0 || line.trim() !== "")) {
           session.insert({ row, column: 0 }, "- [ ] ");
         }
       }
