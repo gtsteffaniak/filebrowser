@@ -19,6 +19,25 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { Ace } from "ace-builds";
+import { mutations, state } from "@/store";
+import { eventBus } from "@/store/eventBus";
+import { removeLastDir } from "@/utils/url.js";
+
+interface PendingImageRange {
+  start: { row: number; column: number };
+  end: { row: number; column: number };
+}
+
+function formatImageDestination(dest: string): string {
+  if (/[\s()]/.test(dest)) {
+    return `<${dest.replace(/([\\<>])/g, "\\$1")}>`;
+  }
+  return dest;
+}
+
+function formatImageAltText(alt: string): string {
+  return alt.replace(/([\\[\]])/g, "\\$1");
+}
 
 interface ToolbarButton {
   id: string;
@@ -39,6 +58,9 @@ export default {
   data: () => ({
     canUndo: false,
     canRedo: false,
+    pendingImageContextId: null as string | null,
+    pendingImageRange: null as PendingImageRange | null,
+    pendingImageAlt: "",
   }),
   watch: {
     editor: {
@@ -49,8 +71,14 @@ export default {
       },
     },
   },
+  mounted() {
+    eventBus.on("pathSelected", this.onImagePathSelected);
+    eventBus.on("pathPickerCancelled", this.onImagePathPickerCancelled);
+  },
   beforeUnmount() {
     this.detachUndoListener(this.editor);
+    eventBus.off("pathSelected", this.onImagePathSelected);
+    eventBus.off("pathPickerCancelled", this.onImagePathPickerCancelled);
   },
   computed: {
     markdownToolbarButtons(): ToolbarButton[] {
@@ -264,20 +292,54 @@ export default {
       if (!editor) return;
       const selectedText = editor.getSelectedText();
       const range = editor.getSelectionRange();
-      const alt = selectedText || "alt text";
-      const imageText = `![${alt}](url)`;
-      let insertionEnd: Ace.Point;
-      if (selectedText) {
-        insertionEnd = editor.session.replace(range, imageText);
-      } else {
-        editor.insert(imageText);
-        insertionEnd = editor.getCursorPosition();
-      }
-      editor.selection.setRange({
-        start: { row: insertionEnd.row, column: insertionEnd.column - 4 },
-        end: { row: insertionEnd.row, column: insertionEnd.column - 1 },
+      this.pendingImageAlt = selectedText || "";
+      this.pendingImageRange = {
+        start: { row: range.start.row, column: range.start.column },
+        end: { row: range.end.row, column: range.end.column },
+      };
+      const selectionContextId = `md-toolbar-image-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+      this.pendingImageContextId = selectionContextId;
+      mutations.showPrompt({
+        name: "pathPicker",
+        pinned: true,
+        props: {
+          currentPath: state.req?.path ? removeLastDir(state.req.path) : "/",
+          currentSource: state.req?.source || state.sources.current,
+          hideDestinationSource: true,
+          showFiles: true,
+          showFolders: true,
+          requireFileSelection: true,
+          allowedFileTypes: ["image/"],
+          selectionContextId,
+        },
       });
+    },
+    onImagePathSelected(data: { path?: string; selectionContextId?: string }) {
+      if (!this.pendingImageContextId || !data || data.selectionContextId !== this.pendingImageContextId) {
+        return;
+      }
+      this.pendingImageContextId = null;
+      const range = this.pendingImageRange;
+      const alt = this.pendingImageAlt;
+      this.pendingImageRange = null;
+      this.pendingImageAlt = "";
+      const editor = this.editor;
+      if (!editor || !range || typeof data.path !== "string") return;
+      const fileName = data.path.split("/").filter(Boolean).pop() || "image";
+      const altText = alt || fileName.replace(/\.[^./]+$/, "");
+      const imageText = `![${formatImageAltText(altText)}](${formatImageDestination(data.path)})`;
+      const insertionEnd = editor.session.replace(range as Ace.Range, imageText);
+      editor.moveCursorTo(insertionEnd.row, insertionEnd.column);
+      editor.clearSelection();
       this.focusEditor();
+    },
+    onImagePathPickerCancelled(data: { selectionContextId?: string }) {
+      if (!this.pendingImageContextId || !data || data.selectionContextId !== this.pendingImageContextId) {
+        return;
+      }
+      this.pendingImageContextId = null;
+      this.pendingImageRange = null;
+      this.pendingImageAlt = "";
     },
     toggleTaskList() {
       const editor = this.editor;

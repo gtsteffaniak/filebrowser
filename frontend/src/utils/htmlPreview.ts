@@ -122,11 +122,11 @@ export function buildPreviewResourceUrl(
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
         },
-        false,
+        true,
         resolvedPath,
       );
     } else {
-      viewUrl = getViewURL(source, resolvedPath, viewToken, null, false, resolvedPath);
+      viewUrl = getViewURL(source, resolvedPath, viewToken, null, true, resolvedPath);
     }
     return viewUrl ?? href;
   } catch {
