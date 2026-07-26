@@ -68,6 +68,24 @@ export const mutations = {
     localStorage.setItem('editorFontSize', size);
     emitStateChanged();
   },
+  setMarkdownSplitView: (value) => {
+    if (value === state.markdownSplitView) return;
+    state.markdownSplitView = value;
+    emitStateChanged();
+  },
+  setEditorScrollRatio: (ratio, source) => {
+    state.editorScrollRatio = ratio;
+    state.editorScrollSource = source;
+    emitStateChanged();
+  },
+  // Called by both Editor and MarkdownViewer on mounts
+  resetEditorScrollRatio: (path) => {
+    if (state.editorScrollPath === path) return;
+    state.editorScrollPath = path;
+    state.editorScrollRatio = 0;
+    state.editorScrollSource = null;
+    emitStateChanged();
+  },
   setDeletedItem: (value) => {
     if (value === state.deletedItem) {
       return;

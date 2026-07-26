@@ -26,21 +26,48 @@
       @action="switchView"
       :disabled="isDisabled || viewModeChangeLocked"
     />
-    <action
-      class="overflow-menu-button"
-      v-else-if="!showHeaderSwitchView && !showQuickSave"
-      :icon="iconName"
-      :disabled="noItems"
-      @click="toggleOverflow"
-    />
-    <action
-      class="save-button"
-      v-else-if="showQuickSave"
-      id="save-button"
-      icon="save"
-      :label="$t('general.save')"
-      @action="save()"
-    />
+    <template v-else>
+      <action
+        v-if="showSplitViewToggle"
+        class="split-view-button"
+        :class="{ active: isSplitViewActive }"
+        icon="vertical_split"
+        :label="splitViewActionLabel"
+        @action="toggleSplitView"
+        :disabled="isDisabled"
+      />
+      <action
+        v-if="showEditButton"
+        class="edit-button"
+        icon="edit"
+        :label="$t('general.edit')"
+        @action="goToEdit"
+        :disabled="isDisabled"
+      />
+      <action
+        v-if="showPreviewButton"
+        class="preview-button"
+        icon="visibility"
+        :label="$t('general.preview')"
+        @action="goToPreview"
+        :disabled="isDisabled"
+      />
+      <action
+        v-if="showQuickSave"
+        class="save-button"
+        id="save-button"
+        icon="save"
+        :label="$t('general.save')"
+        @action="save()"
+      />
+      <action
+        v-else
+        class="overflow-menu-button"
+        :icon="iconName"
+        :disabled="noItems"
+        @click="toggleOverflow"
+      />
+    </template>
   </header>
 </template>
 
@@ -52,6 +79,7 @@ import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import { globalVars } from "@/utils/constants";
 import { url } from "@/utils";
+import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 
 export default {
   name: "UnifiedHeader",
@@ -125,11 +153,25 @@ export default {
     noItems() {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
-    showEdit() {
-      return window.location.hash !== "#edit" && getters.sourcePermissions().modify;
+    isSplitViewActive() {
+      return state.markdownSplitView && getters.canSplitView();
     },
-    showDelete() {
-      return getters.sourcePermissions().delete && getters.currentView() === "preview";
+    showSplitViewToggle() {
+      return getters.canSplitView() && getters.isEditorOrMarkdownView();
+    },
+    splitViewActionLabel() {
+      return this.isSplitViewActive
+        ? this.$t("editor.exitSplitView")
+        : this.$t("editor.splitView");
+    },
+    showEditButton() {
+      if (this.isSplitViewActive) return false;
+      return getters.currentView() === "markdownViewer" && getters.permissions().modify;
+    },
+    showPreviewButton() {
+      if (this.isSplitViewActive) return false;
+      if (getters.currentView() !== "editor") return false;
+      return isRichTextPreviewMimeType(state.req.type);
     },
     showSave() {
       return getters.currentView() === "editor" && getters.sourcePermissions().modify;
@@ -214,6 +256,23 @@ export default {
       } else {
         mutations.showPrompt({ name: "OverflowMenu" });
       }
+    },
+    toggleSplitView() {
+      if (state.markdownSplitView && state.editorDirty) {
+        const hash = window.location.hash;
+        const staysInEditor = hash === "#edit" || (hash !== "#preview" && state.user.preferEditorForMarkdown);
+        if (!staysInEditor) {
+          this.showSaveBeforeExitPrompt(() => mutations.setMarkdownSplitView(false));
+          return;
+        }
+      }
+      mutations.setMarkdownSplitView(!state.markdownSplitView);
+    },
+    goToEdit() {
+      void router.replace({ hash: "#edit" });
+    },
+    goToPreview() {
+      void router.replace({ hash: "#preview" });
     },
     /** Match StatusBar.adjustViewMode: list vs compact, icons vs gallery from gallery size. */
     resolveViewModeForFamily(baseMode) {
@@ -331,6 +390,12 @@ header button:hover {
   box-shadow: unset !important;
   -webkit-box-shadow: unset !important;
 }
+
+.split-view-button.active :deep(i) {
+  color: var(--primaryColor);
+  opacity: 65%;
+}
+
 header {
   background-color: rgb(37 49 55 / 5%) !important;
 }

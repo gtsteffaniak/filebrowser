@@ -753,7 +753,27 @@
     "fileSaved": "File saved!",
     "lines": "{count} lines",
     "words": "{count} words",
-    "chars": "{count} characters"
+    "chars": "{count} characters",
+    "splitView": "Split view",
+    "exitSplitView": "Exit split view",
+    "md": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "strikethrough": "Strikethrough",
+      "heading": "Heading",
+      "quote": "Quote",
+      "inlineCode": "Inline code",
+      "codeBlock": "Code block",
+      "link": "Link",
+      "image": "Image",
+      "bulletList": "Bullet list",
+      "numberedList": "Numbered list",
+      "taskList": "Task list",
+      "table": "Table",
+      "horizontalRule": "Horizontal rule",
+      "undo": "Undo",
+      "redo": "Redo"
+    }
   },
   "player": {
     "loop": "Loop",

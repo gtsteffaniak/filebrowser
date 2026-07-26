@@ -40,6 +40,10 @@ export const state = reactive({
     chars: 0,
   },
   editorFontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
+  markdownSplitView: false,
+  editorScrollRatio: 0,
+  editorScrollSource: null,
+  editorScrollPath: "", // file path the scroll ratio above belongs to
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering

@@ -1,5 +1,5 @@
 <template>
-  <div id="markedown-viewer">
+  <div id="markedown-viewer" ref="scrollContainer">
     <iframe
       v-if="isHtml"
       ref="viewer"
@@ -13,14 +13,16 @@
     <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
       <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
     </div>
-    <div class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
+    <div v-if="!splitMode" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
   </div>
 </template>
 
 <script lang="ts">
-import { Marked } from "marked";
+import type { PropType } from "vue";
+import { Marked, Token } from "marked";
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
+import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 import hljs from 'highlight.js';
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
@@ -28,16 +30,65 @@ import { isHtmlMimeType } from "@/utils/mimetype";
 import {
   buildHtmlPreview,
   buildPreviewResourceUrl,
+  rewriteHtmlResources,
+  rewriteDocumentStyles,
 } from "@/utils/htmlPreview";
 
 import githubLightCss from "highlight.js/styles/github.min.css?raw";
 import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
 
+// Void elements that not always need a closing tag
+const VOID_ELEMENTS = new Set([
+  "area", "base", "br", "col", "embed", "hr", "img", "input",
+  "link", "meta", "param", "source", "track", "wbr",
+]);
+
+// open-tag count in raw HTML tokens, used to regroup tokens split across
+function htmlTagBalance(raw: string): number {
+  const tagPattern = /<\/?([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*>/g;
+  let balance = 0;
+  let match: RegExpExecArray | null;
+  while ((match = tagPattern.exec(raw))) {
+    const [full, name] = match;
+    if (VOID_ELEMENTS.has(name.toLowerCase()) || full.endsWith("/>")) {
+      continue;
+    }
+    balance += full.startsWith("</") ? -1 : 1;
+  }
+  return balance;
+}
+
+// Rewrites resource attributes inside a HTML block written in the markdown
+function rewriteHtmlBlockForMd(html: string, filePath: string, source: string): string {
+  const doc = new DOMParser().parseFromString(`<!doctype html><body>${html}</body>`, "text/html");
+  rewriteHtmlResources(doc, filePath, source);
+  rewriteDocumentStyles(doc, filePath, source);
+  return doc.body.innerHTML;
+}
+
 export default {
   name: "markdownViewer",
+  props: {
+    splitMode: {
+      type: Boolean,
+      default: false,
+    },
+    liveContent: {
+      type: String,
+      default: null,
+    },
+    scrollTarget: {
+      type: Object as PropType<HTMLElement | null>,
+      default: null, // When null, falls back to the components own root (non-split view)
+    },
+  },
   data() {
     return {
       content: "",
+      scrollGuard: createScrollSyncGuard(),
+      liveContentTimer: null as ReturnType<typeof setTimeout> | null,
+      boundScrollEl: null as HTMLElement | null,
+      isLoadingNewContent: false,
     };
   },
   methods: {
@@ -76,7 +127,7 @@ export default {
           if (lang && hljs.getLanguage(lang)) {
             hljs.highlightElement(codeBlock);
           } else {
-            const text = codeBlock.textContent;
+            const text = codeBlock.textContent ?? '';
             const result = hljs.highlightAuto(text);
             codeBlock.innerHTML = result.value;
             codeBlock.classList.add('hljs');
@@ -144,11 +195,18 @@ export default {
       const highlightedHTML = codeBlock.innerHTML;
       const htmlLines = this.splitHighlightedHTML(highlightedHTML, lines.length);
 
+      // Absolute source line the code content starts on, gives each line its own anchor
+      const blockEl = codeBlock.closest<HTMLElement>('.md-block');
+      const codeStartLine = blockEl?.dataset.codeLine !== undefined ? Number(blockEl.dataset.codeLine) : null;
+
       // Create code lines with preserved highlighting
       const codeLines = htmlLines.map((lineHTML, index) => {
         const lineElement = document.createElement('div');
         lineElement.className = 'code-line';
         lineElement.setAttribute('data-line', (index + 1).toString());
+        if (codeStartLine !== null) {
+          lineElement.dataset.sourceLine = String(codeStartLine + index);
+        }
         lineElement.innerHTML = lineHTML;
         return lineElement;
       });
@@ -258,20 +316,71 @@ export default {
     },
     parseMarkdown(content: string, filePath: string, source: string): string {
       const parser = new Marked({ gfm: true });
-      parser.use({
-        walkTokens(token) {
-          if (token.type === "image" && token.href) {
-            token.href = buildPreviewResourceUrl(token.href, filePath, source);
-          }
-        },
-      });
-      const result = parser.parse(content);
-      if (typeof result !== "string") {
+      // Tag each top level block with its source line for scroll-sync
+      let tokens: Token[] | null;
+      try {
+        tokens = parser.lexer(content);
+      } catch (_e) {
+        tokens = null;
+      }
+      if (!tokens) {
         return DOMPurify.sanitize("Loading...");
       }
-      return DOMPurify.sanitize(result);
+      void parser.walkTokens(tokens, (token) => {
+        if (token.type === "image" && token.href) {
+          token.href = buildPreviewResourceUrl(token.href, filePath, source);
+        }
+      });
+      let line = 0;
+      const parts: string[] = [];
+      let group: { html: string; line: number; depth: number } | null = null;
+      for (const token of tokens) {
+        let html: string | Node;
+        try {
+          const single = [token as never] as Token[] & { links?: Record<string, unknown> };
+          single.links = (tokens as Token[] & { links?: Record<string, unknown> }).links ?? {};
+          html = parser.parser(single as never);
+        } catch (_e) {
+          html = "";
+        }
+        if (token.type === "html" && html) {
+          html = rewriteHtmlBlockForMd(html, filePath, source);
+        }
+        const lineCount = (token.raw.match(/\n/g) || []).length;
+        const depth = token.type === "html" ? htmlTagBalance(token.raw) : 0;
+        // For code blocks, work out the exact line the code content starts, from the token own raw/text offset,so
+        // the scroll anchors can be placed correctly
+        let codeLine: number | null = null;
+        if (token.type === "code" && typeof (token as { text?: unknown }).text === "string") {
+          const codeText = (token as { text: string }).text;
+          const offset = token.raw.indexOf(codeText);
+          if (offset !== -1) {
+            codeLine = line + (token.raw.slice(0, offset).match(/\n/g) || []).length;
+          }
+        }
+        const codeAttr = codeLine !== null ? ` data-code-line="${codeLine}"` : "";
+        if (group) {
+          group.html += html;
+          group.depth += depth;
+          if (group.depth <= 0) {
+            parts.push(`<div class="md-block" data-line="${group.line}">${DOMPurify.sanitize(group.html)}</div>`);
+            group = null;
+          }
+        } else if (depth > 0) {
+          group = { html, line, depth };
+        } else {
+          parts.push(`<div class="md-block" data-line="${line}"${codeAttr}>${DOMPurify.sanitize(html)}</div>`);
+        }
+        line += lineCount;
+      }
+      if (group) {
+        // Reached the end with tags still unclosed (maybe malformed HTML), so flush them rather than dropping.
+        parts.push(`<div class="md-block" data-line="${group.line}">${DOMPurify.sanitize(group.html)}</div>`);
+      }
+      return parts.join("");
     },
     updateEditorStats() {
+      if (this.splitMode) return;
       const text = this.content.trim();
       const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
       const words = validWord.length;
@@ -279,6 +388,7 @@ export default {
       mutations.setEditorStats({ lines: null, words, chars });
     },
     reinit() {
+      mutations.resetEditorScrollRatio(state.req.path);
       mutations.resetSelected();
       mutations.addSelected({
         name: state.req.name,
@@ -291,19 +401,115 @@ export default {
       });
       this.setHighlightTheme(getters.isDarkMode());
       // Set initial content. The `watch` will trigger the first highlight.
+      // In split mode, prefer the editor live buffer over the file.
       const fileContent = state.req.content === "empty-file-x6OlSil" ? "" : state.req.content || "";
-      this.content = fileContent;
+      const newContent = (this.splitMode && this.liveContent !== null) ? this.liveContent : fileContent;
+      if (newContent === this.content) {
+        this.scrollGuard.suppress();
+        this.finalizeContentRender(state.editorScrollRatio);
+      } else {
+        this.isLoadingNewContent = true;
+        this.content = newContent;
+      }
       this.updateEditorStats();
+    },
+    finalizeContentRender(target: number) {
+      this.$nextTick(() => {
+        this.applyHighlighting();
+        if (!this.isHtml) this.applyScrollRatio(target);
+      });
+    },
+    attachScrollListener(el: HTMLElement | null) {
+      if (this.boundScrollEl === el) return;
+      this.boundScrollEl?.removeEventListener("scroll", this.handleScroll);
+      this.boundScrollEl = el;
+      el?.addEventListener("scroll", this.handleScroll, { passive: true });
+    },
+    getScrollContainer(): HTMLElement | null {
+      return this.splitMode
+        ? (this.scrollTarget as HTMLElement | null) || (this.$refs.scrollContainer as HTMLElement | null)
+        : document.getElementById("main");
+    },
+    getLineAnchors() {
+      const viewer = this.$refs.viewer as HTMLElement | null;
+      const container = this.getScrollContainer();
+      if (!viewer || !container) return [];
+      const containerTop = container.getBoundingClientRect().top - container.scrollTop;
+      const topOf = (el: HTMLElement) => el.getBoundingClientRect().top - containerTop;
+      const anchors = Array.from(viewer.querySelectorAll<HTMLElement>(".md-block")).map((el) => ({
+        line: Number(el.dataset.line),
+        top: topOf(el),
+      }));
+      // per-line anchors to keep the interpolation
+      viewer.querySelectorAll<HTMLElement>(".code-line[data-source-line]").forEach((el) => {
+        anchors.push({ line: Number(el.dataset.sourceLine), top: topOf(el) });
+      });
+      anchors.sort((a, b) => a.line - b.line);
+      return anchors;
+    },
+    totalLines(): number {
+      return Math.max(0, this.content.split('\n').length - 1);
+    },
+    // Finds the pair of adjacent anchors 'value' along whatever axis 'getValue' reads off each anchor (top or line).
+    bracketAnchors(anchors, getValue, value) {
+      for (let i = 0; i < anchors.length - 1; i++) {
+        if (getValue(anchors.at(i)) <= value && getValue(anchors.at(i + 1)) > value) {
+          return [anchors.at(i), anchors.at(i + 1)];
+        }
+      }
+      return [anchors.at(0), anchors.at(-1)];
+    },
+    // The line currently at the top of the viewport by interpolating between the near block anchors.
+    currentLine() {
+      const el = this.getScrollContainer();
+      if (!el) return 0;
+      const anchors = this.getLineAnchors();
+      if (!anchors.length) return 0;
+      const scrollTop = el.scrollTop;
+      const maxScrollTop = el.scrollHeight - el.clientHeight;
+      if (maxScrollTop > 0 && scrollTop >= maxScrollTop - 1) {
+        return this.totalLines();
+      }
+      const [a, b] = this.bracketAnchors(anchors, (anchor) => anchor.top, scrollTop);
+      const topSpan = b.top - a.top;
+      const frac = topSpan > 0 ? Math.min(1, Math.max(0, (scrollTop - a.top) / topSpan)) : 0;
+      return a.line + frac * (b.line - a.line);
+    },
+    syncScrollRatio() {
+      mutations.setEditorScrollRatio(this.currentLine(), "viewer");
+    },
+    handleScroll() {
+      if (this.isHtml) return;
+      this.scrollGuard.schedule(() => this.syncScrollRatio());
+    },
+    applyScrollRatio(line: number) {
+      const el = this.getScrollContainer();
+      if (!el) return;
+      const anchors = this.getLineAnchors();
+      if (!anchors.length) return;
+      const first = anchors.at(0);
+      let top;
+      if (line <= first.line) {
+        top = 0;
+      } else if (line >= this.totalLines()) {
+        top = el.scrollHeight - el.clientHeight;
+      } else {
+        const [a, b] = this.bracketAnchors(anchors, (anchor) => anchor.line, line);
+        const lineSpan = b.line - a.line;
+        top = lineSpan > 0
+          ? a.top + ((line - a.line) / lineSpan) * (b.top - a.top)
+          : a.top;
+      }
+      this.scrollGuard.applyRemote(() => { el.scrollTop = top; });
     },
   },
   watch: {
     // We now watch the `content` property.
     content() {
-      // When the content changes, Vue updates the DOM. We use `nextTick`
-      // to wait for that update to finish before applying highlighting.
-      this.$nextTick(() => {
-        this.applyHighlighting();
-      });
+      const target = this.isLoadingNewContent ? state.editorScrollRatio : this.currentLine();
+      this.isLoadingNewContent = false;
+      this.scrollGuard.suppress();
+      this.finalizeContentRender(target);
       this.updateEditorStats();
     },
     // Watch for changes in state.req.content and update local content
@@ -312,7 +518,27 @@ export default {
     },
     darkMode() {
       this.setHighlightTheme(getters.isDarkMode());
-    }
+    },
+    editorScrollRatio() {
+      if (this.isHtml || state.editorScrollSource === 'viewer') return;
+      this.applyScrollRatio(state.editorScrollRatio);
+    },
+    liveContent(newVal) {
+      if (!this.splitMode || newVal === null) return;
+      if (this.liveContentTimer) clearTimeout(this.liveContentTimer);
+      const isInitialLoad = this.content === "";
+      this.liveContentTimer = setTimeout(() => {
+        this.liveContentTimer = null;
+        if (isInitialLoad) this.isLoadingNewContent = true;
+        this.content = newVal;
+      }, isInitialLoad ? 0 : 150);
+    },
+    scrollTarget(newEl) {
+      this.attachScrollListener(newEl);
+      if (newEl && !this.isHtml) {
+        this.applyScrollRatio(state.editorScrollRatio);
+      }
+    },
   },
   computed: {
     req() {
@@ -320,7 +546,7 @@ export default {
     },
     darkMode() {
       // This computed property returns the current dark mode state.
-      return state.user.darkMode;
+      return getters.isDarkMode();
     },
     isHtml() {
       return isHtmlMimeType(state.req.type);
@@ -337,16 +563,29 @@ export default {
     spaceForStatusBar() {
       return state.isMobile ? 3.1 : 3.5;
     },
+    editorScrollRatio() {
+      return state.editorScrollRatio;
+    },
   },
   mounted() {
     this.reinit();
+    this.$nextTick(() => {
+      this.attachScrollListener(this.getScrollContainer());
+    });
   },
   unmounted() {
-    const style = document.getElementById("highlight-theme-style");
-    if (style?.parentNode) {
-      style.parentNode.removeChild(style);
+    this.attachScrollListener(null);
+    if (this.scrollGuard.cancel()) {
+      this.syncScrollRatio();
     }
-    mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
+    if (this.liveContentTimer) {
+      clearTimeout(this.liveContentTimer);
+      this.liveContentTimer = null;
+    }
+
+    if (!this.splitMode) {
+      mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
+    }
   }
 };
 </script>
@@ -359,7 +598,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container {
-  background-color: var(--alt-background);
+  background-color: var(--surfacePrimary);
   border-radius: 1em;
   padding: 1em;
 }
@@ -567,6 +806,63 @@ export default {
 #markedown-viewer .markdown-content img {
   max-width: 100%;
   height: auto;
+}
+
+/* Links */
+#markedown-viewer .markdown-content a {
+  color: var(--primaryColor);
+  text-decoration: underline;
+}
+
+/* Tables */
+#markedown-viewer .markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  overflow-x: auto;
+  display: block;
+}
+
+#markedown-viewer .markdown-content th,
+#markedown-viewer .markdown-content td {
+  border: 2px solid var(--background);
+  padding: 0.4em 0.8em;
+}
+
+#markedown-viewer .markdown-content th {
+  font-weight: 600;
+  background-color: var(--background);
+}
+
+#markedown-viewer .markdown-content tbody tr:nth-child(even) {
+  background-color: color-mix(in srgb, var(--background) 40%, transparent);
+}
+
+/* Blockquotes */
+#markedown-viewer .markdown-content blockquote {
+  margin: 1em 0;
+  padding: 0.1em 1em;
+  border-left: 0.25em solid var(--primaryColor);
+  color: color-mix(in srgb, var(--textPrimary) 70%, transparent);
+  border-radius: 0 0.5em 0.5em 0;
+}
+
+/* Nested blockquotes step in slightly rather than restacking the same border */
+#markedown-viewer .markdown-content blockquote blockquote {
+  margin: 0.5em 0;
+  border-left-color: color-mix(in srgb, var(--primaryColor) 50%, transparent);
+}
+
+#markedown-viewer .markdown-content blockquote p {
+  margin: 0.5em 0;
+}
+
+#markedown-viewer .markdown-content blockquote > :first-child {
+  margin-top: 0;
+}
+
+#markedown-viewer .markdown-content blockquote > :last-child {
+  margin-bottom: 0;
 }
 
 </style>

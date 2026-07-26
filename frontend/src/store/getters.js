@@ -353,12 +353,16 @@ export const getters = {
       if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;
         const preferEditor = state.user.preferEditorForMarkdown;
+        const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
+        if (isMarkdown && state.markdownSplitView && !state.isMobile) {
+          return 'editor';
+        }
         switch (hash) {
           case '#edit': return 'editor';
           case '#preview': return 'markdownViewer';
         }
-        if (state.req.type === 'text/markdown' && preferEditor) return 'editor';
+        if (isMarkdown && preferEditor) return 'editor';
         return 'markdownViewer';
       }
 
@@ -595,6 +599,11 @@ export const getters = {
   },
   isEditorOrMarkdownView: () => {
     return getters.currentView() === 'editor' || getters.currentView() === 'markdownViewer';
+  },
+  canSplitView: () => {
+    if (state.isMobile) return false;
+    if (!state.req || !('content' in state.req)) return false;
+    return state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
   },
   showStatusBar: () => {
     if (getters.isShare() && state.shareInfo.shareType === "upload") {

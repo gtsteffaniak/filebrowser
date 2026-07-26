@@ -1,6 +1,20 @@
 <template>
-  <div id="editor-container" :class="{ 'viewer-mode': viewerMode }">
-    <div id="editor"></div>
+  <div id="editor-root" :class="{ 'split-active': isSplitActive }">
+    <div
+      id="editor-container"
+      :class="{ 'viewer-mode': viewerMode }"
+      :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
+    >
+      <MarkdownToolbar v-if="showMarkdownToolbar" :editor="editor" />
+      <div id="editor"></div>
+    </div>
+    <MarkdownSplitView
+      v-if="isMarkdownFile"
+      ref="splitView"
+      :editor="editor"
+      :active="isSplitActive"
+      @resize="editorPanePercent = $event"
+    />
   </div>
 </template>
 
@@ -16,9 +30,18 @@ import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
 import "ace-builds/src-min-noconflict/mode-yaml";
 import "ace-builds/src-min-noconflict/mode-json";
 import "ace-builds/src-min-noconflict/mode-markdown";
+import MarkdownToolbar from "@/components/files/MarkdownToolbar.vue";
+import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
+
+const THEME_DARK = "ace/theme/tomorrow_night_bright";
+const THEME_LIGHT = "ace/theme/chrome";
 
 export default {
   name: "editor",
+  components: {
+    MarkdownToolbar,
+    MarkdownSplitView,
+  },
   props: {
     viewerMode: {
       type: Boolean,
@@ -40,6 +63,7 @@ export default {
   data: () => ({
     editor: null, // The editor instance
     isDirty: false,
+    suppressDirtyTracking: false,
     originalReq: null,
     saveLocked: false, // Lock saves during req transitions
     currentReqPath: null, // Track current path for transition detection
@@ -47,6 +71,7 @@ export default {
     isPromptOpen: false, // Track if prompt is currently open for avoid navigation
     pendingNavigation: null, // Store pending navigation while prompt is open
     viewerResizeObserver: null,
+    editorPanePercent: 50, // split-view editor pane width
   }),
   computed: {
     permissions() {
@@ -114,6 +139,20 @@ export default {
       }
       return this.req.type === "textImmutable";
     },
+    isMarkdownFile() {
+      if (this.viewerMode) return false;
+      const type = this.req?.type;
+      return type === "text/markdown" || type === "text/x-markdown";
+    },
+    showMarkdownToolbar() {
+      return this.isMarkdownFile && !this.editorReadOnly;
+    },
+    isSplitActive() {
+      return !this.viewerMode && this.isMarkdownFile && state.markdownSplitView && !state.isMobile;
+    },
+    editorScrollRatio() {
+      return state.editorScrollRatio;
+    },
   },
   watch: {
     // Lock saves during navigation transitions
@@ -134,6 +173,7 @@ export default {
         this.originalReq = newReq;
         this.isDirty = false; // Reset dirty flag for new file
         mutations.setEditorDirty(false);
+        mutations.resetEditorScrollRatio(newReq.path);
 
         // Lock saves temporarily
         this.saveLocked = true;
@@ -152,7 +192,11 @@ export default {
       if (this.editor) {
         const currentValue = this.editor.getValue();
         if (currentValue !== newContent) {
+          this.suppressDirtyTracking = true;
           this.editor.setValue(newContent, -1); // -1 moves cursor to start
+          this.editor.session.getUndoManager().reset();
+          this.updateEditorStats();
+          this.suppressDirtyTracking = false;
           this.isDirty = false;
           mutations.setEditorDirty(false);
         }
@@ -162,6 +206,9 @@ export default {
               this.editor.resize();
             }
           });
+        }
+        if (this.isSplitActive) {
+          this.$refs.splitView?.setLiveContent(newContent);
         }
       }
     },
@@ -180,7 +227,7 @@ export default {
     // Update theme when dark mode changes
     isDarkMode(newValue) {
       if (this.editor) {
-        this.editor.setTheme(newValue ? "ace/theme/twilight" : "ace/theme/chrome");
+        this.editor.setTheme(newValue ? THEME_DARK : THEME_LIGHT);
       }
     },
     // Initialize navigation when state syncs for file editing
@@ -188,7 +235,17 @@ export default {
       if (synced && !this.viewerMode && this.req) {
         this.initializeNavigation();
       }
-    }
+    },
+    editorScrollRatio() {
+      if (this.viewerMode || !this.isMarkdownFile) return;
+      if (state.editorScrollSource === 'editor') return;
+      this.$refs.splitView?.applyScrollRatio(state.editorScrollRatio);
+    },
+    isSplitActive() {
+      this.$nextTick(() => {
+        if (this.editor) this.editor.resize();
+      });
+    },
   },
   created() {
     window.addEventListener("keydown", this.keyEvent);
@@ -202,8 +259,21 @@ export default {
     window.addEventListener("beforeunload", this.beforeUnloadHandler);
 
     this.setupNavigationGuard();
+    this.lastConfirmedUrl = window.location.href;
+    this.popStateHandler = () => {
+      if (this.isDirty && !this.viewerMode && !this.isPromptOpen) {
+        const attemptedUrl = window.location.href;
+        history.pushState(null, "", this.lastConfirmedUrl);
+        this.pendingNavigation = { fullPath: attemptedUrl.replace(window.location.origin, "") };
+        this.showSaveBeforeExitPrompt();
+      } else {
+        this.lastConfirmedUrl = window.location.href;
+      }
+    };
+    window.addEventListener("popstate", this.popStateHandler);
   },
   beforeUnmount() {
+    mutations.setMarkdownSplitView(false);
     if (this.viewerResizeObserver) {
       this.viewerResizeObserver.disconnect();
       this.viewerResizeObserver = null;
@@ -211,6 +281,7 @@ export default {
 
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
+    window.removeEventListener("popstate", this.popStateHandler);
 
     if (this.readOnly) {
       return;
@@ -227,7 +298,9 @@ export default {
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
 
     if (this.editor) {
+      this.editor.session.off('changeScrollTop', this.handleEditorScroll);
       this.editor.destroy();
+      this.editor = null;
     }
   },
   mounted: function () {
@@ -245,12 +318,16 @@ export default {
       return;
     }
 
-    this.initializeEditor();
     this.originalReq = this.req;
+    this.initializeEditor();
+    if (this.isMarkdownFile && this.req?.path) {
+      mutations.resetEditorScrollRatio(this.req.path);
+    }
 
     // Register save handler so other components can trigger save
     mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
     this.applyFontSize();
+    this.setupViewerResizeObserver();
     // Watch font size changes
     this.$watch(() => state.editorFontSize, () => {
       this.applyFontSize();
@@ -258,7 +335,7 @@ export default {
   },
   methods: {
     setupViewerResizeObserver() {
-      if (!this.viewerMode || typeof ResizeObserver === "undefined") {
+      if (typeof ResizeObserver === "undefined" || !this.editor) {
         return;
       }
       this.viewerResizeObserver = new ResizeObserver(() => {
@@ -266,7 +343,7 @@ export default {
           this.editor.resize();
         }
       });
-      this.viewerResizeObserver.observe(this.$el);
+      this.viewerResizeObserver.observe(this.editor.container);
       this.$nextTick(() => {
         if (this.editor) {
           this.editor.resize();
@@ -353,25 +430,28 @@ export default {
           showPrintMargin: false,
           showGutter: true,
           showLineNumbers: true,
-          theme: this.isDarkMode ? "ace/theme/tomorrow_night_bright" : "ace/theme/github",
+          theme: this.isDarkMode ? THEME_DARK : THEME_LIGHT,
           readOnly: this.editorReadOnly,
           wrap: state.wrapEditor || false,
           enableMobileMenu: !this.viewerMode,
           useWorker: false,
-          scrollPastEnd: 0.5,
           cursorStyle: "smooth",
           highlightGutterLine: true,
           animatedScroll: true,
           displayIndentGuides: true,
           fixedWidthGutter: true,
+          fontSize: `${state.editorFontSize}px`,
         });
 
         this.editor.setOption('displayIndentGuides', true);
+        this.editor.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
 
         this.editor.on('change', () => {
+          if (this.suppressDirtyTracking) return;
           this.isDirty = true;
           mutations.setEditorDirty(true);
           this.updateEditorStats();
+          this.$refs.splitView?.handleEditorChange();
         });
 
         // Initialize navigation for file editing mode when synced
@@ -382,6 +462,21 @@ export default {
         this.editor.selection.on('changeSelection', () => {
           this.updateEditorStats();
         });
+        if (!this.viewerMode) {
+          if (this.isMarkdownFile) {
+            this.$nextTick(() => {
+              this.$refs.splitView?.applyScrollRatio(state.editorScrollRatio, true);
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  if (!this.editor) return;
+                  this.editor.session.on('changeScrollTop', this.handleEditorScroll);
+                });
+              });
+            });
+          } else {
+            this.editor.session.on('changeScrollTop', this.handleEditorScroll);
+          }
+        }
       } catch (_e) {
         notify.showError(this.$t("editor.uninitialized"));
       }
@@ -470,20 +565,26 @@ export default {
       this.navigationGuard = this.$router.beforeEach((to, from, next) => {
         // If prompt is already open, block any new navigation attempts
         if (this.isPromptOpen) {
-          next(false);
-          return;
+          if (getters.currentPromptName() === "SaveBeforeExit") {
+            next(false);
+            return;
+          }
+          this.isPromptOpen = false;
+          this.pendingNavigation = null;
         }
 
         // Check if we are navigating to a different route
         const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
 
-        if (this.isDirty && !this.viewerMode && isDifferentRoute) {
-          if (this.req) {
-            this.pendingNavigation = { to, from, next };
-            this.showSaveBeforeExitPrompt();
-            return;
-          }
+        if (this.isDirty && !this.viewerMode && isDifferentRoute && this.req) {
+          next(false);
+          this.pendingNavigation = to;
+          this.showSaveBeforeExitPrompt();
+          return;
         }
+        this.$nextTick(() => {
+          this.lastConfirmedUrl = window.location.href;
+        });
         next();
       });
     },
@@ -493,18 +594,10 @@ export default {
         name: "SaveBeforeExit",
         pinned: true,
         confirm: async () => {
-          // Save and exit - throw error if save fails to keep prompt open
-          try {
-            await this.handleEditorValueRequest();
-            this.isDirty = false;
-            mutations.setEditorDirty(false);
-            this.executePendingNavigation();
-          } catch (error) {
-            // If save fails, call next(false) to prevent navigation
-            next(false);
-            // Re-throw to keep prompt open
-            throw error;
-          }
+          await this.handleEditorValueRequest();
+          this.isDirty = false;
+          mutations.setEditorDirty(false);
+          this.executePendingNavigation();
         },
         discard: () => {
           // Discard changes and exit
@@ -520,16 +613,14 @@ export default {
     },
     executePendingNavigation() {
       this.isPromptOpen = false;
-      if (this.pendingNavigation && typeof this.pendingNavigation.next === 'function') {
-        this.pendingNavigation.next();
-      }
+      const target = this.pendingNavigation;
       this.pendingNavigation = null;
+      if (target) {
+        this.$router.push(target.fullPath);
+      }
     },
     cancelPendingNavigation() {
       this.isPromptOpen = false;
-      if (this.pendingNavigation && typeof this.pendingNavigation.next === 'function') {
-        this.pendingNavigation.next(false);
-      }
       this.pendingNavigation = null;
     },
     getSelectedStats() {
@@ -558,7 +649,7 @@ export default {
     updateEditorStats() {
       if (!this.editor) return;
       const { lines, words, chars } = this.getSelectedStats();
-      const isMarkdown = this.req.type === 'text/markdown' || this.req.type === 'text/x-markdown';
+      const isMarkdown = this.isMarkdownFile;
       if (isMarkdown) {
         mutations.setEditorStats({ lines, words, chars });
       } else {
@@ -569,8 +660,11 @@ export default {
     },
     applyFontSize() {
       if (this.editor) {
-        this.editor.container.style.fontSize = `${state.editorFontSize}px`;
+        this.editor.setOption('fontSize', `${state.editorFontSize}px`);
       }
+    },
+    handleEditorScroll() {
+      this.$refs.splitView?.handleEditorScroll();
     },
   },
 };
@@ -578,15 +672,38 @@ export default {
 </script>
 
 <style scoped>
+#editor-root {
+  height: 100%;
+}
+
+#editor-root.split-active {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+#editor-root.split-active #editor-container {
+  flex: 0 0 auto;
+  min-width: 0;
+  position: relative;
+}
+
+#editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#editor-container #editor {
+  flex: 1;
+  min-height: 0;
+}
+
 #editor-container.viewer-mode {
   position: absolute;
   inset: 0;
 }
 
-#editor-container.viewer-mode #editor {
-  position: absolute;
-  inset: 0;
-}
 </style>
 
 <style>
@@ -653,5 +770,13 @@ export default {
 /* Lightened Tomorrow Night Bright Theme, was too dark */
 .ace-tomorrow-night-bright {
   background-color: #1f1f1f !important; /* original of the theme is #000000 */
+}
+
+#editor-root.split-active .ace_scrollbar {
+  scrollbar-width: none;
+}
+
+#editor-root.split-active .ace_scrollbar::-webkit-scrollbar {
+  display: none;
 }
 </style>
