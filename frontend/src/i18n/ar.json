@@ -733,7 +733,27 @@
     "fileSaved": "تم حفظ الملف!",
     "lines": "{count} سطور",
     "words": "{count} كلمات",
-    "chars": "{count} أحرف"
+    "chars": "{count} أحرف",
+    "splitView": "عرض منقسم",
+    "exitSplitView": "الخروج من العرض المنقسم",
+    "md": {
+      "bold": "غامق",
+      "italic": "مائل",
+      "strikethrough": "يتوسطه خط",
+      "heading": "عنوان",
+      "quote": "اقتباس",
+      "inlineCode": "كود مضمن",
+      "codeBlock": "كتلة كود",
+      "link": "رابط",
+      "image": "صورة",
+      "bulletList": "قائمة نقطية",
+      "numberedList": "قائمة مرقمة",
+      "taskList": "قائمة مهام",
+      "table": "جدول",
+      "horizontalRule": "فاصل أفقي",
+      "undo": "تراجع",
+      "redo": "إعادة"
+    }
   },
   "player": {
     "loop": "تكرار",

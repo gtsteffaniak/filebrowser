@@ -753,7 +753,27 @@
     "fileSaved": "Файлът беше запазен!",
     "lines": "{count} реда",
     "words": "{count} думи",
-    "chars": "{count} символа"
+    "chars": "{count} символа",
+    "splitView": "Разделен изглед",
+    "exitSplitView": "Изход от разделен изглед",
+    "md": {
+      "bold": "Удебелен",
+      "italic": "Курсив",
+      "strikethrough": "Зачеркнат",
+      "heading": "Заглавие",
+      "quote": "Цитат",
+      "inlineCode": "Вграден код",
+      "codeBlock": "Блок с код",
+      "link": "Връзка",
+      "image": "Изображение",
+      "bulletList": "Списък с точки",
+      "numberedList": "Номериран списък",
+      "taskList": "Списък със задачи",
+      "table": "Таблица",
+      "horizontalRule": "Хоризонтална линия",
+      "undo": "Отмяна",
+      "redo": "Повторение"
+    }
   },
   "player": {
     "loop": "Повторение",

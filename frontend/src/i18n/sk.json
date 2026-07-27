@@ -733,7 +733,27 @@
     "fileSaved": "Súbor uložený!",
     "lines": "{count} riadkov",
     "words": "{count} slov",
-    "chars": "{count} znakov"
+    "chars": "{count} znakov",
+    "splitView": "Rozdelené zobrazenie",
+    "exitSplitView": "Ukončiť rozdelené zobrazenie",
+    "md": {
+      "bold": "Tučné",
+      "italic": "Kurzíva",
+      "strikethrough": "Preškrtnuté",
+      "heading": "Nadpis",
+      "quote": "Citácia",
+      "inlineCode": "Riadkový kód",
+      "codeBlock": "Blok kódu",
+      "link": "Odkaz",
+      "image": "Obrázok",
+      "bulletList": "Zoznam s odrážkami",
+      "numberedList": "Číslovaný zoznam",
+      "taskList": "Zoznam úloh",
+      "table": "Tabuľka",
+      "horizontalRule": "Vodorovná čiara",
+      "undo": "Späť",
+      "redo": "Znova"
+    }
   },
   "player": {
     "loop": "Slučka",

@@ -733,7 +733,27 @@
     "fileSaved": "Filen är sparad!",
     "lines": "{count} rader",
     "words": "{count} ord",
-    "chars": "{count} tecken"
+    "chars": "{count} tecken",
+    "splitView": "Delad vy",
+    "exitSplitView": "Avsluta delad vy",
+    "md": {
+      "bold": "Fet",
+      "italic": "Kursiv",
+      "strikethrough": "Genomstruken",
+      "heading": "Rubrik",
+      "quote": "Citat",
+      "inlineCode": "Inbäddad kod",
+      "codeBlock": "Kodblock",
+      "link": "Länk",
+      "image": "Bild",
+      "bulletList": "Punktlista",
+      "numberedList": "Numrerad lista",
+      "taskList": "Att-göra-lista",
+      "table": "Tabell",
+      "horizontalRule": "Horisontell linje",
+      "undo": "Ångra",
+      "redo": "Gör om"
+    }
   },
   "player": {
     "loop": "Loop",

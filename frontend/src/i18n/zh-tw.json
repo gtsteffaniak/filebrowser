@@ -733,7 +733,27 @@
     "fileSaved": "檔案已儲存！",
     "lines": "{count} 行",
     "words": "{count} 詞",
-    "chars": "{count} 字元"
+    "chars": "{count} 字元",
+    "splitView": "分割檢視",
+    "exitSplitView": "退出分割檢視",
+    "md": {
+      "bold": "粗體",
+      "italic": "斜體",
+      "strikethrough": "刪除線",
+      "heading": "標題",
+      "quote": "引用",
+      "inlineCode": "行內程式碼",
+      "codeBlock": "程式碼區塊",
+      "link": "連結",
+      "image": "圖片",
+      "bulletList": "項目符號清單",
+      "numberedList": "編號清單",
+      "taskList": "任務清單",
+      "table": "表格",
+      "horizontalRule": "水平線",
+      "undo": "復原",
+      "redo": "重做"
+    }
   },
   "player": {
     "loop": "循環",

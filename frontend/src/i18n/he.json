@@ -733,7 +733,27 @@
     "fileSaved": "הקובץ נשמר!",
     "lines": "{count} שורות",
     "words": "{count} מילים",
-    "chars": "{count} תווים"
+    "chars": "{count} תווים",
+    "splitView": "תצוגה מפוצלת",
+    "exitSplitView": "יציאה מתצוגה מפוצלת",
+    "md": {
+      "bold": "מודגש",
+      "italic": "נטוי",
+      "strikethrough": "קו חוצה",
+      "heading": "כותרת",
+      "quote": "ציטוט",
+      "inlineCode": "קוד מוטבע",
+      "codeBlock": "גוש קוד",
+      "link": "קישור",
+      "image": "תמונה",
+      "bulletList": "רשימת תבליטים",
+      "numberedList": "רשימה ממוספרת",
+      "taskList": "רשימת משימות",
+      "table": "טבלה",
+      "horizontalRule": "קו אופקי",
+      "undo": "ביטול",
+      "redo": "חזור"
+    }
   },
   "player": {
     "loop": "לולאה",

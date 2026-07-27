@@ -733,7 +733,27 @@
     "fileSaved": "Fájl mentve!",
     "lines": "{count} sor",
     "words": "{count} szó",
-    "chars": "{count} karakter"
+    "chars": "{count} karakter",
+    "splitView": "Megosztott nézet",
+    "exitSplitView": "Kilépés a megosztott nézetből",
+    "md": {
+      "bold": "Félkövér",
+      "italic": "Dőlt",
+      "strikethrough": "Áthúzott",
+      "heading": "Címsor",
+      "quote": "Idézet",
+      "inlineCode": "Soros kód",
+      "codeBlock": "Kódblokk",
+      "link": "Hivatkozás",
+      "image": "Kép",
+      "bulletList": "Felsorolás",
+      "numberedList": "Számozott lista",
+      "taskList": "Feladatlista",
+      "table": "Táblázat",
+      "horizontalRule": "Vízszintes vonal",
+      "undo": "Visszavonás",
+      "redo": "Újra"
+    }
   },
   "player": {
     "loop": "Ismétlés",

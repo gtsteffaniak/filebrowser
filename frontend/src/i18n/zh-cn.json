@@ -733,7 +733,27 @@
     "fileSaved": "文件已保存！",
     "lines": "{count} 行",
     "words": "{count} 词",
-    "chars": "{count} 字符"
+    "chars": "{count} 字符",
+    "splitView": "拆分视图",
+    "exitSplitView": "退出拆分视图",
+    "md": {
+      "bold": "加粗",
+      "italic": "斜体",
+      "strikethrough": "删除线",
+      "heading": "标题",
+      "quote": "引用",
+      "inlineCode": "行内代码",
+      "codeBlock": "代码块",
+      "link": "链接",
+      "image": "图片",
+      "bulletList": "项目符号列表",
+      "numberedList": "编号列表",
+      "taskList": "任务列表",
+      "table": "表格",
+      "horizontalRule": "水平线",
+      "undo": "撤销",
+      "redo": "重做"
+    }
   },
   "player": {
     "loop": "循环",

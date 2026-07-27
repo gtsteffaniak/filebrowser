@@ -733,7 +733,27 @@
     "fileSaved": "파일이 저장되었습니다!",
     "lines": "{count} 줄",
     "words": "{count} 단어",
-    "chars": "{count} 문자"
+    "chars": "{count} 문자",
+    "splitView": "분할 보기",
+    "exitSplitView": "분할 보기 종료",
+    "md": {
+      "bold": "굵게",
+      "italic": "기울임꼴",
+      "strikethrough": "취소선",
+      "heading": "제목",
+      "quote": "인용구",
+      "inlineCode": "인라인 코드",
+      "codeBlock": "코드 블록",
+      "link": "링크",
+      "image": "이미지",
+      "bulletList": "글머리 목록",
+      "numberedList": "번호 매기기 목록",
+      "taskList": "할 일 목록",
+      "table": "표",
+      "horizontalRule": "수평선",
+      "undo": "실행 취소",
+      "redo": "다시 실행"
+    }
   },
   "player": {
     "loop": "반복",

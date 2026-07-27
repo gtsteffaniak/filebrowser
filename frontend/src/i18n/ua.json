@@ -733,7 +733,27 @@
     "fileSaved": "Файл збережено!",
     "lines": "{count} рядків",
     "words": "{count} слів",
-    "chars": "{count} символів"
+    "chars": "{count} символів",
+    "splitView": "Розділений перегляд",
+    "exitSplitView": "Вийти з розділеного перегляду",
+    "md": {
+      "bold": "Жирний",
+      "italic": "Курсив",
+      "strikethrough": "Закреслений",
+      "heading": "Заголовок",
+      "quote": "Цитата",
+      "inlineCode": "Вбудований код",
+      "codeBlock": "Блок коду",
+      "link": "Посилання",
+      "image": "Зображення",
+      "bulletList": "Маркований список",
+      "numberedList": "Нумерований список",
+      "taskList": "Список завдань",
+      "table": "Таблиця",
+      "horizontalRule": "Горизонтальна лінія",
+      "undo": "Скасувати",
+      "redo": "Повторити"
+    }
   },
   "player": {
     "loop": "Повтор",

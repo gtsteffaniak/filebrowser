@@ -733,7 +733,27 @@
     "fileSaved": "ファイルが保存された！",
     "lines": "{count} 行",
     "words": "{count} 単語",
-    "chars": "{count} 文字"
+    "chars": "{count} 文字",
+    "splitView": "分割ビュー",
+    "exitSplitView": "分割ビューを終了",
+    "md": {
+      "bold": "太字",
+      "italic": "斜体",
+      "strikethrough": "取り消し線",
+      "heading": "見出し",
+      "quote": "引用",
+      "inlineCode": "インラインコード",
+      "codeBlock": "コードブロック",
+      "link": "リンク",
+      "image": "画像",
+      "bulletList": "箇条書きリスト",
+      "numberedList": "番号付きリスト",
+      "taskList": "タスクリスト",
+      "table": "表",
+      "horizontalRule": "水平線",
+      "undo": "元に戻す",
+      "redo": "やり直し"
+    }
   },
   "player": {
     "loop": "ループ",

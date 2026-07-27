@@ -733,7 +733,27 @@
     "fileSaved": "Bestand opgeslagen!",
     "lines": "{count} regels",
     "words": "{count} woorden",
-    "chars": "{count} tekens"
+    "chars": "{count} tekens",
+    "splitView": "Gesplitste weergave",
+    "exitSplitView": "Gesplitste weergave afsluiten",
+    "md": {
+      "bold": "Vet",
+      "italic": "Cursief",
+      "strikethrough": "Doorhalen",
+      "heading": "Koptekst",
+      "quote": "Citaat",
+      "inlineCode": "Inline code",
+      "codeBlock": "Codeblok",
+      "link": "Link",
+      "image": "Afbeelding",
+      "bulletList": "Opsommingsteken",
+      "numberedList": "Genummerde lijst",
+      "taskList": "Takenlijst",
+      "table": "Tabel",
+      "horizontalRule": "Horizontale lijn",
+      "undo": "Ongedaan maken",
+      "redo": "Opnieuw"
+    }
   },
   "player": {
     "loop": "Herhalen",

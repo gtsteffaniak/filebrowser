@@ -733,7 +733,27 @@
     "fileSaved": "Datei gespeichert!",
     "lines": "{count} Zeilen",
     "words": "{count} Wörter",
-    "chars": "{count} Zeichen"
+    "chars": "{count} Zeichen",
+    "splitView": "Geteilte Ansicht",
+    "exitSplitView": "Geteilte Ansicht beenden",
+    "md": {
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "strikethrough": "Durchgestrichen",
+      "heading": "Überschrift",
+      "quote": "Zitat",
+      "inlineCode": "Inline-Code",
+      "codeBlock": "Codeblock",
+      "link": "Link",
+      "image": "Bild",
+      "bulletList": "Aufzählungsliste",
+      "numberedList": "Nummerierte Liste",
+      "taskList": "Aufgabenliste",
+      "table": "Tabelle",
+      "horizontalRule": "Horizontale Linie",
+      "undo": "Rückgängig",
+      "redo": "Wiederholen"
+    }
   },
   "player": {
     "loop": "Wiederholung",

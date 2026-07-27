@@ -733,7 +733,27 @@
     "fileSaved": "Fișier salvat!",
     "lines": "{count} rânduri",
     "words": "{count} cuvinte",
-    "chars": "{count} caractere"
+    "chars": "{count} caractere",
+    "splitView": "Vizualizare divizată",
+    "exitSplitView": "Ieșire din vizualizarea divizată",
+    "md": {
+      "bold": "Îngroșat",
+      "italic": "Cursiv",
+      "strikethrough": "Tăiat",
+      "heading": "Antet",
+      "quote": "Citat",
+      "inlineCode": "Cod în linie",
+      "codeBlock": "Bloc de cod",
+      "link": "Legătură",
+      "image": "Imagine",
+      "bulletList": "Listă cu puncte",
+      "numberedList": "Listă numerotată",
+      "taskList": "Listă de sarcini",
+      "table": "Tabel",
+      "horizontalRule": "Linie orizontală",
+      "undo": "Anulare",
+      "redo": "Refacere"
+    }
   },
   "player": {
     "loop": "Buclă",

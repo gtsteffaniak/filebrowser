@@ -733,7 +733,27 @@
     "fileSaved": "Файл сохранен!",
     "lines": "{count} строк",
     "words": "{count} слов",
-    "chars": "{count} символов"
+    "chars": "{count} символов",
+    "splitView": "Разделённый просмотр",
+    "exitSplitView": "Выйти из разделённого просмотра",
+    "md": {
+      "bold": "Жирный",
+      "italic": "Курсив",
+      "strikethrough": "Зачёркнутый",
+      "heading": "Заголовок",
+      "quote": "Цитата",
+      "inlineCode": "Встроенный код",
+      "codeBlock": "Блок кода",
+      "link": "Ссылка",
+      "image": "Изображение",
+      "bulletList": "Маркированный список",
+      "numberedList": "Нумерованный список",
+      "taskList": "Список задач",
+      "table": "Таблица",
+      "horizontalRule": "Горизонтальная линия",
+      "undo": "Отменить",
+      "redo": "Повторить"
+    }
   },
   "player": {
     "loop": "Повтор",
