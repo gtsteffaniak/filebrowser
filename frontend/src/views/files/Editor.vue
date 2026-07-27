@@ -437,7 +437,7 @@ export default {
           readOnly: this.editorReadOnly,
           wrap: state.wrapEditor || false,
           enableMobileMenu: !this.viewerMode,
-          useWorker: false,
+          useWorker: true,
           cursorStyle: "smooth",
           highlightGutterLine: true,
           animatedScroll: true,

@@ -20,6 +20,8 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import { Marked, Token } from "marked";
+import markedKatex from "marked-katex-extension";
+import "katex/contrib/mhchem"; // To render chemistry formulas
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
@@ -36,6 +38,22 @@ import {
 
 import githubLightCss from "highlight.js/styles/github.min.css?raw";
 import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
+
+const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
+
+const marked = new Marked({ gfm: true });
+marked.use(markedKatex({ throwOnError: false, output: "mathml" }));
+marked.use({
+  extensions: [{
+    name: "blockKatexInterrupt",
+    level: "block",
+    start(src: string) {
+      const m = src.match(/\n\${1,2}[ \t]*(?:\n|$)/);
+      return m ? m.index : undefined;
+    },
+    tokenizer() { return undefined; },
+  }],
+});
 
 // Void elements that not always need a closing tag
 const VOID_ELEMENTS = new Set([
@@ -316,7 +334,7 @@ export default {
       return div.innerHTML;
     },
     parseMarkdown(content: string, filePath: string, source: string): string {
-      const parser = new Marked({ gfm: true });
+      const parser = marked;
       // Tag each top level block with its source line for scroll-sync
       let tokens: Token[] | null;
       try {
@@ -326,7 +344,7 @@ export default {
         tokens = null;
       }
       if (!tokens) {
-        return DOMPurify.sanitize("Loading...");
+        return DOMPurify.sanitize("Loading...", MD_SANITIZE_CONFIG);
       }
       void parser.walkTokens(tokens, (token) => {
         if (token.type === "image" && token.href) {
@@ -365,19 +383,19 @@ export default {
           group.html += html;
           group.depth += depth;
           if (group.depth <= 0) {
-            parts.push(`<div class="md-block" data-line="${group.line}">${DOMPurify.sanitize(group.html)}</div>`);
+            parts.push(`<div class="md-block" data-line="${group.line}">${DOMPurify.sanitize(group.html, MD_SANITIZE_CONFIG)}</div>`);
             group = null;
           }
         } else if (depth > 0) {
           group = { html, line, depth };
         } else {
-          parts.push(`<div class="md-block" data-line="${line}"${codeAttr}>${DOMPurify.sanitize(html)}</div>`);
+          parts.push(`<div class="md-block" data-line="${line}"${codeAttr}>${DOMPurify.sanitize(html, MD_SANITIZE_CONFIG)}</div>`);
         }
         line += lineCount;
       }
       if (group) {
         // Reached the end with tags still unclosed (maybe malformed HTML), so flush them rather than dropping.
-        parts.push(`<div class="md-block" data-line="${group.line}">${DOMPurify.sanitize(group.html)}</div>`);
+        parts.push(`<div class="md-block" data-line="${group.line}">${DOMPurify.sanitize(group.html, MD_SANITIZE_CONFIG)}</div>`);
       }
       return parts.join("");
     },
