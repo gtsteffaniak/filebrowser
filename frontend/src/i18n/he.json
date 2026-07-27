@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",
     "saveAbortedMessage": "פעולת השמירה בוטלה. הקובץ הפעיל של היישום ({activeFile}) אינו תואם לקובץ שאתה מנסה לשמור ({tryingToSave}).",
-    "fileSaved": "הקובץ נשמר!",
     "lines": "{count} שורות",
     "words": "{count} מילים",
     "chars": "{count} תווים",

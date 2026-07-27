@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
     "saveAbortedMessage": "저장 작업이 중단되었습니다. 애플리케이션의 활성 파일({activeFile})이 저장하려는 파일({tryingToSave})과 일치하지 않습니다.",
-    "fileSaved": "파일이 저장되었습니다!",
     "lines": "{count} 줄",
     "words": "{count} 단어",
     "chars": "{count} 문자",

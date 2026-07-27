@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",
     "saveAbortedMessage": "保存操作が中断されました。アプリケーションのアクティブファイル（{activeFile}）と保存しようとしているファイル（{tryingToSave}）が一致しません。",
-    "fileSaved": "ファイルが保存された！",
     "lines": "{count} 行",
     "words": "{count} 単語",
     "chars": "{count} 文字",

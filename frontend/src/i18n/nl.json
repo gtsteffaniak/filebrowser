@@ -738,7 +738,6 @@
   "editor": {
     "uninitialized": "Het is niet gelukt de editor te initialiseren. Opnieuw laden.",
     "saveAbortedMessage": "Opslaan afgebroken. Het actieve bestand van de toepassing ({activeFile}) komt niet overeen met het bestand dat u probeert op te slaan ({tryingToSave}).",
-    "fileSaved": "Bestand opgeslagen!",
     "lines": "{count} regels",
     "words": "{count} woorden",
     "chars": "{count} tekens",

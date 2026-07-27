@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
     "saveAbortedMessage": "A mentési művelet megszakadt. Az alkalmazás aktív fájlja ({activeFile}) nem egyezik meg a menteni kívánt fájllal ({tryingToSave}).",
-    "fileSaved": "Fájl mentve!",
     "lines": "{count} sor",
     "words": "{count} szó",
     "chars": "{count} karakter",

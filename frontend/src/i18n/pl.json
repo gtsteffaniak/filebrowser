@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",
     "saveAbortedMessage": "Operacja zapisywania została przerwana. Aktywny plik aplikacji ({activeFile}) nie jest zgodny z plikiem, który próbujesz zapisać ({tryingToSave}).",
-    "fileSaved": "Plik zapisany!",
     "lines": "{count} wierszy",
     "words": "{count} słów",
     "chars": "{count} znaków",

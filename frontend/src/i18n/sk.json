@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
     "saveAbortedMessage": "Operácia uloženia sa prerušila. Aktívny súbor aplikácie ({activeFile}) sa nezhoduje so súborom, ktorý sa pokúšate uložiť ({tryingToSave}).",
-    "fileSaved": "Súbor uložený!",
     "lines": "{count} riadkov",
     "words": "{count} slov",
     "chars": "{count} znakov",

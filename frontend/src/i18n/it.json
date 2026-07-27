@@ -738,7 +738,6 @@
   "editor": {
     "uninitialized": "Inizializzazione editor fallita. Ricarica la pagina.",
     "saveAbortedMessage": "Operazione annullata. Il file attivo ({activeFile}) non corrisponde a quello che stai salvando ({tryingToSave}).",
-    "fileSaved": "File salvato!",
     "lines": "{count} righe",
     "words": "{count} parole",
     "chars": "{count} caratteri",

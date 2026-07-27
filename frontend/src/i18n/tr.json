@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
     "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın etkin dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",
-    "fileSaved": "Dosya kaydedildi!",
     "lines": "{count} satır",
     "words": "{count} kelime",
     "chars": "{count} karakter",

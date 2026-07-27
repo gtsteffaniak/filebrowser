@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
     "saveAbortedMessage": "Der Speichervorgang wurde abgebrochen. Die aktive Datei der Anwendung ({activeFile}) stimmt nicht mit der Datei überein, die Sie zu speichern versuchen ({tryingToSave}).",
-    "fileSaved": "Datei gespeichert!",
     "lines": "{count} Zeilen",
     "words": "{count} Wörter",
     "chars": "{count} Zeichen",

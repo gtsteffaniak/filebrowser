@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
     "saveAbortedMessage": "Operação de salvamento abortada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
-    "fileSaved": "Arquivo salvo!",
     "lines": "{count} linhas",
     "words": "{count} palavras",
     "chars": "{count} caracteres",

@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "فشل في تهيئة المحرر. يرجى إعادة التحميل.",
     "saveAbortedMessage": "تم إجهاض عملية الحفظ. الملف النشط للتطبيق ({activeFile}) لا يتطابق مع الملف الذي تحاول حفظه ({tryingToSave}).",
-    "fileSaved": "تم حفظ الملف!",
     "lines": "{count} سطور",
     "words": "{count} كلمات",
     "chars": "{count} أحرف",

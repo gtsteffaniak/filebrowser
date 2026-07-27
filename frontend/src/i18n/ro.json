@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
     "saveAbortedMessage": "Operațiunea de salvare a fost întreruptă. Fișierul activ al aplicației ({activeFile}) nu corespunde cu fișierul pe care încercați să îl salvați ({tryingToSave}).",
-    "fileSaved": "Fișier salvat!",
     "lines": "{count} rânduri",
     "words": "{count} cuvinte",
     "chars": "{count} caractere",

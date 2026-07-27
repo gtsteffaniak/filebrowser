@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "编辑器初始化失败。请重新加载。",
     "saveAbortedMessage": "保存操作中止。应用程序的活动文件 ({activeFile}) 与您要保存的文件 ({tryingToSave}) 不匹配。",
-    "fileSaved": "文件已保存！",
     "lines": "{count} 行",
     "words": "{count} 词",
     "chars": "{count} 字符",

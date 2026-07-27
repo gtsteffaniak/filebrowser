@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",
     "saveAbortedMessage": "Spara åtgärden avbröts. Programmets aktiva fil ({activeFile}) stämmer inte överens med den fil du försöker spara ({tryingToSave}).",
-    "fileSaved": "Filen är sparad!",
     "lines": "{count} rader",
     "words": "{count} ord",
     "chars": "{count} tecken",

@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "編輯器初始化失敗。請重新載入。",
     "saveAbortedMessage": "儲存作業已中止。應用程式目前的作用中檔案 ({activeFile}) 與要儲存的檔案 ({tryingToSave}) 不一致。",
-    "fileSaved": "檔案已儲存！",
     "lines": "{count} 行",
     "words": "{count} 詞",
     "chars": "{count} 字元",

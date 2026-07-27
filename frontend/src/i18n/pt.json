@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",
     "saveAbortedMessage": "Operação de gravação abortada. O ficheiro ativo da aplicação ({activeFile}) não corresponde ao ficheiro que está a tentar guardar ({tryingToSave}).",
-    "fileSaved": "Ficheiro guardado!",
     "lines": "{count} linhas",
     "words": "{count} palavras",
     "chars": "{count} caracteres",

@@ -729,7 +729,6 @@
   "editor": {
     "uninitialized": "No se pudo iniciar el editor",
     "saveAbortedMessage": "No se ha podido guardar el archivo. El nombre del archivo \"{activeFile}\" no coincide con el que estas intentando guardar ({tryingToSave}).",
-    "fileSaved": "!Se guardo el archivo correctamente!",
     "lines": "{count} líneas",
     "words": "{count} palabras",
     "chars": "{count} caracteres",
