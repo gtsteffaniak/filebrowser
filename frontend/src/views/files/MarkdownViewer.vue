@@ -9,11 +9,12 @@
       sandbox="allow-scripts allow-popups allow-same-origin"
       referrerpolicy="no-referrer"
       title="HTML preview"
+      @load="htmlPreviewHeight"
     ></iframe>
     <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
       <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
     </div>
-    <div v-if="!splitMode" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
+    <div v-if="!splitMode && !isHtml" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
   </div>
 </template>
 
@@ -110,6 +111,16 @@ export default {
     };
   },
   methods: {
+    htmlPreviewHeight() {
+      const iframe = this.$refs.viewer as HTMLIFrameElement | undefined;
+      if (!iframe || !this.isHtml) return;
+      const available = window.innerHeight - iframe.getBoundingClientRect().top;
+      let contentHeight = 0;
+      try {
+        contentHeight = iframe.contentWindow?.document?.documentElement?.scrollHeight || 0;
+      } catch { /* ignore */ }
+      iframe.style.height = `${Math.max(available, contentHeight)}px`;
+    },
     // This theme switcher logic is correct and remains.
     setHighlightTheme(isDark: boolean) {
       const THEME_STYLE_ID = "highlight-theme-style";

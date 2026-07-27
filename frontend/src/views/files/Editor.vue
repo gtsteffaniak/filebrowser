@@ -150,7 +150,7 @@ export default {
       return this.isMarkdownFile && !this.editorReadOnly;
     },
     isSplitActive() {
-      return !this.viewerMode && this.isMarkdownFile && state.editor.markdownSplitView && !state.isMobile;
+      return !this.viewerMode && this.isMarkdownFile && state.editor.markdownSplitView && !state.isMobile && this.permissions.modify;
     },
     editorScrollRatio() {
       return state.editor.scrollRatio;
@@ -275,7 +275,6 @@ export default {
     window.addEventListener("popstate", this.popStateHandler);
   },
   beforeUnmount() {
-    mutations.setMarkdownSplitView(false);
     if (this.viewerResizeObserver) {
       this.viewerResizeObserver.disconnect();
       this.viewerResizeObserver = null;

@@ -3,7 +3,7 @@ import { mutations, state } from '@/store';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
-import { getTypeInfo, isRichTextPreviewMimeType } from '@/utils/mimetype';
+import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
@@ -355,7 +355,7 @@ export const getters = {
         const preferEditor = state.user.preferEditorForMarkdown;
         const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
-        if (isMarkdown && state.editor.markdownSplitView && !state.isMobile) {
+        if (isMarkdown && state.editor.markdownSplitView && !state.isMobile && getters.permissions().modify) {
           return 'editor';
         }
         switch (hash) {
@@ -598,11 +598,16 @@ export const getters = {
     return tool;
   },
   isEditorOrMarkdownView: () => {
-    return getters.currentView() === 'editor' || getters.currentView() === 'markdownViewer';
+    const view = getters.currentView();
+    if (view === 'markdownViewer') {
+      return !isHtmlMimeType(state.req?.type);
+    }
+    return view === 'editor';
   },
   canSplitView: () => {
     if (state.isMobile) return false;
     if (!state.req || !('content' in state.req)) return false;
+    if (!getters.permissions().modify) return false;
     return state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
   },
   showStatusBar: () => {

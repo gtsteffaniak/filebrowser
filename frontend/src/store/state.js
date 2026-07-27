@@ -41,7 +41,7 @@ export const state = reactive({
       chars: 0,
     },
     fontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
-    markdownSplitView: false,
+    markdownSplitView: loadMarkdownSplitView(),
     scrollRatio: 0,
     scrollSource: null,
     scrollPath: "", // if the path differs to always start at the top of the file
@@ -200,6 +200,10 @@ function loadNotificationHistory() {
     console.error('Failed to load notification history:', error);
     return [];
   }
+}
+
+function loadMarkdownSplitView() {
+  return sessionStorage.getItem("markdownSplitView") === "true";
 }
 
 /**
