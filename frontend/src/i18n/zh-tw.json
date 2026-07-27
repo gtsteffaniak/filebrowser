@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "項目符號清單",
       "numberedList": "編號清單",
       "taskList": "任務清單",
-      "table": "表格",
       "horizontalRule": "水平線",
       "undo": "復原",
-      "redo": "重做"
+      "redo": "重做",
+      "moreOptions": "更多選項",
+      "inlineMath": "行內公式",
+      "displayMath": "顯示公式",
+      "highlight": "高亮",
+      "superscript": "上標",
+      "subscript": "下標",
+      "text": "文字",
+      "cell": "儲存格",
+      "column": "欄"
     }
   },
   "player": {

@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "箇条書きリスト",
       "numberedList": "番号付きリスト",
       "taskList": "タスクリスト",
-      "table": "表",
       "horizontalRule": "水平線",
       "undo": "元に戻す",
-      "redo": "やり直し"
+      "redo": "やり直し",
+      "moreOptions": "その他のオプション",
+      "inlineMath": "インライン数式",
+      "displayMath": "表示数式",
+      "highlight": "ハイライト",
+      "superscript": "上付き文字",
+      "subscript": "下付き文字",
+      "text": "テキスト",
+      "cell": "セル",
+      "column": "列"
     }
   },
   "player": {

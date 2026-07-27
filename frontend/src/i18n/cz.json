@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "Odrážkový seznam",
       "numberedList": "Číslovaný seznam",
       "taskList": "Seznam úkolů",
-      "table": "Tabulka",
       "horizontalRule": "Vodorovná čára",
       "undo": "Zpět",
-      "redo": "Znovu"
+      "redo": "Znovu",
+      "moreOptions": "Další možnosti",
+      "inlineMath": "Řádková matematika",
+      "displayMath": "Samostatná matematika",
+      "highlight": "Zvýraznění",
+      "superscript": "Horní index",
+      "subscript": "Dolní index",
+      "text": "Text",
+      "cell": "Buňka",
+      "column": "Sloupec"
     }
   },
   "player": {

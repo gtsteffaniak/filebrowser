@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "רשימת תבליטים",
       "numberedList": "רשימה ממוספרת",
       "taskList": "רשימת משימות",
-      "table": "טבלה",
       "horizontalRule": "קו אופקי",
       "undo": "ביטול",
-      "redo": "חזור"
+      "redo": "חזור",
+      "moreOptions": "אפשרויות נוספות",
+      "inlineMath": "מתמטיקה מוטבעת",
+      "displayMath": "מתמטיקה מוצגת",
+      "highlight": "הדגשה",
+      "superscript": "כתב עילי",
+      "subscript": "כתב תחתי",
+      "text": "טקסט",
+      "cell": "תא",
+      "column": "עמודה"
     }
   },
   "player": {

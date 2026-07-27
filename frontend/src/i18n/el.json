@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "Λίστα με κουκκίδες",
       "numberedList": "Αριθμημένη λίστα",
       "taskList": "Λίστα εργασιών",
-      "table": "Πίνακας",
       "horizontalRule": "Οριζόντια γραμμή",
       "undo": "Αναίρεση",
-      "redo": "Επανάληψη"
+      "redo": "Επανάληψη",
+      "moreOptions": "Περισσότερες επιλογές",
+      "inlineMath": "Ενσωματωμένα μαθηματικά",
+      "displayMath": "Αυτόνομα μαθηματικά",
+      "highlight": "Επισήμανση",
+      "superscript": "Εκθέτης",
+      "subscript": "Δείκτης",
+      "text": "Κείμενο",
+      "cell": "Κελί",
+      "column": "Στήλη"
     }
   },
   "player": {

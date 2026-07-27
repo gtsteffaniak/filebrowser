@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "Lista",
       "numberedList": "Lista numerada",
       "taskList": "Lista de tareas",
-      "table": "Tabla",
       "horizontalRule": "Divisor",
       "undo": "Deshacer",
-      "redo": "Rehacer"
+      "redo": "Rehacer",
+      "moreOptions": "Más opciones",
+      "inlineMath": "Matemáticas en línea",
+      "displayMath": "Matemáticas en bloque",
+      "highlight": "Resaltar",
+      "superscript": "Super-índice",
+      "subscript": "Sub-índice",
+      "text": "Texto",
+      "cell": "Celda",
+      "column": "Columna"
     }
   },
   "player": {

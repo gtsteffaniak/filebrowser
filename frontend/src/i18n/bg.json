@@ -281,7 +281,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -769,10 +768,18 @@
       "bulletList": "Списък с точки",
       "numberedList": "Номериран списък",
       "taskList": "Списък със задачи",
-      "table": "Таблица",
       "horizontalRule": "Хоризонтална линия",
       "undo": "Отмяна",
-      "redo": "Повторение"
+      "redo": "Повторение",
+      "moreOptions": "Още опции",
+      "inlineMath": "Вградена математика",
+      "displayMath": "Отделна математика",
+      "highlight": "Осветяване",
+      "superscript": "Горен индекс",
+      "subscript": "Долен индекс",
+      "text": "Текст",
+      "cell": "Клетка",
+      "column": "Колона"
     }
   },
   "player": {

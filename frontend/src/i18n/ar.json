@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "قائمة نقطية",
       "numberedList": "قائمة مرقمة",
       "taskList": "قائمة مهام",
-      "table": "جدول",
       "horizontalRule": "فاصل أفقي",
       "undo": "تراجع",
-      "redo": "إعادة"
+      "redo": "إعادة",
+      "moreOptions": "خيارات إضافية",
+      "inlineMath": "رياضيات مضمنة",
+      "displayMath": "رياضيات منفصلة",
+      "highlight": "تظليل",
+      "superscript": "مرتفع",
+      "subscript": "منخفض",
+      "text": "نص",
+      "cell": "خلية",
+      "column": "عمود"
     }
   },
   "player": {

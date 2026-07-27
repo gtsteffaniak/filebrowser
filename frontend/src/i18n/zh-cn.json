@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "项目符号列表",
       "numberedList": "编号列表",
       "taskList": "任务列表",
-      "table": "表格",
       "horizontalRule": "水平线",
       "undo": "撤销",
-      "redo": "重做"
+      "redo": "重做",
+      "moreOptions": "更多选项",
+      "inlineMath": "行内公式",
+      "displayMath": "显示公式",
+      "highlight": "高亮",
+      "superscript": "上标",
+      "subscript": "下标",
+      "text": "文本",
+      "cell": "单元格",
+      "column": "列"
     }
   },
   "player": {

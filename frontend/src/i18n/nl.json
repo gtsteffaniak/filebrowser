@@ -281,7 +281,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -758,10 +757,18 @@
       "bulletList": "Opsommingsteken",
       "numberedList": "Genummerde lijst",
       "taskList": "Takenlijst",
-      "table": "Tabel",
       "horizontalRule": "Horizontale lijn",
       "undo": "Ongedaan maken",
-      "redo": "Opnieuw"
+      "redo": "Opnieuw",
+      "moreOptions": "Meer opties",
+      "inlineMath": "Ingebedde wiskunde",
+      "displayMath": "Weergegeven wiskunde",
+      "highlight": "Markeren",
+      "superscript": "Superscript",
+      "subscript": "Subscript",
+      "text": "Tekst",
+      "cell": "Cel",
+      "column": "Kolom"
     }
   },
   "player": {

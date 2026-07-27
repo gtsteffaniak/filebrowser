@@ -281,7 +281,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -758,10 +757,18 @@
       "bulletList": "Elenco puntato",
       "numberedList": "Elenco numerato",
       "taskList": "Elenco attività",
-      "table": "Tabella",
       "horizontalRule": "Linea orizzontale",
       "undo": "Annulla",
-      "redo": "Ripeti"
+      "redo": "Ripeti",
+      "moreOptions": "Altre opzioni",
+      "inlineMath": "Matematica in linea",
+      "displayMath": "Matematica a blocco",
+      "highlight": "Evidenzia",
+      "superscript": "Apice",
+      "subscript": "Pedice",
+      "text": "Testo",
+      "cell": "Cella",
+      "column": "Colonna"
     }
   },
   "player": {

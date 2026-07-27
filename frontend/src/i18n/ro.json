@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "Listă cu puncte",
       "numberedList": "Listă numerotată",
       "taskList": "Listă de sarcini",
-      "table": "Tabel",
       "horizontalRule": "Linie orizontală",
       "undo": "Anulare",
-      "redo": "Refacere"
+      "redo": "Refacere",
+      "moreOptions": "Mai multe opțiuni",
+      "inlineMath": "Matematică în linie",
+      "displayMath": "Matematică în bloc",
+      "highlight": "Evidențiere",
+      "superscript": "Exponent",
+      "subscript": "Indice",
+      "text": "Text",
+      "cell": "Celulă",
+      "column": "Coloană"
     }
   },
   "player": {

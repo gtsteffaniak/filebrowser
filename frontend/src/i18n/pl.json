@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "Lista wypunktowana",
       "numberedList": "Lista numerowana",
       "taskList": "Lista zadań",
-      "table": "Tabela",
       "horizontalRule": "Linia pozioma",
       "undo": "Cofnij",
-      "redo": "Ponów"
+      "redo": "Ponów",
+      "moreOptions": "Więcej opcji",
+      "inlineMath": "Matematyka w linii",
+      "displayMath": "Matematyka w bloku",
+      "highlight": "Podświetlenie",
+      "superscript": "Indeks górny",
+      "subscript": "Indeks dolny",
+      "text": "Tekst",
+      "cell": "Komórka",
+      "column": "Kolumna"
     }
   },
   "player": {

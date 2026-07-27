@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -749,10 +748,18 @@
       "bulletList": "Madde işaretli liste",
       "numberedList": "Numaralı liste",
       "taskList": "Görev listesi",
-      "table": "Tablo",
       "horizontalRule": "Yatay çizgi",
       "undo": "Geri al",
-      "redo": "Yinele"
+      "redo": "Yinele",
+      "moreOptions": "Daha fazla seçenek",
+      "inlineMath": "Satır içi matematik",
+      "displayMath": "Blok matematik",
+      "highlight": "Vurgula",
+      "superscript": "Üst simge",
+      "subscript": "Alt simge",
+      "text": "Metin",
+      "cell": "Hücre",
+      "column": "Sütun"
     }
   },
   "player": {
