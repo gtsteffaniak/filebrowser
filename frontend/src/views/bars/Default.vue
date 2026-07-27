@@ -28,15 +28,6 @@
     />
     <template v-else>
       <action
-        v-if="showSplitViewToggle"
-        class="split-view-button"
-        :class="{ active: isSplitViewActive }"
-        icon="vertical_split"
-        :label="splitViewActionLabel"
-        @action="toggleSplitView"
-        :disabled="isDisabled"
-      />
-      <action
         v-if="showEditButton"
         class="edit-button"
         icon="edit"
@@ -50,6 +41,15 @@
         icon="visibility"
         :label="$t('general.preview')"
         @action="goToPreview"
+        :disabled="isDisabled"
+      />
+      <action
+        v-if="showSplitViewToggle"
+        class="split-view-button"
+        :class="{ active: isSplitViewActive }"
+        icon="vertical_split"
+        :label="splitViewActionLabel"
+        @action="toggleSplitView"
         :disabled="isDisabled"
       />
       <action

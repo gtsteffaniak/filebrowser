@@ -636,7 +636,7 @@ export default {
     updateEditorStats() {
       if (!this.editor) return;
       const { lines, words, chars } = this.getSelectedStats();
-      const isMarkdown = this.editorMode === "markdown";
+      const isMarkdown = this.isMarkdownFile;
       if (isMarkdown) {
         mutations.setEditorStats({ lines, words, chars });
       } else {
