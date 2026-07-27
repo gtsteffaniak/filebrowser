@@ -42,8 +42,8 @@ const offsetFromBottomEmbedded = 12;
 export default {
   name: "Scrollbar",
   props: {
-    // to bypass 'currentView' for the editor split-view where currentView is editor
-    bypass: {
+    // to bypass the currentView for the editor split-view where currentView is editor
+    forceEnabled: {
       type: Boolean,
       default: false,
     },
@@ -91,14 +91,14 @@ export default {
       return this.isFolder ? 'folder' : 'description';
     },
     showScrollbar() {
-      if (this.bypass) return true;
+      if (this.forceEnabled) return true;
       const view = getters.currentView();
       return view === 'listingView' || view === 'settings' || view === 'tools' || view === 'markdownViewer';
     },
   },
   methods: {
     getBottomOffset() {
-      if (this.bypass) return offsetFromBottomEmbedded;
+      if (this.forceEnabled) return offsetFromBottomEmbedded;
       return getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
     },
     handleResize() {
@@ -135,7 +135,7 @@ export default {
       this.scrollTimeout = setTimeout(() => {
         if (!this.isDragging && !this.isHovering) {
           this.isVisible = false;
-          if (!this.bypass) {
+          if (!this.forceEnabled) {
             mutations.updateListing({ ...state.listing, scrolling: false });
           }
         }
@@ -178,7 +178,7 @@ export default {
         this.isVisible = true;
         this.scheduleHide();
         this.updateThumbPosition(content.scrollTop);
-        if (this.bypass) {
+        if (this.forceEnabled) {
           this.scrollFrame = null;
           return;
         }

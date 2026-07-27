@@ -33,6 +33,13 @@ import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import Scrollbar from "@/components/files/Scrollbar.vue";
 import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 
+const MD_SPLIT_PERCENT_KEY = "mdSplitPercent";
+
+function loadPreviewPercent() {
+  const stored = Number(sessionStorage.getItem(MD_SPLIT_PERCENT_KEY));
+  return stored > 20 && stored < 80 ? stored : 50;
+}
+
 export default {
   name: "markdownSplitView",
   components: {
@@ -60,14 +67,17 @@ export default {
     previewScrollEl: null as HTMLElement | null, // DOM node MarkdownViewer should scroll in split mode
     scrollGuard: createScrollSyncGuard(),
     lastEditAt: 0, // used to ignore incoming scroll for a bit while typing
-    previewPercent: 50, // width of this pane, dragged via the divider; resets each time split view mounts
+    previewPercent: loadPreviewPercent(), // width of this pane, dragged via the divider; persisted across the session
     isResizing: false,
     stopResize: null as (() => void) | null,
   }),
   watch: {
     active(isActive: boolean) {
-      if (isActive && this.editor) {
-        this.liveMarkdownContent = this.editor.getValue();
+      if (isActive) {
+        this.$emit("resize", 100 - this.previewPercent);
+        if (this.editor) {
+          this.liveMarkdownContent = this.editor.getValue();
+        }
       }
       this.$nextTick(() => {
         this.previewScrollEl = isActive ? (this.previewScrollWrapperEl() || null) : null;
@@ -76,6 +86,7 @@ export default {
   },
   mounted() {
     if (this.active) {
+      this.$emit("resize", 100 - this.previewPercent);
       this.$nextTick(() => {
         this.previewScrollEl = this.previewScrollWrapperEl() || null;
       });
@@ -113,8 +124,7 @@ export default {
         if (!container || clientX === null) return;
         const rect = container.getBoundingClientRect();
         const previewPercent = ((rect.right - clientX) / rect.width) * 100;
-        this.previewPercent = Math.min(80, Math.max(20, previewPercent));
-        this.$emit("resize", 100 - this.previewPercent);
+        this.setPreviewPercent(Math.min(80, Math.max(20, previewPercent)));
       };
       const onMove = (moveEvent: MouseEvent) => updatePercent(clientXFrom(moveEvent));
       const onTouchMove = (moveEvent: TouchEvent) => updatePercent(clientXFrom(moveEvent));
@@ -138,14 +148,18 @@ export default {
     handleKeydown(e: KeyboardEvent) {
       const step = e.shiftKey ? 10 : 2;
       if (e.key === "ArrowLeft") {
-        this.previewPercent = Math.min(80, this.previewPercent + step);
+        this.setPreviewPercent(Math.min(80, this.previewPercent + step));
       } else if (e.key === "ArrowRight") {
-        this.previewPercent = Math.max(20, this.previewPercent - step);
+        this.setPreviewPercent(Math.max(20, this.previewPercent - step));
       } else {
         return;
       }
       e.preventDefault();
-      this.$emit("resize", 100 - this.previewPercent);
+    },
+    setPreviewPercent(percent: number) {
+      this.previewPercent = percent;
+      sessionStorage.setItem(MD_SPLIT_PERCENT_KEY, String(percent));
+      this.$emit("resize", 100 - percent);
     },
     setLiveContent(value: string) {
       this.liveMarkdownContent = value;
