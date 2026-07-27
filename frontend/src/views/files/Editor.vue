@@ -261,18 +261,6 @@ export default {
     window.addEventListener("beforeunload", this.beforeUnloadHandler);
 
     this.setupNavigationGuard();
-    this.lastConfirmedUrl = window.location.href;
-    this.popStateHandler = () => {
-      if (this.isDirty && !this.viewerMode && !this.isPromptOpen) {
-        const attemptedUrl = window.location.href;
-        history.pushState(null, "", this.lastConfirmedUrl);
-        this.pendingNavigation = { fullPath: attemptedUrl.replace(window.location.origin, "") };
-        this.showSaveBeforeExitPrompt();
-      } else {
-        this.lastConfirmedUrl = window.location.href;
-      }
-    };
-    window.addEventListener("popstate", this.popStateHandler);
   },
   beforeUnmount() {
     if (this.viewerResizeObserver) {
@@ -282,7 +270,6 @@ export default {
 
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
-    window.removeEventListener("popstate", this.popStateHandler);
 
     if (this.editor) {
       this.editor.session.off('changeScrollTop', this.handleEditorScroll);
@@ -585,9 +572,6 @@ export default {
           this.showSaveBeforeExitPrompt();
           return;
         }
-        this.$nextTick(() => {
-          this.lastConfirmedUrl = window.location.href;
-        });
         next();
       });
     },
@@ -652,7 +636,7 @@ export default {
     updateEditorStats() {
       if (!this.editor) return;
       const { lines, words, chars } = this.getSelectedStats();
-      const isMarkdown = this.isMarkdownFile;
+      const isMarkdown = this.editorMode === "markdown";
       if (isMarkdown) {
         mutations.setEditorStats({ lines, words, chars });
       } else {
