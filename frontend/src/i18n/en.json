@@ -769,10 +769,18 @@
       "bulletList": "Bullet list",
       "numberedList": "Numbered list",
       "taskList": "Task list",
-      "table": "Table",
       "horizontalRule": "Horizontal rule",
       "undo": "Undo",
-      "redo": "Redo"
+      "redo": "Redo",
+      "moreOptions": "More options",
+      "inlineMath": "Inline Math",
+      "displayMath": "Display Math",
+      "highlight": "Highlight",
+      "superscript": "Superscript",
+      "subscript": "Subscript",
+      "text": "Text",
+      "cell": "Cell",
+      "column": "Column"
     }
   },
   "player": {

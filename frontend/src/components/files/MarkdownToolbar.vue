@@ -13,15 +13,39 @@
     >
       <i class="material-symbols">{{ btn.icon }}</i>
     </button>
+    <div>
+      <button
+        ref="extraMenuTrigger"
+        type="button"
+        class="md-toolbar-btn"
+        :title="$t('editor.md.moreOptions')"
+        :aria-label="$t('editor.md.moreOptions')"
+        @mousedown.prevent
+        @click="toggleExtraMenu"
+      >
+        <i class="material-symbols">more_horiz</i>
+      </button>
+      <Teleport to="body">
+        <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
+          <ul v-if="extraMenuOpen" ref="extraMenu" class="md-toolbar-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+            <li v-for="item in extraMenuItems" :key="item.id" @mousedown.prevent @click="extBtnAction(item)">
+              <i class="material-symbols">{{ item.icon }}</i>
+              <span>{{ item.title }}</span>
+            </li>
+          </ul>
+        </transition>
+      </Teleport>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import type { PropType } from "vue";
 import type { Ace } from "ace-builds";
-import { mutations, state } from "@/store";
+import { mutations, state, getters } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { removeLastDir } from "@/utils/url.js";
+import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
 
 interface PendingImageRange {
   start: { row: number; column: number };
@@ -37,6 +61,12 @@ function formatImageDestination(dest: string): string {
 
 function formatImageAltText(alt: string): string {
   return alt.replace(/([\\[\]])/g, "\\$1");
+}
+
+function advancePosition(pos: Ace.Point, str: string): Ace.Point {
+  const parts = str.split("\n");
+  if (parts.length === 1) return { row: pos.row, column: pos.column + str.length };
+  return { row: pos.row + parts.length - 1, column: parts[parts.length - 1].length };
 }
 
 interface ToolbarButton {
@@ -61,6 +91,8 @@ export default {
     pendingImageContextId: null as string | null,
     pendingImageRange: null as PendingImageRange | null,
     pendingImageAlt: "",
+    extraMenuOpen: false,
+    menuPosition: { top: 0, right: 0 },
   }),
   watch: {
     editor: {
@@ -72,13 +104,19 @@ export default {
     },
   },
   mounted() {
-    eventBus.on("pathSelected", this.onImagePathSelected);
-    eventBus.on("pathPickerCancelled", this.onImagePathPickerCancelled);
+    eventBus.on("pathSelected", this.imagePathSelected);
+    eventBus.on("pathPickerCancelled", this.imagePathPickerCancelled);
+    document.addEventListener("pointerdown", this.onPointerDown);
+    window.addEventListener("scroll", this.closeExtraMenu, true);
+    window.addEventListener("resize", this.closeExtraMenu);
   },
   beforeUnmount() {
     this.detachUndoListener(this.editor);
-    eventBus.off("pathSelected", this.onImagePathSelected);
-    eventBus.off("pathPickerCancelled", this.onImagePathPickerCancelled);
+    eventBus.off("pathSelected", this.imagePathSelected);
+    eventBus.off("pathPickerCancelled", this.imagePathPickerCancelled);
+    document.removeEventListener("pointerdown", this.onPointerDown);
+    window.removeEventListener("scroll", this.closeExtraMenu, true);
+    window.removeEventListener("resize", this.closeExtraMenu);
   },
   computed: {
     markdownToolbarButtons(): ToolbarButton[] {
@@ -97,12 +135,31 @@ export default {
         { id: "bulletList", icon: "format_list_bulleted", title: this.$t("editor.md.bulletList"), action: () => this.toggleLinePrefix("- ") },
         { id: "numberedList", icon: "format_list_numbered", title: this.$t("editor.md.numberedList"), action: () => this.applyNumberedList() },
         { id: "taskList", icon: "checklist", title: this.$t("editor.md.taskList"), action: () => this.toggleTaskList() },
-        { id: "table", icon: "table", title: this.$t("editor.md.table"), action: () => this.insertTable() },
+        { id: "table", icon: "table", title: this.$t("tools.activityViewer.tableView"), action: () => this.insertTable() },
         { id: "horizontalRule", icon: "horizontal_rule", title: this.$t("editor.md.horizontalRule"), action: () => this.insertHorizontalRule() },
       ];
     },
+    extraMenuItems(): ToolbarButton[] {
+      return [
+        { id: "inlineMath", icon: "functions", title: this.$t("editor.md.inlineMath"), action: () => this.wrapSelection("$", "$", "E = mc^2") },
+        { id: "displayMath", icon: "calculate", title: this.$t("editor.md.displayMath"), action: () => this.wrapSelection("$$\n", "\n$$", "E = mc^2") },
+        { id: "highlight", icon: "ink_highlighter", title: this.$t("editor.md.highlight"), action: () => this.wrapSelection("<mark>", "</mark>", this.$t("editor.md.highlight")) },
+        { id: "superscript", icon: "superscript", title: this.$t("editor.md.superscript"), action: () => this.wrapSelection("<sup>", "</sup>", "2") },
+        { id: "subscript", icon: "subscript", title: this.$t("editor.md.subscript"), action: () => this.wrapSelection("<sub>", "</sub>", "2") },
+        { id: "kbd", icon: "keyboard", title: this.$t("threejs.keyboard"), action: () => this.wrapSelection("<kbd>", "</kbd>", "Ctrl") },
+      ];
+    },
+    menuStyle() {
+      return { top: `${this.menuPosition.top}px`, right: `${this.menuPosition.right}px` };
+    },
+    isDarkMode() {
+      return getters.isDarkMode();
+    },
   },
   methods: {
+    expandBeforeEnter,
+    expandEnter,
+    expandLeave,
     focusEditor() {
       if (this.editor) this.editor.focus();
     },
@@ -148,26 +205,21 @@ export default {
       }
       return { startRow: range.start.row, endRow };
     },
-    wrapSelection(before: string, after: string = before) {
+    wrapSelection(before: string, after: string = before, placeholder: string = "") {
       const editor = this.editor;
       if (!editor) return;
       const range = editor.getSelectionRange();
       const selectedText = editor.getSelectedText();
+      const text = selectedText || placeholder;
+      const start = { row: range.start.row, column: range.start.column };
       if (selectedText) {
-        editor.session.replace(range, `${before}${selectedText}${after}`);
-        editor.selection.setRange({
-          start: { row: range.start.row, column: range.start.column + before.length },
-          end: {
-            row: range.end.row,
-            column: range.end.column + (range.start.row === range.end.row ? before.length : 0),
-          },
-        });
+        editor.session.replace(range, `${before}${text}${after}`);
       } else {
-        const pos = editor.getCursorPosition();
-        editor.insert(`${before}${after}`);
-        editor.moveCursorTo(pos.row, pos.column + before.length);
-        editor.clearSelection();
+        editor.session.insert(start, `${before}${text}${after}`);
       }
+      const contentStart = advancePosition(start, before);
+      const contentEnd = advancePosition(contentStart, text);
+      editor.selection.setRange({ start: contentStart, end: contentEnd });
       this.focusEditor();
     },
     toggleLinePrefix(prefix: string) {
@@ -260,7 +312,7 @@ export default {
       if (!editor) return;
       const selectedText = editor.getSelectedText();
       const range = editor.getSelectionRange();
-      const label = selectedText || "text";
+      const label = selectedText || this.$t("editor.md.text");
       const linkText = `[${label}](url)`;
       let insertionEnd: Ace.Point;
       if (selectedText) {
@@ -279,16 +331,19 @@ export default {
       }
       this.focusEditor();
     },
-    insertHorizontalRule() {
+    insertBlock(content: string) {
       const editor = this.editor;
       if (!editor) return;
       const pos = editor.getCursorPosition();
       const line = editor.session.getLine(pos.row);
       const needsNewlineBefore = line.trim() !== "";
-        editor.moveCursorTo(pos.row, line.length);
+      editor.moveCursorTo(pos.row, line.length);
       editor.clearSelection();
-      editor.insert(`${needsNewlineBefore ? "\n\n" : ""}---\n\n`);
+      editor.insert(`${needsNewlineBefore ? "\n\n" : ""}${content}`);
       this.focusEditor();
+    },
+    insertHorizontalRule() {
+      this.insertBlock("---\n\n");
     },
     insertImage() {
       const editor = this.editor;
@@ -317,7 +372,7 @@ export default {
         },
       });
     },
-    onImagePathSelected(data: { path?: string; selectionContextId?: string }) {
+    imagePathSelected(data: { path?: string; selectionContextId?: string }) {
       if (!this.pendingImageContextId || !data || data.selectionContextId !== this.pendingImageContextId) {
         return;
       }
@@ -336,7 +391,7 @@ export default {
       editor.clearSelection();
       this.focusEditor();
     },
-    onImagePathPickerCancelled(data: { selectionContextId?: string }) {
+    imagePathPickerCancelled(data: { selectionContextId?: string }) {
       if (!this.pendingImageContextId || !data || data.selectionContextId !== this.pendingImageContextId) {
         return;
       }
@@ -369,17 +424,36 @@ export default {
       }
       this.focusEditor();
     },
+    onPointerDown(e: PointerEvent) {
+      const target = e.target as Node;
+      const trigger = this.$refs.extraMenuTrigger as HTMLElement | undefined;
+      const menu = this.$refs.extraMenu as HTMLElement | undefined;
+      if (trigger?.contains(target) || menu?.contains(target)) return;
+      this.extraMenuOpen = false;
+    },
+    toggleExtraMenu() {
+      if (this.extraMenuOpen) {
+        this.closeExtraMenu();
+        return;
+      }
+      const trigger = this.$refs.extraMenuTrigger as HTMLElement | undefined;
+      if (trigger) {
+        const rect = trigger.getBoundingClientRect();
+        this.menuPosition = { top: rect.bottom + 4, right: window.innerWidth - rect.right };
+      }
+      this.extraMenuOpen = true;
+    },
+    closeExtraMenu() {
+      this.extraMenuOpen = false;
+    },
+    extBtnAction(item: ToolbarButton) {
+      this.extraMenuOpen = false;
+      item.action();
+    },
     insertTable() {
-      const editor = this.editor;
-      if (!editor) return;
-      const pos = editor.getCursorPosition();
-      const line = editor.session.getLine(pos.row);
-      const needsNewlineBefore = line.trim() !== "";
-      const table = "| Column 1 | Column 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n";
-      editor.moveCursorTo(pos.row, line.length);
-      editor.clearSelection();
-      editor.insert(`${needsNewlineBefore ? "\n\n" : ""}${table}`);
-      this.focusEditor();
+      const column = this.$t("editor.md.column");
+      const cell = this.$t("editor.md.cell");
+      this.insertBlock(`| ${column} 1 | ${column} 2 |\n| --- | --- |\n| ${cell} 1 | ${cell} 2 |\n`);
     },
   },
 };
@@ -434,5 +508,45 @@ export default {
 
 .md-toolbar-btn .material-symbols {
   font-size: 1.2em;
+}
+
+.md-toolbar-menu {
+  position: fixed;
+  margin: 0;
+  padding: 0.25em;
+  list-style: none;
+  min-width: 11em;
+  z-index: 9999;
+}
+
+.md-toolbar-menu li {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0.75em;
+  border-radius: 0.5em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.md-toolbar-menu li:hover {
+  background-color: var(--alt-background);
+}
+
+.md-toolbar-menu li .material-symbols {
+  font-size: 1.1em;
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.expand-enter,
+.expand-leave-to {
+  height: 0 !important;
+  opacity: 0;
 }
 </style>

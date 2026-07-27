@@ -679,6 +679,17 @@ export default {
   background-color: #161b22;
 }
 
+/* keybinds like <kbd>Ctrl</kbd> */
+#markedown-viewer .markdown-content kbd {
+  background-color: var(--background);
+  border: 1px solid var(--divider);
+  border-radius: 0.35em;
+  padding: 0.1em 0.5em;
+  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.85em;
+  box-shadow: inset 0 -2px 0 var(--divider);
+}
+
 #markedown-viewer .markdown-content-container .copy-code-button {
   position: absolute;
   top: 0.4em;
