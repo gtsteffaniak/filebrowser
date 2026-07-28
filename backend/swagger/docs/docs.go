@@ -6454,6 +6454,10 @@ const docTemplate = `{
                     "description": "comma separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
+                "editButtonInHeader": {
+                    "description": "show edit/preview buttons in header instead of the overflow menu",
+                    "type": "boolean"
+                },
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
@@ -7253,6 +7257,10 @@ const docTemplate = `{
                     "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
+                "editButtonInHeader": {
+                    "description": "show edit/preview buttons in header instead of the overflow menu",
+                    "type": "boolean"
+                },
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
@@ -7640,6 +7648,10 @@ const docTemplate = `{
                 "disableViewingExt": {
                     "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
+                },
+                "editButtonInHeader": {
+                    "description": "show edit/preview buttons in header instead of the overflow menu",
+                    "type": "boolean"
                 },
                 "editorQuickSave": {
                     "description": "show quick save button in editor",

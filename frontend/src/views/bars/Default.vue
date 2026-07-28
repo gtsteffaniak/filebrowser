@@ -167,10 +167,12 @@ export default {
     },
     showEditButton() {
       if (this.isSplitViewActive) return false;
+      if (!state.user?.editButtonInHeader) return false;
       return getters.currentView() === "markdownViewer" && getters.permissions().modify;
     },
     showPreviewButton() {
       if (this.isSplitViewActive) return false;
+      if (!state.user?.editButtonInHeader) return false;
       if (getters.currentView() !== "editor") return false;
       return isRichTextPreviewMimeType(state.req.type);
     },
