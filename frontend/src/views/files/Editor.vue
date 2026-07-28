@@ -64,6 +64,7 @@ export default {
   data: () => ({
     editor: null, // The editor instance
     isDirty: false,
+    savedContent: "", // content used for dirty comparisons
     suppressDirtyTracking: false,
     originalReq: null,
     saveLocked: false, // Lock saves during req transitions
@@ -199,6 +200,7 @@ export default {
           this.editor.session.getUndoManager().reset();
           this.updateEditorStats();
           this.suppressDirtyTracking = false;
+          this.savedContent = newContent;
           this.isDirty = false;
           mutations.setEditorDirty(false);
         }
@@ -308,10 +310,10 @@ export default {
     }
 
     this.originalReq = this.req;
-    this.initializeEditor();
     if (this.isMarkdownFile && this.req?.path) {
       mutations.resetEditorScrollRatio(this.req.path);
     }
+    this.initializeEditor(state.editor.scrollRatio);
 
     // Register save handler so other components can trigger save
     mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
@@ -401,7 +403,7 @@ export default {
         directoryPath: directoryPath
       });
     },
-    initializeEditor() {
+    initializeEditor(initialScrollRatio = state.editor.scrollRatio) {
       const editorEl = document.getElementById("editor");
       if (!editorEl) {
         return;
@@ -432,12 +434,13 @@ export default {
           fontSize: `${state.editor.fontSize}px`,
         });
 
+        this.savedContent = this.editorContent;
         this.editor.setOption('displayIndentGuides', true);
         this.editor.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
 
         this.editor.on('change', () => {
           if (this.suppressDirtyTracking) return;
-          const dirty = this.editor.getValue() !== this.editorContent;
+          const dirty = this.editor.getValue() !== this.savedContent;
           this.isDirty = dirty;
           mutations.setEditorDirty(dirty);
           this.updateEditorStats();
@@ -455,7 +458,7 @@ export default {
         if (!this.viewerMode) {
           if (this.isMarkdownFile) {
             this.$nextTick(() => {
-              this.$refs.splitView?.applyScrollRatio(state.editor.scrollRatio, true);
+              this.$refs.splitView?.applyScrollRatio(initialScrollRatio, true);
               requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                   if (!this.editor) return;
@@ -530,6 +533,7 @@ export default {
       }
 
       notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);
+      this.savedContent = this.editor.getValue();
       this.isDirty = false;
       mutations.setEditorDirty(false);
     },

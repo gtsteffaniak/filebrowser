@@ -891,14 +891,14 @@ export default {
   margin: 1em 0;
   padding: 0.1em 1em;
   border-left: 0.25em solid var(--primaryColor);
-  color: color-mix(in srgb, var(--textPrimary) 70%, transparent);
+  background-color: color-mix(in srgb, var(--primaryColor) 5%, transparent);
+  color: color-mix(in srgb, var(--textPrimary) 75%, transparent);
   border-radius: 0 0.5em 0.5em 0;
 }
 
-/* Nested blockquotes step in slightly rather than restacking the same border */
 #markedown-viewer .markdown-content blockquote blockquote {
-  margin: 0.5em 0;
   border-left-color: color-mix(in srgb, var(--primaryColor) 50%, transparent);
+  background-color: transparent;
 }
 
 #markedown-viewer .markdown-content blockquote p {
@@ -911,6 +911,13 @@ export default {
 
 #markedown-viewer .markdown-content blockquote > :last-child {
   margin-bottom: 0;
+}
+
+/* mark (highlight) tags */
+#markedown-viewer .markdown-content mark {
+  background-color: var(--primaryColor);
+  border-radius: 2px;
+  padding: 0 0.2em;
 }
 
 </style>

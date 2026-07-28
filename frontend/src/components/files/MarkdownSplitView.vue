@@ -8,10 +8,8 @@
       :aria-valuenow="Math.round(previewPercent)"
       aria-valuemin="20"
       aria-valuemax="80"
-      tabindex="0"
       @mousedown="startResize"
       @touchstart="startResize"
-      @keydown="handleKeydown"
     ></div>
     <div class="split-preview-pane" :style="{ flexBasis: `${previewPercent}%` }">
       <Scrollbar ref="previewScrollWrapper" force-enabled class="split-preview-scrollbar">
@@ -144,17 +142,6 @@ export default {
       window.addEventListener("touchmove", onTouchMove, { passive: false });
       window.addEventListener("touchend", onUp);
       window.addEventListener("touchcancel", onUp);
-    },
-    handleKeydown(e: KeyboardEvent) {
-      const step = e.shiftKey ? 10 : 2;
-      if (e.key === "ArrowLeft") {
-        this.setPreviewPercent(Math.min(80, this.previewPercent + step));
-      } else if (e.key === "ArrowRight") {
-        this.setPreviewPercent(Math.max(20, this.previewPercent - step));
-      } else {
-        return;
-      }
-      e.preventDefault();
     },
     setPreviewPercent(percent: number) {
       this.previewPercent = percent;
