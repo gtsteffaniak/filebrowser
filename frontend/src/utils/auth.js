@@ -91,6 +91,24 @@ export async function logout() {
   }
 }
 
+// Handle an authenticated request that came back 401 because the session cookie
+// (JWT) is no longer valid — typically it expired while the tab was idle. Unlike
+// logout(), this does NOT call the server (which would itself 401 on an expired
+// token and leave the stale cookie in place); it clears the cookie locally and
+// redirects to the login page so the user can re-authenticate, instead of being
+// stuck on a raw "token is expired" error.
+export function sessionExpired() {
+  document.cookie =
+    "filebrowser_quantum_jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+  void mutations.setCurrentUser(null);
+  // Avoid a redirect loop if we're already on the login page.
+  if (window.location.pathname.endsWith("/login")) {
+    return;
+  }
+  const current = window.location.pathname + window.location.search;
+  window.location.href = `${globalVars.baseURL}login?redirect=${encodeURIComponent(current)}`;
+}
+
 // Helper function to retrieve the value of a specific cookie
 //function getCookie(name) {
 //  return document.cookie

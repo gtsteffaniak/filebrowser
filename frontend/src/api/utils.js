@@ -1,6 +1,6 @@
 import i18n from "@/i18n";
-import { state } from "@/store";
-import { renew } from "@/utils/auth";
+import { getters, state } from "@/store";
+import { renew, sessionExpired } from "@/utils/auth";
 
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
@@ -35,6 +35,13 @@ export async function fetchURL(url, opts, auth = true) {
   if (res.status < 200 || res.status > 299) {
     const error = new Error(await res.text());
     error.status = res.status;
+    // A 401 on an authenticated (non-share) request while we believe we are
+    // logged in means the session cookie / JWT is no longer valid (e.g. it
+    // expired). Clear it and redirect to login, rather than surfacing a raw
+    // "token is expired" error and leaving the app stuck reusing the dead cookie.
+    if (auth && res.status === 401 && getters.isLoggedIn() && !getters.isShare()) {
+      sessionExpired();
+    }
     throw error;
   }
 
