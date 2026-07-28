@@ -651,6 +651,8 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "editButtonInHeader": "Szerkesztés/előnézet gombok megjelenítése a fejlécben",
+    "editButtonInHeaderDescription": "A szerkesztés/előnézet gombok megjelenítése a fejlécben a túlcsordulási menü helyett",
     "hideFileExt": "Bizonyos fájlok elrejtése (kiterjesztés alapján)",
     "hideFileExtDescription": "Szóközzel elválasztott fájlkiterjesztések listája. Az ebben a mezőben megadott kiterjesztések elrejtésre kerülnek a teljes felhasználói felületen (vizuálisan, például a listában vagy a fájlfastruktúrában) — továbbra is elérhetők maradnak.",
     "preferEditorForMarkdown": "Szerkesztő előnyben részesítése Markdown fájlokhoz",

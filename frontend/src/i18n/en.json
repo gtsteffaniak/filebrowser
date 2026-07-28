@@ -481,6 +481,8 @@
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
+    "editButtonInHeader": "Show edit/preview buttons in header",
+    "editButtonInHeaderDescription": "Show the edit/preview buttons in the header instead of the overflow menu",
     "enforcedByAdmin": "Your administrator has prevented users from changing this property",
     "hideFileExt": "Hide certain files (by extension)",
     "hideFileExtDescription": "A space-separated list of file extensions. Extensions in this field will be hidden from all the UI (visually, like the listing or FileTree) -- The files still accessible.",
@@ -495,8 +497,6 @@
     "debugOfficeEditorDescription": "Show a debug popup with additional information in the OnlyOffice editor.",
     "defaultMediaPlayer": "Use your browser's native media player",
     "defaultMediaPlayerDescription": "Use your browser's native media player for video and audio files rather than FileBrowser's included 'vue-plyr' media player.",
-    "editButtonInHeader": "Show edit/preview buttons in header",
-    "editButtonInHeaderDescription": "Show the edit/preview buttons in the header instead of the overflow menu",
     "showSelectMultiple": "Show select multiple in context menu on desktop",
     "showSelectMultipleDescription": "By default, desktop context menu does not have \"select multiple\" option like mobile. This option always shows it in the context menu.",
     "customTheme": "Choose your theme",

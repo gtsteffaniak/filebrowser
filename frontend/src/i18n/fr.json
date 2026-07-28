@@ -651,6 +651,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "editButtonInHeader": "Afficher les boutons d'édition/aperçu dans l'en-tête",
+    "editButtonInHeaderDescription": "Afficher les boutons d'édition/aperçu dans l'en-tête plutôt que dans le menu de débordement",
     "hideFileExt": "Masquer certains fichiers (par extension)",
     "hideFileExtDescription": "Une liste d'extensions de fichiers séparées par des espaces. Les extensions saisies dans ce champ seront masquées dans toute l'interface utilisateur (visuellement, comme dans la liste ou l'arborescence) — Elles restent accessibles.",
     "preferEditorForMarkdown": "Privilégier d'abord l'éditeur pour les fichiers Markdown",

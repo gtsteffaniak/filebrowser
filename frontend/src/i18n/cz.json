@@ -317,6 +317,8 @@
     "allFileTypes": "Všechny typy souborů"
   },
   "profileSettings": {
+    "editButtonInHeader": "Zobrazit tlačítka pro úpravy/náhled v záhlaví",
+    "editButtonInHeaderDescription": "Zobrazit tlačítka pro úpravy/náhled v záhlaví místo v rozbalovací nabídce",
     "hideFileExt": "Skrýt určité soubory (podle přípony)",
     "hideFileExtDescription": "Seznam přípon souborů oddělených mezerami. Přípony zadané v tomto poli budou skryty ve všech částech UI (vizuálně, např. v seznamu nebo stromu souborů) — stále jsou přístupné.",
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",

@@ -651,6 +651,8 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "editButtonInHeader": "Pokaż przyciski edycji/podglądu w nagłówku",
+    "editButtonInHeaderDescription": "Pokaż przyciski edycji/podglądu w nagłówku zamiast w menu rozwijanym",
     "hideFileExt": "Ukryj wybrane pliki (według rozszerzenia)",
     "hideFileExtDescription": "Lista rozszerzeń plików oddzielonych spacjami. Rozszerzenia wprowadzone w tym polu zostaną ukryte w całym interfejsie użytkownika (wizualnie, np. na liście lub w drzewie plików) — Nadal pozostają dostępne.",
     "preferEditorForMarkdown": "Preferuj edytor dla plików Markdown",

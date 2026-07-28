@@ -651,6 +651,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "editButtonInHeader": "Schaltflächen zum Bearbeiten/Vorschau in der Kopfzeile anzeigen",
+    "editButtonInHeaderDescription": "Die Schaltflächen zum Bearbeiten/Vorschau in der Kopfzeile anstelle des Überlaufmenüs anzeigen",
     "hideFileExt": "Bestimmte Dateien ausblenden (nach Erweiterung)",
     "hideFileExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen. Erweiterungen, die in dieses Feld eingegeben werden, werden in der gesamten Benutzeroberfläche ausgeblendet (visuell, z.B. in der Liste oder im Dateibaum) – sie bleiben jedoch zugänglich.",
     "preferEditorForMarkdown": "Editor für Markdown-Dateien bevorzugen",

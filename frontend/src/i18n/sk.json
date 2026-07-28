@@ -651,6 +651,8 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "editButtonInHeader": "Zobraziť tlačidlá úprav/náhľadu v hlavičke",
+    "editButtonInHeaderDescription": "Zobraziť tlačidlá úprav/náhľadu v hlavičke namiesto v rozbaľovacej ponuke",
     "hideFileExt": "Skryť určité súbory (podľa prípony)",
     "hideFileExtDescription": "Zoznam prípon súborov oddelených medzerami. Prípony zadané v tomto poli budú skryté v celom používateľskom rozhraní (vizuálne, napr. v zozname alebo strome súborov) — Stále sú prístupné.",
     "preferEditorForMarkdown": "Uprednostniť editor pre Markdown súbory",

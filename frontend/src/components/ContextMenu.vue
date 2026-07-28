@@ -418,7 +418,13 @@ export default {
       return false
     },
     hasOverflowItems() {
-      return this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload || this.showUnarchiveInOverflow;
+      return this.showDelete
+        || this.showSave
+        || this.showGoToRaw
+        || this.hasDownload
+        || this.showUnarchiveInOverflow
+        || this.showEditButton
+        || this.showPreviewButton;
     },
     showUnarchiveInOverflow() {
       if (!this.permissions.create || getters.isShare()) return false;
@@ -912,13 +918,16 @@ export default {
         // Call the editor save handler directly and await completion
         if (state.editor.saveHandler) {
           await state.editor.saveHandler();
+          buttons.success(button);
         } else {
-          throw new Error("Editor save handler not found");
+          const errorMsg = "No editor save handler registered";
+          notify.showError(errorMsg);
+          throw new Error(errorMsg);
         }
-        buttons.success(button);
-      } catch (_e) {
-        // Don't show error notification here - API layer already showed it
+      } catch (e) {
         buttons.done(button);
+        mutations.closeHovers();
+        throw e;
       }
       mutations.closeHovers();
     },
