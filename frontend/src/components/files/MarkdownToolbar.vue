@@ -405,20 +405,25 @@ export default {
       const { startRow, endRow } = this.selectedLineRange();
       const session = editor.session;
       const taskPrefix = /^- \[[ xX]\] /;
+      const unchecked = /^- \[ \] /;
+      const checked = /^- \[[xX]\] /;
       const lines = [];
       for (let row = startRow; row <= endRow; row++) {
         lines.push(session.getLine(row));
       }
       const nonBlank = lines.filter((line) => line.trim() !== "");
-      const allTasked = (nonBlank.length ? nonBlank : lines).every((line) => taskPrefix.test(line));
+      const target = nonBlank.length ? nonBlank : lines;
+      const allUnchecked = target.every((line) => unchecked.test(line));
+      const allChecked = target.every((line) => checked.test(line));
+      const action = allUnchecked ? "check" : allChecked ? "remove" : "add";
       for (let row = startRow; row <= endRow; row++) {
         const line = session.getLine(row);
         const match = line.match(taskPrefix);
-        if (allTasked) {
-          if (match) {
-            session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, "");
-          }
-        } else if (!match && (nonBlank.length === 0 || line.trim() !== "")) {
+        if (action === "remove") {
+          if (match) session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, "");
+        } else if (match) {
+          session.replace({ start: { row, column: 3 }, end: { row, column: 4 } }, action === "check" ? "x" : " ");
+        } else if (nonBlank.length === 0 || line.trim() !== "") {
           session.insert({ row, column: 0 }, "- [ ] ");
         }
       }

@@ -20,13 +20,13 @@
 
 <script lang="ts">
 import type { PropType } from "vue";
+import type { HLJSApi } from 'highlight.js';
 import { Marked, Token } from "marked";
 import markedKatex from "marked-katex-extension";
 import "katex/contrib/mhchem"; // To render chemistry formulas
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
-import hljs from 'highlight.js';
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
@@ -37,8 +37,28 @@ import {
   rewriteDocumentStyles,
 } from "@/utils/htmlPreview";
 
-import githubLightCss from "highlight.js/styles/github.min.css?raw";
-import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
+// Lazy load highlight.js -- it was making the viewer bloated, so now is on its own chunk grouped with its theme
+let hljsPromise: Promise<HLJSApi> | null = null;
+function loadHljs(): Promise<HLJSApi> {
+  if (hljsPromise === null) {
+    hljsPromise = import('highlight.js').then((mod) => mod.default);
+  }
+  return hljsPromise;
+}
+
+const highlightCssPromises = new Map<"light" | "dark", Promise<string>>();
+function loadHighlightCss(variant: "light" | "dark"): Promise<string> {
+  let promise = highlightCssPromises.get(variant);
+  if (promise === undefined) {
+    promise = (
+      variant === "dark"
+        ? import("highlight.js/styles/github-dark.min.css?raw")
+        : import("highlight.js/styles/github.min.css?raw")
+    ).then((mod) => mod.default);
+    highlightCssPromises.set(variant, promise);
+  }
+  return promise;
+}
 
 const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
 
@@ -121,15 +141,13 @@ export default {
       } catch { /* ignore */ }
       iframe.style.height = `${Math.max(available, contentHeight)}px`;
     },
-    // This theme switcher logic is correct and remains.
-    setHighlightTheme(isDark: boolean) {
+    async setHighlightTheme(isDark: boolean) {
       const THEME_STYLE_ID = "highlight-theme-style";
-      const cssText = isDark ? githubDarkCss : githubLightCss;
+      const themeMode = await loadHighlightCss(isDark ? "dark" : "light");
       const nonce =
         typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== ""
           ? globalVars.cspNonce
           : "";
-
       let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
       if (!style) {
         style = document.createElement("style");
@@ -141,30 +159,32 @@ export default {
       } else if (nonce) {
         style.setAttribute("nonce", nonce);
       }
-      style.textContent = cssText;
+      style.textContent = themeMode;
     },
-    // NEW METHOD: Finds and highlights all code blocks and adds line numbers
-    applyHighlighting() {
+    // Highlights code blocks and adds line numbers
+    async applyHighlighting() {
       const viewer = this.$refs.viewer as HTMLElement;
-      if (viewer) {
-        // This tells highlight.js to find and style every code block.
-        viewer.querySelectorAll('pre code').forEach((block) => {
-          const codeBlock = block as HTMLElement;
-          const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
-          const lang = langClass ? langClass.split('-')[1] : null;
+      if (!viewer?.querySelector('pre code')) return;
+      const [hljs] = await Promise.all([
+        loadHljs(),
+        this.setHighlightTheme(getters.isDarkMode()),
+      ]);
+      // Re-query in case content changed while highlight.js was loading
+      viewer.querySelectorAll('pre code').forEach((block) => {
+        const codeBlock = block as HTMLElement;
+        const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
+        const lang = langClass ? langClass.split('-')[1] : null;
 
-          if (lang && hljs.getLanguage(lang)) {
-            hljs.highlightElement(codeBlock);
-          } else {
-            const text = codeBlock.textContent ?? '';
-            const result = hljs.highlightAuto(text);
-            codeBlock.innerHTML = result.value;
-            codeBlock.classList.add('hljs');
-          }
-          // Add line numbers manually after highlighting
-          this.addLineNumbers(codeBlock);
-        });
-      }
+        if (lang && hljs.getLanguage(lang)) {
+          hljs.highlightElement(codeBlock);
+        } else {
+          const text = codeBlock.textContent ?? '';
+          const result = hljs.highlightAuto(text);
+          codeBlock.innerHTML = result.value;
+          codeBlock.classList.add('hljs');
+        }
+        this.addLineNumbers(codeBlock);
+      });
     },
     // Manual line numbers implementation
     addLineNumbers(codeBlock: HTMLElement) {
@@ -430,7 +450,6 @@ export default {
         modified: state.req.modified,
         hasPreview: state.req.hasPreview,
       });
-      this.setHighlightTheme(getters.isDarkMode());
       // Set initial content. The `watch` will trigger the first highlight.
       // In split mode, prefer the editor live buffer over the file.
       const fileContent = state.req.content === "empty-file-x6OlSil" ? "" : state.req.content || "";
@@ -445,8 +464,8 @@ export default {
       this.updateEditorStats();
     },
     finalizeContentRender(target: number) {
-      this.$nextTick(() => {
-        this.applyHighlighting();
+      this.$nextTick(async () => {
+        await this.applyHighlighting();
         if (!this.isHtml) this.applyScrollRatio(target);
       });
     },
@@ -552,7 +571,10 @@ export default {
       this.reinit()
     },
     darkMode() {
-      this.setHighlightTheme(getters.isDarkMode());
+      const viewer = this.$refs.viewer as HTMLElement | null;
+      if (viewer?.querySelector('pre code')) {
+        void this.setHighlightTheme(getters.isDarkMode());
+      }
     },
     editorScrollRatio() {
       if (this.isHtml || state.editor.scrollSource === 'viewer') return;
