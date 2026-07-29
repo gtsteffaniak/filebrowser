@@ -57,6 +57,7 @@ This version represents the most significant change to date. It **requires** bot
  - v2.x.x uses a new write-through backend state management. Changes go through a fast memory layer and also write changes to database to stay in sync. See [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/).
  - CLI server start (`./filebrowser`), `setup`, `version`, and `set rule` syntax unchanged; see [CLI docs](https://filebrowserquantum.com/en/docs/reference/cli/)
  - new dropdown and input styles
+ - swipe gestures to dismiss notifications (#2672)
  - user updates are more granular, don't include entire user payload.
  - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
  - removed legacy and deprecated properties from API responses and generated config output

@@ -4,9 +4,15 @@
       <div
         v-for="notification in notifications"
         :key="notification.id"
-        :class="['notification-item', 'border-radius', notification.type]"
-        @mouseenter="pauseAutoClose(notification.id)"
-        @mouseleave="resumeAutoClose(notification.id)"
+        :data-notification-id="notification.id"
+        :class="['notification-item', 'border-radius', notification.type, { swiping: isSwiping(notification.id) }]"
+        :style="swipeStyle(notification.id)"
+        @mouseenter="pauseTimer(notification.id, 'hover')"
+        @mouseleave="resumeTimer(notification.id, 'hover')"
+        @pointerdown="onPointerDown($event, notification.id)"
+        @pointermove="onPointerMove($event, notification.id)"
+        @pointerup="onPointerUp($event, notification.id)"
+        @pointercancel="onPointerUp($event, notification.id)"
       >
         <!-- Close button - always present on every notification, separate from optional buttons array -->
         <i class="material-symbols" @click="closeNotification(notification.id)">close</i>
@@ -54,15 +60,42 @@ import { notify } from "@/notify";
 export default {
   name: "notifications",
   data: () => ({
-    notifications: []
+    notifications: [],
+    swipe: new Map(),
+    swipeDistance: 180, // in px
+    pause: new Map(),
+    selectionId: null
   }),
+  computed: {
+    swipeCommitDistance() {
+      return this.swipeDistance / 15;
+    }
+  },
   mounted() {
     // Initialize notifications
     this.notifications = notify.getNotifications();
     // Register callback to receive notification updates
     notify.setUpdateCallback((notifications) => {
       this.notifications = notifications;
+      const activeIds = new Set(notifications.map(n => n.id));
+      for (const id of this.pause.keys()) {
+        if (!activeIds.has(id)) this.pause.delete(id);
+      }
+      for (const id of this.swipe.keys()) {
+        if (!activeIds.has(id)) this.swipe.delete(id);
+      }
+      if (this.selectionId && !activeIds.has(this.selectionId)) {
+        this.selectionId = null;
+      }
     });
+    window.addEventListener('pointerup', this.handleWindowPointerEnd);
+    window.addEventListener('pointercancel', this.handleWindowPointerEnd);
+    document.addEventListener('selectionchange', this.handleSelectionChange);
+  },
+  beforeUnmount() {
+    window.removeEventListener('pointerup', this.handleWindowPointerEnd);
+    window.removeEventListener('pointercancel', this.handleWindowPointerEnd);
+    document.removeEventListener('selectionchange', this.handleSelectionChange);
   },
   methods: {
     closeNotification(notificationId) {
@@ -82,6 +115,134 @@ export default {
     },
     resumeAutoClose(notificationId) {
       notify.resumeAutoClose(notificationId);
+    },
+    // Notifications timer can be paused by hover, text selection and in-progress swipe
+    pauseTimer(notificationId, reason) {
+      if (!notificationId) return;
+      if (!this.pause.has(notificationId)) {
+        this.pause.set(notificationId, new Set());
+      }
+      this.pause.get(notificationId).add(reason);
+      this.pauseAutoClose(notificationId);
+    },
+    resumeTimer(notificationId, reason) {
+      if (!notificationId) return;
+      const reasons = this.pause.get(notificationId);
+      if (!reasons) return;
+      reasons.delete(reason);
+      if (reasons.size === 0) {
+        this.pause.delete(notificationId);
+        this.resumeAutoClose(notificationId);
+      }
+    },
+    handleSelectionChange() {
+      const selection = window.getSelection();
+      const hasText = !!selection && selection.toString().length > 0;
+      let activeId = null;
+
+      if (hasText && selection.anchorNode) {
+        const anchorEl = selection.anchorNode.nodeType === Node.TEXT_NODE
+          ? selection.anchorNode.parentElement
+          : selection.anchorNode;
+        activeId = anchorEl?.closest?.('.notification-item')?.dataset.notificationId || null;
+      }
+      if (activeId === this.selectionId) return;
+      if (this.selectionId) this.resumeTimer(this.selectionId, 'selection');
+      if (activeId) this.pauseTimer(activeId, 'selection');
+      this.selectionId = activeId;
+    },
+    // A swipe only commits if there's no active text selection and the swipe is (obviously) horizontal.
+    isSwiping(notificationId) {
+      return !!this.swipe.get(notificationId)?.dragging;
+    },
+    swipeStyle(notificationId) {
+      const swipeState = this.swipe.get(notificationId);
+      if (!swipeState || (!swipeState.dragging && !swipeState.deltaX)) return {};
+      const distance = Math.abs(swipeState.deltaX);
+      const fade = Math.max(0, 1 - distance / (swipeState.width || 240));
+      return {
+        transform: `translateX(${swipeState.deltaX}px)`,
+        opacity: fade
+      };
+    },
+    onPointerDown(event, notificationId) {
+      if (event.button !== undefined && event.button !== 0) return;
+      this.swipe.set(notificationId, {
+        element: event.currentTarget,
+        startX: event.clientX,
+        startY: event.clientY,
+        deltaX: 0,
+        dragging: false,
+        rejected: false,
+        width: event.currentTarget.offsetWidth || 240,
+        pointerId: event.pointerId
+      });
+    },
+    onPointerMove(event, notificationId) {
+      const swipeState = this.swipe.get(notificationId);
+      if (!swipeState || swipeState.rejected) return;
+
+      const deltaX = event.clientX - swipeState.startX;
+      const deltaY = event.clientY - swipeState.startY;
+
+      if (!swipeState.dragging) {
+        // If the browser has already started highlighting text let it continue
+        const hasSelection = (window.getSelection?.()?.toString() || '').length > 0;
+        if (hasSelection) {
+          swipeState.rejected = true;
+          this.swipe.set(notificationId, swipeState);
+          return;
+        }
+        const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+        if (isHorizontal && Math.abs(deltaX) > this.swipeCommitDistance) {
+          swipeState.element.setPointerCapture?.(swipeState.pointerId);
+          this.pauseTimer(notificationId, 'swipe');
+          swipeState.dragging = true;
+        } else if (!isHorizontal && Math.abs(deltaY) > this.swipeCommitDistance) {
+          swipeState.rejected = true;
+          this.swipe.set(notificationId, swipeState);
+          return;
+        }
+      }
+      if (swipeState.dragging) {
+        event.preventDefault();
+        swipeState.deltaX = deltaX;
+      }
+      this.swipe.set(notificationId, swipeState);
+    },
+    onPointerUp(_event, notificationId) {
+      const swipeState = this.swipe.get(notificationId);
+      if (!swipeState || swipeState.closing) return;
+      if (!swipeState.dragging) {
+        this.swipe.delete(notificationId);
+        return;
+      }
+      swipeState.element.releasePointerCapture?.(swipeState.pointerId);
+      const threshold = Math.max(this.swipeDistance, swipeState.width * 0.55);
+      if (Math.abs(swipeState.deltaX) > threshold) {
+        const direction = swipeState.deltaX > 0 ? 1 : -1;
+        swipeState.dragging = false;
+        swipeState.closing = true;
+        swipeState.deltaX = direction * swipeState.width * 1.2;
+        this.swipe.set(notificationId, swipeState);
+        this.pause.delete(notificationId);
+        this.closeNotification(notificationId);
+        setTimeout(() => {
+          this.swipe.delete(notificationId);
+        }, 250);
+      } else {
+        swipeState.dragging = false;
+        swipeState.deltaX = 0;
+        this.swipe.set(notificationId, swipeState);
+        this.resumeTimer(notificationId, 'swipe');
+      }
+    },
+    handleWindowPointerEnd(event) {
+      for (const [notificationId, swipeState] of this.swipe) {
+        if (swipeState.pointerId === event.pointerId) {
+          this.onPointerUp(event, notificationId);
+        }
+      }
     }
   },
 };
@@ -114,11 +275,17 @@ export default {
   display: flex;
   padding: 0.5em;
   align-items: center;
-  transition: right 1s ease;
+  transition: right 1s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
   z-index: 21;
   pointer-events: all;
   user-select: text;
   overflow: hidden;
+  touch-action: pan-y;
+}
+
+.notification-item.swiping {
+  transition: none;
+  cursor: grabbing;
 }
 
 /* selection color for better visibility (since the selection color is the same as --primaryColor) */
