@@ -90,6 +90,10 @@ function loadKatex(): Promise<void> {
     ]).then(([{ default: markedKatex }]) => {
       marked.use(markedKatex({ throwOnError: false, output: "mathml" }));
       katexLoaded = true;
+    }).catch((err) => {
+      console.error("Failed to load katex:", err);
+      katexPromise = null;
+      throw err;
     });
   }
   return katexPromise;
@@ -148,18 +152,39 @@ export default {
       boundScrollEl: null as HTMLElement | null,
       isLoadingNewContent: false,
       katexReady: false,
+      htmlResizeObserver: null as ResizeObserver | null,
+      htmlContentHeight: 0,
     };
   },
   methods: {
     htmlPreviewHeight() {
+      if (!this.isHtml) return;
+      const iframe = this.$refs.viewer as HTMLIFrameElement | undefined;
+      if (!iframe) return;
+      let contentHeight = 0;
+      try {
+        contentHeight = (iframe.contentWindow?.document?.documentElement?.scrollHeight || 0) + 25; // 25px of extra room, otherwise feels "stuck" on mobile
+      } catch { /* ignore */ }
+      this.htmlContentHeight = contentHeight;
+      this.applyHtmlPreviewHeight();
+    },
+    applyHtmlPreviewHeight() {
       const iframe = this.$refs.viewer as HTMLIFrameElement | undefined;
       if (!iframe || !this.isHtml) return;
       const available = window.innerHeight - iframe.getBoundingClientRect().top;
-      let contentHeight = 0;
-      try {
-        contentHeight = iframe.contentWindow?.document?.documentElement?.scrollHeight || 0;
-      } catch { /* ignore */ }
-      iframe.style.height = `${Math.max(available, contentHeight)}px`;
+      iframe.style.height = `${Math.max(available, this.htmlContentHeight)}px`;
+    },
+    observeHtmlResize() {
+      if (this.htmlResizeObserver) return;
+      window.addEventListener("resize", this.applyHtmlPreviewHeight);
+      this.htmlResizeObserver = new ResizeObserver(() => this.applyHtmlPreviewHeight());
+      this.htmlResizeObserver.observe(this.$el);
+    },
+    unobserveHtmlResize() {
+      if (!this.htmlResizeObserver) return;
+      window.removeEventListener("resize", this.applyHtmlPreviewHeight);
+      this.htmlResizeObserver.disconnect();
+      this.htmlResizeObserver = null;
     },
     async setHighlightTheme(isDark: boolean) {
       const THEME_STYLE_ID = "highlight-theme-style";
@@ -624,6 +649,12 @@ export default {
         this.applyScrollRatio(state.editor.scrollRatio);
       }
     },
+    isHtml(newVal) {
+      this.$nextTick(() => {
+        if (newVal) this.observeHtmlResize();
+        else this.unobserveHtmlResize();
+      });
+    },
   },
   computed: {
     req() {
@@ -658,6 +689,7 @@ export default {
     this.$nextTick(() => {
       this.attachScrollListener(this.getScrollContainer());
     });
+    if (this.isHtml) this.observeHtmlResize();
   },
   beforeUnmount() {
     if (this.scrollGuard.cancel()) {
@@ -666,6 +698,7 @@ export default {
   },
   unmounted() {
     this.attachScrollListener(null);
+    this.unobserveHtmlResize();
     if (this.liveContentTimer) {
       clearTimeout(this.liveContentTimer);
       this.liveContentTimer = null;
