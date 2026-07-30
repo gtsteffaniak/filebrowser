@@ -58,7 +58,7 @@ function loadHighlightCss(variant: "light" | "dark"): Promise<string> {
   return promise;
 }
 
-const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation", "video", "track"] };
+const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
 
 const marked = new Marked({ gfm: true });
 marked.use({
@@ -442,7 +442,7 @@ export default {
         } catch (_e) {
           html = "";
         }
-        if (token.type === "html" && html) {
+        if ((token.type === "html" || /<(?:video|audio|source|track)\b/i.test(token.raw)) && html) {
           html = rewriteHtmlBlockForMd(html, filePath, source);
         }
         const lineCount = (token.raw.match(/\n/g) || []).length;

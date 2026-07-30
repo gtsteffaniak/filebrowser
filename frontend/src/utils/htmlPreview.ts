@@ -54,12 +54,11 @@ const NAV_GUARD_SCRIPT = `document.addEventListener("click", function (e) {
   if (!a) return;
   var href = a.getAttribute("href") || "";
   if (href.charAt(0) !== "#") return;
-  e.preventDefault();
   var id = href.slice(1);
-  if (id) {
-    var el = document.getElementById(id);
-    if (el) el.scrollIntoView();
-  }
+  var el = id ? document.getElementById(id) : document.documentElement;
+  if (!el) return;
+  e.preventDefault();
+  el.scrollIntoView();
 }, true);`;
 
 function viewTokenForSibling(
