@@ -224,9 +224,6 @@ export default {
         if (lang && hljs.getLanguage(lang)) {
           hljs.highlightElement(codeBlock);
         } else {
-          const text = codeBlock.textContent ?? '';
-          const result = hljs.highlightAuto(text);
-          codeBlock.innerHTML = result.value;
           codeBlock.classList.add('hljs');
         }
         this.addLineNumbers(codeBlock);
@@ -771,7 +768,7 @@ export default {
 
 #markedown-viewer .markdown-content-container.dark-mode code:not(pre code),
 #markedown-viewer .markdown-content-container.dark-mode .code-block-wrapper {
-  background-color: #161b22;
+  background-color: #0d1117;
 }
 
 /* keybinds like <kbd>Ctrl</kbd> */
@@ -791,7 +788,7 @@ export default {
   right: 0.3em;
   border-radius: 0.45em;
   color: var(--primaryColor);
-  background: var(--alt-background);
+  background: var(--background);
   font-size: 0.8em;
   padding: 0.2em 0.4em;
   transition: background 0.2s, color 0.2s;
@@ -807,19 +804,13 @@ export default {
   user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  background-color: #f1f3f4;
-  border-right: 1px solid #d0d7de;
+  background-color: var(--background);
+  border-right: 1px solid var(--divider);
   padding: 0.625em 0.5em 0.625em 0.75em;
   text-align: right;
-  color: #656d76;
-  min-width: 2.5em;
-  flex-shrink: 0;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-numbers {
-  background-color: #21262d;
-  border-right-color: #30363d;
   color: #7d8590;
+  min-width: 2em;
+  flex-shrink: 0;
 }
 
 #markedown-viewer .markdown-content-container .line-number {
@@ -832,23 +823,14 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .line-number:hover {
-  background-color: #e1e4e8;
-  color: #24292e;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-number:hover {
-  background-color: #30363d;
-  color: #f0f6fc;
+  background-color: transparent;
+  color: var(--primaryColor);
 }
 
 #markedown-viewer .markdown-content-container .line-number.active {
-  background-color: #0366d6;
-  color: white;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-number.active {
-  background-color: #1f6feb;
-  color: white;
+  background-color: color-mix(in srgb, var(--primaryColor) 30%, transparent);
+  color: var(--primaryColor);
+  border-radius: 0.25em;
 }
 
 /* Individual code lines */
@@ -861,11 +843,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .code-line.highlighted {
-  background-color: #fff8c5;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .code-line.highlighted {
-  background-color: #ffd33d20;
+  background-color: color-mix(in srgb, var(--primaryColor) 20%, transparent);
 }
 
 /* Code content styling */
@@ -877,7 +855,6 @@ export default {
 
 #markedown-viewer .markdown-content-container .code-content pre {
   margin: 0;
-  background: transparent;
   border-radius: 0;
   padding: 0;
   line-height: 1.45;
@@ -885,9 +862,8 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .code-content code {
-  background: transparent;
   padding: 0.5em;
-  padding-top: 0.75em;
+  padding-top: 0.65em;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
@@ -906,7 +882,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .code-content a {
-  color: #3737c9;
+  color: var(--primaryColor);
   font-weight: 500;
 }
 
@@ -976,11 +952,15 @@ export default {
 
 #markedown-viewer .markdown-content li:has(input[type="checkbox"]:checked) {
   color: color-mix(in srgb, var(--textPrimary) 55%, transparent);
+  text-decoration: line-through;
 }
 
 /* Links */
 #markedown-viewer .markdown-content a {
   color: var(--primaryColor);
+}
+
+#markedown-viewer .markdown-content a:hover {
   text-decoration: underline;
 }
 

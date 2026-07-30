@@ -170,10 +170,13 @@ export default {
     },
     syncScrollRatio() {
       if (!this.editor) return;
+      const session = this.editor.session;
       const lineHeight = this.editor.renderer.lineHeight || 16;
-      const screenRow = this.editor.session.getScrollTop() / lineHeight;
-      const { row } = this.editor.session.screenToDocumentPosition(Math.floor(screenRow), 0);
-      mutations.setEditorScrollRatio(row, 'editor');
+      const screenRow = session.getScrollTop() / lineHeight;
+      const { row } = session.screenToDocumentPosition(Math.floor(screenRow), 0);
+      const maxRow = Math.max(0, session.getLength() - 1);
+      const atBottom = this.editor.renderer.getLastFullyVisibleRow() >= maxRow;
+      mutations.setEditorScrollRatio(atBottom ? maxRow : row, 'editor');
     },
     // Called by the editor on every 'changeScrollTop' event
     handleEditorScroll() {
