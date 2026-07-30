@@ -22,8 +22,6 @@
 import type { PropType } from "vue";
 import type { HLJSApi } from 'highlight.js';
 import { Marked, Token } from "marked";
-import markedKatex from "marked-katex-extension";
-import "katex/contrib/mhchem"; // To render chemistry formulas
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
@@ -63,7 +61,6 @@ function loadHighlightCss(variant: "light" | "dark"): Promise<string> {
 const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
 
 const marked = new Marked({ gfm: true });
-marked.use(markedKatex({ throwOnError: false, output: "mathml" }));
 marked.use({
   extensions: [{
     name: "blockKatexInterrupt",
@@ -75,6 +72,28 @@ marked.use({
     tokenizer() { return undefined; },
   }],
 });
+
+// Lazy load katex + mhchem (math + chemistry) -- so md files that don't have math/chemistry notation simply will not load katex
+// making the file load more faster, similar thing to the async components.
+const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^\s$][^$\n]*\$/;
+function contentHasMath(content: string): boolean {
+  return MATH_PATTERN.test(content);
+}
+let katexLoaded = false;
+let katexPromise: Promise<void> | null = null;
+function loadKatex(): Promise<void> {
+  if (katexLoaded) return Promise.resolve();
+  if (katexPromise === null) {
+    katexPromise = Promise.all([
+      import("marked-katex-extension"),
+      import("katex/contrib/mhchem"), // To render chemistry formulas
+    ]).then(([{ default: markedKatex }]) => {
+      marked.use(markedKatex({ throwOnError: false, output: "mathml" }));
+      katexLoaded = true;
+    });
+  }
+  return katexPromise;
+}
 
 // Void elements that not always need a closing tag
 const VOID_ELEMENTS = new Set([
@@ -128,6 +147,7 @@ export default {
       liveContentTimer: null as ReturnType<typeof setTimeout> | null,
       boundScrollEl: null as HTMLElement | null,
       isLoadingNewContent: false,
+      katexReady: false,
     };
   },
   methods: {
@@ -172,6 +192,7 @@ export default {
       // Re-query in case content changed while highlight.js was loading
       viewer.querySelectorAll('pre code').forEach((block) => {
         const codeBlock = block as HTMLElement;
+        if (codeBlock.classList.contains("line-numbers-added")) return;
         const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
         const lang = langClass ? langClass.split('-')[1] : null;
 
@@ -366,6 +387,11 @@ export default {
     },
     parseMarkdown(content: string, filePath: string, source: string): string {
       const parser = marked;
+      if (!katexLoaded && contentHasMath(content)) {
+        void loadKatex().then(() => {
+          this.katexReady = true;
+        });
+      }
       // Tag each top level block with its source line for scroll-sync
       let tokens: Token[] | null;
       try {
@@ -592,7 +618,9 @@ export default {
     },
     scrollTarget(newEl) {
       this.attachScrollListener(newEl);
-      if (newEl && !this.isHtml) {
+      const container = this.getScrollContainer();
+      this.attachScrollListener(container);
+      if (container && !this.isHtml) {
         this.applyScrollRatio(state.editor.scrollRatio);
       }
     },
@@ -615,6 +643,7 @@ export default {
       return buildHtmlPreview(this.content, state.req.path, state.req.source);
     },
     renderedContent() {
+      void this.katexReady;
       return this.parseMarkdown(this.content, state.req.path, state.req.source);
     },
     spaceForStatusBar() {
@@ -878,6 +907,44 @@ export default {
   height: auto;
 }
 
+/* Task list checkboxes */
+#markedown-viewer .markdown-content li:has(input[type="checkbox"]) {
+  list-style: none;
+  margin-left: -1.2em;
+}
+
+#markedown-viewer .markdown-content input[type="checkbox"] {
+  appearance: none;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5em;
+  border: 1.5px solid var(--divider);
+  border-radius: 0.25em;
+  vertical-align: middle;
+  position: relative;
+}
+
+#markedown-viewer .markdown-content input[type="checkbox"]:checked {
+  background-color: var(--primaryColor);
+  border-color: var(--primaryColor);
+}
+
+#markedown-viewer .markdown-content input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 0.28em;
+  top: 0.04em;
+  width: 0.28em;
+  height: 0.5em;
+  border: solid white;
+  border-width: 0 0.15em 0.15em 0;
+  transform: rotate(45deg);
+}
+
+#markedown-viewer .markdown-content li:has(input[type="checkbox"]:checked) {
+  color: color-mix(in srgb, var(--textPrimary) 55%, transparent);
+}
+
 /* Links */
 #markedown-viewer .markdown-content a {
   color: var(--primaryColor);
@@ -913,7 +980,7 @@ export default {
   margin: 1em 0;
   padding: 0.1em 1em;
   border-left: 0.25em solid var(--primaryColor);
-  background-color: color-mix(in srgb, var(--primaryColor) 5%, transparent);
+  background-color: color-mix(in srgb, var(--primaryColor) 8%, transparent);
   color: color-mix(in srgb, var(--textPrimary) 75%, transparent);
   border-radius: 0 0.5em 0.5em 0;
 }
