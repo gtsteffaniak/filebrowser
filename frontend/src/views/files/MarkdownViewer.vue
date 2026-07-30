@@ -12,7 +12,16 @@
       @load="htmlPreviewHeight"
     ></iframe>
     <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
-      <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
+      <div ref="viewer" class="markdown-content">
+        <div
+          v-for="block in renderedContent"
+          :key="block.key"
+          class="md-block"
+          :data-line="block.line"
+          :data-code-line="block.codeLine"
+          v-html="block.html"
+        ></div>
+      </div>
     </div>
     <div v-if="!splitMode && !isHtml" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
   </div>
@@ -118,6 +127,15 @@ function htmlTagBalance(raw: string): number {
     balance += full.startsWith("</") ? -1 : 1;
   }
   return balance;
+}
+
+// v-for block keys
+function hashText(text: string): string {
+  let hash = 5381;
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
+  }
+  return hash.toString(36);
 }
 
 // Rewrites resource attributes inside a HTML block written in the markdown
@@ -407,7 +425,7 @@ export default {
       div.textContent = text;
       return div.innerHTML;
     },
-    parseMarkdown(content: string, filePath: string, source: string): string {
+    parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
       const parser = marked;
       if (!katexLoaded && contentHasMath(content)) {
         void loadKatex().then(() => {
@@ -423,16 +441,25 @@ export default {
         tokens = null;
       }
       if (!tokens) {
-        return DOMPurify.sanitize("Loading...", MD_SANITIZE_CONFIG);
+        return [{ key: "loading", line: 0, html: DOMPurify.sanitize("Loading...", MD_SANITIZE_CONFIG) }];
       }
       void parser.walkTokens(tokens, (token) => {
         if (token.type === "image" && token.href) {
           token.href = buildPreviewResourceUrl(token.href, filePath, source);
         }
       });
+      // Blocks are keyed off a hash of their own source, so Vue can move it in the DOM
+      // instead of rendering it again.
+      const keyCounts = new Map<string, number>();
+      const nextKey = (raw: string): string => {
+        const base = hashText(raw);
+        const occurrence = keyCounts.get(base) ?? 0;
+        keyCounts.set(base, occurrence + 1);
+        return occurrence === 0 ? base : `${base}-${occurrence}`;
+      };
       let line = 0;
-      const parts: string[] = [];
-      let group: { html: string; line: number; depth: number } | null = null;
+      const parts: { key: string; line: number; html: string; codeLine?: number }[] = [];
+      let group: { html: string; raw: string; line: number; depth: number } | null = null;
       for (const token of tokens) {
         let html: string | Node;
         try {
@@ -457,26 +484,26 @@ export default {
             codeLine = line + (token.raw.slice(0, offset).match(/\n/g) || []).length;
           }
         }
-        const codeAttr = codeLine !== null ? ` data-code-line="${codeLine}"` : "";
         if (group) {
           group.html += html;
+          group.raw += token.raw;
           group.depth += depth;
           if (group.depth <= 0) {
-            parts.push(`<div class="md-block" data-line="${group.line}">${DOMPurify.sanitize(group.html, MD_SANITIZE_CONFIG)}</div>`);
+            parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(group.html, MD_SANITIZE_CONFIG) });
             group = null;
           }
         } else if (depth > 0) {
-          group = { html, line, depth };
+          group = { html, raw: token.raw, line, depth };
         } else {
-          parts.push(`<div class="md-block" data-line="${line}"${codeAttr}>${DOMPurify.sanitize(html, MD_SANITIZE_CONFIG)}</div>`);
+          parts.push({ key: nextKey(token.raw), line, html: DOMPurify.sanitize(html, MD_SANITIZE_CONFIG), codeLine: codeLine ?? undefined });
         }
         line += lineCount;
       }
       if (group) {
         // Reached the end with tags still unclosed (maybe malformed HTML), so flush them rather than dropping.
-        parts.push(`<div class="md-block" data-line="${group.line}">${DOMPurify.sanitize(group.html, MD_SANITIZE_CONFIG)}</div>`);
+        parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(group.html, MD_SANITIZE_CONFIG) });
       }
-      return parts.join("");
+      return parts;
     },
     updateEditorStats() {
       if (this.splitMode) return;
