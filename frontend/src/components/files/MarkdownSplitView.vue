@@ -5,9 +5,6 @@
       :class="{ resizing: isResizing }"
       role="separator"
       aria-orientation="vertical"
-      :aria-valuenow="Math.round(previewPercent)"
-      aria-valuemin="20"
-      aria-valuemax="80"
       @mousedown="startResize"
       @touchstart="startResize"
     ></div>
@@ -35,7 +32,7 @@ const MD_SPLIT_PERCENT_KEY = "mdSplitPercent";
 
 function loadPreviewPercent() {
   const stored = Number(sessionStorage.getItem(MD_SPLIT_PERCENT_KEY));
-  return stored > 20 && stored < 80 ? stored : 50;
+  return stored >= 20 && stored <= 80 ? stored : 50;
 }
 
 export default {
@@ -125,7 +122,10 @@ export default {
         this.setPreviewPercent(Math.min(80, Math.max(20, previewPercent)));
       };
       const onMove = (moveEvent: MouseEvent) => updatePercent(clientXFrom(moveEvent));
-      const onTouchMove = (moveEvent: TouchEvent) => updatePercent(clientXFrom(moveEvent));
+      const onTouchMove = (moveEvent: TouchEvent) => {
+        moveEvent.preventDefault();
+        updatePercent(clientXFrom(moveEvent));
+      };
       const onUp = () => {
         this.isResizing = false;
         document.body.style.userSelect = prevUserSelect;
@@ -175,7 +175,9 @@ export default {
       const screenRow = session.getScrollTop() / lineHeight;
       const { row } = session.screenToDocumentPosition(Math.floor(screenRow), 0);
       const maxRow = Math.max(0, session.getLength() - 1);
-      const atBottom = this.editor.renderer.getLastFullyVisibleRow() >= maxRow;
+      const lastScreenRow = this.editor.renderer.getLastFullyVisibleRow();
+      const { row: lastDocumentRow } = session.screenToDocumentPosition(lastScreenRow, 0);
+      const atBottom = lastDocumentRow >= maxRow;
       mutations.setEditorScrollRatio(atBottom ? maxRow : row, 'editor');
     },
     // Called by the editor on every 'changeScrollTop' event

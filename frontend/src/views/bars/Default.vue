@@ -58,6 +58,7 @@
         id="save-button"
         icon="save"
         :label="$t('general.save')"
+        :disabled="isDisabled"
         @action="save()"
       />
       <action

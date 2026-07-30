@@ -423,7 +423,7 @@ export default {
         tokens = null;
       }
       if (!tokens) {
-        return DOMPurify.sanitize("Loading...", MD_SANITIZE_CONFIG);
+        return DOMPurify.sanitize(this.$t("general.loading"), MD_SANITIZE_CONFIG);
       }
       void parser.walkTokens(tokens, (token) => {
         if (token.type === "image" && token.href) {

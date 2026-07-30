@@ -26,7 +26,7 @@ import {pathsMatch, removeLastDir } from "@/utils/url.js";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
-import "ace-builds/src-min-noconflict/theme-github";
+import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
 import "ace-builds/src-min-noconflict/mode-yaml";
 import "ace-builds/src-min-noconflict/mode-json";
@@ -275,8 +275,6 @@ export default {
 
     if (this.editor) {
       this.editor.session.off('changeScrollTop', this.handleEditorScroll);
-      this.editor.destroy();
-      this.editor = null;
     }
 
     if (this.readOnly) {
@@ -292,6 +290,12 @@ export default {
     mutations.setEditorDirty(false);
     mutations.setEditorSaveHandler(null);
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
+  },
+  unmounted() {
+    if (this.editor) {
+      this.editor.destroy();
+      this.editor = null;
+    }
   },
   mounted: function () {
     this.resizeContainerEl = this.$refs.editorRoot || null;
@@ -458,6 +462,9 @@ export default {
         if (!this.viewerMode) {
           if (this.isMarkdownFile) {
             this.$nextTick(() => {
+              if (this.isSplitActive) {
+                this.$refs.splitView?.setLiveContent(this.editor.getValue());
+              }
               this.$refs.splitView?.applyScrollRatio(initialScrollRatio, true);
               requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
@@ -585,7 +592,12 @@ export default {
         name: "SaveBeforeExit",
         pinned: true,
         confirm: async () => {
-          await this.handleEditorValueRequest();
+          try {
+            await this.handleEditorValueRequest();
+          } catch (_e) {
+            this.isPromptOpen = false;
+            return;
+          }
           this.isDirty = false;
           mutations.setEditorDirty(false);
           this.executePendingNavigation();
