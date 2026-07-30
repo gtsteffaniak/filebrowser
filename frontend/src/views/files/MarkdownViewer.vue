@@ -58,7 +58,7 @@ function loadHighlightCss(variant: "light" | "dark"): Promise<string> {
   return promise;
 }
 
-const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
+const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation", "video", "track"] };
 
 const marked = new Marked({ gfm: true });
 marked.use({
@@ -423,7 +423,7 @@ export default {
         tokens = null;
       }
       if (!tokens) {
-        return DOMPurify.sanitize(this.$t("general.loading"), MD_SANITIZE_CONFIG);
+        return DOMPurify.sanitize("Loading...", MD_SANITIZE_CONFIG);
       }
       void parser.walkTokens(tokens, (token) => {
         if (token.type === "image" && token.href) {
