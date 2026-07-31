@@ -150,6 +150,12 @@ func parseOIDCGroupsValue(groupsVal interface{}) []string {
 	return groups
 }
 
+// OidcRedirectURL builds the OAuth redirect_uri from trusted forwarded headers and the request host.
+func OidcRedirectURL(r *http.Request) string {
+	host, scheme := shareURLParams(r)
+	return fmt.Sprintf("%s://%s%sapi/auth/oidc/callback", scheme, host, settings.Config.Http.BaseURL)
+}
+
 // oidcLoginHandler initiates OIDC login.
 // @Summary OIDC login
 // @Description Initiates OIDC login flow.
@@ -164,15 +170,11 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusForbidden, fmt.Errorf("oidc authentication is not enabled")
 	}
 
-	origin := r.Header.Get("Origin")
-	if origin == "" {
-		origin = fmt.Sprintf("%s://%s", GetScheme(r), r.Host)
-	}
 	oauth2Config := &oauth2.Config{
 		ClientID:     oidcCfg.ClientID,
 		ClientSecret: oidcCfg.ClientSecret,
 		Endpoint:     oidcCfg.Provider.Endpoint(),
-		RedirectURL:  fmt.Sprintf("%s%sapi/auth/oidc/callback", origin, settings.Config.Http.BaseURL),
+		RedirectURL:  OidcRedirectURL(r),
 		Scopes:       strings.Fields(oidcCfg.Scopes),
 	}
 
@@ -219,17 +221,11 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	code := r.URL.Query().Get("code")
 	// state := r.URL.Query().Get("state") // You might want to validate the state parameter for CSRF protection
 
-	// The redirect URI MUST match the one registered with the OIDC provider
-	// and used in the initial /api/auth/oidc/login handler.
-	// Using r.Host here might be tricky if running behind a proxy.
-	// Consider using a fixed redirect URL from settings if possible.
-	redirectURL := fmt.Sprintf("%s://%s%sapi/auth/oidc/callback", GetScheme(r), r.Host, settings.Config.Http.BaseURL)
-
 	oauth2Config := &oauth2.Config{
 		ClientID:     oidcCfg.ClientID,
 		ClientSecret: oidcCfg.ClientSecret,
 		Endpoint:     oidcCfg.Provider.Endpoint(), // Use endpoint from discovered provider
-		RedirectURL:  redirectURL,                 // Use the dynamically determined redirect URL
+		RedirectURL:  OidcRedirectURL(r),
 		Scopes:       strings.Fields(oidcCfg.Scopes),
 	}
 
@@ -375,11 +371,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
 	// Set the authentication token as an HTTP cookie
-	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
-	host := r.Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = r.Host
-	}
+	host := requestHost(r)
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    tokenString,
