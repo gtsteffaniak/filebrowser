@@ -60,6 +60,7 @@ func prepForFrontendOne(link *Share, viewer *users.User, r *http.Request, public
 			out.SourceURL = snap.SourceURL(viewer)
 		}
 	}
+	out.SingleFileShare = snap.IsSingleFileShare()
 	if r != nil && publicHost != "" {
 		out.DownloadURL = PublicShareURL(publicHost, publicScheme, out.Hash, true, snap.Token)
 		out.ShareURL = PublicShareURL(publicHost, publicScheme, out.Hash, false, snap.Token)
