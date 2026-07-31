@@ -198,7 +198,7 @@ export default {
         sharePath = subPath ? `${shareBase}/${url.encodedPath(subPath)}` : shareBase;
       }
       await auth.logout();
-      window.location.href = sharePath || '/login';
+      window.location.href = sharePath || `${globalVars.baseURL}login`;
     },
     beforeEnter(el) {
       el.style.maxHeight = '0';
