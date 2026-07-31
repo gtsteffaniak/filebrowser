@@ -61,7 +61,7 @@ server:
     startupIntegrityCheck: "quickCheck"   # the method used to check the integrity of the index database on startup (default: quickCheck)  validate:omitempty,oneof=quickCheck probe off
   database:                               # SQLite database configuration
     path: "filebrowser.sqlite"            # path to SQLite database file
-    migrateFrom: ""                       # legacy BoltDB path for one-time migration; use "default" for FILEBROWSER_DATABASE or database.db
+    migrateFrom: ""                       # path to old BoltDB database file for migration (optional)
     activity:                             # activity audit logging configuration
       disabled: false                     # disable semantic activity audit logging (default: false)
       retentionDays: 30                   # purge activity rows older than this many days (default 30)

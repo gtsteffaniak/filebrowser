@@ -19,7 +19,6 @@ type SQLStore struct {
 // NewSQLStoreOpts configures NewSQLStoreWithOptions.
 type NewSQLStoreOpts struct {
 	// SkipQuickSetup skips creating the default admin user. Use when users will be
-	// imported immediately (e.g. BoltDB → SQLite migration) to avoid UNIQUE username conflicts.
 	SkipQuickSetup bool
 }
 

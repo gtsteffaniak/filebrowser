@@ -37,7 +37,7 @@ func initializeDatabase(configFile string) bool {
 	}
 
 	if checkMigrationNeeded() {
-		logger.Info("Old BoltDB database detected, starting migration to SQLite...")
+		logger.Info("Old database detected, starting migration...")
 		err := migrateFromBoltToSQLite()
 		if err != nil {
 			logger.Fatalf("Migration failed: %v", err)
