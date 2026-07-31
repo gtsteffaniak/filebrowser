@@ -180,7 +180,7 @@ func viewTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		var body struct {
 			ViewToken string `json:"viewToken"`
 		}
-		if err := json.NewDecoder(r.Body).Decode(&body); err == nil {
+		if err = json.NewDecoder(r.Body).Decode(&body); err == nil {
 			existingToken = strings.TrimSpace(body.ViewToken)
 		}
 	}

@@ -40,10 +40,14 @@ function writeCache(source, viewToken, expiresAt) {
   if (!key) {
     return;
   }
-  sessionStorage.setItem(
-    key,
-    JSON.stringify({ viewToken, expiresAt }),
-  );
+  try {
+    sessionStorage.setItem(
+      key,
+      JSON.stringify({ viewToken, expiresAt }),
+    );
+  } catch {
+    // QuotaExceededError / SecurityError — caching is best-effort only.
+  }
 }
 
 function viewTokenApiPath(source, existingToken) {
@@ -66,7 +70,11 @@ export function getCachedViewToken(source) {
     return undefined;
   }
   if (cached.expiresAt * 1000 <= Date.now()) {
-    sessionStorage.removeItem(cacheKey(source));
+    try {
+      sessionStorage.removeItem(cacheKey(source));
+    } catch {
+      // ignore storage failures
+    }
     return undefined;
   }
   return cached.viewToken;
@@ -113,27 +121,31 @@ export async function ensureViewToken(source) {
 export async function refreshCachedViewTokensIfNeeded() {
   const now = Date.now();
   const scopes = new Set();
-  for (let i = 0; i < sessionStorage.length; i++) {
-    const key = sessionStorage.key(i);
-    if (!key?.startsWith("viewToken:")) {
-      continue;
-    }
-    try {
-      const parsed = JSON.parse(sessionStorage.getItem(key));
-      if (!parsed?.expiresAt || !parsed?.viewToken) {
+  try {
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (!key?.startsWith("viewToken:")) {
         continue;
       }
-      const msLeft = parsed.expiresAt * 1000 - now;
-      if (msLeft > REFRESH_BEFORE_MS) {
-        continue;
+      try {
+        const parsed = JSON.parse(sessionStorage.getItem(key));
+        if (!parsed?.expiresAt || !parsed?.viewToken) {
+          continue;
+        }
+        const msLeft = parsed.expiresAt * 1000 - now;
+        if (msLeft > REFRESH_BEFORE_MS) {
+          continue;
+        }
+        const scope = key.slice("viewToken:".length);
+        if (scope) {
+          scopes.add(scope);
+        }
+      } catch {
+        // ignore malformed cache entries
       }
-      const scope = key.slice("viewToken:".length);
-      if (scope) {
-        scopes.add(scope);
-      }
-    } catch {
-      // ignore malformed cache entries
     }
+  } catch {
+    return;
   }
   await Promise.all(
     [...scopes].map((scope) =>

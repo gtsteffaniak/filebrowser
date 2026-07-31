@@ -1085,7 +1085,7 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
   const data = await response.json()
   const adjusted = adjustedData(data);
   cacheViewTokenFromListing(adjusted);
-  void refreshCachedViewTokensIfNeeded();
+  void refreshCachedViewTokensIfNeeded().catch(() => {});
   return adjusted
 }
 

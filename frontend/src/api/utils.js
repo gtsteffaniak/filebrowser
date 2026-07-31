@@ -61,11 +61,11 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (auth && !isPublicApiUrl(url) && !getters.isShare()) {
-    void refreshCachedViewTokensIfNeeded();
+    void refreshCachedViewTokensIfNeeded().catch(() => {});
   }
 
   if (auth && getters.isShare() && isPublicApiUrl(url)) {
-    void refreshCachedViewTokensIfNeeded();
+    void refreshCachedViewTokensIfNeeded().catch(() => {});
   }
 
   if (res.status < 200 || res.status > 299) {

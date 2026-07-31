@@ -471,7 +471,7 @@ export default {
       }
       const items = this.fbdata.parentDirItems;
       if (!items?.length) {
-        return undefined;
+        return getCachedViewToken(this.fbdata.source);
       }
 
       const exact = items.find(
@@ -484,7 +484,7 @@ export default {
       const fileDir = removeLastDir(normalizedPath);
       const name = normalizedPath.split("/").filter(Boolean).pop();
       if (!name) {
-        return undefined;
+        return getCachedViewToken(this.fbdata.source);
       }
 
       const sibling = items.find((item) => {
