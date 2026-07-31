@@ -11,6 +11,13 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+func isUserLookupNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	return err == errors.ErrNotExist || err.Error() == "user not found"
+}
+
 func noAuthAdminUsername() string {
 	admin := settings.Config.Auth.AdminUsername
 	if admin == "" {
@@ -23,8 +30,12 @@ func noAuthAdminUsername() string {
 // present, otherwise the sole user when exactly one account exists.
 func ResolveNoAuthUser() (users.User, error) {
 	target := noAuthAdminUsername()
-	if user, err := GetUserByUsername(target); err == nil {
+	user, err := GetUserByUsername(target)
+	if err == nil {
 		return user, nil
+	}
+	if !isUserLookupNotFound(err) {
+		return users.User{}, err
 	}
 
 	allUsers, err := GetAllUsers()
@@ -47,8 +58,12 @@ func EnsureNoAuthAdminUserAfterMigration(store *sqldb.SQLStore) error {
 	}
 
 	target := noAuthAdminUsername()
-	if _, err := store.GetUserByUsername(target); err == nil {
+	_, err := store.GetUserByUsername(target)
+	if err == nil {
 		return nil
+	}
+	if !isUserLookupNotFound(err) {
+		return fmt.Errorf("lookup noauth admin user %q: %w", target, err)
 	}
 
 	allUsers, err := store.ListUsers()
