@@ -306,12 +306,13 @@ func TestShareRelativeDisplayName(t *testing.T) {
 }
 
 func TestPublicStreamHandlerSingleFileShareRootPath(t *testing.T) {
-	t.Parallel()
+	// SourceMap is process-global; save/restore and avoid t.Parallel (see streamTestResolverMu).
 	initStreamTestSources(t)
+	prevSourceMap := settings.Config.Server.SourceMap
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/srv": {Path: "/srv", Name: "srv"},
 	}
-	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
+	t.Cleanup(func() { settings.Config.Server.SourceMap = prevSourceMap })
 	d := &requestContext{
 		User: testUserWithView(1, "srv"),
 		Share: share.Share{
