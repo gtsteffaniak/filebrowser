@@ -461,16 +461,16 @@ export default {
         cap,
       );
       const minPreferredSpace = estimatedHeight + padding;
-      let expandUpward = false;
-      if (spaceBelow >= minPreferredSpace) {
-        expandUpward = false;
-      } else if (spaceAbove >= minPreferredSpace) {
-        expandUpward = true;
-      } else {
-        expandUpward = spaceAbove > spaceBelow;
-      }
+      const expandUpward = spaceBelow >= minPreferredSpace
+        ? false
+        : spaceAbove >= minPreferredSpace
+          ? true
+          : spaceAbove > spaceBelow;
       const availableSpace = expandUpward ? spaceAbove : spaceBelow;
-      const dropdownMaxHeight = Math.max(100, Math.min(availableSpace - padding, cap));
+      const dropdownMaxHeight = Math.max(
+        0,
+        Math.min(availableSpace - padding, cap),
+      );
       return { expandUpward, dropdownMaxHeight };
     },
     openPanel() {
