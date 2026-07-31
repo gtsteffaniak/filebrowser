@@ -354,7 +354,7 @@ definitions:
         - $ref: '#/definitions/settings.ActivityConfig'
         description: activity audit logging configuration
       migrateFrom:
-        description: path to old BoltDB database file for migration (optional)
+        description: path to legacy database file for migration (optional)
         type: string
       path:
         description: path to SQLite database file

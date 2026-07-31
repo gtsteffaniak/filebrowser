@@ -41,22 +41,22 @@ type Http struct {
 }
 
 type Environment struct {
-	IsPlaywright                bool   `json:"-"`
-	IsDevMode                   bool   `json:"-"`
-	IsFirstLoad                 bool   `json:"-"` // used internally to track if this is the first load of the application
+	IsPlaywright                     bool     `json:"-"`
+	IsDevMode                        bool     `json:"-"`
+	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
 	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
 	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
-	MuPdfAvailable              bool   `json:"-"` // used internally if compiled with mupdf support
-	EmbeddedFs                  bool   `json:"-"` // used internally if compiled with embedded fs support
-	FFmpegPath                  string `json:"-"`
-	FFprobePath                 string `json:"-"`
-	FFmpegAvailable             bool   `json:"-"`
-	LoginIconPath               string `json:"-"` // resolved login icon path (filesystem or embedded)
-	LoginIconIsCustom           bool   `json:"-"` // true if login icon is from custom filesystem path
-	LoginIconEmbeddedPath       string `json:"-"` // embedded asset path for default icon
-	FaviconPath                 string `json:"-"` // resolved favicon path (filesystem or embedded)
-	FaviconIsCustom             bool   `json:"-"` // true if favicon is from custom filesystem path
-	FaviconEmbeddedPath         string `json:"-"` // embedded asset path for default favicon
+	MuPdfAvailable                   bool     `json:"-"` // used internally if compiled with mupdf support
+	EmbeddedFs                       bool     `json:"-"` // used internally if compiled with embedded fs support
+	FFmpegPath                       string   `json:"-"`
+	FFprobePath                      string   `json:"-"`
+	FFmpegAvailable                  bool     `json:"-"`
+	LoginIconPath                    string   `json:"-"` // resolved login icon path (filesystem or embedded)
+	LoginIconIsCustom                bool     `json:"-"` // true if login icon is from custom filesystem path
+	LoginIconEmbeddedPath            string   `json:"-"` // embedded asset path for default icon
+	FaviconPath                      string   `json:"-"` // resolved favicon path (filesystem or embedded)
+	FaviconIsCustom                  bool     `json:"-"` // true if favicon is from custom filesystem path
+	FaviconEmbeddedPath              string   `json:"-"` // embedded asset path for default favicon
 }
 
 type Server struct {
@@ -88,7 +88,7 @@ type ActivityConfig struct {
 
 type Database struct {
 	Path        string         `json:"path"`        // path to SQLite database file
-	MigrateFrom string         `json:"migrateFrom"` // path to old BoltDB database file for migration (optional)
+	MigrateFrom string         `json:"migrateFrom"` // path to legacy database file for migration (optional)
 	Activity    ActivityConfig `json:"activity"`    // activity audit logging configuration
 }
 

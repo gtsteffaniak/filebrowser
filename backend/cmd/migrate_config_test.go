@@ -111,6 +111,32 @@ func TestValidateDatabasePaths_rejectsUnrenamedLegacyDatabaseDB(t *testing.T) {
 	}
 }
 
+func TestValidateDatabasePaths_migrateFromDefaultResolvesFromEnv(t *testing.T) {
+	dir := t.TempDir()
+	boltPath := filepath.Join(dir, "database.db.old")
+	if err := os.WriteFile(boltPath, []byte("bolt"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Setenv("FILEBROWSER_DATABASE", boltPath)
+
+	settings.Config.Server.DatabaseV2.MigrateFrom = settings.MigrateFromDefault
+	settings.Config.Server.DatabaseV2.Path = filepath.Join(dir, "filebrowser.sqlite")
+
+	if err := settings.ResolveDatabasePaths(); err != nil {
+		t.Fatalf("ResolveDatabasePaths: %v", err)
+	}
+	if settings.Config.Server.DatabaseV2.MigrateFrom != boltPath {
+		t.Fatalf("migrateFrom = %q, want %q", settings.Config.Server.DatabaseV2.MigrateFrom, boltPath)
+	}
+	if err := validateDatabasePaths(); err != nil {
+		t.Fatalf("validateDatabasePaths: %v", err)
+	}
+	if !checkMigrationNeeded() {
+		t.Fatal("expected migration to be needed")
+	}
+}
+
 func TestCheckMigrationNeeded_trueWhenBoltPresentAndSQLiteMissing(t *testing.T) {
 	dir := t.TempDir()
 	boltPath := filepath.Join(dir, "database.db.old")

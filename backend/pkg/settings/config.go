@@ -570,7 +570,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 			},
 		}
 		loadEnvConfig()
-		return nil
+		return ResolveDatabasePaths()
 	}
 
 	// Try multi-file config first (combine all YAML files in the directory)
@@ -632,7 +632,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	}
 
 	loadEnvConfig()
-	return nil
+	return ResolveDatabasePaths()
 }
 
 func ValidateConfig(config Settings) error {
@@ -725,11 +725,6 @@ func loadEnvConfig() {
 }
 
 func SetDefaults(generate bool) Settings {
-	database := os.Getenv("FILEBROWSER_DATABASE")
-	if database != "" {
-		logger.Fatalf("FILEBROWSER_DATABASE environment variable is deprecated, please migrate your database to SQLite.")
-	}
-
 	// New SQLite database path
 	databaseV2 := os.Getenv("FILEBROWSER_DATABASE_PATH")
 	if databaseV2 == "" {

@@ -5357,7 +5357,7 @@ const docTemplate = `{
                     ]
                 },
                 "migrateFrom": {
-                    "description": "path to old BoltDB database file for migration (optional)",
+                    "description": "path to legacy database file for migration (optional)",
                     "type": "string"
                 },
                 "path": {
