@@ -427,9 +427,7 @@ export default {
     parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
       const parser = marked;
       if (!katexLoaded && contentHasMath(content)) {
-        void loadKatex().then(() => {
-          this.katexReady = true;
-        });
+        void loadKatex().then(() => { this.katexReady = true; }).catch(() => { /* logged inside loadKatex above */ });
       }
       // Tag each top level block with its source line for scroll-sync
       let tokens: Token[] | null;
@@ -458,7 +456,7 @@ export default {
       };
       let line = 0;
       const parts: { key: string; line: number; html: string; codeLine?: number }[] = [];
-      let group: { html: string; raw: string; line: number; depth: number } | null = null;
+      let group: { needsRewrite: unknown; html: string; raw: string; line: number; depth: number } | null = null;
       for (const token of tokens) {
         let html: string | Node;
         try {
@@ -468,9 +466,7 @@ export default {
         } catch (_e) {
           html = "";
         }
-        if ((token.type === "html" || /<(?:video|audio|source|track)\b/i.test(token.raw)) && html) {
-          html = rewriteHtmlBlockForMd(html, filePath, source);
-        }
+        const needsRewrite = !!html && (token.type === "html" || /<(?:video|audio|source|track)\b/i.test(token.raw));
         const lineCount = (token.raw.match(/\n/g) || []).length;
         const depth = token.type === "html" ? htmlTagBalance(token.raw) : 0;
         // For code blocks, work out the exact line the code content starts, from the token own raw/text offset,so
@@ -487,20 +483,24 @@ export default {
           group.html += html;
           group.raw += token.raw;
           group.depth += depth;
+          group.needsRewrite = group.needsRewrite || needsRewrite;
           if (group.depth <= 0) {
-            parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(group.html, MD_SANITIZE_CONFIG) });
+            const finalHtml = group.needsRewrite ? rewriteHtmlBlockForMd(group.html, filePath, source) : group.html;
+            parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG) });
             group = null;
           }
         } else if (depth > 0) {
-          group = { html, raw: token.raw, line, depth };
+          group = { html, raw: token.raw, line, depth, needsRewrite };
         } else {
-          parts.push({ key: nextKey(token.raw), line, html: DOMPurify.sanitize(html, MD_SANITIZE_CONFIG), codeLine: codeLine ?? undefined });
+          const finalHtml = needsRewrite ? rewriteHtmlBlockForMd(html, filePath, source) : html;
+          parts.push({ key: nextKey(token.raw), line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG), codeLine: codeLine ?? undefined });
         }
         line += lineCount;
       }
       if (group) {
         // Reached the end with tags still unclosed (maybe malformed HTML), so flush them rather than dropping.
-        parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(group.html, MD_SANITIZE_CONFIG) });
+        const finalHtml = group.needsRewrite ? rewriteHtmlBlockForMd(group.html, filePath, source) : group.html;
+        parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG) });
       }
       return parts;
     },
