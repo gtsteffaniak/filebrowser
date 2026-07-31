@@ -387,6 +387,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	s.FrontendShareInfo.SourceURL = ""
 	s.FrontendShareInfo.HasPassword = false
 	s.CanEditShare = false
+	s.SingleFileShare = false
 
 	if err = state.CreateShare(s); err != nil {
 		return http.StatusInternalServerError, err
@@ -674,6 +675,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	frontendShareInfo.SidebarLinks = filtered
 	frontendShareInfo.SourceURL = shareInfo.SourceURL(d.User)
 	frontendShareInfo.CanEditShare = shareInfo.UserCanEdit(d.User)
+	frontendShareInfo.SingleFileShare = shareInfo.IsSingleFileShare()
 	if frontendShareInfo.SourceURL != "" {
 		frontendShareInfo.SidebarLinks = append(frontendShareInfo.SidebarLinks, users.SidebarLink{
 			Name:     "sourceLocation",
@@ -681,13 +683,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			Target:   frontendShareInfo.SourceURL,
 		})
 	}
-	return RenderJSON(w, r, struct {
-		share.FrontendShareInfo
-		SingleFileShare bool `json:"singleFileShare"`
-	}{
-		FrontendShareInfo: frontendShareInfo,
-		SingleFileShare:   shareInfo.IsSingleFileShare(),
-	})
+	return RenderJSON(w, r, frontendShareInfo)
 }
 
 type sharePinnedItemPatchRequest struct {

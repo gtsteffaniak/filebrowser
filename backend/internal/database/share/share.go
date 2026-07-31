@@ -38,6 +38,7 @@ type FrontendShareInfo struct {
 	DisableLoginOption   bool                `json:"disableLoginOption"`
 	SourceURL            string              `json:"sourceURL,omitempty"`
 	CanEditShare         bool                `json:"canEditShare,omitempty"`
+	SingleFileShare      bool                `json:"singleFileShare,omitempty"`
 }
 
 // ShareLimits are bandwidth, access, and banner settings stored in share_settings JSON.
