@@ -71,6 +71,7 @@ import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
+import { getCachedViewToken } from "@/api/viewToken";
 import { removeLastDir, resolveRelativePath } from "@/utils/url";
 import { getObjectProperty } from '@/utils/object.js';
 
@@ -495,7 +496,7 @@ export default {
         }
         return fileDir === removeLastDir(this.fbdata.path);
       });
-      return sibling?.viewToken;
+      return sibling?.viewToken ?? getCachedViewToken(this.fbdata.source);
     },
 
     resolveTextureUrl(url) {

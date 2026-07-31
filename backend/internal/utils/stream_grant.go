@@ -1,11 +1,8 @@
 package utils
 
-// ViewGrant authorizes inline viewing/streaming of a single file for a specific viewer.
-// UserID is internal only and never exposed to clients.
+// ViewGrant authorizes inline viewing/streaming within a scoped source.
+// Source combines the storage source name and share hash (when applicable), e.g. "Downloads" or "abc123:Downloads".
 type ViewGrant struct {
-	UserID    uint64
-	ShareHash string
 	Source    string
-	Path      string
 	ExpiresAt int64
 }

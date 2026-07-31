@@ -175,7 +175,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to get content, requires download permission")
 	}
 	if fileInfo.Type == "directory" {
-		AttachViewTokensForDirectory(d, source, path, fileInfo)
+		AttachViewTokensForDirectory(d, source, fileInfo)
 		return RenderJSON(w, r, fileInfo)
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
@@ -188,7 +188,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		fileInfo.Checksums = make(map[string]string)
 		fileInfo.Checksums[algo] = checksum
 	}
-	AttachViewToken(d, source, path, fileInfo)
+	AttachViewToken(d, source, fileInfo)
 	return RenderJSON(w, r, fileInfo)
 }
 

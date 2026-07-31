@@ -55,7 +55,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 	}
-	if err = ValidateViewGrant(token, d, source, cleanPath); err != nil {
+	if err = ValidateViewGrant(token, d, source); err != nil {
 		return http.StatusForbidden, err
 	}
 
@@ -104,7 +104,7 @@ func PublicViewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}
-	if err = ValidateViewGrant(token, d, sourceInfo.Name, cleanFile); err != nil {
+	if err = ValidateViewGrant(token, d, sourceInfo.Name); err != nil {
 		return http.StatusForbidden, err
 	}
 	scopedPath := utils.JoinPathAsUnix(d.Share.Path, cleanFile)

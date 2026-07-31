@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 var streamTestResolverMu sync.Mutex
@@ -79,42 +81,62 @@ func TestMintAndValidateViewGrant(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)
 	d := &requestContext{User: testUserWithView(42, "default")}
-	token, err := mintViewGrant(d, "default", "/docs/track.mp3")
+	token, err := mintViewGrant(d, "default")
 	if err != nil {
 		t.Fatalf("mintViewGrant: %v", err)
 	}
 	if token == "" {
 		t.Fatal("expected non-empty token")
 	}
-	if err := ValidateViewGrant(token, d, "default", "/docs/track.mp3"); err != nil {
+	if err := ValidateViewGrant(token, d, "default"); err != nil {
 		t.Fatalf("ValidateViewGrant: %v", err)
 	}
 }
 
-func TestValidateViewGrantWrongUser(t *testing.T) {
+func TestValidateViewGrantWrongScope(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)
-	owner := &requestContext{User: testUserWithView(1, "default")}
-	other := &requestContext{User: testUserWithView(2, "default")}
-	token, err := mintViewGrant(owner, "default", "/a.mp3")
+	d := &requestContext{
+		User:  testUserWithView(1, "default"),
+		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
+	}
+	token, err := mintViewGrant(d, "default")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := ValidateViewGrant(token, other, "default", "/a.mp3"); err == nil {
-		t.Fatal("expected viewer mismatch error")
+	plain := &requestContext{User: testUserWithView(2, "default")}
+	if err := ValidateViewGrant(token, plain, "default"); err == nil {
+		t.Fatal("expected scope mismatch error")
 	}
 }
 
-func TestValidateViewGrantWrongPath(t *testing.T) {
+func TestValidateViewGrantAnyPathInSource(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)
 	d := &requestContext{User: testUserWithView(1, "default")}
-	token, err := mintViewGrant(d, "default", "/a.mp3")
+	token, err := mintViewGrant(d, "default")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := ValidateViewGrant(token, d, "default", "/b.mp3"); err == nil {
-		t.Fatal("expected path mismatch error")
+	if err := ValidateViewGrant(token, d, "default"); err != nil {
+		t.Fatalf("source-scoped grant should validate regardless of requested file: %v", err)
+	}
+}
+
+func TestMintViewGrantReusesToken(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	d := &requestContext{User: testUserWithView(1, "default")}
+	first, err := mintViewGrant(d, "default")
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := mintViewGrant(d, "default")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first != second {
+		t.Fatalf("expected same view token, got %q and %q", first, second)
 	}
 }
 
@@ -126,13 +148,11 @@ func TestValidateViewGrantExpired(t *testing.T) {
 		t.Fatal(err)
 	}
 	utils.ViewGrantsCache.Set(token, utils.ViewGrant{
-		UserID:    1,
 		Source:    "default",
-		Path:      "/a.mp3",
 		ExpiresAt: time.Now().Add(-time.Minute).Unix(),
 	})
 	d := &requestContext{User: testUserWithView(1, "default")}
-	if err := ValidateViewGrant(token, d, "default", "/a.mp3"); err == nil {
+	if err := ValidateViewGrant(token, d, "default"); err == nil {
 		t.Fatal("expected expired token error")
 	}
 }
@@ -146,13 +166,11 @@ func TestValidateViewGrantExtendsExpiry(t *testing.T) {
 	}
 	almostExpired := time.Now().Add(30 * time.Second).Unix()
 	utils.ViewGrantsCache.Set(token, utils.ViewGrant{
-		UserID:    1,
 		Source:    "default",
-		Path:      "/a.mp3",
 		ExpiresAt: almostExpired,
 	})
 	d := &requestContext{User: testUserWithView(1, "default")}
-	if err := ValidateViewGrant(token, d, "default", "/a.mp3"); err != nil {
+	if err := ValidateViewGrant(token, d, "default"); err != nil {
 		t.Fatalf("ValidateViewGrant: %v", err)
 	}
 	grant, ok := utils.ViewGrantsCache.Get(token)
@@ -171,7 +189,7 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 		User:  testUserWithView(1, "srv"),
 		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
 	}
-	token, err := mintViewGrant(d, "srv", "/file.mp3")
+	token, err := mintViewGrant(d, "srv")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +197,7 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 		User:  testUserWithView(1, "srv"),
 		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "other"}},
 	}
-	if err := ValidateViewGrant(token, wrongShare, "srv", "/file.mp3"); err == nil {
+	if err := ValidateViewGrant(token, wrongShare, "srv"); err == nil {
 		t.Fatal("expected share mismatch error")
 	}
 }
@@ -193,7 +211,7 @@ func TestAttachViewTokenForAllFileTypes(t *testing.T) {
 			ItemInfo: iteminfo.ItemInfo{Name: "song.mp3", Type: "audio/mpeg"},
 		},
 	}
-	AttachViewToken(d, "default", "/song.mp3", audio)
+	AttachViewToken(d, "default", audio)
 	if audio.ViewToken == "" {
 		t.Fatal("expected view token on audio file")
 	}
@@ -202,7 +220,7 @@ func TestAttachViewTokenForAllFileTypes(t *testing.T) {
 			ItemInfo: iteminfo.ItemInfo{Name: "readme.txt", Type: "text/plain"},
 		},
 	}
-	AttachViewToken(d, "default", "/readme.txt", doc)
+	AttachViewToken(d, "default", doc)
 	if doc.ViewToken == "" {
 		t.Fatal("expected view token on non-media file")
 	}
@@ -222,20 +240,23 @@ func TestAttachViewTokensForDirectory(t *testing.T) {
 			},
 		},
 	}
-	AttachViewTokensForDirectory(d, "Downloads", "/media/", file)
+	AttachViewTokensForDirectory(d, "Downloads", file)
 	if file.Files[0].ViewToken == "" {
 		t.Fatal("expected view token on audio file")
 	}
 	if file.Files[1].ViewToken == "" {
 		t.Fatal("expected view token on image file")
 	}
+	if file.Files[0].ViewToken != file.Files[1].ViewToken {
+		t.Fatal("expected the same universal view token for directory siblings")
+	}
 	if file.Files[2].ViewToken != "" {
 		t.Fatal("did not expect token on directory child folder")
 	}
-	if err := ValidateViewGrant(file.Files[0].ViewToken, d, "Downloads", "/media/song.mp3"); err != nil {
+	if err := ValidateViewGrant(file.Files[0].ViewToken, d, "Downloads"); err != nil {
 		t.Fatalf("validate audio grant: %v", err)
 	}
-	if err := ValidateViewGrant(file.Files[1].ViewToken, d, "Downloads", "/media/photo.jpg"); err != nil {
+	if err := ValidateViewGrant(file.Files[1].ViewToken, d, "Downloads"); err != nil {
 		t.Fatalf("validate image grant: %v", err)
 	}
 }
@@ -257,7 +278,7 @@ func TestAttachViewTokenDeniedWithoutViewPermission(t *testing.T) {
 			ItemInfo: iteminfo.ItemInfo{Name: "readme.txt", Type: "text/plain"},
 		},
 	}
-	AttachViewToken(d, "default", "/readme.txt", doc)
+	AttachViewToken(d, "default", doc)
 	if doc.ViewToken != "" {
 		t.Fatal("expected no view token without view permission")
 	}
@@ -278,7 +299,7 @@ func TestStreamHandlerRejectsNonMedia(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)
 	d := &requestContext{User: testUserWithView(1, "default")}
-	token, err := mintViewGrant(d, "default", "/doc.pdf")
+	token, err := mintViewGrant(d, "default")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -293,7 +314,7 @@ func TestViewHandlerRejectsMedia(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)
 	d := &requestContext{User: testUserWithView(1, "default")}
-	token, err := mintViewGrant(d, "default", "/clip.mp4")
+	token, err := mintViewGrant(d, "default")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -511,5 +532,117 @@ func TestIsMediaStreamFile(t *testing.T) {
 	}
 	if IsMediaStreamFile("readme.txt") {
 		t.Fatal("did not expect text file to match")
+	}
+}
+
+func TestViewTokenHandlerMintsUniversalGrant(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	d := &requestContext{
+		User:  testUserWithView(1, "default"),
+		Token: "session-jwt-not-in-tokens",
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/resources/view-token?source=default", nil)
+	rec := httptest.NewRecorder()
+	status, err := viewTokenHandler(rec, req, d)
+	if err != nil || status != http.StatusOK {
+		t.Fatalf("viewTokenHandler: status=%d err=%v", status, err)
+	}
+	var resp viewTokenResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.ViewToken == "" || resp.ExpiresAt == 0 {
+		t.Fatalf("unexpected response: %+v", resp)
+	}
+	if err := ValidateViewGrant(resp.ViewToken, d, "default"); err != nil {
+		t.Fatalf("ValidateViewGrant: %v", err)
+	}
+}
+
+func TestViewTokenHandlerMintsOnShareWithoutWebSession(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
+	d := &requestContext{
+		User: &users.User{
+			FrontendUser: users.FrontendUser{Username: "anonymous"},
+		},
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123"},
+			SourcePath:   "/srv",
+		},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/public/api/resources/view-token?hash=abc123", nil)
+	rec := httptest.NewRecorder()
+	status, err := viewTokenHandler(rec, req, d)
+	if err != nil || status != http.StatusOK {
+		t.Fatalf("viewTokenHandler: status=%d err=%v", status, err)
+	}
+	var resp viewTokenResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.ViewToken == "" {
+		t.Fatal("expected view token on share route")
+	}
+	if err := ValidateViewGrant(resp.ViewToken, d, "srv"); err != nil {
+		t.Fatalf("ValidateViewGrant: %v", err)
+	}
+}
+
+func TestViewTokenHandlerRejectsNamedApiToken(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	user := testUserWithView(1, "default")
+	user.Tokens = map[string]users.AuthToken{}
+	users.StoreToken(user.Tokens, users.AuthToken{Name: "my-api-key", Token: "api-jwt-value"})
+	d := &requestContext{
+		User:  user,
+		Token: "api-jwt-value",
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/resources/view-token?source=default", nil)
+	status, err := viewTokenHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusForbidden || err == nil {
+		t.Fatalf("expected 403 for API token, got status=%d err=%v", status, err)
+	}
+}
+
+func TestViewTokenHandlerExtendsExistingToken(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	d := &requestContext{
+		User:  testUserWithView(1, "default"),
+		Token: "session-jwt",
+	}
+	token, err := utils.RandomHex(16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	almostExpired := time.Now().Add(30 * time.Second).Unix()
+	utils.ViewGrantsCache.Set(token, utils.ViewGrant{
+		Source:    viewGrantScope(d, "default"),
+		ExpiresAt: almostExpired,
+	})
+	utils.ViewGrantIndex.Set(viewGrantScope(d, "default"), token)
+	req := httptest.NewRequest(http.MethodPost, "/api/resources/view-token?source=default&viewToken="+token, nil)
+	rec := httptest.NewRecorder()
+	status, err := viewTokenHandler(rec, req, d)
+	if err != nil || status != http.StatusOK {
+		t.Fatalf("viewTokenHandler: status=%d err=%v", status, err)
+	}
+	var resp viewTokenResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.ViewToken != token {
+		t.Fatalf("expected same token extended, got %q", resp.ViewToken)
+	}
+	grantAfter, _ := utils.ViewGrantsCache.Get(token)
+	if grantAfter.ExpiresAt <= almostExpired {
+		t.Fatalf("expected extended expiry, before=%d after=%d", almostExpired, grantAfter.ExpiresAt)
 	}
 }

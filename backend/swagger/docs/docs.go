@@ -2756,6 +2756,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/resources/view-token": {
+            "post": {
+                "description": "Mints or extends a source-scoped view token for inline viewing. Requires a web session (not a named API token).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Refresh universal view token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Existing view token to extend",
+                        "name": "viewToken",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.viewTokenResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Missing permission or API token used",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/settings": {
             "get": {
                 "description": "Returns the current configuration settings for signup, user directories, rules, frontend.",
@@ -8024,6 +8071,17 @@ const docTemplate = `{
                 },
                 "toSource": {
                     "description": "Source name where contents will be extracted (optional; default: fromSource). Example: \"restored\"",
+                    "type": "string"
+                }
+            }
+        },
+        "web.viewTokenResponse": {
+            "type": "object",
+            "properties": {
+                "expiresAt": {
+                    "type": "integer"
+                },
+                "viewToken": {
                     "type": "string"
                 }
             }

@@ -124,6 +124,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		data.IndexPath = pathWithoutUserScope
 		// skip file fetch for certain apis
 		if (r.Method == "POST" && strings.Contains(r.URL.Path, "/resources")) ||
+			(r.Method == "POST" && strings.Contains(r.URL.Path, "/resources/view-token")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/media/metadata")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/download")) ||
@@ -156,9 +157,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			file.OnlyOfficeId = ""
 		}
 		if file.Type != "directory" {
-			AttachViewToken(data, source.Name, path, file)
+			AttachViewToken(data, source.Name, file)
 		} else {
-			AttachViewTokensForDirectory(data, source.Name, path, file)
+			AttachViewTokensForDirectory(data, source.Name, file)
 		}
 		file.Path = utils.AddTrailingSlashIfNotExists(path)
 		// Set the file info in the `data` object
