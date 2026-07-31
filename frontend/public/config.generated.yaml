@@ -60,8 +60,8 @@ server:
     disableReuse: false                   # enable to always create a new indexing database on startup.
     startupIntegrityCheck: "quickCheck"   # the method used to check the integrity of the index database on startup (default: quickCheck)  validate:omitempty,oneof=quickCheck probe off
   database:                               # SQLite database configuration
-    path: "filebrowser.sqlite"            # path to SQLite database file (optional when FILEBROWSER_DATABASE_PATH is set)
-    migrateFrom: ""                       # legacy BoltDB path for one-time migration; use "default" with FILEBROWSER_DATABASE env (Docker)
+    path: "filebrowser.sqlite"            # path to SQLite database file
+    migrateFrom: ""                       # legacy BoltDB path for one-time migration; use "default" for FILEBROWSER_DATABASE or database.db
     activity:                             # activity audit logging configuration
       disabled: false                     # disable semantic activity audit logging (default: false)
       retentionDays: 30                   # purge activity rows older than this many days (default 30)

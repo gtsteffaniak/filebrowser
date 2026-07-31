@@ -570,7 +570,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 			},
 		}
 		loadEnvConfig()
-		return ResolveDatabasePaths(configFile)
+		return ResolveDatabasePaths()
 	}
 
 	// Try multi-file config first (combine all YAML files in the directory)
@@ -632,7 +632,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	}
 
 	loadEnvConfig()
-	return ResolveDatabasePaths(configFile)
+	return ResolveDatabasePaths()
 }
 
 func ValidateConfig(config Settings) error {
