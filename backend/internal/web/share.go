@@ -681,7 +681,13 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			Target:   frontendShareInfo.SourceURL,
 		})
 	}
-	return RenderJSON(w, r, frontendShareInfo)
+	return RenderJSON(w, r, struct {
+		share.FrontendShareInfo
+		SingleFileShare bool `json:"singleFileShare"`
+	}{
+		FrontendShareInfo: frontendShareInfo,
+		SingleFileShare:   shareInfo.IsSingleFileShare(),
+	})
 }
 
 type sharePinnedItemPatchRequest struct {
