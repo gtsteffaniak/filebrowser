@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -173,6 +174,9 @@ func migrateFromBoltToSQLite() error {
 	logger.Info("Migrating users...")
 	if err := migrateUsers(oldDB, sqlStore); err != nil {
 		return fmt.Errorf("failed to migrate users: %w", err)
+	}
+	if err := state.EnsureNoAuthAdminUserAfterMigration(sqlStore); err != nil {
+		return fmt.Errorf("failed to configure noauth admin user: %w", err)
 	}
 
 	// Migrate shares
