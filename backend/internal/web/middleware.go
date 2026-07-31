@@ -184,13 +184,11 @@ func withAdminHelper(fn handleFunc) handleFunc {
 func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.User {
 	if settings.Config.Auth.Methods.NoAuth {
 		userValue, err := state.ResolveNoAuthUser()
-		if err == nil {
-			return &userValue
-		}
 		if err != nil {
 			logger.Errorf("no auth: %v", err)
 			return nil
 		}
+		return &userValue
 	}
 
 	keyFunc := func(token *jwt.Token) (interface{}, error) {

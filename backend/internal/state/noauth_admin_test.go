@@ -69,7 +69,7 @@ func TestEnsureNoAuthAdminUserAfterMigration_createsAdminWhenMultipleUsers(t *te
 			t.Fatal(err)
 		}
 		if err := store.CreateUser(&users.User{
-			ID: id,
+			ID:           id,
 			FrontendUser: users.FrontendUser{Username: name},
 		}); err != nil {
 			t.Fatal(err)
@@ -110,7 +110,7 @@ func TestResolveNoAuthUser_usesSoleUserWhenAdminMissing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := store.CreateUser(&users.User{
+	if err = store.CreateUser(&users.User{
 		ID: id,
 		FrontendUser: users.FrontendUser{
 			Username:    "phil",
@@ -143,8 +143,8 @@ func TestEnsureNoAuthAdminUserAfterMigration_skipsWhenNotNoauth(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := store.CreateUser(&users.User{
-		ID: id,
+	if err = store.CreateUser(&users.User{
+		ID:           id,
 		FrontendUser: users.FrontendUser{Username: "alice"},
 	}); err != nil {
 		t.Fatal(err)
@@ -154,7 +154,7 @@ func TestEnsureNoAuthAdminUserAfterMigration_skipsWhenNotNoauth(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := store.CreateUser(&users.User{
-		ID: id2,
+		ID:           id2,
 		FrontendUser: users.FrontendUser{Username: "bob"},
 	}); err != nil {
 		t.Fatal(err)
