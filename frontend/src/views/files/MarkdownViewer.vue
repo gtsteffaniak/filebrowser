@@ -166,7 +166,6 @@ export default {
     return {
       content: "",
       scrollGuard: createScrollSyncGuard(),
-      liveContentTimer: null as ReturnType<typeof setTimeout> | null,
       boundScrollEl: null as HTMLElement | null,
       isLoadingNewContent: false,
       katexReady: false,
@@ -657,13 +656,8 @@ export default {
     },
     liveContent(newVal) {
       if (!this.splitMode || newVal === null) return;
-      if (this.liveContentTimer) clearTimeout(this.liveContentTimer);
-      const isInitialLoad = this.content === "";
-      this.liveContentTimer = setTimeout(() => {
-        this.liveContentTimer = null;
-        if (isInitialLoad) this.isLoadingNewContent = true;
-        this.content = newVal;
-      }, isInitialLoad ? 0 : 150);
+      if (this.content === "") this.isLoadingNewContent = true;
+      this.content = newVal;
     },
     scrollTarget(newEl) {
       this.attachScrollListener(newEl);
@@ -723,10 +717,6 @@ export default {
   unmounted() {
     this.attachScrollListener(null);
     this.unobserveHtmlResize();
-    if (this.liveContentTimer) {
-      clearTimeout(this.liveContentTimer);
-      this.liveContentTimer = null;
-    }
 
     if (!this.splitMode) {
       mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });

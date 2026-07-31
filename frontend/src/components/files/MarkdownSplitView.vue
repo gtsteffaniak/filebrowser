@@ -58,10 +58,12 @@ export default {
   emits: ["resize"],
   data: () => ({
     liveMarkdownContent: "", // editor current buffer
-    liveContentTimer: null as ReturnType<typeof setTimeout> | null, // debounce for updating liveMarkdownContent
+    liveContentFrame: null as number | null, // rAF handle
     previewScrollEl: null as HTMLElement | null, // DOM node MarkdownViewer should scroll in split mode
     scrollGuard: createScrollSyncGuard(),
     lastEditAt: 0, // used to ignore incoming scroll for a bit while typing
+    isTyping: false,
+    typingResetFrame: null as number | null,
     previewPercent: loadPreviewPercent(), // width of this pane, dragged via the divider; persisted across the session
     isResizing: false,
     stopResize: null as (() => void) | null,
@@ -91,9 +93,13 @@ export default {
     if (this.scrollGuard.cancel()) {
       this.syncScrollRatio();
     }
-    if (this.liveContentTimer) {
-      clearTimeout(this.liveContentTimer);
-      this.liveContentTimer = null;
+    if (this.liveContentFrame) {
+      cancelAnimationFrame(this.liveContentFrame);
+      this.liveContentFrame = null;
+    }
+    if (this.typingResetFrame) {
+      cancelAnimationFrame(this.typingResetFrame);
+      this.typingResetFrame = null;
     }
     this.stopResize?.();
   },
@@ -153,20 +159,27 @@ export default {
     },
     handleEditorChange() {
       this.lastEditAt = Date.now();
+      this.isTyping = true;
+      if (this.typingResetFrame) cancelAnimationFrame(this.typingResetFrame);
+      this.typingResetFrame = requestAnimationFrame(() => {
+        this.typingResetFrame = requestAnimationFrame(() => {
+          this.typingResetFrame = null;
+          this.isTyping = false;
+        });
+      });
       if (this.active) {
         this.scheduleLiveContentUpdate();
       }
     },
-    // Debounces preview updates so fast typing doesn't re-parse markdown on every keystroke.
-    // The viewer liveContent watcher adds a small extra debounce on top of this one.
+    // Batches preview updates without re-parsing markdown on every single keystroke.
     scheduleLiveContentUpdate() {
-      if (this.liveContentTimer) clearTimeout(this.liveContentTimer);
-      this.liveContentTimer = setTimeout(() => {
-        this.liveContentTimer = null;
+      if (this.liveContentFrame) return;
+      this.liveContentFrame = requestAnimationFrame(() => {
+        this.liveContentFrame = null;
         if (this.editor) {
           this.liveMarkdownContent = this.editor.getValue();
         }
-      }, 100);
+      });
     },
     syncScrollRatio() {
       if (!this.editor) return;
