@@ -23,7 +23,9 @@ export async function validateLogin(isPublicRoute = false) {
     if (
       res.status === 401 &&
       !isPublicRoute &&
-      document.cookie.includes("filebrowser_quantum_jwt=")
+      document.cookie
+        .split(";")
+        .some((c) => c.trim().startsWith("filebrowser_quantum_jwt="))
     ) {
       sessionExpired();
     }
