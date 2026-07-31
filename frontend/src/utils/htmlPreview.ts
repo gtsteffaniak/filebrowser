@@ -275,16 +275,19 @@ export function rewriteDocumentStyles(
   });
 }
 
-function navigationGuard(srcdoc: string): string {
-  const doc = new DOMParser().parseFromString(srcdoc, "text/html");
-  const base = doc.createElement("base");
-  base.setAttribute("href", "about:blank");
-  doc.head.insertBefore(base, doc.head.firstChild);
+function navigationGuard(htmlEl: HTMLElement): string {
+  const doc = htmlEl.ownerDocument;
+  const head = doc.head ?? htmlEl.querySelector("head");
+  if (head) {
+    const base = doc.createElement("base");
+    base.setAttribute("href", "about:blank");
+    head.insertBefore(base, head.firstChild);
 
-  const guard = doc.createElement("script");
-  guard.textContent = NAV_GUARD_SCRIPT;
-  doc.head.appendChild(guard);
-  return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
+    const guard = doc.createElement("script");
+    guard.textContent = NAV_GUARD_SCRIPT;
+    head.appendChild(guard);
+  }
+  return `<!DOCTYPE html>\n${htmlEl.outerHTML}`;
 }
 
 export interface HtmlPreview {
@@ -304,7 +307,7 @@ export function buildHtmlPreview(
 
   DOMPurify.addHook("uponSanitizeAttribute", blockUnsafeUriAttributes);
   try {
-    const sanitized = String(DOMPurify.sanitize(serialized, HTML_SANITIZE_CONFIG));
+    const sanitized = DOMPurify.sanitize(serialized, { ...HTML_SANITIZE_CONFIG, RETURN_DOM: true, }) as unknown as HTMLElement;
     return { srcdoc: navigationGuard(sanitized) };
   } finally {
     DOMPurify.removeHook("uponSanitizeAttribute", blockUnsafeUriAttributes);
