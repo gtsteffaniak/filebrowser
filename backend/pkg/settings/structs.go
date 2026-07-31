@@ -44,6 +44,7 @@ type Environment struct {
 	IsPlaywright                bool   `json:"-"`
 	IsDevMode                   bool   `json:"-"`
 	IsFirstLoad                 bool   `json:"-"` // used internally to track if this is the first load of the application
+	ConfigDir                   string `json:"-"` // directory containing the loaded config file (for relative database paths)
 	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
 	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
 	MuPdfAvailable              bool   `json:"-"` // used internally if compiled with mupdf support

@@ -58,10 +58,12 @@ func validateDatabasePaths() error {
 					`and set server.database.migrateFrom to "database.db.old".`,
 			)
 		}
-		if _, err := os.Stat("database.db"); err == nil {
+		if _, err := os.Stat(settings.LegacyDatabasePathInConfigDir()); err == nil {
 			return migrationErrf(
-				`legacy database file found in the working directory. ` +
-					`Rename it to database.db.old, set server.database.migrateFrom to "database.db.old".`,
+				`legacy database file found next to your config (%q). `+
+					`Rename it to database.db.old, set server.database.migrateFrom to "database.db.old" `+
+					`or use migrateFrom: "default" with FILEBROWSER_DATABASE set.`,
+				settings.LegacyDatabasePathInConfigDir(),
 			)
 		}
 		if boltPath != "" {

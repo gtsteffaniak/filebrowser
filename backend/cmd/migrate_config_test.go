@@ -98,16 +98,48 @@ func TestValidateDatabasePaths_rejectsDatabaseDBAsSQLitePath(t *testing.T) {
 
 func TestValidateDatabasePaths_rejectsUnrenamedLegacyDatabaseDB(t *testing.T) {
 	dir := t.TempDir()
-	t.Chdir(dir)
-
-	settings.Config.Server.DatabaseV2.MigrateFrom = ""
-	settings.Config.Server.DatabaseV2.Path = filepath.Join(dir, "filebrowser.sqlite")
-	if err := os.WriteFile("database.db", []byte("legacy-bolt"), 0o600); err != nil {
+	configFile := filepath.Join(dir, "config.yaml")
+	if err := os.WriteFile(configFile, []byte("server:\n  sources: []\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
+	settings.Config.Server.DatabaseV2.MigrateFrom = ""
+	settings.Config.Server.DatabaseV2.Path = filepath.Join(dir, "filebrowser.sqlite")
+	if err := os.WriteFile(filepath.Join(dir, "database.db"), []byte("legacy-bolt"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	settings.Env.ConfigDir = dir
+
 	if err := validateDatabasePaths(); err == nil {
-		t.Fatal("expected error when unrenamed database.db exists on fresh install")
+		t.Fatal("expected error when unrenamed database.db exists next to config on fresh install")
+	}
+}
+
+func TestValidateDatabasePaths_migrateFromDefaultResolvesFromEnv(t *testing.T) {
+	dir := t.TempDir()
+	configFile := filepath.Join(dir, "config.yaml")
+	if err := os.WriteFile(configFile, []byte("server:\n  sources: []\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	boltPath := filepath.Join(dir, "database.db.old")
+	if err := os.WriteFile(boltPath, []byte("bolt"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Setenv("FILEBROWSER_DATABASE", boltPath)
+
+	settings.Config.Server.DatabaseV2.MigrateFrom = settings.MigrateFromDefault
+	settings.Config.Server.DatabaseV2.Path = filepath.Join(dir, "filebrowser.sqlite")
+
+	if err := settings.ResolveDatabasePaths(configFile); err != nil {
+		t.Fatalf("ResolveDatabasePaths: %v", err)
+	}
+	if err := validateDatabasePaths(); err != nil {
+		t.Fatalf("validateDatabasePaths: %v", err)
+	}
+	if !checkMigrationNeeded() {
+		t.Fatal("expected migration to be needed")
 	}
 }
 
