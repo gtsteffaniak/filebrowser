@@ -51,3 +51,16 @@ func TestRequestSchemeIgnoresInvalidProto(t *testing.T) {
 		t.Fatalf("requestScheme = %q, want http", got)
 	}
 }
+
+func TestRequestHostTrustedHeaders(t *testing.T) {
+	settings.Config.Http.TrustedHeaders = map[string]bool{"x-forwarded-host": true}
+	t.Cleanup(func() { settings.Config.Http.TrustedHeaders = nil })
+
+	req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
+	req.Host = "127.0.0.1:8080"
+	req.Header.Set("X-Forwarded-Host", "public.example.com, internal.example.com")
+
+	if got := requestHost(req); got != "public.example.com" {
+		t.Fatalf("requestHost = %q, want public.example.com", got)
+	}
+}

@@ -2,8 +2,11 @@ package web
 
 import (
 	"encoding/json"
+	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func TestUserInfoUnmarshaller(t *testing.T) {
@@ -200,5 +203,48 @@ func TestUserInfoUnmarshaller_InvalidJSON(t *testing.T) {
 	err := json.Unmarshal([]byte(`{invalid json}`), u)
 	if err == nil {
 		t.Fatal("Unmarshal expected to fail on invalid JSON")
+	}
+}
+
+func TestOidcRedirectURLTrustedHeaders(t *testing.T) {
+	settings.Config.Http.BaseURL = "/"
+	settings.Config.Http.TrustedHeaders = map[string]bool{
+		"x-forwarded-proto": true,
+		"x-forwarded-host":  true,
+	}
+	t.Cleanup(func() {
+		settings.Config.Http.BaseURL = "/"
+		settings.Config.Http.TrustedHeaders = nil
+	})
+
+	req := httptest.NewRequest("GET", "http://127.0.0.1:8080/api/auth/oidc/login", nil)
+	req.Host = "127.0.0.1:8080"
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", "filebrowser.example.com")
+
+	got := OidcRedirectURL(req)
+	want := "https://filebrowser.example.com/api/auth/oidc/callback"
+	if got != want {
+		t.Fatalf("OidcRedirectURL = %q, want %q", got, want)
+	}
+}
+
+func TestOidcRedirectURLWithoutTrustedHeaders(t *testing.T) {
+	settings.Config.Http.BaseURL = "/files/"
+	settings.Config.Http.TrustedHeaders = nil
+	t.Cleanup(func() {
+		settings.Config.Http.BaseURL = "/"
+		settings.Config.Http.TrustedHeaders = nil
+	})
+
+	req := httptest.NewRequest("GET", "http://filebrowser.example.com/files/api/auth/oidc/login", nil)
+	req.Host = "filebrowser.example.com"
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", "spoofed.example.com")
+
+	got := OidcRedirectURL(req)
+	want := "http://filebrowser.example.com/files/api/auth/oidc/callback"
+	if got != want {
+		t.Fatalf("OidcRedirectURL = %q, want %q", got, want)
 	}
 }
