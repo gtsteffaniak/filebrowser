@@ -104,7 +104,7 @@ func PublicViewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}
-	if err = ValidateViewGrant(token, d, sourceInfo.Name); err != nil {
+	if err = ValidateViewGrant(token, d, ""); err != nil {
 		return http.StatusForbidden, err
 	}
 	scopedPath := utils.JoinPathAsUnix(d.Share.Path, cleanFile)

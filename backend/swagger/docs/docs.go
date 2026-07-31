@@ -2758,7 +2758,7 @@ const docTemplate = `{
         },
         "/api/resources/view-token": {
             "post": {
-                "description": "Mints or extends a source-scoped view token for inline viewing. Requires a web session (not a named API token).",
+                "description": "Mints or extends a source-scoped view token for inline viewing. Authenticated routes require a web session (not a named API token). Public share routes accept anonymous users when the share allows it.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2768,14 +2768,19 @@ const docTemplate = `{
                 "tags": [
                     "Resources"
                 ],
-                "summary": "Refresh universal view token",
+                "summary": "Refresh view token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Source name",
+                        "description": "Source name or share hash",
                         "name": "source",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash (public share routes)",
+                        "name": "hash",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -4800,6 +4805,58 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources/view-token": {
+            "post": {
+                "description": "Mints or extends a source-scoped view token for inline viewing. Authenticated routes require a web session (not a named API token). Public share routes accept anonymous users when the share allows it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Refresh view token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name or share hash",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Share hash (public share routes)",
+                        "name": "hash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Existing view token to extend",
+                        "name": "viewToken",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.viewTokenResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Missing permission or API token used",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

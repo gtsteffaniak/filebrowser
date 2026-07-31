@@ -3,17 +3,25 @@ import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 
 const REFRESH_BEFORE_MS = 10 * 60 * 1000;
 
-function cacheKey(source) {
+function viewGrantScope(source) {
   if (getters.isShare()) {
-    const hash = state.shareInfo?.hash || "";
-    return `viewToken:${hash}:${source}`;
+    return state.shareInfo?.hash || "";
   }
-  return `viewToken:${source}`;
+  return source || "";
+}
+
+function cacheKey(source) {
+  const scope = viewGrantScope(source);
+  return scope ? `viewToken:${scope}` : "";
 }
 
 function readCache(source) {
+  const key = cacheKey(source);
+  if (!key) {
+    return null;
+  }
   try {
-    const raw = sessionStorage.getItem(cacheKey(source));
+    const raw = sessionStorage.getItem(key);
     if (!raw) {
       return null;
     }
@@ -28,14 +36,18 @@ function readCache(source) {
 }
 
 function writeCache(source, viewToken, expiresAt) {
+  const key = cacheKey(source);
+  if (!key) {
+    return;
+  }
   sessionStorage.setItem(
-    cacheKey(source),
+    key,
     JSON.stringify({ viewToken, expiresAt }),
   );
 }
 
 function viewTokenApiPath(source, existingToken) {
-  const params = { source };
+  const params = {};
   if (existingToken) {
     params.viewToken = existingToken;
   }
@@ -44,6 +56,7 @@ function viewTokenApiPath(source, existingToken) {
     params.token = state.shareInfo?.token;
     return getPublicApiPath("resources/view-token", params);
   }
+  params.source = source;
   return getApiPath("resources/view-token", params);
 }
 
@@ -60,10 +73,11 @@ export function getCachedViewToken(source) {
 }
 
 export function rememberViewToken(source, viewToken, expiresAt) {
-  if (!source || !viewToken || !expiresAt) {
+  const scope = viewGrantScope(source);
+  if (!scope || !viewToken || !expiresAt) {
     return;
   }
-  writeCache(source, viewToken, expiresAt);
+  writeCache(scope, viewToken, expiresAt);
 }
 
 export async function refreshViewToken(source, existingToken) {
@@ -98,7 +112,7 @@ export async function ensureViewToken(source) {
 
 export async function refreshCachedViewTokensIfNeeded() {
   const now = Date.now();
-  const sources = new Set();
+  const scopes = new Set();
   for (let i = 0; i < sessionStorage.length; i++) {
     const key = sessionStorage.key(i);
     if (!key?.startsWith("viewToken:")) {
@@ -110,20 +124,20 @@ export async function refreshCachedViewTokensIfNeeded() {
         continue;
       }
       const msLeft = parsed.expiresAt * 1000 - now;
-      if (msLeft <= 0 || msLeft > REFRESH_BEFORE_MS) {
+      if (msLeft > REFRESH_BEFORE_MS) {
         continue;
       }
-      const source = key.includes(":") ? key.split(":").pop() : "";
-      if (source) {
-        sources.add(source);
+      const scope = key.slice("viewToken:".length);
+      if (scope) {
+        scopes.add(scope);
       }
     } catch {
       // ignore malformed cache entries
     }
   }
   await Promise.all(
-    [...sources].map((source) =>
-      refreshViewToken(source, getCachedViewToken(source)).catch(() => {}),
+    [...scopes].map((scope) =>
+      refreshViewToken(scope, getCachedViewToken(scope)).catch(() => {}),
     ),
   );
 }

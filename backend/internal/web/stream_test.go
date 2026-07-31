@@ -96,11 +96,18 @@ func TestMintAndValidateViewGrant(t *testing.T) {
 func TestValidateViewGrantWrongScope(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)
-	d := &requestContext{
-		User:  testUserWithView(1, "default"),
-		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/default": {Path: "/default", Name: "default"},
 	}
-	token, err := mintViewGrant(d, "default")
+	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
+	d := &requestContext{
+		User: testUserWithView(1, "default"),
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123"},
+			SourcePath:   "/default",
+		},
+	}
+	token, err := mintViewGrant(d, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,19 +192,36 @@ func TestValidateViewGrantExtendsExpiry(t *testing.T) {
 func TestValidateViewGrantShareBinding(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
 	d := &requestContext{
 		User:  testUserWithView(1, "srv"),
-		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}},
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123"},
+			SourcePath:   "/srv",
+		},
 	}
-	token, err := mintViewGrant(d, "srv")
+	token, err := mintViewGrant(d, "")
 	if err != nil {
 		t.Fatal(err)
 	}
+	grant, ok := utils.ViewGrantsCache.Get(token)
+	if !ok || grant.Source != "abc123" {
+		t.Fatalf("expected grant scoped to share hash, got %+v ok=%v", grant, ok)
+	}
+	if err := ValidateViewGrant(token, d, ""); err != nil {
+		t.Fatalf("ValidateViewGrant: %v", err)
+	}
 	wrongShare := &requestContext{
 		User:  testUserWithView(1, "srv"),
-		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "other"}},
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "other"},
+			SourcePath:   "/srv",
+		},
 	}
-	if err := ValidateViewGrant(token, wrongShare, "srv"); err == nil {
+	if err := ValidateViewGrant(token, wrongShare, ""); err == nil {
 		t.Fatal("expected share mismatch error")
 	}
 }
@@ -589,8 +613,35 @@ func TestViewTokenHandlerMintsOnShareWithoutWebSession(t *testing.T) {
 	if resp.ViewToken == "" {
 		t.Fatal("expected view token on share route")
 	}
-	if err := ValidateViewGrant(resp.ViewToken, d, "srv"); err != nil {
+	if err := ValidateViewGrant(resp.ViewToken, d, ""); err != nil {
 		t.Fatalf("ValidateViewGrant: %v", err)
+	}
+	grant, ok := utils.ViewGrantsCache.Get(resp.ViewToken)
+	if !ok || grant.Source != "abc123" {
+		t.Fatalf("expected share hash scope, got %+v ok=%v", grant, ok)
+	}
+}
+
+func TestViewTokenHandlerRejectsSourceOnShare(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
+	d := &requestContext{
+		User: &users.User{
+			FrontendUser: users.FrontendUser{Username: "anonymous"},
+		},
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123"},
+			SourcePath:   "/srv",
+		},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/public/api/resources/view-token?hash=abc123&source=srv", nil)
+	status, err := viewTokenHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusBadRequest || err == nil {
+		t.Fatalf("expected 400 when source supplied on share, got status=%d err=%v", status, err)
 	}
 }
 

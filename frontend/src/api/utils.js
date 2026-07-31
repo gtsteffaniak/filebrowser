@@ -60,7 +60,11 @@ export async function fetchURL(url, opts, auth = true) {
     await renew();
   }
 
-  if (auth && !getters.isShare() && !isPublicApiUrl(url)) {
+  if (auth && !isPublicApiUrl(url) && !getters.isShare()) {
+    void refreshCachedViewTokensIfNeeded();
+  }
+
+  if (auth && getters.isShare() && isPublicApiUrl(url)) {
     void refreshCachedViewTokensIfNeeded();
   }
 
