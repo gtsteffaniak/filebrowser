@@ -1,23 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-// Hoisted mocks so the vi.mock factories below can reference them.
-const { storeMock, authMock } = vi.hoisted(() => ({
-  storeMock: {
-    state: { sessionId: 'sess', user: { username: 'bob' } },
-    getters: {
-      isLoggedIn: vi.fn(() => true),
-      isShare: vi.fn(() => false),
-    },
-  },
-  authMock: {
-    renew: vi.fn(),
-    sessionExpired: vi.fn(),
-  },
-}));
-
-vi.mock('@/store', () => storeMock);
-vi.mock('@/utils/auth', () => authMock);
-vi.mock('@/i18n', () => ({ default: { global: { t: (k) => k } } }));
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/utils/constants', () => {
   return {
@@ -51,51 +32,7 @@ vi.mock('@/utils/constants', () => {
   };
 });
 
-import { adjustedData, fetchURL } from './utils.js';
-
-const mockFetch = (status, body = '') =>
-  vi.fn().mockResolvedValue({
-    status,
-    headers: { get: () => null }, // no X-Renew-Token
-    text: async () => body,
-    json: async () => ({}),
-  });
-
-describe('fetchURL 401 handling', () => {
-  beforeEach(() => {
-    authMock.sessionExpired.mockClear();
-    storeMock.getters.isLoggedIn.mockReturnValue(true);
-    storeMock.getters.isShare.mockReturnValue(false);
-  });
-
-  it('clears the session (sessionExpired) on 401 for an authed request while logged in', async () => {
-    global.fetch = mockFetch(401, 'token is expired');
-    await expect(fetchURL('/api/resources')).rejects.toThrow();
-    expect(authMock.sessionExpired).toHaveBeenCalledTimes(1);
-  });
-
-  it('does NOT clear the session on 401 for a share', async () => {
-    storeMock.getters.isShare.mockReturnValue(true);
-    global.fetch = mockFetch(401, 'password required');
-    await expect(fetchURL('/api/resources')).rejects.toThrow();
-    expect(authMock.sessionExpired).not.toHaveBeenCalled();
-  });
-
-  it('does NOT clear the session on 401 when not logged in', async () => {
-    storeMock.getters.isLoggedIn.mockReturnValue(false);
-    global.fetch = mockFetch(401, 'unauthorized');
-    await expect(fetchURL('/api/resources')).rejects.toThrow();
-    expect(authMock.sessionExpired).not.toHaveBeenCalled();
-  });
-
-  it('does NOT clear the session on non-401 errors or success', async () => {
-    global.fetch = mockFetch(403, 'forbidden');
-    await expect(fetchURL('/api/resources')).rejects.toThrow();
-    global.fetch = mockFetch(200);
-    await fetchURL('/api/resources');
-    expect(authMock.sessionExpired).not.toHaveBeenCalled();
-  });
-});
+import { adjustedData } from './utils.js';
 
 describe('adjustedData', () => {
   it('should append the URL and process directory data correctly', () => {

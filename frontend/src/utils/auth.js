@@ -14,6 +14,19 @@ export async function validateLogin(isPublicRoute = false) {
   });
 
   if (res.status !== 200) {
+    // A 401 from the non-public self check means our session cookie (JWT) is no
+    // longer valid — typically it expired. Clear it and redirect to login so the
+    // user can re-authenticate, instead of leaving the stale cookie in place
+    // (which otherwise leaves the app stuck on reload). Only do this for a real,
+    // non-public session: public routes legitimately 401 for anonymous share
+    // visitors, and we skip it when there is no session cookie to clear.
+    if (
+      res.status === 401 &&
+      !isPublicRoute &&
+      document.cookie.includes("filebrowser_quantum_jwt=")
+    ) {
+      sessionExpired();
+    }
     throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
   }
   const userInfo = await res.json();
