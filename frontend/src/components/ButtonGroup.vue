@@ -98,7 +98,7 @@ export default {
   margin: 1em;
   display: flex;
   flex-wrap: wrap;
-  border: 1px solid var(--surfaceSecondary);
+  border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow: var(--surfaceElevationShadow);
   overflow: hidden;
   background-color: var(--background);
@@ -113,7 +113,7 @@ button {
   background: var(--background);
   color: var(--textPrimary);
   transition: background-color 0.3s;
-  border-right: 1px solid var(--surfaceSecondary);
+  border-right: var(--borderWidth) solid var(--surfaceSecondary);
 }
 
 .button-group > button:last-child {

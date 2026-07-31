@@ -1469,6 +1469,7 @@ export default {
 }
 
 .folder-items a {
+  border-width: var(--borderWidth);
   border-style: solid;
 }
 

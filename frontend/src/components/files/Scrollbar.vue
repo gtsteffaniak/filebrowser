@@ -300,8 +300,7 @@ export default {
   right: -5em;
   /* <- Start hidden */
   display: none;
-  border-style: solid;
-  border-color: var(--background);
+  border: var(--borderWidth) solid var(--background);
   position: fixed;
   top: 4em;
   height: 6em;
@@ -343,8 +342,7 @@ export default {
   height: 2.75em;
   background-color: var(--alt-background);
   border-radius: 3em;
-  border-style: solid;
-  border-color: var(--background);
+  border: var(--borderWidth) solid var(--background);
   font-size: 1em;
   justify-content: center;
   align-items: center;

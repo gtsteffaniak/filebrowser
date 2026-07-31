@@ -896,7 +896,7 @@ export default {
   border-top: none;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
-  border: 2px solid var(--surfaceSecondary);
+  border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   background-color: lightgray;
   max-height: 80vh;
@@ -1004,7 +1004,7 @@ export default {
   border-bottom-style: none;
   border-bottom-right-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
-  border-width: 2px;
+  border-width: var(--borderWidth);
 }
 
 #result-list p {

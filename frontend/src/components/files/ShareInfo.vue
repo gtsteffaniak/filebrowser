@@ -133,7 +133,7 @@ export default {
 }
 
 .share-info__box__element canvas {
-  border-style: solid;
+  border: var(--borderWidth) solid white;
 }
 
 .share-info__box__center {

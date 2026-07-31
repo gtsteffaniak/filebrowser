@@ -758,8 +758,7 @@ export default {
 }
 
 .usage-info .vue-simple-progress {
-  border-style: solid;
-  border-color: var(--surfaceSecondary);
+  border: var(--borderWidth) solid var(--surfaceSecondary);
   border-radius: 1em !important;
 }
 

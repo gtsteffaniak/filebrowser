@@ -2080,8 +2080,16 @@ export default {
   cursor: pointer;
 }
 
+.path-filter-picker {
+  margin-top: 0.75rem;
+}
+
 .path-filter-picker :deep(.unified-path-picker) {
   max-width: 100%;
+}
+
+.path-filter-glob {
+  margin-top: 0.75rem;
 }
 
 .glob-fields {
