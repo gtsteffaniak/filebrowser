@@ -1,5 +1,5 @@
 import { notify } from '@/notify'
-import { mutations, state } from '@/store'
+import { getters, mutations, state } from '@/store'
 import { globalVars } from '@/utils/constants'
 import { downloadManager } from '@/utils/downloadManager'
 import {
@@ -8,12 +8,35 @@ import {
 } from '@/utils/appNotifications'
 import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
+import { rememberViewToken, refreshCachedViewTokensIfNeeded } from './viewToken'
 import { getObjectProperty } from '@/utils/object'
 import { isMediaFile } from '@/utils/mediaFile'
 import { getStreamURL, getStreamURLPublic } from './media'
 import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
 
 export { fetchPreviewImage } from '@/utils/previewRequests'
+
+const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
+
+function cacheViewTokenFromListing(data) {
+  const scope = getters.isShare()
+    ? state.shareInfo?.hash || data?.source
+    : data?.source;
+  if (!scope) {
+    return;
+  }
+  const expiresAt = Math.floor(Date.now() / 1000) + VIEW_TOKEN_TTL_SECONDS;
+  if (data.viewToken) {
+    rememberViewToken(scope, data.viewToken, expiresAt);
+    return;
+  }
+  const token =
+    data.items?.find((item) => item.viewToken)?.viewToken ??
+    data.files?.find((item) => item.viewToken)?.viewToken;
+  if (token) {
+    rememberViewToken(scope, token, expiresAt);
+  }
+}
 
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false) {
@@ -31,6 +54,7 @@ export async function fetchFiles(source, path, content = false, metadata = false
     const res = await fetchURL(apiPath)
     const data = await res.json()
     const adjusted = adjustedData(data)
+    cacheViewTokenFromListing(adjusted)
     return adjusted
   } catch (err) {
     notify.showError(err.message || 'Error fetching data')
@@ -1060,6 +1084,8 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
   }
   const data = await response.json()
   const adjusted = adjustedData(data);
+  cacheViewTokenFromListing(adjusted);
+  void refreshCachedViewTokensIfNeeded().catch(() => {});
   return adjusted
 }
 

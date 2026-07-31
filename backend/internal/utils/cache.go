@@ -13,4 +13,5 @@ var (
 	OnlyOfficeCache    = cache.NewCache[string](48*time.Hour, 1*time.Hour)
 	JwtCache           = cache.NewCache[string](1*time.Hour, 72*time.Hour)
 	ViewGrantsCache = cache.NewCache[ViewGrant](15 * time.Minute)
+	ViewGrantIndex  = cache.NewCache[string](15 * time.Minute)
 )

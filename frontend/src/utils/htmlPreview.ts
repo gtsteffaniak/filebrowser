@@ -1,6 +1,7 @@
 import DOMPurify from "dompurify";
-import { getViewURL } from "@/api/resources";
 import { getters, state } from "@/store";
+import { getCachedViewToken } from "@/api/viewToken";
+import { getViewURL } from "@/api/resources";
 import { getParentDir, resolveRelativePath } from "@/utils/url";
 
 export const HTML_SANITIZE_CONFIG = {
@@ -104,7 +105,10 @@ export function buildPreviewResourceUrl(
   }
 
   const resolvedPath = resolveRelativePath(baseFilePath, href);
-  const viewToken = viewTokenForSibling(resolvedPath, baseFilePath);
+  const viewToken =
+    viewTokenForSibling(resolvedPath, baseFilePath) ??
+    state.req?.viewToken ??
+    getCachedViewToken(source);
 
   try {
     let viewUrl;

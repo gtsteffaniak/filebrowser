@@ -2301,6 +2301,13 @@ definitions:
           fromSource). Example: "restored"'
         type: string
     type: object
+  web.viewTokenResponse:
+    properties:
+      expiresAt:
+        type: integer
+      viewToken:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -4197,6 +4204,42 @@ paths:
       summary: View content of a single non-media file inline
       tags:
       - Resources
+  /api/resources/view-token:
+    post:
+      consumes:
+      - application/json
+      description: Mints or extends a source-scoped view token for inline viewing.
+        Authenticated routes require a web session (not a named API token). Public
+        share routes accept anonymous users when the share allows it.
+      parameters:
+      - description: Source name or share hash
+        in: query
+        name: source
+        type: string
+      - description: Share hash (public share routes)
+        in: query
+        name: hash
+        type: string
+      - description: Existing view token to extend
+        in: query
+        name: viewToken
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.viewTokenResponse'
+        "403":
+          description: Missing permission or API token used
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh view token
+      tags:
+      - Resources
   /api/settings:
     get:
       consumes:
@@ -5586,6 +5629,42 @@ paths:
               type: string
             type: object
       summary: View a single non-media file from a public share inline
+      tags:
+      - Resources
+  /public/api/resources/view-token:
+    post:
+      consumes:
+      - application/json
+      description: Mints or extends a source-scoped view token for inline viewing.
+        Authenticated routes require a web session (not a named API token). Public
+        share routes accept anonymous users when the share allows it.
+      parameters:
+      - description: Source name or share hash
+        in: query
+        name: source
+        type: string
+      - description: Share hash (public share routes)
+        in: query
+        name: hash
+        type: string
+      - description: Existing view token to extend
+        in: query
+        name: viewToken
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.viewTokenResponse'
+        "403":
+          description: Missing permission or API token used
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh view token
       tags:
       - Resources
   /public/api/share/image:

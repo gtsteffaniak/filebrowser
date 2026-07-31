@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -33,6 +34,38 @@ type ServeSingleFileOptions struct {
 	RangeOnly   bool
 }
 
+func viewGrantScope(d *Context, sourceName string) string {
+	if d.Share.Hash != "" {
+		return d.Share.Hash
+	}
+	return sourceName
+}
+
+func shareSourceName(d *Context) (string, error) {
+	if d.Share.Hash == "" {
+		return "", fmt.Errorf("not a share context")
+	}
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return "", fmt.Errorf("source not found for share")
+	}
+	return sourceInfo.Name, nil
+}
+
+func resolveViewGrantSource(d *Context, r *http.Request) (string, error) {
+	if d.Share.Hash != "" {
+		if strings.TrimSpace(r.URL.Query().Get("source")) != "" {
+			return "", fmt.Errorf("source must not be supplied for share view tokens")
+		}
+		return shareSourceName(d)
+	}
+	sourceName := strings.TrimSpace(r.URL.Query().Get("source"))
+	if sourceName == "" {
+		return "", fmt.Errorf("source is required")
+	}
+	return sourceName, nil
+}
+
 func normalizeViewGrantPath(p string) string {
 	return filepath.ToSlash(strings.TrimSpace(p))
 }
@@ -52,23 +85,142 @@ func shareRelativeDisplayName(d *Context, shareRelativePath string) string {
 	return name
 }
 
-func mintViewGrant(d *Context, source, filePath string) (string, error) {
+func mintViewGrant(d *Context, sourceName string) (string, error) {
+	internalSource := sourceName
+	if d.Share.Hash != "" {
+		var err error
+		internalSource, err = shareSourceName(d)
+		if err != nil {
+			return "", err
+		}
+	} else if internalSource == "" {
+		return "", fmt.Errorf("source is required")
+	}
+	if !canMintViewToken(d, internalSource) {
+		return "", fmt.Errorf("view permission required")
+	}
+	scope := viewGrantScope(d, internalSource)
+	if existing, ok := utils.ViewGrantIndex.Get(scope); ok {
+		if grant, ok := utils.ViewGrantsCache.Get(existing); ok {
+			if grant.Source == scope && time.Now().Unix() <= grant.ExpiresAt {
+				grant.ExpiresAt = time.Now().Add(viewGrantTTL).Unix()
+				utils.ViewGrantsCache.Set(existing, grant)
+				return existing, nil
+			}
+		}
+	}
 	token, err := utils.RandomHex(16)
 	if err != nil {
 		return "", err
 	}
 	grant := utils.ViewGrant{
-		UserID:    d.User.ID,
-		ShareHash: d.Share.Hash,
-		Source:    source,
-		Path:      normalizeViewGrantPath(filePath),
+		Source:    scope,
 		ExpiresAt: time.Now().Add(viewGrantTTL).Unix(),
 	}
 	utils.ViewGrantsCache.Set(token, grant)
+	utils.ViewGrantIndex.Set(scope, token)
 	return token, nil
 }
 
-func ValidateViewGrant(token string, d *Context, source, filePath string) error {
+func refreshViewGrant(d *Context, sourceName, existingToken string) (string, int64, error) {
+	internalSource := sourceName
+	if d.Share.Hash != "" {
+		var err error
+		internalSource, err = shareSourceName(d)
+		if err != nil {
+			return "", 0, err
+		}
+	} else if internalSource == "" {
+		return "", 0, fmt.Errorf("source is required")
+	}
+	scope := viewGrantScope(d, internalSource)
+	if existingToken != "" {
+		if grant, ok := utils.ViewGrantsCache.Get(existingToken); ok {
+			if grant.Source == scope && time.Now().Unix() <= grant.ExpiresAt {
+				grant.ExpiresAt = time.Now().Add(viewGrantTTL).Unix()
+				utils.ViewGrantsCache.Set(existingToken, grant)
+				utils.ViewGrantIndex.Set(scope, existingToken)
+				return existingToken, grant.ExpiresAt, nil
+			}
+		}
+	}
+	token, err := mintViewGrant(d, internalSource)
+	if err != nil {
+		return "", 0, err
+	}
+	grant, ok := utils.ViewGrantsCache.Get(token)
+	if !ok {
+		return "", 0, fmt.Errorf("view token missing after mint")
+	}
+	return token, grant.ExpiresAt, nil
+}
+
+func requireWebSessionForViewToken(d *Context) error {
+	if d.Share.Hash != "" {
+		return nil
+	}
+	if d.Token == "" {
+		return fmt.Errorf("view tokens require a web session")
+	}
+	if _, ok := state.TokenNameForRawToken(d.User, d.Token); ok {
+		return fmt.Errorf("view tokens require a web session")
+	}
+	return nil
+}
+
+type viewTokenResponse struct {
+	ViewToken string `json:"viewToken"`
+	ExpiresAt int64  `json:"expiresAt"`
+}
+
+// viewTokenHandler mints or refreshes a source-scoped view grant.
+// @Summary Refresh view token
+// @Description Mints or extends a source-scoped view token for inline viewing. Authenticated routes require a web session (not a named API token). Public share routes accept anonymous users when the share allows it.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param source query string false "Source name or share hash"
+// @Param hash query string false "Share hash (public share routes)"
+// @Param viewToken query string false "Existing view token to extend"
+// @Success 200 {object} viewTokenResponse
+// @Failure 403 {object} map[string]string "Missing permission or API token used"
+// @Router /api/resources/view-token [post]
+// @Router /public/api/resources/view-token [post]
+func viewTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if err := requireWebSessionForViewToken(d); err != nil {
+		return http.StatusForbidden, err
+	}
+	source, err := resolveViewGrantSource(d, r)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	existingToken := strings.TrimSpace(r.URL.Query().Get("viewToken"))
+	if existingToken == "" && r.Body != nil && r.ContentLength != 0 {
+		var body struct {
+			ViewToken string `json:"viewToken"`
+		}
+		if err = json.NewDecoder(r.Body).Decode(&body); err == nil {
+			existingToken = strings.TrimSpace(body.ViewToken)
+		}
+	}
+	token, expiresAt, err := refreshViewGrant(d, source, existingToken)
+	if err != nil {
+		if strings.Contains(err.Error(), "view permission") {
+			return http.StatusForbidden, err
+		}
+		return http.StatusInternalServerError, err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(viewTokenResponse{
+		ViewToken: token,
+		ExpiresAt: expiresAt,
+	}); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
+}
+
+func ValidateViewGrant(token string, d *Context, sourceName string) error {
 	grant, ok := utils.ViewGrantsCache.Get(token)
 	if !ok {
 		return fmt.Errorf("invalid or expired view token")
@@ -77,19 +229,18 @@ func ValidateViewGrant(token string, d *Context, source, filePath string) error 
 		utils.ViewGrantsCache.Delete(token)
 		return fmt.Errorf("view token expired")
 	}
-	if grant.UserID != d.User.ID {
-		return fmt.Errorf("view token viewer mismatch")
+	if grant.Source != viewGrantScope(d, sourceName) {
+		return fmt.Errorf("view token scope mismatch")
 	}
-	if grant.ShareHash != d.Share.Hash {
-		return fmt.Errorf("view token share mismatch")
+	internalSource := sourceName
+	if d.Share.Hash != "" {
+		var err error
+		internalSource, err = shareSourceName(d)
+		if err != nil {
+			return err
+		}
 	}
-	if grant.Source != source {
-		return fmt.Errorf("view token source mismatch")
-	}
-	if grant.Path != normalizeViewGrantPath(filePath) {
-		return fmt.Errorf("view token path mismatch")
-	}
-	perms, err := effectiveFilePerms(d, source)
+	perms, err := effectiveFilePerms(d, internalSource)
 	if err != nil || !perms.View {
 		return fmt.Errorf("view permission required")
 	}
@@ -103,45 +254,33 @@ func canMintViewToken(d *Context, source string) bool {
 	return err == nil && perms.View
 }
 
-func AttachViewToken(d *Context, source, filePath string, file *iteminfo.ExtendedFileInfo) {
+func AttachViewToken(d *Context, source string, file *iteminfo.ExtendedFileInfo) {
 	if file == nil || file.Type == "directory" {
 		return
 	}
 	if !canMintViewToken(d, source) {
 		return
 	}
-	token, err := mintViewGrant(d, source, filePath)
+	token, err := mintViewGrant(d, source)
 	if err != nil {
 		return
 	}
 	file.ViewToken = token
 }
 
-func indexFilePath(dirPath, name string) string {
-	dirPath = normalizeViewGrantPath(dirPath)
-	if dirPath == "" || dirPath == "/" {
-		return "/" + name
-	}
-	if !strings.HasSuffix(dirPath, "/") {
-		dirPath += "/"
-	}
-	return dirPath + name
-}
-
-func AttachViewTokensForDirectory(d *Context, source, dirPath string, file *iteminfo.ExtendedFileInfo) {
+func AttachViewTokensForDirectory(d *Context, source string, file *iteminfo.ExtendedFileInfo) {
 	if file == nil || file.Type != "directory" {
 		return
 	}
 	if !canMintViewToken(d, source) {
 		return
 	}
+	token, err := mintViewGrant(d, source)
+	if err != nil {
+		return
+	}
 	for i := range file.Files {
 		if file.Files[i].Type == "directory" {
-			continue
-		}
-		childPath := indexFilePath(dirPath, file.Files[i].Name)
-		token, err := mintViewGrant(d, source, childPath)
-		if err != nil {
 			continue
 		}
 		file.Files[i].ViewToken = token
@@ -397,7 +536,7 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 	}
-	if err = ValidateViewGrant(token, d, source, cleanPath); err != nil {
+	if err = ValidateViewGrant(token, d, source); err != nil {
 		return http.StatusForbidden, err
 	}
 	if !IsMediaStreamFile(filepath.Base(cleanPath)) {
@@ -449,7 +588,7 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
 	}
-	if err = ValidateViewGrant(token, d, sourceInfo.Name, cleanFile); err != nil {
+	if err = ValidateViewGrant(token, d, ""); err != nil {
 		return http.StatusForbidden, err
 	}
 	if !IsMediaStreamFile(shareRelativeDisplayName(d, cleanFile)) {
