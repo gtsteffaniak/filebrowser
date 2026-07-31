@@ -6566,6 +6566,9 @@
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
+                "singleFileShare": {
+                    "type": "boolean"
+                },
                 "source": {
                     "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
@@ -6737,6 +6740,9 @@
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
+                "singleFileShare": {
+                    "type": "boolean"
+                },
                 "source": {
                     "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
@@ -6889,6 +6895,9 @@
                     "items": {
                         "$ref": "#/definitions/users.SidebarLink"
                     }
+                },
+                "singleFileShare": {
+                    "type": "boolean"
                 },
                 "source": {
                     "description": "source display name for API; backend path is Share.SourcePath",

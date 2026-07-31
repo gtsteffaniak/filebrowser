@@ -1268,6 +1268,8 @@ definitions:
         items:
           $ref: '#/definitions/users.SidebarLink'
         type: array
+      singleFileShare:
+        type: boolean
       source:
         description: source display name for API; backend path is Share.SourcePath
         type: string
@@ -1383,6 +1385,8 @@ definitions:
         items:
           $ref: '#/definitions/users.SidebarLink'
         type: array
+      singleFileShare:
+        type: boolean
       source:
         description: source display name for API; backend path is Share.SourcePath
         type: string
@@ -1486,6 +1490,8 @@ definitions:
         items:
           $ref: '#/definitions/users.SidebarLink'
         type: array
+      singleFileShare:
+        type: boolean
       source:
         description: source display name for API; backend path is Share.SourcePath
         type: string

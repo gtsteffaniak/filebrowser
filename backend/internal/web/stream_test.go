@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 var streamTestResolverMu sync.Mutex
@@ -286,6 +287,55 @@ func TestStreamHandlerRejectsNonMedia(t *testing.T) {
 	status, err := streamHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden || err == nil {
 		t.Fatalf("expected 403 for non-media, got status=%d err=%v", status, err)
+	}
+}
+
+func TestShareRelativeDisplayName(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc", Path: "/users/alice/media/song.mp3"},
+		},
+	}
+	if got := shareRelativeDisplayName(d, "/"); got != "song.mp3" {
+		t.Fatalf("shareRelativeDisplayName(/) = %q, want song.mp3", got)
+	}
+	if got := shareRelativeDisplayName(d, "/nested/other.mp3"); got != "other.mp3" {
+		t.Fatalf("shareRelativeDisplayName(/nested/other.mp3) = %q, want other.mp3", got)
+	}
+}
+
+func TestPublicStreamHandlerSingleFileShareRootPath(t *testing.T) {
+	// SourceMap is process-global; save/restore and avoid t.Parallel (see streamTestResolverMu).
+	initStreamTestSources(t)
+	prevSourceMap := settings.Config.Server.SourceMap
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+	t.Cleanup(func() { settings.Config.Server.SourceMap = prevSourceMap })
+	d := &requestContext{
+		User: testUserWithView(1, "srv"),
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{
+				Hash: "abc123",
+				Path: "/scope/media/song.mp3",
+			},
+			SourcePath: "/srv",
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{
+					DisableFileViewer: false,
+				},
+			},
+		},
+	}
+	token, err := mintViewGrant(d, "srv", "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodGet, "/public/api/media/stream?hash=abc123&file=/&viewToken="+token, nil)
+	_, err = publicStreamHandler(httptest.NewRecorder(), req, d)
+	if err != nil && strings.Contains(err.Error(), "stream endpoint supports audio and video only") {
+		t.Fatalf("single-file share root path rejected as non-media: %v", err)
 	}
 }
 

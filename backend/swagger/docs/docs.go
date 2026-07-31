@@ -6577,6 +6577,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
+                "singleFileShare": {
+                    "type": "boolean"
+                },
                 "source": {
                     "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
@@ -6748,6 +6751,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.SidebarLink"
                     }
                 },
+                "singleFileShare": {
+                    "type": "boolean"
+                },
                 "source": {
                     "description": "source display name for API; backend path is Share.SourcePath",
                     "type": "string"
@@ -6900,6 +6906,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/users.SidebarLink"
                     }
+                },
+                "singleFileShare": {
+                    "type": "boolean"
                 },
                 "source": {
                     "description": "source display name for API; backend path is Share.SourcePath",

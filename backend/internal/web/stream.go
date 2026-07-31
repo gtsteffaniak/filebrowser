@@ -37,6 +37,21 @@ func normalizeViewGrantPath(p string) string {
 	return filepath.ToSlash(strings.TrimSpace(p))
 }
 
+// shareRelativeDisplayName returns the client-facing filename for a path within a share.
+// Single-file shares use file=/ at the share root; the real name comes from the share path.
+func shareRelativeDisplayName(d *Context, shareRelativePath string) string {
+	name := filepath.Base(normalizeViewGrantPath(shareRelativePath))
+	if name != "" && name != "." && name != "/" {
+		return name
+	}
+	if d != nil && d.Share.Hash != "" {
+		if shareName := filepath.Base(d.Share.Path); shareName != "" && shareName != "." && shareName != "/" {
+			return shareName
+		}
+	}
+	return name
+}
+
 func mintViewGrant(d *Context, source, filePath string) (string, error) {
 	token, err := utils.RandomHex(16)
 	if err != nil {
@@ -437,7 +452,7 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if err = ValidateViewGrant(token, d, sourceInfo.Name, cleanFile); err != nil {
 		return http.StatusForbidden, err
 	}
-	if !IsMediaStreamFile(filepath.Base(cleanFile)) {
+	if !IsMediaStreamFile(shareRelativeDisplayName(d, cleanFile)) {
 		return http.StatusForbidden, fmt.Errorf("stream endpoint supports audio and video only")
 	}
 	scopedPath := utils.JoinPathAsUnix(d.Share.Path, cleanFile)
