@@ -868,6 +868,7 @@ export default {
 }
 
 .half-selected {
+  border-width: var(--borderWidth) !important;
   border-color: var(--primaryColor) !important;
   border-style: solid !important;
 }

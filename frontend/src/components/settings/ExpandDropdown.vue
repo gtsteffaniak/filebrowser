@@ -449,22 +449,39 @@ export default {
       ]);
       this.overlayContextClassSnapshot = [...el.classList].filter((name) => !skip.has(name));
     },
+    resolveDropdownPlacement(anchorRect) {
+      const viewportHeight = window.innerHeight;
+      const padding = 15;
+      const cap = viewportHeight * 0.5;
+      const spaceBelow = viewportHeight - anchorRect.bottom;
+      const spaceAbove = anchorRect.top;
+      const searchHeight = this.allowSearch ? 48 : 0;
+      const estimatedHeight = Math.min(
+        Math.max(100, this.normalizedOptions.length * 40 + searchHeight + 16),
+        cap,
+      );
+      const minPreferredSpace = estimatedHeight + padding;
+      const expandUpward = spaceBelow >= minPreferredSpace
+        ? false
+        : spaceAbove >= minPreferredSpace
+          ? true
+          : spaceAbove > spaceBelow;
+      const availableSpace = expandUpward ? spaceAbove : spaceBelow;
+      const dropdownMaxHeight = Math.max(
+        0,
+        Math.min(availableSpace - padding, cap),
+      );
+      return { expandUpward, dropdownMaxHeight };
+    },
     openPanel() {
       if (this.disabled || this.open) {
         return;
       }
-      // Decide if open upward
       const anchor = this.$refs.anchor;
       if (anchor) {
-        const rect = anchor.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const spaceBelow = viewportHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        this.expandUpward = spaceAbove > spaceBelow;
-        const padding = 15;
-        const cap = viewportHeight * 0.5; // 50vh
-        const availableSpace = this.expandUpward ? spaceAbove : spaceBelow;
-        this.dropdownMaxHeight = Math.max(100, Math.min(availableSpace - padding, cap));
+        const placement = this.resolveDropdownPlacement(anchor.getBoundingClientRect());
+        this.expandUpward = placement.expandUpward;
+        this.dropdownMaxHeight = placement.dropdownMaxHeight;
       } else {
         this.expandUpward = false;
         this.dropdownMaxHeight = null;
@@ -549,6 +566,11 @@ export default {
       }
       const anchorRect = anchor.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
+      if (this.open) {
+        const placement = this.resolveDropdownPlacement(anchorRect);
+        this.expandUpward = placement.expandUpward;
+        this.dropdownMaxHeight = placement.dropdownMaxHeight;
+      }
       const style = {
         position: "fixed",
         left: `${anchorRect.left}px`,
@@ -570,14 +592,6 @@ export default {
         style.top = `${anchorRect.bottom - 1}px`;
       }
       this.overlayStyle = style;
-      if (this.open) {
-        const padding = 15;
-        const cap = viewportHeight * 0.5;
-        const spaceBelow = viewportHeight - anchorRect.bottom;
-        const spaceAbove = anchorRect.top;
-        const availableSpace = this.expandUpward ? spaceAbove : spaceBelow;
-        this.dropdownMaxHeight = Math.max(100, Math.min(availableSpace - padding, cap));
-      }
     },
     onViewportChange() {
       if (this.open) {
@@ -643,7 +657,7 @@ export default {
 
 .expand-dropdown-anchor {
   box-sizing: border-box;
-  border: 1px solid var(--surfaceSecondary);
+  border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow: var(--surfaceElevationShadow);
   justify-content: center;
   transition:
@@ -727,8 +741,7 @@ export default {
   overflow: hidden;
   width: 100%;
   background-color: var(--background);
-  border-style: solid;
-  border-color: var(--surfaceSecondary);
+  border: var(--borderWidth) solid var(--surfaceSecondary);
   padding: 0 0.5em 0.5em;
   justify-content: flex-start;
   align-items: stretch;
@@ -736,14 +749,14 @@ export default {
 
 .expand-dropdown-body:not(.expand-upward) {
   margin-top: -2px;
-  border-width: 0 1px 1px;
+  border-width: 0 var(--borderWidth) var(--borderWidth);
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
 }
 
 .expand-dropdown-body.expand-upward {
   margin-bottom: -2px;
-  border-width: 1px 1px 0;
+  border-width: var(--borderWidth) var(--borderWidth) 0;
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   margin-top: 0;

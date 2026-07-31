@@ -753,7 +753,6 @@ export default {
 /* Floating window base styles */
 .floating-window {
   border-radius: 1em;
-  border-width: 1.5px;
   position: fixed;
   top: 50%;
   left: 50%;

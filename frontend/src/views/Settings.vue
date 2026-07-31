@@ -170,7 +170,7 @@ export default {
 }
 
 .settings-views .card {
-  border-style: solid;
+  border: var(--borderWidth) solid var(--divider);
   opacity: 1;
 }
 
