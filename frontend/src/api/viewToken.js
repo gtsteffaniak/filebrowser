@@ -3,6 +3,15 @@ import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 
 const REFRESH_BEFORE_MS = 10 * 60 * 1000;
 
+/** Stable key for the current preview request (source, share, path). */
+export function requestViewIdentity(req) {
+  if (!req) {
+    return "";
+  }
+  const shareHash = getters.isShare() ? (state.shareInfo?.hash ?? "") : "";
+  return `${req.source ?? ""}|${shareHash}|${req.path ?? ""}`;
+}
+
 function viewGrantScope(source) {
   if (getters.isShare()) {
     return state.shareInfo?.hash || "";

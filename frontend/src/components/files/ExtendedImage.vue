@@ -41,7 +41,7 @@ import { getters, mutations, state } from '@/store';
 import { globalVars } from "@/utils/constants";
 import { getBestCachedImage } from "@/utils/imageCache";
 import { isRawImageMimeType } from "@/utils/mimetype";
-import { refreshViewToken } from "@/api/viewToken.js";
+import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import throttle from "@/utils/throttle";
 
 export default {
@@ -270,9 +270,12 @@ export default {
 
       if (!this.viewTokenRetried && state.req?.source) {
         this.viewTokenRetried = true;
+        const viewIdentity = requestViewIdentity(state.req);
         void refreshViewToken(state.req.source, state.req.viewToken)
           .then((data) => {
-            state.req.viewToken = data.viewToken;
+            if (requestViewIdentity(state.req) === viewIdentity) {
+              mutations.setRequestViewToken(data.viewToken);
+            }
           })
           .catch(() => {
             this.finishImageError(img);

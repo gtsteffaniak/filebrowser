@@ -699,6 +699,33 @@ func TestViewTokenHandlerRejectsUploadShare(t *testing.T) {
 	}
 }
 
+func TestCanMintViewTokenRejectsUploadShare(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{
+		Share: share.Share{
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{
+					ShareType: "upload",
+				},
+			},
+			ShareColumns: share.ShareColumns{Hash: "upload-share"},
+			SourcePath:   "/srv",
+		},
+	}
+	if canMintViewToken(d, "default") {
+		t.Fatal("expected canMintViewToken to reject upload share")
+	}
+	file := &iteminfo.ExtendedFileInfo{
+		FileInfo: iteminfo.FileInfo{
+			ItemInfo: iteminfo.ItemInfo{Name: "photo.jpg", Type: "image/jpeg"},
+		},
+	}
+	AttachViewToken(d, "default", file)
+	if file.ViewToken != "" {
+		t.Fatalf("expected no view token on upload share, got %q", file.ViewToken)
+	}
+}
+
 func TestViewTokenHandlerRejectsSourceOnShare(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)

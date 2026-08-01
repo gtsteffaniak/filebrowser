@@ -10,7 +10,7 @@
 import { defineComponent } from "vue";
 import * as mammoth from "mammoth";
 import { resourcesApi } from "@/api";
-import { ensureViewToken, refreshViewToken } from "@/api/viewToken.js";
+import { ensureViewToken, refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { state, mutations, getters } from "@/store";
 import { removeLastDir } from "@/utils/url.js";
 
@@ -156,10 +156,13 @@ export default defineComponent({
         this.error = "";
         this.docxHtml = "";
 
+        const viewIdentity = requestViewIdentity(state.req);
         let viewToken = state.req.viewToken;
         try {
           viewToken = await ensureViewToken(state.req.source);
-          state.req.viewToken = viewToken;
+          if (requestViewIdentity(state.req) === viewIdentity) {
+            mutations.setRequestViewToken(viewToken);
+          }
         } catch (err) {
           console.warn("Failed to refresh view token for DOCX preview:", err);
         }
@@ -196,7 +199,9 @@ export default defineComponent({
           try {
             const refreshed = await refreshViewToken(state.req.source, viewToken);
             viewToken = refreshed.viewToken;
-            state.req.viewToken = viewToken;
+            if (requestViewIdentity(state.req) === viewIdentity) {
+              mutations.setRequestViewToken(viewToken);
+            }
             const retryUrl = getters.isShare()
               ? resourcesApi.getViewURL(
                   state.req.source,

@@ -756,6 +756,13 @@ export const mutations = {
     state.req = next;
     emitStateChanged();
   },
+  setRequestViewToken: (viewToken) => {
+    if (!state.req || !viewToken || state.req.viewToken === viewToken) {
+      return;
+    }
+    state.req = { ...state.req, viewToken };
+    emitStateChanged();
+  },
   clearRequest: () => {
     // Set req to null to prevent API calls with empty paths
     // Components should check for null req before accessing

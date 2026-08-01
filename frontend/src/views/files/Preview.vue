@@ -68,7 +68,7 @@
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { resourcesApi, mediaApi } from "@/api";
-import { ensureViewToken } from "@/api/viewToken.js";
+import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
@@ -321,10 +321,11 @@ export default {
         state.req.type !== "directory"
         && !getters.fileViewingDisabled(state.req.name)
       ) {
+        const viewIdentity = requestViewIdentity(state.req);
         try {
           const viewToken = await ensureViewToken(state.req.source);
-          if (viewToken && state.req.path === path) {
-            state.req.viewToken = viewToken;
+          if (viewToken && requestViewIdentity(state.req) === viewIdentity) {
+            mutations.setRequestViewToken(viewToken);
           }
         } catch (err) {
           console.warn("Failed to refresh view token for preview:", err);

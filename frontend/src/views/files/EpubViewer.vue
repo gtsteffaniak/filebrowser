@@ -18,7 +18,7 @@ import { defineComponent, watch } from "vue";
 import ePub, { type Book, type Rendition } from "epubjs";
 import { state, mutations, getters } from "@/store"; // Assuming your store setup
 import { resourcesApi } from "@/api";
-import { ensureViewToken } from "@/api/viewToken.js";
+import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import router from "@/router";
 import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
@@ -76,10 +76,13 @@ export default defineComponent({
       hasPreview: state.req.hasPreview,
     });
     try {
-      let viewToken = state.req.viewToken;
+      const viewIdentity = requestViewIdentity(state.req);
+      let viewToken: string | undefined;
       try {
-        viewToken = await ensureViewToken(state.req.source);
-        state.req.viewToken = viewToken;
+        viewToken = await ensureViewToken(state.req.source ?? "");
+        if (viewToken && requestViewIdentity(state.req) === viewIdentity) {
+          mutations.setRequestViewToken(viewToken);
+        }
       } catch (err) {
         console.warn("Failed to refresh view token for EPUB preview:", err);
       }

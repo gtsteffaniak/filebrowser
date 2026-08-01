@@ -71,7 +71,7 @@ import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
-import { getCachedViewToken, ensureViewToken } from "@/api/viewToken";
+import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken";
 import { removeLastDir, resolveRelativePath } from "@/utils/url";
 import { getObjectProperty } from '@/utils/object.js';
 
@@ -447,12 +447,13 @@ export default {
     },
 
     async prefetchAssetViewTokens() {
+      const viewIdentity = requestViewIdentity(state.req);
       try {
         const token = await ensureViewToken(this.fbdata.source);
-        if (token) {
-          this.fbdata.viewToken = token;
-          if (state.req) {
-            state.req.viewToken = token;
+        if (token && requestViewIdentity(state.req) === viewIdentity) {
+          mutations.setRequestViewToken(token);
+          if (this.fbdata.path) {
+            this.viewTokenByPath[this.normalizeAssetPath(this.fbdata.path)] = token;
           }
         }
       } catch (err) {

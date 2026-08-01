@@ -212,12 +212,6 @@ export default {
         return;
       }
       const keyStr = String(key);
-      const path = section === "account" && keyStr.startsWith("permissions.")
-        ? `account.${keyStr}`
-        : `${section}.${keyStr}`;
-      if (this.isConfigLockedPath(path)) {
-        return;
-      }
       if (section === "account" && keyStr.startsWith("permissions.")) {
         const permKey = keyStr.slice("permissions.".length);
         void this.sendPatch({ enforced: { account: { permissions: { [permKey]: value } } } });

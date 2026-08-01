@@ -7,10 +7,12 @@
     @update:model-value="(v) => profilePrefs.setSectionBool(section, field, v)"
     @change="profilePrefs.emitSectionChange(section, field)"
     @update:enforced="(v) => profilePrefs.emitEnforced(section, field, v)"
-    :disabled="effectiveDisabled"
+    :disabled="valueDisabled"
+    :enforcement-disabled="enforcementDisabled"
     :enforcement-locked="profilePrefs.isEnforcementLocked(section, field)"
+    :value-tooltip="valueTooltip"
     :name="name"
-    :description="effectiveDescription"
+    :description="description"
   />
 </template>
 
@@ -28,14 +30,17 @@ export default {
     description: { type: String, default: "" },
   },
   computed: {
-    isLocked() {
-      return this.profilePrefs.fieldLocked(this.section, this.field);
+    valueDisabled() {
+      return this.profilePrefs.valueDisabled(this.section, this.field);
     },
-    effectiveDisabled() {
-      return this.profilePrefs.fieldDisabled(this.section, this.field);
+    enforcementDisabled() {
+      return this.profilePrefs.enforcementDisabled(this.section, this.field);
     },
-    effectiveDescription() {
-      return this.profilePrefs.helpText(this.section, this.field, this.description);
+    valueTooltip() {
+      if (this.profilePrefs.isConfigLocked(this.section, this.field)) {
+        return this.$t("settings.userDefaultFieldLockedFromConfig");
+      }
+      return "";
     },
   },
 };
