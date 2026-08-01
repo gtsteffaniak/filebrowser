@@ -760,7 +760,13 @@
       "subscript": "Inferior à linha",
       "text": "Texto",
       "cell": "Célula",
-      "column": "Coluna"
+      "column": "Coluna",
+      "align": "Alinhar",
+      "alignRight": "Alinhar à direita",
+      "alignLeft": "Alinhar à esquerda",
+      "alignCenter": "Alinhar ao centro",
+      "justify": "Justificar",
+      "fontColor": "Cor da fonte"
     }
   },
   "player": {

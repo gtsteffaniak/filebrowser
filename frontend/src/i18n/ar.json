@@ -760,7 +760,13 @@
       "subscript": "منخفض",
       "text": "نص",
       "cell": "خلية",
-      "column": "عمود"
+      "column": "عمود",
+      "align": "محاذاة",
+      "alignRight": "محاذاة إلى اليمين",
+      "alignLeft": "محاذاة إلى اليسار",
+      "alignCenter": "محاذاة إلى المنتصف",
+      "justify": "ضبط",
+      "fontColor": "لون الخط"
     }
   },
   "player": {

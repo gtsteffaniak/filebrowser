@@ -760,7 +760,13 @@
       "subscript": "Indice",
       "text": "Text",
       "cell": "Celulă",
-      "column": "Coloană"
+      "column": "Coloană",
+      "align": "Aliniere",
+      "alignRight": "Aliniere la dreapta",
+      "alignLeft": "Aliniere la stânga",
+      "alignCenter": "Aliniere la centru",
+      "justify": "Aliniere între margini",
+      "fontColor": "Culoarea fontului"
     }
   },
   "player": {

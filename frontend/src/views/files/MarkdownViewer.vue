@@ -443,6 +443,10 @@ export default {
       void parser.walkTokens(tokens, (token) => {
         if (token.type === "image" && token.href) {
           token.href = buildPreviewResourceUrl(token.href, filePath, source);
+        } else if (token.type === "html" && token.block === false && htmlTagBalance(token.raw) === 0 && /\s(?:src|href|style)=/i.test(token.raw)) {
+          const rewritten = rewriteHtmlBlockForMd(token.raw, filePath, source);
+          token.raw = rewritten;
+          token.text = rewritten;
         }
       });
       // Blocks are keyed off a hash of their own source, so Vue can move it in the DOM

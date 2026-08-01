@@ -760,7 +760,13 @@
       "subscript": "Indeks dolny",
       "text": "Tekst",
       "cell": "Komórka",
-      "column": "Kolumna"
+      "column": "Kolumna",
+      "align": "Wyrównanie",
+      "alignRight": "Wyrównaj do prawej",
+      "alignLeft": "Wyrównaj do lewej",
+      "alignCenter": "Wyśrodkuj",
+      "justify": "Wyjustuj",
+      "fontColor": "Kolor czcionki"
     }
   },
   "player": {

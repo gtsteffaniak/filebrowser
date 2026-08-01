@@ -760,7 +760,13 @@
       "subscript": "Sub-índice",
       "text": "Texto",
       "cell": "Celda",
-      "column": "Columna"
+      "column": "Columna",
+      "align": "Alinear",
+      "alignRight": "Alinear a la derecha",
+      "alignLeft": "Alinear a la izquierda",
+      "alignCenter": "Alinear al centro",
+      "justify": "Justificar",
+      "fontColor": "Color de fuente"
     }
   },
   "player": {

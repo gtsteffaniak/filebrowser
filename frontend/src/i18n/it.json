@@ -769,7 +769,13 @@
       "subscript": "Pedice",
       "text": "Testo",
       "cell": "Cella",
-      "column": "Colonna"
+      "column": "Colonna",
+      "align": "Allinea",
+      "alignRight": "Allinea a destra",
+      "alignLeft": "Allinea a sinistra",
+      "alignCenter": "Allinea al centro",
+      "justify": "Giustifica",
+      "fontColor": "Colore del carattere"
     }
   },
   "player": {

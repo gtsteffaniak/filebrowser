@@ -760,7 +760,13 @@
       "subscript": "Dolný index",
       "text": "Text",
       "cell": "Bunka",
-      "column": "Stĺpec"
+      "column": "Stĺpec",
+      "align": "Zarovnanie",
+      "alignRight": "Zarovnať vpravo",
+      "alignLeft": "Zarovnať vľavo",
+      "alignCenter": "Zarovnať na stred",
+      "justify": "Zarovnať do bloku",
+      "fontColor": "Farba písma"
     }
   },
   "player": {

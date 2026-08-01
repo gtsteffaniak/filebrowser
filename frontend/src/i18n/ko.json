@@ -760,7 +760,13 @@
       "subscript": "아래 첨자",
       "text": "텍스트",
       "cell": "셀",
-      "column": "열"
+      "column": "열",
+      "align": "정렬",
+      "alignRight": "오른쪽 정렬",
+      "alignLeft": "왼쪽 정렬",
+      "alignCenter": "가운데 정렬",
+      "justify": "양쪽 정렬",
+      "fontColor": "글꼴 색상"
     }
   },
   "player": {

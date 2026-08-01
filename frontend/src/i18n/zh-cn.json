@@ -760,7 +760,13 @@
       "subscript": "下标",
       "text": "文本",
       "cell": "单元格",
-      "column": "列"
+      "column": "列",
+      "align": "对齐",
+      "alignRight": "右对齐",
+      "alignLeft": "左对齐",
+      "alignCenter": "居中对齐",
+      "justify": "两端对齐",
+      "fontColor": "字体颜色"
     }
   },
   "player": {

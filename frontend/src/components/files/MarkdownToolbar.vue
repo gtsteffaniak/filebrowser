@@ -1,19 +1,102 @@
 <template>
   <div class="markdown-toolbar no-select">
-    <button
-      v-for="btn in markdownToolbarButtons"
+    <div class="md-toolbar-sticky">
+      <div
+        v-for="btn in stickyToolbarButtons"
+        :key="btn.id"
+        class="md-toolbar-group"
+      >
+        <button
+          type="button"
+          class="md-toolbar-btn"
+          :title="btn.title"
+          :aria-label="btn.title"
+          :disabled="btn.disabled"
+          @mousedown.prevent
+          @click="btn.action"
+        >
+          <i class="material-symbols">{{ btn.icon }}</i>
+        </button>
+      </div>
+    </div>
+    <div
+      v-for="btn in toolbarButtons"
       :key="btn.id"
-      type="button"
-      class="md-toolbar-btn"
-      :title="btn.title"
-      :aria-label="btn.title"
-      :disabled="btn.disabled"
-      @mousedown.prevent
-      @click="btn.action"
+      class="md-toolbar-group"
     >
-      <i class="material-symbols">{{ btn.icon }}</i>
-    </button>
-    <div>
+      <button
+        v-if="!btn.color && !btn.menu"
+        type="button"
+        class="md-toolbar-btn"
+        :title="btn.title"
+        :aria-label="btn.title"
+        :disabled="btn.disabled"
+        @mousedown.prevent
+        @click="btn.action"
+      >
+        <i class="material-symbols">{{ btn.icon }}</i>
+      </button>
+      <template v-else-if="btn.menu === 'align'">
+        <button
+          :ref="(el) => (alignMenuTriggerEl = el as HTMLElement | null)"
+          type="button"
+          class="md-toolbar-btn"
+          :title="btn.title"
+          :aria-label="btn.title"
+          @mousedown.prevent
+          @click="toggleMenu('align')"
+        >
+          <i class="material-symbols">{{ btn.icon }}</i>
+        </button>
+        <Teleport to="body">
+          <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
+            <ul v-if="openMenu === 'align'" :ref="(el) => (alignMenuEl = el as HTMLElement | null)" class="md-toolbar-menu md-toolbar-menu--align floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+              <li v-for="item in alignMenuItems" :key="item.id">
+                <button
+                  type="button"
+                  class="md-toolbar-btn"
+                  :title="item.title"
+                  :aria-label="item.title"
+                  @mousedown.prevent
+                  @click="extBtnAction(item)"
+                >
+                  <i class="material-symbols">{{ item.icon }}</i>
+                </button>
+              </li>
+            </ul>
+          </transition>
+        </Teleport>
+      </template>
+      <div v-else class="md-toolbar-btn clickable">
+        <button
+          type="button"
+          class="md-toolbar-btn"
+          :title="btn.title"
+          :aria-label="btn.title"
+          :disabled="btn.disabled"
+          @mousedown.prevent
+          @click="applyStoredColor(btn)"
+        >
+          <i class="material-symbols" :class="{ 'md-toolbar-color-glyph': selectedColor(btn) }">{{ btn.icon }}</i>
+        </button>
+        <span
+          class="md-toolbar-color-indicator"
+          :class="{ 'md-toolbar-color-indicator--empty': !selectedColor(btn) }"
+          :style="selectedColor(btn) ? { backgroundColor: selectedColor(btn) } : null"
+        >
+          <input
+            :ref="(el) => setColorInput(el as HTMLInputElement | null, btn.color)"
+            type="color"
+            class="color-input"
+            :value="selectedColor(btn)"
+            :aria-label="btn.title"
+            @mousedown.stop
+            @change="onColorChange(btn.color, ($event.target as HTMLInputElement).value)"
+          />
+        </span>
+      </div>
+    </div>
+    <div class="md-toolbar-sticky md-toolbar-sticky--right">
       <button
         ref="extraMenuTrigger"
         type="button"
@@ -21,16 +104,24 @@
         :title="$t('editor.md.moreOptions')"
         :aria-label="$t('editor.md.moreOptions')"
         @mousedown.prevent
-        @click="toggleExtraMenu"
+        @click="toggleMenu('extra')"
       >
         <i class="material-symbols">more_horiz</i>
       </button>
       <Teleport to="body">
         <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-          <ul v-if="extraMenuOpen" ref="extraMenu" class="md-toolbar-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
-            <li v-for="item in extraMenuItems" :key="item.id" @mousedown.prevent @click="extBtnAction(item)">
-              <i class="material-symbols">{{ item.icon }}</i>
-              <span>{{ item.title }}</span>
+          <ul v-if="openMenu === 'extra'" ref="extraMenu" class="md-toolbar-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+            <li v-for="item in extraMenuItems" :key="item.id">
+              <button
+                type="button"
+                class="md-toolbar-btn md-toolbar-menu-btn"
+                :title="item.title"
+                @mousedown.prevent
+                @click="extBtnAction(item)"
+              >
+                <i class="material-symbols">{{ item.icon }}</i>
+                <span>{{ item.title }}</span>
+              </button>
             </li>
           </ul>
         </transition>
@@ -74,8 +165,12 @@ interface ToolbarButton {
   id: string;
   icon: string;
   title: string;
-  action: () => void;
+  action?: () => void;
   disabled?: boolean;
+  color?: string;
+  applyColor?: (color: string) => void;
+  sticky?: boolean;
+  menu?: "align";
 }
 
 export default {
@@ -92,8 +187,15 @@ export default {
     pendingImageContextId: null as string | null,
     pendingImageRange: null as PendingImageRange | null,
     pendingImageAlt: "",
-    extraMenuOpen: false,
-    menuPosition: { top: 0, right: 0 },
+    openMenu: null as "extra" | "align" | null,
+    menuPosition: { top: 0, left: 0, right: 0 },
+    lastColors: new Map<string, string>([
+      ["mdFontColor", localStorage.getItem("mdFontColor") || ""],
+      ["mdHighlightColor", localStorage.getItem("mdHighlightColor") || ""],
+    ]),
+    colorInputRefs: new Map<string, HTMLInputElement>(),
+    alignMenuTriggerEl: null as HTMLElement | null,
+    alignMenuEl: null as HTMLElement | null,
   }),
   watch: {
     editor: {
@@ -111,8 +213,7 @@ export default {
     eventBus.on("pathSelected", this.imagePathSelected);
     eventBus.on("pathPickerCancelled", this.imagePathPickerCancelled);
     document.addEventListener("pointerdown", this.onPointerDown);
-    window.addEventListener("scroll", this.closeExtraMenu, true);
-    window.addEventListener("resize", this.closeExtraMenu);
+    window.addEventListener("resize", this.closeMenu);
   },
   beforeUnmount() {
     this.detachUndoListener(this.editor);
@@ -120,41 +221,59 @@ export default {
     eventBus.off("pathSelected", this.imagePathSelected);
     eventBus.off("pathPickerCancelled", this.imagePathPickerCancelled);
     document.removeEventListener("pointerdown", this.onPointerDown);
-    window.removeEventListener("scroll", this.closeExtraMenu, true);
-    window.removeEventListener("resize", this.closeExtraMenu);
+    window.removeEventListener("resize", this.closeMenu);
   },
   computed: {
     markdownToolbarButtons(): ToolbarButton[] {
       return [
-        { id: "undo", icon: "undo", title: this.$t("editor.md.undo"), action: () => this.undo(), disabled: !this.canUndo },
-        { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo },
+        { id: "undo", icon: "undo", title: this.$t("editor.md.undo"), action: () => this.undo(), disabled: !this.canUndo, sticky: true },
+        { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
         { id: "bold", icon: "format_bold", title: this.$t("editor.md.bold"), action: () => this.wrapSelection("**", "**") },
         { id: "italic", icon: "format_italic", title: this.$t("editor.md.italic"), action: () => this.wrapSelection("_", "_") },
         { id: "strikethrough", icon: "strikethrough_s", title: this.$t("editor.md.strikethrough"), action: () => this.wrapSelection("~~", "~~") },
         { id: "heading", icon: "title", title: this.$t("editor.md.heading"), action: () => this.cycleHeading() },
         { id: "quote", icon: "format_quote", title: this.$t("editor.md.quote"), action: () => this.toggleLinePrefix("> ") },
-        { id: "code", icon: "code", title: this.$t("editor.md.inlineCode"), action: () => this.wrapSelection("`", "`") },
-        { id: "codeBlock", icon: "code_blocks", title: this.$t("editor.md.codeBlock"), action: () => this.insertCodeBlock() },
+        { id: "align", icon: "format_align_left", title: this.$t("editor.md.align"), menu: "align" },
         { id: "link", icon: "link", title: this.$t("editor.md.link"), action: () => this.insertLink() },
         { id: "image", icon: "image", title: this.$t("editor.md.image"), action: () => this.insertImage() },
         { id: "bulletList", icon: "format_list_bulleted", title: this.$t("editor.md.bulletList"), action: () => this.toggleLinePrefix("- ") },
         { id: "numberedList", icon: "format_list_numbered", title: this.$t("editor.md.numberedList"), action: () => this.applyNumberedList() },
         { id: "taskList", icon: "checklist", title: this.$t("editor.md.taskList"), action: () => this.toggleTaskList() },
-        { id: "table", icon: "table", title: this.$t("tools.activityViewer.tableView"), action: () => this.insertTable() },
-        { id: "horizontalRule", icon: "horizontal_rule", title: this.$t("editor.md.horizontalRule"), action: () => this.insertHorizontalRule() },
+        { id: "fontColor", icon: "font_download", title: this.$t("editor.md.fontColor"), color: "mdFontColor", applyColor: this.applyFontColor },
+        { id: "highlight", icon: "ink_highlighter", title: this.$t("editor.md.highlight"), color: "mdHighlightColor", applyColor: this.applyHighlightColor },
+      ];
+    },
+    stickyToolbarButtons(): ToolbarButton[] {
+      return this.markdownToolbarButtons.filter((btn) => btn.sticky);
+    },
+    toolbarButtons(): ToolbarButton[] {
+      return this.markdownToolbarButtons.filter((btn) => !btn.sticky);
+    },
+    alignMenuItems(): ToolbarButton[] {
+      return [
+        { id: "alignLeft", icon: "format_align_left", title: this.$t("editor.md.alignLeft"), action: () => this.wrapSelection('<p align="left">', "</p>", this.$t("editor.md.text")) },
+        { id: "alignCenter", icon: "format_align_center", title: this.$t("editor.md.alignCenter"), action: () => this.wrapSelection("<center>", "</center>", this.$t("editor.md.text")) },
+        { id: "alignRight", icon: "format_align_right", title: this.$t("editor.md.alignRight"), action: () => this.wrapSelection('<p align="right">', "</p>", this.$t("editor.md.text")) },
+        { id: "alignJustify", icon: "format_align_justify", title: this.$t("editor.md.justify"), action: () => this.wrapSelection('<p align="justify">', "</p>", this.$t("editor.md.text")) },
       ];
     },
     extraMenuItems(): ToolbarButton[] {
       return [
+        { id: "code", icon: "code", title: this.$t("editor.md.inlineCode"), action: () => this.wrapSelection("`", "`") },
+        { id: "codeBlock", icon: "code_blocks", title: this.$t("editor.md.codeBlock"), action: () => this.insertCodeBlock() },
+        { id: "table", icon: "table", title: this.$t("tools.activityViewer.tableView"), action: () => this.insertTable() },
+        { id: "horizontalRule", icon: "horizontal_rule", title: this.$t("editor.md.horizontalRule"), action: () => this.insertHorizontalRule() },
         { id: "inlineMath", icon: "functions", title: this.$t("editor.md.inlineMath"), action: () => this.wrapSelection("$", "$", "E = mc^2") },
         { id: "displayMath", icon: "calculate", title: this.$t("editor.md.displayMath"), action: () => this.wrapSelection("$$\n", "\n$$", "E = mc^2") },
-        { id: "highlight", icon: "ink_highlighter", title: this.$t("editor.md.highlight"), action: () => this.wrapSelection("<mark>", "</mark>", this.$t("editor.md.highlight")) },
         { id: "superscript", icon: "superscript", title: this.$t("editor.md.superscript"), action: () => this.wrapSelection("<sup>", "</sup>", "2") },
         { id: "subscript", icon: "subscript", title: this.$t("editor.md.subscript"), action: () => this.wrapSelection("<sub>", "</sub>", "2") },
         { id: "kbd", icon: "keyboard", title: this.$t("threejs.keyboard"), action: () => this.wrapSelection("<kbd>", "</kbd>", "Ctrl") },
       ];
     },
     menuStyle() {
+      if (this.openMenu === "align") {
+        return { top: `${this.menuPosition.top}px`, left: `${this.menuPosition.left}px`, transform: "translateX(-50%)" };
+      }
       return { top: `${this.menuPosition.top}px`, right: `${this.menuPosition.right}px` };
     },
     isDarkMode() {
@@ -226,6 +345,32 @@ export default {
       const contentEnd = advancePosition(contentStart, text);
       editor.selection.setRange({ start: contentStart, end: contentEnd });
       this.focusEditor();
+    },
+    applyFontColor(color: string) {
+      this.wrapSelection(`<font color="${color}">`, "</font>", this.$t("editor.md.text"));
+    },
+    applyHighlightColor(color: string) {
+      const style = color ? ` style="background-color: ${color}"` : "";
+      this.wrapSelection(`<mark${style}>`, "</mark>", this.$t("editor.md.highlight"));
+    },
+    selectedColor(btn: ToolbarButton): string {
+      return (btn.color && this.lastColors.get(btn.color)) || "";
+    },
+    applyStoredColor(btn: ToolbarButton) {
+      if (btn.disabled || !btn.color || !btn.applyColor) return;
+      const stored = this.selectedColor(btn);
+      if (!stored) {
+        this.colorInputRefs.get(btn.color)?.click();
+        return;
+      }
+      btn.applyColor(stored);
+    },
+    setColorInput(el: HTMLInputElement | null, color: string) {
+      if (el) this.colorInputRefs.set(color, el);
+    },
+    onColorChange(storageKey: string, color: string) {
+      localStorage.setItem(storageKey, color);
+      this.lastColors.set(storageKey, color);
     },
     toggleLinePrefix(prefix: string) {
       const editor = this.editor;
@@ -443,29 +588,39 @@ export default {
     },
     onPointerDown(e: PointerEvent) {
       const target = e.target as Node;
-      const trigger = this.$refs.extraMenuTrigger as HTMLElement | undefined;
-      const menu = this.$refs.extraMenu as HTMLElement | undefined;
-      if (trigger?.contains(target) || menu?.contains(target)) return;
-      this.extraMenuOpen = false;
+      const extraMenuTrigger = this.$refs.extraMenuTrigger as HTMLElement | undefined;
+      const extraMenu = this.$refs.extraMenu as HTMLElement | undefined;
+      const inside =
+        extraMenuTrigger?.contains(target)
+        || extraMenu?.contains(target)
+        || this.alignMenuTriggerEl?.contains(target)
+        || this.alignMenuEl?.contains(target);
+      if (!inside) this.closeMenu();
     },
-    toggleExtraMenu() {
-      if (this.extraMenuOpen) {
-        this.closeExtraMenu();
+    toggleMenu(name: "extra" | "align") {
+      if (this.openMenu === name) {
+        this.closeMenu();
         return;
       }
-      const trigger = this.$refs.extraMenuTrigger as HTMLElement | undefined;
+      const trigger = name === "align" ? this.alignMenuTriggerEl : (this.$refs.extraMenuTrigger as HTMLElement | undefined);
       if (trigger) {
         const rect = trigger.getBoundingClientRect();
-        this.menuPosition = { top: rect.bottom + 4, right: window.innerWidth - rect.right };
+        if (name === "align") {
+          // Center under the button
+          this.menuPosition = { top: rect.bottom + 4, left: rect.left + rect.width / 2, right: 0 };
+        } else {
+          // Right-anchor to the viewport edge so it can't overflow off-screen
+          this.menuPosition = { top: rect.bottom + 4, left: 0, right: window.innerWidth - rect.right };
+        }
       }
-      this.extraMenuOpen = true;
+      this.openMenu = name;
     },
-    closeExtraMenu() {
-      this.extraMenuOpen = false;
+    closeMenu() {
+      this.openMenu = null;
     },
     extBtnAction(item: ToolbarButton) {
-      this.extraMenuOpen = false;
-      item.action();
+      this.closeMenu();
+      item.action?.();
     },
     insertTable() {
       const column = this.$t("editor.md.column");
@@ -481,21 +636,16 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.15em;
-  padding: 0.35em 0.5em;
+  padding: 0.35em 0;
   border-bottom: 1px solid var(--alt-background);
   flex-shrink: 0;
-  overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 
-.markdown-toolbar::-webkit-scrollbar {
-  display: none;
-  height: 0;
-}
-
 .md-toolbar-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -510,17 +660,70 @@ export default {
   transition: background-color 0.15s ease;
 }
 
-.md-toolbar-btn:hover {
+.md-toolbar-group {
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* for undo/redo sticky at the left for easy access */
+.md-toolbar-sticky {
+  left: 0;
+  position: sticky;
+  display: flex;
+  z-index: 1;
+  align-items: center;
+  flex-shrink: 0;
+  background: var(--background);
+  border-right: 1px solid var(--alt-background);
+  padding: 0.25em;
+  margin: -0.35em 0;
+}
+
+.md-toolbar-sticky--right {
+  right: -1px;
+  padding-right: calc(0.25em + 1px);
+  border-left: 1px solid var(--alt-background);
+  border-right: none;
+}
+
+/* overlaid on the icons bottom edge */
+.md-toolbar-color-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: 0.15em;
+  transform: translateX(-50%);
+  width: 1.4em;
+  height: 0.5em;
+  border-radius: 0.2em;
   background-color: var(--alt-background);
+  box-shadow: inset 0 0 0 1px var(--alt-background);
+  cursor: pointer;
+}
+
+.md-toolbar-btn .material-symbols.md-toolbar-color-glyph {
+  font-size: 1em;
+  transform: translateY(-0.2em);
+}
+
+.md-toolbar-color-indicator--empty {
+  background-color: transparent;
+  opacity: 0;
+}
+
+.color-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .md-toolbar-btn:disabled {
   opacity: 0.35;
-  cursor: default;
-}
-
-.md-toolbar-btn:disabled:hover {
-  background-color: transparent;
 }
 
 .md-toolbar-btn .material-symbols {
@@ -531,39 +734,32 @@ export default {
   position: fixed;
   margin: 0;
   padding: 0.25em;
+  padding-bottom: 0.65em;
   list-style: none;
-  min-width: 11em;
   z-index: 9999;
 }
 
-.md-toolbar-menu li {
+.md-toolbar-menu--align {
   display: flex;
-  align-items: center;
+  gap: 0.15em;
+  padding-bottom: 0.5em;
+}
+
+/* same as md-toolbar-btn but only the layout is what changes */
+.md-toolbar-menu-btn {
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
   gap: 0.5em;
   padding: 0.5em 0.75em;
-  border-radius: 0.5em;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.15s ease;
 }
 
-.md-toolbar-menu li:hover {
-  background-color: var(--alt-background);
-}
-
-.md-toolbar-menu li .material-symbols {
+.md-toolbar-menu-btn .material-symbols {
   font-size: 1.1em;
 }
 
 .expand-enter-active,
 .expand-leave-active {
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-}
-
-.expand-enter,
-.expand-leave-to {
-  height: 0 !important;
-  opacity: 0;
 }
 </style>

@@ -760,7 +760,13 @@
       "subscript": "Nedsänkt",
       "text": "Text",
       "cell": "Cell",
-      "column": "Kolumn"
+      "column": "Kolumn",
+      "align": "Justering",
+      "alignRight": "Justera till höger",
+      "alignLeft": "Justera till vänster",
+      "alignCenter": "Centrera",
+      "justify": "Kantutjämna",
+      "fontColor": "Typsnittsfärg"
     }
   },
   "player": {

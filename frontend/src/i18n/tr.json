@@ -760,7 +760,13 @@
       "subscript": "Alt simge",
       "text": "Metin",
       "cell": "Hücre",
-      "column": "Sütun"
+      "column": "Sütun",
+      "align": "Hizalama",
+      "alignRight": "Sağa hizala",
+      "alignLeft": "Sola hizala",
+      "alignCenter": "Ortala",
+      "justify": "İki yana yasla",
+      "fontColor": "Yazı tipi rengi"
     }
   },
   "player": {

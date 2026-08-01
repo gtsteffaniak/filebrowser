@@ -760,7 +760,13 @@
       "subscript": "כתב תחתי",
       "text": "טקסט",
       "cell": "תא",
-      "column": "עמודה"
+      "column": "עמודה",
+      "align": "יישור",
+      "alignRight": "יישור לימין",
+      "alignLeft": "יישור לשמאל",
+      "alignCenter": "יישור למרכז",
+      "justify": "יישור דו-צדדי",
+      "fontColor": "צבע גופן"
     }
   },
   "player": {

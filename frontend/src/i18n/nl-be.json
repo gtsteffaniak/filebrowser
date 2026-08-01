@@ -760,7 +760,13 @@
       "subscript": "Subscript",
       "text": "Tekst",
       "cell": "Cel",
-      "column": "Kolom"
+      "column": "Kolom",
+      "align": "Uitlijnen",
+      "alignRight": "Rechts uitlijnen",
+      "alignLeft": "Links uitlijnen",
+      "alignCenter": "Centreren",
+      "justify": "Uitvullen",
+      "fontColor": "Letterkleur"
     }
   },
   "player": {

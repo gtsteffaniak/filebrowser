@@ -760,7 +760,13 @@
       "subscript": "下標",
       "text": "文字",
       "cell": "儲存格",
-      "column": "欄"
+      "column": "欄",
+      "align": "對齊",
+      "alignRight": "靠右對齊",
+      "alignLeft": "靠左對齊",
+      "alignCenter": "置中對齊",
+      "justify": "左右對齊",
+      "fontColor": "字體顏色"
     }
   },
   "player": {

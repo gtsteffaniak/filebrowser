@@ -760,7 +760,13 @@
       "subscript": "Tiefgestellt",
       "text": "Text",
       "cell": "Zelle",
-      "column": "Spalte"
+      "column": "Spalte",
+      "align": "Ausrichtung",
+      "alignRight": "Rechtsbündig",
+      "alignLeft": "Linksbündig",
+      "alignCenter": "Zentrieren",
+      "justify": "Blocksatz",
+      "fontColor": "Schriftfarbe"
     }
   },
   "player": {

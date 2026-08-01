@@ -760,7 +760,13 @@
       "subscript": "Indice",
       "text": "Texte",
       "cell": "Cellule",
-      "column": "Colonne"
+      "column": "Colonne",
+      "align": "Aligner",
+      "alignRight": "Aligner à droite",
+      "alignLeft": "Aligner à gauche",
+      "alignCenter": "Centrer",
+      "justify": "Justifier",
+      "fontColor": "Couleur de la police"
     }
   },
   "player": {

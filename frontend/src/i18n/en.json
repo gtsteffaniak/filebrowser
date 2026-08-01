@@ -782,7 +782,13 @@
       "subscript": "Subscript",
       "text": "Text",
       "cell": "Cell",
-      "column": "Column"
+      "column": "Column",
+      "align": "Align",
+      "alignRight": "Align right",
+      "alignLeft": "Align left",
+      "alignCenter": "Align center",
+      "justify": "Justify",
+      "fontColor": "Font color"
     }
   },
   "player": {
