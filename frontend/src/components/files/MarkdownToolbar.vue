@@ -139,9 +139,16 @@ import { eventBus } from "@/store/eventBus";
 import { removeLastDir } from "@/utils/url.js";
 import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
 
-interface PendingImageRange {
+interface AnchorRange {
   start: Ace.Anchor;
   end: Ace.Anchor;
+}
+
+interface PendingSelection {
+  kind: "image" | "video" | "audio";
+  contextId: string;
+  alt: string;
+  range: AnchorRange;
 }
 
 function formatImageDestination(dest: string): string {
@@ -153,6 +160,10 @@ function formatImageDestination(dest: string): string {
 
 function formatImageAltText(alt: string): string {
   return alt.replace(/([\\[\]])/g, "\\$1");
+}
+
+function formatHtmlAttrValue(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 }
 
 function advancePosition(pos: Ace.Point, str: string): Ace.Point {
@@ -184,9 +195,7 @@ export default {
   data: () => ({
     canUndo: false,
     canRedo: false,
-    pendingImageContextId: null as string | null,
-    pendingImageRange: null as PendingImageRange | null,
-    pendingImageAlt: "",
+    pendingSelection: null as PendingSelection | null,
     openMenu: null as "extra" | "align" | null,
     menuPosition: { top: 0, left: 0, right: 0 },
     lastColors: new Map<string, string>([
@@ -204,22 +213,22 @@ export default {
         this.detachUndoListener(oldEditor);
         this.attachUndoListener(newEditor);
         if (oldEditor && oldEditor !== newEditor) {
-          this.clearPendingImageRange();
+          this.clearPendingSelection();
         }
       },
     },
   },
   mounted() {
-    eventBus.on("pathSelected", this.imagePathSelected);
-    eventBus.on("pathPickerCancelled", this.imagePathPickerCancelled);
+    eventBus.on("pathSelected", this.onPathSelected);
+    eventBus.on("pathPickerCancelled", this.onPathPickerCancelled);
     document.addEventListener("pointerdown", this.onPointerDown);
     window.addEventListener("resize", this.closeMenu);
   },
   beforeUnmount() {
     this.detachUndoListener(this.editor);
-    this.clearPendingImageRange();
-    eventBus.off("pathSelected", this.imagePathSelected);
-    eventBus.off("pathPickerCancelled", this.imagePathPickerCancelled);
+    this.clearPendingSelection();
+    eventBus.off("pathSelected", this.onPathSelected);
+    eventBus.off("pathPickerCancelled", this.onPathPickerCancelled);
     document.removeEventListener("pointerdown", this.onPointerDown);
     window.removeEventListener("resize", this.closeMenu);
   },
@@ -261,6 +270,8 @@ export default {
       return [
         { id: "code", icon: "code", title: this.$t("editor.md.inlineCode"), action: () => this.wrapSelection("`", "`") },
         { id: "codeBlock", icon: "code_blocks", title: this.$t("editor.md.codeBlock"), action: () => this.insertCodeBlock() },
+        { id: "video", icon: "videocam", title: this.$t("fileTypes.video"), action: () => this.insertVideo() },
+        { id: "audio", icon: "music_note", title: this.$t("fileTypes.audio"), action: () => this.insertAudio() },
         { id: "table", icon: "table", title: this.$t("tools.activityViewer.tableView"), action: () => this.insertTable() },
         { id: "horizontalRule", icon: "horizontal_rule", title: this.$t("editor.md.horizontalRule"), action: () => this.insertHorizontalRule() },
         { id: "inlineMath", icon: "functions", title: this.$t("editor.md.inlineMath"), action: () => this.wrapSelection("$", "$", "E = mc^2") },
@@ -496,17 +507,29 @@ export default {
       this.insertBlock("---\n\n");
     },
     insertImage() {
+      this.openPathPicker("image", { allowedFileTypes: ["image/"] });
+    },
+    insertVideo() {
+      this.openPathPicker("video", { allowedFileTypes: ["video/"] });
+    },
+    insertAudio() {
+      this.openPathPicker("audio", { allowedFileTypes: ["audio/"] });
+    },
+    openPathPicker(kind: "image" | "video" | "audio", pickerProps: Record<string, unknown>) {
       const editor = this.editor;
       if (!editor) return;
       const selectedText = editor.getSelectedText();
       const range = editor.getSelectionRange();
-      this.pendingImageAlt = selectedText || "";
-      this.pendingImageRange = {
-        start: editor.session.doc.createAnchor(range.start.row, range.start.column),
-        end: editor.session.doc.createAnchor(range.end.row, range.end.column),
+      const contextId = `md-toolbar-${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+      this.pendingSelection = {
+        kind,
+        contextId,
+        alt: kind === "image" ? (selectedText || "") : "",
+        range: {
+          start: editor.session.doc.createAnchor(range.start.row, range.start.column),
+          end: editor.session.doc.createAnchor(range.end.row, range.end.column),
+        },
       };
-      const selectionContextId = `md-toolbar-image-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-      this.pendingImageContextId = selectionContextId;
       mutations.showPrompt({
         name: "pathPicker",
         pinned: true,
@@ -517,44 +540,49 @@ export default {
           showFiles: true,
           showFolders: true,
           requireFileSelection: true,
-          allowedFileTypes: ["image/"],
-          selectionContextId,
+          selectionContextId: contextId,
+          ...pickerProps,
         },
       });
     },
-    clearPendingImageRange() {
-      this.pendingImageRange?.start.detach();
-      this.pendingImageRange?.end.detach();
-      this.pendingImageRange = null;
-      this.pendingImageContextId = null;
-      this.pendingImageAlt = "";
+    clearPendingSelection() {
+      this.pendingSelection?.range.start.detach();
+      this.pendingSelection?.range.end.detach();
+      this.pendingSelection = null;
     },
-    imagePathSelected(data: { path?: string; selectionContextId?: string }) {
-      if (!this.pendingImageContextId || !data || data.selectionContextId !== this.pendingImageContextId) {
-        return;
-      }
-      const pending = this.pendingImageRange;
-      const alt = this.pendingImageAlt;
-      const editor = this.editor;
-      const path = data.path;
-      this.clearPendingImageRange();
-      if (!editor || !pending || typeof path !== "string") return;
+    buildImageMd(path: string, alt: string): string {
       const fileName = path.split("/").filter(Boolean).pop() || "image";
       const altText = alt || fileName.replace(/\.[^./]+$/, "");
-      const imageText = `![${formatImageAltText(altText)}](${formatImageDestination(path)})`;
-      const start = pending.start.getPosition();
-      const end = pending.end.getPosition();
+      return `![${formatImageAltText(altText)}](${formatImageDestination(path)})`;
+    },
+    buildMediaMd(path: string, tag: "video" | "audio"): string {
+      return `<${tag} src="${formatHtmlAttrValue(path)}" controls></${tag}>`;
+    },
+    onPathSelected(data: { path?: string; selectionContextId?: string }) {
+      const pending = this.pendingSelection;
+      if (!pending || !data || data.selectionContextId !== pending.contextId) {
+        return;
+      }
+      const editor = this.editor;
+      const path = data.path;
+      this.clearPendingSelection();
+      if (!editor || typeof path !== "string") return;
+      const text = pending.kind === "image"
+        ? this.buildImageMd(path, pending.alt)
+        : this.buildMediaMd(path, pending.kind);
+      const start = pending.range.start.getPosition();
+      const end = pending.range.end.getPosition();
       const range = new (ace.require("ace/range").Range)(start.row, start.column, end.row, end.column);
-      const insertionEnd = editor.session.replace(range, imageText);
+      const insertionEnd = editor.session.replace(range, text);
       editor.moveCursorTo(insertionEnd.row, insertionEnd.column);
       editor.clearSelection();
       this.focusEditor();
     },
-    imagePathPickerCancelled(data: { selectionContextId?: string }) {
-      if (!this.pendingImageContextId || !data || data.selectionContextId !== this.pendingImageContextId) {
+    onPathPickerCancelled(data: { selectionContextId?: string }) {
+      if (!this.pendingSelection || !data || data.selectionContextId !== this.pendingSelection.contextId) {
         return;
       }
-      this.clearPendingImageRange();
+      this.clearPendingSelection();
     },
     toggleTaskList() {
       const editor = this.editor;
