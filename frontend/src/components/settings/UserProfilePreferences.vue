@@ -121,10 +121,12 @@
           v-model="showThumbnailsForPreviews"
           @change="onThumbnailMasterChange"
           @update:enforced="(v) => emitEnforced('preview', 'image', v)"
-          :disabled="fieldDisabled('preview', 'image')"
+          :disabled="valueDisabled('preview', 'image')"
+          :enforcement-disabled="enforcementDisabled('preview', 'image')"
           :enforcement-locked="isEnforcementLocked('preview', 'image')"
+          :value-tooltip="configLockTooltip('preview', 'image')"
           :name="$t('profileSettings.showThumbnails')"
-          :description="helpText('preview', 'image', $t('profileSettings.showThumbnailsDescription'))"
+          :description="$t('profileSettings.showThumbnailsDescription')"
         />
         <template v-if="!showThumbnailMaster || showThumbnailsForPreviews">
           <ProfilePreferenceToggle
@@ -783,14 +785,32 @@ export default {
       }
       return !this.enforceable && this.enforcedFlag(section, field);
     },
+    valueDisabled(section, field) {
+      if (this.disabled) {
+        return true;
+      }
+      if (this.isConfigLocked(section, field)) {
+        return true;
+      }
+      return this.fieldLocked(section, field);
+    },
+    enforcementDisabled(section, field) {
+      if (this.disabled) {
+        return true;
+      }
+      return this.isEnforcementLocked(section, field);
+    },
     fieldDisabled(section, field) {
-      return this.disabled || this.fieldLocked(section, field);
+      return this.valueDisabled(section, field);
     },
     helpText(section, field, description) {
+      return description || "";
+    },
+    configLockTooltip(section, field) {
       if (this.isConfigLocked(section, field)) {
         return this.$t("settings.userDefaultFieldLockedFromConfig");
       }
-      return description || "";
+      return "";
     },
     isEnforcementLocked(section, field) {
       if (getters.isAdmin() || this.enforceable) {

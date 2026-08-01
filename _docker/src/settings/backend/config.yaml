@@ -42,3 +42,7 @@ auth:
   methods:
     password:
       signup: true
+
+userDefaults:
+  listing:
+    showHidden: true

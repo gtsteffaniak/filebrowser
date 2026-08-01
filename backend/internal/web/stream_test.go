@@ -671,6 +671,61 @@ func TestViewTokenHandlerMintsOnShareWithoutWebSession(t *testing.T) {
 	}
 }
 
+func TestViewTokenHandlerRejectsUploadShare(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
+	d := &requestContext{
+		User: &users.User{
+			FrontendUser: users.FrontendUser{Username: "anonymous"},
+		},
+		Share: share.Share{
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{
+					ShareType: "upload",
+				},
+			},
+			ShareColumns: share.ShareColumns{Hash: "upload-share"},
+			SourcePath:   "/srv",
+		},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/public/api/resources/view-token?hash=upload-share", nil)
+	status, err := viewTokenHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusNotImplemented || err == nil {
+		t.Fatalf("expected 501 for upload share, got status=%d err=%v", status, err)
+	}
+}
+
+func TestCanMintViewTokenRejectsUploadShare(t *testing.T) {
+	t.Parallel()
+	d := &requestContext{
+		Share: share.Share{
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{
+					ShareType: "upload",
+				},
+			},
+			ShareColumns: share.ShareColumns{Hash: "upload-share"},
+			SourcePath:   "/srv",
+		},
+	}
+	if canMintViewToken(d, "default") {
+		t.Fatal("expected canMintViewToken to reject upload share")
+	}
+	file := &iteminfo.ExtendedFileInfo{
+		FileInfo: iteminfo.FileInfo{
+			ItemInfo: iteminfo.ItemInfo{Name: "photo.jpg", Type: "image/jpeg"},
+		},
+	}
+	AttachViewToken(d, "default", file)
+	if file.ViewToken != "" {
+		t.Fatalf("expected no view token on upload share, got %q", file.ViewToken)
+	}
+}
+
 func TestViewTokenHandlerRejectsSourceOnShare(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)

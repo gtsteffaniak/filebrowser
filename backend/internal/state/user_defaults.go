@@ -244,9 +244,6 @@ func PatchUserDefaults(patchJSON []byte) error {
 
 // PatchUserDefaultsEnforced merges enforcement patch JSON into the universal config.
 func PatchUserDefaultsEnforced(patchJSON []byte) error {
-	if err := settings.ValidateUserDefaultsPatchNotConfigLocked(patchJSON); err != nil {
-		return err
-	}
 	userDefaultsMu.Lock()
 	merged, mergeErr := settings.MergeEnforcedPatchJSON(userDefaultsEnforcedDefault, patchJSON)
 	if mergeErr != nil {

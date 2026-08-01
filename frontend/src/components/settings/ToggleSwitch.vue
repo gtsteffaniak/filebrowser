@@ -2,14 +2,13 @@
   <div
     class="toggle-container"
     :class="{
-      disabled: disabled,
       'toggle-container--enforceable': enforceable,
     }"
   >
     <div
       class="toggle-row toggle-row--value"
-      :class="{ 'border-radius': enforceable }"
-      @mouseenter="showEnforcedTooltipIfNeeded"
+      :class="{ 'toggle-row--disabled': disabled, 'border-radius': enforceable }"
+      @mouseenter="showValueRowTooltipIfNeeded"
       @mouseleave="hideTooltip"
     >
       <div class="toggle-name-container">
@@ -37,6 +36,7 @@
     <div
       v-if="enforceable"
       class="toggle-row toggle-row--enforced border-radius"
+      :class="{ 'toggle-row--disabled': enforcementDisabled }"
     >
       <label class="enforced-label" :for="enforcedInputId">{{ enforcedLabelText }}</label>
       <label class="switch">
@@ -44,7 +44,7 @@
           :id="enforcedInputId"
           type="checkbox"
           :checked="enforced"
-          :disabled="disabled"
+          :disabled="enforcementDisabled"
           :aria-label="enforcedLabelText"
           @change="updateEnforced"
         />
@@ -85,6 +85,11 @@ export default {
       required: false,
       default: false,
     },
+    enforcementDisabled: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     enforceable: {
       type: Boolean,
       default: false,
@@ -96,6 +101,10 @@ export default {
     enforcementLocked: {
       type: Boolean,
       default: false,
+    },
+    valueTooltip: {
+      type: String,
+      default: "",
     },
   },
   data() {
@@ -125,15 +134,25 @@ export default {
         });
       }
     },
-    showEnforcedTooltipIfNeeded(event) {
-      if (!this.disabled || !this.enforcementLocked) {
+    showValueRowTooltipIfNeeded(event) {
+      if (!this.disabled) {
         return;
       }
-      mutations.showTooltip({
-        content: this.$t("profileSettings.enforcedByAdmin"),
-        x: event.clientX,
-        y: event.clientY,
-      });
+      if (this.valueTooltip) {
+        mutations.showTooltip({
+          content: this.valueTooltip,
+          x: event.clientX,
+          y: event.clientY,
+        });
+        return;
+      }
+      if (this.enforcementLocked) {
+        mutations.showTooltip({
+          content: this.$t("profileSettings.enforcedByAdmin"),
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
     },
     hideTooltip() {
       mutations.hideTooltip();
@@ -253,25 +272,25 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
-.toggle-container.disabled {
+.toggle-row--disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.toggle-container.disabled .toggle-name {
+.toggle-row--disabled .toggle-name {
   color: #999;
 }
 
-.toggle-container.disabled .slider {
+.toggle-row--disabled .slider {
   cursor: not-allowed;
 }
 
-input:disabled + .slider {
+.toggle-row--disabled input:disabled + .slider {
   cursor: not-allowed;
   background-color: #ccc;
 }
 
-input:disabled:checked + .slider {
+.toggle-row--disabled input:disabled:checked + .slider {
   background-color: #999;
 }
 </style>

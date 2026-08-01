@@ -41,6 +41,7 @@ import { getters, mutations, state } from '@/store';
 import { globalVars } from "@/utils/constants";
 import { getBestCachedImage } from "@/utils/imageCache";
 import { isRawImageMimeType } from "@/utils/mimetype";
+import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import throttle from "@/utils/throttle";
 
 export default {
@@ -96,6 +97,7 @@ export default {
       edgeCommitY: 110,
       edgeRubberMax: 100,
       pinchActive: false,
+      viewTokenRetried: false,
     };
   },
   computed: {
@@ -265,7 +267,25 @@ export default {
           return; // Let it retry with fixed URL
         }
       }
+
+      if (!this.viewTokenRetried && state.req?.source) {
+        this.viewTokenRetried = true;
+        const viewIdentity = requestViewIdentity(state.req);
+        void refreshViewToken(state.req.source, state.req.viewToken)
+          .then((data) => {
+            if (requestViewIdentity(state.req) === viewIdentity) {
+              mutations.setRequestViewToken(data.viewToken);
+            }
+          })
+          .catch(() => {
+            this.finishImageError(img);
+          });
+        return;
+      }
       
+      this.finishImageError(img);
+    },
+    finishImageError(img) {
       this.imageLoaded = true;
       this.fullImageLoaded = true;
       mutations.setLoading("preview-img", false);
@@ -749,6 +769,7 @@ export default {
       }
       
       // Reset and reload when src changes
+      this.viewTokenRetried = false;
       this.fullImageLoaded = false;
       this.imageLoaded = false;
       this.isTiff = this.checkIfTiff(newSrc);

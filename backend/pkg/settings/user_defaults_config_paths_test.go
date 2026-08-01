@@ -63,6 +63,16 @@ func TestValidateUserDefaultsPatchNotConfigLocked(t *testing.T) {
 	}
 }
 
+func TestMergeEnforcedPatchAllowsConfigLockedValuePath(t *testing.T) {
+	merged, err := MergeEnforcedPatchJSON(UserDefaultsEnforcement{}, []byte(`{"listing":{"showHidden":true}}`))
+	if err != nil {
+		t.Fatalf("merge enforced patch: %v", err)
+	}
+	if !merged.Listing.ShowHidden {
+		t.Fatal("expected listing.showHidden enforcement true")
+	}
+}
+
 func TestIsUserDefaultLockedFromConfig(t *testing.T) {
 	Env.ConfigUserDefaultsSpecifiedPaths = []string{"ui.darkMode"}
 	t.Cleanup(func() {

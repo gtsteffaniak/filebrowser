@@ -190,6 +190,9 @@ func viewTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err := requireWebSessionForViewToken(d); err != nil {
 		return http.StatusForbidden, err
 	}
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("viewing is disabled for upload shares")
+	}
 	source, err := resolveViewGrantSource(d, r)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -250,6 +253,9 @@ func ValidateViewGrant(token string, d *Context, sourceName string) error {
 }
 
 func canMintViewToken(d *Context, source string) bool {
+	if d.Share.Hash != "" && d.Share.ShareType == "upload" {
+		return false
+	}
 	perms, err := effectiveFilePerms(d, source)
 	return err == nil && perms.View
 }

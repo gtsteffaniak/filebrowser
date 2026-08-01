@@ -68,6 +68,7 @@
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { resourcesApi, mediaApi } from "@/api";
+import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
@@ -315,6 +316,22 @@ export default {
         this.listing = null;
       }
 
+      const path = state.req.path;
+      if (
+        state.req.type !== "directory"
+        && !getters.fileViewingDisabled(state.req.name)
+      ) {
+        const viewIdentity = requestViewIdentity(state.req);
+        try {
+          const viewToken = await ensureViewToken(state.req.source);
+          if (viewToken && requestViewIdentity(state.req) === viewIdentity) {
+            mutations.setRequestViewToken(viewToken);
+          }
+        } catch (err) {
+          console.warn("Failed to refresh view token for preview:", err);
+        }
+      }
+
       if (!this.listing || this.listing === "undefined") {
         if (state.req.parentDirItems) {
           this.listing = state.req.parentDirItems;
@@ -325,7 +342,6 @@ export default {
         }
       }
 
-      const path = state.req.path;
       const isAv =
         !getters.fileViewingDisabled(state.req.name) &&
         state.req.type !== "directory" &&

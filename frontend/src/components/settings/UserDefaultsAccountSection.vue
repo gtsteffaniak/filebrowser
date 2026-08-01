@@ -9,6 +9,7 @@
         @change="$emit('account-change', 'lockPassword')"
         @update:enforced="(v) => emitEnforced('lockPassword', v)"
         :disabled="isFieldLocked('lockPassword')"
+        :value-tooltip="configLockTooltipForField('lockPassword')"
         :name="$t('settings.lockPassword')"
       />
       <ToggleSwitch
@@ -19,6 +20,7 @@
         @change="$emit('account-change', 'disableSettings')"
         @update:enforced="(v) => emitEnforced('disableSettings', v)"
         :disabled="isFieldLocked('disableSettings')"
+        :value-tooltip="configLockTooltipForField('disableSettings')"
         :name="$t('settings.disableUserSettings')"
       />
       <ToggleSwitch
@@ -29,6 +31,7 @@
         @change="$emit('account-change', 'disableUpdateNotifications')"
         @update:enforced="(v) => emitEnforced('disableUpdateNotifications', v)"
         :disabled="isFieldLocked('disableUpdateNotifications')"
+        :value-tooltip="configLockTooltipForField('disableUpdateNotifications')"
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')"
       />
@@ -44,6 +47,7 @@
         @change="$emit('account-change', 'permissions.admin')"
         @update:enforced="(v) => emitEnforcedPermission('admin', v)"
         :disabled="isPermissionLocked('admin')"
+        :value-tooltip="configLockTooltipForPermission('admin')"
         :name="$t('settings.permissions.admin')"
       />
       <ToggleSwitch
@@ -54,6 +58,7 @@
         @change="$emit('account-change', 'permissions.share')"
         @update:enforced="(v) => emitEnforcedPermission('share', v)"
         :disabled="isPermissionLocked('share')"
+        :value-tooltip="configLockTooltipForPermission('share')"
         :name="$t('general.shareFiles')"
       />
       <ToggleSwitch
@@ -64,6 +69,7 @@
         @change="$emit('account-change', 'permissions.api')"
         @update:enforced="(v) => emitEnforcedPermission('api', v)"
         :disabled="isPermissionLocked('api')"
+        :value-tooltip="configLockTooltipForPermission('api')"
         :name="$t('settings.permissions.api')"
       />
       <ToggleSwitch
@@ -74,6 +80,7 @@
         @change="$emit('account-change', 'permissions.realtime')"
         @update:enforced="(v) => emitEnforcedPermission('realtime', v)"
         :disabled="isPermissionLocked('realtime')"
+        :value-tooltip="configLockTooltipForPermission('realtime')"
         :name="$t('settings.permissions.realtime')"
       />
     </div>
@@ -123,6 +130,18 @@ export default {
     },
     isPermissionLocked(field) {
       return this.configLockedPaths.includes(`account.permissions.${field}`);
+    },
+    configLockTooltipForField(field) {
+      if (this.isFieldLocked(field)) {
+        return this.$t("settings.userDefaultFieldLockedFromConfig");
+      }
+      return "";
+    },
+    configLockTooltipForPermission(field) {
+      if (this.isPermissionLocked(field)) {
+        return this.$t("settings.userDefaultFieldLockedFromConfig");
+      }
+      return "";
     },
     emitEnforced(field, value) {
       this.$emit("enforced-change", field, value);
