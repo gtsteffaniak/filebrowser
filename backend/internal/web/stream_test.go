@@ -671,6 +671,34 @@ func TestViewTokenHandlerMintsOnShareWithoutWebSession(t *testing.T) {
 	}
 }
 
+func TestViewTokenHandlerRejectsUploadShare(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
+	d := &requestContext{
+		User: &users.User{
+			FrontendUser: users.FrontendUser{Username: "anonymous"},
+		},
+		Share: share.Share{
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{
+					ShareType: "upload",
+				},
+			},
+			ShareColumns: share.ShareColumns{Hash: "upload-share"},
+			SourcePath:   "/srv",
+		},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/public/api/resources/view-token?hash=upload-share", nil)
+	status, err := viewTokenHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusNotImplemented || err == nil {
+		t.Fatalf("expected 501 for upload share, got status=%d err=%v", status, err)
+	}
+}
+
 func TestViewTokenHandlerRejectsSourceOnShare(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)

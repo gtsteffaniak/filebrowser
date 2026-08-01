@@ -18,6 +18,7 @@ import { defineComponent, watch } from "vue";
 import ePub, { type Book, type Rendition } from "epubjs";
 import { state, mutations, getters } from "@/store"; // Assuming your store setup
 import { resourcesApi } from "@/api";
+import { ensureViewToken } from "@/api/viewToken.js";
 import router from "@/router";
 import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
@@ -75,12 +76,19 @@ export default defineComponent({
       hasPreview: state.req.hasPreview,
     });
     try {
+      let viewToken = state.req.viewToken;
+      try {
+        viewToken = await ensureViewToken(state.req.source);
+        state.req.viewToken = viewToken;
+      } catch (err) {
+        console.warn("Failed to refresh view token for EPUB preview:", err);
+      }
       // 1. Fetch the download URL for the EPUB file
       const epubUrl = getters.isShare()
         ? resourcesApi.getViewURL(
             state.req.source,
             state.req.path,
-            state.req.viewToken,
+            viewToken,
             {
               path: state.shareInfo.subPath,
               hash: state.shareInfo.hash,
@@ -92,7 +100,7 @@ export default defineComponent({
         : resourcesApi.getViewURL(
             state.req.source,
             state.req.path,
-            state.req.viewToken,
+            viewToken,
             null,
             false,
             state.req.type || state.req.name,

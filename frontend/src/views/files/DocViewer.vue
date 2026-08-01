@@ -10,6 +10,7 @@
 import { defineComponent } from "vue";
 import * as mammoth from "mammoth";
 import { resourcesApi } from "@/api";
+import { ensureViewToken, refreshViewToken } from "@/api/viewToken.js";
 import { state, mutations, getters } from "@/store";
 import { removeLastDir } from "@/utils/url.js";
 
@@ -155,11 +156,19 @@ export default defineComponent({
         this.error = "";
         this.docxHtml = "";
 
+        let viewToken = state.req.viewToken;
+        try {
+          viewToken = await ensureViewToken(state.req.source);
+          state.req.viewToken = viewToken;
+        } catch (err) {
+          console.warn("Failed to refresh view token for DOCX preview:", err);
+        }
+
         const downloadUrl = getters.isShare()
           ? resourcesApi.getViewURL(
               state.req.source,
               state.req.path,
-              state.req.viewToken,
+              viewToken,
               {
                 path: state.shareInfo.subPath,
                 hash: state.shareInfo.hash,
@@ -171,7 +180,7 @@ export default defineComponent({
           : resourcesApi.getViewURL(
               state.req.source,
               state.req.path,
-              state.req.viewToken,
+              viewToken,
               null,
               false,
               state.req.type || state.req.name,
@@ -181,7 +190,41 @@ export default defineComponent({
           throw new Error("Could not retrieve a valid download URL from the API.");
         }
 
-        const response = await fetch(downloadUrl);
+        let response = await fetch(downloadUrl);
+
+        if (response.status === 403 && state.req?.source) {
+          try {
+            const refreshed = await refreshViewToken(state.req.source, viewToken);
+            viewToken = refreshed.viewToken;
+            state.req.viewToken = viewToken;
+            const retryUrl = getters.isShare()
+              ? resourcesApi.getViewURL(
+                  state.req.source,
+                  state.req.path,
+                  viewToken,
+                  {
+                    path: state.shareInfo.subPath,
+                    hash: state.shareInfo.hash,
+                    token: state.shareInfo.token,
+                  },
+                  false,
+                  state.req.type || state.req.name,
+                )
+              : resourcesApi.getViewURL(
+                  state.req.source,
+                  state.req.path,
+                  viewToken,
+                  null,
+                  false,
+                  state.req.type || state.req.name,
+                );
+            if (retryUrl) {
+              response = await fetch(retryUrl);
+            }
+          } catch (refreshErr) {
+            console.warn("Failed to refresh view token after 403:", refreshErr);
+          }
+        }
 
         if (!response.ok) {
           throw new Error(`Failed to download file (Status: ${response.status})`);
