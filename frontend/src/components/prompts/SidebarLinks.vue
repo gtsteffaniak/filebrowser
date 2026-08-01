@@ -402,7 +402,7 @@ export default {
     },
     /** Share link type requires manage-share permission; avoids listing shares when forbidden */
     canListShares() {
-      return this.context === "user" && getters.permissions().share;
+      return this.context === "user" && getters.globalPermissions().share;
     },
     linkTypeOptions() {
       const options = [];

@@ -118,6 +118,7 @@
               </div>
               <source-file-permissions
                 :permissions="sourcePermissionsFor(source.name)"
+                :enforced-permissions="sourceFilePermissionEnforced"
                 @changed="markScopePermissionsExplicit(source.name)"
               />
             </SettingsItem>
@@ -176,6 +177,7 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
+import * as auth from "@/utils/auth.js";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 import { setObjectProperty } from '@/utils/object.js';
@@ -226,6 +228,13 @@ export default {
       pendingScopeSourceName: null,
       addingPasskey: false,
       sourceFilePermissionDefaults: null,
+      sourceFilePermissionEnforced: {
+        view: false,
+        download: false,
+        modify: false,
+        create: false,
+        delete: false,
+      },
       editAccount: {
         lockPassword: false,
         disableSettings: false,
@@ -417,12 +426,20 @@ export default {
       try {
         const settings = await settingsApi.getSourceSettings();
         const defaults = settings?.defaultPermissions ?? {};
+        const enforced = settings?.enforcedPermissions ?? {};
         this.sourceFilePermissionDefaults = {
           view: defaults.view !== false,
           download: defaults.download !== false,
           modify: !!defaults.modify,
           create: !!defaults.create,
           delete: !!defaults.delete,
+        };
+        this.sourceFilePermissionEnforced = {
+          view: !!enforced.view,
+          download: !!enforced.download,
+          modify: !!enforced.modify,
+          create: !!enforced.create,
+          delete: !!enforced.delete,
         };
       } catch (e) {
         console.error(e);
@@ -676,16 +693,11 @@ export default {
         const fields = ["all"];
         // Transform selectedSources to only include {name, scope} format
         // Empty scope strings should be passed as "" for backend to handle defaults
-        const scopesToSend = this.selectedSources.map((source) => {
-          const entry = {
-            name: source.name || "",
-            scope: this.normalizeScopeForApi(source.scope),
-          };
-          if (source.permissionsExplicit) {
-            entry.permissions = { ...this.sourcePermissionsFor(source.name) };
-          }
-          return entry;
-        });
+        const scopesToSend = this.selectedSources.map((source) => ({
+          name: source.name || "",
+          scope: this.normalizeScopeForApi(source.scope),
+          permissions: { ...this.sourcePermissionsFor(source.name) },
+        }));
         const payload = {
           ...this.user,
           scopes: scopesToSend,
@@ -709,6 +721,9 @@ export default {
           mutations.closeTopPrompt();
         } else {
           await usersApi.update(payload, fields);
+          if (payload.username === state.user.username) {
+            await auth.validateLogin();
+          }
           eventBus.emit('usersChanged');
           notify.showSuccessToast(this.$t("settings.userUpdated"));
           mutations.closeTopPrompt();

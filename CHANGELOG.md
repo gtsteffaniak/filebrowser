@@ -25,6 +25,7 @@ This version represents the most significant change to date. It **requires** bot
  - granular per-source file permissions (view, download, modify, create, delete) with automatic migration from global permissions
    - per-source defaults configurable in `settings > access management`
    - `view` permission is automatically set to true unless explicitly set to false. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
+   - can be enforced for all users
  - New activity logs for user activity.
    - charts and historical data
    - activity tool to view data

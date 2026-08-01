@@ -123,6 +123,11 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 	}
 	users.MergeLegacySourcePermissionsIntoScopes(user)
 	users.SyncBackendSourcePermissionsMap(user)
+	users.EnsureSourcePermissionsForScopes(
+		user,
+		settings.DefaultSourceFilePermissions(),
+		settings.AdminSourceFilePermissions(),
+	)
 	return nil
 }
 

@@ -461,7 +461,7 @@ export const getters = {
         return true
       }
     } else {
-      if (!getters.permissions().view) {
+      if (!getters.sourcePermissions().view) {
         return true
       }
     }
@@ -607,24 +607,37 @@ export const getters = {
     const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
     return getters.currentView() === "listingView" || isAdvancedSearchRoute;
   },
-  permissions: (source) => {
+  globalPermissions: () => {
     if (getters.isShare()) {
       return {
         share: false,
-        view: !state.shareInfo?.disableFileViewer,
-        modify: state.shareInfo?.allowModify,
-        create: state.shareInfo?.allowCreate,
-        delete: state.shareInfo?.allowDelete,
-        download: !state.shareInfo?.disableDownload,
         admin: false,
         api: false,
         realtime: false,
         archive: false,
       };
     }
+    const globalPerms = state.user?.permissions ?? {};
+    return {
+      share: !!(globalPerms.share || globalPerms.admin),
+      admin: !!globalPerms.admin,
+      api: !!globalPerms.api,
+      realtime: !!globalPerms.realtime,
+      archive: !!globalPerms.archive,
+    };
+  },
+  sourcePermissions: (source) => {
+    if (getters.isShare()) {
+      return {
+        view: !state.shareInfo?.disableFileViewer,
+        modify: !!state.shareInfo?.allowModify,
+        create: !!state.shareInfo?.allowCreate,
+        delete: !!state.shareInfo?.allowDelete,
+        download: !state.shareInfo?.disableDownload,
+      };
+    }
     const activeSource =
       source ?? state.req?.source ?? state.sources?.current ?? "";
-    const globalPerms = state.user?.permissions ?? {};
     const denyFile = {
       view: false,
       download: false,
@@ -632,25 +645,11 @@ export const getters = {
       create: false,
       delete: false,
     };
-    const filePerms = (() => {
-      if (!activeSource || !Array.isArray(state.user?.scopes)) {
-        return denyFile;
-      }
-      const scopeEntry = state.user.scopes.find((entry) => entry?.name === activeSource);
-      return scopeEntry?.permissions ?? denyFile;
-    })();
-    return {
-      share: !!(globalPerms.share || globalPerms.admin),
-      admin: globalPerms.admin,
-      api: globalPerms.api,
-      realtime: globalPerms.realtime,
-      archive: globalPerms.archive,
-      view: filePerms.view,
-      modify: filePerms.modify,
-      create: filePerms.create,
-      delete: filePerms.delete,
-      download: filePerms.download,
-    };
+    if (!activeSource || !Array.isArray(state.user?.scopes)) {
+      return denyFile;
+    }
+    const scopeEntry = state.user.scopes.find((entry) => entry?.name === activeSource);
+    return scopeEntry?.permissions ?? denyFile;
   },
   apiTokenPermissionCaps: () => {
     const globalPerms = state.user?.permissions ?? {};

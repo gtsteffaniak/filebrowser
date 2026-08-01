@@ -100,7 +100,8 @@ export default {
       if (getters.isShare()) {
         return state.shareInfo?.allowCreate === true
       }
-      return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
+      const global = getters.globalPermissions();
+      return getters.sourcePermissions().create || global.share || global.admin;
     },
     shareInfo: () => state.shareInfo,
     disableQuickToggles: () => state.user?.disableQuickToggles,

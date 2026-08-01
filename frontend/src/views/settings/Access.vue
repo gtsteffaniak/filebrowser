@@ -28,11 +28,14 @@
       :collapsable="true"
       :start-collapsed="true"
     >
-      <p class="small">{{ $t('settings.sourcePermissionsHelp') }}</p>
+      <p class="small">{{ $t('settings.sourceAccessDefaultsHelp') }}</p>
       <SourceFilePermissions
         v-if="!defaultsLoading"
+        enforceable
         :permissions="sourceAccessDefaults"
+        :enforced-permissions="sourceAccessEnforced"
         @changed="onSourceAccessDefaultsChange"
+        @enforced-change="onSourceAccessEnforcedChange"
       />
       <div v-else class="loading-hint">{{ $t('general.loading') }}</div>
     </SettingsItem>
@@ -106,6 +109,13 @@ export default {
       create: false,
       delete: false,
     },
+    sourceAccessEnforced: {
+      view: false,
+      download: false,
+      modify: false,
+      create: false,
+      delete: false,
+    },
   }),
   async mounted() {
     this.selectedSource = state.sources.current;
@@ -171,12 +181,20 @@ export default {
       try {
         const settings = await settingsApi.getSourceSettings();
         const perms = settings?.defaultPermissions ?? {};
+        const enforced = settings?.enforcedPermissions ?? {};
         this.sourceAccessDefaults = {
           view: perms.view !== false,
           download: perms.download !== false,
           modify: !!perms.modify,
           create: !!perms.create,
           delete: !!perms.delete,
+        };
+        this.sourceAccessEnforced = {
+          view: !!enforced.view,
+          download: !!enforced.download,
+          modify: !!enforced.modify,
+          create: !!enforced.create,
+          delete: !!enforced.delete,
         };
       } catch (e) {
         console.error(e);
@@ -197,6 +215,49 @@ export default {
         !this.hydratingDefaults
       );
     },
+    applySourceSettingsResponse(settings) {
+      const perms = settings?.defaultPermissions ?? {};
+      const enforced = settings?.enforcedPermissions ?? {};
+      this.sourceAccessDefaults = {
+        view: perms.view !== false,
+        download: perms.download !== false,
+        modify: !!perms.modify,
+        create: !!perms.create,
+        delete: !!perms.delete,
+      };
+      this.sourceAccessEnforced = {
+        view: !!enforced.view,
+        download: !!enforced.download,
+        modify: !!enforced.modify,
+        create: !!enforced.create,
+        delete: !!enforced.delete,
+      };
+    },
+    async onSourceAccessEnforcedChange(flag, value) {
+      if (!this.canSaveSourceDefaults()) {
+        return;
+      }
+      this.savingDefaults = true;
+      try {
+        const settings = await settingsApi.patchSourceSettings({
+          enforcedPermissions: { [flag]: value },
+        });
+        this.hydratingDefaults = true;
+        this.applySourceSettingsResponse(settings);
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
+      } catch (e) {
+        console.error(e);
+        if (e?.message) {
+          notify.showError(e.message);
+        }
+        await this.loadSourceAccessDefaults();
+      } finally {
+        this.savingDefaults = false;
+        this.$nextTick(() => {
+          this.hydratingDefaults = false;
+        });
+      }
+    },
     async onSourceAccessDefaultsChange() {
       if (!this.canSaveSourceDefaults()) {
         return;
@@ -207,14 +268,7 @@ export default {
           defaultPermissions: this.sourceAccessDefaults,
         });
         this.hydratingDefaults = true;
-        const perms = settings?.defaultPermissions ?? {};
-        this.sourceAccessDefaults = {
-          view: perms.view !== false,
-          download: perms.download !== false,
-          modify: !!perms.modify,
-          create: !!perms.create,
-          delete: !!perms.delete,
-        };
+        this.applySourceSettingsResponse(settings);
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         console.error(e);

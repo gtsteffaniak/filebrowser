@@ -602,6 +602,7 @@
     },
     "permissionsHelp": "Global permissions for the user apply everywhere, including all sources and shares.",
     "sourcePermissionsHelp": "Expand a source row to set view, download, modify, create, and delete permissions for that source.",
+    "sourceAccessDefaultsHelp": "Default file permissions applied to sources and new users. Enforce locks a value for all non-admin users. Access rules below only control path visibility; change one user in User Edit.",
     "settingsUpdated": "Settings updated!",
     "shareDeleted": "Share deleted!",
     "userDeleted": "User deleted!",

@@ -217,6 +217,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	defaults := EffectiveUserDefaults()
 	enforced := EffectiveEnforced()
 	settings.ApplyEnforcedDefaultsFrom(user, defaults, enforced)
+	settings.ApplyEnforcedSourcePermissionsFrom(user, GetSourceAccessDefaults(), GetEnforcedSourcePermissions())
 
 	users.SyncBackendSourcePermissionsMap(user)
 
@@ -345,6 +346,9 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	defaults := EffectiveUserDefaults()
 	enforced := EffectiveEnforced()
 	if err := settings.ValidateUserAgainstEnforcedDefaults(existingUser, defaults, enforced); err != nil {
+		return err
+	}
+	if err := settings.ValidateUserScopePermissionsAgainstEnforced(existingUser, GetSourceAccessDefaults(), GetEnforcedSourcePermissions()); err != nil {
 		return err
 	}
 

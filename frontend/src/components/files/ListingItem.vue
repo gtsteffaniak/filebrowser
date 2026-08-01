@@ -281,7 +281,7 @@ export default {
     },
     isDraggable() {
       return (
-        (this.readOnly === undefined && getters.permissions(this.source).modify)
+        (this.readOnly === undefined && getters.sourcePermissions(this.source).modify)
         || state.shareInfo.allowCreate
       );
     },

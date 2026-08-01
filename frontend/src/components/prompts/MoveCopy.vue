@@ -144,7 +144,7 @@ export default {
       return this.destPath.startsWith(`${itemPath}/`) || this.destPath === itemPath;
     },
     canCreateFolder() {
-      const perms = getters.permissions();
+      const perms = getters.sourcePermissions();
       return !!perms?.create;
     },
     isDirNameValid() {

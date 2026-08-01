@@ -282,16 +282,16 @@ export default {
       return this.showLimitedOptions && this.selectedCount === 1;
     },
     permissions() {
-      return getters.permissions();
+      return { ...getters.globalPermissions(), ...getters.sourcePermissions() };
     },
     /**
      * Whether the (+) panel can be opened (create file ops and/or admin-only rows like access rules).
      */
     canOpenCreatePanel() {
       if (getters.isShare()) {
-        return !!getters.permissions().create;
+        return !!getters.sourcePermissions().create;
       }
-      return getters.isAdmin() || !!getters.permissions().create;
+      return getters.isAdmin() || !!getters.sourcePermissions().create;
     },
     /** New folder / new file / upload — requires permissions.create only (not admin alone). */
     showCreateFileActions() {

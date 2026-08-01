@@ -566,7 +566,7 @@ export default {
         event.preventDefault();
         if (getters.currentPromptName()) return;
 
-        const canModify = getters.permissions().modify;
+        const canModify = getters.sourcePermissions().modify;
 
         if (getters.isPreviewView() && canModify) {
           const parentItems = state.navigation.listing || [];
@@ -600,7 +600,7 @@ export default {
           if (currentView === 'editor') {
             void router.replace({ hash: '#preview' });
           } else if (currentView === 'markdownViewer') {
-            if (getters.permissions()?.modify) {
+            if (getters.sourcePermissions()?.modify) {
               void router.replace({ hash: '#edit' });
             }
           }
