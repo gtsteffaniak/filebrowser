@@ -766,8 +766,6 @@
       "quote": "Quote",
       "inlineCode": "Inline code",
       "codeBlock": "Code block",
-      "link": "Link",
-      "image": "Image",
       "bulletList": "Bullet list",
       "numberedList": "Numbered list",
       "taskList": "Task list",

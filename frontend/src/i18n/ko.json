@@ -744,8 +744,6 @@
       "quote": "인용구",
       "inlineCode": "인라인 코드",
       "codeBlock": "코드 블록",
-      "link": "링크",
-      "image": "이미지",
       "bulletList": "글머리 목록",
       "numberedList": "번호 매기기 목록",
       "taskList": "할 일 목록",

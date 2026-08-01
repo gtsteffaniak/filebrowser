@@ -48,7 +48,10 @@ import {
 let hljsPromise: Promise<HLJSApi> | null = null;
 function loadHljs(): Promise<HLJSApi> {
   if (hljsPromise === null) {
-    hljsPromise = import('highlight.js').then((mod) => mod.default);
+    hljsPromise = import('highlight.js').then((mod) => mod.default).catch((err) => {
+      hljsPromise = null; // allow a later render to retry
+      throw err;
+    });
   }
   return hljsPromise;
 }
@@ -227,10 +230,13 @@ export default {
     async applyHighlighting() {
       const viewer = this.$refs.viewer as HTMLElement;
       if (!viewer?.querySelector('pre code')) return;
-      const [hljs] = await Promise.all([
-        loadHljs(),
-        this.setHighlightTheme(getters.isDarkMode()),
-      ]);
+      void this.setHighlightTheme(getters.isDarkMode());
+      let hljs: HLJSApi | null = null;
+      try {
+        hljs = await loadHljs();
+      } catch (err) {
+        console.error("Failed to load highlight.js:", err);
+      }
       // Re-query in case content changed while highlight.js was loading
       viewer.querySelectorAll('pre code').forEach((block) => {
         const codeBlock = block as HTMLElement;
@@ -238,7 +244,7 @@ export default {
         const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
         const lang = langClass ? langClass.split('-')[1] : null;
 
-        if (lang && hljs.getLanguage(lang)) {
+        if (hljs && lang && hljs.getLanguage(lang)) {
           hljs.highlightElement(codeBlock);
         } else {
           codeBlock.classList.add('hljs');
@@ -462,7 +468,7 @@ export default {
       const parts: { key: string; line: number; html: string; codeLine?: number }[] = [];
       let group: { needsRewrite: unknown; html: string; raw: string; line: number; depth: number } | null = null;
       for (const token of tokens) {
-        let html: string | Node;
+        let html: string;
         try {
           const single = [token as never] as Token[] & { links?: Record<string, unknown> };
           single.links = (tokens as Token[] & { links?: Record<string, unknown> }).links ?? {};
@@ -543,7 +549,11 @@ export default {
     },
     finalizeContentRender(target: number) {
       this.$nextTick(async () => {
-        await this.applyHighlighting();
+        try {
+          await this.applyHighlighting();
+        } catch (err) {
+          console.error("Failed to apply syntax highlighting:", err);
+        }
         if (!this.isHtml) this.applyScrollRatio(target);
       });
     },

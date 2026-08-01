@@ -744,8 +744,6 @@
       "quote": "引用",
       "inlineCode": "行内代码",
       "codeBlock": "代码块",
-      "link": "链接",
-      "image": "图片",
       "bulletList": "项目符号列表",
       "numberedList": "编号列表",
       "taskList": "任务列表",
