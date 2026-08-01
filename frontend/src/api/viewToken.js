@@ -9,7 +9,12 @@ export function requestViewIdentity(req) {
     return "";
   }
   const shareHash = getters.isShare() ? (state.shareInfo?.hash ?? "") : "";
-  return `${req.source ?? ""}|${shareHash}|${req.path ?? ""}`;
+  return JSON.stringify([req.source ?? "", shareHash, req.path ?? ""]);
+}
+
+/** View token attached to the current request object, if any. */
+export function getRequestViewToken(req) {
+  return req?.viewToken;
 }
 
 function viewGrantScope(source) {

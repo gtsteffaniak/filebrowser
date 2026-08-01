@@ -34,52 +34,54 @@ async function openUserDefaultsPrompt(page: import("@playwright/test").Page) {
 }
 
 test("config-locked user defaults show lock help and skip patch", async ({ page, checkForErrors }) => {
-  const defaultsResponse = await openUserDefaultsPrompt(page);
-  const response = await defaultsResponse;
-  const data = await response.json();
-  expect(data.lockedFromConfigPaths).toContain("listing.showHidden");
+  try {
+    const defaultsResponse = await openUserDefaultsPrompt(page);
+    const response = await defaultsResponse;
+    const data = await response.json();
+    expect(data.lockedFromConfigPaths).toContain("listing.showHidden");
 
-  await expandUserDefaultsGroup(page, "Listing options");
+    await expandUserDefaultsGroup(page, "Listing options");
 
-  const showHiddenRow = page.locator(".user-defaults-prompt .item").filter({ hasText: "Show hidden files" });
-  await expect(showHiddenRow).toBeVisible();
-  await showHiddenRow.locator(".toggle-row--value").hover();
-  const lockTooltip = page.locator(".floating-tooltip");
-  await expect(lockTooltip).toBeVisible();
-  await expect(lockTooltip).toHaveText(
-    "This default is set in the config file and cannot be changed here.",
-  );
+    const showHiddenRow = page.locator(".user-defaults-prompt .item").filter({ hasText: "Show hidden files" });
+    await expect(showHiddenRow).toBeVisible();
+    await showHiddenRow.locator(".toggle-row--value").hover();
+    const lockTooltip = page.locator(".floating-tooltip");
+    await expect(lockTooltip).toBeVisible();
+    await expect(lockTooltip).toHaveText(
+      "This default is set in the config file and cannot be changed here.",
+    );
 
-  let patchCount = 0;
-  await page.route("**/api/settings/user-defaults", (route) => {
-    if (route.request().method() === "PATCH") {
-      patchCount += 1;
-    }
-    return route.continue();
-  });
+    let patchCount = 0;
+    await page.route("**/api/settings/user-defaults", (route) => {
+      if (route.request().method() === "PATCH") {
+        patchCount += 1;
+      }
+      return route.continue();
+    });
 
-  const valueInput = showHiddenRow.locator(".toggle-row--value input[type='checkbox']");
-  const valueSwitch = showHiddenRow.locator(".toggle-row--value label.switch");
-  expect(await valueInput.isChecked()).toBe(true);
-  await expect(valueInput).toBeDisabled();
-  await valueSwitch.click({ force: true });
-  await expect.poll(() => patchCount).toBe(0);
-  expect(await valueInput.isChecked()).toBe(true);
+    const valueInput = showHiddenRow.locator(".toggle-row--value input[type='checkbox']");
+    const valueSwitch = showHiddenRow.locator(".toggle-row--value label.switch");
+    expect(await valueInput.isChecked()).toBe(true);
+    await expect(valueInput).toBeDisabled();
+    await valueSwitch.click({ force: true });
+    await expect.poll(() => patchCount).toBe(0);
+    expect(await valueInput.isChecked()).toBe(true);
 
-  const enforceInput = showHiddenRow.locator(".toggle-row--enforced input[type='checkbox']");
-  const enforceSwitch = showHiddenRow.locator(".toggle-row--enforced label.switch");
-  await expect(enforceInput).toBeEnabled();
-  const initialEnforced = await enforceInput.isChecked();
-  const enforcePatch = page.waitForResponse(
-    (resp) =>
-      resp.url().includes("/api/settings/user-defaults") &&
-      resp.request().method() === "PATCH" &&
-      resp.ok(),
-  );
-  await enforceSwitch.click();
-  await enforcePatch;
-  expect(patchCount).toBe(1);
-  expect(await enforceInput.isChecked()).toBe(!initialEnforced);
-
-  checkForErrors();
+    const enforceInput = showHiddenRow.locator(".toggle-row--enforced input[type='checkbox']");
+    const enforceSwitch = showHiddenRow.locator(".toggle-row--enforced label.switch");
+    await expect(enforceInput).toBeEnabled();
+    const initialEnforced = await enforceInput.isChecked();
+    const enforcePatch = page.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/settings/user-defaults") &&
+        resp.request().method() === "PATCH" &&
+        resp.ok(),
+    );
+    await enforceSwitch.click();
+    await enforcePatch;
+    expect(patchCount).toBe(1);
+    expect(await enforceInput.isChecked()).toBe(!initialEnforced);
+  } finally {
+    checkForErrors();
+  }
 });
