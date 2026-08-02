@@ -119,11 +119,7 @@ type SourceSettings struct {
 
 // GetSourceSettings returns admin-editable source-wide settings.
 func GetSourceSettings() SourceSettings {
-	doc := currentSourceAccessSettingsDocument()
-	return SourceSettings{
-		DefaultPermissions:  doc.DefaultPermissions,
-		EnforcedPermissions: doc.EnforcedPermissions,
-	}
+	return SourceSettings(currentSourceAccessSettingsDocument())
 }
 
 // GetEnforcedSourcePermissions returns universal enforced source permission flags.

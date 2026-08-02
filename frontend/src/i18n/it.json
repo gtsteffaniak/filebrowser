@@ -605,7 +605,8 @@
     "userDefaultsDescription": "Configurare le impostazioni predefinite da applicare ai nuovi utenti e le politiche da far rispettare a tutti gli utenti.",
     "accountDefaults": "Impostazioni predefinite dell'account",
     "disableUserSettings": "Disattiva la pagina delle impostazioni utente",
-    "userDefaultFieldLockedFromConfig": "Questa impostazione predefinita è configurata nel file di configurazione e non può essere modificata in questa sede."
+    "userDefaultFieldLockedFromConfig": "Questa impostazione predefinita è configurata nel file di configurazione e non può essere modificata in questa sede.",
+    "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori."
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",

@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Yeni kullanıcılara uygulanacak varsayılan ayarları ve tüm kullanıcılar için geçerli olacak kuralı yapılandırın.",
     "accountDefaults": "Hesap varsayılan ayarları",
     "disableUserSettings": "Kullanıcı ayarları sayfasını devre dışı bırak",
-    "userDefaultFieldLockedFromConfig": "Bu varsayılan ayar, yapılandırma dosyasında belirlenmiştir ve buradan değiştirilemez."
+    "userDefaultFieldLockedFromConfig": "Bu varsayılan ayar, yapılandırma dosyasında belirlenmiştir ve buradan değiştirilemez.",
+    "sourceAccessDefaultsHelp": "Kaynaklara ve yeni kullanıcılara varsayılan dosya izinleri uygulanır. “Enforce” seçeneği, yönetici olmayan tüm kullanıcılar için bir değeri kilitler."
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
