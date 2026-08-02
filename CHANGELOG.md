@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.5.4
+
+ **Notes**:
+ - PWA installation name now capped at 30 characters instead of 12 (#2699)
+
+ **BugFixes**:
+ - 
+
 ## v1.5.3
 
  **BugFixes**:
