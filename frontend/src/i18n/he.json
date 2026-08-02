@@ -357,7 +357,6 @@
     "shareDurationDescription": "משך הזמן עד לפקיעת תוקף השיתוף. השאר ריק לשיתוף קבוע.",
     "passwordDescription": "סיסמה אופציונלית נדרשת כדי לגשת לשיתוף זה, כולל משתמשים מאומתים.",
     "shareThemeColorDescription": "ערך צבע CSS המוחל על ערכת הנושא של השיתוף (לדוגמה, אדום, #0ea5e9, rgb(14,165,233)).",
-    "shareTitleDescription": "כותרת דף מותאמת אישית המוצגת בדף השיתוף.",
     "shareDescriptionHelp": "תיאור קצר המופיע בדף השיתוף (יכול לשמש בתגי מטא).",
     "shareBannerDescription": "כתובת URL או נתיב של תמונת הבאנר הנגישים ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/banner.png' או '/path/to/banner.png'",
     "shareFaviconDescription": "כתובת URL או נתיב של סמל favicon הנגיש ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/favicon.png' או '/path/to/favicon.png'",
@@ -408,7 +407,8 @@
     "selectBannerImage": "בחר תמונת באנר",
     "selectFaviconImage": "בחר תמונת סמל מועדף",
     "deleteFailed": "לא ניתן למחוק את השיתוף",
-    "readOnlySourceNotice": "מקור זה מוגדר לקריאה בלבד. העלאת קבצים והרשאות המשנות קבצים אינן זמינות."
+    "readOnlySourceNotice": "מקור זה מוגדר לקריאה בלבד. העלאת קבצים והרשאות המשנות קבצים אינן זמינות.",
+    "shareTitleDescription": "כותרת דף מותאמת אישית המוצגת בדף השיתוף. אם יישום השיתוף הזה מותקן כ-PWA, שם האפליקציה מוגבל ל-30 תווים."
   },
   "api": {
     "createdAt": "נוצר ב:",

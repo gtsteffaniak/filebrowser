@@ -283,7 +283,6 @@
     "shareDurationDescription": "Durata prima che la condivisione scada. Lascia vuoto per una condivisione permanente.",
     "passwordDescription": "Password opzionale richiesta per accedere, inclusi gli utenti autenticati.",
     "shareThemeColorDescription": "Valore colore CSS applicato al tema (es. red, #0ea5e9, rgb(14,165,233)).",
-    "shareTitleDescription": "Titolo personalizzato mostrato sulla pagina di condivisione.",
     "shareDescriptionHelp": "Breve descrizione mostrata sulla pagina di condivisione (può essere usata nei meta tag).",
     "shareBannerDescription": "URL o percorso dell'immagine banner accessibile dal client.",
     "shareFaviconDescription": "URL o percorso della favicon accessibile dal client.",
@@ -334,7 +333,8 @@
     "shareInfoDescription": "Mostra le informazioni della condivisione (titolo, descrizione, banner, QR) in un popup.",
     "downloadDescription": "Permette di scaricare l'intero contenuto della condivisione come file compresso.",
     "deleteFailed": "Eliminazione condivisione fallita",
-    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate."
+    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate.",
+    "shareTitleDescription": "Titolo personalizzato della pagina visualizzato nella pagina di condivisione. Se questa condivisione è installata come PWA, il nome dell'app è limitato a 30 caratteri."
   },
   "prompts": {
     "operationInProgress": "Operazione in corso, attendere...",

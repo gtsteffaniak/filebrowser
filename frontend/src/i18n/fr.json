@@ -357,7 +357,6 @@
     "shareDurationDescription": "Durée avant l'expiration du partage. Laisser vide pour un partage permanent.",
     "passwordDescription": "Mot de passe facultatif requis pour accéder à ce partage, y compris pour les utilisateurs authentifiés.",
     "shareThemeColorDescription": "Valeur de la couleur CSS appliquée au thème du partage (par exemple, rouge, #0ea5e9, rgb(14,165,233)).",
-    "shareTitleDescription": "Titre de page personnalisé affiché sur la page de partage.",
     "shareDescriptionHelp": "Courte description affichée sur la page de partage (peut être utilisée dans les balises méta).",
     "shareBannerDescription": "URL de l'image de la bannière ou chemin d'accès accessible par le client - les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/banner.png\" ou \"/path/to/banner.png\".",
     "shareFaviconDescription": "URL du favicon ou chemin d'accès accessible par le client -- les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\".",
@@ -408,7 +407,8 @@
     "selectBannerImage": "Sélectionner l'image de la bannière",
     "selectFaviconImage": "Sélectionner l'image du favicon",
     "deleteFailed": "Échec de la suppression du partage",
-    "readOnlySourceNotice": "Cette source est en lecture seule. Les partages de téléchargement et les autorisations qui modifient les fichiers sont désactivés."
+    "readOnlySourceNotice": "Cette source est en lecture seule. Les partages de téléchargement et les autorisations qui modifient les fichiers sont désactivés.",
+    "shareTitleDescription": "Titre personnalisé de la page affiché sur la page de partage. Si cette fonctionnalité de partage est installée en tant qu'application PWA, le nom de l'application est limité à 30 caractères."
   },
   "api": {
     "createdAt": "Créée le :",
