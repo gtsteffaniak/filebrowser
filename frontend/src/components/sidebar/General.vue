@@ -191,14 +191,13 @@ export default {
       let sharePath;
 
       if (isShare && state.shareInfo?.hash) {
-        const shareBase = `/public/share/${state.shareInfo.hash}`;
+        const shareBase = `${globalVars.baseURL}public/share/${state.shareInfo.hash}`;
         const subPath = state.req?.path && state.req.path !== '/'
           ? url.removeLeadingSlash(state.req.path)
           : '';
         sharePath = subPath ? `${shareBase}/${url.encodedPath(subPath)}` : shareBase;
       }
-      await auth.logout();
-      window.location.href = sharePath || '/login';
+      await auth.logout(sharePath);
     },
     beforeEnter(el) {
       el.style.maxHeight = '0';
