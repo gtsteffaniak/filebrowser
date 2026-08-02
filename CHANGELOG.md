@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fix probe canShare with the real file, not a fixed text/plain stand-in (#2664)
  - When the logout button is pressed, the user is redirected to an invalid URL that does not honor baseURL / externalUrl (#2657)
  - fix redirect to login when an authenticated request returns 401 (expired session)
+ - fix forward slash blocked in text fields when the search shortcut listener intercepts `/` (#2696)
 
 ## v1.5.2
 
