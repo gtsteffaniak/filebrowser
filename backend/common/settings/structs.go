@@ -280,7 +280,7 @@ type ResolvedRulesConfig struct {
 }
 
 type Frontend struct {
-	Name                  string         `json:"name"`                  // display name; PWA manifest name is capped at 30 characters
+	Name                  string         `json:"name"`                  // display name, PWA installation name is capped at 30 characters
 	DisableDefaultLinks   bool           `json:"disableDefaultLinks"`   // disable default links in the sidebar
 	DisableUsedPercentage bool           `json:"disableUsedPercentage"` // disable used percentage for the sources in the sidebar
 	ExternalLinks         []ExternalLink `json:"externalLinks"`

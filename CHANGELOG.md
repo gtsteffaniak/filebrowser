@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.5.4
 
  **Notes**:
- - pwa installation name now capped at 30 characters instead of 12 (#2699)
+ - PWA installation name now capped at 30 characters instead of 12 (#2699)
 
  **BugFixes**:
  - 
@@ -16,8 +16,6 @@ All notable changes to this project will be documented in this file. For commit 
  - fix probe canShare with the real file, not a fixed text/plain stand-in (#2664)
  - When the logout button is pressed, the user is redirected to an invalid URL that does not honor baseURL / externalUrl (#2657)
  - fix redirect to login when an authenticated request returns 401 (expired session)
- - PWA install uses the full app name instead of a 12-character truncated short name (#2699)
- - PWA install uses the full app name instead of a 12-character truncated short name (#2699)
 
 ## v1.5.2
 

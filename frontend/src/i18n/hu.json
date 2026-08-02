@@ -357,7 +357,6 @@
     "shareDurationDescription": "A részvény lejárta előtti időtartam. Állandó megosztás esetén hagyja üresen.",
     "passwordDescription": "A megosztás eléréséhez szükséges opcionális jelszó, beleértve a hitelesített felhasználókat is.",
     "shareThemeColorDescription": "A megosztás témájára alkalmazott CSS színérték (pl. piros, #0ea5e9, rgb(14,165,233)).",
-    "shareTitleDescription": "A megosztási oldalon megjelenő egyéni oldalcím.",
     "shareDescriptionHelp": "A megosztási oldalon megjelenő rövid leírás (a meta címkékben is használható).",
     "shareBannerDescription": "A banner kép URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/banner.png' vagy '/path/to/banner.png'.",
     "shareFaviconDescription": "A favicon URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/favicon.png' vagy '/path/to/favicon.png'.",
@@ -408,7 +407,8 @@
     "selectBannerImage": "Banner kép kiválasztása",
     "selectFaviconImage": "Favicon kép kiválasztása",
     "deleteFailed": "Nem sikerült törölni a megosztást",
-    "readOnlySourceNotice": "Ez a forrás csak olvasható. A feltöltési megosztások és a fájlokat módosító engedélyek letiltva vannak."
+    "readOnlySourceNotice": "Ez a forrás csak olvasható. A feltöltési megosztások és a fájlokat módosító engedélyek letiltva vannak.",
+    "shareTitleDescription": "A megosztási oldalon megjelenő egyéni oldalcím. Ha ezt a megosztási alkalmazást PWA-ként telepítik, az alkalmazás neve legfeljebb 30 karakter lehet."
   },
   "api": {
     "createdAt": "Létrehozva:",
