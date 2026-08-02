@@ -64,7 +64,29 @@ func TestValidateUserScopePermissionsAgainstEnforced_rejectsMismatch(t *testing.
 
 func TestValidateSelfUserUpdateScopesNotEnforced_blocksScopesPatch(t *testing.T) {
 	enforced := SourceFilePermissionsEnforcement{Create: true}
-	if err := ValidateSelfUserUpdateScopesNotEnforced([]string{"scopes"}, enforced); err == nil {
+	actor := &users.User{FrontendUser: users.FrontendUser{Username: "alice"}}
+	if err := ValidateSelfUserUpdateScopesNotEnforced([]string{"scopes"}, enforced, actor); err == nil {
 		t.Fatal("expected self scope update to be blocked when create is enforced")
+	}
+}
+
+func TestValidateSelfUserUpdateScopesNotEnforced_skipsAdmin(t *testing.T) {
+	enforced := SourceFilePermissionsEnforcement{Create: true}
+	admin := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "admin",
+			Permissions: users.Permissions{Admin: true},
+		},
+	}
+	if err := ValidateSelfUserUpdateScopesNotEnforced([]string{"scopes"}, enforced, admin); err != nil {
+		t.Fatalf("expected admin self scope update to be allowed, got %v", err)
+	}
+}
+
+func TestValidateSelfUserUpdateScopesNotEnforced_caseInsensitive(t *testing.T) {
+	enforced := SourceFilePermissionsEnforcement{Create: true}
+	actor := &users.User{FrontendUser: users.FrontendUser{Username: "alice"}}
+	if err := ValidateSelfUserUpdateScopesNotEnforced([]string{"Scopes"}, enforced, actor); err == nil {
+		t.Fatal("expected mixed-case scope field to be blocked")
 	}
 }

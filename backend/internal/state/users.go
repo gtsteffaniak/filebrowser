@@ -246,6 +246,10 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 // If fields are specified, only those fields are updated (patch operation)
 // Note: fields should be JSON tag names (e.g., "showFirstLogin") which will be converted to struct field names
 func UpdateUser(user *users.User, plaintextPassword string, fields ...string) error {
+	// Snapshot source enforcement before usersMux.Lock. Do not acquire sourceAccessMu while holding usersMux.
+	sourceDefaults := GetSourceAccessDefaults()
+	sourceEnforced := GetEnforcedSourcePermissions()
+
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
@@ -348,7 +352,7 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	if err := settings.ValidateUserAgainstEnforcedDefaults(existingUser, defaults, enforced); err != nil {
 		return err
 	}
-	if err := settings.ValidateUserScopePermissionsAgainstEnforced(existingUser, GetSourceAccessDefaults(), GetEnforcedSourcePermissions()); err != nil {
+	if err := settings.ValidateUserScopePermissionsAgainstEnforced(existingUser, sourceDefaults, sourceEnforced); err != nil {
 		return err
 	}
 

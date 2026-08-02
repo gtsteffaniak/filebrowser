@@ -20,15 +20,17 @@ func ApplyEnforcedSourcePermissionsSyncToUser(u *users.User) bool {
 }
 
 // ResyncEnforcedSourcePermissionsForAllUsers writes enforced source permission defaults into SQLite for every user when they differ.
+//
+// Lock ordering: snapshot sourceAccessMu, release it, then acquire usersMux.
+// Callers holding usersMux must snapshot enforcement via GetEnforcedSourcePermissions before locking usersMux.
 func ResyncEnforcedSourcePermissionsForAllUsers() error {
 	sourceAccessMu.RLock()
-	defer sourceAccessMu.RUnlock()
+	defaults := GetSourceAccessDefaults()
+	enforced := sourceAccessEnforcedDefault
+	sourceAccessMu.RUnlock()
 
 	usersMux.Lock()
 	defer usersMux.Unlock()
-
-	defaults := GetSourceAccessDefaults()
-	enforced := sourceAccessEnforcedDefault
 
 	usersList, err := sqlDb.ListUsers()
 	if err != nil {

@@ -363,7 +363,7 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			}
 			return http.StatusBadRequest, enfErr
 		}
-		if scopeErr := settings.ValidateSelfUserUpdateScopesNotEnforced(req.Which, state.GetEnforcedSourcePermissions()); scopeErr != nil {
+		if scopeErr := settings.ValidateSelfUserUpdateScopesNotEnforced(req.Which, state.GetEnforcedSourcePermissions(), d.User); scopeErr != nil {
 			var locked settings.ErrEnforcedUserField
 			if stderrors.As(scopeErr, &locked) {
 				return http.StatusForbidden, scopeErr

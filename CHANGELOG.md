@@ -20,16 +20,13 @@ This version represents the most significant change to date. It **requires** bot
 
  **New Features**:
  - View grant mechanism to distinguish between UI viewing and download. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
- - ffmpeg hardware acceleration detection and support via go-ffmpeg
-   - video streaming is limited to viewing only. See [Media integration](https://filebrowserquantum.com/en/docs/integrations/media/about/).
  - granular per-source file permissions (view, download, modify, create, delete) with automatic migration from global permissions
    - per-source defaults configurable in `settings > access management`
    - `view` permission is automatically set to true unless explicitly set to false. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
-   - can be enforced for all users
+   - can be enforced for all users. See [Activity feature docs](https://filebrowserquantum.com/en/docs/features/activity/).
  - New activity logs for user activity.
    - charts and historical data
-   - activity tool to view data
-   - reports. See [Activity feature docs](https://filebrowserquantum.com/en/docs/features/activity/).
+   - export to csv reports
  - Media player improvements:
    - Refreshed playback queue UI: Supports thumbnails, stored into session storage, and has a "clear queue" button (#2575) (#2600).
    - Loop now has 3 states (off/single/all) and neither of them will clear the existing queue (#2600).

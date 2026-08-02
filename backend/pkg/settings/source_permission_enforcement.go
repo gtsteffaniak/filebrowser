@@ -3,6 +3,7 @@ package settings
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
@@ -16,73 +17,46 @@ type SourceFilePermissionsEnforcement struct {
 	Delete   bool `json:"delete,omitempty"`
 }
 
+type sourcePermissionField struct {
+	name     string
+	field    func(*users.SourceFilePermissions) *bool
+	enforced func(SourceFilePermissionsEnforcement) bool
+}
+
+var sourcePermissionFields = []sourcePermissionField{
+	{"view", func(p *users.SourceFilePermissions) *bool { return &p.View }, func(e SourceFilePermissionsEnforcement) bool { return e.View }},
+	{"download", func(p *users.SourceFilePermissions) *bool { return &p.Download }, func(e SourceFilePermissionsEnforcement) bool { return e.Download }},
+	{"modify", func(p *users.SourceFilePermissions) *bool { return &p.Modify }, func(e SourceFilePermissionsEnforcement) bool { return e.Modify }},
+	{"create", func(p *users.SourceFilePermissions) *bool { return &p.Create }, func(e SourceFilePermissionsEnforcement) bool { return e.Create }},
+	{"delete", func(p *users.SourceFilePermissions) *bool { return &p.Delete }, func(e SourceFilePermissionsEnforcement) bool { return e.Delete }},
+}
+
 // EnforcedSourcePermissionFlags returns permission flag names with enforcement enabled.
 func EnforcedSourcePermissionFlags(e SourceFilePermissionsEnforcement) map[string]struct{} {
 	out := make(map[string]struct{})
-	if e.View {
-		out["view"] = struct{}{}
-	}
-	if e.Download {
-		out["download"] = struct{}{}
-	}
-	if e.Modify {
-		out["modify"] = struct{}{}
-	}
-	if e.Create {
-		out["create"] = struct{}{}
-	}
-	if e.Delete {
-		out["delete"] = struct{}{}
+	for _, f := range sourcePermissionFields {
+		if f.enforced(e) {
+			out[f.name] = struct{}{}
+		}
 	}
 	return out
 }
 
-func sourcePermissionDefaultValue(def users.SourceFilePermissions, flag string) bool {
-	switch flag {
-	case "view":
-		return def.View
-	case "download":
-		return def.Download
-	case "modify":
-		return def.Modify
-	case "create":
-		return def.Create
-	case "delete":
-		return def.Delete
-	default:
-		return false
+func sourcePermissionValue(perms users.SourceFilePermissions, flag string) bool {
+	for _, f := range sourcePermissionFields {
+		if f.name == flag {
+			return *f.field(&perms)
+		}
 	}
-}
-
-func sourcePermissionActualValue(perms users.SourceFilePermissions, flag string) bool {
-	switch flag {
-	case "view":
-		return perms.View
-	case "download":
-		return perms.Download
-	case "modify":
-		return perms.Modify
-	case "create":
-		return perms.Create
-	case "delete":
-		return perms.Delete
-	default:
-		return false
-	}
+	return false
 }
 
 func applyEnforcedSourcePermissionFlag(perms *users.SourceFilePermissions, flag string, def users.SourceFilePermissions) {
-	switch flag {
-	case "view":
-		perms.View = def.View
-	case "download":
-		perms.Download = def.Download
-	case "modify":
-		perms.Modify = def.Modify
-	case "create":
-		perms.Create = def.Create
-	case "delete":
-		perms.Delete = def.Delete
+	for _, f := range sourcePermissionFields {
+		if f.name == flag {
+			*f.field(perms) = *f.field(&def)
+			return
+		}
 	}
 }
 
@@ -105,7 +79,7 @@ func MergeSourceEnforcedPatchJSON(base SourceFilePermissionsEnforcement, patchJS
 
 // ApplyEnforcedSourcePermissionsFrom sets enforced permission bits on every scope from defaults.
 func ApplyEnforcedSourcePermissionsFrom(u *users.User, defaults users.SourceFilePermissions, enforced SourceFilePermissionsEnforcement) {
-	if !EnforcementAppliesToUser(u) || u == nil || u.Username == users.AnonymousUserName {
+	if u == nil || u.Username == users.AnonymousUserName || !EnforcementAppliesToUser(u) {
 		return
 	}
 	flags := EnforcedSourcePermissionFlags(enforced)
@@ -124,7 +98,7 @@ func ApplyEnforcedSourcePermissionsFrom(u *users.User, defaults users.SourceFile
 
 // SyncEnforcedSourcePermissionsOntoUser applies enforced defaults onto scope permissions. Returns true if changed.
 func SyncEnforcedSourcePermissionsOntoUser(u *users.User, defaults users.SourceFilePermissions, enforced SourceFilePermissionsEnforcement) bool {
-	if !EnforcementAppliesToUser(u) || u == nil || u.Username == users.AnonymousUserName {
+	if u == nil || u.Username == users.AnonymousUserName || !EnforcementAppliesToUser(u) {
 		return false
 	}
 	flags := EnforcedSourcePermissionFlags(enforced)
@@ -151,18 +125,18 @@ func SyncEnforcedSourcePermissionsOntoUser(u *users.User, defaults users.SourceF
 
 // ValidateUserScopePermissionsAgainstEnforced rejects users whose enforced scope permissions differ from defaults.
 func ValidateUserScopePermissionsAgainstEnforced(u *users.User, defaults users.SourceFilePermissions, enforced SourceFilePermissionsEnforcement) error {
-	if !EnforcementAppliesToUser(u) {
+	if u == nil || u.Username == "" || u.Username == users.AnonymousUserName || !EnforcementAppliesToUser(u) {
 		return nil
 	}
 	flags := EnforcedSourcePermissionFlags(enforced)
-	if len(flags) == 0 || u == nil || u.Username == "" || u.Username == users.AnonymousUserName {
+	if len(flags) == 0 {
 		return nil
 	}
 	normalized := NormalizeSourceFilePermissions(defaults)
 	for _, scope := range u.BackendScopes {
 		for flag := range flags {
-			expected := sourcePermissionDefaultValue(normalized, flag)
-			actual := sourcePermissionActualValue(scope.Permissions, flag)
+			expected := sourcePermissionValue(normalized, flag)
+			actual := sourcePermissionValue(scope.Permissions, flag)
 			if expected != actual {
 				return ErrEnforcedUserValueMismatch{Path: fmt.Sprintf("scopes.%s.%s", scope.Path, flag)}
 			}
@@ -172,12 +146,18 @@ func ValidateUserScopePermissionsAgainstEnforced(u *users.User, defaults users.S
 }
 
 // ValidateSelfUserUpdateScopesNotEnforced rejects self-service scope updates when any permission is enforced.
-func ValidateSelfUserUpdateScopesNotEnforced(which []string, enforced SourceFilePermissionsEnforcement) error {
+func ValidateSelfUserUpdateScopesNotEnforced(which []string, enforced SourceFilePermissionsEnforcement, actor *users.User) error {
+	if !EnforcementAppliesToUser(actor) {
+		return nil
+	}
 	if len(EnforcedSourcePermissionFlags(enforced)) == 0 {
 		return nil
 	}
 	for _, field := range which {
-		if field == "scopes" || field == "sourcePermissions" || field == "backendScopes" {
+		f := strings.TrimSpace(field)
+		if strings.EqualFold(f, "scopes") ||
+			strings.EqualFold(f, "sourcePermissions") ||
+			strings.EqualFold(f, "backendScopes") {
 			return ErrEnforcedUserField{Path: "scopes"}
 		}
 	}

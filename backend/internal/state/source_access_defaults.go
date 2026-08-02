@@ -138,13 +138,23 @@ func SetSourceAccessDefaults(perms users.SourceFilePermissions) error {
 	if sqlDb == nil {
 		return fmt.Errorf("sqlDb not initialized")
 	}
-	doc := currentSourceAccessSettingsDocument()
-	doc.DefaultPermissions = settings.NormalizeSourceFilePermissions(users.MarkSourceFilePermissionsConfigured(perms))
+	sourceAccessMu.Lock()
+	doc := sourceAccessSettingsDocument{
+		DefaultPermissions:  settings.NormalizeSourceFilePermissions(users.MarkSourceFilePermissionsConfigured(perms)),
+		EnforcedPermissions: sourceAccessEnforcedDefault,
+	}
 	if err := saveSourceAccessSettingsDocument(doc); err != nil {
+		sourceAccessMu.Unlock()
 		return err
 	}
 	settings.ApplySourceAccessDefaultsToAllSources(doc.DefaultPermissions)
-	return nil
+	hasEnforced := len(settings.EnforcedSourcePermissionFlags(doc.EnforcedPermissions)) > 0
+	sourceAccessMu.Unlock()
+
+	if !hasEnforced {
+		return nil
+	}
+	return ResyncEnforcedSourcePermissionsForAllUsers()
 }
 
 // PatchSourceAccessEnforced merges enforcement patch JSON and resyncs all users.

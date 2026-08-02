@@ -651,6 +651,14 @@ export const getters = {
     const scopeEntry = state.user.scopes.find((entry) => entry?.name === activeSource);
     return scopeEntry?.permissions ?? denyFile;
   },
+  /** Whether the current user may create files/folders in the given source (share-aware). */
+  canCreateInSource: (source) => {
+    if (getters.isShare()) {
+      return !!state.shareInfo?.allowCreate;
+    }
+    const activeSource = source ?? state.req?.source ?? state.sources?.current ?? "";
+    return !!getters.sourcePermissions(activeSource)?.create;
+  },
   apiTokenPermissionCaps: () => {
     const globalPerms = state.user?.permissions ?? {};
     return {
