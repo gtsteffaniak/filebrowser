@@ -541,6 +541,7 @@ export default {
 
       notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);
       this.savedContent = this.editor.getValue();
+      mutations.setRequestContent(this.savedContent);
       this.isDirty = false;
       mutations.setEditorDirty(false);
     },

@@ -72,7 +72,7 @@ function loadHighlightCss(variant: "light" | "dark"): Promise<string> {
 
 const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
 
-const marked = new Marked({ gfm: true });
+const marked = new Marked({ gfm: true, breaks: true });
 marked.use({
   extensions: [{
     name: "blockKatexInterrupt",
@@ -547,14 +547,14 @@ export default {
       }
       this.updateEditorStats();
     },
-    finalizeContentRender(target: number) {
+    finalizeContentRender(target: number | null) {
       this.$nextTick(async () => {
         try {
           await this.applyHighlighting();
         } catch (err) {
           console.error("Failed to apply syntax highlighting:", err);
         }
-        if (!this.isHtml) this.applyScrollRatio(target);
+        if (!this.isHtml && target !== null) this.applyScrollRatio(target);
       });
     },
     attachScrollListener(el: HTMLElement | null) {
@@ -648,7 +648,9 @@ export default {
   watch: {
     // We now watch the `content` property.
     content() {
-      const target = this.isLoadingNewContent ? state.editor.scrollRatio : this.currentLine();
+      const target = this.isLoadingNewContent
+        ? state.editor.scrollRatio
+        : (this.splitMode ? null : this.currentLine());
       this.isLoadingNewContent = false;
       this.scrollGuard.suppress();
       this.finalizeContentRender(target);

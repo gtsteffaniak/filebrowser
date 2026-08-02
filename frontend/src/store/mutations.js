@@ -776,6 +776,13 @@ export const mutations = {
     state.req = next;
     emitStateChanged();
   },
+  setRequestContent: (content) => {
+    if (!state.req || state.req.content === content) {
+      return;
+    }
+    state.req = { ...state.req, content };
+    emitStateChanged();
+  },
   setRequestViewToken: (viewToken) => {
     if (!state.req || !viewToken || state.req.viewToken === viewToken) {
       return;
