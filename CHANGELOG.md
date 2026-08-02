@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - PWA installation name now capped at 30 characters instead of 12 (#2699)
 
  **BugFixes**:
- - 
+ - fix forward slash blocked in text fields when the search shortcut listener intercepts `/` (#2696)
 
 ## v1.5.3
 
