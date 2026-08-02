@@ -53,13 +53,6 @@ This version represents the most significant change to date. It **requires** bot
  - Database env var rename: `FILEBROWSER_DATABASE` is removed (startup fails if set). Use `FILEBROWSER_DATABASE_PATH` (default `filebrowser.sqlite`) or `server.database.path` in config. See [Environment variables](https://filebrowserquantum.com/en/docs/reference/environment-variables/) and [Server settings](https://filebrowserquantum.com/en/docs/configuration/server/).
  - CLI: `user set` with `--password` (inline value, interactive prompt on TTY, or piped stdin); `user promote` for admin grant without password reset. See [CLI reference](https://filebrowserquantum.com/en/docs/reference/cli/).
 
- **BugFixes** (ported from v1.5.3 / v1.5.4):
- - fix probe canShare with the real file, not a fixed text/plain stand-in (#2664)
- - When the logout button is pressed on a share, redirect honors baseURL / externalUrl (#2657)
- - fix redirect to login when an authenticated request returns 401 (expired session) (#2679)
- - fix forward slash blocked in text fields when the search shortcut listener intercepts `/` (#2696)
- - PWA installation name now capped at 30 characters instead of 12; removed separate short_name (#2701)
-
  **Notes**:
  - v2.x.x uses a new write-through backend state management. Changes go through a fast memory layer and also write changes to database to stay in sync. See [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/).
  - CLI server start (`./filebrowser`), `setup`, `version`, and `set rule` syntax unchanged; see [CLI docs](https://filebrowserquantum.com/en/docs/reference/cli/)
