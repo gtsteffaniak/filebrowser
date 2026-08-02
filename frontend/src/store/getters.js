@@ -355,7 +355,8 @@ export const getters = {
         const preferEditor = state.user.preferEditorForMarkdown;
         const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
-        if (isMarkdown && state.editor.markdownSplitView && !state.isMobile && getters.permissions().modify) {
+        const canEdit = getters.permissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
+        if (isMarkdown && state.editor.markdownSplitView && !state.isMobile && canEdit) {
           return 'editor';
         }
         switch (hash) {
@@ -607,7 +608,8 @@ export const getters = {
   canSplitView: () => {
     if (state.isMobile) return false;
     if (!state.req || !('content' in state.req)) return false;
-    if (!getters.permissions().modify) return false;
+    const canEdit = getters.permissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
+    if (!canEdit) return false;
     return state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
   },
   showStatusBar: () => {

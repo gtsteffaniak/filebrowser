@@ -3,7 +3,6 @@
     <div
       class="split-divider"
       :class="{ resizing: isResizing }"
-      role="separator"
       aria-orientation="vertical"
       @mousedown="startResize"
       @touchstart="startResize"
@@ -62,8 +61,6 @@ export default {
     previewScrollEl: null as HTMLElement | null, // DOM node MarkdownViewer should scroll in split mode
     scrollGuard: createScrollSyncGuard(),
     lastEditAt: 0, // used to ignore incoming scroll for a bit while typing
-    isTyping: false,
-    typingResetFrame: null as number | null,
     previewPercent: loadPreviewPercent(), // width of this pane, dragged via the divider; persisted across the session
     isResizing: false,
     stopResize: null as (() => void) | null,
@@ -96,10 +93,6 @@ export default {
     if (this.liveContentFrame) {
       cancelAnimationFrame(this.liveContentFrame);
       this.liveContentFrame = null;
-    }
-    if (this.typingResetFrame) {
-      cancelAnimationFrame(this.typingResetFrame);
-      this.typingResetFrame = null;
     }
     this.stopResize?.();
   },
@@ -159,14 +152,6 @@ export default {
     },
     handleEditorChange() {
       this.lastEditAt = Date.now();
-      this.isTyping = true;
-      if (this.typingResetFrame) cancelAnimationFrame(this.typingResetFrame);
-      this.typingResetFrame = requestAnimationFrame(() => {
-        this.typingResetFrame = requestAnimationFrame(() => {
-          this.typingResetFrame = null;
-          this.isTyping = false;
-        });
-      });
       if (this.active) {
         this.scheduleLiveContentUpdate();
       }

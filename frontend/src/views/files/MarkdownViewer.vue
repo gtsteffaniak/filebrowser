@@ -432,9 +432,6 @@ export default {
     },
     parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
       const parser = marked;
-      if (!katexLoaded && contentHasMath(content)) {
-        void loadKatex().then(() => { this.katexReady = true; }).catch(() => { /* logged inside loadKatex above */ });
-      }
       // Tag each top level block with its source line for scroll-sync
       let tokens: Token[] | null;
       try {
@@ -648,6 +645,9 @@ export default {
   watch: {
     // We now watch the `content` property.
     content() {
+      if (!katexLoaded && contentHasMath(this.content)) {
+        void loadKatex().then(() => { this.katexReady = true; }).catch(() => { /* logged inside loadKatex above */ });
+      }
       const target = this.isLoadingNewContent
         ? state.editor.scrollRatio
         : (this.splitMode ? null : this.currentLine());

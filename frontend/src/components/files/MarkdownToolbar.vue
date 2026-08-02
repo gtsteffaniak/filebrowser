@@ -222,6 +222,8 @@ export default {
     eventBus.on("pathSelected", this.onPathSelected);
     eventBus.on("pathPickerCancelled", this.onPathPickerCancelled);
     document.addEventListener("pointerdown", this.onPointerDown);
+    document.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("scroll", this.closeMenu, true);
     window.addEventListener("resize", this.closeMenu);
   },
   beforeUnmount() {
@@ -230,6 +232,8 @@ export default {
     eventBus.off("pathSelected", this.onPathSelected);
     eventBus.off("pathPickerCancelled", this.onPathPickerCancelled);
     document.removeEventListener("pointerdown", this.onPointerDown);
+    document.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("scroll", this.closeMenu, true);
     window.removeEventListener("resize", this.closeMenu);
   },
   computed: {
@@ -645,6 +649,12 @@ export default {
     },
     closeMenu() {
       this.openMenu = null;
+    },
+    onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && this.openMenu) {
+        this.closeMenu();
+        this.focusEditor();
+      }
     },
     extBtnAction(item: ToolbarButton) {
       this.closeMenu();

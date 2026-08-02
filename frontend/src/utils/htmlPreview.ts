@@ -53,7 +53,13 @@ const NAV_GUARD_SCRIPT = `document.addEventListener("click", function (e) {
   var a = e.target && e.target.closest ? e.target.closest("a") : null;
   if (!a) return;
   var href = a.getAttribute("href") || "";
-  if (href.charAt(0) !== "#") return;
+  if (href.charAt(0) !== "#") {
+    // Absolute links are left alone -- relative links would resolve to about:blank.
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(href) && href.slice(0, 2) !== "//") {
+      e.preventDefault();
+    }
+    return;
+  }
   var id = href.slice(1);
   var el = id ? document.getElementById(id) : document.documentElement;
   if (!el) return;
