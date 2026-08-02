@@ -51,11 +51,10 @@ func TestShareHashFromHTTPPathRejectsEmbeddedPrefix(t *testing.T) {
 
 func TestManifestForShare(t *testing.T) {
 	CachedManifest = PWAManifest{
-		Name:      "FileBrowser Quantum",
-		ShortName: "FBQ",
-		StartURL:  "/testing/",
-		Scope:     "/testing/",
-		ID:        "/testing/",
+		Name:     "FileBrowser Quantum",
+		StartURL: "/testing/",
+		Scope:    "/testing/",
+		ID:       "/testing/",
 	}
 
 	manifest, ok := ManifestForShare(
@@ -75,5 +74,29 @@ func TestManifestForShare(t *testing.T) {
 	}
 	if manifest.Name != "My Share" {
 		t.Fatalf("unexpected name: %q", manifest.Name)
+	}
+}
+
+func TestManifestForShareTruncatesLongName(t *testing.T) {
+	CachedManifest = PWAManifest{
+		Name:     "FileBrowser Quantum",
+		StartURL: "/testing/",
+		Scope:    "/testing/",
+		ID:       "/testing/",
+	}
+
+	longName := "Shared files - quarterly backup archive 2026"
+	want := "Shared files - quarterly backu"
+	manifest, ok := ManifestForShare(
+		"/testing/",
+		"/testing/public/share/hash1234567890abcdef/",
+		longName,
+		"",
+	)
+	if !ok {
+		t.Fatal("expected share manifest")
+	}
+	if manifest.Name != want {
+		t.Fatalf("expected name %q, got %q", want, manifest.Name)
 	}
 }
