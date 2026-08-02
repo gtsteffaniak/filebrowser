@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Configure as definições predefinidas aplicadas aos novos utilizadores e a política imposta a todos os utilizadores.",
     "accountDefaults": "Definições predefinidas da conta",
     "disableUserSettings": "Desativar a página de definições do utilizador",
-    "userDefaultFieldLockedFromConfig": "Esta configuração por predefinição é definida no ficheiro de configuração e não pode ser alterada aqui."
+    "userDefaultFieldLockedFromConfig": "Esta configuração por predefinição é definida no ficheiro de configuração e não pode ser alterada aqui.",
+    "sourceAccessDefaultsHelp": "Permissões de ficheiro predefinidas aplicadas a fontes e a novos utilizadores. A opção «Enforce» bloqueia um valor para todos os utilizadores que não sejam administradores."
   },
   "sidebar": {
     "updateIsAvailable": "Está disponível uma atualização!",

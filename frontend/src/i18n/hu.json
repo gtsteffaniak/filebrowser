@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Állítsa be az új felhasználókra alkalmazandó alapértelmezett beállításokat, valamint az összes felhasználóra vonatkozó érvényes szabályzatot.",
     "accountDefaults": "Fiók alapbeállításai",
     "disableUserSettings": "A felhasználói beállítások oldal letiltása",
-    "userDefaultFieldLockedFromConfig": "Ez az alapértelmezett beállítás a konfigurációs fájlban van megadva, és itt nem módosítható."
+    "userDefaultFieldLockedFromConfig": "Ez az alapértelmezett beállítás a konfigurációs fájlban van megadva, és itt nem módosítható.",
+    "sourceAccessDefaultsHelp": "A forrásfájlokra és az új felhasználókra alkalmazott alapértelmezett fájlhozzáférési jogosultságok. Az „Enforce” beállítás egy értéket rögzít minden nem rendszergazda felhasználó számára."
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",

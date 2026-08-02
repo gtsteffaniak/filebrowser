@@ -71,7 +71,7 @@ export default {
       return state.req.hasUpdate;
     },
     isDroppable() {
-      return getters.permissions().modify
+      return getters.sourcePermissions().modify
     },
     homeLink() {
       return {

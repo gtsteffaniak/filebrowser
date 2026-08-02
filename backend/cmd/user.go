@@ -55,6 +55,9 @@ func validateUserInfo(newDB bool) {
 		if state.ApplyEnforcedSyncToUser(user) {
 			updateUser = true
 		}
+		if state.ApplyEnforcedSourcePermissionsSyncToUser(user) {
+			updateUser = true
+		}
 		if user.Version < users.ProfileStorageVersion {
 			user.Version = users.ProfileStorageVersion
 			updateUser = true

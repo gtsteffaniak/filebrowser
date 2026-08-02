@@ -212,8 +212,7 @@ export default {
       return name.length > 0 && this.destPath;
     },
     canCreateFolder() {
-      const perms = getters.permissions();
-      return !!perms?.create;
+      return getters.canCreateInSource(this.destSource || this.source);
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);

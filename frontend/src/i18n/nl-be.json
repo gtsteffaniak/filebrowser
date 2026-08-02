@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Stel de standaardinstellingen in die voor nieuwe gebruikers gelden en het beleid dat voor alle gebruikers moet worden nageleefd.",
     "accountDefaults": "Standaardinstellingen voor accounts",
     "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
-    "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd."
+    "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd.",
+    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn."
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",

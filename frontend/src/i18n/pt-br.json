@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Configure as configurações padrão aplicadas aos novos usuários e a política obrigatória para todos os usuários.",
     "accountDefaults": "Configurações padrão da conta",
     "disableUserSettings": "Desativar a página de configurações do usuário",
-    "userDefaultFieldLockedFromConfig": "Essa configuração padrão é definida no arquivo de configuração e não pode ser alterada aqui."
+    "userDefaultFieldLockedFromConfig": "Essa configuração padrão é definida no arquivo de configuração e não pode ser alterada aqui.",
+    "sourceAccessDefaultsHelp": "Permissões padrão de arquivo aplicadas a fontes e novos usuários. A opção “Enforçar” define um valor fixo para todos os usuários que não sejam administradores."
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",

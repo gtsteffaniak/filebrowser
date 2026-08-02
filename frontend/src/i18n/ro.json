@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Configurați setările implicite aplicate utilizatorilor noi și politica impusă tuturor utilizatorilor.",
     "accountDefaults": "Setări implicite ale contului",
     "disableUserSettings": "Dezactivare pagină setări utilizator",
-    "userDefaultFieldLockedFromConfig": "Această setare implicită este definită în fișierul de configurare și nu poate fi modificată aici."
+    "userDefaultFieldLockedFromConfig": "Această setare implicită este definită în fișierul de configurare și nu poate fi modificată aici.",
+    "sourceAccessDefaultsHelp": "Permisiunile implicite aplicate fișierelor sursă și utilizatorilor noi. Opțiunea „Enforce” blochează o valoare pentru toți utilizatorii care nu sunt administratori."
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",

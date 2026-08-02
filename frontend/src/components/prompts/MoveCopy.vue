@@ -144,8 +144,9 @@ export default {
       return this.destPath.startsWith(`${itemPath}/`) || this.destPath === itemPath;
     },
     canCreateFolder() {
-      const perms = getters.permissions();
-      return !!perms?.create;
+      const destSource =
+        this.destSource || this.localItems[0]?.fromSource || state.req?.source;
+      return getters.canCreateInSource(destSource);
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);

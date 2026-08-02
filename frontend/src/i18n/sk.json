@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Nakonfigurujte predvolené nastavenia, ktoré sa budú uplatňovať na nových používateľov, a vynútiteľné zásady pre všetkých používateľov.",
     "accountDefaults": "Predvolené nastavenia účtu",
     "disableUserSettings": "Deaktivovať stránku nastavení používateľa",
-    "userDefaultFieldLockedFromConfig": "Toto predvolené nastavenie je definované v konfiguračnom súbore a tu ho nie je možné zmeniť."
+    "userDefaultFieldLockedFromConfig": "Toto predvolené nastavenie je definované v konfiguračnom súbore a tu ho nie je možné zmeniť.",
+    "sourceAccessDefaultsHelp": "Na zdrojové súbory a nových používateľov sa uplatňujú predvolené oprávnenia súborov. Nastavenie „Enforce“ uzamkne túto hodnotu pre všetkých používateľov, ktorí nie sú správcami."
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",

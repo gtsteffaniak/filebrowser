@@ -293,7 +293,8 @@
     "userDefaultsDescription": "신규 사용자에게 적용될 기본 설정을 구성하고, 모든 사용자에게 적용될 정책을 설정합니다.",
     "accountDefaults": "계정 기본 설정",
     "disableUserSettings": "사용자 설정 페이지 비활성화",
-    "userDefaultFieldLockedFromConfig": "이 기본값은 설정 파일에서 지정되며, 여기서는 변경할 수 없습니다."
+    "userDefaultFieldLockedFromConfig": "이 기본값은 설정 파일에서 지정되며, 여기서는 변경할 수 없습니다.",
+    "sourceAccessDefaultsHelp": "소스 및 신규 사용자에게 기본 파일 권한이 적용됩니다. ‘enforce’는 관리자 권한이 없는 모든 사용자에 대해 해당 값을 강제 적용합니다."
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",

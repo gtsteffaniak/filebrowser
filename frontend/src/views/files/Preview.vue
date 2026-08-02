@@ -103,7 +103,7 @@ export default {
   },
   computed: {
     permissions() {
-      return getters.permissions();
+      return getters.sourcePermissions();
     },
     showImage() {
       if (state.req.type === "image/heic" || state.req.type === "image/heif") {

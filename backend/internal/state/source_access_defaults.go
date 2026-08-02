@@ -3,6 +3,7 @@ package state
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -10,24 +11,39 @@ import (
 
 const sourceAccessDefaultsSettingKey = "sourceAccessDefaults"
 
+var (
+	sourceAccessMu              sync.RWMutex
+	sourceAccessEnforcedDefault settings.SourceFilePermissionsEnforcement
+)
+
+type sourceAccessSettingsDocument struct {
+	DefaultPermissions  users.SourceFilePermissions                `json:"defaultPermissions"`
+	EnforcedPermissions settings.SourceFilePermissionsEnforcement `json:"enforcedPermissions,omitempty"`
+}
+
 // InitSourceAccessDefaults loads persisted source access defaults and applies them to every source.
 func InitSourceAccessDefaults() error {
 	if sqlDb == nil {
 		return fmt.Errorf("sqlDb not initialized")
 	}
 
-	perms, found, err := loadSourceAccessDefaultsSetting()
+	doc, found, err := loadSourceAccessSettingsDocument()
 	if err != nil {
 		return err
 	}
 	if !found {
-		perms = deriveInitialSourceAccessDefaults()
-		if saveErr := sqlDb.SaveSetting(sourceAccessDefaultsSettingKey, perms); saveErr != nil {
+		perms := deriveInitialSourceAccessDefaults()
+		doc = sourceAccessSettingsDocument{DefaultPermissions: perms}
+		if saveErr := saveSourceAccessSettingsDocument(doc); saveErr != nil {
 			return saveErr
 		}
 	}
 
-	settings.ApplySourceAccessDefaultsToAllSources(perms)
+	settings.ApplySourceAccessDefaultsToAllSources(doc.DefaultPermissions)
+	sourceAccessMu.Lock()
+	sourceAccessEnforcedDefault = doc.EnforcedPermissions
+	sourceAccessMu.Unlock()
+
 	if !found {
 		return stripLegacyFilePermissionsFromUserDefaults()
 	}
@@ -43,19 +59,51 @@ func deriveInitialSourceAccessDefaults() users.SourceFilePermissions {
 	return settings.BuiltinDefaultSourceFilePermissions()
 }
 
-func loadSourceAccessDefaultsSetting() (users.SourceFilePermissions, bool, error) {
+func loadSourceAccessSettingsDocument() (sourceAccessSettingsDocument, bool, error) {
 	raw, err := sqlDb.GetSetting(sourceAccessDefaultsSettingKey)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("setting not found: %s", sourceAccessDefaultsSettingKey) {
-			return users.SourceFilePermissions{}, false, nil
+			return sourceAccessSettingsDocument{}, false, nil
 		}
-		return users.SourceFilePermissions{}, false, err
+		return sourceAccessSettingsDocument{}, false, err
 	}
-	var perms users.SourceFilePermissions
-	if err := json.Unmarshal(raw, &perms); err != nil {
-		return users.SourceFilePermissions{}, false, fmt.Errorf("parse %s: %w", sourceAccessDefaultsSettingKey, err)
+
+	var probe map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &probe); err != nil {
+		return sourceAccessSettingsDocument{}, false, fmt.Errorf("parse %s: %w", sourceAccessDefaultsSettingKey, err)
 	}
-	return settings.NormalizeSourceFilePermissions(perms), true, nil
+	if _, wrapped := probe["defaultPermissions"]; wrapped {
+		var doc sourceAccessSettingsDocument
+		if err := json.Unmarshal(raw, &doc); err != nil {
+			return sourceAccessSettingsDocument{}, false, fmt.Errorf("parse %s: %w", sourceAccessDefaultsSettingKey, err)
+		}
+		doc.DefaultPermissions = settings.NormalizeSourceFilePermissions(doc.DefaultPermissions)
+		return doc, true, nil
+	}
+
+	var legacy users.SourceFilePermissions
+	if err := json.Unmarshal(raw, &legacy); err != nil {
+		return sourceAccessSettingsDocument{}, false, fmt.Errorf("parse legacy %s: %w", sourceAccessDefaultsSettingKey, err)
+	}
+	return sourceAccessSettingsDocument{
+		DefaultPermissions: settings.NormalizeSourceFilePermissions(legacy),
+	}, true, nil
+}
+
+func saveSourceAccessSettingsDocument(doc sourceAccessSettingsDocument) error {
+	doc.DefaultPermissions = settings.NormalizeSourceFilePermissions(
+		users.MarkSourceFilePermissionsConfigured(doc.DefaultPermissions),
+	)
+	return sqlDb.SaveSetting(sourceAccessDefaultsSettingKey, doc)
+}
+
+func currentSourceAccessSettingsDocument() sourceAccessSettingsDocument {
+	sourceAccessMu.RLock()
+	defer sourceAccessMu.RUnlock()
+	return sourceAccessSettingsDocument{
+		DefaultPermissions:  GetSourceAccessDefaults(),
+		EnforcedPermissions: sourceAccessEnforcedDefault,
+	}
 }
 
 // GetSourceAccessDefaults returns the global default file permissions for sources.
@@ -65,14 +113,20 @@ func GetSourceAccessDefaults() users.SourceFilePermissions {
 
 // SourceSettings is the admin API payload for GET/PATCH /api/settings/source.
 type SourceSettings struct {
-	DefaultPermissions users.SourceFilePermissions `json:"defaultPermissions"`
+	DefaultPermissions  users.SourceFilePermissions                `json:"defaultPermissions"`
+	EnforcedPermissions settings.SourceFilePermissionsEnforcement `json:"enforcedPermissions"`
 }
 
 // GetSourceSettings returns admin-editable source-wide settings.
 func GetSourceSettings() SourceSettings {
-	return SourceSettings{
-		DefaultPermissions: GetSourceAccessDefaults(),
-	}
+	return SourceSettings(currentSourceAccessSettingsDocument())
+}
+
+// GetEnforcedSourcePermissions returns universal enforced source permission flags.
+func GetEnforcedSourcePermissions() settings.SourceFilePermissionsEnforcement {
+	sourceAccessMu.RLock()
+	defer sourceAccessMu.RUnlock()
+	return sourceAccessEnforcedDefault
 }
 
 // SetSourceAccessDefaults persists and applies new global source file permission defaults.
@@ -80,12 +134,45 @@ func SetSourceAccessDefaults(perms users.SourceFilePermissions) error {
 	if sqlDb == nil {
 		return fmt.Errorf("sqlDb not initialized")
 	}
-	normalized := settings.NormalizeSourceFilePermissions(users.MarkSourceFilePermissionsConfigured(perms))
-	if err := sqlDb.SaveSetting(sourceAccessDefaultsSettingKey, normalized); err != nil {
+	sourceAccessMu.Lock()
+	doc := sourceAccessSettingsDocument{
+		DefaultPermissions:  settings.NormalizeSourceFilePermissions(users.MarkSourceFilePermissionsConfigured(perms)),
+		EnforcedPermissions: sourceAccessEnforcedDefault,
+	}
+	if err := saveSourceAccessSettingsDocument(doc); err != nil {
+		sourceAccessMu.Unlock()
 		return err
 	}
-	settings.ApplySourceAccessDefaultsToAllSources(normalized)
-	return nil
+	settings.ApplySourceAccessDefaultsToAllSources(doc.DefaultPermissions)
+	hasEnforced := len(settings.EnforcedSourcePermissionFlags(doc.EnforcedPermissions)) > 0
+	sourceAccessMu.Unlock()
+
+	if !hasEnforced {
+		return nil
+	}
+	return ResyncEnforcedSourcePermissionsForAllUsers()
+}
+
+// PatchSourceAccessEnforced merges enforcement patch JSON and resyncs all users.
+func PatchSourceAccessEnforced(patchJSON []byte) error {
+	sourceAccessMu.Lock()
+	merged, mergeErr := settings.MergeSourceEnforcedPatchJSON(sourceAccessEnforcedDefault, patchJSON)
+	if mergeErr != nil {
+		sourceAccessMu.Unlock()
+		return mergeErr
+	}
+	doc := sourceAccessSettingsDocument{
+		DefaultPermissions:  GetSourceAccessDefaults(),
+		EnforcedPermissions: merged,
+	}
+	if saveErr := saveSourceAccessSettingsDocument(doc); saveErr != nil {
+		sourceAccessMu.Unlock()
+		return fmt.Errorf("save enforced source permissions: %w", saveErr)
+	}
+	sourceAccessEnforcedDefault = merged
+	sourceAccessMu.Unlock()
+
+	return ResyncEnforcedSourcePermissionsForAllUsers()
 }
 
 func stripLegacyFilePermissionsFromUserDefaults() error {

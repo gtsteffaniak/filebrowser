@@ -7,6 +7,7 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.view"
       @update:enforced="(v) => $emit('enforced-change', 'view', v)"
+      :disabled="!!enforcedPermissions.view"
       :name="viewPermissionName"
     />
     <ToggleSwitch
@@ -16,6 +17,7 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.download"
       @update:enforced="(v) => $emit('enforced-change', 'download', v)"
+      :disabled="!!enforcedPermissions.download"
       :name="downloadPermissionName"
     />
     <ToggleSwitch
@@ -25,6 +27,7 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.modify"
       @update:enforced="(v) => $emit('enforced-change', 'modify', v)"
+      :disabled="!!enforcedPermissions.modify"
       :name="modifyPermissionName"
     />
     <ToggleSwitch
@@ -34,6 +37,7 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.create"
       @update:enforced="(v) => $emit('enforced-change', 'create', v)"
+      :disabled="!!enforcedPermissions.create"
       :name="createPermissionName"
     />
     <ToggleSwitch
@@ -43,6 +47,7 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.delete"
       @update:enforced="(v) => $emit('enforced-change', 'delete', v)"
+      :disabled="!!enforcedPermissions.delete"
       :name="deletePermissionName"
     />
   </div>

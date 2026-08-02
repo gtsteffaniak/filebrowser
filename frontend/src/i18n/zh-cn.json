@@ -293,7 +293,8 @@
     "userDefaultsDescription": "配置适用于新用户的默认设置，并为所有用户强制执行相关策略。",
     "accountDefaults": "账户默认设置",
     "disableUserSettings": "禁用“用户设置”页面",
-    "userDefaultFieldLockedFromConfig": "此默认设置在配置文件中设定，无法在此处进行修改。"
+    "userDefaultFieldLockedFromConfig": "此默认设置在配置文件中设定，无法在此处进行修改。",
+    "sourceAccessDefaultsHelp": "对源文件和新用户应用默认文件权限。强制对所有非管理员用户锁定该值。"
   },
   "sidebar": {
     "updateIsAvailable": "有了最新进展！",

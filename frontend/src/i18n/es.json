@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Configurar los ajustes predeterminados que se aplican a los nuevos usuarios y la política que se exige a todos los usuarios.",
     "accountDefaults": "Configuración predeterminada de la cuenta",
     "disableUserSettings": "Desactivar la página de configuración del usuario",
-    "userDefaultFieldLockedFromConfig": "Este valor por defecto se establece en el archivo de configuración y no se puede modificar aquí."
+    "userDefaultFieldLockedFromConfig": "Este valor por defecto se establece en el archivo de configuración y no se puede modificar aquí.",
+    "sourceAccessDefaultsHelp": "Permisos predeterminados de los archivos aplicados a las fuentes y a los nuevos usuarios. La opción «Aplicar» fija un valor para todos los usuarios que no sean administradores."
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",

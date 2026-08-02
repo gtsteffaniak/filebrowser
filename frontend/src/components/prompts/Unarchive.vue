@@ -180,8 +180,7 @@ export default {
       return this.destType === "directory" || !this.destType;
     },
     canCreateFolder() {
-      const perms = getters.permissions();
-      return !!perms?.create;
+      return getters.canCreateInSource(this.destSource || this.itemSource);
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);

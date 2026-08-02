@@ -293,7 +293,8 @@
     "userDefaultsDescription": "Skonfiguruj ustawienia domyślne dla nowych użytkowników oraz zasady obowiązujące wszystkich użytkowników.",
     "accountDefaults": "Ustawienia domyślne konta",
     "disableUserSettings": "Wyłącz stronę ustawień użytkownika",
-    "userDefaultFieldLockedFromConfig": "To domyślne ustawienie jest określone w pliku konfiguracyjnym i nie można go tutaj zmienić."
+    "userDefaultFieldLockedFromConfig": "To domyślne ustawienie jest określone w pliku konfiguracyjnym i nie można go tutaj zmienić.",
+    "sourceAccessDefaultsHelp": "Domyślne uprawnienia do plików stosowane w przypadku plików źródłowych i nowych użytkowników. Opcja „Wymuś” ustala stałą wartość dla wszystkich użytkowników niebędących administratorami."
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",

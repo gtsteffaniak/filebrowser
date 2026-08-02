@@ -279,7 +279,7 @@ export default {
   },
   computed: {
     permissions() {
-      return getters.permissions();
+      return { ...getters.globalPermissions(), ...getters.sourcePermissions() };
     },
     shareInfo() {
       return state.shareInfo;
@@ -1014,7 +1014,7 @@ export default {
           event.preventDefault();
           event.stopPropagation();
 
-          const canUpload = getters.permissions()?.modify;
+          const canUpload = getters.sourcePermissions()?.modify;
           if (canUpload) {
             // Pass the full array of {file, relativePath} to preserve directory structure
             mutations.showPrompt({

@@ -215,7 +215,8 @@ func settingsUserDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d 
 }
 
 type sourceSettingsPatch struct {
-	DefaultPermissions *users.SourceFilePermissions `json:"defaultPermissions,omitempty"`
+	DefaultPermissions  *users.SourceFilePermissions                `json:"defaultPermissions,omitempty"`
+	EnforcedPermissions *settings.SourceFilePermissionsEnforcement `json:"enforcedPermissions,omitempty"`
 }
 
 func settingsSourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
@@ -224,19 +225,56 @@ func settingsSourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context
 }
 
 func settingsSourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	var body sourceSettingsPatch
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return http.StatusBadRequest, fmt.Errorf("failed to decode source settings patch: %w", err)
+	patchJSON, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("read source settings patch: %w", err)
 	}
 	defer r.Body.Close()
-
-	if body.DefaultPermissions == nil {
-		return http.StatusBadRequest, fmt.Errorf("source settings patch must include defaultPermissions")
+	if len(patchJSON) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty source settings patch body")
 	}
 
-	if err := state.SetSourceAccessDefaults(*body.DefaultPermissions); err != nil {
-		logger.Errorf("failed to update source settings: %v", err)
-		return http.StatusInternalServerError, fmt.Errorf("failed to update source settings")
+	var top map[string]json.RawMessage
+	if err = json.Unmarshal(patchJSON, &top); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid source settings patch JSON: %w", err)
+	}
+	var enforcedPatch []byte
+	if raw, ok := top["enforcedPermissions"]; ok {
+		enforcedPatch = raw
+		delete(top, "enforcedPermissions")
+	}
+	valuesPatch, err := json.Marshal(top)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("marshal source settings values patch: %w", err)
+	}
+
+	hasValues := len(valuesPatch) > 2
+	hasEnforced := len(enforcedPatch) > 0
+	if hasValues && hasEnforced {
+		return http.StatusBadRequest, fmt.Errorf("patch defaultPermissions and enforcedPermissions in a single request is not supported")
+	}
+	if !hasValues && !hasEnforced {
+		return http.StatusBadRequest, fmt.Errorf("empty source settings patch body")
+	}
+
+	if hasValues {
+		var body sourceSettingsPatch
+		if err := json.Unmarshal(valuesPatch, &body); err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source settings patch JSON: %w", err)
+		}
+		if body.DefaultPermissions == nil {
+			return http.StatusBadRequest, fmt.Errorf("source settings patch must include defaultPermissions")
+		}
+		if err := state.SetSourceAccessDefaults(*body.DefaultPermissions); err != nil {
+			logger.Errorf("failed to update source settings: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to update source settings")
+		}
+	}
+	if hasEnforced {
+		if err := state.PatchSourceAccessEnforced(enforcedPatch); err != nil {
+			logger.Errorf("failed to patch enforced source permissions: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to update enforced source permissions")
+		}
 	}
 	return RenderJSON(w, r, state.GetSourceSettings())
 }
