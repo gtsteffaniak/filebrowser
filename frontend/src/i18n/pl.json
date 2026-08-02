@@ -651,6 +651,8 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "wrapEditorContent": "Zawijanie długich wierszy w edytorze",
+    "wrapEditorContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
     "editButtonInHeader": "Pokaż przyciski edycji/podglądu w nagłówku",
     "editButtonInHeaderDescription": "Pokaż przyciski edycji/podglądu w nagłówku zamiast w menu rozwijanym",
     "hideFileExt": "Ukryj wybrane pliki (według rozszerzenia)",

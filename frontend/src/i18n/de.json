@@ -651,6 +651,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "wrapEditorContent": "Lange Zeilen im Editor umbrechen",
+    "wrapEditorContentDescription": "Bricht den Editor-Inhalt um, damit sehr lange Zeilen immer sichtbar bleiben",
     "editButtonInHeader": "Schaltflächen zum Bearbeiten/Vorschau in der Kopfzeile anzeigen",
     "editButtonInHeaderDescription": "Die Schaltflächen zum Bearbeiten/Vorschau in der Kopfzeile anstelle des Überlaufmenüs anzeigen",
     "hideFileExt": "Bestimmte Dateien ausblenden (nach Erweiterung)",

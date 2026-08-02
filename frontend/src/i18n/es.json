@@ -651,6 +651,8 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "wrapEditorContent": "Ajustar líneas largas en el editor",
+    "wrapEditorContentDescription": "Ajusta el contenido del editor -- Hará que las líneas largas simpre estén visibles",
     "editButtonInHeader": "Mostrar botones de editar/vista previa en el encabezado",
     "editButtonInHeaderDescription": "Mostrar los botones de editar/vista previa en el encabezado en lugar del menú",
     "hideFileExt": "Ocultar ciertos archivos (por extensión)",

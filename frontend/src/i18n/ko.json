@@ -651,6 +651,8 @@
     "orange": "오렌지"
   },
   "profileSettings": {
+    "wrapEditorContent": "편집기에서 긴 줄 줄 바꿈",
+    "wrapEditorContentDescription": "편집기 콘텐츠를 줄 바꿈하여 매우 긴 줄이 항상 표시되도록 합니다",
     "editButtonInHeader": "헤더에 편집/미리보기 버튼 표시",
     "editButtonInHeaderDescription": "오버플로 메뉴 대신 헤더에 편집/미리보기 버튼 표시",
     "hideFileExt": "특정 파일 숨기기 (확장자 기준)",

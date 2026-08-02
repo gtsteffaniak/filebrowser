@@ -658,6 +658,7 @@ export default {
     },
     // Watch for changes in state.req.content and update local content
     req() {
+      if (this.splitMode) return; // since we prefer the live content
       this.reinit()
     },
     darkMode() {

@@ -338,6 +338,12 @@
           :name="$t('profileSettings.preferEditorForMarkdown')"
           :description="$t('profileSettings.preferEditorForMarkdownDescription')"
         />
+        <ProfilePreferenceToggle
+          field="wrapEditorContent"
+          section="fileViewer"
+          :name="$t('profileSettings.wrapEditorContent')"
+          :description="$t('profileSettings.wrapEditorContentDescription')"
+        />
       </div>
       <template v-if="showExtensionInputs">
         <div

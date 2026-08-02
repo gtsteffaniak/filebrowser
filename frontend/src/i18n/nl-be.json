@@ -477,6 +477,8 @@
     "orange": "oranje"
   },
   "profileSettings": {
+    "wrapEditorContent": "Lange regels in de editor laten doorlopen",
+    "wrapEditorContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven",
     "editButtonInHeader": "Toon bewerk-/voorbeeldknoppen in de koptekst",
     "editButtonInHeaderDescription": "Toon de bewerk-/voorbeeldknoppen in de koptekst in plaats van in het overloopmenu",
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",

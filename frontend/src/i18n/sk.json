@@ -651,6 +651,8 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "wrapEditorContent": "Zalamovať dlhé riadky v editore",
+    "wrapEditorContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné",
     "editButtonInHeader": "Zobraziť tlačidlá úprav/náhľadu v hlavičke",
     "editButtonInHeaderDescription": "Zobraziť tlačidlá úprav/náhľadu v hlavičke namiesto v rozbaľovacej ponuke",
     "hideFileExt": "Skryť určité súbory (podľa prípony)",

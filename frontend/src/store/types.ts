@@ -95,7 +95,9 @@ export interface UserObject {
   darkMode: boolean;
   disableSettings: boolean;
   debugOffice: boolean;
+  editButtonInHeader: boolean;
   preferEditorForMarkdown: boolean;
+  wrapEditorContent: boolean;
   showCopyPath?: boolean;
   profile: {
     username: string;

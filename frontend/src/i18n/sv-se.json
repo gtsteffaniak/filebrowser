@@ -477,6 +477,8 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "wrapEditorContent": "Bryt långa rader i redigeraren",
+    "wrapEditorContentDescription": "Bryter redigerarens innehåll så att mycket långa rader alltid är synliga",
     "editButtonInHeader": "Visa redigerings-/förhandsgranskningsknappar i rubriken",
     "editButtonInHeaderDescription": "Visa redigerings-/förhandsgranskningsknappar i rubriken istället för i överflödesmenyn",
     "hideFileExt": "Dölj vissa filer (efter filändelse)",

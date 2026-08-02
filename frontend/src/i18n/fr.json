@@ -651,6 +651,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "wrapEditorContent": "Couper les longues lignes dans l'éditeur",
+    "wrapEditorContentDescription": "Coupe le contenu de l'éditeur pour que les très longues lignes restent toujours visibles",
     "editButtonInHeader": "Afficher les boutons d'édition/aperçu dans l'en-tête",
     "editButtonInHeaderDescription": "Afficher les boutons d'édition/aperçu dans l'en-tête plutôt que dans le menu de débordement",
     "hideFileExt": "Masquer certains fichiers (par extension)",

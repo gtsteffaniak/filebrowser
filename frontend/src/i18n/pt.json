@@ -477,6 +477,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "wrapEditorContent": "Quebrar linhas longas no editor",
+    "wrapEditorContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
     "editButtonInHeader": "Mostrar botões de editar/pré-visualização no cabeçalho",
     "editButtonInHeaderDescription": "Mostrar os botões de editar/pré-visualização no cabeçalho em vez do menu de overflow",
     "hideFileExt": "Ocultar certos ficheiros (por extensão)",

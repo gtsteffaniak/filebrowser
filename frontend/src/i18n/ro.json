@@ -651,6 +651,8 @@
     "orange": "portocaliu"
   },
   "profileSettings": {
+    "wrapEditorContent": "Împărțirea liniilor lungi în editor",
+    "wrapEditorContentDescription": "Împarte conținutul editorului pentru a menține liniile foarte lungi întotdeauna vizibile",
     "editButtonInHeader": "Afișează butoanele de editare/previzualizare în antet",
     "editButtonInHeaderDescription": "Afișează butoanele de editare/previzualizare în antet în locul meniului de depășire",
     "hideFileExt": "Ascunde anumite fișiere (după extensie)",

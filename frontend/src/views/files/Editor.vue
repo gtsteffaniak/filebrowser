@@ -427,7 +427,7 @@ export default {
           showLineNumbers: true,
           theme: this.isDarkMode ? THEME_DARK : THEME_LIGHT,
           readOnly: this.editorReadOnly,
-          wrap: state.wrapEditor || false,
+          wrap: !!state.user?.wrapEditorContent,
           enableMobileMenu: !this.viewerMode,
           useWorker: true,
           cursorStyle: "smooth",

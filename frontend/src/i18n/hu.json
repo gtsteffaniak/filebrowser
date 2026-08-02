@@ -651,6 +651,8 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "wrapEditorContent": "Hosszú sorok tördelése a szerkesztőben",
+    "wrapEditorContentDescription": "Tördeli a szerkesztő tartalmát, hogy a nagyon hosszú sorok mindig láthatóak maradjanak",
     "editButtonInHeader": "Szerkesztés/előnézet gombok megjelenítése a fejlécben",
     "editButtonInHeaderDescription": "A szerkesztés/előnézet gombok megjelenítése a fejlécben a túlcsordulási menü helyett",
     "hideFileExt": "Bizonyos fájlok elrejtése (kiterjesztés alapján)",

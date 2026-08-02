@@ -651,6 +651,8 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "wrapEditorContent": "Düzenleyicide uzun satırları kaydır",
+    "wrapEditorContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar",
     "editButtonInHeader": "Düzenleme/önizleme düğmelerini başlıkta göster",
     "editButtonInHeaderDescription": "Düzenleme/önizleme düğmelerini taşma menüsü yerine başlıkta göster",
     "hideFileExt": "Belirli dosyaları gizle (uzantıya göre)",

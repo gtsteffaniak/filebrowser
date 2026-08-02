@@ -79,7 +79,9 @@ export const state = reactive({
     darkMode: true, // Default to false, assuming this is a boolean
     disableSettings: false,
     debugOffice: false, // Debug mode for OnlyOffice integration
+    editButtonInHeader: false,
     preferEditorForMarkdown: false,
+    wrapEditorContent: false,
     hideFileExt: "",   // files with certain extensions to hide in UI
     profile: { // Example of additional user properties
       username: '', // Default to an empty string

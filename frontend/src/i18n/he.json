@@ -651,6 +651,8 @@
     "orange": "כתום"
   },
   "profileSettings": {
+    "wrapEditorContent": "גלישת שורות ארוכות בעורך",
+    "wrapEditorContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות",
     "editButtonInHeader": "הצגת כפתורי עריכה/תצוגה מקדימה בכותרת",
     "editButtonInHeaderDescription": "הצגת כפתורי עריכה/תצוגה מקדימה בכותרת במקום בתפריט הגלישה",
     "hideFileExt": "הסתר קבצים מסוימים (לפי סיומת)",

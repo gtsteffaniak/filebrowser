@@ -477,6 +477,8 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "wrapEditorContent": "在编辑器中换行长行",
+    "wrapEditorContentDescription": "换行编辑器内容，使很长的行始终保持可见",
     "editButtonInHeader": "在标题中显示编辑/预览按钮",
     "editButtonInHeaderDescription": "在标题中显示编辑/预览按钮，而不是在溢出菜单中",
     "hideFileExt": "隐藏特定文件（按扩展名）",

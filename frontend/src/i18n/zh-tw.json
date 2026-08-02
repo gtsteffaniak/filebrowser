@@ -446,6 +446,8 @@
     "unavailable": "無法使用"
   },
   "profileSettings": {
+    "wrapEditorContent": "在編輯器中換行長行",
+    "wrapEditorContentDescription": "換行編輯器內容，使很長的行始終保持可見",
     "editButtonInHeader": "在標題中顯示編輯/預覽按鈕",
     "editButtonInHeaderDescription": "在標題中顯示編輯/預覽按鈕，而不是在溢出選單中",
     "hideFileExt": "隱藏特定檔案（按副檔名）",

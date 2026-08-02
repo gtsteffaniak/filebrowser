@@ -651,6 +651,8 @@
     "orange": "オレンジ"
   },
   "profileSettings": {
+    "wrapEditorContent": "エディタで長い行を折り返す",
+    "wrapEditorContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします",
     "editButtonInHeader": "ヘッダーに編集/プレビューボタンを表示",
     "editButtonInHeaderDescription": "オーバーフローメニューの代わりにヘッダーに編集/プレビューボタンを表示",
     "hideFileExt": "特定のファイルを非表示にする（拡張子で）",

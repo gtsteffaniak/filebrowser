@@ -481,6 +481,8 @@
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
+    "wrapEditorContent": "Wrap long lines in the editor",
+    "wrapEditorContentDescription": "Wraps the editor content to keep very long lines always visible",
     "editButtonInHeader": "Show edit/preview buttons in header",
     "editButtonInHeaderDescription": "Show the edit/preview buttons in the header instead of the overflow menu",
     "enforcedByAdmin": "Your administrator has prevented users from changing this property",

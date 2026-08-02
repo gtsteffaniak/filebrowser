@@ -317,6 +317,8 @@
     "allFileTypes": "Všechny typy souborů"
   },
   "profileSettings": {
+    "wrapEditorContent": "Zalamovat dlouhé řádky v editoru",
+    "wrapEditorContentDescription": "Zalamuje obsah editoru, aby byly velmi dlouhé řádky vždy viditelné",
     "editButtonInHeader": "Zobrazit tlačítka pro úpravy/náhled v záhlaví",
     "editButtonInHeaderDescription": "Zobrazit tlačítka pro úpravy/náhled v záhlaví místo v rozbalovací nabídce",
     "hideFileExt": "Skrýt určité soubory (podle přípony)",

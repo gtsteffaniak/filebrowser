@@ -481,6 +481,8 @@
     "allFileTypes": "Tutti i tipi di file"
   },
   "profileSettings": {
+    "wrapEditorContent": "A capo delle righe lunghe nell'editor",
+    "wrapEditorContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe",
     "editButtonInHeader": "Mostra i pulsanti di modifica/anteprima nell'intestazione",
     "editButtonInHeaderDescription": "Mostra i pulsanti di modifica/anteprima nell'intestazione invece del menu overflow",
     "hideFileExt": "Nascondere determinati file (per estensione)",
