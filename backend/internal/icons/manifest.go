@@ -1,13 +1,14 @@
 package icons
 
 import (
+	"strings"
+
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 // PWAManifest represents the web app manifest structure
 type PWAManifest struct {
 	Name            string    `json:"name"`
-	ShortName       string    `json:"short_name"`
 	ID              string    `json:"id"`
 	Scope           string    `json:"scope"`
 	Icons           []PWAIcon `json:"icons"`
@@ -29,19 +30,23 @@ type PWAIcon struct {
 // CachedManifest holds the generated PWA manifest at startup
 var CachedManifest PWAManifest
 
+const pwaManifestNameMaxLen = 30
+
+// pwaManifestName returns the app title for the web app manifest.
+// Names longer than 30 characters are truncated to fit common mobile launcher limits.
+func pwaManifestName(name string) string {
+	name = strings.TrimSpace(name)
+	runes := []rune(name)
+	if len(runes) > pwaManifestNameMaxLen {
+		return string(runes[:pwaManifestNameMaxLen])
+	}
+	return name
+}
+
 // generatePWAManifest creates the PWA manifest structure
 func generatePWAManifest(name, description, baseURL, themeColor, pwaIcon192, pwaIcon256, pwaIcon512 string) PWAManifest {
-	shortName := name
-	if len(name) > 12 {
-		shortName = name[:12]
-	}
-	if name == "FileBrowser Quantum" {
-		shortName = "FBQ"
-	}
-
 	return PWAManifest{
-		Name:            name,
-		ShortName:       shortName,
+		Name:            pwaManifestName(name),
 		ID:              baseURL,
 		Scope:           baseURL,
 		StartURL:        baseURL,

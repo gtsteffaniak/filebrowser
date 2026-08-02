@@ -92,12 +92,7 @@ func ManifestForShare(baseURL, startURL, name, description string) (PWAManifest,
 	manifest.ID = shareRoot
 
 	if name = sanitizeManifestText(strings.TrimSpace(name)); name != "" {
-		manifest.Name = name
-		shortName := name
-		if len(shortName) > 12 {
-			shortName = shortName[:12]
-		}
-		manifest.ShortName = shortName
+		manifest.Name = pwaManifestName(name)
 	}
 	if description = sanitizeManifestText(strings.TrimSpace(description)); description != "" {
 		manifest.Description = description

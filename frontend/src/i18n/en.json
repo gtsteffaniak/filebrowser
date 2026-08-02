@@ -328,7 +328,7 @@
     "shareDurationDescription": "Duration before the share expires. Leave blank for a permanent share.",
     "passwordDescription": "Optional password required to access this share, including authenticated users.",
     "shareThemeColorDescription": "CSS color value applied to the share's theme (e.g., red, #0ea5e9, rgb(14,165,233)).",
-    "shareTitleDescription": "Custom page title shown on the share page.",
+    "shareTitleDescription": "Custom page title shown on the share page. If this share is installed as a PWA, the app name is limited to 30 characters.",
     "shareDescriptionHelp": "Short description shown on the share page (may be used in meta tags).",
     "shareBannerDescription": "Banner image URL or path accessible by the client -- either abosolute or index path are accepted: eg 'https://domain.com/banner.png' or '/path/to/banner.png'",
     "shareFaviconDescription": "Favicon URL or path accessible by the client -- either abosolute or index path are accepted: eg 'https://domain.com/favicon.png' or '/path/to/favicon.png'",
