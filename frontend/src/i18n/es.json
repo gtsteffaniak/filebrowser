@@ -357,7 +357,6 @@
     "shareDurationDescription": "Tiempo que durará el recurso compartido - puedes dejarlo en blanco para indefinido (o sea, sin expiración).",
     "passwordDescription": "Contraseña opcional necesaria para acceder al recurso compartido, incluyedo usuarios registrados",
     "shareThemeColorDescription": "Valor de color CSS aplicado al tema de la acción (por ejemplo: red, #0ea5e9, rgb(14,165,233)).",
-    "shareTitleDescription": "Título de la página que se mostrará en el navegador",
     "shareDescriptionHelp": "Breve descripción mostrada en la página (que suele aparecer cuando compartes el enlace)",
     "shareBannerDescription": "Enlace (URL), o ruta de la imagen del banner que se mostrará en el enlace -- por ejemplo, 'https://ejemplo.com/banner.png' o '/ruta/a/banner.png'.",
     "shareFaviconDescription": "Enlace (URL) del icono (favicon) que se mostrará en el enlace --  por ejemplo 'https://domain.com/favicon.png' o '/ruta/a/favicon.png'",
@@ -408,7 +407,8 @@
     "selectBannerImage": "Seleccionar imagen de banner",
     "selectFaviconImage": "Seleccionar imagen de favicon",
     "deleteFailed": "Error al borrar recurso compartido",
-    "readOnlySourceNotice": "Esta fuente es de sólo lectura. Los recursos compartidos de carga y los permisos que modifican archivos están desactivados."
+    "readOnlySourceNotice": "Esta fuente es de sólo lectura. Los recursos compartidos de carga y los permisos que modifican archivos están desactivados.",
+    "shareTitleDescription": "Título personalizado de la página que se muestra en la página para compartir. Si esta aplicación para compartir está instalada como PWA, el nombre de la aplicación tiene un límite de 30 caracteres."
   },
   "api": {
     "createdAt": "Creado en:",

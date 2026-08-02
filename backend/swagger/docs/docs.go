@@ -5784,7 +5784,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "description": "display name",
+                    "description": "display name, PWA installation name is capped at 30 characters",
                     "type": "string"
                 },
                 "oidcLoginButtonText": {
