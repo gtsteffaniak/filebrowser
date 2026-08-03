@@ -72,6 +72,7 @@ export default {
     suppressDirtyTracking: false,
     originalReq: null as Req | null,
     saveLocked: false, // Lock saves during req transitions
+    saveUnlockTimer: null as ReturnType<typeof setTimeout> | null, // pending save-unlock timer
     currentReqPath: null as string | null, // Track current path for transition detection
     navigationGuard: null as (() => void) | null, // Navigation guard to prevent navigation with unsaved changes
     isPromptOpen: false, // Track if prompt is currently open for avoid navigation
@@ -169,9 +170,7 @@ export default {
         this.saveLocked = true;
       } else if (!isTransitioning && !this.viewerMode) {
         // Unlock after a short delay to ensure req is fully loaded
-        setTimeout(() => {
-          this.saveLocked = false;
-        }, 300);
+        this.scheduleSaveUnlock(300);
       }
     },
     // Update originalReq and lock saves when req changes during navigation
@@ -188,11 +187,7 @@ export default {
         this.currentReqPath = newReq.path;
 
         // Unlock after content loads
-        setTimeout(() => {
-          if (this.req.path === this.currentReqPath) {
-            this.saveLocked = false;
-          }
-        }, 500);
+        this.scheduleSaveUnlock(500);
       }
     },
     // Update editor content reactively
@@ -270,6 +265,10 @@ export default {
     this.setupNavigationGuard();
   },
   beforeUnmount() {
+    if (this.saveUnlockTimer) {
+      clearTimeout(this.saveUnlockTimer);
+      this.saveUnlockTimer = null;
+    }
     if (this.viewerResizeObserver) {
       this.viewerResizeObserver.disconnect();
       this.viewerResizeObserver = null;
@@ -282,10 +281,6 @@ export default {
 
     if (this.editor) {
       this.editor.session.off('changeScrollTop', this.handleEditorScroll);
-    }
-
-    if (this.readOnly) {
-      return;
     }
 
     // Clear navigation guard
@@ -336,6 +331,17 @@ export default {
     });
   },
   methods: {
+    scheduleSaveUnlock(delay: number) {
+      if (this.saveUnlockTimer) {
+        clearTimeout(this.saveUnlockTimer);
+      }
+      this.saveUnlockTimer = setTimeout(() => {
+        this.saveUnlockTimer = null;
+        if (!state.navigation.isTransitioning && this.req?.path === this.currentReqPath) {
+          this.saveLocked = false;
+        }
+      }, delay);
+    },
     setupViewerResizeObserver() {
       if (typeof ResizeObserver === "undefined" || !this.editor) {
         return;
@@ -449,9 +455,15 @@ export default {
         this.editor.setOption('displayIndentGuides', true);
         this.editor.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
 
-        this.editor.on('change', () => {
+        if (!this.viewerMode) {
+          this.editor.focus();
+        }
+
+        const editorInstance = this.editor;
+        editorInstance.on('change', () => {
+          if (this.editor !== editorInstance) return;
           if (this.suppressDirtyTracking) return;
-          const dirty = this.editor.getValue() !== this.savedContent;
+          const dirty = editorInstance.getValue() !== this.savedContent;
           this.isDirty = dirty;
           mutations.setEditorDirty(dirty);
           this.updateEditorStats();
@@ -469,14 +481,15 @@ export default {
         if (!this.viewerMode) {
           if (this.isMarkdownFile) {
             this.$nextTick(() => {
+              if (this.editor !== editorInstance) return;
               if (this.isSplitActive) {
-                (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.setLiveContent(this.editor.getValue());
+                (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.setLiveContent(editorInstance.getValue());
               }
               (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.applyScrollRatio(initialScrollRatio, true);
               requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                  if (!this.editor) return;
-                  this.editor.session.on('changeScrollTop', this.handleEditorScroll);
+                  if (this.editor !== editorInstance) return;
+                  editorInstance.session.on('changeScrollTop', this.handleEditorScroll);
                 });
               });
             });
@@ -783,6 +796,10 @@ export default {
 /* Lightened Tomorrow Night Bright Theme, was too dark */
 .ace-tomorrow-night-bright {
   background-color: #151515 !important; /* original of the theme is #000000 */
+}
+
+.ace-tomorrow-night-bright .ace_marker-layer .ace_active-line {
+  background: #232323;
 }
 
 #editor-root.split-active .ace_scrollbar {
