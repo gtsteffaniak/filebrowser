@@ -240,7 +240,9 @@ export default defineComponent({
           throw new Error("Downloaded file is empty (0 bytes).");
         }
 
-        const { convertToHtml } = await import("mammoth");
+        const mammothModule = await import("mammoth");
+        const mammoth = mammothModule.default ?? mammothModule;
+        const { convertToHtml } = mammoth;
         const result = await convertToHtml({ arrayBuffer });
         this.docxHtml = result.value;
       } catch (e) {
