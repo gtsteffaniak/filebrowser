@@ -2,9 +2,9 @@
 // scripts/sync-translations.js
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as deepl from 'deepl-node';
+import { Translator } from 'deepl-node';
 import fs from 'fs-extra';
-import * as glob from 'glob';
+import { sync } from 'glob';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 const localesDir = path.resolve(__dirname, '../src/i18n');
 const masterLocaleFile = path.join(localesDir, 'en.json');
 const masterLanguageCode = 'en';
-const targetLocaleFiles = glob.sync(path.join(localesDir, '*.json'))
+const targetLocaleFiles = sync(path.join(localesDir, '*.json'))
   .filter(file => path.basename(file) !== `${masterLanguageCode}.json`)
 
 const requireApiKey = !checkOnly && !enforceOrder && !cleanupOnly;
@@ -28,7 +28,7 @@ if (requireApiKey && !DEEPL_API_KEY) {
   process.exit(1);
 }
 
-const translator = requireApiKey ? new deepl.Translator(DEEPL_API_KEY) : null;
+const translator = requireApiKey ? new Translator(DEEPL_API_KEY) : null;
 
 const deeplLangMap = {
   'zh-cn': 'ZH-HANS',

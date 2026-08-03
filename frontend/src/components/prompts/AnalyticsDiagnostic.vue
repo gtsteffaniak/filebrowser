@@ -14,7 +14,7 @@
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { notify } from "@/notify";
-import * as settingsApi from "@/api/settings";
+import { getAnalyticsPreview } from "@/api/settings";
 
 export default {
   name: "AnalyticsDiagnostic",
@@ -32,7 +32,7 @@ export default {
   methods: {
     async loadPreview() {
       try {
-        const preview = await settingsApi.getAnalyticsPreview();
+        const preview = await getAnalyticsPreview();
         this.previewContent = JSON.stringify(preview, null, 2);
       } catch (e) {
         console.error(e);

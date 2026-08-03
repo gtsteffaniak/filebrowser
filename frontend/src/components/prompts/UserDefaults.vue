@@ -30,7 +30,7 @@
 
 <script>
 import { notify } from "@/notify";
-import * as settingsApi from "@/api/settings";
+import { getUserDefaults, patchUserDefaults } from "@/api/settings";
 import { getObjectProperty } from "@/utils/object.js";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
@@ -176,7 +176,7 @@ export default {
       this.loading = true;
       this.hydrating = true;
       try {
-        const data = await settingsApi.getUserDefaults();
+        const data = await getUserDefaults();
         this.applyResponse(data);
       } catch (e) {
         console.error(e);
@@ -196,7 +196,7 @@ export default {
       }
       this.saving = true;
       try {
-        await settingsApi.patchUserDefaults(partial);
+        await patchUserDefaults(partial);
       } catch (e) {
         console.error(e);
         if (e?.message) {

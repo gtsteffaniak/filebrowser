@@ -15,7 +15,7 @@
 
 <script lang="ts">
 import { defineComponent, watch } from "vue";
-import ePub, { type Book, type Rendition } from "epubjs";
+import type { Book, Rendition } from "epubjs";
 import { state, mutations, getters } from "@/store"; // Assuming your store setup
 import { resourcesApi } from "@/api";
 import { ensureViewToken, requestViewIdentity, getCachedViewToken, getRequestViewToken } from "@/api/viewToken.js";
@@ -114,7 +114,8 @@ export default defineComponent({
           );
 
       // 2. Initialize the EPUB book
-      this.book = ePub(epubUrl);
+      const { default: ePub } = await import("epubjs");
+      this.book = ePub(epubUrl, { openAs: "epub" });
 
       // 3. Render the book to the "viewer" div
       this.rendition = this.book.renderTo("viewer", {

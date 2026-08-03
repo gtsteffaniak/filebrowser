@@ -182,7 +182,7 @@
 import downloadFiles from "@/utils/download";
 import { resourcesApi } from "@/api";
 import { router } from "@/router";
-import * as upload from "@/utils/upload";
+import { readAllDirectoryEntries, checkConflict } from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
@@ -942,7 +942,7 @@ export default {
         // But if it's a directory, read the contents (readEntries may require
         // multiple calls — browsers often return at most ~100 entries per batch)
         const reader = entry.createReader();
-        const entries = await upload.readAllDirectoryEntries(reader, entryPath);
+        const entries = await readAllDirectoryEntries(reader, entryPath);
         // and then for each child recursively collect files
         for (const childEntry of entries) {
           const childFiles = await this.collectFilesFromEntry(
@@ -1089,7 +1089,7 @@ export default {
                 return;
               }
 
-              const conflict = upload.checkConflict(items, state.req.items);
+              const conflict = checkConflict(items, state.req.items);
 
               if (conflict) {
                 mutations.showPrompt({

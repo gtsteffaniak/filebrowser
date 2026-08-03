@@ -75,7 +75,7 @@ import { mutations, state, getters } from "@/store";
 import FileList from "../files/FileList.vue";
 import { resourcesApi } from "@/api";
 import buttons from "@/utils/buttons";
-import * as upload from "@/utils/upload";
+import { checkConflict } from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import {
@@ -309,7 +309,7 @@ export default {
         } else {
           dstResp = await resourcesApi.fetchFiles(this.destSource, this.destPath);
         }
-        conflict = upload.checkConflict(itemsToProcess, dstResp.items);
+        conflict = checkConflict(itemsToProcess, dstResp.items);
         let overwrite = false;
         let rename = false;
         let result = null;

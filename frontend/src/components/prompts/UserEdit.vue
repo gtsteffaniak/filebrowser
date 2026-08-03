@@ -177,7 +177,7 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
-import * as auth from "@/utils/auth.js";
+import { validateLogin } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 import { setObjectProperty } from '@/utils/object.js';
@@ -722,7 +722,7 @@ export default {
         } else {
           await usersApi.update(payload, fields);
           if (payload.username === state.user.username) {
-            await auth.validateLogin();
+            await validateLogin();
           }
           eventBus.emit('usersChanged');
           notify.showSuccessToast(this.$t("settings.userUpdated"));
