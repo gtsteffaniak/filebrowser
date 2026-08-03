@@ -34,6 +34,7 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { globalVars } from "@/utils/constants";
+import { isHtmlMimeType } from "@/utils/mimetype";
 
 const offsetFromBottomListing = 110;
 const offsetFromBottomFull = 75;
@@ -93,6 +94,7 @@ export default {
     showScrollbar() {
       if (this.forceEnabled) return true;
       const view = getters.currentView();
+      if (view === 'markdownViewer' && isHtmlMimeType(state.req?.type)) return false;
       return view === 'listingView' || view === 'settings' || view === 'tools' || view === 'markdownViewer';
     },
   },

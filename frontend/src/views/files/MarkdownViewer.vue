@@ -9,7 +9,7 @@
       sandbox="allow-scripts allow-popups allow-same-origin"
       referrerpolicy="no-referrer"
       title="HTML preview"
-      @load="htmlPreviewHeight"
+      @load="applyHtmlPreviewHeight"
     ></iframe>
     <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
       <div ref="viewer" class="markdown-content">
@@ -172,28 +172,16 @@ export default {
       boundScrollEl: null as HTMLElement | null,
       isLoadingNewContent: false,
       katexReady: false,
-      htmlContentHeight: 0,
       resizeObserver: null as ResizeObserver | null,
       anchorCache: null as { line: number; top: number }[] | null,
     };
   },
   methods: {
-    htmlPreviewHeight() {
-      if (!this.isHtml) return;
-      const iframe = this.$refs.viewer as HTMLIFrameElement | undefined;
-      if (!iframe) return;
-      let contentHeight = 0;
-      try {
-        contentHeight = (iframe.contentWindow?.document?.documentElement?.scrollHeight || 0);
-      } catch { /* ignore */ }
-      this.htmlContentHeight = contentHeight;
-      this.applyHtmlPreviewHeight();
-    },
     applyHtmlPreviewHeight() {
       const iframe = this.$refs.viewer as HTMLIFrameElement | undefined;
       if (!iframe || !this.isHtml) return;
       const available = window.innerHeight - iframe.getBoundingClientRect().top;
-      iframe.style.height = `${Math.max(available, this.htmlContentHeight)}px`;
+      iframe.style.height = `${available}px`;
     },
     observeResize() {
       if (this.resizeObserver) return;
