@@ -28,6 +28,10 @@ The goal for this repo is to become the best open-source self-hosted file browsi
 
 Ready to try it out? See [Getting Started Docs](https://filebrowserquantum.com/en/docs/getting-started/).
 
+If you would rather not run a server yourself, [Zenith Hosting](https://zenith.hosting/host/filebrowser-quantum) offers one-click managed FileBrowser Quantum: storage, backups, email and a free subdomain included. A share of every subscription goes back to the projects it hosts.
+
+[![Deploy with Zenith](https://cdn.zenith.hosting/buttons/deploy-with-zenith.svg)](https://zenith.hosting/host/filebrowser-quantum)
+
 ## How its different
 
 FileBrowser Quantum is a massive fork of the file browser open-source project with the following changes:
