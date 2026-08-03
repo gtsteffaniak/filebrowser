@@ -3,7 +3,6 @@
     <div
       class="split-divider"
       :class="{ resizing: isResizing }"
-      aria-orientation="vertical"
       @mousedown="startResize"
       @touchstart="startResize"
     ></div>

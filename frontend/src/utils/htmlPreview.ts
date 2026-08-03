@@ -3,6 +3,7 @@ import { getters, state } from "@/store";
 import { getCachedViewToken } from "@/api/viewToken";
 import { getViewURL } from "@/api/resources";
 import { getParentDir, resolveRelativePath } from "@/utils/url";
+import { globalVars } from "./constants";
 
 export const HTML_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true, svg: true, svgFilters: true },
@@ -290,6 +291,9 @@ function navigationGuard(htmlEl: HTMLElement): string {
     head.insertBefore(base, head.firstChild);
 
     const guard = doc.createElement("script");
+    if (typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== "") {
+      guard.setAttribute("nonce", globalVars.cspNonce);
+    }
     guard.textContent = NAV_GUARD_SCRIPT;
     head.appendChild(guard);
   }
