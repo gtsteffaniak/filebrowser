@@ -631,8 +631,28 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
 
+	if err := applyLoadedUserDefaultsFromConfig(generate); err != nil {
+		return err
+	}
+
 	loadEnvConfig()
 	return ResolveDatabasePaths()
+}
+
+// applyLoadedUserDefaultsFromConfig merges config-specified userDefaults paths onto
+// SetDefaults so partial YAML (e.g. only account.permissions.share) does not zero
+// unspecified sections such as preview thumbnails or fileViewer.autoplayMedia.
+func applyLoadedUserDefaultsFromConfig(generate bool) error {
+	if !Env.ConfigUserDefaultsSpecified {
+		return nil
+	}
+	base := SetDefaults(generate).UserDefaults
+	merged, err := ApplyConfigSpecifiedPathsToUserDefaults(base, Config.UserDefaults)
+	if err != nil {
+		return fmt.Errorf("merge user defaults with config: %w", err)
+	}
+	Config.UserDefaults = merged
+	return nil
 }
 
 func ValidateConfig(config Settings) error {
@@ -818,7 +838,6 @@ func SetDefaults(generate bool) Settings {
 				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
 				PreferEditorForMarkdown: false,
 				DebugOffice:             false,
-				DefaultMediaPlayer:      false,
 			},
 			Search: UserDefaultsSearch{
 				DisableOptions: false,

@@ -308,12 +308,6 @@
       @toggle="onSectionToggle('fileViewerOptions')"
     >
       <div class="settings-items">
-        <ProfilePreferenceToggle
-          field="defaultMediaPlayer"
-          section="fileViewer"
-          :name="$t('profileSettings.defaultMediaPlayer')"
-          :description="$t('profileSettings.defaultMediaPlayerDescription')"
-        />
         <ToggleSwitch
           class="item"
           :enforceable="enforceable"

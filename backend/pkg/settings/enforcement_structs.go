@@ -54,7 +54,6 @@ type UserDefaultsFileViewerEnforcement struct {
 	DisableOnlyOfficeExt    bool `json:"disableOnlyOfficeExt,omitempty"`
 	PreferEditorForMarkdown bool `json:"preferEditorForMarkdown,omitempty"`
 	DebugOffice             bool `json:"debugOffice,omitempty"`
-	DefaultMediaPlayer      bool `json:"defaultMediaPlayer,omitempty"`
 }
 
 type UserDefaultsSearchEnforcement struct {

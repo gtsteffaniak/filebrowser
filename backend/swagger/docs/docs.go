@@ -6363,10 +6363,6 @@ const docTemplate = `{
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
-                "defaultMediaPlayer": {
-                    "description": "disable the styled feature-rich media player for browser default",
-                    "type": "boolean"
-                },
                 "disableOnlyOfficeExt": {
                     "description": "list of file extensions to disable onlyoffice editor for",
                     "type": "string"
@@ -7388,10 +7384,6 @@ const docTemplate = `{
                 },
                 "autoplayMedia": {
                     "description": "autoplay media files in preview",
-                    "type": "boolean"
-                },
-                "defaultMediaPlayer": {
-                    "description": "disable html5 media player and use the default media player",
                     "type": "boolean"
                 },
                 "disableHideSidebar": {

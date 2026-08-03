@@ -45,9 +45,8 @@ func ProfileFromUser(u *users.User) UserProfile {
 			DisablePreviewExt:  u.DisablePreviewExt,
 		},
 		FileViewer: UserDefaultsFileViewer{
-			EditorQuickSave:         u.EditorQuickSave,
 			AutoplayMedia:           boolPtr(u.Preview.AutoplayMedia),
-			DefaultMediaPlayer:      u.Preview.DefaultMediaPlayer,
+			EditorQuickSave:         u.EditorQuickSave,
 			DisableViewingExt:       u.DisableViewingExt,
 			DisableOnlyOfficeExt:    u.DisableOnlyOfficeExt,
 			PreferEditorForMarkdown: u.PreferEditorForMarkdown,
@@ -121,7 +120,6 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 
 	u.EditorQuickSave = p.FileViewer.EditorQuickSave
 	u.Preview.AutoplayMedia = boolValueOrDefault(p.FileViewer.AutoplayMedia, true)
-	u.Preview.DefaultMediaPlayer = p.FileViewer.DefaultMediaPlayer
 	u.DisableViewingExt = p.FileViewer.DisableViewingExt
 	u.DisableOnlyOfficeExt = p.FileViewer.DisableOnlyOfficeExt
 	u.DisableOfficePreviewExt = p.FileViewer.DisableOnlyOfficeExt

@@ -2,7 +2,7 @@
   <div class="plyr-viewer">
     <!-- Audio with plyr -->
     <div
-      v-if="previewType === 'audio' && !useDefaultMediaPlayer"
+      v-if="previewType === 'audio'"
       ref="audioPlayerGestureRoot"
       class="audio-player-container audio-player-container--plyr-gestures"
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
@@ -122,7 +122,7 @@
     </div>
 
     <!-- Video with plyr -->
-    <div v-else-if="previewType === 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
+    <div v-else-if="previewType === 'video'" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video
           ref="videoElement"
@@ -157,22 +157,6 @@
       >
         <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
-    </div>
-
-    <!-- Default HTML5 Audio -->
-    <div v-else-if="previewType === 'audio' && useDefaultMediaPlayer" class="audio-player-container">
-      <audio ref="defaultAudioPlayer" :src="raw"
-        controls :autoplay="shouldAutoplay" @play="handlePlay">
-      </audio>
-    </div>
-
-    <!-- Default HTML5 Video -->
-    <div v-else-if="previewType === 'video' && useDefaultMediaPlayer" class="video-player-container">
-      <video ref="defaultVideoPlayer" :src="raw"
-        controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
-        <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-          :label="subtitleTrackLabel(sub)" :srclang="sub.language" :default="index === 0" />
-      </video>
     </div>
 
     <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
@@ -235,7 +219,7 @@
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
     <button
       type="button"
-      v-if="isMobile && previewType === 'audio' && !useDefaultMediaPlayer && showMobileLyrics && lyrics.length && syncedLyrics"
+      v-if="isMobile && previewType === 'audio' && showMobileLyrics && lyrics.length && syncedLyrics"
       class="queue-button floating lyrics-lock-fab"
       :class="{
         'dark-mode': darkMode,
@@ -337,10 +321,6 @@ export default {
     req: {
       type: Object,
       required: true,
-    },
-    useDefaultMediaPlayer: {
-      type: Boolean,
-      default: false,
     },
     autoPlayEnabled: {
       type: Boolean,
@@ -536,11 +516,11 @@ export default {
           this.captionSizeMenuInitialized = false;
         }
         if (gained) {
-          if (!this.useDefaultMediaPlayer && !this.player && this.previewType === 'video') {
+          if (!this.player && this.previewType === 'video') {
             this.$nextTick(() => {
               this.initializePlyr();
             });
-          } else if (!this.useDefaultMediaPlayer && this.player && this.previewType === 'video') {
+          } else if (this.player && this.previewType === 'video') {
             this.$nextTick(() => {
               this.applyCustomSettings(this.player);
               this.syncCaptionSizeSettingsVisibility();
@@ -647,11 +627,6 @@ export default {
       return this.subtitlesList && this.subtitlesList.length > 0;
     },
     mediaElement() {
-      if (this.useDefaultMediaPlayer) {
-        return this.previewType === 'video'
-          ? this.$refs.defaultVideoPlayer 
-          : this.$refs.defaultAudioPlayer;
-      }
       return this.previewType === 'video'
         ? this.$refs.videoElement 
         : this.$refs.audioElement;
@@ -665,7 +640,6 @@ export default {
     videoSwipeGesturesActive() {
       return (
         (this.previewType === 'video' || this.previewType === 'audio') &&
-        !this.useDefaultMediaPlayer &&
         !!this.player
       );
     },
@@ -698,7 +672,7 @@ export default {
       );
     },
     nativeVideoSrc() {
-      if (this.previewType !== 'video' || this.useDefaultMediaPlayer) {
+      if (this.previewType !== 'video') {
         return null;
       }
       if (this.shouldAttachVideoStream) {
@@ -988,12 +962,12 @@ export default {
     },
     handlePlay() {
       this.$emit('play');
-      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer) {
+      if (this.previewType === 'audio') {
         this.resumeAudioGraph();
       }
     },
     ensurePlaybackModeApplied() {
-      if (this.useDefaultMediaPlayer || !this.player) return;
+      if (!this.player) return;
       try {
         const settingsMenu = this.player.elements.settings?.menu;
         const playbackBtn = this.player.elements.settings?.buttons?.playback;
@@ -1062,7 +1036,7 @@ export default {
       };
     },
     applyCaptionSizeClass() {
-      if (this.useDefaultMediaPlayer || !this.player?.elements?.container) {
+      if (!this.player?.elements?.container) {
         return;
       }
       const el = this.player.elements.container;
@@ -1072,7 +1046,7 @@ export default {
       el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
-      if (this.useDefaultMediaPlayer || !this.player) {
+      if (!this.player) {
         return;
       }
       const btn = this.player.elements.settings?.buttons?.captionSize;
@@ -1247,14 +1221,6 @@ export default {
       this.metadata = null;
     },
     hookEvents() {
-      if (this.useDefaultMediaPlayer) {
-        this.setupDefaultPlayerEvents(this.mediaElement);
-        if (this.previewType === 'video' || this.previewType === 'audio') {
-          this.setupQueryPlaybackSeek();
-        }
-        return;
-      }
-      
       // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
       // This prevents Plyr from trying to access tracks before they have valid blob URLs
       const hasSubtitleMetadata = this.req?.subtitles?.length > 0;
@@ -1384,9 +1350,7 @@ export default {
         return;
       }
 
-      const media = this.useDefaultMediaPlayer
-        ? (this.previewType === 'video' ? this.$refs.defaultVideoPlayer : this.$refs.defaultAudioPlayer)
-        : this.mediaElement;
+      const media = this.mediaElement;
       if (!media) {
         return;
       }
@@ -1436,7 +1400,7 @@ export default {
     setupAudioVisualizer() {
       // This method gets called once only when in the visualizer tab of the audio panel
       if (this.audioGraphInitialized) return;
-      if (this.previewType !== 'audio' || this.useDefaultMediaPlayer) return;
+      if (this.previewType !== 'audio') return;
       if (this.audioContext) {
         this.cleanupAudioVisualizer();
       }
@@ -1511,7 +1475,6 @@ export default {
     getPlyrGestureSurface() {
       if (
         this.previewType === 'audio' &&
-        !this.useDefaultMediaPlayer &&
         this.player &&
         this.$refs.audioPlayerGestureRoot
       ) {
@@ -1545,7 +1508,7 @@ export default {
       }
     },
     setupDoubleTapSeek() {
-      if (this.useDefaultMediaPlayer || (this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
+      if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
       this.teardownDoubleTapSeek();
@@ -2153,7 +2116,7 @@ export default {
     },
     setupVideoSwipeGestures() {
       this.teardownVideoSwipeGestures();
-      if (this.useDefaultMediaPlayer || (this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
+      if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
       const surface = this.getPlyrGestureSurface();
@@ -2213,22 +2176,6 @@ export default {
         this.skipNextTapTimer = null;
       }, delay);
     },
-    setupDefaultPlayerEvents(element) {
-      if (!element) return;
-      element.addEventListener('ended', this.handleMediaEnd);
-      element.addEventListener('play', () => {
-        mutations.setPlaybackState(true);
-      });
-      element.addEventListener('pause', () => {
-        mutations.setPlaybackState(false);
-      });
-      element.addEventListener('timeupdate', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      element.addEventListener('loadedmetadata', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-    },
     async onFullscreenEnter() {
       this.isFullscreen = true;
       this.resetVideoEdgeGestureImmediate();
@@ -2270,12 +2217,7 @@ export default {
       navigatePlaybackQueue(1);
     },
     restartCurrentFile() {
-      if (this.useDefaultMediaPlayer) {
-        // HTML5 player
-        this.mediaElement.currentTime = 0;
-        this.mediaElement.play();
-      } else if (this.player) {
-        // Plyr player
+      if (this.player) {
         this.player.currentTime = 0;
         this.player.play();
       }

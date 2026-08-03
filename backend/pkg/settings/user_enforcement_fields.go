@@ -52,7 +52,6 @@ var previewJSONSubfields = map[string]string{
 	"folder":             "preview.folder",
 	"models":             "preview.models",
 	"autoplayMedia":      "fileViewer.autoplayMedia",
-	"defaultMediaPlayer": "fileViewer.defaultMediaPlayer",
 	"disableHideSidebar": "sidebar.disableHideOnPreview",
 }
 
