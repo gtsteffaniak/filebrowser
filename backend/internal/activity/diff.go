@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-	"time"
 
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
@@ -166,7 +165,7 @@ func valueFieldChanges(before, after reflect.Value, fieldPrefix string) []activi
 	if reflect.DeepEqual(before.Interface(), after.Interface()) {
 		return nil
 	}
-	if before.Kind() == reflect.Struct && after.Kind() == reflect.Struct && isExpandableStruct(before.Type()) {
+	if before.Kind() == reflect.Struct && after.Kind() == reflect.Struct {
 		changes := make([]activitydb.FieldChange, 0, before.Type().NumField())
 		for i := 0; i < before.Type().NumField(); i++ {
 			sf := before.Type().Field(i)
@@ -192,10 +191,6 @@ func valueFieldChanges(before, after reflect.Value, fieldPrefix string) []activi
 		From:  formatActivityValue(before),
 		To:    formatActivityValue(after),
 	}}
-}
-
-func isExpandableStruct(t reflect.Type) bool {
-	return t != reflect.TypeOf(time.Time{})
 }
 
 func fieldIndexByJSONTag(t reflect.Type, jsonTag string) ([]int, bool) {
