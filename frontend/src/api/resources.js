@@ -11,7 +11,6 @@ import { adjustedData, fetchURL } from './utils'
 import { rememberViewToken } from './viewToken'
 import { isMediaFile } from '@/utils/mediaFile'
 import { getObjectProperty } from '@/utils/object'
-import { isMediaFile } from '@/utils/mediaFile'
 import { getStreamURL, getStreamURLPublic } from './media'
 import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
 

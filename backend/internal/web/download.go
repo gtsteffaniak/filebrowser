@@ -252,7 +252,8 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 
 	if len(fileList) == 1 && !isDir {
-		forceInline, err := resolveDownloadInlineDisposition(fileName, r.URL.Query().Get("inline") == "true")
+		forceInline := false
+		forceInline, err = resolveDownloadInlineDisposition(fileName, r.URL.Query().Get("inline") == "true")
 		if err != nil {
 			return http.StatusForbidden, err
 		}
