@@ -292,6 +292,7 @@ import {
   parsePlaybackTimeFromQuery,
   playbackQueryChanged,
 } from '@/utils/playbackQuery';
+import { ownsMediaSession as ownsMediaSessionSlot } from '@/utils/mediaSessionOwnership';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -839,6 +840,9 @@ export default {
       const ext = getSubtitleFormatExtension(sub?.name || '');
       return ext || sub?.name || '';
     },
+    ownsMediaSession() {
+      return ownsMediaSessionSlot(this.mediaSessionOwnerId, mediaSessionOwner);
+    },
     showQueuePrompt() {
       mutations.showPrompt({
         name: "PlaybackQueue",
@@ -894,6 +898,7 @@ export default {
     },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
+      if (!this.ownsMediaSession()) return;
       if (this.player) {
         navigator.mediaSession.playbackState = this.player.playing ? 'playing' : 'paused';
         // Update position state
@@ -908,7 +913,7 @@ export default {
     },
     clearMediaSession() {
       if (!('mediaSession' in navigator)) return;
-      if (this.mediaSessionOwnerId !== mediaSessionOwner) return;
+      if (!this.ownsMediaSession()) return;
       // Clear metadata
       navigator.mediaSession.metadata = null;
       // Clear all action handlers
@@ -922,6 +927,7 @@ export default {
       }
       // Reset playback state
       navigator.mediaSession.playbackState = 'none';
+      this.mediaSessionOwnerId = 0;
     },
     getActiveMediaElement() {
       return this.player?.media ?? this.mediaElement ?? null;

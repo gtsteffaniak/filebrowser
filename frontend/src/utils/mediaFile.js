@@ -17,3 +17,11 @@ export function isMediaFile(typeOrName) {
   }
   return MEDIA_EXTENSIONS.has(typeOrName.slice(dot).toLowerCase())
 }
+
+/** @param {{ type?: string, name?: string, path?: string } | null | undefined} req */
+export function isMediaRequest(req) {
+  if (!req) {
+    return false
+  }
+  return isMediaFile(req.type) || isMediaFile(req.name) || isMediaFile(req.path)
+}

@@ -198,6 +198,9 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		if err == errors.ErrDownloadNotAllowed {
 			return http.StatusForbidden, errors.ErrDownloadNotAllowed
 		}
+		if err == errors.ErrUseMediaStream {
+			return http.StatusForbidden, errors.ErrUseMediaStream
+		}
 		logger.Errorf("public share handler: error processing filelist: %v with error %v", files, err)
 		return status, fmt.Errorf("error processing filelist: %v", files)
 	}
@@ -279,7 +282,7 @@ func resolveDownloadInlineDisposition(fileName string, inlineRequested bool) (bo
 		return inlineRequested, nil
 	}
 	if inlineRequested {
-		return false, fmt.Errorf("use /media/stream for audio and video")
+		return false, errors.ErrUseMediaStream
 	}
 	return false, nil
 }

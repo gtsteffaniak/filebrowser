@@ -1,9 +1,11 @@
 package web
 
 import (
-	"errors"
+	stderrors "errors"
 	"net/http"
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 )
 
 func TestResolveDownloadInlineDisposition(t *testing.T) {
@@ -17,8 +19,8 @@ func TestResolveDownloadInlineDisposition(t *testing.T) {
 		t.Fatalf("video download: force=%v err=%v", force, err)
 	}
 	_, err = resolveDownloadInlineDisposition("clip.mp4", true)
-	if err == nil {
-		t.Fatal("expected error for inline video")
+	if !stderrors.Is(err, errors.ErrUseMediaStream) {
+		t.Fatalf("expected ErrUseMediaStream for inline video, got %v", err)
 	}
 }
 
@@ -34,7 +36,7 @@ func TestDownloadResponseRecordsActivity(t *testing.T) {
 		{name: "206 partial", status: http.StatusPartialContent, want: true},
 		{name: "416 range unsatisfiable", status: http.StatusRequestedRangeNotSatisfiable, want: false},
 		{name: "403 forbidden", status: http.StatusForbidden, want: false},
-		{name: "error with 200", status: http.StatusOK, err: errors.New("write failed"), want: false},
+		{name: "error with 200", status: http.StatusOK, err: stderrors.New("write failed"), want: false},
 		{name: "zero status", status: 0, want: false},
 	}
 	for _, tc := range tests {

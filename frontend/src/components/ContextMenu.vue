@@ -213,7 +213,7 @@ import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
-import { isMediaFile } from "@/utils/mediaFile";
+import { isMediaRequest } from "@/utils/mediaFile";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -277,7 +277,7 @@ export default {
       return this.providedItems[0] || null;
     },
     showWatch() {
-      if (isMediaFile(this.req?.type || this.req?.name)) {
+      if (isMediaRequest(this.req)) {
         return false;
       }
       return this.hasDownload && !this.req.isDir && !this.isShare;
@@ -429,7 +429,7 @@ export default {
       if (!this.permissions.download) {
         return false;
       }
-      if (isMediaFile(this.req?.type || this.req?.name)) {
+      if (isMediaRequest(this.req)) {
         return false;
       }
       const cv = getters.currentView();
