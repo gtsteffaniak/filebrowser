@@ -55,14 +55,41 @@ func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 	}
 
 	changes := UserUpdateChanges(before, &after, which, false)
-	if len(changes) != 2 {
-		t.Fatalf("expected 2 changes, got %d: %#v", len(changes), changes)
+	if len(changes) != 3 {
+		t.Fatalf("expected 3 changes, got %d: %#v", len(changes), changes)
 	}
 	if changes[0].Field != "darkMode" || changes[0].From != "true" || changes[0].To != "false" {
 		t.Fatalf("unexpected darkMode change: %#v", changes[0])
 	}
-	if changes[1].Field != "sorting" {
-		t.Fatalf("unexpected second change: %#v", changes[1])
+	if changes[1].Field != "sorting.asc" || changes[1].From != "false" || changes[1].To != "true" {
+		t.Fatalf("unexpected sorting.asc change: %#v", changes[1])
+	}
+	if changes[2].Field != "sorting.by" || changes[2].From != "" || changes[2].To != "name" {
+		t.Fatalf("unexpected sorting.by change: %#v", changes[2])
+	}
+}
+
+func TestUserUpdateChangesExpandsNestedStructFields(t *testing.T) {
+	before := &users.User{
+		FrontendUser: users.FrontendUser{
+			NonAdminEditable: users.NonAdminEditable{
+				Preview: users.Preview{
+					AutoplayMedia: false,
+					Image:         true,
+					Video:         true,
+				},
+			},
+		},
+	}
+	after := *before
+	after.Preview.AutoplayMedia = true
+
+	changes := UserUpdateChanges(before, &after, []string{"preview"}, false)
+	if len(changes) != 1 {
+		t.Fatalf("expected 1 change, got %d: %#v", len(changes), changes)
+	}
+	if changes[0].Field != "preview.autoplayMedia" || changes[0].From != "false" || changes[0].To != "true" {
+		t.Fatalf("unexpected preview.autoplayMedia change: %#v", changes[0])
 	}
 }
 

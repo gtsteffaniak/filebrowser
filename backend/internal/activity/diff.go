@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
@@ -92,9 +93,7 @@ func UserUpdateChanges(before, after *users.User, which []string, passwordChange
 			}
 			continue
 		}
-		if change, ok := structFieldChange(reflect.ValueOf(before).Elem(), reflect.ValueOf(after).Elem(), reflect.TypeOf(users.User{}), tag); ok {
-			changes = append(changes, change)
-		}
+		changes = append(changes, structFieldChanges(reflect.ValueOf(before).Elem(), reflect.ValueOf(after).Elem(), reflect.TypeOf(users.User{}), tag)...)
 	}
 	sort.Slice(changes, func(i, j int) bool { return changes[i].Field < changes[j].Field })
 	return changes
@@ -107,9 +106,7 @@ func ShareUpdateChanges(before, after *share.Share) []activitydb.FieldChange {
 	tags := collectJSONTags(reflect.TypeOf(share.Share{}), shareActivitySkipJSONTags)
 	changes := make([]activitydb.FieldChange, 0, len(tags))
 	for _, tag := range tags {
-		if change, ok := structFieldChange(reflect.ValueOf(before).Elem(), reflect.ValueOf(after).Elem(), reflect.TypeOf(share.Share{}), tag); ok {
-			changes = append(changes, change)
-		}
+		changes = append(changes, structFieldChanges(reflect.ValueOf(before).Elem(), reflect.ValueOf(after).Elem(), reflect.TypeOf(share.Share{}), tag)...)
 	}
 	if before.HasPassword() != after.HasPassword() {
 		changes = append(changes, activitydb.FieldChange{
@@ -150,24 +147,55 @@ func sidebarLinksFieldChange(before, after *users.User) (activitydb.FieldChange,
 	return activitydb.FieldChange{Field: "sidebarLinks", From: from, To: to}, true
 }
 
-func structFieldChange(beforeVal, afterVal reflect.Value, rootType reflect.Type, jsonTag string) (activitydb.FieldChange, bool) {
+func structFieldChanges(beforeVal, afterVal reflect.Value, rootType reflect.Type, jsonTag string) []activitydb.FieldChange {
 	fieldIndex, ok := fieldIndexByJSONTag(rootType, jsonTag)
 	if !ok {
-		return activitydb.FieldChange{}, false
+		return nil
 	}
 	beforeField := beforeVal.FieldByIndex(fieldIndex)
 	afterField := afterVal.FieldByIndex(fieldIndex)
-	if !beforeField.IsValid() || !afterField.IsValid() {
-		return activitydb.FieldChange{}, false
+	return valueFieldChanges(beforeField, afterField, jsonTag)
+}
+
+func valueFieldChanges(before, after reflect.Value, fieldPrefix string) []activitydb.FieldChange {
+	before = reflect.Indirect(before)
+	after = reflect.Indirect(after)
+	if !before.IsValid() || !after.IsValid() {
+		return nil
 	}
-	if reflect.DeepEqual(beforeField.Interface(), afterField.Interface()) {
-		return activitydb.FieldChange{}, false
+	if reflect.DeepEqual(before.Interface(), after.Interface()) {
+		return nil
 	}
-	return activitydb.FieldChange{
-		Field: jsonTag,
-		From:  formatActivityValue(beforeField),
-		To:    formatActivityValue(afterField),
-	}, true
+	if before.Kind() == reflect.Struct && after.Kind() == reflect.Struct && isExpandableStruct(before.Type()) {
+		changes := make([]activitydb.FieldChange, 0, before.Type().NumField())
+		for i := 0; i < before.Type().NumField(); i++ {
+			sf := before.Type().Field(i)
+			if sf.PkgPath != "" {
+				continue
+			}
+			tagName := strings.Split(sf.Tag.Get("json"), ",")[0]
+			if tagName == "" || tagName == "-" {
+				continue
+			}
+			subPrefix := tagName
+			if fieldPrefix != "" {
+				subPrefix = fieldPrefix + "." + tagName
+			}
+			changes = append(changes, valueFieldChanges(before.Field(i), after.Field(i), subPrefix)...)
+		}
+		if len(changes) > 0 {
+			return changes
+		}
+	}
+	return []activitydb.FieldChange{{
+		Field: fieldPrefix,
+		From:  formatActivityValue(before),
+		To:    formatActivityValue(after),
+	}}
+}
+
+func isExpandableStruct(t reflect.Type) bool {
+	return t != reflect.TypeOf(time.Time{})
 }
 
 func fieldIndexByJSONTag(t reflect.Type, jsonTag string) ([]int, bool) {
