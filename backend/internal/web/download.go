@@ -252,7 +252,10 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 
 	if len(fileList) == 1 && !isDir {
-		forceInline := r.URL.Query().Get("inline") == "true"
+		forceInline, err := resolveDownloadInlineDisposition(fileName, r.URL.Query().Get("inline") == "true")
+		if err != nil {
+			return http.StatusForbidden, err
+		}
 		status, err = ServeSingleFile(w, r, d, source, firstFilePath, fileName, ServeSingleFileOptions{ForceInline: forceInline})
 		if downloadResponseRecordsActivity(status, err) {
 			activity.RecordDownload(r, toActor(d), source, displayFileList)
@@ -268,6 +271,16 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		activity.RecordDownload(r, toActor(d), source, displayFileList)
 	}
 	return status, err
+}
+
+func resolveDownloadInlineDisposition(fileName string, inlineRequested bool) (bool, error) {
+	if !IsMediaStreamFile(fileName) {
+		return inlineRequested, nil
+	}
+	if inlineRequested {
+		return false, fmt.Errorf("use /media/stream for audio and video")
+	}
+	return false, nil
 }
 
 func downloadResponseRecordsActivity(status int, err error) bool {

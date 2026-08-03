@@ -294,6 +294,7 @@ const PLYR_CAPTION_SIZE_FIELD = 'captionSize';
 let pendingFullscreenResume = false;
 let pendingPipResume = false;
 let pendingResumeTimestamp = 0;
+let mediaSessionOwner = 0;
 
 export default {
   name: "plyrViewer",
@@ -415,6 +416,8 @@ export default {
       captionSizeMenuInitialized: false,
       /** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
       videoStreamAttached: false,
+      attachVideoStreamResume: null,
+      mediaSessionOwnerId: 0,
       /** Centered spinner while the video is loading or buffering. */
       videoPlaybackLoading: false,
       seekOnReleaseCleanup: null,
@@ -470,6 +473,9 @@ export default {
       if (newVal !== oldVal) {
       this.togglePlayPause();
       }
+    },
+    'req.path'() {
+      this.videoStreamAttached = false;
     },
     listing: {
       handler(newListing) {
@@ -783,7 +789,6 @@ export default {
     });
     // Cleanup Plyr
     this.destroyPlyr();
-    this.mediaElement.pause();
     this.clearMediaSession();
     document.removeEventListener('keydown', this.handleKeydown);
     window.removeEventListener('pagehide', this.pagehideHandler);
@@ -815,6 +820,7 @@ export default {
     },
     setupMediaSession() {
       if (!('mediaSession' in navigator) || !this.player) return;
+      this.mediaSessionOwnerId = ++mediaSessionOwner;
       // Create a fresh fallback URL with timestamp to prevent caching issues
       const fallbackIcon = globalVars.loginIcon;
       const timestamp = Date.now();
@@ -876,6 +882,7 @@ export default {
     },
     clearMediaSession() {
       if (!('mediaSession' in navigator)) return;
+      if (this.mediaSessionOwnerId !== mediaSessionOwner) return;
       // Clear metadata
       navigator.mediaSession.metadata = null;
       // Clear all action handlers
@@ -889,6 +896,24 @@ export default {
       }
       // Reset playback state
       navigator.mediaSession.playbackState = 'none';
+    },
+    stopMediaElement() {
+      const el = this.mediaElement;
+      if (!el) return;
+      if (this.attachVideoStreamResume) {
+        el.removeEventListener('loadedmetadata', this.attachVideoStreamResume);
+        this.attachVideoStreamResume = null;
+      }
+      try {
+        el.pause();
+      } catch (_) {
+        // ignore
+      }
+      if (document.pictureInPictureElement === el) {
+        document.exitPictureInPicture?.().catch(() => {});
+      }
+      el.removeAttribute('src');
+      el.load();
     },
     destroyPlyr() {
       if (this.scrubPreviewCleanup) {
@@ -915,10 +940,11 @@ export default {
         this.player.off('play', this.attachVideoStreamOnPlay);
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
+        this.cleanupAudioVisualizer();
+        this.stopMediaElement();
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
-        this.cleanupAudioVisualizer();
         this.player.destroy();
         this.player = null;
         this.playbackMenuInitialized = false;
@@ -932,10 +958,6 @@ export default {
         this.captionSizeValueSpan = null;
         this.loopButtons = null;
         this.loopValueSpan = null;
-        if (this.mediaElement) {
-          this.mediaElement.removeAttribute('src');
-          this.mediaElement.load();
-        }
       }
     },
     cleanupAudioVisualizer() {
@@ -1303,16 +1325,17 @@ export default {
         return;
       }
       this.player.off('play', this.attachVideoStreamOnPlay);
-      this.player.pause();
       this.videoStreamAttached = true;
       this.$nextTick(() => {
         const el = this.mediaElement;
         if (!el) return;
         const resume = () => {
           el.removeEventListener('loadedmetadata', resume);
+          this.attachVideoStreamResume = null;
           this.applyQueryPlaybackSeek();
           this.player?.play().catch(() => {});
         };
+        this.attachVideoStreamResume = resume;
         el.addEventListener('loadedmetadata', resume);
         if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
           resume();

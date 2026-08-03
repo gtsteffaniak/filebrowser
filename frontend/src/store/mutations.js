@@ -1,3 +1,4 @@
+import { setActiveViewGrantScope } from "@/api/viewToken.js";
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
 import * as settingsApi from "@/api/settings";
@@ -689,6 +690,7 @@ export const mutations = {
     mutations.setMultiple(false);
     if (!value?.items) {
       state.req = value;
+      setActiveViewGrantScope(value?.source ?? "");
       emitStateChanged();
       return
     }
@@ -706,6 +708,7 @@ export const mutations = {
       item.index = index;
     });
     state.req = value;
+    setActiveViewGrantScope(value?.source ?? "");
     emitStateChanged();
   },
   patchListingMetadata: (items, metadataMap, mergeForPath = null) => {

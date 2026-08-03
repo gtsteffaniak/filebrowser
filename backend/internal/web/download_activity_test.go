@@ -6,6 +6,22 @@ import (
 	"testing"
 )
 
+func TestResolveDownloadInlineDisposition(t *testing.T) {
+	t.Parallel()
+	force, err := resolveDownloadInlineDisposition("readme.txt", true)
+	if err != nil || !force {
+		t.Fatalf("text inline: force=%v err=%v", force, err)
+	}
+	force, err = resolveDownloadInlineDisposition("clip.mp4", false)
+	if err != nil || force {
+		t.Fatalf("video download: force=%v err=%v", force, err)
+	}
+	_, err = resolveDownloadInlineDisposition("clip.mp4", true)
+	if err == nil {
+		t.Fatal("expected error for inline video")
+	}
+}
+
 func TestDownloadResponseRecordsActivity(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
