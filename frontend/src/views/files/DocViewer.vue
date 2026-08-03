@@ -8,7 +8,6 @@
 
 <script>
 import { defineComponent } from "vue";
-import * as mammoth from "mammoth";
 import { resourcesApi } from "@/api";
 import { ensureViewToken, refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { state, mutations, getters } from "@/store";
@@ -241,7 +240,8 @@ export default defineComponent({
           throw new Error("Downloaded file is empty (0 bytes).");
         }
 
-        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const { convertToHtml } = await import("mammoth");
+        const result = await convertToHtml({ arrayBuffer });
         this.docxHtml = result.value;
       } catch (e) {
         this.error = e.message || "An unknown error occurred.";
