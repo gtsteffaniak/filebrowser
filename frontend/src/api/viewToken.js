@@ -51,10 +51,6 @@ function readCacheForScope(scope) {
   }
 }
 
-function readCache(source) {
-  return readCacheForScope(viewGrantScope(source));
-}
-
 function writeCacheForScope(scope, viewToken, expiresAt) {
   const key = cacheKeyForScope(scope);
   if (!key) {
@@ -76,10 +72,6 @@ function clearCachedScopeByScope(scope) {
   } catch {
     // ignore storage failures
   }
-}
-
-function clearCachedScope(source) {
-  clearCachedScopeByScope(viewGrantScope(source));
 }
 
 function viewTokenApiPath(source, existingToken) {
