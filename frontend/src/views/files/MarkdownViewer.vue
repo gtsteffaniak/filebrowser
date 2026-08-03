@@ -172,8 +172,9 @@ export default {
       boundScrollEl: null as HTMLElement | null,
       isLoadingNewContent: false,
       katexReady: false,
-      htmlResizeObserver: null as ResizeObserver | null,
       htmlContentHeight: 0,
+      resizeObserver: null as ResizeObserver | null,
+      anchorCache: null as { line: number; top: number }[] | null,
     };
   },
   methods: {
@@ -183,7 +184,7 @@ export default {
       if (!iframe) return;
       let contentHeight = 0;
       try {
-        contentHeight = (iframe.contentWindow?.document?.documentElement?.scrollHeight || 0) + 25; // 25px of extra room, otherwise feels "stuck" on mobile
+        contentHeight = (iframe.contentWindow?.document?.documentElement?.scrollHeight || 0);
       } catch { /* ignore */ }
       this.htmlContentHeight = contentHeight;
       this.applyHtmlPreviewHeight();
@@ -194,17 +195,24 @@ export default {
       const available = window.innerHeight - iframe.getBoundingClientRect().top;
       iframe.style.height = `${Math.max(available, this.htmlContentHeight)}px`;
     },
-    observeHtmlResize() {
-      if (this.htmlResizeObserver) return;
-      window.addEventListener("resize", this.applyHtmlPreviewHeight);
-      this.htmlResizeObserver = new ResizeObserver(() => this.applyHtmlPreviewHeight());
-      this.htmlResizeObserver.observe(this.$el);
+    observeResize() {
+      if (this.resizeObserver) return;
+      window.addEventListener("resize", this.handleContainerResize);
+      this.resizeObserver = new ResizeObserver(() => this.handleContainerResize());
+      this.resizeObserver.observe(this.$el);
     },
-    unobserveHtmlResize() {
-      if (!this.htmlResizeObserver) return;
-      window.removeEventListener("resize", this.applyHtmlPreviewHeight);
-      this.htmlResizeObserver.disconnect();
-      this.htmlResizeObserver = null;
+    unobserveResize() {
+      if (!this.resizeObserver) return;
+      window.removeEventListener("resize", this.handleContainerResize);
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    },
+    handleContainerResize() {
+      if (this.isHtml) {
+        this.applyHtmlPreviewHeight();
+      } else {
+        this.invalidateAnchors();
+      }
     },
     async setHighlightTheme(isDark: boolean) {
       const THEME_STYLE_ID = "highlight-theme-style";
@@ -441,7 +449,7 @@ export default {
         tokens = null;
       }
       if (!tokens) {
-        return [{ key: "loading", line: 0, html: DOMPurify.sanitize("Loading...", MD_SANITIZE_CONFIG) }];
+        return [{ key: "loading", line: 0, html: DOMPurify.sanitize(this.$t("general.loading"), MD_SANITIZE_CONFIG) }];
       }
       void parser.walkTokens(tokens, (token) => {
         if (token.type === "image" && token.href) {
@@ -545,6 +553,7 @@ export default {
       this.updateEditorStats();
     },
     finalizeContentRender(target: number | null) {
+      this.invalidateAnchors();
       this.$nextTick(async () => {
         try {
           await this.applyHighlighting();
@@ -566,6 +575,7 @@ export default {
         : document.getElementById("main");
     },
     getLineAnchors(): { line: number; top: number }[] {
+      if (this.anchorCache) return this.anchorCache;
       const viewer = this.$refs.viewer as HTMLElement | null;
       const container = this.getScrollContainer();
       if (!viewer || !container) return [];
@@ -580,7 +590,11 @@ export default {
         anchors.push({ line: Number(el.dataset.sourceLine), top: topOf(el) });
       });
       anchors.sort((a, b) => a.line - b.line);
+      this.anchorCache = anchors;
       return anchors;
+    },
+    invalidateAnchors() {
+      this.anchorCache = null;
     },
     totalLines(): number {
       return Math.max(0, this.content.split('\n').length - 1);
@@ -684,12 +698,6 @@ export default {
         this.applyScrollRatio(state.editor.scrollRatio);
       }
     },
-    isHtml(newVal) {
-      this.$nextTick(() => {
-        if (newVal) this.observeHtmlResize();
-        else this.unobserveHtmlResize();
-      });
-    },
   },
   computed: {
     req() {
@@ -724,7 +732,7 @@ export default {
     this.$nextTick(() => {
       this.attachScrollListener(this.getScrollContainer());
     });
-    if (this.isHtml) this.observeHtmlResize();
+    this.observeResize();
   },
   beforeUnmount() {
     if (this.scrollGuard.cancel()) {
@@ -733,7 +741,7 @@ export default {
   },
   unmounted() {
     this.attachScrollListener(null);
-    this.unobserveHtmlResize();
+    this.unobserveResize();
 
     if (!this.splitMode) {
       mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
