@@ -415,9 +415,8 @@ export const mutations = {
       // Ensure locale exists and is valid
       if (!value.locale) {
         value.locale = detectLocale();
-      } else {
-        await setLocale(value.locale);
       }
+      await setLocale(value.locale);
       state.user = value;
       state.user.sorting = {};
       state.user.sorting.by = "name";
