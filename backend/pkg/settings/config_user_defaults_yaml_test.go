@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -27,6 +29,13 @@ func TestYAMLConfig_proxy_newStyleUserDefaults(t *testing.T) {
 	p := src.Config.DefaultPermissions
 	if !p.View || !p.Download || !p.Modify || !p.Create {
 		t.Fatalf("source defaultPermissions: %+v", p)
+	}
+	ud := Config.UserDefaults
+	if ud.Preview.Image == nil || !*ud.Preview.Image || ud.Preview.Video == nil || !*ud.Preview.Video {
+		t.Fatalf("expected preview thumbnail defaults true when omitted from yaml: image=%v video=%v", ud.Preview.Image, ud.Preview.Video)
+	}
+	if ud.FileViewer.AutoplayMedia == nil || !*ud.FileViewer.AutoplayMedia {
+		t.Fatalf("expected fileViewer.autoplayMedia true when omitted from yaml: %v", ud.FileViewer.AutoplayMedia)
 	}
 }
 
@@ -142,5 +151,98 @@ func TestYAMLConfig_seedSourcePermissionsAfterMigration(t *testing.T) {
 	p := user.BackendScopes[0].Permissions
 	if !p.Modify || !p.Create {
 		t.Fatalf("seeded permissions: %+v", p)
+	}
+}
+
+func TestLoadConfig_partialUserDefaults_preservesPreviewAndAutoplayDefaults(t *testing.T) {
+	loadPartialUserDefaultsConfig(t, partialUserDefaultsYAML(""))
+	assertPreviewDefaultsTrue(t, Config.UserDefaults)
+	assertAutoplayDefaultTrue(t, Config.UserDefaults)
+	if !Config.UserDefaults.Account.Permissions.Share {
+		t.Fatal("expected account.permissions.share true from config")
+	}
+}
+
+func TestLoadConfig_partialUserDefaults_preservesOtherSetDefaults(t *testing.T) {
+	loadPartialUserDefaultsConfig(t, partialUserDefaultsYAML(""))
+	ud := Config.UserDefaults
+	if ud.UI.DarkMode == nil || !*ud.UI.DarkMode {
+		t.Fatalf("ui.darkMode: %v", ud.UI.DarkMode)
+	}
+	if ud.Sidebar.ShowTools == nil || !*ud.Sidebar.ShowTools {
+		t.Fatalf("sidebar.showTools: %v", ud.Sidebar.ShowTools)
+	}
+	if !ud.Listing.DeleteAfterArchive {
+		t.Fatal("expected listing.deleteAfterArchive true")
+	}
+	if !ud.Sidebar.Sticky {
+		t.Fatal("expected sidebar.sticky true")
+	}
+}
+
+func TestLoadConfig_partialUserDefaults_explicitFalseOverride(t *testing.T) {
+	loadPartialUserDefaultsConfig(t, partialUserDefaultsYAML(`
+  preview:
+    image: false
+  fileViewer:
+    autoplayMedia: false
+`))
+	ud := Config.UserDefaults
+	if ud.Preview.Image == nil || *ud.Preview.Image {
+		t.Fatalf("preview.image: %v", ud.Preview.Image)
+	}
+	if ud.Preview.Video == nil || !*ud.Preview.Video {
+		t.Fatalf("preview.video should stay true: %v", ud.Preview.Video)
+	}
+	if ud.FileViewer.AutoplayMedia == nil || *ud.FileViewer.AutoplayMedia {
+		t.Fatalf("fileViewer.autoplayMedia: %v", ud.FileViewer.AutoplayMedia)
+	}
+}
+
+func partialUserDefaultsYAML(extra string) string {
+	return `server:
+  sources:
+    - path: "."
+userDefaults:
+  account:
+    permissions:
+      share: true
+` + extra
+}
+
+func loadPartialUserDefaultsConfig(t *testing.T, content string) {
+	t.Helper()
+	testDir := t.TempDir()
+	configFile := filepath.Join(testDir, "config.yaml")
+	if err := os.WriteFile(configFile, []byte(content), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	if err := LoadConfigWithDefaultsForTest(configFile); err != nil {
+		t.Fatalf("LoadConfigWithDefaultsForTest: %v", err)
+	}
+}
+
+func assertPreviewDefaultsTrue(t *testing.T, ud UserDefaults) {
+	t.Helper()
+	check := func(name string, ptr *bool) {
+		if ptr == nil || !*ptr {
+			t.Fatalf("preview.%s: %v", name, ptr)
+		}
+	}
+	check("image", ud.Preview.Image)
+	check("video", ud.Preview.Video)
+	check("audio", ud.Preview.Audio)
+	check("popup", ud.Preview.PopUp)
+	check("office", ud.Preview.Office)
+	check("folder", ud.Preview.Folder)
+	check("models", ud.Preview.Models)
+	check("motionVideoPreview", ud.Preview.MotionVideoPreview)
+	check("highQuality", ud.Preview.HighQuality)
+}
+
+func assertAutoplayDefaultTrue(t *testing.T, ud UserDefaults) {
+	t.Helper()
+	if ud.FileViewer.AutoplayMedia == nil || !*ud.FileViewer.AutoplayMedia {
+		t.Fatalf("fileViewer.autoplayMedia: %v", ud.FileViewer.AutoplayMedia)
 	}
 }

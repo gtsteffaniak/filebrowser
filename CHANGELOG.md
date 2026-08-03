@@ -62,6 +62,7 @@ This version represents the most significant change to date. It **requires** bot
  - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
  - removed exiftool as an optional helper, always built with the supported libraries (requires 64 bit os)
  - If migration issues arise, see [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/migration/troubleshooting/).
+ - default browser media player option removed, always uses themed plyr
 
 ## v1.5.2
 

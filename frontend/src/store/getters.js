@@ -681,8 +681,7 @@ export const getters = {
         models: state.user?.preview?.models ?? true,
         motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
         disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
-        autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
-        defaultMediaPlayer: false,
+        autoplayMedia: state.user?.preview?.autoplayMedia ?? true,
         showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo?.showHidden : false,
       };
     }
@@ -697,8 +696,7 @@ export const getters = {
       models: state.user?.preview?.models ?? true,
       motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
       disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
-      autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
-      defaultMediaPlayer: state.user?.preview?.defaultMediaPlayer ?? false,
+      autoplayMedia: state.user?.preview?.autoplayMedia ?? true,
       showHidden: false, // Backend handles this now, but kept for API compatibility
     };
   }

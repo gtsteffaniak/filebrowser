@@ -21,7 +21,6 @@ userDefaults:
     editorQuickSave: false
     disableOnlyOfficeExt: ".md .txt .pdf"
     disableViewingExt: ""
-    defaultMediaPlayer: true
   sidebar:
     hideFileActions: false
     disableQuickToggles: false

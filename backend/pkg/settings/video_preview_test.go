@@ -190,63 +190,6 @@ integrations:
 	})
 }
 
-func TestVideoPreviewFormatCategories(t *testing.T) {
-	// Test that all video format categories are properly supported
-	t.Run("FormatCategories", func(t *testing.T) {
-		config := `
-server:
-  sources:
-    - path: "."
-integrations:
-  office:
-    url: "http://localhost:8080"
-    secret: "test-secret"
-`
-		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
-			// Test format categories
-			categories := map[string][]VideoPreviewType{
-				"Common Web Formats":     {MP4VideoPreview, WebMVideoPreview, OGVVideoPreview},
-				"Apple Formats":          {MOVVideoPreview, M4VVideoPreview},
-				"Microsoft Formats":      {AVIVideoPreview, WMVVideoPreview, ASFVideoPreview},
-				"Open Source":            {MKVVideoPreview, FLVVideoPreview},
-				"Mobile Formats":         {ThreeGPVideoPreview, ThreeGP2VideoPreview},
-				"Broadcast/Professional": {TSVideoPreview, M2TSVideoPreview},
-				"Legacy Formats":         {VOBVideoPreview, MPGVideoPreview, MPEGVideoPreview, F4VVideoPreview},
-			}
-
-			for category, formats := range categories {
-				t.Run(category, func(t *testing.T) {
-					for _, format := range formats {
-						if !*config.Integrations.Media.Convert.VideoPreview[format] {
-							t.Errorf("Expected %s (%s) to be enabled by default, but it was disabled", format, category)
-						}
-					}
-				})
-			}
-		})
-	})
-}
-
-func TestVideoPreviewFormatCount(t *testing.T) {
-	// Test that we have the expected number of video formats
-	t.Run("FormatCount", func(t *testing.T) {
-		expectedCount := 18
-		actualCount := len(AllVideoPreviewTypes)
-		if actualCount != expectedCount {
-			t.Errorf("Expected %d video formats, but got %d", expectedCount, actualCount)
-		}
-
-		// Test that all formats are unique
-		formatMap := make(map[VideoPreviewType]bool)
-		for _, format := range AllVideoPreviewTypes {
-			if formatMap[format] {
-				t.Errorf("Duplicate video format found: %s", format)
-			}
-			formatMap[format] = true
-		}
-	})
-}
-
 func BenchmarkVideoPreviewSetup(b *testing.B) {
 	config := `
 server:

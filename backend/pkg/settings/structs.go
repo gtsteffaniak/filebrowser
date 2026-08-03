@@ -379,7 +379,6 @@ type UserDefaultsFileViewer struct {
 	DisableOnlyOfficeExt    string `json:"disableOnlyOfficeExt"`    // list of file extensions to disable onlyoffice editor for
 	PreferEditorForMarkdown bool   `json:"preferEditorForMarkdown"` // prefer editor first for markdown files instead of the Markdown Viewer
 	DebugOffice             bool   `json:"debugOffice"`             // debug onlyoffice editor
-	DefaultMediaPlayer      bool   `json:"defaultMediaPlayer"`      // disable the styled feature-rich media player for browser default
 }
 
 // UserDefaultsSearch holds search-related settings

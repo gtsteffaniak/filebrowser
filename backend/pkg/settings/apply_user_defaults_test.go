@@ -58,7 +58,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				DisableOnlyOfficeExt:    ".x",
 				PreferEditorForMarkdown: true,
 				DebugOffice:             true,
-				DefaultMediaPlayer:      true,
 			},
 			Search: UserDefaultsSearch{
 				DisableOptions: true,
@@ -149,7 +148,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 					Office:             false,
 					PopUp:              false,
 					AutoplayMedia:      false,
-					DefaultMediaPlayer: true,
 					Folder:             false,
 					Models:             false,
 				},
@@ -216,5 +214,22 @@ func TestApplyUserDefaults_preservesLoginMethodWhenAlreadySet(t *testing.T) {
 	ApplyUserDefaults(u)
 	if u.LoginMethod != users.LoginMethodProxy {
 		t.Fatalf("LoginMethod: got %q want proxy", u.LoginMethod)
+	}
+}
+
+func TestExpandBackendScopesForCreateUserDir(t *testing.T) {
+	loadConfigForUserDefaultsTests(t, jwtPlaywrightConfig)
+	u := &users.User{
+		FrontendUser: users.FrontendUser{Username: "testadmin"},
+		BackendScopes: []users.BackendScope{
+			{Path: Config.Server.Sources[0].Path, Scope: "/"},
+		},
+	}
+	ExpandBackendScopesForCreateUserDir(u)
+	if len(u.BackendScopes) != 1 {
+		t.Fatalf("scopes: %+v", u.BackendScopes)
+	}
+	if u.BackendScopes[0].Scope != "/testadmin" {
+		t.Fatalf("scope=%q want /testadmin", u.BackendScopes[0].Scope)
 	}
 }
