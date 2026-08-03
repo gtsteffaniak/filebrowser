@@ -273,7 +273,7 @@ import { getters, mutations, state } from '@/store';
 import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
-import * as resourcesApi from '@/api/resources';
+import { getPreviewURL, getPreviewURLPublic } from '@/api/resources';
 import {
   blockPlyrSeekOnInput,
   enablePlyrSeekOnRelease,
@@ -1390,8 +1390,8 @@ export default {
       this.scrubPreviewCleanup = enablePlyrScrubPreview(this.player, {
         buildPreviewUrl: (atPercentage) => {
           const base = getters.isShare()
-            ? resourcesApi.getPreviewURLPublic(this.req.path, 'large')
-            : `${resourcesApi.getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=large`;
+            ? getPreviewURLPublic(this.req.path, 'large')
+            : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=large`;
           return `${base}&atPercentage=${atPercentage}`;
         },
         getDuration: () => this.getPlaybackDuration(),

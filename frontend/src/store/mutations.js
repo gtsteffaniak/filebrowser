@@ -1,7 +1,7 @@
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
-import * as settingsApi from "@/api/settings";
-import * as i18n from "@/i18n";
+import { getEnforcedUserDefaults } from "@/api/settings";
+import { detectLocale, setLocale } from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
@@ -414,9 +414,9 @@ export const mutations = {
       }
       // Ensure locale exists and is valid
       if (!value.locale) {
-        value.locale = i18n.detectLocale();
+        value.locale = detectLocale();
       } else {
-        await i18n.setLocale(value.locale);
+        await setLocale(value.locale);
       }
       state.user = value;
       state.user.sorting = {};
@@ -490,7 +490,7 @@ export const mutations = {
       return;
     }
     try {
-      const data = await settingsApi.getEnforcedUserDefaults();
+      const data = await getEnforcedUserDefaults();
       state.enforcedUserDefaults = data.enforced || {};
     } catch {
       state.enforcedUserDefaults = {};
@@ -612,8 +612,7 @@ export const mutations = {
 
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
-      await i18n.setLocale(state.user.locale);
-      i18n.default.locale = state.user.locale;
+      await setLocale(state.user.locale);
       localStorage.setItem("userLocale", state.user.locale);
     }
     // Update users if there's any change in state.user
@@ -667,8 +666,7 @@ export const mutations = {
             value.locale !== previousUser.locale
           ) {
             const prevLocale = previousUser.locale || "en";
-            await i18n.setLocale(prevLocale);
-            i18n.default.locale = prevLocale;
+            await setLocale(prevLocale);
             if (previousUser.locale) {
               localStorage.setItem("userLocale", previousUser.locale);
             } else {

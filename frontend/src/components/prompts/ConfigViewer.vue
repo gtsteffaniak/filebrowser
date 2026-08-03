@@ -28,7 +28,7 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import * as settingsApi from "@/api/settings";
+import { config } from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
@@ -52,7 +52,7 @@ export default {
     async fetchConfig() {
       const requestId = ++this.latestConfigRequestId;
       try {
-        const response = await settingsApi.config(this.showFull, this.showComments);
+        const response = await config(this.showFull, this.showComments);
         const text = await response.text();
         if (requestId !== this.latestConfigRequestId) {
           return;
