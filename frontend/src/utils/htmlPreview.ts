@@ -7,7 +7,7 @@ import { getParentDir, resolveRelativePath } from "@/utils/url";
 export const HTML_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true, svg: true, svgFilters: true },
   WHOLE_DOCUMENT: true,
-  ADD_TAGS: ["link"],
+  ADD_TAGS: ["link", "script"],
   FORBID_TAGS: ["iframe", "object", "embed", "form", "base", "meta"],
   FORBID_ATTR: ["target", "formaction"],
 };
