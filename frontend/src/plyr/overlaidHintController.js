@@ -34,6 +34,7 @@ export function enableOverlaidHintController({
   let dwellTimer = null;
   let idleTimer = null;
   let fadeTimer = null;
+  let fadeOutRaf = null;
   let suppressUntilMove = false;
   let suppressStartTime = 0;
 
@@ -71,6 +72,13 @@ export function enableOverlaidHintController({
     }
   };
 
+  const clearFadeOutRaf = () => {
+    if (fadeOutRaf !== null) {
+      cancelAnimationFrame(fadeOutRaf);
+      fadeOutRaf = null;
+    }
+  };
+
   const setIcon = (which) => {
     if (lastIconState === which) {
       return;
@@ -86,7 +94,6 @@ export function enableOverlaidHintController({
       use.setAttribute('href', href);
       use.setAttribute('xlink:href', href);
     }
-    btn.setAttribute('aria-label', which === 'pause' ? 'Pause' : 'Play');
   };
 
   const resetIdleTimer = () => {
@@ -115,10 +122,12 @@ export function enableOverlaidHintController({
     clearIdleTimer();
     clearDwellTimer();
     clearFadeTimer();
+    clearFadeOutRaf();
     plyrEl.classList.remove(CLASS_FADE_IN);
     plyrEl.classList.add(CLASS_SHOWN);
     plyrEl.classList.remove(CLASS_FADE_OUT);
-    requestAnimationFrame(() => {
+    fadeOutRaf = requestAnimationFrame(() => {
+      fadeOutRaf = null;
       plyrEl.classList.add(CLASS_FADE_OUT);
     });
     fadeTimer = setTimeout(() => {
@@ -237,6 +246,7 @@ export function enableOverlaidHintController({
     clearDwellTimer();
     clearIdleTimer();
     clearFadeTimer();
+    clearFadeOutRaf();
     state = 'hidden';
     const plyrEl = getPlyrEl();
     if (plyrEl) {

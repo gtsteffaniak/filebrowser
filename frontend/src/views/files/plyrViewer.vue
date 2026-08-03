@@ -1344,6 +1344,7 @@ export default {
       if (!this.mediaElement || this.player) {
         return;
       }
+      this.plyrTeardownDone = false;
       this.player = new Plyr(this.mediaElement, this.plyrOptions);
       if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
         this.nativePlayerPlay = this.player.play.bind(this.player);
