@@ -122,7 +122,12 @@
     </div>
 
     <!-- Video with plyr -->
-    <div v-else-if="previewType === 'video'" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
+    <div
+      v-else-if="previewType === 'video'"
+      ref="videoPlayerContainer"
+      class="video-player-container"
+      :class="{ 'no-captions': !hasSubtitles }"
+    >
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video
           ref="videoElement"
@@ -268,6 +273,7 @@ import {
   formatArtist
 } from '@/utils/playbackQueue.js';
 import { getTypeFromMime } from '@/utils/files.js';
+import { buildItemUrl } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import { getters, mutations, state } from '@/store';
 import { getObjectProperty } from '@/utils/object.js';
@@ -280,6 +286,7 @@ import {
 } from '@/plyr/plyrSeekOnRelease';
 import { enablePlyrScrubPreview } from '@/plyr/plyrScrubPreview';
 import { enablePlyrVideoLoadingIndicator } from '@/plyr/plyrVideoLoading';
+import { enableOverlaidHintController } from '@/plyr/overlaidHintController';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import {
   parsePlaybackTimeFromQuery,
@@ -378,8 +385,17 @@ export default {
       skipFeedbackTimer: null,
       skipNextTap: false,
       skipNextTapTimer: null, // Timer for clearing skipNextTap
+      pendingPlayPauseTapTimer: null,
+      edgeTapLastTime: 0,
+      edgeTapLastZone: null,
+      edgeSeekAt: 0,
+      ignoreClickUntil: 0,
 
-      // Plyr video: full-frame edge gestures (same UX as ExtendedImage; Plyr controls live outside .plyr__video-wrapper)
+      hasStartedPlayback: false,
+      overlaidHintApi: null,
+      overlaidHintCleanup: null,
+
+      // Plyr video: full-frame edge gestures
       videoEdgeKind: null,
       videoEdgeStartX: 0,
       videoEdgeStartY: 0,
@@ -418,12 +434,14 @@ export default {
       videoStreamAttached: false,
       attachVideoStreamResume: null,
       mediaSessionOwnerId: 0,
+      nativePlayerPlay: null,
       /** Centered spinner while the video is loading or buffering. */
       videoPlaybackLoading: false,
       seekOnReleaseCleanup: null,
       scrubPreviewCleanup: null,
       videoLoadingCleanup: null,
       querySeekMetadataHandler: null,
+      plyrTeardownDone: false,
     };
   },
   watch: {
@@ -476,6 +494,11 @@ export default {
     },
     'req.path'() {
       this.videoStreamAttached = false;
+      this.hasStartedPlayback = false;
+      this.overlaidHintApi?.reset();
+    },
+    routePath() {
+      this.stopIfRouteLeftThisFile();
     },
     listing: {
       handler(newListing) {
@@ -552,6 +575,9 @@ export default {
     },
   },
   computed: {
+    routePath() {
+      return state.route.path;
+    },
     darkMode() {
       return state.user.darkMode;
     },
@@ -897,13 +923,30 @@ export default {
       // Reset playback state
       navigator.mediaSession.playbackState = 'none';
     },
-    stopMediaElement() {
-      const el = this.mediaElement;
-      if (!el) return;
-      if (this.attachVideoStreamResume) {
-        el.removeEventListener('loadedmetadata', this.attachVideoStreamResume);
-        this.attachVideoStreamResume = null;
+    getActiveMediaElement() {
+      return this.player?.media ?? this.mediaElement ?? null;
+    },
+    isMediaInPictureInPicture(media = null) {
+      const el = media ?? this.getActiveMediaElement();
+      return Boolean(el && document.pictureInPictureElement === el);
+    },
+    stopIfRouteLeftThisFile() {
+      if (this.plyrTeardownDone || !this.req?.path) {
+        return;
       }
+      const expected = buildItemUrl(this.req.source, this.req.path);
+      const current = state.route.path;
+      if (current === expected || current.startsWith(`${expected}#`)) {
+        return;
+      }
+      this.destroyPlyr();
+    },
+    stopMediaElement(media = null) {
+      const el = media ?? this.getActiveMediaElement();
+      if (!el) {
+        return;
+      }
+      this.clearAttachVideoStreamWait();
       try {
         el.pause();
       } catch (_) {
@@ -913,9 +956,18 @@ export default {
         document.exitPictureInPicture?.().catch(() => {});
       }
       el.removeAttribute('src');
-      el.load();
+      try {
+        el.load();
+      } catch (_) {
+        // ignore
+      }
     },
     destroyPlyr() {
+      if (this.plyrTeardownDone) {
+        return;
+      }
+      this.plyrTeardownDone = true;
+
       if (this.scrubPreviewCleanup) {
         this.scrubPreviewCleanup();
         this.scrubPreviewCleanup = null;
@@ -930,35 +982,47 @@ export default {
       }
       this.videoPlaybackLoading = false;
       this.teardownQueryPlaybackSeek();
+      this.teardownOverlaidHintController();
+
+      const media = this.getActiveMediaElement();
+      const inPip = this.isMediaInPictureInPicture(media);
+
       if (this.player) {
-        if (state.navigation.isTransitioning) {
+        if (state.navigation.isTransitioning && !inPip) {
           pendingFullscreenResume = this.player.fullscreen?.active || false;
-          pendingPipResume = typeof this.mediaElement?.requestPictureInPicture === 'function'
-            && document.pictureInPictureElement === this.mediaElement;
-            pendingResumeTimestamp = Date.now();
+          pendingPipResume = typeof media?.requestPictureInPicture === 'function'
+            && document.pictureInPictureElement === media;
+          pendingResumeTimestamp = Date.now();
         }
-        this.player.off('play', this.attachVideoStreamOnPlay);
+        if (this.nativePlayerPlay) {
+          this.player.play = this.nativePlayerPlay;
+          this.nativePlayerPlay = null;
+        }
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
         this.cleanupAudioVisualizer();
-        this.stopMediaElement();
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
-        this.player.destroy();
+        if (!inPip) {
+          this.stopMediaElement(media);
+          this.player.destroy();
+        }
         this.player = null;
-        this.playbackMenuInitialized = false;
-        this.captionSizeMenuInitialized = false;
-        this.loopMenuInitialized = false;
-        this.lastAppliedMode = null;
-        // Release DOM references
-        this.playbackButtons = null;
-        this.playbackValueSpan = null;
-        this.captionSizeButtons = null;
-        this.captionSizeValueSpan = null;
-        this.loopButtons = null;
-        this.loopValueSpan = null;
+      } else if (!inPip) {
+        this.stopMediaElement(media);
       }
+
+      this.playbackMenuInitialized = false;
+      this.captionSizeMenuInitialized = false;
+      this.loopMenuInitialized = false;
+      this.lastAppliedMode = null;
+      this.playbackButtons = null;
+      this.playbackValueSpan = null;
+      this.captionSizeButtons = null;
+      this.captionSizeValueSpan = null;
+      this.loopButtons = null;
+      this.loopValueSpan = null;
     },
     cleanupAudioVisualizer() {
       if (this.audioSource) {
@@ -978,6 +1042,10 @@ export default {
       this.audioGraphInitialized = false;
     },
     togglePlayPause() {
+      if (this.player) {
+        this.player.togglePlay();
+        return;
+      }
       const media = this.mediaElement;
       if (!media) return;
       if (media.paused) media.play(); else media.pause();
@@ -1271,18 +1339,58 @@ export default {
         return;
       }
       this.player = new Plyr(this.mediaElement, this.plyrOptions);
+      if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
+        this.nativePlayerPlay = this.player.play.bind(this.player);
+        this.player.play = () => {
+          if (!this.videoStreamAttached) {
+            this.attachVideoStreamAndPlay();
+            return Promise.resolve();
+          }
+          return this.nativePlayerPlay();
+        };
+      }
       this.setupMediaSession();
       this.setupPlyrEvents();
       this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
       this.setupScrubPreview();
       this.setupVideoLoadingIndicator();
       if (this.previewType === 'video') {
-        this.setupDeferredVideoStream();
         this.setupQueryPlaybackSeek();
       } else if (this.previewType === 'audio') {
         this.setupQueryPlaybackSeek();
       }
       this.resumeFullscreenAndPip();
+    },
+    attachVideoStreamAndPlay() {
+      if (this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
+        return;
+      }
+      this.videoStreamAttached = true;
+      this.$nextTick(() => {
+        const el = this.mediaElement;
+        if (!el) {
+          return;
+        }
+        const start = () => {
+          this.clearAttachVideoStreamWait();
+          this.applyQueryPlaybackSeek();
+          void el.play().catch(() => {});
+        };
+        this.attachVideoStreamResume = start;
+        if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+          start();
+        } else {
+          el.addEventListener('canplay', start, { once: true });
+        }
+      });
+    },
+    clearAttachVideoStreamWait() {
+      const el = this.mediaElement;
+      if (el && this.attachVideoStreamResume) {
+        el.removeEventListener('canplay', this.attachVideoStreamResume);
+        el.removeEventListener('loadedmetadata', this.attachVideoStreamResume);
+      }
+      this.attachVideoStreamResume = null;
     },
     resumeFullscreenAndPip() {
       const isStale = Date.now() - pendingResumeTimestamp > 3000;
@@ -1313,34 +1421,6 @@ export default {
         return meta;
       }
       return 0;
-    },
-    setupDeferredVideoStream() {
-      if (this.shouldAttachVideoStream) {
-        return;
-      }
-      this.player.on('play', this.attachVideoStreamOnPlay);
-    },
-    attachVideoStreamOnPlay() {
-      if (this.videoStreamAttached || this.previewType !== 'video') {
-        return;
-      }
-      this.player.off('play', this.attachVideoStreamOnPlay);
-      this.videoStreamAttached = true;
-      this.$nextTick(() => {
-        const el = this.mediaElement;
-        if (!el) return;
-        const resume = () => {
-          el.removeEventListener('loadedmetadata', resume);
-          this.attachVideoStreamResume = null;
-          this.applyQueryPlaybackSeek();
-          this.player?.play().catch(() => {});
-        };
-        this.attachVideoStreamResume = resume;
-        el.addEventListener('loadedmetadata', resume);
-        if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-          resume();
-        }
-      });
     },
     setupVideoLoadingIndicator() {
       if (this.previewType !== 'video' || !this.player) {
@@ -1458,10 +1538,17 @@ export default {
       const eventMap = {
         ended: this.handleMediaEnd,
         play: () => {
+          this.hasStartedPlayback = true;
+          if (this.previewType === 'video') {
+            this.overlaidHintApi?.onPlaybackToggle(true);
+          }
           mutations.setPlaybackState(true);
           this.updateMediaSessionPlaybackState();
         },
         pause: () => {
+          if (this.previewType === 'video' && this.hasStartedPlayback && !this.player?.ended) {
+            this.overlaidHintApi?.onPlaybackToggle(false);
+          }
           mutations.setPlaybackState(false);
           this.updateMediaSessionPlaybackState();
         },
@@ -1493,6 +1580,9 @@ export default {
       if (this.previewType === 'video' || this.previewType === 'audio') {
         this.setupDoubleTapSeek();
         this.setupVideoSwipeGestures();
+      }
+      if (this.previewType === 'video') {
+        this.setupOverlaidHintController();
       }
     },
     getPlyrGestureSurface() {
@@ -1530,6 +1620,41 @@ export default {
         this.doubleTapSeekCleanup = null;
       }
     },
+    setupOverlaidHintController() {
+      this.teardownOverlaidHintController();
+      const surface = this.$refs.videoPlayerContainer;
+      if (!surface || !this.player) {
+        return;
+      }
+      const api = enableOverlaidHintController({
+        player: this.player,
+        surface,
+        isHoverCapable: () => !this.isMobile
+          && window.matchMedia('(hover: hover) and (pointer: fine)').matches,
+        hasStartedPlayback: () => this.hasStartedPlayback,
+        baseUrl: globalVars.baseURL,
+      });
+      this.overlaidHintApi = api;
+      this.overlaidHintCleanup = api.cleanup;
+    },
+    teardownOverlaidHintController() {
+      if (typeof this.overlaidHintCleanup === 'function') {
+        this.overlaidHintCleanup();
+      }
+      this.overlaidHintCleanup = null;
+      this.overlaidHintApi = null;
+    },
+    clearPendingPlayPauseTap() {
+      if (this.pendingPlayPauseTapTimer) {
+        clearTimeout(this.pendingPlayPauseTapTimer);
+        this.pendingPlayPauseTapTimer = null;
+      }
+    },
+    clearEdgeTapGestureState() {
+      this.clearPendingPlayPauseTap();
+      this.edgeTapLastTime = 0;
+      this.edgeTapLastZone = null;
+    },
     setupDoubleTapSeek() {
       if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
@@ -1539,8 +1664,6 @@ export default {
       if (!surface || !this.player) return;
 
       const DOUBLE_MS = 320;
-      let lastTapTime = 0;
-      let lastZone = null;
 
       const zoneFromClientX = (clientX) => {
         const rect = surface.getBoundingClientRect();
@@ -1553,6 +1676,8 @@ export default {
       };
 
       const applySeek = (rewind) => {
+        this.edgeSeekAt = Date.now();
+        this.clearEdgeTapGestureState();
         this.clearLongPressTimer();
         this.longPressPending = false;
 
@@ -1572,10 +1697,51 @@ export default {
           this.player.play();
         }
       };
-      // Touch
+
+      const scheduleEdgePlayPause = () => {
+        this.clearPendingPlayPauseTap();
+        this.pendingPlayPauseTapTimer = setTimeout(() => {
+          this.pendingPlayPauseTapTimer = null;
+          this.edgeTapLastTime = 0;
+          this.edgeTapLastZone = null;
+          if (!this.skipNextTap && this.previewType === 'video') {
+            togglePlayPause();
+          }
+        }, DOUBLE_MS);
+      };
+
+      const handleEdgeZoneTap = (zone, event) => {
+        const now = Date.now();
+        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < DOUBLE_MS) {
+          applySeek(zone === 'left');
+          if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          return;
+        }
+        this.edgeTapLastTime = now;
+        this.edgeTapLastZone = zone;
+        scheduleEdgePlayPause();
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+
+      const handleCenterTap = (event) => {
+        this.clearEdgeTapGestureState();
+        if (this.previewType === 'video') {
+          togglePlayPause();
+        }
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+
       const onTouchEnd = (event) => {
         if (this.longPressTriggered) {
-          // a tiny guard, should not happen, but just in case
           return;
         }
         if (this.skipNextTap) return;
@@ -1586,58 +1752,48 @@ export default {
           ? document.elementFromPoint(t.clientX, t.clientY)
           : null;
         if (this.isPlyrControlOrMenuTarget(topEl)) {
-          lastTapTime = 0;
-          lastZone = null;
+          this.clearEdgeTapGestureState();
           return;
         }
-        const clientX = t.clientX;
-        const zone = zoneFromClientX(clientX);
-        // when clicking in the center toggle play/pause
+        const zone = zoneFromClientX(t.clientX);
         if (zone === 'center') {
-          if (this.previewType === 'video') {
-            togglePlayPause();
-            event.preventDefault();
-          }
-          lastTapTime = 0;
-          lastZone = null;
-          event.preventDefault();
+          handleCenterTap(event);
+          this.ignoreClickUntil = Date.now() + 500;
           return;
         }
-        // Left/right: double-tap detection
-        const now = Date.now();
-        if (zone === lastZone && now - lastTapTime < DOUBLE_MS) {
-          applySeek(zone === 'left');
-          lastTapTime = 0;
-          lastZone = null;
-          event.preventDefault();
-        } else {
-          lastTapTime = now;
-          lastZone = zone;
-        }
+        handleEdgeZoneTap(zone, event);
+        this.ignoreClickUntil = Date.now() + 500;
       };
 
-      // Mouse
       const onClick = (event) => {
+        if (Date.now() < this.ignoreClickUntil) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
         if (this.skipNextTap) return;
         const zone = zoneFromClientX(event.clientX);
         if (zone === 'center') {
-          if (this.previewType === 'video') {
-            togglePlayPause();
-            event.preventDefault();
-            event.stopPropagation();
-          }
+          handleCenterTap(event);
           return;
         }
+        handleEdgeZoneTap(zone, event);
       };
+
       const onDblClick = (event) => {
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
         const zone = zoneFromClientX(event.clientX);
         if (zone === 'left' || zone === 'right') {
+          if (Date.now() - this.edgeSeekAt < 400) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
           applySeek(zone === 'left');
           event.preventDefault();
           event.stopPropagation();
@@ -1652,6 +1808,7 @@ export default {
         surface.removeEventListener('touchend', onTouchEnd);
         surface.removeEventListener('click', onClick);
         surface.removeEventListener('dblclick', onDblClick);
+        this.clearEdgeTapGestureState();
       };
     },
     flashSkipFeedback(rewind) {
@@ -1822,6 +1979,7 @@ export default {
       this.videoShowDismissHint = false;
       this.videoGestureSnapBack = false;
       this.videoDismissFlashActive = false;
+      this.clearEdgeTapGestureState();
       this.skipNextTap = false;
       if (this.skipNextTapTimer) {
         clearTimeout(this.skipNextTapTimer);
@@ -2035,6 +2193,7 @@ export default {
         if (dx > 10 || dy > 10) {
           this.clearLongPressTimer();
           this.longPressPending = false;
+          this.clearEdgeTapGestureState();
         }
       }
 
@@ -2086,6 +2245,7 @@ export default {
           this.player.speed = this.longPressPreviousSpeed;
         }
         this.longPressTriggered = false;
+        this.clearEdgeTapGestureState();
         this.resetVideoEdgeGestureImmediate();
         event.preventDefault();
         return;
@@ -2099,6 +2259,7 @@ export default {
       const hadLockedKind = this.videoEdgeKind !== null;
       this.finishVideoEdgeGesture();
       if (hadLockedKind || ax > 14 || ay > 14) {
+        this.clearEdgeTapGestureState();
         event.preventDefault();
       }
     },
@@ -2189,6 +2350,7 @@ export default {
       }
     },
     setSkipNextTap(delay) {
+      this.clearEdgeTapGestureState();
       if (this.skipNextTapTimer) {
         clearTimeout(this.skipNextTapTimer);
         this.skipNextTapTimer = null;
@@ -2710,7 +2872,7 @@ export default {
   border: 0;
   display: none;
   position: absolute;
-  transition: 0.3s;
+  transition: opacity 0.2s ease-out, visibility 0.2s ease-out, transform 0.3s ease !important;
   z-index: 2;
   height: 4em;
   top: 50%;
@@ -2733,9 +2895,38 @@ export default {
   transform: translate(-50%, -50%) scale(1.05) !important;
 }
 
-/* Invisible overlaid play button still sat on top of the video and ate clicks (pause on tap). */
-.plyr--playing .plyr__control--overlaid {
-  pointer-events: none;
+/* Hide center button while playing unless shown or fading out */
+.plyr--playing:not(.fb-overlaid--shown):not(.fb-overlaid--fade-out)
+  .plyr__control--overlaid {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.plyr.fb-overlaid--shown .plyr__control--overlaid {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+.plyr.fb-overlaid--fade-in .plyr__control--overlaid {
+  animation: fb-overlaid-fade-in 200ms ease-out forwards;
+}
+
+.plyr.fb-overlaid--fade-out .plyr__control--overlaid {
+  opacity: 0 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  transition: opacity 450ms ease-in !important;
+}
+
+@keyframes fb-overlaid-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /************
@@ -2785,6 +2976,7 @@ export default {
 
 .plyr .plyr__video-wrapper {
   touch-action: manipulation;
+  cursor: pointer;
 }
 
 /* Double-tap / double-click seek feedback (left/right third of video) */

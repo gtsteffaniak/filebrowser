@@ -558,29 +558,35 @@ export function enablePlyrScrubPreview(player, options) {
     fetchScheduled = true;
     const delay = scrubPreviewDelayMs(lastFetchAt, Date.now(), minIntervalMs);
     debounceTimer = setTimeout(() => {
-      fetchScheduled = false;
       debounceTimer = null;
 
       const nextTarget = pendingPercent;
       if (nextTarget === null || !previewActive()) {
+        fetchScheduled = false;
         return;
       }
       if (cache.has(nextTarget)) {
+        fetchScheduled = false;
         lastFetchedPercent = nextTarget;
         applyCachedImage(nextTarget);
         return;
       }
       if (nextTarget === lastFailedPercent) {
+        fetchScheduled = false;
         setLoading(true);
         return;
       }
-      if (inFlightPercent === nextTarget) {
-        return;
-      }
 
-      setPendingLoading();
+      // Reserve the in-flight slot and stamp the interval before any async work
+      // so rapid scrub events cannot start a second request within minIntervalMs.
       lastFetchAt = Date.now();
+      inFlightPercent = nextTarget;
+      fetchScheduled = false;
+
       void fetchPreview(nextTarget).finally(() => {
+        if (inFlightPercent === nextTarget) {
+          inFlightPercent = null;
+        }
         if (!previewActive() || pendingPercent === null) {
           return;
         }
@@ -603,6 +609,9 @@ export function enablePlyrScrubPreview(player, options) {
     if (cache.has(percentInt)) {
       lastFetchedPercent = percentInt;
       applyCachedImage(percentInt);
+      if (inFlightPercent === percentInt) {
+        inFlightPercent = null;
+      }
       return;
     }
 
@@ -610,7 +619,9 @@ export function enablePlyrScrubPreview(player, options) {
     abortController?.abort();
     const controller = new AbortController();
     abortController = controller;
-    inFlightPercent = percentInt;
+    if (inFlightPercent === null) {
+      inFlightPercent = percentInt;
+    }
     setPendingLoading();
 
     try {
@@ -678,7 +689,7 @@ export function enablePlyrScrubPreview(player, options) {
       setLoading(true);
     }
 
-    if (inFlightPercent === percentInt || fetchScheduled) {
+    if (inFlightPercent !== null || fetchScheduled) {
       return;
     }
 

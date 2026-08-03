@@ -275,6 +275,7 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
+    this.$refs.plyrViewer?.destroyPlyr?.();
     // Clear navigation state when leaving preview
     mutations.clearNavigation();
   },
