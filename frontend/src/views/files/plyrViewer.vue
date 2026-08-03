@@ -1610,6 +1610,9 @@ export default {
     },
     isPlyrControlOrMenuTarget(el) {
       if (!el || typeof el.closest !== 'function') return false;
+      if (el.closest('.plyr__control--overlaid')) {
+        return false;
+      }
       return !!el.closest(
         '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
         '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
@@ -1629,15 +1632,11 @@ export default {
     },
     setupOverlaidHintController() {
       this.teardownOverlaidHintController();
-      const surface = this.$refs.videoPlayerContainer;
-      if (!surface || !this.player) {
+      if (!this.player) {
         return;
       }
       const api = enableOverlaidHintController({
         player: this.player,
-        surface,
-        isHoverCapable: () => !this.isMobile
-          && window.matchMedia('(hover: hover) and (pointer: fine)').matches,
         hasStartedPlayback: () => this.hasStartedPlayback,
         baseUrl: globalVars.baseURL,
       });
@@ -1796,6 +1795,7 @@ export default {
         }
         const zone = zoneFromClientX(event.clientX);
         if (zone === 'left' || zone === 'right') {
+          this.clearEdgeTapGestureState();
           if (Date.now() - this.edgeSeekAt < 400) {
             event.preventDefault();
             event.stopPropagation();
@@ -2913,7 +2913,7 @@ export default {
 .plyr.fb-overlaid--shown .plyr__control--overlaid {
   opacity: 1 !important;
   visibility: visible !important;
-  pointer-events: auto !important;
+  pointer-events: none !important;
 }
 
 .plyr.fb-overlaid--fade-in .plyr__control--overlaid {

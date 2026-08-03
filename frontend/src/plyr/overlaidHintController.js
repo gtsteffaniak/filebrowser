@@ -1,5 +1,3 @@
-const DWELL_MS = 320;
-const IDLE_MS = 2000;
 const FADE_IN_MS = 200;
 const FADE_OUT_MS = 450;
 const REVEAL_AFTER_PLAY_MS = 1000;
@@ -9,17 +7,16 @@ const CLASS_FADE_IN = 'fb-overlaid--fade-in';
 const CLASS_FADE_OUT = 'fb-overlaid--fade-out';
 
 /**
- * Desktop overlaid play/pause hint while video is playing.
- * Icon swaps on play/pause only; visibility uses fade in/out.
+ * Overlaid play/pause hint while video is playing.
+ * Visibility follows Plyr control show/hide; icon swaps on play/pause only.
+ * The overlaid button stays non-interactive — gestures handle taps/clicks.
  */
 export function enableOverlaidHintController({
   player,
-  surface,
-  isHoverCapable,
   hasStartedPlayback,
   baseUrl,
 }) {
-  if (!player?.elements?.container || !surface) {
+  if (!player?.elements?.container) {
     return {
       cleanup: () => {},
       onPlaybackToggle: () => {},
@@ -29,14 +26,10 @@ export function enableOverlaidHintController({
   }
 
   let state = 'hidden';
-  let pointerInside = false;
   let lastIconState = null;
-  let dwellTimer = null;
-  let idleTimer = null;
   let fadeTimer = null;
   let fadeOutRaf = null;
-  let suppressUntilMove = false;
-  let suppressStartTime = 0;
+  let suppressUntil = 0;
 
   const getPlyrEl = () => player.elements.container;
 
@@ -49,20 +42,6 @@ export function enableOverlaidHintController({
       }
     }
     return player.elements.container.querySelector('.plyr__control--overlaid');
-  };
-
-  const clearDwellTimer = () => {
-    if (dwellTimer) {
-      clearTimeout(dwellTimer);
-      dwellTimer = null;
-    }
-  };
-
-  const clearIdleTimer = () => {
-    if (idleTimer) {
-      clearTimeout(idleTimer);
-      idleTimer = null;
-    }
   };
 
   const clearFadeTimer = () => {
@@ -78,6 +57,8 @@ export function enableOverlaidHintController({
       fadeOutRaf = null;
     }
   };
+
+  const isSuppressed = () => suppressUntil > Date.now();
 
   const setIcon = (which) => {
     if (lastIconState === which) {
@@ -96,19 +77,6 @@ export function enableOverlaidHintController({
     }
   };
 
-  const resetIdleTimer = () => {
-    clearIdleTimer();
-    if (state !== 'shown' || !player.playing) {
-      return;
-    }
-    idleTimer = setTimeout(() => {
-      idleTimer = null;
-      if (pointerInside && player.playing) {
-        fadeOut();
-      }
-    }, IDLE_MS);
-  };
-
   const fadeOut = ({ force = false } = {}) => {
     if (!force && (state === 'hidden' || state === 'fadeOut')) {
       return;
@@ -119,8 +87,6 @@ export function enableOverlaidHintController({
       return;
     }
     state = 'fadeOut';
-    clearIdleTimer();
-    clearDwellTimer();
     clearFadeTimer();
     clearFadeOutRaf();
     plyrEl.classList.remove(CLASS_FADE_IN);
@@ -138,7 +104,7 @@ export function enableOverlaidHintController({
   };
 
   const show = () => {
-    if (!player.playing || suppressUntilMove) {
+    if (!player.playing || !hasStartedPlayback() || isSuppressed()) {
       return;
     }
     const plyrEl = getPlyrEl();
@@ -146,7 +112,7 @@ export function enableOverlaidHintController({
       return;
     }
     clearFadeTimer();
-    clearDwellTimer();
+    clearFadeOutRaf();
     state = 'shown';
     plyrEl.classList.remove(CLASS_FADE_OUT);
     plyrEl.classList.add(CLASS_SHOWN, CLASS_FADE_IN);
@@ -154,97 +120,32 @@ export function enableOverlaidHintController({
       plyrEl.classList.remove(CLASS_FADE_IN);
       fadeTimer = null;
     }, FADE_IN_MS);
-    resetIdleTimer();
   };
 
-  const scheduleShow = () => {
-    if (!hasStartedPlayback() || !player.playing || suppressUntilMove) {
-      return;
-    }
-    if (state === 'shown' || state === 'fadeOut') {
-      if (state === 'shown') {
-        resetIdleTimer();
-      }
-      return;
-    }
-    if (state === 'dwelling') {
-      return;
-    }
-    state = 'dwelling';
-    clearDwellTimer();
-    dwellTimer = setTimeout(() => {
-      dwellTimer = null;
-      if (pointerInside && hasStartedPlayback() && player.playing && !suppressUntilMove) {
-        show();
-      } else {
-        state = 'hidden';
-      }
-    }, DWELL_MS);
+  const onControlsShown = () => {
+    show();
   };
 
-  const onPointerEnter = (event) => {
-    if (!isHoverCapable() || event.pointerType === 'touch') {
-      return;
-    }
-    pointerInside = true;
-    maybeClearPlaySuppress();
-    scheduleShow();
+  const onControlsHidden = () => {
+    fadeOut({ force: true });
   };
 
-  const onPointerMove = (event) => {
-    if (!isHoverCapable() || event.pointerType === 'touch') {
-      return;
-    }
-    pointerInside = true;
-    maybeClearPlaySuppress();
-    scheduleShow();
-  };
-
-  const onPointerLeave = (event) => {
-    if (!isHoverCapable() || event.pointerType === 'touch') {
-      return;
-    }
-    pointerInside = false;
-    clearDwellTimer();
-    if (state === 'dwelling') {
-      state = 'hidden';
-    }
-    if (state === 'shown') {
-      fadeOut();
-    }
-  };
-
-  const maybeClearPlaySuppress = () => {
-    if (!suppressUntilMove) {
-      return;
-    }
-    if (Date.now() - suppressStartTime >= REVEAL_AFTER_PLAY_MS) {
-      suppressUntilMove = false;
-    }
-  };
-
-  surface.addEventListener('pointerenter', onPointerEnter);
-  surface.addEventListener('pointermove', onPointerMove);
-  surface.addEventListener('pointerleave', onPointerLeave);
+  player.on('controlsshown', onControlsShown);
+  player.on('controlshidden', onControlsHidden);
 
   const onPlaybackToggle = (isPlaying) => {
     if (isPlaying) {
       setIcon('pause');
-      suppressUntilMove = true;
-      suppressStartTime = Date.now();
+      suppressUntil = Date.now() + REVEAL_AFTER_PLAY_MS;
       fadeOut({ force: true });
       return;
     }
     setIcon('play');
-    suppressUntilMove = false;
+    suppressUntil = 0;
   };
 
   const reset = () => {
-    pointerInside = false;
-    suppressUntilMove = false;
-    suppressStartTime = 0;
-    clearDwellTimer();
-    clearIdleTimer();
+    suppressUntil = 0;
     clearFadeTimer();
     clearFadeOutRaf();
     state = 'hidden';
@@ -261,9 +162,8 @@ export function enableOverlaidHintController({
   };
 
   const cleanup = () => {
-    surface.removeEventListener('pointerenter', onPointerEnter);
-    surface.removeEventListener('pointermove', onPointerMove);
-    surface.removeEventListener('pointerleave', onPointerLeave);
+    player.off('controlsshown', onControlsShown);
+    player.off('controlshidden', onControlsHidden);
     reset();
   };
 
