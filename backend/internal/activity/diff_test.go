@@ -1,6 +1,7 @@
 package activity
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
@@ -67,6 +68,52 @@ func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 	if changes[2].Field != "sorting.by" || changes[2].From != "" || changes[2].To != "name" {
 		t.Fatalf("unexpected sorting.by change: %#v", changes[2])
 	}
+}
+
+func TestValueFieldChangesPointerTransitions(t *testing.T) {
+	perms := users.MarkSourceFilePermissionsConfigured(users.SourceFilePermissions{View: true})
+
+	t.Run("nil and nil", func(t *testing.T) {
+		var before, after *users.SourceFilePermissions
+		changes := valueFieldChanges(reflect.ValueOf(before), reflect.ValueOf(after), "permissions")
+		if len(changes) != 0 {
+			t.Fatalf("expected no changes, got %#v", changes)
+		}
+	})
+
+	t.Run("nil to value", func(t *testing.T) {
+		var before *users.SourceFilePermissions
+		changes := valueFieldChanges(reflect.ValueOf(before), reflect.ValueOf(perms), "permissions")
+		if len(changes) != 1 {
+			t.Fatalf("expected 1 change, got %#v", changes)
+		}
+		if changes[0].Field != "permissions" {
+			t.Fatalf("unexpected field: %#v", changes[0])
+		}
+		if changes[0].From != "null" {
+			t.Fatalf("expected From null, got %q", changes[0].From)
+		}
+		if changes[0].To == "" || changes[0].To == "null" {
+			t.Fatalf("expected permissions JSON in To, got %q", changes[0].To)
+		}
+	})
+
+	t.Run("value to nil", func(t *testing.T) {
+		var after *users.SourceFilePermissions
+		changes := valueFieldChanges(reflect.ValueOf(perms), reflect.ValueOf(after), "permissions")
+		if len(changes) != 1 {
+			t.Fatalf("expected 1 change, got %#v", changes)
+		}
+		if changes[0].Field != "permissions" {
+			t.Fatalf("unexpected field: %#v", changes[0])
+		}
+		if changes[0].To != "null" {
+			t.Fatalf("expected To null, got %q", changes[0].To)
+		}
+		if changes[0].From == "" || changes[0].From == "null" {
+			t.Fatalf("expected permissions JSON in From, got %q", changes[0].From)
+		}
+	})
 }
 
 func TestUserUpdateChangesExpandsNestedStructFields(t *testing.T) {

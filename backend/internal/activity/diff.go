@@ -157,10 +157,18 @@ func structFieldChanges(beforeVal, afterVal reflect.Value, rootType reflect.Type
 }
 
 func valueFieldChanges(before, after reflect.Value, fieldPrefix string) []activitydb.FieldChange {
+	fromVal, toVal := before, after
 	before = reflect.Indirect(before)
 	after = reflect.Indirect(after)
-	if !before.IsValid() || !after.IsValid() {
+	if !before.IsValid() && !after.IsValid() {
 		return nil
+	}
+	if !before.IsValid() || !after.IsValid() {
+		return []activitydb.FieldChange{{
+			Field: fieldPrefix,
+			From:  formatActivityValue(fromVal),
+			To:    formatActivityValue(toVal),
+		}}
 	}
 	if reflect.DeepEqual(before.Interface(), after.Interface()) {
 		return nil
