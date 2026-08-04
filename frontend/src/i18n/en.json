@@ -927,7 +927,8 @@
       "shareFilter": "Share filter",
       "pathGlob": "Path pattern (glob)",
       "viewActivity": "View activity",
-      "tableColumns": "Table columns"
+      "tableColumns": "Table columns",
+      "tableScrollRegion": "Activity table — scroll horizontally to see all columns"
     },
     "toolNotFound": "Tool not found",
     "backToTools": "Back to Tools"

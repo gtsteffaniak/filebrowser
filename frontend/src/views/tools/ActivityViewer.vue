@@ -179,7 +179,12 @@
             {{ $t("tools.activityViewer.showingPage", { shown: items.length, total: totalEvents, page: currentPage, pages: totalPages }) }}
           </span>
         </div>
-        <div class="results-table-scroll">
+        <div
+          class="results-table-scroll"
+          tabindex="0"
+          role="region"
+          :aria-label="$t('tools.activityViewer.tableScrollRegion')"
+        >
           <settings-table
             :columns="tableColumns"
             :items="items"
