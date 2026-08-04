@@ -178,7 +178,7 @@ export default {
     },
     // Update originalReq and lock saves when req changes during navigation
     'req'(newReq: Req, oldReq: Req) {
-      if (!this.viewerMode && oldReq && newReq && newReq.path !== oldReq.path) {
+      if (!this.viewerMode && newReq && (newReq.path !== oldReq?.path || newReq.source !== oldReq.source)) {
         // Update originalReq to the new file
         this.originalReq = newReq;
         this.isDirty = false; // Reset dirty flag for new file
