@@ -105,12 +105,15 @@ func missingOidcTrustedHeaders(trusted map[string]bool) []string {
 	return missing
 }
 
-func needsSubpathTrustedHeadersWarning(baseURL string, trustedHeaders []string) bool {
-	return baseURL != "/" && len(trustedHeaders) == 0
+func needsSubpathTrustedHeadersWarning(baseURL string, trusted map[string]bool) bool {
+	if baseURL == "/" {
+		return false
+	}
+	return len(missingOidcTrustedHeaders(trusted)) > 0
 }
 
 func warnHttpProxyConfig() {
-	if needsSubpathTrustedHeadersWarning(Config.Http.BaseURL, Config.Http.TrustedHeadersArray) {
+	if needsSubpathTrustedHeadersWarning(Config.Http.BaseURL, Config.Http.TrustedHeaders) {
 		logger.Warning(`http.baseURL is not "/" but http.trustedHeaders is empty. Behind a reverse proxy on a subpath, configure trustedHeaders (including X-Forwarded-Proto and X-Forwarded-Host) so cookies, OIDC redirects, and URLs resolve correctly. See https://filebrowserquantum.com/en/docs/configuration/http/#trustedheaders`)
 	}
 	if !Env.IsDevMode {

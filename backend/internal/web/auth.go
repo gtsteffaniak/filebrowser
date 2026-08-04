@@ -209,6 +209,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, erro
 	return 0, nil
 }
 
+func sessionCookieDomain(r *http.Request) string {
+	return strings.Split(requestHost(r), ":")[0]
+}
+
 // logoutHandler handles user logout
 // @Summary User Logout
 // @Description Returns a logout URL for the frontend to redirect to.
@@ -223,11 +227,11 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 
 	// Clear the authentication cookie by setting it to expire in the past
-	host := requestHost(r)
+	host := sessionCookieDomain(r)
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    "",
-		Domain:   strings.Split(host, ":")[0],
+		Domain:   host,
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Unix(0, 0), // Expire immediately
@@ -413,11 +417,10 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 
 // SetSessionCookie sets the authentication token as an HTTP cookie.
 func SetSessionCookie(w http.ResponseWriter, r *http.Request, token string, expiresTime time.Time) {
-	host := requestHost(r)
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    token,
-		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
+		Domain:   sessionCookieDomain(r),
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode, // strict mode prevents cookie from being sent to other domains
 		Expires:  expiresTime,

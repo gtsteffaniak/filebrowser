@@ -231,15 +231,14 @@ func deriveRPID(r *http.Request) string {
 	return host
 }
 
+func webAuthnRequestOrigin(r *http.Request) string {
+	return fmt.Sprintf("%s://%s", requestScheme(r), requestHost(r))
+}
+
 // registerRequestOrigin registers the request's origin and RP ID with the WebAuthn service.
 func registerRequestOrigin(r *http.Request) {
-	scheme := requestScheme(r)
-	host := requestHost(r)
-	origin := fmt.Sprintf("%s://%s", scheme, host)
-	rpID := host
-	if i := strings.LastIndex(rpID, ":"); i != -1 {
-		rpID = rpID[:i]
-	}
+	origin := webAuthnRequestOrigin(r)
+	rpID := deriveRPID(r)
 	svc := auth.GetWebAuthn()
 	if svc != nil {
 		svc.EnsureOrigin(origin)

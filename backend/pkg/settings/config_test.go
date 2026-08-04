@@ -142,8 +142,14 @@ func TestNeedsSubpathTrustedHeadersWarning(t *testing.T) {
 	if needsSubpathTrustedHeadersWarning("/", nil) {
 		t.Fatal("expected no warning for root baseURL")
 	}
-	if needsSubpathTrustedHeadersWarning("/files/", []string{"X-Forwarded-For"}) {
-		t.Fatal("expected no warning when trustedHeaders configured")
+	if !needsSubpathTrustedHeadersWarning("/files/", map[string]bool{"x-forwarded-for": true}) {
+		t.Fatal("expected warning when only X-Forwarded-For is configured")
+	}
+	if needsSubpathTrustedHeadersWarning("/files/", map[string]bool{
+		"x-forwarded-proto": true,
+		"x-forwarded-host":  true,
+	}) {
+		t.Fatal("expected no warning when both required headers configured")
 	}
 }
 
