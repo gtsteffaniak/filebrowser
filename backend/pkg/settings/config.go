@@ -17,10 +17,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -57,6 +57,7 @@ func Initialize(configFile string) {
 	setupSources(false)
 	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
 	setupUrls()
+	warnHttpProxyConfig()
 	setupFrontend(false)
 	setupMedia(false)
 }
@@ -92,6 +93,57 @@ func setupHttp() {
 			Config.Http.TrustedHeaders[strings.ToLower(header)] = true
 		}
 	}
+}
+
+func missingOidcTrustedHeaders(trusted map[string]bool) []string {
+	var missing []string
+	for _, h := range []string{"x-forwarded-proto", "x-forwarded-host"} {
+		if !trusted[h] {
+			missing = append(missing, h)
+		}
+	}
+	return missing
+}
+
+func needsSubpathTrustedHeadersWarning(baseURL string, trusted map[string]bool) bool {
+	if baseURL == "/" {
+		return false
+	}
+	return len(missingOidcTrustedHeaders(trusted)) > 0
+}
+
+func warnHttpProxyConfig() {
+	if needsSubpathTrustedHeadersWarning(Config.Http.BaseURL, Config.Http.TrustedHeaders) {
+		logger.Warning(`http.baseURL is not "/" but http.trustedHeaders is empty. Behind a reverse proxy on a subpath, configure trustedHeaders (including X-Forwarded-Proto and X-Forwarded-Host) so cookies, OIDC redirects, and URLs resolve correctly. See https://filebrowserquantum.com/en/docs/configuration/http/#trustedheaders`)
+	}
+	if !Env.IsDevMode {
+		if u := Config.Http.ExternalUrl; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
+			logger.Warning("http.externalUrl uses http when the url should be https for a production environment")
+		}
+		if u := Config.Integrations.OnlyOffice.Url; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
+			logger.Warning("integrations.office.url uses http when it should be https for a production environment.")
+		}
+	}
+}
+
+func warnOidcProxyHeaders() {
+	if !Config.Auth.Methods.OidcAuth.Enabled {
+		return
+	}
+	missing := missingOidcTrustedHeaders(Config.Http.TrustedHeaders)
+	if len(missing) == 0 {
+		return
+	}
+	names := make([]string, len(missing))
+	for i, h := range missing {
+		switch h {
+		case "x-forwarded-proto":
+			names[i] = "X-Forwarded-Proto"
+		case "x-forwarded-host":
+			names[i] = "X-Forwarded-Host"
+		}
+	}
+	logger.Warningf("OIDC is enabled but http.trustedHeaders does not include %s. Behind a reverse proxy, FileBrowser builds the OIDC redirect_uri from the incoming request. Configure your proxy to set these headers and list them in http.trustedHeaders. http.externalUrl does not apply to OIDC redirects.", strings.Join(names, " and "))
 }
 
 func setupFs() {
@@ -489,6 +541,9 @@ func setupAuth(generate bool) {
 			logger.Fatalf("Error validating OIDC auth: %v", err)
 		}
 		logger.Info("OIDC Auth configured successfully")
+		if !generate {
+			warnOidcProxyHeaders()
+		}
 	}
 	if Config.Auth.Methods.LdapAuth.Enabled || generate {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "ldap")

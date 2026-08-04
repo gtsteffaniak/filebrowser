@@ -4975,6 +4975,86 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/public/api/share/pinned-items": {
+            "patch": {
+                "description": "Patches one pinned item at a time on a share. Defaults to add; pass ?action=remove to unpin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Share"
+                ],
+                "summary": "Add or remove a pinned item on a share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "add (default) or remove",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Pinned item",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/web.sharePinnedItemPatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -5621,7 +5701,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "trustedHeaders": {
-                    "description": "list of headers to trust, useful when behind a reverse proxy.",
+                    "description": "headers to trust behind a reverse proxy: X-Forwarded-For, X-Real-IP, X-Forwarded-Proto, X-Forwarded-Host",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -8104,6 +8184,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.sharePinnedItemPatchRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "path"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "path": {
                     "type": "string"
                 }
             }

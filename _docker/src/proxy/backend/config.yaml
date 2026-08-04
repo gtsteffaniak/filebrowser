@@ -1,6 +1,11 @@
 http:
   port: 8080
-  baseURL:  "/subpath"
+  baseURL: "/subpath"
+  trustedHeaders:
+    - X-Forwarded-For
+    - X-Real-IP
+    - X-Forwarded-Proto
+    - X-Forwarded-Host
 server:
   logging:
     - levels: "info|error|warning|debug"

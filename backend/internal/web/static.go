@@ -146,18 +146,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	// Construct the full URL for the current request
-	var fullURL string
-	if settings.Config.Http.ExternalUrl != "" {
-		// ExternalUrl already includes schema (e.g., http://mydomain.com)
-		fullURL = strings.TrimSuffix(settings.Config.Http.ExternalUrl, "/") + r.URL.Path
-	} else {
-		// Build URL from request
-		scheme := "http"
-		if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
-			scheme = "https"
-		}
-		fullURL = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.Path)
-	}
+	fullURL := requestPageFullURL(r)
 
 	pwaIcon192 := staticURL + "/icons/pwa-icon-192.png"
 	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"

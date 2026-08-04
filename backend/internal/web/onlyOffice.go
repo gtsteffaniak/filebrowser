@@ -262,39 +262,31 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	return RenderJSON(w, r, clientConfig)
 }
 
-// buildOnlyOfficeDownloadURL constructs the download URL that OnlyOffice server will use to fetch the file
-func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token string) string {
-	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
-	var baseURL string
-	if settings.Config.Http.InternalUrl != "" {
-		// InternalUrl is a full URL (e.g., http://localhost:8080), so use it directly
-		internalURL := strings.TrimSuffix(settings.Config.Http.InternalUrl, "/")
+// onlyOfficeFileBrowserBaseURL returns the base URL OnlyOffice uses to reach FileBrowser.
+// Priority: http.internalUrl → http.externalUrl → incoming request (with trustedHeaders).
+func onlyOfficeFileBrowserBaseURL(r *http.Request) string {
+	for _, configured := range []string{
+		settings.Config.Http.InternalUrl,
+		settings.Config.Http.ExternalUrl,
+	} {
+		if configured == "" {
+			continue
+		}
+		root := strings.TrimSuffix(configured, "/")
 		baseURLPath := strings.TrimPrefix(settings.Config.Http.BaseURL, "/")
 		if baseURLPath != "" {
-			baseURL = internalURL + "/" + baseURLPath
-		} else {
-			baseURL = internalURL
+			return root + "/" + baseURLPath
 		}
-	} else {
-		// Extract scheme and host from request (respecting X-Forwarded-* headers)
-		var host string
-		var scheme string
-
-		if forwardedHost := r.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
-			host = forwardedHost
-			// Use X-Forwarded-Proto if available, otherwise default to https for proxied requests
-			if forwardedProto := r.Header.Get("X-Forwarded-Proto"); forwardedProto != "" {
-				scheme = forwardedProto
-			} else {
-				scheme = "https"
-			}
-		} else {
-			// Fallback to simple approach
-			host = r.Host
-			scheme = GetScheme(r)
-		}
-		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Http.BaseURL)
+		return root
 	}
+	host := requestHost(r)
+	scheme := requestSchemeForPublicURL(r)
+	return fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Http.BaseURL)
+}
+
+// buildOnlyOfficeDownloadURL constructs the download URL that OnlyOffice server will use to fetch the file
+func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token string) string {
+	baseURL := onlyOfficeFileBrowserBaseURL(r)
 
 	escapedPath := url.QueryEscape(path)
 	downloadURL := fmt.Sprintf("%s/api/resources/download?file=%s&auth=%s&source=%s",
@@ -308,37 +300,7 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 
 // buildOnlyOfficeCallbackURL constructs the callback URL that OnlyOffice server will use to notify us of changes
 func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token string) string {
-	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
-	var baseURL string
-	if settings.Config.Http.InternalUrl != "" {
-		// InternalUrl is a full URL (e.g., http://localhost:8080), so use it directly
-		internalURL := strings.TrimSuffix(settings.Config.Http.InternalUrl, "/")
-		baseURLPath := strings.TrimPrefix(settings.Config.Http.BaseURL, "/")
-		if baseURLPath != "" {
-			baseURL = internalURL + "/" + baseURLPath
-		} else {
-			baseURL = internalURL
-		}
-	} else {
-		// Extract scheme and host from request (respecting X-Forwarded-* headers)
-		var host string
-		var scheme string
-
-		if forwardedHost := r.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
-			host = forwardedHost
-			// Use X-Forwarded-Proto if available, otherwise default to https for proxied requests
-			if forwardedProto := r.Header.Get("X-Forwarded-Proto"); forwardedProto != "" {
-				scheme = forwardedProto
-			} else {
-				scheme = "https"
-			}
-		} else {
-			// Fallback to simple approach
-			host = r.Host
-			scheme = GetScheme(r)
-		}
-		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Http.BaseURL)
-	}
+	baseURL := onlyOfficeFileBrowserBaseURL(r)
 
 	var callbackURL string
 	if hash != "" {
