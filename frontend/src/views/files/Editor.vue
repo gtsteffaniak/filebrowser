@@ -203,10 +203,10 @@ export default {
           this.editor.session.getUndoManager().reset();
           this.updateEditorStats();
           this.suppressDirtyTracking = false;
-          this.savedContent = newContent;
-          this.isDirty = false;
-          mutations.setEditorDirty(false);
         }
+        this.savedContent = newContent;
+        this.isDirty = false;
+        mutations.setEditorDirty(false);
         if (this.viewerMode) {
           this.$nextTick(() => {
             if (this.editor) {
