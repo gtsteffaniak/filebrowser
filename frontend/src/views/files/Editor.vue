@@ -162,10 +162,13 @@ export default {
     editorScrollRatio() {
       return state.editor.scrollRatio;
     },
+    isTransitioning() {
+      return state.navigation.isTransitioning;
+    },
   },
   watch: {
     // Lock saves during navigation transitions
-    'state.navigation.isTransitioning'(isTransitioning: boolean) {
+    isTransitioning(isTransitioning: boolean) {
       if (isTransitioning && !this.viewerMode) {
         this.saveLocked = true;
       } else if (!isTransitioning && !this.viewerMode) {
@@ -316,6 +319,7 @@ export default {
     }
 
     this.originalReq = this.req;
+    this.currentReqPath = this.req?.path ?? null;
     if (this.isMarkdownFile && this.req?.path) {
       mutations.resetEditorScrollRatio(this.req.path);
     }
@@ -454,10 +458,6 @@ export default {
         this.savedContent = this.editorContent;
         this.editor.setOption('displayIndentGuides', true);
         this.editor.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
-
-        if (!this.viewerMode) {
-          this.editor.focus();
-        }
 
         const editorInstance = this.editor;
         editorInstance.on('change', () => {

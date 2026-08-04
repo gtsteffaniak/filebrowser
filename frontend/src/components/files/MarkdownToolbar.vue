@@ -91,7 +91,7 @@
             :value="selectedColor(btn)"
             :aria-label="btn.title"
             @mousedown.stop
-            @change="onColorChange(btn.color, ($event.target as HTMLInputElement).value)"
+            @change="onColorChange(btn.color, ($event.target as HTMLInputElement).value, btn.applyColor)"
           />
         </span>
       </div>
@@ -383,9 +383,10 @@ export default {
     setColorInput(el: HTMLInputElement | null, color: string) {
       if (el) this.colorInputRefs.set(color, el);
     },
-    onColorChange(storageKey: string, color: string) {
+    onColorChange(storageKey: string, color: string, apply?: (color: string) => void) {
       localStorage.setItem(storageKey, color);
       this.lastColors.set(storageKey, color);
+      apply?.(color);
     },
     toggleLinePrefix(prefix: string) {
       const editor = this.editor;

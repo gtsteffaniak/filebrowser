@@ -22,7 +22,9 @@ export function createScrollSyncGuard(suppressMs = 300): ScrollSyncGuard {
       if (suppressed || frame) return;
       frame = requestAnimationFrame(() => {
         frame = null;
-        publish();
+        if (!suppressed) {
+          publish();
+        }
       });
     },
     suppress,
