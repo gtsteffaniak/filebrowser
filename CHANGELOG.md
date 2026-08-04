@@ -64,6 +64,22 @@ This version represents the most significant change to date. It **requires** bot
  - removed exiftool as an optional helper, always built with the supported libraries (requires 64 bit os)
  - If migration issues arise, see [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/migration/troubleshooting/).
  - default browser media player option removed, always uses themed plyr
+ - [docker] upgraded ffmpeg from 8.1.2 to 9.0
+
+## v1.5.4
+
+ **Notes**:
+ - PWA installation name now capped at 30 characters instead of 12 (#2699)
+
+ **BugFixes**:
+ - fix forward slash blocked in text fields when the search shortcut listener intercepts `/` (#2696)
+
+## v1.5.3
+
+ **BugFixes**:
+ - fix probe canShare with the real file, not a fixed text/plain stand-in (#2664)
+ - When the logout button is pressed, the user is redirected to an invalid URL that does not honor baseURL / externalUrl (#2657)
+ - fix redirect to login when an authenticated request returns 401 (expired session)
 
 ## v1.5.2
 
