@@ -179,12 +179,7 @@
             {{ $t("tools.activityViewer.showingPage", { shown: items.length, total: totalEvents, page: currentPage, pages: totalPages }) }}
           </span>
         </div>
-        <div
-          class="results-table-scroll"
-          tabindex="0"
-          role="region"
-          :aria-label="$t('tools.activityViewer.tableScrollRegion')"
-        >
+        <div class="results-table-scroll">
           <settings-table
             :columns="tableColumns"
             :items="items"
@@ -2142,13 +2137,19 @@ export default {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    max-width: 1000px;
   }
 
-  /* Same fixed/ellipsis layout as desktop; min-width triggers scroll when viewport is narrower */
   .results-table-scroll :deep(.settings-table) {
-    width: 100%;
-    min-width: 1000px;
-    table-layout: fixed;
+    width: max-content;
+    min-width: 100%;
+    max-width: 1000px;
+    table-layout: auto;
+  }
+
+  .results-table-scroll :deep(.settings-table thead th),
+  .results-table-scroll :deep(.settings-table tbody td) {
+    white-space: nowrap;
   }
 }
 
