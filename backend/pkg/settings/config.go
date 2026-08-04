@@ -17,10 +17,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -115,10 +115,10 @@ func warnHttpProxyConfig() {
 	}
 	if !Env.IsDevMode {
 		if u := Config.Http.ExternalUrl; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
-			logger.Warning("http.externalUrl uses http://; use https:// in production or set FILEBROWSER_DEVMODE=true for local development.")
+			logger.Warning("http.externalUrl uses http when the url should be https for a production environment")
 		}
 		if u := Config.Integrations.OnlyOffice.Url; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
-			logger.Warning("integrations.office.url uses http://; use https:// in production or set FILEBROWSER_DEVMODE=true for local development.")
+			logger.Warning("integrations.office.url uses http when it should be https for a production environment.")
 		}
 	}
 }
@@ -140,7 +140,7 @@ func warnOidcProxyHeaders() {
 			names[i] = "X-Forwarded-Host"
 		}
 	}
-	logger.Warningf("OIDC is enabled but http.trustedHeaders does not include %s. Behind a reverse proxy, FileBrowser builds the OIDC redirect_uri from the incoming request; without these headers the callback may use http:// or the wrong host. Configure your proxy to set these headers and list them in http.trustedHeaders. http.externalUrl does not apply to OIDC redirects.", strings.Join(names, " and "))
+	logger.Warningf("OIDC is enabled but http.trustedHeaders does not include %s. Behind a reverse proxy, FileBrowser builds the OIDC redirect_uri from the incoming request. Configure your proxy to set these headers and list them in http.trustedHeaders. http.externalUrl does not apply to OIDC redirects.", strings.Join(names, " and "))
 }
 
 func setupFs() {
