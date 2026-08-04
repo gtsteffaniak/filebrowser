@@ -80,7 +80,8 @@ func requestPageFullURL(r *http.Request) string {
 	if settings.Config.Http.ExternalUrl != "" {
 		return strings.TrimSuffix(settings.Config.Http.ExternalUrl, "/") + r.URL.Path
 	}
-	return fmt.Sprintf("%s://%s%s", GetScheme(r), requestHost(r), r.URL.Path)
+	host, scheme := shareURLParams(r)
+	return fmt.Sprintf("%s://%s%s", scheme, host, r.URL.Path)
 }
 
 // ShareURLFromRequest builds a public share or direct-download URL from the request and server config.

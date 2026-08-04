@@ -113,6 +113,15 @@ func TestRequestPageFullURL(t *testing.T) {
 			want:           "https://files.example.com/files/",
 		},
 		{
+			name:           "trusted host without trusted proto defaults to https",
+			directHost:     "127.0.0.1:8080",
+			forwardedHost:  "files.example.com",
+			forwardedProto: "http",
+			trusted:        map[string]bool{"x-forwarded-host": true},
+			path:           "/files/",
+			want:           "https://files.example.com/files/",
+		},
+		{
 			name:           "ignores spoofed host when untrusted",
 			directHost:     "127.0.0.1:8080",
 			forwardedHost:  "evil.example.com",
