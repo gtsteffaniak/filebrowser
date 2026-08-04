@@ -223,11 +223,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 
 	// Clear the authentication cookie by setting it to expire in the past
-	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
-	host := r.Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = r.Host
-	}
+	host := requestHost(r)
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    "",
@@ -415,13 +411,9 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 	return 200, nil
 }
 
-// SetSessionCookie - sets the authentication token as an HTTP cookie
-// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+// SetSessionCookie sets the authentication token as an HTTP cookie.
 func SetSessionCookie(w http.ResponseWriter, r *http.Request, token string, expiresTime time.Time) {
-	host := r.Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = r.Host
-	}
+	host := requestHost(r)
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    token,

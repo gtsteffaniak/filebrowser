@@ -224,10 +224,7 @@ func deletePasskeyCredentialHandler(w http.ResponseWriter, r *http.Request, d *C
 }
 
 func deriveRPID(r *http.Request) string {
-	host := r.Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = r.Host
-	}
+	host := requestHost(r)
 	if i := strings.LastIndex(host, ":"); i != -1 {
 		host = host[:i]
 	}
@@ -236,16 +233,8 @@ func deriveRPID(r *http.Request) string {
 
 // registerRequestOrigin registers the request's origin and RP ID with the WebAuthn service.
 func registerRequestOrigin(r *http.Request) {
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	} else if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
-		scheme = strings.ToLower(proto)
-	}
-	host := r.Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = r.Host
-	}
+	scheme := requestScheme(r)
+	host := requestHost(r)
 	origin := fmt.Sprintf("%s://%s", scheme, host)
 	rpID := host
 	if i := strings.LastIndex(rpID, ":"); i != -1 {

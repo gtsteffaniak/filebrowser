@@ -151,12 +151,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		// ExternalUrl already includes schema (e.g., http://mydomain.com)
 		fullURL = strings.TrimSuffix(settings.Config.Http.ExternalUrl, "/") + r.URL.Path
 	} else {
-		// Build URL from request
-		scheme := "http"
-		if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
-			scheme = "https"
-		}
-		fullURL = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.Path)
+		fullURL = fmt.Sprintf("%s://%s%s", GetScheme(r), requestHost(r), r.URL.Path)
 	}
 
 	pwaIcon192 := staticURL + "/icons/pwa-icon-192.png"

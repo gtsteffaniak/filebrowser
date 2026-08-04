@@ -474,7 +474,8 @@ definitions:
         description: path to TLS key
         type: string
       trustedHeaders:
-        description: list of headers to trust, useful when behind a reverse proxy.
+        description: 'headers to trust behind a reverse proxy: X-Forwarded-For, X-Real-IP,
+          X-Forwarded-Proto, X-Forwarded-Host'
         items:
           type: string
         type: array
@@ -2271,6 +2272,16 @@ definitions:
     - name
     - path
     - source
+    type: object
+  web.sharePinnedItemPatchRequest:
+    properties:
+      name:
+        type: string
+      path:
+        type: string
+    required:
+    - name
+    - path
     type: object
   web.unarchiveRequest:
     properties:
@@ -5735,4 +5746,58 @@ paths:
       summary: Get share information by hash
       tags:
       - Shares
+  /public/api/share/pinned-items:
+    patch:
+      consumes:
+      - application/json
+      description: Patches one pinned item at a time on a share. Defaults to add;
+        pass ?action=remove to unpin.
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: add (default) or remove
+        in: query
+        name: action
+        type: string
+      - description: Pinned item
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/web.sharePinnedItemPatchRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add or remove a pinned item on a share
+      tags:
+      - Share
 swagger: "2.0"

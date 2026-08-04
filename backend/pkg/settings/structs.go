@@ -33,7 +33,7 @@ type Http struct {
 	ExternalUrl         string   `json:"externalUrl"`      // used by share links if set (eg. http://mydomain.com)
 	InternalUrl         string   `json:"internalUrl"`      // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
 	DisableWebDAV       bool     `json:"disableWebDAV"`    // disable webdav support (default: false)
-	TrustedHeadersArray []string `json:"trustedHeaders"`   // list of headers to trust, useful when behind a reverse proxy.
+	TrustedHeadersArray []string `json:"trustedHeaders"`   // headers to trust behind a reverse proxy: X-Forwarded-For, X-Real-IP, X-Forwarded-Proto, X-Forwarded-Host
 	DisableRateLimit    bool     `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
 
 	// internal map of trusted headers

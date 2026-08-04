@@ -119,6 +119,34 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 	}
 }
 
+func TestMissingOidcTrustedHeaders(t *testing.T) {
+	trusted := map[string]bool{
+		"x-forwarded-proto": true,
+		"x-forwarded-host":  true,
+	}
+	if got := missingOidcTrustedHeaders(trusted); len(got) != 0 {
+		t.Fatalf("expected no missing headers, got %v", got)
+	}
+
+	trusted = map[string]bool{"x-forwarded-proto": true}
+	got := missingOidcTrustedHeaders(trusted)
+	if len(got) != 1 || got[0] != "x-forwarded-host" {
+		t.Fatalf("missingOidcTrustedHeaders() = %v, want [x-forwarded-host]", got)
+	}
+}
+
+func TestNeedsSubpathTrustedHeadersWarning(t *testing.T) {
+	if !needsSubpathTrustedHeadersWarning("/files/", nil) {
+		t.Fatal("expected warning for subpath with empty trustedHeaders")
+	}
+	if needsSubpathTrustedHeadersWarning("/", nil) {
+		t.Fatal("expected no warning for root baseURL")
+	}
+	if needsSubpathTrustedHeadersWarning("/files/", []string{"X-Forwarded-For"}) {
+		t.Fatal("expected no warning when trustedHeaders configured")
+	}
+}
+
 func TestInvalidConfig(t *testing.T) {
 	// Create isolated test directory
 	testDir := t.TempDir()

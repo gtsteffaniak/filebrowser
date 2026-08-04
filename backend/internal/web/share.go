@@ -703,6 +703,20 @@ func normalizeShareRelativeDir(shareRelDir string) (string, error) {
 }
 
 // sharePatchPinnedItemsHandler adds or removes a pinned item on a share.
+// @Summary Add or remove a pinned item on a share
+// @Description Patches one pinned item at a time on a share. Defaults to add; pass ?action=remove to unpin.
+// @Tags Share
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash"
+// @Param action query string false "add (default) or remove"
+// @Param body body sharePinnedItemPatchRequest true "Pinned item"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not Found"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /public/api/share/pinned-items [patch]
 func sharePatchPinnedItemsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	hash := r.URL.Query().Get("hash")
 	if hash == "" {
