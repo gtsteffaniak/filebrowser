@@ -179,18 +179,19 @@
             {{ $t("tools.activityViewer.showingPage", { shown: items.length, total: totalEvents, page: currentPage, pages: totalPages }) }}
           </span>
         </div>
-        <settings-table
-          :columns="tableColumns"
-          :items="items"
-          item-key="id"
-          default-sort-key="createdAt"
-          default-sort-dir="desc"
-          :loading="loading"
-          row-clickable
-          :aria-label="$t('tools.activityViewer.name')"
-          :lonely-message-key="!loading && items.length === 0 ? 'files.lonely' : undefined"
-          @row-click="openEventDetails"
-        >
+        <div class="results-table-scroll">
+          <settings-table
+            :columns="tableColumns"
+            :items="items"
+            item-key="id"
+            default-sort-key="createdAt"
+            default-sort-dir="desc"
+            :loading="loading"
+            row-clickable
+            :aria-label="$t('tools.activityViewer.name')"
+            :lonely-message-key="!loading && items.length === 0 ? 'files.lonely' : undefined"
+            @row-click="openEventDetails"
+          >
           <template #cell-createdAt="{ row }">
             <span v-if="!isBlankTableValue(row.createdAt)">{{ formatTime(row.createdAt) }}</span>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -268,7 +269,8 @@
             </div>
             <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </template>
-        </settings-table>
+          </settings-table>
+        </div>
         <div v-if="totalPages > 1" class="pagination">
           <button
             type="button"
@@ -2118,11 +2120,31 @@ export default {
 }
 
 .results-table {
-  overflow-x: auto;
+  min-width: 0;
 }
 
-.results-table :deep(.settings-table) {
+.results-table-scroll {
+  max-width: 100%;
+}
+
+.results-table-scroll :deep(.settings-table) {
+  width: 100%;
   table-layout: fixed;
+}
+
+@media (max-width: 768px) {
+  .results-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  /* Same fixed/ellipsis layout as desktop; min-width triggers scroll when viewport is narrower */
+  .results-table-scroll :deep(.settings-table) {
+    width: 100%;
+    min-width: 1000px;
+    table-layout: fixed;
+  }
 }
 
 .table-cell-text {
