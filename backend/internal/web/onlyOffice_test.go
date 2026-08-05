@@ -73,6 +73,25 @@ func TestBuildOnlyOfficeViewURL(t *testing.T) {
 	}
 }
 
+func TestJoinOnlyOfficeAPIURL(t *testing.T) {
+	tests := []struct {
+		base string
+		path string
+		want string
+	}{
+		{"http://host/testing/", "api/resources/view", "http://host/testing/api/resources/view"},
+		{"http://host/testing", "api/resources/view", "http://host/testing/api/resources/view"},
+		{"http://host/", "public/api/resources/view", "http://host/public/api/resources/view"},
+		{"http://host//", "/api/office/callback", "http://host/api/office/callback"},
+	}
+	for _, tt := range tests {
+		got := joinOnlyOfficeAPIURL(tt.base, tt.path)
+		if got != tt.want {
+			t.Fatalf("joinOnlyOfficeAPIURL(%q, %q) = %q, want %q", tt.base, tt.path, got, tt.want)
+		}
+	}
+}
+
 func TestOnlyOfficeUsesIndexedViewGrant(t *testing.T) {
 	initStreamTestSources(t)
 
