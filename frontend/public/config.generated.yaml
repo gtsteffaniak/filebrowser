@@ -268,5 +268,5 @@ http:
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   disableWebDAV: false                    # disable webdav support (default: false)
-  trustProxyHeaders: false                # honor X-Forwarded-* from a reverse proxy when true (default false)
+  trustProxyHeaders: false                # honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
   disableRateLimit: false                 # turns off built-in auth route rate limiting and failed-login lockout (default false).

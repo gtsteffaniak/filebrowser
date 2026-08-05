@@ -5701,7 +5701,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "trustProxyHeaders": {
-                    "description": "honor X-Forwarded-Host, X-Forwarded-Proto, X-Forwarded-For, and X-Real-IP from a reverse proxy (default false)",
+                    "description": "honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)",
                     "type": "boolean"
                 }
             }

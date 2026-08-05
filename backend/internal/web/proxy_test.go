@@ -73,9 +73,18 @@ func TestRequestSchemeForPublicURL(t *testing.T) {
 		settings.Config.Http.TrustProxyHeaders = true
 		req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
 		req.Header.Set("X-Forwarded-Host", "public.example.com")
-		req.Header.Set("X-Forwarded-Proto", "http")
 		if got := requestSchemeForPublicURL(req); got != "https" {
 			t.Fatalf("requestSchemeForPublicURL = %q, want https", got)
+		}
+	})
+
+	t.Run("trusted host with proto honors proto", func(t *testing.T) {
+		settings.Config.Http.TrustProxyHeaders = true
+		req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
+		req.Header.Set("X-Forwarded-Host", "public.example.com")
+		req.Header.Set("X-Forwarded-Proto", "http")
+		if got := requestSchemeForPublicURL(req); got != "http" {
+			t.Fatalf("requestSchemeForPublicURL = %q, want http", got)
 		}
 	})
 
@@ -113,13 +122,21 @@ func TestRequestPageFullURL(t *testing.T) {
 			want:           "https://files.example.com/files/",
 		},
 		{
-			name:           "trusted host without proto defaults to https",
+			name:          "trusted host without proto defaults to https",
+			directHost:    "127.0.0.1:8080",
+			forwardedHost: "files.example.com",
+			trustProxy:    true,
+			path:          "/files/",
+			want:          "https://files.example.com/files/",
+		},
+		{
+			name:           "trusted host with proto honors proto",
 			directHost:     "127.0.0.1:8080",
 			forwardedHost:  "files.example.com",
 			forwardedProto: "http",
 			trustProxy:     true,
 			path:           "/files/",
-			want:           "https://files.example.com/files/",
+			want:           "http://files.example.com/files/",
 		},
 		{
 			name:           "ignores spoofed host when untrusted",

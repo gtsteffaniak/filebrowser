@@ -239,12 +239,19 @@ func TestOnlyOfficeFileBrowserBaseURL(t *testing.T) {
 			want:          "http://internal.local:8080/files/",
 		},
 		{
-			name:          "trusted host defaults to https",
+			name:          "trusted host without proto defaults to https",
+			reqHost:       "internal.local:8080",
+			forwardedHost: "public.example.com",
+			trustProxy:    true,
+			want:          "https://public.example.com/files/",
+		},
+		{
+			name:          "trusted host with proto honors proto",
 			reqHost:       "internal.local:8080",
 			forwardedHost: "public.example.com",
 			reqProto:      "http",
 			trustProxy:    true,
-			want:          "https://public.example.com/files/",
+			want:          "http://public.example.com/files/",
 		},
 	}
 
