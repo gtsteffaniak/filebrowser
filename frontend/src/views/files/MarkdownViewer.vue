@@ -198,9 +198,11 @@ export default {
     },
     observeResize() {
       if (this.resizeObserver) return;
+      const target = this.$refs.scrollContainer as HTMLElement | undefined;
+      if (!target) return;
       window.addEventListener("resize", this.handleContainerResize);
       this.resizeObserver = new ResizeObserver(() => this.handleContainerResize());
-      this.resizeObserver.observe(this.$el);
+      this.resizeObserver.observe(target);
     },
     unobserveResize() {
       if (!this.resizeObserver) return;
