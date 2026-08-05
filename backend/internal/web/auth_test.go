@@ -147,6 +147,22 @@ func TestExtractTokenUsesAuthQueryBeforeCookie(t *testing.T) {
 	}
 }
 
+func TestExtractTokenPrefersAuthQueryOverAuthorization(t *testing.T) {
+	const queryToken = "query.only.token"
+	const headerToken = "header.only.jwt"
+
+	req := httptest.NewRequest(http.MethodGet, "/api/office/callback?auth="+queryToken, nil)
+	req.Header.Set("Authorization", "Bearer "+headerToken)
+
+	got, err := ExtractToken(req)
+	if err != nil {
+		t.Fatalf("ExtractToken() error = %v", err)
+	}
+	if got != queryToken {
+		t.Fatalf("ExtractToken() = %q, want %q", got, queryToken)
+	}
+}
+
 func TestApplyNamedApiTokenGlobalCaps(t *testing.T) {
 	owner := &users.User{
 		FrontendUser: users.FrontendUser{
