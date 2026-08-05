@@ -75,6 +75,10 @@ import { isRawImageMimeType } from "@/utils/mimetype";
 import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import {
+  hasActiveSession as hasActivePipSession,
+  pendingInlineResumeFor,
+} from "@/plyr/pipSession.js";
 
 export default {
   name: "preview",
@@ -275,6 +279,7 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
+    this.$refs.plyrViewer?.destroyPlyr?.();
     // Clear navigation state when leaving preview
     mutations.clearNavigation();
   },
@@ -348,9 +353,14 @@ export default {
         this.mediaEnrichDoneForPath = null;
         this.lyricsFetchedForPath = null;
       } else {
+        const pipHandoffForThisFile =
+          hasActivePipSession(state.req.source, state.req.path)
+          || pendingInlineResumeFor(state.req.source, state.req.path);
         if (this.mediaEnrichDoneForPath !== path) {
           this.mediaEnrichDoneForPath = path;
-          this.avMetadataLoading = true;
+          if (!pipHandoffForThisFile) {
+            this.avMetadataLoading = true;
+          }
           try {
             await this.enrichAvFromMediaApi(path);
             if (state.req.path !== path) {

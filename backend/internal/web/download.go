@@ -198,6 +198,9 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		if err == errors.ErrDownloadNotAllowed {
 			return http.StatusForbidden, errors.ErrDownloadNotAllowed
 		}
+		if err == errors.ErrUseMediaStream {
+			return http.StatusForbidden, errors.ErrUseMediaStream
+		}
 		logger.Errorf("public share handler: error processing filelist: %v with error %v", files, err)
 		return status, fmt.Errorf("error processing filelist: %v", files)
 	}
@@ -252,7 +255,11 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 
 	if len(fileList) == 1 && !isDir {
-		forceInline := r.URL.Query().Get("inline") == "true"
+		forceInline := false
+		forceInline, err = resolveDownloadInlineDisposition(fileName, r.URL.Query().Get("inline") == "true")
+		if err != nil {
+			return http.StatusForbidden, err
+		}
 		status, err = ServeSingleFile(w, r, d, source, firstFilePath, fileName, ServeSingleFileOptions{ForceInline: forceInline})
 		if downloadResponseRecordsActivity(status, err) {
 			activity.RecordDownload(r, toActor(d), source, displayFileList)
@@ -268,6 +275,16 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		activity.RecordDownload(r, toActor(d), source, displayFileList)
 	}
 	return status, err
+}
+
+func resolveDownloadInlineDisposition(fileName string, inlineRequested bool) (bool, error) {
+	if !IsMediaStreamFile(fileName) {
+		return inlineRequested, nil
+	}
+	if inlineRequested {
+		return false, errors.ErrUseMediaStream
+	}
+	return false, nil
 }
 
 func downloadResponseRecordsActivity(status int, err error) bool {

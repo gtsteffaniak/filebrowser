@@ -8,9 +8,9 @@ import {
 } from '@/utils/appNotifications'
 import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
-import { rememberViewToken, refreshCachedViewTokensIfNeeded } from './viewToken'
-import { getObjectProperty } from '@/utils/object'
+import { rememberViewToken } from './viewToken'
 import { isMediaFile } from '@/utils/mediaFile'
+import { getObjectProperty } from '@/utils/object'
 import { getStreamURL, getStreamURLPublic } from './media'
 import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
 
@@ -866,6 +866,9 @@ export async function checksum(source, path, algo) {
  * Uses inline disposition and respects download permissions and share limits.
  */
 export function getOpenFileURL(source, path, shareInfo = null) {
+  if (isMediaFile(path)) {
+    return null
+  }
   if (shareInfo) {
     return getDownloadURLPublic(shareInfo, [path], true)
   }
@@ -1085,7 +1088,6 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
   const data = await response.json()
   const adjusted = adjustedData(data);
   cacheViewTokenFromListing(adjusted);
-  void refreshCachedViewTokensIfNeeded().catch(() => {});
   return adjusted
 }
 

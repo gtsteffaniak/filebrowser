@@ -3,6 +3,9 @@ import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 
 const REFRESH_BEFORE_MS = 10 * 60 * 1000;
 
+let activeScope = "";
+let refreshTimer = null;
+
 /** Stable key for the current preview request (source, share, path). */
 export function requestViewIdentity(req) {
   if (!req) {
@@ -24,13 +27,12 @@ function viewGrantScope(source) {
   return source || "";
 }
 
-function cacheKey(source) {
-  const scope = viewGrantScope(source);
+function cacheKeyForScope(scope) {
   return scope ? `viewToken:${scope}` : "";
 }
 
-function readCache(source) {
-  const key = cacheKey(source);
+function readCacheForScope(scope) {
+  const key = cacheKeyForScope(scope);
   if (!key) {
     return null;
   }
@@ -49,8 +51,8 @@ function readCache(source) {
   }
 }
 
-function writeCache(source, viewToken, expiresAt) {
-  const key = cacheKey(source);
+function writeCacheForScope(scope, viewToken, expiresAt) {
+  const key = cacheKeyForScope(scope);
   if (!key) {
     return;
   }
@@ -61,6 +63,14 @@ function writeCache(source, viewToken, expiresAt) {
     );
   } catch {
     // QuotaExceededError / SecurityError — caching is best-effort only.
+  }
+}
+
+function clearCachedScopeByScope(scope) {
+  try {
+    sessionStorage.removeItem(cacheKeyForScope(scope));
+  } catch {
+    // ignore storage failures
   }
 }
 
@@ -78,17 +88,47 @@ function viewTokenApiPath(source, existingToken) {
   return getApiPath("resources/view-token", params);
 }
 
+function scheduleViewGrantRefresh(source, scope) {
+  if (!scope || scope !== activeScope) {
+    return;
+  }
+  const cached = readCacheForScope(scope);
+  if (!cached?.expiresAt) {
+    return;
+  }
+  const delay = Math.max(0, cached.expiresAt * 1000 - Date.now() - REFRESH_BEFORE_MS);
+  if (refreshTimer) {
+    clearTimeout(refreshTimer);
+  }
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null;
+    if (scope !== activeScope) {
+      return;
+    }
+    refreshViewToken(source, getCachedViewToken(source), scope).catch(() => {});
+  }, delay);
+}
+
+export function setActiveViewGrantScope(source) {
+  const scope = viewGrantScope(source);
+  if (refreshTimer) {
+    clearTimeout(refreshTimer);
+    refreshTimer = null;
+  }
+  activeScope = scope;
+  if (scope) {
+    scheduleViewGrantRefresh(source, scope);
+  }
+}
+
 export function getCachedViewToken(source) {
-  const cached = readCache(source);
+  const scope = viewGrantScope(source);
+  const cached = readCacheForScope(scope);
   if (!cached) {
     return undefined;
   }
   if (cached.expiresAt * 1000 <= Date.now()) {
-    try {
-      sessionStorage.removeItem(cacheKey(source));
-    } catch {
-      // ignore storage failures
-    }
+    clearCachedScopeByScope(scope);
     return undefined;
   }
   return cached.viewToken;
@@ -99,10 +139,14 @@ export function rememberViewToken(source, viewToken, expiresAt) {
   if (!scope || !viewToken || !expiresAt) {
     return;
   }
-  writeCache(scope, viewToken, expiresAt);
+  writeCacheForScope(scope, viewToken, expiresAt);
+  if (scope === activeScope) {
+    scheduleViewGrantRefresh(source, scope);
+  }
 }
 
-export async function refreshViewToken(source, existingToken) {
+export async function refreshViewToken(source, existingToken, requestScope = null) {
+  const scope = requestScope ?? viewGrantScope(source);
   const url = viewTokenApiPath(source, existingToken);
   const res = await fetch(url, {
     method: "POST",
@@ -112,15 +156,23 @@ export async function refreshViewToken(source, existingToken) {
     },
   });
   if (!res.ok) {
+    if (res.status === 403 || res.status === 401) {
+      clearCachedScopeByScope(scope);
+    }
     throw new Error(await res.text());
   }
   const data = await res.json();
-  rememberViewToken(source, data.viewToken, data.expiresAt);
+  if (scope !== activeScope) {
+    return data;
+  }
+  writeCacheForScope(scope, data.viewToken, data.expiresAt);
+  scheduleViewGrantRefresh(source, scope);
   return data;
 }
 
 export async function ensureViewToken(source) {
-  const cached = readCache(source);
+  const scope = viewGrantScope(source);
+  const cached = readCacheForScope(scope);
   const now = Date.now();
   if (
     cached?.viewToken &&
@@ -128,42 +180,6 @@ export async function ensureViewToken(source) {
   ) {
     return cached.viewToken;
   }
-  const data = await refreshViewToken(source, cached?.viewToken);
+  const data = await refreshViewToken(source, cached?.viewToken, scope);
   return data.viewToken;
-}
-
-export async function refreshCachedViewTokensIfNeeded() {
-  const now = Date.now();
-  const scopes = new Set();
-  try {
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (!key?.startsWith("viewToken:")) {
-        continue;
-      }
-      try {
-        const parsed = JSON.parse(sessionStorage.getItem(key));
-        if (!parsed?.expiresAt || !parsed?.viewToken) {
-          continue;
-        }
-        const msLeft = parsed.expiresAt * 1000 - now;
-        if (msLeft > REFRESH_BEFORE_MS) {
-          continue;
-        }
-        const scope = key.slice("viewToken:".length);
-        if (scope) {
-          scopes.add(scope);
-        }
-      } catch {
-        // ignore malformed cache entries
-      }
-    }
-  } catch {
-    return;
-  }
-  await Promise.all(
-    [...scopes].map((scope) =>
-      refreshViewToken(scope, getCachedViewToken(scope)).catch(() => {}),
-    ),
-  );
 }

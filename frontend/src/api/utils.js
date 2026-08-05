@@ -1,7 +1,6 @@
 import i18n from "@/i18n";
 import { getters, state } from "@/store";
 import { renew } from "@/utils/auth";
-import { refreshCachedViewTokensIfNeeded } from "@/api/viewToken";
 
 function isPublicApiUrl(url) {
   return typeof url === "string" && url.includes("public/api/");
@@ -58,14 +57,6 @@ export async function fetchURL(url, opts, auth = true) {
     // Cookie is automatically sent, no need to pass JWT from state.
     // Skip on public share routes: renew hits /api/auth/renew, which may sit behind proxy basic auth.
     await renew();
-  }
-
-  if (auth && !isPublicApiUrl(url) && !getters.isShare()) {
-    void refreshCachedViewTokensIfNeeded().catch(() => {});
-  }
-
-  if (auth && getters.isShare() && isPublicApiUrl(url)) {
-    void refreshCachedViewTokensIfNeeded().catch(() => {});
   }
 
   if (res.status < 200 || res.status > 299) {

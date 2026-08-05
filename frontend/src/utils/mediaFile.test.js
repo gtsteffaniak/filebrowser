@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isMediaFile } from "./mediaFile";
+import { isMediaFile, isMediaRequest } from "./mediaFile";
 
 describe("isMediaFile", () => {
   it("detects audio and video MIME types", () => {
@@ -16,5 +16,17 @@ describe("isMediaFile", () => {
     expect(isMediaFile("application/pdf")).toBe(false);
     expect(isMediaFile("readme.txt")).toBe(false);
     expect(isMediaFile("model/gltf+json")).toBe(false);
+  });
+
+  it("detects media from request fields when MIME type is generic", () => {
+    expect(isMediaRequest({
+      type: "application/octet-stream",
+      name: "clip.mp4",
+      path: "/videos/clip.mp4",
+    })).toBe(true);
+    expect(isMediaRequest({
+      type: "application/octet-stream",
+      name: "readme.txt",
+    })).toBe(false);
   });
 });

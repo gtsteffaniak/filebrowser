@@ -22,7 +22,7 @@ vi.mock("@/api/media", () => ({
   getStreamURLPublic: () => "http://localhost/public/stream",
 }));
 
-import { getViewURL } from "@/api/resources";
+import { getViewURL, getOpenFileURL } from "@/api/resources";
 
 describe("getViewURL", () => {
   it("routes audio to media stream with viewToken", () => {
@@ -53,5 +53,12 @@ describe("getViewURL", () => {
 
   it("returns null without viewToken when fallback disabled", () => {
     expect(getViewURL("src", "/a.txt", null, null, false, "text/plain")).toBeNull();
+  });
+});
+
+describe("getOpenFileURL", () => {
+  it("returns null for media files", () => {
+    expect(getOpenFileURL("src", "/video/clip.mp4")).toBeNull();
+    expect(getOpenFileURL("src", "/music/song.mp3")).toBeNull();
   });
 });

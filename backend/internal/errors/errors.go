@@ -25,6 +25,7 @@ var (
 	ErrNotViewable          = errors.New("directory or item is not viewable")
 	ErrWrongLoginMethod     = errors.New("user attempted to login with wrong login method")
 	ErrDownloadNotAllowed   = errors.New("downloads are not allowed for this share")
+	ErrUseMediaStream       = errors.New("use /media/stream for audio and video")
 	ErrUploadNotAllowed     = errors.New("upload permission not allowed for this share")
 	ErrPasskeyMFARequired   = errors.New("passkey MFA is required")
 	ErrPasskeyVerification  = errors.New("passkey verification failed")
