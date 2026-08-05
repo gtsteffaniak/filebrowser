@@ -478,7 +478,7 @@ export default {
       if (!editor) return;
       const selectedText = editor.getSelectedText();
       const range = editor.getSelectionRange();
-      const label = selectedText || this.$t("editor.md.text");
+      const label = formatImageAltText(selectedText || this.$t("editor.md.text"));
       const linkText = `[${label}](url)`;
       let insertionEnd: Ace.Point;
       if (selectedText) {
@@ -678,6 +678,7 @@ export default {
   padding: 0.35em 0;
   border-bottom: 1px solid var(--alt-background);
   flex-shrink: 0;
+  overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;

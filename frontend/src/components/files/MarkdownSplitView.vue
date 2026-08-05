@@ -73,12 +73,15 @@ export default {
     stopResize: null as (() => void) | null,
   }),
   watch: {
+    editor(editor: Ace.Editor | null) {
+      if (this.active) {
+        this.liveMarkdownContent = editor?.getValue() || "";
+      }
+    },
     active(isActive: boolean) {
       if (isActive) {
         this.$emit("resize", 100 - this.previewPercent);
-        if (this.editor) {
-          this.liveMarkdownContent = this.editor.getValue();
-        }
+        this.liveMarkdownContent = this.editor?.getValue() || "";
       }
       this.$nextTick(() => {
         this.previewScrollEl = isActive ? (this.previewScrollWrapperEl() || null) : null;
@@ -88,6 +91,7 @@ export default {
   mounted() {
     if (this.active) {
       this.$emit("resize", 100 - this.previewPercent);
+      this.liveMarkdownContent = this.editor?.getValue() || "";
       this.$nextTick(() => {
         this.previewScrollEl = this.previewScrollWrapperEl() || null;
       });
