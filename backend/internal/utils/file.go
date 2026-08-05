@@ -10,7 +10,7 @@ import (
 	"hash"
 	"io"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
@@ -68,16 +68,16 @@ type FileOptions struct {
 
 // SanitizePath cleans and validates a path or path-like filter (index paths, globs, etc.)
 // to block traversal. Rule 1: Do Not Use Untrusted Input in File Paths (without validation).
-func SanitizePath(path string) (string, error) {
-	clean := filepath.Clean(path)
+func SanitizePath(inputPath string) (string, error) {
+	clean := path.Clean(inputPath)
 
 	// Split the path into segments to check for path traversal attempts.
 	// We check if ".." appears as a complete path segment (not just in a filename).
-	segments := strings.Split(clean, string(filepath.Separator))
+	segments := strings.Split(clean, "/")
 
 	for _, segment := range segments {
 		// Check if any segment is exactly ".." (path traversal attempt).
-		// This catches any ".." that filepath.Clean couldn't resolve (i.e., escape attempts).
+		// This catches any ".." that path.Clean couldn't resolve (i.e., escape attempts).
 		if segment == ".." {
 			return "", fmt.Errorf("invalid path: path traversal detected")
 		}
