@@ -7,12 +7,12 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-func TestDeriveRPIDTrustedHeaders(t *testing.T) {
-	orig := settings.Config.Http.TrustedHeaders
-	t.Cleanup(func() { settings.Config.Http.TrustedHeaders = orig })
+func TestDeriveRPIDTrustProxyHeaders(t *testing.T) {
+	orig := settings.Config.Http.TrustProxyHeaders
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = orig })
 
 	t.Run("trusted forwarded host", func(t *testing.T) {
-		settings.Config.Http.TrustedHeaders = map[string]bool{"x-forwarded-host": true}
+		settings.Config.Http.TrustProxyHeaders = true
 		req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
 		req.Host = "127.0.0.1:8080"
 		req.Header.Set("X-Forwarded-Host", "files.example.com")
@@ -23,7 +23,7 @@ func TestDeriveRPIDTrustedHeaders(t *testing.T) {
 	})
 
 	t.Run("ignores untrusted forwarded host", func(t *testing.T) {
-		settings.Config.Http.TrustedHeaders = nil
+		settings.Config.Http.TrustProxyHeaders = false
 		req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
 		req.Host = "127.0.0.1:8080"
 		req.Header.Set("X-Forwarded-Host", "evil.example.com")
@@ -34,15 +34,12 @@ func TestDeriveRPIDTrustedHeaders(t *testing.T) {
 	})
 }
 
-func TestWebAuthnRequestOriginTrustedHeaders(t *testing.T) {
-	orig := settings.Config.Http.TrustedHeaders
-	t.Cleanup(func() { settings.Config.Http.TrustedHeaders = orig })
+func TestWebAuthnRequestOriginTrustProxyHeaders(t *testing.T) {
+	orig := settings.Config.Http.TrustProxyHeaders
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = orig })
 
 	t.Run("trusted forwarded host and proto", func(t *testing.T) {
-		settings.Config.Http.TrustedHeaders = map[string]bool{
-			"x-forwarded-host":  true,
-			"x-forwarded-proto": true,
-		}
+		settings.Config.Http.TrustProxyHeaders = true
 		req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
 		req.Host = "127.0.0.1:8080"
 		req.Header.Set("X-Forwarded-Host", "files.example.com")
@@ -54,7 +51,7 @@ func TestWebAuthnRequestOriginTrustedHeaders(t *testing.T) {
 	})
 
 	t.Run("ignores untrusted forwarded headers", func(t *testing.T) {
-		settings.Config.Http.TrustedHeaders = nil
+		settings.Config.Http.TrustProxyHeaders = false
 		req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
 		req.Host = "127.0.0.1:8080"
 		req.Header.Set("X-Forwarded-Host", "evil.example.com")

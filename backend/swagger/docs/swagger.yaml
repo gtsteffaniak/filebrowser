@@ -473,12 +473,9 @@ definitions:
       tlsKey:
         description: path to TLS key
         type: string
-      trustedHeaders:
-        description: 'headers to trust behind a reverse proxy: X-Forwarded-For, X-Real-IP,
-          X-Forwarded-Proto, X-Forwarded-Host'
-        items:
-          type: string
-        type: array
+      trustProxyHeaders:
+        description: honor X-Forwarded-Host, X-Forwarded-Proto, X-Forwarded-For, and X-Real-IP from a reverse proxy (default false)
+        type: boolean
     type: object
   settings.IndexSqlConfig:
     properties:

@@ -10,8 +10,8 @@ import (
 
 func TestGetScheme(t *testing.T) {
 	t.Run("trusted proto", func(t *testing.T) {
-		settings.Config.Http.TrustedHeaders = map[string]bool{"x-forwarded-proto": true}
-		t.Cleanup(func() { settings.Config.Http.TrustedHeaders = nil })
+		settings.Config.Http.TrustProxyHeaders = true
+		t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
 
 		req := httptest.NewRequest("GET", "http://example.com/", nil)
 		req.Header.Set("X-Forwarded-Proto", "https")
@@ -21,7 +21,7 @@ func TestGetScheme(t *testing.T) {
 	})
 
 	t.Run("ignores spoofed proto when untrusted", func(t *testing.T) {
-		settings.Config.Http.TrustedHeaders = nil
+		settings.Config.Http.TrustProxyHeaders = false
 
 		req := httptest.NewRequest("GET", "http://example.com/", nil)
 		req.Header.Set("X-Forwarded-Proto", "https")
@@ -32,7 +32,7 @@ func TestGetScheme(t *testing.T) {
 }
 
 func TestRequestSchemeTLSFallback(t *testing.T) {
-	settings.Config.Http.TrustedHeaders = nil
+	settings.Config.Http.TrustProxyHeaders = false
 
 	req := httptest.NewRequest("GET", "https://example.com/", nil)
 	req.TLS = &tls.ConnectionState{}
@@ -42,8 +42,8 @@ func TestRequestSchemeTLSFallback(t *testing.T) {
 }
 
 func TestRequestSchemeIgnoresInvalidProto(t *testing.T) {
-	settings.Config.Http.TrustedHeaders = map[string]bool{"x-forwarded-proto": true}
-	t.Cleanup(func() { settings.Config.Http.TrustedHeaders = nil })
+	settings.Config.Http.TrustProxyHeaders = true
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
 
 	req := httptest.NewRequest("GET", "http://example.com/", nil)
 	req.Header.Set("X-Forwarded-Proto", "javascript")
@@ -52,9 +52,9 @@ func TestRequestSchemeIgnoresInvalidProto(t *testing.T) {
 	}
 }
 
-func TestRequestHostTrustedHeaders(t *testing.T) {
-	settings.Config.Http.TrustedHeaders = map[string]bool{"x-forwarded-host": true}
-	t.Cleanup(func() { settings.Config.Http.TrustedHeaders = nil })
+func TestRequestHostTrustProxyHeaders(t *testing.T) {
+	settings.Config.Http.TrustProxyHeaders = true
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
 
 	req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
 	req.Host = "127.0.0.1:8080"
@@ -66,11 +66,11 @@ func TestRequestHostTrustedHeaders(t *testing.T) {
 }
 
 func TestRequestSchemeForPublicURL(t *testing.T) {
-	orig := settings.Config.Http.TrustedHeaders
-	t.Cleanup(func() { settings.Config.Http.TrustedHeaders = orig })
+	orig := settings.Config.Http.TrustProxyHeaders
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = orig })
 
-	t.Run("trusted host without trusted proto defaults to https", func(t *testing.T) {
-		settings.Config.Http.TrustedHeaders = map[string]bool{"x-forwarded-host": true}
+	t.Run("trusted host without proto defaults to https", func(t *testing.T) {
+		settings.Config.Http.TrustProxyHeaders = true
 		req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
 		req.Header.Set("X-Forwarded-Host", "public.example.com")
 		req.Header.Set("X-Forwarded-Proto", "http")
@@ -80,7 +80,7 @@ func TestRequestSchemeForPublicURL(t *testing.T) {
 	})
 
 	t.Run("ignores forwarded proto when untrusted", func(t *testing.T) {
-		settings.Config.Http.TrustedHeaders = nil
+		settings.Config.Http.TrustProxyHeaders = false
 		req := httptest.NewRequest("GET", "http://127.0.0.1:8080/", nil)
 		req.Header.Set("X-Forwarded-Proto", "https")
 		if got := requestSchemeForPublicURL(req); got != "http" {
@@ -99,7 +99,7 @@ func TestRequestPageFullURL(t *testing.T) {
 		directHost     string
 		forwardedHost  string
 		forwardedProto string
-		trusted        map[string]bool
+		trustProxy     bool
 		path           string
 		want           string
 	}{
@@ -108,16 +108,16 @@ func TestRequestPageFullURL(t *testing.T) {
 			directHost:     "127.0.0.1:8080",
 			forwardedHost:  "files.example.com",
 			forwardedProto: "https",
-			trusted:        map[string]bool{"x-forwarded-host": true, "x-forwarded-proto": true},
+			trustProxy:     true,
 			path:           "/files/",
 			want:           "https://files.example.com/files/",
 		},
 		{
-			name:           "trusted host without trusted proto defaults to https",
+			name:           "trusted host without proto defaults to https",
 			directHost:     "127.0.0.1:8080",
 			forwardedHost:  "files.example.com",
 			forwardedProto: "http",
-			trusted:        map[string]bool{"x-forwarded-host": true},
+			trustProxy:     true,
 			path:           "/files/",
 			want:           "https://files.example.com/files/",
 		},
@@ -126,7 +126,7 @@ func TestRequestPageFullURL(t *testing.T) {
 			directHost:     "127.0.0.1:8080",
 			forwardedHost:  "evil.example.com",
 			forwardedProto: "https",
-			trusted:        nil,
+			trustProxy:     false,
 			path:           "/files/",
 			want:           "http://127.0.0.1:8080/files/",
 		},
@@ -134,7 +134,7 @@ func TestRequestPageFullURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			settings.Config.Http.TrustedHeaders = tt.trusted
+			settings.Config.Http.TrustProxyHeaders = tt.trustProxy
 			req := httptest.NewRequest("GET", "http://example.com"+tt.path, nil)
 			req.Host = tt.directHost
 			if tt.forwardedHost != "" {

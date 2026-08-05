@@ -22,10 +22,10 @@ func findSessionCookie(t *testing.T, rec *httptest.ResponseRecorder) *http.Cooki
 }
 
 func TestSetSessionCookieUsesTrustedHost(t *testing.T) {
-	orig := settings.Config.Http.TrustedHeaders
-	t.Cleanup(func() { settings.Config.Http.TrustedHeaders = orig })
+	orig := settings.Config.Http.TrustProxyHeaders
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = orig })
 
-	settings.Config.Http.TrustedHeaders = map[string]bool{"x-forwarded-host": true}
+	settings.Config.Http.TrustProxyHeaders = true
 	req := httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)
 	req.Host = "127.0.0.1:8080"
 	req.Header.Set("X-Forwarded-Host", "files.example.com")
@@ -40,8 +40,8 @@ func TestSetSessionCookieUsesTrustedHost(t *testing.T) {
 }
 
 func TestSetSessionCookieIgnoresUntrustedForwardedHost(t *testing.T) {
-	settings.Config.Http.TrustedHeaders = nil
-	t.Cleanup(func() { settings.Config.Http.TrustedHeaders = nil })
+	settings.Config.Http.TrustProxyHeaders = false
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
 
 	req := httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)
 	req.Host = "127.0.0.1:8080"
@@ -59,14 +59,14 @@ func TestSetSessionCookieIgnoresUntrustedForwardedHost(t *testing.T) {
 func TestLogoutClearsCookieForTrustedHost(t *testing.T) {
 	setupTestEnv(t)
 
-	origTrusted := settings.Config.Http.TrustedHeaders
+	origTrust := settings.Config.Http.TrustProxyHeaders
 	origBaseURL := settings.Config.Http.BaseURL
 	t.Cleanup(func() {
-		settings.Config.Http.TrustedHeaders = origTrusted
+		settings.Config.Http.TrustProxyHeaders = origTrust
 		settings.Config.Http.BaseURL = origBaseURL
 	})
 
-	settings.Config.Http.TrustedHeaders = map[string]bool{"x-forwarded-host": true}
+	settings.Config.Http.TrustProxyHeaders = true
 	settings.Config.Http.BaseURL = "/"
 
 	req := httptest.NewRequest(http.MethodPost, "/api/auth/logout", nil)
