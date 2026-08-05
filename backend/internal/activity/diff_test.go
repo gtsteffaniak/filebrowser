@@ -1,6 +1,7 @@
 package activity
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
@@ -55,14 +56,87 @@ func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 	}
 
 	changes := UserUpdateChanges(before, &after, which, false)
-	if len(changes) != 2 {
-		t.Fatalf("expected 2 changes, got %d: %#v", len(changes), changes)
+	if len(changes) != 3 {
+		t.Fatalf("expected 3 changes, got %d: %#v", len(changes), changes)
 	}
 	if changes[0].Field != "darkMode" || changes[0].From != "true" || changes[0].To != "false" {
 		t.Fatalf("unexpected darkMode change: %#v", changes[0])
 	}
-	if changes[1].Field != "sorting" {
-		t.Fatalf("unexpected second change: %#v", changes[1])
+	if changes[1].Field != "sorting.asc" || changes[1].From != "false" || changes[1].To != "true" {
+		t.Fatalf("unexpected sorting.asc change: %#v", changes[1])
+	}
+	if changes[2].Field != "sorting.by" || changes[2].From != "" || changes[2].To != "name" {
+		t.Fatalf("unexpected sorting.by change: %#v", changes[2])
+	}
+}
+
+func TestValueFieldChangesPointerTransitions(t *testing.T) {
+	perms := users.MarkSourceFilePermissionsConfigured(users.SourceFilePermissions{View: true})
+
+	t.Run("nil and nil", func(t *testing.T) {
+		var before, after *users.SourceFilePermissions
+		changes := valueFieldChanges(reflect.ValueOf(before), reflect.ValueOf(after), "permissions")
+		if len(changes) != 0 {
+			t.Fatalf("expected no changes, got %#v", changes)
+		}
+	})
+
+	t.Run("nil to value", func(t *testing.T) {
+		var before *users.SourceFilePermissions
+		changes := valueFieldChanges(reflect.ValueOf(before), reflect.ValueOf(perms), "permissions")
+		if len(changes) != 1 {
+			t.Fatalf("expected 1 change, got %#v", changes)
+		}
+		if changes[0].Field != "permissions" {
+			t.Fatalf("unexpected field: %#v", changes[0])
+		}
+		if changes[0].From != "null" {
+			t.Fatalf("expected From null, got %q", changes[0].From)
+		}
+		if changes[0].To == "" || changes[0].To == "null" {
+			t.Fatalf("expected permissions JSON in To, got %q", changes[0].To)
+		}
+	})
+
+	t.Run("value to nil", func(t *testing.T) {
+		var after *users.SourceFilePermissions
+		changes := valueFieldChanges(reflect.ValueOf(perms), reflect.ValueOf(after), "permissions")
+		if len(changes) != 1 {
+			t.Fatalf("expected 1 change, got %#v", changes)
+		}
+		if changes[0].Field != "permissions" {
+			t.Fatalf("unexpected field: %#v", changes[0])
+		}
+		if changes[0].To != "null" {
+			t.Fatalf("expected To null, got %q", changes[0].To)
+		}
+		if changes[0].From == "" || changes[0].From == "null" {
+			t.Fatalf("expected permissions JSON in From, got %q", changes[0].From)
+		}
+	})
+}
+
+func TestUserUpdateChangesExpandsNestedStructFields(t *testing.T) {
+	before := &users.User{
+		FrontendUser: users.FrontendUser{
+			NonAdminEditable: users.NonAdminEditable{
+				Preview: users.Preview{
+					AutoplayMedia: false,
+					Image:         true,
+					Video:         true,
+				},
+			},
+		},
+	}
+	after := *before
+	after.Preview.AutoplayMedia = true
+
+	changes := UserUpdateChanges(before, &after, []string{"preview"}, false)
+	if len(changes) != 1 {
+		t.Fatalf("expected 1 change, got %d: %#v", len(changes), changes)
+	}
+	if changes[0].Field != "preview.autoplayMedia" || changes[0].From != "false" || changes[0].To != "true" {
+		t.Fatalf("unexpected preview.autoplayMedia change: %#v", changes[0])
 	}
 }
 

@@ -66,8 +66,7 @@ server:
   sources:
     - path: "."
 http:
-  trustedHeaders:
-    - X-Forwarded-For
+  trustProxyHeaders: true
   disableRateLimit: true
 `)
 	configFile := filepath.Join(testDir, "config.yaml")
@@ -79,8 +78,8 @@ http:
 		t.Fatalf("error loading config file: %v", err)
 	}
 
-	if len(Config.Http.TrustedHeadersArray) != 1 || Config.Http.TrustedHeadersArray[0] != "X-Forwarded-For" {
-		t.Fatalf("expected trusted headers to contain X-Forwarded-For, got %v", Config.Http.TrustedHeadersArray)
+	if !Config.Http.TrustProxyHeaders {
+		t.Fatal("expected http.trustProxyHeaders to be true")
 	}
 	if !Config.Http.DisableRateLimit {
 		t.Fatal("expected http.disableRateLimit to be true")
@@ -116,6 +115,18 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 		if tc.globalVal == tc.newVal {
 			t.Errorf("Differences should have been found:\nConfig.%s: %v \nSetConfig: %v \n", tc.fieldName, tc.globalVal, tc.newVal)
 		}
+	}
+}
+
+func TestNeedsSubpathTrustProxyHeadersWarning(t *testing.T) {
+	if !needsSubpathTrustProxyHeadersWarning("/files/", false) {
+		t.Fatal("expected warning for subpath without trustProxyHeaders")
+	}
+	if needsSubpathTrustProxyHeadersWarning("/", false) {
+		t.Fatal("expected no warning for root baseURL")
+	}
+	if needsSubpathTrustProxyHeadersWarning("/files/", true) {
+		t.Fatal("expected no warning when trustProxyHeaders is true")
 	}
 }
 

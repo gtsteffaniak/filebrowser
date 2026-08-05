@@ -18,7 +18,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
-import * as settingsApi from "@/api/settings";
+import { getAnalytics, updateAnalytics } from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 
@@ -57,7 +57,7 @@ export default {
     },
     async loadAnalytics() {
       try {
-        const status = await settingsApi.getAnalytics();
+        const status = await getAnalytics();
         this.analyticsEnabled = status.enabled;
         this.publishSupported = status.publishSupported;
       } catch (e) {
@@ -72,7 +72,7 @@ export default {
       }
       this.analyticsLoading = true;
       try {
-        const status = await settingsApi.updateAnalytics({ enabled: this.analyticsEnabled });
+        const status = await updateAnalytics({ enabled: this.analyticsEnabled });
         this.analyticsEnabled = status.enabled;
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {

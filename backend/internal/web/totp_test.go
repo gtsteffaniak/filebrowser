@@ -11,6 +11,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/pquerna/otp/totp"
 )
 
@@ -81,5 +82,54 @@ func TestVerifyOTP_CachedSecretTakesPrecedence(t *testing.T) {
 	}
 	if _, found := auth.TotpCache.Get(user.Username); found {
 		t.Error("expected cache to be cleared after verification")
+	}
+}
+
+func TestLogin_RequiresOTPWhenTOTPSecretSet(t *testing.T) {
+	setupTestEnv(t)
+
+	origPasswordAuth := settings.Config.Auth.Methods.PasswordAuth.Enabled
+	settings.Config.Auth.Methods.PasswordAuth.Enabled = true
+	t.Cleanup(func() { settings.Config.Auth.Methods.PasswordAuth.Enabled = origPasswordAuth })
+
+	const secret = "SOMEOLDSECRET234"
+	user := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "test",
+			LoginMethod: users.LoginMethodPassword,
+		},
+	}
+	if err := state.CreateUser(user, "testPass"); err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+	user.TOTPSecret = secret
+	user.OtpEnabled = true
+	if err := state.UpdateUser(user, "", "TOTPSecret", "TOTPNonce", "OtpEnabled", "LoginMethod"); err != nil {
+		t.Fatalf("failed to set TOTP on user: %v", err)
+	}
+
+	handler := wrapHandler(loginHelper(loginHandler))
+
+	rec := httptest.NewRecorder()
+	handler(rec, otpRequest(user.Username, "testPass", "", "/api/auth/login"))
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 without OTP, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	var errResp HttpResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &errResp); err != nil {
+		t.Fatalf("failed to decode error response: %v", err)
+	}
+	if errResp.Message != "OTP code is required for user" {
+		t.Fatalf("expected OTP required message, got %q", errResp.Message)
+	}
+
+	code, err := totp.GenerateCode(secret, time.Now())
+	if err != nil {
+		t.Fatalf("failed to generate TOTP code: %v", err)
+	}
+	rec2 := httptest.NewRecorder()
+	handler(rec2, otpRequest(user.Username, "testPass", code, "/api/auth/login"))
+	if rec2.Code != http.StatusOK {
+		t.Fatalf("expected 200 with valid OTP, got %d body=%s", rec2.Code, rec2.Body.String())
 	}
 }

@@ -4,9 +4,91 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
+
+func findSessionCookie(t *testing.T, rec *httptest.ResponseRecorder) *http.Cookie {
+	t.Helper()
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == "filebrowser_quantum_jwt" {
+			return c
+		}
+	}
+	t.Fatal("session cookie not found")
+	return nil
+}
+
+func TestSetSessionCookieUsesTrustedHost(t *testing.T) {
+	orig := settings.Config.Http.TrustProxyHeaders
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = orig })
+
+	settings.Config.Http.TrustProxyHeaders = true
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)
+	req.Host = "127.0.0.1:8080"
+	req.Header.Set("X-Forwarded-Host", "files.example.com")
+
+	rec := httptest.NewRecorder()
+	SetSessionCookie(rec, req, "token", time.Now().Add(time.Hour))
+
+	cookie := findSessionCookie(t, rec)
+	if cookie.Domain != "files.example.com" {
+		t.Fatalf("cookie Domain = %q, want files.example.com", cookie.Domain)
+	}
+}
+
+func TestSetSessionCookieIgnoresUntrustedForwardedHost(t *testing.T) {
+	settings.Config.Http.TrustProxyHeaders = false
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)
+	req.Host = "127.0.0.1:8080"
+	req.Header.Set("X-Forwarded-Host", "evil.example.com")
+
+	rec := httptest.NewRecorder()
+	SetSessionCookie(rec, req, "token", time.Now().Add(time.Hour))
+
+	cookie := findSessionCookie(t, rec)
+	if cookie.Domain != "127.0.0.1" {
+		t.Fatalf("cookie Domain = %q, want 127.0.0.1", cookie.Domain)
+	}
+}
+
+func TestLogoutClearsCookieForTrustedHost(t *testing.T) {
+	setupTestEnv(t)
+
+	origTrust := settings.Config.Http.TrustProxyHeaders
+	origBaseURL := settings.Config.Http.BaseURL
+	t.Cleanup(func() {
+		settings.Config.Http.TrustProxyHeaders = origTrust
+		settings.Config.Http.BaseURL = origBaseURL
+	})
+
+	settings.Config.Http.TrustProxyHeaders = true
+	settings.Config.Http.BaseURL = "/"
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/logout", nil)
+	req.Host = "127.0.0.1:8080"
+	req.Header.Set("X-Forwarded-Host", "files.example.com")
+
+	rec := httptest.NewRecorder()
+	status, err := logoutHandler(rec, req, &Context{User: &users.User{
+		FrontendUser: users.FrontendUser{LoginMethod: users.LoginMethodPassword},
+	}})
+	if err != nil || status != http.StatusOK {
+		t.Fatalf("logoutHandler() status=%d err=%v", status, err)
+	}
+
+	cookie := findSessionCookie(t, rec)
+	if cookie.Domain != "files.example.com" {
+		t.Fatalf("logout cookie Domain = %q, want files.example.com", cookie.Domain)
+	}
+	if cookie.MaxAge != -1 {
+		t.Fatalf("logout cookie MaxAge = %d, want -1", cookie.MaxAge)
+	}
+}
 
 func TestExtractTokenPrefersAuthorizationOverCookie(t *testing.T) {
 	const apiToken = "aaa.bbb.ccc"

@@ -1,6 +1,7 @@
 http:
   port: 8080
-  baseURL:  "/subpath"
+  baseURL: "/subpath"
+  trustProxyHeaders: true
 server:
   logging:
     - levels: "info|error|warning|debug"

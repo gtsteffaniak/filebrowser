@@ -395,7 +395,8 @@ func preserveServerManagedFields(old, new *users.User) {
 	if new.BackendSourcePermissions == nil && old.BackendSourcePermissions != nil {
 		new.BackendSourcePermissions = copyBackendSourcePermissions(old.BackendSourcePermissions)
 	}
-	if new.OtpEnabled && new.TOTPSecret == "" && new.TOTPNonce == "" && old.TOTPSecret != "" {
+	// Frontend omits totpSecret/totpNonce on profile saves; preserve when OTP stays enabled or was active in DB.
+	if new.TOTPSecret == "" && new.TOTPNonce == "" && old.TOTPSecret != "" && new.OtpEnabled {
 		new.TOTPSecret = old.TOTPSecret
 		new.TOTPNonce = old.TOTPNonce
 	}

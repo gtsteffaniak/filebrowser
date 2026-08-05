@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import * as auth from "@/utils/auth";
+import { logout } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import SidebarLinks from "./Links.vue";
@@ -198,7 +198,7 @@ export default {
           : '';
         sharePath = subPath ? `${shareBase}/${url.encodedPath(subPath)}` : shareBase;
       }
-      await auth.logout(sharePath);
+      await logout(sharePath);
     },
     beforeEnter(el) {
       el.style.maxHeight = '0';

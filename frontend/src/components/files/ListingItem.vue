@@ -147,7 +147,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { resourcesApi } from "@/api";
-import * as upload from "@/utils/upload";
+import { checkConflict } from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
@@ -597,7 +597,7 @@ export default {
         }
       }
       const response = await checkAction();
-      const conflict = upload.checkConflict(items, response?.items || [] );
+      const conflict = checkConflict(items, response?.items || [] );
 
       /**
        * @param {boolean} overwrite

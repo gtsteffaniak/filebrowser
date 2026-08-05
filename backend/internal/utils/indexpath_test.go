@@ -1,6 +1,9 @@
 package utils
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestIndexPathFromNormalized_String(t *testing.T) {
 	tests := []struct {
@@ -35,6 +38,52 @@ func TestParseIndexPath_consecutiveSlashes(t *testing.T) {
 	}
 	if len(got.Parts) != 2 {
 		t.Errorf("Parts = %v, want [a b]", got.Parts)
+	}
+}
+
+func TestSanitizePath_indexPaths(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    string
+		wantErr bool
+	}{
+		{"root slash", "/", "/", false},
+		{"nested", "/foo/bar", "/foo/bar", false},
+		{"traversal segment", "..", "", true},
+		{"resolved traversal", "/../secret", "/secret", false},
+		{"empty", "", "", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := SanitizePath(tt.input)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("SanitizePath(%q) expected error", tt.input)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("SanitizePath(%q) unexpected error: %v", tt.input, err)
+			}
+			if strings.Contains(got, `\`) {
+				t.Errorf("SanitizePath(%q) = %q contains backslash", tt.input, got)
+			}
+			if got != tt.want {
+				t.Errorf("SanitizePath(%q) = %q, want %q", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseSanitizedIndexPath_root(t *testing.T) {
+	got, err := ParseSanitizedIndexPath("/", true)
+	if err != nil {
+		t.Fatalf("ParseSanitizedIndexPath(/): %v", err)
+	}
+	if got.String() != "/" {
+		t.Errorf("got %q want /", got.String())
 	}
 }
 

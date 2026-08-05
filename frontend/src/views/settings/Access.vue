@@ -71,7 +71,7 @@
 
 <script>
 import { accessApi } from "@/api";
-import * as settingsApi from "@/api/settings";
+import { getSourceSettings, patchSourceSettings } from "@/api/settings";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -179,7 +179,7 @@ export default {
       this.defaultsLoading = true;
       this.hydratingDefaults = true;
       try {
-        const settings = await settingsApi.getSourceSettings();
+        const settings = await getSourceSettings();
         const perms = settings?.defaultPermissions ?? {};
         const enforced = settings?.enforcedPermissions ?? {};
         this.sourceAccessDefaults = {
@@ -239,7 +239,7 @@ export default {
       }
       this.savingDefaults = true;
       try {
-        const settings = await settingsApi.patchSourceSettings({
+        const settings = await patchSourceSettings({
           enforcedPermissions: { [flag]: value },
         });
         this.hydratingDefaults = true;
@@ -264,7 +264,7 @@ export default {
       }
       this.savingDefaults = true;
       try {
-        const settings = await settingsApi.patchSourceSettings({
+        const settings = await patchSourceSettings({
           defaultPermissions: this.sourceAccessDefaults,
         });
         this.hydratingDefaults = true;
