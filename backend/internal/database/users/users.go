@@ -237,7 +237,6 @@ type NonAdminEditable struct {
 	ShowCopyPath               bool                 `json:"showCopyPath"`               // show copy path action in the context menu
 	ShowToolsInSidebar         bool                 `json:"showToolsInSidebar"`         // when false, sidebar hides links with category "tool" (default: true)
 	DebugOffice                bool                 `json:"debugOffice"`                // debug onlyoffice editor
-	OtpEnabled                 bool                 `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
 	SidebarLinks               []SidebarLink        `json:"sidebarLinks"`               // customizable sidebar links
 	HideFilesInTree            bool                 `json:"hideFilesInTree"`            // hide files in the sidebar tree navigation, when true, will show only directories.
 	DeleteAfterArchive         bool                 `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives

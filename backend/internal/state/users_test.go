@@ -96,6 +96,77 @@ func TestPreserveServerManagedFieldsClearsTOTPWhenDisabled(t *testing.T) {
 	}
 }
 
+func TestPreserveServerManagedFieldsPreservesTOTPOnFullSave(t *testing.T) {
+	old := &users.User{
+		TOTPSecret: "secret",
+		TOTPNonce:  "nonce",
+	}
+	incoming := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:   "alice",
+			OtpEnabled: true,
+		},
+	}
+
+	preserveServerManagedFields(old, incoming)
+
+	if incoming.TOTPSecret != "secret" || incoming.TOTPNonce != "nonce" {
+		t.Fatalf("expected TOTP preserved on full save, got secret=%q nonce=%q", incoming.TOTPSecret, incoming.TOTPNonce)
+	}
+}
+
+func TestUpdateUserFullPatchPreservesTOTPSecret(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			Locale:   "en",
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+	u.TOTPSecret = "persisted-secret"
+	u.TOTPNonce = "persisted-nonce"
+	u.OtpEnabled = true
+	if err = UpdateUser(u, "", "TOTPSecret", "TOTPNonce", "OtpEnabled"); err != nil {
+		t.Fatal(err)
+	}
+
+	patch := &users.User{
+		ID: u.ID,
+		FrontendUser: users.FrontendUser{
+			Username:   "alice",
+			Locale:   "de",
+			OtpEnabled: true,
+		},
+	}
+	if err = UpdateUser(patch, "", "all"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.TOTPSecret != "persisted-secret" || loaded.TOTPNonce != "persisted-nonce" {
+		t.Fatalf("expected TOTP preserved after full patch, got secret=%q nonce=%q", loaded.TOTPSecret, loaded.TOTPNonce)
+	}
+	if !loaded.OtpEnabled {
+		t.Fatal("expected OtpEnabled to remain true after full patch")
+	}
+}
+
 func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
