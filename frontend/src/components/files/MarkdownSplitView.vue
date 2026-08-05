@@ -34,6 +34,7 @@ import FloatingButton from "@/components/FloatingButton.vue";
 import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 
 const MD_SPLIT_PERCENT_KEY = "mdSplitPercent";
+const LIVE_CONTENT_INTERVAL_MS = 185; // Throttle preview updates to avoid performance issues
 
 function loadPreviewPercent() {
   const stored = Number(sessionStorage.getItem(MD_SPLIT_PERCENT_KEY));
@@ -64,7 +65,8 @@ export default {
   emits: ["resize"],
   data: () => ({
     liveMarkdownContent: "", // editor current buffer
-    liveContentFrame: null as number | null, // rAF handle
+    liveContentTimer: null as ReturnType<typeof setTimeout> | null,
+    liveContentLastFlush: 0, // the last flush, for throttling
     previewScrollEl: null as HTMLElement | null, // DOM node MarkdownViewer should scroll in split mode
     scrollGuard: createScrollSyncGuard(),
     lastEditAt: 0, // used to ignore incoming scroll for a bit while typing
@@ -101,9 +103,9 @@ export default {
     if (this.scrollGuard.cancel()) {
       this.syncScrollRatio();
     }
-    if (this.liveContentFrame) {
-      cancelAnimationFrame(this.liveContentFrame);
-      this.liveContentFrame = null;
+    if (this.liveContentTimer) {
+      clearTimeout(this.liveContentTimer);
+      this.liveContentTimer = null;
     }
     this.stopResize?.();
   },
@@ -217,13 +219,16 @@ export default {
     },
     // Batches preview updates without re-parsing markdown on every single keystroke.
     scheduleLiveContentUpdate() {
-      if (this.liveContentFrame) return;
-      this.liveContentFrame = requestAnimationFrame(() => {
-        this.liveContentFrame = null;
+      if (this.liveContentTimer) return;
+      const elapsed = Date.now() - this.liveContentLastFlush;
+      const delay = elapsed >= LIVE_CONTENT_INTERVAL_MS ? 0 : LIVE_CONTENT_INTERVAL_MS - elapsed;
+      this.liveContentTimer = setTimeout(() => {
+        this.liveContentTimer = null;
+        this.liveContentLastFlush = Date.now();
         if (this.editor) {
           this.liveMarkdownContent = this.editor.getValue();
         }
-      });
+      }, delay);
     },
     syncScrollRatio() {
       if (!this.editor) return;

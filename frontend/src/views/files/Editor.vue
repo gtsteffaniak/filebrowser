@@ -73,6 +73,7 @@ export default {
     originalReq: null as Req | null,
     saveLocked: false, // Lock saves during req transitions
     saveUnlockTimer: null as ReturnType<typeof setTimeout> | null, // pending save-unlock timer
+    statsUpdateTimer: null as ReturnType<typeof setTimeout> | null, // throttle stats update
     currentReqPath: null as string | null, // Track current path for transition detection
     navigationGuard: null as (() => void) | null, // Navigation guard to prevent navigation with unsaved changes
     isPromptOpen: false, // Track if prompt is currently open for avoid navigation
@@ -272,6 +273,10 @@ export default {
       clearTimeout(this.saveUnlockTimer);
       this.saveUnlockTimer = null;
     }
+    if (this.statsUpdateTimer) {
+      clearTimeout(this.statsUpdateTimer);
+      this.statsUpdateTimer = null;
+    }
     if (this.viewerResizeObserver) {
       this.viewerResizeObserver.disconnect();
       this.viewerResizeObserver = null;
@@ -463,10 +468,11 @@ export default {
         editorInstance.on('change', () => {
           if (this.editor !== editorInstance) return;
           if (this.suppressDirtyTracking) return;
-          const dirty = editorInstance.getValue() !== this.savedContent;
-          this.isDirty = dirty;
-          mutations.setEditorDirty(dirty);
-          this.updateEditorStats();
+          if (!this.isDirty) {
+            this.isDirty = true;
+            mutations.setEditorDirty(true);
+          }
+          this.scheduleStatsUpdate();
           (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.handleEditorChange();
         });
 
@@ -683,6 +689,15 @@ export default {
         // Just lines because will be a bit misleading to count words if we are viewing code for example
         mutations.setEditorStats({ lines, words: null, chars: null });
       }
+    },
+    scheduleStatsUpdate() {
+      if (this.statsUpdateTimer) {
+        clearTimeout(this.statsUpdateTimer);
+      }
+      this.statsUpdateTimer = setTimeout(() => {
+        this.statsUpdateTimer = null;
+        this.updateEditorStats();
+      }, 185);
     },
     applyFontSize() {
       if (this.editor) {
