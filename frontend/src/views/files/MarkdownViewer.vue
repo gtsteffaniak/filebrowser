@@ -712,7 +712,7 @@ export default {
       return getters.showSplitViewToggle();
     },
     splitViewActionLabel() {
-      return getters.isSplitViewActive ? this.$t("editor.exitSplitView") : this.$t("editor.splitView");
+      return getters.isSplitViewActive() ? this.$t("editor.exitSplitView") : this.$t("editor.splitView");
     },
     isHtml() {
       return isHtmlMimeType(state.req.type);

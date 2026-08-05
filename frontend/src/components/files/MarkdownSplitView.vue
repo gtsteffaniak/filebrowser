@@ -27,7 +27,7 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { Ace } from "ace-builds";
-import { getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import Scrollbar from "@/components/files/Scrollbar.vue";
 import FloatingButton from "@/components/FloatingButton.vue";
@@ -108,12 +108,49 @@ export default {
       return getters.showSplitViewToggle();
     },
     splitViewActionLabel() {
-      return getters.isSplitViewActive ? this.$t("editor.exitSplitView") : this.$t("editor.splitView");
+      return getters.isSplitViewActive() ? this.$t("editor.exitSplitView") : this.$t("editor.splitView");
     },
   },
   methods: {
     toggleSplitView() {
+      const isExiting = state.editor.markdownSplitView;
+      if (isExiting && state.editor.dirty && !this.exitSplitViewStaysInEditor()) {
+        this.showSaveBeforeExitPrompt(() => mutations.toggleSplitView());
+        return;
+      }
       mutations.toggleSplitView();
+    },
+    exitSplitViewStaysInEditor() {
+      const hash = window.location.hash;
+      switch (hash) {
+        case '#edit': return true;
+        case '#preview': return false;
+      }
+      return !!state.user.preferEditorForMarkdown;
+    },
+    showSaveBeforeExitPrompt(onConfirmAction: { (): void; (): void; }) {
+      mutations.showPrompt({
+        name: "SaveBeforeExit",
+        pinned: true,
+        confirm: async () => {
+          try {
+            if (state.editor.saveHandler) {
+              await state.editor.saveHandler();
+            }
+          } catch (_e) {
+            return;
+          }
+          mutations.setEditorDirty(false);
+          onConfirmAction();
+        },
+        discard: () => {
+          mutations.setEditorDirty(false);
+          onConfirmAction();
+        },
+        cancel: () => {
+          // do nothing
+        },
+      });
     },
     previewScrollWrapperEl(): HTMLElement | undefined {
       return (this.$refs.previewScrollWrapper as InstanceType<typeof Scrollbar> | undefined)?.$el;

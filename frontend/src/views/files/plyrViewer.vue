@@ -1974,7 +1974,7 @@ export default {
         '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
         '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
         '.audio-side-panel .tab-btn, ' +
-        '.audio-side-panel .lyrics-lock-btn, ' +
+        '.audio-side-panel .fab-button, ' +
         '.audio-side-panel .lyric-line, ' +
         '.audio-side-panel input[type="radio"], ' +
         '.audio-side-panel label[for^="tab-"], ' +

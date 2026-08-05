@@ -167,7 +167,7 @@ export interface StoreState {
   editor: {
     instance: unknown;
     dirty: boolean;
-    saveHandler: unknown;
+    saveHandler: (() => Promise<void>) | null;
     stats: {
       lines: number | null;
       words: number | null;
