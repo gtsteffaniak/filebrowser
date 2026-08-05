@@ -134,7 +134,7 @@
           :type="req.type"
           preload="none"
           :src="nativeVideoSrc"
-          :autoplay="shouldAutoplay"
+          :autoplay="videoElementAutoplay"
           @play="handlePlay"
           playsinline
         >
@@ -287,11 +287,30 @@ import {
 import { enablePlyrScrubPreview } from '@/plyr/plyrScrubPreview';
 import { enablePlyrVideoLoadingIndicator } from '@/plyr/plyrVideoLoading';
 import { enableOverlaidHintController } from '@/plyr/overlaidHintController';
+import {
+  appendMediaFragment,
+  clearPendingInlineResumeFor,
+  exitPictureInPictureProgrammatically,
+  getPendingInlineResume,
+  hasActiveSession as hasActivePipSession,
+  initPipSession,
+  isPipBlockedForPreview,
+  onPendingInlineResume,
+  onPipAvailabilityChange,
+  pendingMatchesPreview,
+  registerSession as registerPipSession,
+  resolvePipMediaKey,
+  setPendingInlineResume,
+  shouldDeferVideoStreamAttach,
+  takeSessionSnapshot,
+} from '@/plyr/pipSession.js';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import {
   parsePlaybackTimeFromQuery,
   playbackQueryChanged,
 } from '@/utils/playbackQuery';
+import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
+import { zoneFromClientX } from '@/plyr/gestureZones.js';
 import { ownsMediaSession as ownsMediaSessionSlot } from '@/utils/mediaSessionOwnership';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
@@ -443,6 +462,18 @@ export default {
       videoLoadingCleanup: null,
       querySeekMetadataHandler: null,
       plyrTeardownDone: false,
+      /** Inline resume after PiP handoff; applied when the video stream attaches. */
+      inlineResumeSnapshot: null,
+      /** Seek target passed via Media Fragments URI (#t=) when handing off from PiP. */
+      pipHandoffSeekSeconds: null,
+      pipReadinessHandler: null,
+      pipAvailabilityCleanup: null,
+      pipPendingResumeCleanup: null,
+      /** Source+path this instance mounted for; guards stale instances during route transitions. */
+      mountedPreviewKey: null,
+      pipHandoffApplying: false,
+      /** Keeps :src stable after PiP handoff so Vue does not rebind without #t=. */
+      lockedNativeVideoSrc: null,
     };
   },
   watch: {
@@ -495,6 +526,8 @@ export default {
     },
     'req.path'() {
       this.videoStreamAttached = false;
+      this.pipHandoffSeekSeconds = null;
+      this.lockedNativeVideoSrc = null;
       this.hasStartedPlayback = false;
       this.overlaidHintApi?.reset();
     },
@@ -708,13 +741,49 @@ export default {
       if (this.previewType !== 'video') {
         return null;
       }
+      if (this.lockedNativeVideoSrc) {
+        return this.lockedNativeVideoSrc;
+      }
       if (this.shouldAttachVideoStream) {
-        return this.raw;
+        const handoffTime = this.pipHandoffSeekSeconds
+          ?? this.inlineResumeSnapshot?.currentTime;
+        return appendMediaFragment(this.raw, handoffTime);
       }
       return null;
     },
     shouldAttachVideoStream() {
+      if (
+        this.previewType === 'video'
+        && shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)
+      ) {
+        return false;
+      }
       return this.videoStreamAttached || this.shouldAutoplay;
+    },
+    pipHandoffShouldAutoplay() {
+      if (this.previewType !== 'video') {
+        return false;
+      }
+      const snap = this.inlineResumeSnapshot;
+      if (!snap && !this.pipHandoffSeekSeconds) {
+        return false;
+      }
+      return snap?.wasPlaying !== false;
+    },
+    videoElementAutoplay() {
+      if (this.previewType !== 'video') {
+        return false;
+      }
+      if (shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)) {
+        return false;
+      }
+      if (this.pipHandoffShouldAutoplay) {
+        return true;
+      }
+      if (this.inlineResumeSnapshot || this.pipHandoffSeekSeconds) {
+        return false;
+      }
+      return this.shouldAutoplay;
     },
     /** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
     plyrOptions() {
@@ -791,6 +860,7 @@ export default {
     },
   },
   mounted() {
+    initPipSession();
     this.hookEvents();
     if (this.previewType === "audio") {
       this.loadAudioMetadata();
@@ -959,7 +1029,7 @@ export default {
         // ignore
       }
       if (document.pictureInPictureElement === el) {
-        document.exitPictureInPicture?.().catch(() => {});
+        void exitPictureInPictureProgrammatically();
       }
       el.removeAttribute('src');
       try {
@@ -989,15 +1059,22 @@ export default {
       this.videoPlaybackLoading = false;
       this.teardownQueryPlaybackSeek();
       this.teardownOverlaidHintController();
+      this.teardownPipControlGuard();
+      this.pipPendingResumeCleanup?.();
+      this.pipPendingResumeCleanup = null;
+      this.mountedPreviewKey = null;
+      this.pipHandoffApplying = false;
+      this.lockedNativeVideoSrc = null;
 
       const media = this.getActiveMediaElement();
       const inPip = this.isMediaInPictureInPicture(media);
+      const isTransition = state.navigation.isTransitioning;
+      const leavingInPip = inPip && this.req?.path;
 
       if (this.player) {
-        if (state.navigation.isTransitioning && !inPip) {
+        if (isTransition && !inPip) {
           pendingFullscreenResume = this.player.fullscreen?.active || false;
-          pendingPipResume = typeof media?.requestPictureInPicture === 'function'
-            && document.pictureInPictureElement === media;
+          pendingPipResume = false;
           pendingResumeTimestamp = Date.now();
         }
         if (this.nativePlayerPlay) {
@@ -1010,11 +1087,24 @@ export default {
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
-        if (!inPip) {
+        if (leavingInPip && media) {
+          registerPipSession(media, {
+            ...resolvePipMediaKey(this.req.source, this.req.path),
+            wasInlineFullscreen: Boolean(this.player?.fullscreen?.active),
+            wasPlaying: !media.paused,
+          });
+          this.player = null;
+        } else {
           this.stopMediaElement(media);
           this.player.destroy();
+          this.player = null;
         }
-        this.player = null;
+      } else if (leavingInPip && media) {
+        registerPipSession(media, {
+          ...resolvePipMediaKey(this.req.source, this.req.path),
+          wasInlineFullscreen: Boolean(this.player?.fullscreen?.active),
+          wasPlaying: !media.paused,
+        });
       } else if (!inPip) {
         this.stopMediaElement(media);
       }
@@ -1337,14 +1427,17 @@ export default {
         if (this.player) {
           return;
         }
-        this.mountPlyrPlayer();
+        void this.mountPlyrPlayer();
       });
     },
-    mountPlyrPlayer() {
+    async mountPlyrPlayer() {
       if (!this.mediaElement || this.player) {
         return;
       }
       this.plyrTeardownDone = false;
+      this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
+      this.pipHandoffApplying = false;
+      await this.reconcilePipSessionOnMount();
       this.player = new Plyr(this.mediaElement, this.plyrOptions);
       if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
         this.nativePlayerPlay = this.player.play.bind(this.player);
@@ -1358,37 +1451,200 @@ export default {
       }
       this.setupMediaSession();
       this.setupPlyrEvents();
+      if (this.previewType === 'video') {
+        this.setupPipControlGuard();
+        this.pipPendingResumeCleanup = onPendingInlineResume((snapshot) => {
+          if (!this.mountedPreviewMatchesPending(snapshot)) {
+            return;
+          }
+          this.resumePlaybackAfterNavigation();
+        });
+      }
       this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
       this.setupScrubPreview();
       this.setupVideoLoadingIndicator();
+      this.resumePlaybackAfterNavigation();
       if (this.previewType === 'video') {
-        this.setupQueryPlaybackSeek();
+        if (!this.inlineResumeSnapshot && !this.pipHandoffSeekSeconds) {
+          this.setupQueryPlaybackSeek();
+        }
       } else if (this.previewType === 'audio') {
         this.setupQueryPlaybackSeek();
       }
-      this.resumeFullscreenAndPip();
+    },
+    applyInlineResumeSeek(el, snapshot, onDone) {
+      if (!el || !snapshot) {
+        onDone?.();
+        return;
+      }
+      const targetTime = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
+      let finished = false;
+      let handoffCompleted = false;
+      const completeHandoff = () => {
+        if (handoffCompleted) {
+          return;
+        }
+        handoffCompleted = true;
+        if (snapshot.wasFullscreen) {
+          this.player?.fullscreen?.enter();
+        }
+        if (snapshot.wasPlaying !== false) {
+          this.attemptPipHandoffPlay(el, snapshot);
+        }
+        const boundSrc = el.currentSrc || el.getAttribute('src');
+        if (boundSrc) {
+          this.lockedNativeVideoSrc = boundSrc;
+        }
+        this.inlineResumeSnapshot = null;
+        this.pipHandoffSeekSeconds = null;
+        this.pipHandoffApplying = false;
+        clearPendingInlineResumeFor(snapshot.source, snapshot.path);
+        onDone?.();
+      };
+      const finish = () => {
+        if (finished) {
+          return;
+        }
+        finished = true;
+        if (snapshot.wasPlaying !== false && el.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
+          el.addEventListener('canplay', () => completeHandoff(), { once: true });
+          window.setTimeout(() => completeHandoff(), 8000);
+        } else {
+          completeHandoff();
+        }
+      };
+      const readTime = () => this.player?.currentTime ?? el.currentTime;
+      const writeTime = (time) => {
+        if (this.player) {
+          this.player.currentTime = time;
+        } else {
+          el.currentTime = time;
+        }
+      };
+      const nearTarget = () => targetTime <= 0 || Math.abs(readTime() - targetTime) <= 1.5;
+      const seek = () => {
+        if (targetTime <= 0) {
+          finish();
+          return;
+        }
+        if (nearTarget()) {
+          finish();
+          return;
+        }
+        try {
+          writeTime(targetTime);
+        } catch (_) {
+          finish();
+          return;
+        }
+        const onSeeked = () => {
+          if (nearTarget()) {
+            finish();
+            return;
+          }
+          el.addEventListener('canplay', () => {
+            try {
+              writeTime(targetTime);
+            } catch (_) {
+              finish();
+              return;
+            }
+            el.addEventListener('seeked', () => {
+              if (nearTarget()) {
+                finish();
+              }
+            }, { once: true });
+          }, { once: true });
+        };
+        el.addEventListener('seeked', onSeeked, { once: true });
+        window.setTimeout(() => {
+          if (!finished && nearTarget()) {
+            finish();
+          }
+        }, 5000);
+      };
+      const whenSeekable = () => {
+        if (nearTarget()) {
+          finish();
+          return;
+        }
+        if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+          seek();
+          return;
+        }
+        el.addEventListener('canplay', seek, { once: true });
+      };
+      if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+        whenSeekable();
+      } else {
+        el.addEventListener('loadedmetadata', whenSeekable, { once: true });
+      }
     },
     attachVideoStreamAndPlay() {
       if (this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
+        if (this.inlineResumeSnapshot) {
+          this.pipHandoffApplying = false;
+        }
         return;
       }
       this.videoStreamAttached = true;
       this.$nextTick(() => {
-        const el = this.mediaElement;
-        if (!el) {
-          return;
-        }
-        const start = () => {
-          this.clearAttachVideoStreamWait();
-          this.applyQueryPlaybackSeek();
-          void el.play().catch(() => {});
-        };
-        this.attachVideoStreamResume = start;
-        if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-          start();
-        } else {
-          el.addEventListener('canplay', start, { once: true });
-        }
+        this.$nextTick(() => {
+          const el = this.mediaElement;
+          if (!el) {
+            return;
+          }
+          const snap = this.inlineResumeSnapshot;
+          const handoffTime = snap?.currentTime ?? this.pipHandoffSeekSeconds;
+          const streamUrl = appendMediaFragment(this.raw, handoffTime);
+          if (streamUrl && !el.getAttribute('src')) {
+            el.setAttribute('src', streamUrl);
+            this.lockedNativeVideoSrc = streamUrl;
+            if (snap?.wasPlaying !== false) {
+              el.autoplay = true;
+            }
+          }
+          if (snap?.wasPlaying !== false) {
+            const onCanPlay = () => this.attemptPipHandoffPlay(el, snap);
+            if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+              onCanPlay();
+            } else {
+              el.addEventListener('canplay', onCanPlay, { once: true });
+            }
+          }
+          
+          const startDefault = () => {
+            this.clearAttachVideoStreamWait();
+            this.applyQueryPlaybackSeek();
+            void el.play().catch(() => {});
+          };
+
+          const startWithResume = () => {
+            this.clearAttachVideoStreamWait();
+            const onMeta = () => {
+              this.applyInlineResumeSeek(el, snap);
+            };
+            if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+              onMeta();
+            } else {
+              el.addEventListener('loadedmetadata', onMeta, { once: true });
+            }
+          };
+
+          const start = snap ? startWithResume : startDefault;
+          this.attachVideoStreamResume = start;
+          if (snap) {
+            if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+              start();
+            } else {
+              el.addEventListener('loadedmetadata', start, { once: true });
+            }
+          } else if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+            start();
+          } else {
+            el.addEventListener('canplay', start, { once: true });
+          }
+        });
       });
     },
     clearAttachVideoStreamWait() {
@@ -1399,7 +1655,54 @@ export default {
       }
       this.attachVideoStreamResume = null;
     },
-    resumeFullscreenAndPip() {
+    async reconcilePipSessionOnMount() {
+      if (!this.req?.path) {
+        return;
+      }
+      if (hasActivePipSession(this.req.source, this.req.path)) {
+        const snap = await takeSessionSnapshot(this.req.source, this.req.path);
+        if (snap) {
+          setPendingInlineResume({
+            source: snap.source,
+            path: snap.path,
+            currentTime: snap.currentTime,
+            wasPlaying: snap.wasPlaying,
+            wasFullscreen: Boolean(snap.wasFullscreen),
+            timestamp: Date.now(),
+          });
+        }
+      }
+    },
+    mountedPreviewMatchesPending(snapshot = getPendingInlineResume()) {
+      if (!this.mountedPreviewKey || !snapshot) {
+        return false;
+      }
+      return pendingMatchesPreview(this.mountedPreviewKey.source, this.mountedPreviewKey.path, snapshot);
+    },
+    isHandoffTargetPreview() {
+      if (!this.req?.path || !this.mountedPreviewKey) {
+        return false;
+      }
+      const current = resolvePipMediaKey(this.req.source, this.req.path);
+      return current.source === this.mountedPreviewKey.source
+        && current.path === this.mountedPreviewKey.path;
+    },
+    resumePlaybackAfterNavigation() {
+      const pending = getPendingInlineResume();
+      const inlineSnap = this.mountedPreviewMatchesPending(pending) ? pending : null;
+      if (inlineSnap) {
+        if (this.pipHandoffApplying) {
+          return;
+        }
+        const isStale = Date.now() - inlineSnap.timestamp > 30000;
+        if (!isStale) {
+          this.applyInlineResume(inlineSnap);
+        } else {
+          clearPendingInlineResumeFor(this.req.source, this.req.path);
+        }
+        return;
+      }
+
       const isStale = Date.now() - pendingResumeTimestamp > 3000;
       if (pendingFullscreenResume) {
         pendingFullscreenResume = false;
@@ -1408,15 +1711,144 @@ export default {
       if (pendingPipResume) {
         pendingPipResume = false;
         if (!isStale) {
-          const el = this.mediaElement;
-          const attempt = () => el?.requestPictureInPicture?.().catch(() => {});
-          if (el && el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-            attempt();
-          } else {
-            el?.addEventListener('loadedmetadata', attempt, { once: true });
-          }
+          void this.requestPictureInPictureWhenReady();
         }
       }
+    },
+    waitForMediaReady(el, minReadyState = HTMLMediaElement.HAVE_METADATA) {
+      if (!el) {
+        return Promise.resolve();
+      }
+      if (el.readyState >= minReadyState) {
+        return Promise.resolve();
+      }
+      const event = minReadyState >= HTMLMediaElement.HAVE_FUTURE_DATA ? 'canplay' : 'loadedmetadata';
+      return new Promise((resolve) => {
+        el.addEventListener(event, () => resolve(), { once: true });
+      });
+    },
+    async requestPictureInPictureWhenReady() {
+      if (this.isPipControlBlocked()) {
+        return;
+      }
+      const el = this.mediaElement;
+      if (!el?.requestPictureInPicture) {
+        return;
+      }
+      if (!this.videoStreamAttached && this.previewType === 'video') {
+        this.attachVideoStreamAndPlay();
+      }
+      await this.waitForMediaReady(el, HTMLMediaElement.HAVE_METADATA);
+      if (document.pictureInPictureElement === el) {
+        return;
+      }
+      try {
+        await el.requestPictureInPicture();
+      } catch (_) {
+        // ignore
+      }
+    },
+    isPipControlBlocked() {
+      return isPipBlockedForPreview(this.req?.source, this.req?.path, this.mediaElement);
+    },
+    syncPipControlAvailability() {
+      const pipBtn = this.player?.elements?.buttons?.pip;
+      if (!pipBtn || this.previewType !== 'video') {
+        return;
+      }
+      const blocked = this.isPipControlBlocked();
+      pipBtn.disabled = blocked;
+      pipBtn.classList.toggle('plyr__control--disabled', blocked);
+      pipBtn.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+    },
+    setupPipControlGuard() {
+      this.teardownPipControlGuard();
+      const pipBtn = this.player?.elements?.buttons?.pip;
+      if (!pipBtn) {
+        return;
+      }
+      this.syncPipControlAvailability();
+      this.pipAvailabilityCleanup = onPipAvailabilityChange(() => {
+        this.syncPipControlAvailability();
+      });
+      this.pipReadinessHandler = (event) => {
+        if (this.isPipControlBlocked()) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        }
+        const el = this.mediaElement;
+        if (!el || el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          return;
+        }
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        void this.requestPictureInPictureWhenReady();
+      };
+      pipBtn.addEventListener('click', this.pipReadinessHandler, true);
+    },
+    teardownPipControlGuard() {
+      const pipBtn = this.player?.elements?.buttons?.pip;
+      if (pipBtn && this.pipReadinessHandler) {
+        pipBtn.removeEventListener('click', this.pipReadinessHandler, true);
+      }
+      this.pipReadinessHandler = null;
+      this.pipAvailabilityCleanup?.();
+      this.pipAvailabilityCleanup = null;
+      if (pipBtn) {
+        pipBtn.disabled = false;
+        pipBtn.classList.remove('plyr__control--disabled');
+        pipBtn.setAttribute('aria-disabled', 'false');
+      }
+    },
+    attemptPipHandoffPlay(el, snapshot) {
+      if (!el || snapshot?.wasPlaying === false) {
+        return;
+      }
+      const tryPlay = () => {
+        const playCall = this.nativePlayerPlay
+          ?? (() => this.player?.play?.() ?? el.play());
+        void Promise.resolve(playCall()).then(() => {
+          mutations.setPlaybackState(true);
+          this.$emit('play');
+        }).catch(() => {});
+      };
+      if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !el.paused) {
+        return;
+      }
+      if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+        tryPlay();
+        return;
+      }
+      el.addEventListener('canplay', tryPlay, { once: true });
+    },
+    applyInlineResume(snapshot) {
+      const el = this.mediaElement;
+      if (!el || !this.player) {
+        return;
+      }
+      if (!this.mountedPreviewMatchesPending(snapshot)) {
+        return;
+      }
+      if (!pendingMatchesPreview(this.mountedPreviewKey.source, this.mountedPreviewKey.path, snapshot)) {
+        return;
+      }
+      if (this.pipHandoffApplying) {
+        return;
+      }
+      this.pipHandoffApplying = true;
+      if (this.previewType === 'video') {
+        if (this.videoStreamAttached) {
+          this.stopMediaElement(el);
+          this.videoStreamAttached = false;
+        }
+        const seekSeconds = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
+        this.pipHandoffSeekSeconds = seekSeconds > 0 ? seekSeconds : null;
+        this.inlineResumeSnapshot = snapshot;
+        this.attachVideoStreamAndPlay();
+        return;
+      }
+      this.applyInlineResumeSeek(el, snapshot);
     },
     getPlaybackDuration() {
       const fromPlayer = this.player?.duration;
@@ -1611,7 +2043,7 @@ export default {
     isPlyrControlOrMenuTarget(el) {
       if (!el || typeof el.closest !== 'function') return false;
       if (el.closest('.plyr__control--overlaid')) {
-        return false;
+        return true;
       }
       return !!el.closest(
         '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
@@ -1671,14 +2103,23 @@ export default {
 
       const DOUBLE_MS = 320;
 
-      const zoneFromClientX = (clientX) => {
+      const peekNavChromeForEdgeTap = (clientX, zone) => {
+        if (this.previewType !== 'video' || !state.navigation.enabled) {
+          return;
+        }
+        const moveWithSidebar = getters.isSidebarVisible() && getters.isStickySidebar();
+        const sidebarWidthEm = state.sidebar?.width || 20;
+        const opts = { moveWithSidebar, sidebarWidthEm };
+        if (zone === 'left' && isInLeftNavTapZone(clientX, opts)) {
+          mutations.peekNavigationChrome('left');
+        } else if (zone === 'right' && isInRightNavTapZone(clientX)) {
+          mutations.peekNavigationChrome('right');
+        }
+      };
+
+      const zoneFromSurfaceX = (clientX) => {
         const rect = surface.getBoundingClientRect();
-        const x = clientX - rect.left;
-        const w = rect.width;
-        if (w <= 0) return 'center';
-        if (x < w / 3) return 'left';
-        if (x > (2 * w) / 3) return 'right';
-        return 'center';
+        return zoneFromClientX(clientX, rect);
       };
 
       const applySeek = (rewind) => {
@@ -1761,13 +2202,14 @@ export default {
           this.clearEdgeTapGestureState();
           return;
         }
-        const zone = zoneFromClientX(t.clientX);
+        const zone = zoneFromSurfaceX(t.clientX);
         if (zone === 'center') {
           handleCenterTap(event);
           this.ignoreClickUntil = Date.now() + 500;
           return;
         }
         handleEdgeZoneTap(zone, event);
+        peekNavChromeForEdgeTap(t.clientX, zone);
         this.ignoreClickUntil = Date.now() + 500;
       };
 
@@ -1781,19 +2223,20 @@ export default {
           return;
         }
         if (this.skipNextTap) return;
-        const zone = zoneFromClientX(event.clientX);
+        const zone = zoneFromSurfaceX(event.clientX);
         if (zone === 'center') {
           handleCenterTap(event);
           return;
         }
         handleEdgeZoneTap(zone, event);
+        peekNavChromeForEdgeTap(event.clientX, zone);
       };
 
       const onDblClick = (event) => {
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
-        const zone = zoneFromClientX(event.clientX);
+        const zone = zoneFromSurfaceX(event.clientX);
         if (zone === 'left' || zone === 'right') {
           this.clearEdgeTapGestureState();
           if (Date.now() - this.edgeSeekAt < 400) {
@@ -1974,7 +2417,7 @@ export default {
         this.applyVideoSwipeTransform();
       }, 240);
     },
-    resetVideoEdgeGestureImmediate() {
+    resetVideoSwipeVisualState() {
       this.clearVideoDismissAnimTimers();
       this.videoSwipeSuppressedTouchId = null;
       this.videoEdgeKind = null;
@@ -1986,14 +2429,17 @@ export default {
       this.videoShowDismissHint = false;
       this.videoGestureSnapBack = false;
       this.videoDismissFlashActive = false;
+      this.applyVideoSwipeTransform();
+      mutations.setNavigationGestureHint({});
+    },
+    resetVideoEdgeGestureImmediate() {
+      this.resetVideoSwipeVisualState();
       this.clearEdgeTapGestureState();
       this.skipNextTap = false;
       if (this.skipNextTapTimer) {
         clearTimeout(this.skipNextTapTimer);
         this.skipNextTapTimer = null;
       }
-      this.applyVideoSwipeTransform();
-      mutations.setNavigationGestureHint({});
     },
     clearVideoDismissAnimTimers() {
       if (this.videoDismissCloseTimer) {
@@ -2013,7 +2459,7 @@ export default {
       const ax0 = Math.abs(this.videoEdgeDx);
       const ay0 = Math.abs(this.videoEdgeDy);
       if (!this.videoEdgeKind && ax0 < 5 && ay0 < 5) {
-        this.resetVideoEdgeGestureImmediate();
+        this.resetVideoSwipeVisualState();
         return;
       }
       let kind = this.videoEdgeKind;
@@ -2197,7 +2643,7 @@ export default {
         const touch = event.targetTouches[0];
         const dx = Math.abs(touch.pageX - this.videoEdgeStartX);
         const dy = Math.abs(touch.pageY - this.videoEdgeStartY);
-        if (dx > 10 || dy > 10) {
+        if (dx > 20 || dy > 20) {
           this.clearLongPressTimer();
           this.longPressPending = false;
           this.clearEdgeTapGestureState();
@@ -2879,8 +3325,12 @@ export default {
   border: 0;
   display: none;
   position: absolute;
-  transition: opacity 0.2s ease-out, visibility 0.2s ease-out, transform 0.3s ease !important;
-  z-index: 2;
+  transition:
+    opacity 0.2s ease-out,
+    visibility 0.2s ease-out,
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
+  z-index: 5;
   height: 4em;
   top: 50%;
   left: 50%;
@@ -2890,6 +3340,10 @@ export default {
   width: 4em !important;
   margin: 0 !important;
   border-radius: 5em !important;
+  pointer-events: auto;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .plyr--fullscreen-active .plyr__control--overlaid {
@@ -2898,42 +3352,54 @@ export default {
   transform: translate(-50%, -50%) !important;
 }
 
-.plyr__control--overlaid:hover {
+.plyr--video .plyr__control--overlaid:hover,
+.plyr--video .plyr__control--overlaid:focus-visible,
+.plyr--fullscreen-active .plyr__control--overlaid:hover,
+.plyr--fullscreen-active .plyr__control--overlaid:focus-visible {
   transform: translate(-50%, -50%) scale(1.05) !important;
+  opacity: 1 !important;
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.9),
+    0 8px 25px rgba(var(--primaryColor-rgb), 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Hide center button while playing unless shown or fading out */
-.plyr--playing:not(.fb-overlaid--shown):not(.fb-overlaid--fade-out)
+.plyr--playing.plyr--hide-controls:not(.fb-overlaid--shown):not(.fb-overlaid--fade-out)
   .plyr__control--overlaid {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
 }
 
-.plyr.fb-overlaid--shown .plyr__control--overlaid {
+.plyr--playing:not(.plyr--hide-controls) .plyr__control--overlaid,
+.plyr--playing.fb-overlaid--shown:not(.fb-overlaid--fade-out) .plyr__control--overlaid {
   opacity: 1 !important;
   visibility: visible !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.3s ease,
+    visibility 0.2s ease-out,
+    box-shadow 0.3s ease !important;
 }
 
 .plyr.fb-overlaid--fade-in .plyr__control--overlaid {
-  animation: fb-overlaid-fade-in 200ms ease-out forwards;
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
 }
 
 .plyr.fb-overlaid--fade-out .plyr__control--overlaid {
   opacity: 0 !important;
   visibility: visible !important;
   pointer-events: none !important;
-  transition: opacity 450ms ease-in !important;
-}
-
-@keyframes fb-overlaid-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
 }
 
 /************

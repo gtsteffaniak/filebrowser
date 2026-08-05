@@ -1013,6 +1013,37 @@ export const mutations = {
     state.navigation.show = show;
     emitStateChanged();
   },
+  /** Briefly reveal prev/next chrome (e.g. edge tap on video while gestures capture the event). */
+  peekNavigationChrome: (side = null) => {
+    if (!state.navigation.enabled) {
+      return;
+    }
+    const queueNav = getters.isPreviewPlaybackQueueNavMode();
+    const hasPrevious = queueNav
+      ? getters.playbackQueueCanGoPrevious()
+      : Boolean(state.navigation.previousLink);
+    const hasNext = queueNav
+      ? getters.playbackQueueCanGoNext()
+      : Boolean(state.navigation.nextLink);
+    if (side === 'left' && !hasPrevious) {
+      return;
+    }
+    if (side === 'right' && !hasNext) {
+      return;
+    }
+    if (!side && !hasPrevious && !hasNext) {
+      return;
+    }
+    mutations.setNavigationShow(true);
+    mutations.clearNavigationTimeout();
+    const hideTimer = setTimeout(() => {
+      if (!state.navigation.hoverNav) {
+        mutations.setNavigationShow(false);
+      }
+      mutations.clearNavigationTimeout();
+    }, 3000);
+    mutations.setNavigationTimeout(hideTimer);
+  },
   setNavigationHover: (hover) => {
     if (state.navigation.hoverNav === hover) {
       return;

@@ -1,5 +1,6 @@
-const FADE_IN_MS = 200;
-const FADE_OUT_MS = 450;
+import { PLYR_CONTROLS_TRANSITION_MS } from '@/plyr/pipSession.js';
+
+const FADE_MS = PLYR_CONTROLS_TRANSITION_MS;
 const REVEAL_AFTER_PLAY_MS = 1000;
 
 const CLASS_SHOWN = 'fb-overlaid--shown';
@@ -100,7 +101,7 @@ export function enableOverlaidHintController({
       plyrEl.classList.remove(CLASS_SHOWN, CLASS_FADE_OUT, CLASS_FADE_IN);
       state = 'hidden';
       fadeTimer = null;
-    }, FADE_OUT_MS);
+    }, FADE_MS);
   };
 
   const show = () => {
@@ -119,10 +120,11 @@ export function enableOverlaidHintController({
     fadeTimer = setTimeout(() => {
       plyrEl.classList.remove(CLASS_FADE_IN);
       fadeTimer = null;
-    }, FADE_IN_MS);
+    }, FADE_MS);
   };
 
   const onControlsShown = () => {
+    suppressUntil = 0;
     show();
   };
 
@@ -142,6 +144,13 @@ export function enableOverlaidHintController({
     }
     setIcon('play');
     suppressUntil = 0;
+    clearFadeTimer();
+    clearFadeOutRaf();
+    state = 'hidden';
+    const plyrEl = getPlyrEl();
+    if (plyrEl) {
+      plyrEl.classList.remove(CLASS_SHOWN, CLASS_FADE_IN, CLASS_FADE_OUT);
+    }
   };
 
   const reset = () => {
