@@ -8,23 +8,15 @@
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
     >
       <!-- Desktop panel button, will auto‑hide only when panel is closed -->
-      <button
-        type="button"
-        v-if="showButtons && previewType === 'audio' && !isMobile"
+      <FloatingButton
+        v-if="previewType === 'audio' && !isMobile"
+        :icon="showDesktopPanel ? 'close' : 'queue_music'"
+        :badge="!showDesktopPanel ? queueCount : null"
+        :auto-hide="!showDesktopPanel"
+        :offset="{ zIndex: 9999 }"
         @click="showDesktopPanel = !showDesktopPanel"
-        @touchstart="resetButtonTimer"
-        @mouseenter="buttonZoneRight = true"
-        @mouseleave="buttonZoneRight = false"
-        class="queue-button floating panel-toggle-fab"
-        :class="{
-          'dark-mode': darkMode,
-        }"
-        :aria-label="showDesktopPanel ? $t('player.closePanel') : $t('player.openPanel')"
-        :title="showDesktopPanel ? $t('player.closePanel') : $t('player.openPanel')"
-      >
-        <i class="material-symbols">{{ showDesktopPanel ? 'close' : 'queue_music' }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <span v-if="!showDesktopPanel && queueCount > 0" class="queue-count">{{ queueCount }}</span>
-      </button>
+        :label="desktopPanelToggleLabel"
+      />
 
       <!-- Two‑column layout -->
         <div class="audio-player-content" :class="{ 'panel-open': !isMobile && showDesktopPanel }" >
@@ -165,79 +157,38 @@
     </div>
 
     <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
-    <div
-      v-if="showRightZone"
-      class="floating-zone floating-zone--right"
-      @mousemove="resetButtonTimer"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-    ></div>
-
-    <!-- Left detection zone – only on mobile audio when lyrics exist -->
-    <div
-      v-if="isMobile && previewType === 'audio' && lyrics.length"
-      class="floating-zone floating-zone--left"
-      @mousemove="resetButtonTimer"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneLeft = true"
-      @mouseleave="buttonZoneLeft = false"
-    ></div>
-
-    <!-- Queue button – visible on videos, in audio on mobile -->
-    <button
-      type="button"
-      v-if="showButtons && showQueueButton"
-      class="queue-button floating"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+    <FloatingButton
+      v-if="showQueueButton"
+      icon="queue_music"
+      :badge="queueCount"
+      group="plyr-controls"
       @click="showQueuePrompt"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-      :aria-label="$t('player.QueueButtonHint')"
-      :title="$t('player.QueueButtonHint')"
-    >
-      <i class="material-symbols">queue_music</i>
-      <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
-    </button>
+      :label="queueButtonLabel"
+    />
 
     <!-- Lyrics button (left side) – only on mobile when lyrics exist -->
-    <button
-      type="button"
-      v-if="showButtons && isMobile && lyrics.length"
-      class="queue-button floating lyrics-fab-left"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+    <FloatingButton
+      v-if="isMobile && lyrics.length"
+      icon="lyrics"
+      position="top-left"
+      zone-height="8.5em"
+      group="plyr-controls"
       @click="showMobileLyrics = !showMobileLyrics"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneLeft = true"
-      @mouseleave="buttonZoneLeft = false"
-      :aria-label="$t('player.toggleLyrics')"
-      :title="$t('player.toggleLyrics')"
-    >
-      <i class="material-symbols">lyrics</i>
-    </button>
+      :label="lyricsToggleLabel"
+    />
 
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
-    <button
-      type="button"
+    <FloatingButton
       v-if="isMobile && previewType === 'audio' && showMobileLyrics && lyrics.length && syncedLyrics"
-      class="queue-button floating lyrics-lock-fab"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+      icon="lock"
+      :icon-outlined="mobileLyricsScrollLocked"
+      position="bottom-right"
+      size="small"
+      :offset="{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }"
+      :auto-hide="false"
       @click="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-      :title="mobileLyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
-    >
-      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-      <i :class="mobileLyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ mobileLyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
-    </button>
+      :label="mobileLyricsLockToggleLabel"
+    />
 
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
@@ -305,6 +256,7 @@ import {
   takeSessionSnapshot,
 } from '@/plyr/pipSession.js';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import FloatingButton from '@/components/FloatingButton.vue';
 import {
   parsePlaybackTimeFromQuery,
   playbackQueryChanged,
@@ -328,6 +280,7 @@ export default {
   components: {
     AudioPanel,
     LoadingSpinner,
+    FloatingButton,
   },
   props: {
     previewType: {
@@ -389,12 +342,6 @@ export default {
       lastAppliedMode: null,
       showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
-
-      // Buttons visibility
-      buttonVisible: false,
-      buttonTimer: null,
-      buttonZoneLeft: false,
-      buttonZoneRight: false,
       isFullscreen: false,
 
       // Gestures
@@ -621,23 +568,17 @@ export default {
     formattedArtist() {
       return formatArtist(this.metadata?.artist);
     },
-    showButtons() {
-      if (this.previewType === 'audio' && !this.isMobile && this.showDesktopPanel) {
-        return true;
-      }
-      if (this.isMobile) {
-        return this.buttonVisible;
-      }
-      return this.buttonVisible || this.buttonZoneLeft || this.buttonZoneRight;
+    desktopPanelToggleLabel() {
+      return this.showDesktopPanel ? this.$t('player.closePanel') : this.$t('player.openPanel');
     },
-    showRightZone() {
-      // show zone only when panel is closed
-      if (this.previewType === 'audio' && !this.isMobile) {
-        return !this.showDesktopPanel;
-      }
-      if (this.previewType === 'video') return true;
-      if (this.isMobile && this.previewType === 'audio') return true;
-      return false;
+    queueButtonLabel() {
+      return this.$t('player.QueueButtonHint');
+    },
+    lyricsToggleLabel() {
+      return this.$t('player.toggleLyrics');
+    },
+    mobileLyricsLockToggleLabel() {
+      return this.mobileLyricsScrollLocked ? this.$t('player.unlockLyrics') : this.$t('player.lockLyrics');
     },
     showQueueButton() {
       if (this.previewType === 'video') {
@@ -866,7 +807,6 @@ export default {
       this.loadAudioMetadata();
     }
     document.addEventListener('keydown', this.handleKeydown);
-    this.resetButtonTimer(); // Show buttons initially
     this.pagehideHandler = (event) => {
       if (event.persisted) return;
       this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
@@ -876,7 +816,6 @@ export default {
   beforeUnmount() {
     // Cleanup timeouts
     [this.toastTimeout,
-    this.buttonTimer,
     this.skipFeedbackTimer,
     this.videoDismissCloseTimer,
     this.videoDismissHintTimer,
@@ -891,20 +830,6 @@ export default {
     window.removeEventListener('pagehide', this.pagehideHandler);
   },
   methods: {
-    resetButtonTimer() {
-      this.buttonVisible = true;
-      if (this.buttonTimer) clearTimeout(this.buttonTimer);
-      this.buttonTimer = setTimeout(() => {
-        if (this.isMobile) {
-          this.buttonVisible = false;
-        } else {
-          if (!this.buttonZoneLeft && !this.buttonZoneRight) {
-            this.buttonVisible = false;
-          }
-        }
-        this.buttonTimer = null;
-      }, 3000);
-    },
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
     subtitleTrackLabel(sub) {
       const ext = getSubtitleFormatExtension(sub?.name || '');
@@ -3912,142 +3837,6 @@ export default {
     height: min(100px, 30vh);
     margin: 0;
     flex-shrink: 0;
-  }
-}
-
-/*******************
-*** QUEUE BUTTON ***
-*******************/
-
-/* Queue detection zone for top-right corner */
-.floating-zone {
-  position: fixed;
-  top: 4em; /* below header */
-  width: 5em;
-  height: 5em;
-  pointer-events: auto;
-  z-index: 1000;
-  background: transparent;
-}
-
-.floating-zone--right {
-  right: 0;
-}
-
-.floating-zone--left {
-  left: 0;
-  height: 8.5em;
-}
-
-.queue-button {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  border: none;
-  border-radius: 50%;
-  background: var(--background);
-  color: var(--textPrimary);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  outline: none;
-  z-index: 9998; /* Make sure it's below prompts but above other content */
-}
-
-/* Desktop panel toggle button */
-.panel-toggle-fab {
-  top: 80px;
-  right: 20px;
-  position: fixed;
-  z-index: 9999;
-}
-
-/* Lyrics floating button */
-.lyrics-fab-left {
-  top: 80px;
-  left: 20px;
-  right: auto;
-}
-
-/* Mobile lyrics scroll-lock FAB – bottom-right above Plyr bar */
-.lyrics-lock-fab {
-  width: 36px;
-  height: 36px;
-  top: auto;
-  left: auto;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
-  right: calc(env(safe-area-inset-right, 0px) + 20px);
-}
-
-.lyrics-lock-fab .material-symbols,
-.lyrics-lock-fab .material-symbols-outlined {
-  font-size: 18px;
-}
-
-.queue-button.dark-mode {
-  background: var(--surfacePrimary);
-}
-
-.queue-button:hover {
-  background: var(--primaryColor);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(var(--primaryColor-rgb), 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
-  color: white;
-}
-
-.queue-button i.material-symbols,
-.queue-button i.material-symbols-outlined {
-  font-size: 24px;
-  transition: transform 0.2s ease;
-}
-
-.queue-button:hover i.material-symbols {
-  transform: scale(1.1);
-}
-
-.queue-button:hover i.material-symbols-outlined {
-  transform: scale(1.1);
-}
-
-.queue-count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--accentColor);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  text-shadow: 
-    0 0 3px rgba(0, 0, 0, 0.9),
-    0 0 5px rgba(0, 0, 0, 0.7),
-    0 0 8px rgba(0, 0, 0, 0.5),
-    0 0 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Smooth show animation for better UX */
-.queue-button:not(.hidden) {
-  animation: queue-button-show 0.4s ease-out;
-}
-
-@keyframes queue-button-show {
-  0% {
-    opacity: 0;
-    transform: translateY(-2px) scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(-2px) scale(1);
   }
 }
 

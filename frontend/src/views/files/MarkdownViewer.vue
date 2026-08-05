@@ -25,6 +25,12 @@
     </div>
     <div v-if="!splitMode && !isHtml" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
   </div>
+  <FloatingButton
+    v-if="!splitMode && showSplitViewToggle"
+    icon="vertical_split"
+    :label="splitViewActionLabel"
+    @click="toggleSplitView"
+  />
 </template>
 
 <script lang="ts">
@@ -37,6 +43,7 @@ import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
+import FloatingButton from "@/components/FloatingButton.vue";
 import {
   buildHtmlPreview,
   buildPreviewResourceUrl,
@@ -151,6 +158,9 @@ function rewriteHtmlBlockForMd(html: string, filePath: string, source: string): 
 
 export default {
   name: "markdownViewer",
+  components: {
+    FloatingButton,
+  },
   props: {
     splitMode: {
       type: Boolean,
@@ -177,6 +187,9 @@ export default {
     };
   },
   methods: {
+    toggleSplitView() {
+      mutations.toggleSplitView();
+    },
     applyHtmlPreviewHeight() {
       const iframe = this.$refs.viewer as HTMLIFrameElement | undefined;
       if (!iframe || !this.isHtml) return;
@@ -694,6 +707,12 @@ export default {
     darkMode() {
       // This computed property returns the current dark mode state.
       return getters.isDarkMode();
+    },
+    showSplitViewToggle() {
+      return getters.showSplitViewToggle();
+    },
+    splitViewActionLabel() {
+      return getters.isSplitViewActive ? this.$t("editor.exitSplitView") : this.$t("editor.splitView");
     },
     isHtml() {
       return isHtmlMimeType(state.req.type);

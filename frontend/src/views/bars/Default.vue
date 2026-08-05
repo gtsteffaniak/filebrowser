@@ -44,15 +44,6 @@
         :disabled="isDisabled"
       />
       <action
-        v-if="showSplitViewToggle"
-        class="split-view-button"
-        :class="{ active: isSplitViewActive }"
-        icon="vertical_split"
-        :label="splitViewActionLabel"
-        @action="toggleSplitView"
-        :disabled="isDisabled"
-      />
-      <action
         v-if="showQuickSave"
         class="save-button"
         id="save-button"
@@ -154,27 +145,15 @@ export default {
     noItems() {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
-    isSplitViewActive() {
-      return state.editor.markdownSplitView && getters.canSplitView();
-    },
-    showSplitViewToggle() {
-      return getters.canSplitView() && getters.isEditorOrMarkdownView() &&
-        (this.isSplitViewActive || getters.permissions().modify);
-    },
-    splitViewActionLabel() {
-      return this.isSplitViewActive
-        ? this.$t("editor.exitSplitView")
-        : this.$t("editor.splitView");
-    },
     showEditButton() {
-      if (this.isSplitViewActive) return false;
+      if (getters.isSplitViewActive) return false;
       if (!state.user?.editButtonInHeader) return false;
       if (getters.currentView() === "editor") return false;
       const allowEdit = getters.permissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
       return isRichTextPreviewMimeType(state.req.type) && allowEdit;
     },
     showPreviewButton() {
-      if (this.isSplitViewActive) return false;
+      if (getters.isSplitViewActive) return false;
       if (!state.user?.editButtonInHeader) return false;
       if (getters.currentView() !== "editor") return false;
       return isRichTextPreviewMimeType(state.req.type);
@@ -262,17 +241,6 @@ export default {
       } else {
         mutations.showPrompt({ name: "OverflowMenu" });
       }
-    },
-    toggleSplitView() {
-      if (state.editor.markdownSplitView && state.editor.dirty) {
-        const hash = window.location.hash;
-        const staysInEditor = hash === "#edit" || (hash !== "#preview" && state.user.preferEditorForMarkdown);
-        if (!staysInEditor) {
-          this.showSaveBeforeExitPrompt(() => mutations.setMarkdownSplitView(false));
-          return;
-        }
-      }
-      mutations.setMarkdownSplitView(!state.editor.markdownSplitView);
     },
     goToEdit() {
       void router.replace({ hash: "#edit" });
@@ -395,11 +363,6 @@ export default {
 header button:hover {
   box-shadow: unset !important;
   -webkit-box-shadow: unset !important;
-}
-
-.split-view-button.active :deep(i) {
-  color: var(--primaryColor);
-  opacity: 65%;
 }
 
 header {

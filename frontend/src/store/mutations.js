@@ -74,6 +74,9 @@ export const mutations = {
     sessionStorage.setItem("markdownSplitView", value ? "true" : "false");
     emitStateChanged();
   },
+  toggleSplitView: () => {
+    mutations.setMarkdownSplitView(!state.editor.markdownSplitView);
+  },
   setEditorScrollRatio: (ratio, source) => {
     state.editor.scrollRatio = ratio;
     state.editor.scrollSource = source;

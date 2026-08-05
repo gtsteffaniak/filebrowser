@@ -614,6 +614,13 @@ export const getters = {
     if (!canEdit) return false;
     return state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
   },
+  isSplitViewActive: () => {
+    return state.editor.markdownSplitView && getters.canSplitView();
+  },
+  showSplitViewToggle: () => {
+    return getters.canSplitView() && getters.isEditorOrMarkdownView() &&
+      (getters.isSplitViewActive() || getters.sourcePermissions().modify);
+  },
   showStatusBar: () => {
     if (getters.isShare() && state.shareInfo.shareType === "upload") {
       return false;
