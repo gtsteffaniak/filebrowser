@@ -66,8 +66,7 @@ server:
   sources:
     - path: "."
 http:
-  trustedHeaders:
-    - X-Forwarded-For
+  trustProxyHeaders: true
   disableRateLimit: true
 `)
 	configFile := filepath.Join(testDir, "config.yaml")
@@ -79,8 +78,8 @@ http:
 		t.Fatalf("error loading config file: %v", err)
 	}
 
-	if len(Config.Http.TrustedHeadersArray) != 1 || Config.Http.TrustedHeadersArray[0] != "X-Forwarded-For" {
-		t.Fatalf("expected trusted headers to contain X-Forwarded-For, got %v", Config.Http.TrustedHeadersArray)
+	if !Config.Http.TrustProxyHeaders {
+		t.Fatal("expected http.trustProxyHeaders to be true")
 	}
 	if !Config.Http.DisableRateLimit {
 		t.Fatal("expected http.disableRateLimit to be true")
@@ -119,37 +118,15 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 	}
 }
 
-func TestMissingOidcTrustedHeaders(t *testing.T) {
-	trusted := map[string]bool{
-		"x-forwarded-proto": true,
-		"x-forwarded-host":  true,
+func TestNeedsSubpathTrustProxyHeadersWarning(t *testing.T) {
+	if !needsSubpathTrustProxyHeadersWarning("/files/", false) {
+		t.Fatal("expected warning for subpath without trustProxyHeaders")
 	}
-	if got := missingOidcTrustedHeaders(trusted); len(got) != 0 {
-		t.Fatalf("expected no missing headers, got %v", got)
-	}
-
-	trusted = map[string]bool{"x-forwarded-proto": true}
-	got := missingOidcTrustedHeaders(trusted)
-	if len(got) != 1 || got[0] != "x-forwarded-host" {
-		t.Fatalf("missingOidcTrustedHeaders() = %v, want [x-forwarded-host]", got)
-	}
-}
-
-func TestNeedsSubpathTrustedHeadersWarning(t *testing.T) {
-	if !needsSubpathTrustedHeadersWarning("/files/", nil) {
-		t.Fatal("expected warning for subpath with empty trustedHeaders")
-	}
-	if needsSubpathTrustedHeadersWarning("/", nil) {
+	if needsSubpathTrustProxyHeadersWarning("/", false) {
 		t.Fatal("expected no warning for root baseURL")
 	}
-	if !needsSubpathTrustedHeadersWarning("/files/", map[string]bool{"x-forwarded-for": true}) {
-		t.Fatal("expected warning when only X-Forwarded-For is configured")
-	}
-	if needsSubpathTrustedHeadersWarning("/files/", map[string]bool{
-		"x-forwarded-proto": true,
-		"x-forwarded-host":  true,
-	}) {
-		t.Fatal("expected no warning when both required headers configured")
+	if needsSubpathTrustProxyHeadersWarning("/files/", true) {
+		t.Fatal("expected no warning when trustProxyHeaders is true")
 	}
 }
 

@@ -12,13 +12,13 @@ func remoteIP(r *http.Request) string {
 	cfg := &settings.Config
 
 	xff := r.Header.Get("X-Forwarded-For")
-	if cfg.Http.TrustedHeaders["x-forwarded-for"] && xff != "" {
+	if cfg.Http.TrustProxyHeaders && xff != "" {
 		ips := strings.Split(xff, ",")
 		return strings.TrimSpace(ips[0])
 	}
 
 	xri := r.Header.Get("X-Real-IP")
-	if cfg.Http.TrustedHeaders["x-real-ip"] && xri != "" {
+	if cfg.Http.TrustProxyHeaders && xri != "" {
 		return xri
 	}
 

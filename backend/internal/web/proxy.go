@@ -30,7 +30,7 @@ func firstForwardedValue(v string) string {
 // requestScheme returns http or https from TLS and optionally trusted X-Forwarded-Proto.
 func requestScheme(r *http.Request) string {
 	cfg := &settings.Config
-	if cfg.Http.TrustedHeaders["x-forwarded-proto"] {
+	if cfg.Http.TrustProxyHeaders {
 		if proto := normalizeHTTPScheme(r.Header.Get("X-Forwarded-Proto")); proto != "" {
 			return proto
 		}
@@ -44,7 +44,7 @@ func requestScheme(r *http.Request) string {
 // requestHost returns the client-facing host, honoring trusted X-Forwarded-Host.
 func requestHost(r *http.Request) string {
 	cfg := &settings.Config
-	if cfg.Http.TrustedHeaders["x-forwarded-host"] {
+	if cfg.Http.TrustProxyHeaders {
 		if h := firstForwardedValue(r.Header.Get("X-Forwarded-Host")); h != "" {
 			return h
 		}
@@ -55,12 +55,10 @@ func requestHost(r *http.Request) string {
 // requestSchemeForPublicURL picks scheme for absolute share URLs (HTTPS default when forwarded host is trusted).
 func requestSchemeForPublicURL(r *http.Request) string {
 	cfg := &settings.Config
-	if cfg.Http.TrustedHeaders["x-forwarded-host"] {
+	if cfg.Http.TrustProxyHeaders {
 		if firstForwardedValue(r.Header.Get("X-Forwarded-Host")) != "" {
-			if cfg.Http.TrustedHeaders["x-forwarded-proto"] {
-				if proto := normalizeHTTPScheme(r.Header.Get("X-Forwarded-Proto")); proto != "" {
-					return proto
-				}
+			if proto := normalizeHTTPScheme(r.Header.Get("X-Forwarded-Proto")); proto != "" {
+				return proto
 			}
 			return "https"
 		}

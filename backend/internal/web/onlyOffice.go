@@ -263,7 +263,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 }
 
 // onlyOfficeFileBrowserBaseURL returns the base URL OnlyOffice uses to reach FileBrowser.
-// Priority: http.internalUrl → http.externalUrl → incoming request (with trustedHeaders).
+// Priority: http.internalUrl → http.externalUrl → incoming request (with trustProxyHeaders).
 func onlyOfficeFileBrowserBaseURL(r *http.Request) string {
 	for _, configured := range []string{
 		settings.Config.Http.InternalUrl,
