@@ -280,6 +280,14 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if getErr != nil {
 			return http.StatusBadRequest, fmt.Errorf("share not found")
 		}
+		updateSourceName := beforeShare.GetSourceName()
+		if updateSourceName != "" {
+			ownerPerms, permErr := d.User.FilePermsForSourceName(updateSourceName)
+			if permErr != nil {
+				return http.StatusForbidden, permErr
+			}
+			share.ClampShareEditable(ownerPerms, &req.ShareEditable)
+		}
 		err = state.UpdateShare(req.Hash, func(link *share.Share) error {
 			shouldResetCounts := link.DownloadsLimit != req.DownloadsLimit ||
 				link.PerUserDownloadLimit != req.PerUserDownloadLimit
@@ -361,6 +369,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if req.ShareType == "upload" && !req.AllowCreate {
 		req.AllowCreate = true
 	}
+	ownerPerms, permErr := d.User.FilePermsForSourceName(source.Name)
+	if permErr != nil {
+		return http.StatusForbidden, permErr
+	}
+	share.ClampShareEditable(ownerPerms, &req.ShareEditable)
 	shareLimits := req.ShareLimits
 	shareLimits.SourceName = source.Name
 

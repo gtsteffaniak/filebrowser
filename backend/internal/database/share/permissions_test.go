@@ -59,3 +59,42 @@ func TestShareFilePermissions(t *testing.T) {
 		t.Fatalf("FilePermissions = %+v, want %+v", got, want)
 	}
 }
+
+func TestClampShareEditable(t *testing.T) {
+	t.Parallel()
+	ownerPerms := users.SourceFilePermissions{
+		View: true, Download: false, Modify: false, Create: true, Delete: false,
+	}
+	editable := ShareEditable{}
+	editable.AllowModify = true
+	editable.AllowCreate = true
+	editable.AllowDelete = true
+	editable.DisableDownload = false
+	editable.DisableFileViewer = false
+	editable.EnableOnlyOffice = true
+
+	ClampShareEditable(ownerPerms, &editable)
+
+	if editable.AllowModify {
+		t.Fatal("expected AllowModify clamped to false")
+	}
+	if !editable.DisableDownload {
+		t.Fatal("expected DisableDownload forced true when owner lacks download")
+	}
+	if editable.AllowCreate != true {
+		t.Fatal("expected AllowCreate to remain true")
+	}
+	if editable.AllowDelete {
+		t.Fatal("expected AllowDelete clamped to false")
+	}
+
+	noView := users.SourceFilePermissions{View: false, Download: true, Modify: true, Create: true, Delete: true}
+	editable2 := ShareEditable{FrontendShareInfo: FrontendShareInfo{EnableOnlyOffice: true}}
+	ClampShareEditable(noView, &editable2)
+	if !editable2.DisableFileViewer {
+		t.Fatal("expected DisableFileViewer when owner lacks view")
+	}
+	if editable2.EnableOnlyOffice {
+		t.Fatal("expected EnableOnlyOffice false when owner lacks view")
+	}
+}

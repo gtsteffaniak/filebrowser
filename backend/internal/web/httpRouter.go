@@ -66,7 +66,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("POST /resources/unarchive", withUser(unarchiveHandler))
 	api.HandleFunc("GET /resources/download", withUser(downloadHandler))
 	api.HandleFunc("POST /resources/view-token", withOrWithoutUser(viewTokenHandler))
-	api.HandleFunc("GET /resources/view", withTimeout(time60s, withUserHelper(viewHandler)))
+	api.HandleFunc("GET /resources/view", withTimeout(time60s, withOfficeUserHelper(viewHandler)))
 	api.HandleFunc("GET /resources/preview", withTimeout(time30s, withUserHelper(previewHandler)))
 	api.HandleFunc("POST /resources/pause", withUser(resourcePauseHandler))
 	publicApi.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
@@ -151,10 +151,10 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// OnlyOffice Routes - /api/office/ (with public routes)
 	// ========================================
 	api.HandleFunc("GET /office/config", withUser(onlyofficeClientConfigGetHandler))
-	api.HandleFunc("POST /office/callback", withUser(onlyofficeCallbackHandler))
-	api.HandleFunc("GET /office/callback", withUser(onlyofficeCallbackHandler))
-	publicApi.HandleFunc("POST /office/callback", withHashFile(onlyofficeCallbackHandler))
-	publicApi.HandleFunc("GET /office/callback", withHashFile(onlyofficeCallbackHandler))
+	api.HandleFunc("POST /office/callback", withOfficeUser(onlyofficeCallbackHandler))
+	api.HandleFunc("GET /office/callback", withOfficeUser(onlyofficeCallbackHandler))
+	publicApi.HandleFunc("POST /office/callback", withHashFile(withOfficeUserHelper(onlyofficeCallbackHandler)))
+	publicApi.HandleFunc("GET /office/callback", withHashFile(withOfficeUserHelper(onlyofficeCallbackHandler)))
 	publicApi.HandleFunc("GET /office/config", withHashFile(onlyofficeClientConfigGetHandler))
 
 	// ========================================

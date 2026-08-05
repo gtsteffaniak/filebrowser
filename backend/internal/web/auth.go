@@ -76,6 +76,36 @@ func ExtractToken(r *http.Request) (string, error) {
 	return "", request.ErrNoTokenInRequest
 }
 
+// ExtractTokenPreferQueryAuth returns a FileBrowser session JWT for server-to-server calls
+// where OnlyOffice may also send its own JWT in Authorization (GitHub #2715).
+// Prefers ?auth= and session cookie; ignores Authorization.
+func ExtractTokenPreferQueryAuth(r *http.Request) (string, error) {
+	hasToken := false
+
+	auth := r.URL.Query().Get("auth")
+	if auth != "" {
+		hasToken = true
+		if strings.Count(auth, ".") == 2 {
+			return auth, nil
+		}
+	}
+
+	tokenObj, err := r.Cookie("filebrowser_quantum_jwt")
+	if err == nil {
+		hasToken = true
+		token := tokenObj.Value
+		if token != "" && strings.Count(token, ".") == 2 {
+			return token, nil
+		}
+	}
+
+	if hasToken {
+		return "", fmt.Errorf("invalid token provided")
+	}
+
+	return "", request.ErrNoTokenInRequest
+}
+
 // getOrCreateAuthenticatedUser is a common helper for retrieving or auto-creating users
 // across different authentication methods (proxy, JWT, LDAP, OIDC)
 func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string) (*users.User, error) {

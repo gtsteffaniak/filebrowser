@@ -53,6 +53,52 @@ func TestOnlyOfficeClientConfigDeniedWithoutView(t *testing.T) {
 	}
 }
 
+func TestBuildOnlyOfficeViewURL(t *testing.T) {
+	origHTTP := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = origHTTP })
+	settings.Config.Http.InternalUrl = "http://filebrowser:8080"
+	settings.Config.Http.BaseURL = "/testing/"
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	got := buildOnlyOfficeViewURL(req, "Downloads", "/doc.docx", "", "view-token", "session.jwt.token")
+	want := "http://filebrowser:8080/testing/api/resources/view?auth=session.jwt.token&file=%2Fdoc.docx&source=Downloads&viewToken=view-token"
+	if got != want {
+		t.Fatalf("buildOnlyOfficeViewURL() = %q, want %q", got, want)
+	}
+
+	shareGot := buildOnlyOfficeViewURL(req, "Downloads", "/doc.docx", "share-hash", "view-token", "session.jwt.token")
+	shareWant := "http://filebrowser:8080/testing/public/api/resources/view?file=%2Fdoc.docx&hash=share-hash&viewToken=view-token"
+	if shareGot != shareWant {
+		t.Fatalf("buildOnlyOfficeViewURL(share) = %q, want %q", shareGot, shareWant)
+	}
+}
+
+func TestOnlyOfficeUsesIndexedViewGrant(t *testing.T) {
+	initStreamTestSources(t)
+
+	user := testUserWithView(42, "default")
+	d := &requestContext{User: user}
+
+	token1, err := mintViewGrant(d, "default")
+	if err != nil {
+		t.Fatalf("mintViewGrant: %v", err)
+	}
+	token2, err := mintViewGrant(d, "default")
+	if err != nil {
+		t.Fatalf("mintViewGrant second: %v", err)
+	}
+	if token1 != token2 {
+		t.Fatalf("expected same indexed token, got %q and %q", token1, token2)
+	}
+	grant, ok := utils.ViewGrantsCache.Get(token1)
+	if !ok {
+		t.Fatal("grant not in cache")
+	}
+	if grant.Source != "default" {
+		t.Fatalf("grant.Source = %q, want default", grant.Source)
+	}
+}
+
 func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 	orig := settings.Config.Integrations.OnlyOffice
 	t.Cleanup(func() {

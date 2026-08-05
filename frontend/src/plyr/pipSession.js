@@ -73,7 +73,7 @@ function releasePipMediaFromHost(media) {
       // ignore
     }
   }
-  if (pipSessionHost && pipSessionHost.childElementCount === 0) {
+  if (pipSessionHost?.childElementCount === 0) {
     try {
       pipSessionHost.remove();
     } catch (_) {

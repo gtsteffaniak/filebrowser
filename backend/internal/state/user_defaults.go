@@ -30,9 +30,6 @@ var (
 func InitUserDefaultsSettings() error {
 	seed := settings.Config.UserDefaults
 	_, existingDefaultsErr := sqlDb.GetSetting(userDefaultsDefaultSettingKey)
-	if settings.Env.ConfigUserDefaultsSpecified && existingDefaultsErr == nil {
-		logger.Warning("userDefaults in the config file is deprecated; manage defaults in Settings → Users → User defaults. Values in the database are authoritative after the initial seed.")
-	}
 
 	if existingDefaultsErr != nil {
 		if err := sqlDb.SaveSetting(userDefaultsDefaultSettingKey, seed); err != nil {

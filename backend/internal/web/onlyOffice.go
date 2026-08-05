@@ -161,23 +161,16 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	// Determine file type and editing permissions
 	fileType := strings.TrimPrefix(filepath.Ext(d.FileInfo.Name), ".")
 
-	// Determine modify permissions based on whether this is a share or regular request
-	var modifyPerms bool
-	if d.FileInfo.Hash != "" && d.Share.Hash != "" {
-		if d.Share.DisableFileViewer {
-			return http.StatusForbidden, fmt.Errorf("file viewer disabled for this share")
-		}
-		modifyPerms = d.Share.AllowModify
-	} else {
-		filePerms, permErr := effectiveFilePerms(d, source)
-		if permErr != nil {
-			return http.StatusForbidden, permErr
-		}
-		if !filePerms.View {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
-		}
-		modifyPerms = filePerms.Modify
+	filePerms, permErr := effectiveFilePerms(d, source)
+	if permErr != nil {
+		return http.StatusForbidden, permErr
 	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
+	modifyPerms := filePerms.Modify
+	allowDownload := filePerms.Download
+	allowPrint := filePerms.View
 
 	canEdit := iteminfo.CanEditOnlyOffice(modifyPerms, fileType)
 	canEditMode := utils.Ternary(canEdit, "edit", "view")
@@ -213,8 +206,15 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	// Send initial log event with detailed path information
 	SendOnlyOfficeLogEvent(logContext, "INFO", "config", fmt.Sprintf("OnlyOffice session started for document: %s ", path))
 
-	// Build download URL that OnlyOffice server will use
-	downloadURL := buildOnlyOfficeDownloadURL(r, source, providedPath, d.FileInfo.Hash, d.Token)
+	// Mint source-scoped view grant for OnlyOffice document fetch (viewing, not download)
+	viewToken, err := mintViewGrant(d, source)
+	if err != nil {
+		logger.Errorf("OnlyOffice: failed to mint view grant: %v", err)
+		return http.StatusForbidden, err
+	}
+
+	// Build view URL that OnlyOffice server will use to fetch the file
+	documentURL := buildOnlyOfficeViewURL(r, source, providedPath, d.FileInfo.Hash, viewToken, d.Token)
 
 	// Build callback URL for OnlyOffice to notify us of changes
 	callbackURL := buildOnlyOfficeCallbackURL(r, source, providedPath, d.FileInfo.Hash, d.Token)
@@ -225,11 +225,11 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"fileType": fileType,
 			"key":      documentId,
 			"title":    d.FileInfo.Name,
-			"url":      downloadURL,
+			"url":      documentURL,
 			"permissions": map[string]interface{}{
 				"edit":     utils.Ternary(settings.Config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),
-				"download": true,
-				"print":    true,
+				"download": allowDownload,
+				"print":    allowPrint,
 			},
 		},
 		"editorConfig": map[string]interface{}{
@@ -284,18 +284,19 @@ func onlyOfficeFileBrowserBaseURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Http.BaseURL)
 }
 
-// buildOnlyOfficeDownloadURL constructs the download URL that OnlyOffice server will use to fetch the file
-func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token string) string {
-	baseURL := onlyOfficeFileBrowserBaseURL(r)
-
-	escapedPath := url.QueryEscape(path)
-	downloadURL := fmt.Sprintf("%s/api/resources/download?file=%s&auth=%s&source=%s",
-		strings.TrimSuffix(baseURL, "/"), escapedPath, token, url.QueryEscape(source))
+// buildOnlyOfficeViewURL constructs the view URL that OnlyOffice server uses to fetch the document.
+func buildOnlyOfficeViewURL(r *http.Request, source, path, hash, viewToken, authToken string) string {
+	baseURL := strings.TrimSuffix(onlyOfficeFileBrowserBaseURL(r), "/")
+	params := url.Values{}
+	params.Set("file", path)
+	params.Set("viewToken", viewToken)
 	if hash != "" {
-		downloadURL = fmt.Sprintf("%s/public/api/resources/download?file=%s&auth=%s&hash=%s",
-			strings.TrimSuffix(baseURL, "/"), escapedPath, token, hash)
+		params.Set("hash", hash)
+		return fmt.Sprintf("%s/public/api/resources/view?%s", baseURL, params.Encode())
 	}
-	return downloadURL
+	params.Set("source", source)
+	params.Set("auth", authToken)
+	return fmt.Sprintf("%s/api/resources/view?%s", baseURL, params.Encode())
 }
 
 // buildOnlyOfficeCallbackURL constructs the callback URL that OnlyOffice server will use to notify us of changes
@@ -546,19 +547,12 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 			return returnOnlyOfficeSuccess(w, r)
 		}
 
-		// Check share permissions first if this is a share request
-		if d.Share.Hash != "" {
-			if !d.Share.AllowModify {
-				logger.Errorf("OnlyOffice callback: edit permission not allowed for this share")
-				return returnOnlyOfficeError(w, r, 403, "edit permission not allowed for this share")
-			}
-		} else {
-			filePerms, permErr := effectiveFilePerms(d, source)
-			if permErr != nil || !filePerms.Modify {
-				logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for source=%s path=%s",
-					d.User.Username, source, path)
-				return returnOnlyOfficeError(w, r, 403, "user lacks modify permissions")
-			}
+		// Check modify permission for save operations
+		filePerms, permErr := effectiveFilePerms(d, source)
+		if permErr != nil || !filePerms.Modify {
+			logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for source=%s path=%s",
+				user.Username, source, path)
+			return returnOnlyOfficeError(w, r, 403, "user lacks modify permissions")
 		}
 
 		downloadURL := resolveOnlyOfficeDownloadURL(data.URL)
