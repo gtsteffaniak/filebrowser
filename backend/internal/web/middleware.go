@@ -329,7 +329,7 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 	}
 }
 
-// allow user without OTP to pass
+// LoginHelper authenticates login/signup requests. When disableOtp is false, users with TOTPSecret must supply X-Secret.
 func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if settings.Config.Auth.Methods.ProxyAuth.Enabled {
@@ -376,7 +376,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 			logger.Debug("ldap auth failed, calling password auth", err)
 		}
 		if settings.Config.Auth.Methods.PasswordAuth.Enabled {
-			user, err := auth.AuthenticatePassword(r, true)
+			user, err := auth.AuthenticatePassword(r, disableOtp)
 			if err != nil {
 				logger.Debug("password auth failed, calling handler:", err)
 				if err == errors.ErrNoTotpProvided {
