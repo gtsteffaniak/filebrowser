@@ -130,7 +130,9 @@ func TestUpdateUserFullPatchPreservesTOTPSecret(t *testing.T) {
 	u := &users.User{
 		FrontendUser: users.FrontendUser{
 			Username: "alice",
-			Locale:   "en",
+			NonAdminEditable: users.NonAdminEditable{
+				Locale: "en",
+			},
 		},
 	}
 	if err = CreateUser(u, "password"); err != nil {
@@ -147,8 +149,10 @@ func TestUpdateUserFullPatchPreservesTOTPSecret(t *testing.T) {
 		ID: u.ID,
 		FrontendUser: users.FrontendUser{
 			Username:   "alice",
-			Locale:   "de",
 			OtpEnabled: true,
+			NonAdminEditable: users.NonAdminEditable{
+				Locale: "de",
+			},
 		},
 	}
 	if err = UpdateUser(patch, "", "all"); err != nil {
