@@ -211,8 +211,7 @@ func TestOnlyOfficeFileBrowserBaseURL(t *testing.T) {
 		reqHost       string
 		forwardedHost string
 		reqProto      string
-		trustedProto  bool
-		trustedHost   bool
+		trustProxy     bool
 		want          string
 	}{
 		{
@@ -227,26 +226,32 @@ func TestOnlyOfficeFileBrowserBaseURL(t *testing.T) {
 			want:        "https://files.example.com/files/",
 		},
 		{
-			name:         "request fallback with trusted headers",
-			reqHost:      "proxy.local",
-			reqProto:     "https",
-			trustedProto: true,
-			trustedHost:  true,
-			want:         "https://proxy.local/files/",
+			name:       "request fallback with trustProxyHeaders",
+			reqHost:    "proxy.local",
+			reqProto:   "https",
+			trustProxy: true,
+			want:       "https://proxy.local/files/",
 		},
 		{
-			name:    "ignores untrusted forwarded host",
-			reqHost: "internal.local:8080",
+			name:          "ignores untrusted forwarded host",
+			reqHost:       "internal.local:8080",
 			forwardedHost: "evil.example.com",
-			want:  "http://internal.local:8080/files/",
+			want:          "http://internal.local:8080/files/",
 		},
 		{
-			name:          "trusted host defaults to https without trusted proto",
+			name:          "trusted host without proto defaults to https",
+			reqHost:       "internal.local:8080",
+			forwardedHost: "public.example.com",
+			trustProxy:    true,
+			want:          "https://public.example.com/files/",
+		},
+		{
+			name:          "trusted host with proto honors proto",
 			reqHost:       "internal.local:8080",
 			forwardedHost: "public.example.com",
 			reqProto:      "http",
-			trustedHost:   true,
-			want:          "https://public.example.com/files/",
+			trustProxy:    true,
+			want:          "http://public.example.com/files/",
 		},
 	}
 
@@ -254,13 +259,7 @@ func TestOnlyOfficeFileBrowserBaseURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			settings.Config.Http.InternalUrl = tt.internalURL
 			settings.Config.Http.ExternalUrl = tt.externalURL
-			settings.Config.Http.TrustedHeaders = map[string]bool{}
-			if tt.trustedProto {
-				settings.Config.Http.TrustedHeaders["x-forwarded-proto"] = true
-			}
-			if tt.trustedHost {
-				settings.Config.Http.TrustedHeaders["x-forwarded-host"] = true
-			}
+			settings.Config.Http.TrustProxyHeaders = tt.trustProxy
 
 			req := httptest.NewRequest(http.MethodGet, "/files/", nil)
 			req.Host = tt.reqHost
@@ -269,7 +268,7 @@ func TestOnlyOfficeFileBrowserBaseURL(t *testing.T) {
 			}
 			if fh := tt.forwardedHost; fh != "" {
 				req.Header.Set("X-Forwarded-Host", fh)
-			} else if tt.reqHost != "" && tt.trustedHost {
+			} else if tt.reqHost != "" && tt.trustProxy {
 				req.Header.Set("X-Forwarded-Host", tt.reqHost)
 			}
 

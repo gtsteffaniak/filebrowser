@@ -206,15 +206,12 @@ func TestUserInfoUnmarshaller_InvalidJSON(t *testing.T) {
 	}
 }
 
-func TestOidcRedirectURLTrustedHeaders(t *testing.T) {
+func TestOidcRedirectURLTrustProxyHeaders(t *testing.T) {
 	settings.Config.Http.BaseURL = "/"
-	settings.Config.Http.TrustedHeaders = map[string]bool{
-		"x-forwarded-proto": true,
-		"x-forwarded-host":  true,
-	}
+	settings.Config.Http.TrustProxyHeaders = true
 	t.Cleanup(func() {
 		settings.Config.Http.BaseURL = "/"
-		settings.Config.Http.TrustedHeaders = nil
+		settings.Config.Http.TrustProxyHeaders = false
 	})
 
 	req := httptest.NewRequest("GET", "http://127.0.0.1:8080/api/auth/oidc/login", nil)
@@ -229,12 +226,12 @@ func TestOidcRedirectURLTrustedHeaders(t *testing.T) {
 	}
 }
 
-func TestOidcRedirectURLWithoutTrustedHeaders(t *testing.T) {
+func TestOidcRedirectURLWithoutTrustProxyHeaders(t *testing.T) {
 	settings.Config.Http.BaseURL = "/files/"
-	settings.Config.Http.TrustedHeaders = nil
+	settings.Config.Http.TrustProxyHeaders = false
 	t.Cleanup(func() {
 		settings.Config.Http.BaseURL = "/"
-		settings.Config.Http.TrustedHeaders = nil
+		settings.Config.Http.TrustProxyHeaders = false
 	})
 
 	req := httptest.NewRequest("GET", "http://filebrowser.example.com/files/api/auth/oidc/login", nil)

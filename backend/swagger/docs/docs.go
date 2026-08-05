@@ -5700,12 +5700,9 @@ const docTemplate = `{
                     "description": "path to TLS key",
                     "type": "string"
                 },
-                "trustedHeaders": {
-                    "description": "headers to trust behind a reverse proxy: X-Forwarded-For, X-Real-IP, X-Forwarded-Proto, X-Forwarded-Host",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "trustProxyHeaders": {
+                    "description": "honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)",
+                    "type": "boolean"
                 }
             }
         },
