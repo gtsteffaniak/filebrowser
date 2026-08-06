@@ -657,6 +657,7 @@ export default {
         scopes: this.normalizeScopesForCompare(this.buildScopesPayload()),
         loginMethod: this.user.loginMethod ?? null,
         locale: this.user.locale ?? "",
+        otpEnabled: !!this.user.otpEnabled,
         lockPassword: !!this.user.lockPassword,
         disableSettings: !!this.user.disableSettings,
         disableUpdateNotifications: !!this.user.disableUpdateNotifications,
@@ -683,6 +684,9 @@ export default {
       }
       if (current.locale !== orig.locale) {
         fields.push("locale");
+      }
+      if (current.otpEnabled !== orig.otpEnabled) {
+        fields.push("otpEnabled");
       }
       if (current.lockPassword !== orig.lockPassword) {
         fields.push("lockPassword");

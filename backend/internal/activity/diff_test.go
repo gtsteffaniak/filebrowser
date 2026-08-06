@@ -141,6 +141,35 @@ func TestUserUpdateChangesExpandsNestedStructFields(t *testing.T) {
 	}
 }
 
+type activityChangePair struct {
+	from string
+	to   string
+}
+
+func testDownloadsSourceConfig() *users.SourceConfigProvider {
+	return &users.SourceConfigProvider{
+		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
+			switch path {
+			case "/Users/steffag/Downloads":
+				return users.SourceInfo{Path: path, Name: "Downloads"}, true
+			case "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files":
+				return users.SourceInfo{Path: path, Name: "access"}, true
+			default:
+				return users.SourceInfo{}, false
+			}
+		},
+	}
+}
+
+func withTestSourceConfig(t *testing.T, provider *users.SourceConfigProvider) {
+	t.Helper()
+	previous := users.GetSourceConfig()
+	users.SetSourceConfig(provider)
+	t.Cleanup(func() {
+		users.SetSourceConfig(previous)
+	})
+}
+
 func TestUserUpdateChangesExpandsPreviewBulkToggle(t *testing.T) {
 	before := &users.User{
 		FrontendUser: users.FrontendUser{
@@ -161,6 +190,7 @@ func TestUserUpdateChangesExpandsPreviewBulkToggle(t *testing.T) {
 		},
 	}
 	after := *before
+	after.Preview.DisableHideSidebar = true
 	after.Preview.Image = false
 	after.Preview.Video = false
 	after.Preview.Audio = false
@@ -172,38 +202,32 @@ func TestUserUpdateChangesExpandsPreviewBulkToggle(t *testing.T) {
 	after.Preview.Models = false
 
 	changes := UserUpdateChanges(before, &after, []string{"preview"}, false)
-	if len(changes) != 8 {
-		t.Fatalf("expected 8 preview field changes, got %d: %#v", len(changes), changes)
+	if len(changes) != 10 {
+		t.Fatalf("expected 10 preview field changes, got %d: %#v", len(changes), changes)
 	}
+	foundDisableHide := false
 	for _, c := range changes {
-		if c.From != "true" || c.To != "false" {
-			t.Fatalf("expected true -> false, got %#v", c)
-		}
 		if !strings.HasPrefix(c.Field, "preview.") {
 			t.Fatalf("expected preview.* field, got %q", c.Field)
 		}
+		if c.Field == "preview.disableHideSidebar" {
+			foundDisableHide = true
+			if c.From != "false" || c.To != "true" {
+				t.Fatalf("unexpected preview.disableHideSidebar change: %#v", c)
+			}
+			continue
+		}
+		if c.From != "true" || c.To != "false" {
+			t.Fatalf("expected true -> false, got %#v", c)
+		}
+	}
+	if !foundDisableHide {
+		t.Fatal("expected preview.disableHideSidebar change")
 	}
 }
 
 func TestUserUpdateChangesExpandsBackendSourcePermissions(t *testing.T) {
-	hadSourceConfig := users.SourceConfigLoaded()
-	t.Cleanup(func() {
-		if !hadSourceConfig {
-			users.SetSourceConfig(nil)
-		}
-	})
-	users.SetSourceConfig(&users.SourceConfigProvider{
-		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
-			switch path {
-			case "/Users/steffag/Downloads":
-				return users.SourceInfo{Path: path, Name: "Downloads"}, true
-			case "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files":
-				return users.SourceInfo{Path: path, Name: "access"}, true
-			default:
-				return users.SourceInfo{}, false
-			}
-		},
-	})
+	withTestSourceConfig(t, testDownloadsSourceConfig())
 
 	downloadsPath := "/Users/steffag/Downloads"
 	accessPath := "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files"
@@ -248,24 +272,7 @@ func TestUserUpdateChangesExpandsBackendSourcePermissions(t *testing.T) {
 }
 
 func TestUserUpdateChangesExpandsScopePermissions(t *testing.T) {
-	hadSourceConfig := users.SourceConfigLoaded()
-	t.Cleanup(func() {
-		if !hadSourceConfig {
-			users.SetSourceConfig(nil)
-		}
-	})
-	users.SetSourceConfig(&users.SourceConfigProvider{
-		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
-			switch path {
-			case "/Users/steffag/Downloads":
-				return users.SourceInfo{Path: path, Name: "Downloads"}, true
-			case "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files":
-				return users.SourceInfo{Path: path, Name: "access"}, true
-			default:
-				return users.SourceInfo{}, false
-			}
-		},
-	})
+	withTestSourceConfig(t, testDownloadsSourceConfig())
 
 	downloadsPath := "/Users/steffag/Downloads"
 	accessPath := "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files"
@@ -342,19 +349,8 @@ func TestShareUpdateChangesLogsChangedAttributes(t *testing.T) {
 	}
 }
 
-type activityChangePair struct {
-	from string
-	to   string
-}
-
 func TestSidebarLinksFieldChangeIgnoresPathVsName(t *testing.T) {
-	hadSourceConfig := users.SourceConfigLoaded()
-	t.Cleanup(func() {
-		if !hadSourceConfig {
-			users.SetSourceConfig(nil)
-		}
-	})
-	users.SetSourceConfig(&users.SourceConfigProvider{
+	withTestSourceConfig(t, &users.SourceConfigProvider{
 		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
 			switch path {
 			case "/Users/steffag/Downloads":

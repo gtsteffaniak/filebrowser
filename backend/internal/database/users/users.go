@@ -305,6 +305,11 @@ func SetSourceConfig(config *SourceConfigProvider) {
 	sourceConfig = config
 }
 
+// GetSourceConfig returns the current source configuration provider, or nil if unset.
+func GetSourceConfig() *SourceConfigProvider {
+	return sourceConfig
+}
+
 // SourceConfigLoaded reports whether SetSourceConfig has been called (needed for ResolveSourceKey).
 func SourceConfigLoaded() bool {
 	return sourceConfig != nil
