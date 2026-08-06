@@ -14,8 +14,8 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -326,7 +326,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		}
 		changes := activity.ShareUpdateChanges(&beforeShare, &updatedShare)
 		host, scheme := shareURLParams(r)
-	prepared := state.PrepShareForFrontend(d.User, r, host, scheme, updatedShare)
+		prepared := state.PrepShareForFrontend(d.User, r, host, scheme, updatedShare)
 		if prepared == nil {
 			return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 		}
@@ -398,7 +398,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	s.FaviconUrl = ""
 	s.BannerUrl = ""
 	s.FrontendShareInfo.SourceURL = ""
-	s.FrontendShareInfo.HasPassword = false
+	s.FrontendShareInfo.HasPassword = stringHash != ""
 	s.CanEditShare = false
 	s.SingleFileShare = false
 
@@ -683,12 +683,16 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if link.Category == "download" && frontendShareInfo.ShareType == "upload" {
 			continue
 		}
+		if link.Category == "download" && frontendShareInfo.DisableDownload {
+			continue
+		}
 		filtered = append(filtered, link)
 	}
 	frontendShareInfo.SidebarLinks = filtered
 	frontendShareInfo.SourceURL = shareInfo.SourceURL(d.User)
 	frontendShareInfo.CanEditShare = shareInfo.UserCanEdit(d.User)
 	frontendShareInfo.SingleFileShare = shareInfo.IsSingleFileShare()
+	frontendShareInfo.HasPassword = shareInfo.HasPassword()
 	if frontendShareInfo.SourceURL != "" {
 		frontendShareInfo.SidebarLinks = append(frontendShareInfo.SidebarLinks, users.SidebarLink{
 			Name:     "sourceLocation",

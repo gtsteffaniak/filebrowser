@@ -90,13 +90,9 @@ export async function signalUploadPause(source, path, shareHash) {
     const apiPath = getPublicApiPath('resources/pause', {
       hash: shareHash,
       path: path,
+      ...sharePublicAuthQuery(shareHash),
     })
-    const headers = {}
-    const sharePassword = localStorage.getItem(`sharepass:${shareHash}`)
-    if (sharePassword) {
-      headers['X-SHARE-PASSWORD'] = sharePassword
-    }
-    await fetchURL(apiPath, { method: 'POST', headers })
+    await fetchURL(apiPath, { method: 'POST', headers: sharePublicAuthHeaders(shareHash) })
     return
   }
   if (!source || source === undefined || source === null) {
@@ -1046,6 +1042,25 @@ export async function unarchive(opts) {
 // PUBLIC API ENDPOINTS (hash-based authentication)
 // ============================================================================
 
+function getSharePasswordFromStorage(hash) {
+  return localStorage.getItem(`sharepass:${hash}`) || "";
+}
+
+function sharePublicAuthQuery(hash) {
+  if (state.shareInfo?.hash === hash && state.shareInfo.token) {
+    return { token: state.shareInfo.token };
+  }
+  return {};
+}
+
+function sharePublicAuthHeaders(hash) {
+  const password = getSharePasswordFromStorage(hash);
+  if (!password) {
+    return {};
+  }
+  return { "X-SHARE-PASSWORD": password };
+}
+
 // Fetch public share data
 /**
  * @param {string} path
@@ -1100,9 +1115,9 @@ export async function getItemsPublic(hash, path, only = "") {
       path: path,
       hash: hash,
       ...(only && { only: only }),
-      ...(state.shareInfo.token && { token: state.shareInfo.token })
+      ...sharePublicAuthQuery(hash),
     })
-    const response = await fetch(apiPath)
+    const response = await fetch(apiPath, { headers: sharePublicAuthHeaders(hash) })
     const data = await response.json()
     return data
   } catch (err) {
@@ -1164,16 +1179,14 @@ export function postPublic(
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
   }
-  const sharePassword = localStorage.getItem(`sharepass:${hash}`);
-  if (sharePassword) {
-    headers["X-SHARE-PASSWORD"] = sharePassword;
-  }
+  Object.assign(headers, sharePublicAuthHeaders(hash));
   try {
     const apiPath = getPublicApiPath("resources", {
       path: path,
       hash: hash,
       override: overwrite,
-      ...(isDir && { isDir: 'true' })
+      ...(isDir && { isDir: 'true' }),
+      ...sharePublicAuthQuery(hash),
     });
 
     const request = new XMLHttpRequest();
@@ -1255,12 +1268,13 @@ export function postPublic(
 
 async function resourceActionPublic(hash, path, method, content, token = "") {
   try {
-    const headers = {};
-    const sharePassword = localStorage.getItem(`sharepass:${hash}`);
-    if (sharePassword) {
-      headers["X-SHARE-PASSWORD"] = sharePassword;
-    }
-    const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
+    const headers = sharePublicAuthHeaders(hash);
+    const apiPath = getPublicApiPath('resources', {
+      path,
+      hash: hash,
+      ...(token && { token }),
+      ...sharePublicAuthQuery(hash),
+    })
     const response = await fetch(apiPath, {
       method,
       body: content,
@@ -1303,7 +1317,7 @@ export async function bulkDeletePublic(items) {
 
   const params = {
     hash: hash,
-    ...(state.shareInfo.token && { token: state.shareInfo.token }),
+    ...sharePublicAuthQuery(hash),
     sessionId: state.sessionId
   }
   const apiPath = getPublicApiPath("resources/bulk", params)
@@ -1314,6 +1328,7 @@ export async function bulkDeletePublic(items) {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        ...sharePublicAuthHeaders(hash),
       },
       credentials: 'same-origin',
       body: JSON.stringify(items),

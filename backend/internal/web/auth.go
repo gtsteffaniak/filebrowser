@@ -405,11 +405,17 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 				return 200, nil
 			}
 		}
+		logger.Debugf("share auth failed: hash=%s reason=invalid_token", l.Hash)
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")
+	if password == "" {
+		logger.Debugf("share auth failed: hash=%s reason=missing_password", l.Hash)
+		return http.StatusUnauthorized, nil
+	}
 	if err := bcrypt.CompareHashAndPassword([]byte(l.PasswordHash), []byte(password)); err != nil {
 		if libError.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			logger.Debugf("share auth failed: hash=%s reason=wrong_password", l.Hash)
 			return http.StatusUnauthorized, nil
 		}
 		return 401, err
