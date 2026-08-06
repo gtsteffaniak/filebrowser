@@ -11,7 +11,7 @@ on:
 jobs:
   promote-beta-to-stable:
     name: Promote Beta to Stable
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Check out repository
