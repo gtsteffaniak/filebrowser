@@ -375,24 +375,13 @@ export default {
                 await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
                 // If we get here, password is valid (unlikely for upload shares, but handle it)
                 mutations.setShareData({ passwordValid: true });
-                this.persistVerifiedSharePassword();
                 this.error = null; // Clear any previous errors
               } catch (e) {
                 // 501 means browsing is disabled for upload shares - this is expected and means auth succeeded
                 if (e.status === 501) {
-                  // Password is valid, mark as validated
                   mutations.setShareData({ passwordValid: true });
-                  this.persistVerifiedSharePassword();
                   this.error = null; // Clear any previous errors
-                } else if (e.status === 401) {
-                  // Password is invalid, show prompt
-                  this.clearStoredSharePassword(state.shareInfo.hash);
-                  this.attemptedPasswordLogin = true;
-                  mutations.setShareData({ passwordValid: false });
-                  this.showPasswordPrompt();
-                  return;
                 } else {
-                  // For other errors, re-throw to be handled by outer catch
                   throw e;
                 }
               }
@@ -407,25 +396,9 @@ export default {
           // For regular shares, validate password on startup (similar to upload shares)
           if (state.shareInfo.hasPassword) {
             mutations.setShareData({ passwordValid: false });
-            try {
-              await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
-              // Password is valid
-              mutations.setShareData({ passwordValid: true });
-              this.persistVerifiedSharePassword();
-              this.error = null; // Clear any previous errors
-            } catch (e) {
-              if (e.status === 401) {
-                // Password is invalid, show prompt
-                this.clearStoredSharePassword(state.shareInfo.hash);
-                this.attemptedPasswordLogin = true;
-                mutations.setShareData({ passwordValid: false });
-                this.showPasswordPrompt();
-                return;
-              } else {
-                // For other errors, re-throw to be handled by outer catch
-                throw e;
-              }
-            }
+            await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+            mutations.setShareData({ passwordValid: true });
+            this.error = null; // Clear any previous errors
           } else {
             // No password required, mark as validated
             mutations.setShareData({ passwordValid: true });
@@ -535,12 +508,11 @@ export default {
       this.lastPath = state.route.path;
     },
 
-    persistVerifiedSharePassword() {
-      const hash = state.shareInfo?.hash;
-      if (!hash || !state.shareInfo?.hasPassword || !this.sharePassword) {
+    storeSharePassword(hash, password) {
+      if (!hash || !password) {
         return;
       }
-      localStorage.setItem(`sharepass:${hash}`, this.sharePassword);
+      localStorage.setItem(`sharepass:${hash}`, password);
     },
     clearStoredSharePassword(hash) {
       if (!hash) {
@@ -555,6 +527,7 @@ export default {
         props: {
           submitCallback: (password) => {
             this.sharePassword = password;
+            this.storeSharePassword(state.shareInfo?.hash, password);
             void this.fetchData();
           },
           showWrongCredentials: this.attemptedPasswordLogin,
