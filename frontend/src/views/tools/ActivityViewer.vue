@@ -192,65 +192,39 @@
             :lonely-message-key="!loading && items.length === 0 ? 'files.lonely' : undefined"
             @row-click="openEventDetails"
           >
-          <template #cell-createdAt="{ row }">
-            <span v-if="!isBlankTableValue(row.createdAt)">{{ formatTime(row.createdAt) }}</span>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <template #cell-createdAt="{ row, column }">
+            <ActivityTableValueCell
+              :value="row.createdAt"
+              :display="formatTime(row.createdAt)"
+              :label="column.label"
+            />
           </template>
-          <template #cell-eventType="{ row }">
-            <span
-              v-if="!isBlankTableValue(row.eventType)"
-              class="event-type-badge border-radius"
-              :class="eventTypeBadgeClass(row.eventType)"
-            >{{ eventTypeLabel(row.eventType) }}</span>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <template #cell-eventType="{ row, column }">
+            <ActivityTableValueCell
+              :value="row.eventType"
+              variant="eventType"
+              :badge-class="eventTypeBadgeClass(row.eventType)"
+              :display="eventTypeLabel(row.eventType)"
+              :label="column.label"
+            />
           </template>
-          <template #cell-username="{ row }">
-            <span
-              v-if="!isBlankTableValue(row.username)"
-              class="table-cell-text table-cell-text--ellipsis table-cell-text--username"
-              :title="row.username"
-            >{{ row.username }}</span>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <template #cell-username="{ row, column }">
+            <ActivityTableValueCell :value="row.username" :label="column.label" />
           </template>
-          <template #cell-source="{ row }">
-            <span
-              v-if="!isBlankTableValue(row.source)"
-              class="table-cell-text table-cell-text--ellipsis table-cell-text--source"
-              :title="row.source"
-            >{{ row.source }}</span>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <template #cell-source="{ row, column }">
+            <ActivityTableValueCell :value="row.source" :label="column.label" />
           </template>
-          <template #cell-path="{ row }">
-            <span
-              v-if="!isBlankTableValue(row.path)"
-              class="table-cell-text table-cell-text--ellipsis table-cell-text--path"
-              :title="row.path"
-            >{{ row.path }}</span>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <template #cell-path="{ row, column }">
+            <ActivityTableValueCell :value="row.path" :label="column.label" />
           </template>
-          <template #cell-shareHash="{ row }">
-            <span
-              v-if="!isBlankTableValue(row.shareHash)"
-              class="table-cell-text table-cell-text--ellipsis table-cell-text--shareHash"
-              :title="row.shareHash"
-            >{{ row.shareHash }}</span>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <template #cell-shareHash="{ row, column }">
+            <ActivityTableValueCell :value="row.shareHash" :label="column.label" />
           </template>
-          <template #cell-tokenDisplay="{ row }">
-            <span
-              v-if="!isBlankTableValue(row.tokenDisplay)"
-              class="table-cell-text table-cell-text--ellipsis table-cell-text--tokenDisplay"
-              :title="row.tokenDisplay"
-            >{{ row.tokenDisplay }}</span>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <template #cell-tokenDisplay="{ row, column }">
+            <ActivityTableValueCell :value="row.tokenDisplay" :label="column.label" />
           </template>
-          <template #cell-ipAddress="{ row }">
-            <span
-              v-if="!isBlankTableValue(row.ipAddress)"
-              class="table-cell-text table-cell-text--ellipsis table-cell-text--ipAddress"
-              :title="row.ipAddress"
-            >{{ row.ipAddress }}</span>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <template #cell-ipAddress="{ row, column }">
+            <ActivityTableValueCell :value="row.ipAddress" :label="column.label" />
           </template>
           <template #cell-details="{ row }">
             <div
@@ -335,6 +309,7 @@ import {
 } from "chart.js";
 import { toolsApi, usersApi } from "@/api";
 import ActivityDetailsInfo from "@/components/tools/ActivityDetailsInfo.vue";
+import ActivityTableValueCell from "@/components/tools/ActivityTableValueCell.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import Errors from "@/views/Errors.vue";
 import { getters, mutations, state } from "@/store";
@@ -592,6 +567,7 @@ export default {
   name: "ActivityViewer",
   components: {
     SettingsTable,
+    ActivityTableValueCell,
     Errors,
     ExpandDropdown,
     SharePickerButton,
@@ -1071,15 +1047,6 @@ export default {
   methods: {
     formatTime(ts) {
       return formatTimestamp(ts * 1000);
-    },
-    isBlankTableValue(value) {
-      if (value === null || value === undefined) {
-        return true;
-      }
-      if (typeof value === "number") {
-        return false;
-      }
-      return String(value).trim() === "";
     },
     destroyChartInstance() {
       const instance = this.chart;
@@ -2132,6 +2099,11 @@ export default {
   table-layout: fixed;
 }
 
+.results-table-scroll :deep(.settings-table tbody td) {
+  overflow: hidden;
+  max-width: 0;
+}
+
 @media (max-width: 768px) {
   .results-table-scroll {
     overflow-x: auto;
@@ -2150,38 +2122,37 @@ export default {
   .results-table-scroll :deep(.settings-table thead th),
   .results-table-scroll :deep(.settings-table tbody td) {
     white-space: nowrap;
+    max-width: none;
   }
 }
 
-.table-cell-text {
-  font-size: 0.9em;
-  color: var(--textPrimary);
-}
-
-.table-cell-text--ellipsis {
+.results-table-scroll :deep(.table-value-cell) {
   display: block;
+  max-width: 100%;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.results-table-scroll :deep(.table-value-badge),
+.results-table-scroll :deep(.detail-badge) {
+  display: inline-block;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: top;
+  padding: 0.12rem 0.5rem;
+  border: 1px solid var(--divider);
+  font-size: 0.8em;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--textPrimary, inherit);
+  background: transparent;
 }
 
-.table-cell-text--username,
-.table-cell-text--source {
-  max-width: 10rem;
-}
-
-.table-cell-text--path {
-  max-width: 22rem;
-}
-
-.table-cell-text--shareHash,
-.table-cell-text--tokenDisplay {
-  max-width: 9rem;
-}
-
-.table-cell-text--ipAddress {
-  max-width: 8rem;
+.results-table-scroll :deep(.details-muted) {
+  font-size: 0.9em;
+  color: var(--textSecondary);
 }
 
 .results-stats {
@@ -2292,7 +2263,9 @@ export default {
 }
 
 .details-cell-wrap {
-  max-width: 18rem;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .details-badges {
@@ -2301,21 +2274,15 @@ export default {
   gap: 0.35rem;
   overflow: hidden;
   max-width: 100%;
+  min-width: 0;
 }
 
-.detail-badge {
+.results-table-scroll :deep(.details-badges .detail-badge) {
   display: inline-block;
-  flex-shrink: 1;
+  flex: 1 1 0;
   min-width: 0;
-  max-width: 10rem;
-  padding: 0.12rem 0.5rem;
-  border: 1px solid var(--divider);
-  font-size: 0.8em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--textPrimary, inherit);
-  background: transparent;
+  max-width: 100%;
+  vertical-align: top;
 }
 
 .details-restricted,
@@ -2324,35 +2291,41 @@ export default {
   color: var(--textSecondary);
 }
 
-.event-type-badge {
+.results-table-scroll :deep(.event-type-badge) {
   display: inline-block;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: top;
   padding: 0.15rem 0.5rem;
   font-size: 0.85em;
   font-weight: 600;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.event-type-badge--delete {
+.results-table-scroll :deep(.event-type-badge--delete) {
   background: rgba(244, 67, 54, 0.2);
   color: #c62828;
 }
 
-.event-type-badge--create {
+.results-table-scroll :deep(.event-type-badge--create) {
   background: rgba(33, 150, 243, 0.18);
   color: #1565c0;
 }
 
-.event-type-badge--change {
+.results-table-scroll :deep(.event-type-badge--change) {
   background: rgba(255, 193, 7, 0.24);
   color: #f57f17;
 }
 
-.event-type-badge--auth {
+.results-table-scroll :deep(.event-type-badge--auth) {
   background: rgba(156, 39, 176, 0.18);
   color: #7b1fa2;
 }
 
-.event-type-badge--default {
+.results-table-scroll :deep(.event-type-badge--default) {
   background: rgba(128, 128, 128, 0.12);
   color: var(--textSecondary);
 }
