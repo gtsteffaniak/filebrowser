@@ -270,7 +270,8 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	newVal := reflect.ValueOf(user).Elem()
 
 	for _, jsonFieldName := range fields {
-		if jsonFieldName == "password" || jsonFieldName == "Password" {
+		jsonFieldName = strings.TrimSpace(jsonFieldName)
+		if strings.EqualFold(jsonFieldName, "password") {
 			if plaintextPassword != "" {
 				hashedPassword, hashErr := utils.HashPwd(plaintextPassword)
 				if hashErr != nil {
@@ -288,23 +289,15 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 
 		existingField := existingVal.FieldByName(structFieldName)
 		newField := newVal.FieldByName(structFieldName)
-		if existingField.IsValid() && existingField.CanSet() && newField.IsValid() {
-			existingField.Set(newField)
+		if !existingField.IsValid() || !existingField.CanSet() || !newField.IsValid() {
+			return fmt.Errorf("unknown or read-only user field %q", jsonFieldName)
 		}
+		existingField.Set(newField)
 	}
 
-	if fieldListPatchesBackendScopes(fields) || fieldListPatchesAPISourcePermissions(fields) {
+	if fieldListRequiresScopeConversion(fields) {
 		if err := applyScopesFromAPI(existingUser); err != nil {
 			return err
-		}
-	} else {
-		for _, jsonFieldName := range fields {
-			if strings.EqualFold(jsonFieldName, "scopes") || strings.EqualFold(jsonFieldName, "sourcePermissions") {
-				if err := applyScopesFromAPI(existingUser); err != nil {
-					return err
-				}
-				break
-			}
 		}
 	}
 
@@ -364,6 +357,10 @@ func fieldListPatchesAPISourcePermissions(fields []string) bool {
 		}
 	}
 	return false
+}
+
+func fieldListRequiresScopeConversion(fields []string) bool {
+	return fieldListPatchesBackendScopes(fields) || fieldListPatchesAPISourcePermissions(fields)
 }
 
 // applyScopesFromAPI converts API scopes (with nested permissions) into BackendScopes.

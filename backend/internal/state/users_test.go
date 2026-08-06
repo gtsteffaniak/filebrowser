@@ -183,6 +183,41 @@ func TestUpdateUserRejectsAllField(t *testing.T) {
 	}
 }
 
+func TestUpdateUserRejectsUnknownField(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			NonAdminEditable: users.NonAdminEditable{
+				Locale: "en",
+			},
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	patch := &users.User{
+		ID: u.ID,
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+	}
+	if err = UpdateUser(patch, "", "notARealField"); err == nil {
+		t.Fatal("expected error for unknown field")
+	}
+}
+
 func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")

@@ -68,10 +68,6 @@ func validateUserInfo(newDB bool) {
 		if adminUser == "" {
 			adminUser = "admin"
 		}
-		adminPass := settings.Config.Auth.AdminPassword
-		if adminPass == "" {
-			adminPass = "admin"
-		}
 		if user.Username == adminUser && user.Permissions.Admin {
 			adminPerms := settings.AdminPerms()
 			if user.Permissions.Share != adminPerms.Share || user.Permissions.Api != adminPerms.Api {
@@ -81,7 +77,7 @@ func validateUserInfo(newDB bool) {
 				changedFields = append(changedFields, "permissions")
 			}
 		}
-		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
+		if user.Username == adminUser && settings.Config.Auth.AdminPassword != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
