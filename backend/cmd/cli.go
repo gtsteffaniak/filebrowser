@@ -126,7 +126,7 @@ func setUser(username, password string, asAdmin bool) error {
 	if user.Version == 0 {
 		user.Version = users.CurrentUserMigrationVersion
 	}
-	err = state.UpdateUser(&user, password)
+	err = state.UpdateUser(&user, password, "password", "totpSecret", "totpNonce", "loginMethod", "permissions", "version")
 	if err != nil {
 		return fmt.Errorf("could not update user: %v", err)
 	}

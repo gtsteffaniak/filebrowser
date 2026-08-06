@@ -55,67 +55,7 @@ func TestCreateUserValidateUsername(t *testing.T) {
 	}
 }
 
-func TestPreserveServerManagedFieldsKeepsTokens(t *testing.T) {
-	old := &users.User{
-		Version: 3,
-		Tokens: map[string]users.AuthToken{
-			"ci-key": {Name: "ci-key", Token: "jwt-abc"},
-		},
-		PinnedItems: users.PinnedItems{"src": {"idx": {"a.txt"}}},
-	}
-	incoming := &users.User{
-		FrontendUser: users.FrontendUser{Username: "alice"},
-	}
-
-	preserveServerManagedFields(old, incoming)
-
-	if incoming.Tokens == nil || incoming.Tokens["ci-key"].Token != "jwt-abc" {
-		t.Fatalf("expected tokens preserved, got %#v", incoming.Tokens)
-	}
-	if incoming.PinnedItems == nil {
-		t.Fatal("expected pinned items preserved")
-	}
-	if incoming.Version != 3 {
-		t.Fatalf("expected version preserved, got %d", incoming.Version)
-	}
-}
-
-func TestPreserveServerManagedFieldsClearsTOTPWhenDisabled(t *testing.T) {
-	old := &users.User{
-		TOTPSecret: "secret",
-		TOTPNonce:  "nonce",
-	}
-	incoming := &users.User{
-		FrontendUser: users.FrontendUser{OtpEnabled: false},
-	}
-
-	preserveServerManagedFields(old, incoming)
-
-	if incoming.TOTPSecret != "" || incoming.TOTPNonce != "" {
-		t.Fatalf("expected TOTP not preserved when disabled, got secret=%q nonce=%q", incoming.TOTPSecret, incoming.TOTPNonce)
-	}
-}
-
-func TestPreserveServerManagedFieldsPreservesTOTPOnFullSave(t *testing.T) {
-	old := &users.User{
-		TOTPSecret: "secret",
-		TOTPNonce:  "nonce",
-	}
-	incoming := &users.User{
-		FrontendUser: users.FrontendUser{
-			Username:   "alice",
-			OtpEnabled: true,
-		},
-	}
-
-	preserveServerManagedFields(old, incoming)
-
-	if incoming.TOTPSecret != "secret" || incoming.TOTPNonce != "nonce" {
-		t.Fatalf("expected TOTP preserved on full save, got secret=%q nonce=%q", incoming.TOTPSecret, incoming.TOTPNonce)
-	}
-}
-
-func TestUpdateUserFullPatchPreservesTOTPSecret(t *testing.T) {
+func TestUpdateUserPatchPreservesTOTPSecret(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
 	settings.Env.IsPlaywright = true
@@ -141,21 +81,20 @@ func TestUpdateUserFullPatchPreservesTOTPSecret(t *testing.T) {
 	u.TOTPSecret = "persisted-secret"
 	u.TOTPNonce = "persisted-nonce"
 	u.OtpEnabled = true
-	if err = UpdateUser(u, "", "TOTPSecret", "TOTPNonce", "OtpEnabled"); err != nil {
+	if err = UpdateUser(u, "", "totpSecret", "totpNonce", "otpEnabled"); err != nil {
 		t.Fatal(err)
 	}
 
 	patch := &users.User{
 		ID: u.ID,
 		FrontendUser: users.FrontendUser{
-			Username:   "alice",
-			OtpEnabled: true,
+			Username: "alice",
 			NonAdminEditable: users.NonAdminEditable{
 				Locale: "de",
 			},
 		},
 	}
-	if err = UpdateUser(patch, "", "all"); err != nil {
+	if err = UpdateUser(patch, "", "locale"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -164,10 +103,195 @@ func TestUpdateUserFullPatchPreservesTOTPSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 	if loaded.TOTPSecret != "persisted-secret" || loaded.TOTPNonce != "persisted-nonce" {
-		t.Fatalf("expected TOTP preserved after full patch, got secret=%q nonce=%q", loaded.TOTPSecret, loaded.TOTPNonce)
+		t.Fatalf("expected TOTP preserved after locale patch, got secret=%q nonce=%q", loaded.TOTPSecret, loaded.TOTPNonce)
 	}
-	if !loaded.OtpEnabled {
-		t.Fatal("expected OtpEnabled to remain true after full patch")
+	if loaded.Locale != "de" {
+		t.Fatalf("expected locale updated, got %q", loaded.Locale)
+	}
+}
+
+func TestUpdateUserRejectsEmptyFields(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	patch := &users.User{
+		ID: u.ID,
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			NonAdminEditable: users.NonAdminEditable{
+				Locale: "de",
+			},
+		},
+	}
+	if err = UpdateUser(patch, ""); err == nil {
+		t.Fatal("expected error when no fields are specified")
+	}
+}
+
+func TestUpdateUserRejectsAllField(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			NonAdminEditable: users.NonAdminEditable{
+				Locale: "en",
+			},
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	patch := &users.User{
+		ID: u.ID,
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			NonAdminEditable: users.NonAdminEditable{
+				Locale: "de",
+			},
+		},
+	}
+	if err = UpdateUser(patch, "", "all"); err == nil {
+		t.Fatal("expected error when which contains all")
+	}
+}
+
+func TestUpdateUserRejectsUnknownField(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			NonAdminEditable: users.NonAdminEditable{
+				Locale: "en",
+			},
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	patch := &users.User{
+		ID: u.ID,
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+	}
+	if err = UpdateUser(patch, "", "notARealField"); err == nil {
+		t.Fatal("expected error for unknown field")
+	}
+}
+
+func TestUpdateUserRejectsPasswordWithoutPlaintext(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	patch := &users.User{ID: u.ID, FrontendUser: users.FrontendUser{Username: "alice"}}
+	if err = UpdateUser(patch, "", "password"); err == nil {
+		t.Fatal("expected error when password is in which but plaintext is empty")
+	}
+}
+
+func TestUpdateUserClearsTOTPWhenOtpDisabled(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			OtpEnabled: true,
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+	u.TOTPSecret = "persisted-secret"
+	u.TOTPNonce = "persisted-nonce"
+	if err = UpdateUser(u, "", "totpSecret", "totpNonce", "otpEnabled"); err != nil {
+		t.Fatal(err)
+	}
+
+	disable := &users.User{
+		ID: u.ID,
+		FrontendUser: users.FrontendUser{
+			Username:   "alice",
+			OtpEnabled: false,
+		},
+	}
+	if err = UpdateUser(disable, "", "otpEnabled"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.TOTPSecret != "" || loaded.TOTPNonce != "" {
+		t.Fatalf("expected TOTP cleared when otpEnabled disabled, got secret=%q nonce=%q", loaded.TOTPSecret, loaded.TOTPNonce)
+	}
+	if loaded.OtpEnabled {
+		t.Fatal("expected otpEnabled false")
 	}
 }
 

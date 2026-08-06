@@ -2,6 +2,7 @@ package activity
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
@@ -140,6 +141,175 @@ func TestUserUpdateChangesExpandsNestedStructFields(t *testing.T) {
 	}
 }
 
+type activityChangePair struct {
+	from string
+	to   string
+}
+
+func testDownloadsSourceConfig() *users.SourceConfigProvider {
+	return &users.SourceConfigProvider{
+		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
+			switch path {
+			case "/Users/steffag/Downloads":
+				return users.SourceInfo{Path: path, Name: "Downloads"}, true
+			case "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files":
+				return users.SourceInfo{Path: path, Name: "access"}, true
+			default:
+				return users.SourceInfo{}, false
+			}
+		},
+	}
+}
+
+func withTestSourceConfig(t *testing.T, provider *users.SourceConfigProvider) {
+	t.Helper()
+	previous := users.GetSourceConfig()
+	users.SetSourceConfig(provider)
+	t.Cleanup(func() {
+		users.SetSourceConfig(previous)
+	})
+}
+
+func TestUserUpdateChangesExpandsPreviewBulkToggle(t *testing.T) {
+	before := &users.User{
+		FrontendUser: users.FrontendUser{
+			NonAdminEditable: users.NonAdminEditable{
+				Preview: users.Preview{
+					DisableHideSidebar: false,
+					Image:              true,
+					Video:              true,
+					Audio:              true,
+					MotionVideoPreview: true,
+					Office:             true,
+					PopUp:              true,
+					AutoplayMedia:      true,
+					Folder:             true,
+					Models:             true,
+				},
+			},
+		},
+	}
+	after := *before
+	after.Preview.DisableHideSidebar = true
+	after.Preview.Image = false
+	after.Preview.Video = false
+	after.Preview.Audio = false
+	after.Preview.MotionVideoPreview = false
+	after.Preview.Office = false
+	after.Preview.PopUp = false
+	after.Preview.AutoplayMedia = false
+	after.Preview.Folder = false
+	after.Preview.Models = false
+
+	changes := UserUpdateChanges(before, &after, []string{"preview"}, false)
+	if len(changes) != 10 {
+		t.Fatalf("expected 10 preview field changes, got %d: %#v", len(changes), changes)
+	}
+	foundDisableHide := false
+	for _, c := range changes {
+		if !strings.HasPrefix(c.Field, "preview.") {
+			t.Fatalf("expected preview.* field, got %q", c.Field)
+		}
+		if c.Field == "preview.disableHideSidebar" {
+			foundDisableHide = true
+			if c.From != "false" || c.To != "true" {
+				t.Fatalf("unexpected preview.disableHideSidebar change: %#v", c)
+			}
+			continue
+		}
+		if c.From != "true" || c.To != "false" {
+			t.Fatalf("expected true -> false, got %#v", c)
+		}
+	}
+	if !foundDisableHide {
+		t.Fatal("expected preview.disableHideSidebar change")
+	}
+}
+
+func TestUserUpdateChangesExpandsBackendSourcePermissions(t *testing.T) {
+	withTestSourceConfig(t, testDownloadsSourceConfig())
+
+	downloadsPath := "/Users/steffag/Downloads"
+	accessPath := "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files"
+	beforePerms := users.MarkSourceFilePermissionsConfigured(users.SourceFilePermissions{
+		View: true, Download: true,
+	})
+	afterDownloadsPerms := users.MarkSourceFilePermissionsConfigured(users.SourceFilePermissions{
+		View: true, Download: true, Modify: true, Delete: true, Create: true,
+	})
+	afterAccessPerms := beforePerms
+
+	before := &users.User{
+		BackendSourcePermissions: map[string]users.SourceFilePermissions{
+			downloadsPath: beforePerms,
+			accessPath:    beforePerms,
+		},
+	}
+	after := &users.User{
+		BackendSourcePermissions: map[string]users.SourceFilePermissions{
+			downloadsPath: afterDownloadsPerms,
+			accessPath:    afterAccessPerms,
+		},
+	}
+
+	changes := UserUpdateChanges(before, after, []string{"backendSourcePermissions"}, false)
+	if len(changes) != 3 {
+		t.Fatalf("expected 3 permission changes for Downloads only, got %d: %#v", len(changes), changes)
+	}
+	found := map[string]activityChangePair{}
+	for _, c := range changes {
+		found[c.Field] = activityChangePair{from: c.From, to: c.To}
+	}
+	for _, field := range []string{
+		"backendSourcePermissions.Downloads.modify",
+		"backendSourcePermissions.Downloads.delete",
+		"backendSourcePermissions.Downloads.create",
+	} {
+		if pair, ok := found[field]; !ok || pair.from != "false" || pair.to != "true" {
+			t.Fatalf("missing or unexpected change for %s: %#v", field, found)
+		}
+	}
+}
+
+func TestUserUpdateChangesExpandsScopePermissions(t *testing.T) {
+	withTestSourceConfig(t, testDownloadsSourceConfig())
+
+	downloadsPath := "/Users/steffag/Downloads"
+	accessPath := "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files"
+	basePerms := users.MarkSourceFilePermissionsConfigured(users.SourceFilePermissions{
+		View: true, Download: true,
+	})
+	downloadsPerms := users.MarkSourceFilePermissionsConfigured(users.SourceFilePermissions{
+		View: true, Download: true, Modify: true, Delete: true, Create: true,
+	})
+
+	before := &users.User{
+		BackendScopes: []users.BackendScope{
+			{Path: downloadsPath, Scope: "/", Permissions: basePerms},
+			{Path: accessPath, Scope: "/", Permissions: basePerms},
+		},
+	}
+	after := &users.User{
+		BackendScopes: []users.BackendScope{
+			{Path: downloadsPath, Scope: "/", Permissions: downloadsPerms},
+			{Path: accessPath, Scope: "/", Permissions: basePerms},
+		},
+	}
+
+	changes := UserUpdateChanges(before, after, []string{"scopes"}, false)
+	if len(changes) != 3 {
+		t.Fatalf("expected 3 scope permission changes for Downloads only, got %d: %#v", len(changes), changes)
+	}
+	for _, c := range changes {
+		if !strings.HasPrefix(c.Field, "scopes.Downloads.permissions.") {
+			t.Fatalf("unexpected scope field %q", c.Field)
+		}
+		if c.From != "false" || c.To != "true" {
+			t.Fatalf("expected false -> true, got %#v", c)
+		}
+	}
+}
+
 func TestShareUpdateChangesLogsChangedAttributes(t *testing.T) {
 	before := &share.Share{
 		ShareSettings: share.ShareSettings{
@@ -179,19 +349,8 @@ func TestShareUpdateChangesLogsChangedAttributes(t *testing.T) {
 	}
 }
 
-type activityChangePair struct {
-	from string
-	to   string
-}
-
 func TestSidebarLinksFieldChangeIgnoresPathVsName(t *testing.T) {
-	hadSourceConfig := users.SourceConfigLoaded()
-	t.Cleanup(func() {
-		if !hadSourceConfig {
-			users.SetSourceConfig(nil)
-		}
-	})
-	users.SetSourceConfig(&users.SourceConfigProvider{
+	withTestSourceConfig(t, &users.SourceConfigProvider{
 		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
 			switch path {
 			case "/Users/steffag/Downloads":

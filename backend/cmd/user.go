@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -23,52 +24,49 @@ func validateUserInfo(newDB bool) {
 	}
 	for i := range usersList {
 		user := &usersList[i]
-		updateUser := false
+		changedFields := make([]string, 0, 8)
 		changePass := false
+
 		if updateUserScopes(user) {
-			updateUser = true
+			changedFields = append(changedFields, "backendScopes")
 		}
 		if updatePermissions(user) {
-			updateUser = true
+			changedFields = append(changedFields, "permissions", "perm", "version")
 		}
 		if updateSourcePermissions(user) {
-			updateUser = true
+			changedFields = append(changedFields, "backendScopes", "backendSourcePermissions", "version")
 		}
 		if updatePreviewSettings(user) {
-			updateUser = true
+			changedFields = append(changedFields, "preview")
 		}
 		if updateLoginType(user) {
-			updateUser = true
+			changedFields = append(changedFields, "loginMethod")
 		}
 		if updateShowFirstLogin(user) {
-			updateUser = true
+			changedFields = append(changedFields, "showFirstLogin")
 		}
 		if updateSidebarLinks(user) {
-			updateUser = true
+			changedFields = append(changedFields, "sidebarLinks")
 		}
 		if updateTokens(user) {
-			updateUser = true
+			changedFields = append(changedFields, "tokens", "version")
 		}
 		if normalizeApiTokenPermissions(user) {
-			updateUser = true
+			changedFields = append(changedFields, "tokens")
 		}
 		if state.ApplyEnforcedSyncToUser(user) {
-			updateUser = true
+			changedFields = append(changedFields, settings.UserJSONFieldsForEnforcedSync()...)
 		}
 		if state.ApplyEnforcedSourcePermissionsSyncToUser(user) {
-			updateUser = true
+			changedFields = append(changedFields, "backendScopes", "backendSourcePermissions")
 		}
 		if user.Version < users.ProfileStorageVersion {
 			user.Version = users.ProfileStorageVersion
-			updateUser = true
+			changedFields = append(changedFields, "version")
 		}
 		adminUser := settings.Config.Auth.AdminUsername
 		if adminUser == "" {
 			adminUser = "admin"
-		}
-		adminPass := settings.Config.Auth.AdminPassword
-		if adminPass == "" {
-			adminPass = "admin"
 		}
 		if user.Username == adminUser && user.Permissions.Admin {
 			adminPerms := settings.AdminPerms()
@@ -76,37 +74,56 @@ func validateUserInfo(newDB bool) {
 				user.Permissions.Share = adminPerms.Share
 				user.Permissions.Api = adminPerms.Api
 				user.Permissions.Admin = true
-				updateUser = true
+				changedFields = append(changedFields, "permissions")
 			}
 		}
-		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
+		if user.Username == adminUser && settings.Config.Auth.AdminPassword != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
-			updateUser = true
+			changedFields = append(changedFields, "permissions", "password")
 			changePass = true
 		}
-		if updateUser {
-			skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true" || newDB
-			if createBackup && !skipCreateBackup {
-				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
-				err = fileutils.CopyFile(settings.Config.Server.DatabaseV2.Path, fmt.Sprintf("%s.bak", settings.Config.Server.DatabaseV2.Path))
-				if err != nil {
-					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
-				}
-			}
-			plainPass := ""
-			if changePass {
-				plainPass = user.Password
-			}
-			// Full update: migration may touch enforced profile fields beyond the legacy whitelist.
-			err := state.UpdateUser(user, plainPass)
-			if err != nil {
-				logger.Errorf("could not update user: %v", err)
-			}
+
+		changedFields = dedupeFields(changedFields)
+		if len(changedFields) == 0 {
+			continue
 		}
 
+		skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true" || newDB
+		if createBackup && !skipCreateBackup {
+			logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
+			err = fileutils.CopyFile(settings.Config.Server.DatabaseV2.Path, fmt.Sprintf("%s.bak", settings.Config.Server.DatabaseV2.Path))
+			if err != nil {
+				logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
+			}
+		}
+		plainPass := ""
+		if changePass {
+			plainPass = user.Password
+		}
+		if err := state.UpdateUser(user, plainPass, changedFields...); err != nil {
+			logger.Errorf("could not update user: %v", err)
+		}
 	}
+}
+
+func dedupeFields(fields []string) []string {
+	seen := make(map[string]struct{}, len(fields))
+	out := make([]string, 0, len(fields))
+	for _, field := range fields {
+		field = strings.TrimSpace(field)
+		if field == "" {
+			continue
+		}
+		key := strings.ToLower(field)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		out = append(out, field)
+	}
+	return out
 }
 
 func updateUserScopes(user *users.User) bool {

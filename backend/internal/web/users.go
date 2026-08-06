@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
-	"slices"
 	"sort"
 	"strings"
 
@@ -225,10 +224,62 @@ func nonAdminEditableFieldNameSet() map[string]struct{} {
 	return m
 }
 
+// frontendUserPatchableJSONFields lists JSON keys allowed in PATCH which (FrontendUser + password).
+var frontendUserPatchableJSONFields = buildFrontendUserPatchableJSONFieldSet()
+
+func buildFrontendUserPatchableJSONFieldSet() map[string]struct{} {
+	out := make(map[string]struct{})
+	collectStructJSONFieldTags(reflect.TypeOf(users.FrontendUser{}), out)
+	out["password"] = struct{}{}
+	return out
+}
+
+func collectStructJSONFieldTags(t reflect.Type, out map[string]struct{}) {
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if field.Anonymous && field.Type.Kind() == reflect.Struct {
+			collectStructJSONFieldTags(field.Type, out)
+			continue
+		}
+		tag := field.Tag.Get("json")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		name := strings.Split(tag, ",")[0]
+		if name == "" {
+			continue
+		}
+		out[strings.ToLower(name)] = struct{}{}
+	}
+}
+
+// validatePatchWhich requires at least one FrontendUser JSON field name in which.
+func validatePatchWhich(which []string) error {
+	if len(which) == 0 {
+		return fmt.Errorf("which must list at least one JSON field name to update")
+	}
+	for _, w := range which {
+		w = strings.TrimSpace(w)
+		if w == "" {
+			return fmt.Errorf("which must not contain empty field names")
+		}
+		if strings.EqualFold(w, "all") {
+			return fmt.Errorf("invalid which field %q", w)
+		}
+		if strings.EqualFold(w, "password") {
+			continue
+		}
+		if _, ok := frontendUserPatchableJSONFields[strings.ToLower(w)]; !ok {
+			return fmt.Errorf("unknown or read-only user field %q", w)
+		}
+	}
+	return nil
+}
+
 // userPutOnlyNonAdminEditableFields reports whether req.Which lists exclusively NonAdminEditable fields,
-// excluding Password. Empty which or which[0] == "all" means a broad update and returns false.
+// excluding Password.
 func userPutOnlyNonAdminEditableFields(which []string) bool {
-	if len(which) == 0 || strings.EqualFold(strings.TrimSpace(which[0]), "all") {
+	if len(which) == 0 {
 		return false
 	}
 	allowed := nonAdminEditableFieldNameSet()
@@ -276,12 +327,12 @@ func verifyActorPasswordForUserActions(r *http.Request, d *Context) (int, error)
 
 // userPatchHandler updates an existing user's details.
 // @Summary Update a user's details
-// @Description Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or "all") or any admin-only field require confirmation.
+// @Description Updates the details of a user identified by ID. which must list the JSON field names to update. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Any admin-only field requires confirmation.
 // @Tags Users
 // @Accept json
 // @Param id query string false "user ID to update"
 // @Param id query string false "usename to update"
-// @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable"
+// @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors when updating password or any field outside NonAdminEditable"
 // @Param data body users.User true "User data to update"
 // @Success 204 "No Content - User updated successfully"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -298,6 +349,9 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	var req UserRequest
 	if err = json.Unmarshal(body, &req); err != nil {
+		return http.StatusBadRequest, err
+	}
+	if err = validatePatchWhich(req.Which); err != nil {
 		return http.StatusBadRequest, err
 	}
 
@@ -332,7 +386,7 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 	req.User.ID = uValue.ID
 	req.User.Username = uValue.Username
-	if !req.User.OtpEnabled {
+	if state.FieldListIncludes(req.Which, "otpEnabled") && !req.User.OtpEnabled {
 		req.User.TOTPSecret = ""
 		req.User.TOTPNonce = ""
 	}
@@ -383,7 +437,7 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	// Revoke all API keys if API permission was removed
-	if slices.Contains(req.Which, "Permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
+	if state.FieldListIncludes(req.Which, "permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
 		users.EachNamedToken(oldUser.Tokens, func(_ string, tokenInfo users.AuthToken) {
 			if err := state.RevokeToken(tokenInfo.Token); err != nil {
 				logger.Errorf("Failed to revoke API key: %v", err)

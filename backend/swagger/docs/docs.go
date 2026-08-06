@@ -3687,7 +3687,7 @@ const docTemplate = `{
                 }
             },
             "patch": {
-                "description": "Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or \"all\") or any admin-only field require confirmation.",
+                "description": "Updates the details of a user identified by ID. which must list the JSON field names to update. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Any admin-only field requires confirmation.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3710,7 +3710,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable",
+                        "description": "Actor's current password (URL-encoded); required for password-login actors when updating password or any field outside NonAdminEditable",
                         "name": "X-Password",
                         "in": "header"
                     },

@@ -207,7 +207,7 @@ export default {
   data() {
     return {
       error: null,
-      originalUser: null,
+      originalSnapshot: null,
       user: {
         scopes: [],
         username: "",
@@ -630,6 +630,77 @@ export default {
         this.selectedSourceNames = [this.sourceList[0].name];
       }
       this.syncEditAccountForm();
+      if (!this.isNew) {
+        this.originalSnapshot = JSON.parse(JSON.stringify(this.buildEditableSnapshot()));
+      }
+    },
+    buildScopesPayload() {
+      return this.selectedSources.map((source) => ({
+        name: source.name || "",
+        scope: this.normalizeScopeForApi(source.scope),
+        permissions: { ...this.sourcePermissionsFor(source.name) },
+      }));
+    },
+    normalizeScopesForCompare(scopes) {
+      return [...scopes]
+        .map((scope) => ({
+          name: scope.name || "",
+          scope: this.normalizeScopeForApi(scope.scope),
+          permissions: scope.permissions ? { ...scope.permissions } : undefined,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+    buildEditableSnapshot() {
+      this.applyEditAccountToUser();
+      const permissions = this.user.permissions || this.defaultPermissions();
+      return {
+        scopes: this.normalizeScopesForCompare(this.buildScopesPayload()),
+        loginMethod: this.user.loginMethod ?? null,
+        locale: this.user.locale ?? "",
+        otpEnabled: !!this.user.otpEnabled,
+        lockPassword: !!this.user.lockPassword,
+        disableSettings: !!this.user.disableSettings,
+        disableUpdateNotifications: !!this.user.disableUpdateNotifications,
+        permissions: {
+          admin: !!permissions.admin,
+          share: !!permissions.share,
+          api: !!permissions.api,
+          realtime: !!permissions.realtime,
+        },
+      };
+    },
+    computeChangedFields() {
+      if (!this.originalSnapshot) {
+        return [];
+      }
+      const current = this.buildEditableSnapshot();
+      const orig = this.originalSnapshot;
+      const fields = [];
+      if (JSON.stringify(current.scopes) !== JSON.stringify(orig.scopes)) {
+        fields.push("scopes");
+      }
+      if (current.loginMethod !== orig.loginMethod) {
+        fields.push("loginMethod");
+      }
+      if (current.locale !== orig.locale) {
+        fields.push("locale");
+      }
+      if (current.otpEnabled !== orig.otpEnabled) {
+        fields.push("otpEnabled");
+      }
+      if (current.lockPassword !== orig.lockPassword) {
+        fields.push("lockPassword");
+      }
+      if (current.disableSettings !== orig.disableSettings) {
+        fields.push("disableSettings");
+      }
+      if (current.disableUpdateNotifications !== orig.disableUpdateNotifications) {
+        fields.push("disableUpdateNotifications");
+      }
+      if (JSON.stringify(current.permissions) !== JSON.stringify(orig.permissions)) {
+        fields.push("permissions");
+      }
+      return fields;
     },
     syncEditAccountForm() {
       const p = this.user.permissions || {};
@@ -690,14 +761,8 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
-        const fields = ["all"];
-        // Transform selectedSources to only include {name, scope} format
-        // Empty scope strings should be passed as "" for backend to handle defaults
-        const scopesToSend = this.selectedSources.map((source) => ({
-          name: source.name || "",
-          scope: this.normalizeScopeForApi(source.scope),
-          permissions: { ...this.sourcePermissionsFor(source.name) },
-        }));
+        this.applyEditAccountToUser();
+        const scopesToSend = this.buildScopesPayload();
         const payload = {
           ...this.user,
           scopes: scopesToSend,
@@ -720,6 +785,11 @@ export default {
           // Close the prompt
           mutations.closeTopPrompt();
         } else {
+          const fields = this.computeChangedFields();
+          if (fields.length === 0) {
+            mutations.closeTopPrompt();
+            return;
+          }
           await usersApi.update(payload, fields);
           if (payload.username === state.user.username) {
             await validateLogin();

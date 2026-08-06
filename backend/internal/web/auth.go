@@ -139,7 +139,7 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	if isAdmin && !userValue.Permissions.Admin {
 		userValue.Permissions.Admin = true
 		// No password change, pass empty string
-		err = state.UpdateUser(&userValue, "")
+		err = state.UpdateUser(&userValue, "", "permissions")
 		if err != nil {
 			return nil, err
 		}

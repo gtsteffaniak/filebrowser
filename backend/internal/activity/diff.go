@@ -27,6 +27,10 @@ var userActivitySkipJSONTags = normalizedSkipTags(
 	"pinnedItems",
 )
 
+var activitySkipStructJSONTags = normalizedSkipTags(
+	"configured",
+)
+
 var shareActivitySkipJSONTags = normalizedSkipTags(
 	"hash",
 	"password_hash",
@@ -81,9 +85,11 @@ func UserUpdateChanges(before, after *users.User, which []string, passwordChange
 			continue
 		}
 		if strings.EqualFold(tag, "scopes") {
-			if change, ok := scopeFieldChange(before, after); ok {
-				changes = append(changes, change)
-			}
+			changes = append(changes, scopeFieldChanges(before, after)...)
+			continue
+		}
+		if strings.EqualFold(tag, "backendSourcePermissions") {
+			changes = append(changes, backendSourcePermissionsFieldChanges(before, after)...)
 			continue
 		}
 		if strings.EqualFold(tag, "sidebarLinks") {
@@ -119,22 +125,108 @@ func ShareUpdateChanges(before, after *share.Share) []activitydb.FieldChange {
 }
 
 func normalizeUserWhich(which []string) []string {
-	if len(which) == 0 {
-		return collectJSONTags(reflect.TypeOf(users.User{}), userActivitySkipJSONTags)
-	}
-	if len(which) == 1 && strings.EqualFold(strings.TrimSpace(which[0]), "all") {
-		return collectJSONTags(reflect.TypeOf(users.User{}), userActivitySkipJSONTags)
-	}
 	return which
 }
 
-func scopeFieldChange(before, after *users.User) (activitydb.FieldChange, bool) {
-	from := formatActivityValue(reflect.ValueOf(before.GetFrontendScopes()))
-	to := formatActivityValue(reflect.ValueOf(after.GetFrontendScopes()))
-	if from == to {
-		return activitydb.FieldChange{}, false
+func scopeFieldChanges(before, after *users.User) []activitydb.FieldChange {
+	return frontendScopeListChanges(before.GetFrontendScopes(), after.GetFrontendScopes(), "scopes")
+}
+
+func frontendScopeListChanges(before, after []users.FrontendScope, prefix string) []activitydb.FieldChange {
+	beforeByName := make(map[string]users.FrontendScope, len(before))
+	for _, scope := range before {
+		beforeByName[scope.Name] = scope
 	}
-	return activitydb.FieldChange{Field: "scopes", From: from, To: to}, true
+	afterByName := make(map[string]users.FrontendScope, len(after))
+	for _, scope := range after {
+		afterByName[scope.Name] = scope
+	}
+	names := sortedMapKeys(beforeByName, afterByName)
+
+	changes := make([]activitydb.FieldChange, 0, len(names))
+	for _, name := range names {
+		bScope, bOk := beforeByName[name]
+		aScope, aOk := afterByName[name]
+		subPrefix := prefix + "." + name
+		if !bOk {
+			changes = append(changes, valueFieldChanges(reflect.Value{}, reflect.ValueOf(aScope), subPrefix)...)
+			continue
+		}
+		if !aOk {
+			changes = append(changes, valueFieldChanges(reflect.ValueOf(bScope), reflect.Value{}, subPrefix)...)
+			continue
+		}
+		if bScope.Scope != aScope.Scope {
+			changes = append(changes, activitydb.FieldChange{
+				Field: subPrefix + ".scope",
+				From:  bScope.Scope,
+				To:    aScope.Scope,
+			})
+		}
+		changes = append(changes, valueFieldChanges(
+			reflect.ValueOf(bScope.Permissions),
+			reflect.ValueOf(aScope.Permissions),
+			subPrefix+".permissions",
+		)...)
+	}
+	return changes
+}
+
+func backendSourcePermissionsFieldChanges(before, after *users.User) []activitydb.FieldChange {
+	if users.SourceConfigLoaded() {
+		return sourcePermissionsMapChanges(
+			before.GetFrontendSourcePermissions(),
+			after.GetFrontendSourcePermissions(),
+			"backendSourcePermissions",
+		)
+	}
+	return sourcePermissionsMapChanges(
+		before.BackendSourcePermissions,
+		after.BackendSourcePermissions,
+		"backendSourcePermissions",
+	)
+}
+
+func sourcePermissionsMapChanges(before, after map[string]users.SourceFilePermissions, prefix string) []activitydb.FieldChange {
+	if len(before) == 0 && len(after) == 0 {
+		return nil
+	}
+	names := sortedMapKeys(before, after)
+
+	changes := make([]activitydb.FieldChange, 0, len(names))
+	for _, name := range names {
+		bPerms, bOk := before[name]
+		aPerms, aOk := after[name]
+		subPrefix := prefix + "." + name
+		if !bOk {
+			changes = append(changes, valueFieldChanges(reflect.Value{}, reflect.ValueOf(aPerms), subPrefix)...)
+			continue
+		}
+		if !aOk {
+			changes = append(changes, valueFieldChanges(reflect.ValueOf(bPerms), reflect.Value{}, subPrefix)...)
+			continue
+		}
+		changes = append(changes, valueFieldChanges(reflect.ValueOf(bPerms), reflect.ValueOf(aPerms), subPrefix)...)
+	}
+	return changes
+}
+
+func sortedMapKeys[K comparable, V any](before, after map[K]V) []K {
+	seen := make(map[K]struct{}, len(before)+len(after))
+	for key := range before {
+		seen[key] = struct{}{}
+	}
+	for key := range after {
+		seen[key] = struct{}{}
+	}
+	keys := make([]K, 0, len(seen))
+	for key := range seen {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return fmt.Sprintf("%v", keys[i]) < fmt.Sprintf("%v", keys[j])
+	})
+	return keys
 }
 
 func sidebarLinksFieldChange(before, after *users.User) (activitydb.FieldChange, bool) {
@@ -173,6 +265,9 @@ func valueFieldChanges(before, after reflect.Value, fieldPrefix string) []activi
 	if reflect.DeepEqual(before.Interface(), after.Interface()) {
 		return nil
 	}
+	if before.Kind() == reflect.Map && after.Kind() == reflect.Map && before.Type().Key().Kind() == reflect.String {
+		return mapFieldChanges(before, after, fieldPrefix)
+	}
 	if before.Kind() == reflect.Struct && after.Kind() == reflect.Struct {
 		changes := make([]activitydb.FieldChange, 0, before.Type().NumField())
 		for i := 0; i < before.Type().NumField(); i++ {
@@ -182,6 +277,9 @@ func valueFieldChanges(before, after reflect.Value, fieldPrefix string) []activi
 			}
 			tagName := strings.Split(sf.Tag.Get("json"), ",")[0]
 			if tagName == "" || tagName == "-" {
+				continue
+			}
+			if _, skip := activitySkipStructJSONTags[strings.ToLower(tagName)]; skip {
 				continue
 			}
 			subPrefix := tagName
@@ -199,6 +297,49 @@ func valueFieldChanges(before, after reflect.Value, fieldPrefix string) []activi
 		From:  formatActivityValue(before),
 		To:    formatActivityValue(after),
 	}}
+}
+
+func mapFieldChanges(before, after reflect.Value, fieldPrefix string) []activitydb.FieldChange {
+	if before.IsNil() && after.IsNil() {
+		return nil
+	}
+	if before.IsNil() {
+		before = reflect.MakeMap(after.Type())
+	}
+	if after.IsNil() {
+		after = reflect.MakeMap(before.Type())
+	}
+
+	keys := make(map[string]reflect.Value)
+	for _, key := range before.MapKeys() {
+		keys[key.String()] = key
+	}
+	for _, key := range after.MapKeys() {
+		keys[key.String()] = key
+	}
+	keyNames := make([]string, 0, len(keys))
+	for keyName := range keys {
+		keyNames = append(keyNames, keyName)
+	}
+	sort.Strings(keyNames)
+
+	changes := make([]activitydb.FieldChange, 0, len(keyNames))
+	for _, keyName := range keyNames {
+		key := keys[keyName]
+		bVal := before.MapIndex(key)
+		aVal := after.MapIndex(key)
+		subPrefix := fieldPrefix + "." + keyName
+		if !bVal.IsValid() {
+			changes = append(changes, valueFieldChanges(reflect.Value{}, aVal, subPrefix)...)
+			continue
+		}
+		if !aVal.IsValid() {
+			changes = append(changes, valueFieldChanges(bVal, reflect.Value{}, subPrefix)...)
+			continue
+		}
+		changes = append(changes, valueFieldChanges(bVal, aVal, subPrefix)...)
+	}
+	return changes
 }
 
 func fieldIndexByJSONTag(t reflect.Type, jsonTag string) ([]int, bool) {
@@ -249,6 +390,9 @@ func collectJSONTags(t reflect.Type, skip map[string]struct{}) []string {
 func formatActivityValue(v reflect.Value) string {
 	if !v.IsValid() {
 		return ""
+	}
+	if v.Kind() == reflect.Pointer && v.IsNil() {
+		return "null"
 	}
 	switch v.Kind() {
 	case reflect.String:

@@ -123,15 +123,7 @@ func ValidateSelfUserUpdateNotEnforced(which []string, enforced UserDefaultsEnfo
 	if len(paths) == 0 {
 		return nil
 	}
-	updateAll := len(which) == 0
-	if !updateAll && len(which) == 1 && strings.EqualFold(strings.TrimSpace(which[0]), "all") {
-		updateAll = true
-	}
-	fields := which
-	if updateAll {
-		fields = allEnforceableUserJSONFields()
-	}
-	for _, jsonField := range fields {
+	for _, jsonField := range which {
 		jsonField = strings.TrimSpace(jsonField)
 		if jsonField == "" || strings.EqualFold(jsonField, "password") {
 			continue
@@ -145,8 +137,9 @@ func ValidateSelfUserUpdateNotEnforced(which []string, enforced UserDefaultsEnfo
 	return nil
 }
 
-func allEnforceableUserJSONFields() []string {
-	out := make([]string, 0, len(userJSONFieldEnforcementPaths)+2)
+// UserJSONFieldsForEnforcedSync lists top-level user JSON keys that enforced-default sync may modify.
+func UserJSONFieldsForEnforcedSync() []string {
+	out := make([]string, 0, len(userJSONFieldEnforcementPaths)+3)
 	for k := range userJSONFieldEnforcementPaths {
 		out = append(out, k)
 	}
