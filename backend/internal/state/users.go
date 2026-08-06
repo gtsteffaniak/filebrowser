@@ -241,12 +241,10 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	return nil
 }
 
-// ValidateUserPatchFields checks that each name in which is a known, patchable user JSON field.
-func ValidateUserPatchFields(fields ...string) error {
+func validatePatchFieldList(fields ...string) error {
 	if len(fields) == 0 {
 		return fmt.Errorf("which must list at least one JSON field name to update")
 	}
-	userType := reflect.TypeOf(users.User{})
 	for _, jsonFieldName := range fields {
 		jsonFieldName = strings.TrimSpace(jsonFieldName)
 		if jsonFieldName == "" {
@@ -255,23 +253,8 @@ func ValidateUserPatchFields(fields ...string) error {
 		if strings.EqualFold(jsonFieldName, "all") {
 			return fmt.Errorf("invalid which field %q", jsonFieldName)
 		}
-		if strings.EqualFold(jsonFieldName, "password") {
-			continue
-		}
-		if !userPatchFieldResolvable(userType, jsonFieldName) {
-			return fmt.Errorf("unknown or read-only user field %q", jsonFieldName)
-		}
 	}
 	return nil
-}
-
-func userPatchFieldResolvable(userType reflect.Type, jsonFieldName string) bool {
-	structFieldName := findFieldByJSONTag(userType, jsonFieldName)
-	if structFieldName == "" {
-		structFieldName = jsonFieldName
-	}
-	field, ok := userType.FieldByName(structFieldName)
-	return ok && field.IsExported()
 }
 
 // FieldListIncludes reports whether fields contains name, case-insensitively.
@@ -288,7 +271,7 @@ func FieldListIncludes(fields []string, name string) bool {
 // fields must list JSON tag names (e.g. "showFirstLogin", "scopes", "permissions").
 // If plaintextPassword is provided (non-empty), it will be hashed when "password" is in fields.
 func UpdateUser(user *users.User, plaintextPassword string, fields ...string) error {
-	if err := ValidateUserPatchFields(fields...); err != nil {
+	if err := validatePatchFieldList(fields...); err != nil {
 		return err
 	}
 

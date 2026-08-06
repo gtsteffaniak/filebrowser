@@ -224,9 +224,56 @@ func nonAdminEditableFieldNameSet() map[string]struct{} {
 	return m
 }
 
-// validatePatchWhich requires at least one non-empty, known field name in which.
+// frontendUserPatchableJSONFields lists JSON keys allowed in PATCH which (FrontendUser + password).
+var frontendUserPatchableJSONFields = buildFrontendUserPatchableJSONFieldSet()
+
+func buildFrontendUserPatchableJSONFieldSet() map[string]struct{} {
+	out := make(map[string]struct{})
+	collectStructJSONFieldTags(reflect.TypeOf(users.FrontendUser{}), out)
+	out["password"] = struct{}{}
+	return out
+}
+
+func collectStructJSONFieldTags(t reflect.Type, out map[string]struct{}) {
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if field.Anonymous && field.Type.Kind() == reflect.Struct {
+			collectStructJSONFieldTags(field.Type, out)
+			continue
+		}
+		tag := field.Tag.Get("json")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		name := strings.Split(tag, ",")[0]
+		if name == "" {
+			continue
+		}
+		out[strings.ToLower(name)] = struct{}{}
+	}
+}
+
+// validatePatchWhich requires at least one FrontendUser JSON field name in which.
 func validatePatchWhich(which []string) error {
-	return state.ValidateUserPatchFields(which...)
+	if len(which) == 0 {
+		return fmt.Errorf("which must list at least one JSON field name to update")
+	}
+	for _, w := range which {
+		w = strings.TrimSpace(w)
+		if w == "" {
+			return fmt.Errorf("which must not contain empty field names")
+		}
+		if strings.EqualFold(w, "all") {
+			return fmt.Errorf("invalid which field %q", w)
+		}
+		if strings.EqualFold(w, "password") {
+			continue
+		}
+		if _, ok := frontendUserPatchableJSONFields[strings.ToLower(w)]; !ok {
+			return fmt.Errorf("unknown or read-only user field %q", w)
+		}
+	}
+	return nil
 }
 
 // userPutOnlyNonAdminEditableFields reports whether req.Which lists exclusively NonAdminEditable fields,
