@@ -5,7 +5,7 @@
       :class="{ 'viewer-mode': viewerMode }"
       :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
     >
-      <MarkdownToolbar v-if="showMarkdownToolbar" :editor="editor" :is-markdown="isMarkdownFile" />
+      <EditorToolbar v-if="showEditorToolbar" :editor="editor" :is-markdown="isMarkdownFile" />
       <div id="editor"></div>
     </div>
     <MarkdownSplitView
@@ -34,7 +34,7 @@ import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
 import "ace-builds/src-min-noconflict/mode-yaml";
 import "ace-builds/src-min-noconflict/mode-json";
 import "ace-builds/src-min-noconflict/mode-markdown";
-import MarkdownToolbar from "@/components/files/MarkdownToolbar.vue";
+import EditorToolbar from "@/components/files/EditorToolbar.vue";
 import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
 import { editorConfig } from "@/utils/editorConfig";
 
@@ -46,7 +46,7 @@ const THEME_LIGHT = "ace/theme/chrome";
 export default {
   name: "editor",
   components: {
-    MarkdownToolbar,
+    EditorToolbar,
     MarkdownSplitView,
   },
   props: {
@@ -156,7 +156,7 @@ export default {
       const type = this.req?.type;
       return type === "text/markdown" || type === "text/x-markdown";
     },
-    showMarkdownToolbar() {
+    showEditorToolbar() {
       return !this.editorReadOnly;
     },
     isSplitActive() {

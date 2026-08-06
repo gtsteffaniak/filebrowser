@@ -1,6 +1,6 @@
 <template>
-  <div class="markdown-toolbar no-select">
-    <div class="md-toolbar-sticky">
+  <div class="editor-toolbar no-select">
+    <div class="editor-toolbar-sticky">
       <div
         v-for="btn in stickyToolbarButtons"
         :key="btn.id"
@@ -8,7 +8,7 @@
       >
         <button
           type="button"
-          class="md-toolbar-btn"
+          class="editor-toolbar-btn"
           :title="btn.title"
           :aria-label="btn.title"
           :disabled="btn.disabled"
@@ -20,14 +20,14 @@
       </div>
     </div>
     <div
-      v-for="btn in toolbarButtons"
+      v-for="btn in editorToolbarButtons"
       :key="btn.id"
       class="md-toolbar-group"
     >
       <button
         v-if="!btn.color && !btn.menu"
         type="button"
-        class="md-toolbar-btn"
+        class="editor-toolbar-btn"
         :title="btn.title"
         :aria-label="btn.title"
         :disabled="btn.disabled"
@@ -40,7 +40,7 @@
         <button
           :ref="(el) => setIconMenuTriggerEl(btn.menu, el as HTMLElement | null)"
           type="button"
-          class="md-toolbar-btn"
+          class="editor-toolbar-btn"
           :title="btn.title"
           :aria-label="btn.title"
           @mousedown.prevent
@@ -50,11 +50,11 @@
         </button>
         <Teleport to="body">
           <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu, el as HTMLElement | null)" class="md-toolbar-menu md-toolbar-menu--icon-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu, el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
               <li v-for="item in iconMenuItems(btn.menu)" :key="item.id">
                 <button
                   type="button"
-                  class="md-toolbar-btn"
+                  class="editor-toolbar-btn"
                   :title="item.title"
                   :aria-label="item.title"
                   :disabled="item.disabled"
@@ -68,21 +68,21 @@
           </transition>
         </Teleport>
       </template>
-      <div v-else class="md-toolbar-btn clickable">
+      <div v-else class="editor-toolbar-btn clickable">
         <button
           type="button"
-          class="md-toolbar-btn"
+          class="editor-toolbar-btn"
           :title="btn.title"
           :aria-label="btn.title"
           :disabled="btn.disabled"
           @mousedown.prevent
           @click="applyStoredColor(btn)"
         >
-          <i class="material-symbols" :class="{ 'md-toolbar-color-glyph': selectedColor(btn) }">{{ btn.icon }}</i>
+          <i class="material-symbols" :class="{ 'toolbar-color-glyph': selectedColor(btn) }">{{ btn.icon }}</i>
         </button>
         <span
-          class="md-toolbar-color-indicator"
-          :class="{ 'md-toolbar-color-indicator--empty': !selectedColor(btn) }"
+          class="toolbar-color-indicator"
+          :class="{ 'toolbar-color-indicator--empty': !selectedColor(btn) }"
           :style="selectedColor(btn) ? { backgroundColor: selectedColor(btn) } : null"
         >
           <input
@@ -97,11 +97,11 @@
         </span>
       </div>
     </div>
-    <div class="md-toolbar-sticky md-toolbar-sticky--right">
+    <div class="editor-toolbar-sticky editor-toolbar-sticky--right">
       <button
         ref="extraMenuTrigger"
         type="button"
-        class="md-toolbar-btn"
+        class="editor-toolbar-btn"
         :title="$t('editor.md.moreOptions')"
         :aria-label="$t('editor.md.moreOptions')"
         @mousedown.prevent
@@ -111,11 +111,11 @@
       </button>
       <Teleport to="body">
         <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-          <ul v-if="openMenu === 'extra'" ref="extraMenu" class="md-toolbar-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+          <ul v-if="openMenu === 'extra'" ref="extraMenu" class="editor-toolbar-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
             <li v-for="item in extraMenuItems" :key="item.id">
               <button
                 type="button"
-                class="md-toolbar-btn md-toolbar-menu-btn"
+                class="editor-toolbar-btn editor-toolbar-menu-btn"
                 :title="item.title"
                 @mousedown.prevent
                 @click="extBtnAction(item)"
@@ -187,7 +187,7 @@ interface ToolbarButton {
 }
 
 export default {
-  name: "markdownToolbar",
+  name: "editorToolbar",
   props: {
     editor: {
       type: Object as PropType<Ace.Editor | null>,
@@ -243,7 +243,8 @@ export default {
     window.removeEventListener("resize", this.closeMenu);
   },
   computed: {
-    markdownToolbarButtons(): ToolbarButton[] {
+    toolbarButtons(): ToolbarButton[] {
+      // alwaysAvailable are for buttons that will be available for all filetypes, not just markdown.
       const alwaysAvailable: ToolbarButton[] = [
         { id: "undo", icon: "undo", title: this.$t("editor.md.undo"), action: () => this.undo(), disabled: !this.canUndo, sticky: true },
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
@@ -276,10 +277,10 @@ export default {
       ];
     },
     stickyToolbarButtons(): ToolbarButton[] {
-      return this.markdownToolbarButtons.filter((btn) => btn.sticky);
+      return this.toolbarButtons.filter((btn) => btn.sticky);
     },
-    toolbarButtons(): ToolbarButton[] {
-      return this.markdownToolbarButtons.filter((btn) => !btn.sticky);
+    editorToolbarButtons(): ToolbarButton[] {
+      return this.toolbarButtons.filter((btn) => !btn.sticky);
     },
     alignMenuItems(): ToolbarButton[] {
       return [
@@ -764,7 +765,7 @@ export default {
 </script>
 
 <style scoped>
-.markdown-toolbar {
+.editor-toolbar {
   display: flex;
   align-items: center;
   gap: 0.15em;
@@ -777,7 +778,7 @@ export default {
   scrollbar-width: none;
 }
 
-.md-toolbar-btn {
+.editor-toolbar-btn {
   position: relative;
   display: flex;
   align-items: center;
@@ -799,7 +800,7 @@ export default {
 }
 
 /* for undo/redo sticky at the left for easy access */
-.md-toolbar-sticky {
+.editor-toolbar-sticky {
   left: 0;
   position: sticky;
   display: flex;
@@ -812,7 +813,7 @@ export default {
   margin: -0.35em 0;
 }
 
-.md-toolbar-sticky--right {
+.editor-toolbar-sticky--right {
   right: -1px;
   /*margin-left: auto;*/
   padding-right: calc(0.25em + 1px);
@@ -821,7 +822,7 @@ export default {
 }
 
 /* overlaid on the icons bottom edge */
-.md-toolbar-color-indicator {
+.toolbar-color-indicator {
   position: absolute;
   left: 50%;
   bottom: 0.15em;
@@ -834,12 +835,12 @@ export default {
   cursor: pointer;
 }
 
-.md-toolbar-btn .material-symbols.md-toolbar-color-glyph {
+.editor-toolbar-btn .material-symbols.toolbar-color-glyph {
   font-size: 1em;
   transform: translateY(-0.2em);
 }
 
-.md-toolbar-color-indicator--empty {
+.toolbar-color-indicator--empty {
   background-color: transparent;
   opacity: 0;
 }
@@ -856,15 +857,15 @@ export default {
   cursor: pointer;
 }
 
-.md-toolbar-btn:disabled {
+.editor-toolbar-btn:disabled {
   opacity: 0.35;
 }
 
-.md-toolbar-btn .material-symbols {
+.editor-toolbar-btn .material-symbols {
   font-size: 1.2em;
 }
 
-.md-toolbar-menu {
+.editor-toolbar-menu {
   position: fixed;
   margin: 0;
   padding: 0.25em;
@@ -873,14 +874,14 @@ export default {
   z-index: 9999;
 }
 
-.md-toolbar-menu--icon-menu {
+.editor-toolbar-menu--icon-menu {
   display: flex;
   gap: 0.15em;
   padding-bottom: 0.5em;
 }
 
-/* same as md-toolbar-btn but only the layout is what changes */
-.md-toolbar-menu-btn {
+/* same as editor-toolbar-btn but only the layout is what changes */
+.editor-toolbar-menu-btn {
   width: 100%;
   height: auto;
   justify-content: flex-start;
@@ -888,7 +889,7 @@ export default {
   padding: 0.5em 0.75em;
 }
 
-.md-toolbar-menu-btn .material-symbols {
+.editor-toolbar-menu-btn .material-symbols {
   font-size: 1.1em;
 }
 
