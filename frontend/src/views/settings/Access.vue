@@ -34,6 +34,7 @@
         enforceable
         :permissions="sourceAccessDefaults"
         :enforced-permissions="sourceAccessEnforced"
+        :config-locked-paths="lockedFromConfigPaths"
         @changed="onSourceAccessDefaultsChange"
         @enforced-change="onSourceAccessEnforcedChange"
       />
@@ -116,6 +117,7 @@ export default {
       create: false,
       delete: false,
     },
+    lockedFromConfigPaths: [],
   }),
   async mounted() {
     this.selectedSource = state.sources.current;
@@ -180,22 +182,7 @@ export default {
       this.hydratingDefaults = true;
       try {
         const settings = await getSourceSettings();
-        const perms = settings?.defaultPermissions ?? {};
-        const enforced = settings?.enforcedPermissions ?? {};
-        this.sourceAccessDefaults = {
-          view: perms.view !== false,
-          download: perms.download !== false,
-          modify: !!perms.modify,
-          create: !!perms.create,
-          delete: !!perms.delete,
-        };
-        this.sourceAccessEnforced = {
-          view: !!enforced.view,
-          download: !!enforced.download,
-          modify: !!enforced.modify,
-          create: !!enforced.create,
-          delete: !!enforced.delete,
-        };
+        this.applySourceSettingsResponse(settings);
       } catch (e) {
         console.error(e);
         if (e?.message) {
@@ -218,6 +205,9 @@ export default {
     applySourceSettingsResponse(settings) {
       const perms = settings?.defaultPermissions ?? {};
       const enforced = settings?.enforcedPermissions ?? {};
+      this.lockedFromConfigPaths = Array.isArray(settings?.lockedFromConfigPaths)
+        ? settings.lockedFromConfigPaths
+        : [];
       this.sourceAccessDefaults = {
         view: perms.view !== false,
         download: perms.download !== false,
@@ -258,15 +248,40 @@ export default {
         });
       }
     },
-    async onSourceAccessDefaultsChange() {
-      if (!this.canSaveSourceDefaults()) {
+    isConfigLockedPermission(flag) {
+      return this.lockedFromConfigPaths.includes(`defaultPermissions.${flag}`);
+    },
+    sourceDefaultPermissionsPatch(flag) {
+      const perms = this.sourceAccessDefaults;
+      switch (flag) {
+        case "view":
+          return { defaultPermissions: { view: perms.view } };
+        case "download":
+          return { defaultPermissions: { download: perms.download } };
+        case "modify":
+          return { defaultPermissions: { modify: perms.modify } };
+        case "create":
+          return { defaultPermissions: { create: perms.create } };
+        case "delete":
+          return { defaultPermissions: { delete: perms.delete } };
+        default:
+          return null;
+      }
+    },
+    async onSourceAccessDefaultsChange(flag) {
+      if (!this.canSaveSourceDefaults() || !flag) {
+        return;
+      }
+      if (this.isConfigLockedPermission(flag)) {
+        return;
+      }
+      const patch = this.sourceDefaultPermissionsPatch(flag);
+      if (!patch) {
         return;
       }
       this.savingDefaults = true;
       try {
-        const settings = await patchSourceSettings({
-          defaultPermissions: this.sourceAccessDefaults,
-        });
+        const settings = await patchSourceSettings(patch);
         this.hydratingDefaults = true;
         this.applySourceSettingsResponse(settings);
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));

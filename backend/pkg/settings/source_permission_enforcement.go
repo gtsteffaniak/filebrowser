@@ -60,6 +60,15 @@ func applyEnforcedSourcePermissionFlag(perms *users.SourceFilePermissions, flag 
 	}
 }
 
+func setSourcePermissionFlag(perms *users.SourceFilePermissions, flag string, value bool) {
+	for _, f := range sourcePermissionFields {
+		if f.name == flag {
+			*f.field(perms) = value
+			return
+		}
+	}
+}
+
 // MergeSourceEnforcedPatchJSON merges a partial JSON patch into base source permission enforcement.
 func MergeSourceEnforcedPatchJSON(base SourceFilePermissionsEnforcement, patchJSON []byte) (SourceFilePermissionsEnforcement, error) {
 	baseBytes, err := json.Marshal(base)
