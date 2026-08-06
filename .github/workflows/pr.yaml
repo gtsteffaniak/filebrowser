@@ -11,7 +11,7 @@ on:
 jobs:
   prime_docker_cache:
     name: Prime docker cache
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
             type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
   build_frontend:
     name: Build frontend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
           path: backend/internal/web/dist
   build_backend:
     name: Build backend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
   test_playwright:
     needs: [build_backend, build_frontend, prime_docker_cache]
     name: Test Playwright - ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     strategy:
       fail-fast: false
       matrix:
@@ -124,7 +124,7 @@ jobs:
             type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
   push_pr_to_registry:
     name: Build docker image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
