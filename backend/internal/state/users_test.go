@@ -218,6 +218,83 @@ func TestUpdateUserRejectsUnknownField(t *testing.T) {
 	}
 }
 
+func TestUpdateUserRejectsPasswordWithoutPlaintext(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	patch := &users.User{ID: u.ID, FrontendUser: users.FrontendUser{Username: "alice"}}
+	if err = UpdateUser(patch, "", "password"); err == nil {
+		t.Fatal("expected error when password is in which but plaintext is empty")
+	}
+}
+
+func TestUpdateUserClearsTOTPWhenOtpDisabled(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+			OtpEnabled: true,
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+	u.TOTPSecret = "persisted-secret"
+	u.TOTPNonce = "persisted-nonce"
+	if err = UpdateUser(u, "", "totpSecret", "totpNonce", "otpEnabled"); err != nil {
+		t.Fatal(err)
+	}
+
+	disable := &users.User{
+		ID: u.ID,
+		FrontendUser: users.FrontendUser{
+			Username:   "alice",
+			OtpEnabled: false,
+		},
+	}
+	if err = UpdateUser(disable, "", "otpEnabled"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.TOTPSecret != "" || loaded.TOTPNonce != "" {
+		t.Fatalf("expected TOTP cleared when otpEnabled disabled, got secret=%q nonce=%q", loaded.TOTPSecret, loaded.TOTPNonce)
+	}
+	if loaded.OtpEnabled {
+		t.Fatal("expected otpEnabled false")
+	}
+}
+
 func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")

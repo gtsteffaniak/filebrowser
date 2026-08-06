@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
-	"slices"
 	"sort"
 	"strings"
 
@@ -225,21 +224,9 @@ func nonAdminEditableFieldNameSet() map[string]struct{} {
 	return m
 }
 
-// validatePatchWhich requires at least one non-empty field name in which.
+// validatePatchWhich requires at least one non-empty, known field name in which.
 func validatePatchWhich(which []string) error {
-	if len(which) == 0 {
-		return fmt.Errorf("which must list at least one JSON field name to update")
-	}
-	for _, w := range which {
-		field := strings.TrimSpace(w)
-		if field == "" {
-			return fmt.Errorf("which must not contain empty field names")
-		}
-		if strings.EqualFold(field, "all") {
-			return fmt.Errorf("invalid which field %q", field)
-		}
-	}
-	return nil
+	return state.ValidateUserPatchFields(which...)
 }
 
 // userPutOnlyNonAdminEditableFields reports whether req.Which lists exclusively NonAdminEditable fields,
@@ -352,7 +339,7 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 	req.User.ID = uValue.ID
 	req.User.Username = uValue.Username
-	if !req.User.OtpEnabled {
+	if state.FieldListIncludes(req.Which, "otpEnabled") && !req.User.OtpEnabled {
 		req.User.TOTPSecret = ""
 		req.User.TOTPNonce = ""
 	}
@@ -403,7 +390,7 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	// Revoke all API keys if API permission was removed
-	if slices.Contains(req.Which, "Permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
+	if state.FieldListIncludes(req.Which, "permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
 		users.EachNamedToken(oldUser.Tokens, func(_ string, tokenInfo users.AuthToken) {
 			if err := state.RevokeToken(tokenInfo.Token); err != nil {
 				logger.Errorf("Failed to revoke API key: %v", err)

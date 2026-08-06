@@ -31,4 +31,10 @@ func TestValidatePatchWhich(t *testing.T) {
 			t.Fatal("expected error for blank field name")
 		}
 	})
+
+	t.Run("rejects unknown field names", func(t *testing.T) {
+		if err := validatePatchWhich([]string{"notARealField"}); err == nil {
+			t.Fatal("expected error for unknown field name")
+		}
+	})
 }

@@ -391,7 +391,7 @@ func formatActivityValue(v reflect.Value) string {
 	if !v.IsValid() {
 		return ""
 	}
-	if v.Kind() == reflect.Ptr && v.IsNil() {
+	if v.Kind() == reflect.Pointer && v.IsNil() {
 		return "null"
 	}
 	switch v.Kind() {
