@@ -3,7 +3,6 @@ import { expect, test } from "../test-setup";
 async function openAccessSettings(page: import("@playwright/test").Page) {
   await page.goto("/settings");
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-  await page.locator("#access-sidebar").click();
 
   const defaultsResponse = page.waitForResponse(
     (response) =>
@@ -11,6 +10,7 @@ async function openAccessSettings(page: import("@playwright/test").Page) {
       response.request().method() === "GET" &&
       response.ok(),
   );
+  await page.locator("#access-sidebar").click();
 
   const permissionsGroup = page
     .locator(".settings-group")

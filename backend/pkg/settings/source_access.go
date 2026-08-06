@@ -72,10 +72,11 @@ func OverlayConfigSourceDefaults(stored users.SourceFilePermissions) users.Sourc
 	if len(Env.ConfigSourceDefaultPermissions) == 0 {
 		return stored
 	}
+	stored = NormalizeSourceFilePermissions(stored)
 	for flag, val := range Env.ConfigSourceDefaultPermissions {
 		setSourcePermissionFlag(&stored, flag, val)
 	}
-	return NormalizeSourceFilePermissions(users.MarkSourceFilePermissionsConfigured(stored))
+	return users.MarkSourceFilePermissionsConfigured(stored)
 }
 
 func sourcePermissionsPatchWrapper(p users.SourceFilePermissions) map[string]interface{} {

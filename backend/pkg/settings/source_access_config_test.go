@@ -21,6 +21,23 @@ func TestOverlayConfigSourceDefaults(t *testing.T) {
 	}
 }
 
+func TestOverlayConfigSourceDefaults_unsetStoredPartialConfig(t *testing.T) {
+	prev := Env.ConfigSourceDefaultPermissions
+	t.Cleanup(func() { Env.ConfigSourceDefaultPermissions = prev })
+
+	Env.ConfigSourceDefaultPermissions = map[string]bool{"modify": false}
+	merged := OverlayConfigSourceDefaults(users.SourceFilePermissions{})
+	if !merged.View || !merged.Download {
+		t.Fatalf("expected built-in view/download preserved: %+v", merged)
+	}
+	if merged.Modify {
+		t.Fatal("expected modify false from config overlay")
+	}
+	if !merged.Configured {
+		t.Fatal("expected result marked configured")
+	}
+}
+
 func TestValidateSourceDefaultsPatchNotConfigLocked(t *testing.T) {
 	prev := Env.ConfigSourceDefaultPermissions
 	t.Cleanup(func() { Env.ConfigSourceDefaultPermissions = prev })
