@@ -225,10 +225,27 @@ func nonAdminEditableFieldNameSet() map[string]struct{} {
 	return m
 }
 
+// validatePatchWhich requires at least one non-empty field name in which.
+func validatePatchWhich(which []string) error {
+	if len(which) == 0 {
+		return fmt.Errorf("which must list at least one JSON field name to update")
+	}
+	for _, w := range which {
+		field := strings.TrimSpace(w)
+		if field == "" {
+			return fmt.Errorf("which must not contain empty field names")
+		}
+		if strings.EqualFold(field, "all") {
+			return fmt.Errorf("invalid which field %q", field)
+		}
+	}
+	return nil
+}
+
 // userPutOnlyNonAdminEditableFields reports whether req.Which lists exclusively NonAdminEditable fields,
-// excluding Password. Empty which or which[0] == "all" means a broad update and returns false.
+// excluding Password.
 func userPutOnlyNonAdminEditableFields(which []string) bool {
-	if len(which) == 0 || strings.EqualFold(strings.TrimSpace(which[0]), "all") {
+	if len(which) == 0 {
 		return false
 	}
 	allowed := nonAdminEditableFieldNameSet()
@@ -276,12 +293,12 @@ func verifyActorPasswordForUserActions(r *http.Request, d *Context) (int, error)
 
 // userPatchHandler updates an existing user's details.
 // @Summary Update a user's details
-// @Description Updates the details of a user identified by ID. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Full updates (which empty or "all") or any admin-only field require confirmation.
+// @Description Updates the details of a user identified by ID. which must list the JSON field names to update. When the authenticated actor uses password login, they must send their current password in the X-Password header unless the update only touches NonAdminEditable profile fields (not password). Any admin-only field requires confirmation.
 // @Tags Users
 // @Accept json
 // @Param id query string false "user ID to update"
 // @Param id query string false "usename to update"
-// @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors when updating password, using which=all, or any field outside NonAdminEditable"
+// @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors when updating password or any field outside NonAdminEditable"
 // @Param data body users.User true "User data to update"
 // @Success 204 "No Content - User updated successfully"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -298,6 +315,9 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	var req UserRequest
 	if err = json.Unmarshal(body, &req); err != nil {
+		return http.StatusBadRequest, err
+	}
+	if err = validatePatchWhich(req.Which); err != nil {
 		return http.StatusBadRequest, err
 	}
 

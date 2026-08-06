@@ -155,7 +155,7 @@ func TestUpdateUserFullPatchPreservesTOTPSecret(t *testing.T) {
 			},
 		},
 	}
-	if err = UpdateUser(patch, "", "all"); err != nil {
+	if err = UpdateUser(patch, ""); err != nil {
 		t.Fatal(err)
 	}
 

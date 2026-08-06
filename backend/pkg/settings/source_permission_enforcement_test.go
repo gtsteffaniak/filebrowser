@@ -91,12 +91,3 @@ func TestValidateSelfUserUpdateScopesNotEnforced_caseInsensitive(t *testing.T) {
 	}
 }
 
-func TestValidateSelfUserUpdateScopesNotEnforced_blocksFullUpdate(t *testing.T) {
-	enforced := SourceFilePermissionsEnforcement{Create: true}
-	actor := &users.User{FrontendUser: users.FrontendUser{Username: "alice"}}
-	for _, which := range [][]string{nil, {}, {"all"}, {"All"}} {
-		if err := ValidateSelfUserUpdateScopesNotEnforced(which, enforced, actor); err == nil {
-			t.Fatalf("expected full self update to be blocked when enforcement is on, which=%v", which)
-		}
-	}
-}

@@ -95,25 +95,29 @@ export async function create(user, options = {}) {
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
 // options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
-export async function update(user, which = ['all'], options = {}) {
-  const excludeKeys = ['name']
-  which = which.filter(item => !excludeKeys.includes(item))
+export async function update(user, which, options = {}) {
+  if (!Array.isArray(which) || which.length === 0) {
+    throw new Error('users.update requires a non-empty which array of field names')
+  }
+
+  const excludeKeys = ['name', 'all']
+  which = which.filter(item => !excludeKeys.includes(String(item).toLowerCase()))
+  if (which.length === 0) {
+    throw new Error('users.update requires at least one field name in which')
+  }
   if (user.username === 'anonymous') {
     return
   }
 
   const mergedHeaders = { ...(options.headers || {}) }
 
-  let userData = user
-  if (which.length !== 1 || which[0] !== 'all') {
-    userData = {}
-    which.forEach(key => {
-      const value = getObjectProperty(user, key)
-      if (value !== undefined) {
-        userData = setObjectProperty(userData, key, value)
-      }
-    })
-  }
+  let userData = {}
+  which.forEach(key => {
+    const value = getObjectProperty(user, key)
+    if (value !== undefined) {
+      userData = setObjectProperty(userData, key, value)
+    }
+  })
 
   const apiPath = getApiPath('users', { username: user.username })
   const body = JSON.stringify({

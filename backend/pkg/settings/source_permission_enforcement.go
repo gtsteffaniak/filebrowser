@@ -153,13 +153,6 @@ func ValidateSelfUserUpdateScopesNotEnforced(which []string, enforced SourceFile
 	if len(EnforcedSourcePermissionFlags(enforced)) == 0 {
 		return nil
 	}
-	updateAll := len(which) == 0
-	if !updateAll && len(which) == 1 && strings.EqualFold(strings.TrimSpace(which[0]), "all") {
-		updateAll = true
-	}
-	if updateAll {
-		return ErrEnforcedUserField{Path: "scopes"}
-	}
 	for _, field := range which {
 		f := strings.TrimSpace(field)
 		if strings.EqualFold(f, "scopes") ||

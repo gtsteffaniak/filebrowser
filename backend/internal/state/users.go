@@ -261,8 +261,7 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	oldUsername := storedSnapshot.Username
 	oldUserID := storedSnapshot.ID
 
-	// If no fields specified, or the API sends which=["all"], replace the entire user (full update).
-	// Client UX sends "all" as a broad save; it must not be interpreted as a single JSON field name.
+	// Full replace when no fields are specified (internal/server-side callers only; PATCH rejects empty which).
 	updateAll := len(fields) == 0
 	if !updateAll && len(fields) == 1 && strings.EqualFold(strings.TrimSpace(fields[0]), "all") {
 		updateAll = true
@@ -315,7 +314,7 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 			user.Password = existingUser.Password
 		}
 
-		// Profile PUT (which=all) omits server-managed fields; keep persisted data.
+		// Full replace omits server-managed fields; keep persisted data.
 		preserveServerManagedFields(existingUser, user)
 
 		// Replace entire user pointer

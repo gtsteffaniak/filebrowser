@@ -12,12 +12,13 @@ This version represents the most significant change to date. It **requires** bot
  - Removed: singular `source` search api param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
  - Removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules. See [Exclusion rules](https://filebrowserquantum.com/en/docs/user-guides/general-configuration/exclusion-rules/).
  - Removed: deprecated `userDefaults` config formats (nested and flat) — use the [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to convert before upgrading.
- - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method.
+ - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method and requires specifiying a `which` in the body, reject blank or `all` values.
  - Changed: http related config options in `server` config key moved to `http` config key. See [HTTP settings](https://filebrowserquantum.com/en/docs/configuration/http/).
  - Changed (reverse proxy): `http.trustedHeaders` (v1.5.x list) removed — use `http.trustProxyHeaders: true` when behind nginx, Traefik, or Caddy. When enabled, FileBrowser honors `X-Forwarded-Host`, `X-Forwarded-Proto`, `X-Forwarded-For`, and `X-Real-IP` for client IP, cookies, OIDC callbacks, WebAuthn, share URLs, rate limiting, and activity logs. Default is `false` (direct connection values). The [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) converts v1 `trustedHeaders` lists to `trustProxyHeaders: true`. See [Reverse proxy](https://filebrowserquantum.com/en/docs/getting-started/reverse-proxy/) and [HTTP trustProxyHeaders](https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders).
  - Changed: `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead. See [Environment variables](https://filebrowserquantum.com/en/docs/reference/environment-variables/) and [Server settings](https://filebrowserquantum.com/en/docs/configuration/server/).
  - Changed: Moved stream api to `/api/media/stream`. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
  - Changed: CLI user management — canonical commands are `user set <username> --password [value]` and `user promote <username>`; `set -u username,password` is deprecated. See [CLI reference](https://filebrowserquantum.com/en/docs/reference/cli/).
+
 
  **New Features**:
  - View grant mechanism to distinguish between UI viewing and download. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
