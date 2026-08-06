@@ -137,7 +137,7 @@ func promoteAuthAdmin(t *testing.T, username string, loginMethod users.LoginMeth
 	}
 
 	loaded.Permissions.Admin = true
-	if err = UpdateUser(&loaded, ""); err != nil {
+	if err = UpdateUser(&loaded, "", "permissions"); err != nil {
 		t.Fatalf("auth admin promotion failed: %v", err)
 	}
 

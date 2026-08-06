@@ -136,3 +136,13 @@ func ValidateSelfUserUpdateNotEnforced(which []string, enforced UserDefaultsEnfo
 	}
 	return nil
 }
+
+// UserJSONFieldsForEnforcedSync lists top-level user JSON keys that enforced-default sync may modify.
+func UserJSONFieldsForEnforcedSync() []string {
+	out := make([]string, 0, len(userJSONFieldEnforcementPaths)+3)
+	for k := range userJSONFieldEnforcementPaths {
+		out = append(out, k)
+	}
+	out = append(out, "preview", "fileLoading", "permissions")
+	return out
+}

@@ -241,12 +241,19 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	return nil
 }
 
-// UpdateUser updates an existing user with write-through to SQL
-// If plaintextPassword is provided (non-empty), it will be hashed before saving
-// If fields are specified, only those fields are updated (patch operation)
-// Note: fields should be JSON tag names (e.g., "showFirstLogin") which will be converted to struct field names
+// UpdateUser patches an existing user with write-through to SQL.
+// fields must list JSON tag names (e.g. "showFirstLogin", "scopes", "permissions").
+// If plaintextPassword is provided (non-empty), it will be hashed when "password" is in fields.
 func UpdateUser(user *users.User, plaintextPassword string, fields ...string) error {
-	// Snapshot source enforcement before usersMux.Lock. Do not acquire sourceAccessMu while holding usersMux.
+	if len(fields) == 0 {
+		return fmt.Errorf("which must list at least one JSON field name to update")
+	}
+	for _, jsonFieldName := range fields {
+		if strings.EqualFold(strings.TrimSpace(jsonFieldName), "all") {
+			return fmt.Errorf("invalid which field %q", jsonFieldName)
+		}
+	}
+
 	sourceDefaults := GetSourceAccessDefaults()
 	sourceEnforced := GetEnforcedSourcePermissions()
 
@@ -258,90 +265,56 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		return fmt.Errorf("user %s not found in cache", user.Username)
 	}
 	existingUser := cloneUserPtr(storedSnapshot)
-	oldUsername := storedSnapshot.Username
-	oldUserID := storedSnapshot.ID
 
-	// Full replace when no fields are specified (internal/server-side callers only; PATCH rejects empty which).
-	updateAll := len(fields) == 0
-	if !updateAll && len(fields) == 1 && strings.EqualFold(strings.TrimSpace(fields[0]), "all") {
-		updateAll = true
-	}
+	existingVal := reflect.ValueOf(existingUser).Elem()
+	newVal := reflect.ValueOf(user).Elem()
 
-	if !updateAll {
-		// 2. Patch operation - selectively copy specified fields using reflection
-		existingVal := reflect.ValueOf(existingUser).Elem()
-		newVal := reflect.ValueOf(user).Elem()
-
-		for _, jsonFieldName := range fields {
-			// Handle password specially
-			if jsonFieldName == "password" || jsonFieldName == "Password" {
-				if plaintextPassword != "" {
-					hashedPassword, err := utils.HashPwd(plaintextPassword)
-					if err != nil {
-						return fmt.Errorf("failed to hash password: %w", err)
-					}
-					existingUser.Password = hashedPassword
+	for _, jsonFieldName := range fields {
+		if jsonFieldName == "password" || jsonFieldName == "Password" {
+			if plaintextPassword != "" {
+				hashedPassword, hashErr := utils.HashPwd(plaintextPassword)
+				if hashErr != nil {
+					return fmt.Errorf("failed to hash password: %w", hashErr)
 				}
-				continue
+				existingUser.Password = hashedPassword
 			}
-
-			// Find struct field by JSON tag name (handles embedded structs)
-			structFieldName := findFieldByJSONTag(reflect.TypeOf(user).Elem(), jsonFieldName)
-
-			// If not found by JSON tag, try direct field name match (for backwards compatibility)
-			if structFieldName == "" {
-				structFieldName = jsonFieldName
-			}
-
-			// Use reflection to copy the field (FieldByName works with embedded structs)
-			existingField := existingVal.FieldByName(structFieldName)
-			newField := newVal.FieldByName(structFieldName)
-
-			if existingField.IsValid() && existingField.CanSet() && newField.IsValid() {
-				existingField.Set(newField)
-			}
-		}
-	} else {
-		// Full update - replace all fields
-		if plaintextPassword != "" {
-			hashedPassword, err := utils.HashPwd(plaintextPassword)
-			if err != nil {
-				return fmt.Errorf("failed to hash password: %w", err)
-			}
-			user.Password = hashedPassword
-		} else {
-			// Preserve existing password
-			user.Password = existingUser.Password
+			continue
 		}
 
-		// Full replace omits server-managed fields; keep persisted data.
-		preserveServerManagedFields(existingUser, user)
+		structFieldName := findFieldByJSONTag(reflect.TypeOf(user).Elem(), jsonFieldName)
+		if structFieldName == "" {
+			structFieldName = jsonFieldName
+		}
 
-		// Replace entire user pointer
-		existingUser = cloneUserPtr(user)
+		existingField := existingVal.FieldByName(structFieldName)
+		newField := newVal.FieldByName(structFieldName)
+		if existingField.IsValid() && existingField.CanSet() && newField.IsValid() {
+			existingField.Set(newField)
+		}
 	}
 
-	// Request JSON "scopes" → BackendScopes only; FrontendScopes are never persisted (see PrepForFrontend).
-	if updateAll {
+	if fieldListPatchesBackendScopes(fields) || fieldListPatchesAPISourcePermissions(fields) {
 		if err := applyScopesFromAPI(existingUser); err != nil {
 			return err
 		}
 	} else {
-		if fieldListPatchesBackendScopes(fields) || fieldListPatchesAPISourcePermissions(fields) {
-			if err := applyScopesFromAPI(existingUser); err != nil {
-				return err
-			}
-		} else {
-			for _, jsonFieldName := range fields {
-				if strings.EqualFold(jsonFieldName, "scopes") || strings.EqualFold(jsonFieldName, "sourcePermissions") {
-					if err := applyScopesFromAPI(existingUser); err != nil {
-						return err
-					}
-					break
+		for _, jsonFieldName := range fields {
+			if strings.EqualFold(jsonFieldName, "scopes") || strings.EqualFold(jsonFieldName, "sourcePermissions") {
+				if err := applyScopesFromAPI(existingUser); err != nil {
+					return err
 				}
+				break
 			}
 		}
 	}
+
+	return commitUserUpdate(existingUser, storedSnapshot, sourceDefaults, sourceEnforced)
+}
+
+func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults users.SourceFilePermissions, sourceEnforced settings.SourceFilePermissionsEnforcement) error {
+	oldUsername := storedSnapshot.Username
+	oldUserID := storedSnapshot.ID
+
 	users.SyncBackendSourcePermissionsMap(existingUser)
 	existingUser.FrontendScopes = nil
 	existingUser.SourcePermissions = nil
@@ -355,53 +328,20 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		return err
 	}
 
-	// 3. Write to database
-	var updateErr error
 	if oldUsername != existingUser.Username {
-		if updateErr = sqlDb.UpdateUserUsername(oldUsername, existingUser); updateErr != nil {
-			return updateErr
+		if err := sqlDb.UpdateUserUsername(oldUsername, existingUser); err != nil {
+			return err
 		}
 		if oldUserID != 0 && oldUserID != existingUser.ID {
 			userRecordCache.Delete(userCacheKeyID(oldUserID))
 		}
 		userRecordCache.Delete(userCacheKeyName(oldUsername))
-	} else {
-		if updateErr = sqlDb.UpdateUser(existingUser); updateErr != nil {
-			return updateErr
-		}
+	} else if err := sqlDb.UpdateUser(existingUser); err != nil {
+		return err
 	}
 
 	putUserInCache(existingUser)
-
 	return nil
-}
-
-// preserveServerManagedFields copies persisted server-side data when a full user PUT
-// omits fields the frontend never sends (API tokens, passkeys, pinned items, etc.).
-func preserveServerManagedFields(old, new *users.User) {
-	if new.Tokens == nil && old.Tokens != nil {
-		new.Tokens = old.Tokens
-	}
-	if new.ApiKeys == nil && old.ApiKeys != nil {
-		new.ApiKeys = old.ApiKeys
-	}
-	if len(new.PasskeyCredentials) == 0 && len(old.PasskeyCredentials) > 0 {
-		new.PasskeyCredentials = old.PasskeyCredentials
-	}
-	if new.PinnedItems == nil && old.PinnedItems != nil {
-		new.PinnedItems = old.PinnedItems
-	}
-	if new.BackendSourcePermissions == nil && old.BackendSourcePermissions != nil {
-		new.BackendSourcePermissions = copyBackendSourcePermissions(old.BackendSourcePermissions)
-	}
-	// Frontend omits totpSecret/totpNonce on profile saves; preserve when OTP stays enabled or was active in DB.
-	if new.TOTPSecret == "" && new.TOTPNonce == "" && old.TOTPSecret != "" && new.OtpEnabled {
-		new.TOTPSecret = old.TOTPSecret
-		new.TOTPNonce = old.TOTPNonce
-	}
-	if new.Version == 0 && old.Version != 0 {
-		new.Version = old.Version
-	}
 }
 
 // fieldListPatchesBackendScopes reports whether fields include persisted scope paths (JSON tag
