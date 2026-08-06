@@ -535,7 +535,6 @@ export const getters = {
       disablePreviewExt: "",
       editButtonInHeader: false,
       preferEditorForMarkdown: false,
-      wrapEditorContent: false,
       fileLoading: {
         maxConcurrent: 1,
         chunkSizeMb: 5,

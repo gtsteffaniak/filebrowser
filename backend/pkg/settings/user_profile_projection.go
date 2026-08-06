@@ -52,7 +52,6 @@ func ProfileFromUser(u *users.User) UserProfile {
 			EditButtonInHeader:      u.EditButtonInHeader,
 			PreferEditorForMarkdown: u.PreferEditorForMarkdown,
 			DebugOffice:             u.DebugOffice,
-			WrapEditorContent:              u.WrapEditorContent,
 		},
 		Search: UserDefaultsSearch{
 			DisableOptions: u.DisableSearchOptions,
@@ -127,7 +126,6 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.DisableOfficePreviewExt = p.FileViewer.DisableOnlyOfficeExt
 	u.EditButtonInHeader = p.FileViewer.EditButtonInHeader
 	u.PreferEditorForMarkdown = p.FileViewer.PreferEditorForMarkdown
-	u.WrapEditorContent = p.FileViewer.WrapEditorContent
 	u.DebugOffice = p.FileViewer.DebugOffice
 
 	u.DisableSearchOptions = p.Search.DisableOptions

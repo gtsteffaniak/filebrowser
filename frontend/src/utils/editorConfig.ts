@@ -1,0 +1,39 @@
+import { reactive } from 'vue';
+
+const STORAGE_KEY = 'editorConfig';
+
+export interface EditorConfig {
+  wrapEditorContent: boolean;
+}
+
+const DEFAULTS: EditorConfig = {
+  wrapEditorContent: false,
+};
+
+function load(): EditorConfig {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return { ...DEFAULTS };
+    return { ...DEFAULTS, ...JSON.parse(stored) };
+  } catch (_) {
+    return { ...DEFAULTS };
+  }
+}
+
+function persist(): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(editorConfig));
+  } catch (_) { /* ignore */ }
+}
+
+export const editorConfig: EditorConfig = reactive(load());
+
+export function saveEditorConfig(partial: Partial<EditorConfig>): void {
+  Object.assign(editorConfig, partial);
+  persist();
+}
+
+export function resetEditorConfig(): void {
+  Object.assign(editorConfig, DEFAULTS);
+  persist();
+}

@@ -242,7 +242,6 @@ type NonAdminEditable struct {
 	DeleteAfterArchive         bool                 `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
 	EditButtonInHeader         bool                 `json:"editButtonInHeader"`         // show edit/preview buttons in header instead of the overflow menu
 	PreferEditorForMarkdown    bool                 `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer
-	WrapEditorContent          bool                 `json:"wrapEditorContent"`          // wrap long lines when editing files in the editor
 	ShowFirstLogin             bool                 `json:"showFirstLogin"`
 	PasskeyCredentials         []WebAuthnCredential `json:"passkeyCredentials,omitempty"`
 }

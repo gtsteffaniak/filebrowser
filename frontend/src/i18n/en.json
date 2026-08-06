@@ -753,6 +753,7 @@
     "orange": "orange"
   },
   "editor": {
+    "settings": "Editor Settings",
     "uninitialized": "Failed to initialize the editor. Please reload.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "lines": "{count} lines",
@@ -761,6 +762,9 @@
     "splitView": "Split view",
     "exitSplitView": "Exit split view",
     "md": {
+      "clipboardActions": "Clipboard actions",
+      "paste": "Paste",
+      "cut": "Cut",
       "bold": "Bold",
       "italic": "Italic",
       "strikethrough": "Strikethrough",

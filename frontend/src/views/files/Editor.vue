@@ -5,7 +5,7 @@
       :class="{ 'viewer-mode': viewerMode }"
       :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
     >
-      <MarkdownToolbar v-if="showMarkdownToolbar" :editor="editor" />
+      <MarkdownToolbar v-if="showMarkdownToolbar" :editor="editor" :is-markdown="isMarkdownFile" />
       <div id="editor"></div>
     </div>
     <MarkdownSplitView
@@ -28,6 +28,7 @@ import { pathsMatch, removeLastDir } from "@/utils/url.js";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
+import "ace-builds/src-noconflict/ext-searchbox";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
 import "ace-builds/src-min-noconflict/mode-yaml";
@@ -35,6 +36,7 @@ import "ace-builds/src-min-noconflict/mode-json";
 import "ace-builds/src-min-noconflict/mode-markdown";
 import MarkdownToolbar from "@/components/files/MarkdownToolbar.vue";
 import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
+import { editorConfig } from "@/utils/editorConfig";
 
 type Req = typeof state.req;
 
@@ -155,7 +157,7 @@ export default {
       return type === "text/markdown" || type === "text/x-markdown";
     },
     showMarkdownToolbar() {
-      return this.isMarkdownFile && !this.editorReadOnly;
+      return !this.editorReadOnly;
     },
     isSplitActive() {
       return !this.viewerMode && this.isMarkdownFile && state.editor.markdownSplitView && !state.isMobile && this.permissions.modify;
@@ -165,6 +167,12 @@ export default {
     },
     isTransitioning() {
       return state.navigation.isTransitioning;
+    },
+    editorFontSize() {
+      return state.editor.fontSize;
+    },
+    wrapEditorContent() {
+      return editorConfig.wrapEditorContent;
     },
   },
   watch: {
@@ -254,9 +262,15 @@ export default {
         if (this.editor) this.editor.resize();
       });
     },
+    editorFontSize() {
+      this.applyFontSize();
+    },
+    wrapEditorContent() {
+      this.applyWrap();
+    },
   },
   created() {
-    window.addEventListener("keydown", this.keyEvent);
+    window.addEventListener("keydown", this.keyEvent, true);
 
     // Show generic browser dialog if the user closes the tab, or try to close the browser with unsaved changes
     this.beforeUnloadHandler = (event: BeforeUnloadEvent) => {
@@ -282,7 +296,7 @@ export default {
       this.viewerResizeObserver = null;
     }
 
-    window.removeEventListener("keydown", this.keyEvent);
+    window.removeEventListener("keydown", this.keyEvent, true);
     if (this.beforeUnloadHandler) {
       window.removeEventListener("beforeunload", this.beforeUnloadHandler);
     }
@@ -317,9 +331,6 @@ export default {
           this.setupViewerResizeObserver();
         });
       });
-      this.$watch(() => state.editor.fontSize, () => {
-        this.applyFontSize();
-      });
       return;
     }
 
@@ -334,10 +345,6 @@ export default {
     mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
     this.applyFontSize();
     this.setupViewerResizeObserver();
-    // Watch font size changes
-    this.$watch(() => state.editor.fontSize, () => {
-      this.applyFontSize();
-    });
   },
   methods: {
     scheduleSaveUnlock(delay: number) {
@@ -449,8 +456,8 @@ export default {
           showLineNumbers: true,
           theme: this.isDarkMode ? THEME_DARK : THEME_LIGHT,
           readOnly: this.editorReadOnly,
-          wrap: !!state.user?.wrapEditorContent,
-          enableMobileMenu: !this.viewerMode,
+          wrap: !!editorConfig.wrapEditorContent,
+          enableMobileMenu: false,
           useWorker: true,
           cursorStyle: "smooth",
           highlightGutterLine: true,
@@ -463,6 +470,7 @@ export default {
         this.savedContent = this.editorContent;
         this.editor.setOption('displayIndentGuides', true);
         this.editor.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
+        this.editor.commands.removeCommand("showSettingsMenu");
 
         const editorInstance = this.editor;
         editorInstance.on('change', () => {
@@ -574,7 +582,12 @@ export default {
     async keyEvent(event: KeyboardEvent) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName()) return;
-
+      if ((ctrlKey || metaKey) && key === ",") {
+        event.preventDefault();
+        event.stopPropagation();
+        this.openEditorSettings();
+        return;
+      }
       // Skip save shortcut in viewer mode
       if (this.viewerMode) return;
 
@@ -586,6 +599,11 @@ export default {
           // ignore
         }
       }
+    },
+    openEditorSettings() {
+      mutations.showPrompt({
+        name: "EditorSettings",
+      });
     },
     setupNavigationGuard() {
       if (this.viewerMode) return;
@@ -704,6 +722,11 @@ export default {
         this.editor.setOption('fontSize', `${state.editor.fontSize}px`);
       }
     },
+    applyWrap() {
+      if (this.editor) {
+        this.editor.setOption('wrap', !!editorConfig.wrapEditorContent);
+      }
+    },
     handleEditorScroll() {
       (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.handleEditorScroll();
     },
@@ -755,23 +778,6 @@ export default {
     -moz-user-select: text !important;
     -ms-user-select: text !important;
     user-select: text !important;
-}
-
-.ace_mobile-menu {
-    font-size: 16px !important;
-    border-radius: 12px !important;
-    padding: 10px !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
-}
-
-.ace_mobile-menu .ace_menu-item {
-    font-size: 16px !important;
-    margin: 8px 0 !important;
-    border-radius: 8px !important;
-    text-align: center !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
 }
 
 /* make sure the text selection is detected*/

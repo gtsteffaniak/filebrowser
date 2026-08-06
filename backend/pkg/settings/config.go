@@ -917,7 +917,6 @@ func SetDefaults(generate bool) Settings {
 				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
 				EditButtonInHeader:      false,
 				PreferEditorForMarkdown: false,
-				WrapEditorContent:       false,
 				DebugOffice:             false,
 			},
 			Search: UserDefaultsSearch{

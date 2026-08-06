@@ -36,27 +36,28 @@
       >
         <i class="material-symbols">{{ btn.icon }}</i>
       </button>
-      <template v-else-if="btn.menu === 'align'">
+      <template v-else-if="btn.menu === 'align' || btn.menu === 'clipboard'">
         <button
-          :ref="(el) => (alignMenuTriggerEl = el as HTMLElement | null)"
+          :ref="(el) => setIconMenuTriggerEl(btn.menu, el as HTMLElement | null)"
           type="button"
           class="md-toolbar-btn"
           :title="btn.title"
           :aria-label="btn.title"
           @mousedown.prevent
-          @click="toggleMenu('align')"
+          @click="toggleMenu(btn.menu)"
         >
           <i class="material-symbols">{{ btn.icon }}</i>
         </button>
         <Teleport to="body">
           <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-            <ul v-if="openMenu === 'align'" :ref="(el) => (alignMenuEl = el as HTMLElement | null)" class="md-toolbar-menu md-toolbar-menu--align floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
-              <li v-for="item in alignMenuItems" :key="item.id">
+            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu, el as HTMLElement | null)" class="md-toolbar-menu md-toolbar-menu--icon-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+              <li v-for="item in iconMenuItems(btn.menu)" :key="item.id">
                 <button
                   type="button"
                   class="md-toolbar-btn"
                   :title="item.title"
                   :aria-label="item.title"
+                  :disabled="item.disabled"
                   @mousedown.prevent
                   @click="extBtnAction(item)"
                 >
@@ -138,6 +139,7 @@ import { mutations, state, getters } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { removeLastDir } from "@/utils/url.js";
 import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
+import { copyToClipboard } from "@/utils/clipboard.js";
 
 interface AnchorRange {
   start: Ace.Anchor;
@@ -181,7 +183,7 @@ interface ToolbarButton {
   color?: string;
   applyColor?: (color: string) => void;
   sticky?: boolean;
-  menu?: "align";
+  menu?: "align" | "clipboard";
 }
 
 export default {
@@ -191,20 +193,24 @@ export default {
       type: Object as PropType<Ace.Editor | null>,
       default: null,
     },
+    isMarkdown: {
+      type: Boolean,
+      default: false,
+    },
   },
   data: () => ({
     canUndo: false,
     canRedo: false,
     pendingSelection: null as PendingSelection | null,
-    openMenu: null as "extra" | "align" | null,
+    openMenu: null as "extra" | "align" | "clipboard" | null,
     menuPosition: { top: 0, left: 0, right: 0 },
     lastColors: new Map<string, string>([
       ["mdFontColor", localStorage.getItem("mdFontColor") || ""],
       ["mdHighlightColor", localStorage.getItem("mdHighlightColor") || ""],
     ]),
     colorInputRefs: new Map<string, HTMLInputElement>(),
-    alignMenuTriggerEl: null as HTMLElement | null,
-    alignMenuEl: null as HTMLElement | null,
+    iconMenuTriggerEls: new Map<"align" | "clipboard", HTMLElement>(),
+    iconMenuEls: new Map<"align" | "clipboard", HTMLElement>(),
   }),
   watch: {
     editor: {
@@ -238,17 +244,30 @@ export default {
   },
   computed: {
     markdownToolbarButtons(): ToolbarButton[] {
-      return [
+      const alwaysAvailable: ToolbarButton[] = [
         { id: "undo", icon: "undo", title: this.$t("editor.md.undo"), action: () => this.undo(), disabled: !this.canUndo, sticky: true },
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
+        { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
+      ];
+      if (!this.isMarkdown) {
+        return [
+          ...alwaysAvailable,
+          { id: "copy", icon: "content_copy", title: this.$t("general.copy"), action: () => this.copySelection() },
+          { id: "cut", icon: "content_cut", title: this.$t("editor.md.cut"), action: () => this.cutSelection() },
+          { id: "paste", icon: "content_paste", title: this.$t("editor.md.paste"), action: () => this.pasteClipboard() },
+          { id: "selectAll", icon: "select_all", title: this.$t("buttons.selectAll"), action: () => this.selectAllText() },
+        ];
+      }
+      return [
+        ...alwaysAvailable,
+        { id: "clipboard", icon: "content_paste", title: this.$t("editor.md.clipboardActions"), menu: "clipboard" },
         { id: "bold", icon: "format_bold", title: this.$t("editor.md.bold"), action: () => this.wrapSelection("**", "**") },
         { id: "italic", icon: "format_italic", title: this.$t("editor.md.italic"), action: () => this.wrapSelection("_", "_") },
         { id: "strikethrough", icon: "strikethrough_s", title: this.$t("editor.md.strikethrough"), action: () => this.wrapSelection("~~", "~~") },
         { id: "heading", icon: "title", title: this.$t("editor.md.heading"), action: () => this.cycleHeading() },
         { id: "quote", icon: "format_quote", title: this.$t("editor.md.quote"), action: () => this.toggleLinePrefix("> ") },
-        { id: "align", icon: "format_align_left", title: this.$t("editor.md.align"), menu: "align" },
-        { id: "link", icon: "link", title: this.$t("general.links"), action: () => this.insertLink() },
         { id: "image", icon: "image", title: this.$t("fileTypes.image"), action: () => this.insertImage() },
+        { id: "align", icon: "format_align_left", title: this.$t("editor.md.align"), menu: "align" },
         { id: "bulletList", icon: "format_list_bulleted", title: this.$t("editor.md.bulletList"), action: () => this.toggleLinePrefix("- ") },
         { id: "numberedList", icon: "format_list_numbered", title: this.$t("editor.md.numberedList"), action: () => this.applyNumberedList() },
         { id: "taskList", icon: "checklist", title: this.$t("editor.md.taskList"), action: () => this.toggleTaskList() },
@@ -270,8 +289,26 @@ export default {
         { id: "alignJustify", icon: "format_align_justify", title: this.$t("editor.md.justify"), action: () => this.wrapSelection('<p align="justify">', "</p>", this.$t("editor.md.text")) },
       ];
     },
-    extraMenuItems(): ToolbarButton[] {
+    clipboardMenuItems(): ToolbarButton[] {
       return [
+        { id: "copy", icon: "content_copy", title: this.$t("general.copy"), action: () => this.copySelection() },
+        { id: "cut", icon: "content_cut", title: this.$t("editor.md.cut"), action: () => this.cutSelection() },
+        { id: "paste", icon: "content_paste", title: this.$t("editor.md.paste"), action: () => this.pasteClipboard() },
+        { id: "selectAll", icon: "select_all", title: this.$t("buttons.selectAll"), action: () => this.selectAllText() },
+      ];
+    },
+    extraMenuItems(): ToolbarButton[] {
+      const editorSettings: ToolbarButton = {
+        id: "editorSettings",
+        icon: "settings",
+        title: this.$t("editor.settings"),
+        action: () => this.openEditorSettings(),
+      };
+      if (!this.isMarkdown) {
+        return [editorSettings];
+      }
+      return [
+        editorSettings,
         { id: "code", icon: "code", title: this.$t("editor.md.inlineCode"), action: () => this.wrapSelection("`", "`") },
         { id: "codeBlock", icon: "code_blocks", title: this.$t("editor.md.codeBlock"), action: () => this.insertCodeBlock() },
         { id: "video", icon: "videocam", title: this.$t("fileTypes.video"), action: () => this.insertVideo() },
@@ -283,10 +320,11 @@ export default {
         { id: "superscript", icon: "superscript", title: this.$t("editor.md.superscript"), action: () => this.wrapSelection("<sup>", "</sup>", "2") },
         { id: "subscript", icon: "subscript", title: this.$t("editor.md.subscript"), action: () => this.wrapSelection("<sub>", "</sub>", "2") },
         { id: "kbd", icon: "keyboard", title: this.$t("threejs.keyboard"), action: () => this.wrapSelection("<kbd>", "</kbd>", "Ctrl") },
+        { id: "link", icon: "link", title: this.$t("general.links"), action: () => this.insertLink() },
       ];
     },
     menuStyle() {
-      if (this.openMenu === "align") {
+      if (this.openMenu === "align" || this.openMenu === "clipboard") {
         return { top: `${this.menuPosition.top}px`, left: `${this.menuPosition.left}px`, transform: "translateX(-50%)" };
       }
       return { top: `${this.menuPosition.top}px`, right: `${this.menuPosition.right}px` };
@@ -316,6 +354,11 @@ export default {
       this.refreshUndoState();
       this.focusEditor();
     },
+    openFind() {
+      const editor = this.editor;
+      if (!editor) return;
+      editor.execCommand("find");
+    },
     attachUndoListener(editor: Ace.Editor | null) {
       if (!editor) return;
       editor.session.on("change", this.refreshUndoState);
@@ -335,6 +378,38 @@ export default {
       const undoManager = editor.session.getUndoManager();
       this.canUndo = undoManager.hasUndo();
       this.canRedo = undoManager.hasRedo();
+    },
+    copySelection() {
+      const editor = this.editor;
+      if (!editor) return;
+      const text = editor.getCopyText();
+      if (text) void copyToClipboard(text);
+      this.focusEditor();
+    },
+    cutSelection() {
+      const editor = this.editor;
+      if (!editor) return;
+      const text = editor.getCopyText();
+      if (text) void copyToClipboard(text);
+      editor.execCommand("cut");
+      this.focusEditor();
+    },
+    async pasteClipboard() {
+      const editor = this.editor;
+      if (!editor) return;
+      this.focusEditor();
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          editor.execCommand("paste", { text });
+        }
+      } catch (e) { /* ignore - probably blocked by browser */ }
+    },
+    selectAllText() {
+      const editor = this.editor;
+      if (!editor) return;
+      editor.execCommand("selectall");
+      this.focusEditor();
     },
     selectedLineRange() {
       const range = this.editor.getSelectionRange();
@@ -497,6 +572,11 @@ export default {
       }
       this.focusEditor();
     },
+    openEditorSettings() {
+      mutations.showPrompt({
+        name: "EditorSettings",
+      });
+    },
     insertBlock(content: string) {
       const editor = this.editor;
       if (!editor) return;
@@ -623,33 +703,46 @@ export default {
       const target = e.target as Node;
       const extraMenuTrigger = this.$refs.extraMenuTrigger as HTMLElement | undefined;
       const extraMenu = this.$refs.extraMenu as HTMLElement | undefined;
+      const insideIconMenus =
+        Array.from(this.iconMenuTriggerEls.values()).some((el) => el.contains(target))
+        || Array.from(this.iconMenuEls.values()).some((el) => el.contains(target));
       const inside =
         extraMenuTrigger?.contains(target)
         || extraMenu?.contains(target)
-        || this.alignMenuTriggerEl?.contains(target)
-        || this.alignMenuEl?.contains(target);
+        || insideIconMenus;
       if (!inside) this.closeMenu();
     },
-    toggleMenu(name: "extra" | "align") {
+    toggleMenu(name: "extra" | "align" | "clipboard") {
       if (this.openMenu === name) {
         this.closeMenu();
         return;
       }
-      const trigger = name === "align" ? this.alignMenuTriggerEl : (this.$refs.extraMenuTrigger as HTMLElement | undefined);
+      const trigger = name === "extra" ? (this.$refs.extraMenuTrigger as HTMLElement | undefined) : this.iconMenuTriggerEls.get(name);
       if (trigger) {
         const rect = trigger.getBoundingClientRect();
-        if (name === "align") {
-          // Center under the button
-          this.menuPosition = { top: rect.bottom + 4, left: rect.left + rect.width / 2, right: 0 };
-        } else {
+        if (name === "extra") {
           // Right-anchor to the viewport edge so it can't overflow off-screen
           this.menuPosition = { top: rect.bottom + 4, left: 0, right: window.innerWidth - rect.right };
+        } else {
+          // Center under the button
+          this.menuPosition = { top: rect.bottom + 4, left: rect.left + rect.width / 2, right: 0 };
         }
       }
       this.openMenu = name;
     },
     closeMenu() {
       this.openMenu = null;
+    },
+    setIconMenuTriggerEl(menu: "align" | "clipboard", el: HTMLElement | null) {
+      if (el) this.iconMenuTriggerEls.set(menu, el);
+      else this.iconMenuTriggerEls.delete(menu);
+    },
+    setIconMenuEl(menu: "align" | "clipboard", el: HTMLElement | null) {
+      if (el) this.iconMenuEls.set(menu, el);
+      else this.iconMenuEls.delete(menu);
+    },
+    iconMenuItems(menu: "align" | "clipboard"): ToolbarButton[] {
+      return menu === "align" ? this.alignMenuItems : this.clipboardMenuItems;
     },
     onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape" && this.openMenu) {
@@ -721,6 +814,7 @@ export default {
 
 .md-toolbar-sticky--right {
   right: -1px;
+  /*margin-left: auto;*/
   padding-right: calc(0.25em + 1px);
   border-left: 1px solid var(--alt-background);
   border-right: none;
@@ -779,7 +873,7 @@ export default {
   z-index: 9999;
 }
 
-.md-toolbar-menu--align {
+.md-toolbar-menu--icon-menu {
   display: flex;
   gap: 0.15em;
   padding-bottom: 0.5em;
