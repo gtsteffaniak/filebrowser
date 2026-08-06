@@ -468,6 +468,23 @@ func setupSources(generate bool) {
 	}
 	Config.UserDefaults.DefaultScopes = defaultScopes
 	Config.Server.Sources = sourceList
+	finalizeConfigSourceDefaultPermissions()
+}
+
+func finalizeConfigSourceDefaultPermissions() {
+	Env.ConfigSourceDefaultPermissions = nil
+	for _, source := range Config.Server.Sources {
+		if source == nil || len(source.Config.DefaultPermissionsFromConfig) == 0 {
+			continue
+		}
+		Env.ConfigSourceDefaultPermissions = source.Config.DefaultPermissionsFromConfig
+		perms := NormalizeSourceFilePermissions(source.Config.DefaultPermissions)
+		for flag, val := range source.Config.DefaultPermissionsFromConfig {
+			setSourcePermissionFlag(&perms, flag, val)
+		}
+		source.Config.DefaultPermissions = users.MarkSourceFilePermissionsConfigured(perms)
+		return
+	}
 }
 
 func setupUrls() {
@@ -661,6 +678,8 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		return err
 	}
 
+	attachSourceDefaultPermissionsFromConfig(filteredConfig)
+
 	loadEnvConfig()
 	return ResolveDatabasePaths()
 }
@@ -679,6 +698,41 @@ func applyLoadedUserDefaultsFromConfig(generate bool) error {
 	}
 	Config.UserDefaults = merged
 	return nil
+}
+
+func attachSourceDefaultPermissionsFromConfig(raw map[string]interface{}) {
+	server, ok := raw["server"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	sources, ok := server["sources"].([]interface{})
+	if !ok {
+		return
+	}
+	for i, srcRaw := range sources {
+		if i >= len(Config.Server.Sources) || Config.Server.Sources[i] == nil {
+			continue
+		}
+		src, ok := srcRaw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		config, ok := src["config"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		dp, ok := config["defaultPermissions"].(map[string]interface{})
+		if !ok || len(dp) == 0 {
+			continue
+		}
+		fromConfig := make(map[string]bool, len(dp))
+		for key, val := range dp {
+			if b, ok := val.(bool); ok {
+				fromConfig[key] = b
+			}
+		}
+		Config.Server.Sources[i].Config.DefaultPermissionsFromConfig = fromConfig
+	}
 }
 
 func ValidateConfig(config Settings) error {

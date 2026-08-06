@@ -12,6 +12,8 @@ server:
       name: "playwright + files"
       config:
         defaultEnabled: true
+        defaultPermissions:
+          modify: false
     - path: "."
       name: "docker"
       config:

@@ -3,6 +3,7 @@ package state
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -36,6 +37,16 @@ func InitSourceAccessDefaults() error {
 		doc = sourceAccessSettingsDocument{DefaultPermissions: perms}
 		if saveErr := saveSourceAccessSettingsDocument(doc); saveErr != nil {
 			return saveErr
+		}
+	}
+
+	if settings.Env.ConfigSourceDefaultPermissions != nil {
+		overlaid := settings.OverlayConfigSourceDefaults(doc.DefaultPermissions)
+		if !reflect.DeepEqual(doc.DefaultPermissions, overlaid) {
+			doc.DefaultPermissions = overlaid
+			if saveErr := saveSourceAccessSettingsDocument(doc); saveErr != nil {
+				return fmt.Errorf("save config-synced source defaults: %w", saveErr)
+			}
 		}
 	}
 
@@ -113,13 +124,26 @@ func GetSourceAccessDefaults() users.SourceFilePermissions {
 
 // SourceSettings is the admin API payload for GET/PATCH /api/settings/source.
 type SourceSettings struct {
-	DefaultPermissions  users.SourceFilePermissions                `json:"defaultPermissions"`
-	EnforcedPermissions settings.SourceFilePermissionsEnforcement `json:"enforcedPermissions"`
+	DefaultPermissions    users.SourceFilePermissions                `json:"defaultPermissions"`
+	EnforcedPermissions   settings.SourceFilePermissionsEnforcement `json:"enforcedPermissions"`
+	LockedFromConfigPaths []string                                   `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage           string                                     `json:"lockMessage,omitempty"`
 }
 
 // GetSourceSettings returns admin-editable source-wide settings.
 func GetSourceSettings() SourceSettings {
-	return SourceSettings(currentSourceAccessSettingsDocument())
+	doc := currentSourceAccessSettingsDocument()
+	lockedPaths := settings.ConfigSourceDefaultLockedPaths()
+	lockMessage := ""
+	if len(lockedPaths) > 0 {
+		lockMessage = settings.SourceDefaultsConfigLockMessage
+	}
+	return SourceSettings{
+		DefaultPermissions:    doc.DefaultPermissions,
+		EnforcedPermissions:   doc.EnforcedPermissions,
+		LockedFromConfigPaths: lockedPaths,
+		LockMessage:           lockMessage,
+	}
 }
 
 // GetEnforcedSourcePermissions returns universal enforced source permission flags.
@@ -127,6 +151,19 @@ func GetEnforcedSourcePermissions() settings.SourceFilePermissionsEnforcement {
 	sourceAccessMu.RLock()
 	defer sourceAccessMu.RUnlock()
 	return sourceAccessEnforcedDefault
+}
+
+// PatchSourceAccessDefaults merges a partial defaultPermissions patch and persists.
+func PatchSourceAccessDefaults(patchJSON []byte) error {
+	if err := settings.ValidateSourceDefaultsPatchNotConfigLocked(patchJSON); err != nil {
+		return err
+	}
+	current := GetSourceAccessDefaults()
+	merged, mergeErr := settings.MergeSourceDefaultsPatchJSON(current, patchJSON)
+	if mergeErr != nil {
+		return mergeErr
+	}
+	return SetSourceAccessDefaults(merged)
 }
 
 // SetSourceAccessDefaults persists and applies new global source file permission defaults.

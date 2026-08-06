@@ -7,7 +7,8 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.view"
       @update:enforced="(v) => $emit('enforced-change', 'view', v)"
-      :disabled="!!enforcedPermissions.view"
+      :disabled="isValueDisabled('view')"
+      :value-tooltip="configLockTooltip('view')"
       :name="viewPermissionName"
     />
     <ToggleSwitch
@@ -17,7 +18,8 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.download"
       @update:enforced="(v) => $emit('enforced-change', 'download', v)"
-      :disabled="!!enforcedPermissions.download"
+      :disabled="isValueDisabled('download')"
+      :value-tooltip="configLockTooltip('download')"
       :name="downloadPermissionName"
     />
     <ToggleSwitch
@@ -27,7 +29,8 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.modify"
       @update:enforced="(v) => $emit('enforced-change', 'modify', v)"
-      :disabled="!!enforcedPermissions.modify"
+      :disabled="isValueDisabled('modify')"
+      :value-tooltip="configLockTooltip('modify')"
       :name="modifyPermissionName"
     />
     <ToggleSwitch
@@ -37,7 +40,8 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.create"
       @update:enforced="(v) => $emit('enforced-change', 'create', v)"
-      :disabled="!!enforcedPermissions.create"
+      :disabled="isValueDisabled('create')"
+      :value-tooltip="configLockTooltip('create')"
       :name="createPermissionName"
     />
     <ToggleSwitch
@@ -47,7 +51,8 @@
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.delete"
       @update:enforced="(v) => $emit('enforced-change', 'delete', v)"
-      :disabled="!!enforcedPermissions.delete"
+      :disabled="isValueDisabled('delete')"
+      :value-tooltip="configLockTooltip('delete')"
       :name="deletePermissionName"
     />
   </div>
@@ -72,6 +77,10 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    configLockedPaths: {
+      type: Array,
+      default: () => [],
+    },
   },
   components: {
     ToggleSwitch,
@@ -87,6 +96,34 @@ export default {
     });
   },
   methods: {
+    isConfigLocked(flag) {
+      return this.configLockedPaths.includes(`defaultPermissions.${flag}`);
+    },
+    isEnforced(flag) {
+      switch (flag) {
+        case "view":
+          return !!this.enforcedPermissions.view;
+        case "download":
+          return !!this.enforcedPermissions.download;
+        case "modify":
+          return !!this.enforcedPermissions.modify;
+        case "create":
+          return !!this.enforcedPermissions.create;
+        case "delete":
+          return !!this.enforcedPermissions.delete;
+        default:
+          return false;
+      }
+    },
+    isValueDisabled(flag) {
+      return this.isEnforced(flag) || this.isConfigLocked(flag);
+    },
+    configLockTooltip(flag) {
+      if (this.isConfigLocked(flag)) {
+        return this.$t("settings.userDefaultFieldLockedFromConfig");
+      }
+      return "";
+    },
     setPermission(key, value) {
       const current = this.permissionValue(key);
       if (current === undefined || current === value) {
@@ -112,7 +149,7 @@ export default {
           return;
       }
       if (this.emitChanges) {
-        this.$emit("changed");
+        this.$emit("changed", key);
       }
     },
     permissionValue(key) {

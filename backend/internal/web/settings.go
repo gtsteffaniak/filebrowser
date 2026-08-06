@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -214,11 +213,6 @@ func settingsUserDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d 
 	return http.StatusNoContent, nil
 }
 
-type sourceSettingsPatch struct {
-	DefaultPermissions  *users.SourceFilePermissions                `json:"defaultPermissions,omitempty"`
-	EnforcedPermissions *settings.SourceFilePermissionsEnforcement `json:"enforcedPermissions,omitempty"`
-}
-
 func settingsSourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	// Read-only global source file permission defaults (used by user edit/create UI).
 	return RenderJSON(w, r, state.GetSourceSettings())
@@ -258,14 +252,13 @@ func settingsSourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Conte
 	}
 
 	if hasValues {
-		var body sourceSettingsPatch
-		if err := json.Unmarshal(valuesPatch, &body); err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid source settings patch JSON: %w", err)
+		if err := settings.ValidateSinglePropertyUserDefaultsPatch(valuesPatch); err != nil {
+			return http.StatusBadRequest, err
 		}
-		if body.DefaultPermissions == nil {
-			return http.StatusBadRequest, fmt.Errorf("source settings patch must include defaultPermissions")
+		if err := settings.ValidateSourceDefaultsPatchNotConfigLocked(valuesPatch); err != nil {
+			return http.StatusBadRequest, err
 		}
-		if err := state.SetSourceAccessDefaults(*body.DefaultPermissions); err != nil {
+		if err := state.PatchSourceAccessDefaults(valuesPatch); err != nil {
 			logger.Errorf("failed to update source settings: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to update source settings")
 		}

@@ -43,6 +43,8 @@ type Environment struct {
 	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
 	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
 	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
+	// ConfigSourceDefaultPermissions maps permission flags explicitly set in config defaultPermissions (e.g. view -> true).
+	ConfigSourceDefaultPermissions map[string]bool `json:"-"`
 	MuPdfAvailable                   bool     `json:"-"` // used internally if compiled with mupdf support
 	EmbeddedFs                       bool     `json:"-"` // used internally if compiled with embedded fs support
 	FFmpegPath                       string   `json:"-"`
@@ -234,6 +236,8 @@ type SourceConfig struct {
 	UseLogicalSize   bool              `json:"useLogicalSize"`          // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
 	// DefaultPermissions is the template for new user scopes on this source (also synced globally via Access settings).
 	DefaultPermissions users.SourceFilePermissions `json:"defaultPermissions,omitempty" yaml:"defaultPermissions,omitempty"`
+	// DefaultPermissionsFromConfig holds permission flags explicitly set under defaultPermissions in config YAML.
+	DefaultPermissionsFromConfig map[string]bool `json:"-"`
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedRules ResolvedRulesConfig `json:"-"`
 }
