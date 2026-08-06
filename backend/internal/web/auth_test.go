@@ -147,19 +147,19 @@ func TestExtractTokenUsesAuthQueryBeforeCookie(t *testing.T) {
 	}
 }
 
-func TestExtractTokenPreferQueryAuthIgnoresAuthorization(t *testing.T) {
+func TestExtractTokenPrefersAuthQueryOverAuthorization(t *testing.T) {
 	const queryToken = "query.only.token"
-	const ooToken = "only.office.jwt"
+	const headerToken = "header.only.jwt"
 
 	req := httptest.NewRequest(http.MethodGet, "/api/office/callback?auth="+queryToken, nil)
-	req.Header.Set("Authorization", "Bearer "+ooToken)
+	req.Header.Set("Authorization", "Bearer "+headerToken)
 
-	got, err := ExtractTokenPreferQueryAuth(req)
+	got, err := ExtractToken(req)
 	if err != nil {
-		t.Fatalf("ExtractTokenPreferQueryAuth() error = %v", err)
+		t.Fatalf("ExtractToken() error = %v", err)
 	}
 	if got != queryToken {
-		t.Fatalf("ExtractTokenPreferQueryAuth() = %q, want %q", got, queryToken)
+		t.Fatalf("ExtractToken() = %q, want %q", got, queryToken)
 	}
 }
 

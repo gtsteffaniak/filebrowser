@@ -264,6 +264,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 
 // onlyOfficeFileBrowserBaseURL returns the base URL OnlyOffice uses to reach FileBrowser.
 // Priority: http.internalUrl → http.externalUrl → incoming request (with trustProxyHeaders).
+// The result always ends with a single trailing slash when a base path is configured.
 func onlyOfficeFileBrowserBaseURL(r *http.Request) string {
 	for _, configured := range []string{
 		settings.Config.Http.InternalUrl,
@@ -273,58 +274,61 @@ func onlyOfficeFileBrowserBaseURL(r *http.Request) string {
 			continue
 		}
 		root := strings.TrimSuffix(configured, "/")
-		baseURLPath := strings.TrimPrefix(settings.Config.Http.BaseURL, "/")
+		baseURLPath := strings.Trim(settings.Config.Http.BaseURL, "/")
 		if baseURLPath != "" {
-			return root + "/" + baseURLPath
+			return root + "/" + baseURLPath + "/"
 		}
-		return root
+		return root + "/"
 	}
 	host := requestHost(r)
 	scheme := requestSchemeForPublicURL(r)
-	return fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Http.BaseURL)
+	baseURLPath := strings.Trim(settings.Config.Http.BaseURL, "/")
+	if baseURLPath == "" {
+		return fmt.Sprintf("%s://%s/", scheme, host)
+	}
+	return fmt.Sprintf("%s://%s/%s/", scheme, host, baseURLPath)
+}
+
+// joinOnlyOfficeAPIURL appends an API path to a base URL that may end with "/".
+func joinOnlyOfficeAPIURL(baseURL, apiPath string) string {
+	base := strings.TrimRight(baseURL, "/")
+	path := strings.TrimLeft(apiPath, "/")
+	return base + "/" + path
 }
 
 // buildOnlyOfficeViewURL constructs the view URL that OnlyOffice server uses to fetch the document.
 func buildOnlyOfficeViewURL(r *http.Request, source, path, hash, viewToken, authToken string) string {
-	baseURL := strings.TrimSuffix(onlyOfficeFileBrowserBaseURL(r), "/")
+	baseURL := onlyOfficeFileBrowserBaseURL(r)
 	params := url.Values{}
 	params.Set("file", path)
 	params.Set("viewToken", viewToken)
 	if hash != "" {
 		params.Set("hash", hash)
-		return fmt.Sprintf("%s/public/api/resources/view?%s", baseURL, params.Encode())
+		return joinOnlyOfficeAPIURL(baseURL, "public/api/resources/view") + "?" + params.Encode()
 	}
 	params.Set("source", source)
 	params.Set("auth", authToken)
-	return fmt.Sprintf("%s/api/resources/view?%s", baseURL, params.Encode())
+	return joinOnlyOfficeAPIURL(baseURL, "api/resources/view") + "?" + params.Encode()
 }
 
 // buildOnlyOfficeCallbackURL constructs the callback URL that OnlyOffice server will use to notify us of changes
 func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token string) string {
 	baseURL := onlyOfficeFileBrowserBaseURL(r)
 
-	var callbackURL string
+	params := url.Values{}
 	if hash != "" {
 		// Share callback URL - use public API and don't expose source, use path relative to share
-		params := url.Values{}
 		params.Set("hash", hash)
-		params.Set("path", path) // This should be the path relative to the share, not the full filesystem path
-		params.Set("auth", token)
-
-		callbackURL = fmt.Sprintf("%s/public/api/office/callback?%s",
-			strings.TrimSuffix(baseURL, "/"), params.Encode())
-	} else {
-		// Regular callback URL - include source for non-share requests
-		params := url.Values{}
-		params.Set("source", source)
 		params.Set("path", path)
 		params.Set("auth", token)
-
-		callbackURL = fmt.Sprintf("%s/api/office/callback?%s",
-			strings.TrimSuffix(baseURL, "/"), params.Encode())
+		return joinOnlyOfficeAPIURL(baseURL, "public/api/office/callback") + "?" + params.Encode()
 	}
 
-	return callbackURL
+	// Regular callback URL - include source for non-share requests
+	params.Set("source", source)
+	params.Set("path", path)
+	params.Set("auth", token)
+	return joinOnlyOfficeAPIURL(baseURL, "api/office/callback") + "?" + params.Encode()
 }
 
 // resolveOnlyOfficeDownloadURL validates a callback document URL against

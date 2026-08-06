@@ -27,10 +27,20 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// Prefer Authorization header and explicit ?auth= query values over the session
-// cookie so API clients can authenticate while a revoked browser cookie is present.
+// Prefer explicit ?auth= query and Authorization header over the session cookie so API
+// clients can authenticate while a revoked browser cookie is present. ?auth= comes before
+// Authorization so server callbacks (e.g. OnlyOffice) with both query session JWT and a
+// third-party Bearer header resolve to the FileBrowser token (GitHub #2715).
 func ExtractToken(r *http.Request) (string, error) {
 	hasToken := false
+
+	auth := r.URL.Query().Get("auth")
+	if auth != "" {
+		hasToken = true
+		if strings.Count(auth, ".") == 2 {
+			return auth, nil
+		}
+	}
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader != "" {
@@ -49,44 +59,6 @@ func ExtractToken(r *http.Request) (string, error) {
 					return token, nil
 				}
 			}
-		}
-	}
-
-	auth := r.URL.Query().Get("auth")
-	if auth != "" {
-		hasToken = true
-		if strings.Count(auth, ".") == 2 {
-			return auth, nil
-		}
-	}
-
-	tokenObj, err := r.Cookie("filebrowser_quantum_jwt")
-	if err == nil {
-		hasToken = true
-		token := tokenObj.Value
-		if token != "" && strings.Count(token, ".") == 2 {
-			return token, nil
-		}
-	}
-
-	if hasToken {
-		return "", fmt.Errorf("invalid token provided")
-	}
-
-	return "", request.ErrNoTokenInRequest
-}
-
-// ExtractTokenPreferQueryAuth returns a FileBrowser session JWT for server-to-server calls
-// where OnlyOffice may also send its own JWT in Authorization (GitHub #2715).
-// Prefers ?auth= and session cookie; ignores Authorization.
-func ExtractTokenPreferQueryAuth(r *http.Request) (string, error) {
-	hasToken := false
-
-	auth := r.URL.Query().Get("auth")
-	if auth != "" {
-		hasToken = true
-		if strings.Count(auth, ".") == 2 {
-			return auth, nil
 		}
 	}
 

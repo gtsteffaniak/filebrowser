@@ -659,23 +659,6 @@ func withPermShare(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withPermShareHelper(fn))
 }
 
-// withOfficeUserHelper authenticates FileBrowser session JWT for OnlyOffice server requests.
-// Prefers ?auth= over Authorization so OnlyOffice Document Server JWT does not collide (GitHub #2715).
-func withOfficeUserHelper(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		if data.Token == "" {
-			if token, err := ExtractTokenPreferQueryAuth(r); err == nil {
-				data.Token = token
-			}
-		}
-		return withUserHelper(fn)(w, r, data)
-	}
-}
-
-func withOfficeUser(fn handleFunc) http.HandlerFunc {
-	return wrapHandler(withOfficeUserHelper(fn))
-}
-
 func withHashFile(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withHashFileHelper(fn))
 }
