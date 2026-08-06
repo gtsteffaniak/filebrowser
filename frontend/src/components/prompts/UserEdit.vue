@@ -118,7 +118,6 @@
               </div>
               <source-file-permissions
                 :permissions="sourcePermissionsFor(source.name)"
-                :enforced-permissions="sourceFilePermissionEnforced"
                 @changed="markScopePermissionsExplicit(source.name)"
               />
             </SettingsItem>
@@ -228,13 +227,6 @@ export default {
       pendingScopeSourceName: null,
       addingPasskey: false,
       sourceFilePermissionDefaults: null,
-      sourceFilePermissionEnforced: {
-        view: false,
-        download: false,
-        modify: false,
-        create: false,
-        delete: false,
-      },
       editAccount: {
         lockPassword: false,
         disableSettings: false,
@@ -426,20 +418,12 @@ export default {
       try {
         const settings = await settingsApi.getSourceSettings();
         const defaults = settings?.defaultPermissions ?? {};
-        const enforced = settings?.enforcedPermissions ?? {};
         this.sourceFilePermissionDefaults = {
           view: defaults.view !== false,
           download: defaults.download !== false,
           modify: !!defaults.modify,
           create: !!defaults.create,
           delete: !!defaults.delete,
-        };
-        this.sourceFilePermissionEnforced = {
-          view: !!enforced.view,
-          download: !!enforced.download,
-          modify: !!enforced.modify,
-          create: !!enforced.create,
-          delete: !!enforced.delete,
         };
       } catch (e) {
         console.error(e);
