@@ -328,7 +328,8 @@ export default {
               return;
             }
           }
-          // Store password in localStorage
+        }
+        if (this.sharePassword) {
           localStorage.setItem(`sharepass:${shareInfo.hash}`, this.sharePassword);
         }
 
@@ -532,6 +533,9 @@ export default {
         props: {
           submitCallback: (password) => {
             this.sharePassword = password;
+            if (state.shareInfo?.hash) {
+              localStorage.setItem(`sharepass:${state.shareInfo.hash}`, password);
+            }
             void this.fetchData();
           },
           showWrongCredentials: this.attemptedPasswordLogin,
