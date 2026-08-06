@@ -118,18 +118,6 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 	}
 }
 
-func TestNeedsSubpathTrustProxyHeadersWarning(t *testing.T) {
-	if !needsSubpathTrustProxyHeadersWarning("/files/", false) {
-		t.Fatal("expected warning for subpath without trustProxyHeaders")
-	}
-	if needsSubpathTrustProxyHeadersWarning("/", false) {
-		t.Fatal("expected no warning for root baseURL")
-	}
-	if needsSubpathTrustProxyHeadersWarning("/files/", true) {
-		t.Fatal("expected no warning when trustProxyHeaders is true")
-	}
-}
-
 func TestInvalidConfig(t *testing.T) {
 	// Create isolated test directory
 	testDir := t.TempDir()

@@ -90,11 +90,14 @@ func setupHttp() {
 }
 
 func needsSubpathTrustProxyHeadersWarning(baseURL string, trustProxyHeaders bool) bool {
-	return baseURL != "/" && !trustProxyHeaders
+	return baseURL != "/" && !trustProxyHeaders && !Env.IsDevMode
 }
 
 func warnHttpProxyConfig() {
-	if needsSubpathTrustProxyHeadersWarning(Config.Http.BaseURL, Config.Http.TrustProxyHeaders) {
+	if Env.IsDevMode || Env.IsPlaywright {
+		return
+	}
+	if Config.Http.BaseURL != "/" && !Config.Http.TrustProxyHeaders {
 		logger.Warning(`http.baseURL is not "/" but http.trustProxyHeaders is false. Behind a reverse proxy on a subpath, set trustProxyHeaders: true so cookies, client IP, OIDC redirects, and URLs resolve correctly. See https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders`)
 	}
 	if !Env.IsDevMode {
