@@ -2972,11 +2972,16 @@ paths:
         name: days
         required: true
         type: string
-      - description: 'Global permissions for the API token (comma-separated: admin,
-          api, share, realtime). Omit for minimal token.'
+      - description: 'Global permissions (comma-separated: admin, api, share, realtime).
+          Send \'
         in: query
         name: permissions
         type: string
+      - description: When true, create a minimal token (standard JWT claims only).
+          When false, create a customized token using permissions (may be empty).
+        in: query
+        name: minimal
+        type: boolean
       produces:
       - application/json
       responses:
