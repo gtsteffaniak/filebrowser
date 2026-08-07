@@ -430,6 +430,7 @@
     "apiKeyDeleted": "Jeton API șters!",
     "description": "Jetoanele API sunt bazate pe utilizatorul care le creează.",
     "clickToCopyKey": "Faceți clic pentru a copia simbolul (ascuns)",
+    "clickToCopyShortKey": "Faceți clic pentru a copia parola scurtă WebDAV (ascunsă)",
     "customizeToken": "Personalizați tokenul",
     "minimalInfo": "Exclude personalizările token, permisiunile vor corespunde utilizatorului asociat și nu vor avea alte atribute.",
     "createTitle": "Crearea Token-ului API",

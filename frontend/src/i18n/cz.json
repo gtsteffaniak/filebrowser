@@ -504,6 +504,7 @@
     "apiKeyDeleted": "Token API smazán!",
     "description": "Tokeny API jsou založeny na uživateli, který je vytvořil.",
     "clickToCopyKey": "Kliknutím zkopírujete token (skrytý)",
+    "clickToCopyShortKey": "Kliknutím zkopírujete krátké heslo WebDAV (skryté)",
     "customizeToken": "Přizpůsobení tokenu",
     "minimalInfo": "Vyloučí přizpůsobení tokenu, oprávnění budou odpovídat přiřazenému uživateli a nebudou mít žádné další atributy.",
     "createTitle": "Vytvoření tokenu API",

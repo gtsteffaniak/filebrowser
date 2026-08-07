@@ -589,14 +589,49 @@ func withPermShareHelper(fn handleFunc) handleFunc {
 // to authenticate the user. The username is ignored, and the password should be a JWT token.
 func withBasicAuthHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		_, password, ok := r.BasicAuth()
+		username, password, ok := r.BasicAuth()
 		if !ok || password == "" {
 			// Return 401 - wrapHandlerBasicAuth will set WWW-Authenticate header
 			return http.StatusUnauthorized, fmt.Errorf("basic authentication required")
 		}
+		// If a username is supplied, allow authenticating with the short WebDAV password
+		// derived from one of the user's tokens. Full JWT tokens continue to work without a
+		// username (legacy behavior) via the fallback below, so old clients keep working.
+		if username != "" {
+			if fullToken, found := resolveWebdavShortPassword(username, password); found {
+				data.token = fullToken
+				return withUserHelper(fn)(w, r, data)
+			}
+		}
 		data.token = password
 		return withUserHelper(fn)(w, r, data)
 	}
+}
+
+// resolveWebdavShortPassword returns the full JWT token whose short WebDAV password
+// matches the provided password for the given username. The short password is never
+// stored; it is recomputed from each of the user's current tokens on every request.
+func resolveWebdavShortPassword(username, password string) (string, bool) {
+	// Short WebDAV passwords have a fixed length; anything else is a full token.
+	if len(password) != utils.WebdavShortPasswordLength {
+		return "", false
+	}
+	user, err := store.Users.Get(username)
+	if err != nil {
+		return "", false
+	}
+	for _, token := range user.Tokens {
+		if token.Token != "" && utils.WebdavShortPassword(token.Token) == password {
+			return token.Token, true
+		}
+	}
+	// Fall back to deprecated ApiKeys for backwards compatibility.
+	for _, token := range user.ApiKeys {
+		if token.Token != "" && utils.WebdavShortPassword(token.Token) == password {
+			return token.Token, true
+		}
+	}
+	return "", false
 }
 
 // withBasicAuth returns an http.HandlerFunc for use with router.Handle.

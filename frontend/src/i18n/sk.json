@@ -430,6 +430,7 @@
     "apiKeyDeleted": "Token API odstránený!",
     "description": "Tokeny API sú založené na používateľovi, ktorý ich vytvoril.",
     "clickToCopyKey": "Kliknutím skopírujete token (skrytý)",
+    "clickToCopyShortKey": "Kliknutím skopírujete krátke heslo WebDAV (skryté)",
     "customizeToken": "Prispôsobenie žetónu",
     "minimalInfo": "Vylúči prispôsobenie tokenu, oprávnenia budú zodpovedať priradenému používateľovi a nebudú mať žiadne iné atribúty.",
     "createTitle": "Vytvorenie tokenu API",

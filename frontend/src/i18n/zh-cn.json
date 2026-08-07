@@ -430,6 +430,7 @@
     "apiKeyDeleted": "API 标记已删除！",
     "description": "API 令牌基于创建令牌的用户。",
     "clickToCopyKey": "点击复制令牌（隐藏）",
+    "clickToCopyShortKey": "点击复制 WebDAV 短密码（隐藏）",
     "customizeToken": "自定义令牌",
     "minimalInfo": "不包括令牌定制，权限将与相关用户匹配，且无其他属性。",
     "createTitle": "创建应用程序接口令牌",

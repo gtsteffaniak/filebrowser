@@ -54,6 +54,20 @@ func HashSHA256(data string) string {
 	return hex.EncodeToString(bytes[:])
 }
 
+// WebdavShortPasswordLength is the length (in hex characters) of the short WebDAV password.
+const WebdavShortPasswordLength = 16
+
+// WebdavShortPassword derives a short, deterministic password from a full JWT token.
+// It is used as a shorter alternative WebDAV credential for clients that cannot handle
+// very long passwords. It is never stored; it is always recomputed from the current token.
+func WebdavShortPassword(token string) string {
+	if token == "" {
+		return ""
+	}
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])[:WebdavShortPasswordLength]
+}
+
 func GenerateKey() string {
 	b := make([]byte, 64)
 	_, err := rand.Read(b)

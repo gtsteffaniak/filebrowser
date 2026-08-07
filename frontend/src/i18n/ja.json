@@ -430,6 +430,7 @@
     "apiKeyDeleted": "APIトークンが削除されました！",
     "description": "APIトークンは、それを作成したユーザーに基づいている。",
     "clickToCopyKey": "トークンをコピーするにはクリックしてください。",
+    "clickToCopyShortKey": "クリックして短いWebDAVパスワードをコピー（非表示）",
     "customizeToken": "トークンのカスタマイズ",
     "minimalInfo": "トークンのカスタマイズは除外され、パーミッションは関連付けられたユーザーと一致し、他の属性を持ちません。",
     "createTitle": "APIトークンの作成",

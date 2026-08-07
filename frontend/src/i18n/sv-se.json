@@ -430,6 +430,7 @@
     "apiKeyDeleted": "API-token raderad!",
     "description": "API-tokens är baserade på den användare som skapar dem.",
     "clickToCopyKey": "Klicka för att kopiera token (dold)",
+    "clickToCopyShortKey": "Klicka för att kopiera det korta WebDAV-lösenordet (dolt)",
     "customizeToken": "Anpassa Token",
     "minimalInfo": "Utesluter anpassningar av token, behörigheter kommer att matcha den associerade användaren och har inga andra attribut.",
     "createTitle": "Skapa API-token",

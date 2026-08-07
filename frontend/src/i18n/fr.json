@@ -434,6 +434,7 @@
     "keyNamePlaceholder": "Entrez un nom unique pour le jeton API",
     "customizeTokenInfo": "Personnalisez les permissions et les attributs du jeton. Cela créera un jeton plus long qui pourrait ne pas fonctionner avec certains clients WebDAV.",
     "clickToCopyKey": "Cliquez pour copier la clé (cachée)",
+    "clickToCopyShortKey": "Cliquez pour copier le mot de passe court WebDAV (masqué)",
     "minimalInfo": "Exclut les personnalisations du jeton afin de réduire la longueur du jeton. Les autorisations correspondent exactement à celles de l'utilisateur associé."
   },
   "index": {

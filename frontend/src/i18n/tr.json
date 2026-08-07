@@ -430,6 +430,7 @@
     "apiKeyDeleted": "API belirteci silindi!",
     "description": "API belirteçleri, onları oluşturan kullanıcıyı temel alır.",
     "clickToCopyKey": "Belirteci kopyalamak için tıklayın (gizli)",
+    "clickToCopyShortKey": "Kısa WebDAV parolasını kopyalamak için tıklayın (gizli)",
     "customizeToken": "Simgeyi Özelleştir",
     "minimalInfo": "Belirteç özelleştirmelerini hariç tutar, izinler ilişkili kullanıcıyla eşleşir ve başka hiçbir özniteliğe sahip olmaz.",
     "createTitle": "API Belirteci Oluşturma",

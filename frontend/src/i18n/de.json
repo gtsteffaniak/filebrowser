@@ -430,6 +430,7 @@
     "apiKeyDeleted": "API-Token gelöscht!",
     "description": "API-Tokens basieren auf dem Benutzer, der sie erstellt.",
     "clickToCopyKey": "Zum Kopieren des Tokens anklicken (versteckt)",
+    "clickToCopyShortKey": "Klicken, um das kurze WebDAV-Passwort zu kopieren (versteckt)",
     "customizeToken": "Token anpassen",
     "minimalInfo": "Schließt Token-Anpassungen aus; die Berechtigungen entsprechen dem zugehörigen Benutzer und haben keine weiteren Attribute.",
     "createTitle": "API-Token erstellen",

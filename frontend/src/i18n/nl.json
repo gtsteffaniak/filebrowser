@@ -627,6 +627,7 @@
     "enabled": "Ingeschakeld",
     "disabled": "Uitgeschakeld",
     "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)",
+    "clickToCopyShortKey": "Klik om het korte WebDAV-wachtwoord te kopiëren (verborgen)",
     "customizeToken": "Token aanpassen",
     "customizeTokenInfo": "Pas de tokenpermissies en -attributen aan. Dit zal een langer token aanmaken dat mogelijk niet werkt bij sommige WebDAV-clients.",
     "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker."

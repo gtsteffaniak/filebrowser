@@ -430,6 +430,7 @@
     "apiKeyDeleted": "API 權杖已刪除！",
     "description": "API 權杖以建立權杖的使用者為基礎。",
     "clickToCopyKey": "按一下以複製權杖（隱藏）",
+    "clickToCopyShortKey": "點擊複製 WebDAV 短密碼（隱藏）",
     "customizeToken": "自訂權杖",
     "minimalInfo": "排除權杖自訂，權限將符合關聯使用者，且沒有其他屬性。",
     "createTitle": "建立 API 權杖",

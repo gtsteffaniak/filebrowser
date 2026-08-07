@@ -627,6 +627,7 @@
     "enabled": "Abilitato",
     "disabled": "Disabilitato",
     "clickToCopyKey": "Clicca per copiare il token (nascosto)",
+    "clickToCopyShortKey": "Fai clic per copiare la password breve WebDAV (nascosta)",
     "customizeToken": "Personalizza Token",
     "customizeTokenInfo": "Personalizza permessi e attributi. Potrebbe generare token lunghi non supportati da alcuni client WebDAV.",
     "minimalInfo": "Esclude personalizzazioni, i permessi coincideranno con l'utente associato."

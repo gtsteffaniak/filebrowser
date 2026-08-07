@@ -430,6 +430,7 @@
     "apiKeyDeleted": "API token törölve!",
     "description": "Az API-tokenek az őket létrehozó felhasználó alapján készülnek.",
     "clickToCopyKey": "Kattintson a token másolásához (rejtett)",
+    "clickToCopyShortKey": "Kattintson a rövid WebDAV-jelszó másolásához (rejtett)",
     "customizeToken": "Token testreszabása",
     "minimalInfo": "Kizárja a token testreszabásokat, a jogosultságok megfelelnek a kapcsolódó felhasználónak, és nem rendelkeznek más attribútumokkal.",
     "createTitle": "API token létrehozása",

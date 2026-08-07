@@ -12,16 +12,27 @@
         <span class="api-key-name">{{ name }}</span>
         <i class="material-symbols">content_paste</i>
       </button>
-      <button
-        type="button"
-        class="action api-key-value-button"
-        @click.stop="copyToClipboard(info.token)"
-        :aria-label="$t('api.clickToCopyKey')"
-        :title="$t('api.clickToCopyKey')"
-      >
-        <span class="api-key-value">{{ $t('api.clickToCopyKey') }}</span>
-        <i class="material-symbols">content_paste</i>
-      </button>
+      <div class="api-key-value-row">
+        <button
+          type="button"
+          class="action api-key-value-button"
+          @click.stop="copyToClipboard(info.token)"
+          :aria-label="$t('api.clickToCopyKey')"
+          :title="$t('api.clickToCopyKey')"
+        >
+          <span class="api-key-value">{{ $t('api.clickToCopyKey') }}</span>
+          <i class="material-symbols">content_paste</i>
+        </button>
+        <button
+          type="button"
+          class="action api-key-short-button"
+          @click.stop="copyToClipboard(info.shortToken)"
+          :aria-label="$t('api.clickToCopyShortKey')"
+          :title="$t('api.clickToCopyShortKey')"
+        >
+          <i class="material-symbols">content_paste</i>
+        </button>
+      </div>
     </div>
 
     <!-- Information Section -->
@@ -150,6 +161,13 @@ export default {
   margin-top: 1.5em;
 }
 
+.api-key-value-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5em;
+  margin-top: 0.5em;
+}
+
 .api-key-button,
 .api-key-value-button {
   display: flex;
@@ -165,9 +183,35 @@ export default {
   cursor: pointer;
 }
 
+.api-key-value-row .api-key-value-button {
+  margin-top: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.api-key-short-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0.75em;
+  background-color: var(--surfaceSecondary);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
 .api-key-button:hover,
-.api-key-value-button:hover {
+.api-key-value-button:hover,
+.api-key-short-button:hover {
   background-color: var(--surfaceTertiary);
+}
+
+.api-key-short-button .material-symbols {
+  font-size: 1.2em;
+  color: var(--textSecondary);
+  flex-shrink: 0;
 }
 
 .api-key-name {

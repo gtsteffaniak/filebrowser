@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -141,6 +142,7 @@ func deleteApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 
 type AuthTokenFrontend struct {
 	Token       string            `json:"token"`
+	ShortToken  string            `json:"shortToken"` // short WebDAV password derived from Token (never stored)
 	Name        string            `json:"name"`
 	IssuedAt    int64             `json:"issuedAt"`
 	ExpiresAt   int64             `json:"expiresAt"`
@@ -184,6 +186,7 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	for name, token := range d.user.Tokens {
 		AuthTokensFrontend = append(AuthTokensFrontend, AuthTokenFrontend{
 			Token:       token.Token,
+			ShortToken:  utils.WebdavShortPassword(token.Token),
 			Name:        name,
 			IssuedAt:    authTokenIssuedUnix(token),
 			ExpiresAt:   authTokenExpiresUnix(token),
@@ -220,6 +223,7 @@ func getApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	AuthTokenFrontendResponse := AuthTokenFrontend{
 		Token:       tokenInfo.Token,
+		ShortToken:  utils.WebdavShortPassword(tokenInfo.Token),
 		Name:        name,
 		IssuedAt:    authTokenIssuedUnix(tokenInfo),
 		ExpiresAt:   authTokenExpiresUnix(tokenInfo),

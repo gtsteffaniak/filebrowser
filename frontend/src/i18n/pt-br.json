@@ -430,6 +430,7 @@
     "apiKeyDeleted": "Token de API excluído!",
     "description": "Os tokens de API são baseados no usuário que os cria.",
     "clickToCopyKey": "Clique para copiar o token (oculto)",
+    "clickToCopyShortKey": "Clique para copiar a senha curta do WebDAV (oculta)",
     "customizeToken": "Personalizar o token",
     "minimalInfo": "Exclui personalizações de token, as permissões corresponderão ao usuário associado e não terão outros atributos.",
     "createTitle": "Criar token de API",
