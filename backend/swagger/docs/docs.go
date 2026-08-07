@@ -948,8 +948,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Global permissions for the API token (comma-separated: admin, api, share, realtime). Omit for minimal token.",
+                        "description": "Global permissions (comma-separated: admin, api, share, realtime). Send \\",
                         "name": "permissions",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "When true, create a minimal token (standard JWT claims only). When false, create a customized token using permissions (may be empty).",
+                        "name": "minimal",
                         "in": "query"
                     }
                 ],

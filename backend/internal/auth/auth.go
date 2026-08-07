@@ -55,7 +55,13 @@ func MakeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 		claim.Permissions = users.SanitizeTokenPermissions(perms)
 		claim.BelongsTo = user.ID
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
+	signedClaims := jwt.Claims(claim)
+	if minimal {
+		// Sign only standard JWT claims. The full AuthToken struct always JSON-marshals
+		// a zero Permissions object, which bloats the token past WebDAV client limits.
+		signedClaims = claim.MinimalAuthToken
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, signedClaims)
 	tokenString, err := token.SignedString([]byte(settings.Config.Auth.Key))
 	if err != nil {
 		return "", users.AuthToken{}, err

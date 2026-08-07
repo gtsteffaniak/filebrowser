@@ -125,17 +125,19 @@ export default {
         const params = {
           name: this.apiName,
           days: this.durationInDays,
-          minimal: !this.customizeToken, // minimal = true when NOT customizing
         };
 
-        // Only include permissions when customizing token
         if (this.customizeToken) {
-          // Filter to get keys of permissions set to true and join them as a comma-separated string
+          params.minimal = false;
           const permissionsString = Object.entries(this.localPerms)
             .filter(([, value]) => value)
             .map(([key]) => key)
             .join(",");
-          params.permissions = permissionsString;
+          if (permissionsString) {
+            params.permissions = permissionsString;
+          }
+        } else {
+          params.permissions = "minimal";
         }
 
         await authApi.createApiKey(params);
