@@ -1,13 +1,10 @@
 <template>
   <div
     v-if="showZone"
+    ref="zoneEl"
     class="fab-zone"
     :class="`fab-zone--${position}`"
     :style="{ width: zoneWidth, height: zoneHeight }"
-    @mousemove="resetButtonTimer"
-    @touchstart="resetButtonTimer"
-    @pointerenter="setZoneActive(true, $event)"
-    @pointerleave="setZoneActive(false, $event)"
   ></div>
 
   <button
@@ -115,6 +112,7 @@ export default {
       buttonVisible: false,
       buttonZone: false,
       buttonTimer: null as ReturnType<typeof setTimeout> | null,
+      pointerInsideZone: false,
     };
   },
   computed: {
@@ -138,12 +136,40 @@ export default {
     },
   },
   mounted() {
-    if (this.autoHide) this.resetButtonTimer(); // show buttons initially
+    if (this.autoHide) {
+      this.resetButtonTimer(); // show buttons initially
+      window.addEventListener("pointermove", this.handleGlobalPointerMove, { passive: true });
+      window.addEventListener("touchstart", this.handleGlobalTouchStart, { passive: true });
+    }
   },
   beforeUnmount() {
     if (this.buttonTimer) clearTimeout(this.buttonTimer);
+    window.removeEventListener("pointermove", this.handleGlobalPointerMove);
+    window.removeEventListener("touchstart", this.handleGlobalTouchStart);
   },
   methods: {
+    // click/touch pass through to whatever is behind, so detection happens here against the zone bounds
+    isInsideZone(x: number, y: number): boolean {
+      const el = this.$refs.zoneEl as HTMLElement | undefined;
+      if (!el) return false;
+      const rect = el.getBoundingClientRect();
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    },
+    handleGlobalPointerMove(event: PointerEvent) {
+      if (event.pointerType !== "mouse") return;
+      const inside = this.isInsideZone(event.clientX, event.clientY);
+      if (inside !== this.pointerInsideZone) {
+        this.pointerInsideZone = inside;
+        this.setZoneActive(inside, event);
+      } else if (inside) {
+        this.resetButtonTimer();
+      }
+    },
+    handleGlobalTouchStart(event: TouchEvent) {
+      const touch = event.touches[0];
+      if (!touch) return;
+      if (this.isInsideZone(touch.clientX, touch.clientY)) this.resetButtonTimer();
+    },
     setZoneActive(active: boolean, event?: PointerEvent) {
       if (event && event.pointerType !== "mouse") return;
       if (this.sharedState) {
@@ -183,7 +209,7 @@ export default {
 <style scoped>
 .fab-zone {
   position: fixed;
-  pointer-events: auto;
+  pointer-events: none;
   z-index: 1000;
   background: transparent;
 }

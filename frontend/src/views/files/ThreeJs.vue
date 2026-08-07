@@ -13,19 +13,15 @@
         <p>{{ error }}</p>
       </div>
     </div>
-    
-    <div v-if="!isThumbnail" class="controls-container">
-      <!-- Settings icon toggle button -->
-      <button
-        type="button"
-        @click="showControlsPrompt"
-        class="controls-toggle"
-        :title="$t('threejs.controls')"
-        :aria-label="$t('threejs.controls')"
-      >
-        <i class="material-symbols">settings</i>
-      </button>
-    </div>
+    <FloatingButton
+      v-if="!isThumbnail"
+      icon="settings"
+      position="bottom-left"
+      :auto-hide="false"
+      :offset="controlsOffset"
+      @click="showControlsPrompt"
+      :label="$t('threejs.controls')"
+    />
   </div>
 </template>
 
@@ -69,6 +65,7 @@ import { XYZLoader } from 'three/addons/loaders/XYZLoader.js';
 import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
 import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import FloatingButton from "@/components/FloatingButton.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
 import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken";
@@ -102,7 +99,7 @@ const LOADERS = {
 
 export default {
   name: "threeJsViewer",
-  components: { LoadingSpinner },
+  components: { LoadingSpinner, FloatingButton },
   props: {
     fbdata: { type: Object, required: true },
     isThumbnail: { type: Boolean, default: false },
@@ -146,7 +143,11 @@ export default {
     },
     fileExtension() {
       return this.fbdata.name ? this.fbdata.name.split('.').pop().toLowerCase() : '';
-    }
+    },
+    controlsOffset() {
+      const pushedBySidebar = getters.isSidebarVisible() && getters.isStickySidebar();
+      return pushedBySidebar ? { left: `calc(20px + ${state.sidebar.width}em)` } : {};
+    },
   },
   watch: {
     'fbdata.path'() { this.reinit(); },
@@ -995,43 +996,4 @@ export default {
   color: var(--textSecondary);
 }
 
-.controls-container {
-  position: absolute;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 10;
-}
-
-.controls-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  padding: 0;
-  border-radius: 50%;
-  background: var(--surfacePrimary);
-  color: var(--textPrimary);
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
-  backdrop-filter: blur(12px);
-  border: 2px solid var(--surfaceSecondary);
-}
-
-.controls-toggle:hover {
-  background: var(--surfaceSecondary);
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.controls-toggle i {
-  font-size: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .controls-container { bottom: 1rem; left: 1rem; }
-  .controls-toggle { width: 2.5rem; height: 2.5rem; }
-  .controls-toggle i { font-size: 1.25rem; }
-}
 </style>

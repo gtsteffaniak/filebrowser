@@ -422,7 +422,7 @@ export default {
         directoryPath = '/';
       }
 
-      let listing;
+      let listing: unknown;
 
       if (this.req.items) {
         listing = this.req.items;
@@ -432,7 +432,7 @@ export default {
       } else if (directoryPath !== this.req.path) {
         // Fetch directory listing (now with '/' for root files)
         try {
-          let res;
+          let res: { items: unknown; };
           if (getters.isShare()) {
             res = await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash);
           } else {
