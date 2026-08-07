@@ -49,13 +49,29 @@ func TestApiTokenHandlersIncludeShortToken(t *testing.T) {
 		if len(got) != len(tokens) {
 			t.Fatalf("expected %d tokens, got %d", len(tokens), len(got))
 		}
+
+		// Index response entries by name so we can compare each against the stored
+		// token, and detect duplicate or omitted names.
+		byName := make(map[string]AuthTokenFrontend, len(got))
 		for _, tok := range got {
-			want := utils.WebdavShortPassword(tok.Token)
-			if tok.ShortToken != want {
-				t.Errorf("token %q: expected shortToken %q, got %q", tok.Name, want, tok.ShortToken)
+			if _, dup := byName[tok.Name]; dup {
+				t.Errorf("duplicate token name in response: %q", tok.Name)
 			}
-			if tok.ShortToken == "" {
-				t.Errorf("token %q: shortToken should not be empty", tok.Name)
+			byName[tok.Name] = tok
+		}
+
+		for name, stored := range tokens {
+			resp, ok := byName[name]
+			if !ok {
+				t.Errorf("token %q missing from response", name)
+				continue
+			}
+			if resp.Token != stored.Token {
+				t.Errorf("token %q: expected Token %q, got %q", name, stored.Token, resp.Token)
+			}
+			want := utils.WebdavShortPassword(stored.Token)
+			if resp.ShortToken != want {
+				t.Errorf("token %q: expected shortToken %q, got %q", name, want, resp.ShortToken)
 			}
 		}
 	})
