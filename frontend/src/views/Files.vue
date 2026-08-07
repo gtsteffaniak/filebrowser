@@ -311,10 +311,13 @@ export default {
         // Valid share - add the hash and other required fields, then store in state
         shareInfo.hash = hash;
 
-        if (this.lastShareHash !== hash) {
+        const sameShare =
+          this.lastShareHash.length === hash.length &&
+          this.lastShareHash.indexOf(hash) === 0;
+        if (this.lastShareHash && !sameShare) {
           this.sharePassword = "";
-          this.lastShareHash = hash;
         }
+        this.lastShareHash = hash;
 
         // Parse share route to get subPath
         const urlPath = getters.routePath('public/share')
