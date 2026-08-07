@@ -24,7 +24,8 @@ import (
 // @Produce json
 // @Param name query string true "Name of the API token"
 // @Param days query string true "Duration of the API token in days"
-// @Param permissions query string false "Global permissions for the API token (comma-separated: admin, api, share, realtime). Omit for minimal token."
+// @Param permissions query string false "Global permissions (comma-separated: admin, api, share, realtime). Send \"minimal\" or omit with minimal=true for a WebDAV-compatible token."
+// @Param minimal query bool false "When true, create a minimal token (standard JWT claims only). When false, create a customized token using permissions (may be empty)."
 // @Success 200 {object} HttpResponse "Token created successfully, response contains json object with token"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "Not found"
@@ -34,8 +35,7 @@ import (
 func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	name := r.URL.Query().Get("name")
 	durationStr := r.URL.Query().Get("days")
-	permissionsStr := r.URL.Query().Get("permissions")
-	minimal := permissionsStr == ""
+	minimal, permissionsStr := apiTokenCreationMode(r)
 
 	if !d.User.Permissions.Api {
 		return http.StatusForbidden, fmt.Errorf("user does not have permission to create api tokens")
@@ -59,9 +59,6 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 			Realtime: strings.Contains(permissionsStr, "realtime") && d.User.Permissions.Realtime,
 		}
 		permissions = users.SanitizeTokenPermissions(permissions)
-		if !users.HasAnyGlobalPermission(permissions) {
-			minimal = true
-		}
 	}
 
 	// Convert the duration string to an int64
@@ -100,6 +97,33 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	}
 	activity.RecordTokenMutation(r, toActor(d), activitydb.EventTokenCreate, name)
 	return RenderJSON(w, r, response)
+}
+
+const apiTokenPermissionsMinimal = "minimal"
+
+// apiTokenCreationMode decides whether to mint a minimal JWT or a customized token from query params.
+// minimal=true or permissions=minimal → minimal token (WebDAV-compatible).
+// minimal=false → customized token; permissions may be empty (all global caps false in the claim).
+// Legacy clients omitting both minimal and permissions still receive a minimal token.
+func apiTokenCreationMode(r *http.Request) (minimal bool, permissionsStr string) {
+	permissionsStr = r.URL.Query().Get("permissions")
+	if strings.EqualFold(permissionsStr, apiTokenPermissionsMinimal) {
+		return true, ""
+	}
+
+	if minimalValues, ok := r.URL.Query()["minimal"]; ok && len(minimalValues) > 0 {
+		switch strings.ToLower(strings.TrimSpace(minimalValues[0])) {
+		case "true", "1":
+			return true, permissionsStr
+		case "false", "0":
+			return false, permissionsStr
+		}
+	}
+
+	if permissionsStr == "" {
+		return true, ""
+	}
+	return false, permissionsStr
 }
 
 // deleteApiTokenHandler deletes an API token for the user.

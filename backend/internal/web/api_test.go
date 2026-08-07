@@ -15,12 +15,50 @@ import (
 
 const webdavPasswordLimit = 256
 
+func TestApiTokenCreationMode(t *testing.T) {
+	t.Run("permissions minimal keyword", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/auth/token?permissions=minimal", http.NoBody)
+		minimal, perms := apiTokenCreationMode(req)
+		if !minimal || perms != "" {
+			t.Fatalf("got minimal=%v perms=%q", minimal, perms)
+		}
+	})
+	t.Run("minimal true boolean", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/auth/token?minimal=true", http.NoBody)
+		minimal, _ := apiTokenCreationMode(req)
+		if !minimal {
+			t.Fatal("expected minimal")
+		}
+	})
+	t.Run("minimal false with empty permissions", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/auth/token?minimal=false", http.NoBody)
+		minimal, perms := apiTokenCreationMode(req)
+		if minimal || perms != "" {
+			t.Fatalf("got minimal=%v perms=%q", minimal, perms)
+		}
+	})
+	t.Run("legacy omit both", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/auth/token", http.NoBody)
+		minimal, _ := apiTokenCreationMode(req)
+		if !minimal {
+			t.Fatal("expected legacy default minimal")
+		}
+	})
+	t.Run("legacy permissions list", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/auth/token?permissions=api,admin", http.NoBody)
+		minimal, perms := apiTokenCreationMode(req)
+		if minimal || perms != "api,admin" {
+			t.Fatalf("got minimal=%v perms=%q", minimal, perms)
+		}
+	})
+}
+
 func TestCreateApiTokenUncustomizedUnder256(t *testing.T) {
 	setupTestEnv(t)
 	setTestAuthKey(t)
 
 	user := createApiTokenTestUser(t, "tokenuser", users.Permissions{Api: true})
-	rec := invokeCreateApiToken(t, user, "/auth/token?name=webdav&days=365")
+	rec := invokeCreateApiToken(t, user, "/auth/token?name=webdav&days=365&permissions=minimal")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
 	}
@@ -32,22 +70,41 @@ func TestCreateApiTokenUncustomizedUnder256(t *testing.T) {
 	assertHandlerMinimalJWTClaims(t, token)
 }
 
-func TestCreateApiTokenPermissionsParamIgnoredWhenNoEffectiveCaps(t *testing.T) {
+func TestCreateApiTokenLegacyOmitPermissionsStillMinimal(t *testing.T) {
 	setupTestEnv(t)
 	setTestAuthKey(t)
 
-	// User can create API tokens but lacks admin; requesting admin should not produce a fat JWT.
+	user := createApiTokenTestUser(t, "tokenuser-legacy", users.Permissions{Api: true})
+	rec := invokeCreateApiToken(t, user, "/auth/token?name=webdav&days=365")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	assertHandlerMinimalJWTClaims(t, decodeCreatedToken(t, rec.Body.Bytes()))
+}
+
+func TestCreateApiTokenCustomizedWithNoEffectiveCapsKeepsPermissionsClaim(t *testing.T) {
+	setupTestEnv(t)
+	setTestAuthKey(t)
+
+	// User can create API tokens but lacks admin; explicit customized token keeps Permissions in JWT.
 	user := createApiTokenTestUser(t, "tokenuser2", users.Permissions{Api: true})
-	rec := invokeCreateApiToken(t, user, "/auth/token?name=webdav&days=365&permissions=admin")
+	rec := invokeCreateApiToken(t, user, "/auth/token?name=custom&days=365&minimal=false&permissions=admin")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
 	}
 
 	token := decodeCreatedToken(t, rec.Body.Bytes())
-	if len(token) >= webdavPasswordLimit {
-		t.Fatalf("token length %d must stay under %d when permissions resolve to none", len(token), webdavPasswordLimit)
+	claims := jwt.MapClaims{}
+	if _, _, err := jwt.NewParser().ParseUnverified(token, claims); err != nil {
+		t.Fatalf("parse token: %v", err)
 	}
-	assertHandlerMinimalJWTClaims(t, token)
+	perms, ok := claims["Permissions"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("customized token should include Permissions claim, got %v", claims)
+	}
+	if perms["admin"] != false {
+		t.Fatalf("expected admin false in customized token, got %v", perms["admin"])
+	}
 }
 
 func TestCreateApiTokenCustomizedWithEffectiveCaps(t *testing.T) {

@@ -127,9 +127,8 @@ export default {
           days: this.durationInDays,
         };
 
-        // Only send permissions when customizing and at least one cap is selected.
-        // Omitting permissions tells the backend to create a minimal (WebDAV-compatible) token.
         if (this.customizeToken) {
+          params.minimal = false;
           const permissionsString = Object.entries(this.localPerms)
             .filter(([, value]) => value)
             .map(([key]) => key)
@@ -137,6 +136,8 @@ export default {
           if (permissionsString) {
             params.permissions = permissionsString;
           }
+        } else {
+          params.permissions = "minimal";
         }
 
         await authApi.createApiKey(params);
