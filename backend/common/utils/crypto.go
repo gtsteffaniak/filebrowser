@@ -64,8 +64,7 @@ func WebdavShortPassword(token string) string {
 	if token == "" {
 		return ""
 	}
-	sum := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(sum[:])[:WebdavShortPasswordLength]
+	return HashSHA256(token)[:WebdavShortPasswordLength]
 }
 
 func GenerateKey() string {
