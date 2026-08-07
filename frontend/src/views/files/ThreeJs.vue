@@ -18,7 +18,6 @@
       icon="settings"
       position="bottom-left"
       :auto-hide="false"
-      :offset="controlsOffset"
       @click="showControlsPrompt"
       :label="$t('threejs.controls')"
     />
@@ -143,11 +142,7 @@ export default {
     },
     fileExtension() {
       return this.fbdata.name ? this.fbdata.name.split('.').pop().toLowerCase() : '';
-    },
-    controlsOffset() {
-      const pushedBySidebar = getters.isSidebarVisible() && getters.isStickySidebar();
-      return pushedBySidebar ? { left: `calc(20px + ${state.sidebar.width}em)` } : {};
-    },
+    }
   },
   watch: {
     'fbdata.path'() { this.reinit(); },

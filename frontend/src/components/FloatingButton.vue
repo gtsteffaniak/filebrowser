@@ -16,7 +16,7 @@
       `fab-button--${size}`,
       { 'dark-mode': darkMode },
     ]"
-    :style="offset"
+    :style="accountSidebar"
     :disabled="disabled"
     @click="handleClick"
     @touchstart="resetButtonTimer"
@@ -32,7 +32,7 @@
 
 <script lang="ts">
 import { reactive } from "vue";
-import { getters } from "@/store";
+import { state, getters } from "@/store";
 
 // Buttons that show and dissapear together, on plyr the buttons at the right and left for example
 const buttonGroup = new Map<string, { visible: boolean; zoneActive: boolean; timer: ReturnType<typeof setTimeout> | null }>();
@@ -133,6 +133,14 @@ export default {
     },
     showButton(): boolean {
       return !this.autoHide || this.isRevealed || this.isZoneActive;
+    },
+    // Account for the sidebar width for button positioned at the left
+    // skipped if some caller specifies their own left in the offset props
+    accountSidebar(): Record<string, string> {
+      const isLeftPositioned = this.position === "top-left" || this.position === "bottom-left";
+      const pushedBySidebar = isLeftPositioned && getters.isSidebarVisible() && getters.isStickySidebar();
+      if (!pushedBySidebar || (this.offset as Record<string, string>).left !== undefined) return this.offset;
+      return { ...this.offset, left: `calc(20px + ${state.sidebar.width}em)` };
     },
   },
   mounted() {
