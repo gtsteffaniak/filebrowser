@@ -1,6 +1,5 @@
 <div align="center">
 
-  [![Go Report Card](https://goreportcard.com/badge/github.com/gtsteffaniak/filebrowser/backend)](https://goreportcard.com/report/github.com/gtsteffaniak/filebrowser/backend)
   [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0b548794f2ac4871a0cf7aa9ecab049f)](https://app.codacy.com/gh/gtsteffaniak/filebrowser/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
   [![latest version](https://img.shields.io/github/v/release/gtsteffaniak/filebrowser)](https://github.com/gtsteffaniak/filebrowser/releases)
   [![DockerHub Pulls](https://img.shields.io/docker/pulls/gtstef/filebrowser?label=latest%20Docker%20pulls)](https://hub.docker.com/r/gtstef/filebrowser)
@@ -12,20 +11,12 @@
   <h3>FileBrowser Quantum</h3>
   The best free self-hosted web-based file manager.
   <br/><br/>
-  <img width="800" src="https://github.com/user-attachments/assets/162d7a95-33b7-49bd-976c-dd6822c0d22b">
+  <img width="800" src="https://filebrowserquantum.com/images/generated/listing/view-mode-normal-dark.jpg">
 </div>
 
 ## Pinned
 
-:loudspeaker: [New Announcement](https://github.com/gtsteffaniak/filebrowser/discussions/2048)
-
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
-
-## v2.0.0
-
-This release is the largest upgrade to date. It **requires** both a database migration and config structural changes.
-
-**Start here:** [Migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) · [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) · [Config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) · [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/migration/troubleshooting/)
 
 ## About
 
@@ -45,21 +36,23 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
   2. ✅ Login support for OIDC, LDAP, JWT, password + 2FA, and proxy.
   3. ✅ Beautiful, Responsive, and Customizable user interface.
   4. ✅ Streamlined configuration via `config.yaml` config file.
-  5. ✅ Ultra-efficient Sqlite [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing)
+  5. ✅ Efficient search
      - Real-time search results as you type.
      - Real-time monitoring and updates in the UI.
      - Search supports file and folder sizes, along with various filters.
   6. ✅ Better listing browsing
-     - Better thumbnail support including **office**, **video**, and **album artwork**, and **3D models**.
+     - Thumbnails support includes **office**, **video**, and **album artwork**, and **3D models**.
      - Faster and more responsive views with animations.
-     - Folder sizes are displayed and support thumbnails
+     - **Folder sizes** are displayed and support thumbnails
      - Navigating remembers the last scroll position.
+     - WebDAV support
+     - Granular permissions
   7. ✅ Highly configurable and [customizable sharing options](https://filebrowserquantum.com/en/docs/shares/options/)
      - share expiration time
      - users who can access share (including anonymous)
      - styling and themes
      - file viewing, editing, and uploading permissions
-  8. ✅ Directory-level access control that can be scoped to user or group.
+  8. ✅ Access control that can be scoped to user or group and source path.
   9. ✅ Developer API support
      - Ability to create long-lived API Tokens.
      - A helpful Swagger page is available at `/swagger` endpoint for API enabled users.
@@ -74,24 +67,22 @@ FileBrowser Quantum differs significantly from the original version. Many of the
 The UI has a simple three-component navigation system:
 
   1. (Left) Multi-action button with slide-out panel.
-  2. (Middle) The powerful search bar.
-  3. (Right) The view change toggle.
+  2. (Middle) The powerful search bar / title
+  3. (Right) The view change toggle / overflow menu
 
 All other functions are moved either into the action menu or pop-up menus.
 If the action does not depend on context, it will exist in the slide-out
 action panel. If the action is available based on context, it will show up as
 a pop-up menu.
 
-<p align="center">
-  <img width="1000" src="https://github.com/user-attachments/assets/aa32b05c-f917-47bb-b07f-857edc5e47f7" title="Search GIF">
-</p>
+<img width="1200" height="750" alt="Aug-07-2026 14-54-55" src="https://github.com/user-attachments/assets/fd1c1747-f30f-4e21-b991-f45744416d7e" />
 
 ## Official Docs
 
 See the [Official Docs](https://filebrowserquantum.com/). Contributions are welcome and encouraged! See [FilebrowserDocs Github](https://github.com/quantumx-apps/filebrowserDocs).
 
 ## Comparison Chart
-Application Name | <img width="48" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google_Drive_logo.png/480px-Google_Drive_logo.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
+Application Name | <img width="48" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://cdn.iconscout.com/icon/free/png-256/free-google-drive-logo-icon-svg-download-png-2476481.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
 --- | --- | --- | --- | --- | --- | --- |
 Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
@@ -134,7 +125,7 @@ Branding support              | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 activity log                  | ✅ | ❌ | ✅ | ✅ | ✅ | ✅
 Comments support              | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 trash support                 | :construction: | ❌ | ✅ | ✅ | ✅ | ✅ |
-Starred/pinned files          | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ |
+Starred/pinned files          | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 Share collections of files    | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can archive selected files    | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
