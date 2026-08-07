@@ -45,8 +45,8 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusBadRequest, fmt.Errorf("api token duration must be valid")
 	}
 
-	// For full tokens (minimal=false), permissions are required in the claim
-	// For minimal tokens (minimal=true), permissions are not in the token
+	// For full tokens (minimal=false), permissions are embedded in the JWT claim.
+	// For minimal tokens (minimal=true), only standard JWT claims are included.
 	var permissions users.Permissions
 	if !minimal {
 		// Parse permissions from the query parameter
@@ -59,6 +59,10 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 			Share:    strings.Contains(permissionsStr, "share") && d.user.Permissions.Share,
 			Realtime: strings.Contains(permissionsStr, "realtime") && d.user.Permissions.Realtime,
 			Download: strings.Contains(permissionsStr, "download") && d.user.Permissions.Download,
+		}
+		if !permissions.Api && !permissions.Admin && !permissions.Modify && !permissions.Delete &&
+			!permissions.Create && !permissions.Share && !permissions.Realtime && !permissions.Download {
+			minimal = true
 		}
 	}
 
