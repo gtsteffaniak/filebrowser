@@ -204,9 +204,10 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		logger.Errorf("public share handler: error processing filelist: %v with error %v", files, err)
 		return status, fmt.Errorf("error processing filelist: %v", files)
 	}
+	// Audit row is written inside RawFilesHandler via activity.RecordDownload.
 	if downloadResponseRecordsActivity(status, err) {
-		if recErr := state.RecordShareDownload(d.Share.Hash, d.User.Username); recErr != nil {
-			logger.Errorf("public share handler: failed to record download for share %s: %v", d.Share.Hash, recErr)
+		if recErr := state.IncrementShareDownloadCount(d.Share.Hash, d.User.Username); recErr != nil {
+			logger.Errorf("public share handler: failed to increment share download count for %s: %v", d.Share.Hash, recErr)
 		}
 	}
 	return status, nil
