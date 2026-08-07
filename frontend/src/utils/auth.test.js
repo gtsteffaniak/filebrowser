@@ -5,7 +5,7 @@ const { storeMock } = vi.hoisted(() => ({
   storeMock: {
     state: { sessionId: 'sess', user: null },
     getters: { isLoggedIn: vi.fn(() => true) },
-    mutations: { setCurrentUser: vi.fn(), setSession: vi.fn() },
+    mutations: { setCurrentUser: vi.fn(), setSession: vi.fn(), syncEnforcedUserDefaults: vi.fn() },
   },
 }));
 
@@ -13,7 +13,7 @@ vi.mock('@/store', () => storeMock);
 vi.mock('@/utils/constants', () => ({ globalVars: { baseURL: '/', recaptcha: false } }));
 vi.mock('@/utils/url.js', () => ({
   getApiPath: (p, params = {}) =>
-    `/api/${p}${params.id ? `?id=${params.id}` : ''}`,
+    `/api/${p}${params.username ? `?username=${params.username}` : ''}`,
 }));
 
 import { validateLogin } from './auth.js';

@@ -41,7 +41,7 @@ test("Create first new file with basic auth", async ({ page, checkForErrors }, t
   await expect(await page.locator('.listing-items .file-items')).toHaveCount(1 + testInfo.retry);
   await page.waitForTimeout(500);
   await page.locator(`a[aria-label="${fileName}"]`).dblclick();
-  checkForErrors(0, 1); // expect one redirect error
+  checkForErrors();
 });
 
 test("Verify basic auth is required for protected route", async ({ page }) => {

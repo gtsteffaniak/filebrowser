@@ -86,55 +86,67 @@
         </div>
       </div>
 
-      <div v-if="user.loginMethod === 'password' && globalVars.passwordAvailable" class="settings-items">
-        <ToggleSwitch v-if="user.loginMethod === 'password' && stateUser.permissions?.admin" class="item"
-          :modelValue="user.lockPassword" @update:modelValue="(val) => updateUserField('lockPassword', val)"
-          :name="$t('settings.lockPassword')" />
-      </div>
-
       <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">
         <label for="scopes">{{ $t("settings.scopes") }}</label>
-        <div class="scope-list" :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
-          v-for="(source, index) in selectedSources" :key="index">
-          <select @change="handleSourceChange(source, $event, source.name)" class="input flat-right source-dropdown"
-            v-model="source.name">
-            <option v-for="s in sourceList" :key="s.name" :value="s.name">
-              {{ s.name }}
-            </option>
-          </select>
-
-          <div
-            :aria-label="`user-edit-scope-path-${index}`"
-            class="clickable button flat-left scope-path-display"
-            :class="{ 'flat-right': selectedSources.length > 1 }"
-            @click="onScopePathRowClick(index, source)"
-          >{{ scopePathDisplay(source) }}
+        <p class="small">{{ $t("settings.sourcePermissionsHelp") }}</p>
+        <ExpandDropdown
+          v-model="selectedSourceNames"
+          class="source-dropdown-select"
+          :options="allSourceOptions"
+          allow-multiple
+          multi-summary-mode="count"
+          :default-placeholder-if-empty="noSourcesPlaceholder"
+          :aria-label="$t('settings.scopes')"
+        />
+        <div class="scope-blocks">
+          <div class="scope-block" v-for="source in selectedSources" :key="source.name">
+            <SettingsItem
+              :title="sourceBlockTitle(source)"
+              :collapsable="true"
+              :force-collapsed="expandedSourceName !== source.name"
+              @toggle="onSourceExpandToggle(source.name)"
+            >
+              <div class="scope-path-row">
+                <label class="scope-path-label">{{ $t("settings.scopePath") }}</label>
+                <button
+                  type="button"
+                  :aria-label="`user-edit-scope-path-${source.name}`"
+                  class="clickable button scope-path-display"
+                  @click="onScopePathRowClick(source)"
+                >{{ scopePathDisplay(source) }}
+                </button>
+              </div>
+              <source-file-permissions
+                :permissions="sourcePermissionsFor(source.name)"
+                @changed="markScopePermissionsExplicit(source.name)"
+              />
+            </SettingsItem>
           </div>
-          <button v-if="selectedSources.length > 1" type="button" class="button flat-left no-height" @click="removeScope(index)">
-            <i class="material-symbols material-size">delete</i>
-          </button>
         </div>
       </div>
 
-      <button v-if="hasMoreSources" @click="addNewScopeSource" type="button" class="button no-height">
-        <i class="material-symbols material-size">add</i>
-      </button>
-
       <p v-if="stateUser.username !== user.username">
         <label for="locale">{{ $t("general.language") }}</label>
-        <languages class="input" id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
+        <languages id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
       </p>
       <div v-if="stateUser.permissions.admin">
-        <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
-        <select v-model="user.loginMethod" class="input" id="loginMethod">
-          <option v-if="globalVars.passwordAvailable" value="password">{{ $t("settings.loginMethods.password") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.oidcAvailable" value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.proxyAvailable" value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option v-if="globalVars.ldapAvailable" value="ldap">LDAP</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option value="jwt">JWT</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        </select>
+        <label for="loginMethod">{{ $t("settings.loginMethod") }}</label>
+        <ExpandDropdown
+          v-model="user.loginMethod"
+          input-id="loginMethod"
+          :options="loginMethodOptions"
+          :aria-label="$t('settings.loginMethod')"
+          @update:model-value="emitUpdate"
+        />
       </div>
-      <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
+
+      <UserDefaultsAccountSection
+        v-if="stateUser.permissions.admin"
+        :enforceable="false"
+        :start-collapsed="false"
+        :account="editAccount"
+        @account-change="onEditAccountChange"
+      />
     </div>
   </div>
 
@@ -157,10 +169,14 @@
 import { mutations, state } from "@/store";
 import { usersApi, settingsApi, authApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
-import Permissions from "@/components/settings/Permissions.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
+import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
+import { validateLogin } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 import { setObjectProperty } from '@/utils/object.js';
@@ -169,13 +185,17 @@ export default {
   name: "user-edit",
   components: {
     Languages,
-    Permissions,
+    ExpandDropdown,
+    SourceFilePermissions,
+    SettingsItem,
     ToggleSwitch,
+    UserDefaultsAccountSection,
     Errors,
   },
   props: {
-    userId: {
-      type: [String, Number],
+    /** Login name of the user being edited (omit for “new user”). */
+    targetUsername: {
+      type: String,
       required: false,
     },
     promptId: {
@@ -186,7 +206,7 @@ export default {
   data() {
     return {
       error: null,
-      originalUser: null,
+      originalSnapshot: null,
       user: {
         scopes: [],
         username: "",
@@ -200,12 +220,24 @@ export default {
       loaded: false,
       originalUserScope: ".",
       sourceList: [],
-      availableSources: [],
       selectedSources: [],
+      expandedSourceName: null,
       passwordRef: "",
       pendingScopeSelectionContextId: null,
-      pendingScopeIndex: null,
+      pendingScopeSourceName: null,
       addingPasskey: false,
+      sourceFilePermissionDefaults: null,
+      editAccount: {
+        lockPassword: false,
+        disableSettings: false,
+        disableUpdateNotifications: false,
+        permissions: {
+          admin: false,
+          share: false,
+          api: false,
+          realtime: false,
+        },
+      },
     };
   },
   async created() {
@@ -228,10 +260,15 @@ export default {
       return state.settings;
     },
     isNew() {
-      return !this.userId;
+      return !this.targetUsername;
     },
     stateUser() {
       return state.user;
+    },
+    noSourcesPlaceholder() {
+      return this.$t("general.sources", {
+        prefix: this.$t("general.no", { suffix: " " }),
+      });
     },
     invalidPassword() {
       const matching =
@@ -249,24 +286,86 @@ export default {
     },
     passwordAvailable: () => globalVars.passwordAvailable,
     globalVars: () => globalVars,
-    duplicateSources() {
-      const names = this.selectedSources.map((s) => s.name);
-      return names.filter((name, idx) => names.indexOf(name) !== idx);
+    allSourceOptions() {
+      return (this.sourceList || []).map((source) => ({
+        value: source.name,
+        label: source.name,
+      }));
     },
-    hasMoreSources() {
-      return this.selectedSources.length < this.sourceList.length;
+    selectedSourceNames: {
+      get() {
+        return this.selectedSources.map((source) => source.name).filter(Boolean);
+      },
+      set(names) {
+        const selected = Array.isArray(names) ? names.filter(Boolean) : [];
+        const previousByName = new Map(
+          this.selectedSources
+            .filter((source) => source.name)
+            .map((source) => [source.name, source])
+        );
+        const previousNames = this.selectedSourceNames;
+        for (const name of previousNames) {
+          if (!selected.includes(name)) {
+            const idx = this.selectedSources.findIndex((source) => source.name === name);
+            if (idx >= 0) {
+              this.selectedSources.splice(idx, 1);
+            }
+          }
+        }
+        this.selectedSources = selected.map((name) => {
+          if (previousByName.has(name)) {
+            return previousByName.get(name);
+          }
+          return {
+            name,
+            scope: "/",
+            permissions: undefined,
+            permissionsExplicit: false,
+          };
+        });
+        if (
+          this.expandedSourceName !== null
+          && !selected.includes(this.expandedSourceName)
+        ) {
+          this.expandedSourceName = null;
+        }
+        this.emitUserUpdate();
+      },
+    },
+    loginMethodOptions() {
+      const options = [];
+      if (this.globalVars.passwordAvailable) {
+        options.push({ value: "password", label: this.$t("settings.loginMethods.password") });
+      }
+      if (this.globalVars.oidcAvailable) {
+        options.push({ value: "oidc", label: "OIDC" });
+      }
+      if (this.globalVars.proxyAvailable) {
+        options.push({ value: "proxy", label: "Proxy" });
+      }
+      if (this.globalVars.ldapAvailable) {
+        options.push({ value: "ldap", label: "LDAP" });
+      }
+      if (this.globalVars.jwtAvailable) {
+        options.push({ value: "jwt", label: "JWT" });
+      }
+      return options;
     },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
-    /** Password change (existing user): target and signed-in user must both use password login. */
+    /** Password change (existing user): self-service requires password login; admins editing another user always see it. */
     showPasswordChangeSection() {
-      return (
-        !this.isNew &&
-        this.user.loginMethod === "password" &&
-        this.stateUser.loginMethod === "password" &&
-        this.globalVars.passwordAvailable
-      );
+      if (this.isNew || !this.globalVars.passwordAvailable) {
+        return false;
+      }
+      if (this.stateUser.permissions?.admin && this.stateUser.username !== this.user.username) {
+        return true;
+      }
+      if (this.user.loginMethod !== "password") {
+        return false;
+      }
+      return this.stateUser.loginMethod === "password";
     },
     firstAvailableLoginMethod() {
       if (this.globalVars.passwordAvailable) return "password";
@@ -292,6 +391,148 @@ export default {
     },
   },
   methods: {
+    defaultPermissions() {
+      return {
+        admin: false,
+        api: false,
+        share: false,
+        realtime: false,
+      };
+    },
+    defaultSourceFilePermissions() {
+      if (this.sourceFilePermissionDefaults) {
+        return { ...this.sourceFilePermissionDefaults };
+      }
+      return {
+        view: true,
+        download: true,
+        modify: false,
+        create: false,
+        delete: false,
+      };
+    },
+    async loadSourceFilePermissionDefaults() {
+      if (this.sourceFilePermissionDefaults) {
+        return;
+      }
+      try {
+        const settings = await settingsApi.getSourceSettings();
+        const defaults = settings?.defaultPermissions ?? {};
+        this.sourceFilePermissionDefaults = {
+          view: defaults.view !== false,
+          download: defaults.download !== false,
+          modify: !!defaults.modify,
+          create: !!defaults.create,
+          delete: !!defaults.delete,
+        };
+      } catch (e) {
+        console.error(e);
+        this.sourceFilePermissionDefaults = {
+          view: true,
+          download: true,
+          modify: false,
+          create: false,
+          delete: false,
+        };
+      }
+    },
+    markScopePermissionsExplicit(sourceName) {
+      const scope = this.selectedSources.find((entry) => entry.name === sourceName);
+      if (scope) {
+        scope.permissionsExplicit = true;
+      }
+    },
+    sourcePermissionsFor(sourceName) {
+      const scope = this.selectedSources.find((entry) => entry.name === sourceName);
+      if (!scope) {
+        return this.defaultSourceFilePermissions();
+      }
+      if (!scope.permissions) {
+        scope.permissions = { ...this.defaultSourceFilePermissions() };
+      }
+      return scope.permissions;
+    },
+    toggleSourceExpanded(sourceName) {
+      this.expandedSourceName = this.expandedSourceName === sourceName ? null : sourceName;
+    },
+    onSourceExpandToggle(sourceName) {
+      this.toggleSourceExpanded(sourceName);
+    },
+    sourceBlockTitle(source) {
+      return source?.name || "";
+    },
+    normalizeFormUser(raw) {
+      const user = { ...(raw ?? {}) };
+      if (user.account && typeof user.account === "object") {
+        const account = user.account;
+        user.lockPassword = !!account.lockPassword;
+        user.disableSettings = !!account.disableSettings;
+        user.disableUpdateNotifications = !!account.disableUpdateNotifications;
+        if (account.loginMethod) {
+          user.loginMethod = account.loginMethod;
+        }
+        if (account.permissions && typeof account.permissions === "object") {
+          user.permissions = {
+            admin: !!account.permissions.admin,
+            share: !!account.permissions.share,
+            api: !!account.permissions.api,
+            realtime: !!account.permissions.realtime,
+          };
+        }
+      }
+      if (user.permissions) {
+        delete user.permissions.modify;
+        delete user.permissions.create;
+        delete user.permissions.delete;
+        delete user.permissions.download;
+        delete user.permissions.view;
+      }
+      if (user.permissions === null || user.permissions === undefined) {
+        user.permissions = this.defaultPermissions();
+      }
+      if (!user.locale && user.ui?.locale) {
+        user.locale = user.ui.locale;
+      }
+      delete user.account;
+      delete user.sidebar;
+      delete user.listing;
+      delete user.preview;
+      delete user.fileViewer;
+      delete user.search;
+      delete user.ui;
+      delete user.fileLoading;
+      user.scopes = this.normalizeScopesForForm(user.scopes, user.sourcePermissions);
+      delete user.sourcePermissions;
+      return user;
+    },
+    normalizeScopesForForm(scopes, legacySourcePermissions) {
+      const normalized = Array.isArray(scopes) ? scopes.map((scope) => ({
+        name: scope?.name || "",
+        scope: this.normalizeScopeForApi(scope?.scope),
+        permissions: scope?.permissions
+          ? { ...scope.permissions }
+          : undefined,
+        permissionsExplicit: !!scope?.permissions,
+      })) : [];
+      if (legacySourcePermissions && typeof legacySourcePermissions === "object") {
+        for (const entry of normalized) {
+          if (!entry.permissions && legacySourcePermissions[entry.name]) {
+            entry.permissions = { ...legacySourcePermissions[entry.name] };
+          }
+        }
+      }
+      for (const entry of normalized) {
+        if (!entry.permissions) {
+          entry.permissionsExplicit = false;
+        }
+      }
+      return normalized;
+    },
+    /** Scope path sent to the API: trimmed, or "/" when empty (matches backend root). */
+    normalizeScopeForApi(scope) {
+      const t = String(scope ?? "").trim();
+      return t.length > 0 ? t : "/";
+    },
     closeTopPrompt() {
       mutations.closeTopPrompt();
     },
@@ -299,8 +540,9 @@ export default {
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
-          const defaults = await settingsApi.get("userDefaults");
-          this.user = defaults;
+          const response = await settingsApi.getUserDefaults();
+          const defaults = response?.values ?? response;
+          this.user = this.normalizeFormUser(defaults);
           this.user.password = "";
           // Ensure loginMethod is valid, set to first available method if not set or invalid
           const validMethods = [];
@@ -314,26 +556,15 @@ export default {
             this.user.loginMethod = this.firstAvailableLoginMethod;
           }
         } else {
-          const id = this.userId;
-          if (id === undefined) {
+          const uname = this.targetUsername;
+          if (!uname) {
             return;
           }
-          this.user = { ...(await usersApi.get(id)) };
+          this.user = this.normalizeFormUser(await usersApi.get(uname));
           this.user.password = "";
           // Normalize scopes to ensure they're in {name, scope} format only
           if (this.user.scopes && Array.isArray(this.user.scopes)) {
-            this.user.scopes = this.user.scopes.map(scope => {
-              // If it's already in the correct format, use it
-              if (scope.name !== undefined && scope.scope !== undefined) {
-                return { name: scope.name, scope: scope.scope || "" };
-              }
-              // If it's a full source object, extract just name and scope
-              if (scope.name && typeof scope.name === 'string') {
-                return { name: scope.name, scope: scope.scope || "" };
-              }
-              // Fallback: try to extract from any object structure
-              return { name: "", scope: "" };
-            });
+            this.user.scopes = this.normalizeScopesForForm(this.user.scopes);
           }
           // Ensure loginMethod is valid, set to first available method if not set or invalid
           const validMethods = [];
@@ -357,6 +588,7 @@ export default {
       }
     },
     async initializeForm() {
+      await this.loadSourceFilePermissionDefaults();
       if (!this.stateUser.permissions.admin) {
         this.sourceList = this.user.scopes || [];
       } else {
@@ -366,22 +598,121 @@ export default {
       this.user.password = this.user.password || "";
       // Set default login method
       this.setDefaultLoginMethod();
-      this.selectedSources = this.user.scopes || [];
-      this.availableSources = this.sourceList.filter(
-        (s) => !this.selectedSources.some((sel) => sel.name === s.name)
-      );
+      const catalogueNames = new Set((this.sourceList || []).map((source) => source.name));
+      this.selectedSources = (this.user.scopes || [])
+        .filter((scope) => scope?.name && catalogueNames.has(scope.name))
+        .map((scope) => ({
+        name: scope.name || "",
+        scope: this.normalizeScopeForApi(scope.scope),
+        permissions: scope.permissions
+          ? { ...scope.permissions }
+          : undefined,
+        permissionsExplicit: !!scope.permissions,
+      }));
 
-      if (this.isNew && this.availableSources.length) {
-        const newSource = this.availableSources.shift();
-        if (newSource) {
-          // Only store {name, scope} format, not the full source config
-          this.selectedSources.push({
-            name: newSource.name || "",
-            scope: "" // Empty scope - backend will handle defaults
-          });
-          this.emitUserUpdate();
-        }
+      if (this.isNew && this.selectedSources.length === 0 && this.sourceList.length > 0) {
+        this.selectedSourceNames = [this.sourceList[0].name];
       }
+      this.syncEditAccountForm();
+      if (!this.isNew) {
+        this.originalSnapshot = JSON.parse(JSON.stringify(this.buildEditableSnapshot()));
+      }
+    },
+    buildScopesPayload() {
+      return this.selectedSources.map((source) => ({
+        name: source.name || "",
+        scope: this.normalizeScopeForApi(source.scope),
+        permissions: { ...this.sourcePermissionsFor(source.name) },
+      }));
+    },
+    normalizeScopesForCompare(scopes) {
+      return [...scopes]
+        .map((scope) => ({
+          name: scope.name || "",
+          scope: this.normalizeScopeForApi(scope.scope),
+          permissions: scope.permissions ? { ...scope.permissions } : undefined,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+    buildEditableSnapshot() {
+      this.applyEditAccountToUser();
+      const permissions = this.user.permissions || this.defaultPermissions();
+      return {
+        scopes: this.normalizeScopesForCompare(this.buildScopesPayload()),
+        loginMethod: this.user.loginMethod ?? null,
+        locale: this.user.locale ?? "",
+        otpEnabled: !!this.user.otpEnabled,
+        lockPassword: !!this.user.lockPassword,
+        disableSettings: !!this.user.disableSettings,
+        disableUpdateNotifications: !!this.user.disableUpdateNotifications,
+        permissions: {
+          admin: !!permissions.admin,
+          share: !!permissions.share,
+          api: !!permissions.api,
+          realtime: !!permissions.realtime,
+        },
+      };
+    },
+    computeChangedFields() {
+      if (!this.originalSnapshot) {
+        return [];
+      }
+      const current = this.buildEditableSnapshot();
+      const orig = this.originalSnapshot;
+      const fields = [];
+      if (JSON.stringify(current.scopes) !== JSON.stringify(orig.scopes)) {
+        fields.push("scopes");
+      }
+      if (current.loginMethod !== orig.loginMethod) {
+        fields.push("loginMethod");
+      }
+      if (current.locale !== orig.locale) {
+        fields.push("locale");
+      }
+      if (current.otpEnabled !== orig.otpEnabled) {
+        fields.push("otpEnabled");
+      }
+      if (current.lockPassword !== orig.lockPassword) {
+        fields.push("lockPassword");
+      }
+      if (current.disableSettings !== orig.disableSettings) {
+        fields.push("disableSettings");
+      }
+      if (current.disableUpdateNotifications !== orig.disableUpdateNotifications) {
+        fields.push("disableUpdateNotifications");
+      }
+      if (JSON.stringify(current.permissions) !== JSON.stringify(orig.permissions)) {
+        fields.push("permissions");
+      }
+      return fields;
+    },
+    syncEditAccountForm() {
+      const p = this.user.permissions || {};
+      this.editAccount.lockPassword = !!this.user.lockPassword;
+      this.editAccount.disableSettings = !!this.user.disableSettings;
+      this.editAccount.disableUpdateNotifications = !!this.user.disableUpdateNotifications;
+      this.editAccount.permissions = {
+        admin: !!p.admin,
+        share: !!p.share,
+        api: !!p.api,
+        realtime: !!p.realtime,
+      };
+    },
+    applyEditAccountToUser() {
+      this.user.lockPassword = this.editAccount.lockPassword;
+      this.user.disableSettings = this.editAccount.disableSettings;
+      this.user.disableUpdateNotifications = this.editAccount.disableUpdateNotifications;
+      if (!this.user.permissions) {
+        this.user.permissions = this.defaultPermissions();
+      }
+      this.user.permissions.admin = this.editAccount.permissions.admin;
+      this.user.permissions.share = this.editAccount.permissions.share;
+      this.user.permissions.api = this.editAccount.permissions.api;
+      this.user.permissions.realtime = this.editAccount.permissions.realtime;
+    },
+    onEditAccountChange() {
+      this.applyEditAccountToUser();
+      this.emitUpdate();
     },
     deletePrompt() {
       mutations.showPrompt({
@@ -394,7 +725,7 @@ export default {
               label: this.$t("general.delete"),
               action: async () => {
                 try {
-                  await usersApi.remove(this.user.id, {
+                  await usersApi.deleteUser(this.user.username, {
                     actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
                   });
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
@@ -414,13 +745,13 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
-        const fields = ["all"];
-        // Transform selectedSources to only include {name, scope} format
-        // Empty scope strings should be passed as "" for backend to handle defaults
-        const scopesToSend = this.selectedSources.map(source => ({
-          name: source.name || "",
-          scope: source.scope || ""
-        }));
+        this.applyEditAccountToUser();
+        const scopesToSend = this.buildScopesPayload();
+        const payload = {
+          ...this.user,
+          scopes: scopesToSend,
+        };
+        delete payload.sourcePermissions;
 
         if (this.isNew) {
           if (!state.user.permissions.admin) {
@@ -428,7 +759,7 @@ export default {
             return;
           }
           await usersApi.create(
-            { ...this.user, scopes: scopesToSend },
+            payload,
             {
               actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
             }
@@ -438,7 +769,15 @@ export default {
           // Close the prompt
           mutations.closeTopPrompt();
         } else {
-          await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
+          const fields = this.computeChangedFields();
+          if (fields.length === 0) {
+            mutations.closeTopPrompt();
+            return;
+          }
+          await usersApi.update(payload, fields);
+          if (payload.username === state.user.username) {
+            await validateLogin();
+          }
           eventBus.emit('usersChanged');
           notify.showSuccessToast(this.$t("settings.userUpdated"));
           mutations.closeTopPrompt();
@@ -500,11 +839,11 @@ export default {
     setUpdatePassword() {
       // This method is kept for compatibility but not used in the new structure
     },
-    onScopePathRowClick(index, source) {
+    onScopePathRowClick(source) {
       if (!source?.name) {
         return;
       }
-      this.openScopePicker(index);
+      this.openScopePicker(source);
     },
     scopePathDisplay(source) {
       const s = source?.scope;
@@ -513,21 +852,22 @@ export default {
       }
       return "/";
     },
-    openScopePicker(index) {
-      const row = this.selectedSources.at(index);
-      if (!row?.name) {
+    openScopePicker(source) {
+      if (!source?.name) {
         return;
       }
       const selectionContextId = `user-scope-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
       this.pendingScopeSelectionContextId = selectionContextId;
-      this.pendingScopeIndex = index;
+      this.pendingScopeSourceName = source.name;
       const initialPath =
-        row.scope && typeof row.scope === "string" && row.scope.length > 0 ? row.scope : "/";
+        source.scope && typeof source.scope === "string" && source.scope.length > 0
+          ? source.scope
+          : "/";
       mutations.showPrompt({
         name: "pathPicker",
         props: {
           currentPath: initialPath,
-          currentSource: row.name,
+          currentSource: source.name,
           hideDestinationSource: true,
           selectionContextId,
         },
@@ -541,7 +881,7 @@ export default {
         return;
       }
       this.pendingScopeSelectionContextId = null;
-      this.pendingScopeIndex = null;
+      this.pendingScopeSourceName = null;
     },
     onPathSelectedFromPicker(data) {
       if (!this.pendingScopeSelectionContextId) {
@@ -551,37 +891,15 @@ export default {
         return;
       }
       this.pendingScopeSelectionContextId = null;
-      const idx = this.pendingScopeIndex;
-      this.pendingScopeIndex = null;
-      if (idx === null || idx === undefined || typeof data.path !== "string") {
+      const sourceName = this.pendingScopeSourceName;
+      this.pendingScopeSourceName = null;
+      if (!sourceName || typeof data.path !== "string") {
         return;
       }
       const path = data.path;
-      const next = this.selectedSources.map((s, i) =>
-        i === idx ? { ...s, scope: path } : s
+      this.selectedSources = this.selectedSources.map((source) =>
+        source.name === sourceName ? { ...source, scope: path } : source
       );
-      this.selectedSources = next;
-      this.emitUserUpdate();
-    },
-    addNewScopeSource(event) {
-      event.preventDefault();
-      if (this.hasMoreSources) {
-        this.selectedSources.push({ name: "", scope: "" });
-        this.emitUserUpdate();
-      }
-    },
-    removeScope(index) {
-      const removed = this.selectedSources.splice(index, 1)[0];
-      this.availableSources.push({ name: removed.name });
-      this.emitUserUpdate();
-    },
-    handleSourceChange(source, event, oldName) {
-      const newName = event.target.value;
-      this.availableSources = this.availableSources.filter((s) => s.name !== newName);
-      if (oldName && !this.availableSources.find((s) => s.name === oldName)) {
-        this.availableSources.push({ name: oldName });
-      }
-      source.name = newName;
       this.emitUserUpdate();
     },
     updateUserField(field, value) {
@@ -607,8 +925,8 @@ export default {
       // Update the prompt display name to show the username
       // This allows the title to show the actual username instead of just the generic "user-edit" title
       const displayName = this.isNew
-        ? this.$t("settings.newUser")
-        : `${this.$t("settings.modifyOtherUser")} ${this.user.username}`;
+        ? this.$t("general.newUser")
+        : this.$t("settings.modifyOtherUserTitle", { username: this.user.username });
       mutations.updatePromptTitle(this.promptId, displayName);
     },
     async addPasskey() {
@@ -642,25 +960,41 @@ export default {
 </script>
 
 <style scoped>
-.scope-list {
+.scope-blocks {
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
+  gap: 0.75em;
+  margin-top: 0.75em;
 }
 
-.source-dropdown {
-  width: unset;
+.source-dropdown-select {
+  width: 100%;
+}
+
+.scope-path-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  margin-bottom: 0.75em;
+}
+
+.scope-path-label {
+  font-size: 0.9em;
+  color: var(--textSecondary, #888);
+}
+
+.scope-block :deep(.settings-group) {
+  margin-top: 0.35em;
+}
+
+.scope-block :deep(.settings-group-title) {
+  padding: 0.5em 0.75em;
+  border: 1px solid var(--borderColor, #ddd);
+  border-radius: var(--borderRadius, 4px);
 }
 
 .scope-path-display {
   width: 100%;
-}
-
-.no-height {
-  height: unset;
-}
-
-.material-size {
-  font-size: 1em !important;
 }
 
 .passkey-list {

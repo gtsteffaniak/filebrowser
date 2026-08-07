@@ -58,14 +58,14 @@ export async function findDuplicates(base, source, minSizeMb, useChecksum = fals
       params.useChecksum = "true";
     }
 
-    const apiPath = getApiPath("tools/duplicateFinder", params);
+    const apiPath = getApiPath("tools/duplicate-finder", params);
     const res = await fetchURL(apiPath);
     const data = await res.json();
 
     // Return both the data and metadata about completeness
     // Backend returns: { groups: [...], incomplete: bool, reason: string }
     return {
-      groups: data.groups || data, // Handle both new format and legacy format
+      groups: data.groups,
       incomplete: data.incomplete || false,
       reason: data.reason || ""
     };

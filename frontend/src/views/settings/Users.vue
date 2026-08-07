@@ -4,7 +4,7 @@
     type="button"
     @click="openPrompt(null)"
     class="button floating-action-button"
-    aria-label="Add New User"
+    :aria-label="newUserLabel()"
   >
     {{ $t("general.new") }}
   </button>
@@ -14,10 +14,19 @@
   </div>
 
   <div class="card-content full">
+    <div v-if="isAdmin" class="settings-items user-defaults-entry">
+      <SettingsButton
+        class="item"
+        :name="$t('settings.userDefaults')"
+        :description="$t('settings.userDefaultsDescription')"
+        @click="openUserDefaultsPrompt"
+      />
+      <ActivityViewerButton class="item" :href="activityViewerHref" />
+    </div>
     <settings-table
       :columns="userTableColumns"
       :items="users"
-      item-key="id"
+      item-key="username"
       default-sort-key="username"
       :aria-label="$t('general.users')"
       :loading="loading"
@@ -29,14 +38,14 @@
       <template #cell-scopes="{ row }">{{ formatScopes(row.scopes) }}</template>
       <template #cell-actions="{ row }">
         <div
-          @click="openPrompt(row.id)"
+          @click="openPrompt(row.username)"
           class="clickable action button"
           role="button"
           tabindex="0"
           :aria-label="$t('general.edit')"
           :title="$t('general.edit')"
-          @keydown.enter.prevent="openPrompt(row.id)"
-          @keydown.space.prevent="openPrompt(row.id)"
+          @keydown.enter.prevent="openPrompt(row.username)"
+          @keydown.space.prevent="openPrompt(row.username)"
         >
           <i class="material-symbols">edit</i>
         </div>
@@ -51,6 +60,9 @@ import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
 export default {
@@ -58,13 +70,17 @@ export default {
   components: {
     Errors,
     SettingsTable,
+    SettingsButton,
+    ActivityViewerButton,
   },
-  data: () => ({
-    error: null,
-    users: [],
-    /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
-    loading: true,
-  }),
+  data: function () {
+    return {
+      error: null,
+      users: [],
+      /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
+      loading: true,
+    };
+  },
   async created() {
     await this.reloadUsers();
   },
@@ -111,8 +127,14 @@ export default {
         },
       ];
     },
+    activityViewerHref() {
+      return activityViewerPresets.users();
+    },
   },
   methods: {
+    newUserLabel() {
+      return this.$t("general.newUser");
+    },
     async reloadUsers() {
       this.loading = true;
       try {
@@ -132,12 +154,20 @@ export default {
         .map((scope) => `"${scope.name}": "${scope.scope}"`)
         .join(", ");
     },
-    openPrompt(userId) {
-      if (userId) {
-        mutations.showPrompt({ name: "user-edit", props: { userId } });
+    openPrompt(targetUsername) {
+      if (targetUsername) {
+        mutations.showPrompt({ name: "user-edit", props: { targetUsername } });
       } else {
         mutations.showPrompt({ name: "user-edit" });
       }
+    },
+    openUserDefaultsPrompt() {
+      mutations.showPrompt({
+        name: "user-defaults",
+        props: {
+          title: this.$t("settings.userDefaults"),
+        },
+      });
     },
   },
 };

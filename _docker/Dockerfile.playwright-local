@@ -2,13 +2,21 @@ FROM ghcr.io/gtsteffaniak/playwright-base:chromium
 WORKDIR /app
 
 WORKDIR /app/frontend
-COPY [ "./frontend/", "./" ]
+COPY [ "./frontend/tests/", "./tests" ]
+COPY [ "./frontend/tests/playwright-files", "/tests/playwright-files" ]
 
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser*", "./"]
-COPY [ "./_docker/src/screenshots/backend/*", "./"]
+COPY [ "./_docker/src/settings/backend/config.yaml", "./"]
+COPY [ "./_docker/src/settings/backend/database.db.old", "./"]
+COPY [ "./backend/reduce-rounded-corners.css", "./no-rounded.css"]
+RUN mkdir -p ./internal/web/dist
+COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 
-RUN mkdir -p ./http/dist
-COPY [ "./backend/http/embed/", "./http/dist/"]
-
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
+RUN ./filebrowser user set testuser1 --password testuser1
+RUN ./filebrowser set rule -s access -p / -r user -v admin --allow -c config.yaml
+RUN ./filebrowser set rule -s access -p /excluded/showme.txt -r user -v admin --allow -c config.yaml
+RUN ./filebrowser set rule -s access -p /denied -r user -v admin -c config.yaml
+RUN ./filebrowser set rule -s access -p /excluded -r user -v admin -c config.yaml
 ENTRYPOINT [ "./filebrowser" ]

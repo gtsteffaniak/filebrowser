@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import * as auth from "@/utils/auth";
+import { logout } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import SidebarLinks from "./Links.vue";
@@ -100,7 +100,8 @@ export default {
       if (getters.isShare()) {
         return state.shareInfo?.allowCreate === true
       }
-      return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
+      const global = getters.globalPermissions();
+      return getters.sourcePermissions().create || global.share || global.admin;
     },
     shareInfo: () => state.shareInfo,
     disableQuickToggles: () => state.user?.disableQuickToggles,
@@ -197,7 +198,7 @@ export default {
           : '';
         sharePath = subPath ? `${shareBase}/${url.encodedPath(subPath)}` : shareBase;
       }
-      await auth.logout(sharePath);
+      await logout(sharePath);
     },
     beforeEnter(el) {
       el.style.maxHeight = '0';

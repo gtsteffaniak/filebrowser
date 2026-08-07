@@ -11,47 +11,48 @@ import (
 
 	_ "net/http/pprof"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
-	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
-	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
-	"github.com/gtsteffaniak/filebrowser/backend/icons"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing"
-	"github.com/gtsteffaniak/filebrowser/backend/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/analytics"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/web"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/swaggo/swag"
 )
 
-var store *bolt.BoltStore
+var runtimeApp *app.App
 
-func getStore(configFile string) bool {
-	// Use the config file (global flag)
+func initializeDatabase(configFile string) bool {
 	settings.Initialize(configFile)
-	s, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
-	if err != nil {
-		logger.Fatalf("could not load db info: %v", err)
-	}
-	store = s
-	return hasDB
-}
 
-func generalUsage() {
-	fmt.Printf(`usage: ./filebrowser <command> [options]
-commands:
-	-h    	Print help
-	-c    	Print the default config file
-	version Print version information
-	set -u	Username and password for the new user
-	set -a	Create user as admin
-	set -s	Specify a user scope
-	set -h	Print this help message
-`)
+	if err := validateDatabasePaths(); err != nil {
+		logger.Fatalf("%v", err)
+	}
+
+	if checkMigrationNeeded() {
+		logger.Info("Old database detected, starting migration...")
+		err := migrateFromBoltToSQLite()
+		if err != nil {
+			logger.Fatalf("Migration failed: %v", err)
+		}
+	}
+
+	store, existingDb, err := state.Open(settings.Config.Server.DatabaseV2.Path)
+	if err != nil {
+		logger.Fatalf("could not initialize state: %v", err)
+	}
+	runtimeApp, err = app.WireServices(store)
+	if err != nil {
+		logger.Fatalf("could not wire services: %v", err)
+	}
+	return existingDb
 }
 
 func StartFilebrowser() {
@@ -59,9 +60,9 @@ func StartFilebrowser() {
 	if !keepGoing {
 		return
 	}
-	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
+	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.DatabaseV2.Path)
 	if !dbExists {
-		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
+		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.DatabaseV2.Path)
 	}
 	if !settings.Config.Server.DisableUpdateCheck {
 		info, _ := utils.CheckForUpdates()
@@ -83,8 +84,8 @@ func StartFilebrowser() {
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
 
 	// Dev mode enables development features like template hot-reloading
-	_, err := os.Stat("http/dist")
-	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
+	_, err := os.Stat("internal/web/dist")
+	// In dev mode, always use filesystem assets. Otherwise, check if internal/web/dist exists
 	if !settings.Env.IsDevMode {
 		settings.Env.EmbeddedFs = os.IsNotExist(err)
 	}
@@ -115,7 +116,7 @@ func StartFilebrowser() {
 	}
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
-	swagInfo.BasePath = serverConfig.BaseURL
+	swagInfo.BasePath = settings.Config.Http.BaseURL
 	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
 	if len(settings.Config.Server.SourceMap) == 0 {
@@ -128,26 +129,24 @@ func StartFilebrowser() {
 		logger.Fatalf("Failed to initialize index database: %v", err)
 	}
 
-	// Set indexing storage for persistence
-	if store != nil && store.Indexing != nil {
-		indexing.SetIndexingStorage(store.Indexing)
-		if isNewDb {
-			if err := store.Indexing.ResetAllComplexities(); err != nil {
-				logger.Errorf("Failed to reset index complexities: %v", err)
-			}
+	// Index metadata persistence is wired from app.WireServices during initializeDatabase.
+	if isNewDb {
+		if err := state.ResetAllIndexComplexities(); err != nil {
+			logger.Errorf("Failed to reset index complexities: %v", err)
 		}
 	}
 
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false, isNewDb)
 	}
+	analytics.StartReporter()
 	validateUserInfo(!dbExists)
 	validateOfficeIntegration()
 	validateAccessRules()
 	validateShareInfo()
 	// Start the rootCMD in a goroutine
 	go func() {
-		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {
+		if err := rootCMD(ctx, &serverConfig, runtimeApp, shutdownComplete); err != nil {
 			logger.Fatalf("Error starting filebrowser: %v", err)
 		}
 		close(done) // Signal that the server has stopped
@@ -183,17 +182,16 @@ func StartFilebrowser() {
 	logger.Info("Shutdown complete.")
 }
 
-func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.Server, shutdownComplete chan struct{}) error {
+func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shutdownComplete chan struct{}) error {
 	if serverConfig.NumImageProcessors < 1 {
 		logger.Fatal("Image resize workers count could not be < 1")
 	}
 	cacheDir := settings.Config.Server.CacheDir
 	numWorkers := settings.Config.Server.NumImageProcessors
-	ffmpeg.SetFFmpegPaths()
 
 	// Initialize asset filesystem before starting services
 	if settings.Env.EmbeddedFs {
-		embeddedAssets := fbhttp.GetEmbeddedAssets()
+		embeddedAssets := web.GetEmbeddedAssets()
 		subAssets, err := fs.Sub(embeddedAssets, "embed")
 		if err != nil {
 			logger.Fatalf("Failed to create sub filesystem: %v", err)
@@ -209,8 +207,6 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 		logger.Fatalf("Error starting preview service: %v", err)
 	}
 	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
-	logger.Debugf("Media Enabled            : %v", settings.MediaEnabled())
-	logger.Debugf("Exiftool Enabled         : %v", settings.Config.Integrations.Media.ExiftoolPath != "")
 
 	// Generate PWA icons after preview service is initialized
 	if err := icons.GeneratePWAIcons(); err != nil {
@@ -220,11 +216,10 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	// Initialize PWA manifest after icons are generated
 	icons.InitializePWAManifest()
 
-	// Initialize WebAuthn/Passkey service if enabled
-	if err := auth.InitWebAuthn(); err != nil {
-		logger.Fatalf("Failed to initialize WebAuthn: %v", err)
-	}
-
-	fbhttp.StartHttp(ctx, store, shutdownComplete)
+	web.StartHttp(ctx, web.Deps{
+		Store: a.Store,
+		Files: a.Files,
+		Auth:  a.Auth,
+	}, shutdownComplete)
 	return nil
 }

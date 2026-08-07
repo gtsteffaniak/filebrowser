@@ -2,15 +2,9 @@ server:
   minSearchLength: 3                      # minimum length of search query to begin searching (default: 3)
   disableUpdateCheck: false               # disables backend update check service
   numImageProcessors: 4                   # number of concurrent image processing jobs used to create previews, default is 4.
-  socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
-  tlsKey: ""                              # path to TLS key
-  tlsCert: ""                             # path to TLS cert
   disablePreviews: false                  # disable all previews thumbnails, simple icons will be used
   disablePreviewResize: false             # disable resizing of previews for faster loading over slow connections
   disableTypeDetectionByHeader: false     # disable type detection by header, useful if filesystem is slow.
-  port: 80                                # port to listen on
-  listen: ""                              # address to listen on (default: 0.0.0.0)
-  baseURL: "/"                            # base URL for the server, the subpath that the server is running on.
   logging:
     - levels: ""                          # separated list of log levels to enable. (eg. "info|warning|error|debug")
       apiLevels: ""                       # separated list of log levels to enable for the API. (eg. "info|warning|error")
@@ -19,7 +13,6 @@ server:
       json: false                         # output in json format
       utc: false                          # use UTC time in the output instead of local time.
       apiFilter: ""                       # regex filter that excludes matching full api paths from being logged. (eg. '/user\?id\=self') Defaults to '^/health|^/favicon.ico|^/static|^/public/static'
-  database: "database.db"                 # path to the database file
   sources:                                #  validate:required,dive
     - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
       name: "Source Name"                 # display name
@@ -47,8 +40,13 @@ server:
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user under defaultUserScope + username
         useLogicalSize: false             # calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
-  externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
-  internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+        defaultPermissions:               # DefaultPermissions is the template for new user scopes on this source (also synced globally via Access settings).
+          view: false
+          download: false
+          modify: false
+          delete: false
+          create: false
+          configured: false               # true when explicitly set (allows intentional deny-all)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
   cacheDirCleanup: false                  # whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
   maxArchiveSize: 20                      # maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
@@ -61,7 +59,14 @@ server:
     walMode: false                        # enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
     disableReuse: false                   # enable to always create a new indexing database on startup.
     startupIntegrityCheck: "quickCheck"   # the method used to check the integrity of the index database on startup (default: quickCheck)  validate:omitempty,oneof=quickCheck probe off
-  disableWebDAV: false                    # disable webdav support (default: false)
+  database:                               # SQLite database configuration
+    path: "filebrowser.sqlite"            # path to SQLite database file
+    migrateFrom: ""                       # path to legacy database file for migration (optional)
+    activity:                             # activity audit logging configuration
+      disabled: false                     # disable semantic activity audit logging (default: false)
+      retentionDays: 30                   # purge activity rows older than this many days (default 30)
+      flushIntervalSeconds: 10            # buffer flush interval in seconds (default 10)
+      maxBufferSize: 10000                # max in-memory buffer before immediate flush (default 10000)
 auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:
@@ -159,8 +164,8 @@ frontend:
   loginIcon: ""                           # path to an image file for the login page icon
   loginButtonText: ""                     # text to display on the login button
   oidcLoginButtonText: ""                 # text to display on the OIDC login button
-userDefaults:
-  sidebar:                                # New organized structure
+userDefaults:                             # optional signup/CLI defaults; per-user values are managed in the UI
+  sidebar:
     disableQuickToggles: false            # disable the quick toggles in the sidebar
     hideFileActions: false                # hide the file actions in the sidebar
     disableHideOnPreview: false           # keep sidebar open when previewing files (was preview.disableHideSidebar)
@@ -197,7 +202,6 @@ userDefaults:
     disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
     preferEditorForMarkdown: false        # prefer editor first for markdown files instead of the Markdown Viewer
     debugOffice: false                    # debug onlyoffice editor
-    defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
   search:
     disableOptions: false                 # disable the search options in the search bar
   ui:
@@ -214,12 +218,8 @@ userDefaults:
     permissions:
       api: false                          # allow api access
       admin: false                        # allow admin access
-      modify: false                       # allow modifying files
       share: false                        # allow sharing files
       realtime: false                     # allow realtime updates
-      delete: false                       # allow deleting files
-      create: false                       # allow creating or uploading files
-      download: true                      # allow downloading files
     lockPassword: false                   # disable the user from changing their password
     disableSettings: false                # disable the user from viewing the settings page
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
@@ -257,7 +257,16 @@ integrations:
         wmv: true
     debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
     extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
-    exiftoolPath: ""                      # path to exiftool executable
+    hardwareAcceleration: false           # enable hardware acceleration for ffmpeg if available
 http:
-  trustedHeaders:                         # list of headers to trust, useful when behind a reverse proxy.
+  socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
+  tlsKey: ""                              # path to TLS key
+  tlsCert: ""                             # path to TLS cert
+  port: 80                                # port to listen on
+  listen: ""                              # address to listen on (default: 0.0.0.0)
+  baseURL: "/"                            # base URL for the server, the subpath that the server is running on.
+  externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
+  internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+  disableWebDAV: false                    # disable webdav support (default: false)
+  trustProxyHeaders: false                # honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
   disableRateLimit: false                 # turns off built-in auth route rate limiting and failed-login lockout (default false).

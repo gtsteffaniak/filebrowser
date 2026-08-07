@@ -1,18 +1,28 @@
 <template>
-  <select v-on:change="change" :value="theme">
-    <option value="">{{ $t("general.light") }}</option>
-    <option value="dark">{{ $t("general.dark") }}</option>
-  </select>
+  <ExpandDropdown
+    :model-value="theme"
+    :options="themeOptions"
+    :aria-label="$t('settings.themeColor')"
+    @update:model-value="$emit('update:theme', $event)"
+  />
 </template>
 
 <script>
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+
 export default {
   name: "themes",
+  components: {
+    ExpandDropdown,
+  },
   props: ["theme"],
-  emits: ['update:theme'],
-  methods: {
-    change(event) {
-      this.$emit("update:theme", event.target.value);
+  emits: ["update:theme"],
+  computed: {
+    themeOptions() {
+      return [
+        { value: "", label: this.$t("general.light") },
+        { value: "dark", label: this.$t("general.dark") },
+      ];
     },
   },
 };

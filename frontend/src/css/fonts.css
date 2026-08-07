@@ -114,6 +114,15 @@
 }
 
 @font-face {
+  font-family: 'Material Symbols Core';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url(/fonts/material-symbols-core-filled.woff2) format('woff2');
+}
+
+/* Declared here but not referenced until html.icons-full — keeps the 3.8 MB font lazy. */
+@font-face {
   font-family: 'Material Symbols Outlined';
   font-style: normal;
   font-weight: 400;
@@ -121,10 +130,19 @@
   src: url(/fonts/material-symbols.woff2) format('woff2');
 }
 
+html:not(.icons-full) .material-symbols-outlined,
+html:not(.icons-full) .material-symbols {
+  font-family: 'Material Symbols Core';
+}
+
+html.icons-full .material-symbols-outlined,
+html.icons-full .material-symbols {
+  font-family: 'Material Symbols Outlined';
+}
+
 .material-symbols-outlined,
 .material-symbols {
-  font-family: 'Material Symbols Outlined';
-  font-weight: normal;
+  font-weight: 400;
   font-style: normal;
   font-size: 24px;
   line-height: 1;
@@ -134,18 +152,17 @@
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
   -webkit-user-select: none;
   user-select: none;
   transition: 0.25s ease;
 }
 
-/* Filled variant */
 .material-symbols {
   font-variation-settings: 'FILL' 1;
 }
 
-/* Outlined variant */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0;
 }

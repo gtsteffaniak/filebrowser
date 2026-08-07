@@ -2,6 +2,7 @@ import { notify } from "@/notify";
 import { state } from "@/store";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { adjustedData, fetchURL } from "./utils";
+import { getCachedDirMetadata, setCachedDirMetadata } from "@/utils/metadataCache.js";
 
 // GET /api/media/subtitles
 export async function getSubtitleContent(source, path, subtitleName, embedded = false) {
@@ -100,4 +101,69 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
   }
   const data = await response.json();
   return adjustedData(data);
+}
+
+/**
+ * Fetches media metadata, and caches it by directory, shared for all the callers to avoid unnecessary requests.
+ * @param {string} path - directory path
+ * @param {{isShare?: boolean, source?: string, hash?: string, password?: string, albumArt?: boolean}} opts
+ * @returns {Promise<Map<string, object>>}
+ */
+export async function getDirectoryMetadataMap(path, opts = {}) {
+  const { isShare = false, source, hash, password = "", albumArt = false } = opts;
+  const cacheOpts = { isShare, source, hash, path, albumArt };
+  const cached = getCachedDirMetadata(cacheOpts);
+  if (cached !== null) {
+    return cached;
+  }
+  const promise = (async () => {
+    const payload = isShare
+      ? await fetchDirectoryMediaMetadataPublic(path, hash, password, albumArt)
+      : await fetchDirectoryMediaMetadata(source, path, albumArt);
+    return new Map(
+      (payload?.items || []).filter((i) => i.metadata).map((i) => [i.name, i.metadata])
+    );
+  })();
+  setCachedDirMetadata(cacheOpts, promise);
+  return promise;
+}
+
+// GET /api/media/stream — audio/video bytes via viewToken (range-based, not download-metered).
+export function getStreamURL(source, path, viewToken) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  if (!viewToken) {
+    throw new Error('view token required')
+  }
+  try {
+    const params = {
+      source: source,
+      file: path,
+      viewToken: viewToken,
+      sessionId: state.sessionId,
+    }
+    const apiPath = getApiPath('media/stream', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting stream URL')
+    throw err
+  }
+}
+
+// GET /public/api/media/stream
+export function getStreamURLPublic(share, files, viewToken) {
+  if (!viewToken) {
+    throw new Error('view token required')
+  }
+  const fileArray = Array.isArray(files) ? files : [files]
+  const params = {
+    file: fileArray,
+    hash: share.hash,
+    token: share.token,
+    viewToken: viewToken,
+    sessionId: state.sessionId,
+  }
+  const apiPath = getPublicApiPath('media/stream', params)
+  return window.origin + apiPath
 }

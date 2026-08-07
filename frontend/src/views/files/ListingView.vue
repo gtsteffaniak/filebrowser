@@ -85,6 +85,7 @@
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
             v-bind:pinned="item.pinned"
+            v-bind:viewToken="item.viewToken"
           />
         </div>
 
@@ -115,6 +116,7 @@
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
             v-bind:pinned="item.pinned"
+            v-bind:viewToken="item.viewToken"
           />
         </div>
 
@@ -146,6 +148,7 @@
             v-bind:hasDuration="hasDuration"
             v-bind:isShared="item.isShared"
             v-bind:pinned="item.pinned"
+            v-bind:viewToken="item.viewToken"
           />
         </div>
 
@@ -179,12 +182,10 @@
 import downloadFiles from "@/utils/download";
 import { resourcesApi } from "@/api";
 import { router } from "@/router";
-import * as upload from "@/utils/upload";
+import { readAllDirectoryEntries, checkConflict } from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { readAllDirectoryEntries } from "@/utils/upload";
-
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -278,7 +279,7 @@ export default {
   },
   computed: {
     permissions() {
-      return getters.permissions();
+      return { ...getters.globalPermissions(), ...getters.sourcePermissions() };
     },
     shareInfo() {
       return state.shareInfo;
@@ -360,12 +361,12 @@ export default {
       const pinnedFolders = this.pinnedItems.filter(item => item.type === 'directory').length;
       const pinnedFiles = this.pinnedItems.filter(item => item.type !== 'directory').length;
       if (pinnedFolders > 0 && pinnedFiles === 0) {
-        return `${this.$t("files.pinnedFolders")}`; // "Pinned folders"
+        return this.$t("general.pinnedFolders");
       }
       if (pinnedFiles > 0 && pinnedFolders === 0) {
-        return `${this.$t("files.pinnedFiles")}`;   // "Pinned files"
+        return this.$t("general.pinnedFiles");
       }
-      return this.$t("files.pinnedItems"); // "Pinned items" if we pin both types
+      return this.$t("general.pinned");
     },
     dirs() {
       return this.items.dirs;
@@ -1013,7 +1014,7 @@ export default {
           event.preventDefault();
           event.stopPropagation();
 
-          const canUpload = getters.permissions()?.modify;
+          const canUpload = getters.sourcePermissions()?.modify;
           if (canUpload) {
             // Pass the full array of {file, relativePath} to preserve directory structure
             mutations.showPrompt({
@@ -1088,7 +1089,7 @@ export default {
                 return;
               }
 
-              const conflict = upload.checkConflict(items, state.req.items);
+              const conflict = checkConflict(items, state.req.items);
 
               if (conflict) {
                 mutations.showPrompt({
@@ -1468,6 +1469,7 @@ export default {
 }
 
 .folder-items a {
+  border-width: var(--borderWidth);
   border-style: solid;
 }
 

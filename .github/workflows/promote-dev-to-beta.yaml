@@ -11,7 +11,7 @@ on:
 jobs:
   promote-dev-to-beta:
     name: Promote Dev to Beta
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Check out repository

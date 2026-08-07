@@ -125,7 +125,7 @@ export default {
 }
 
 .share-info-element canvas {
-  border-style: solid;
+  border: var(--borderWidth) solid white;
 }
 </style>
 

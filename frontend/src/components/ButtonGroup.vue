@@ -1,6 +1,6 @@
 <template>
-  <div @click="preventDefaults" class="button-group">
-    <button type="button" v-if="isDisabled" disabled>
+  <div @click="preventDefaults" class="button-group border-radius">
+    <button v-if="isDisabled && buttons.length === 0" type="button" disabled>
       {{ disableMessage }}
     </button>
     <template v-else>
@@ -10,6 +10,7 @@
         :key="index"
         class="clickable"
         :class="{ active: activeButton === index }"
+        :disabled="isDisabled"
         @click="setActiveButton(index, btn.value)"
       >
         {{ btn.label }}
@@ -49,6 +50,9 @@ export default {
       e.stopPropagation();
     },
     setActiveButton(index, value) {
+      if (this.isDisabled) {
+        return;
+      }
       if (value === "type:folder" && this.activeButton !== index) {
         this.$emit("disableAll");
       }
@@ -90,13 +94,14 @@ export default {
 
 <style scoped>
 .button-group {
+  box-sizing: border-box;
   margin: 1em;
   display: flex;
   flex-wrap: wrap;
-  border: 1px solid #ccc;
-  border-top:none;
-  border-radius: 1em;
+  border: var(--borderWidth) solid var(--surfaceSecondary);
+  box-shadow: var(--surfaceElevationShadow);
   overflow: hidden;
+  background-color: var(--background);
 }
 
 button {
@@ -105,11 +110,10 @@ button {
   height: 3em;
   padding: 8px 16px;
   border: none;
-  background: #f5f5f5;
+  background: var(--background);
+  color: var(--textPrimary);
   transition: background-color 0.3s;
-  /* Add borders */
-  border-right: 1px solid #ccc;
-  border-top: 1px solid #ccc;
+  border-right: var(--borderWidth) solid var(--surfaceSecondary);
 }
 
 .button-group > button:last-child {
@@ -118,6 +122,8 @@ button {
 
 button:disabled {
   cursor: not-allowed !important;
+  color: var(--textSecondary);
+  opacity: 0.75;
 }
 
 button.active {

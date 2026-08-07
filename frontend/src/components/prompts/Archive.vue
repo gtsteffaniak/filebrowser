@@ -32,10 +32,11 @@
           :placeholder="defaultArchiveName"
         />
         <p class="prompts-label">{{ $t("general.format", { suffix: ":" }) }}</p>
-        <select v-model="format" class="input">
-          <option value="zip">zip</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option value="tar.gz">tar.gz</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        </select>
+        <ExpandDropdown
+          v-model="format"
+          :options="formatOptions"
+          :aria-label="$t('general.format')"
+        />
         <p v-if="format === 'tar.gz'" class="prompts-label">{{ $t("prompts.archiveCompression") }}</p>
         <input
           v-if="format === 'tar.gz'"
@@ -91,7 +92,7 @@
         class="input new-dir-input"
         :class="{ 'form-invalid': !isDirNameValid }"
         v-model.trim="newDirName"
-        :placeholder="$t('prompts.newDirMessage')"
+        :placeholder="$t('files.newFolderMessage')"
         @keydown.enter="handleEnter"
       />
       <button
@@ -99,10 +100,10 @@
         v-if="!showNewDirInput"
         class="button button--flat"
         @click="showFileList = false"
-        :aria-label="$t('general.select', { suffix: '' })"
-        :title="$t('general.select', { suffix: '' })"
+        :aria-label="$t('general.select')"
+        :title="$t('general.select')"
       >
-        {{ $t("general.select", { suffix: "" }) }}
+        {{ $t("general.select") }}
       </button>
       <button
         type="button"
@@ -146,10 +147,11 @@ import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FileList from "@/components/files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 
 export default {
   name: "archive",
-  components: { LoadingSpinner, FileList, ToggleSwitch },
+  components: { LoadingSpinner, FileList, ToggleSwitch, ExpandDropdown },
   props: {
     items: {
       type: Array,
@@ -196,6 +198,12 @@ export default {
     }
   },
   computed: {
+    formatOptions() {
+      return [
+        { value: "zip", label: "zip" },
+        { value: "tar.gz", label: "tar.gz" },
+      ];
+    },
     defaultArchiveName() {
       return this.format === "tar.gz" ? "archive.tar.gz" : "archive.zip";
     },
@@ -204,8 +212,7 @@ export default {
       return name.length > 0 && this.destPath;
     },
     canCreateFolder() {
-      const perms = getters.permissions();
-      return !!perms?.create;
+      return getters.canCreateInSource(this.destSource || this.source);
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);

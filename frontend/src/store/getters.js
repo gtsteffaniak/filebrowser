@@ -1,4 +1,4 @@
-import * as i18n from '@/i18n';
+import { detectLocale } from '@/i18n';
 import { mutations, state } from '@/store';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
@@ -70,6 +70,21 @@ export const getters = {
   
     return getters.displayPreferenceFor(source, path);
   },
+  viewModeChangeLocked: () => {
+    if (getters.isAdmin()) {
+      return false;
+    }
+    if (state.enforcedUserDefaults?.listing?.viewMode) {
+      return true;
+    }
+    if (getters.isShare()) {
+      const shareView = String(state.shareInfo?.viewMode ?? "").trim();
+      if (shareView !== "") {
+        return true;
+      }
+    }
+    return false;
+  },
   viewMode: () => {
     if (!state.user || state.user?.username === "") {
       return "normal";
@@ -100,18 +115,17 @@ export const getters = {
     return (
       isMediaView &&
       mode !== 'single' &&
-      mode !== 'loop-single' &&
       queueLength > 1
     );
   },
   playbackQueueCanGoPrevious: () => {
     const queue = state.playbackQueue.queue;
     const currentIndex = state.playbackQueue.currentIndex ?? -1;
-    const mode = state.playbackQueue.mode || 'single';
+    const loop = state.playbackQueue.loop || 'off';
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
-    if (mode === 'sequential' && currentIndex === 0) {
+    if (currentIndex === 0 && loop !== 'all') {
       return false;
     }
     return true;
@@ -119,11 +133,11 @@ export const getters = {
   playbackQueueCanGoNext: () => {
     const queue = state.playbackQueue.queue;
     const currentIndex = state.playbackQueue.currentIndex ?? -1;
-    const mode = state.playbackQueue.mode || 'single';
+    const loop = state.playbackQueue.loop || 'off';
     if (queue.length <= 1 || currentIndex < 0) {
       return false;
     }
-    if (mode === 'sequential' && currentIndex >= queue.length - 1) {
+    if (currentIndex >= queue.length - 1 && loop !== 'all') {
       return false;
     }
     return true;
@@ -158,7 +172,7 @@ export const getters = {
     if (state.user.locale === undefined || state.user.locale === null) {
       let savedLocale = localStorage.getItem('userLocale')
       if (!savedLocale) {
-        savedLocale = i18n.detectLocale()
+        savedLocale = detectLocale()
       }
       void mutations.updateCurrentUser({ locale: savedLocale })
     }
@@ -443,11 +457,11 @@ export const getters = {
   },
   fileViewingDisabled: filename => {
     if (getters.isShare()) {
-      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload" || state.shareInfo?.disableDownload) {
+      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload") {
         return true
       }
     } else {
-      if (!state.user.permissions.download) {
+      if (!getters.sourcePermissions().view) {
         return true
       }
     }
@@ -478,7 +492,7 @@ export const getters = {
     return {
       id: 0,
       username: "anonymous",
-      locale: i18n.detectLocale(),
+      locale: detectLocale(),
       sorting: {
         by: "name",
         asc: true
@@ -593,30 +607,65 @@ export const getters = {
     const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
     return getters.currentView() === "listingView" || isAdvancedSearchRoute;
   },
-  permissions: () => {
+  globalPermissions: () => {
     if (getters.isShare()) {
       return {
         share: false,
-        modify: state.shareInfo?.allowModify,
-        create: state.shareInfo?.allowCreate,
-        delete: state.shareInfo?.allowDelete,
-        download: !state.shareInfo?.disableDownload,
         admin: false,
         api: false,
         realtime: false,
         archive: false,
       };
     }
+    const globalPerms = state.user?.permissions ?? {};
     return {
-      share:
-      !!(state.user?.permissions?.share || state.user?.permissions?.admin),
-      modify: state.user?.permissions?.modify,
-      create: state.user?.permissions?.create,
-      delete: state.user?.permissions?.delete,
-      download: state.user?.permissions?.download,
-      admin: state.user?.permissions?.admin,
-      api: state.user?.permissions?.api,
-      archive: state.user?.permissions?.archive,
+      share: !!(globalPerms.share || globalPerms.admin),
+      admin: !!globalPerms.admin,
+      api: !!globalPerms.api,
+      realtime: !!globalPerms.realtime,
+      archive: !!globalPerms.archive,
+    };
+  },
+  sourcePermissions: (source) => {
+    if (getters.isShare()) {
+      return {
+        view: !state.shareInfo?.disableFileViewer,
+        modify: !!state.shareInfo?.allowModify,
+        create: !!state.shareInfo?.allowCreate,
+        delete: !!state.shareInfo?.allowDelete,
+        download: !state.shareInfo?.disableDownload,
+      };
+    }
+    const activeSource =
+      source ?? state.req?.source ?? state.sources?.current ?? "";
+    const denyFile = {
+      view: false,
+      download: false,
+      modify: false,
+      create: false,
+      delete: false,
+    };
+    if (!activeSource || !Array.isArray(state.user?.scopes)) {
+      return denyFile;
+    }
+    const scopeEntry = state.user.scopes.find((entry) => entry?.name === activeSource);
+    return scopeEntry?.permissions ?? denyFile;
+  },
+  /** Whether the current user may create files/folders in the given source (share-aware). */
+  canCreateInSource: (source) => {
+    if (getters.isShare()) {
+      return !!state.shareInfo?.allowCreate;
+    }
+    const activeSource = source ?? state.req?.source ?? state.sources?.current ?? "";
+    return !!getters.sourcePermissions(activeSource)?.create;
+  },
+  apiTokenPermissionCaps: () => {
+    const globalPerms = state.user?.permissions ?? {};
+    return {
+      admin: !!globalPerms.admin,
+      api: !!globalPerms.api,
+      share: !!globalPerms.share,
+      realtime: !!globalPerms.realtime,
     };
   },
   previewPerms: () => {
@@ -632,8 +681,7 @@ export const getters = {
         models: state.user?.preview?.models ?? true,
         motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
         disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
-        autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
-        defaultMediaPlayer: false,
+        autoplayMedia: state.user?.preview?.autoplayMedia ?? true,
         showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo?.showHidden : false,
       };
     }
@@ -648,8 +696,7 @@ export const getters = {
       models: state.user?.preview?.models ?? true,
       motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
       disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
-      autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
-      defaultMediaPlayer: state.user?.preview?.defaultMediaPlayer ?? false,
+      autoplayMedia: state.user?.preview?.autoplayMedia ?? true,
       showHidden: false, // Backend handles this now, but kept for API compatibility
     };
   }

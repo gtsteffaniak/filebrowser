@@ -63,7 +63,6 @@
 <script>
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
-import { usersApi } from "@/api";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
@@ -110,9 +109,7 @@ export default {
         event.preventDefault();
       }
       try {
-        const data = this.localuser;
-        await mutations.updateCurrentUser(data);
-        await usersApi.update(data, ["fileLoading"]);
+        await mutations.updateCurrentUser(this.localuser);
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         console.error(e);

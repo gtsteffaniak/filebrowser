@@ -8,7 +8,7 @@ test("share download multiple files", async ({ page, checkForErrors }) => {
 
   const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
 
-  await page.goto(`/files/share/${shareHash}/testdata/`);
+  await page.goto(`/files/public/share/${shareHash}/testdata/`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Select multiple"]').click();
@@ -24,5 +24,5 @@ test("share download multiple files", async ({ page, checkForErrors }) => {
   await page.locator('button[aria-label="Download"]').click();
   await page.locator('button[aria-label="Download as zip"]').click();
   await checkForNotification(page, "Downloading...");
-  checkForErrors(0,1);
+  checkForErrors();
 });

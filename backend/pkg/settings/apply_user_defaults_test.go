@@ -1,0 +1,235 @@
+package settings
+
+import (
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+)
+
+// TestApplyUserDefaults_copiesUserDefaultsOntoUser guards against drift between
+// [UserDefaults] and [ApplyUserDefaults] (regression for #2278-style bugs).
+func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
+	saved := Config
+	defer func() { Config = saved }()
+
+	dark := false
+	Config = Settings{
+		Server: Server{},
+		UserDefaults: UserDefaults{
+			Sidebar: UserDefaultsSidebar{
+				DisableQuickToggles:  true,
+				HideFileActions:      true,
+				DisableHideOnPreview: true,
+				Sticky:               false,
+				HideFiles:            true,
+				ShowTools:            boolPtr(true),
+			},
+			Listing: UserDefaultsListing{
+				DeleteWithoutConfirming: true,
+				DateFormat:              true,
+				ShowHidden:              true,
+				QuickDownload:           true,
+				ShowSelectMultiple:      true,
+				SingleClick:             true,
+				HideFileExt:             "",
+				ShowCopyPath:            false,
+				DeleteAfterArchive:      false,
+				ViewMode:                "list",
+				GallerySize:             7,
+			},
+			Preview: UserDefaultsPreview{
+				Image:              boolPtr(false),
+				Video:              boolPtr(false),
+				Audio:              boolPtr(false),
+				MotionVideoPreview: boolPtr(false),
+				Office:             boolPtr(false),
+				PopUp:              boolPtr(false),
+				DisablePreviewExt:  ".exe",
+				HighQuality:        boolPtr(true),
+				Folder:             boolPtr(false),
+				Models:             boolPtr(false),
+			},
+			FileViewer: UserDefaultsFileViewer{
+				EditorQuickSave:         true,
+				AutoplayMedia:           boolPtr(false),
+				DisableViewingExt:       ".bat",
+				DisableOnlyOfficeExt:    ".x",
+				PreferEditorForMarkdown: true,
+				DebugOffice:             true,
+			},
+			Search: UserDefaultsSearch{
+				DisableOptions: true,
+			},
+			UI: UserDefaultsUI{
+				DarkMode:    &dark,
+				ThemeColor:  "var(--red)",
+				CustomTheme: "Night",
+				Locale:      "de",
+			},
+			FileLoading: users.FileLoading{
+				MaxConcurrent:     3,
+				UploadChunkSize:   5,
+				DownloadChunkSize: 2,
+			},
+			Account: UserDefaultsAccount{
+				Permissions: UserDefaultsAccountPermissions{
+					Api:      true,
+					Admin:    true,
+					Share:    true,
+					Realtime: true,
+				},
+				LockPassword:               true,
+				DisableSettings:            true,
+				LoginMethod:                "password",
+				DisableUpdateNotifications: true,
+			},
+		},
+	}
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "alice",
+		},
+	}
+	ApplyUserDefaults(u)
+
+	want := users.User{
+		FrontendUser: users.FrontendUser{
+			DisableSettings: true,
+			LockPassword:    true,
+			LoginMethod:     users.LoginMethodPassword,
+			Permissions: users.Permissions{
+				Api:      true,
+				Admin:    true,
+				Share:    true,
+				Realtime: true,
+			},
+			NonAdminEditable: users.NonAdminEditable{
+				EditorQuickSave:            true,
+				HideSidebarFileActions:     true,
+				DisableQuickToggles:        true,
+				DisableSearchOptions:       true,
+				StickySidebar:              false,
+				HideFilesInTree:            true,
+				DarkMode:                   false,
+				Locale:                     "de",
+				ViewMode:                   "list",
+				SingleClick:                true,
+				ShowHidden:                 true,
+				DateFormat:                 true,
+				GallerySize:                7,
+				ThemeColor:                 "var(--red)",
+				QuickDownload:              true,
+				DisablePreviewExt:          ".exe",
+				DisableViewingExt:          ".bat",
+				DisableUpdateNotifications: true,
+				DisableOfficePreviewExt:    ".x", // deprecated: mapped to DisableOnlyOfficeExt
+				DisableOnlyOfficeExt:       ".x",
+				CustomTheme:                "Night",
+				ShowSelectMultiple:         true,
+				DebugOffice:                true,
+				DeleteWithoutConfirming:    true,
+				DeleteAfterArchive:         false,
+				PreferEditorForMarkdown:    true,
+				ShowToolsInSidebar:         true,
+				FileLoading: users.FileLoading{
+					MaxConcurrent:     3,
+					UploadChunkSize:   5,
+					DownloadChunkSize: 2,
+				},
+				Preview: users.Preview{
+					DisableHideSidebar: true,
+					Image:              false,
+					Video:              false,
+					Audio:              false,
+					MotionVideoPreview: false,
+					Office:             false,
+					PopUp:              false,
+					AutoplayMedia:      false,
+					Folder:             false,
+					Models:             false,
+				},
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want.Permissions, u.Permissions); diff != "" {
+		t.Fatalf("Permissions mismatch (-want +got):\n%s", diff)
+	}
+	if diff := cmp.Diff(want.NonAdminEditable, u.NonAdminEditable); diff != "" {
+		t.Fatalf("NonAdminEditable mismatch (-want +got):\n%s", diff)
+	}
+	if u.DisableSettings != want.DisableSettings {
+		t.Fatalf("DisableSettings: got %v want %v", u.DisableSettings, want.DisableSettings)
+	}
+	if u.LockPassword != want.LockPassword {
+		t.Fatalf("LockPassword: got %v want %v", u.LockPassword, want.LockPassword)
+	}
+	if u.LoginMethod != want.LoginMethod {
+		t.Fatalf("LoginMethod: got %q want %q", u.LoginMethod, want.LoginMethod)
+	}
+}
+
+func TestApplyUserDefaults_setsLoginMethodWhenEmpty(t *testing.T) {
+	saved := Config
+	defer func() { Config = saved }()
+
+	Config = Settings{
+		Server: Server{},
+		UserDefaults: UserDefaults{
+			Account: UserDefaultsAccount{
+				LoginMethod: "jwt",
+			},
+		},
+	}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{Username: "x"},
+	}
+	ApplyUserDefaults(u)
+	if u.LoginMethod != users.LoginMethodJwt {
+		t.Fatalf("LoginMethod: got %q want jwt", u.LoginMethod)
+	}
+}
+
+func TestApplyUserDefaults_preservesLoginMethodWhenAlreadySet(t *testing.T) {
+	saved := Config
+	defer func() { Config = saved }()
+
+	Config = Settings{
+		Server: Server{},
+		UserDefaults: UserDefaults{
+			Account: UserDefaultsAccount{
+				LoginMethod: "password",
+			},
+		},
+	}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "x",
+			LoginMethod: users.LoginMethodProxy,
+		},
+	}
+	ApplyUserDefaults(u)
+	if u.LoginMethod != users.LoginMethodProxy {
+		t.Fatalf("LoginMethod: got %q want proxy", u.LoginMethod)
+	}
+}
+
+func TestExpandBackendScopesForCreateUserDir(t *testing.T) {
+	loadConfigForUserDefaultsTests(t, jwtPlaywrightConfig)
+	u := &users.User{
+		FrontendUser: users.FrontendUser{Username: "testadmin"},
+		BackendScopes: []users.BackendScope{
+			{Path: Config.Server.Sources[0].Path, Scope: "/"},
+		},
+	}
+	ExpandBackendScopesForCreateUserDir(u)
+	if len(u.BackendScopes) != 1 {
+		t.Fatalf("scopes: %+v", u.BackendScopes)
+	}
+	if u.BackendScopes[0].Scope != "/testadmin" {
+		t.Fatalf("scope=%q want /testadmin", u.BackendScopes[0].Scope)
+	}
+}

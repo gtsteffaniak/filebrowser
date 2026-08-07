@@ -1,40 +1,16 @@
 <template>
-  <div class="card-title">
-    <h2>{{ $t("settings.systemAdmin") }}</h2>
-  </div>
   <div class="card-content">
     <div class="settings-items">
       <ToggleSwitch class="item" v-model="localuser.disableUpdateNotifications" @change="updateSettings"
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')" />
-      <!-- Config Viewer Section -->
-      <div class="config-viewer-section">
-        <h3>{{ $t('settings.configViewer') }}</h3>
-        <div class="config-options">
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="configOptions.showFull" @change="fetchConfig" />
-          {{ $t('settings.configViewerShowFull') }}
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="configOptions.showComments" @change="fetchConfig" />
-            {{ $t('settings.configViewerShowComments') }}
-          </label>
-        </div>
-        <div>
-          <button
-           type="button"
-           @click="fetchConfig" class="button"
-           :disabled="configLoading"
-           aria-label="loadConfig"
-            style="margin-bottom: 1em;"
-          >
-            {{ configLoading ? $t('general.loading', { suffix: "..." }) : $t('settings.configViewerLoadConfig') }}
-          </button>
-        </div>
-        <div class="config-editor-container">
-          <Editor :viewer-mode="true" :content="configContent" :editor-mode="'yaml'" :read-only="true" />
-        </div>
-      </div>
+      <ToggleSwitch class="item" v-model="analyticsEnabled" :disabled="analyticsLoading || !publishSupported"
+        @update:modelValue="updateAnalytics" :name="$t('settings.analyticsEnabled')"
+        :description="$t('settings.analyticsEnabledDescription')" />
+      <SettingsButton class="item" :name="$t('settings.analyticsView')"
+        :description="$t('settings.analyticsViewDescription')" @click="openAnalyticsPrompt" />
+      <SettingsButton class="item" :name="$t('settings.configViewerOpen')"
+        :description="$t('settings.configViewerDescription')" @click="openConfigViewerPrompt" />
     </div>
   </div>
 </template>
@@ -42,105 +18,93 @@
 <script>
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
-import { usersApi } from "@/api";
-import * as settingsApi from "@/api/settings";
+import { getAnalytics, updateAnalytics } from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import Editor from "@/views/files/Editor.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 
 export default {
   name: "systemAdmin",
   components: {
     ToggleSwitch,
-    Editor,
+    SettingsButton,
   },
   data() {
     return {
       localuser: { disableUpdateNotifications: false },
-      configOptions: {
-        showFull: false,
-        showComments: false,
-      },
-      configContent: '',
-      configLoading: false,
+      analyticsEnabled: false,
+      publishSupported: false,
+      analyticsLoading: false,
     };
   },
-  computed: {},
-  mounted() {
-    // Initialize localuser with default values and merge with state.user
+  async mounted() {
     this.localuser = {
       disableUpdateNotifications: false,
-      ...state.user
+      ...state.user,
     };
+    await this.loadAnalytics();
   },
   methods: {
-    /**
-     * @param {Event} event - The form event
-     */
     async updateSettings(event) {
-      if (event && typeof event.preventDefault === 'function') {
+      if (event && typeof event.preventDefault === "function") {
         event.preventDefault();
       }
       try {
-        const data = this.localuser;
-        void mutations.updateCurrentUser(data);
-        await usersApi.update(data, [
-          "disableUpdateNotifications",
-        ]);
+        void mutations.updateCurrentUser(this.localuser);
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         console.error(e);
       }
     },
-    async fetchConfig() {
-      this.configLoading = true;
+    async loadAnalytics() {
       try {
-        const response = await settingsApi.config(
-          this.configOptions.showFull,
-          this.configOptions.showComments
-        );
-        this.configContent = await response.text();
+        const status = await getAnalytics();
+        this.analyticsEnabled = status.enabled;
+        this.publishSupported = status.publishSupported;
       } catch (e) {
         console.error(e);
-        const errorMessage = (e && typeof e === 'object' && 'message' in e) ? String(e.message) : 'Unknown error';
-        this.configContent = `Error loading config: ${errorMessage}`;
-      } finally {
-        this.configLoading = false;
+        notify.showErrorToast(e?.message || this.$t("settings.analyticsLoadFailed"));
       }
     },
+    async updateAnalytics() {
+      if (!this.publishSupported) {
+        this.analyticsEnabled = false;
+        return;
+      }
+      this.analyticsLoading = true;
+      try {
+        const status = await updateAnalytics({ enabled: this.analyticsEnabled });
+        this.analyticsEnabled = status.enabled;
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
+      } catch (e) {
+        console.error(e);
+        notify.showErrorToast(e?.message || this.$t("settings.analyticsUpdateFailed"));
+        await this.loadAnalytics();
+      } finally {
+        this.analyticsLoading = false;
+      }
+    },
+    openAnalyticsPrompt() {
+      mutations.showPrompt({
+        name: "analytics-diagnostic",
+        props: {
+          title: this.$t("settings.analyticsView"),
+        },
+      });
+    },
+    openConfigViewerPrompt() {
+      mutations.showPrompt({
+        name: "config-viewer",
+        props: {
+          title: this.$t("settings.configViewer"),
+        },
+      });
+    },
   },
-  };
+};
 </script>
 
 <style scoped>
 .card-content {
   margin-top: 1em;
-}
-
-.config-options {
-  margin: 1em;
-}
-
-.checkbox-label {
-  padding-right: 1em;
-}
-
-.config-editor-container {
-  /* Make the container resizable */
-  resize: vertical;
-  width: 100%;
-  overflow: hidden;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.config-editor-container :deep(.ace_editor) {
-  min-height: 20em;
-  width: 100%;
-  height: 100%;
-}
-
-/* Ensure the editor has a minimum height when empty */
-.config-editor-container :deep(#editor) {
-  min-height: 20em;
 }
 </style>

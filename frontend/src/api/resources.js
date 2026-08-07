@@ -1,16 +1,42 @@
 import { notify } from '@/notify'
-import { mutations, state } from '@/store'
+import { getters, mutations, state } from '@/store'
 import { globalVars } from '@/utils/constants'
 import { downloadManager } from '@/utils/downloadManager'
 import {
   notifyDownloadComplete,
   notifyDownloadError,
 } from '@/utils/appNotifications'
-import { getApiPath, getPublicApiPath } from '@/utils/url.js'
+import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
-import { getObjectProperty } from '@/utils/object' 
+import { rememberViewToken } from './viewToken'
+import { isMediaFile } from '@/utils/mediaFile'
+import { getObjectProperty } from '@/utils/object'
+import { getStreamURL, getStreamURLPublic } from './media'
+import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
 
 export { fetchPreviewImage } from '@/utils/previewRequests'
+
+const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
+
+function cacheViewTokenFromListing(data) {
+  const scope = getters.isShare()
+    ? state.shareInfo?.hash || data?.source
+    : data?.source;
+  if (!scope) {
+    return;
+  }
+  const expiresAt = Math.floor(Date.now() / 1000) + VIEW_TOKEN_TTL_SECONDS;
+  if (data.viewToken) {
+    rememberViewToken(scope, data.viewToken, expiresAt);
+    return;
+  }
+  const token =
+    data.items?.find((item) => item.viewToken)?.viewToken ??
+    data.files?.find((item) => item.viewToken)?.viewToken;
+  if (token) {
+    rememberViewToken(scope, token, expiresAt);
+  }
+}
 
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false) {
@@ -28,6 +54,7 @@ export async function fetchFiles(source, path, content = false, metadata = false
     const res = await fetchURL(apiPath)
     const data = await res.json()
     const adjusted = adjustedData(data)
+    cacheViewTokenFromListing(adjusted)
     return adjusted
   } catch (err) {
     notify.showError(err.message || 'Error fetching data')
@@ -63,13 +90,9 @@ export async function signalUploadPause(source, path, shareHash) {
     const apiPath = getPublicApiPath('resources/pause', {
       hash: shareHash,
       path: path,
+      ...sharePublicAuthQuery(shareHash),
     })
-    const headers = {}
-    const sharePassword = localStorage.getItem(`sharepass:${shareHash}`)
-    if (sharePassword) {
-      headers['X-SHARE-PASSWORD'] = sharePassword
-    }
-    await fetchURL(apiPath, { method: 'POST', headers })
+    await fetchURL(apiPath, { method: 'POST', headers: sharePublicAuthHeaders(shareHash) })
     return
   }
   if (!source || source === undefined || source === null) {
@@ -130,6 +153,9 @@ export async function bulkDelete(items) {
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     // Both are valid responses that should be returned, not thrown as errors
     if (response.status === 200 || response.status === 207) {
+      items.forEach((item) => {
+        invalidateDirMetadataCache({ source: item.source, path: getParentDir(item.path) })
+      })
       return data
     }
     // For other error status codes, throw an error
@@ -727,6 +753,9 @@ export function post(
     });
 
     promise.xhr = request;
+    promise.then(() => {
+      invalidateDirMetadataCache({ source, path: getParentDir(path) })
+    }).catch(() => { /* upload failed, so do nothing*/ });
     return promise;
   } catch (err) {
     notify.showError(err.message || "Error posting resource");
@@ -779,6 +808,10 @@ export async function moveCopy(
 
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
+      items.forEach((item) => {
+        invalidateDirMetadataCache({ source: item.fromSource, path: getParentDir(item.from) })
+        invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
+      })
       return data
     }
 
@@ -822,6 +855,87 @@ export async function checksum(source, path, algo) {
     notify.showError(err.message || 'Error fetching checksum')
     throw err
   }
+}
+
+/**
+ * URL to open a file inline in a new browser tab via the download endpoint.
+ * Uses inline disposition and respects download permissions and share limits.
+ */
+export function getOpenFileURL(source, path, shareInfo = null) {
+  if (isMediaFile(path)) {
+    return null
+  }
+  if (shareInfo) {
+    return getDownloadURLPublic(shareInfo, [path], true)
+  }
+  return getDownloadURL(source, path, true)
+}
+
+// GET /api/resources/view — inline non-media bytes via viewToken (not download-metered).
+export function getRawViewURL(source, path, viewToken) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  if (!viewToken) {
+    throw new Error('view token required')
+  }
+  try {
+    const params = {
+      source: source,
+      file: path,
+      viewToken: viewToken,
+      sessionId: state.sessionId,
+    }
+    const apiPath = getApiPath('resources/view', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting view URL')
+    throw err
+  }
+}
+
+// GET /public/api/resources/view
+export function getRawViewURLPublic(share, files, viewToken) {
+  if (!viewToken) {
+    throw new Error('view token required')
+  }
+  const fileArray = Array.isArray(files) ? files : [files]
+  const params = {
+    file: fileArray,
+    hash: share.hash,
+    token: share.token,
+    viewToken: viewToken,
+    sessionId: state.sessionId,
+  }
+  const apiPath = getPublicApiPath('resources/view', params)
+  return window.origin + apiPath
+}
+
+/**
+ * URL for inline viewing. Routes audio/video to /media/stream and other files to /resources/view.
+ */
+export function getViewURL(source, path, viewToken, shareInfo = null, allowDownloadFallback = false, mimeOrName = '') {
+  const typeHint = mimeOrName || path
+
+  if (viewToken) {
+    if (isMediaFile(typeHint)) {
+      if (shareInfo) {
+        return getStreamURLPublic(shareInfo, [path], viewToken)
+      }
+      return getStreamURL(source, path, viewToken)
+    }
+    if (shareInfo) {
+      return getRawViewURLPublic(shareInfo, [path], viewToken)
+    }
+    return getRawViewURL(source, path, viewToken)
+  }
+  if (!allowDownloadFallback) {
+    return null
+  }
+  if (shareInfo) {
+    return getDownloadURLPublic(shareInfo, [path], true)
+  }
+  return getDownloadURL(source, path, true)
 }
 
 export function getDownloadURL(source, path, inline, useExternal) {
@@ -928,6 +1042,25 @@ export async function unarchive(opts) {
 // PUBLIC API ENDPOINTS (hash-based authentication)
 // ============================================================================
 
+function getSharePasswordFromStorage(hash) {
+  return localStorage.getItem(`sharepass:${hash}`) || "";
+}
+
+function sharePublicAuthQuery(hash) {
+  if (state.shareInfo?.hash === hash && state.shareInfo.token) {
+    return { token: state.shareInfo.token };
+  }
+  return {};
+}
+
+function sharePublicAuthHeaders(hash) {
+  const password = getSharePasswordFromStorage(hash);
+  if (!password) {
+    return {};
+  }
+  return { "X-SHARE-PASSWORD": password };
+}
+
 // Fetch public share data
 /**
  * @param {string} path
@@ -969,6 +1102,7 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
   }
   const data = await response.json()
   const adjusted = adjustedData(data);
+  cacheViewTokenFromListing(adjusted);
   return adjusted
 }
 
@@ -981,9 +1115,9 @@ export async function getItemsPublic(hash, path, only = "") {
       path: path,
       hash: hash,
       ...(only && { only: only }),
-      ...(state.shareInfo.token && { token: state.shareInfo.token })
+      ...sharePublicAuthQuery(hash),
     })
-    const response = await fetch(apiPath)
+    const response = await fetch(apiPath, { headers: sharePublicAuthHeaders(hash) })
     const data = await response.json()
     return data
   } catch (err) {
@@ -1045,16 +1179,14 @@ export function postPublic(
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
   }
-  const sharePassword = localStorage.getItem(`sharepass:${hash}`);
-  if (sharePassword) {
-    headers["X-SHARE-PASSWORD"] = sharePassword;
-  }
+  Object.assign(headers, sharePublicAuthHeaders(hash));
   try {
     const apiPath = getPublicApiPath("resources", {
       path: path,
       hash: hash,
       override: overwrite,
-      ...(isDir && { isDir: 'true' })
+      ...(isDir && { isDir: 'true' }),
+      ...sharePublicAuthQuery(hash),
     });
 
     const request = new XMLHttpRequest();
@@ -1124,6 +1256,9 @@ export function postPublic(
     });
 
     promise.xhr = request;
+    promise.then(() => {
+      invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(path) })
+    }).catch(() => { /* upload failed so do nothing */ });
     return promise;
   } catch (err) {
     notify.showError(err.message || "Error posting resource");
@@ -1133,12 +1268,13 @@ export function postPublic(
 
 async function resourceActionPublic(hash, path, method, content, token = "") {
   try {
-    const headers = {};
-    const sharePassword = localStorage.getItem(`sharepass:${hash}`);
-    if (sharePassword) {
-      headers["X-SHARE-PASSWORD"] = sharePassword;
-    }
-    const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
+    const headers = sharePublicAuthHeaders(hash);
+    const apiPath = getPublicApiPath('resources', {
+      path,
+      hash: hash,
+      ...(token && { token }),
+      ...sharePublicAuthQuery(hash),
+    })
     const response = await fetch(apiPath, {
       method,
       body: content,
@@ -1181,7 +1317,7 @@ export async function bulkDeletePublic(items) {
 
   const params = {
     hash: hash,
-    ...(state.shareInfo.token && { token: state.shareInfo.token }),
+    ...sharePublicAuthQuery(hash),
     sessionId: state.sessionId
   }
   const apiPath = getPublicApiPath("resources/bulk", params)
@@ -1192,6 +1328,7 @@ export async function bulkDeletePublic(items) {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        ...sharePublicAuthHeaders(hash),
       },
       credentials: 'same-origin',
       body: JSON.stringify(items),
@@ -1200,6 +1337,9 @@ export async function bulkDeletePublic(items) {
     const data = await response.json()
 
     if (response.status === 200 || response.status === 207) {
+      items.forEach((item) => {
+        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.path) })
+      })
       return data
     }
 
@@ -1256,6 +1396,10 @@ export async function moveCopyPublic(
     const data = await response.json()
 
     if (response.status === 200 || response.status === 207) {
+      items.forEach((item) => {
+        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.from) })
+        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
+      })
       return data
     }
 

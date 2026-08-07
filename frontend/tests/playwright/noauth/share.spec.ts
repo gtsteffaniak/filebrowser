@@ -10,7 +10,7 @@ test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors }
     throw new Error("Share hash not found in localStorage");
   }
 
-  await page.goto(`/files/share/${shareHash}`);
+  await page.goto(`/files/public/share/${shareHash}`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
   await page.dblclick('a[aria-label="testdata"]');
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
@@ -20,7 +20,7 @@ test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors }
   const spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
 
-  checkForErrors(0,1); // redirect errors are expected and 404 image preview for blank file
+  checkForErrors(); // share navigation only; legacy /api/raw failures no longer occur
 });
 
 test("root share path is valid", async ({ page, checkForErrors, openContextMenu }) => {
@@ -40,9 +40,9 @@ test("share file works", async ({ page, checkForErrors }) => {
     throw new Error("Share hash not found in localStorage");
   }
 
-  await page.goto(`/files/share/${shareHashFile}`);
+  await page.goto(`/files/public/share/${shareHashFile}`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - 1file1.txt");
-  checkForErrors(0,1); // redirect errors are expected
+  checkForErrors();
 });
 
 test("share download single file", async ({ page, checkForErrors }) => {
@@ -54,11 +54,11 @@ test("share download single file", async ({ page, checkForErrors }) => {
     throw new Error("Share hash not found in localStorage");
   }
 
-  await page.goto(`/files/share/${shareHash}/testdata/`);
+  await page.goto(`/files/public/share/${shareHash}/testdata/`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
   await checkForNotification(page, "Downloading...");
-  checkForErrors(0,1); // redirect errors are expected
+  checkForErrors();
 });

@@ -1,11 +1,18 @@
-server:
+http:
   port: 80
   baseURL:  "/"
+server:
   logging:
     - levels: "info|error|warning|debug"
       apiFilter: 'disabled'
   sources:
     - path: "../frontend/tests/playwright-files"
+      config:
+        defaultPermissions:
+          view: true
+          download: true
+          modify: true
+          create: true
 
 auth:
   methods:
@@ -22,7 +29,8 @@ frontend:
     disableEventThemes: true
 
 userDefaults:
-  showHidden: true
+  listing:
+    showHidden: true
   preview:
     image: true
     popup: true
@@ -31,6 +39,3 @@ userDefaults:
     office: true
     models: true
     highQuality: true
-  permissions:
-    download: true
-    create: true

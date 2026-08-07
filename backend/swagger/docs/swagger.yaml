@@ -10,372 +10,6 @@ definitions:
           type: string
         type: array
     type: object
-  http.AuthTokenFrontend:
-    properties:
-      Permissions:
-        $ref: '#/definitions/users.Permissions'
-      expiresAt:
-        type: integer
-      issuedAt:
-        type: integer
-      name:
-        type: string
-      token:
-        type: string
-    type: object
-  http.BulkDeleteItem:
-    properties:
-      message:
-        type: string
-      path:
-        type: string
-      source:
-        type: string
-    type: object
-  http.BulkDeleteResponse:
-    properties:
-      failed:
-        items:
-          $ref: '#/definitions/http.BulkDeleteItem'
-        type: array
-      succeeded:
-        items:
-          $ref: '#/definitions/http.BulkDeleteItem'
-        type: array
-    type: object
-  http.DirectDownloadResponse:
-    properties:
-      hash:
-        type: string
-      shareUrl:
-        type: string
-      status:
-        type: string
-      url:
-        type: string
-    type: object
-  http.GroupListResponse:
-    properties:
-      groups:
-        items:
-          type: string
-        type: array
-    type: object
-  http.HttpResponse:
-    properties:
-      message:
-        type: string
-      status:
-        type: integer
-      token:
-        type: string
-    type: object
-  http.MoveCopyItem:
-    properties:
-      fromPath:
-        type: string
-      fromSource:
-        type: string
-      message:
-        type: string
-      toPath:
-        type: string
-      toSource:
-        type: string
-    type: object
-  http.MoveCopyRequest:
-    properties:
-      action:
-        description: '"copy", "move", or "rename"'
-        type: string
-      items:
-        items:
-          $ref: '#/definitions/http.MoveCopyItem'
-        type: array
-      overwrite:
-        description: Overwrite if destination exists
-        type: boolean
-      rename:
-        description: Auto-rename if destination exists
-        type: boolean
-    type: object
-  http.MoveCopyResponse:
-    properties:
-      failed:
-        items:
-          $ref: '#/definitions/http.MoveCopyItem'
-        type: array
-      succeeded:
-        items:
-          $ref: '#/definitions/http.MoveCopyItem'
-        type: array
-    type: object
-  http.ShareResponse:
-    properties:
-      allowCreate:
-        description: allow creating files
-        type: boolean
-      allowDelete:
-        type: boolean
-      allowModify:
-        description: allow modifying files
-        type: boolean
-      allowReplacements:
-        description: allow replacements of files
-        type: boolean
-      allowedUsernames:
-        items:
-          type: string
-        type: array
-      banner:
-        type: string
-      bannerUrl:
-        type: string
-      canEditShare:
-        type: boolean
-      description:
-        type: string
-      disableAnonymous:
-        type: boolean
-      disableDownload:
-        description: don't allow downloading files
-        type: boolean
-      disableFileViewer:
-        description: don't allow viewing files
-        type: boolean
-      disableLoginOption:
-        description: disable login option in share (true = hide, false = show)
-        type: boolean
-      disableShareCard:
-        type: boolean
-      disableSidebar:
-        type: boolean
-      disableThumbnails:
-        type: boolean
-      downloadURL:
-        type: string
-      downloads:
-        type: integer
-      downloadsLimit:
-        type: integer
-      enableOnlyOffice:
-        type: boolean
-      enforceDarkLightMode:
-        description: '"dark" or "light"'
-        type: string
-      expire:
-        type: integer
-      extractEmbeddedSubtitles:
-        description: can be io intensive for large files and take 10-30 seconds.
-        type: boolean
-      favicon:
-        type: string
-      faviconUrl:
-        type: string
-      hasPassword:
-        type: boolean
-      hash:
-        type: string
-      hideFileExt:
-        description: show hidden files based on extensions in shares
-        type: string
-      hideNavButtons:
-        type: boolean
-      keepAfterExpiration:
-        type: boolean
-      maxBandwidth:
-        type: integer
-      password_hash:
-        type: string
-      path:
-        type: string
-      pathExists:
-        type: boolean
-      perUserDownloadLimit:
-        type: boolean
-      pinnedItems:
-        $ref: '#/definitions/share.PinnedItems'
-      quickDownload:
-        type: boolean
-      shareTheme:
-        type: string
-      shareType:
-        description: 'type of share: normal, upload, max'
-        type: string
-      shareURL:
-        type: string
-      showHidden:
-        description: show hidden files in share (true = show, false = hide)
-        type: boolean
-      sidebarLinks:
-        description: customizable sidebar links
-        items:
-          $ref: '#/definitions/users.SidebarLink'
-        type: array
-      source:
-        description: Override embedded field to show source name
-        type: string
-      sourceURL:
-        type: string
-      themeColor:
-        type: string
-      title:
-        type: string
-      token:
-        description: |-
-          Token is a random value that will only be set when PasswordHash is set. It is
-          URL-Safe and is used to download links in password-protected shares via a
-          query arg.
-        type: string
-      userDownloads:
-        additionalProperties:
-          type: integer
-        description: Track downloads per username
-        type: object
-      userID:
-        type: integer
-      username:
-        type: string
-      version:
-        type: integer
-      viewMode:
-        description: 'default view mode for anonymous users: "list", "compact", "normal",
-          "gallery"'
-        type: string
-    type: object
-  http.archiveCreateRequest:
-    properties:
-      compression:
-        description: 'Gzip compression level for tar.gz only, 0-9; 0 = default; ignored
-          for zip (optional). Example: 6'
-        type: integer
-      deleteAfter:
-        description: 'If true, delete the source files/directories after successful
-          archive creation (optional; requires delete permission). Example: true'
-        type: boolean
-      destination:
-        description: 'Full path where the archive will be created; use .zip or .tar.gz
-          extension (required). Example: "/backups/my-archive.zip"'
-        type: string
-      format:
-        description: 'Archive format: "zip" or "tar.gz" (optional; inferred from destination
-          if omitted). Example: "zip"'
-        type: string
-      fromSource:
-        description: 'Source name where the paths to archive live (required). Example:
-          "default"'
-        type: string
-      paths:
-        description: 'Paths of files or directories to add; directories are walked;
-          access-denied entries skipped (required). Example: ["/docs/file.txt", "/photos"]'
-        items:
-          type: string
-        type: array
-      toSource:
-        description: 'Source name where the archive file will be written (optional;
-          default: fromSource). Example: "backups"'
-        type: string
-    type: object
-  http.duplicateGroup:
-    properties:
-      count:
-        type: integer
-      files:
-        items:
-          $ref: '#/definitions/indexing.SearchResult'
-        type: array
-      size:
-        type: integer
-    type: object
-  http.duplicateResponse:
-    properties:
-      groups:
-        items:
-          $ref: '#/definitions/http.duplicateGroup'
-        type: array
-      incomplete:
-        type: boolean
-      reason:
-        type: string
-    type: object
-  http.fileWatchMetadata:
-    properties:
-      modified:
-        description: Modification time
-        type: string
-      name:
-        description: File name
-        type: string
-      size:
-        description: File size in bytes (for directories, total size of all files)
-        type: integer
-      type:
-        description: MIME type
-        type: string
-    type: object
-  http.fileWatchResponse:
-    properties:
-      contents:
-        description: Text content for text files
-        type: string
-      isText:
-        description: Whether the file is a text file
-        type: boolean
-      metadata:
-        allOf:
-        - $ref: '#/definitions/http.fileWatchMetadata'
-        description: File metadata for non-text files
-    type: object
-  http.pinnedItemPatchRequest:
-    properties:
-      name:
-        description: item basename within path
-        type: string
-      path:
-        description: scope-relative parent directory
-        type: string
-      source:
-        type: string
-    required:
-    - name
-    - path
-    - source
-    type: object
-  http.sharePinnedItemPatchRequest:
-    properties:
-      name:
-        description: item basename within path
-        type: string
-      path:
-        description: share-relative parent directory
-        type: string
-    required:
-    - name
-    - path
-    type: object
-  http.unarchiveRequest:
-    properties:
-      deleteAfter:
-        description: 'If true, delete the archive file after successful extraction
-          (optional; default: false). Example: true'
-        type: boolean
-      destination:
-        description: 'Directory path on toSource to extract into (required). Example:
-          "/projects/imported"'
-        type: string
-      fromSource:
-        description: 'Source name where the archive file lives (required). Example:
-          "default"'
-        type: string
-      path:
-        description: 'Path to the archive file on fromSource; .zip, .tar.gz, or .tgz
-          (required). Example: "/downloads/data.zip"'
-        type: string
-      toSource:
-        description: 'Source name where contents will be extracted (optional; default:
-          fromSource). Example: "restored"'
-        type: string
-    type: object
   indexing.SearchResult:
     properties:
       hasPreview:
@@ -461,6 +95,9 @@ definitions:
       type:
         description: type of the file, either "directory" or a file mimetype
         type: string
+      viewToken:
+        description: opaque token for inline viewing via /resources/view or /media/stream
+        type: string
     type: object
   iteminfo.ExtendedItemInfo:
     properties:
@@ -488,6 +125,9 @@ definitions:
         type: integer
       type:
         description: type of the file, either "directory" or a file mimetype
+        type: string
+      viewToken:
+        description: opaque token for inline viewing via /resources/view or /media/stream
         type: string
     type: object
   iteminfo.FileInfo:
@@ -572,6 +212,12 @@ definitions:
       artist:
         description: track artist
         type: string
+      audioCodec:
+        description: audio codec name (e.g. aac)
+        type: string
+      container:
+        description: container/format name (e.g. mov,mp4,m4a,3gp,3g2,mj2)
+        type: string
       duration:
         description: duration in seconds
         type: integer
@@ -592,8 +238,26 @@ definitions:
       track:
         description: track number
         type: integer
+      videoCodec:
+        description: video codec name (e.g. h264)
+        type: string
       year:
         description: release year
+        type: integer
+    type: object
+  settings.ActivityConfig:
+    properties:
+      disabled:
+        description: 'disable semantic activity audit logging (default: false)'
+        type: boolean
+      flushIntervalSeconds:
+        description: buffer flush interval in seconds (default 10)
+        type: integer
+      maxBufferSize:
+        description: max in-memory buffer before immediate flush (default 10000)
+        type: integer
+      retentionDays:
+        description: purge activity rows older than this many days (default 30)
         type: integer
     type: object
   settings.Auth:
@@ -620,29 +284,6 @@ definitions:
         description: 'secret: secret used to encrypt TOTP secrets'
         type: string
     type: object
-  settings.ConditionalFilter:
-    properties:
-      hidden:
-        description: 'deprecated: use ignoreHidden instead. eg, FolderPath: "/" and
-          ignoreHidden: true will exclude hidden files and folders under the root
-          folder.'
-        type: boolean
-      ignoreHidden:
-        description: 'deprecated: use ignoreHidden instead. eg, FolderPath: "/" and
-          ignoreHidden: true will exclude hidden files and folders under the root
-          folder.'
-        type: boolean
-      ignoreZeroSizeFolders:
-        description: 'deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath:
-          "/" and ignoreZeroSizeFolders: true will ignore folders with 0 size under
-          the root folder.'
-        type: boolean
-      rules:
-        description: list of item rules to apply to specific paths
-        items:
-          $ref: '#/definitions/settings.ConditionalRule'
-        type: array
-    type: object
   settings.ConditionalRule:
     properties:
       fileEndsWith:
@@ -652,10 +293,6 @@ definitions:
       fileName:
         description: (global) exclude files that match these names. Eg. "file.txt"
           or "test.csv"
-        type: string
-      fileNames:
-        description: 'deprecated: exclude files that match these names. Eg. "file.txt"
-          or "test.csv"'
         type: string
       filePath:
         description: (global) exclude files that match this path. Eg. "/path/to/file.txt"
@@ -672,10 +309,6 @@ definitions:
       folderName:
         description: (global) exclude folders that match these names. Eg. "folder"
           or "subfolder"
-        type: string
-      folderNames:
-        description: 'deprecated: exclude folders that match these names. Eg. "folder"
-          or "subfolder"'
         type: string
       folderPath:
         description: (global) exclude folders that match this path. Eg. "/path/to/folder"
@@ -712,6 +345,19 @@ definitions:
         type: string
       description:
         description: The description of the theme to display in the UI.
+        type: string
+    type: object
+  settings.Database:
+    properties:
+      activity:
+        allOf:
+        - $ref: '#/definitions/settings.ActivityConfig'
+        description: activity audit logging configuration
+      migrateFrom:
+        description: path to legacy database file for migration (optional)
+        type: string
+      path:
+        description: path to SQLite database file
         type: string
     type: object
   settings.ExternalLink:
@@ -794,15 +440,43 @@ definitions:
     type: object
   settings.Http:
     properties:
+      baseURL:
+        description: base URL for the server, the subpath that the server is running
+          on.
+        type: string
       disableRateLimit:
         description: turns off built-in auth route rate limiting and failed-login
           lockout (default false).
         type: boolean
-      trustedHeaders:
-        description: list of headers to trust, useful when behind a reverse proxy.
-        items:
-          type: string
-        type: array
+      disableWebDAV:
+        description: 'disable webdav support (default: false)'
+        type: boolean
+      externalUrl:
+        description: used by share links if set (eg. http://mydomain.com)
+        type: string
+      internalUrl:
+        description: used by integrations if set, this is the base domain that an
+          integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+        type: string
+      listen:
+        description: 'address to listen on (default: 0.0.0.0)'
+        type: string
+      port:
+        description: port to listen on
+        type: integer
+      socket:
+        description: socket to listen on - eg. /var/run/filebrowser.sock
+        type: string
+      tlsCert:
+        description: path to TLS cert
+        type: string
+      tlsKey:
+        description: path to TLS key
+        type: string
+      trustProxyHeaders:
+        description: 'honor X-Forwarded-* and X-Real-IP from a reverse proxy (default:
+          false)'
+        type: boolean
     type: object
   settings.IndexSqlConfig:
     properties:
@@ -984,15 +658,15 @@ definitions:
         description: output ffmpeg stdout for media integration -- careful can produces
           lots of output!
         type: boolean
-      exiftoolPath:
-        description: path to exiftool executable
-        type: string
       extractEmbeddedSubtitles:
         description: extract embedded subtitles from media files
         type: boolean
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
         type: string
+      hardwareAcceleration:
+        description: enable hardware acceleration for ffmpeg if available
+        type: boolean
     type: object
   settings.OidcConfig:
     properties:
@@ -1151,10 +825,6 @@ definitions:
     type: object
   settings.Server:
     properties:
-      baseURL:
-        description: base URL for the server, the subpath that the server is running
-          on.
-        type: string
       cacheDir:
         description: path to the cache directory, used for thumbnails and other cached
           files
@@ -1165,8 +835,9 @@ definitions:
           false)'
         type: boolean
       database:
-        description: path to the database file
-        type: string
+        allOf:
+        - $ref: '#/definitions/settings.Database'
+        description: SQLite database configuration
       disablePreviewResize:
         description: disable resizing of previews for faster loading over slow connections
         type: boolean
@@ -1179,12 +850,6 @@ definitions:
       disableUpdateCheck:
         description: disables backend update check service
         type: boolean
-      disableWebDAV:
-        description: 'disable webdav support (default: false)'
-        type: boolean
-      externalUrl:
-        description: used by share links if set (eg. http://mydomain.com)
-        type: string
       filesystem:
         allOf:
         - $ref: '#/definitions/settings.Filesystem'
@@ -1193,13 +858,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.IndexSqlConfig'
         description: Index database SQL configuration
-      internalUrl:
-        description: used by integrations if set, this is the base domain that an
-          integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-        type: string
-      listen:
-        description: 'address to listen on (default: 0.0.0.0)'
-        type: string
       logging:
         items:
           $ref: '#/definitions/settings.LogConfig'
@@ -1216,22 +874,10 @@ definitions:
         description: number of concurrent image processing jobs used to create previews,
           default is 4.
         type: integer
-      port:
-        description: port to listen on
-        type: integer
-      socket:
-        description: socket to listen on - eg. /var/run/filebrowser.sock
-        type: string
       sources:
         items:
           $ref: '#/definitions/settings.Source'
         type: array
-      tlsCert:
-        description: path to TLS cert
-        type: string
-      tlsKey:
-        description: path to TLS key
-        type: string
     required:
     - sources
     type: object
@@ -1248,7 +894,10 @@ definitions:
       server:
         $ref: '#/definitions/settings.Server'
       userDefaults:
-        $ref: '#/definitions/settings.UserDefaults'
+        allOf:
+        - $ref: '#/definitions/settings.UserDefaults'
+        description: optional signup/CLI defaults; per-user values are managed in
+          the UI
     type: object
   settings.Source:
     properties:
@@ -1265,10 +914,6 @@ definitions:
     type: object
   settings.SourceConfig:
     properties:
-      conditionals:
-        allOf:
-        - $ref: '#/definitions/settings.ConditionalFilter'
-        description: 'deprecated: use source.rules instead'
       createUserDir:
         description: create a user directory for each user under defaultUserScope
           + username
@@ -1276,6 +921,11 @@ definitions:
       defaultEnabled:
         description: should be added as a default source for new users?
         type: boolean
+      defaultPermissions:
+        allOf:
+        - $ref: '#/definitions/users.SourceFilePermissions'
+        description: DefaultPermissions is the template for new user scopes on this
+          source (also synced globally via Access settings).
       defaultUserScope:
         description: defaults to root of index "/" should match folders under path
         type: string
@@ -1286,10 +936,6 @@ definitions:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
-      indexingIntervalMinutes:
-        description: 'deprecated: create a rule with indexingIntervalMinutes to set
-          the indexing interval for this source'
-        type: integer
       private:
         description: designate as source as private -- currently just means no sharing
           permitted.
@@ -1337,122 +983,20 @@ definitions:
     properties:
       account:
         $ref: '#/definitions/settings.UserDefaultsAccount'
-      customTheme:
-        description: 'deprecated: use ui.customTheme instead'
-        type: string
-      darkMode:
-        description: 'deprecated: use sidebar.darkMode instead'
-        type: boolean
-      dateFormat:
-        description: 'deprecated: use listing.dateFormat instead'
-        type: boolean
-      debugOffice:
-        description: 'deprecated: use fileViewer.debugOffice instead'
-        type: boolean
-      deleteAfterArchive:
-        description: 'deprecated: use listing.deleteAfterArchive instead'
-        type: boolean
-      deleteWithoutConfirming:
-        description: 'deprecated: use listing.deleteWithoutConfirming instead'
-        type: boolean
-      disableOfficePreviewExt:
-        description: 'deprecated: use disablePreviewExt instead'
-        type: string
-      disableOnlyOfficeExt:
-        description: 'deprecated: use fileViewer.disableOnlyOfficeExt instead'
-        type: string
-      disablePreviewExt:
-        description: 'deprecated: use preview.disablePreviewExt instead'
-        type: string
-      disableQuickToggles:
-        description: 'deprecated: use sidebar.disableQuickToggles instead'
-        type: boolean
-      disableSearchOptions:
-        description: 'deprecated: use search.disableOptions instead'
-        type: boolean
-      disableSettings:
-        description: 'deprecated: use account.disableSettings instead'
-        type: boolean
-      disableUpdateNotifications:
-        description: 'deprecated: use account.disableUpdateNotifications instead'
-        type: boolean
-      disableViewingExt:
-        description: 'deprecated: use fileViewer.disableViewingExt instead'
-        type: string
-      editorQuickSave:
-        description: Deprecated fields - kept for backwards compatibility
-        type: boolean
       fileLoading:
         $ref: '#/definitions/users.FileLoading'
       fileViewer:
         $ref: '#/definitions/settings.UserDefaultsFileViewer'
-      gallerySize:
-        description: 'deprecated: use sidebar.gallerySize instead'
-        type: integer
-      hideFileExt:
-        description: 'deprecated: use listing.hideFileExt instead'
-        type: string
-      hideFilesInTree:
-        description: 'deprecated: use sidebar.hideFilesInTree instead'
-        type: boolean
-      hideSidebarFileActions:
-        description: 'deprecated: use sidebar.hideSidebarFileActions instead'
-        type: boolean
       listing:
         $ref: '#/definitions/settings.UserDefaultsListing'
-      locale:
-        description: 'deprecated: use ui.locale instead'
-        type: string
-      lockPassword:
-        description: 'deprecated: use account.lockPassword instead'
-        type: boolean
-      loginMethod:
-        description: 'deprecated: use account.loginMethod instead'
-        type: string
-      permissions:
-        allOf:
-        - $ref: '#/definitions/settings.UserDefaultsPermissions'
-        description: 'deprecated: use account.permissions instead'
-      preferEditorForMarkdown:
-        description: 'deprecated: use fileViewer.preferEditorForMarkdown instead'
-        type: boolean
       preview:
         $ref: '#/definitions/settings.UserDefaultsPreview'
-      quickDownload:
-        description: 'deprecated: use listing.quickDownload instead'
-        type: boolean
       search:
         $ref: '#/definitions/settings.UserDefaultsSearch'
-      showCopyPath:
-        description: 'deprecated: use listing.showCopyPath instead'
-        type: boolean
-      showHidden:
-        description: 'deprecated: use listing.showHidden instead'
-        type: boolean
-      showSelectMultiple:
-        description: 'deprecated: use listing.showSelectMultiple instead'
-        type: boolean
-      showToolsInSidebar:
-        description: 'deprecated: use sidebar.showToolsInSidebar instead'
-        type: boolean
       sidebar:
-        allOf:
-        - $ref: '#/definitions/settings.UserDefaultsSidebar'
-        description: New organized structure
-      singleClick:
-        description: 'deprecated: use sidebar.singleClick instead'
-        type: boolean
-      stickySidebar:
-        description: 'deprecated: use sidebar.stickySidebar instead'
-        type: boolean
-      themeColor:
-        description: 'deprecated: use ui.themeColor instead'
-        type: string
+        $ref: '#/definitions/settings.UserDefaultsSidebar'
       ui:
         $ref: '#/definitions/settings.UserDefaultsUI'
-      viewMode:
-        description: 'deprecated: use sidebar.viewMode instead'
-        type: string
     type: object
   settings.UserDefaultsAccount:
     properties:
@@ -1479,18 +1023,6 @@ definitions:
       api:
         description: allow api access
         type: boolean
-      create:
-        description: allow creating or uploading files
-        type: boolean
-      delete:
-        description: allow deleting files
-        type: boolean
-      download:
-        description: allow downloading files
-        type: boolean
-      modify:
-        description: allow modifying files
-        type: boolean
       realtime:
         description: allow realtime updates
         type: boolean
@@ -1505,9 +1037,6 @@ definitions:
         type: boolean
       debugOffice:
         description: debug onlyoffice editor
-        type: boolean
-      defaultMediaPlayer:
-        description: disable the styled feature-rich media player for browser default
         type: boolean
       disableOnlyOfficeExt:
         description: list of file extensions to disable onlyoffice editor for
@@ -1562,55 +1091,10 @@ definitions:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
     type: object
-  settings.UserDefaultsPermissions:
-    properties:
-      admin:
-        description: 'deprecated: use account.permissions.admin instead. allow admin
-          access'
-        type: boolean
-      api:
-        description: 'deprecated: use account.permissions.api instead. allow api access'
-        type: boolean
-      create:
-        description: 'deprecated: use account.permissions.create instead. allow creating
-          or uploading files'
-        type: boolean
-      delete:
-        description: 'deprecated: use account.permissions.delete instead. allow deleting
-          files'
-        type: boolean
-      download:
-        description: 'deprecated: use account.permissions.download instead. allow
-          downloading files'
-        type: boolean
-      modify:
-        description: 'deprecated: use account.permissions.modify instead. allow modifying
-          files'
-        type: boolean
-      realtime:
-        description: 'deprecated: use account.permissions.realtime instead. allow
-          realtime updates'
-        type: boolean
-      share:
-        description: 'deprecated: use account.permissions.share instead. allow sharing
-          files'
-        type: boolean
-    type: object
   settings.UserDefaultsPreview:
     properties:
       audio:
         description: show thumbnails for audio files
-        type: boolean
-      autoplayMedia:
-        description: 'deprecated: use fileViewer.autoplayMedia instead. autoplay media
-          files in preview'
-        type: boolean
-      defaultMediaPlayer:
-        description: 'deprecated: use fileViewer.defaultMediaPlayer instead. disable
-          the styled feature-rich media player for browser default'
-        type: boolean
-      disableHideSidebar:
-        description: deprecated fields
         type: boolean
       disablePreviewExt:
         description: comma separated list of file extensions to disable preview for
@@ -1684,122 +1168,21 @@ definitions:
           etc'
         type: string
     type: object
-  share.CommonShare:
-    properties:
-      allowCreate:
-        description: allow creating files
-        type: boolean
-      allowDelete:
-        type: boolean
-      allowModify:
-        description: allow modifying files
-        type: boolean
-      allowReplacements:
-        description: allow replacements of files
-        type: boolean
-      allowedUsernames:
-        items:
-          type: string
-        type: array
-      banner:
+  share.PinnedItems:
+    additionalProperties:
+      items:
         type: string
-      bannerUrl:
-        type: string
-      canEditShare:
-        type: boolean
-      description:
-        type: string
-      disableAnonymous:
-        type: boolean
-      disableDownload:
-        description: don't allow downloading files
-        type: boolean
-      disableFileViewer:
-        description: don't allow viewing files
-        type: boolean
-      disableLoginOption:
-        description: disable login option in share (true = hide, false = show)
-        type: boolean
-      disableShareCard:
-        type: boolean
-      disableSidebar:
-        type: boolean
-      disableThumbnails:
-        type: boolean
-      downloadURL:
-        type: string
-      downloadsLimit:
-        type: integer
-      enableOnlyOffice:
-        type: boolean
-      enforceDarkLightMode:
-        description: '"dark" or "light"'
-        type: string
-      extractEmbeddedSubtitles:
-        description: can be io intensive for large files and take 10-30 seconds.
-        type: boolean
-      favicon:
-        type: string
-      faviconUrl:
-        type: string
-      hasPassword:
-        type: boolean
-      hideFileExt:
-        description: show hidden files based on extensions in shares
-        type: string
-      hideNavButtons:
-        type: boolean
-      keepAfterExpiration:
-        type: boolean
-      maxBandwidth:
-        type: integer
-      path:
-        type: string
-      perUserDownloadLimit:
-        type: boolean
-      quickDownload:
-        type: boolean
-      shareTheme:
-        type: string
-      shareType:
-        description: 'type of share: normal, upload, max'
-        type: string
-      shareURL:
-        type: string
-      showHidden:
-        description: show hidden files in share (true = show, false = hide)
-        type: boolean
-      sidebarLinks:
-        description: customizable sidebar links
-        items:
-          $ref: '#/definitions/users.SidebarLink'
-        type: array
-      source:
-        description: backend source is path to maintain between name changes
-        type: string
-      sourceURL:
-        type: string
-      themeColor:
-        type: string
-      title:
-        type: string
-      viewMode:
-        description: 'default view mode for anonymous users: "list", "compact", "normal",
-          "gallery"'
-        type: string
+      type: array
     type: object
-  share.CreateBody:
+  share.Share:
     properties:
       allowCreate:
-        description: allow creating files
         type: boolean
       allowDelete:
         type: boolean
       allowModify:
-        description: allow modifying files
         type: boolean
       allowReplacements:
-        description: allow replacements of files
         type: boolean
       allowedUsernames:
         items:
@@ -1816,125 +1199,10 @@ definitions:
       disableAnonymous:
         type: boolean
       disableDownload:
-        description: don't allow downloading files
         type: boolean
       disableFileViewer:
-        description: don't allow viewing files
         type: boolean
       disableLoginOption:
-        description: disable login option in share (true = hide, false = show)
-        type: boolean
-      disableShareCard:
-        type: boolean
-      disableSidebar:
-        type: boolean
-      disableThumbnails:
-        type: boolean
-      downloadURL:
-        type: string
-      downloadsLimit:
-        type: integer
-      enableOnlyOffice:
-        type: boolean
-      enforceDarkLightMode:
-        description: '"dark" or "light"'
-        type: string
-      expires:
-        type: string
-      extractEmbeddedSubtitles:
-        description: can be io intensive for large files and take 10-30 seconds.
-        type: boolean
-      favicon:
-        type: string
-      faviconUrl:
-        type: string
-      hasPassword:
-        type: boolean
-      hash:
-        type: string
-      hideFileExt:
-        description: show hidden files based on extensions in shares
-        type: string
-      hideNavButtons:
-        type: boolean
-      keepAfterExpiration:
-        type: boolean
-      maxBandwidth:
-        type: integer
-      password:
-        type: string
-      path:
-        type: string
-      perUserDownloadLimit:
-        type: boolean
-      quickDownload:
-        type: boolean
-      shareTheme:
-        type: string
-      shareType:
-        description: 'type of share: normal, upload, max'
-        type: string
-      shareURL:
-        type: string
-      showHidden:
-        description: show hidden files in share (true = show, false = hide)
-        type: boolean
-      sidebarLinks:
-        description: customizable sidebar links
-        items:
-          $ref: '#/definitions/users.SidebarLink'
-        type: array
-      source:
-        description: backend source is path to maintain between name changes
-        type: string
-      sourceURL:
-        type: string
-      themeColor:
-        type: string
-      title:
-        type: string
-      unit:
-        type: string
-      viewMode:
-        description: 'default view mode for anonymous users: "list", "compact", "normal",
-          "gallery"'
-        type: string
-    type: object
-  share.Link:
-    properties:
-      allowCreate:
-        description: allow creating files
-        type: boolean
-      allowDelete:
-        type: boolean
-      allowModify:
-        description: allow modifying files
-        type: boolean
-      allowReplacements:
-        description: allow replacements of files
-        type: boolean
-      allowedUsernames:
-        items:
-          type: string
-        type: array
-      banner:
-        type: string
-      bannerUrl:
-        type: string
-      canEditShare:
-        type: boolean
-      description:
-        type: string
-      disableAnonymous:
-        type: boolean
-      disableDownload:
-        description: don't allow downloading files
-        type: boolean
-      disableFileViewer:
-        description: don't allow viewing files
-        type: boolean
-      disableLoginOption:
-        description: disable login option in share (true = hide, false = show)
         type: boolean
       disableShareCard:
         type: boolean
@@ -1956,7 +1224,6 @@ definitions:
       expire:
         type: integer
       extractEmbeddedSubtitles:
-        description: can be io intensive for large files and take 10-30 seconds.
         type: boolean
       favicon:
         type: string
@@ -1988,20 +1255,21 @@ definitions:
       shareTheme:
         type: string
       shareType:
-        description: 'type of share: normal, upload, max'
         type: string
       shareURL:
         type: string
       showHidden:
-        description: show hidden files in share (true = show, false = hide)
         type: boolean
       sidebarLinks:
-        description: customizable sidebar links
         items:
           $ref: '#/definitions/users.SidebarLink'
         type: array
+      singleFileShare:
+        type: boolean
       source:
-        description: backend source is path to maintain between name changes
+        description: source display name for API; backend path is Share.SourcePath
+        type: string
+      sourcePath:
         type: string
       sourceURL:
         type: string
@@ -2010,36 +1278,237 @@ definitions:
       title:
         type: string
       token:
-        description: |-
-          Token is a random value that will only be set when PasswordHash is set. It is
-          URL-Safe and is used to download links in password-protected shares via a
-          query arg.
         type: string
       userDownloads:
         additionalProperties:
           type: integer
-        description: Track downloads per username
         type: object
       userID:
         type: integer
       version:
         type: integer
       viewMode:
-        description: 'default view mode for anonymous users: "list", "compact", "normal",
-          "gallery"'
+        description: default view mode for anonymous users
         type: string
     type: object
-  share.PinnedItems:
-    additionalProperties:
-      items:
+  share.ShareFrontend:
+    properties:
+      allowCreate:
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        type: boolean
+      allowReplacements:
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
         type: string
-      type: array
+      bannerUrl:
+        type: string
+      canEditShare:
+        type: boolean
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        type: boolean
+      disableFileViewer:
+        type: boolean
+      disableLoginOption:
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadURL:
+        type: string
+      downloads:
+        type: integer
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        description: '"dark" or "light"'
+        type: string
+      expire:
+        type: integer
+      expires:
+        type: string
+      extractEmbeddedSubtitles:
+        type: boolean
+      favicon:
+        type: string
+      faviconUrl:
+        type: string
+      hasPassword:
+        type: boolean
+      hash:
+        type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      path:
+        type: string
+      pathExists:
+        type: boolean
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
+      shareType:
+        type: string
+      shareURL:
+        type: string
+      showHidden:
+        type: boolean
+      sidebarLinks:
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      singleFileShare:
+        type: boolean
+      source:
+        description: source display name for API; backend path is Share.SourcePath
+        type: string
+      sourceURL:
+        type: string
+      themeColor:
+        type: string
+      title:
+        type: string
+      unit:
+        type: string
+      username:
+        type: string
+      viewMode:
+        description: default view mode for anonymous users
+        type: string
+    type: object
+  share.SharePostBody:
+    properties:
+      allowCreate:
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        type: boolean
+      allowReplacements:
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      bannerUrl:
+        type: string
+      canEditShare:
+        type: boolean
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        type: boolean
+      disableFileViewer:
+        type: boolean
+      disableLoginOption:
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadURL:
+        type: string
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        description: '"dark" or "light"'
+        type: string
+      expires:
+        type: string
+      extractEmbeddedSubtitles:
+        type: boolean
+      favicon:
+        type: string
+      faviconUrl:
+        type: string
+      hasPassword:
+        type: boolean
+      hash:
+        type: string
+      hideFileExt:
+        description: show hidden files based on extensions in shares
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      password:
+        type: string
+      path:
+        type: string
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
+      shareType:
+        type: string
+      shareURL:
+        type: string
+      showHidden:
+        type: boolean
+      sidebarLinks:
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      singleFileShare:
+        type: boolean
+      source:
+        description: source display name for API; backend path is Share.SourcePath
+        type: string
+      sourceURL:
+        type: string
+      themeColor:
+        type: string
+      title:
+        type: string
+      unit:
+        type: string
+      viewMode:
+        description: default view mode for anonymous users
+        type: string
     type: object
   users.AuthToken:
     properties:
       Permissions:
         $ref: '#/definitions/users.Permissions'
       belongsTo:
+        description: numeric user id in JWT claims (bolt-era small ids still work)
         type: integer
       expiresAt:
         type: integer
@@ -2052,6 +1521,19 @@ definitions:
         type: string
       token:
         type: string
+      username:
+        type: string
+    type: object
+  users.BackendScope:
+    properties:
+      path:
+        description: real path for the source
+        type: string
+      permissions:
+        $ref: '#/definitions/users.SourceFilePermissions'
+      scope:
+        description: index path within that source
+        type: string
     type: object
   users.FileLoading:
     properties:
@@ -2063,6 +1545,160 @@ definitions:
         type: integer
       uploadChunkSizeMb:
         type: integer
+    type: object
+  users.FrontendScope:
+    properties:
+      name:
+        description: 'Bolt: filesystem path; JSON API: display name after prepForFrontend'
+        type: string
+      permissions:
+        $ref: '#/definitions/users.SourceFilePermissions'
+      scope:
+        description: index path within that source
+        type: string
+    type: object
+  users.FrontendUser:
+    properties:
+      customTheme:
+        description: Name of theme to use chosen from custom themes config.
+        type: string
+      darkMode:
+        description: should dark mode be enabled
+        type: boolean
+      dateFormat:
+        description: when false, the date is relative, when true, the date is an exact
+          timestamp
+        type: boolean
+      debugOffice:
+        description: debug onlyoffice editor
+        type: boolean
+      deleteAfterArchive:
+        description: delete source files after successful creation/extraction of archives
+        type: boolean
+      deleteWithoutConfirming:
+        description: delete files without confirmation
+        type: boolean
+      disableOfficePreviewExt:
+        description: deprecated
+        type: string
+      disableOnlyOfficeExt:
+        description: deprecated
+        type: string
+      disablePreviewExt:
+        description: space separated list of file extensions to disable preview for
+        type: string
+      disableQuickToggles:
+        description: disable the quick toggles in the sidebar
+        type: boolean
+      disableSearchOptions:
+        description: disable the search options in the search bar
+        type: boolean
+      disableSettings:
+        type: boolean
+      disableUpdateNotifications:
+        description: disable update notifications
+        type: boolean
+      disableViewingExt:
+        description: space separated list of file extensions to disable viewing for
+        type: string
+      editorQuickSave:
+        description: show quick save button in editor
+        type: boolean
+      fileLoading:
+        allOf:
+        - $ref: '#/definitions/users.FileLoading'
+        description: upload and download settings
+      gallerySize:
+        description: 0-9 - the size of the gallery thumbnails
+        type: integer
+      hideFileExt:
+        description: space separated list of file extensions to hide in UI and API
+        type: string
+      hideFilesInTree:
+        description: hide files in the sidebar tree navigation, when true, will show
+          only directories.
+        type: boolean
+      hideSidebarFileActions:
+        description: hide the file actions in the sidebar
+        type: boolean
+      locale:
+        description: 'language to use: eg. de, en, or fr'
+        type: string
+      lockPassword:
+        type: boolean
+      loginMethod:
+        $ref: '#/definitions/users.LoginMethod'
+      otpEnabled:
+        type: boolean
+      passkeyCredentials:
+        items:
+          $ref: '#/definitions/users.WebAuthnCredential'
+        type: array
+      password:
+        type: string
+      perm:
+        $ref: '#/definitions/users.Permissions'
+      permissions:
+        allOf:
+        - $ref: '#/definitions/users.Permissions'
+        description: 'global: admin, api, share, realtime'
+      preferEditorForMarkdown:
+        description: prefer editor first for markdown files instead of the Markdown
+          Viewer
+        type: boolean
+      preview:
+        $ref: '#/definitions/users.Preview'
+      quickDownload:
+        description: show icon to download in one click
+        type: boolean
+      scopes:
+        items:
+          $ref: '#/definitions/users.FrontendScope'
+        type: array
+      showCopyPath:
+        description: show copy path action in the context menu
+        type: boolean
+      showFirstLogin:
+        type: boolean
+      showHidden:
+        description: show hidden files in the UI. On windows this includes files starting
+          with a dot and windows hidden files
+        type: boolean
+      showSelectMultiple:
+        description: show select multiple files on desktop
+        type: boolean
+      showToolsInSidebar:
+        description: 'when false, sidebar hides links with category "tool" (default:
+          true)'
+        type: boolean
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      singleClick:
+        description: open directory on single click, also enables middle click to
+          open in new tab
+        type: boolean
+      sorting:
+        $ref: '#/definitions/users.Sorting'
+      sourcePermissions:
+        additionalProperties:
+          $ref: '#/definitions/users.SourceFilePermissions'
+        description: 'deprecated: use scopes[].permissions'
+        type: object
+      stickySidebar:
+        description: keep sidebar open when navigating
+        type: boolean
+      themeColor:
+        description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
+          etc'
+        type: string
+      username:
+        type: string
+      viewMode:
+        description: 'view mode to use: eg. normal, list, grid, or compact'
+        type: string
     type: object
   users.LoginMethod:
     enum:
@@ -2087,22 +1723,25 @@ definitions:
         description: allow api access
         type: boolean
       create:
-        description: allow creating or uploading files
+        description: 'deprecated: legacy user migration only; not used for API tokens'
         type: boolean
       delete:
-        description: allow deleting files
+        description: 'deprecated: legacy user migration only; not used for API tokens'
         type: boolean
       download:
-        description: allow downloading files
+        description: 'deprecated: legacy user migration only; not used for API tokens'
         type: boolean
       modify:
-        description: allow modifying files
+        description: 'deprecated: legacy user migration only; not used for API tokens'
         type: boolean
       realtime:
         description: allow realtime updates
         type: boolean
       share:
         description: allow sharing files
+        type: boolean
+      view:
+        description: 'deprecated: legacy user migration only; not used for API tokens'
         type: boolean
     type: object
   users.PinnedItems:
@@ -2120,9 +1759,6 @@ definitions:
         type: boolean
       autoplayMedia:
         description: autoplay media files in preview
-        type: boolean
-      defaultMediaPlayer:
-        description: disable html5 media player and use the default media player
         type: boolean
       disableHideSidebar:
         description: disable the hide sidebar preview for previews and editors
@@ -2175,21 +1811,39 @@ definitions:
       by:
         type: string
     type: object
-  users.SourceScope:
+  users.SourceFilePermissions:
     properties:
-      name:
-        description: 'Bolt: filesystem path; JSON API: display name after prepForFrontend'
-        type: string
-      scope:
-        description: index path within that source
-        type: string
+      configured:
+        description: true when explicitly set (allows intentional deny-all)
+        type: boolean
+      create:
+        type: boolean
+      delete:
+        type: boolean
+      download:
+        type: boolean
+      modify:
+        type: boolean
+      view:
+        type: boolean
     type: object
   users.User:
     properties:
       apiKeys:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
-        description: 'deprecated: use Tokens instead'
+        type: object
+      backendScopes:
+        description: |-
+          BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
+          SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
+        items:
+          $ref: '#/definitions/users.BackendScope'
+        type: array
+      backendSourcePermissions:
+        additionalProperties:
+          $ref: '#/definitions/users.SourceFilePermissions'
+        description: key = source path
         type: object
       customTheme:
         description: Name of theme to use chosen from custom themes config.
@@ -2263,7 +1917,6 @@ definitions:
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
       otpEnabled:
-        description: true if TOTP is enabled, false otherwise
         type: boolean
       passkeyCredentials:
         items:
@@ -2272,11 +1925,11 @@ definitions:
       password:
         type: string
       perm:
+        $ref: '#/definitions/users.Permissions'
+      permissions:
         allOf:
         - $ref: '#/definitions/users.Permissions'
-        description: legacy for migration purposes... og filebrowser has perm attribute
-      permissions:
-        $ref: '#/definitions/users.Permissions'
+        description: 'global: admin, api, share, realtime'
       pinnedItems:
         $ref: '#/definitions/users.PinnedItems'
       preferEditorForMarkdown:
@@ -2288,11 +1941,9 @@ definitions:
       quickDownload:
         description: show icon to download in one click
         type: boolean
-      scope:
-        type: string
       scopes:
         items:
-          $ref: '#/definitions/users.SourceScope'
+          $ref: '#/definitions/users.FrontendScope'
         type: array
       showCopyPath:
         description: show copy path action in the context menu
@@ -2321,6 +1972,11 @@ definitions:
         type: boolean
       sorting:
         $ref: '#/definitions/users.Sorting'
+      sourcePermissions:
+        additionalProperties:
+          $ref: '#/definitions/users.SourceFilePermissions'
+        description: 'deprecated: use scopes[].permissions'
+        type: object
       stickySidebar:
         description: keep sidebar open when navigating
         type: boolean
@@ -2413,6 +2069,246 @@ definitions:
         type: string
       title:
         description: title/description
+        type: string
+    type: object
+  web.AuthTokenFrontend:
+    properties:
+      Permissions:
+        $ref: '#/definitions/users.Permissions'
+      expiresAt:
+        type: integer
+      issuedAt:
+        type: integer
+      minimal:
+        type: boolean
+      name:
+        type: string
+      token:
+        type: string
+    type: object
+  web.BulkDeleteItem:
+    properties:
+      message:
+        type: string
+      path:
+        type: string
+      source:
+        type: string
+    type: object
+  web.BulkDeleteResponse:
+    properties:
+      failed:
+        items:
+          $ref: '#/definitions/web.BulkDeleteItem'
+        type: array
+      succeeded:
+        items:
+          $ref: '#/definitions/web.BulkDeleteItem'
+        type: array
+    type: object
+  web.DirectDownloadResponse:
+    properties:
+      hash:
+        type: string
+      shareUrl:
+        type: string
+      status:
+        type: string
+      url:
+        type: string
+    type: object
+  web.GroupListResponse:
+    properties:
+      groups:
+        items:
+          type: string
+        type: array
+    type: object
+  web.HttpResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: integer
+      token:
+        type: string
+    type: object
+  web.MoveCopyItem:
+    properties:
+      fromPath:
+        type: string
+      fromSource:
+        type: string
+      message:
+        type: string
+      toPath:
+        type: string
+      toSource:
+        type: string
+    type: object
+  web.MoveCopyRequest:
+    properties:
+      action:
+        description: '"copy", "move", or "rename"'
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/web.MoveCopyItem'
+        type: array
+      overwrite:
+        description: Overwrite if destination exists
+        type: boolean
+      rename:
+        description: Auto-rename if destination exists
+        type: boolean
+    type: object
+  web.MoveCopyResponse:
+    properties:
+      failed:
+        items:
+          $ref: '#/definitions/web.MoveCopyItem'
+        type: array
+      succeeded:
+        items:
+          $ref: '#/definitions/web.MoveCopyItem'
+        type: array
+    type: object
+  web.archiveCreateRequest:
+    properties:
+      compression:
+        description: 'Gzip compression level for tar.gz only, 0-9; 0 = default; ignored
+          for zip (optional). Example: 6'
+        type: integer
+      deleteAfter:
+        description: 'If true, delete the source files/directories after successful
+          archive creation (optional; requires delete permission). Example: true'
+        type: boolean
+      destination:
+        description: 'Full path where the archive will be created; use .zip or .tar.gz
+          extension (required). Example: "/backups/my-archive.zip"'
+        type: string
+      format:
+        description: 'Archive format: "zip" or "tar.gz" (optional; inferred from destination
+          if omitted). Example: "zip"'
+        type: string
+      fromSource:
+        description: 'Source name where the paths to archive live (required). Example:
+          "default"'
+        type: string
+      paths:
+        description: 'Paths of files or directories to add; directories are walked;
+          access-denied entries skipped (required). Example: ["/docs/file.txt", "/photos"]'
+        items:
+          type: string
+        type: array
+      toSource:
+        description: 'Source name where the archive file will be written (optional;
+          default: fromSource). Example: "backups"'
+        type: string
+    type: object
+  web.duplicateGroup:
+    properties:
+      count:
+        type: integer
+      files:
+        items:
+          $ref: '#/definitions/indexing.SearchResult'
+        type: array
+      size:
+        type: integer
+    type: object
+  web.duplicateResponse:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/web.duplicateGroup'
+        type: array
+      incomplete:
+        type: boolean
+      reason:
+        type: string
+    type: object
+  web.fileWatchMetadata:
+    properties:
+      modified:
+        description: Modification time
+        type: string
+      name:
+        description: File name
+        type: string
+      size:
+        description: File size in bytes (for directories, total size of all files)
+        type: integer
+      type:
+        description: MIME type
+        type: string
+    type: object
+  web.fileWatchResponse:
+    properties:
+      contents:
+        description: Text content for text files
+        type: string
+      isText:
+        description: Whether the file is a text file
+        type: boolean
+      metadata:
+        allOf:
+        - $ref: '#/definitions/web.fileWatchMetadata'
+        description: File metadata for non-text files
+    type: object
+  web.pinnedItemPatchRequest:
+    properties:
+      name:
+        description: item basename within path
+        type: string
+      path:
+        description: scope-relative parent directory
+        type: string
+      source:
+        type: string
+    required:
+    - name
+    - path
+    - source
+    type: object
+  web.sharePinnedItemPatchRequest:
+    properties:
+      name:
+        type: string
+      path:
+        type: string
+    required:
+    - name
+    - path
+    type: object
+  web.unarchiveRequest:
+    properties:
+      deleteAfter:
+        description: 'If true, delete the archive file after successful extraction
+          (optional; default: false). Example: true'
+        type: boolean
+      destination:
+        description: 'Directory path on toSource to extract into (required). Example:
+          "/projects/imported"'
+        type: string
+      fromSource:
+        description: 'Source name where the archive file lives (required). Example:
+          "default"'
+        type: string
+      path:
+        description: 'Path to the archive file on fromSource; .zip, .tar.gz, or .tgz
+          (required). Example: "/downloads/data.zip"'
+        type: string
+      toSource:
+        description: 'Source name where contents will be extracted (optional; default:
+          fromSource). Example: "restored"'
+        type: string
+    type: object
+  web.viewTokenResponse:
+    properties:
+      expiresAt:
+        type: integer
+      viewToken:
         type: string
     type: object
 info:
@@ -2713,7 +2609,7 @@ paths:
         "200":
           description: Object containing a list of groups
           schema:
-            $ref: '#/definitions/http.GroupListResponse'
+            $ref: '#/definitions/web.GroupListResponse'
         "403":
           description: Forbidden
           schema:
@@ -2918,7 +2814,7 @@ paths:
         "200":
           description: OTP token is valid.
           schema:
-            $ref: '#/definitions/http.HttpResponse'
+            $ref: '#/definitions/web.HttpResponse'
         "401":
           description: Unauthorized - invalid TOTP token
           schema:
@@ -3013,7 +2909,7 @@ paths:
         "200":
           description: API token deleted successfully
           schema:
-            $ref: '#/definitions/http.HttpResponse'
+            $ref: '#/definitions/web.HttpResponse'
         "404":
           description: Not found
           schema:
@@ -3045,7 +2941,7 @@ paths:
         "200":
           description: API token details
           schema:
-            $ref: '#/definitions/http.AuthTokenFrontend'
+            $ref: '#/definitions/web.AuthTokenFrontend'
         "404":
           description: Not found
           schema:
@@ -3076,11 +2972,16 @@ paths:
         name: days
         required: true
         type: string
-      - description: Permissions for the API token (comma-separated)
+      - description: 'Global permissions (comma-separated: admin, api, share, realtime).
+          Send \'
         in: query
         name: permissions
-        required: true
         type: string
+      - description: When true, create a minimal token (standard JWT claims only).
+          When false, create a customized token using permissions (may be empty).
+        in: query
+        name: minimal
+        type: boolean
       produces:
       - application/json
       responses:
@@ -3088,7 +2989,7 @@ paths:
           description: Token created successfully, response contains json object with
             token
           schema:
-            $ref: '#/definitions/http.HttpResponse'
+            $ref: '#/definitions/web.HttpResponse'
         "400":
           description: Bad request
           schema:
@@ -3128,7 +3029,7 @@ paths:
           description: List of API tokens
           schema:
             items:
-              $ref: '#/definitions/http.AuthTokenFrontend'
+              $ref: '#/definitions/web.AuthTokenFrontend'
             type: array
         "404":
           description: Not found
@@ -3326,7 +3227,7 @@ paths:
             type: object
       summary: Get lyrics for an audio file
       tags:
-      - Resources
+      - Media
   /api/media/metadata:
     get:
       consumes:
@@ -3368,6 +3269,56 @@ paths:
               type: string
             type: object
       summary: Directory with media metadata
+      tags:
+      - Media
+  /api/media/stream:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing in capped byte ranges.
+        Requires a viewToken minted by GET /resources. Media files must use Range
+        requests; full-file GET responses are rejected. Never counts toward download
+        limits or activity.
+      parameters:
+      - description: Source name for the file (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque view grant token from file metadata
+        in: query
+        name: viewToken
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid view token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream content of a single media file for inline viewing
       tags:
       - Resources
   /api/media/subtitles:
@@ -3430,7 +3381,7 @@ paths:
             type: object
       summary: Get subtitle content
       tags:
-      - Resources
+      - Media
   /api/office/callback:
     get:
       consumes:
@@ -3671,18 +3622,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/http.MoveCopyRequest'
+          $ref: '#/definitions/web.MoveCopyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: All operations completed successfully
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
         "207":
           description: Partial success - some operations succeeded, some failed
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
         "400":
           description: Bad request - invalid JSON or parameters
           schema:
@@ -3704,7 +3655,7 @@ paths:
         "500":
           description: All operations failed
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
       summary: Move, copy, or rename resources
       tags:
       - Resources
@@ -3836,7 +3787,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.archiveCreateRequest'
+          $ref: '#/definitions/web.archiveCreateRequest'
       produces:
       - application/json
       responses:
@@ -3893,7 +3844,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/http.BulkDeleteItem'
+            $ref: '#/definitions/web.BulkDeleteItem'
           type: array
       produces:
       - application/json
@@ -3901,11 +3852,11 @@ paths:
         "200":
           description: All resources deleted successfully
           schema:
-            $ref: '#/definitions/http.BulkDeleteResponse'
+            $ref: '#/definitions/web.BulkDeleteResponse'
         "207":
           description: Partial success - some resources deleted, some failed
           schema:
-            $ref: '#/definitions/http.BulkDeleteResponse'
+            $ref: '#/definitions/web.BulkDeleteResponse'
         "400":
           description: Bad request - invalid JSON or empty items array
           schema:
@@ -4097,7 +4048,7 @@ paths:
         required: true
         type: string
       - description: Preview size ('small' or 'large'). Default is based on server
-          config.
+          settings.Config.
         in: query
         name: size
         type: string
@@ -4167,7 +4118,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.unarchiveRequest'
+          $ref: '#/definitions/web.unarchiveRequest'
       produces:
       - application/json
       responses:
@@ -4210,6 +4161,91 @@ paths:
               type: string
             type: object
       summary: Extract an archive on the server
+      tags:
+      - Resources
+  /api/resources/view:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing. Requires a viewToken
+        minted by GET /resources. Never counts toward download limits or activity
+        and does not require download permission.
+      parameters:
+      - description: Source name for the file (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque view grant token from file metadata
+        in: query
+        name: viewToken
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid view token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View content of a single non-media file inline
+      tags:
+      - Resources
+  /api/resources/view-token:
+    post:
+      consumes:
+      - application/json
+      description: Mints or extends a source-scoped view token for inline viewing.
+        Authenticated routes require a web session (not a named API token). Public
+        share routes accept anonymous users when the share allows it.
+      parameters:
+      - description: Source name or share hash
+        in: query
+        name: source
+        type: string
+      - description: Share hash (public share routes)
+        in: query
+        name: hash
+        type: string
+      - description: Existing view token to extend
+        in: query
+        name: viewToken
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.viewTokenResponse'
+        "403":
+          description: Missing permission or API token used
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh view token
       tags:
       - Resources
   /api/settings:
@@ -4313,7 +4349,7 @@ paths:
           description: List of share links for the specified path
           schema:
             items:
-              $ref: '#/definitions/share.Link'
+              $ref: '#/definitions/share.ShareFrontend'
             type: array
         "500":
           description: Internal server error
@@ -4346,7 +4382,7 @@ paths:
         "200":
           description: Updated share link
           schema:
-            $ref: '#/definitions/http.ShareResponse'
+            $ref: '#/definitions/share.ShareFrontend'
         "400":
           description: Bad request - missing or invalid parameters
           schema:
@@ -4373,14 +4409,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/share.CreateBody'
+          $ref: '#/definitions/share.SharePostBody'
       produces:
       - application/json
       responses:
         "200":
           description: Created share link
           schema:
-            $ref: '#/definitions/share.Link'
+            $ref: '#/definitions/share.ShareFrontend'
         "400":
           description: Bad request - failed to decode body
           schema:
@@ -4432,7 +4468,7 @@ paths:
         "201":
           description: Direct download link created
           schema:
-            $ref: '#/definitions/http.DirectDownloadResponse'
+            $ref: '#/definitions/web.DirectDownloadResponse'
         "400":
           description: Bad request - invalid parameters or path is not a file
           schema:
@@ -4467,7 +4503,7 @@ paths:
           description: List of share links
           schema:
             items:
-              $ref: '#/definitions/share.Link'
+              $ref: '#/definitions/share.ShareFrontend'
             type: array
         "500":
           description: Internal server error
@@ -4478,7 +4514,7 @@ paths:
       summary: List share links
       tags:
       - Shares
-  /api/tools/duplicateFinder:
+  /api/tools/duplicate-finder:
     get:
       consumes:
       - application/json
@@ -4509,7 +4545,7 @@ paths:
           description: List of duplicate file groups with metadata. Response includes
             'incomplete' flag if processing stopped early due to resource limits.
           schema:
-            $ref: '#/definitions/http.duplicateResponse'
+            $ref: '#/definitions/web.duplicateResponse'
         "400":
           description: Bad Request
           schema:
@@ -4526,7 +4562,7 @@ paths:
       summary: Find Duplicate Files
       tags:
       - Tools
-  /api/tools/fileWatcher:
+  /api/tools/file-watcher:
     get:
       consumes:
       - application/json
@@ -4556,7 +4592,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.fileWatchResponse'
+            $ref: '#/definitions/web.fileWatchResponse'
         "400":
           description: Invalid request
           schema:
@@ -4584,7 +4620,7 @@ paths:
       summary: Watch a file
       tags:
       - Tools
-  /api/tools/fileWatcher/sse:
+  /api/tools/file-watcher/sse:
     get:
       description: Establishes an SSE connection to receive periodic file updates
       parameters:
@@ -4639,8 +4675,8 @@ paths:
         and metadata based on the user's session and scope. Supports searching across
         multiple sources when using the 'sources' parameter.
       parameters:
-      - description: Filter prefix or full legacy search text (required when no terms
-          are supplied)
+      - description: Filter prefix or full search text (required when no terms are
+          supplied)
         in: query
         name: query
         type: string
@@ -4652,18 +4688,12 @@ paths:
           type: string
         name: terms
         type: array
-      - description: Source name for the desired source (deprecated, use 'sources'
-          instead)
-        in: query
-        name: source
-        type: string
       - description: Comma-separated source names when not using repeated scope=source:path
         in: query
         name: sources
         type: string
       - collectionFormat: csv
-        description: 'Repeated: either ''sourceName:relativePath'' per source, or
-          legacy single path when one source'
+        description: 'Repeated: ''sourceName:relativePath'' per source'
         in: query
         items:
           type: string
@@ -4681,14 +4711,6 @@ paths:
           patterns)
         in: query
         name: useWildcard
-        type: boolean
-      - description: 'Deprecated: alias for useWildcard'
-        in: query
-        name: glob
-        type: boolean
-      - description: 'Deprecated: alias for useWildcard'
-        in: query
-        name: useGlob
         type: boolean
       - description: 'Optional: ''and'' to require all repeated ''terms'' match; default
           is OR'
@@ -4717,31 +4739,18 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Deletes a user identified by their ID. When the authenticated actor
-        uses password login, they must send their current password in the X-Password
-        header.
+      description: Deletes a user identified by login name.
       parameters:
-      - description: User ID
+      - description: Username
         in: query
-        name: id
+        name: username
         required: true
-        type: string
-      - description: Actor's current password (URL-encoded); required for password-login
-          actors
-        in: header
-        name: X-Password
         type: string
       produces:
       - application/json
       responses:
         "200":
           description: User deleted successfully
-        "401":
-          description: Unauthorized - invalid or missing actor password when required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "403":
           description: Forbidden
           schema:
@@ -4754,18 +4763,19 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Delete a user by ID
+      summary: Delete a user by username
       tags:
       - Users
     get:
       consumes:
       - application/json
-      description: Returns a user's details based on their ID, or all users if no
-        id is provided.
+      description: Returns all users (admins) or only the current user; with ?username=self,
+        the logged-in user; with ?username=login, that user if permitted. Query id=
+        is not supported.
       parameters:
-      - description: User ID or 'self'
+      - description: Login name, or 'self' for the current session user
         in: query
-        name: id
+        name: username
         type: string
       produces:
       - application/json
@@ -4773,7 +4783,13 @@ paths:
         "200":
           description: User details or list of users
           schema:
-            $ref: '#/definitions/users.User'
+            $ref: '#/definitions/users.FrontendUser'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Forbidden
           schema:
@@ -4792,7 +4808,65 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Retrieve a user by ID
+      summary: List users or get one by username
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Updates the details of a user identified by ID. which must list
+        the JSON field names to update. When the authenticated actor uses password
+        login, they must send their current password in the X-Password header unless
+        the update only touches NonAdminEditable profile fields (not password). Any
+        admin-only field requires confirmation.
+      parameters:
+      - description: user ID to update
+        in: query
+        name: id
+        type: string
+      - description: usename to update
+        in: query
+        name: id
+        type: string
+      - description: Actor's current password (URL-encoded); required for password-login
+          actors when updating password or any field outside NonAdminEditable
+        in: header
+        name: X-Password
+        type: string
+      - description: User data to update
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/users.User'
+      responses:
+        "204":
+          description: No Content - User updated successfully
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - invalid or missing actor password when required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a user's details
       tags:
       - Users
     post:
@@ -4840,65 +4914,7 @@ paths:
       summary: Create a new user
       tags:
       - Users
-    put:
-      consumes:
-      - application/json
-      description: Updates the details of a user identified by ID. When the authenticated
-        actor uses password login, they must send their current password in the X-Password
-        header unless the update only touches NonAdminEditable profile fields (not
-        password). Full updates (which empty or "all") or any admin-only field require
-        confirmation.
-      parameters:
-      - description: user ID to update
-        in: query
-        name: id
-        type: string
-      - description: usename to update
-        in: query
-        name: id
-        type: string
-      - description: Actor's current password (URL-encoded); required for password-login
-          actors when updating password, using which=all, or any field outside NonAdminEditable
-        in: header
-        name: X-Password
-        type: string
-      - description: User data to update
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/users.User'
-      responses:
-        "204":
-          description: No Content - User updated successfully
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized - invalid or missing actor password when required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Update a user's details
-      tags:
-      - Users
-  /api/users/pinnedItems:
+  /api/users/pinned-items:
     patch:
       consumes:
       - application/json
@@ -4914,7 +4930,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.pinnedItemPatchRequest'
+          $ref: '#/definitions/web.pinnedItemPatchRequest'
       produces:
       - application/json
       responses:
@@ -4941,19 +4957,6 @@ paths:
       summary: Add or remove a pinned item
       tags:
       - Users
-  /health:
-    get:
-      consumes:
-      - application/json
-      description: Returns the health status of the API.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: successful health check response
-          schema:
-            $ref: '#/definitions/http.HttpResponse'
-      summary: Health Check
   /public/api/media/lyrics:
     get:
       parameters:
@@ -4988,7 +4991,7 @@ paths:
             type: object
       summary: Get lyrics for an audio file (public share)
       tags:
-      - Shares
+      - Media
   /public/api/media/metadata:
     get:
       parameters:
@@ -5015,7 +5018,58 @@ paths:
             $ref: '#/definitions/iteminfo.ExtendedFileInfo'
       summary: Directory with media metadata (public share)
       tags:
-      - Shares
+      - Media
+  /public/api/media/stream:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing in capped byte ranges
+        on a share link. Requires viewToken from GET /public/api/resources. Media
+        files must use Range requests. Does not count toward download limits.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque view grant token from share file metadata
+        in: query
+        name: viewToken
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid view token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream a single media file from a public share for inline viewing
+      tags:
+      - Resources
   /public/api/resources:
     get:
       consumes:
@@ -5074,7 +5128,7 @@ paths:
             type: object
       summary: Get file/directory information from a public share
       tags:
-      - Shares
+      - Resources
     patch:
       consumes:
       - application/json
@@ -5091,18 +5145,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/http.MoveCopyRequest'
+          $ref: '#/definitions/web.MoveCopyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: All operations completed successfully
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
         "207":
           description: Partial success - some operations succeeded, some failed
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
         "400":
           description: Bad request - invalid JSON or parameters
           schema:
@@ -5124,10 +5178,10 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/http.MoveCopyResponse'
+            $ref: '#/definitions/web.MoveCopyResponse'
       summary: Move, copy, or rename resources in a public share
       tags:
-      - Shares
+      - Resources
     post:
       consumes:
       - multipart/form-data
@@ -5206,7 +5260,7 @@ paths:
             type: object
       summary: Upload files to a public upload share
       tags:
-      - Shares
+      - Resources
     put:
       consumes:
       - application/json
@@ -5263,7 +5317,7 @@ paths:
             type: object
       summary: Update a file in a public share
       tags:
-      - Shares
+      - Resources
   /public/api/resources/bulk:
     delete:
       consumes:
@@ -5282,7 +5336,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/http.BulkDeleteItem'
+            $ref: '#/definitions/web.BulkDeleteItem'
           type: array
       produces:
       - application/json
@@ -5290,11 +5344,11 @@ paths:
         "200":
           description: All resources deleted successfully
           schema:
-            $ref: '#/definitions/http.BulkDeleteResponse'
+            $ref: '#/definitions/web.BulkDeleteResponse'
         "207":
           description: Partial success - some resources deleted, some failed
           schema:
-            $ref: '#/definitions/http.BulkDeleteResponse'
+            $ref: '#/definitions/web.BulkDeleteResponse'
         "400":
           description: Bad request - invalid JSON or empty items array
           schema:
@@ -5315,7 +5369,7 @@ paths:
             type: object
       summary: Bulk delete resources from public share
       tags:
-      - Shares
+      - Resources
   /public/api/resources/download:
     get:
       consumes:
@@ -5390,7 +5444,7 @@ paths:
             type: object
       summary: Download files from a public share
       tags:
-      - Shares
+      - Resources
   /public/api/resources/items:
     get:
       consumes:
@@ -5440,7 +5494,7 @@ paths:
             type: object
       summary: Get directory items (public share)
       tags:
-      - Shares
+      - Resources
   /public/api/resources/pause:
     post:
       consumes:
@@ -5477,7 +5531,7 @@ paths:
             type: object
       summary: Register graceful chunked upload pause (public share)
       tags:
-      - Shares
+      - Resources
   /public/api/resources/preview:
     get:
       consumes:
@@ -5497,7 +5551,7 @@ paths:
         required: true
         type: string
       - description: 'Preview size: ''small'' or ''large''. Default is based on server
-          config.'
+          settings.Config.'
         in: query
         name: size
         type: string
@@ -5534,7 +5588,93 @@ paths:
             type: object
       summary: Get image/video preview from a public share
       tags:
-      - Shares
+      - Resources
+  /public/api/resources/view:
+    get:
+      consumes:
+      - application/json
+      description: Returns raw file bytes for inline UI viewing on a share link. Requires
+        viewToken from GET /public/api/resources. Does not count toward download limits.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share
+        in: query
+        name: file
+        required: true
+        type: string
+      - description: Opaque view grant token from share file metadata
+        in: query
+        name: viewToken
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Raw file content (inline)
+          schema:
+            type: file
+        "403":
+          description: Missing or invalid view token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View a single non-media file from a public share inline
+      tags:
+      - Resources
+  /public/api/resources/view-token:
+    post:
+      consumes:
+      - application/json
+      description: Mints or extends a source-scoped view token for inline viewing.
+        Authenticated routes require a web session (not a named API token). Public
+        share routes accept anonymous users when the share allows it.
+      parameters:
+      - description: Source name or share hash
+        in: query
+        name: source
+        type: string
+      - description: Share hash (public share routes)
+        in: query
+        name: hash
+        type: string
+      - description: Existing view token to extend
+        in: query
+        name: viewToken
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.viewTokenResponse'
+        "403":
+          description: Missing permission or API token used
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh view token
+      tags:
+      - Resources
   /public/api/share/image:
     get:
       description: Returns a resizable preview (large size) for the banner or favicon
@@ -5599,7 +5739,7 @@ paths:
         "200":
           description: Share information
           schema:
-            $ref: '#/definitions/share.CommonShare'
+            $ref: '#/definitions/share.Share'
         "404":
           description: Share hash not found
           schema:
@@ -5609,12 +5749,12 @@ paths:
       summary: Get share information by hash
       tags:
       - Shares
-  /public/api/share/pinnedItems:
+  /public/api/share/pinned-items:
     patch:
       consumes:
       - application/json
-      description: Patches one pinned item at a time for share owners. Defaults to
-        add; pass ?action=remove to unpin.
+      description: Patches one pinned item at a time on a share. Defaults to add;
+        pass ?action=remove to unpin.
       parameters:
       - description: Share hash
         in: query
@@ -5630,7 +5770,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.sharePinnedItemPatchRequest'
+          $ref: '#/definitions/web.sharePinnedItemPatchRequest'
       produces:
       - application/json
       responses:
@@ -5649,7 +5789,7 @@ paths:
               type: string
             type: object
         "404":
-          description: Share not found
+          description: Not Found
           schema:
             additionalProperties:
               type: string
@@ -5662,5 +5802,5 @@ paths:
             type: object
       summary: Add or remove a pinned item on a share
       tags:
-      - Shares
+      - Share
 swagger: "2.0"

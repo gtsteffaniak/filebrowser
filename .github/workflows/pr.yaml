@@ -11,7 +11,7 @@ on:
 jobs:
   prime_docker_cache:
     name: Prime docker cache
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
             type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
   build_frontend:
     name: Build frontend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,10 +40,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: backend/http/dist
+          path: backend/internal/web/dist
   build_backend:
     name: Build backend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
   test_playwright:
     needs: [build_backend, build_frontend, prime_docker_cache]
     name: Test Playwright - ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     strategy:
       fail-fast: false
       matrix:
@@ -103,8 +103,8 @@ jobs:
         run: chmod +x backend/filebrowser
       - name: Copy frontend build to backend
         run: |
-          mkdir -p backend/http/embed
-          cp -r frontend/dist/* backend/http/embed
+          mkdir -p backend/internal/web/embed
+          cp -r frontend/dist/* backend/internal/web/embed
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
@@ -124,7 +124,7 @@ jobs:
             type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
   push_pr_to_registry:
     name: Build docker image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4

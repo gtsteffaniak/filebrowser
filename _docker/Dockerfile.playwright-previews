@@ -9,8 +9,8 @@ COPY [ "./frontend/tests", "./tests" ]
 
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser", "./"]
-RUN mkdir -p ./http/dist
-COPY [ "./backend/http/embed/", "./http/dist/"]
+RUN mkdir -p ./internal/web/dist
+COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 
 # Run tests
 ENV FILEBROWSER_PLAYWRIGHT_TEST=true

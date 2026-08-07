@@ -170,8 +170,12 @@ export default {
 }
 
 .settings-views .card {
-  border-style: solid;
+  border: var(--borderWidth) solid var(--divider);
   opacity: 1;
+}
+
+.settings-items {
+  margin-bottom: 0.5em;
 }
 
 .settings-items > .item {

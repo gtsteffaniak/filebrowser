@@ -5,11 +5,12 @@
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
         {{ $t("prompts.destinationSource") }}
       </label>
-      <select id="destinationSource" v-model="currentSource" @change="onSourceChange" class="input">
-        <option v-for="source in availableSources" :key="source" :value="source">
-          {{ source }}
-        </option>
-      </select>
+      <ExpandDropdown
+        input-id="destinationSource"
+        v-model="currentSource"
+        :options="sourceOptions"
+        :aria-label="$t('prompts.destinationSource')"
+      />
     </div>
 
     <!-- Current Path Display -->
@@ -58,6 +59,7 @@ import { url } from "@/utils";
 import { resourcesApi } from "@/api";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { sortedItems } from "@/utils/sort.js";
 
 export default {
@@ -65,6 +67,7 @@ export default {
   components: {
     ListingItem,
     LoadingSpinner,
+    ExpandDropdown,
   },
   props: {
     browseSource: {
@@ -149,6 +152,12 @@ export default {
     availableSources() {
       // Get all available sources from state.sources.info
       return state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
+    },
+    sourceOptions() {
+      return this.availableSources.map((source) => ({
+        value: source,
+        label: source,
+      }));
     },
     showSourceSelector() {
       if (this.hideDestinationSource) {
@@ -483,9 +492,6 @@ export default {
           base: this.current === this.path ? null : this.current,
         },
       });
-    },
-    onSourceChange() {
-      this.resetToSource(this.currentSource);
     },
     /**
      * Jump listing to a source/path (e.g. after PathPickerButton confirms).

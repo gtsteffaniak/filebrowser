@@ -6,6 +6,7 @@ import checker from "vite-plugin-checker";
 import { compression } from "vite-plugin-compression2";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
+const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
 
 const plugins = [
   vue(),
@@ -15,7 +16,7 @@ const plugins = [
   }),
   // Only compress in production builds
   !isDevBuild && compression({
-    include: /\.(js|woff2|woff)(\?.*)?$/i,
+    include: /\.(js|woff2|woff)(\?|$)/i,
     deleteOriginalAssets: true,
   }),
   // Disable checker in watch mode to prevent task failures
@@ -44,6 +45,8 @@ export default defineConfig(() => {
       __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
     },
     build: {
+      outDir: backendWebDist,
+      emptyOutDir: true,
       // Optimize for watch mode stability
       watch: isDevBuild ? {
         // Add buildDelay to batch multiple changes
@@ -56,7 +59,23 @@ export default defineConfig(() => {
         input: {
           index: path.resolve(__dirname, "./public/index.html"),
         },
-        output: {},
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules/highlight.js")) {
+              return "highlightjs";
+            }
+            if (id.includes("node_modules/mammoth")) {
+              return "mammoth";
+            }
+            if (id.includes("node_modules/jszip")) {
+              return "jszip";
+            }
+            if (id.includes("node_modules/epubjs")) {
+              return "epubjs";
+            }
+            return undefined;
+          },
+        },
         // Better error handling in watch mode
         onwarn(warning, warn) {
           // Suppress certain warnings in dev mode

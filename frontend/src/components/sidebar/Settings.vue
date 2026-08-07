@@ -1,7 +1,7 @@
 <template>
   <div v-if="isMobile" class="card item clickable settings-card" @click="closeSettings">
-    <span>
-      <span class="material-symbols-outlined">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+    <span class="settings-item-content">
+      <span class="material-symbols-outlined settings-icon">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       {{ $t("general.exit") }}
     </span>
   </div>
@@ -12,7 +12,7 @@
     }">
     <span v-if="shouldShow(setting)" class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
-      {{ $t(setting.label) }}
+      {{ settingLabel(setting) }}
     </span>
   </div>
 </template>
@@ -51,6 +51,18 @@ export default {
         void router.push({ path: "/settings", hash: `#${view}` }, () => {});
       } else {
         mutations.setActiveSettingsView(view);
+      }
+    },
+    settingLabel(setting) {
+      switch (setting.id) {
+        case "profile":
+          return this.$t("general.profileSettings");
+        case "shares":
+          return this.$t("general.shareSettings");
+        case "users":
+          return this.$t("general.userManagement");
+        default:
+          return this.$t(setting.label);
       }
     },
   },

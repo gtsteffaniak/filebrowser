@@ -26,6 +26,7 @@
         :placeholder="$t('sidebar.chooseSource')"
         @navigate="onPathPickerNavigate"
       />
+      <ActivityViewerButton :href="activityViewerHref" />
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
@@ -41,15 +42,19 @@
       </div>
       <!-- Add Form -->
       <div class="form-flex-group">
-        <select class="input flat-right form-compact" v-model="addType">
-          <option value="user">{{ $t("general.user") }}</option>
-          <option value="group">{{ $t("general.group") }}</option>
-          <option value="all">{{ $t("access.all") }}</option>
-        </select>
-        <select v-if="addType !== 'all'" class="input flat-right flat-left form-compact" v-model="addListType">
-          <option value="deny">{{ $t("access.deny") }}</option>
-          <option value="allow">{{ $t("access.allow") }}</option>
-        </select>
+        <ExpandDropdown
+          v-model="addType"
+          class="flat-right form-compact"
+          :options="addTypeOptions"
+          :aria-label="$t('access.userGroup')"
+        />
+        <ExpandDropdown
+          v-if="addType !== 'all'"
+          v-model="addListType"
+          class="flat-right flat-left form-compact"
+          :options="addListTypeOptions"
+          :aria-label="$t('access.allowDeny')"
+        />
         <input v-if="addType !== 'all'" class="input flat-right flat-left form-grow form-compact" v-model="addName"
           :placeholder="$t('access.enterName')" list="group-suggestions" />
         <datalist id="group-suggestions">
@@ -70,7 +75,7 @@
           <tr>
             <th>{{ $t("access.allowDeny") }}</th>
             <th>{{ $t("access.userGroup") }}</th>
-            <th>{{ $t("general.name", { suffix: '' }) }}</th>
+            <th>{{ $t("general.name") }}</th>
             <th>{{ $t("general.edit") }}</th>
           </tr>
           <tr v-for="entry in entries" :key="`${entry.type}-${entry.name}`">
@@ -110,11 +115,21 @@ import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "access",
-  components: { FileList, ToggleSwitch, LoadingSpinner, PathPickerButton },
+  components: {
+    FileList,
+    ToggleSwitch,
+    LoadingSpinner,
+    PathPickerButton,
+    ExpandDropdown,
+    ActivityViewerButton,
+  },
   props: {
     sourceName: { type: String, required: true },
     path: { type: String, required: true, default: "/" }
@@ -140,6 +155,19 @@ export default {
     };
   },
   computed: {
+    addTypeOptions() {
+      return [
+        { value: "user", label: this.$t("general.user") },
+        { value: "group", label: this.$t("general.group") },
+        { value: "all", label: this.$t("access.all") },
+      ];
+    },
+    addListTypeOptions() {
+      return [
+        { value: "deny", label: this.$t("access.deny") },
+        { value: "allow", label: this.$t("access.allow") },
+      ];
+    },
     entries() {
       /** @type {{allow: boolean, type: "user" | "group" | "all", name: string}[]} */
       const entries = [];
@@ -159,7 +187,10 @@ export default {
         entries.push({ allow: true, type: "group", name });
       });
       return entries;
-    }
+    },
+    activityViewerHref() {
+      return activityViewerPresets.access(this.currentSource, this.currentPath);
+    },
   },
   async mounted() {
     await this.fetchRule();
@@ -201,6 +232,7 @@ export default {
           this.originalPath = this.tempPath;
           this.currentPath = this.tempPath;
           this.currentSource = this.tempSource;
+          this.pathExists = true;
           this.isEditingPath = false;
           this.isReassigningPath = false;
           await this.fetchRule();
@@ -271,6 +303,7 @@ export default {
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
+        notify.showError(e);
         console.error(e);
       }
     },
@@ -296,6 +329,7 @@ export default {
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
+        notify.showError(e);
         console.error(e);
       }
     },

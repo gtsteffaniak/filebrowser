@@ -1,6 +1,8 @@
 *.db
 *.db.old
-*.sqlite
+# Playwright settings migration fixture (BoltDB → SQLite tests + Docker settings image)
+!_docker/src/settings/backend/database.db.old
+*.sqlite**
 *.bak
 *.log
 *.mjs
@@ -21,6 +23,8 @@ frontend/tsconfig.tsbuildinfo
 /frontend/playwright-files
 /frontend/screenshots
 /frontend/generated
+frontend/.venv-icons
+frontend/.tmp-icons-*
 /frontend/tests/playwright-files/demo*
 /frontend/loginAuth.json
 /frontend/sharePrepStorage.json
@@ -29,8 +33,8 @@ frontend/tsconfig.tsbuildinfo
 /backend/*test_config.yaml
 /backend/generated.yaml
 /backend/srv
-/backend/http/dist
-/backend/http/embed
+/backend/internal/web/dist
+/backend/internal/web/embed
 /backend/debug
 
 .DS_Store

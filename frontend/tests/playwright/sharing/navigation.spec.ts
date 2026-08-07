@@ -29,7 +29,7 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors }) => {
       throw new Error("Share hash not found in localStorage");
     }
 
-    await page.goto(`/share/${shareHash}`);
+    await page.goto(`/public/share/${shareHash}`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
     await page.dblclick('a[aria-label="testdata"]');
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
@@ -38,5 +38,5 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors }) => {
     const spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
     expect(spanChildrenCount).toBe(1);
 
-    checkForErrors(0,1); // redirect errors are expected and 404 for blank preview
+    checkForErrors();
   });

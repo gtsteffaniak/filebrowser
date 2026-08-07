@@ -1,6 +1,8 @@
+import { setActiveViewGrantScope } from "@/api/viewToken.js";
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
-import * as i18n from "@/i18n";
+import { getEnforcedUserDefaults } from "@/api/settings";
+import { detectLocale, setLocale } from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
@@ -404,6 +406,7 @@ export const mutations = {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
         state.user = value;
+        state.enforcedUserDefaults = {};
         emitStateChanged();
         return;
       }
@@ -412,10 +415,9 @@ export const mutations = {
       }
       // Ensure locale exists and is valid
       if (!value.locale) {
-        value.locale = i18n.detectLocale();
-      } else {
-        await i18n.setLocale(value.locale);
+        value.locale = detectLocale();
       }
+      await setLocale(value.locale);
       state.user = value;
       state.user.sorting = {};
       state.user.sorting.by = "name";
@@ -474,6 +476,24 @@ export const mutations = {
 
     } catch (_error) {
       // Silently ignore errors when loading preferences
+    }
+    emitStateChanged();
+  },
+  syncEnforcedUserDefaults: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.enforcedUserDefaults = {};
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await getEnforcedUserDefaults();
+      state.enforcedUserDefaults = data.enforced || {};
+    } catch {
+      state.enforcedUserDefaults = {};
     }
     emitStateChanged();
   },
@@ -592,36 +612,71 @@ export const mutations = {
 
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
-      await i18n.setLocale(state.user.locale);
-      i18n.default.locale = state.user.locale;
+      await setLocale(state.user.locale);
       localStorage.setItem("userLocale", state.user.locale);
     }
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      // Only update the properties that were actually provided in the input
-      const updatedProperties = Object.keys(value).filter(key =>
-        [
-          "locale",
-          "dateFormat",
-          "themeColor",
-          "quickDownload",
-          "preview",
-          "stickySidebar",
-          "singleClick",
-          "darkMode",
-          "showHidden",
-          "sorting",
-          "showFirstLogin",
-          "sidebarLinks",
-          "fileLoading",
-          "deleteAfterArchive",
-          "preferEditorForMarkdown",
-        ].includes(key)
+      const syncableProperties = [
+        "locale",
+        "dateFormat",
+        "themeColor",
+        "customTheme",
+        "quickDownload",
+        "preview",
+        "stickySidebar",
+        "singleClick",
+        "darkMode",
+        "showHidden",
+        "sorting",
+        "showFirstLogin",
+        "sidebarLinks",
+        "showToolsInSidebar",
+        "fileLoading",
+        "deleteAfterArchive",
+        "deleteWithoutConfirming",
+        "preferEditorForMarkdown",
+        "disablePreviewExt",
+        "disableViewingExt",
+        "disableOnlyOfficeExt",
+        "hideFileExt",
+        "disableQuickToggles",
+        "disableSearchOptions",
+        "hideSidebarFileActions",
+        "showCopyPath",
+        "hideFilesInTree",
+        "editorQuickSave",
+        "showSelectMultiple",
+        "debugOffice",
+        "disableUpdateNotifications",
+      ];
+      const updatedProperties = Object.keys(value).filter(
+        (key) =>
+          syncableProperties.includes(key) &&
+          JSON.stringify(getObjectProperty(previousUser, key)) !==
+            JSON.stringify(getObjectProperty(value, key)),
       );
-      value.id = state.user.id;
-      value.username = state.user?.username;
       if (updatedProperties.length > 0) {
-        void usersApi.update(value, updatedProperties).catch((e) => notify.showError(e));
+        try {
+          await usersApi.update(state.user, updatedProperties);
+        } catch (e) {
+          state.user = { ...previousUser };
+          if (
+            value.locale !== undefined &&
+            value.locale !== previousUser.locale
+          ) {
+            const prevLocale = previousUser.locale || "en";
+            await setLocale(prevLocale);
+            if (previousUser.locale) {
+              localStorage.setItem("userLocale", previousUser.locale);
+            } else {
+              localStorage.removeItem("userLocale");
+            }
+          }
+          notify.showError(e);
+          emitStateChanged();
+          throw e;
+        }
       }
     }
     // Emit state change event
@@ -632,6 +687,7 @@ export const mutations = {
     mutations.setMultiple(false);
     if (!value?.items) {
       state.req = value;
+      setActiveViewGrantScope(value?.source ?? "");
       emitStateChanged();
       return
     }
@@ -649,9 +705,22 @@ export const mutations = {
       item.index = index;
     });
     state.req = value;
+    setActiveViewGrantScope(value?.source ?? "");
     emitStateChanged();
   },
-  /** Merge media metadata into current directory listing (state.req.items) by file name. */
+  patchListingMetadata: (items, metadataMap, mergeForPath = null) => {
+    if (!items?.length || !metadataMap?.size) {
+      return;
+    }
+    for (const item of items) {
+      if (!metadataMap.has(item.name)) continue;
+      const metadata = metadataMap.get(item.name);
+      item.metadata = item.path === mergeForPath
+        ? { ...metadata, ...item.metadata }
+        : metadata;
+    }
+    emitStateChanged();
+  },
   patchRequestMetadata: (metadataItems) => {
     if (!state.req?.items || !metadataItems?.length) {
       return;
@@ -662,12 +731,7 @@ export const mutations = {
         byName.set(e.name, e.metadata);
       }
     }
-    for (const item of state.req.items) {
-      if (byName.has(item.name)) {
-        item.metadata = byName.get(item.name);
-      }
-    }
-    emitStateChanged();
+    mutations.patchListingMetadata(state.req.items, byName);
   },
   /** Merge media fields from GET /api/media/metadata (single file). Replace req object so Vue watchers see the update. */
   patchRequestFileMediaMetadata: (enriched) => {
@@ -690,6 +754,13 @@ export const mutations = {
       next.hasPreview = enriched.hasPreview;
     }
     state.req = next;
+    emitStateChanged();
+  },
+  setRequestViewToken: (viewToken) => {
+    if (!state.req || !viewToken || state.req.viewToken === viewToken) {
+      return;
+    }
+    state.req = { ...state.req, viewToken };
     emitStateChanged();
   },
   clearRequest: () => {
@@ -878,7 +949,10 @@ export const mutations = {
       state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
 
       if (getTypeInfo(item.type).simpleType === "image") {
-        state.navigation.previousRaw = mutations.getPrefetchUrl(item);
+        const prefetch = mutations.getPrefetchUrl(item);
+        if (prefetch) {
+          state.navigation.previousRaw = prefetch;
+        }
       }
       break;
     }
@@ -892,7 +966,10 @@ export const mutations = {
       state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
 
       if (getTypeInfo(item.type).simpleType === "image") {
-        state.navigation.nextRaw = mutations.getPrefetchUrl(item);
+        const prefetch = mutations.getPrefetchUrl(item);
+        if (prefetch) {
+          state.navigation.nextRaw = prefetch;
+        }
       }
       break;
     }
@@ -911,18 +988,23 @@ export const mutations = {
     }
   },
   getPrefetchUrl: (item) => {
+    const viewToken = item.viewToken;
+    const typeHint = item.type || item.name;
     if (getters.isShare()) {
-      return resourcesApi.getDownloadURLPublic(
+      return resourcesApi.getViewURL(
+        item.source,
+        item.path,
+        viewToken,
         {
           path: item.path,
           hash: state.shareInfo.hash,
           token: state.shareInfo.token,
         },
-        [item.path],
-        true,
+        false,
+        typeHint,
       );
     }
-    return resourcesApi.getDownloadURL(item.source, item.path, true);
+    return resourcesApi.getViewURL(item.source, item.path, viewToken, null, false, typeHint);
   },
   setNavigationShow: (show) => {
     if (state.navigation.show === show) {
@@ -930,6 +1012,37 @@ export const mutations = {
     }
     state.navigation.show = show;
     emitStateChanged();
+  },
+  /** Briefly reveal prev/next chrome (e.g. edge tap on video while gestures capture the event). */
+  peekNavigationChrome: (side = null) => {
+    if (!state.navigation.enabled) {
+      return;
+    }
+    const queueNav = getters.isPreviewPlaybackQueueNavMode();
+    const hasPrevious = queueNav
+      ? getters.playbackQueueCanGoPrevious()
+      : Boolean(state.navigation.previousLink);
+    const hasNext = queueNav
+      ? getters.playbackQueueCanGoNext()
+      : Boolean(state.navigation.nextLink);
+    if (side === 'left' && !hasPrevious) {
+      return;
+    }
+    if (side === 'right' && !hasNext) {
+      return;
+    }
+    if (!side && !hasPrevious && !hasNext) {
+      return;
+    }
+    mutations.setNavigationShow(true);
+    mutations.clearNavigationTimeout();
+    const hideTimer = setTimeout(() => {
+      if (!state.navigation.hoverNav) {
+        mutations.setNavigationShow(false);
+      }
+      mutations.clearNavigationTimeout();
+    }, 3000);
+    mutations.setNavigationTimeout(hideTimer);
   },
   setNavigationHover: (hover) => {
     if (state.navigation.hoverNav === hover) {
@@ -1006,10 +1119,19 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setPlaybackQueue: (payload) => {
-    state.playbackQueue.queue = payload.queue || [];
-    state.playbackQueue.currentIndex = payload.currentIndex ?? -1;
-    state.playbackQueue.mode = payload.mode || 'single';
+  setPlaybackQueue: (playback) => {
+    state.playbackQueue.queue = playback.queue || [];
+    state.playbackQueue.currentIndex = playback.currentIndex ?? -1;
+    state.playbackQueue.mode = playback.mode || 'single';
+    state.playbackQueue.loop = playback.loop || 'off';
+    try {
+      sessionStorage.setItem('playbackQueue', JSON.stringify({
+        queue: state.playbackQueue.queue,
+        currentIndex: state.playbackQueue.currentIndex,
+        mode: state.playbackQueue.mode,
+        loop: state.playbackQueue.loop,
+      }));
+    } catch (_) { /* ignore */ }
     emitStateChanged();
   },
   setPlaybackState: (isPlaying) => {
@@ -1027,61 +1149,22 @@ export const mutations = {
     mutations.replaceRequest(item);
     emitStateChanged();
   },
-  /**
-   * Move playback queue by one step (same rules as next/previous nav buttons).
-   * @param {number} delta -1 = previous, 1 = next
-   * @returns {object|null} The destination queue item, or null if navigation is not allowed
-   */
-  navigatePlaybackQueueRelative: (delta) => {
-    if (delta !== -1 && delta !== 1) {
-      return null;
-    }
-    const queue = state.playbackQueue.queue || [];
-    const currentIndex = state.playbackQueue.currentIndex ?? -1;
-    const mode = state.playbackQueue.mode || 'single';
-    if (queue.length === 0 || currentIndex < 0) {
-      return null;
-    }
-    let newIndex = currentIndex + delta;
-    if (delta === -1) {
-      if (newIndex < 0) {
-        if (mode === 'loop-all' || mode === 'shuffle') {
-          newIndex = queue.length - 1;
-        } else {
-          return null;
-        }
-      }
-    } else if (newIndex >= queue.length) {
-      if (mode === 'loop-all' || mode === 'shuffle') {
-        newIndex = 0;
-      } else {
-        return null;
-      }
-    }
-    const item = queue.at(newIndex);
-    if (!item) {
-      return null;
-    }
-    mutations.navigateToQueueIndex(newIndex);
-    return item;
-  },
   togglePlayPause: () => {
     state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
     emitStateChanged();
   },
   setShareInfo: (shareInfo) => {
-   // Merge with existing state
-   const merged = { ...state.shareInfo, ...shareInfo };
-   if (shareInfo.token === undefined && state.shareInfo.token) {
-     merged.token = state.shareInfo.token;
-   }
-   if (shareInfo.passwordValid === undefined && state.shareInfo.passwordValid !== undefined) {
-     merged.passwordValid = state.shareInfo.passwordValid;
-   }
-   if (JSON.stringify(merged) === JSON.stringify(state.shareInfo)) {
-     return;
-   }
-   state.shareInfo = merged;
+    const merged = { ...state.shareInfo, ...shareInfo };
+    if (shareInfo.token === undefined && state.shareInfo.token) {
+      merged.token = state.shareInfo.token;
+    }
+    if (shareInfo.passwordValid === undefined && state.shareInfo.passwordValid !== undefined) {
+      merged.passwordValid = state.shareInfo.passwordValid;
+    }
+    if (JSON.stringify(merged) === JSON.stringify(state.shareInfo)) {
+      return;
+    }
+    state.shareInfo = merged;
     updateManifestLink();
     emitStateChanged();
   },

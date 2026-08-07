@@ -1,6 +1,6 @@
 <template>
   <!-- Unified preview container for all types -->
-  <span v-if="hasPreviewImage || shouldUse3DPreview" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+  <span v-if="hasPreviewImage || (shouldUse3DPreview && !threeJsError)" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <!-- Overlay icons (folder/animation) positioned top-left -->
     <i v-if="hasPreviewImage && hasMotion && isFile" class="material-symbols-outlined overlay-icon">animation</i>
     <i v-else-if="hasPreviewImage && !isFile" class="material-symbols overlay-icon">folder</i>
@@ -14,7 +14,9 @@
         path: path,
         source: source,
         size: size,
-        type: mimetype
+        type: mimetype,
+        viewToken: viewToken,
+        parentDirItems: parentDirItemsForPreview,
       }"
       :is-thumbnail="true"
       :add-load-delay="true"
@@ -29,18 +31,18 @@
 </template>
 
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { fetchPreviewImage } from "@/api/resources";
 import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty } from '@/utils/object.js';
 import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
-import ThreeJs from "@/views/files/ThreeJs.vue";
 
 export default {
   name: "Icon",
   components: {
-    ThreeJs,
+    ThreeJs: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
   },
   props: {
     filename: {
@@ -89,6 +91,10 @@ export default {
     isDir: {
       type: Boolean,
       default: false,
+    },
+    viewToken: {
+      type: String,
+      default: "",
     },
   },
   data() {
@@ -235,6 +241,17 @@ export default {
       const typeInfo = this.getIconForType();
       return typeInfo.simpleType === '3d-model';
     },
+    /** Directory listing items for sibling viewToken lookup in 3D previews. */
+    parentDirItemsForPreview() {
+      const req = state.req;
+      if (!req) {
+        return undefined;
+      }
+      if (req.type === "directory" && req.items?.length) {
+        return req.items;
+      }
+      return req.parentDirItems;
+    },
     gallerySizeKey() {
       // Returns gallery size to force 3D preview re-initialization on size change
       // Also includes view mode to handle view changes
@@ -334,6 +351,8 @@ export default {
             source,
             size: this.size,
             type: this.mimetype,
+            viewToken: this.viewToken,
+            parentDirItems: this.parentDirItemsForPreview,
           },
         };
         return;

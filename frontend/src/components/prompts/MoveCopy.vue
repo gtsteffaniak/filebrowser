@@ -47,7 +47,7 @@
       <span>{{ $t("files.newFolder") }}</span>
     </button>
     <input v-if="showNewDirInput" ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
-    v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
+    v-model.trim="newDirName" :placeholder="$t('files.newFolderMessage')" @keydown.enter="handleEnter" />
     <button
       type="button"
       v-else :disabled="destContainsSrc"
@@ -75,7 +75,7 @@ import { mutations, state, getters } from "@/store";
 import FileList from "../files/FileList.vue";
 import { resourcesApi } from "@/api";
 import buttons from "@/utils/buttons";
-import * as upload from "@/utils/upload";
+import { checkConflict } from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import {
@@ -144,8 +144,9 @@ export default {
       return this.destPath.startsWith(`${itemPath}/`) || this.destPath === itemPath;
     },
     canCreateFolder() {
-      const perms = getters.permissions();
-      return !!perms?.create;
+      const destSource =
+        this.destSource || this.localItems[0]?.fromSource || state.req?.source;
+      return getters.canCreateInSource(destSource);
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);
@@ -308,7 +309,7 @@ export default {
         } else {
           dstResp = await resourcesApi.fetchFiles(this.destSource, this.destPath);
         }
-        conflict = upload.checkConflict(itemsToProcess, dstResp.items);
+        conflict = checkConflict(itemsToProcess, dstResp.items);
         let overwrite = false;
         let rename = false;
         let result = null;

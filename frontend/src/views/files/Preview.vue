@@ -5,8 +5,8 @@
       <LoadingSpinner size="medium" />
     </div>
     <div class="preview" :class="{
-      'plyr-background-light': !isDarkMode && previewType === 'audio' && !useDefaultMediaPlayer,
-      'plyr-background-dark': isDarkMode && previewType === 'audio' && !useDefaultMediaPlayer,
+      'plyr-background-light': !isDarkMode && previewType === 'audio',
+      'plyr-background-dark': isDarkMode && previewType === 'audio',
       'transitioning': isTransitioning
     }" v-if="!isDeleted">
       <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
@@ -26,10 +26,9 @@
           :lyrics="lyrics"
           :req="req"
           :listing="listing"
-          :useDefaultMediaPlayer="useDefaultMediaPlayer"
           :autoPlayEnabled="autoPlay"
           @play="autoPlay = true"
-          :class="{ 'plyr-background': previewType === 'audio' && !useDefaultMediaPlayer }"
+          :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
           @close-preview="exitPreviewFromImageGesture"
@@ -51,7 +50,7 @@
               <i class="material-symbols">file_download</i>{{ $t("general.download") }}
             </div>
           </a>
-          <a target="_blank" :href="raw" class="button button--flat" v-if="req.type !== 'directory'">
+          <a target="_blank" :href="openFileUrl" class="button button--flat" v-if="req.type !== 'directory'">
             <div>
               <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
             </div>
@@ -66,23 +65,27 @@
   </div>
 </template>
 <script>
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { resourcesApi, mediaApi } from "@/api";
-import { url } from "@/utils";
-import ExtendedImage from "@/components/files/ExtendedImage.vue";
-import plyrViewer from "@/views/files/plyrViewer.vue";
+import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
+import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
 import { isRawImageMimeType } from "@/utils/mimetype";
 import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
-import { replaceRouteForPlaybackQueueStep } from "@/utils/previewPlaybackQueueNav.js";
+import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import {
+  hasActiveSession as hasActivePipSession,
+  pendingInlineResumeFor,
+} from "@/plyr/pipSession.js";
 
 export default {
   name: "preview",
   components: {
-    ExtendedImage,
-    plyrViewer,
     LoadingSpinner,
+    ExtendedImage: createAsyncComponent(() => import('@/components/files/ExtendedImage.vue')),
+    plyrViewer: createAsyncComponent(() => import('@/views/files/plyrViewer.vue')),
   },
   data() {
     return {
@@ -98,26 +101,24 @@ export default {
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
+      listingKey: null,
     };
   },
   computed: {
     permissions() {
-      return getters.permissions();
+      return getters.sourcePermissions();
     },
     showImage() {
       if (state.req.type === "image/heic" || state.req.type === "image/heif") {
         return this.isHeicAndViewable;
       }
       if (isRawImageMimeType(state.req.type)) {
-        return globalVars.exiftoolAvailable === true;
+        return true;
       }
       return this.previewType === 'image' || this.pdfConvertable;
     },
     autoPlay() {
       return getters.previewPerms().autoplayMedia;
-    },
-    useDefaultMediaPlayer() {
-      return getters.previewPerms().defaultMediaPlayer === true;
     },
     isMobileSafari() {
       const userAgent = window.navigator.userAgent;
@@ -126,10 +127,9 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
-    // Viewable when we can get embedded/original preview: (media + heic conversion) or exiftool, or Safari native
+    // Viewable when we can get embedded/original preview: (media + heic conversion) or Safari native
     isHeicAndViewable() {
       if (state.isSafari) return true;
-      if (globalVars.exiftoolAvailable) return true;
       if (globalVars.mediaAvailable && globalVars.enableHeicConversion) return true;
       return false;
     },
@@ -170,24 +170,33 @@ export default {
       return state.req.type === 'application/pdf';
     },
     raw() {
+      const viewToken = state.req.viewToken;
+      const typeHint = state.req.type || state.req.name;
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
 
       if (state.isSafari && isHeicOrHeif) {
         if (getters.isShare()) {
-          return resourcesApi.getDownloadURLPublic(
-            { path: state.shareInfo.subPath, hash: state.shareInfo.hash, token: state.shareInfo.token },
-            [state.req.path],
-            true,
+          return resourcesApi.getViewURL(
+            state.req.source,
+            state.req.path,
+            viewToken,
+            {
+              path: state.shareInfo.subPath,
+              hash: state.shareInfo.hash,
+              token: state.shareInfo.token,
+            },
+            false,
+            typeHint,
           );
         }
-        return resourcesApi.getDownloadURL(state.req.source, state.req.path, true);
+        return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
       }
 
-      const getRawPreview = isRawImageMimeType(state.req.type) && globalVars.exiftoolAvailable;
-      const getHeicPreview = isHeicOrHeif && ((globalVars.mediaAvailable && globalVars.enableHeicConversion) || globalVars.exiftoolAvailable);
+      const getRawPreview = isRawImageMimeType(state.req.type);
+      const getHeicPreview = isHeicOrHeif && globalVars.mediaAvailable && globalVars.enableHeicConversion;
       if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
-          const previewPath = url.removeTrailingSlash(state.req.path);
+          const previewPath = removeTrailingSlash(state.req.path);
           return resourcesApi.getPreviewURLPublic(previewPath, "original");
         }
         return (
@@ -199,21 +208,20 @@ export default {
         );
       }
       if (getters.isShare()) {
-        return resourcesApi.getDownloadURLPublic(
+        return resourcesApi.getViewURL(
+          state.req.source,
+          state.req.path,
+        viewToken,
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
           },
-          [state.req.path],
-          true,
+          false,
+          typeHint,
         );
       }
-      return resourcesApi.getDownloadURL(
-        state.req.source,
-        state.req.path,
-        true,
-      );
+      return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -230,6 +238,20 @@ export default {
         );
       }
       return resourcesApi.getDownloadURL(state.req.source, state.req.path);
+    },
+    openFileUrl() {
+      if (getters.isShare()) {
+        return resourcesApi.getOpenFileURL(
+          state.req.source,
+          state.req.path,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
+          },
+        );
+      }
+      return resourcesApi.getOpenFileURL(state.req.source, state.req.path);
     },
     isTransitioning() {
       return state.navigation.isTransitioning;
@@ -257,25 +279,70 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
+    this.$refs.plyrViewer?.destroyPlyr?.();
     // Clear navigation state when leaving preview
     mutations.clearNavigation();
   },
   methods: {
+    async attachDirMediaMetadata(listing, dirPath) {
+      if (!listing?.length) return;
+      try {
+        const isShare = getters.isShare();
+        const metaMap = isShare
+          ? await mediaApi.getDirectoryMetadataMap(dirPath, {
+              isShare: true,
+              hash: state.shareInfo.hash,
+              password: localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '',
+            })
+          : await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
+        if (this.listing !== listing) return;
+        mutations.patchListingMetadata(listing, metaMap, state.req.path);
+      } catch (e) {
+        console.warn('dir items metadata fetch failed', e);
+      }
+    },
+    listingContextKey(directoryPath) {
+      return getters.isShare()
+        ? `share:${state.shareInfo?.hash || ""}:${directoryPath}`
+        : `source:${state.req.source || ""}:${directoryPath}`;
+    },
     async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
       }
       this.isDeleted = false;
+      const currentDirectoryPath = removeLastDir(state.req.path) || '/';
+      const currentListingKey = this.listingContextKey(currentDirectoryPath);
+      if (this.listingKey !== currentListingKey) {
+        this.listing = null;
+      }
+
+      const path = state.req.path;
+      if (
+        state.req.type !== "directory"
+        && !getters.fileViewingDisabled(state.req.name)
+      ) {
+        const viewIdentity = requestViewIdentity(state.req);
+        try {
+          const viewToken = await ensureViewToken(state.req.source);
+          if (viewToken && requestViewIdentity(state.req) === viewIdentity) {
+            mutations.setRequestViewToken(viewToken);
+          }
+        } catch (err) {
+          console.warn("Failed to refresh view token for preview:", err);
+        }
+      }
 
       if (!this.listing || this.listing === "undefined") {
         if (state.req.parentDirItems) {
           this.listing = state.req.parentDirItems;
+          this.listingKey = currentListingKey;
         } else if (state.req.items) {
           this.listing = state.req.items;
+          this.listingKey = currentListingKey;
         }
       }
 
-      const path = state.req.path;
       const isAv =
         !getters.fileViewingDisabled(state.req.name) &&
         state.req.type !== "directory" &&
@@ -286,9 +353,14 @@ export default {
         this.mediaEnrichDoneForPath = null;
         this.lyricsFetchedForPath = null;
       } else {
+        const pipHandoffForThisFile =
+          hasActivePipSession(state.req.source, state.req.path)
+          || pendingInlineResumeFor(state.req.source, state.req.path);
         if (this.mediaEnrichDoneForPath !== path) {
           this.mediaEnrichDoneForPath = path;
-          this.avMetadataLoading = true;
+          if (!pipHandoffForThisFile) {
+            this.avMetadataLoading = true;
+          }
           try {
             await this.enrichAvFromMediaApi(path);
             if (state.req.path !== path) {
@@ -307,8 +379,13 @@ export default {
       if (state.req.path !== path) {
         return;
       }
+      await this.updatePreview();
+      if (isAv && this.listing) {
+        const directoryPath = removeLastDir(state.req.path) || '/';
+        await this.attachDirMediaMetadata(this.listing, directoryPath);
+      }
       this.subtitlesList = await this.subtitles();
-      if (this.previewType === 'audio' && !this.useDefaultMediaPlayer && this.lyricsFetchedForPath !== state.req.path) {
+      if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
         this.lyricsFetchedForPath = state.req.path;
         if (state.req.metadata?.hasLyrics) {
           try {
@@ -327,7 +404,6 @@ export default {
           this.lyrics = [];
         }
       }
-      await this.updatePreview();
       mutations.resetSelected();
       mutations.addSelected({
         name: state.req.name,
@@ -450,12 +526,14 @@ export default {
       }
     },
     async updatePreview() {
-      let directoryPath = url.removeLastDir(state.req.path);
+      const expectedPath = state.req.path;
+      let directoryPath = removeLastDir(state.req.path);
 
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
         directoryPath = '/';
       }
+      const expectedListingKey = this.listingContextKey(directoryPath);
 
       if (!this.listing || this.listing === "undefined") {
         // Try to use pre-fetched parent directory items first
@@ -478,8 +556,10 @@ export default {
                 directoryPath,
               );
             }
+            if (state.req.path !== expectedPath || this.listingContextKey(directoryPath) !== expectedListingKey) return;
             this.listing = res.items;
           } catch (error) {
+            if (state.req.path !== expectedPath) return;
             console.error("error Preview.vue", error);
             this.listing = [state.req];
           }
@@ -491,6 +571,7 @@ export default {
       if (!this.listing) {
         this.listing = [state.req];
       }
+      this.listingKey = this.listingContextKey(directoryPath);
       this.name = state.req.name;
 
       // Setup navigation using the new state management
@@ -502,21 +583,26 @@ export default {
     },
 
     prefetchUrl(item) {
+      const viewToken = item.viewToken || state.req.viewToken;
+      const typeHint = item.type || item.name;
       if (getters.isShare()) {
         return this.fullSize
-          ? resourcesApi.getDownloadURLPublic(
+          ? resourcesApi.getViewURL(
+              state.req.source,
+              item.path,
+              viewToken,
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
                 token: state.shareInfo?.token,
-                inline: true,
               },
-              [item.path],
+              false,
+              typeHint,
             )
           : resourcesApi.getPreviewURLPublic(item.path);
       }
       return this.fullSize
-        ? resourcesApi.getDownloadURL(state.req.source, item.path, true)
+        ? resourcesApi.getViewURL(state.req.source, item.path, viewToken, null, false, typeHint)
         : resourcesApi.getPreviewURL(
             state.req.source,
             item.path,
@@ -551,7 +637,7 @@ export default {
     },
     close() {
       mutations.replaceRequest({}); // Reset request data
-      const uri = `${url.removeLastDir(state.route.path)}/`;
+      const uri = `${removeLastDir(state.route.path)}/`;
       this.$router.push({ path: uri });
     },
     download() {
@@ -563,10 +649,7 @@ export default {
         if (!getters.playbackQueueCanGoPrevious()) {
           return;
         }
-        mutations.setNavigationTransitioning(true);
-        if (!replaceRouteForPlaybackQueueStep(this.$router, -1)) {
-          mutations.setNavigationTransitioning(false);
-        }
+        navigatePlaybackQueue(-1);
         return;
       }
       if (state.navigation.previousLink) {
@@ -579,10 +662,7 @@ export default {
         if (!getters.playbackQueueCanGoNext()) {
           return;
         }
-        mutations.setNavigationTransitioning(true);
-        if (!replaceRouteForPlaybackQueueStep(this.$router, 1)) {
-          mutations.setNavigationTransitioning(false);
-        }
+        navigatePlaybackQueue(1);
         return;
       }
       if (state.navigation.nextLink) {
@@ -594,7 +674,7 @@ export default {
     exitPreviewFromImageGesture() {
       mutations.closeHovers();
       if (state.previousHistoryItem?.name) {
-        url.goToItem(
+        goToItem(
           state.previousHistoryItem.source,
           state.previousHistoryItem.path,
           state.previousHistoryItem,
@@ -603,7 +683,7 @@ export default {
         );
         return;
       }
-      const parentPath = url.removeLastDir(state.route.path);
+      const parentPath = removeLastDir(state.route.path);
       this.$router.push({ path: parentPath });
     },
   },

@@ -138,7 +138,7 @@ export default {
       return this.isRootInstance ? this.rootNodes : this.nodes;
     },
     canModify() {
-      return getters.permissions().modify;
+      return getters.sourcePermissions().modify;
     },
     showFiles() {
       // Defaults to true

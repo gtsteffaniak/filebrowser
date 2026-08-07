@@ -65,6 +65,16 @@ button:disabled {
   color: #6f6f6f;
 }
 
+.button--settings-control {
+  width: 4em;
+  min-width: 4em;
+  max-width: 4em;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 50px;
+}
+
 .button[disabled] {
   opacity: .5;
   cursor: not-allowed;

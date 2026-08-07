@@ -8,10 +8,10 @@
 
 <script>
 import { defineComponent } from "vue";
-import * as mammoth from "mammoth";
 import { resourcesApi } from "@/api";
+import { ensureViewToken, refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { state, mutations, getters } from "@/store";
-import { url } from "@/utils";
+import { removeLastDir } from "@/utils/url.js";
 
 export default defineComponent({
   name: "DocxViewer",
@@ -100,7 +100,7 @@ export default defineComponent({
       }
 
       // Use same directory path calculation as Preview.vue
-      let directoryPath = url.removeLastDir(state.req.path);
+      let directoryPath = removeLastDir(state.req.path);
       
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
@@ -155,24 +155,80 @@ export default defineComponent({
         this.error = "";
         this.docxHtml = "";
 
+        const viewIdentity = requestViewIdentity(state.req);
+        let viewToken = state.req.viewToken;
+        try {
+          viewToken = await ensureViewToken(state.req.source);
+          if (requestViewIdentity(state.req) === viewIdentity) {
+            mutations.setRequestViewToken(viewToken);
+          }
+        } catch (err) {
+          console.warn("Failed to refresh view token for DOCX preview:", err);
+        }
+
         const downloadUrl = getters.isShare()
-          ? resourcesApi.getDownloadURLPublic({
-              path: state.shareInfo.subPath,
-              hash: state.shareInfo.hash,
-              token: state.shareInfo.token,
-            }, [state.req.path])
-          : resourcesApi.getDownloadURL(
+          ? resourcesApi.getViewURL(
               state.req.source,
               state.req.path,
+              viewToken,
+              {
+                path: state.shareInfo.subPath,
+                hash: state.shareInfo.hash,
+                token: state.shareInfo.token,
+              },
               false,
-              true
+              state.req.type || state.req.name,
+            )
+          : resourcesApi.getViewURL(
+              state.req.source,
+              state.req.path,
+              viewToken,
+              null,
+              false,
+              state.req.type || state.req.name,
             );
 
         if (!downloadUrl) {
           throw new Error("Could not retrieve a valid download URL from the API.");
         }
 
-        const response = await fetch(downloadUrl);
+        let response = await fetch(downloadUrl);
+
+        if (response.status === 403 && state.req?.source) {
+          try {
+            const refreshed = await refreshViewToken(state.req.source, viewToken);
+            viewToken = refreshed.viewToken;
+            if (requestViewIdentity(state.req) === viewIdentity) {
+              mutations.setRequestViewToken(viewToken);
+            }
+            const retryUrl = getters.isShare()
+              ? resourcesApi.getViewURL(
+                  state.req.source,
+                  state.req.path,
+                  viewToken,
+                  {
+                    path: state.shareInfo.subPath,
+                    hash: state.shareInfo.hash,
+                    token: state.shareInfo.token,
+                  },
+                  false,
+                  state.req.type || state.req.name,
+                )
+              : resourcesApi.getViewURL(
+                  state.req.source,
+                  state.req.path,
+                  viewToken,
+                  null,
+                  false,
+                  state.req.type || state.req.name,
+                );
+            if (retryUrl) {
+              response = await fetch(retryUrl);
+            }
+          } catch (refreshErr) {
+            console.warn("Failed to refresh view token after 403:", refreshErr);
+          }
+        }
 
         if (!response.ok) {
           throw new Error(`Failed to download file (Status: ${response.status})`);
@@ -184,7 +240,10 @@ export default defineComponent({
           throw new Error("Downloaded file is empty (0 bytes).");
         }
 
-        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const mammothModule = await import("mammoth");
+        const mammoth = mammothModule.default ?? mammothModule;
+        const { convertToHtml } = mammoth;
+        const result = await convertToHtml({ arrayBuffer });
         this.docxHtml = result.value;
       } catch (e) {
         this.error = e.message || "An unknown error occurred.";

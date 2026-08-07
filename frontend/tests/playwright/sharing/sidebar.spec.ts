@@ -61,8 +61,8 @@ test("edit previously created links and ensure they are updated", async ({ page,
     // add a new custom link
     await page.locator('.add-link-button').click()
     // select the custom link from the dropdown
-    await page.locator('.add-link-form select[aria-label="Link Type"]').click();
-    await page.locator('.add-link-form select[aria-label="Link Type"]').selectOption('custom');
+    await page.locator('.add-link-form button[aria-label="Link Type"]').click();
+    await page.getByRole('option', { name: 'Custom Link' }).click();
     await page.locator('.add-link-form input[aria-label="Link Name"]').fill('New Custom Link');
     await page.locator('.add-link-form input[aria-label="Link Target"]').fill('https://www.google.com');
     await page.locator('button[aria-label="Add Link"]').click();

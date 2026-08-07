@@ -5,7 +5,7 @@ import { getApiPath } from "@/utils/url.js";
 export async function validateLogin(isPublicRoute = false) {
   // Use direct fetch to avoid automatic logout on 401
   // Public routes (e.g. /public/share/...) use the public API base path
-  const apiPath = getApiPath('users', { id: 'self' }, false, isPublicRoute);
+  const apiPath = getApiPath('users', { username: 'self' }, false, isPublicRoute);
   const res = await fetch(apiPath, {
     credentials: 'same-origin', // Ensure cookies are sent with the request
     headers: {
@@ -33,8 +33,10 @@ export async function validateLogin(isPublicRoute = false) {
   }
   const userInfo = await res.json();
   await mutations.setCurrentUser(userInfo);
+  await mutations.syncEnforcedUserDefaults();
   getters.isLoggedIn()
-  if (state.user.loginMethod === "proxy") {
+  // Public share/static routes use the public API; proxy session cookie login is protected-only.
+  if (state.user.loginMethod === "proxy" && !isPublicRoute) {
     const apiPath = getApiPath("auth/login")
     const res = await fetch(apiPath, {
       method: "POST",

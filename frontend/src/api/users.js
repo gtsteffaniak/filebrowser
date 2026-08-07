@@ -17,13 +17,13 @@ export async function getAllUsers() {
   }
 }
 
-// GET /api/users or /public/api/users (get single user)
-export async function get(id) {
+// GET /public/api/users?username= (single user by login name)
+export async function get(username) {
   try {
-    const apiPath = getPublicApiPath('users', { id: id })
+    const apiPath = getPublicApiPath('users', { username })
     return await fetchJSON(apiPath)
   } catch (err) {
-    notify.showError(err.message || `Failed to fetch user with ID: ${id}`)
+    notify.showError(err.message || `Failed to fetch user: ${username}`)
     throw err
   }
 }
@@ -91,31 +91,35 @@ export async function create(user, options = {}) {
   }
 }
 
-// PUT /api/users (update user)
+// PATCH /api/users (update user)
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
 // options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
-export async function update(user, which = ['all'], options = {}) {
-  const excludeKeys = ['id', 'name']
-  which = which.filter(item => !excludeKeys.includes(item))
+export async function update(user, which, options = {}) {
+  if (!Array.isArray(which) || which.length === 0) {
+    throw new Error('users.update requires a non-empty which array of field names')
+  }
+
+  const excludeKeys = ['name', 'all']
+  which = which.filter(item => !excludeKeys.includes(String(item).toLowerCase()))
+  if (which.length === 0) {
+    throw new Error('users.update requires at least one field name in which')
+  }
   if (user.username === 'anonymous') {
     return
   }
 
   const mergedHeaders = { ...(options.headers || {}) }
 
-  let userData = user
-  if (which.length !== 1 || which[0] !== 'all') {
-    userData = {}
-    which.forEach(key => {
-      const value = getObjectProperty(user, key)
-      if (value !== undefined) {
-        userData = setObjectProperty(userData, key, value)
-      }
-    })
-  }
+  let userData = {}
+  which.forEach(key => {
+    const value = getObjectProperty(user, key)
+    if (value !== undefined) {
+      userData = setObjectProperty(userData, key, value)
+    }
+  })
 
-  const apiPath = getApiPath('users', { id: user.id })
+  const apiPath = getApiPath('users', { username: user.username })
   const body = JSON.stringify({
     which: which,
     data: userData
@@ -131,7 +135,7 @@ export async function update(user, which = ['all'], options = {}) {
 
   try {
     await fetchURL(apiPath, {
-      method: 'PUT',
+      method: 'PATCH',
       body,
       headers: mergedHeaders,
     })
@@ -168,10 +172,10 @@ export async function update(user, which = ['all'], options = {}) {
   }
 }
 
-// PATCH /api/users/pinnedItems (add by default; ?action=remove to unpin)
+// PATCH /api/users/pinned-items (add by default; ?action=remove to unpin)
 export async function patchPinnedItem({ source, path, name, action = 'add' }) {
   const params = { action }
-  const apiPath = getApiPath('users/pinnedItems', params)
+  const apiPath = getApiPath('users/pinned-items', params)
   await fetchURL(apiPath, {
     method: 'PATCH',
     body: JSON.stringify({ source, path, name }),
@@ -182,9 +186,9 @@ export async function patchPinnedItem({ source, path, name, action = 'add' }) {
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
 // options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
-export async function remove(id, options = {}) {
+export async function deleteUser(username, options = {}) {
   const mergedHeaders = { ...(options.headers || {}) }
-  const apiPath = getApiPath('users', { id: id })
+  const apiPath = getApiPath('users', { username: username })
 
   const needsActorPasswordRetry = (err) =>
     state.user?.loginMethod === 'password' &&
@@ -213,7 +217,7 @@ export async function remove(id, options = {}) {
           submitLabel: i18n.global.t('general.confirm'),
           submitCallback: async (actorPassword) => {
             try {
-              await remove(id, {
+              await deleteUser(username, {
                 ...options,
                 headers: {
                   ...mergedHeaders,

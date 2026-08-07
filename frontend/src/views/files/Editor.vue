@@ -1,5 +1,5 @@
 <template>
-  <div id="editor-container">
+  <div id="editor-container" :class="{ 'viewer-mode': viewerMode }">
     <div id="editor"></div>
   </div>
 </template>
@@ -7,7 +7,7 @@
 <script>
 import { state, getters, mutations } from "@/store";
 import { resourcesApi } from "@/api";
-import { url } from "@/utils";
+import {pathsMatch, removeLastDir } from "@/utils/url.js";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
@@ -46,10 +46,11 @@ export default {
     navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
     isPromptOpen: false, // Track if prompt is currently open for avoid navigation
     pendingNavigation: null, // Store pending navigation while prompt is open
+    viewerResizeObserver: null,
   }),
   computed: {
     permissions() {
-      return getters.permissions();
+      return getters.sourcePermissions();
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -70,8 +71,8 @@ export default {
       if (getters.isShare()) {
         const subPath = state.shareInfo?.subPath;
         if (subPath === undefined || subPath === null) return false;
-        if (!url.pathsMatch(this.req.path, subPath)) return false;
-        return url.pathsMatch(this.originalReq.path, this.req.path);
+        if (!pathsMatch(this.req.path, subPath)) return false;
+        return pathsMatch(this.originalReq.path, this.req.path);
       }
       if (!this.routeFilename) return false;
       return this.originalReq.name === this.routeFilename;
@@ -155,6 +156,13 @@ export default {
           this.isDirty = false;
           mutations.setEditorDirty(false);
         }
+        if (this.viewerMode) {
+          this.$nextTick(() => {
+            if (this.editor) {
+              this.editor.resize();
+            }
+          });
+        }
       }
     },
     // Update editor language mode
@@ -196,6 +204,11 @@ export default {
     this.setupNavigationGuard();
   },
   beforeUnmount() {
+    if (this.viewerResizeObserver) {
+      this.viewerResizeObserver.disconnect();
+      this.viewerResizeObserver = null;
+    }
+
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
 
@@ -218,6 +231,20 @@ export default {
     }
   },
   mounted: function () {
+    if (this.viewerMode) {
+      this.$nextTick(() => {
+        this.$nextTick(() => {
+          this.initializeEditor();
+          this.applyFontSize();
+          this.setupViewerResizeObserver();
+        });
+      });
+      this.$watch(() => state.editorFontSize, () => {
+        this.applyFontSize();
+      });
+      return;
+    }
+
     this.initializeEditor();
     this.originalReq = this.req;
 
@@ -230,6 +257,22 @@ export default {
     });
   },
   methods: {
+    setupViewerResizeObserver() {
+      if (!this.viewerMode || typeof ResizeObserver === "undefined") {
+        return;
+      }
+      this.viewerResizeObserver = new ResizeObserver(() => {
+        if (this.editor) {
+          this.editor.resize();
+        }
+      });
+      this.viewerResizeObserver.observe(this.$el);
+      this.$nextTick(() => {
+        if (this.editor) {
+          this.editor.resize();
+        }
+      });
+    },
     initializeNavigation() {
       if (!this.req || this.req.type === 'directory') {
         return;
@@ -254,7 +297,7 @@ export default {
         return;
       }
 
-      let directoryPath = url.removeLastDir(this.req.path);
+      let directoryPath = removeLastDir(this.req.path);
 
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
@@ -533,6 +576,18 @@ export default {
 };
 
 </script>
+
+<style scoped>
+#editor-container.viewer-mode {
+  position: absolute;
+  inset: 0;
+}
+
+#editor-container.viewer-mode #editor {
+  position: absolute;
+  inset: 0;
+}
+</style>
 
 <style>
 .ace_editor {

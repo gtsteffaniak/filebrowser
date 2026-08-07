@@ -6,9 +6,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -16,77 +18,123 @@ var createBackup = false
 
 func validateUserInfo(newDB bool) {
 	// update source info for users if names/sources/paths might have changed
-	usersList, err := store.Users.Gets()
+	usersList, err := state.GetAllUsers()
 	if err != nil {
 		logger.Fatalf("could not load users: %v", err)
 	}
-	for _, user := range usersList {
+	for i := range usersList {
+		user := &usersList[i]
+		changedFields := make([]string, 0, 8)
 		changePass := false
-		updateUser := false
+
 		if updateUserScopes(user) {
-			updateUser = true
+			changedFields = append(changedFields, "backendScopes")
 		}
 		if updatePermissions(user) {
-			updateUser = true
+			changedFields = append(changedFields, "permissions", "perm", "version")
+		}
+		if updateSourcePermissions(user) {
+			changedFields = append(changedFields, "backendScopes", "backendSourcePermissions", "version")
 		}
 		if updatePreviewSettings(user) {
-			updateUser = true
+			changedFields = append(changedFields, "preview")
 		}
 		if updateLoginType(user) {
-			updateUser = true
+			changedFields = append(changedFields, "loginMethod")
 		}
 		if updateShowFirstLogin(user) {
-			updateUser = true
+			changedFields = append(changedFields, "showFirstLogin")
 		}
 		if updateSidebarLinks(user) {
-			updateUser = true
+			changedFields = append(changedFields, "sidebarLinks")
 		}
 		if updateTokens(user) {
-			updateUser = true
+			changedFields = append(changedFields, "tokens", "version")
 		}
-		if updateShowToolsInSidebar(user) {
-			updateUser = true
+		if normalizeApiTokenPermissions(user) {
+			changedFields = append(changedFields, "tokens")
+		}
+		if state.ApplyEnforcedSyncToUser(user) {
+			changedFields = append(changedFields, settings.UserJSONFieldsForEnforcedSync()...)
+		}
+		if state.ApplyEnforcedSourcePermissionsSyncToUser(user) {
+			changedFields = append(changedFields, "backendScopes", "backendSourcePermissions")
+		}
+		if user.Version < users.ProfileStorageVersion {
+			user.Version = users.ProfileStorageVersion
+			changedFields = append(changedFields, "version")
 		}
 		adminUser := settings.Config.Auth.AdminUsername
-		adminPass := settings.Config.Auth.AdminPassword
-		if user.Username == adminUser && adminPass != "" && user.LoginMethod == users.LoginMethodPassword {
+		if adminUser == "" {
+			adminUser = "admin"
+		}
+		if user.Username == adminUser && user.Permissions.Admin {
+			adminPerms := settings.AdminPerms()
+			if user.Permissions.Share != adminPerms.Share || user.Permissions.Api != adminPerms.Api {
+				user.Permissions.Share = adminPerms.Share
+				user.Permissions.Api = adminPerms.Api
+				user.Permissions.Admin = true
+				changedFields = append(changedFields, "permissions")
+			}
+		}
+		if user.Username == adminUser && settings.Config.Auth.AdminPassword != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
-			user.Permissions.Admin = true
+			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
-			updateUser = true
+			changedFields = append(changedFields, "permissions", "password")
 			changePass = true
 		}
-		if updateUser {
-			skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true" || newDB
-			if createBackup && !skipCreateBackup {
-				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
-				err = fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
-				if err != nil {
-					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
-				}
-			}
-			fields := []string{"Scopes", "SidebarLinks", "Tokens", "Permissions", "Preview", "ShowFirstLogin", "LoginMethod", "Version", "ShowToolsInSidebar"}
-			if changePass {
-				fields = append(fields, "Password")
-			}
-			err := store.Users.Update(user, true, fields...)
+
+		changedFields = dedupeFields(changedFields)
+		if len(changedFields) == 0 {
+			continue
+		}
+
+		skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true" || newDB
+		if createBackup && !skipCreateBackup {
+			logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
+			err = fileutils.CopyFile(settings.Config.Server.DatabaseV2.Path, fmt.Sprintf("%s.bak", settings.Config.Server.DatabaseV2.Path))
 			if err != nil {
-				logger.Errorf("could not update user: %v", err)
+				logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 			}
+		}
+		plainPass := ""
+		if changePass {
+			plainPass = user.Password
+		}
+		if err := state.UpdateUser(user, plainPass, changedFields...); err != nil {
+			logger.Errorf("could not update user: %v", err)
 		}
 	}
 }
 
-func updateUserScopes(user *users.User) bool {
-	newScopes := []users.SourceScope{}
-	seen := make(map[string]struct{})
-
-	// Build map of existing scopes keyed by canonical source path (DB may use path or display name).
-	existing := make(map[string]users.SourceScope)
-	for _, s := range user.Scopes {
-		if info, ok := users.ResolveSourceKey(s.Name); ok {
-			existing[info.Path] = s
+func dedupeFields(fields []string) []string {
+	seen := make(map[string]struct{}, len(fields))
+	out := make([]string, 0, len(fields))
+	for _, field := range fields {
+		field = strings.TrimSpace(field)
+		if field == "" {
+			continue
 		}
+		key := strings.ToLower(field)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		out = append(out, field)
+	}
+	return out
+}
+
+func updateUserScopes(user *users.User) bool {
+	newScopes := []users.BackendScope{}
+	seen := make(map[string]struct{})
+	hadScopes := len(user.BackendScopes) > 0
+
+	// Build map for existing scopes by Name
+	existing := make(map[string]users.BackendScope)
+	for _, s := range user.BackendScopes {
+		existing[s.Path] = s
 	}
 
 	// Preserve order by using Config.Server.Sources
@@ -98,39 +146,50 @@ func updateUserScopes(user *users.User) bool {
 				existingScope.Scope = src.Config.DefaultUserScope
 			}
 		} else if src.Config.DefaultEnabled {
+			// Only seed default-enabled sources for users with no scopes yet.
+			// Partial-scope users (e.g. migrated graham) must not gain extra sources on startup.
+			if hadScopes {
+				continue
+			}
 			existingScope.Scope = src.Config.DefaultUserScope
 		} else {
 			continue
 		}
-		newScopes = append(newScopes, users.SourceScope{
-			Name:  src.Path,
-			Scope: existingScope.Scope,
+		newScopes = append(newScopes, users.BackendScope{
+			Path:        src.Path,
+			Scope:       existingScope.Scope,
+			Permissions: existingScope.Permissions,
 		})
 		seen[src.Path] = struct{}{}
 	}
 
-	// Preserve explicit or legacy scopes not already merged (e.g. non-defaultEnabled sources, removed sources).
-	for _, s := range user.Scopes {
-		if info, ok := users.ResolveSourceKey(s.Name); ok {
-			if _, already := seen[info.Path]; already {
-				continue
-			}
+	// Preserve user-defined scopes not matching current sources, append to end
+	for _, s := range user.BackendScopes {
+		if _, ok := seen[s.Path]; !ok {
+			newScopes = append(newScopes, s)
 		}
-		newScopes = append(newScopes, s)
 	}
-	changed := !reflect.DeepEqual(user.Scopes, newScopes)
-	user.Scopes = newScopes
+	changed := !reflect.DeepEqual(user.BackendScopes, newScopes)
+	user.BackendScopes = newScopes
+
 	return changed
 }
 
-// updateShowToolsInSidebar one-time defaults for legacy users (Version < CurrentUserMigrationVersion) from configured userDefaults.
-func updateShowToolsInSidebar(user *users.User) bool {
-	if user.Version >= 3 {
-		return false
+func updateSourcePermissions(user *users.User) bool {
+	changed := false
+	if user.Version < users.SourcePermissionsMigrationVersion {
+		if users.MigrateToSourcePermissions(user) {
+			changed = true
+		}
 	}
-	user.ShowToolsInSidebar = true
-	user.Version = users.CurrentUserMigrationVersion
-	return true
+	if users.EnsureSourcePermissionsForScopes(
+		user,
+		settings.DefaultSourceFilePermissions(),
+		settings.AdminSourceFilePermissions(),
+	) {
+		changed = true
+	}
+	return changed
 }
 
 func updateShowFirstLogin(user *users.User) bool {
@@ -147,6 +206,7 @@ func updatePermissions(user *users.User) bool {
 		return false
 	}
 	updateUser := true
+	user.Permissions.Download = true
 	// if any keys are true, set the permissions to true
 	if user.Perm.Api {
 		user.Permissions.Api = true
@@ -188,7 +248,7 @@ func updatePermissions(user *users.User) bool {
 		user.Permissions.Delete = true
 		updateUser = true
 	}
-	user.Version = users.CurrentUserMigrationVersion
+	user.Version = 2
 	if updateUser {
 		createBackup = true
 	}
@@ -213,58 +273,37 @@ func updatePreviewSettings(user *users.User) bool {
 	return false
 }
 
-// updateSidebarLinks checks if user has stale source links and rebuilds them if needed
+// updateSidebarLinks normalizes sidebar links and ensures scoped sources have sidebar entries.
 func updateSidebarLinks(user *users.User) bool {
-	// Count source links and check if any are still valid
-	sourceLinksCount := 0
-	validSourceLinksCount := 0
+	updated := false
 
-	for _, link := range user.SidebarLinks {
-		if strings.HasPrefix(link.Category, "source") {
-			sourceLinksCount++
-			if link.SourceName == "" {
-				continue
-			}
-			if _, ok := users.ResolveSourceKey(link.SourceName); ok {
-				validSourceLinksCount++
-			}
-		}
+	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+		user.SidebarLinks = normalized
+		updated = true
 	}
 
-	// If user has no source links, don't update anything
-	if sourceLinksCount == 0 {
-		return false
+	if !usersidebar.NeedsSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes) {
+		return updated
 	}
 
-	// If user has source links but NONE are valid, rebuild from their scopes
-	if validSourceLinksCount == 0 {
-		// Remove all existing source links
-		newLinks := []users.SidebarLink{}
-		for _, link := range user.SidebarLinks {
-			if !strings.HasPrefix(link.Category, "source") {
-				newLinks = append(newLinks, link)
-			}
-		}
-
-		for _, scope := range user.Scopes {
-			info, ok := users.ResolveSourceKey(scope.Name)
-			if !ok {
-				continue
-			}
-			newLinks = append(newLinks, users.SidebarLink{
-				Name:       info.Name,
-				Category:   "source",
-				Target:     "/",
-				Icon:       "",
-				SourceName: info.Path,
-			})
-		}
-
-		user.SidebarLinks = newLinks
-		return true
+	if usersidebar.ValidSourceSidebarLinkCount(user.SidebarLinks) == 0 && len(user.SidebarLinks) > 0 {
+		logger.Infof("User %s has stale source sidebar links, merging missing links from scopes", user.Username)
+	} else if usersidebar.ValidSourceSidebarLinkCount(user.SidebarLinks) == 0 {
+		logger.Infof("User %s has no source sidebar links, building from scopes", user.Username)
+	} else {
+		logger.Infof("User %s is missing sidebar links for some scoped sources, merging from scopes", user.Username)
 	}
 
-	return false
+	merged, changed := usersidebar.EnsureSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes)
+	if changed {
+		user.SidebarLinks = merged
+		updated = true
+	}
+	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
+		user.SidebarLinks = normalized
+		updated = true
+	}
+	return updated
 }
 
 func updateTokens(user *users.User) bool {
@@ -275,9 +314,29 @@ func updateTokens(user *users.User) bool {
 		user.Tokens = make(map[string]users.AuthToken)
 		for name, token := range user.ApiKeys {
 			token.Token = token.Key
-			user.Tokens[name] = token
+			token.Name = name
+			users.StoreToken(user.Tokens, token)
 		}
 	}
-	user.Version = users.CurrentUserMigrationVersion
+	user.Version = 2
 	return true
+}
+
+func normalizeApiTokenPermissions(user *users.User) bool {
+	if user == nil || len(user.Tokens) == 0 {
+		return false
+	}
+	changed := false
+	for name, token := range user.Tokens {
+		if token.Name == "" || name != token.Name {
+			continue
+		}
+		sanitized := users.SanitizeTokenPermissions(token.Permissions)
+		if sanitized != token.Permissions {
+			token.Permissions = sanitized
+			user.Tokens[name] = token
+			changed = true
+		}
+	}
+	return changed
 }

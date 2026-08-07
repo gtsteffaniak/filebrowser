@@ -44,6 +44,7 @@
         :source="source"
         :size="size"
         :isShared="isShared"
+        :viewToken="viewToken"
       />
     </div>
 
@@ -117,6 +118,7 @@
         :source="source"
         :size="size"
         :isShared="isShared"
+        :viewToken="viewToken"
       />
     </div>
 
@@ -142,9 +144,10 @@
 import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { resourcesApi } from "@/api";
-import * as upload from "@/utils/upload";
+import { checkConflict } from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
@@ -223,6 +226,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    viewToken: {
+      type: String,
+      default: "",
+    },
   },
   computed: {
     displayName() {
@@ -273,7 +280,10 @@ export default {
       return state.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      return this.readOnly === undefined && state.user.permissions?.modify || state.shareInfo.allowCreate;
+      return (
+        (this.readOnly === undefined && getters.sourcePermissions(this.source).modify)
+        || state.shareInfo.allowCreate
+      );
     },
     canDrop() {
       if (!this.isDir) return false;
@@ -337,17 +347,7 @@ export default {
       return getters.getTime(this.modified);
     },
     formattedDuration() {
-      if (!this.metadata?.duration) {
-        return "";
-      }
-      const seconds = this.metadata.duration;
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const secs = Math.floor(seconds % 60);
-      if (hours > 0) {
-        return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      }
-      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+      return formatDuration(this.metadata?.duration);
     },
     isListMode() {
       const mode = getters.viewMode();
@@ -597,7 +597,7 @@ export default {
         }
       }
       const response = await checkAction();
-      const conflict = upload.checkConflict(items, response?.items || [] );
+      const conflict = checkConflict(items, response?.items || [] );
 
       /**
        * @param {boolean} overwrite
@@ -868,6 +868,7 @@ export default {
 }
 
 .half-selected {
+  border-width: var(--borderWidth) !important;
   border-color: var(--primaryColor) !important;
   border-style: solid !important;
 }

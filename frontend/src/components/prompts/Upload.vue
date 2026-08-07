@@ -216,7 +216,6 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
 import { mutations, state } from "@/store";
 import { notify } from "@/notify";
-import { usersApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -303,7 +302,6 @@ export default {
           },
         };
         void mutations.updateCurrentUser(data);
-        await usersApi.update(data, ["fileLoading"]);
         notify.showSuccessToast("Upload settings updated");
       } catch (e) {
         console.error(e);

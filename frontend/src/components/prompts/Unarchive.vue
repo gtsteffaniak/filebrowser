@@ -71,7 +71,7 @@
         class="input new-dir-input"
         :class="{ 'form-invalid': !isDirNameValid }"
         v-model.trim="newDirName"
-        :placeholder="$t('prompts.newDirMessage')"
+        :placeholder="$t('files.newFolderMessage')"
         @keydown.enter="handleEnter"
       />
       <button
@@ -79,10 +79,10 @@
         v-if="!showNewDirInput"
         class="button button--flat"
         @click="showFileList = false"
-        :aria-label="$t('general.select', { suffix: '' })"
-        :title="$t('general.select', { suffix: '' })"
+        :aria-label="$t('general.select')"
+        :title="$t('general.select')"
       >
-        {{ $t("general.select", { suffix: "" }) }}
+        {{ $t("general.select") }}
       </button>
       <button
         type="button"
@@ -180,8 +180,7 @@ export default {
       return this.destType === "directory" || !this.destType;
     },
     canCreateFolder() {
-      const perms = getters.permissions();
-      return !!perms?.create;
+      return getters.canCreateInSource(this.destSource || this.itemSource);
     },
     isDirNameValid() {
       return this.validateDirName(this.newDirName);

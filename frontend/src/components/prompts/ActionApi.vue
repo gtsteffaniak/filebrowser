@@ -42,11 +42,11 @@
       <p class="minimal-info">{{ $t('api.minimalInfo') }}</p>
     </div>
 
-    <div class="api-section" v-else>
+    <div class="api-section" v-if="displayPermissions">
       <h3 class="section-title">{{ $t('api.permissions') }}</h3>
       <div class="permissions-grid">
         <div
-          v-for="(isEnabled, permission) in info.Permissions"
+          v-for="(isEnabled, permission) in displayPermissions"
           :key="permission"
           class="permission-item"
         >
@@ -92,8 +92,13 @@ export default {
   },
   computed: {
     isMinimalToken() {
-      // A minimal token has no Permissions object or all permissions are false
-      return !this.info.Permissions || Object.values(this.info.Permissions).every(v => !v);
+      return !!this.info.minimal;
+    },
+    displayPermissions() {
+      if (this.info?.Permissions && Object.keys(this.info.Permissions).length > 0) {
+        return this.info.Permissions;
+      }
+      return null;
     },
   },
   methods: {

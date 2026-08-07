@@ -1,11 +1,10 @@
 import { notify } from "@/notify";
 import { getApiPath } from "@/utils/url.js";
-import { fetchURL } from "./utils";
+import { fetchURL, fetchJSON } from "./utils";
 
 // GET /api/tools/search
 // extraParams: optional { olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }
-// When perSourceScopes is a non-empty array of { source, path }, sends repeated scope=source:path and omits sources (multi-scope API).
-// Otherwise legacy: sources + optional scope path for single source.
+// perSourceScopes: non-empty array of { source, path } sends repeated scope=source:path.
 export async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
     const params = {};
@@ -29,6 +28,8 @@ export async function search(base, sources, query, largest = false, extraParams 
     }
 
     const perSource = extraParams.perSourceScopes;
+    const sourcesArray = Array.isArray(sources) ? sources : [sources];
+
     if (Array.isArray(perSource) && perSource.length > 0) {
       params.scope = perSource.map(({ source, path }) => {
         const sourceName = String(source || "").trim();
@@ -43,16 +44,20 @@ export async function search(base, sources, query, largest = false, extraParams 
         return `${sourceName}:${scopedPath}`;
       });
     } else {
-      const sourcesArray = Array.isArray(sources) ? sources : [sources];
       params.sources = sourcesArray.join(",");
-
-      if (sourcesArray.length === 1 && base) {
-        let scopeBase = base;
-        if (!scopeBase.endsWith("/")) {
-          scopeBase += "/";
+      params.scope = sourcesArray.map((sourceName) => {
+        let scopedPath = base === undefined || base === null ? "/" : String(base).trim();
+        if (scopedPath === "") {
+          scopedPath = "/";
         }
-        params.scope = scopeBase;
-      }
+        if (!scopedPath.startsWith("/")) {
+          scopedPath = `/${scopedPath}`;
+        }
+        if (!scopedPath.endsWith("/") && scopedPath !== "/") {
+          scopedPath += "/";
+        }
+        return `${String(sourceName).trim()}:${scopedPath}`;
+      });
     }
 
     if (largest) {
@@ -65,11 +70,7 @@ export async function search(base, sources, query, largest = false, extraParams 
     if (extraParams.newerThan !== undefined && extraParams.newerThan !== "") {
       params.newerThan = String(extraParams.newerThan);
     }
-    if (
-      extraParams.useWildcard === true ||
-      extraParams.useGlob === true ||
-      extraParams.glob === true
-    ) {
+    if (extraParams.useWildcard === true) {
       params.useWildcard = "true";
     }
 
@@ -84,7 +85,7 @@ export async function search(base, sources, query, largest = false, extraParams 
   }
 }
 
-// GET /api/tools/duplicateFinder
+// GET /api/tools/duplicate-finder
 export async function duplicateFinder(base, source, minSizeMb, useChecksum = false) {
   try {
     if (!base.endsWith("/")) {
@@ -100,12 +101,12 @@ export async function duplicateFinder(base, source, minSizeMb, useChecksum = fal
       params.useChecksum = "true";
     }
 
-    const apiPath = getApiPath("tools/duplicateFinder", params);
+    const apiPath = getApiPath("tools/duplicate-finder", params);
     const res = await fetchURL(apiPath);
     const data = await res.json();
 
     return {
-      groups: data.groups || data,
+      groups: data.groups,
       incomplete: data.incomplete || false,
       reason: data.reason || ""
     };
@@ -115,10 +116,10 @@ export async function duplicateFinder(base, source, minSizeMb, useChecksum = fal
   }
 }
 
-// GET /api/tools/fileWatcher
+// GET /api/tools/file-watcher
 export async function fileWatcherLatencyCheck() {
   try {
-    const apiPath = getApiPath("tools/fileWatcher", { latencyCheck: "true" });
+    const apiPath = getApiPath("tools/file-watcher", { latencyCheck: "true" });
     await fetchURL(apiPath);
   } catch (err) {
     notify.showError(err.message || "Error occurred while checking latency");
@@ -126,11 +127,11 @@ export async function fileWatcherLatencyCheck() {
   }
 }
 
-// GET /api/tools/fileWatcher
+// GET /api/tools/file-watcher
 export async function fileWatcher(source, path, lines) {
   try {
     const params = { source, path, lines: lines };
-    const apiPath = getApiPath("tools/fileWatcher", params);
+    const apiPath = getApiPath("tools/file-watcher", params);
     const res = await fetchURL(apiPath);
     return await res.json();
   } catch (err) {
@@ -139,7 +140,7 @@ export async function fileWatcher(source, path, lines) {
   }
 }
 
-// GET /api/tools/fileWatcher/sse
+// GET /api/tools/file-watcher/sse
 export function fileWatcherSSE(source, path, lines, interval, onMessage, onError) {
   try {
     const params = { 
@@ -148,7 +149,7 @@ export function fileWatcherSSE(source, path, lines, interval, onMessage, onError
       lines: lines.toString(),
       interval: interval.toString()
     };
-    const apiPath = getApiPath("tools/fileWatcher/sse", params);
+    const apiPath = getApiPath("tools/file-watcher/sse", params);
     const eventSource = new EventSource(apiPath);
     
     eventSource.onmessage = onMessage;
@@ -162,4 +163,55 @@ export function fileWatcherSSE(source, path, lines, interval, onMessage, onError
     notify.showError(err.message || "Error establishing file watch connection");
     throw err;
   }
+}
+
+function buildActivityParams({
+  from,
+  to,
+  scope,
+  eventType,
+  username,
+  source,
+  path,
+  pathGlob,
+  shareHash,
+  page,
+  limit,
+  interval,
+  splitBy,
+  groupBy,
+  rows,
+}) {
+  const params = {};
+  if (from !== undefined && from !== null) params.from = String(from);
+  if (to !== undefined && to !== null) params.to = String(to);
+  if (scope && scope !== "all") params.scope = scope;
+  if (eventType) params.eventType = eventType;
+  if (username) params.username = username;
+  if (source) params.source = source;
+  if (path) params.path = path;
+  if (pathGlob) params.pathGlob = pathGlob;
+  if (shareHash) params.shareHash = shareHash;
+  if (page !== undefined && page !== null) params.page = String(page);
+  if (limit !== undefined && limit !== null) params.limit = String(limit);
+  if (interval) params.interval = interval;
+  if (splitBy) params.splitBy = splitBy;
+  if (groupBy) params.groupBy = groupBy;
+  if (rows) params.rows = rows;
+  return params;
+}
+
+// GET /api/tools/activity — ungrouped event list
+export async function activityList(options = {}) {
+  return fetchJSON(getApiPath("tools/activity", buildActivityParams(options)));
+}
+
+// GET /api/tools/activity/grouped — chart/stat buckets
+export async function activityGrouped(options = {}) {
+  return fetchJSON(getApiPath("tools/activity/grouped", buildActivityParams(options)));
+}
+
+// GET /api/tools/activity/export — returns URL for download
+export function activityExportUrl(options = {}) {
+  return getApiPath("tools/activity/export", buildActivityParams(options));
 }

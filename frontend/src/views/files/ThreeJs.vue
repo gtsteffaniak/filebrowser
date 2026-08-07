@@ -31,7 +31,24 @@
 
 <script>
 import { markRaw } from 'vue';
-import * as THREE from 'three';
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  AmbientLight,
+  DirectionalLight,
+  Color,
+  LoadingManager,
+  Box3,
+  Vector3,
+  AnimationMixer,
+  Clock,
+  Mesh,
+  Points,
+  MeshStandardMaterial,
+  PointsMaterial,
+  DoubleSide,
+} from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
@@ -54,7 +71,8 @@ import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
-import { removeLastDir } from "@/utils/url";
+import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken";
+import { removeLastDir, resolveRelativePath } from "@/utils/url";
 import { getObjectProperty } from '@/utils/object.js';
 
 const LOADERS = {
@@ -115,21 +133,16 @@ export default {
       loadTimer: null,
       hasInitialized: false,
       isInView: false,
+      viewTokenByPath: {},
+      fetchedDirs: new Set(),
+      lastRender: 0,
     };
   },
   computed: {
     isMobile() { return getters.isMobile(); },
     hasAnimations() { return this.animations && this.animations.length > 0; },
     modelUrl() {
-      const useInline = this.fileExtension !== 'glb';
-      if (getters.isShare()) {
-        return resourcesApi.getDownloadURLPublic({
-          path: state.shareInfo.subPath,
-          hash: state.shareInfo.hash,
-          token: state.shareInfo.token,
-        }, [this.fbdata.path], useInline);
-      }
-      return resourcesApi.getDownloadURL(this.fbdata.source, this.fbdata.path, useInline);
+      return this.resourceViewUrl(this.fbdata.path);
     },
     fileExtension() {
       return this.fbdata.name ? this.fbdata.name.split('.').pop().toLowerCase() : '';
@@ -189,7 +202,7 @@ export default {
       });
     },
     getSpaceText() {
-      return this.hasAnimations ? `${this.$t("general.play")}/${this.$t("general.pause")}` : this.$t("threejs.autoRotate");
+      return this.hasAnimations ? this.$t("general.playPause") : this.$t("threejs.autoRotate");
     },
     initIntersectionObserver() {
       // Use a single global observer if possible, but for now localize config
@@ -250,15 +263,15 @@ export default {
 
     initScene() {
       // Create scene
-      this.scene = markRaw(new THREE.Scene());
+      this.scene = markRaw(new Scene());
       this.updateBackgroundColor();
-      this.clock = markRaw(new THREE.Clock());
+      this.clock = markRaw(new Clock());
       
       const container = this.$refs.container;
       const width = container.clientWidth;
       const height = container.clientHeight;
       
-      this.camera = markRaw(new THREE.PerspectiveCamera(75, width / height, 0.1, 1000));
+      this.camera = markRaw(new PerspectiveCamera(75, width / height, 0.1, 1000));
       this.camera.position.set(0, 0, 5);
       
       // OPTIMIZATION: Check if we can reuse a context or limit features
@@ -271,20 +284,21 @@ export default {
         stencil: false,
       };
       
-      this.renderer = markRaw(new THREE.WebGLRenderer(rendererConfig));
+      this.renderer = markRaw(new WebGLRenderer(rendererConfig));
       this.renderer.setSize(width, height);
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
+      const pixelRatioCap = this.isThumbnail ? 1 : 2;
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
       container.appendChild(this.renderer.domElement);
       
       // Lights - Simplify lighting for thumbnails
-      this.scene.add(markRaw(new THREE.AmbientLight(0xffffff, 0.6)));
-      const dirLight1 = markRaw(new THREE.DirectionalLight(0xffffff, 0.8));
+      this.scene.add(markRaw(new AmbientLight(0xffffff, 0.6)));
+      const dirLight1 = markRaw(new DirectionalLight(0xffffff, 0.8));
       dirLight1.position.set(1, 2, 3);
       this.scene.add(dirLight1);
       
       if (!this.isThumbnail) {
         // Only add secondary lights for full view
-        const dirLight2 = markRaw(new THREE.DirectionalLight(0xffffff, 0.4));
+        const dirLight2 = markRaw(new DirectionalLight(0xffffff, 0.4));
         dirLight2.position.set(-1, -2, -3);
         this.scene.add(dirLight2);
       }
@@ -311,7 +325,7 @@ export default {
 
     updateBackgroundColor() {
       if (this.scene) {
-        this.scene.background = new THREE.Color(this.backgroundColor);
+        this.scene.background = new Color(this.backgroundColor);
         this.updateMaterialColors();
       }
     },
@@ -326,7 +340,7 @@ export default {
     
     updateCustomBackground() {
       if (this.scene) {
-        this.scene.background = new THREE.Color(this.backgroundColor);
+        this.scene.background = new Color(this.backgroundColor);
       }
     },
     
@@ -346,33 +360,215 @@ export default {
       }
     },
 
-    resolveTextureUrl(url) {
-      if (url.startsWith('blob:') || url.startsWith('data:')) {
-        return url;
+    /** View URL for a model or sibling asset via viewToken (non-metered). */
+    resourceViewUrl(filePath) {
+      if (!filePath) {
+        return "";
       }
-      if (url.includes('/api/resources/download?')) {
-        return url;
+      const viewToken = this.resolveViewTokenForPath(filePath);
+      if (!viewToken) {
+        return "";
       }
-      const filename = url.split('/api/resources/')[1];
-      let texturePath = `${removeLastDir(this.fbdata.path)}/textures/${filename}`
-      if (this.fbdata.parentDirItems) {
-        for (const item of this.fbdata.parentDirItems) {
-          if (item.name === filename) {
-            texturePath = `${removeLastDir(this.fbdata.path)}/${filename}`;
-          }
-        }
-      }
+      const typeHint = filePath.split("/").pop() || filePath;
+      let url;
       if (getters.isShare()) {
-        return resourcesApi.getDownloadURLPublic({
+        url = resourcesApi.getViewURL(
+          this.fbdata.source,
+          filePath,
+          viewToken,
+          {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
             token: state.shareInfo.token,
-          }, [texturePath], true);
+          },
+          false,
+          typeHint,
+        );
+      } else {
+        url = resourcesApi.getViewURL(this.fbdata.source, filePath, viewToken, null, false, typeHint);
       }
-      return resourcesApi.getDownloadURL(this.fbdata.source, texturePath, true);
+      return url || "";
+    },
+
+    normalizeAssetPath(filePath) {
+      if (!filePath) {
+        return filePath;
+      }
+      const trimmed = filePath.replace(/\/+$/, "");
+      return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+    },
+
+    indexViewTokens(items) {
+      if (!items?.length) {
+        return;
+      }
+      for (const item of items) {
+        if (item.path && item.viewToken) {
+          this.viewTokenByPath[this.normalizeAssetPath(item.path)] = item.viewToken;
+        }
+      }
+    },
+
+    directoryListingPath(dirPath) {
+      const normalized = this.normalizeAssetPath(dirPath);
+      return `${normalized}/`;
+    },
+
+    async fetchDirectoryTokens(dirPath) {
+      const listingPath = this.directoryListingPath(dirPath);
+      if (this.fetchedDirs.has(listingPath)) {
+        return;
+      }
+      this.fetchedDirs.add(listingPath);
+      try {
+        let listing;
+        if (getters.isShare()) {
+          listing = await resourcesApi.fetchFilesPublic(
+            listingPath,
+            state.shareInfo.hash,
+            "",
+            false,
+            false,
+          );
+        } else {
+          listing = await resourcesApi.fetchFiles(
+            this.fbdata.source,
+            listingPath,
+            false,
+            false,
+          );
+        }
+        if (listing?.type === "directory" && listing.items?.length) {
+          this.indexViewTokens(listing.items);
+        }
+      } catch {
+        // Missing or inaccessible directories are ignored.
+      }
+    },
+
+    async prefetchAssetViewTokens() {
+      const viewIdentity = requestViewIdentity(state.req);
+      try {
+        const token = await ensureViewToken(this.fbdata.source);
+        if (token && requestViewIdentity(state.req) === viewIdentity) {
+          mutations.setRequestViewToken(token);
+          if (this.fbdata.path) {
+            this.viewTokenByPath[this.normalizeAssetPath(this.fbdata.path)] = token;
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to refresh view token for 3D preview:", err);
+      }
+      this.indexViewTokens(this.fbdata.parentDirItems);
+      if (this.fbdata.path && this.fbdata.viewToken) {
+        this.viewTokenByPath[this.normalizeAssetPath(this.fbdata.path)] = this.fbdata.viewToken;
+      }
+
+      const modelDir = removeLastDir(this.fbdata.path);
+      await this.fetchDirectoryTokens(modelDir);
+      await this.fetchDirectoryTokens(`${modelDir}/textures`);
+    },
+
+    resolveViewTokenForPath(filePath) {
+      const normalizedPath = this.normalizeAssetPath(filePath);
+      const cachedToken = getObjectProperty(this.viewTokenByPath, normalizedPath);
+      if (cachedToken) {
+        return cachedToken;
+      }
+      if (
+        this.normalizeAssetPath(this.fbdata.path) === normalizedPath &&
+        this.fbdata.viewToken
+      ) {
+        return this.fbdata.viewToken;
+      }
+      const items = this.fbdata.parentDirItems;
+      if (!items?.length) {
+        return getCachedViewToken(this.fbdata.source);
+      }
+
+      const exact = items.find(
+        (item) => this.normalizeAssetPath(item.path) === normalizedPath,
+      );
+      if (exact?.viewToken) {
+        return exact.viewToken;
+      }
+
+      const fileDir = removeLastDir(normalizedPath);
+      const name = normalizedPath.split("/").filter(Boolean).pop();
+      if (!name) {
+        return getCachedViewToken(this.fbdata.source);
+      }
+
+      const sibling = items.find((item) => {
+        if (item.name !== name) {
+          return false;
+        }
+        if (item.path) {
+          return removeLastDir(this.normalizeAssetPath(item.path)) === fileDir;
+        }
+        return fileDir === removeLastDir(this.fbdata.path);
+      });
+      return sibling?.viewToken ?? getCachedViewToken(this.fbdata.source);
+    },
+
+    resolveTextureUrl(url) {
+      if (!url) {
+        return url;
+      }
+      if (url.startsWith("blob:") || url.startsWith("data:")) {
+        return url;
+      }
+      if (
+        url.includes("/api/media/stream?") ||
+        url.includes("/api/resources/view?") ||
+        url.includes("/api/resources/download?")
+      ) {
+        try {
+          const parsed = new URL(url, window.origin);
+          const filePath = parsed.searchParams.get("file") || parsed.searchParams.getAll("file")[0];
+          if (filePath) {
+            return this.resourceViewUrl(filePath);
+          }
+        } catch {
+          return url;
+        }
+        return url;
+      }
+
+      const cleanUrl = url.split(/[?#]/)[0];
+      let relativePath;
+      if (cleanUrl.includes("/api/resources/")) {
+        relativePath = cleanUrl.split("/api/resources/").pop() || "";
+      } else if (/^https?:\/\//i.test(cleanUrl)) {
+        return url;
+      } else {
+        relativePath = cleanUrl;
+      }
+
+      relativePath = relativePath.replace(/^\/+/, "");
+      const filename = relativePath.split("/").pop();
+      if (!filename) {
+        return url;
+      }
+
+      const modelDir = removeLastDir(this.fbdata.path);
+      let texturePath;
+      if (relativePath.includes("/")) {
+        texturePath = resolveRelativePath(this.fbdata.path, relativePath);
+      } else if (this.fbdata.parentDirItems?.some((item) => item.name === filename)) {
+        texturePath = `${modelDir}/${filename}`;
+      } else {
+        texturePath = `${modelDir}/textures/${filename}`;
+      }
+      return this.resourceViewUrl(texturePath);
     },
 
     async loadModel() {
+      await this.prefetchAssetViewTokens();
+      if (!this.modelUrl) {
+        this.handleError(new Error("No view token available for model"), "Failed to load model");
+        return;
+      }
       this.loading = true;
       this.error = null;
       
@@ -381,7 +577,7 @@ export default {
         const LoaderClass = getObjectProperty(LOADERS, extension);
         if (!LoaderClass) throw new Error(`Unsupported 3D format: .${extension}`);
 
-        const loadingManager = markRaw(new THREE.LoadingManager());
+        const loadingManager = markRaw(new LoadingManager());
         loadingManager.onError = (url) => console.warn(`Error loading asset: ${url}`);
         loadingManager.setURLModifier((url) => this.resolveTextureUrl(url));
         
@@ -450,13 +646,11 @@ export default {
       // Remove trailing slash if present before replacing extension
       const cleanPath = this.fbdata.path.replace(/\/$/, '');
       const mtlPath = cleanPath.replace(/\.obj$/i, '.mtl');
-      const mtlUrl = getters.isShare() ? 
-          resourcesApi.getDownloadURLPublic({
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
-          }, [mtlPath], true) :
-          resourcesApi.getDownloadURL(state.req.source, mtlPath, true);
+      const mtlUrl = this.resourceViewUrl(mtlPath);
+      if (!mtlUrl) {
+        this.doLoad(loader);
+        return;
+      }
 
       const mtlLoader = new MTLLoader(manager);
       mtlLoader.load(mtlUrl, (materials) => {
@@ -491,12 +685,12 @@ export default {
         object = loadedData;
       } else if (ext === 'vtk' || ext === 'vtp') {
         // VTK returns BufferGeometry, needs to be wrapped in Mesh
-        const material = new THREE.MeshStandardMaterial({
+        const material = new MeshStandardMaterial({
           color: 0x4fc3f7,
           metalness: 0.3,
           roughness: 0.6,
         });
-        object = new THREE.Mesh(loadedData, material);
+        object = new Mesh(loadedData, material);
       } else {
         object = loadedData; // 3mf, stl, ply, obj, amf, vox
       }
@@ -505,18 +699,18 @@ export default {
       if (ext === '3mf') object.rotation.set(-Math.PI / 2, 0, 0);
       
       if (['stl', 'ply', 'amf'].includes(ext)) {
-        const material = new THREE.MeshStandardMaterial({
+        const material = new MeshStandardMaterial({
           color: 0x4fc3f7,
           flatShading: ext === 'stl',
           metalness: 0.3,
           roughness: 0.6,
         });
-        object = new THREE.Mesh(loadedData, material);
+        object = new Mesh(loadedData, material);
       }
       
       // Point clouds need Points material
       if (['pcd', 'xyz'].includes(ext)) {
-        const material = new THREE.PointsMaterial({
+        const material = new PointsMaterial({
           size: 0.05,
           color: 0x4fc3f7,
           vertexColors: !!loadedData.geometry?.attributes?.color,
@@ -525,7 +719,7 @@ export default {
           // Use existing material if provided
           object = loadedData;
         } else {
-          object = new THREE.Points(loadedData.geometry || loadedData, material);
+          object = new Points(loadedData.geometry || loadedData, material);
         }
       }
 
@@ -547,7 +741,7 @@ export default {
           if (child.material) {
              const mats = Array.isArray(child.material) ? child.material : [child.material];
              mats.forEach(m => {
-                m.side = THREE.DoubleSide;
+                m.side = DoubleSide;
                 if (child.isSkinnedMesh) m.skinning = true;
              });
           }
@@ -567,7 +761,7 @@ export default {
     
     setupAnimations(root, animations) {
         this.animations = animations;
-        this.animationMixer = markRaw(new THREE.AnimationMixer(root));
+        this.animationMixer = markRaw(new AnimationMixer(root));
         this.animations.forEach(clip => {
             this.animationMixer.clipAction(clip).play();
         });
@@ -587,15 +781,15 @@ export default {
     centerAndScaleModel() {
       if (!this.model) return;
       this.model.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(this.model);
+      const box = new Box3().setFromObject(this.model);
       
       if (box.isEmpty()) {
         this.model.position.set(0,0,0);
         return;
       }
 
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new Vector3());
+      const size = box.getSize(new Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
       
       if (!Number.isFinite(maxDim) || maxDim === 0) return;
@@ -670,7 +864,6 @@ export default {
       
       if (this.renderer) {
         // Essential for releasing WebGL contexts
-        this.renderer.forceContextLoss();
         this.renderer.dispose();
         this.renderer.domElement?.remove();
         this.renderer = null;
@@ -681,6 +874,8 @@ export default {
     },
     
     reinit() {
+      this.viewTokenByPath = {};
+      this.fetchedDirs = new Set();
       this.cleanup();
       this.initScene();
       void this.loadModel();
@@ -737,7 +932,7 @@ export default {
     },
     
     zoomCamera(delta) {
-      const dir = new THREE.Vector3().subVectors(this.camera.position, this.controls.target).normalize();
+      const dir = new Vector3().subVectors(this.camera.position, this.controls.target).normalize();
       const dist = this.camera.position.distanceTo(this.controls.target) * (1 + delta);
       if (dist > this.camera.near * 2 && dist < this.camera.far / 2) {
         this.camera.position.copy(this.controls.target.clone().add(dir.multiplyScalar(dist)));

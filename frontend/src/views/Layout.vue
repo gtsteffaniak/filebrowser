@@ -187,17 +187,23 @@ export default {
       }
     },
     async initialize() {
-      if (getters.isLoggedIn()) {
-        const sourceinfo = await settingsApi.sources();
-        mutations.updateSourceInfo(sourceinfo);
-        if (state.user.permissions.realtime) {
-          events.startSSE();
-        }
-        const maxUploads = state.user.fileLoading?.maxConcurrentUpload || 0;
-        if (maxUploads > 10 || maxUploads < 1) {
-          mutations.setMaxConcurrentUpload(1);
-        }
-        if (state.user.showFirstLogin && !globalVars.noAuth) {
+      if (!getters.isLoggedIn()) {
+        return;
+      }
+      const maxUploads = state.user.fileLoading?.maxConcurrentUpload || 0;
+      if (maxUploads > 10 || maxUploads < 1) {
+        mutations.setMaxConcurrentUpload(1);
+      }
+      // Public share routes are served without nginx basic auth; skip protected-only APIs.
+      if (getters.isShare()) {
+        return;
+      }
+      const sourceinfo = await settingsApi.sources();
+      mutations.updateSourceInfo(sourceinfo);
+      if (state.user.permissions.realtime) {
+        events.startSSE();
+      }
+      if (state.user.showFirstLogin && !globalVars.noAuth) {
           mutations.showPrompt({
             name: "generic",
             pinned: true,
@@ -218,7 +224,6 @@ export default {
             },
           });
         }
-      }
     },
     updateIsMobile() {
       mutations.setMobile();

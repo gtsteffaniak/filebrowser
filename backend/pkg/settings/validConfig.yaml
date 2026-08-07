@@ -1,0 +1,34 @@
+http:
+  port: 80
+  baseURL: "/"
+server:
+  numImageProcessors: 4
+  database:
+    path: "mydb.db"
+  sources:
+    - path: "."
+integrations:
+  office:
+    url: "http://localhost:9052"
+    secret: 6H1H7GzUk2alRkNxAPav0W02g8JS5oUd
+auth:
+  methods:
+    password:
+      enabled: true
+frontend:
+  name: ""
+  disableUsedPercentage: true
+userDefaults:
+  ui:
+    darkMode: true
+    locale: ""
+  listing:
+    singleClick: true
+    dateFormat: false
+    viewMode: ""
+  account:
+    disableSettings: false
+    permissions:
+      admin: true
+      share: true
+      api: true

@@ -29,6 +29,7 @@ export const state = reactive({
   isSearchActive: false,
   showSidebar: false,
   displayPreferences: {},
+  enforcedUserDefaults: {},
   usages: {},
   editor: null,
   editorDirty: false,
@@ -156,12 +157,7 @@ export const state = reactive({
     gestureHintCommitReady: false,
     gestureHintFlashClose: false,
   },
-  playbackQueue: {
-    queue: [],
-    currentIndex: -1,
-    mode: 'single', // 'single', 'sequential', 'shuffle', 'loop-single', 'loop-all'
-    isPlaying: false
-  },
+  playbackQueue: loadPlaybackQueue(),
   shareInfo: {
     isShare: false,
     disableThumbnails: false,
@@ -224,3 +220,29 @@ function eventTheme() {
   return disableEventThemes === "true"
 }
 
+/**
+ * Loads playback queue from localStorage.
+ * @returns {Object} The playback queue state
+ *   @property {Array}  queue          - Array of media items
+ *   @property {number} currentIndex   - Index of the currently playing item, or -1
+ *   @property {string} mode           - 'single' | 'sequential' | 'shuffle'
+ *   @property {boolean} isPlaying     - False on load
+ *   @property {string} loop           - 'off' | 'all' | 'single'
+ */
+function loadPlaybackQueue() {
+  try {
+    const storedQueue = sessionStorage.getItem('playbackQueue');
+    if (!storedQueue) return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
+    const playback = JSON.parse(storedQueue);
+    if (Array.isArray(playback.queue) && typeof playback.currentIndex === 'number' && typeof playback.mode === 'string') {
+      return {
+        queue: playback.queue,
+        currentIndex: playback.currentIndex,
+        mode: playback.mode,
+        isPlaying: false,
+        loop: playback.loop || 'off',
+      };
+    }
+  } catch (_) { /* ignore */ }
+  return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
+}

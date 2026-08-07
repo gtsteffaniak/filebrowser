@@ -1,0 +1,267 @@
+package web
+
+import (
+	"fmt"
+	"net/http"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/go-logger/logger"
+)
+
+// createApiTokenHandler creates an API token for the user.
+// @Summary Create API Token
+// @Description Create an API token with specified name, duration, and permissions.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param name query string true "Name of the API token"
+// @Param days query string true "Duration of the API token in days"
+// @Param permissions query string false "Global permissions (comma-separated: admin, api, share, realtime). Send \"minimal\" or omit with minimal=true for a WebDAV-compatible token."
+// @Param minimal query bool false "When true, create a minimal token (standard JWT claims only). When false, create a customized token using permissions (may be empty)."
+// @Success 200 {object} HttpResponse "Token created successfully, response contains json object with token"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 409 {object} map[string]string "Conflict"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/token [post]
+func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	name := r.URL.Query().Get("name")
+	durationStr := r.URL.Query().Get("days")
+	minimal, permissionsStr := apiTokenCreationMode(r)
+
+	if !d.User.Permissions.Api {
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to create api tokens")
+	}
+
+	if name == "" || strings.HasPrefix(name, "WEB_TOKEN") {
+		return http.StatusBadRequest, fmt.Errorf("api token name must be valid")
+	}
+	if durationStr == "" {
+		return http.StatusBadRequest, fmt.Errorf("api token duration must be valid")
+	}
+
+	// For full tokens (minimal=false), permissions are embedded in the JWT claim.
+	// For minimal tokens (minimal=true), only standard JWT claims are included.
+	var permissions users.Permissions
+	if !minimal {
+		permissions = users.Permissions{
+			Api:      strings.Contains(permissionsStr, "api") && d.User.Permissions.Api,
+			Admin:    strings.Contains(permissionsStr, "admin") && d.User.Permissions.Admin,
+			Share:    strings.Contains(permissionsStr, "share") && d.User.Permissions.Share,
+			Realtime: strings.Contains(permissionsStr, "realtime") && d.User.Permissions.Realtime,
+		}
+		permissions = users.SanitizeTokenPermissions(permissions)
+	}
+
+	// Convert the duration string to an int64
+	durationInt, err := strconv.ParseInt(durationStr, 10, 64) // Base 10 and bit size of 64
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid duration value: %w", err)
+	}
+
+	// Here we assume the duration is in seconds; convert to time.Duration
+	duration := time.Duration(durationInt) * time.Hour * 24
+	tokenString, authToken, err := auth.MakeSignedTokenAPI(d.User, name, duration, permissions, minimal)
+	if err != nil {
+		if strings.Contains(err.Error(), "key already exists with same name") {
+			return http.StatusConflict, err
+		}
+		return http.StatusInternalServerError, err
+	}
+
+	// Store API token metadata in user's Tokens map
+	authToken.Name = name
+	authToken.Token = tokenString
+	err = state.AddUserToken(d.User.Username, authToken)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Store token hash → user id mapping in access storage for fast lookups
+	err = state.AddApiToken(tokenString, d.User.ID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	response := HttpResponse{
+		Message: "here is your token!",
+		Token:   tokenString,
+	}
+	activity.RecordTokenMutation(r, toActor(d), activitydb.EventTokenCreate, name)
+	return RenderJSON(w, r, response)
+}
+
+const apiTokenPermissionsMinimal = "minimal"
+
+// apiTokenCreationMode decides whether to mint a minimal JWT or a customized token from query params.
+// minimal=true or permissions=minimal → minimal token (WebDAV-compatible).
+// minimal=false → customized token; permissions may be empty (all global caps false in the claim).
+// Legacy clients omitting both minimal and permissions still receive a minimal token.
+func apiTokenCreationMode(r *http.Request) (minimal bool, permissionsStr string) {
+	permissionsStr = r.URL.Query().Get("permissions")
+	if strings.EqualFold(permissionsStr, apiTokenPermissionsMinimal) {
+		return true, ""
+	}
+
+	if minimalValues, ok := r.URL.Query()["minimal"]; ok && len(minimalValues) > 0 {
+		switch strings.ToLower(strings.TrimSpace(minimalValues[0])) {
+		case "true", "1":
+			return true, permissionsStr
+		case "false", "0":
+			return false, permissionsStr
+		}
+	}
+
+	if permissionsStr == "" {
+		return true, ""
+	}
+	return false, permissionsStr
+}
+
+// deleteApiTokenHandler deletes an API token for the user.
+// @Summary Delete API token
+// @Description Delete an API token with specified name.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param name query string true "Name of the API token to delete"
+// @Success 200 {object} HttpResponse "API token deleted successfully"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/token [delete]
+func deleteApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	name := r.URL.Query().Get("name")
+	if !d.User.Permissions.Api {
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to delete api tokens")
+	}
+
+	tokenInfo, ok := d.User.Tokens[name]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("api token not found")
+	}
+
+	// Perform the user update
+	err := state.DeleteUserToken(d.User.Username, name)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+
+	// Revoke the token (adds to RevokedTokens set)
+	if err := state.RevokeToken( tokenInfo.Token); err != nil {
+		logger.Errorf("Failed to revoke token: %v", err)
+	}
+	if err := state.RemoveApiToken(tokenInfo.Token); err != nil {
+		logger.Errorf("Failed to remove api token: %v", err)
+	}
+
+	response := HttpResponse{
+		Message: "successfully deleted api token from user",
+	}
+	activity.RecordTokenMutation(r, toActor(d), activitydb.EventTokenDelete, name)
+	return RenderJSON(w, r, response)
+}
+
+type AuthTokenFrontend struct {
+	Token       string            `json:"token"`
+	Name        string            `json:"name"`
+	IssuedAt    int64             `json:"issuedAt"`
+	ExpiresAt   int64             `json:"expiresAt"`
+	Minimal     bool              `json:"minimal"`
+	Permissions users.Permissions `json:"Permissions,omitempty"`
+}
+
+func authTokenForFrontend(name string, token users.AuthToken, owner *users.User) AuthTokenFrontend {
+	minimal := users.IsMinimalApiToken(token)
+	perms := users.SanitizeTokenPermissions(token.Permissions)
+	if minimal && owner != nil {
+		perms = users.SanitizeTokenPermissions(owner.Permissions)
+	}
+	return AuthTokenFrontend{
+		Token:       token.Token,
+		Name:        name,
+		IssuedAt:    authTokenIssuedUnix(token),
+		ExpiresAt:   authTokenExpiresUnix(token),
+		Minimal:     minimal,
+		Permissions: perms,
+	}
+}
+
+// authTokenIssuedUnix returns iat from JWT claims when set, otherwise the persisted int64 (e.g. loaded from DB).
+func authTokenIssuedUnix(t users.AuthToken) int64 {
+	if t.RegisteredClaims.IssuedAt != nil {
+		return t.RegisteredClaims.IssuedAt.Unix()
+	}
+	return t.IssuedAt
+}
+
+// authTokenExpiresUnix returns exp from JWT claims when set, otherwise the persisted int64.
+func authTokenExpiresUnix(t users.AuthToken) int64 {
+	if t.RegisteredClaims.ExpiresAt != nil {
+		return t.RegisteredClaims.ExpiresAt.Unix()
+	}
+	return t.ExpiresAt
+}
+
+// listApiTokensHandler lists all API tokens or retrieves details for a specific token.
+// @Summary List API tokens
+// @Description List all API tokens or retrieve details for a specific token.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {array} AuthTokenFrontend "List of API tokens"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/token/list [get]
+func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !d.User.Permissions.Api {
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to list api tokens")
+	}
+	if len(d.User.Tokens) == 0 {
+		return http.StatusNotFound, fmt.Errorf("no api tokens found")
+	}
+	AuthTokensFrontend := make([]AuthTokenFrontend, 0)
+	users.EachNamedToken(d.User.Tokens, func(name string, token users.AuthToken) {
+		AuthTokensFrontend = append(AuthTokensFrontend, authTokenForFrontend(name, token, d.User))
+	})
+	if len(AuthTokensFrontend) == 0 {
+		return http.StatusNotFound, fmt.Errorf("no api tokens found")
+	}
+
+	sort.Slice(AuthTokensFrontend, func(i, j int) bool {
+		return AuthTokensFrontend[i].Name < AuthTokensFrontend[j].Name
+	})
+
+	return RenderJSON(w, r, AuthTokensFrontend)
+}
+
+// getApiTokenHandler gets a specific API token.
+// @Summary Get API token
+// @Description Get a specific API token.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param name query string true "Name of the API token to retrieve"
+// @Success 200 {object} AuthTokenFrontend "API token details"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/token [get]
+func getApiTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	name := r.URL.Query().Get("name")
+	if !d.User.Permissions.Api {
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to list api tokens")
+	}
+	tokenInfo, ok := d.User.Tokens[name]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("api token not found")
+	}
+	AuthTokenFrontendResponse := authTokenForFrontend(name, tokenInfo, d.User)
+	return RenderJSON(w, r, AuthTokenFrontendResponse)
+}

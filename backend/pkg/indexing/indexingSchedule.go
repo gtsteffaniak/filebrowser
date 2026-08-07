@@ -1,0 +1,382 @@
+package indexing
+
+import (
+	"encoding/json"
+	"strconv"
+	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	indexingdb "github.com/gtsteffaniak/filebrowser/backend/internal/database/dbindex"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/events"
+	"github.com/gtsteffaniak/go-logger/logger"
+)
+
+// scanScheduleTiers is the only set of adaptive scan intervals (index = currentSchedule tier).
+// Fastest tier is 5 minutes so consecutive runs for a path are at least ~5 minutes apart on the grid.
+//
+// On filesChanged: if current tier is slower than 40 minutes (index > 3), jump to tier 3; otherwise
+// step one tier faster (index--). High-complexity scanners are clamped to scheduleTierBoundsForComplexity.
+var scanScheduleTiers = []time.Duration{
+	5 * time.Minute,
+	10 * time.Minute,
+	20 * time.Minute,
+	40 * time.Minute,
+	1 * time.Hour,
+	2 * time.Hour,
+	3 * time.Hour,
+	4 * time.Hour,
+	8 * time.Hour,
+	12 * time.Hour,
+}
+
+func scanScheduleDuration(tier int) time.Duration {
+	return scanScheduleTiers[utils.Clamp(tier, 0, len(scanScheduleTiers)-1)]
+}
+
+// scheduleTierBoundsForComplexity limits how aggressive or idle a scanner may be scheduled.
+// minTier: fastest allowed interval (low index); maxTier: slowest allowed (high index).
+// Complexity 0 = unknown (e.g. before first full scan): no bounds. Complexity 1: never slower than 1h.
+func scheduleTierBoundsForComplexity(c uint) (minTier, maxTier int) {
+	maxTier = len(scanScheduleTiers) - 1
+	minTier = 0
+	if c == 1 {
+		maxTier = 4 // index 4 = 1 hour; trivial trees should not stretch to multi-hour tiers
+	}
+	switch {
+	case c >= 10:
+		minTier = 4 // at least 1h between runs
+	case c >= 8:
+		minTier = 3 // at least 40m
+	case c >= 6:
+		minTier = 2 // at least 20m
+	case c >= 4:
+		minTier = 1 // at least 10m
+	}
+	if minTier > maxTier {
+		minTier = maxTier
+	}
+	return minTier, maxTier
+}
+
+// calculateTimeScore returns a 1-10 score based on scan time
+func calculateTimeScore(scanTime int) uint {
+	if scanTime == 0 {
+		return 1 // No data yet, assume simple
+	}
+	switch {
+	case scanTime < 2:
+		return 1
+	case scanTime < 5:
+		return 2
+	case scanTime < 15:
+		return 3
+	case scanTime < 30:
+		return 4
+	case scanTime < 60:
+		return 5
+	case scanTime < 90:
+		return 6
+	case scanTime < 120:
+		return 7
+	case scanTime < 180:
+		return 8
+	case scanTime < 300:
+		return 9
+	default:
+		return 10
+	}
+}
+
+// calculateDirScore returns a 1-10 score based on directory count
+func calculateDirScore(numDirs uint64) uint {
+	// Directory-based thresholds
+	switch {
+	case numDirs < 2500:
+		return 1
+	case numDirs < 5000:
+		return 2
+	case numDirs < 10000:
+		return 3
+	case numDirs < 25000:
+		return 4
+	case numDirs < 50000:
+		return 5
+	case numDirs < 100000:
+		return 6
+	case numDirs < 250000:
+		return 7
+	case numDirs < 500000:
+		return 8
+	case numDirs < 1000000:
+		return 9
+	default:
+		return 10
+	}
+}
+
+func calculateComplexity(scanTime int, numDirs uint64) uint {
+	timeScore := calculateTimeScore(scanTime)
+	dirScore := calculateDirScore(numDirs)
+	complexity := timeScore
+	if dirScore > timeScore {
+		complexity = dirScore
+	}
+	return complexity
+}
+
+// markFilesChanged marks that files have changed in the currently active scanner
+func (idx *Index) markFilesChanged() {
+	activePath := idx.getActiveScannerPath()
+	if activePath == "" {
+		return
+	}
+	idx.mu.RLock()
+	scanner, exists := idx.scanners[activePath]
+	idx.mu.RUnlock()
+
+	if exists {
+		scanner.withStatsLock(func() {
+			scanner.filesChanged = true
+		})
+	}
+}
+
+// incrementScannerDirs increments the directory counter for the active scanner
+func (idx *Index) incrementScannerDirs() {
+	idx.mu.RLock()
+	// Use unlocked version since we now hold the lock
+	activePath := idx.getActiveScannerPathUnlocked()
+	if activePath == "" {
+		idx.mu.RUnlock()
+		return
+	}
+	scanner, exists := idx.scanners[activePath]
+	idx.mu.RUnlock()
+
+	if exists {
+		scanner.numDirs++
+	}
+}
+
+// incrementScannerDirsUnlocked increments the directory counter for the active scanner
+func (idx *Index) incrementScannerDirsUnlocked() {
+	activePath := idx.getActiveScannerPathUnlocked()
+	if activePath == "" {
+		return
+	}
+	scanner, exists := idx.scanners[activePath]
+	if exists {
+		scanner.withStatsLock(func() {
+			scanner.numDirs++
+		})
+	}
+}
+
+// incrementScannerFiles increments the file counter for the active scanner
+func (idx *Index) incrementScannerFiles() {
+	idx.mu.RLock()
+	// Use unlocked version since we now hold the lock
+	activePath := idx.getActiveScannerPathUnlocked()
+	if activePath == "" {
+		idx.mu.RUnlock()
+		return
+	}
+	scanner, exists := idx.scanners[activePath]
+	idx.mu.RUnlock()
+
+	if exists {
+		scanner.withStatsLock(func() {
+			scanner.numFiles++
+		})
+	}
+}
+
+func (idx *Index) PostScan() error {
+	idx.mu.RLock()
+	idle := idx.activeScannerPath == ""
+	idx.mu.RUnlock()
+	if idle {
+		// All scanners completed
+		err := idx.db.ShrinkMemory()
+		if err != nil {
+			logger.Errorf("Failed to shrink memory: %v", err)
+		}
+
+		// Persist index and scanner information (SSE event will be sent by Save())
+		if err := idx.Save(); err != nil {
+			logger.Errorf("Failed to save index persistence: %v", err)
+		}
+
+		// Clear scan session tracking when all scanners complete
+		idx.mu.Lock()
+		idx.scanSessionStartTime = 0
+		idx.scanUpdatedPaths = make(map[string]bool) // Clear tracking map
+		idx.mu.Unlock()
+		return idx.SetStatus(READY)
+	}
+	// Scanners still running - skip expensive operations
+	return nil
+}
+
+func (idx *Index) SendSourceUpdateEvent() error {
+	if idx.mock {
+		return nil
+	}
+	// Avoid force=true: otherwise GetIndexInfo invalidates DiskUsageCache, recomputes, and writePersistedIndexInfo
+	// nests under Save recursion; false uses cached probe / current idx totals for the broadcast payload.
+	reducedIndex, err := GetIndexInfo(idx.Name, false)
+	if err != nil {
+		logger.Errorf("[%s] Error getting index info: %v", idx.Name, err)
+		return err
+	}
+	sourceAsMap := map[string]ReducedIndex{
+		idx.Name: reducedIndex,
+	}
+	message, err := json.Marshal(sourceAsMap)
+	if err != nil {
+		logger.Errorf("[%s] Error marshaling source update: %v", idx.Name, err)
+		return err
+	}
+	quotedMessage := strconv.Quote(string(message))
+	events.SendSourceUpdate(idx.Name, quotedMessage)
+	return nil
+}
+
+// setupMultiScanner creates and starts the multi-scanner system
+// isNewDb: if true, skip loading persisted complexity values (database is new or recreated)
+func (idx *Index) setupMultiScanner(isNewDb bool) {
+	// Load persisted index-level stats from Bolt (complexity, numDirs/Files, used/usedAlt/total, etc.)
+	// Scanner-level stats below use a second GetByPath only for the Scanners map.
+	if err := idx.Load(); err != nil {
+		logger.Errorf("Failed to load persisted index data for [%v]: %v", idx.Name, err)
+	}
+
+	idx.mu.Lock()
+	idx.scanners = make(map[string]*Scanner)
+	idx.mu.Unlock()
+
+	// Load persisted scanner info if available
+	var persistedScanners map[string]*indexingdb.PersistedScannerInfo
+	if !isNewDb && metaStoreConfigured() {
+		info, err := getIndexInfoByPath(idx.Path)
+		if err == nil && info != nil {
+			persistedScanners = info.Scanners
+		}
+	}
+
+	// Create and start root scanner
+	rootScanner := idx.createScanner("/")
+	adaptive := idx.useAdaptiveScheduling()
+	if persistedScanners != nil {
+		if rootInfo, ok := persistedScanners["/"]; ok {
+			rootScanner.withStatsLock(func() {
+				rootScanner.complexity = rootInfo.Complexity
+				if adaptive {
+					rootScanner.currentSchedule = utils.Clamp(rootInfo.CurrentSchedule, 0, len(scanScheduleTiers)-1)
+				}
+				rootScanner.quickScanTime = rootInfo.QuickScanTime
+				rootScanner.fullScanTime = rootInfo.FullScanTime
+				rootScanner.numDirs = rootInfo.NumDirs
+				rootScanner.numFiles = rootInfo.NumFiles
+				rootScanner.lastScanned = rootInfo.LastScanned
+				rootScanner.fullScanCounter = utils.Clamp(rootInfo.FullScanCounter, 0, 4)
+			})
+		}
+	}
+	idx.mu.Lock()
+	idx.scanners["/"] = rootScanner
+	idx.schedulerStop = make(chan struct{})
+	idx.mu.Unlock()
+
+	// Discover existing top-level directories (root scanner will create scanners for new ones dynamically)
+	topLevelDirs := rootScanner.getTopLevelDirs()
+
+	// Create child scanner for each top-level directory
+	for _, dirPath := range topLevelDirs {
+		childScanner := idx.createScanner(dirPath)
+
+		// Restore persisted stats for child scanner if available (and DB is not new)
+		if persistedScanners != nil {
+			if childInfo, ok := persistedScanners[dirPath]; ok {
+				childScanner.withStatsLock(func() {
+					childScanner.complexity = childInfo.Complexity
+					if adaptive {
+						childScanner.currentSchedule = utils.Clamp(childInfo.CurrentSchedule, 0, len(scanScheduleTiers)-1)
+					}
+					childScanner.quickScanTime = childInfo.QuickScanTime
+					childScanner.fullScanTime = childInfo.FullScanTime
+					childScanner.numDirs = childInfo.NumDirs
+					childScanner.numFiles = childInfo.NumFiles
+					childScanner.lastScanned = childInfo.LastScanned
+					childScanner.fullScanCounter = utils.Clamp(childInfo.FullScanCounter, 0, 4)
+				})
+			}
+		}
+
+		idx.mu.Lock()
+		idx.scanners[dirPath] = childScanner
+		idx.mu.Unlock()
+	}
+
+	if idx.useAdaptiveScheduling() {
+		idx.mu.Lock()
+		idx.schedulerStartupPassPending = true
+		idx.mu.Unlock()
+	}
+
+	idx.restoreScannerNextRuns()
+	go idx.runIndexScheduler()
+
+	logger.Debugf("Created %d scanners for [%v] (1 root + %d children)", len(topLevelDirs)+1, idx.Name, len(topLevelDirs))
+}
+
+// createChildScanner creates a scanner for a specific child directory (recursive)
+func (idx *Index) createScanner(dirPath string) *Scanner {
+	return &Scanner{
+		scanPath:        dirPath,
+		idx:             idx,
+		currentSchedule: 0,
+		fullScanCounter: 0,
+		complexity:      0, // 0 = unknown until first full scan completes
+	}
+}
+
+// GetScannerStatus returns detailed information about all active scanners
+func (idx *Index) GetScannerStatus() map[string]interface{} {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+
+	status := make(map[string]interface{})
+
+	activePath := idx.getActiveScannerPathUnlocked()
+	status["activeScanner"] = activePath
+	status["isScanning"] = activePath != ""
+	status["status"] = idx.Status
+
+	// Individual scanner stats
+	scannerStats := make([]map[string]interface{}, 0, len(idx.scanners))
+	for path, scanner := range idx.scanners {
+		scannerInfo := map[string]interface{}{
+			"path": path,
+		}
+		scanner.withStatsRLock(func() {
+			scannerInfo["lastScanned"] = scanner.lastScanned.Format(time.RFC3339)
+			scannerInfo["complexity"] = scanner.complexity
+			scannerInfo["currentSchedule"] = scanner.currentSchedule
+			scannerInfo["quickScanTime"] = scanner.quickScanTime
+			scannerInfo["fullScanTime"] = scanner.fullScanTime
+			scannerInfo["numDirs"] = scanner.numDirs
+			scannerInfo["numFiles"] = scanner.numFiles
+			scannerInfo["filesChanged"] = scanner.filesChanged
+			scannerInfo["fullScanCounter"] = scanner.fullScanCounter
+			if !scanner.nextRun.IsZero() {
+				scannerInfo["nextRun"] = scanner.nextRun.Format(time.RFC3339)
+			}
+		})
+		scannerStats = append(scannerStats, scannerInfo)
+	}
+	status["scanners"] = scannerStats
+	status["totalScanners"] = len(idx.scanners)
+
+	return status
+}

@@ -16,11 +16,6 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
   - macOS: `brew install ffmpeg`
   - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
 
-- **exiftool**: For photo metadata processing (RAW/HEIC previews, EXIF orientation)
-  - Ubuntu/Debian: `sudo apt-get install libimage-exiftool-perl`
-  - macOS: `brew install exiftool`
-  - Windows: Download from [exiftool.org](https://exiftool.org/) (install `exiftool.exe` and add it to your PATH, or set `integrations.media.exiftoolPath` in config)
-
 - **mupdf-tools**: For PDF preview generation
   - Ubuntu/Debian: `sudo apt-get install mupdf-tools`
   - macOS: `brew install mupdf-tools`
@@ -47,11 +42,12 @@ make dev
 
 ### Backend (Go)
 - **Entry Point**: `backend/main.go` → `backend/cmd/`
-- **HTTP Server**: `backend/http/` - API routes, middleware, auth
-- **Storage**: BoltDB via `backend/database/storage/`
-- **Authentication**: Multiple providers in `backend/auth/`
-- **Indexing**: Real-time search in `backend/indexing/`
-- **Previews**: Image/video/document generation in `backend/preview/`
+- **HTTP Server**: `backend/internal/web/` - API routes, middleware, auth
+- **Storage**: SQLite via `backend/internal/database/`
+- **Authentication**: Multiple providers in `backend/internal/auth/`
+- **Indexing**: Real-time search in `backend/pkg/indexing/`
+- **Previews**: Image/video/document generation in `backend/internal/preview/`
+- **Activity**: Query, recording, and export logic in `backend/internal/activity/`
 
 ### Frontend (Vue.js + TypeScript)
 - **Framework**: Vue 3 + Vite + TypeScript

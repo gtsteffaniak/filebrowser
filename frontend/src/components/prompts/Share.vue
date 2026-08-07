@@ -48,12 +48,17 @@
       <p> {{ $t('share.notice') }} </p>
       <p v-if="sourceReadOnly" class="read-only-notice">{{ $t('share.readOnlySourceNotice') }}</p>
 
+      <ActivityViewerButton
+        v-if="!isEditingPath"
+        :href="activityViewerHref"
+      />
+
       <div v-if="listing">
         <settings-table
           :columns="sharePromptTableColumns"
           :items="links"
           item-key="hash"
-          :aria-label="$t('settings.shareManagement')"
+          :aria-label="shareManagementLabel()"
           :loading="linksLoading"
         >
           <template #cell-expire="{ row }">
@@ -120,11 +125,12 @@
           <div class="form-flex-group">
             <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
               @keyup.enter="submit" v-model.trim="time" />
-            <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
-              <option value="minutes">{{ $t("time.minutes") }}</option>
-              <option value="hours">{{ $t("time.hours") }}</option>
-              <option value="days">{{ $t("time.days") }}</option>
-            </select>
+            <ExpandDropdown
+              v-model="unit"
+              class="flat-left form-compact form-dropdown"
+              :options="timeUnitOptions"
+              :aria-label="timeUnitLabel()"
+            />
           </div>
           <p>
             {{ $t("prompts.optionalPassword") }}
@@ -151,10 +157,11 @@
               help
             </i>
           </p>
-          <select class="input" v-model="shareType">
-            <option value="normal">{{ $t("share.normalShare") }}</option>
-            <option value="upload" :disabled="sourceReadOnly">{{ $t("share.uploadShare") }}</option>
-          </select>
+          <ExpandDropdown
+            v-model="shareType"
+            :options="shareTypeOptions"
+            :aria-label="$t('share.shareType')"
+          />
           <button
             type="button"
             @click="openSidebarLinksCustomization"
@@ -179,20 +186,18 @@
           :start-collapsed="!showMoreExpanded" @toggle="showMoreExpanded = $event">
           <div class="settings-items">
             <p>
-              {{ $t("prompts.shareTheme") }}
+              {{ shareThemeLabel() }}
               <i class="material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
                 help
               </i>
             </p>
             <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-              <select class="input" v-model="shareTheme">
-                <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
-                  {{ String(key) === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} -
-                  ${theme.description}`
-                  }}
-                </option>
-              </select>
+              <ExpandDropdown
+                v-model="shareTheme"
+                :options="shareThemeOptions"
+                :aria-label="shareThemeLabel()"
+              />
             </div>
             <div v-if="shareType === 'normal'">
               <p>
@@ -202,11 +207,11 @@
                   help
                 </i>
               </p>
-              <select class="input" v-model="viewMode">
-                <option value="normal">{{ $t("buttons.normalView") }}</option>
-                <option value="list">{{ $t("buttons.listView") }}</option>
-                <option value="gallery">{{ $t("buttons.galleryView") }}</option>
-              </select>
+              <ExpandDropdown
+                v-model="viewMode"
+                :options="viewModeOptions"
+                :aria-label="$t('share.defaultViewMode')"
+              />
             </div>
             <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements"
               :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')"
@@ -239,11 +244,11 @@
                 help
               </i>
             </p>
-            <select class="input" v-model="enforceDarkLightMode">
-              <option value="default">{{ $t("share.default") }}</option>
-              <option value="dark">{{ $t("share.dark") }}</option>
-              <option value="light">{{ $t("share.light") }}</option>
-            </select>
+            <ExpandDropdown
+              v-model="enforceDarkLightMode"
+              :options="enforceDarkLightModeOptions"
+              :aria-label="$t('share.enforceDarkLightMode')"
+            />
             <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')"
               :description="$t('share.keepAfterExpirationDescription')" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails"
@@ -311,7 +316,7 @@
           <input class="input" type="text" v-model.trim="themeColor" />
 
           <p>
-            {{ $t("prompts.shareTitle") }}
+            {{ shareTitleLabel() }}
             <i class="material-symbols-outlined tooltip-info-icon"
               @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))" @mouseleave="hideTooltip">
               help
@@ -393,6 +398,9 @@ import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import { activityViewerPresets } from "@/utils/activityViewerLink";
 import FileList from "../files/FileList.vue";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
@@ -405,6 +413,8 @@ export default {
     SettingsItem,
     SettingsTable,
     FileList,
+    ExpandDropdown,
+    ActivityViewerButton,
     //ViewMode,
   },
   props: {
@@ -501,6 +511,18 @@ export default {
       // When editing, use the link's source; otherwise use the item's source
       return this.isEditMode ? this.link.source : this.item.source;
     },
+    activityViewerHref() {
+      if (this.isEditMode && this.link?.hash) {
+        return activityViewerPresets.shareHash(this.link.hash);
+      }
+      if (this.editingLink?.hash) {
+        return activityViewerPresets.shareHash(this.editingLink.hash);
+      }
+      if (this.displaySource) {
+        return activityViewerPresets.sharePath(this.displaySource, this.displayPath);
+      }
+      return activityViewerPresets.shares();
+    },
     sourceReadOnly() {
       const info = state.sources.info?.[this.displaySource];
       return info?.readOnly === true;
@@ -510,6 +532,45 @@ export default {
     },
     availableThemes() {
       return globalVars.userSelectableThemes || {};
+    },
+    timeUnitOptions() {
+      return [
+        { value: "minutes", label: this.$t("time.minutes") },
+        { value: "hours", label: this.$t("time.hours") },
+        { value: "days", label: this.$t("time.days") },
+      ];
+    },
+    shareTypeOptions() {
+      return [
+        { value: "normal", label: this.$t("share.normalShare") },
+        {
+          value: "upload",
+          label: this.$t("share.uploadShare"),
+          disabled: this.sourceReadOnly,
+        },
+      ];
+    },
+    shareThemeOptions() {
+      return Object.entries(this.availableThemes).map(([key, theme]) => ({
+        value: key,
+        label: String(key) === "default"
+          ? this.$t("profileSettings.defaultThemeDescription")
+          : `${key} - ${theme.description}`,
+      }));
+    },
+    viewModeOptions() {
+      return [
+        { value: "normal", label: this.$t("buttons.normalView") },
+        { value: "list", label: this.$t("buttons.listView") },
+        { value: "gallery", label: this.$t("buttons.galleryView") },
+      ];
+    },
+    enforceDarkLightModeOptions() {
+      return [
+        { value: "default", label: this.$t("share.default") },
+        { value: "dark", label: this.$t("share.dark") },
+        { value: "light", label: this.$t("share.light") },
+      ];
     },
     req() {
       return /** @type {FilebrowserRequest} */ (/** @type {unknown} */ (state.req));
@@ -691,6 +752,18 @@ export default {
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
   },
   methods: {
+    shareManagementLabel() {
+      return this.$t("general.shareManagement");
+    },
+    shareThemeLabel() {
+      return this.$t("general.shareTheme");
+    },
+    shareTitleLabel() {
+      return this.$t("general.shareTitle");
+    },
+    timeUnitLabel() {
+      return this.$t("time.timeUnit");
+    },
     applyReadOnlyConstraints() {
       if (this.shareType === 'upload') {
         this.shareType = 'normal';
@@ -801,11 +874,9 @@ export default {
         await shareApi.create(payload);
 
         if (this.isEditMode) {
-          // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
           mutations.closeTopPrompt();
         } else {
-          // refrest the shares list when editing or creating from listing view
           const refreshed = await this.refreshShares();
           if (!refreshed) return;
           this.editingLink = null;

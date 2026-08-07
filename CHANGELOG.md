@@ -2,6 +2,71 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.0
+
+This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions, [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) for a full summary, and the [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to convert legacy config.
+
+ **Breaking Changes**:
+ - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
+ - Removed: `/share/…` URL redirect to `/public/share/…` — use `/public/share/…` directly.
+ - Removed: singular `source` search api param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
+ - Removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules. See [Exclusion rules](https://filebrowserquantum.com/en/docs/user-guides/general-configuration/exclusion-rules/).
+ - Removed: deprecated `userDefaults` config formats (nested and flat) — use the [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to convert before upgrading.
+ - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method and requires specifying `which` in the body. Blank or `all` values are rejected.
+ - Changed: http related config options in `server` config key moved to `http` config key. See [HTTP settings](https://filebrowserquantum.com/en/docs/configuration/http/).
+ - Changed (reverse proxy): `http.trustedHeaders` (v1.5.x list) removed — use `http.trustProxyHeaders: true` when behind nginx, Traefik, or Caddy. When enabled, FileBrowser honors `X-Forwarded-Host`, `X-Forwarded-Proto`, `X-Forwarded-For`, and `X-Real-IP` for client IP, cookies, OIDC callbacks, WebAuthn, share URLs, rate limiting, and activity logs. Default is `false` (direct connection values). The [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) converts v1 `trustedHeaders` lists to `trustProxyHeaders: true`. See [Reverse proxy](https://filebrowserquantum.com/en/docs/getting-started/reverse-proxy/) and [HTTP trustProxyHeaders](https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders).
+ - Changed: `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead. See [Environment variables](https://filebrowserquantum.com/en/docs/reference/environment-variables/) and [Server settings](https://filebrowserquantum.com/en/docs/configuration/server/).
+ - Changed: Moved stream api to `/api/media/stream`. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
+ - Changed: CLI user management — canonical commands are `user set <username> --password [value]` and `user promote <username>`; `set -u username,password` is deprecated. See [CLI reference](https://filebrowserquantum.com/en/docs/reference/cli/).
+
+
+ **New Features**:
+ - View grant mechanism to distinguish between UI viewing and download. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
+ - granular per-source file permissions (view, download, modify, create, delete) with automatic migration from global permissions
+   - per-source defaults configurable in `settings > access management`
+   - `view` permission is automatically set to true unless explicitly set to false. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
+   - can be enforced for all users. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
+ - New activity logs for user activity.
+   - charts and historical data
+   - export to csv reports
+ - Media player improvements:
+   - Refreshed playback queue UI: Supports thumbnails, stored into session storage, and has a "clear queue" button (#2575) (#2600).
+   - Loop now has 3 states (off/single/all) and neither of them will clear the existing queue (#2600).
+   - New "Audio visualizer" for audio files (desktop-only), you can configure some basic things to your taste (#2575) (#2620).
+   - The current state of the audio panel now is stored into local storage.
+   - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, single tap to pause (#2575).
+   - Videos now will resume fullscreen and PiP when navigating (queue auto-navigation, swipes gestures or next/previous) (#2649).
+ - Added `F4` shortcut to refresh the current directory and metadata (#2600).
+ - opt-in feature to send deployment analytics to filebrowser quantum developer servers
+   - anonymized with a viewer so users can see what info would be sent.
+   - if opt-in, every month a snapshot of your deployment config would be sent to developer servers
+   - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future. 
+ - WebDAV now supports set modification time via the `X-OC-Mtime` header for clients that support it (#2626). See [WebDAV docs](https://filebrowserquantum.com/en/docs/features/webdav/).
+ - Copy operations now preserve their original modification times (#2642) (#2647):
+   - WebUI preserves both, files and directories.
+   - WebDAV `COPY` preserves modification times only for files, is limitation we have with webdav.
+ - User default enhancements
+   - Config `userDefaults` seeds SQLite on first run; only fields explicitly set in config stay locked in **Settings → User defaults** (other defaults remain editable)
+   - Added administrator controls for universal user defaults and enforced preferences in `settings > user management > user defaults`.
+   - Added configurable default file permissions per source in `settings > access management`.
+   - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt. See [User management](https://filebrowserquantum.com/en/docs/configuration/users/).
+ - Database env var rename: `FILEBROWSER_DATABASE` is removed (startup fails if set). Use `FILEBROWSER_DATABASE_PATH` (default `filebrowser.sqlite`) or `server.database.path` in config. See [Environment variables](https://filebrowserquantum.com/en/docs/reference/environment-variables/) and [Server settings](https://filebrowserquantum.com/en/docs/configuration/server/).
+ - CLI: `user set` with `--password` (inline value, interactive prompt on TTY, or piped stdin); `user promote` for admin grant without password reset. See [CLI reference](https://filebrowserquantum.com/en/docs/reference/cli/).
+
+ **Notes**:
+ - v2.x.x uses a new write-through backend state management. Changes go through a fast memory layer and also write changes to database to stay in sync. See [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/).
+ - CLI server start (`./filebrowser`), `setup`, `version`, and `set rule` syntax unchanged; see [CLI docs](https://filebrowserquantum.com/en/docs/reference/cli/)
+ - new dropdown and input styles
+ - swipe gestures to dismiss notifications (#2672)
+ - user updates are more granular, don't include entire user payload.
+ - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
+ - removed legacy and deprecated properties from API responses and generated config output
+ - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
+ - removed exiftool as an optional helper, always built with the supported libraries (requires 64 bit os)
+ - If migration issues arise, see [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/migration/troubleshooting/).
+ - default browser media player option removed, always uses themed plyr
+ - [docker] upgraded ffmpeg from 8.1.2 to 9.0
+
 ## v1.5.5
 
  **BugFixes**:
@@ -38,7 +103,6 @@ All notable changes to this project will be documented in this file. For commit 
  - fix upload shares with password (#2589) (#2573)
  - fix token when returning from preview on shares with pass (#2588) (#2465)
  - fix share undefined url after editing (#2567) (#2523)
-
 ## v1.5.0
 
  **New Features**:

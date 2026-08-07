@@ -2,7 +2,7 @@
   <div class="plyr-viewer">
     <!-- Audio with plyr -->
     <div
-      v-if="previewType === 'audio' && !useDefaultMediaPlayer"
+      v-if="previewType === 'audio'"
       ref="audioPlayerGestureRoot"
       class="audio-player-container audio-player-container--plyr-gestures"
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
@@ -32,16 +32,16 @@
         <div class="audio-left-column">
           <!-- Album art with a generic icon if no image/metadata -->
           <div class="album-art-container"
-                :class="{ 'no-artwork': !albumArtUrl }"
-                :style="{
-                  maxHeight: `${displayArtSize}em`,
-                  maxWidth: `${displayArtSize}em`
-                }"
-               @mouseenter="onAlbumArtHover"
-               @mouseleave="onAlbumArtLeave"
-               @wheel="onAlbumArtScroll">
-            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
-              />
+              :class="{ 'no-artwork': !albumArtUrl }"
+              :style="{
+                width: `${displayArtSize}em`,
+                maxWidth: '100%',
+                aspectRatio: '1 / 1'
+              }"
+              @mouseenter="onAlbumArtHover"
+              @mouseleave="onAlbumArtLeave"
+              @wheel="onAlbumArtScroll">
+            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'" />
             <div v-else class="album-art-fallback">
               <i class="material-symbols">music_note</i>
             </div>
@@ -71,8 +71,12 @@
             v-if="!isMobile && showDesktopPanel"
             :lyrics="lyrics"
             :active-lyric-index="activeLyricIndex"
+            :player="player"
+            :audio-context="audioContext"
+            :audio-source="audioSource"
             class="lyrics-panel"
             @seek="seekToLyric"
+            @needs-audio-graph="setupAudioVisualizer"
           />
         </Transition>
       </div>
@@ -118,12 +122,33 @@
     </div>
 
     <!-- Video with plyr -->
-    <div v-else-if="previewType === 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
+    <div
+      v-else-if="previewType === 'video'"
+      ref="videoPlayerContainer"
+      class="video-player-container"
+      :class="{ 'no-captions': !hasSubtitles }"
+    >
       <div class="plyr-video-container" ref="plyrVideoContainer">
-        <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
+        <video
+          ref="videoElement"
+          :type="req.type"
+          preload="none"
+          :src="nativeVideoSrc"
+          :autoplay="videoElementAutoplay"
+          @play="handlePlay"
+          playsinline
+        >
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
             :label="subtitleTrackLabel(sub)" :srclang="sub.language" />
         </video>
+      </div>
+      <div
+        v-if="videoPlaybackLoading"
+        class="video-loading-overlay"
+        aria-hidden="true"
+        aria-busy="true"
+      >
+        <LoadingSpinner size="large" />
       </div>
       <div
         ref="skipFeedbackLayer"
@@ -137,22 +162,6 @@
       >
         <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
-    </div>
-
-    <!-- Default HTML5 Audio -->
-    <div v-else-if="previewType === 'audio' && useDefaultMediaPlayer" class="audio-player-container">
-      <audio ref="defaultAudioPlayer" :src="raw"
-        controls :autoplay="shouldAutoplay" @play="handlePlay">
-      </audio>
-    </div>
-
-    <!-- Default HTML5 Video -->
-    <div v-else-if="previewType === 'video' && useDefaultMediaPlayer" class="video-player-container">
-      <video ref="defaultVideoPlayer" :src="raw"
-        controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
-        <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-          :label="subtitleTrackLabel(sub)" :srclang="sub.language" :default="index === 0" />
-      </video>
     </div>
 
     <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
@@ -215,7 +224,7 @@
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
     <button
       type="button"
-      v-if="isMobile && previewType === 'audio' && !useDefaultMediaPlayer && showMobileLyrics && lyrics.length && syncedLyrics"
+      v-if="isMobile && previewType === 'audio' && showMobileLyrics && lyrics.length && syncedLyrics"
       class="queue-button floating lyrics-lock-fab"
       :class="{
         'dark-mode': darkMode,
@@ -233,40 +242,92 @@
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
       <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
-      <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-symbols">
-        {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </i>
-      <i v-else-if="playbackMode === 'shuffle'" class="material-symbols">shuffle</i>
-      <i v-else class="material-symbols">playlist_play</i>
-
+      <i class="material-symbols">{{ toastIcon }}</i>
       <span>{{ playbackModeMessage }}</span>
 
       <!-- Status indicator for loop -->
-      <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
-          'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
+      <span v-if="toastType === 'loop'" :class="[
+          'status-indicator', loop !== 'off' ? 'status-on' : 'status-off',]"></span>
+    </div>
+    <!-- Speed toast (long-press) -->
+    <div v-if="speedToastVisible" class="playback-toast visible">
+      <i class="material-symbols">speed</i>
+      <span>{{ speedToastMessage }}</span>
     </div>
   </div>
 </template>
 
 <script>
 import Plyr from 'plyr';
+import {
+  buildPlaybackQueue,
+  navigatePlaybackQueue,
+  getEndOfMediaAction,
+  cyclePlaybackModes,
+  toggleSingleLoop,
+  clearPlaybackQueue,
+  getModeLabel,
+  getModeIcon,
+  getLoopLabel,
+  getLoopIcon,
+  formatArtist
+} from '@/utils/playbackQueue.js';
+import { getTypeFromMime } from '@/utils/files.js';
+import { buildItemUrl } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import { getters, mutations, state } from '@/store';
-import { url } from '@/utils';
 import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from '@/utils/constants';
 import { getSubtitleFormatExtension } from '@/utils/subtitles';
+import { getPreviewURL, getPreviewURLPublic } from '@/api/resources';
+import {
+  blockPlyrSeekOnInput,
+  enablePlyrSeekOnRelease,
+} from '@/plyr/plyrSeekOnRelease';
+import { enablePlyrScrubPreview } from '@/plyr/plyrScrubPreview';
+import { enablePlyrVideoLoadingIndicator } from '@/plyr/plyrVideoLoading';
+import { enableOverlaidHintController } from '@/plyr/overlaidHintController';
+import {
+  appendMediaFragment,
+  clearPendingInlineResumeFor,
+  exitPictureInPictureProgrammatically,
+  getPendingInlineResume,
+  hasActiveSession as hasActivePipSession,
+  initPipSession,
+  isPipBlockedForPreview,
+  onPendingInlineResume,
+  onPipAvailabilityChange,
+  pendingMatchesPreview,
+  registerSession as registerPipSession,
+  resolvePipMediaKey,
+  setPendingInlineResume,
+  shouldDeferVideoStreamAttach,
+  takeSessionSnapshot,
+} from '@/plyr/pipSession.js';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import {
+  parsePlaybackTimeFromQuery,
+  playbackQueryChanged,
+} from '@/utils/playbackQuery';
+import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
+import { zoneFromClientX } from '@/plyr/gestureZones.js';
+import { ownsMediaSession as ownsMediaSessionSlot } from '@/utils/mediaSessionOwnership';
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
 const PLYR_LOCALSTORAGE_KEY = 'plyr';
 /** Custom field inside Plyr’s JSON blob so caption size travels with other Plyr prefs. */
 const PLYR_CAPTION_SIZE_FIELD = 'captionSize';
+let pendingFullscreenResume = false;
+let pendingPipResume = false;
+let pendingResumeTimestamp = 0;
+let mediaSessionOwner = 0;
 
 export default {
   name: "plyrViewer",
   components: {
     AudioPanel,
+    LoadingSpinner,
   },
   props: {
     previewType: {
@@ -289,10 +350,6 @@ export default {
       type: Object,
       required: true,
     },
-    useDefaultMediaPlayer: {
-      type: Boolean,
-      default: false,
-    },
     autoPlayEnabled: {
       type: Boolean,
       default: false,
@@ -308,6 +365,7 @@ export default {
       // Toast
       toastVisible: false,
       toastTimeout: null,
+      toastType: 'mode', // 'mode' for the playback modes and 'loop'... for loop.
 
       // Metadata & Art
       metadata: null, // Null by default, will be loaded from the audio file.
@@ -320,10 +378,16 @@ export default {
       doubleTapSeekCleanup: null,
       mobileLyricsScrollLocked: false,
 
+      // Audio Visualizer
+      audioContext: null,
+      audioSource: null,
+      audioGraphInitialized: false,
+
       // Playback settings
       playbackMenuInitialized: false,
+      loopMenuInitialized: false,
       lastAppliedMode: null,
-      showDesktopPanel: sessionStorage.getItem('plyrShowDesktopPanel') === '1',
+      showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
 
       // Buttons visibility
@@ -331,6 +395,7 @@ export default {
       buttonTimer: null,
       buttonZoneLeft: false,
       buttonZoneRight: false,
+      isFullscreen: false,
 
       // Gestures
       skipFeedbackVisible: false,
@@ -338,7 +403,19 @@ export default {
       skipFeedbackIcon: 'replay_10',
       skipFeedbackKey: 0,
       skipFeedbackTimer: null,
-      // Plyr video: full-frame edge gestures (same UX as ExtendedImage; Plyr controls live outside .plyr__video-wrapper)
+      skipNextTap: false,
+      skipNextTapTimer: null, // Timer for clearing skipNextTap
+      pendingPlayPauseTapTimer: null,
+      edgeTapLastTime: 0,
+      edgeTapLastZone: null,
+      edgeSeekAt: 0,
+      ignoreClickUntil: 0,
+
+      hasStartedPlayback: false,
+      overlaidHintApi: null,
+      overlaidHintCleanup: null,
+
+      // Plyr video: full-frame edge gestures
       videoEdgeKind: null,
       videoEdgeStartX: 0,
       videoEdgeStartY: 0,
@@ -346,7 +423,6 @@ export default {
       videoEdgeDy: 0,
       videoDragOffsetX: 0,
       videoDragOffsetY: 0,
-      videoGestureDecided: false,
       videoGestureSnapBack: false,
       videoEdgeMouseActive: false,
       videoShowNavHint: false,
@@ -363,25 +439,67 @@ export default {
       videoDismissCloseTimer: null,
       videoDismissHintTimer: null,
 
+      // Long-press for 2x speed (only for touch)
+      longPressTimer: null,
+      longPressPending: false,
+      longPressTriggered: false,
+      longPressPreviousSpeed: 1,
+      speedToastVisible: false,
+      speedToastMessage: '',
+
       // Plyr instance
       player: null,
       captionSizeMenuInitialized: false,
+      /** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
+      videoStreamAttached: false,
+      attachVideoStreamResume: null,
+      mediaSessionOwnerId: 0,
+      nativePlayerPlay: null,
+      /** Centered spinner while the video is loading or buffering. */
+      videoPlaybackLoading: false,
+      seekOnReleaseCleanup: null,
+      scrubPreviewCleanup: null,
+      videoLoadingCleanup: null,
+      querySeekMetadataHandler: null,
+      plyrTeardownDone: false,
+      /** Inline resume after PiP handoff; applied when the video stream attaches. */
+      inlineResumeSnapshot: null,
+      /** Seek target passed via Media Fragments URI (#t=) when handing off from PiP. */
+      pipHandoffSeekSeconds: null,
+      pipReadinessHandler: null,
+      pipAvailabilityCleanup: null,
+      pipPendingResumeCleanup: null,
+      /** Source+path this instance mounted for; guards stale instances during route transitions. */
+      mountedPreviewKey: null,
+      pipHandoffApplying: false,
+      /** Keeps :src stable after PiP handoff so Vue does not rebind without #t=. */
+      lockedNativeVideoSrc: null,
     };
   },
   watch: {
-    playbackMode: {
-      handler(newMode, oldMode) {
-        if (newMode !== oldMode) {
-          const forceReshuffle = newMode === 'shuffle';
-          this.setupPlaybackQueue(forceReshuffle);
-          this.$nextTick(() => {
-            this.ensurePlaybackModeApplied();
-          });
+    playbackMode(newMode, oldMode) {
+      if (newMode !== oldMode) {
+        if (oldMode !== undefined) {
+          // can only be "single" via clearPlaybackQueue
+          this.toastType = newMode === 'single' ? 'cleared' : 'mode';
+          this.showToast();
         }
-      },
+        this.$nextTick(() => {
+          this.ensurePlaybackModeApplied();
+        });
+      }
+    },
+    loop(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.toastType = 'loop';
+        this.showToast();
+        this.$nextTick(() => {
+          this.ensurePlaybackModeApplied();
+        });
+      }
     },
     showDesktopPanel(val) {
-      sessionStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
+      localStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
     },
     albumArtSize(val) {
       sessionStorage.setItem('plyrAlbumArtSize', val.toString());
@@ -406,59 +524,102 @@ export default {
       this.togglePlayPause();
       }
     },
+    'req.path'() {
+      this.videoStreamAttached = false;
+      this.pipHandoffSeekSeconds = null;
+      this.lockedNativeVideoSrc = null;
+      this.hasStartedPlayback = false;
+      this.overlaidHintApi?.reset();
+    },
+    routePath() {
+      this.stopIfRouteLeftThisFile();
+    },
     listing: {
       handler(newListing) {
-        // update queue if the listing changes
-        if (newListing && newListing.length > 0) {
-          this.setupPlaybackQueue(true);
+        if (!newListing?.length) return;
+        const isShare = getters.isShare();
+        const getId = item => isShare ? item.name : item.path;
+        const mediaFiles = newListing.filter(item => /^(audio|video)\//.test(item.type || ''));
+        const queue = state.playbackQueue.queue;
+        const mode = state.playbackQueue.mode;
+
+        if (queue.length && mediaFiles.length === queue.length) {
+          const currIds = mediaFiles.map(getId);
+          const queIds = queue.map(getId);
+          let match;
+          if (mode === 'shuffle') {
+            const set = new Set(queIds);
+            match = currIds.every(id => set.has(id));
+          } else {
+            match = currIds.every((id, i) => id === queIds.at(i));
+          }
+          if (match) {
+            const byId = new Map(mediaFiles.map(item => [getId(item), item]));
+            const playbackQueue = queue.map(item => byId.get(getId(item)) || item);
+            const currentItemId = getId(this.req);
+            const newIndex = playbackQueue.findIndex(item => getId(item) === currentItemId);
+            mutations.setPlaybackQueue({
+              queue: playbackQueue,
+              currentIndex: newIndex !== -1 ? newIndex : state.playbackQueue.currentIndex,
+              mode,
+              loop: this.loop
+            });
+            return;
+          }
         }
+        this.setupPlaybackQueue();
       },
       immediate: true
     },
-    subtitlesList(newSubs, oldSubs) {
-      const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
-      const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
-      if (gained || lost) {
-        this.captionSizeMenuInitialized = false;
-      }
-      if (gained) {
-        if (!this.useDefaultMediaPlayer && !this.player && this.previewType === 'video') {
+    subtitlesList: {
+      handler(newSubs, oldSubs) {
+        const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
+        const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
+        if (gained || lost) {
+          this.captionSizeMenuInitialized = false;
+        }
+        if (gained) {
+          if (!this.player && this.previewType === 'video') {
+            this.$nextTick(() => {
+              this.initializePlyr();
+            });
+          } else if (this.player && this.previewType === 'video') {
+            this.$nextTick(() => {
+              this.applyCustomSettings(this.player);
+              this.syncCaptionSizeSettingsVisibility();
+              this.applyCaptionSizeClass();
+            });
+          }
+        } else if (this.player && this.previewType === 'video') {
           this.$nextTick(() => {
-            this.initializePlyr();
-          });
-        } else if (!this.useDefaultMediaPlayer && this.player && this.previewType === 'video') {
-          this.$nextTick(() => {
-            this.applyCustomCaptionSizeSettings(this.player);
             this.syncCaptionSizeSettingsVisibility();
-            this.applyCaptionSizeClass();
+            this.captionSizeMenuInitialized = false;
+            this.applyCustomSettings(this.player);
           });
         }
-      }
+      },
+      deep: true,
     },
-    hasSubtitles() {
-      this.syncCaptionSizeSettingsVisibility();
+    '$route.query': {
+      handler(newQuery, oldQuery) {
+        if (playbackQueryChanged(oldQuery, newQuery)) {
+          this.applyQueryPlaybackSeek();
+        }
+      },
     },
   },
   computed: {
+    routePath() {
+      return state.route.path;
+    },
     darkMode() {
       return state.user.darkMode;
     },
     filetype() {
-      const mime = this.req.type || '';
-      const prefix = 'audio/';
-      if (mime.startsWith(prefix)) {
-        return mime.slice(prefix.length).toLowerCase();
-      }
-      return '';
+      return getTypeFromMime(this.req.type || '');
     },
     formattedArtist() {
-      if (!this.metadata?.artist) return '';
-      const parts = this.metadata.artist
-        // Common separators like 'feat.' 'ft.' ',' ';' '/' '&'
-        .split(/[,;/&]|\s+feat\.\s+|\s+ft\.\s+/i)
-        .map(s => s.trim())
-        .filter(Boolean);
-      return parts.join(' • ');
+      return formatArtist(this.metadata?.artist);
     },
     showButtons() {
       if (this.previewType === 'audio' && !this.isMobile && this.showDesktopPanel) {
@@ -479,7 +640,10 @@ export default {
       return false;
     },
     showQueueButton() {
-      if (this.previewType === 'video') return true;
+      if (this.previewType === 'video') {
+        if (this.isFullscreen) return false;
+        return true;
+      }
       if (this.isMobile && this.previewType === 'audio') return true;
       return false;
     },
@@ -502,27 +666,33 @@ export default {
       return state.playbackQueue.currentIndex ?? -1;
     },
     playbackMode() {
-      return state.playbackQueue.mode || 'single';
+      return state.playbackQueue.mode;
+    },
+    loop() {
+      return state.playbackQueue.loop || 'off';
     },
     playbackModeMessage() {
-      const mode = {
-      'sequential': this.$t('player.PlayAllOncePlayback'),
-      'shuffle': this.$t('player.ShuffleAllPlayback'),
-      'loop-all': this.$t('player.PlayAllLoopedPlayback'),
-      'loop-single': this.$t('player.LoopEnabled'),
-      'single': this.$t('player.LoopDisabled')
-      };
-      return mode[this.playbackMode] || mode.single;
+      if (this.toastType === 'loop') {
+        return getLoopLabel(this.loop, this.$t);
+      }
+      if (this.toastType === 'cleared') {
+        return this.$t('player.queueCleared');
+      }
+      return getModeLabel(this.playbackMode, this.$t);
+    },
+    toastIcon() {
+      if (this.toastType === 'loop') {
+        return getLoopIcon(this.loop);
+      }
+      if (this.toastType === 'cleared') {
+        return 'delete';
+      }
+      return getModeIcon(this.playbackMode);
     },
     hasSubtitles() {
       return this.subtitlesList && this.subtitlesList.length > 0;
     },
     mediaElement() {
-      if (this.useDefaultMediaPlayer) {
-        return this.previewType === 'video'
-          ? this.$refs.defaultVideoPlayer 
-          : this.$refs.defaultAudioPlayer;
-      }
       return this.previewType === 'video'
         ? this.$refs.videoElement 
         : this.$refs.audioElement;
@@ -536,9 +706,7 @@ export default {
     videoSwipeGesturesActive() {
       return (
         (this.previewType === 'video' || this.previewType === 'audio') &&
-        !this.useDefaultMediaPlayer &&
-        !!this.player &&
-        !this.player.fullscreen?.active
+        !!this.player
       );
     },
     videoNavigationGestureAllowed() {
@@ -561,6 +729,61 @@ export default {
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
+    },
+    scrubPreviewEnabled() {
+      return (
+        this.previewType === 'video'
+        && Boolean(this.req?.hasPreview)
+        && getters.previewPerms().video
+      );
+    },
+    nativeVideoSrc() {
+      if (this.previewType !== 'video') {
+        return null;
+      }
+      if (this.lockedNativeVideoSrc) {
+        return this.lockedNativeVideoSrc;
+      }
+      if (this.shouldAttachVideoStream) {
+        const handoffTime = this.pipHandoffSeekSeconds
+          ?? this.inlineResumeSnapshot?.currentTime;
+        return appendMediaFragment(this.raw, handoffTime);
+      }
+      return null;
+    },
+    shouldAttachVideoStream() {
+      if (
+        this.previewType === 'video'
+        && shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)
+      ) {
+        return false;
+      }
+      return this.videoStreamAttached || this.shouldAutoplay;
+    },
+    pipHandoffShouldAutoplay() {
+      if (this.previewType !== 'video') {
+        return false;
+      }
+      const snap = this.inlineResumeSnapshot;
+      if (!snap && !this.pipHandoffSeekSeconds) {
+        return false;
+      }
+      return snap?.wasPlaying !== false;
+    },
+    videoElementAutoplay() {
+      if (this.previewType !== 'video') {
+        return false;
+      }
+      if (shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)) {
+        return false;
+      }
+      if (this.pipHandoffShouldAutoplay) {
+        return true;
+      }
+      if (this.inlineResumeSnapshot || this.pipHandoffSeekSeconds) {
+        return false;
+      }
+      return this.shouldAutoplay;
     },
     /** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
     plyrOptions() {
@@ -594,10 +817,11 @@ export default {
       ];
       return {
         controls: this.isMobile ? controlsMobile : controlsDesktop,
-        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback'],
+        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'],
         i18n: {
-          playback: 'Playback',
-          captionSize: 'Caption size',
+          playback: this.$t('player.playbackMode'),
+          captionSize: this.$t('player.captionSize'),
+          loop: this.$t('player.loop'),
         },
         speed: {
           selected: 1,
@@ -607,15 +831,20 @@ export default {
         seekTime: 10,
         hideControls: true,
         keyboard: { focused: true, global: true },
-        tooltips: { controls: true, seek: true },
+        tooltips: { controls: true, seek: !this.scrubPreviewEnabled },
         loop: { active: false },
         blankVideo: '',
         muted: false,
         autoplay: false,
         playsinline: true,
-        clickToPlay: true,
+        clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
         resetOnEnd: false,
-        preload: 'metadata',
+        preload: this.previewType === 'video' ? 'none' : 'metadata',
+        fullscreen: {
+          enabled: true,
+          fallback: true,
+          container: '.plyr-viewer',
+        },
         iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
         // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
         // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
@@ -624,13 +853,25 @@ export default {
           language: 'auto',
           update: true,
         },
+        listeners: {
+          seek: blockPlyrSeekOnInput,
+        },
       };
     },
   },
   mounted() {
-    this.updateMedia();
+    initPipSession();
+    this.hookEvents();
+    if (this.previewType === "audio") {
+      this.loadAudioMetadata();
+    }
     document.addEventListener('keydown', this.handleKeydown);
     this.resetButtonTimer(); // Show buttons initially
+    this.pagehideHandler = (event) => {
+      if (event.persisted) return;
+      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+    };
+    window.addEventListener('pagehide', this.pagehideHandler);
   },
   beforeUnmount() {
     // Cleanup timeouts
@@ -638,15 +879,16 @@ export default {
     this.buttonTimer,
     this.skipFeedbackTimer,
     this.videoDismissCloseTimer,
-    this.videoDismissHintTimer
+    this.videoDismissHintTimer,
+    this.skipNextTapTimer,
   ].forEach(timeout => {
       if (timeout) clearTimeout(timeout);
     });
     // Cleanup Plyr
     this.destroyPlyr();
-    this.mediaElement.pause();
     this.clearMediaSession();
     document.removeEventListener('keydown', this.handleKeydown);
+    window.removeEventListener('pagehide', this.pagehideHandler);
   },
   methods: {
     resetButtonTimer() {
@@ -668,6 +910,9 @@ export default {
       const ext = getSubtitleFormatExtension(sub?.name || '');
       return ext || sub?.name || '';
     },
+    ownsMediaSession() {
+      return ownsMediaSessionSlot(this.mediaSessionOwnerId, mediaSessionOwner);
+    },
     showQueuePrompt() {
       mutations.showPrompt({
         name: "PlaybackQueue",
@@ -675,6 +920,7 @@ export default {
     },
     setupMediaSession() {
       if (!('mediaSession' in navigator) || !this.player) return;
+      this.mediaSessionOwnerId = ++mediaSessionOwner;
       // Create a fresh fallback URL with timestamp to prevent caching issues
       const fallbackIcon = globalVars.loginIcon;
       const timestamp = Date.now();
@@ -722,6 +968,7 @@ export default {
     },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
+      if (!this.ownsMediaSession()) return;
       if (this.player) {
         navigator.mediaSession.playbackState = this.player.playing ? 'playing' : 'paused';
         // Update position state
@@ -736,6 +983,7 @@ export default {
     },
     clearMediaSession() {
       if (!('mediaSession' in navigator)) return;
+      if (!this.ownsMediaSession()) return;
       // Clear metadata
       navigator.mediaSession.metadata = null;
       // Clear all action handlers
@@ -749,59 +997,178 @@ export default {
       }
       // Reset playback state
       navigator.mediaSession.playbackState = 'none';
+      this.mediaSessionOwnerId = 0;
+    },
+    getActiveMediaElement() {
+      return this.player?.media ?? this.mediaElement ?? null;
+    },
+    isMediaInPictureInPicture(media = null) {
+      const el = media ?? this.getActiveMediaElement();
+      return Boolean(el && document.pictureInPictureElement === el);
+    },
+    stopIfRouteLeftThisFile() {
+      if (this.plyrTeardownDone || !this.req?.path) {
+        return;
+      }
+      const expected = buildItemUrl(this.req.source, this.req.path);
+      const current = state.route.path;
+      if (current === expected || current.startsWith(`${expected}#`)) {
+        return;
+      }
+      this.destroyPlyr();
+    },
+    stopMediaElement(media = null) {
+      const el = media ?? this.getActiveMediaElement();
+      if (!el) {
+        return;
+      }
+      this.clearAttachVideoStreamWait();
+      try {
+        el.pause();
+      } catch (_) {
+        // ignore
+      }
+      if (document.pictureInPictureElement === el) {
+        void exitPictureInPictureProgrammatically();
+      }
+      el.removeAttribute('src');
+      try {
+        el.load();
+      } catch (_) {
+        // ignore
+      }
     },
     destroyPlyr() {
+      if (this.plyrTeardownDone) {
+        return;
+      }
+      this.plyrTeardownDone = true;
+
+      if (this.scrubPreviewCleanup) {
+        this.scrubPreviewCleanup();
+        this.scrubPreviewCleanup = null;
+      }
+      if (this.seekOnReleaseCleanup) {
+        this.seekOnReleaseCleanup();
+        this.seekOnReleaseCleanup = null;
+      }
+      if (this.videoLoadingCleanup) {
+        this.videoLoadingCleanup();
+        this.videoLoadingCleanup = null;
+      }
+      this.videoPlaybackLoading = false;
+      this.teardownQueryPlaybackSeek();
+      this.teardownOverlaidHintController();
+      this.teardownPipControlGuard();
+      this.pipPendingResumeCleanup?.();
+      this.pipPendingResumeCleanup = null;
+      this.mountedPreviewKey = null;
+      this.pipHandoffApplying = false;
+      this.lockedNativeVideoSrc = null;
+
+      const media = this.getActiveMediaElement();
+      const inPip = this.isMediaInPictureInPicture(media);
+      const isTransition = state.navigation.isTransitioning;
+      const leavingInPip = inPip && this.req?.path;
+
       if (this.player) {
+        if (isTransition && !inPip) {
+          pendingFullscreenResume = this.player.fullscreen?.active || false;
+          pendingPipResume = false;
+          pendingResumeTimestamp = Date.now();
+        }
+        if (this.nativePlayerPlay) {
+          this.player.play = this.nativePlayerPlay;
+          this.nativePlayerPlay = null;
+        }
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
+        this.cleanupAudioVisualizer();
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
-        this.player.destroy();
-        this.player = null;
-        this.playbackMenuInitialized = false;
-        this.captionSizeMenuInitialized = false;
-        this.lastAppliedMode = null;
-        // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
-        // Somehow firefox will still trying to "load" the empty source which causes the warn.
-        this.mediaElement.src = this.raw;
+        if (leavingInPip && media) {
+          registerPipSession(media, {
+            ...resolvePipMediaKey(this.req.source, this.req.path),
+            wasInlineFullscreen: Boolean(this.player?.fullscreen?.active),
+            wasPlaying: !media.paused,
+          });
+          this.player = null;
+        } else {
+          this.stopMediaElement(media);
+          this.player.destroy();
+          this.player = null;
+        }
+      } else if (leavingInPip && media) {
+        registerPipSession(media, {
+          ...resolvePipMediaKey(this.req.source, this.req.path),
+          wasInlineFullscreen: Boolean(this.player?.fullscreen?.active),
+          wasPlaying: !media.paused,
+        });
+      } else if (!inPip) {
+        this.stopMediaElement(media);
       }
+
+      this.playbackMenuInitialized = false;
+      this.captionSizeMenuInitialized = false;
+      this.loopMenuInitialized = false;
+      this.lastAppliedMode = null;
+      this.playbackButtons = null;
+      this.playbackValueSpan = null;
+      this.captionSizeButtons = null;
+      this.captionSizeValueSpan = null;
+      this.loopButtons = null;
+      this.loopValueSpan = null;
+    },
+    cleanupAudioVisualizer() {
+      if (this.audioSource) {
+        try { this.audioSource.disconnect(); } catch (_) { /* ignore */ }
+        this.audioSource = null;
+      }
+      if (this.audioContext) {
+        const context = this.audioContext;
+        try {
+          const closed = context.close();
+          if (closed?.catch) closed.catch(() => {});
+        } catch (_) {
+          /* ignore */ 
+        }
+        this.audioContext = null;
+      }
+      this.audioGraphInitialized = false;
     },
     togglePlayPause() {
-      if (!this.mediaElement) return;
-      if (this.useDefaultMediaPlayer) {
-        if (this.mediaElement.paused) {
-          this.mediaElement.play();
-        } else {
-          this.mediaElement.pause();
-        }
-      } else if (this.player) {
-        if (this.player.playing) {
-          this.player.pause();
-        } else {
-          this.player.play();
-        }
+      if (this.player) {
+        this.player.togglePlay();
+        return;
       }
+      const media = this.mediaElement;
+      if (!media) return;
+      if (media.paused) media.play(); else media.pause();
     },
     handlePlay() {
       this.$emit('play');
+      if (this.previewType === 'audio') {
+        this.resumeAudioGraph();
+      }
     },
     ensurePlaybackModeApplied() {
-      if (this.useDefaultMediaPlayer || !this.player) return;
+      if (!this.player) return;
       try {
         const settingsMenu = this.player.elements.settings?.menu;
         const playbackBtn = this.player.elements.settings?.buttons?.playback;
         const captionSizeBtn = this.player.elements.settings?.buttons?.captionSize;
+        const loopBtn = this.player.elements.settings?.buttons?.loop;
         const menuOpen =
           settingsMenu
           && settingsMenu.style.display !== 'none'
           && settingsMenu.getAttribute('hidden') === null;
         const needPlayback = playbackBtn && !this.playbackMenuInitialized;
         const needCaptionSize = captionSizeBtn && !this.captionSizeMenuInitialized;
+        const needLoop = loopBtn && !this.loopMenuInitialized;
 
-        if (menuOpen || needPlayback || needCaptionSize) {
-          this.applyCustomPlaybackSettings(this.player);
-          this.applyCustomCaptionSizeSettings(this.player);
+        if (menuOpen || needPlayback || needCaptionSize || needLoop) {
+          this.applyCustomSettings(this.player);
         }
       } catch (error) {
         console.error('Error ensuring playback mode applied:', error);
@@ -855,7 +1222,7 @@ export default {
       };
     },
     applyCaptionSizeClass() {
-      if (this.useDefaultMediaPlayer || !this.player?.elements?.container) {
+      if (!this.player?.elements?.container) {
         return;
       }
       const el = this.player.elements.container;
@@ -865,7 +1232,7 @@ export default {
       el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
-      if (this.useDefaultMediaPlayer || !this.player) {
+      if (!this.player) {
         return;
       }
       const btn = this.player.elements.settings?.buttons?.captionSize;
@@ -879,64 +1246,6 @@ export default {
         btn.setAttribute('hidden', '');
       }
     },
-    applyCustomCaptionSizeSettings(player) {
-      if (this.captionSizeMenuInitialized) {
-        return;
-      }
-
-      try {
-        const captionBtn = player.elements.settings?.buttons?.captionSize;
-        const captionPanel = player.elements.settings?.panels?.captionSize;
-
-        if (!captionBtn || !captionPanel) {
-          return;
-        }
-
-        const title = player.config.i18n?.captionSize || 'Caption size';
-
-        if (this.previewType !== 'video' || !this.hasSubtitles) {
-          captionBtn.setAttribute('hidden', '');
-          this.captionSizeMenuInitialized = true;
-          return;
-        }
-
-        this.syncCaptionSizeSettingsVisibility();
-        captionBtn.removeAttribute('hidden');
-
-        const current = this.getStoredCaptionSize();
-
-        captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(current)}</span>`;
-
-        captionPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').textContent = title;
-
-        const menu = captionPanel.querySelector('div[role="menu"]');
-        menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
-          (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" aria-checked="${current === id}" value="${id}">
-                    <span>${this.getCaptionSizeLabel(id)}</span>
-                  </button>`,
-        ).join('');
-
-        menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((button) => {
-          button.addEventListener('click', (event) => {
-            const value = event.currentTarget.getAttribute('value');
-            if (!PLYR_CAPTION_SIZE_IDS.includes(value)) {
-              return;
-            }
-            this.setStoredCaptionSize(value);
-            this.applyCaptionSizeClass();
-            menu.querySelectorAll('button[data-plyr="caption-size"]').forEach((btn) => {
-              btn.setAttribute('aria-checked', btn.getAttribute('value') === value ? 'true' : 'false');
-            });
-            captionBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${this.getCaptionSizeLabel(value)}</span>`;
-          });
-        });
-
-        this.captionSizeMenuInitialized = true;
-        this.applyCaptionSizeClass();
-      } catch (error) {
-        console.error('Error applying caption size settings:', error);
-      }
-    },
     getCaptionSizeLabel(size) {
       switch (size) {
         case 'small': return 'Small';
@@ -946,37 +1255,38 @@ export default {
         default: return 'Medium';
       }
     },
-    getPlaybackModeLabel(mode) {
-      switch (mode) {
-        case 'single': return 'Play Once';
-        case 'sequential': return 'Play All';
-        case 'shuffle': return 'Shuffle All';
-        case 'loop-single': return 'Loop current';
-        case 'loop-all': return 'Play All Looped';
-        default: return 'Play Once';
-      }
-    },
-    toggleLoop() {
-      const newMode = this.playbackMode === 'loop-single' ? 'single' : 'loop-single';
-      // Update the state directly via mutations
+    toggleSingleLoop() {
+      const newLoop = toggleSingleLoop(this.loop);
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
-        mode: newMode
+        mode: this.playbackMode,
+        loop: newLoop
       });
-      this.showToast();
     },
     handleKeydown(event) {
       if (event.repeat) return;
-      // Handle 'P' and 'L' keys for loop and change playback
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
       const key = event.key.toLowerCase();
-
+      const target = event.target;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+        return;
+      }
+      // Handle 'P' and 'L' keys for loop and change playback
       if (key === 'p' || key === 'l') {
         event.stopPropagation();
         event.preventDefault();
-
         if (key === 'p') this.cyclePlaybackModes();
-        if (key === 'l') this.toggleLoop();
+        if (key === 'l') this.toggleSingleLoop();
+        return;
+      }
+      // left/right arrows for seek feedback
+      if (key === 'arrowleft' || key === 'arrowright') {
+        if (!this.player) return;
+        event.preventDefault();
+        const rewind = key === 'arrowleft';
+        this.flashSkipFeedback(rewind);
+        return;
       }
       // "Q" key – open/close panel on desktop audio, queue prompt on vids
       if (key === 'q') {
@@ -992,17 +1302,11 @@ export default {
       }
     },
     cyclePlaybackModes() {
-      // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
-      const modeCycle = ['loop-all', 'shuffle', 'sequential'];
-      const currentIndex = modeCycle.indexOf(this.playbackMode);
-      const nextIndex = (currentIndex + 1) % modeCycle.length;
-      const newMode = modeCycle.at(nextIndex);
-      mutations.setPlaybackQueue({
-        queue: this.playbackQueue,
-        currentIndex: this.currentQueueIndex,
-        mode: newMode
+      cyclePlaybackModes(this.playbackMode, {
+        listing: this.listing,
+        currentItem: this.req,
+        isShare: getters.isShare()
       });
-      this.showToast();
     },
     // Seek the player to the given timestamp (in milliseconds)
     seekToLyric(timestampMs) {
@@ -1102,18 +1406,7 @@ export default {
       this.albumArtUrl = null;
       this.metadata = null;
     },
-    updateMedia() {
-      this.hookEvents();
-      if (this.previewType === "audio") {
-        this.loadAudioMetadata();
-      }
-    },
     hookEvents() {
-      if (this.useDefaultMediaPlayer) {
-        this.setupDefaultPlayerEvents(this.mediaElement);
-        return;
-      }
-      
       // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
       // This prevents Plyr from trying to access tracks before they have valid blob URLs
       const hasSubtitleMetadata = this.req?.subtitles?.length > 0;
@@ -1127,43 +1420,588 @@ export default {
       this.initializePlyr();
     },
     initializePlyr() {
-      if (!this.mediaElement) return;
-      // Small delay to ensure DOM is ready
+      if (!this.mediaElement || this.player) {
+        return;
+      }
       this.$nextTick(() => {
-        // Initialize Plyr
-        this.player = new Plyr(this.mediaElement, this.plyrOptions);
-        // Set up Media Session API
-        this.setupMediaSession();
-        // Set up event listeners
-        this.setupPlyrEvents();
+        if (this.player) {
+          return;
+        }
+        void this.mountPlyrPlayer();
       });
+    },
+    async mountPlyrPlayer() {
+      if (!this.mediaElement || this.player) {
+        return;
+      }
+      this.plyrTeardownDone = false;
+      this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
+      this.pipHandoffApplying = false;
+      await this.reconcilePipSessionOnMount();
+      this.player = new Plyr(this.mediaElement, this.plyrOptions);
+      if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
+        this.nativePlayerPlay = this.player.play.bind(this.player);
+        this.player.play = () => {
+          if (!this.videoStreamAttached) {
+            this.attachVideoStreamAndPlay();
+            return Promise.resolve();
+          }
+          return this.nativePlayerPlay();
+        };
+      }
+      this.setupMediaSession();
+      this.setupPlyrEvents();
+      if (this.previewType === 'video') {
+        this.setupPipControlGuard();
+        this.pipPendingResumeCleanup = onPendingInlineResume((snapshot) => {
+          if (!this.mountedPreviewMatchesPending(snapshot)) {
+            return;
+          }
+          this.resumePlaybackAfterNavigation();
+        });
+      }
+      this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
+      this.setupScrubPreview();
+      this.setupVideoLoadingIndicator();
+      this.resumePlaybackAfterNavigation();
+      if (this.previewType === 'video') {
+        if (!this.inlineResumeSnapshot && !this.pipHandoffSeekSeconds) {
+          this.setupQueryPlaybackSeek();
+        }
+      } else if (this.previewType === 'audio') {
+        this.setupQueryPlaybackSeek();
+      }
+    },
+    applyInlineResumeSeek(el, snapshot, onDone) {
+      if (!el || !snapshot) {
+        onDone?.();
+        return;
+      }
+      const targetTime = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
+      let finished = false;
+      let handoffCompleted = false;
+      const completeHandoff = () => {
+        if (handoffCompleted) {
+          return;
+        }
+        handoffCompleted = true;
+        if (snapshot.wasFullscreen) {
+          this.player?.fullscreen?.enter();
+        }
+        if (snapshot.wasPlaying !== false) {
+          this.attemptPipHandoffPlay(el, snapshot);
+        }
+        const boundSrc = el.currentSrc || el.getAttribute('src');
+        if (boundSrc) {
+          this.lockedNativeVideoSrc = boundSrc;
+        }
+        this.inlineResumeSnapshot = null;
+        this.pipHandoffSeekSeconds = null;
+        this.pipHandoffApplying = false;
+        clearPendingInlineResumeFor(snapshot.source, snapshot.path);
+        onDone?.();
+      };
+      const finish = () => {
+        if (finished) {
+          return;
+        }
+        finished = true;
+        if (snapshot.wasPlaying !== false && el.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
+          el.addEventListener('canplay', () => completeHandoff(), { once: true });
+          window.setTimeout(() => completeHandoff(), 8000);
+        } else {
+          completeHandoff();
+        }
+      };
+      const readTime = () => this.player?.currentTime ?? el.currentTime;
+      const writeTime = (time) => {
+        if (this.player) {
+          this.player.currentTime = time;
+        } else {
+          el.currentTime = time;
+        }
+      };
+      const nearTarget = () => targetTime <= 0 || Math.abs(readTime() - targetTime) <= 1.5;
+      const seek = () => {
+        if (targetTime <= 0) {
+          finish();
+          return;
+        }
+        if (nearTarget()) {
+          finish();
+          return;
+        }
+        try {
+          writeTime(targetTime);
+        } catch (_) {
+          finish();
+          return;
+        }
+        const onSeeked = () => {
+          if (nearTarget()) {
+            finish();
+            return;
+          }
+          el.addEventListener('canplay', () => {
+            try {
+              writeTime(targetTime);
+            } catch (_) {
+              finish();
+              return;
+            }
+            el.addEventListener('seeked', () => {
+              if (nearTarget()) {
+                finish();
+              }
+            }, { once: true });
+          }, { once: true });
+        };
+        el.addEventListener('seeked', onSeeked, { once: true });
+        window.setTimeout(() => {
+          if (!finished && nearTarget()) {
+            finish();
+          }
+        }, 5000);
+      };
+      const whenSeekable = () => {
+        if (nearTarget()) {
+          finish();
+          return;
+        }
+        if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+          seek();
+          return;
+        }
+        el.addEventListener('canplay', seek, { once: true });
+      };
+      if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+        whenSeekable();
+      } else {
+        el.addEventListener('loadedmetadata', whenSeekable, { once: true });
+      }
+    },
+    attachVideoStreamAndPlay() {
+      if (this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
+        if (this.inlineResumeSnapshot) {
+          this.pipHandoffApplying = false;
+        }
+        return;
+      }
+      this.videoStreamAttached = true;
+      this.$nextTick(() => {
+        this.$nextTick(() => {
+          const el = this.mediaElement;
+          if (!el) {
+            return;
+          }
+          const snap = this.inlineResumeSnapshot;
+          const handoffTime = snap?.currentTime ?? this.pipHandoffSeekSeconds;
+          const streamUrl = appendMediaFragment(this.raw, handoffTime);
+          if (streamUrl && !el.getAttribute('src')) {
+            el.setAttribute('src', streamUrl);
+            this.lockedNativeVideoSrc = streamUrl;
+            if (snap?.wasPlaying !== false) {
+              el.autoplay = true;
+            }
+          }
+          if (snap?.wasPlaying !== false) {
+            const onCanPlay = () => this.attemptPipHandoffPlay(el, snap);
+            if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+              onCanPlay();
+            } else {
+              el.addEventListener('canplay', onCanPlay, { once: true });
+            }
+          }
+          
+          const startDefault = () => {
+            this.clearAttachVideoStreamWait();
+            this.applyQueryPlaybackSeek();
+            void el.play().catch(() => {});
+          };
+
+          const startWithResume = () => {
+            this.clearAttachVideoStreamWait();
+            const onMeta = () => {
+              this.applyInlineResumeSeek(el, snap);
+            };
+            if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+              onMeta();
+            } else {
+              el.addEventListener('loadedmetadata', onMeta, { once: true });
+            }
+          };
+
+          const start = snap ? startWithResume : startDefault;
+          this.attachVideoStreamResume = start;
+          if (snap) {
+            if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+              start();
+            } else {
+              el.addEventListener('loadedmetadata', start, { once: true });
+            }
+          } else if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+            start();
+          } else {
+            el.addEventListener('canplay', start, { once: true });
+          }
+        });
+      });
+    },
+    clearAttachVideoStreamWait() {
+      const el = this.mediaElement;
+      if (el && this.attachVideoStreamResume) {
+        el.removeEventListener('canplay', this.attachVideoStreamResume);
+        el.removeEventListener('loadedmetadata', this.attachVideoStreamResume);
+      }
+      this.attachVideoStreamResume = null;
+    },
+    async reconcilePipSessionOnMount() {
+      if (!this.req?.path) {
+        return;
+      }
+      if (hasActivePipSession(this.req.source, this.req.path)) {
+        const snap = await takeSessionSnapshot(this.req.source, this.req.path);
+        if (snap) {
+          setPendingInlineResume({
+            source: snap.source,
+            path: snap.path,
+            currentTime: snap.currentTime,
+            wasPlaying: snap.wasPlaying,
+            wasFullscreen: Boolean(snap.wasFullscreen),
+            timestamp: Date.now(),
+          });
+        }
+      }
+    },
+    mountedPreviewMatchesPending(snapshot = getPendingInlineResume()) {
+      if (!this.mountedPreviewKey || !snapshot) {
+        return false;
+      }
+      return pendingMatchesPreview(this.mountedPreviewKey.source, this.mountedPreviewKey.path, snapshot);
+    },
+    isHandoffTargetPreview() {
+      if (!this.req?.path || !this.mountedPreviewKey) {
+        return false;
+      }
+      const current = resolvePipMediaKey(this.req.source, this.req.path);
+      return current.source === this.mountedPreviewKey.source
+        && current.path === this.mountedPreviewKey.path;
+    },
+    resumePlaybackAfterNavigation() {
+      const pending = getPendingInlineResume();
+      const inlineSnap = this.mountedPreviewMatchesPending(pending) ? pending : null;
+      if (inlineSnap) {
+        if (this.pipHandoffApplying) {
+          return;
+        }
+        const isStale = Date.now() - inlineSnap.timestamp > 30000;
+        if (!isStale) {
+          this.applyInlineResume(inlineSnap);
+        } else {
+          clearPendingInlineResumeFor(this.req.source, this.req.path);
+        }
+        return;
+      }
+
+      const isStale = Date.now() - pendingResumeTimestamp > 3000;
+      if (pendingFullscreenResume) {
+        pendingFullscreenResume = false;
+        if (!isStale) this.player.fullscreen?.enter();
+      }
+      if (pendingPipResume) {
+        pendingPipResume = false;
+        if (!isStale) {
+          void this.requestPictureInPictureWhenReady();
+        }
+      }
+    },
+    waitForMediaReady(el, minReadyState = HTMLMediaElement.HAVE_METADATA) {
+      if (!el) {
+        return Promise.resolve();
+      }
+      if (el.readyState >= minReadyState) {
+        return Promise.resolve();
+      }
+      const event = minReadyState >= HTMLMediaElement.HAVE_FUTURE_DATA ? 'canplay' : 'loadedmetadata';
+      return new Promise((resolve) => {
+        el.addEventListener(event, () => resolve(), { once: true });
+      });
+    },
+    async requestPictureInPictureWhenReady() {
+      if (this.isPipControlBlocked()) {
+        return;
+      }
+      const el = this.mediaElement;
+      if (!el?.requestPictureInPicture) {
+        return;
+      }
+      if (!this.videoStreamAttached && this.previewType === 'video') {
+        this.attachVideoStreamAndPlay();
+      }
+      await this.waitForMediaReady(el, HTMLMediaElement.HAVE_METADATA);
+      if (document.pictureInPictureElement === el) {
+        return;
+      }
+      try {
+        await el.requestPictureInPicture();
+      } catch (_) {
+        // ignore
+      }
+    },
+    isPipControlBlocked() {
+      return isPipBlockedForPreview(this.req?.source, this.req?.path, this.mediaElement);
+    },
+    syncPipControlAvailability() {
+      const pipBtn = this.player?.elements?.buttons?.pip;
+      if (!pipBtn || this.previewType !== 'video') {
+        return;
+      }
+      const blocked = this.isPipControlBlocked();
+      pipBtn.disabled = blocked;
+      pipBtn.classList.toggle('plyr__control--disabled', blocked);
+      pipBtn.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+    },
+    setupPipControlGuard() {
+      this.teardownPipControlGuard();
+      const pipBtn = this.player?.elements?.buttons?.pip;
+      if (!pipBtn) {
+        return;
+      }
+      this.syncPipControlAvailability();
+      this.pipAvailabilityCleanup = onPipAvailabilityChange(() => {
+        this.syncPipControlAvailability();
+      });
+      this.pipReadinessHandler = (event) => {
+        if (this.isPipControlBlocked()) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        }
+        const el = this.mediaElement;
+        if (!el || el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          return;
+        }
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        void this.requestPictureInPictureWhenReady();
+      };
+      pipBtn.addEventListener('click', this.pipReadinessHandler, true);
+    },
+    teardownPipControlGuard() {
+      const pipBtn = this.player?.elements?.buttons?.pip;
+      if (pipBtn && this.pipReadinessHandler) {
+        pipBtn.removeEventListener('click', this.pipReadinessHandler, true);
+      }
+      this.pipReadinessHandler = null;
+      this.pipAvailabilityCleanup?.();
+      this.pipAvailabilityCleanup = null;
+      if (pipBtn) {
+        pipBtn.disabled = false;
+        pipBtn.classList.remove('plyr__control--disabled');
+        pipBtn.setAttribute('aria-disabled', 'false');
+      }
+    },
+    attemptPipHandoffPlay(el, snapshot) {
+      if (!el || snapshot?.wasPlaying === false) {
+        return;
+      }
+      const tryPlay = () => {
+        const playCall = this.nativePlayerPlay
+          ?? (() => this.player?.play?.() ?? el.play());
+        void Promise.resolve(playCall()).then(() => {
+          mutations.setPlaybackState(true);
+          this.$emit('play');
+        }).catch(() => {});
+      };
+      if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !el.paused) {
+        return;
+      }
+      if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+        tryPlay();
+        return;
+      }
+      el.addEventListener('canplay', tryPlay, { once: true });
+    },
+    applyInlineResume(snapshot) {
+      const el = this.mediaElement;
+      if (!el || !this.player) {
+        return;
+      }
+      if (!this.mountedPreviewMatchesPending(snapshot)) {
+        return;
+      }
+      if (!pendingMatchesPreview(this.mountedPreviewKey.source, this.mountedPreviewKey.path, snapshot)) {
+        return;
+      }
+      if (this.pipHandoffApplying) {
+        return;
+      }
+      this.pipHandoffApplying = true;
+      if (this.previewType === 'video') {
+        if (this.videoStreamAttached) {
+          this.stopMediaElement(el);
+          this.videoStreamAttached = false;
+        }
+        const seekSeconds = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
+        this.pipHandoffSeekSeconds = seekSeconds > 0 ? seekSeconds : null;
+        this.inlineResumeSnapshot = snapshot;
+        this.attachVideoStreamAndPlay();
+        return;
+      }
+      this.applyInlineResumeSeek(el, snapshot);
+    },
+    getPlaybackDuration() {
+      const fromPlayer = this.player?.duration;
+      if (Number.isFinite(fromPlayer) && fromPlayer > 0) {
+        return fromPlayer;
+      }
+      const meta = this.req?.metadata?.duration;
+      if (Number.isFinite(meta) && meta > 0) {
+        return meta;
+      }
+      return 0;
+    },
+    setupVideoLoadingIndicator() {
+      if (this.previewType !== 'video' || !this.player) {
+        return;
+      }
+      this.videoLoadingCleanup?.();
+      this.videoLoadingCleanup = enablePlyrVideoLoadingIndicator(
+        this.player,
+        (loading) => {
+          this.videoPlaybackLoading = loading;
+        }
+      );
+    },
+    teardownQueryPlaybackSeek() {
+      const media = this.mediaElement;
+      if (media && this.querySeekMetadataHandler) {
+        media.removeEventListener('loadedmetadata', this.querySeekMetadataHandler);
+      }
+      this.querySeekMetadataHandler = null;
+    },
+    getQueryPlaybackSeekSeconds() {
+      return parsePlaybackTimeFromQuery(this.$route?.query);
+    },
+    applyQueryPlaybackSeek() {
+      if (this.previewType !== 'video' && this.previewType !== 'audio') {
+        return;
+      }
+      const seconds = this.getQueryPlaybackSeekSeconds();
+      if (seconds === null || seconds < 0) {
+        return;
+      }
+
+      const media = this.mediaElement;
+      if (!media) {
+        return;
+      }
+
+      const duration = this.player?.duration
+        ?? media.duration
+        ?? this.req?.metadata?.duration
+        ?? 0;
+      const target = duration > 0 ? Math.min(seconds, duration) : seconds;
+
+      const apply = () => {
+        if (this.player) {
+          this.player.currentTime = target;
+        } else if (media) {
+          media.currentTime = target;
+        }
+      };
+
+      if (media.readyState >= HTMLMediaElement.HAVE_METADATA) {
+        apply();
+        return;
+      }
+
+      this.teardownQueryPlaybackSeek();
+      this.querySeekMetadataHandler = apply;
+      media.addEventListener('loadedmetadata', this.querySeekMetadataHandler, { once: true });
+    },
+    setupQueryPlaybackSeek() {
+      this.teardownQueryPlaybackSeek();
+      this.applyQueryPlaybackSeek();
+    },
+    setupScrubPreview() {
+      if (!this.scrubPreviewEnabled || !this.player) {
+        return;
+      }
+      this.scrubPreviewCleanup?.();
+      this.scrubPreviewCleanup = enablePlyrScrubPreview(this.player, {
+        buildPreviewUrl: (atPercentage) => {
+          const base = getters.isShare()
+            ? getPreviewURLPublic(this.req.path, 'large')
+            : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=large`;
+          return `${base}&atPercentage=${atPercentage}`;
+        },
+        getDuration: () => this.getPlaybackDuration(),
+      });
+    },
+    setupAudioVisualizer() {
+      // This method gets called once only when in the visualizer tab of the audio panel
+      if (this.audioGraphInitialized) return;
+      if (this.previewType !== 'audio') return;
+      if (this.audioContext) {
+        this.cleanupAudioVisualizer();
+      }
+      const audio = this.mediaElement;
+      if (!audio) return;
+      try {
+        const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextCtor) return;
+        const ctx = new AudioContextCtor({ latencyHint: 'playback' });
+        const source = ctx.createMediaElementSource(audio);
+        // Connect source to destination
+        source.connect(ctx.destination);
+        this.audioContext = ctx;
+        this.audioSource = source;
+        this.audioGraphInitialized = true;
+      } catch (err) {
+        console.warn('Audio visualizer creation failed:', err);
+      }
+    },
+    resumeAudioGraph() {
+      const context = this.audioContext;
+      if (context?.state !== 'suspended') return;
+      try {
+        const resumed = context.resume();
+        if (resumed?.catch) resumed.catch(err => console.warn('Audio graph resume failed:', err));
+      } catch (err) {
+        console.warn('Audio visualizer resume failed:', err);
+      }
     },
     setupPlyrEvents() {
       if (!this.player) return;
-      this.player.on('ended', this.handleMediaEnd);
-      this.player.on('play', () => {
-        mutations.setPlaybackState(true);
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('pause', () => {
-        mutations.setPlaybackState(false);
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('timeupdate', () => {
-        this.updateMediaSessionPlaybackState();
-        this.syncLyrics();
-      });
-      this.player.on('seeked', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('loadedmetadata', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('ratechange', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      this.player.on('canplay', () => {
-        this.updateMediaSessionPlaybackState();
+      const eventMap = {
+        ended: this.handleMediaEnd,
+        play: () => {
+          this.hasStartedPlayback = true;
+          if (this.previewType === 'video') {
+            this.overlaidHintApi?.onPlaybackToggle(true);
+          }
+          mutations.setPlaybackState(true);
+          this.updateMediaSessionPlaybackState();
+        },
+        pause: () => {
+          if (this.previewType === 'video' && this.hasStartedPlayback && !this.player?.ended) {
+            this.overlaidHintApi?.onPlaybackToggle(false);
+          }
+          mutations.setPlaybackState(false);
+          this.updateMediaSessionPlaybackState();
+        },
+        timeupdate: () => {
+          this.updateMediaSessionPlaybackState();
+          this.syncLyrics();
+        },
+        seeked: this.updateMediaSessionPlaybackState,
+        loadedmetadata: this.updateMediaSessionPlaybackState,
+        ratechange: this.updateMediaSessionPlaybackState,
+        canplay: this.updateMediaSessionPlaybackState,
+      };
+      Object.entries(eventMap).forEach(([evt, fn]) => {
+        this.player.on(evt, fn);
       });
       if ((this.previewType === 'video' || this.previewType === 'audio')) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
@@ -1182,11 +2020,13 @@ export default {
         this.setupDoubleTapSeek();
         this.setupVideoSwipeGestures();
       }
+      if (this.previewType === 'video') {
+        this.setupOverlaidHintController();
+      }
     },
     getPlyrGestureSurface() {
       if (
         this.previewType === 'audio' &&
-        !this.useDefaultMediaPlayer &&
         this.player &&
         this.$refs.audioPlayerGestureRoot
       ) {
@@ -1200,12 +2040,20 @@ export default {
       }
       return this.player.elements.container ?? null;
     },
-    isAudioPlyrScrubOrMenuTarget(el) {
-      if (this.previewType !== 'audio' || !el || typeof el.closest !== 'function') {
-        return false;
+    isPlyrControlOrMenuTarget(el) {
+      if (!el || typeof el.closest !== 'function') return false;
+      if (el.closest('.plyr__control--overlaid')) {
+        return true;
       }
       return !!el.closest(
-        '.plyr__menu__container, .plyr__menu, [data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume'
+        '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
+        '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
+        '.audio-side-panel .tab-btn, ' +
+        '.audio-side-panel .lyrics-lock-btn, ' +
+        '.audio-side-panel .lyric-line, ' +
+        '.audio-side-panel input[type="radio"], ' +
+        '.audio-side-panel label[for^="tab-"], ' +
+        '.lyrics-mobile .lyric-line'
       );
     },
     teardownDoubleTapSeek() {
@@ -1214,37 +2062,72 @@ export default {
         this.doubleTapSeekCleanup = null;
       }
     },
+    setupOverlaidHintController() {
+      this.teardownOverlaidHintController();
+      if (!this.player) {
+        return;
+      }
+      const api = enableOverlaidHintController({
+        player: this.player,
+        hasStartedPlayback: () => this.hasStartedPlayback,
+        baseUrl: globalVars.baseURL,
+      });
+      this.overlaidHintApi = api;
+      this.overlaidHintCleanup = api.cleanup;
+    },
+    teardownOverlaidHintController() {
+      if (typeof this.overlaidHintCleanup === 'function') {
+        this.overlaidHintCleanup();
+      }
+      this.overlaidHintCleanup = null;
+      this.overlaidHintApi = null;
+    },
+    clearPendingPlayPauseTap() {
+      if (this.pendingPlayPauseTapTimer) {
+        clearTimeout(this.pendingPlayPauseTapTimer);
+        this.pendingPlayPauseTapTimer = null;
+      }
+    },
+    clearEdgeTapGestureState() {
+      this.clearPendingPlayPauseTap();
+      this.edgeTapLastTime = 0;
+      this.edgeTapLastZone = null;
+    },
     setupDoubleTapSeek() {
-      if (this.useDefaultMediaPlayer || (this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
+      if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
       this.teardownDoubleTapSeek();
       const surface = this.getPlyrGestureSurface();
-      if (!surface || !this.player) {
-        return;
-      }
+      if (!surface || !this.player) return;
 
       const DOUBLE_MS = 320;
-      let lastTapTime = 0;
-      let lastZone = null;
 
-      const zoneFromClientX = (clientX) => {
+      const peekNavChromeForEdgeTap = (clientX, zone) => {
+        if (this.previewType !== 'video' || !state.navigation.enabled) {
+          return;
+        }
+        const moveWithSidebar = getters.isSidebarVisible() && getters.isStickySidebar();
+        const sidebarWidthEm = state.sidebar?.width || 20;
+        const opts = { moveWithSidebar, sidebarWidthEm };
+        if (zone === 'left' && isInLeftNavTapZone(clientX, opts)) {
+          mutations.peekNavigationChrome('left');
+        } else if (zone === 'right' && isInRightNavTapZone(clientX)) {
+          mutations.peekNavigationChrome('right');
+        }
+      };
+
+      const zoneFromSurfaceX = (clientX) => {
         const rect = surface.getBoundingClientRect();
-        const x = clientX - rect.left;
-        const w = rect.width;
-        if (w <= 0) {
-          return 'center';
-        }
-        if (x < w / 3) {
-          return 'left';
-        }
-        if (x > (2 * w) / 3) {
-          return 'right';
-        }
-        return 'center';
+        return zoneFromClientX(clientX, rect);
       };
 
       const applySeek = (rewind) => {
+        this.edgeSeekAt = Date.now();
+        this.clearEdgeTapGestureState();
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+
         const step = this.player.config.seekTime || 10;
         const cur = this.player.currentTime;
         const dur = this.player.duration;
@@ -1254,57 +2137,128 @@ export default {
         this.flashSkipFeedback(rewind);
       };
 
-      const onTouchEnd = (event) => {
-        if (event.changedTouches.length !== 1) {
+      const togglePlayPause = () => {
+        if (this.player.playing) {
+          this.player.pause();
+        } else {
+          this.player.play();
+        }
+      };
+
+      const scheduleEdgePlayPause = () => {
+        this.clearPendingPlayPauseTap();
+        this.pendingPlayPauseTapTimer = setTimeout(() => {
+          this.pendingPlayPauseTapTimer = null;
+          this.edgeTapLastTime = 0;
+          this.edgeTapLastZone = null;
+          if (!this.skipNextTap && this.previewType === 'video') {
+            togglePlayPause();
+          }
+        }, DOUBLE_MS);
+      };
+
+      const handleEdgeZoneTap = (zone, event) => {
+        const now = Date.now();
+        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < DOUBLE_MS) {
+          applySeek(zone === 'left');
+          if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
           return;
         }
+        this.edgeTapLastTime = now;
+        this.edgeTapLastZone = zone;
+        scheduleEdgePlayPause();
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+
+      const handleCenterTap = (event) => {
+        this.clearEdgeTapGestureState();
+        if (this.previewType === 'video') {
+          togglePlayPause();
+        }
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+
+      const onTouchEnd = (event) => {
+        if (this.longPressTriggered) {
+          return;
+        }
+        if (this.skipNextTap) return;
+
+        if (event.changedTouches.length !== 1) return;
         const t = event.changedTouches[0];
         const topEl = typeof document.elementFromPoint === 'function'
           ? document.elementFromPoint(t.clientX, t.clientY)
           : null;
-        if (this.isAudioPlyrScrubOrMenuTarget(topEl)) {
-          lastTapTime = 0;
-          lastZone = null;
+        if (this.isPlyrControlOrMenuTarget(topEl)) {
+          this.clearEdgeTapGestureState();
           return;
         }
-        const clientX = t.clientX;
-        const zone = zoneFromClientX(clientX);
+        const zone = zoneFromSurfaceX(t.clientX);
         if (zone === 'center') {
-          lastTapTime = 0;
-          lastZone = null;
+          handleCenterTap(event);
+          this.ignoreClickUntil = Date.now() + 500;
           return;
         }
-        const now = Date.now();
-        if (zone === lastZone && now - lastTapTime < DOUBLE_MS) {
-          applySeek(zone === 'left');
-          lastTapTime = 0;
-          lastZone = null;
+        handleEdgeZoneTap(zone, event);
+        peekNavChromeForEdgeTap(t.clientX, zone);
+        this.ignoreClickUntil = Date.now() + 500;
+      };
+
+      const onClick = (event) => {
+        if (Date.now() < this.ignoreClickUntil) {
           event.preventDefault();
-        } else {
-          lastTapTime = now;
-          lastZone = zone;
+          event.stopPropagation();
+          return;
         }
+        if (this.isPlyrControlOrMenuTarget(event.target)) {
+          return;
+        }
+        if (this.skipNextTap) return;
+        const zone = zoneFromSurfaceX(event.clientX);
+        if (zone === 'center') {
+          handleCenterTap(event);
+          return;
+        }
+        handleEdgeZoneTap(zone, event);
+        peekNavChromeForEdgeTap(event.clientX, zone);
       };
 
       const onDblClick = (event) => {
-        if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+        if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
-        const zone = zoneFromClientX(event.clientX);
-        if (zone === 'center') {
-          return;
+        const zone = zoneFromSurfaceX(event.clientX);
+        if (zone === 'left' || zone === 'right') {
+          this.clearEdgeTapGestureState();
+          if (Date.now() - this.edgeSeekAt < 400) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+          applySeek(zone === 'left');
+          event.preventDefault();
+          event.stopPropagation();
         }
-        event.preventDefault();
-        event.stopPropagation();
-        applySeek(zone === 'left');
       };
 
       surface.addEventListener('touchend', onTouchEnd, { passive: false });
+      surface.addEventListener('click', onClick);
       surface.addEventListener('dblclick', onDblClick);
 
       this.doubleTapSeekCleanup = () => {
         surface.removeEventListener('touchend', onTouchEnd);
+        surface.removeEventListener('click', onClick);
         surface.removeEventListener('dblclick', onDblClick);
+        this.clearEdgeTapGestureState();
       };
     },
     flashSkipFeedback(rewind) {
@@ -1374,23 +2328,34 @@ export default {
       return sign * (max + (a - max) * 0.32);
     },
     decideVideoEdgeKind() {
-      if (this.videoEdgeKind) {
-        return;
-      }
+      if (this.videoEdgeKind) return;
       const ax = Math.abs(this.videoEdgeDx);
       const ay = Math.abs(this.videoEdgeDy);
-      if (ax < 12 && ay < 12) {
+      if (ax < 12 && ay < 12) return;
+      if (this.previewType === 'audio') {
+        if (ay > ax * 1.12 && ay > 14 && this.videoEdgeDy > 0) {
+          this.videoEdgeKind = 'vertical-dismiss';
+        } else if (ax > ay * 1.12 && ax > 14) {
+          this.videoEdgeKind = 'horizontal';
+        }
         return;
       }
-      if (this.videoEdgeDy > ax * 1.12 && this.videoEdgeDy > 14) {
-        this.videoEdgeKind = 'vertical-dismiss';
-        this.videoGestureDecided = true;
+      if (ay > ax * 1.12 && ay > 14) {
+        this.videoEdgeKind = this.videoEdgeDy > 0 ? 'vertical-dismiss' : 'vertical-fullscreen';
       } else if (ax > ay * 1.12 && ax > 14) {
         this.videoEdgeKind = 'horizontal';
-        this.videoGestureDecided = true;
       }
     },
     applyVideoEdgeVisuals() {
+      if (this.previewType === 'audio' && this.videoEdgeDy < 0 && Math.abs(this.videoEdgeDy) > Math.abs(this.videoEdgeDx)) {
+        this.videoDragOffsetX = 0;
+        this.videoDragOffsetY = 0;
+        this.videoShowNavHint = false;
+        this.videoShowDismissHint = false;
+        this.applyVideoSwipeTransform();
+        this.syncVideoNavigationGestureHintToStore();
+        return;
+      }
       if (this.showMobileLyrics) {
         // Allow horizontal navigation swipes, ignore vertical if lyrics are shown
         const ax = Math.abs(this.videoEdgeDx);
@@ -1405,60 +2370,32 @@ export default {
           return;
         }
       }
-      if (!this.videoEdgeKind) {
-        const ax = Math.abs(this.videoEdgeDx);
-        const ay = Math.abs(this.videoEdgeDy);
-        if (ax <= 8 && ay <= 8) {
-          this.videoDragOffsetX = 0;
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = false;
-          this.videoShowDismissHint = false;
-          this.applyVideoSwipeTransform();
-          this.syncVideoNavigationGestureHintToStore();
-          return;
-        }
-        if (ax > ay) {
-          this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = ax >= this.videoEdgeHintPx;
-          this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
-          if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) {
-            this.videoShowNavHint = false;
-          }
-          if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) {
-            this.videoShowNavHint = false;
-          }
-          this.videoShowDismissHint = false;
-        } else {
-          this.videoDragOffsetX = 0;
-          const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
-          this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
-          this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
-          this.videoShowNavHint = false;
-        }
-        this.applyVideoSwipeTransform();
-        this.syncVideoNavigationGestureHintToStore();
-        return;
-      }
-      if (this.videoEdgeKind === 'horizontal') {
+
+      const kind = this.videoEdgeKind;
+      if (kind === 'horizontal') {
         this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
         this.videoDragOffsetY = 0;
         const adx = Math.abs(this.videoEdgeDx);
         this.videoShowNavHint = adx >= this.videoEdgeHintPx;
         this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
-        if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) {
-          this.videoShowNavHint = false;
-        }
-        if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) {
-          this.videoShowNavHint = false;
-        }
+        if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) this.videoShowNavHint = false;
+        if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) this.videoShowNavHint = false;
         this.videoShowDismissHint = false;
-      } else {
+      } else if (kind === 'vertical-dismiss') {
         this.videoDragOffsetX = 0;
-        const downward = this.videoEdgeDy > 0 ? this.videoEdgeDy : 0;
-        this.videoDragOffsetY = this.videoRubberband(downward, this.videoEdgeRubberMax);
+        this.videoDragOffsetY = this.videoEdgeDy;
         this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
         this.videoShowNavHint = false;
+      } else if (kind === 'vertical-fullscreen') {
+        this.videoDragOffsetX = 0;
+        this.videoDragOffsetY = this.videoEdgeDy;
+        this.videoShowDismissHint = false;
+        this.videoShowNavHint = false;
+      } else {
+        this.videoDragOffsetX = 0;
+        this.videoDragOffsetY = 0;
+        this.videoShowNavHint = false;
+        this.videoShowDismissHint = false;
       }
       this.applyVideoSwipeTransform();
       this.syncVideoNavigationGestureHintToStore();
@@ -1470,9 +2407,9 @@ export default {
       this.videoShowNavHint = false;
       this.videoShowDismissHint = false;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
+      this.setSkipNextTap(200);
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
       setTimeout(() => {
@@ -1480,11 +2417,10 @@ export default {
         this.applyVideoSwipeTransform();
       }, 240);
     },
-    resetVideoEdgeGestureImmediate() {
+    resetVideoSwipeVisualState() {
       this.clearVideoDismissAnimTimers();
       this.videoSwipeSuppressedTouchId = null;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoDragOffsetX = 0;
@@ -1495,6 +2431,15 @@ export default {
       this.videoDismissFlashActive = false;
       this.applyVideoSwipeTransform();
       mutations.setNavigationGestureHint({});
+    },
+    resetVideoEdgeGestureImmediate() {
+      this.resetVideoSwipeVisualState();
+      this.clearEdgeTapGestureState();
+      this.skipNextTap = false;
+      if (this.skipNextTapTimer) {
+        clearTimeout(this.skipNextTapTimer);
+        this.skipNextTapTimer = null;
+      }
     },
     clearVideoDismissAnimTimers() {
       if (this.videoDismissCloseTimer) {
@@ -1514,7 +2459,7 @@ export default {
       const ax0 = Math.abs(this.videoEdgeDx);
       const ay0 = Math.abs(this.videoEdgeDy);
       if (!this.videoEdgeKind && ax0 < 5 && ay0 < 5) {
-        this.resetVideoEdgeGestureImmediate();
+        this.resetVideoSwipeVisualState();
         return;
       }
       let kind = this.videoEdgeKind;
@@ -1550,9 +2495,9 @@ export default {
           this.videoDragOffsetX = 0;
           this.videoDragOffsetY = 0;
           this.videoEdgeKind = null;
-          this.videoGestureDecided = false;
           this.applyVideoSwipeTransform();
           this.syncVideoNavigationGestureHintToStore();
+          this.setSkipNextTap(200);
           // If we're in fullscreen, exit fullscreen instead of closing preview
           if (this.player?.fullscreen?.active) {
             this.player.fullscreen.exit();
@@ -1575,6 +2520,18 @@ export default {
             this.videoShowDismissHint = false;
             mutations.setNavigationGestureHint({});
           }, 420);
+          return;
+        }
+      } else if (kind === 'vertical-fullscreen') {
+        if (!this.player) {
+          this.resetVideoEdgeGestureImmediate();
+          return;
+        }
+        if (this.videoEdgeDy <= -this.videoEdgeCommitY) {
+          this.player.fullscreen.toggle();
+          this.resetVideoEdgeGestureImmediate();
+          // Set skipNextTap to prevent play/pause toggle
+          this.setSkipNextTap(300);
           return;
         }
       }
@@ -1614,7 +2571,7 @@ export default {
       if (event.button !== 0 || !this.videoSwipeGesturesActive) return;
       // Don't start a gesture if we are selecting some text
       if (window.getSelection()?.toString().length > 0) return;
-      if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+      if (this.isPlyrControlOrMenuTarget(event.target)) {
         return;
       }
       this.clearVideoDismissAnimTimers();
@@ -1625,7 +2582,6 @@ export default {
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       document.addEventListener('mousemove', this.onVideoSwipeMouseDocMove, true);
       document.addEventListener('mouseup', this.onVideoSwipeMouseDocUp, true);
     },
@@ -1633,23 +2589,67 @@ export default {
       if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) return;
       // Don't start a gesture if we are selecting some text
       if (window.getSelection()?.toString().length > 0) return;
-      if (this.isAudioPlyrScrubOrMenuTarget(event.target)) {
+      if (this.isPlyrControlOrMenuTarget(event.target)) {
         this.videoSwipeSuppressedTouchId = event.targetTouches[0].identifier;
         return;
       }
       this.videoSwipeSuppressedTouchId = null;
       this.clearVideoDismissAnimTimers();
+
+      // long-press timer
+      this.clearLongPressTimer();
+      this.longPressPending = true;
+      this.longPressTriggered = false;
+      this.longPressPreviousSpeed = this.player?.speed || 1;
+
+      // only start timer if not already at 2x
+      if (this.player && this.player.speed !== 2) {
+        this.longPressTimer = setTimeout(() => {
+          this.longPressTimer = null;
+          if (this.player && this.longPressPending) {
+            this.longPressPreviousSpeed = this.player.speed || 1;
+            this.player.speed = 2;
+            this.longPressTriggered = true;
+            this.longPressPending = false;
+            // Show toast
+            this.speedToastVisible = true;
+            this.speedToastMessage = '2x';
+          }
+        }, 500);
+      } else {
+        // If already at 2x don't change speed again
+        if (this.player?.speed === 2) {
+          this.longPressPending = false;
+        }
+      }
+
       const touch = event.targetTouches[0];
       this.videoEdgeStartX = touch.pageX;
       this.videoEdgeStartY = touch.pageY;
       this.videoEdgeDx = 0;
       this.videoEdgeDy = 0;
       this.videoEdgeKind = null;
-      this.videoGestureDecided = false;
       this.videoDragOffsetX = 0;
       this.videoDragOffsetY = 0;
     },
     onVideoSwipeTouchMove(event) {
+      if (this.longPressTriggered) {
+        event.preventDefault();
+        return;
+      }
+
+      // If there's significant movement cancel any pending long press so if when using swipe gestures they don't change speed
+      if (this.longPressPending) {
+        const touch = event.targetTouches[0];
+        const dx = Math.abs(touch.pageX - this.videoEdgeStartX);
+        const dy = Math.abs(touch.pageY - this.videoEdgeStartY);
+        if (dx > 20 || dy > 20) {
+          this.clearLongPressTimer();
+          this.longPressPending = false;
+          this.clearEdgeTapGestureState();
+        }
+      }
+
       if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) {
         if (this.videoEdgeKind || this.videoEdgeDx || this.videoEdgeDy) {
           this.resetVideoEdgeGestureImmediate();
@@ -1685,6 +2685,26 @@ export default {
         this.videoSwipeSuppressedTouchId = null;
         return;
       }
+      if (this.longPressPending) {
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+      }
+
+      // Handle long-press release
+      if (this.longPressTriggered) {
+        this.clearLongPressTimer();
+        this.speedToastVisible = false;
+        if (this.player && this.longPressPreviousSpeed !== 2) {
+          this.player.speed = this.longPressPreviousSpeed;
+        }
+        this.longPressTriggered = false;
+        this.clearEdgeTapGestureState();
+        this.resetVideoEdgeGestureImmediate();
+        event.preventDefault();
+        return;
+      }
+
+      // Normal swipe gesture
       this.videoEdgeDx = t.pageX - this.videoEdgeStartX;
       this.videoEdgeDy = t.pageY - this.videoEdgeStartY;
       const ax = Math.abs(this.videoEdgeDx);
@@ -1692,10 +2712,31 @@ export default {
       const hadLockedKind = this.videoEdgeKind !== null;
       this.finishVideoEdgeGesture();
       if (hadLockedKind || ax > 14 || ay > 14) {
+        this.clearEdgeTapGestureState();
         event.preventDefault();
       }
     },
     onVideoSwipeTouchCancel(event) {
+      // If long-press was triggered, handle release
+      if (this.longPressTriggered) {
+        this.clearLongPressTimer();
+        this.speedToastVisible = false;
+        if (this.player && this.longPressPreviousSpeed !== 2) {
+          this.player.speed = this.longPressPreviousSpeed;
+        }
+        this.longPressTriggered = false;
+        this.longPressPending = false;
+        this.resetVideoEdgeGestureImmediate();
+        if (event) event.preventDefault();
+        return;
+      }
+
+      // If long-press was pending clear it
+      if (this.longPressPending) {
+        this.clearLongPressTimer();
+        this.longPressPending = false;
+      }
+
       if (event?.changedTouches?.length) {
         const t = event.changedTouches[0];
         if (
@@ -1712,7 +2753,7 @@ export default {
     },
     setupVideoSwipeGestures() {
       this.teardownVideoSwipeGestures();
-      if (this.useDefaultMediaPlayer || (this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
+      if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
       const surface = this.getPlyrGestureSurface();
@@ -1742,24 +2783,39 @@ export default {
       }
       this.clearVideoDismissAnimTimers();
       this.resetVideoEdgeGestureImmediate();
+      this.clearLongPressTimer();
+      this.clearLongPressTimer();
+      this.longPressPending = false;
+      this.speedToastVisible = false;
+      if (this.longPressTriggered && this.player && this.longPressPreviousSpeed !== 2) {
+        this.player.speed = this.longPressPreviousSpeed;
+      }
+      this.longPressTriggered = false;
     },
-    setupDefaultPlayerEvents(element) {
-      if (!element) return;
-      element.addEventListener('ended', this.handleMediaEnd);
-      element.addEventListener('play', () => {
-        mutations.setPlaybackState(true);
-      });
-      element.addEventListener('pause', () => {
-        mutations.setPlaybackState(false);
-      });
-      element.addEventListener('timeupdate', () => {
-        this.updateMediaSessionPlaybackState();
-      });
-      element.addEventListener('loadedmetadata', () => {
-        this.updateMediaSessionPlaybackState();
-      });
+    clearLongPressTimer() {
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+        this.longPressTimer = null;
+      }
+      if (this.longPressTimer) {
+        clearTimeout(this.longPressTimer);
+        this.longPressTimer = null;
+      }
+    },
+    setSkipNextTap(delay) {
+      this.clearEdgeTapGestureState();
+      if (this.skipNextTapTimer) {
+        clearTimeout(this.skipNextTapTimer);
+        this.skipNextTapTimer = null;
+      }
+      this.skipNextTap = true;
+      this.skipNextTapTimer = setTimeout(() => {
+        this.skipNextTap = false;
+        this.skipNextTapTimer = null;
+      }, delay);
     },
     async onFullscreenEnter() {
+      this.isFullscreen = true;
       this.resetVideoEdgeGestureImmediate();
       // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
       try {
@@ -1772,295 +2828,253 @@ export default {
       }
     },
     onFullscreenExit() {
-      screen.orientation.unlock();
+      this.isFullscreen = false;
+      if (!screen.orientation?.unlock) return;
+      try {
+        screen.orientation.unlock();
+      } catch (error) {
+        if (error.name !== 'NotSupportedError') throw error;
+      }
     },
-    // Playback methods
-    async setupPlaybackQueue(forceReshuffle = false) {
-
-      const listing = this.listing;
-      const isShare = getters.isShare();
-
-      // Filter only audio/video files
-      const mediaFiles = listing.filter(item => {
-        const isAudio = item?.type.startsWith('audio/');
-        const isVideo = item?.type.startsWith('video/');
-        return isAudio || isVideo;
-      });
-
-      if (mediaFiles.length === 0) {
-        console.log('No media files found in current directory');
-        mutations.setPlaybackQueue({
-          queue: [],
-          currentIndex: -1,
-          mode: this.playbackMode,
-        });
-        return;
+    handleMediaEnd() {
+      const queue = state.playbackQueue.queue;
+      const currentIndex = state.playbackQueue.currentIndex;
+      const loop = state.playbackQueue.loop;
+      const action = getEndOfMediaAction(queue, currentIndex, loop);
+      if (action === 'next') {
+        navigatePlaybackQueue(1);
+      } else if (action === 'restart') {
+        this.restartCurrentFile();
       }
-
-      let currentIndex;
-      if (isShare) {
-        // Compare by name for shares
-        currentIndex = mediaFiles.findIndex(item => item.name === this.req.name);
-      } else {
-        currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
-      }
-
-      let finalQueue = [];
-      let finalIndex = 0;
-
-      switch (this.playbackMode) {
-        case 'single':
-          finalQueue = [];
-          finalIndex = -1;
-          break;
-        case 'loop-single':
-          // When playing the same file (loop-single), the queue only contains the current file
-          finalQueue = currentIndex !== -1 ? [mediaFiles.at(currentIndex)] : [];
-          finalIndex = 0;
-          break;
-
-        case 'sequential':
-        case 'loop-all': {
-          // We'll use the listing order from the parent directory for this two modes.
-          // On sequential mode will start playing from the file opened and find its place on the queue by the current index (you can see this on UI queue)
-          // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder.
-          const sortedFiles = [...mediaFiles];
-          finalQueue = sortedFiles;
-          // Find the current file position in the queue
-          if (currentIndex !== -1) {
-            const currentFile = mediaFiles.at(currentIndex);
-            finalIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
-          } else {
-            finalIndex = 0;
-          }
-          break;
-        }
-        case 'shuffle': {
-          // For shuffle, all on random order and only reshuffle if we cycle modes again
-          // This is for preserve the current queue and don't lose it (since the component is re-created each time)
-          // It has one drawback: if you change of directories, you'll need to cycle modes again to see a new queue.
-          if (forceReshuffle || this.playbackQueue.length === 0) {
-            const shuffledFiles = this.shuffleArray([...mediaFiles]);
-            finalQueue = shuffledFiles;
-          } else {
-            // Use the existing queue when not forcing reshuffle
-            finalQueue = this.playbackQueue;
-          }
-          // Find the current file position in the queue
-          if (currentIndex !== -1) {
-            const currentFile = mediaFiles.at(currentIndex);
-            finalIndex = finalQueue.findIndex(item => item.path === currentFile.path);
-          } else {
-            finalIndex = 0;
-          }
-          break;
-        }
-      }
-      // console.log('Current place on the queue:', finalIndex + 1, 'of', finalQueue.length);
-
-      // After the queue is set up, update the store
-      mutations.setPlaybackQueue({
-        queue: finalQueue,
-        currentIndex: finalIndex,
-        mode: this.playbackMode
-      });
-    },
-    shuffleArray(array) {
-      const shuffled = [...array];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = shuffled.slice(j, j + 1)[0];
-        shuffled.splice(j, 1, shuffled.at(i));
-        shuffled.splice(i, 1, temp);
-      }
-      return shuffled;
     },
     playPrevious() {
-      if (this.playbackQueue.length === 0) return;
-      // Calculate previous index
-      let prevIndex = this.currentQueueIndex - 1;
-      // Handle wrapping based on mode
-      if (prevIndex < 0) {
-        if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
-          prevIndex = this.playbackQueue.length - 1;
-        } else {
-          return;
-        }
-      }
-      const prevItem = this.playbackQueue.at(prevIndex);
-      // Update current index
-      mutations.setPlaybackQueue({
-        queue: this.playbackQueue,
-        currentIndex: prevIndex,
-        mode: this.playbackMode
-      });
-      mutations.setNavigationTransitioning(true);
-      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined, false, getters.isShare());
+      navigatePlaybackQueue(-1);
     },
+
     playNext() {
-      if (this.playbackQueue.length === 0) return;
-
-      // Calculate next index
-      let nextIndex = this.currentQueueIndex + 1;
-
-      // Handle end of queue based on mode
-      if (nextIndex >= this.playbackQueue.length) {
-        if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
-          nextIndex = 0; // Loop back to beginning
-        } else {
-          return; // Stop at end for sequential mode
-        }
-      }
-
-      const nextItem = this.playbackQueue.at(nextIndex);
-
-      try {
-        // Update current index
-        mutations.setPlaybackQueue({
-          queue: this.playbackQueue,
-          currentIndex: nextIndex,
-          mode: this.playbackMode
-        });
-
-        mutations.setNavigationTransitioning(true);
-        url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined, false, getters.isShare());
-
-      } catch (error) {
-        console.error('Failed to navigate to next file:', error);
-      }
+      navigatePlaybackQueue(1);
     },
     restartCurrentFile() {
-      console.log('Restarting current file');
-      if (this.useDefaultMediaPlayer) {
-        // HTML5 player
-        this.mediaElement.currentTime = 0;
-        this.mediaElement.play();
-      } else if (this.player) {
-        // Plyr player
+      if (this.player) {
         this.player.currentTime = 0;
         this.player.play();
       }
     },
-    handleMediaEnd() {
-      const handleShortQueue = () => {
-        if (this.playbackQueue.length > 1) {
-          this.playNext();
-        } else {
-          this.restartCurrentFile();
-        }
-      };
-      const modeActions = {
-        'single': () => {}, // Do nothing
-        'loop-single': () => this.restartCurrentFile(),
-        'sequential': () => this.playNext(),
-        'shuffle': handleShortQueue,
-        'loop-all': handleShortQueue,
-      };
-      const action = modeActions[this.playbackMode];
-      if (action) {
-        console.log(`Media ended - ${this.playbackMode} mode`);
-        action();
-      }
+    setupPlaybackQueue() {
+      const listing = this.listing;
+      if (!listing || !this.req) return;
+      const isShare = getters.isShare();
+      const currentItem = this.req;
+      const mode = state.playbackQueue.mode || 'single';
+      const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, isShare);
+      mutations.setPlaybackQueue({
+        queue,
+        currentIndex,
+        mode,
+        loop: this.loop
+      });
     },
-    applyCustomPlaybackSettings(player) {
-      // This is the actual logic to set up the settings menu
-      // Separated so it can be called after source changes
-
-      // Only recreate menu if mode changed or menu not initialized, this for avoid unnecesary recreations
-      const modeChanged = this.lastAppliedMode !== this.playbackMode;
-
-      if (this.playbackMenuInitialized && !modeChanged) {
-        return;
-      }
-
+    // Builds playback and caption menus once, then updates state without rebuilding again.
+    applyCustomSettings(player) {
       try {
-        // Access the playback button and panel
-        const playbackBtn = player.elements.settings.buttons.playback;
-        const playbackPanel = player.elements.settings.panels.playback;
+        const playbackBtn = player.elements.settings?.buttons?.playback;
+        const playbackPanel = player.elements.settings?.panels?.playback;
+        const captionSizeBtn = player.elements.settings?.buttons?.captionSize;
+        const captionSizePanel = player.elements.settings?.panels?.captionSize;
 
+        // --- Playback menu ---
         if (playbackBtn && playbackPanel) {
-          // Make the button visible
           playbackBtn.removeAttribute('hidden');
+          const title = player.config.i18n?.playback || 'Playback';
+          const currentLabel = getModeLabel(this.playbackMode, this.$t, this.queueCount);
 
-          // Set up the button text
-          const modeLabels = {
-            'single': 'Play Once',
-            'sequential': 'Play All',
-            'shuffle': 'Shuffle All',
-            'loop-single': 'Loop current',
-            'loop-all': 'Play All Looped'
-          };
-          const currentMode = modeLabels[this.playbackMode] || 'Play Once';
-          playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
-
-          // Set up the back button text
-          playbackPanel.querySelector('.plyr__control--back span[aria-hidden="true"]').innerHTML = 'Playback';
-
-          // Only recreate menu if needed, will rebuild the UI if the source changes.
-          const menu = playbackPanel.querySelector('div[role="menu"]');
-
-          if (!this.playbackMenuInitialized || modeChanged) {
-
-            // Create the menu options
+          if (!this.playbackMenuInitialized) {
+            const menu = playbackPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'single'}" value="single">
-                <span>Play Once</span>
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="single">
+                <span>${getModeLabel('single', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'sequential'}" value="sequential">
-                <span>Play All</span>
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="sequential">
+                <span>${getModeLabel('sequential', this.$t)}</span>
               </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'shuffle'}" value="shuffle">
-                <span>Shuffle All</span>
-              </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-single'}" value="loop-single">
-                <span>Loop Current</span>
-              </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-all'}" value="loop-all">
-                <span>Play All Looped</span>
+              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
+                <span>${getModeLabel('shuffle', this.$t)}</span>
               </button>
             `;
-            // Add event listeners to the buttons
-            const buttons = menu.querySelectorAll('button[data-plyr="playback"]');
-            buttons.forEach(button => {
-              button.addEventListener('click', (event) => {
+            this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
+            // Set initial checked state
+            this.playbackButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
+            });
+            // Add click listeners
+            this.playbackButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
-                console.log('Playback mode changed to:', value);
-
-                // Update visual state
-                buttons.forEach(btn => {
-                  btn.setAttribute('aria-checked', 'false');
-                });
-                event.currentTarget.setAttribute('aria-checked', 'true');
-
-                // Update button text
-                const currentMode = this.getPlaybackModeLabel(value);
-                playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
-
-                // Update the global state with the new mode
-                mutations.setPlaybackQueue({
-                  queue: this.playbackQueue,
-                  currentIndex: this.currentQueueIndex,
-                  mode: value
-                });
-                // Show toast
-                this.showToast();
+                if (value === 'single') {
+                  clearPlaybackQueue();
+                } else {
+                  cyclePlaybackModes(this.playbackMode, {
+                    listing: this.listing,
+                    currentItem: this.req,
+                    isShare: getters.isShare(),
+                    targetMode: value
+                  });
+                }
+                const newLabel = getModeLabel(value, this.$t);
+                if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
+                this.playbackButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
               });
             });
-            this.playbackMenuInitialized = true;
+            const valueSpan = playbackBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentLabel;
+              this.playbackValueSpan = valueSpan;
+            } else {
+              playbackBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentLabel}</span>`;
+              this.playbackValueSpan = playbackBtn.querySelector('span .plyr__menu__value');
+            }
             this.lastAppliedMode = this.playbackMode;
+            this.playbackMenuInitialized = true;
           } else {
-            // Just update the checked states without recreating the menu again
-            const buttons = menu.querySelectorAll('button[data-plyr="playback"]');
-            buttons.forEach(button => {
-              const value = button.getAttribute('value');
-              button.setAttribute('aria-checked', this.playbackMode === value);
-            });
+            // Just update checked states and label
+            if (this.playbackButtons) {
+              this.playbackButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
+              });
+            }
+            if (this.playbackValueSpan) {
+              this.playbackValueSpan.textContent = currentLabel;
+            }
           }
-        } else {
-          console.error('Could not find playback button or panel');
+        }
+        // --- Loop menu (off, loop all, loop single) ---
+        const loopBtn = player.elements.settings?.buttons?.loop;
+        const loopPanel = player.elements.settings?.panels?.loop;
+        if (loopBtn && loopPanel) {
+          loopBtn.removeAttribute('hidden');
+          const loopTitle = this.$t('player.loop');
+          const currentLoopLabel = getLoopLabel(this.loop, this.$t);
+
+          if (!this.loopMenuInitialized) {
+            const menu = loopPanel.querySelector('div[role="menu"]');
+            menu.innerHTML = `
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="off">
+                <span>${getLoopLabel('off', this.$t)}</span>
+              </button>
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="all">
+                <span>${getLoopLabel('all', this.$t)}</span>
+              </button>
+              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="single">
+                <span>${getLoopLabel('single', this.$t)}</span>
+              </button>
+            `;
+            this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
+            // Set initial checked state
+            this.loopButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
+            });
+            // Add click listeners
+            this.loopButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
+                const value = event.currentTarget.getAttribute('value');
+                if (value !== this.loop) {
+                  mutations.setPlaybackQueue({
+                    queue: this.playbackQueue,
+                    currentIndex: this.currentQueueIndex,
+                    mode: this.playbackMode,
+                    loop: value
+                  });
+                }
+                const newLabel = getLoopLabel(value, this.$t);
+                if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
+                this.loopButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+              });
+            });
+            const valueSpan = loopBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentLoopLabel;
+              this.loopValueSpan = valueSpan;
+            } else {
+              loopBtn.querySelector('span').innerHTML = `${loopTitle}: <span class="plyr__menu__value">${currentLoopLabel}</span>`;
+              this.loopValueSpan = loopBtn.querySelector('span .plyr__menu__value');
+            }
+            this.loopMenuInitialized = true;
+          } else {
+            // Update checked states and label
+            if (this.loopButtons) {
+              this.loopButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
+              });
+            }
+            if (this.loopValueSpan) {
+              this.loopValueSpan.textContent = currentLoopLabel;
+            }
+          }
+        }
+        // --- Caption size menu ---
+        if (captionSizeBtn && captionSizePanel) {
+          const visible = this.previewType === 'video' && this.hasSubtitles;
+          if (!visible) {
+            captionSizeBtn.setAttribute('hidden', '');
+            this.captionSizeMenuInitialized = true;
+            return;
+          }
+          captionSizeBtn.removeAttribute('hidden');
+          const title = player.config.i18n?.captionSize || 'Caption size';
+          const currentSize = this.getStoredCaptionSize();
+          const currentSizeLabel = this.getCaptionSizeLabel(currentSize);
+
+          if (!this.captionSizeMenuInitialized) {
+            const menu = captionSizePanel.querySelector('div[role="menu"]');
+            menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
+              (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" value="${id}">
+                        <span>${this.getCaptionSizeLabel(id)}</span>
+                      </button>`
+            ).join('');
+
+            this.captionSizeButtons = menu.querySelectorAll('button[data-plyr="caption-size"]');
+            // Set initial checked state
+            this.captionSizeButtons.forEach(btn => {
+              btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
+            });
+            // Add click listeners
+            this.captionSizeButtons.forEach(btn => {
+              btn.addEventListener('click', (event) => {
+                const value = event.currentTarget.getAttribute('value');
+                if (!PLYR_CAPTION_SIZE_IDS.includes(value)) return;
+                this.setStoredCaptionSize(value);
+                this.applyCaptionSizeClass();
+                // Update checked states and label
+                this.captionSizeButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                // Update label in button
+                const label = this.getCaptionSizeLabel(value);
+                if (this.captionSizeValueSpan) this.captionSizeValueSpan.textContent = label;
+              });
+            });
+            const valueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
+            if (valueSpan) {
+              valueSpan.textContent = currentSizeLabel;
+              this.captionSizeValueSpan = valueSpan;
+            } else {
+              captionSizeBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentSizeLabel}</span>`;
+              this.captionSizeValueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
+            }
+            this.captionSizeMenuInitialized = true;
+          } else {
+            // Update checked states and label
+            if (this.captionSizeButtons) {
+              this.captionSizeButtons.forEach(btn => {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
+              });
+            }
+            if (this.captionSizeValueSpan) {
+              this.captionSizeValueSpan.textContent = currentSizeLabel;
+            }
+          }
+          this.applyCaptionSizeClass();
         }
       } catch (error) {
-        console.error('Error applying custom playback settings:', error);
+        console.error('Error applying custom settings:', error);
       }
     },
   },
@@ -2185,6 +3199,120 @@ export default {
   margin: 0;
 }
 
+/* Scrub preview popup (mounted on Plyr container / fullscreen root while scrubbing) */
+.fb-scrub-preview {
+  position: fixed;
+  z-index: 2147483646;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 14px));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+}
+
+.fb-scrub-preview--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.fb-scrub-preview__frame {
+  overflow: hidden;
+  position: relative;
+  max-height: 600px;
+  max-width: 600px;
+  border-radius: 14px;
+  background: #000;
+  border: 2px solid var(--primaryColor);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 12px color-mix(in srgb, var(--primaryColor) 35%, transparent);
+}
+
+.fb-scrub-preview__frame::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+
+.fb-scrub-preview__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.fb-scrub-preview__loading[hidden] {
+  display: none;
+}
+
+/* Spinner sits above the previous frame while the next preview loads. */
+.fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) .fb-scrub-preview__loading {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) img {
+  opacity: 1;
+}
+
+.fb-scrub-preview__loading .loader {
+  position: relative;
+  z-index: 1;
+}
+
+.fb-scrub-preview__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fb-scrub-preview__time {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.fb-scrub-preview__arrow {
+  position: absolute;
+  top: calc(100% - 2px);
+  transform: translateX(-50%);
+  width: 14px;
+  height: 8px;
+  pointer-events: none;
+}
+
+.fb-scrub-preview__arrow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid var(--primaryColor);
+}
+
 /* Big play button when pause/start the video */
 .plyr--full-ui.plyr--video .plyr__control--overlaid {
   display: flex;
@@ -2197,8 +3325,12 @@ export default {
   border: 0;
   display: none;
   position: absolute;
-  transition: 0.3s;
-  z-index: 2;
+  transition:
+    opacity 0.2s ease-out,
+    visibility 0.2s ease-out,
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
+  z-index: 5;
   height: 4em;
   top: 50%;
   left: 50%;
@@ -2208,6 +3340,10 @@ export default {
   width: 4em !important;
   margin: 0 !important;
   border-radius: 5em !important;
+  pointer-events: auto;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .plyr--fullscreen-active .plyr__control--overlaid {
@@ -2216,13 +3352,54 @@ export default {
   transform: translate(-50%, -50%) !important;
 }
 
-.plyr__control--overlaid:hover {
+.plyr--video .plyr__control--overlaid:hover,
+.plyr--video .plyr__control--overlaid:focus-visible,
+.plyr--fullscreen-active .plyr__control--overlaid:hover,
+.plyr--fullscreen-active .plyr__control--overlaid:focus-visible {
   transform: translate(-50%, -50%) scale(1.05) !important;
+  opacity: 1 !important;
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.9),
+    0 8px 25px rgba(var(--primaryColor-rgb), 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Invisible overlaid play button still sat on top of the video and ate clicks (pause on tap). */
-.plyr--playing .plyr__control--overlaid {
-  pointer-events: none;
+/* Hide center button while playing unless shown or fading out */
+.plyr--playing.plyr--hide-controls:not(.fb-overlaid--shown):not(.fb-overlaid--fade-out)
+  .plyr__control--overlaid {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.plyr--playing:not(.plyr--hide-controls) .plyr__control--overlaid,
+.plyr--playing.fb-overlaid--shown:not(.fb-overlaid--fade-out) .plyr__control--overlaid {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.3s ease,
+    visibility 0.2s ease-out,
+    box-shadow 0.3s ease !important;
+}
+
+.plyr.fb-overlaid--fade-in .plyr__control--overlaid {
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
+}
+
+.plyr.fb-overlaid--fade-out .plyr__control--overlaid {
+  opacity: 0 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
 }
 
 /************
@@ -2235,6 +3412,17 @@ export default {
   width: 100%;
   height: 100%;
   background-color: #000;
+}
+
+.video-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.35);
 }
 
 /* Letterboxing and Plyr chrome: match cinema-style black (audio uses .audio-controls-container .plyr) */
@@ -2257,11 +3445,11 @@ export default {
 .plyr.plyr--video {
   width: 100%;
   height: 100%;
-  cursor: pointer;
 }
 
 .plyr .plyr__video-wrapper {
   touch-action: manipulation;
+  cursor: pointer;
 }
 
 /* Double-tap / double-click seek feedback (left/right third of video) */
@@ -2287,11 +3475,11 @@ export default {
 
 /*
  * Global fonts.css sets `.material-symbols { font-size: 24px }`.
- * Use high specificity + !important, and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
+ * Use high specificity and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
  */
 .video-skip-feedback-layer i.material-symbols.video-skip-feedback-layer__icon {
   flex-shrink: 0;
-  font-size: 3em;
+  font-size: clamp(2.5rem, 7vmin, 6rem);
   line-height: 1;
   color: rgba(255, 255, 255, 0.96);
   filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.85));
@@ -2477,8 +3665,7 @@ export default {
   width: 100%;
   max-width: 1500px;
   margin: 0 auto;
-  gap: 0;
-  padding: 0 2em;
+  padding: 0 3.5em;
   padding-bottom: 0;
   box-sizing: border-box;
   height: 100%;
@@ -2496,25 +3683,22 @@ export default {
   align-items: center;
   justify-content: center;
   text-align: center;
-  width: 50%;
+  width: 100%;
   padding: 0 2em;
   box-sizing: border-box;
-  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  min-width: 0;
+  flex-shrink: 0;
 }
 
-/* When panel closed – centre the left column */
-.audio-player-content:not(.panel-open) .audio-left-column {
-  transform: translateX(50%);
-}
-
-/* When panel open – no extra offset */
 .panel-open .audio-left-column {
-  transform: translateX(0);
+  width: 50%;
 }
 
 /* Right panel (lyrics / queue) */
 .lyrics-panel {
   width: 50%;
+  flex-shrink: 0;
   height: 100%;
   overflow-y: auto;
   padding: 0.5em 2em;
@@ -2594,12 +3778,11 @@ export default {
 }
 
 .album-art-container {
-  height: 100%;
-  width: 100%;
+  flex-shrink: 0;
   border-radius: 1em;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  transition: max-height 0.3s ease, max-width 0.3s ease;
+  transition: width 0.3s ease;
   will-change: transform;
 }
 
@@ -2695,9 +3878,12 @@ export default {
   }
 
   .album-art-container {
-    width: min(71vw);
-    height: min(71vw);
     margin-top: 1em;
+    max-width: min(71vw);
+  }
+
+  .audio-player-container--lyrics-open .album-art-container {
+    transition: none !important;
   }
 }
 
@@ -2712,12 +3898,10 @@ export default {
     font-size: 14px;
     margin: 0 5px;
   }
+
   .audio-left-column {
-    width: 100%;
     padding: 0;
     margin: 0;
-    transform: none !important;
-    transition: none;
   }
 }
 

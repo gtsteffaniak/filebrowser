@@ -1,12 +1,26 @@
 // Store type definitions
 
+export interface FileListItem {
+  name: string;
+  path: string;
+  size?: number;
+  type?: string;
+  source?: string;
+  modified?: string;
+  hasPreview?: boolean;
+  viewToken?: string;
+  isShared?: boolean;
+  pinned?: boolean;
+  hidden?: boolean;
+}
+
 export interface ReqObject {
   // Base properties always present
   sorting: {
     by: string;
     asc: boolean;
   };
-  items: unknown[];
+  items: FileListItem[];
   numDirs: number;
   numFiles: number;
 
@@ -20,9 +34,11 @@ export interface ReqObject {
   modified?: string;
   hasPreview?: boolean;
   subtitles?: unknown[];
+  viewToken?: string;
+  parentDirItems?: FileListItem[];
 
   // Directory listing properties
-  listing?: unknown[];
+  listing?: FileListItem[];
 }
 
 export interface ShareInfoObject {
@@ -40,6 +56,20 @@ export interface ShareInfoObject {
   description: string;
 }
 
+export interface SourceFilePermissions {
+  view: boolean;
+  download: boolean;
+  modify: boolean;
+  create: boolean;
+  delete: boolean;
+}
+
+export interface UserScope {
+  name: string;
+  scope: string;
+  permissions?: SourceFilePermissions;
+}
+
 export interface UserObject {
   preview: {
     video: boolean;
@@ -48,7 +78,6 @@ export interface UserObject {
     models: boolean;
     popup: boolean;
     autoplayMedia?: boolean;
-    defaultMediaPlayer?: boolean;
   };
   loginType: string;
   username: string;
@@ -61,7 +90,7 @@ export interface UserObject {
   locale: string;
   viewMode: string;
   showHidden: boolean;
-  scopes: unknown[];
+  scopes: UserScope[];
   permissions: unknown;
   darkMode: boolean;
   disableSettings: boolean;
@@ -145,7 +174,15 @@ export interface StoreState {
     url?: string;
     modified?: string;
     type?: "3d";
-    fbdata?: { name: string; path: string; source: string; size?: number; type: string };
+    fbdata?: {
+      name: string;
+      path: string;
+      source: string;
+      size?: number;
+      type: string;
+      viewToken?: string;
+      parentDirItems?: FileListItem[];
+    };
   } | null;
   shareInfo: ShareInfoObject;
   sources: {
@@ -216,8 +253,9 @@ export interface StoreState {
   playbackQueue: {
     queue: unknown[];
     currentIndex: number;
-    mode: string;
+    mode: 'sequential' | 'shuffle';
     isPlaying: boolean;
+    loop: 'off' | 'all' | 'single';
   };
   notificationHistory: unknown[];
   sidebar: {

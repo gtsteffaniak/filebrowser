@@ -5,7 +5,6 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils";
 
 const STORAGE_PREFIX = "appNotifications_";
-const LEGACY_STORAGE_PREFIX = "desktopNotifications_";
 
 function storageKey() {
   const username = state.user?.username;
@@ -13,14 +12,6 @@ function storageKey() {
     return `${STORAGE_PREFIX}anonymous`;
   }
   return `${STORAGE_PREFIX}${url.base64Encode(username)}`;
-}
-
-function legacyStorageKey() {
-  const username = state.user?.username;
-  if (!username || username === "anonymous") {
-    return `${LEGACY_STORAGE_PREFIX}anonymous`;
-  }
-  return `${LEGACY_STORAGE_PREFIX}${url.base64Encode(username)}`;
 }
 
 export function isNotificationSupported() {
@@ -51,10 +42,7 @@ export function isAppNotificationsEnabled() {
   try {
     const key = storageKey();
     const value = localStorage.getItem(key);
-    if (value !== null) {
-      return value === "true";
-    }
-    return localStorage.getItem(legacyStorageKey()) === "true";
+    return value === "true";
   } catch {
     return false;
   }
@@ -109,7 +97,7 @@ function showNotification(title, body, tag) {
 
 export function notifyUploadComplete(upload) {
   const t = i18n.global.t;
-  const name = upload.name || upload.path?.split("/").pop() || t("general.file", { suffix: "" });
+  const name = upload.name || upload.path?.split("/").pop() || t("general.file");
   let body;
   if (upload.type === "directory" || !upload.size) {
     body = name;
@@ -125,7 +113,7 @@ export function notifyUploadComplete(upload) {
 
 export function notifyUploadError(name, errorDetails) {
   const t = i18n.global.t;
-  const fileName = name || t("general.file", { suffix: "" });
+  const fileName = name || t("general.file");
   const error = errorDetails || t("prompts.operationFailed");
   showNotification(
     t("notifications.uploadFailedTitle"),
@@ -147,7 +135,7 @@ export function notifyDownloadComplete(name, size) {
 
 export function notifyDownloadError(name, errorDetails) {
   const t = i18n.global.t;
-  const fileName = name || t("general.file", { suffix: "" });
+  const fileName = name || t("general.file");
   const error = errorDetails || t("prompts.operationFailed");
   showNotification(
     t("notifications.downloadFailedTitle"),

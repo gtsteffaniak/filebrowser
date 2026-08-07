@@ -96,7 +96,7 @@ export function getTypeInfo(mimeType) {
     if (mimeType.startsWith("audio/") || mimeType === "application/vnd.google-apps.audio") {
         return {
             classes: "plum-icons material-symbols-outlined",
-            materialSymbol: "volume_up",
+            materialSymbol: "audiotrack",
             simpleType: "audio",
         };
     }

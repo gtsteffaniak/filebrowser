@@ -98,7 +98,13 @@ import throttle from "@/utils/throttle";
 import { previewViews } from "@/utils/constants";
 import { url } from "@/utils";
 import { resourcesApi } from "@/api";
-import { replaceRouteForPlaybackQueueStep } from "@/utils/previewPlaybackQueueNav.js";
+import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import {
+  isInLeftNavHoverZone,
+  isInLeftNavTapZone,
+  isInRightNavHoverZone,
+  isInRightNavTapZone,
+} from "@/utils/navigationEdgeZones.js";
 
 export default {
   name: "NextPrevious",
@@ -527,10 +533,10 @@ export default {
 
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
-        mutations.setNavigationTransitioning(true);
         if (this.isMediaQueueMode) {
-          replaceRouteForPlaybackQueueStep(this.$router, -1);
+          navigatePlaybackQueue(-1);
         } else {
+          mutations.setNavigationTransitioning(true);
           this.$router.replace({ path: state.navigation.previousLink });
         }
       }
@@ -546,11 +552,10 @@ export default {
 
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
-        mutations.setNavigationTransitioning(true);
-
         if (this.isMediaQueueMode) {
-          replaceRouteForPlaybackQueueStep(this.$router, 1);
+          navigatePlaybackQueue(1);
         } else {
+          mutations.setNavigationTransitioning(true);
           this.$router.replace({ path: state.navigation.nextLink });
         }
       }
@@ -561,8 +566,8 @@ export default {
         return;
       }
 
-      // If we're in plyr, don't handle arrow keys to use fast-forward/rewind shortcuts, even if the media is paused.
-      if (this.isMediaFile) {
+      // If we're in plyr, only handle arrow keys if Ctrl is pressed
+      if (this.isMediaFile && !event.ctrlKey || event.repeat) {
         return;
       }
       // If we're in the editor, don't handle arrow keys to avoid change of file mistakenly.
@@ -625,38 +630,16 @@ export default {
       }
     },
     isClickInLeftZone(event) {
-      const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const zoneWidth = 3 * emSize; // 3em in pixels
-      const sidebarOffset = this.moveWithSidebar ? (this.sidebarWidth * emSize) : 0;
-
-      return event.clientX >= sidebarOffset && event.clientX <= (sidebarOffset + zoneWidth);
+      return isInLeftNavTapZone(event.clientX, {
+        moveWithSidebar: this.moveWithSidebar,
+        sidebarWidthEm: this.sidebarWidth,
+      });
     },
     isClickInRightZone(event) {
-      const viewportWidth = window.innerWidth;
-      const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const zoneWidth = 3 * emSize; // 3em in pixels
-
-      return event.clientX >= (viewportWidth - zoneWidth) && event.clientX <= viewportWidth;
+      return isInRightNavTapZone(event.clientX);
     },
     showNavigation() {
-      mutations.setNavigationShow(true);
-      mutations.clearNavigationTimeout();
-
-      // Clear our local timeout too
-      if (this.navigationTimeout) {
-        clearTimeout(this.navigationTimeout);
-        this.navigationTimeout = null;
-      }
-
-      this.navigationTimeout = setTimeout(() => {
-        if (!this.hoverNav) {
-          mutations.setNavigationShow(false);
-        }
-        mutations.clearNavigationTimeout();
-        this.navigationTimeout = null;
-      }, 3000); // Show for 3 seconds
-
-      mutations.setNavigationTimeout(this.navigationTimeout);
+      mutations.peekNavigationChrome();
     },
     toggleNavigation: throttle(function () {
       if (!this.enabled) {
@@ -973,26 +956,25 @@ export default {
       // Check if mouse is in the nav zone areas to show navigation buttons
       if (!this.enabled) return;
 
-      const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const zoneWidth = 5 * emSize; // 5em in pixels
+      const opts = {
+        moveWithSidebar: this.moveWithSidebar,
+        sidebarWidthEm: this.sidebarWidth,
+      };
 
-      // Check left zone
-      const sidebarOffset = this.moveWithSidebar ? (this.sidebarWidth * emSize) : 0; // Account for sidebar
-      if (this.hasPrevious && event.clientX >= sidebarOffset && event.clientX <= (sidebarOffset + zoneWidth)) {
+      if (this.hasPrevious && isInLeftNavHoverZone(event.clientX, opts)) {
         const viewportHeight = window.innerHeight;
-        const zoneTop = viewportHeight * 0.25; // 25% from top
-        const zoneBottom = viewportHeight * 0.75; // 25% from bottom (75% of height)
+        const zoneTop = viewportHeight * 0.25;
+        const zoneBottom = viewportHeight * 0.75;
 
         if (event.clientY >= zoneTop && event.clientY <= zoneBottom) {
           this.toggleNavigation();
         }
       }
 
-      // Check right zone
-      if (this.hasNext && event.clientX >= window.innerWidth - zoneWidth) {
+      if (this.hasNext && isInRightNavHoverZone(event.clientX)) {
         const viewportHeight = window.innerHeight;
-        const zoneTop = viewportHeight * 0.25; // 25% from top
-        const zoneBottom = viewportHeight * 0.75; // 25% from bottom (75% of height)
+        const zoneTop = viewportHeight * 0.25;
+        const zoneBottom = viewportHeight * 0.75;
 
         if (event.clientY >= zoneTop && event.clientY <= zoneBottom) {
           this.toggleNavigation();

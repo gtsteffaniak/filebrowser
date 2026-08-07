@@ -10,6 +10,7 @@
         'prompt-behind': !isTopmost(prompt.id),
         'blocked': isBlocked(prompt),
         'prompt-open-flash': flashBorderIds[prompt.id],
+        'editor-prompt': isEditorPrompt(prompt),
       }"
       @mousedown="makeTopPrompt(prompt.id)"
       :style="{
@@ -99,6 +100,8 @@ import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
+import VisualizerSettings from "./VisualizerSettings.vue";
+import SharePicker from "./SharePicker.vue";
 import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
@@ -110,6 +113,10 @@ import Archive from "./Archive.vue";
 import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
+import ActivityEventDetails from "./ActivityEventDetails.vue";
+import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
+import ConfigViewer from "./ConfigViewer.vue";
+import UserDefaults from "./UserDefaults.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -139,7 +146,9 @@ export default {
     Access,
     Password,
     PlaybackQueue,
+    VisualizerSettings,
     PathPicker,
+    SharePicker,
     SaveBeforeExit,
     CopyPasteConfirm,
     CloseWithActiveUploads,
@@ -150,6 +159,10 @@ export default {
     Unarchive,
     OfficeDebug,
     ThreeJSControls,
+    ActivityEventDetails,
+    AnalyticsDiagnostic,
+    ConfigViewer,
+    UserDefaults,
   },
   data() {
     return {
@@ -181,6 +194,9 @@ export default {
         for (const p of newVal) {
           if (!oldIds.has(p.id)) {
             this.triggerPromptBorderFlash(p.id);
+            if (this.isEditorPrompt(p)) {
+              this.ensureEditorPromptSize(p.id);
+            }
           }
         }
       },
@@ -258,9 +274,23 @@ export default {
       if (this.prompts.some(p => p.parentId === prompt.id)) return true;
       return false;
     },
+    isEditorPrompt(prompt) {
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults";
+    },
+    ensureEditorPromptSize(id) {
+      if (getObjectProperty(this.sizes, id)) {
+        return;
+      }
+      const width = Math.min(720, Math.round(window.innerWidth * 0.9));
+      const height = Math.min(Math.round(window.innerHeight * 0.65), Math.round(window.innerHeight * 0.8));
+      this.sizes = setObjectProperty(this.sizes, id, { width, height });
+    },
     getPromptProps(prompt) {
+      const rawProps = { ...(prompt.props || {}) };
+      // Title is prompt chrome only (Prompts.vue header); must not fall through as a native tooltip.
+      delete rawProps.title;
       const baseProps = {
-        ...prompt.props,
+        ...rawProps,
         promptId: prompt.id,
       };
       if (prompt.name === "move" || prompt.name === "copy") {
@@ -297,7 +327,7 @@ export default {
         case "officedebug":
           return this.$t("onlyoffice.debug");
         case "download":
-          return this.$t("prompts.download");
+          return this.$t("general.downloadFiles");
         case "move":
           return this.$t("general.move");
     
@@ -313,6 +343,12 @@ export default {
           return this.$t("prompts.fileInfo");
         case "help":
           return this.$t("general.help");
+        case "analytics-diagnostic":
+          return this.$t("settings.analyticsView");
+        case "config-viewer":
+          return this.$t("settings.configViewer");
+        case "user-defaults":
+          return this.$t("settings.userDefaults");
         case "upload":
           return this.$t("general.upload");
         case "createapi":
@@ -325,6 +361,8 @@ export default {
           return this.$t("general.password");
         case "playbackqueue":
           return this.$t("player.QueuePlayback");
+        case "visualizersettings":
+          return this.$t("player.visualizer.settings");
         case "pathpicker":
           return this.$t("prompts.selectPath");
         case "savebeforeexit":
@@ -346,7 +384,7 @@ export default {
         case "newfile":
           return this.$t("prompts.newFile");
         case "newdir":
-          return this.$t("prompts.newDir");
+          return this.$t("general.newFolder");
         case "replace-rename":
           return this.$t("general.replace");
         case "archive":
@@ -355,6 +393,8 @@ export default {
           return this.$t("prompts.unarchive");
         case "threejscontrols":
           return this.$t("threejs.controls");
+        case "activityeventdetails":
+          return this.$t("general.details");
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types
@@ -767,6 +807,17 @@ export default {
 /* No buttons variant - removes bottom padding */
 .floating-window > :deep(.card-content.no-buttons) {
   padding-bottom: 0.5em;
+}
+
+.floating-window > :deep(.card-content.prompt-panel) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.floating-window.editor-prompt:not([style*="height"]) {
+  height: min(65vh, 80vh);
+  min-height: 320px;
 }
 
 .floating-window > :deep(.card-actions) {

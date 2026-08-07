@@ -175,6 +175,36 @@ export async function createShareViaApi(
 }
 
 /**
+ * Returns an existing share hash for path/source when present, otherwise creates one via API.
+ * Used in global setup so pre-migrated databases with shares do not rely on flaky UI flows.
+ */
+export async function getOrCreateShareViaApi(
+  page: Page,
+  options: {
+    path: string;
+    source: string;
+    allowCreate?: boolean;
+    allowModify?: boolean;
+  },
+): Promise<string> {
+  const query = new URLSearchParams({
+    path: options.path,
+    source: options.source,
+  });
+  const listResponse = await page.request.get(`http://127.0.0.1/api/share?${query.toString()}`);
+  if (!listResponse.ok()) {
+    throw new Error(`Failed to list shares: ${listResponse.status()} ${await listResponse.text()}`);
+  }
+
+  const existing = await listResponse.json() as Array<{ hash?: string }>;
+  if (Array.isArray(existing) && existing.length > 0 && existing[0]?.hash) {
+    return existing[0].hash;
+  }
+
+  return createShareViaApi(page, options);
+}
+
+/**
  * Opens the share dialog and asserts the path, retrying on transient UI timing failures.
  */
 export async function openShareAndExpectPath(
@@ -286,6 +316,11 @@ export function setupErrorTracking(page: Page) {
   const consoleErrors: string[] = [];
   const failedResponses: { url: string; status: number }[] = [];
 
+  const isHarmlessConsoleError = (errorText: string) => (
+    // Firefox logs background lazy-load font failures; core icons still render.
+    /downloadable font: download failed.*material-symbols\.woff2/i.test(errorText)
+  );
+
   // Track console errors
   page.on("console", async (message) => {
     if (message.type() === "error") {
@@ -336,6 +371,10 @@ export function setupErrorTracking(page: Page) {
             detailedError = errorText;
           }
         }
+      }
+
+      if (isHarmlessConsoleError(detailedError)) {
+        return;
       }
 
       consoleErrors.push(detailedError);
@@ -488,6 +527,18 @@ export async function checkForNotification(page: Page, message: string | RegExp)
  * @param message - Expected message text (string or RegExp)
  * @returns Locator for the matching toast message
  */
+/** Opens an ExpandDropdown trigger and selects an option from its listbox. */
+export async function selectExpandDropdownOption(
+  page: Page,
+  ariaLabel: string,
+  optionName: string | RegExp,
+  options?: { scope?: Locator },
+): Promise<void> {
+  const scope = options?.scope ?? page;
+  await scope.locator(`button[aria-label="${ariaLabel}"]`).click();
+  await page.getByRole("option", { name: optionName }).click();
+}
+
 export async function checkForToast(page: Page, message: string | RegExp): Promise<import('@playwright/test').Locator> {
   const toastMessage = page.locator('.toast-message');
 

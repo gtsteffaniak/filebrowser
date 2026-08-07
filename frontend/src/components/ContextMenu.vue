@@ -213,6 +213,7 @@ import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
+import { isMediaRequest } from "@/utils/mediaFile";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -276,22 +277,25 @@ export default {
       return this.providedItems[0] || null;
     },
     showWatch() {
+      if (isMediaRequest(this.req)) {
+        return false;
+      }
       return this.hasDownload && !this.req.isDir && !this.isShare;
     },
     showGoToItem() {
       return this.showLimitedOptions && this.selectedCount === 1;
     },
     permissions() {
-      return getters.permissions();
+      return { ...getters.globalPermissions(), ...getters.sourcePermissions() };
     },
     /**
      * Whether the (+) panel can be opened (create file ops and/or admin-only rows like access rules).
      */
     canOpenCreatePanel() {
       if (getters.isShare()) {
-        return !!getters.permissions().create;
+        return !!getters.sourcePermissions().create;
       }
-      return getters.isAdmin() || !!state.user?.permissions?.create;
+      return getters.isAdmin() || !!getters.sourcePermissions().create;
     },
     /** New folder / new file / upload — requires permissions.create only (not admin alone). */
     showCreateFileActions() {
@@ -423,6 +427,9 @@ export default {
     },
     showGoToRaw() {
       if (!this.permissions.download) {
+        return false;
+      }
+      if (isMediaRequest(this.req)) {
         return false;
       }
       const cv = getters.currentView();
@@ -860,18 +867,16 @@ export default {
       });
     },
     goToRaw() {
-      if (getters.isShare()) {
-        window.open(resourcesApi.getDownloadURLPublic(state.shareInfo, [state.req.path], true), "_blank");
-        mutations.closeHovers();
-        return;
-      }
-      const downloadUrl = resourcesApi.getDownloadURL(
-        state.req?.source || "",
-        state.req?.path || "",
-        true,
-        false
-      );
-      window.open(downloadUrl, "_blank");
+      const source = state.req?.source || "";
+      const path = state.req?.path || "";
+      const openUrl = getters.isShare()
+        ? resourcesApi.getOpenFileURL(source, path, {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
+          })
+        : resourcesApi.getOpenFileURL(source, path);
+      window.open(openUrl, "_blank");
       mutations.closeHovers();
     },
     watchFile() {

@@ -2,11 +2,11 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go build -o ./tmp/filebrowser --tags=mupdf --ldflags=\"-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=commitSHA' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=version'\" ."
-  bin = "tmp/filebrowser"
+  cmd = "go build -o ./tmp/filebrowser --tags=mupdf --ldflags=\"-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=commitSHA' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=version'\" ."
+  entrypoint = "./tmp/filebrowser"
   full_bin = "FILEBROWSER_DEVMODE=true CGO_ENABLED=1 ./tmp/filebrowser -c test_config.yaml"
   include_ext = ["go", "tpl", "tmpl", "html"]
-  exclude_dir = ["tmp", "vendor", "http/dist", "http/embed", "swagger/docs", "preview/thumbnails", "preview/heic"]
+  exclude_dir = ["tmp", "vendor", "internal/web/dist", "internal/web/embed", "internal/preview/testdata", "internal/preview/thumbnails", "internal/preview/heic", "swagger/docs"]
   log = "air.log"
   delay = 1000 # ms
 

@@ -22,9 +22,9 @@
       v-if="showHeaderSwitchView && !disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
-      :label="$t('buttons.switchView')"
+      :label="viewModeActionLabel"
       @action="switchView"
-      :disabled="isDisabled"
+      :disabled="isDisabled || viewModeChangeLocked"
     />
     <action
       class="overflow-menu-button"
@@ -81,7 +81,7 @@ export default {
       return state.req.name;
     },
     showQuickSave() {
-      if (getters.currentView() !== "editor" || !state.user.permissions.modify) {
+      if (getters.currentView() !== "editor" || !getters.sourcePermissions().modify) {
         return false;
       }
       return state.user.editorQuickSave;
@@ -126,13 +126,13 @@ export default {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
     showEdit() {
-      return window.location.hash !== "#edit" && state.user.permissions.modify;
+      return window.location.hash !== "#edit" && getters.sourcePermissions().modify;
     },
     showDelete() {
-      return state.user.permissions.modify && getters.currentView() === "preview";
+      return getters.sourcePermissions().delete && getters.currentView() === "preview";
     },
     showSave() {
-      return getters.currentView() === "editor" && state.user.permissions.modify;
+      return getters.currentView() === "editor" && getters.sourcePermissions().modify;
     },
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
@@ -142,6 +142,15 @@ export default {
     },
     isDisabled() {
       return state.isSearchActive || getters.currentPromptName() !== "";
+    },
+    viewModeChangeLocked() {
+      return getters.viewModeChangeLocked();
+    },
+    viewModeActionLabel() {
+      if (this.viewModeChangeLocked) {
+        return this.$t("profileSettings.enforcedByAdmin");
+      }
+      return this.$t("buttons.switchView");
     },
     isDisabledMultiAction() {
       const regularDisabled = getters.isStickySidebar() && getters.multibuttonState() === "menu";

@@ -139,6 +139,8 @@ export default {
 .settings-content {
     overflow: hidden;
     margin-top: 0.5em;
+    /* Room for ExpandDropdown box-shadow (clipped otherwise on last items) */
+    padding: 0 0.5em 1em;
 }
 
 .expand-enter-active,

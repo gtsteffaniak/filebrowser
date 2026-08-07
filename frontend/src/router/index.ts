@@ -13,6 +13,7 @@ import Settings from "@/views/Settings.vue";
 import Tools from "@/views/Tools.vue";
 
 const translate = (key: string): string => i18n.global.t(key) as string;
+const t = i18n.global.t.bind(i18n.global);
 
 const titles: Record<string, string> = {
   Login: translate("general.login"),
@@ -23,9 +24,9 @@ const titles: Record<string, string> = {
   Tools: translate("tools.title"),
   ChildTool: translate("tools.title"),
   Settings: translate("general.settings"),
-  ProfileSettings: translate("settings.profileSettings"),
-  Shares: translate("settings.shareManagement"),
-  GlobalSettings: translate("settings.globalSettings"),
+  ProfileSettings: `${t("general.profile")} ${t("general.settings")}`,
+  Shares: `${t("general.share")} ${t("general.management")}`,
+  GlobalSettings: `${t("general.global")} ${t("general.settings")}`,
   Users: translate("general.users"),
   User: translate("general.user"),
   Forbidden: translate("errors.forbidden"),
