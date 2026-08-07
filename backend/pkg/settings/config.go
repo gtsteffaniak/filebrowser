@@ -89,10 +89,6 @@ func setupHttp() {
 	}
 }
 
-func needsSubpathTrustProxyHeadersWarning(baseURL string, trustProxyHeaders bool) bool {
-	return baseURL != "/" && !trustProxyHeaders && !Env.IsDevMode
-}
-
 func warnHttpProxyConfig() {
 	if Env.IsDevMode || Env.IsPlaywright {
 		return
