@@ -62,9 +62,15 @@ func TestWebDAVShortPasswordAuth(t *testing.T) {
 			expectedStatusCode: http.StatusUnauthorized,
 		},
 		{
-			name:               "Invalid password fails",
+			name:               "Short password without username fails",
+			username:           "",
+			password:           shortPassword,
+			expectedStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name:               "Non-matching password of short-password length fails",
 			username:           "webdavuser",
-			password:           "not-a-valid-password",
+			password:           "0123456789abcdef", // 16 chars, but matches no token
 			expectedStatusCode: http.StatusUnauthorized,
 		},
 	}
