@@ -33,7 +33,7 @@ func createApiTokenHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	name := r.URL.Query().Get("name")
 	durationStr := r.URL.Query().Get("days")
 	permissionsStr := r.URL.Query().Get("permissions")
-	minimal := permissionsStr == ""
+	minimal := r.URL.Query().Get("minimal") == "true" || permissionsStr == ""
 
 	if !d.user.Permissions.Api {
 		return http.StatusForbidden, fmt.Errorf("user does not have permission to create api tokens")
@@ -193,7 +193,7 @@ func listApiTokensHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			Permissions: token.Permissions,
 		})
 	}
-	
+
 	sort.Slice(AuthTokensFrontend, func(i, j int) bool {
 		return AuthTokensFrontend[i].Name < AuthTokensFrontend[j].Name
 	})
