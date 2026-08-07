@@ -7,17 +7,17 @@
 
   [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A#is-there-a-way-to-donate-or-support-this-project)
 
-  <img width="150" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174" title="Logo">
+  <img width="150" alt="FileBrowser Quantum logo" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174">
   <h3>FileBrowser Quantum</h3>
   The best free self-hosted web-based file manager.
   <br/><br/>
-  <img width="800" src="https://filebrowserquantum.com/images/generated/listing/view-mode-normal-dark.jpg">
+  <img width="800" alt="FileBrowser Quantum file listing in dark mode" src="https://filebrowserquantum.com/images/generated/listing/view-mode-normal-dark.jpg">
 </div>
 
 ## Pinned
 
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
-:pushpin: [v2.0.0 is now in beta!](https://filebrowserquantum.com/en/docs/getting-started/v2/about/)
+:pushpin: [v2.0.0 preview — migration required from v1.x](https://filebrowserquantum.com/en/docs/getting-started/v2/about/)
 
 ## About
 
@@ -83,7 +83,7 @@ a pop-up menu.
 See the [Official Docs](https://filebrowserquantum.com/). Contributions are welcome and encouraged! See [FilebrowserDocs Github](https://github.com/quantumx-apps/filebrowserDocs).
 
 ## Comparison Chart
-Application Name | <img width="48" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://cdn.iconscout.com/icon/free/png-256/free-google-drive-logo-icon-svg-download-png-2476481.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
+Application Name | <img width="48" alt="" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174" > Quantum | <img width="48" alt="" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" alt="" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" alt="" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" alt="" src="https://cdn.iconscout.com/icon/free/png-256/free-google-drive-logo-icon-svg-download-png-2476481.png" > Google_Drive | <img width="48" alt="" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
 --- | --- | --- | --- | --- | --- | --- |
 Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
