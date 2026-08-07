@@ -23,7 +23,9 @@ func StopActivityRecorder() {
 	activityrec.Stop()
 }
 
-// RecordActivity appends an activity entry to the buffer.
+// RecordActivity appends a pre-built audit entry to the activity buffer.
+// Handlers should prefer activity.RecordDownload and other activity.Record* helpers
+// that enrich entries from HTTP context; use this only when the entry is already complete.
 func RecordActivity(entry activitydb.Entry) {
 	activityrec.Record(entry)
 }

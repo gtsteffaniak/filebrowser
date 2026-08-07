@@ -149,10 +149,11 @@ func UpdateShare(hash string, updateFn func(*share.Share) error) error {
 	return nil
 }
 
-// RecordShareDownload increments global download count and, when per-user limits are enabled,
-// increments the count for viewerUsername. It persists to the database. Callers must not
-// mutate download counters on share snapshots directly.
-func RecordShareDownload(hash, viewerUsername string) error {
+// IncrementShareDownloadCount updates share entity state: global download count and, when
+// per-user limits are enabled, the count for viewerUsername. This is not activity audit
+// logging — use activity.RecordDownload for the Activity Viewer. Callers must not mutate
+// download counters on share snapshots directly.
+func IncrementShareDownloadCount(hash, viewerUsername string) error {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
 	link, exists := sharesByHash[hash]

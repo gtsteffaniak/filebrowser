@@ -111,6 +111,8 @@ func RecordWebDAVUser(r *http.Request, user *users.User, entry activitydb.Entry)
 	finalizeActivityEntry(r, actor, entry, activityActorUser)
 }
 
+// RecordDownload appends an audit log row for a file or folder download.
+// Share download counters and per-user limits use state.IncrementShareDownloadCount separately.
 func RecordDownload(r *http.Request, actor *Actor, source string, fileList []string) {
 	details := activitydb.Details{
 		Source:    source,
