@@ -508,6 +508,8 @@
     "verify": "אמת{suffix}",
     "close": "סגור{suffix}",
     "copy": "העתק{suffix}",
+    "paste": "הדבק",
+    "cut": "גזור",
     "create": "צור{suffix}",
     "delete": "מחק{suffix}",
     "download": "הורדה{suffix}",
@@ -651,8 +653,6 @@
     "orange": "כתום"
   },
   "profileSettings": {
-    "wrapEditorContent": "גלישת שורות ארוכות בעורך",
-    "wrapEditorContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות",
     "editButtonInHeader": "הצגת כפתורי עריכה/תצוגה מקדימה בכותרת",
     "editButtonInHeaderDescription": "הצגת כפתורי עריכה/תצוגה מקדימה בכותרת במקום בתפריט הגלישה",
     "hideFileExt": "הסתר קבצים מסוימים (לפי סיומת)",
@@ -731,14 +731,54 @@
     "darkMode": "מצב כהה"
   },
   "editor": {
-    "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",
-    "saveAbortedMessage": "פעולת השמירה בוטלה. הקובץ הפעיל של היישום ({activeFile}) אינו תואם לקובץ שאתה מנסה לשמור ({tryingToSave}).",
-    "lines": "{count} שורות",
-    "words": "{count} מילים",
-    "chars": "{count} תווים",
+    "stats": {
+      "lines": "{count} שורות",
+      "words": "{count} מילים",
+      "chars": "{count} תווים"
+    },
+    "settings": {
+      "title": "הגדרות עורך",
+      "keybinding": {
+        "label": "קיצורי מקלדת",
+        "description": "הגדר את קיצורי המקלדת המועדפים עליך!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "גלישה יתרה",
+        "description": "כמה העורך יכול לגלול מעבר לסוף התוכן",
+        "none": "ללא",
+        "half": "חצי",
+        "full": "מלא"
+      },
+      "tabSize": {
+        "label": "גודל Tab",
+        "description": "כמה רווחים מקש 'TAB' צריך לעשות כברירת מחדל"
+      },
+      "showIndentGuides": "הצג מדריכי הזחה",
+      "showIndentGuidesDescription": "הצג מדריכי הזחה, זה נותן לך כיוון טוב יותר בעת עריכת קוד מקונן",
+      "showGutter": "הצג שוליים",
+      "showGutterDescription": "המיכל שבו נמצאים מספרי השורות בצד שמאל",
+      "fixedGutterWidth": "רוחב שוליים קבוע",
+      "fixedGutterWidthDescription": "כאשר כבוי, מגדיל את גודל השוליים בהדרגה תוך כדי גלילה בהתאם למספר השורות בקובץ",
+      "showLineNumbers": "הצג מספרי שורות",
+      "showLineNumbersDescription": "הצג מספרי שורות בשוליים בצד שמאל, זה לא מסתיר את השוליים עצמם",
+      "relativeLineNumbers": "מספרי שורות יחסיים",
+      "relativeLineNumbersDescription": "הצג מספרי שורות יחסית למיקום הנוכחי של הסמן",
+      "customScrollbar": "סרגל גלילה מותאם אישית",
+      "customScrollbarDescription": "החלף את סרגל הגלילה המקורי של הדפדפן בזה המובנה של Ace",
+      "wrapContent": "גלישת שורות ארוכות בעורך",
+      "wrapContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות"
+    },
+    "uninitialized": "אתחול העורך נכשל. אנא טען מחדש.",
+    "saveAbortedMessage": "פעולת השמירה בוטלה. הקובץ הפעיל של האפליקציה ({activeFile}) אינו תואם לקובץ שאתה מנסה לשמור ({tryingToSave}).",
     "splitView": "תצוגה מפוצלת",
     "exitSplitView": "יציאה מתצוגה מפוצלת",
     "md": {
+      "clipboardActions": "פעולות לוח",
       "bold": "מודגש",
       "italic": "נטוי",
       "strikethrough": "קו חוצה",

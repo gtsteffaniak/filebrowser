@@ -366,7 +366,7 @@ export default {
         case "visualizersettings":
           return this.$t("player.visualizer.settings");
         case "editorsettings":
-          return this.$t("editor.settings");
+          return this.$t("editor.settings.title");
         case "pathpicker":
           return this.$t("prompts.selectPath");
         case "savebeforeexit":

@@ -73,6 +73,8 @@
     "verify": "Verifica{suffix}",
     "close": "Chiudi{suffix}",
     "copy": "Copia{suffix}",
+    "paste": "Incolla",
+    "cut": "Taglia",
     "create": "Crea{suffix}",
     "delete": "Elimina{suffix}",
     "download": "Scarica{suffix}",
@@ -481,8 +483,6 @@
     "allFileTypes": "Tutti i tipi di file"
   },
   "profileSettings": {
-    "wrapEditorContent": "A capo delle righe lunghe nell'editor",
-    "wrapEditorContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe",
     "editButtonInHeader": "Mostra i pulsanti di modifica/anteprima nell'intestazione",
     "editButtonInHeaderDescription": "Mostra i pulsanti di modifica/anteprima nell'intestazione invece del menu overflow",
     "hideFileExt": "Nascondere determinati file (per estensione)",
@@ -740,14 +740,54 @@
     "orange": "arancione"
   },
   "editor": {
-    "uninitialized": "Inizializzazione editor fallita. Ricarica la pagina.",
-    "saveAbortedMessage": "Operazione annullata. Il file attivo ({activeFile}) non corrisponde a quello che stai salvando ({tryingToSave}).",
-    "lines": "{count} righe",
-    "words": "{count} parole",
-    "chars": "{count} caratteri",
+    "stats": {
+      "lines": "{count} righe",
+      "words": "{count} parole",
+      "chars": "{count} caratteri"
+    },
+    "settings": {
+      "title": "Impostazioni editor",
+      "keybinding": {
+        "label": "Scorciatoie da tastiera",
+        "description": "Imposta le tue scorciatoie da tastiera preferite!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Overscroll",
+        "description": "Quanto può scorrere l'editor oltre la fine del contenuto",
+        "none": "Nessuno",
+        "half": "Metà",
+        "full": "Pieno"
+      },
+      "tabSize": {
+        "label": "Dimensione Tab",
+        "description": "Quanti spazi dovrebbe inserire il tasto 'TAB' di default"
+      },
+      "showIndentGuides": "Mostra guide di indentazione",
+      "showIndentGuidesDescription": "Mostra guide di indentazione, che ti danno un migliore orientamento durante la modifica di codice annidato",
+      "showGutter": "Mostra margine",
+      "showGutterDescription": "Il contenitore dove si trovano i numeri di riga a sinistra",
+      "fixedGutterWidth": "Larghezza margine fissa",
+      "fixedGutterWidthDescription": "Quando disattivato, aumenta gradualmente la dimensione del margine durante lo scorrimento in base al numero di righe del file",
+      "showLineNumbers": "Mostra numeri di riga",
+      "showLineNumbersDescription": "Mostra i numeri di riga nel margine a sinistra, non nasconde il margine stesso",
+      "relativeLineNumbers": "Numeri di riga relativi",
+      "relativeLineNumbersDescription": "Mostra i numeri di riga relativi alla posizione corrente del cursore",
+      "customScrollbar": "Barra di scorrimento personalizzata",
+      "customScrollbarDescription": "Sostituisce la barra di scorrimento nativa del browser con quella integrata di Ace",
+      "wrapContent": "A capo delle righe lunghe nell'editor",
+      "wrapContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe"
+    },
+    "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",
+    "saveAbortedMessage": "Operazione di salvataggio annullata. Il file attivo dell'applicazione ({activeFile}) non corrisponde al file che si sta tentando di salvare ({tryingToSave}).",
     "splitView": "Vista divisa",
     "exitSplitView": "Esci dalla vista divisa",
     "md": {
+      "clipboardActions": "Azioni degli appunti",
       "bold": "Grassetto",
       "italic": "Corsivo",
       "strikethrough": "Barrato",

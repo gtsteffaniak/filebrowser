@@ -151,9 +151,9 @@ export default {
     editorStatsText() {
       const { lines, words, chars } = state.editor.stats;
       const parts = [];
-      if (words !== null) parts.push(this.$t('editor.words', { count: words }));
-      if (chars !== null) parts.push(this.$t('editor.chars', { count: chars }));
-      if (lines !== null) parts.push(this.$t('editor.lines', { count: lines }));
+      if (words !== null) parts.push(this.$t('editor.stats.words', { count: words }));
+      if (chars !== null) parts.push(this.$t('editor.stats.chars', { count: chars }));
+      if (lines !== null) parts.push(this.$t('editor.stats.lines', { count: lines }));
       return parts.join(' | ');
     },
     editorFontSize: {

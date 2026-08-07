@@ -477,8 +477,6 @@
     "orange": "laranja"
   },
   "profileSettings": {
-    "wrapEditorContent": "Quebrar linhas longas no editor",
-    "wrapEditorContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
     "editButtonInHeader": "Mostrar botões de editar/pré-visualização no cabeçalho",
     "editButtonInHeaderDescription": "Mostrar os botões de editar/pré-visualização no cabeçalho em vez do menu de overflow",
     "hideFileExt": "Ocultar certos ficheiros (por extensão)",
@@ -608,6 +606,8 @@
     "verify": "Verificar{suffix}",
     "close": "Fechar{suffix}",
     "copy": "Cópia{suffix}",
+    "paste": "Colar",
+    "cut": "Cortar",
     "create": "Criar{suffix}",
     "delete": "Eliminar{suffix}",
     "download": "Descarregar{suffix}",
@@ -731,14 +731,54 @@
     "cascadeDeleteDescription": "Quando activada, a eliminação de uma regra de acesso também a removerá de todos os subdirectórios. Isto permite-lhe remover completamente um utilizador ou grupo de toda a árvore de diretórios."
   },
   "editor": {
+    "stats": {
+      "lines": "{count} linhas",
+      "words": "{count} palavras",
+      "chars": "{count} caracteres"
+    },
+    "settings": {
+      "title": "Configurações do editor",
+      "keybinding": {
+        "label": "Atalhos de teclado",
+        "description": "Defina os seus atalhos de teclado preferidos!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Deslocamento excessivo",
+        "description": "Quanto o editor pode deslocar para além do fim do conteúdo",
+        "none": "Nenhum",
+        "half": "Metade",
+        "full": "Completo"
+      },
+      "tabSize": {
+        "label": "Tamanho do Tab",
+        "description": "Quantos espaços a tecla 'TAB' deve fazer por padrão"
+      },
+      "showIndentGuides": "Mostrar guias de indentação",
+      "showIndentGuidesDescription": "Mostra guias de indentação, o que lhe dá uma melhor orientação ao editar código aninhado",
+      "showGutter": "Mostrar margem",
+      "showGutterDescription": "O contentor onde os números de linha estão à esquerda",
+      "fixedGutterWidth": "Largura de margem fixa",
+      "fixedGutterWidthDescription": "Quando desativado, aumenta o tamanho da margem gradualmente durante a deslocação, dependendo do número de linhas do ficheiro",
+      "showLineNumbers": "Mostrar números de linha",
+      "showLineNumbersDescription": "Mostra números de linha na margem esquerda, não oculta a própria margem",
+      "relativeLineNumbers": "Números de linha relativos",
+      "relativeLineNumbersDescription": "Mostra números de linha relativos à posição atual do cursor",
+      "customScrollbar": "Barra de deslocamento personalizada",
+      "customScrollbarDescription": "Substituir a barra de deslocamento nativa do navegador pela integrada do Ace",
+      "wrapContent": "Quebrar linhas longas no editor",
+      "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis"
+    },
     "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",
-    "saveAbortedMessage": "Operação de gravação abortada. O ficheiro ativo da aplicação ({activeFile}) não corresponde ao ficheiro que está a tentar guardar ({tryingToSave}).",
-    "lines": "{count} linhas",
-    "words": "{count} palavras",
-    "chars": "{count} caracteres",
+    "saveAbortedMessage": "Operação de gravação cancelada. O ficheiro ativo da aplicação ({activeFile}) não corresponde ao ficheiro que está a tentar gravar ({tryingToSave}).",
     "splitView": "Vista dividida",
     "exitSplitView": "Sair da vista dividida",
     "md": {
+      "clipboardActions": "Ações da área de transferência",
       "bold": "Negrito",
       "italic": "Itálico",
       "strikethrough": "Rasurado",

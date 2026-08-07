@@ -508,6 +508,8 @@
     "verify": "확인{suffix}",
     "close": "닫기{suffix}",
     "copy": "복사{suffix}",
+    "paste": "붙여넣기",
+    "cut": "잘라내기",
     "create": "만들기{suffix}",
     "delete": "삭제{suffix}",
     "download": "다운로드{suffix}",
@@ -651,8 +653,6 @@
     "orange": "오렌지"
   },
   "profileSettings": {
-    "wrapEditorContent": "편집기에서 긴 줄 줄 바꿈",
-    "wrapEditorContentDescription": "편집기 콘텐츠를 줄 바꿈하여 매우 긴 줄이 항상 표시되도록 합니다",
     "editButtonInHeader": "헤더에 편집/미리보기 버튼 표시",
     "editButtonInHeaderDescription": "오버플로 메뉴 대신 헤더에 편집/미리보기 버튼 표시",
     "hideFileExt": "특정 파일 숨기기 (확장자 기준)",
@@ -731,14 +731,54 @@
     "darkMode": "다크 모드"
   },
   "editor": {
-    "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
+    "stats": {
+      "lines": "{count} 줄",
+      "words": "{count} 단어",
+      "chars": "{count} 문자"
+    },
+    "settings": {
+      "title": "편집기 설정",
+      "keybinding": {
+        "label": "키 바인딩",
+        "description": "원하는 키 바인딩을 설정하세요!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "오버스크롤",
+        "description": "편집기가 콘텐츠 끝을 넘어 스크롤할 수 있는 양",
+        "none": "없음",
+        "half": "절반",
+        "full": "전체"
+      },
+      "tabSize": {
+        "label": "탭 크기",
+        "description": "'TAB' 키가 기본적으로 삽입할 공백 수"
+      },
+      "showIndentGuides": "들여쓰기 가이드 표시",
+      "showIndentGuidesDescription": "들여쓰기 가이드를 표시하여 중첩된 코드 편집 시 방향 감각을 향상시킵니다",
+      "showGutter": "여백 표시",
+      "showGutterDescription": "왼쪽에 행 번호가 있는 컨테이너",
+      "fixedGutterWidth": "고정 여백 너비",
+      "fixedGutterWidthDescription": "해제 시 파일의 행 수에 따라 스크롤하는 동안 여백 크기가 점진적으로 증가합니다",
+      "showLineNumbers": "행 번호 표시",
+      "showLineNumbersDescription": "왼쪽 여백에 행 번호를 표시합니다. 여백 자체는 숨기지 않습니다",
+      "relativeLineNumbers": "상대 행 번호",
+      "relativeLineNumbersDescription": "커서의 현재 위치에 상대적인 행 번호를 표시합니다",
+      "customScrollbar": "사용자 지정 스크롤바",
+      "customScrollbarDescription": "브라우저 기본 스크롤바를 Ace 내장 스크롤바로 교체합니다",
+      "wrapContent": "편집기에서 긴 줄 줄 바꿈",
+      "wrapContentDescription": "편집기 콘텐츠를 줄 바꿈하여 매우 긴 줄이 항상 표시되도록 합니다"
+    },
+    "uninitialized": "편집기 초기화에 실패했습니다. 다시 로드해주세요.",
     "saveAbortedMessage": "저장 작업이 중단되었습니다. 애플리케이션의 활성 파일({activeFile})이 저장하려는 파일({tryingToSave})과 일치하지 않습니다.",
-    "lines": "{count} 줄",
-    "words": "{count} 단어",
-    "chars": "{count} 문자",
     "splitView": "분할 보기",
     "exitSplitView": "분할 보기 종료",
     "md": {
+      "clipboardActions": "클립보드 작업",
       "bold": "굵게",
       "italic": "기울임꼴",
       "strikethrough": "취소선",

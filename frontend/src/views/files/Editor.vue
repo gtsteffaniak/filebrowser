@@ -39,6 +39,7 @@ import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
 import { editorConfig } from "@/utils/editorConfig";
 
 type Req = typeof state.req;
+interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }
 
 const THEME_DARK = "ace/theme/tomorrow_night_bright";
 const THEME_LIGHT = "ace/theme/chrome";
@@ -174,6 +175,19 @@ export default {
     wrapEditorContent() {
       return editorConfig.wrapEditorContent;
     },
+    editorAceOptions() {
+      return {
+        keybinding: editorConfig.keybinding,
+        tabSize: editorConfig.tabSize,
+        overscroll: editorConfig.overscroll,
+        showIndentGuides: editorConfig.showIndentGuides,
+        showGutter: editorConfig.showGutter,
+        fixedGutterWidth: editorConfig.fixedGutterWidth,
+        showLineNumbers: editorConfig.showLineNumbers,
+        relativeLineNumbers: editorConfig.relativeLineNumbers,
+        customScrollbar: editorConfig.customScrollbar,
+      };
+    },
   },
   watch: {
     // Lock saves during navigation transitions
@@ -267,6 +281,9 @@ export default {
     },
     wrapEditorContent() {
       this.applyWrap();
+    },
+    editorAceOptions(cfg) {
+      this.applyAceOptions(cfg);
     },
   },
   created() {
@@ -452,8 +469,9 @@ export default {
           mode: this.editorLanguageMode,
           value: this.editorContent,
           showPrintMargin: false,
-          showGutter: true,
-          showLineNumbers: true,
+          showGutter: editorConfig.showGutter,
+          showLineNumbers: editorConfig.showLineNumbers,
+          relativeLineNumbers: editorConfig.relativeLineNumbers,
           theme: this.isDarkMode ? THEME_DARK : THEME_LIGHT,
           readOnly: this.editorReadOnly,
           wrap: !!editorConfig.wrapEditorContent,
@@ -462,13 +480,16 @@ export default {
           cursorStyle: "smooth",
           highlightGutterLine: true,
           animatedScroll: true,
-          displayIndentGuides: true,
-          fixedWidthGutter: true,
+          displayIndentGuides: editorConfig.showIndentGuides,
+          fixedWidthGutter: editorConfig.fixedGutterWidth,
+          tabSize: editorConfig.tabSize,
+          scrollPastEnd: editorConfig.overscroll,
+          customScrollbar: editorConfig.customScrollbar,
+          keyboardHandler: editorConfig.keybinding || null,
           fontSize: `${state.editor.fontSize}px`,
         });
 
         this.savedContent = this.editorContent;
-        this.editor.setOption('displayIndentGuides', true);
         this.editor.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
         this.editor.commands.removeCommand("showSettingsMenu");
 
@@ -725,6 +746,25 @@ export default {
     applyWrap() {
       if (this.editor) {
         this.editor.setOption('wrap', !!editorConfig.wrapEditorContent);
+      }
+    },
+    applyAceOptions(cfg = editorConfig) {
+      if (!this.editor) return;
+      const wasRelative = this.editor.getOption('relativeLineNumbers');
+      this.editor.setOption('keyboardHandler', cfg.keybinding || null);
+      this.editor.setOption('tabSize', cfg.tabSize);
+      this.editor.setOption('scrollPastEnd', cfg.overscroll);
+      this.editor.setOption('displayIndentGuides', cfg.showIndentGuides);
+      this.editor.setOption('showGutter', cfg.showGutter);
+      this.editor.setOption('fixedWidthGutter', cfg.fixedGutterWidth);
+      this.editor.setOption('showLineNumbers', cfg.showLineNumbers);
+      this.editor.setOption('relativeLineNumbers', cfg.relativeLineNumbers);
+      this.editor.setOption('customScrollbar', cfg.customScrollbar);
+      if (wasRelative && !cfg.relativeLineNumbers && cfg.showLineNumbers) {
+        const gutterLayer = (this.editor.renderer as unknown as AceRendererInternal).$gutterLayer;
+        if (gutterLayer?.$renderer) {
+          gutterLayer.$renderer = null;
+        }
       }
     },
     handleEditorScroll() {

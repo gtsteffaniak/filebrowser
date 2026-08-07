@@ -508,6 +508,8 @@
     "verify": "Overiť{suffix}",
     "close": "Zatvoriť{suffix}",
     "copy": "Kopírovať{suffix}",
+    "paste": "Vložiť",
+    "cut": "Vystrihnúť",
     "create": "Vytvoriť stránku{suffix}",
     "delete": "Odstrániť{suffix}",
     "download": "Stiahnite si{suffix}",
@@ -651,8 +653,6 @@
     "orange": "oranžová"
   },
   "profileSettings": {
-    "wrapEditorContent": "Zalamovať dlhé riadky v editore",
-    "wrapEditorContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné",
     "editButtonInHeader": "Zobraziť tlačidlá úprav/náhľadu v hlavičke",
     "editButtonInHeaderDescription": "Zobraziť tlačidlá úprav/náhľadu v hlavičke namiesto v rozbaľovacej ponuke",
     "hideFileExt": "Skryť určité súbory (podľa prípony)",
@@ -731,14 +731,54 @@
     "darkMode": "Tmavý režim"
   },
   "editor": {
-    "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
-    "saveAbortedMessage": "Operácia uloženia sa prerušila. Aktívny súbor aplikácie ({activeFile}) sa nezhoduje so súborom, ktorý sa pokúšate uložiť ({tryingToSave}).",
-    "lines": "{count} riadkov",
-    "words": "{count} slov",
-    "chars": "{count} znakov",
+    "stats": {
+      "lines": "{count} riadkov",
+      "words": "{count} slov",
+      "chars": "{count} znakov"
+    },
+    "settings": {
+      "title": "Nastavenia editora",
+      "keybinding": {
+        "label": "Klávesové skratky",
+        "description": "Nastavte si preferované klávesové skratky!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Presah",
+        "description": "Ako ďaleko môže editor posúvať za koniec obsahu",
+        "none": "Žiadne",
+        "half": "Polovica",
+        "full": "Plné"
+      },
+      "tabSize": {
+        "label": "Veľkosť tabulátora",
+        "description": "Koľko medzier by mal kláves 'TAB' predvolene vložiť"
+      },
+      "showIndentGuides": "Zobraziť vodítka odsadenia",
+      "showIndentGuidesDescription": "Zobrazí vodítka odsadenia, čo vám poskytne lepšiu orientáciu pri úprave vnoreného kódu",
+      "showGutter": "Zobraziť okraj",
+      "showGutterDescription": "Kontajner, kde sa vľavo nachádzajú čísla riadkov",
+      "fixedGutterWidth": "Pevná šírka okraja",
+      "fixedGutterWidthDescription": "Keď je vypnuté, postupne zväčšuje veľkosť okraja pri posúvaní v závislosti od počtu riadkov v súbore",
+      "showLineNumbers": "Zobraziť čísla riadkov",
+      "showLineNumbersDescription": "Zobrazí čísla riadkov v ľavom okraji, neskrýva samotný okraj",
+      "relativeLineNumbers": "Relatívne čísla riadkov",
+      "relativeLineNumbersDescription": "Zobrazí čísla riadkov relatívne k aktuálnej pozícii kurzora",
+      "customScrollbar": "Vlastný posuvník",
+      "customScrollbarDescription": "Nahradí natívny posuvník prehliadača vstavaným posuvníkom Ace",
+      "wrapContent": "Zalamovať dlhé riadky v editore",
+      "wrapContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné"
+    },
+    "uninitialized": "Nepodarilo sa inicializovať editor. Obnovte stránku.",
+    "saveAbortedMessage": "Ukladanie bolo prerušené. Aktívny súbor aplikácie ({activeFile}) sa nezhoduje so súborom, ktorý sa pokúšate uložiť ({tryingToSave}).",
     "splitView": "Rozdelené zobrazenie",
     "exitSplitView": "Ukončiť rozdelené zobrazenie",
     "md": {
+      "clipboardActions": "Akcie so schránkou",
       "bold": "Tučné",
       "italic": "Kurzíva",
       "strikethrough": "Preškrtnuté",

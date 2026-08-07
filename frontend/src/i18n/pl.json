@@ -508,6 +508,8 @@
     "verify": "Weryfikacja{suffix}",
     "close": "Zamknij{suffix}",
     "copy": "Kopia{suffix}",
+    "paste": "Wklej",
+    "cut": "Wytnij",
     "create": "Utwórz{suffix}",
     "delete": "Usuń{suffix}",
     "download": "Pobierz{suffix}",
@@ -651,8 +653,6 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
-    "wrapEditorContent": "Zawijanie długich wierszy w edytorze",
-    "wrapEditorContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
     "editButtonInHeader": "Pokaż przyciski edycji/podglądu w nagłówku",
     "editButtonInHeaderDescription": "Pokaż przyciski edycji/podglądu w nagłówku zamiast w menu rozwijanym",
     "hideFileExt": "Ukryj wybrane pliki (według rozszerzenia)",
@@ -731,14 +731,54 @@
     "darkMode": "Tryb ciemny"
   },
   "editor": {
-    "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",
-    "saveAbortedMessage": "Operacja zapisywania została przerwana. Aktywny plik aplikacji ({activeFile}) nie jest zgodny z plikiem, który próbujesz zapisać ({tryingToSave}).",
-    "lines": "{count} wierszy",
-    "words": "{count} słów",
-    "chars": "{count} znaków",
+    "stats": {
+      "lines": "{count} wierszy",
+      "words": "{count} słów",
+      "chars": "{count} znaków"
+    },
+    "settings": {
+      "title": "Ustawienia edytora",
+      "keybinding": {
+        "label": "Skróty klawiszowe",
+        "description": "Ustaw swoje preferowane skróty klawiszowe!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Przewijanie",
+        "description": "Jak bardzo edytor może przewijać poza koniec zawartości",
+        "none": "Brak",
+        "half": "Połowa",
+        "full": "Pełne"
+      },
+      "tabSize": {
+        "label": "Rozmiar tabulacji",
+        "description": "Ile spacji powinien domyślnie wstawiać klawisz 'TAB'"
+      },
+      "showIndentGuides": "Pokaż prowadnice wcięć",
+      "showIndentGuidesDescription": "Pokazuje prowadnice wcięć, co ułatwia orientację podczas edycji zagnieżdżonego kodu",
+      "showGutter": "Pokaż margines",
+      "showGutterDescription": "Kontener, w którym po lewej stronie znajdują się numery wierszy",
+      "fixedGutterWidth": "Stała szerokość marginesu",
+      "fixedGutterWidthDescription": "Gdy wyłączone, zwiększa rozmiar marginesu stopniowo podczas przewijania w zależności od liczby wierszy w pliku",
+      "showLineNumbers": "Pokaż numery wierszy",
+      "showLineNumbersDescription": "Pokazuje numery wierszy w lewym marginesie, nie ukrywa samego marginesu",
+      "relativeLineNumbers": "Względne numery wierszy",
+      "relativeLineNumbersDescription": "Pokazuje numery wierszy względem bieżącej pozycji kursora",
+      "customScrollbar": "Niestandardowy pasek przewijania",
+      "customScrollbarDescription": "Zamień natywny pasek przewijania przeglądarki na wbudowany pasek Ace",
+      "wrapContent": "Zawijanie długich wierszy w edytorze",
+      "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne"
+    },
+    "uninitialized": "Nie udało się zainicjować edytora. Proszę przeładować.",
+    "saveAbortedMessage": "Operacja zapisu została przerwana. Aktywny plik aplikacji ({activeFile}) nie pasuje do pliku, który próbujesz zapisać ({tryingToSave}).",
     "splitView": "Widok podzielony",
     "exitSplitView": "Zakończ widok podzielony",
     "md": {
+      "clipboardActions": "Akcje schowka",
       "bold": "Pogrubienie",
       "italic": "Kursywa",
       "strikethrough": "Przekreślenie",

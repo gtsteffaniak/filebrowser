@@ -4,10 +4,28 @@ const STORAGE_KEY = 'editorConfig';
 
 export interface EditorConfig {
   wrapEditorContent: boolean;
+  keybinding: string;
+  tabSize: number;
+  overscroll: number;
+  showIndentGuides: boolean;
+  showGutter: boolean;
+  fixedGutterWidth: boolean;
+  showLineNumbers: boolean;
+  relativeLineNumbers: boolean;
+  customScrollbar: boolean;
 }
 
 const DEFAULTS: EditorConfig = {
   wrapEditorContent: false,
+  keybinding: '',
+  tabSize: 4,
+  overscroll: 0,
+  showIndentGuides: true,
+  showGutter: true,
+  fixedGutterWidth: true,
+  showLineNumbers: true,
+  relativeLineNumbers: false,
+  customScrollbar: false,
 };
 
 function load(): EditorConfig {

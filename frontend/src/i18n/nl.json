@@ -74,6 +74,8 @@
     "verify": "Verifiëren{suffix}",
     "close": "Sluiten{suffix}",
     "copy": "Kopiëren{suffix}",
+    "paste": "Plakken",
+    "cut": "Knippen",
     "create": "Aanmaken{suffix}",
     "delete": "Verwijderen{suffix}",
     "download": "Downloaden{suffix}",
@@ -481,8 +483,6 @@
     "allFileTypes": "Alle bestandstypen"
   },
   "profileSettings": {
-    "wrapEditorContent": "Lange regels in de editor laten doorlopen",
-    "wrapEditorContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven",
     "editButtonInHeader": "Toon bewerk-/voorbeeldknoppen in de koptekst",
     "editButtonInHeaderDescription": "Toon de bewerk-/voorbeeldknoppen in de koptekst in plaats van in het overloopmenu",
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
@@ -740,14 +740,54 @@
     "orange": "oranje"
   },
   "editor": {
-    "uninitialized": "Het is niet gelukt de editor te initialiseren. Opnieuw laden.",
-    "saveAbortedMessage": "Opslaan afgebroken. Het actieve bestand van de toepassing ({activeFile}) komt niet overeen met het bestand dat u probeert op te slaan ({tryingToSave}).",
-    "lines": "{count} regels",
-    "words": "{count} woorden",
-    "chars": "{count} tekens",
+    "stats": {
+      "lines": "{count} regels",
+      "words": "{count} woorden",
+      "chars": "{count} tekens"
+    },
+    "settings": {
+      "title": "Editor-instellingen",
+      "keybinding": {
+        "label": "Toetsenbindingen",
+        "description": "Stel uw voorkeurstoetsenbindingen in!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Over-scroll",
+        "description": "Hoeveel de editor voorbij het einde van de inhoud kan scrollen",
+        "none": "Geen",
+        "half": "Half",
+        "full": "Volledig"
+      },
+      "tabSize": {
+        "label": "Tab-grootte",
+        "description": "Hoeveel spaties de 'TAB'-toets standaard moet invoegen"
+      },
+      "showIndentGuides": "Inspringingshulplijnen weergeven",
+      "showIndentGuidesDescription": "Toon inspringingshulplijnen, dit geeft u een betere oriëntatie bij het bewerken van geneste code",
+      "showGutter": "Marge weergeven",
+      "showGutterDescription": "De container waar de regelnummers zich links bevinden",
+      "fixedGutterWidth": "Vaste margebreedte",
+      "fixedGutterWidthDescription": "Wanneer uitgeschakeld, wordt de margegrootte geleidelijk vergroot tijdens het scrollen, afhankelijk van het aantal regels in het bestand",
+      "showLineNumbers": "Regelnummers weergeven",
+      "showLineNumbersDescription": "Toon regelnummers in de linkermarge, verbergt de marge zelf niet",
+      "relativeLineNumbers": "Relatieve regelnummers",
+      "relativeLineNumbersDescription": "Toon regelnummers relatief ten opzichte van de huidige cursorpositie",
+      "customScrollbar": "Aangepaste schuifbalk",
+      "customScrollbarDescription": "Vervang de native browser-schuifbalk door de ingebouwde van Ace",
+      "wrapContent": "Lange regels in de editor laten doorlopen",
+      "wrapContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven"
+    },
+    "uninitialized": "Kan editor niet initialiseren. Herlaad de pagina.",
+    "saveAbortedMessage": "Opslagactie geannuleerd. Het actieve bestand van de applicatie ({activeFile}) komt niet overeen met het bestand dat u probeert op te slaan ({tryingToSave}).",
     "splitView": "Gesplitste weergave",
     "exitSplitView": "Gesplitste weergave afsluiten",
     "md": {
+      "clipboardActions": "Klembordacties",
       "bold": "Vet",
       "italic": "Cursief",
       "strikethrough": "Doorhalen",

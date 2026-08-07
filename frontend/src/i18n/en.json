@@ -79,6 +79,8 @@
     "verify": "Verify{suffix}",
     "close": "Close{suffix}",
     "copy": "Copy{suffix}",
+    "paste": "Paste",
+    "cut": "Cut",
     "create": "Create{suffix}",
     "delete": "Delete{suffix}",
     "download": "Download{suffix}",
@@ -481,8 +483,6 @@
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
-    "wrapEditorContent": "Wrap long lines in the editor",
-    "wrapEditorContentDescription": "Wraps the editor content to keep very long lines always visible",
     "editButtonInHeader": "Show edit/preview buttons in header",
     "editButtonInHeaderDescription": "Show the edit/preview buttons in the header instead of the overflow menu",
     "enforcedByAdmin": "Your administrator has prevented users from changing this property",
@@ -753,18 +753,54 @@
     "orange": "orange"
   },
   "editor": {
-    "settings": "Editor Settings",
+    "stats": {
+      "lines": "{count} lines",
+      "words": "{count} words",
+      "chars": "{count} characters"
+    },
+    "settings": {
+      "title": "Editor Settings",
+      "keybinding": {
+        "label": "Keybindings",
+        "description": "Set your prefered keyboard bindings!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Overscroll",
+        "description": "How much the editor can scroll past the end of the content",
+        "none": "None",
+        "half": "Half",
+        "full": "Full"
+      },
+      "tabSize": {
+        "label": "Tab Size",
+        "description": "How many spaces the 'TAB' key should do by default"
+      },
+      "showIndentGuides": "Show Indent Guides",
+      "showIndentGuidesDescription": "Show indent guides, it gives you better orientation when editing nested code",
+      "showGutter": "Show Gutter",
+      "showGutterDescription": "The container where the line numbers are at the left",
+      "fixedGutterWidth": "Fixed Gutter Width",
+      "fixedGutterWidthDescription": "When off, increases the gutter size incrementally while scrolling depeding how many lines has the file",
+      "showLineNumbers": "Show Line Numbers",
+      "showLineNumbersDescription": "Show Line Numbers in the gutter at the left, it doesn't hide the gutter itself",
+      "relativeLineNumbers": "Relative Line Numbers",
+      "relativeLineNumbersDescription": "Show line numbers relative to the current position of the cursor",
+      "customScrollbar": "Custom scrollbar",
+      "customScrollbarDescription": "Swap the native browser scrollbar by the ace built-in one",
+      "wrapContent": "Wrap long lines in the editor",
+      "wrapContentDescription": "Wraps the editor content to keep very long lines always visible"
+    },
     "uninitialized": "Failed to initialize the editor. Please reload.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "lines": "{count} lines",
-    "words": "{count} words",
-    "chars": "{count} characters",
     "splitView": "Split view",
     "exitSplitView": "Exit split view",
     "md": {
       "clipboardActions": "Clipboard actions",
-      "paste": "Paste",
-      "cut": "Cut",
       "bold": "Bold",
       "italic": "Italic",
       "strikethrough": "Strikethrough",
