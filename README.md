@@ -17,6 +17,7 @@
 ## Pinned
 
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
+
 :pushpin: [v2.0.0 is now in beta!](https://filebrowserquantum.com/en/docs/getting-started/v2/about/)
 
 ## About
