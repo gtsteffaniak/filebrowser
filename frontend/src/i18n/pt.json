@@ -357,6 +357,7 @@
     "shareDurationDescription": "Duração antes da expiração da ação. Deixar em branco para uma partilha permanente.",
     "passwordDescription": "Palavra-passe opcional necessária para aceder a esta partilha, incluindo utilizadores autenticados.",
     "shareThemeColorDescription": "Valor de cor CSS aplicado ao tema da ação (por exemplo, vermelho, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Título de página personalizado apresentado na página de partilha.",
     "shareDescriptionHelp": "Descrição curta apresentada na página de partilha (pode ser utilizada em meta tags).",
     "shareBannerDescription": "URL ou caminho da imagem do banner acessível pelo cliente - são aceites caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/banner.png\" ou \"/path/to/banner.png",
     "shareFaviconDescription": "URL ou caminho do Favicon acessível pelo cliente - são aceites caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png",
@@ -407,8 +408,7 @@
     "selectBannerImage": "Selecionar imagem de banner",
     "selectFaviconImage": "Selecionar a imagem do favicon",
     "deleteFailed": "Falha ao eliminar a partilha",
-    "readOnlySourceNotice": "Esta fonte é apenas de leitura. As partilhas de carregamento e as permissões que modificam ficheiros estão desactivadas.",
-    "shareTitleDescription": "Título personalizado da página apresentado na página de partilha. Se esta partilha estiver instalada como uma PWA, o nome da aplicação está limitado a 30 caracteres."
+    "readOnlySourceNotice": "Esta fonte é apenas de leitura. As partilhas de carregamento e as permissões que modificam ficheiros estão desactivadas."
   },
   "api": {
     "createdAt": "Criado em:",

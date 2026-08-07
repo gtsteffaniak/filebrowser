@@ -357,6 +357,7 @@
     "shareDurationDescription": "共享到期前的持续时间。如果是永久共享，则留空。",
     "passwordDescription": "访问此共享（包括已通过身份验证的用户）所需的可选密码。",
     "shareThemeColorDescription": "应用于共享主题的 CSS 颜色值（例如，红色，#0ea5e9，rgb(14,165,233)）。",
+    "shareTitleDescription": "共享页面上显示的自定义页面标题。",
     "shareDescriptionHelp": "共享页面上显示的简短描述（可在元标签中使用）。",
     "shareBannerDescription": "客户端可访问的横幅图片 URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/banner.png \"或\"/path/to/banner.png\"。",
     "shareFaviconDescription": "客户端可访问的 Favicon URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/favicon.png \"或\"/path/to/favicon.png\"。",
@@ -407,8 +408,7 @@
     "selectBannerImage": "选择横幅图片",
     "selectFaviconImage": "选择图标图像",
     "deleteFailed": "删除共享失败",
-    "readOnlySourceNotice": "此源为只读。上传共享和修改文件的权限被禁用。",
-    "shareTitleDescription": "在分享页面上显示的自定义页面标题。如果此分享功能已作为 PWA 安装，则应用名称长度限制为 30 个字符。"
+    "readOnlySourceNotice": "此源为只读。上传共享和修改文件的权限被禁用。"
   },
   "api": {
     "createdAt": "创建于",

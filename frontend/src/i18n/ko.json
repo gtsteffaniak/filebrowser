@@ -357,6 +357,7 @@
     "shareDurationDescription": "공유가 만료되기 전까지의 기간입니다. 영구 공유를 원하시면 비워 두세요.",
     "passwordDescription": "인증된 사용자를 포함하여 이 공유에 액세스하는 데 필요한 비밀번호(선택 사항)입니다.",
     "shareThemeColorDescription": "공유의 테마에 적용된 CSS 색상 값(예: 빨간색, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "공유 페이지에 표시되는 사용자 지정 페이지 제목.",
     "shareDescriptionHelp": "공유 페이지에 표시되는 간단한 설명(메타 태그에 사용할 수 있음).",
     "shareBannerDescription": "클라이언트가 액세스할 수 있는 배너 이미지 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/banner.png' 또는 '/path/to/banner.png')가 허용됩니다.",
     "shareFaviconDescription": "클라이언트가 액세스할 수 있는 파비콘 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/favicon.png' 또는 '/path/to/favicon.png')가 허용됩니다.",
@@ -407,8 +408,7 @@
     "selectBannerImage": "배너 이미지 선택",
     "selectFaviconImage": "파비콘 이미지 선택",
     "deleteFailed": "공유를 삭제하지 못했습니다.",
-    "readOnlySourceNotice": "이 소스는 읽기 전용입니다. 파일을 수정하는 업로드 공유 및 권한은 비활성화됩니다.",
-    "shareTitleDescription": "공유 페이지에 표시되는 사용자 지정 페이지 제목입니다. 이 공유 기능이 PWA로 설치된 경우, 앱 이름은 30자 이내로 제한됩니다."
+    "readOnlySourceNotice": "이 소스는 읽기 전용입니다. 파일을 수정하는 업로드 공유 및 권한은 비활성화됩니다."
   },
   "api": {
     "createdAt": "만든 곳:",

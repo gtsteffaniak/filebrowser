@@ -357,6 +357,7 @@
     "shareDurationDescription": "Dauer, bevor die Freigabe abläuft. Für eine dauerhafte Freigabe leer lassen.",
     "passwordDescription": "Optionales Kennwort, das für den Zugriff auf diese Freigabe erforderlich ist, einschließlich authentifizierter Benutzer.",
     "shareThemeColorDescription": "CSS-Farbwert, der auf das Thema der Freigabe angewendet wird (z. B. rot, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Benutzerdefinierter Seitentitel, der auf der Freigabeseite angezeigt wird.",
     "shareDescriptionHelp": "Kurze Beschreibung, die auf der Freigabeseite angezeigt wird (kann in Meta-Tags verwendet werden).",
     "shareBannerDescription": "URL oder Pfad des Bannerbildes, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. \"https://domain.com/banner.png\" oder \"/pfad/zu/banner.png\".",
     "shareFaviconDescription": "Favicon-URL oder -Pfad, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. 'https://domain.com/favicon.png' oder '/path/to/favicon.png'.",
@@ -407,8 +408,7 @@
     "selectBannerImage": "Bannerbild auswählen",
     "selectFaviconImage": "Favicon-Bild auswählen",
     "deleteFailed": "Freigabe konnte nicht gelöscht werden",
-    "readOnlySourceNotice": "Diese Quelle ist schreibgeschützt. Upload-Freigaben und Berechtigungen, die Dateien ändern, sind deaktiviert.",
-    "shareTitleDescription": "Benutzerdefinierter Seitentitel, der auf der Freigabeseite angezeigt wird. Wenn diese Freigabe als PWA installiert ist, ist der App-Name auf 30 Zeichen begrenzt."
+    "readOnlySourceNotice": "Diese Quelle ist schreibgeschützt. Upload-Freigaben und Berechtigungen, die Dateien ändern, sind deaktiviert."
   },
   "api": {
     "createdAt": "Erstellt am:",

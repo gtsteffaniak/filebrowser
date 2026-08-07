@@ -357,6 +357,7 @@
     "shareDurationDescription": "Varaktighet innan aktien upphör att gälla. Lämna tomt för en permanent delning.",
     "passwordDescription": "Valfritt lösenord som krävs för att komma åt denna andel, inklusive autentiserade användare.",
     "shareThemeColorDescription": "CSS-färgvärde som tillämpas på aktiens tema (t.ex. röd, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Anpassad sidtitel som visas på delningssidan.",
     "shareDescriptionHelp": "Kort beskrivning som visas på aktiesidan (kan användas i metataggar).",
     "shareBannerDescription": "URL eller sökväg för bannerbilden som är tillgänglig för klienten - antingen abosolute eller index path accepteras: t.ex. \"https://domain.com/banner.png\" eller \"/path/to/banner.png",
     "shareFaviconDescription": "URL eller sökväg till Favicon som är tillgänglig för klienten - antingen abosolute eller indexsökväg accepteras: t.ex. \"https://domain.com/favicon.png\" eller \"/path/to/favicon.png",
@@ -407,8 +408,7 @@
     "selectBannerImage": "Välj bannerbild",
     "selectFaviconImage": "Välj favicon-bild",
     "deleteFailed": "Misslyckades med att ta bort delning",
-    "readOnlySourceNotice": "Denna källa är skrivskyddad. Uppladdningsandelar och behörigheter som ändrar filer är inaktiverade.",
-    "shareTitleDescription": "Anpassad sidtitel som visas på delningssidan. Om denna delningsfunktion är installerad som en PWA får appens namn inte överstiga 30 tecken."
+    "readOnlySourceNotice": "Denna källa är skrivskyddad. Uppladdningsandelar och behörigheter som ändrar filer är inaktiverade."
   },
   "api": {
     "createdAt": "Skapad på:",

@@ -357,6 +357,7 @@
     "shareDurationDescription": "此分享在多久後到期。留空表示永久分享。",
     "passwordDescription": "存取此分享所需的選填密碼，已驗證的使用者也必須輸入。",
     "shareThemeColorDescription": "套用到分享主題的 CSS 顏色值（例如：red、#0ea5e9、rgb(14,165,233)）。",
+    "shareTitleDescription": "顯示在分享頁面的自訂標題。",
     "shareDescriptionHelp": "顯示在分享頁面的簡短說明（也可能用於 meta 標籤）。",
     "shareBannerDescription": "瀏覽器可存取的橫幅圖片 URL 或路徑，可使用絕對網址或站內路徑，例如：https://domain.com/banner.png 或 /path/to/banner.png",
     "shareFaviconDescription": "瀏覽器可存取的 favicon URL 或路徑，可使用絕對網址或站內路徑，例如：https://domain.com/favicon.png 或 /path/to/favicon.png",
@@ -407,8 +408,7 @@
     "selectBannerImage": "選擇橫幅圖片",
     "selectFaviconImage": "選擇 Favicon 圖片",
     "deleteFailed": "刪除分享失敗",
-    "readOnlySourceNotice": "此來源為唯讀。上傳共用和修改檔案的權限已停用。",
-    "shareTitleDescription": "分享頁面上顯示的自訂頁面標題。若此分享功能已安裝為 PWA，應用程式名稱的長度上限為 30 個字元。"
+    "readOnlySourceNotice": "此來源為唯讀。上傳共用和修改檔案的權限已停用。"
   },
   "api": {
     "createdAt": "建立於：",

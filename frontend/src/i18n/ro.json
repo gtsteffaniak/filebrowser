@@ -357,6 +357,7 @@
     "shareDurationDescription": "Durata înainte ca partajul să expire. Lăsați în alb pentru o partajare permanentă.",
     "passwordDescription": "Parola opțională necesară pentru a accesa această partajare, inclusiv utilizatorii autentificați.",
     "shareThemeColorDescription": "Valoarea culorii CSS aplicată temei acțiunii (de exemplu, roșu, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Titlu de pagină personalizat afișat pe pagina de partajare.",
     "shareDescriptionHelp": "Scurtă descriere afișată pe pagina de partajare (poate fi utilizată în metaetichete).",
     "shareBannerDescription": "URL-ul imaginii bannerului sau calea accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/banner.png\" sau \"/path/to/banner.png",
     "shareFaviconDescription": "Favicon URL sau cale accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/favicon.png\" sau \"/path/to/favicon.png",
@@ -407,8 +408,7 @@
     "selectBannerImage": "Selectați imaginea bannerului",
     "selectFaviconImage": "Selectați imaginea favicon",
     "deleteFailed": "Eșec la ștergerea partajului",
-    "readOnlySourceNotice": "Această sursă este numai pentru citire. Acțiunile de încărcare și permisiunile care modifică fișiere sunt dezactivate.",
-    "shareTitleDescription": "Titlul personalizat al paginii afișat pe pagina de partajare. Dacă această funcție de partajare este instalată ca PWA, numele aplicației este limitat la 30 de caractere."
+    "readOnlySourceNotice": "Această sursă este numai pentru citire. Acțiunile de încărcare și permisiunile care modifică fișiere sunt dezactivate."
   },
   "api": {
     "createdAt": "Creat la:",

@@ -357,6 +357,7 @@
     "shareDurationDescription": "Czas trwania przed wygaśnięciem udziału. Pozostaw puste dla stałego udziału.",
     "passwordDescription": "Opcjonalne hasło wymagane do uzyskania dostępu do tego udziału, w tym dla uwierzytelnionych użytkowników.",
     "shareThemeColorDescription": "Wartość koloru CSS zastosowana do motywu akcji (np. czerwony, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Niestandardowy tytuł strony wyświetlany na stronie udostępniania.",
     "shareDescriptionHelp": "Krótki opis wyświetlany na stronie udostępniania (może być użyty w metatagach).",
     "shareBannerDescription": "Adres URL obrazu baneru lub ścieżka dostępna dla klienta - akceptowana jest ścieżka bezwzględna lub indeksowa: np. \"https://domain.com/banner.png\" lub \"/path/to/banner.png\".",
     "shareFaviconDescription": "Adres URL Favicon lub ścieżka dostępna dla klienta - akceptowana jest ścieżka bezwzględna lub indeksowa: np. \"https://domain.com/favicon.png\" lub \"/path/to/favicon.png\".",
@@ -407,8 +408,7 @@
     "selectBannerImage": "Wybierz obraz banera",
     "selectFaviconImage": "Wybierz obraz favicon",
     "deleteFailed": "Nie udało się usunąć udziału",
-    "readOnlySourceNotice": "To źródło jest tylko do odczytu. Udziały przesyłania i uprawnienia modyfikujące pliki są wyłączone.",
-    "shareTitleDescription": "Niestandardowy tytuł strony wyświetlany na stronie udostępniania. Jeśli ta aplikacja do udostępniania jest zainstalowana jako PWA, nazwa aplikacji nie może przekraczać 30 znaków."
+    "readOnlySourceNotice": "To źródło jest tylko do odczytu. Udziały przesyłania i uprawnienia modyfikujące pliki są wyłączone."
   },
   "api": {
     "createdAt": "Utworzono w:",

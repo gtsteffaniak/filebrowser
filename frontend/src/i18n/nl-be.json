@@ -357,6 +357,7 @@
     "shareDurationDescription": "Duur voordat het aandeel verloopt. Laat leeg voor een permanent aandeel.",
     "passwordDescription": "Optioneel wachtwoord dat vereist is om toegang te krijgen tot deze share, inclusief geauthenticeerde gebruikers.",
     "shareThemeColorDescription": "CSS kleurwaarde toegepast op het thema van het aandeel (bijv. rood, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Aangepaste paginatitel die wordt weergegeven op de deelpagina.",
     "shareDescriptionHelp": "Korte beschrijving die wordt weergegeven op de share-pagina (kan worden gebruikt in metatags).",
     "shareBannerDescription": "URL van bannerafbeelding of pad dat toegankelijk is voor de client -- zowel abosolute als indexpath worden geaccepteerd: bijv. 'https://domain.com/banner.png' of '/path/to/banner.png'.",
     "shareFaviconDescription": "Favicon URL of pad toegankelijk door de client -- zowel abosolute als index path worden geaccepteerd: bijv. 'https://domain.com/favicon.png' of '/path/to/favicon.png'.",
@@ -407,8 +408,7 @@
     "selectBannerImage": "Selecteer bannerafbeelding",
     "selectFaviconImage": "Selecteer favicon afbeelding",
     "deleteFailed": "Share niet verwijderd",
-    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld.",
-    "shareTitleDescription": "Aangepaste paginatitel die op de deelpagina wordt weergegeven. Als deze deelfunctie als PWA is geïnstalleerd, mag de app-naam maximaal 30 tekens lang zijn."
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
   },
   "api": {
     "createdAt": "Gemaakt op:",

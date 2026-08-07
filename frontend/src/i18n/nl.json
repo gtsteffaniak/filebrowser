@@ -284,6 +284,7 @@
     "shareDurationDescription": "Duur voordat de gedeelde map verloopt. Leeg laten voor een permanente gedeelde map.",
     "passwordDescription": "Optioneel wachtwoord dat vereist is om toegang te krijgen tot deze gedeelde map, inclusief geauthenticeerde gebruikers.",
     "shareThemeColorDescription": "CSS kleurwaarde toegepast op het thema van de gedeelde map (bijv. rood, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Aangepaste paginatitel die wordt weergegeven op de deelpagina.",
     "shareDescriptionHelp": "Korte beschrijving die wordt weergegeven op de pagina van de gedeelde map (kan worden gebruikt in metatags).",
     "shareBannerDescription": "URL van bannerafbeelding of pad dat toegankelijk is voor de client -- zowel abosolute als indexpath worden geaccepteerd: bijv. 'https://domain.com/banner.png' of '/path/to/banner.png'.",
     "shareFaviconDescription": "Favicon URL of pad toegankelijk door de client -- zowel abosolute als index path worden geaccepteerd: bijv. 'https://domain.com/favicon.png' of '/path/to/favicon.png'.",
@@ -333,8 +334,7 @@
     "shareInfo": "QR-code en info delen",
     "shareInfoDescription": "Deze koppeling toont de informatie van de gedeelde map, inclusief titel, beschrijving, banner en QR-code in een popup.",
     "downloadDescription": "Met deze koppeling kunt u de volledige inhoud van de gedeelde map downloaden als een gecomprimeerd bestand.",
-    "deleteFailed": "Share niet verwijderd",
-    "shareTitleDescription": "Aangepaste paginatitel die op de deelpagina wordt weergegeven. Als deze deelfunctie als PWA is geïnstalleerd, mag de app-naam maximaal 30 tekens lang zijn."
+    "deleteFailed": "Share niet verwijderd"
   },
   "prompts": {
     "operationInProgress": "Werk in uitvoering, even geduld...",
