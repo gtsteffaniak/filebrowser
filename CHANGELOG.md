@@ -67,6 +67,11 @@ This version represents the most significant change to date. It **requires** bot
  - default browser media player option removed, always uses themed plyr
  - [docker] upgraded ffmpeg from 8.1.2 to 9.0
 
+## v1.5.5
+
+ **BugFixes**:
+ - fix uncustomized (minimal) API tokens creation needed by webdav clients (#2503)
+
 ## v1.5.4
 
  **Notes**:
