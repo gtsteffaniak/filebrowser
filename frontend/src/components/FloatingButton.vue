@@ -165,6 +165,7 @@ export default {
     },
     handleGlobalPointerMove(event: PointerEvent) {
       if (event.pointerType !== "mouse") return;
+      if (!this.autoHide) return;
       const inside = this.isInsideZone(event.clientX, event.clientY);
       if (inside !== this.pointerInsideZone) {
         this.pointerInsideZone = inside;
@@ -176,6 +177,7 @@ export default {
     handleGlobalTouchStart(event: TouchEvent) {
       const touch = event.touches[0];
       if (!touch) return;
+      if (!this.autoHide) return;
       if (this.isInsideZone(touch.clientX, touch.clientY)) this.resetButtonTimer();
     },
     setZoneActive(active: boolean, event?: PointerEvent) {
