@@ -91,7 +91,7 @@ export default {
           type: "dropdown",
           label: this.$t("editor.settings.keybinding.label"),
           desc: this.$t("editor.settings.keybinding.description"),
-          aria: this.$t("editor.settings.keybinding"),
+          aria: this.$t("editor.settings.keybinding.label"),
           options: [
             { value: "", label: this.$t("editor.settings.keybinding.ace") },
             { value: "ace/keyboard/vim", label: this.$t("editor.settings.keybinding.vim") },
