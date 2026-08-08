@@ -1978,6 +1978,10 @@ export default {
         '.audio-side-panel .lyric-line, ' +
         '.audio-side-panel input[type="radio"], ' +
         '.audio-side-panel label[for^="tab-"], ' +
+        '.audio-side-panel .mode-btn, ' +
+        '.audio-side-panel .repeat-one-btn, ' +
+        '.audio-side-panel .queue-item, ' +
+        '.audio-side-panel .clear-queue-btn, ' +
         '.lyrics-mobile .lyric-line'
       );
     },
