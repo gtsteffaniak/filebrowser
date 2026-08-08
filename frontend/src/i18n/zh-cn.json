@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -478,6 +477,8 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "editButtonInHeader": "在标题中显示编辑/预览按钮",
+    "editButtonInHeaderDescription": "在标题中显示编辑/预览按钮，而不是在溢出菜单中",
     "hideFileExt": "隐藏特定文件（按扩展名）",
     "hideFileExtDescription": "空格分隔的文件扩展名列表。在此字段中输入的扩展名将从所有用户界面中隐藏（视觉上，如列表或文件树）——它们仍然可访问。",
     "preferEditorForMarkdown": "优先使用编辑器打开 Markdown 文件",
@@ -605,6 +606,8 @@
     "verify": "验证{suffix}",
     "close": "关闭{suffix}",
     "copy": "复制{suffix}",
+    "paste": "粘贴",
+    "cut": "剪切",
     "create": "创建{suffix}",
     "delete": "删除{suffix}",
     "download": "下载{suffix}",
@@ -728,12 +731,83 @@
     "cascadeDeleteDescription": "启用后，删除访问规则也会从所有子目录中删除该规则。这样就可以从整个目录树中完全删除用户或组。"
   },
   "editor": {
-    "uninitialized": "编辑器初始化失败。请重新加载。",
-    "saveAbortedMessage": "保存操作中止。应用程序的活动文件 ({activeFile}) 与您要保存的文件 ({tryingToSave}) 不匹配。",
-    "fileSaved": "文件已保存！",
-    "lines": "{count} 行",
-    "words": "{count} 词",
-    "chars": "{count} 字符"
+    "stats": {
+      "lines": "{count} 行",
+      "words": "{count} 词",
+      "chars": "{count} 字符"
+    },
+    "settings": {
+      "title": "编辑器设置",
+      "keybinding": {
+        "label": "键盘绑定",
+        "description": "设置您偏好的键盘绑定！",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "过度滚动",
+        "description": "编辑器可以滚动超出内容末尾的程度",
+        "none": "无",
+        "half": "一半",
+        "full": "完整"
+      },
+      "tabSize": {
+        "label": "制表符大小",
+        "description": "'TAB' 键默认应插入多少个空格"
+      },
+      "showIndentGuides": "显示缩进参考线",
+      "showIndentGuidesDescription": "显示缩进参考线，在编辑嵌套代码时提供更好的方向感",
+      "showGutter": "显示行号栏",
+      "showGutterDescription": "左侧显示行号的容器",
+      "fixedGutterWidth": "固定行号栏宽度",
+      "fixedGutterWidthDescription": "关闭时，滚动时根据文件行数逐步增加行号栏的大小",
+      "showLineNumbers": "显示行号",
+      "showLineNumbersDescription": "在左侧行号栏中显示行号，不会隐藏行号栏本身",
+      "relativeLineNumbers": "相对行号",
+      "relativeLineNumbersDescription": "显示相对于光标当前位置的行号",
+      "customScrollbar": "自定义滚动条",
+      "customScrollbarDescription": "将浏览器的原生滚动条替换为 Ace 内置滚动条",
+      "wrapContent": "在编辑器中换行长行",
+      "wrapContentDescription": "换行编辑器内容，使很长的行始终保持可见"
+    },
+    "uninitialized": "初始化编辑器失败。请重新加载。",
+    "saveAbortedMessage": "保存操作已中止。应用程序的活动文件 ({activeFile}) 与您尝试保存的文件 ({tryingToSave}) 不匹配。",
+    "splitView": "拆分视图",
+    "exitSplitView": "退出拆分视图",
+    "md": {
+      "clipboardActions": "剪贴板操作",
+      "bold": "加粗",
+      "italic": "斜体",
+      "strikethrough": "删除线",
+      "heading": "标题",
+      "quote": "引用",
+      "inlineCode": "行内代码",
+      "codeBlock": "代码块",
+      "bulletList": "项目符号列表",
+      "numberedList": "编号列表",
+      "taskList": "任务列表",
+      "horizontalRule": "水平线",
+      "undo": "撤销",
+      "redo": "重做",
+      "moreOptions": "更多选项",
+      "inlineMath": "行内公式",
+      "displayMath": "显示公式",
+      "highlight": "高亮",
+      "superscript": "上标",
+      "subscript": "下标",
+      "text": "文本",
+      "cell": "单元格",
+      "column": "列",
+      "align": "对齐",
+      "alignRight": "右对齐",
+      "alignLeft": "左对齐",
+      "alignCenter": "居中对齐",
+      "justify": "两端对齐",
+      "fontColor": "字体颜色"
+    }
   },
   "player": {
     "loop": "循环",

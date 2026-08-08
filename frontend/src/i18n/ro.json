@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -509,6 +508,8 @@
     "verify": "Verificare{suffix}",
     "close": "Închidere{suffix}",
     "copy": "Copiați{suffix}",
+    "paste": "Lipire",
+    "cut": "Decupare",
     "create": "Creați{suffix}",
     "delete": "Ștergeți{suffix}",
     "download": "Descărcare{suffix}",
@@ -652,6 +653,8 @@
     "orange": "portocaliu"
   },
   "profileSettings": {
+    "editButtonInHeader": "Afișează butoanele de editare/previzualizare în antet",
+    "editButtonInHeaderDescription": "Afișează butoanele de editare/previzualizare în antet în locul meniului de depășire",
     "hideFileExt": "Ascunde anumite fișiere (după extensie)",
     "hideFileExtDescription": "O listă de extensii de fișiere separate prin spații. Extensiile introduse în acest câmp vor fi ascunse din întreaga interfață utilizator (vizual, cum ar fi în listă sau în arborele de fișiere) — Rămân accesibile.",
     "preferEditorForMarkdown": "Preferă editorul pentru fișierele Markdown",
@@ -728,12 +731,83 @@
     "darkMode": "Modul întunecat"
   },
   "editor": {
-    "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
-    "saveAbortedMessage": "Operațiunea de salvare a fost întreruptă. Fișierul activ al aplicației ({activeFile}) nu corespunde cu fișierul pe care încercați să îl salvați ({tryingToSave}).",
-    "fileSaved": "Fișier salvat!",
-    "lines": "{count} rânduri",
-    "words": "{count} cuvinte",
-    "chars": "{count} caractere"
+    "stats": {
+      "lines": "{count} rânduri",
+      "words": "{count} cuvinte",
+      "chars": "{count} caractere"
+    },
+    "settings": {
+      "title": "Setări editor",
+      "keybinding": {
+        "label": "Scurtături tastatură",
+        "description": "Setați scurtăturile preferate de tastatură!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Derulare excesivă",
+        "description": "Cât de mult poate derula editorul după sfârșitul conținutului",
+        "none": "Niciunul",
+        "half": "Jumătate",
+        "full": "Complet"
+      },
+      "tabSize": {
+        "label": "Dimensiune Tab",
+        "description": "Câte spații ar trebui să facă tasta 'TAB' în mod implicit"
+      },
+      "showIndentGuides": "Afișează ghiduri de indentare",
+      "showIndentGuidesDescription": "Afișează ghiduri de indentare, oferindu-vă o mai bună orientare la editarea codului imbricat",
+      "showGutter": "Afișează marginea",
+      "showGutterDescription": "Containerul unde se află numerele rândurilor în stânga",
+      "fixedGutterWidth": "Lățime fixă a marginii",
+      "fixedGutterWidthDescription": "Când este dezactivat, crește dimensiunea marginii treptat în timpul derulării în funcție de numărul de rânduri al fișierului",
+      "showLineNumbers": "Afișează numerele rândurilor",
+      "showLineNumbersDescription": "Afișează numerele rândurilor în marginea stângă, nu ascunde marginea în sine",
+      "relativeLineNumbers": "Numere relative de rând",
+      "relativeLineNumbersDescription": "Afișează numerele rândurilor relativ la poziția curentă a cursorului",
+      "customScrollbar": "Bară de derulare personalizată",
+      "customScrollbarDescription": "Înlocuiește bara de derulare nativă a browser-ului cu cea integrată a lui Ace",
+      "wrapContent": "Împărțirea liniilor lungi în editor",
+      "wrapContentDescription": "Împarte conținutul editorului pentru a menține liniile foarte lungi întotdeauna vizibile"
+    },
+    "uninitialized": "Nu s-a putut inițializa editorul. Vă rugăm să reîncărcați.",
+    "saveAbortedMessage": "Operațiunea de salvare a fost anulată. Fișierul activ al aplicației ({activeFile}) nu corespunde fișierului pe care încercați să îl salvați ({tryingToSave}).",
+    "splitView": "Vizualizare divizată",
+    "exitSplitView": "Ieșire din vizualizarea divizată",
+    "md": {
+      "clipboardActions": "Acțiuni clipboard",
+      "bold": "Îngroșat",
+      "italic": "Cursiv",
+      "strikethrough": "Tăiat",
+      "heading": "Antet",
+      "quote": "Citat",
+      "inlineCode": "Cod în linie",
+      "codeBlock": "Bloc de cod",
+      "bulletList": "Listă cu puncte",
+      "numberedList": "Listă numerotată",
+      "taskList": "Listă de sarcini",
+      "horizontalRule": "Linie orizontală",
+      "undo": "Anulare",
+      "redo": "Refacere",
+      "moreOptions": "Mai multe opțiuni",
+      "inlineMath": "Matematică în linie",
+      "displayMath": "Matematică în bloc",
+      "highlight": "Evidențiere",
+      "superscript": "Exponent",
+      "subscript": "Indice",
+      "text": "Text",
+      "cell": "Celulă",
+      "column": "Coloană",
+      "align": "Aliniere",
+      "alignRight": "Aliniere la dreapta",
+      "alignLeft": "Aliniere la stânga",
+      "alignCenter": "Aliniere la centru",
+      "justify": "Aliniere între margini",
+      "fontColor": "Culoarea fontului"
+    }
   },
   "player": {
     "loop": "Buclă",

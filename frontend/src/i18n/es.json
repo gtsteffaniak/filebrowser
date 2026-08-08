@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -509,6 +508,8 @@
     "verify": "Verificar{suffix}",
     "close": "Cerrar{suffix}",
     "copy": "Copiar{suffix}",
+    "paste": "Pegar",
+    "cut": "Cortar",
     "create": "Crear{suffix}",
     "delete": "Borrar{suffix}",
     "download": "Descargar{suffix}",
@@ -652,6 +653,8 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "editButtonInHeader": "Mostrar botones de editar/vista previa en el encabezado",
+    "editButtonInHeaderDescription": "Mostrar los botones de editar/vista previa en el encabezado en lugar del menú",
     "hideFileExt": "Ocultar ciertos archivos (por extensión)",
     "hideFileExtDescription": "Una lista de extensiones de archivo separadas por espacios. Las extensiones que agreges aquí se ocultarán de toda la interfaz (visualmente, como en la lista o en la navegación de árbol) — Los archivos siguen siendo accesibles.",
     "preferEditorForMarkdown": "Preferir editor para archivos Markdown",
@@ -728,12 +731,83 @@
     "darkMode": "Modo oscuro"
   },
   "editor": {
-    "uninitialized": "No se pudo iniciar el editor",
-    "saveAbortedMessage": "No se ha podido guardar el archivo. El nombre del archivo \"{activeFile}\" no coincide con el que estas intentando guardar ({tryingToSave}).",
-    "fileSaved": "!Se guardo el archivo correctamente!",
-    "lines": "{count} líneas",
-    "words": "{count} palabras",
-    "chars": "{count} caracteres"
+    "stats": {
+      "lines": "{count} líneas",
+      "words": "{count} palabras",
+      "chars": "{count} caracteres"
+    },
+    "settings": {
+      "title": "Configuración del editor",
+      "keybinding": {
+        "label": "Atajos de teclado",
+        "description": "¡Establece tus atajos de teclado preferidos!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Desplazamiento más del limite",
+        "description": "Cuánto puede desplazarse el editor más allá del final del contenido",
+        "none": "Ninguno",
+        "half": "Mitad",
+        "full": "Completo"
+      },
+      "tabSize": {
+        "label": "Tamaño de tabulación",
+        "description": "Cuántos espacios debe insertar la tecla 'TAB' por defecto"
+      },
+      "showIndentGuides": "Mostrar guías de sangría",
+      "showIndentGuidesDescription": "Muestra guías de sangría, lo que te da una mejor orientación al editar código anidado",
+      "showGutter": "Mostrar margen",
+      "showGutterDescription": "El contenedor donde se encuentran los números de línea a la izquierda",
+      "fixedGutterWidth": "Ancho de margen fijo",
+      "fixedGutterWidthDescription": "Cuando está desactivado, aumenta el tamaño del margen gradualmente al desplazarse según el número de líneas del archivo",
+      "showLineNumbers": "Mostrar números de línea",
+      "showLineNumbersDescription": "Muestra números de línea en el margen izquierdo, no oculta el margen en sí",
+      "relativeLineNumbers": "Números de línea relativos",
+      "relativeLineNumbersDescription": "Muestra números de línea relativos a la posición actual del cursor",
+      "customScrollbar": "Barra de desplazamiento personalizada",
+      "customScrollbarDescription": "Reemplazar la barra de desplazamiento nativa del navegador por la integrada de Ace",
+      "wrapContent": "Ajustar líneas largas en el editor",
+      "wrapContentDescription": "Ajusta el contenido del editor para mantener siempre visibles las líneas muy largas"
+    },
+    "uninitialized": "Error al inicializar el editor. Por favor, recargue.",
+    "saveAbortedMessage": "Operación de guardado cancelada. El archivo activo de la aplicación ({activeFile}) no coincide con el archivo que intenta guardar ({tryingToSave}).",
+    "splitView": "Vista dividida",
+    "exitSplitView": "Salir de la vista dividida",
+    "md": {
+      "clipboardActions": "Acciones del portapapeles",
+      "bold": "Negrita",
+      "italic": "Cursiva",
+      "strikethrough": "Tachado",
+      "heading": "Encabezado",
+      "quote": "Cita",
+      "inlineCode": "Código",
+      "codeBlock": "Bloque de código",
+      "bulletList": "Lista con viñetas",
+      "numberedList": "Lista numerada",
+      "taskList": "Lista de tareas",
+      "horizontalRule": "Línea horizontal",
+      "undo": "Deshacer",
+      "redo": "Rehacer",
+      "moreOptions": "Más opciones",
+      "inlineMath": "Matemáticas en línea",
+      "displayMath": "Matemáticas en bloque",
+      "highlight": "Resaltar",
+      "superscript": "Superíndice",
+      "subscript": "Subíndice",
+      "text": "Texto",
+      "cell": "Celda",
+      "column": "Columna",
+      "align": "Alinear",
+      "alignRight": "Alinear a la derecha",
+      "alignLeft": "Alinear a la izquierda",
+      "alignCenter": "Alinear al centro",
+      "justify": "Justificar",
+      "fontColor": "Color de fuente"
+    }
   },
   "player": {
     "loop": "Bucle",

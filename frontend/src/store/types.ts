@@ -95,6 +95,7 @@ export interface UserObject {
   darkMode: boolean;
   disableSettings: boolean;
   debugOffice: boolean;
+  editButtonInHeader: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
   profile: {
@@ -162,9 +163,21 @@ export interface StoreState {
   showSidebar: boolean;
   displayPreferences: unknown;
   usages: unknown;
-  editor: unknown;
-  editorDirty: boolean;
-  editorSaveHandler: unknown;
+  editor: {
+    instance: unknown;
+    dirty: boolean;
+    saveHandler: (() => Promise<void>) | null;
+    stats: {
+      lines: number | null;
+      words: number | null;
+      chars: number | null;
+    };
+    fontSize: number;
+    markdownSplitView: boolean;
+    scrollRatio: number;
+    scrollSource: 'editor' | 'viewer' | null;
+    scrollPath: string;
+  };
   realtimeActive: boolean | undefined;
   realtimeDownCount: number;
   popupPreviewSourceInfo: {
@@ -265,10 +278,4 @@ export interface StoreState {
     minWidth: number;
     maxWidth: number;
   };
-  editorStats: {
-    lines: number | null;
-    words: number | null;
-    chars: number | null;
-  };
-  editorFontSize: number;
 }

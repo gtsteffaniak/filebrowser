@@ -63,6 +63,7 @@ export function sectionsFromFlatUser(user) {
     fileViewer: {
       autoplayMedia: boolPtr(preview.autoplayMedia),
       editorQuickSave: !!u.editorQuickSave,
+      editButtonInHeader: !!u.editButtonInHeader,
       preferEditorForMarkdown: !!u.preferEditorForMarkdown,
       debugOffice: !!u.debugOffice,
       disableViewingExt: u.disableViewingExt || "",
@@ -141,6 +142,7 @@ export function applySectionsToFlatUser(user, sections) {
 
   user.preview.autoplayMedia = boolPtr(fileViewer.autoplayMedia);
   user.editorQuickSave = !!fileViewer.editorQuickSave;
+  user.editButtonInHeader = !!fileViewer.editButtonInHeader;
   user.preferEditorForMarkdown = !!fileViewer.preferEditorForMarkdown;
   user.debugOffice = !!fileViewer.debugOffice;
   user.disableViewingExt = fileViewer.disableViewingExt || "";

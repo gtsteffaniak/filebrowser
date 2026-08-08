@@ -26,21 +26,40 @@
       @action="switchView"
       :disabled="isDisabled || viewModeChangeLocked"
     />
-    <action
-      class="overflow-menu-button"
-      v-else-if="!showHeaderSwitchView && !showQuickSave"
-      :icon="iconName"
-      :disabled="noItems"
-      @click="toggleOverflow"
-    />
-    <action
-      class="save-button"
-      v-else-if="showQuickSave"
-      id="save-button"
-      icon="save"
-      :label="$t('general.save')"
-      @action="save()"
-    />
+    <template v-else>
+      <action
+        v-if="showEditButton"
+        class="edit-button"
+        icon="edit"
+        :label="$t('general.edit')"
+        @action="goToEdit"
+        :disabled="isDisabled"
+      />
+      <action
+        v-if="showPreviewButton"
+        class="preview-button"
+        icon="visibility"
+        :label="$t('general.preview')"
+        @action="goToPreview"
+        :disabled="isDisabled"
+      />
+      <action
+        v-if="showQuickSave"
+        class="save-button"
+        id="save-button"
+        icon="save"
+        :label="$t('general.save')"
+        :disabled="isDisabled"
+        @action="save()"
+      />
+      <action
+        v-else
+        class="overflow-menu-button"
+        :icon="iconName"
+        :disabled="noItems"
+        @click="toggleOverflow"
+      />
+    </template>
   </header>
 </template>
 
@@ -52,6 +71,7 @@ import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import { globalVars } from "@/utils/constants";
 import { url } from "@/utils";
+import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 
 export default {
   name: "UnifiedHeader",
@@ -125,11 +145,19 @@ export default {
     noItems() {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
-    showEdit() {
-      return window.location.hash !== "#edit" && getters.sourcePermissions().modify;
+    showEditButton() {
+      if (getters.isSplitViewActive()) return false;
+      if (!state.user?.editButtonInHeader) return false;
+      if (getters.currentView() === "editor") return false;
+      const allowEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
+      return isRichTextPreviewMimeType(state.req.type) && allowEdit;
     },
-    showDelete() {
-      return getters.sourcePermissions().delete && getters.currentView() === "preview";
+    showPreviewButton() {
+      if (getters.isSplitViewActive()) return false;
+      if (!state.user?.editButtonInHeader) return false;
+      if (getters.currentView() !== "editor") return false;
+      const allowEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
+      return isRichTextPreviewMimeType(state.req.type) && allowEdit;
     },
     showSave() {
       return getters.currentView() === "editor" && getters.sourcePermissions().modify;
@@ -193,8 +221,8 @@ export default {
       buttons.loading("save");
       try {
         // Call the editor's save handler directly
-        if (state.editorSaveHandler) {
-          await state.editorSaveHandler();
+        if (state.editor.saveHandler) {
+          await state.editor.saveHandler();
           buttons.success(button);
           // Note: Success notification is shown by the editor
         } else {
@@ -214,6 +242,12 @@ export default {
       } else {
         mutations.showPrompt({ name: "OverflowMenu" });
       }
+    },
+    goToEdit() {
+      void router.replace({ hash: "#edit" });
+    },
+    goToPreview() {
+      void router.replace({ hash: "#preview" });
     },
     /** Match StatusBar.adjustViewMode: list vs compact, icons vs gallery from gallery size. */
     resolveViewModeForFamily(baseMode) {
@@ -253,7 +287,7 @@ export default {
       const cv = getters.currentView();
 
       // Check for unsaved editor changes before navigation
-      if (cv === "editor" && state.editorDirty) {
+      if (cv === "editor" && state.editor.dirty) {
         this.showSaveBeforeExitPrompt(() => this.performNavigation(cv));
         return;
       }
@@ -331,6 +365,7 @@ header button:hover {
   box-shadow: unset !important;
   -webkit-box-shadow: unset !important;
 }
+
 header {
   background-color: rgb(37 49 55 / 5%) !important;
 }

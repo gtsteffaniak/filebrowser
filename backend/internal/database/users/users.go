@@ -240,6 +240,7 @@ type NonAdminEditable struct {
 	SidebarLinks               []SidebarLink        `json:"sidebarLinks"`               // customizable sidebar links
 	HideFilesInTree            bool                 `json:"hideFilesInTree"`            // hide files in the sidebar tree navigation, when true, will show only directories.
 	DeleteAfterArchive         bool                 `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
+	EditButtonInHeader         bool                 `json:"editButtonInHeader"`         // show edit/preview buttons in header instead of the overflow menu
 	PreferEditorForMarkdown    bool                 `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer
 	ShowFirstLogin             bool                 `json:"showFirstLogin"`
 	PasskeyCredentials         []WebAuthnCredential `json:"passkeyCredentials,omitempty"`

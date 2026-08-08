@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -509,6 +508,8 @@
     "verify": "Doğrulama{suffix}",
     "close": "Kapat{suffix}",
     "copy": "Anlaşıldı{suffix}",
+    "paste": "Yapıştır",
+    "cut": "Kes",
     "create": "Oluştur{suffix}",
     "delete": "Silme{suffix}",
     "download": "İndir{suffix}",
@@ -652,6 +653,8 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "editButtonInHeader": "Düzenleme/önizleme düğmelerini başlıkta göster",
+    "editButtonInHeaderDescription": "Düzenleme/önizleme düğmelerini taşma menüsü yerine başlıkta göster",
     "hideFileExt": "Belirli dosyaları gizle (uzantıya göre)",
     "hideFileExtDescription": "Boşlukla ayrılmış dosya uzantıları listesi. Bu alana girilen uzantılar tüm kullanıcı arayüzünden (görsel olarak, liste veya Dosya Ağacı gibi) gizlenecektir — Hâlâ erişilebilir durumdadırlar.",
     "preferEditorForMarkdown": "Markdown dosyaları için önce düzenleyiciyi tercih et",
@@ -728,12 +731,83 @@
     "darkMode": "Karanlık mod"
   },
   "editor": {
+    "stats": {
+      "lines": "{count} satır",
+      "words": "{count} kelime",
+      "chars": "{count} karakter"
+    },
+    "settings": {
+      "title": "Düzenleyici Ayarları",
+      "keybinding": {
+        "label": "Klavye Kısayolları",
+        "description": "Tercih ettiğiniz klavye kısayollarını ayarlayın!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Aşırı Kaydırma",
+        "description": "Düzenleyicinin içeriğin sonunu ne kadar geçebileceği",
+        "none": "Hiçbiri",
+        "half": "Yarım",
+        "full": "Tam"
+      },
+      "tabSize": {
+        "label": "Sekme Boyutu",
+        "description": "'TAB' tuşunun varsayılan olarak kaç boşluk yapması gerektiği"
+      },
+      "showIndentGuides": "Girinti Kılavuzlarını Göster",
+      "showIndentGuidesDescription": "Girinti kılavuzlarını gösterir, iç içe kod düzenlerken daha iyi yönlendirme sağlar",
+      "showGutter": "Kenar Boşluğunu Göster",
+      "showGutterDescription": "Satır numaralarının solda bulunduğu kap",
+      "fixedGutterWidth": "Sabit Kenar Boşluğu Genişliği",
+      "fixedGutterWidthDescription": "Kapalıyken, dosyadaki satır sayısına bağlı olarak kaydırma sırasında kenar boşluğu boyutunu kademeli olarak artırır",
+      "showLineNumbers": "Satır Numaralarını Göster",
+      "showLineNumbersDescription": "Soldaki kenar boşluğunda satır numaralarını gösterir, kenar boşluğunun kendisini gizlemez",
+      "relativeLineNumbers": "Göreceli Satır Numaraları",
+      "relativeLineNumbersDescription": "Satır numaralarını imlecin geçerli konumuna göre gösterir",
+      "customScrollbar": "Özel kaydırma çubuğu",
+      "customScrollbarDescription": "Tarayıcının yerel kaydırma çubuğunu Ace'in yerleşik olanıyla değiştir",
+      "wrapContent": "Düzenleyicide uzun satırları kaydır",
+      "wrapContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar"
+    },
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
-    "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın etkin dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",
-    "fileSaved": "Dosya kaydedildi!",
-    "lines": "{count} satır",
-    "words": "{count} kelime",
-    "chars": "{count} karakter"
+    "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın aktif dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",
+    "splitView": "Bölünmüş görünüm",
+    "exitSplitView": "Bölünmüş görünümden çık",
+    "md": {
+      "clipboardActions": "Pano işlemleri",
+      "bold": "Kalın",
+      "italic": "İtalik",
+      "strikethrough": "Üstü çizili",
+      "heading": "Başlık",
+      "quote": "Alıntı",
+      "inlineCode": "Satır içi kod",
+      "codeBlock": "Kod bloğu",
+      "bulletList": "Madde işaretli liste",
+      "numberedList": "Numaralı liste",
+      "taskList": "Görev listesi",
+      "horizontalRule": "Yatay çizgi",
+      "undo": "Geri al",
+      "redo": "Yinele",
+      "moreOptions": "Daha fazla seçenek",
+      "inlineMath": "Satır içi matematik",
+      "displayMath": "Blok matematik",
+      "highlight": "Vurgula",
+      "superscript": "Üst simge",
+      "subscript": "Alt simge",
+      "text": "Metin",
+      "cell": "Hücre",
+      "column": "Sütun",
+      "align": "Hizalama",
+      "alignRight": "Sağa hizala",
+      "alignLeft": "Sola hizala",
+      "alignCenter": "Ortala",
+      "justify": "İki yana yasla",
+      "fontColor": "Yazı tipi rengi"
+    }
   },
   "player": {
     "loop": "Döngü",

@@ -3,6 +3,7 @@ import { getters, state } from "@/store";
 import { getCachedViewToken } from "@/api/viewToken";
 import { getViewURL } from "@/api/resources";
 import { getParentDir, resolveRelativePath } from "@/utils/url";
+import { globalVars } from "./constants";
 
 export const HTML_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true, svg: true, svgFilters: true },
@@ -46,6 +47,26 @@ const RESOURCE_ATTRIBUTES: Array<[string, string]> = [
 ];
 
 const ALLOWED_ABSOLUTE_URI_PATTERN = /^(https?:|data:|mailto:|tel:|#)/i;
+
+// to stop relative hrefs from navigating the srcdoc iframe against the parent, and
+// to keep anchor links working inside the iframe itself instead (was opening the app inside the iframe)
+const NAV_GUARD_SCRIPT = `document.addEventListener("click", function (e) {
+  var a = e.target && e.target.closest ? e.target.closest("a") : null;
+  if (!a) return;
+  var href = a.getAttribute("href") || "";
+  if (href.charAt(0) !== "#") {
+    // Absolute links are left alone -- relative links would resolve to about:blank.
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(href) && href.slice(0, 2) !== "//") {
+      e.preventDefault();
+    }
+    return;
+  }
+  var id = href.slice(1);
+  var el = id ? document.getElementById(id) : document.documentElement;
+  if (!el) return;
+  e.preventDefault();
+  el.scrollIntoView();
+}, true);`;
 
 function viewTokenForSibling(
   resolvedPath: string,
@@ -261,6 +282,24 @@ export function rewriteDocumentStyles(
   });
 }
 
+function navigationGuard(htmlEl: HTMLElement): string {
+  const doc = htmlEl.ownerDocument;
+  const head = doc.head ?? htmlEl.querySelector("head");
+  if (head) {
+    const base = doc.createElement("base");
+    base.setAttribute("href", "about:blank");
+    head.insertBefore(base, head.firstChild);
+
+    const guard = doc.createElement("script");
+    if (typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== "") {
+      guard.setAttribute("nonce", globalVars.cspNonce);
+    }
+    guard.textContent = NAV_GUARD_SCRIPT;
+    head.appendChild(guard);
+  }
+  return `<!DOCTYPE html>\n${htmlEl.outerHTML}`;
+}
+
 export interface HtmlPreview {
   srcdoc: string;
 }
@@ -278,8 +317,8 @@ export function buildHtmlPreview(
 
   DOMPurify.addHook("uponSanitizeAttribute", blockUnsafeUriAttributes);
   try {
-    const srcdoc = String(DOMPurify.sanitize(serialized, HTML_SANITIZE_CONFIG));
-    return { srcdoc };
+    const sanitized = DOMPurify.sanitize(serialized, { ...HTML_SANITIZE_CONFIG, RETURN_DOM: true, }) as unknown as HTMLElement;
+    return { srcdoc: navigationGuard(sanitized) };
   } finally {
     DOMPurify.removeHook("uponSanitizeAttribute", blockUnsafeUriAttributes);
   }

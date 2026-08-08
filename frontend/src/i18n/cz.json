@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -318,6 +317,8 @@
     "allFileTypes": "Všechny typy souborů"
   },
   "profileSettings": {
+    "editButtonInHeader": "Zobrazit tlačítka pro úpravy/náhled v záhlaví",
+    "editButtonInHeaderDescription": "Zobrazit tlačítka pro úpravy/náhled v záhlaví místo v rozbalovací nabídce",
     "hideFileExt": "Skrýt určité soubory (podle přípony)",
     "hideFileExtDescription": "Seznam přípon souborů oddělených mezerami. Přípony zadané v tomto poli budou skryty ve všech částech UI (vizuálně, např. v seznamu nebo stromu souborů) — stále jsou přístupné.",
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",
@@ -605,6 +606,8 @@
     "verify": "Ověřit{suffix}",
     "close": "Zavřít{suffix}",
     "copy": "Kopírovat{suffix}",
+    "paste": "Vložit",
+    "cut": "Vyjmout",
     "create": "Vytvořit{suffix}",
     "delete": "Odstranit{suffix}",
     "download": "Stáhnout{suffix}",
@@ -728,12 +731,83 @@
     "cascadeDeleteDescription": "Pokud je tato možnost povolena, odstraní se pravidlo přístupu také ze všech podadresářů. To umožňuje zcela odstranit uživatele nebo skupinu z celého adresářového stromu."
   },
   "editor": {
-    "uninitialized": "Nepodařilo se inicializovat editor. Prosím, načtěte jej znovu.",
-    "saveAbortedMessage": "Operace ukládání byla přerušena. Aktivní soubor aplikace ({activeFile}) neodpovídá souboru, který se pokoušíte uložit ({tryingToSave}).",
-    "fileSaved": "Soubor uložen!",
-    "lines": "{count} řádků",
-    "words": "{count} slov",
-    "chars": "{count} znaků"
+    "stats": {
+      "lines": "{count} řádků",
+      "words": "{count} slov",
+      "chars": "{count} znaků"
+    },
+    "settings": {
+      "title": "Nastavení editoru",
+      "keybinding": {
+        "label": "Klávesové zkratky",
+        "description": "Nastavte si preferované klávesové zkratky!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Přetečení",
+        "description": "Jak moc může editor posouvat za konec obsahu",
+        "none": "Žádné",
+        "half": "Polovina",
+        "full": "Plné"
+      },
+      "tabSize": {
+        "label": "Velikost tabulátoru",
+        "description": "Kolik mezer by měla klávesa 'TAB' ve výchozím nastavení provést"
+      },
+      "showIndentGuides": "Zobrazit vodítka odsazení",
+      "showIndentGuidesDescription": "Zobrazit vodítka odsazení, což vám usnadní orientaci při úpravě vnořeného kódu",
+      "showGutter": "Zobrazit okraj",
+      "showGutterDescription": "Kontejner, kde se vlevo nacházejí čísla řádků",
+      "fixedGutterWidth": "Pevná šířka okraje",
+      "fixedGutterWidthDescription": "Pokud je vypnuto, zvětšuje velikost okraje postupně při posouvání v závislosti na počtu řádků v souboru",
+      "showLineNumbers": "Zobrazit čísla řádků",
+      "showLineNumbersDescription": "Zobrazit čísla řádků v okraji vlevo, neskrývá samotný okraj",
+      "relativeLineNumbers": "Relativní čísla řádků",
+      "relativeLineNumbersDescription": "Zobrazit čísla řádků relativní k aktuální poloze kurzoru",
+      "customScrollbar": "Vlastní posuvník",
+      "customScrollbarDescription": "Nahradit nativní posuvník prohlížeče vestavěným posuvníkem Ace",
+      "wrapContent": "Zalamovat dlouhé řádky v editoru",
+      "wrapContentDescription": "Zalamuje obsah editoru, aby velmi dlouhé řádky zůstaly vždy viditelné"
+    },
+    "uninitialized": "Nepodařilo se inicializovat editor. Obnovte stránku.",
+    "saveAbortedMessage": "Ukládání bylo přerušeno. Aktivní soubor aplikace ({activeFile}) se neshoduje se souborem, který se pokoušíte uložit ({tryingToSave}).",
+    "splitView": "Rozdělené zobrazení",
+    "exitSplitView": "Ukončit rozdělené zobrazení",
+    "md": {
+      "clipboardActions": "Akce se schránkou",
+      "bold": "Tučné",
+      "italic": "Kurzíva",
+      "strikethrough": "Přeškrtnuté",
+      "heading": "Nadpis",
+      "quote": "Citace",
+      "inlineCode": "Řádkový kód",
+      "codeBlock": "Blok kódu",
+      "bulletList": "Odrážkový seznam",
+      "numberedList": "Číslovaný seznam",
+      "taskList": "Seznam úkolů",
+      "horizontalRule": "Vodorovná čára",
+      "undo": "Zpět",
+      "redo": "Znovu",
+      "moreOptions": "Další možnosti",
+      "inlineMath": "Řádková matematika",
+      "displayMath": "Samostatná matematika",
+      "highlight": "Zvýraznění",
+      "superscript": "Horní index",
+      "subscript": "Dolní index",
+      "text": "Text",
+      "cell": "Buňka",
+      "column": "Sloupec",
+      "align": "Zarovnání",
+      "alignRight": "Zarovnat vpravo",
+      "alignLeft": "Zarovnat vlevo",
+      "alignCenter": "Zarovnat na střed",
+      "justify": "Zarovnat do bloku",
+      "fontColor": "Barva písma"
+    }
   },
   "player": {
     "loop": "Smyčka",

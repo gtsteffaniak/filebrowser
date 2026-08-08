@@ -200,6 +200,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     autoplayMedia: true                   # autoplay media files in preview
     disableViewingExt: ""                 # comma separated list of file extensions to disable viewing for
     disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
+    editButtonInHeader: false             # show edit/preview buttons in header instead of the overflow menu
     preferEditorForMarkdown: false        # prefer editor first for markdown files instead of the Markdown Viewer
     debugOffice: false                    # debug onlyoffice editor
   search:

@@ -67,11 +67,11 @@ export default defineConfig(() => {
             if (id.includes("node_modules/mammoth")) {
               return "mammoth";
             }
-            if (id.includes("node_modules/jszip")) {
-              return "jszip";
-            }
-            if (id.includes("node_modules/epubjs")) {
+            if (id.includes("node_modules/jszip") || id.includes("node_modules/epubjs")) {
               return "epubjs";
+            }
+            if (id.includes("node_modules/katex") || id.includes("node_modules/marked-katex-extension")) {
+              return "katex";
             }
             return undefined;
           },

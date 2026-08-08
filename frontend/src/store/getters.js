@@ -3,7 +3,7 @@ import { mutations, state } from '@/store';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
-import { getTypeInfo, isRichTextPreviewMimeType } from '@/utils/mimetype';
+import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
@@ -353,12 +353,17 @@ export const getters = {
       if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;
         const preferEditor = state.user.preferEditorForMarkdown;
+        const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
+        const canEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
+        if (isMarkdown && state.editor.markdownSplitView && !state.isMobile && canEdit) {
+          return 'editor';
+        }
         switch (hash) {
-          case '#edit': return 'editor';
+          case '#edit': return canEdit ? 'editor' : 'markdownViewer';
           case '#preview': return 'markdownViewer';
         }
-        if (state.req.type === 'text/markdown' && preferEditor) return 'editor';
+        if (isMarkdown && preferEditor && canEdit) return 'editor';
         return 'markdownViewer';
       }
 
@@ -528,6 +533,7 @@ export const getters = {
       disableViewingExt: "",
       disableOfficePreviewExt: "",
       disablePreviewExt: "",
+      editButtonInHeader: false,
       preferEditorForMarkdown: false,
       fileLoading: {
         maxConcurrent: 1,
@@ -594,7 +600,25 @@ export const getters = {
     return tool;
   },
   isEditorOrMarkdownView: () => {
-    return getters.currentView() === 'editor' || getters.currentView() === 'markdownViewer';
+    const view = getters.currentView();
+    if (view === 'markdownViewer') {
+      return !isHtmlMimeType(state.req?.type);
+    }
+    return view === 'editor';
+  },
+  canSplitView: () => {
+    if (state.isMobile) return false;
+    if (!state.req || !('content' in state.req)) return false;
+    const canEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
+    if (!canEdit) return false;
+    return state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
+  },
+  isSplitViewActive: () => {
+    return state.editor.markdownSplitView && getters.canSplitView();
+  },
+  showSplitViewToggle: () => {
+    return getters.canSplitView() && getters.isEditorOrMarkdownView() &&
+      (getters.isSplitViewActive() || getters.sourcePermissions().modify);
   },
   showStatusBar: () => {
     if (getters.isShare() && state.shareInfo.shareType === "upload") {

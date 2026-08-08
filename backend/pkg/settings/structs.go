@@ -378,6 +378,7 @@ type UserDefaultsFileViewer struct {
 	AutoplayMedia           *bool  `json:"autoplayMedia"`           // autoplay media files in preview
 	DisableViewingExt       string `json:"disableViewingExt"`       // comma separated list of file extensions to disable viewing for
 	DisableOnlyOfficeExt    string `json:"disableOnlyOfficeExt"`    // list of file extensions to disable onlyoffice editor for
+	EditButtonInHeader      bool   `json:"editButtonInHeader"`      // show edit/preview buttons in header instead of the overflow menu
 	PreferEditorForMarkdown bool   `json:"preferEditorForMarkdown"` // prefer editor first for markdown files instead of the Markdown Viewer
 	DebugOffice             bool   `json:"debugOffice"`             // debug onlyoffice editor
 }

@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -447,6 +446,8 @@
     "unavailable": "無法使用"
   },
   "profileSettings": {
+    "editButtonInHeader": "在標題中顯示編輯/預覽按鈕",
+    "editButtonInHeaderDescription": "在標題中顯示編輯/預覽按鈕，而不是在溢出選單中",
     "hideFileExt": "隱藏特定檔案（按副檔名）",
     "hideFileExtDescription": "空格分隔的副檔名列表。在此欄位中輸入的副檔名將從所有使用者介面中隱藏（視覺上，如清單或檔案樹）——它們仍然可存取。",
     "preferEditorForMarkdown": "優先使用編輯器開啟 Markdown 檔案",
@@ -605,6 +606,8 @@
     "verify": "驗證{suffix}",
     "close": "關閉{suffix}",
     "copy": "複製{suffix}",
+    "paste": "貼上",
+    "cut": "剪下",
     "create": "建立{suffix}",
     "delete": "刪除{suffix}",
     "download": "下載{suffix}",
@@ -728,12 +731,83 @@
     "cascadeDeleteDescription": "啟用時，刪除存取規則也會從所有子目錄中移除該規則。這可讓您從整個目錄樹中完全移除使用者或群組。"
   },
   "editor": {
-    "uninitialized": "編輯器初始化失敗。請重新載入。",
-    "saveAbortedMessage": "儲存作業已中止。應用程式目前的作用中檔案 ({activeFile}) 與要儲存的檔案 ({tryingToSave}) 不一致。",
-    "fileSaved": "檔案已儲存！",
-    "lines": "{count} 行",
-    "words": "{count} 詞",
-    "chars": "{count} 字元"
+    "stats": {
+      "lines": "{count} 行",
+      "words": "{count} 詞",
+      "chars": "{count} 字元"
+    },
+    "settings": {
+      "title": "編輯器設定",
+      "keybinding": {
+        "label": "鍵盤綁定",
+        "description": "設定您偏好的鍵盤綁定！",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "過度滾動",
+        "description": "編輯器可以滾動超出內容末尾的程度",
+        "none": "無",
+        "half": "一半",
+        "full": "完整"
+      },
+      "tabSize": {
+        "label": "製表符大小",
+        "description": "'TAB' 鍵預設應插入多少個空格"
+      },
+      "showIndentGuides": "顯示縮排參考線",
+      "showIndentGuidesDescription": "顯示縮排參考線，在編輯巢狀程式碼時提供更好的方向感",
+      "showGutter": "顯示行號欄",
+      "showGutterDescription": "左側顯示行號的容器",
+      "fixedGutterWidth": "固定行號欄寬度",
+      "fixedGutterWidthDescription": "關閉時，滾動時根據檔案行數逐步增加行號欄的大小",
+      "showLineNumbers": "顯示行號",
+      "showLineNumbersDescription": "在左側行號欄中顯示行號，不會隱藏行號欄本身",
+      "relativeLineNumbers": "相對行號",
+      "relativeLineNumbersDescription": "顯示相對於游標目前位置的行號",
+      "customScrollbar": "自訂滾動條",
+      "customScrollbarDescription": "將瀏覽器的原生滾動條替換為 Ace 內建滾動條",
+      "wrapContent": "在編輯器中換行長行",
+      "wrapContentDescription": "換行編輯器內容，使很長的行始終保持可見"
+    },
+    "uninitialized": "初始化編輯器失敗。請重新載入。",
+    "saveAbortedMessage": "儲存操作已中止。應用程式的活動檔案 ({activeFile}) 與您嘗試儲存的檔案 ({tryingToSave}) 不符。",
+    "splitView": "分割檢視",
+    "exitSplitView": "退出分割檢視",
+    "md": {
+      "clipboardActions": "剪貼簿操作",
+      "bold": "粗體",
+      "italic": "斜體",
+      "strikethrough": "刪除線",
+      "heading": "標題",
+      "quote": "引用",
+      "inlineCode": "行內程式碼",
+      "codeBlock": "程式碼區塊",
+      "bulletList": "項目符號清單",
+      "numberedList": "編號清單",
+      "taskList": "任務清單",
+      "horizontalRule": "水平線",
+      "undo": "復原",
+      "redo": "重做",
+      "moreOptions": "更多選項",
+      "inlineMath": "行內公式",
+      "displayMath": "顯示公式",
+      "highlight": "高亮",
+      "superscript": "上標",
+      "subscript": "下標",
+      "text": "文字",
+      "cell": "儲存格",
+      "column": "欄",
+      "align": "對齊",
+      "alignRight": "靠右對齊",
+      "alignLeft": "靠左對齊",
+      "alignCenter": "置中對齊",
+      "justify": "左右對齊",
+      "fontColor": "字體顏色"
+    }
   },
   "player": {
     "loop": "循環",

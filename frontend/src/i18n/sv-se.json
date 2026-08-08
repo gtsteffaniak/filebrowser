@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -478,6 +477,8 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "editButtonInHeader": "Visa redigerings-/förhandsgranskningsknappar i rubriken",
+    "editButtonInHeaderDescription": "Visa redigerings-/förhandsgranskningsknappar i rubriken istället för i överflödesmenyn",
     "hideFileExt": "Dölj vissa filer (efter filändelse)",
     "hideFileExtDescription": "En blankstegsseparerad lista över filändelser. Filändelser som anges i detta fält kommer att döljas från hela användargränssnittet (visuellt, som i listan eller filträdet) — De är fortfarande tillgängliga.",
     "preferEditorForMarkdown": "Föredra redigerare för Markdown-filer",
@@ -605,6 +606,8 @@
     "verify": "Verifiera{suffix}",
     "close": "Nära{suffix}",
     "copy": "Kopia{suffix}",
+    "paste": "Klistra in",
+    "cut": "Klipp ut",
     "create": "Skapa{suffix}",
     "delete": "Radera{suffix}",
     "download": "Nedladdningar{suffix}",
@@ -728,12 +731,83 @@
     "cascadeDeleteDescription": "Om funktionen är aktiverad tas en åtkomstregel även bort från alla underkataloger. På så sätt kan du helt ta bort en användare eller grupp från hela katalogträdet."
   },
   "editor": {
-    "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",
-    "saveAbortedMessage": "Spara åtgärden avbröts. Programmets aktiva fil ({activeFile}) stämmer inte överens med den fil du försöker spara ({tryingToSave}).",
-    "fileSaved": "Filen är sparad!",
-    "lines": "{count} rader",
-    "words": "{count} ord",
-    "chars": "{count} tecken"
+    "stats": {
+      "lines": "{count} rader",
+      "words": "{count} ord",
+      "chars": "{count} tecken"
+    },
+    "settings": {
+      "title": "Redigerarinställningar",
+      "keybinding": {
+        "label": "Tangentbindningar",
+        "description": "Ställ in dina föredragna tangentbindningar!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Överskridning",
+        "description": "Hur mycket redigeraren kan rulla förbi slutet av innehållet",
+        "none": "Ingen",
+        "half": "Halv",
+        "full": "Full"
+      },
+      "tabSize": {
+        "label": "Tab-storlek",
+        "description": "Hur många mellanslag 'TAB'-tangenten ska göra som standard"
+      },
+      "showIndentGuides": "Visa indragningsguider",
+      "showIndentGuidesDescription": "Visa indragningsguider, vilket ger dig bättre orientering vid redigering av kapslad kod",
+      "showGutter": "Visa marginal",
+      "showGutterDescription": "Behållaren där radnumren finns till vänster",
+      "fixedGutterWidth": "Fast marginalbredd",
+      "fixedGutterWidthDescription": "När avaktiverad, ökar marginalstorleken gradvis vid rullning beroende på hur många rader filen har",
+      "showLineNumbers": "Visa radnummer",
+      "showLineNumbersDescription": "Visa radnummer i den vänstra marginalen, döljer inte själva marginalen",
+      "relativeLineNumbers": "Relativa radnummer",
+      "relativeLineNumbersDescription": "Visa radnummer relativt till markörens aktuella position",
+      "customScrollbar": "Anpassad rullningslist",
+      "customScrollbarDescription": "Byt ut webbläsarens inbyggda rullningslist mot Ace:s inbyggda",
+      "wrapContent": "Bryt långa rader i redigeraren",
+      "wrapContentDescription": "Bryter redigerarens innehåll så att mycket långa rader alltid är synliga"
+    },
+    "uninitialized": "Kunde inte initiera redigeraren. Ladda om.",
+    "saveAbortedMessage": "Sparåtgärd avbruten. Applikationens aktiva fil ({activeFile}) matchar inte filen du försöker spara ({tryingToSave}).",
+    "splitView": "Delad vy",
+    "exitSplitView": "Avsluta delad vy",
+    "md": {
+      "clipboardActions": "Urklippsåtgärder",
+      "bold": "Fet",
+      "italic": "Kursiv",
+      "strikethrough": "Genomstruken",
+      "heading": "Rubrik",
+      "quote": "Citat",
+      "inlineCode": "Inbäddad kod",
+      "codeBlock": "Kodblock",
+      "bulletList": "Punktlista",
+      "numberedList": "Numrerad lista",
+      "taskList": "Att-göra-lista",
+      "horizontalRule": "Horisontell linje",
+      "undo": "Ångra",
+      "redo": "Gör om",
+      "moreOptions": "Fler alternativ",
+      "inlineMath": "Inbäddad matematik",
+      "displayMath": "Visad matematik",
+      "highlight": "Markera",
+      "superscript": "Upphöjd",
+      "subscript": "Nedsänkt",
+      "text": "Text",
+      "cell": "Cell",
+      "column": "Kolumn",
+      "align": "Justering",
+      "alignRight": "Justera till höger",
+      "alignLeft": "Justera till vänster",
+      "alignCenter": "Centrera",
+      "justify": "Kantutjämna",
+      "fontColor": "Typsnittsfärg"
+    }
   },
   "player": {
     "loop": "Loop",

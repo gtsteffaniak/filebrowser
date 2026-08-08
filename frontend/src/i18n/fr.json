@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -509,6 +508,8 @@
     "verify": "Vérifier{suffix}",
     "close": "Fermer{suffix}",
     "copy": "Copie{suffix}",
+    "paste": "Coller",
+    "cut": "Couper",
     "create": "Créer{suffix}",
     "delete": "Supprimer{suffix}",
     "download": "Télécharger{suffix}",
@@ -652,6 +653,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "editButtonInHeader": "Afficher les boutons d'édition/aperçu dans l'en-tête",
+    "editButtonInHeaderDescription": "Afficher les boutons d'édition/aperçu dans l'en-tête plutôt que dans le menu de débordement",
     "hideFileExt": "Masquer certains fichiers (par extension)",
     "hideFileExtDescription": "Une liste d'extensions de fichiers séparées par des espaces. Les extensions saisies dans ce champ seront masquées dans toute l'interface utilisateur (visuellement, comme dans la liste ou l'arborescence) — Elles restent accessibles.",
     "preferEditorForMarkdown": "Privilégier d'abord l'éditeur pour les fichiers Markdown",
@@ -728,12 +731,83 @@
     "darkMode": "Mode sombre"
   },
   "editor": {
+    "stats": {
+      "lines": "{count} lignes",
+      "words": "{count} mots",
+      "chars": "{count} caractères"
+    },
+    "settings": {
+      "title": "Paramètres de l'éditeur",
+      "keybinding": {
+        "label": "Raccourcis clavier",
+        "description": "Définissez vos raccourcis clavier préférés !",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Défilement excessif",
+        "description": "Jusqu'où l'éditeur peut défiler au-delà de la fin du contenu",
+        "none": "Aucun",
+        "half": "Moitié",
+        "full": "Complet"
+      },
+      "tabSize": {
+        "label": "Taille de tabulation",
+        "description": "Combien d'espaces la touche 'TAB' doit faire par défaut"
+      },
+      "showIndentGuides": "Afficher les guides de retrait",
+      "showIndentGuidesDescription": "Affiche les guides de retrait, ce qui vous donne une meilleure orientation lors de l'édition de code imbriqué",
+      "showGutter": "Afficher la marge",
+      "showGutterDescription": "Le conteneur où se trouvent les numéros de ligne à gauche",
+      "fixedGutterWidth": "Largeur de marge fixe",
+      "fixedGutterWidthDescription": "Lorsqu'il est désactivé, augmente la taille de la marge progressivement lors du défilement en fonction du nombre de lignes du fichier",
+      "showLineNumbers": "Afficher les numéros de ligne",
+      "showLineNumbersDescription": "Affiche les numéros de ligne dans la marge de gauche, ne cache pas la marge elle-même",
+      "relativeLineNumbers": "Numéros de ligne relatifs",
+      "relativeLineNumbersDescription": "Affiche les numéros de ligne relatifs à la position actuelle du curseur",
+      "customScrollbar": "Barre de défilement personnalisée",
+      "customScrollbarDescription": "Remplacer la barre de défilement native du navigateur par celle intégrée à Ace",
+      "wrapContent": "Couper les longues lignes dans l'éditeur",
+      "wrapContentDescription": "Coupe le contenu de l'éditeur pour que les très longues lignes restent toujours visibles"
+    },
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
-    "saveAbortedMessage": "L'opération d'enregistrement a été interrompue. Le fichier actif de l'application ({activeFile}) ne correspond pas au fichier que vous essayez d'enregistrer ({tryingToSave}).",
-    "fileSaved": "Fichier sauvegardé !",
-    "lines": "{count} lignes",
-    "words": "{count} mots",
-    "chars": "{count} caractères"
+    "saveAbortedMessage": "Opération de sauvegarde annulée. Le fichier actif de l'application ({activeFile}) ne correspond pas au fichier que vous essayez de sauvegarder ({tryingToSave}).",
+    "splitView": "Vue divisée",
+    "exitSplitView": "Quitter la vue divisée",
+    "md": {
+      "clipboardActions": "Actions du presse-papiers",
+      "bold": "Gras",
+      "italic": "Italique",
+      "strikethrough": "Barré",
+      "heading": "Titre",
+      "quote": "Citation",
+      "inlineCode": "Code en ligne",
+      "codeBlock": "Bloc de code",
+      "bulletList": "Liste à puces",
+      "numberedList": "Liste numérotée",
+      "taskList": "Liste de tâches",
+      "horizontalRule": "Ligne horizontale",
+      "undo": "Annuler",
+      "redo": "Rétablir",
+      "moreOptions": "Plus d'options",
+      "inlineMath": "Maths en ligne",
+      "displayMath": "Maths en bloc",
+      "highlight": "Surligner",
+      "superscript": "Exposant",
+      "subscript": "Indice",
+      "text": "Texte",
+      "cell": "Cellule",
+      "column": "Colonne",
+      "align": "Aligner",
+      "alignRight": "Aligner à droite",
+      "alignLeft": "Aligner à gauche",
+      "alignCenter": "Centrer",
+      "justify": "Justifier",
+      "fontColor": "Couleur de la police"
+    }
   },
   "player": {
     "loop": "Répéter",

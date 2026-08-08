@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -509,6 +508,8 @@
     "verify": "Überprüfen Sie{suffix}",
     "close": "Schließen Sie{suffix}",
     "copy": "Kopieren{suffix}",
+    "paste": "Einfügen",
+    "cut": "Ausschneiden",
     "create": "erstellen.{suffix}",
     "delete": "Löschen{suffix}",
     "download": "Herunterladen{suffix}",
@@ -652,6 +653,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "editButtonInHeader": "Schaltflächen zum Bearbeiten/Vorschau in der Kopfzeile anzeigen",
+    "editButtonInHeaderDescription": "Die Schaltflächen zum Bearbeiten/Vorschau in der Kopfzeile anstelle des Überlaufmenüs anzeigen",
     "hideFileExt": "Bestimmte Dateien ausblenden (nach Erweiterung)",
     "hideFileExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen. Erweiterungen, die in dieses Feld eingegeben werden, werden in der gesamten Benutzeroberfläche ausgeblendet (visuell, z.B. in der Liste oder im Dateibaum) – sie bleiben jedoch zugänglich.",
     "preferEditorForMarkdown": "Editor für Markdown-Dateien bevorzugen",
@@ -728,12 +731,83 @@
     "darkMode": "Dunkler Modus"
   },
   "editor": {
-    "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
-    "saveAbortedMessage": "Der Speichervorgang wurde abgebrochen. Die aktive Datei der Anwendung ({activeFile}) stimmt nicht mit der Datei überein, die Sie zu speichern versuchen ({tryingToSave}).",
-    "fileSaved": "Datei gespeichert!",
-    "lines": "{count} Zeilen",
-    "words": "{count} Wörter",
-    "chars": "{count} Zeichen"
+    "stats": {
+      "lines": "{count} Zeilen",
+      "words": "{count} Wörter",
+      "chars": "{count} Zeichen"
+    },
+    "settings": {
+      "title": "Editor-Einstellungen",
+      "keybinding": {
+        "label": "Tastaturbelegung",
+        "description": "Legen Sie Ihre bevorzugten Tastaturkürzel fest!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Überlauf",
+        "description": "Wie weit der Editor über das Ende des Inhalts hinaus scrollen kann",
+        "none": "Keine",
+        "half": "Halb",
+        "full": "Voll"
+      },
+      "tabSize": {
+        "label": "Tab-Größe",
+        "description": "Wie viele Leerzeichen die 'TAB'-Taste standardmäßig einfügen soll"
+      },
+      "showIndentGuides": "Einrückungshilfen anzeigen",
+      "showIndentGuidesDescription": "Einrückungshilfen anzeigen, die Ihnen bei der Bearbeitung von verschachteltem Code eine bessere Orientierung bieten",
+      "showGutter": "Zeilennummernbereich anzeigen",
+      "showGutterDescription": "Der Container, in dem sich die Zeilennummern links befinden",
+      "fixedGutterWidth": "Feste Breite des Zeilennummernbereichs",
+      "fixedGutterWidthDescription": "Wenn deaktiviert, wird die Größe des Zeilennummernbereichs beim Scrollen je nach Anzahl der Zeilen in der Datei schrittweise vergrößert",
+      "showLineNumbers": "Zeilennummern anzeigen",
+      "showLineNumbersDescription": "Zeilennummern im linken Bereich anzeigen, der Bereich selbst wird nicht ausgeblendet",
+      "relativeLineNumbers": "Relative Zeilennummern",
+      "relativeLineNumbersDescription": "Zeilennummern relativ zur aktuellen Cursorposition anzeigen",
+      "customScrollbar": "Benutzerdefinierte Bildlaufleiste",
+      "customScrollbarDescription": "Die native Browser-Bildlaufleiste durch die integrierte Ace-Bildlaufleiste ersetzen",
+      "wrapContent": "Lange Zeilen im Editor umbrechen",
+      "wrapContentDescription": "Umbrüche den Editor-Inhalt, damit sehr lange Zeilen immer sichtbar bleiben"
+    },
+    "uninitialized": "Editor konnte nicht initialisiert werden. Bitte neu laden.",
+    "saveAbortedMessage": "Speichervorgang abgebrochen. Die aktive Datei ({activeFile}) stimmt nicht mit der zu speichernden Datei ({tryingToSave}) überein.",
+    "splitView": "Geteilte Ansicht",
+    "exitSplitView": "Geteilte Ansicht beenden",
+    "md": {
+      "clipboardActions": "Zwischenablage-Aktionen",
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "strikethrough": "Durchgestrichen",
+      "heading": "Überschrift",
+      "quote": "Zitat",
+      "inlineCode": "Inline-Code",
+      "codeBlock": "Codeblock",
+      "bulletList": "Aufzählungsliste",
+      "numberedList": "Nummerierte Liste",
+      "taskList": "Aufgabenliste",
+      "horizontalRule": "Horizontale Linie",
+      "undo": "Rückgängig",
+      "redo": "Wiederholen",
+      "moreOptions": "Weitere Optionen",
+      "inlineMath": "Inline-Mathe",
+      "displayMath": "Angezeigte Mathe",
+      "highlight": "Hervorhebung",
+      "superscript": "Hochgestellt",
+      "subscript": "Tiefgestellt",
+      "text": "Text",
+      "cell": "Zelle",
+      "column": "Spalte",
+      "align": "Ausrichtung",
+      "alignRight": "Rechtsbündig",
+      "alignLeft": "Linksbündig",
+      "alignCenter": "Zentrieren",
+      "justify": "Blocksatz",
+      "fontColor": "Schriftfarbe"
+    }
   },
   "player": {
     "loop": "Wiederholung",

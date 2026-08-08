@@ -29,16 +29,16 @@
       </div>
       <div v-else-if="activeTab === 'lyrics'" class="tab-lyrics">
         <!-- Lock button -->
-        <button
+        <FloatingButton
           v-if="lyrics.length && syncedLyrics"
-          type="button"
-          class="lyrics-lock-btn"
+          icon="lock"
+          :icon-outlined="lyricsScrollLocked"
+          size="small"
+          :auto-hide="false"
+          :offset="{ position: 'absolute', top: '0.5em', right: '0.5em' }"
           @click="lyricsScrollLocked = !lyricsScrollLocked"
-          :title="lyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
-        >
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          <i :class="lyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ lyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
-        </button>
+          :label="lyricsLockToggleLabel"
+        />
         <!-- Scrollable area -->
         <div class="lyrics-scrollable" ref="lyricsScrollable">
           <div v-if="lyrics.length" class="lyrics-list">
@@ -64,15 +64,14 @@
         </div>
       </div>
       <div v-else-if="activeTab === 'visualizer'" class="tab-visualizer">
-        <button
-          type="button"
-          class="lyrics-lock-btn"
+        <FloatingButton
+          icon="tune"
+          size="small"
+          :auto-hide="false"
+          :offset="{ position: 'absolute', top: '0.5em', right: '0.5em' }"
           @click="showVisualizerSettings"
-          :title="$t('player.visualizer.settings')"
-          :aria-label="$t('player.visualizer.settings')"
-        >
-          <i class="material-symbols">tune</i>
-        </button>
+          :label="visualizerSettingsLabel"
+        />
         <canvas ref="visualizerCanvas" class="visualizer-canvas"></canvas>
       </div>
     </div>
@@ -81,6 +80,7 @@
 
 <script>
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
+import FloatingButton from "@/components/FloatingButton.vue";
 import { getters, mutations, state } from "@/store";
 import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
@@ -108,7 +108,7 @@ const FREQ_LABELS = [
 
 export default {
   name: "AudioPanel",
-  components: { PlaybackQueue },
+  components: { PlaybackQueue, FloatingButton },
   props: {
     lyrics: { type: Array, default: () => [] },
     activeLyricIndex: { type: Number, default: -1 },
@@ -166,6 +166,12 @@ export default {
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
+    },
+    lyricsLockToggleLabel() {
+      return this.lyricsScrollLocked ? this.$t('player.unlockLyrics') : this.$t('player.lockLyrics');
+    },
+    visualizerSettingsLabel() {
+      return this.$t('player.visualizer.settings');
     },
     // tabs in the panel
     indicatorStyle() {
@@ -906,30 +912,6 @@ export default {
 
 .lyric-line.no-seek {
   cursor: default;
-}
-
-.audio-side-panel .lyrics-lock-btn {
-  position: absolute;
-  top: 0.5em;
-  right: 0.5em;
-  z-index: 10;
-  background: var(--background);
-  border: 1px solid var(--divider);
-  border-radius: 50%;
-  width: 2em;
-  height: 2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--textSecondary);
-  transition: 0.2s;
-}
-
-.audio-side-panel .lyrics-lock-btn:hover {
-  background: var(--primaryColor);
-  color: white;
-  border-color: var(--primaryColor);
 }
 
 .tab-btn:hover:not(.active) {

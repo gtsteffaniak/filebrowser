@@ -117,7 +117,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -509,6 +508,8 @@
     "verify": "Verificar{suffix}",
     "close": "Fechar{suffix}",
     "copy": "Cópia{suffix}",
+    "paste": "Colar",
+    "cut": "Cortar",
     "create": "Criar{suffix}",
     "delete": "Excluir{suffix}",
     "download": "Baixar{suffix}",
@@ -652,6 +653,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "editButtonInHeader": "Mostrar botões de editar/pré-visualização no cabeçalho",
+    "editButtonInHeaderDescription": "Mostrar os botões de editar/pré-visualização no cabeçalho em vez do menu de overflow",
     "hideFileExt": "Ocultar certos arquivos (por extensão)",
     "hideFileExtDescription": "Uma lista de extensões de arquivo separadas por espaços. As extensões inseridas neste campo serão ocultadas em toda a interface do usuário (visualmente, como na lista ou árvore de arquivos) — Continuam acessíveis.",
     "preferEditorForMarkdown": "Preferir editor primeiro para arquivos Markdown",
@@ -728,12 +731,83 @@
     "darkMode": "Modo escuro"
   },
   "editor": {
-    "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
-    "saveAbortedMessage": "Operação de salvamento abortada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
-    "fileSaved": "Arquivo salvo!",
-    "lines": "{count} linhas",
-    "words": "{count} palavras",
-    "chars": "{count} caracteres"
+    "stats": {
+      "lines": "{count} linhas",
+      "words": "{count} palavras",
+      "chars": "{count} caracteres"
+    },
+    "settings": {
+      "title": "Configurações do editor",
+      "keybinding": {
+        "label": "Atalhos de teclado",
+        "description": "Defina seus atalhos de teclado preferidos!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Rolagem excessiva",
+        "description": "Quanto o editor pode rolar além do final do conteúdo",
+        "none": "Nenhum",
+        "half": "Metade",
+        "full": "Completo"
+      },
+      "tabSize": {
+        "label": "Tamanho do Tab",
+        "description": "Quantos espaços a tecla 'TAB' deve fazer por padrão"
+      },
+      "showIndentGuides": "Mostrar guias de indentação",
+      "showIndentGuidesDescription": "Mostra guias de indentação, o que lhe dá uma melhor orientação ao editar código aninhado",
+      "showGutter": "Mostrar margem",
+      "showGutterDescription": "O contêiner onde os números de linha estão à esquerda",
+      "fixedGutterWidth": "Largura de margem fixa",
+      "fixedGutterWidthDescription": "Quando desativado, aumenta o tamanho da margem gradualmente durante a rolagem, dependendo do número de linhas do arquivo",
+      "showLineNumbers": "Mostrar números de linha",
+      "showLineNumbersDescription": "Mostra números de linha na margem esquerda, não oculta a própria margem",
+      "relativeLineNumbers": "Números de linha relativos",
+      "relativeLineNumbersDescription": "Mostra números de linha relativos à posição atual do cursor",
+      "customScrollbar": "Barra de rolagem personalizada",
+      "customScrollbarDescription": "Substituir a barra de rolagem nativa do navegador pela integrada do Ace",
+      "wrapContent": "Quebrar linhas longas no editor",
+      "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis"
+    },
+    "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",
+    "saveAbortedMessage": "Operação de salvamento cancelada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
+    "splitView": "Visualização dividida",
+    "exitSplitView": "Sair da visualização dividida",
+    "md": {
+      "clipboardActions": "Ações da área de transferência",
+      "bold": "Negrito",
+      "italic": "Itálico",
+      "strikethrough": "Tachado",
+      "heading": "Título",
+      "quote": "Citação",
+      "inlineCode": "Código em linha",
+      "codeBlock": "Bloco de código",
+      "bulletList": "Lista com marcadores",
+      "numberedList": "Lista numerada",
+      "taskList": "Lista de tarefas",
+      "horizontalRule": "Linha horizontal",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "moreOptions": "Mais opções",
+      "inlineMath": "Matemática em linha",
+      "displayMath": "Matemática em bloco",
+      "highlight": "Destaque",
+      "superscript": "Sobrescrito",
+      "subscript": "Subscrito",
+      "text": "Texto",
+      "cell": "Célula",
+      "column": "Coluna",
+      "align": "Alinhar",
+      "alignRight": "Alinhar à direita",
+      "alignLeft": "Alinhar à esquerda",
+      "alignCenter": "Alinhar ao centro",
+      "justify": "Justificar",
+      "fontColor": "Cor da fonte"
+    }
   },
   "player": {
     "loop": "Repetir",
