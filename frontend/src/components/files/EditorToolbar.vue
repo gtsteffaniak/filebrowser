@@ -253,10 +253,7 @@ export default {
       if (!this.isMarkdown) {
         return [
           ...alwaysAvailable,
-          { id: "copy", icon: "content_copy", title: this.$t("general.copy"), action: () => this.copySelection() },
-          { id: "cut", icon: "content_cut", title: this.$t("general.cut"), action: () => this.cutSelection() },
-          { id: "paste", icon: "content_paste", title: this.$t("general.paste"), action: () => this.pasteClipboard() },
-          { id: "selectAll", icon: "select_all", title: this.$t("buttons.selectAll"), action: () => this.selectAllText() },
+          ...this.clipboardMenuItems,
         ];
       }
       return [

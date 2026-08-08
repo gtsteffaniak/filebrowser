@@ -1,4 +1,5 @@
 import { reactive } from 'vue';
+import { getObjectProperty } from './object';
 
 const STORAGE_KEY = 'editorConfig';
 
@@ -32,7 +33,18 @@ function load(): EditorConfig {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return { ...DEFAULTS };
-    return { ...DEFAULTS, ...JSON.parse(stored) };
+    const parsed = JSON.parse(stored) as unknown;
+    if (!parsed || typeof parsed !== 'object') return { ...DEFAULTS };
+
+    const validEntries: [string, unknown][] = [];
+    for (const key of Object.keys(DEFAULTS)) {
+      const value = getObjectProperty(parsed as Record<string, unknown>, key);
+      const fallback = getObjectProperty(DEFAULTS, key);
+      if (typeof value === typeof fallback) {
+        validEntries.push([key, value]);
+      }
+    }
+    return { ...DEFAULTS, ...Object.fromEntries(validEntries) } as unknown as EditorConfig;
   } catch (_) {
     return { ...DEFAULTS };
   }

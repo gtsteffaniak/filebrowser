@@ -105,7 +105,7 @@ export default {
           type: "number",
           label: this.$t("editor.settings.tabSize.label"),
           desc: this.$t("editor.settings.tabSize.description"),
-          aria: this.$t("editor.settings.tabSize"),
+          aria: this.$t("editor.settings.tabSize.label"),
           min: 1,
           max: 16,
         },
@@ -115,7 +115,7 @@ export default {
           numeric: true,
           label: this.$t("editor.settings.overscroll.label"),
           desc: this.$t("editor.settings.overscroll.description"),
-          aria: this.$t("editor.settings.overscroll"),
+          aria: this.$t("editor.settings.overscroll.label"),
           options: [
             { value: 0, label: this.$t("editor.settings.overscroll.none") },
             { value: 0.5, label: this.$t("editor.settings.overscroll.half") },
