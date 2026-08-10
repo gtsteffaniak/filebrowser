@@ -28,22 +28,6 @@
     />
     <template v-else>
       <action
-        v-if="showEditButton"
-        class="edit-button"
-        icon="edit"
-        :label="$t('general.edit')"
-        @action="goToEdit"
-        :disabled="isDisabled"
-      />
-      <action
-        v-if="showPreviewButton"
-        class="preview-button"
-        icon="visibility"
-        :label="$t('general.preview')"
-        @action="goToPreview"
-        :disabled="isDisabled"
-      />
-      <action
         v-if="showQuickSave"
         class="save-button"
         id="save-button"
@@ -71,7 +55,6 @@ import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import { globalVars } from "@/utils/constants";
 import { url } from "@/utils";
-import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 
 export default {
   name: "UnifiedHeader",
@@ -144,20 +127,6 @@ export default {
     },
     noItems() {
       return !state.contextMenuHasItems && !getters.isPreviewView();
-    },
-    showEditButton() {
-      if (getters.isSplitViewActive()) return false;
-      if (!state.user?.editButtonInHeader) return false;
-      if (getters.currentView() === "editor") return false;
-      const allowEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
-      return isRichTextPreviewMimeType(state.req.type) && allowEdit;
-    },
-    showPreviewButton() {
-      if (getters.isSplitViewActive()) return false;
-      if (!state.user?.editButtonInHeader) return false;
-      if (getters.currentView() !== "editor") return false;
-      const allowEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowEdit);
-      return isRichTextPreviewMimeType(state.req.type) && allowEdit;
     },
     showSave() {
       return getters.currentView() === "editor" && getters.sourcePermissions().modify;
@@ -242,12 +211,6 @@ export default {
       } else {
         mutations.showPrompt({ name: "OverflowMenu" });
       }
-    },
-    goToEdit() {
-      void router.replace({ hash: "#edit" });
-    },
-    goToPreview() {
-      void router.replace({ hash: "#preview" });
     },
     /** Match StatusBar.adjustViewMode: list vs compact, icons vs gallery from gallery size. */
     resolveViewModeForFamily(baseMode) {

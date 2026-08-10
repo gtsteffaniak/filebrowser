@@ -915,7 +915,6 @@ func SetDefaults(generate bool) Settings {
 				AutoplayMedia:           boolPtr(true),
 				DisableViewingExt:       "",
 				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
-				EditButtonInHeader:      false,
 				PreferEditorForMarkdown: false,
 				DebugOffice:             false,
 			},

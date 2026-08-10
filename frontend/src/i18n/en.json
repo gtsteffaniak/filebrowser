@@ -483,8 +483,6 @@
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
-    "editButtonInHeader": "Show edit/preview buttons in header",
-    "editButtonInHeaderDescription": "Show the edit/preview buttons in the header instead of the overflow menu",
     "enforcedByAdmin": "Your administrator has prevented users from changing this property",
     "hideFileExt": "Hide certain files (by extension)",
     "hideFileExtDescription": "A space-separated list of file extensions. Extensions in this field will be hidden from all the UI (visually, like the listing or FileTree) -- The files still accessible.",

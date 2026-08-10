@@ -533,7 +533,6 @@ export const getters = {
       disableViewingExt: "",
       disableOfficePreviewExt: "",
       disablePreviewExt: "",
-      editButtonInHeader: false,
       preferEditorForMarkdown: false,
       fileLoading: {
         maxConcurrent: 1,

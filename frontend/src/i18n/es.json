@@ -653,8 +653,6 @@
     "orange": "Naranja"
   },
   "profileSettings": {
-    "editButtonInHeader": "Mostrar botones de editar/vista previa en el encabezado",
-    "editButtonInHeaderDescription": "Mostrar los botones de editar/vista previa en el encabezado en lugar del menú",
     "hideFileExt": "Ocultar ciertos archivos (por extensión)",
     "hideFileExtDescription": "Una lista de extensiones de archivo separadas por espacios. Las extensiones que agreges aquí se ocultarán de toda la interfaz (visualmente, como en la lista o en la navegación de árbol) — Los archivos siguen siendo accesibles.",
     "preferEditorForMarkdown": "Preferir editor para archivos Markdown",

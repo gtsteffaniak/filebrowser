@@ -477,8 +477,6 @@
     "orange": "oranje"
   },
   "profileSettings": {
-    "editButtonInHeader": "Toon bewerk-/voorbeeldknoppen in de koptekst",
-    "editButtonInHeaderDescription": "Toon de bewerk-/voorbeeldknoppen in de koptekst in plaats van in het overloopmenu",
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
     "hideFileExtDescription": "Een door spaties gescheiden lijst van bestandsextensies. Extensies die in dit veld worden ingevoerd, worden verborgen in de hele gebruikersinterface (visueel, zoals in de lijst of bestandsboom) — Ze blijven toegankelijk.",
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",

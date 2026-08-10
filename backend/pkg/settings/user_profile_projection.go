@@ -49,7 +49,6 @@ func ProfileFromUser(u *users.User) UserProfile {
 			EditorQuickSave:         u.EditorQuickSave,
 			DisableViewingExt:       u.DisableViewingExt,
 			DisableOnlyOfficeExt:    u.DisableOnlyOfficeExt,
-			EditButtonInHeader:      u.EditButtonInHeader,
 			PreferEditorForMarkdown: u.PreferEditorForMarkdown,
 			DebugOffice:             u.DebugOffice,
 		},
@@ -124,7 +123,6 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.DisableViewingExt = p.FileViewer.DisableViewingExt
 	u.DisableOnlyOfficeExt = p.FileViewer.DisableOnlyOfficeExt
 	u.DisableOfficePreviewExt = p.FileViewer.DisableOnlyOfficeExt
-	u.EditButtonInHeader = p.FileViewer.EditButtonInHeader
 	u.PreferEditorForMarkdown = p.FileViewer.PreferEditorForMarkdown
 	u.DebugOffice = p.FileViewer.DebugOffice
 

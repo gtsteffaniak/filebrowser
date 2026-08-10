@@ -477,8 +477,6 @@
     "orange": "laranja"
   },
   "profileSettings": {
-    "editButtonInHeader": "Mostrar botões de editar/pré-visualização no cabeçalho",
-    "editButtonInHeaderDescription": "Mostrar os botões de editar/pré-visualização no cabeçalho em vez do menu de overflow",
     "hideFileExt": "Ocultar certos ficheiros (por extensão)",
     "hideFileExtDescription": "Uma lista de extensões de ficheiros separadas por espaços. As extensões inseridas neste campo serão ocultadas em toda a interface do utilizador (visualmente, como na lista ou árvore de ficheiros) — Continuam acessíveis.",
     "preferEditorForMarkdown": "Preferir editor primeiro para ficheiros Markdown",

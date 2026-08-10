@@ -653,8 +653,6 @@
     "orange": "オレンジ"
   },
   "profileSettings": {
-    "editButtonInHeader": "ヘッダーに編集/プレビューボタンを表示",
-    "editButtonInHeaderDescription": "オーバーフローメニューの代わりにヘッダーに編集/プレビューボタンを表示",
     "hideFileExt": "特定のファイルを非表示にする（拡張子で）",
     "hideFileExtDescription": "スペース区切りのファイル拡張子リスト。このフィールドに入力された拡張子は、すべてのUI（リストやファイルツリーなどの視覚的な部分）から非表示になります — ただし、アクセスは可能です。",
     "preferEditorForMarkdown": "Markdownファイルではエディタを優先する",

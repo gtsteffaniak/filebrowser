@@ -461,14 +461,12 @@ export default {
     },
     showEditButton() {
       if (getters.isSplitViewActive()) return false;
-      if (state.user?.editButtonInHeader) return false;
       if (getters.currentView() === "editor") return false;
       const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo?.allowEdit);
       return isRichTextPreviewMimeType(state.req.type) && allowEdit;
     },
     showPreviewButton() {
       if (getters.isSplitViewActive()) return false;
-      if (state.user?.editButtonInHeader) return false;
       if (getters.currentView() !== "editor") return false;
       return isRichTextPreviewMimeType(state.req.type);
     },
