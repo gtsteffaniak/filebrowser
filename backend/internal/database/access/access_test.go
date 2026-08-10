@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func idxPath(s string) utils.IndexPath {
@@ -62,30 +62,8 @@ func (s *sqlStoreAdapter) DeleteByID(id uint64) error {
 }
 
 func createTestStorage(t *testing.T) (*access.Storage, *users.Storage) {
-	// Create a temporary directory for the test database
-	tempDir, err := os.MkdirTemp("", "access_test_*")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	t.Cleanup(func() {
-		os.RemoveAll(tempDir)
-	})
-
-	// Create an in-memory SQLite database for tests
-	dbPath := filepath.Join(tempDir, "test.db")
-	sqlStore, _, err := sqldb.NewSQLStore(dbPath)
-	if err != nil {
-		t.Fatalf("failed to create SQL store: %v", err)
-	}
-	t.Cleanup(func() {
-		sqlStore.Close()
-	})
-
-	// Wrap SQLStore with adapter
-	adapter := &sqlStoreAdapter{store: sqlStore}
-	userStore := users.NewStorage(adapter)
-	accessStore := access.NewStorage(userStore)
-	accessStore.SetSQLStore(sqlStore)
+	t.Helper()
+	accessStore, userStore, _ := createTestStorageWithSQL(t)
 	return accessStore, userStore
 }
 
@@ -1767,7 +1745,7 @@ func TestSyncUserGroups_WriteThroughAndReload(t *testing.T) {
 	}
 
 	// Sync to a single group and ensure SQL drops the old membership
-	if err := s.SyncUserGroups("alice", []string{"acme"}); err != nil {
+	if err = s.SyncUserGroups("alice", []string{"acme"}); err != nil {
 		t.Fatalf("SyncUserGroups update: %v", err)
 	}
 	groups, err = sqlStore.GetAllGroups()
@@ -1838,17 +1816,17 @@ func TestAddUserToGroup_WriteThrough(t *testing.T) {
 		t.Fatalf("expected bob in editors in SQL, got %#v", groups)
 	}
 
-	if err := s.RemoveUserFromGroup("editors", "bob"); err != nil {
+	if err = s.RemoveUserFromGroup("editors", "bob"); err != nil {
 		t.Fatalf("RemoveUserFromGroup: %v", err)
 	}
 	groups, err = sqlStore.GetAllGroups()
 	if err != nil {
 		t.Fatalf("GetAllGroups after remove: %v", err)
 	}
-	if _, ok := groups["editors"]; ok {
-		if _, still := groups["editors"]["bob"]; still {
-			t.Fatal("bob should be removed from editors in SQL")
-		}
+	if _, ok := groups["editors"]; !ok {
+		t.Fatal("expected editors group to remain after last member removed")
+	}
+	if _, still := groups["editors"]["bob"]; still {
+		t.Fatal("bob should be removed from editors in SQL")
 	}
 }
-

@@ -103,7 +103,7 @@ func (s *Storage) persistGroupSQLNL(groupname string) {
 	members, ok := s.Groups[groupname]
 	if !ok {
 		if err := s.sqlStore.DeleteGroup(groupname); err != nil {
-			logger.Debugf("delete group %q from sql: %v", groupname, err)
+			logger.Errorf("failed to delete group %q from sql: %v", groupname, err)
 		}
 		return
 	}
@@ -630,9 +630,6 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 		return nil
 	}
 	delete(members, username)
-	if len(s.Groups[group]) == 0 {
-		delete(s.Groups, group)
-	}
 	s.persistGroupSQLNL(group)
 	s.clearAllCaches()
 	return nil
