@@ -38,7 +38,6 @@ server:
             ignoreSymlinks: false         # Excludes symbolic links
         defaultUserScope: "/"             # defaults to root of index "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
-        claimValue: ""                    # if set, only IdP users whose groupsClaim contains this value get the source (empty = public / all defaultEnabled users)
         createUserDir: false              # create a user directory for each user under defaultUserScope + username
         useLogicalSize: false             # calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
         defaultPermissions:               # DefaultPermissions is the template for new user scopes on this source (also synced globally via Access settings).

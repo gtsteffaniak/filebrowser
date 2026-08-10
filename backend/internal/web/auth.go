@@ -150,12 +150,6 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 		if err := state.SyncUserGroups(username, groups); err != nil {
 			logger.Warningf("failed to sync user %s groups: %v", username, err)
 		}
-		switch loginMethod {
-		case users.LoginMethodJwt, users.LoginMethodLdap, users.LoginMethodOidc:
-			if err := refreshAuthenticatedUserScopes(&userValue, groups); err != nil {
-				logger.Warningf("failed to refresh scopes for user %s: %v", username, err)
-			}
-		}
 	}
 	// Verify login method matches
 	if userValue.LoginMethod != loginMethod {
@@ -163,89 +157,6 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	}
 
 	return &userValue, nil
-}
-
-// refreshAuthenticatedUserScopes aligns BackendScopes with defaultEnabled sources
-// filtered by claimValue against IdP groups. Preserves per-source permissions for
-// sources that remain; applies defaults for newly granted sources. Non-defaultEnabled
-// scopes (admin-assigned) are kept.
-func refreshAuthenticatedUserScopes(user *users.User, groups []string) error {
-	desired := settings.BackendScopesForGroups(groups)
-	existingByPath := make(map[string]users.BackendScope, len(user.BackendScopes))
-	for _, s := range user.BackendScopes {
-		existingByPath[s.Path] = s
-	}
-
-	sourceDefaults := settings.DefaultSourceFilePermissions()
-	if user.Permissions.Admin {
-		sourceDefaults = settings.AdminSourceFilePermissions()
-	}
-
-	newScopes := make([]users.BackendScope, 0, len(desired)+len(user.BackendScopes))
-	seen := make(map[string]struct{}, len(desired)+len(user.BackendScopes))
-	for _, d := range desired {
-		seen[d.Path] = struct{}{}
-		if existing, ok := existingByPath[d.Path]; ok {
-			keep := existing
-			if keep.Scope == "" {
-				keep.Scope = d.Scope
-			}
-			if keep.Permissions.IsUnset() {
-				keep.Permissions = sourceDefaults
-			}
-			newScopes = append(newScopes, keep)
-			continue
-		}
-		newScopes = append(newScopes, users.BackendScope{
-			Path:        d.Path,
-			Scope:       d.Scope,
-			Permissions: sourceDefaults,
-		})
-	}
-	// Keep admin-assigned scopes for sources that are not defaultEnabled (claim filter
-	// only authoritatively manages defaultEnabled sources).
-	for _, existing := range user.BackendScopes {
-		if _, ok := seen[existing.Path]; ok {
-			continue
-		}
-		src := settings.Config.Server.SourceMap[existing.Path]
-		if src != nil && src.Config.DefaultEnabled {
-			// Dropped: defaultEnabled source not in desired (other tenant claimValue).
-			continue
-		}
-		seen[existing.Path] = struct{}{}
-		newScopes = append(newScopes, existing)
-	}
-
-	if backendScopePathsEqual(user.BackendScopes, newScopes) {
-		return nil
-	}
-
-	user.BackendScopes = newScopes
-	if user.BackendSourcePermissions == nil {
-		user.BackendSourcePermissions = make(map[string]users.SourceFilePermissions)
-	}
-	for _, scope := range user.BackendScopes {
-		user.BackendSourcePermissions[scope.Path] = scope.Permissions
-	}
-	settings.ExpandBackendScopesForCreateUserDir(user)
-	return state.UpdateUser(user, "", "backendScopes")
-}
-
-func backendScopePathsEqual(a, b []users.BackendScope) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	paths := make(map[string]struct{}, len(a))
-	for _, s := range a {
-		paths[s.Path] = struct{}{}
-	}
-	for _, s := range b {
-		if _, ok := paths[s.Path]; !ok {
-			return false
-		}
-	}
-	return true
 }
 
 func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {

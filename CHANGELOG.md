@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
 
  **Bugfixes**:
- - `sources[].config.claimValue` — bind default-enabled sources to IdP group/tenant values from `groupsClaim` (JWT/OIDC/LDAP). See [Sources claimValue](https://filebrowserquantum.com/en/docs/configuration/sources/#claimvalue).
+ - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).
 
 ## v2.0.0
 
