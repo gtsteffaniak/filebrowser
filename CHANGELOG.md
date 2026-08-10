@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.1
+
+ **Notes**:
+ - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
+
+ **Bugfixes**:
+ - `sources[].config.claimValue` — bind default-enabled sources to IdP group/tenant values from `groupsClaim` (JWT/OIDC/LDAP). See [Sources claimValue](https://filebrowserquantum.com/en/docs/configuration/sources/#claimvalue).
+
 ## v2.0.0
 
 This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions, [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) for a full summary, and the [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to convert legacy config.

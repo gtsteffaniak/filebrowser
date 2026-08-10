@@ -32,6 +32,41 @@ func ConvertPermissionsToUsers(p UserDefaultsAccountPermissions) users.Permissio
 
 const DefaultUsersHomeBasePath = "/users"
 
+// BackendScopesForGroups returns defaultEnabled sources the user should receive:
+// sources with empty claimValue (public to all new users), plus sources whose
+// claimValue is present in groups (IdP/tenant binding). Password and other
+// non-group logins pass nil/empty groups and only receive public sources.
+func BackendScopesForGroups(groups []string) []users.BackendScope {
+	groupSet := make(map[string]struct{}, len(groups))
+	for _, g := range groups {
+		if g == "" {
+			continue
+		}
+		groupSet[g] = struct{}{}
+	}
+	var scopes []users.BackendScope
+	for _, source := range Config.Server.Sources {
+		if source == nil || !source.Config.DefaultEnabled {
+			continue
+		}
+		cv := source.Config.ClaimValue
+		if cv != "" {
+			if _, ok := groupSet[cv]; !ok {
+				continue
+			}
+		}
+		scope := source.Config.DefaultUserScope
+		if scope == "" {
+			scope = "/"
+		}
+		scopes = append(scopes, users.BackendScope{
+			Path:  source.Path,
+			Scope: scope,
+		})
+	}
+	return scopes
+}
+
 // AuthMethod describes an authentication method.
 type AuthMethod string
 
@@ -95,22 +130,20 @@ func ApplyUserDefaultsFrom(u *users.User, d UserDefaults) {
 	sourceDefaults := DefaultSourceFilePermissions()
 
 	if len(u.BackendScopes) == 0 {
-		for _, source := range Config.Server.Sources {
-			if source.Config.DefaultEnabled {
-				u.BackendScopes = append(u.BackendScopes, users.BackendScope{
-					Path:  source.Path,
-					Scope: source.Config.DefaultUserScope,
-				})
-				if len(u.SidebarLinks) == 0 {
-					u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
-						Name:       source.Name,
-						Category:   "source",
-						Target:     "/",
-						Icon:       "",
-						SourceName: source.Path,
-					})
-				}
+		u.BackendScopes = BackendScopesForGroups(nil)
+		if len(u.SidebarLinks) == 0 && len(u.BackendScopes) > 0 {
+			scope := u.BackendScopes[0]
+			name := scope.Path
+			if src := Config.Server.SourceMap[scope.Path]; src != nil && src.Name != "" {
+				name = src.Name
 			}
+			u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
+				Name:       name,
+				Category:   "source",
+				Target:     "/",
+				Icon:       "",
+				SourceName: scope.Path,
+			})
 		}
 	}
 

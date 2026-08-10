@@ -232,6 +232,7 @@ type SourceConfig struct {
 	Rules            []ConditionalRule `json:"rules"`                   // list of item rules to apply to specific paths
 	DefaultUserScope string            `json:"defaultUserScope"`        // defaults to root of index "/" should match folders under path
 	DefaultEnabled   bool              `json:"defaultEnabled"`          // should be added as a default source for new users?
+	ClaimValue       string            `json:"claimValue,omitempty"`    // if set, only IdP users whose groupsClaim contains this value get the source (empty = public / all defaultEnabled users)
 	CreateUserDir    bool              `json:"createUserDir"`           // create a user directory for each user under defaultUserScope + username
 	UseLogicalSize   bool              `json:"useLogicalSize"`          // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
 	// DefaultPermissions is the template for new user scopes on this source (also synced globally via Access settings).

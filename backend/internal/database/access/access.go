@@ -89,9 +89,37 @@ func (s *Storage) SetSQLStore(sqlStore SQLPersister) {
 	s.sqlStore = sqlStore
 }
 
-// Flush is a no-op; access rule updates already write through sqlStore when configured.
+// Flush is a no-op; access rule and group updates already write through sqlStore when configured.
 func (s *Storage) Flush() error {
 	return nil
+}
+
+// persistGroupSQLNL upserts or deletes one groups row to match in-memory state.
+// Caller must hold s.mux. If the group is absent from s.Groups, it is deleted from SQL.
+func (s *Storage) persistGroupSQLNL(groupname string) {
+	if s.sqlStore == nil {
+		return
+	}
+	members, ok := s.Groups[groupname]
+	if !ok {
+		if err := s.sqlStore.DeleteGroup(groupname); err != nil {
+			logger.Debugf("delete group %q from sql: %v", groupname, err)
+		}
+		return
+	}
+	if err := s.sqlStore.SaveGroup(groupname, members); err != nil {
+		logger.Errorf("failed to save group %q: %v", groupname, err)
+	}
+}
+
+// ensureGroupExistsNL creates an empty in-memory group if missing and write-through persists it.
+// Caller must hold s.mux.
+func (s *Storage) ensureGroupExistsNL(groupname string) {
+	if _, ok := s.Groups[groupname]; ok {
+		return
+	}
+	s.Groups[groupname] = make(StringSet)
+	s.persistGroupSQLNL(groupname)
 }
 
 // NewStorage creates a new Storage instance.
@@ -235,13 +263,11 @@ func (s *Storage) AllowUser(sourcePath string, indexPath utils.IndexPath, userna
 }
 
 // DenyGroup adds a group to the deny list for a given source and index path.
+// Unknown groups are auto-created (empty) so admins can configure rules before first SSO sync.
 func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	_, ok := s.Groups[groupname]
-	if !ok {
-		return fmt.Errorf("group '%s' does not exist", groupname)
-	}
+	s.ensureGroupExistsNL(groupname)
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Deny.Groups[groupname]; ok {
 		return errors.ErrExist
@@ -253,13 +279,11 @@ func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupn
 }
 
 // AllowGroup adds a group to the allow list for a given source and index path.
+// Unknown groups are auto-created (empty) so admins can configure rules before first SSO sync.
 func (s *Storage) AllowGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	_, ok := s.Groups[groupname]
-	if !ok {
-		return fmt.Errorf("group '%s' does not exist", groupname)
-	}
+	s.ensureGroupExistsNL(groupname)
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Allow.Groups[groupname]; ok {
 		return errors.ErrExist
@@ -516,6 +540,8 @@ func (s *Storage) AddUserToGroup(group, username string) error {
 		return nil
 	}
 	s.Groups[group][username] = struct{}{}
+	s.persistGroupSQLNL(group)
+	s.clearAllCaches()
 	return nil
 }
 
@@ -546,26 +572,30 @@ func (s *Storage) GetUserGroups(username string) []string {
 
 // SyncUserGroups updates a user's group memberships.
 // It removes the user from groups not in the new list and adds them to new ones.
+// Changes are write-through to SQL when a sqlStore is configured.
 func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	changed := false
+	affected := make(map[string]struct{})
 
 	// Create a set of new groups for efficient lookup
 	newGroupsSet := make(StringSet, len(newGroups))
 	for _, g := range newGroups {
+		if g == "" {
+			continue
+		}
 		newGroupsSet[g] = struct{}{}
 	}
 
 	// Iterate over all existing groups to find the user's current memberships
-	for group, users := range s.Groups {
-		_, userIsInGroup := users[username]
+	for group, members := range s.Groups {
+		_, userIsInGroup := members[username]
 		_, groupIsInNewSet := newGroupsSet[group]
 
 		// If user is in a group that is not in their new set of groups, remove them.
 		if userIsInGroup && !groupIsInNewSet {
 			delete(s.Groups[group], username)
-			changed = true
+			affected[group] = struct{}{}
 		}
 	}
 
@@ -576,11 +606,14 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 		}
 		if _, ok := s.Groups[group][username]; !ok {
 			s.Groups[group][username] = struct{}{}
-			changed = true
+			affected[group] = struct{}{}
 		}
 	}
-	if changed {
-		return nil
+	for group := range affected {
+		s.persistGroupSQLNL(group)
+	}
+	if len(affected) > 0 {
+		s.clearAllCaches()
 	}
 	return nil
 }
@@ -589,17 +622,19 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 func (s *Storage) RemoveUserFromGroup(group, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	users, ok := s.Groups[group]
+	members, ok := s.Groups[group]
 	if !ok {
 		return nil
 	}
-	if _, ok := users[username]; !ok {
+	if _, ok := members[username]; !ok {
 		return nil
 	}
-	delete(users, username)
+	delete(members, username)
 	if len(s.Groups[group]) == 0 {
 		delete(s.Groups, group)
 	}
+	s.persistGroupSQLNL(group)
+	s.clearAllCaches()
 	return nil
 }
 
