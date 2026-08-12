@@ -190,6 +190,7 @@ class UploadManager {
 
         const upload = {
           id: this.nextId++,
+          sessionId: crypto.randomUUID(),
           name: dirName,
           size: 0,
           progress: 0,
@@ -212,6 +213,7 @@ class UploadManager {
       const destinationPath = `${basePath}${relativePath}`;
       const upload = {
         id,
+        sessionId: crypto.randomUUID(),
         file,
         name: file.name,
         size: file.size,
@@ -355,10 +357,12 @@ class UploadManager {
         let promise;
         if (getters.isShare()) {
           promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
+            "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
           });
         } else {
           promise = resourcesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
+            "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
           });
         }
@@ -415,6 +419,7 @@ class UploadManager {
             upload.overwrite,
             chunkProgress,
             {
+              "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
             }
@@ -427,6 +432,7 @@ class UploadManager {
             upload.overwrite,
             chunkProgress,
             {
+              "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
             }

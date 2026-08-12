@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -24,8 +25,21 @@ var uploadTestResolverMu sync.Mutex
 func setupUploadHTTPTest(t *testing.T) (root string, user *users.User) {
 	t.Helper()
 	uploadTestResolverMu.Lock()
+
+	prevFilePerm := fileutils.PermFile
+	prevDirPerm := fileutils.PermDir
+	prevSourceMap := settings.Config.Server.SourceMap
+	prevNameToSource := settings.Config.Server.NameToSource
+	prevSourceResolver := users.GetSourceNameResolver()
+	prevSourceConfig := users.GetSourceConfig()
+
 	t.Cleanup(func() {
 		indexing.ClearTestIndices()
+		fileutils.SetFsPermissions(uint32(prevFilePerm), uint32(prevDirPerm))
+		settings.Config.Server.SourceMap = prevSourceMap
+		settings.Config.Server.NameToSource = prevNameToSource
+		users.SetSourceNameResolver(prevSourceResolver)
+		users.SetSourceConfig(prevSourceConfig)
 		uploadTestResolverMu.Unlock()
 	})
 
@@ -103,6 +117,12 @@ func postUpload(
 	if contentLength >= 0 {
 		req.ContentLength = contentLength
 	}
+	if headers == nil {
+		headers = map[string]string{}
+	}
+	if _, ok := headers["X-File-Upload-Session"]; !ok {
+		headers["X-File-Upload-Session"] = "test-session"
+	}
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -149,12 +169,38 @@ func TestValidateReceivedBytes(t *testing.T) {
 	}
 }
 
+func TestValidateChunkBounds(t *testing.T) {
+	t.Parallel()
+
+	if err := validateChunkBounds(0, 10, 100); err != nil {
+		t.Fatalf("valid bounds: %v", err)
+	}
+	if err := validateChunkBounds(-1, 10, 100); err == nil {
+		t.Fatal("expected negative offset error")
+	}
+	if err := validateChunkBounds(101, 1, 100); err == nil {
+		t.Fatal("expected offset exceeds total error")
+	}
+	if err := validateChunkBounds(90, 20, 100); err == nil {
+		t.Fatal("expected chunk exceeds remaining error")
+	}
+	if err := validateChunkBounds(math.MaxInt64, 1, math.MaxInt64); err == nil {
+		t.Fatal("expected offset overflow error")
+	}
+	if err := validateAssembledSize(90, 20, 100); err == nil {
+		t.Fatal("expected assembled size error")
+	}
+}
+
 func TestUploadTempPathStable(t *testing.T) {
 	t.Parallel()
-	a := uploadTempPath("/data/photo.jpg")
-	b := uploadTempPath("/data/photo.jpg")
+	a := uploadTempPath("/data/photo.jpg", "session-a")
+	b := uploadTempPath("/data/photo.jpg", "session-a")
 	if a != b {
 		t.Fatalf("expected stable temp path, got %q and %q", a, b)
+	}
+	if a == uploadTempPath("/data/photo.jpg", "session-b") {
+		t.Fatal("expected different sessions to use different temp paths")
 	}
 	if filepath.Ext(a) != ".tmp" {
 		t.Fatalf("expected .tmp suffix, got %q", a)
@@ -256,7 +302,7 @@ func TestResourcePostHandler_ChunkedShortChunkContentLength(t *testing.T) {
 	}
 
 	realPath := filepath.Join(root, "short.bin")
-	tempPath := uploadTempPath(realPath)
+	tempPath := uploadTempPath(realPath, "test-session")
 	info, err := os.Stat(tempPath)
 	if err != nil {
 		t.Fatalf("expected temp preserved: %v", err)
@@ -313,7 +359,7 @@ func TestResourcePostHandler_ChunkedKeepsPartialOnBodyError(t *testing.T) {
 	}
 
 	realPath := filepath.Join(root, "resume.bin")
-	tempPath := uploadTempPath(realPath)
+	tempPath := uploadTempPath(realPath, "test-session")
 	info, err := os.Stat(tempPath)
 	if err != nil {
 		t.Fatalf("expected temp preserved: %v", err)
@@ -338,5 +384,69 @@ func TestResourcePostHandler_ChunkedKeepsPartialOnBodyError(t *testing.T) {
 	want := append(append([]byte{}, part1...), part2...)
 	if !bytes.Equal(got, want) {
 		t.Fatalf("resumed contents mismatch: got %q want %q", got, want)
+	}
+}
+
+func TestResourcePostHandler_ChunkOffsetExceedsTotal(t *testing.T) {
+	_, user := setupUploadHTTPTest(t)
+	body := []byte("data")
+	status, err := postUpload(t, user, "/big.bin", bytes.NewReader(body), int64(len(body)), map[string]string{
+		"X-File-Chunk-Offset": "200",
+		"X-File-Total-Size":   "100",
+	})
+	if status != http.StatusBadRequest || err == nil {
+		t.Fatalf("status=%d err=%v, want 400", status, err)
+	}
+}
+
+func TestResourcePostHandler_ConflictingUploadSessions(t *testing.T) {
+	root, user := setupUploadHTTPTest(t)
+	part1 := []byte("aaaa")
+	total := 8
+
+	status, err := postUpload(t, user, "/race.bin", bytes.NewReader(part1), int64(len(part1)), map[string]string{
+		"X-File-Upload-Session": "session-a",
+		"X-File-Chunk-Offset":   "0",
+		"X-File-Total-Size":     strconv.Itoa(total),
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("chunk1 status=%d err=%v", status, err)
+	}
+
+	status, err = postUpload(t, user, "/race.bin", bytes.NewReader(part1), int64(len(part1)), map[string]string{
+		"X-File-Upload-Session": "session-b",
+		"X-File-Chunk-Offset":   "0",
+		"X-File-Total-Size":     strconv.Itoa(total),
+	})
+	if status != http.StatusConflict || err == nil {
+		t.Fatalf("status=%d err=%v, want 409", status, err)
+	}
+
+	// Non-chunked upload should also conflict with an active chunked session.
+	status, err = postUpload(t, user, "/race.bin", bytes.NewReader([]byte("tiny")), 4, map[string]string{
+		"X-File-Upload-Session": "session-c",
+		"X-File-Total-Size":     "4",
+	})
+	if status != http.StatusConflict || err == nil {
+		t.Fatalf("non-chunked status=%d err=%v, want 409", status, err)
+	}
+
+	// Original session can still resume.
+	part2 := []byte("bbbb")
+	status, err = postUpload(t, user, "/race.bin", bytes.NewReader(part2), int64(len(part2)), map[string]string{
+		"X-File-Upload-Session": "session-a",
+		"X-File-Chunk-Offset":   strconv.Itoa(len(part1)),
+		"X-File-Total-Size":     strconv.Itoa(total),
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("resume status=%d err=%v", status, err)
+	}
+	got, err := os.ReadFile(filepath.Join(root, "race.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := append(append([]byte{}, part1...), part2...)
+	if !bytes.Equal(got, want) {
+		t.Fatalf("assembled mismatch: got %q want %q", got, want)
 	}
 }

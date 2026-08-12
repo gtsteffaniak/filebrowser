@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bugfixes**:
  - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).
- - `defaultEnabled` behavior change/fix so defaultEnabled means its always added to users on startup and login. (updated docs too)
+ - `defaultEnabled` behavior change/fix so defaultEnabled means it is always added to users on startup and login. (updated docs too)
  - upload options get cut off on mobile (#2685)
  - Uploading image: image gets cut-off (#2765)
 
