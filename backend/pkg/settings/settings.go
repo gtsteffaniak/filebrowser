@@ -94,7 +94,6 @@ func MergeDefaultEnabledBackendScopes(existing []users.BackendScope) []users.Bac
 			}
 		} else if src.Config.DefaultEnabled {
 			existingScope = users.BackendScope{
-				Path:  src.Path,
 				Scope: src.Config.DefaultUserScope,
 			}
 		} else {
