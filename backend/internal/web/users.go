@@ -43,9 +43,6 @@ type UserRequest struct {
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users [get]
 func userGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	// since api self is used to validate a logged in user
-	w.Header().Add("X-Renew-Token", "false")
-
 	if strings.TrimSpace(r.URL.Query().Get("id")) != "" {
 		return http.StatusBadRequest, fmt.Errorf("query parameter id is not supported; use username=self for the current user or username=<login>")
 	}

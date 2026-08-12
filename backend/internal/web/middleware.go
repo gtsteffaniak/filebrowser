@@ -455,10 +455,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if tk.RegisteredClaims.ExpiresAt == nil {
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
-		// Check if token is about to expire for renewal header
-		if tk.RegisteredClaims.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
-			w.Header().Add("X-Renew-Token", "true")
-		}
 		userValue, err := state.UserFromAPIToken(tk, data.Token)
 		if err == nil {
 			data.User = &userValue

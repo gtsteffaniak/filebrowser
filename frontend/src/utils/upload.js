@@ -363,6 +363,7 @@ class UploadManager {
           });
         }
 
+        upload.xhrPromise = promise;
         upload.xhr = promise.xhr;
         await promise;
 
@@ -378,6 +379,7 @@ class UploadManager {
       } finally {
         this.activeUploads--;
         upload.xhr = null;
+        upload.xhrPromise = null;
         void this.processQueue();
       }
       return;
@@ -433,6 +435,7 @@ class UploadManager {
           );
         }
 
+        upload.xhrPromise = promise;
         upload.xhr = promise.xhr;
         await promise;
 
@@ -461,6 +464,7 @@ class UploadManager {
 
     this.activeUploads--;
     upload.xhr = null;
+    upload.xhrPromise = null;
     void this.processQueue();
   }
 
@@ -489,9 +493,14 @@ class UploadManager {
     });
   }
 
+  activeXhr(upload) {
+    return upload?.xhrPromise?.xhr || upload?.xhr || null;
+  }
+
   async pause(id) {
     const upload = this.findById(id);
-    if (upload?.status !== "uploading" || !upload.xhr) {
+    const xhr = this.activeXhr(upload);
+    if (upload?.status !== "uploading" || !xhr) {
       return;
     }
     if (upload.type !== "directory" && upload.size >= this.chunkSizeBytes()) {
@@ -505,7 +514,7 @@ class UploadManager {
         console.warn("upload pause signal failed", e);
       }
     }
-    upload.xhr.abort();
+    xhr.abort();
     upload.status = "paused";
     this.clearProgressTimeout(id);
   }
@@ -559,8 +568,9 @@ class UploadManager {
 
   cancel(id) {
     const upload = this.findById(id);
-    if (upload?.status === "uploading" && upload.xhr) {
-      upload.xhr.abort();
+    const xhr = this.activeXhr(upload);
+    if (upload?.status === "uploading" && xhr) {
+      xhr.abort();
     }
     this.clearProgressTimeout(id);
     const index = this.queue.findIndex((item) => item.id === id);
