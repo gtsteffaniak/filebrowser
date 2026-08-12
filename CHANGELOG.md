@@ -6,10 +6,13 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
+ - Session renew is handled by client keep-alive. removed per-request `X-Renew-Token` header handling.
 
  **Bugfixes**:
  - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).
- - `defaultEnabled` behavior change/fix so defaultEnabled means it is always added to users on startup and login. (updated docs too)
+ - `defaultEnabled` behavior change/fix so defaultEnabled means its always added to users on startup and login. (updated docs too)
+ - Long uploads/downloads no longer lose the session mid-transfer: proactive session JWT keep-alive renews before expiry (#2638).
+ - Disable auto logout/session expiry if there are active file transfers going (#2638)
  - upload options get cut off on mobile (#2685)
  - Uploading image: image gets cut-off (#2765)
 

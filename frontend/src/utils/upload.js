@@ -388,6 +388,7 @@ class UploadManager {
           });
         }
 
+        upload.xhrPromise = promise;
         upload.xhr = promise.xhr;
         await promise;
 
@@ -403,6 +404,7 @@ class UploadManager {
       } finally {
         this.activeUploads--;
         upload.xhr = null;
+        upload.xhrPromise = null;
         void this.processQueue();
       }
       return;
@@ -460,6 +462,7 @@ class UploadManager {
           );
         }
 
+        upload.xhrPromise = promise;
         upload.xhr = promise.xhr;
         await promise;
 
@@ -488,6 +491,7 @@ class UploadManager {
 
     this.activeUploads--;
     upload.xhr = null;
+    upload.xhrPromise = null;
     void this.processQueue();
   }
 
@@ -516,9 +520,25 @@ class UploadManager {
     });
   }
 
+  activeXhr(upload) {
+    return upload?.xhrPromise?.xhr || upload?.xhr || null;
+  }
+
+  /** Abort the in-flight upload operation, including a pending 401 renew+retry. */
+  abortUpload(upload) {
+    if (upload?.xhrPromise && typeof upload.xhrPromise.abort === "function") {
+      upload.xhrPromise.abort();
+      return;
+    }
+    const xhr = this.activeXhr(upload);
+    if (xhr && xhr.readyState !== XMLHttpRequest.DONE) {
+      xhr.abort();
+    }
+  }
+
   async pause(id) {
     const upload = this.findById(id);
-    if (upload?.status !== "uploading" || !upload.xhr) {
+    if (upload?.status !== "uploading") {
       return;
     }
     if (upload.type !== "directory" && upload.size >= this.chunkSizeBytes()) {
@@ -532,7 +552,7 @@ class UploadManager {
         console.warn("upload pause signal failed", e);
       }
     }
-    upload.xhr.abort();
+    this.abortUpload(upload);
     upload.status = "paused";
     this.clearProgressTimeout(id);
   }
@@ -586,8 +606,8 @@ class UploadManager {
 
   cancel(id) {
     const upload = this.findById(id);
-    if (upload?.status === "uploading" && upload.xhr) {
-      upload.xhr.abort();
+    if (upload?.status === "uploading" || upload?.status === "paused") {
+      this.abortUpload(upload);
     }
     this.clearProgressTimeout(id);
     const index = this.queue.findIndex((item) => item.id === id);
@@ -633,6 +653,9 @@ class UploadManager {
       }
       if (state.user.fileLoading?.clearAll) {
         if (status === "error" || status === "conflict" || status === "paused") {
+          if (status === "paused") {
+            this.abortUpload(upload);
+          }
           this.clearProgressTimeout(upload.id);
           this.queue.splice(i, 1);
         }

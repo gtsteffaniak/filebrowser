@@ -1,6 +1,72 @@
 import { getters, mutations, state } from "@/store";
 import { globalVars } from "@/utils/constants";
+import { getCookie } from "@/utils/cookie.js";
 import { getApiPath } from "@/utils/url.js";
+
+/** Session JWT: renew when within 30 minutes of expiry (former X-Renew-Token threshold). */
+export const SESSION_REFRESH_BEFORE_MS = 30 * 60 * 1000;
+
+/** View grants: refresh when within 10 minutes of expiry. */
+export const VIEW_REFRESH_BEFORE_MS = 10 * 60 * 1000;
+
+export const SESSION_COOKIE_NAME = "filebrowser_quantum_jwt";
+const KEEP_ALIVE_INTERVAL_MS = 60 * 1000;
+
+let keepAliveTimer = null;
+let renewInFlight = null;
+
+/**
+ * @param {number|null|undefined} expiresAtSeconds Unix expiry in seconds
+ * @param {number} refreshBeforeMs Refresh this many ms before expiry
+ * @returns {number} Milliseconds until a refresh should run (0 = refresh now)
+ */
+export function msUntilRefresh(expiresAtSeconds, refreshBeforeMs) {
+  if (expiresAtSeconds === null || expiresAtSeconds === undefined || !Number.isFinite(expiresAtSeconds)) {
+    return 0;
+  }
+  return Math.max(0, expiresAtSeconds * 1000 - Date.now() - refreshBeforeMs);
+}
+
+/**
+ * @param {number|null|undefined} expiresAtSeconds Unix expiry in seconds
+ * @param {number} refreshBeforeMs Refresh this many ms before expiry
+ * @returns {boolean} True when the token should be refreshed now
+ */
+export function shouldRefreshBeforeExpiry(expiresAtSeconds, refreshBeforeMs) {
+  return msUntilRefresh(expiresAtSeconds, refreshBeforeMs) === 0;
+}
+
+function decodeBase64UrlJson(segment) {
+  const padded = segment.replace(/-/g, "+").replace(/_/g, "/");
+  const padLength = (4 - (padded.length % 4)) % 4;
+  const base64 = padded + "=".repeat(padLength);
+  return JSON.parse(atob(base64));
+}
+
+/** Unix `exp` from the session JWT cookie, or null if missing/unreadable. */
+export function getSessionJwtExpiresAt() {
+  const raw = getCookie(SESSION_COOKIE_NAME);
+  if (!raw) {
+    return null;
+  }
+  // Cookie value may be URI-encoded depending on how it was set.
+  let token = raw;
+  try {
+    token = decodeURIComponent(raw);
+  } catch {
+    // use raw
+  }
+  const parts = token.split(".");
+  if (parts.length < 2) {
+    return null;
+  }
+  try {
+    const payload = decodeBase64UrlJson(parts[1]);
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function validateLogin(isPublicRoute = false) {
   // Use direct fetch to avoid automatic logout on 401
@@ -25,7 +91,7 @@ export async function validateLogin(isPublicRoute = false) {
       !isPublicRoute &&
       document.cookie
         .split(";")
-        .some((c) => c.trim().startsWith("filebrowser_quantum_jwt="))
+        .some((c) => c.trim().startsWith(`${SESSION_COOKIE_NAME}=`))
     ) {
       sessionExpired();
     }
@@ -47,23 +113,74 @@ export async function validateLogin(isPublicRoute = false) {
       throw new Error(body);
     }
   }
+  if (!isPublicRoute) {
+    startSessionKeepAlive();
+  }
   return
 }
 
+/**
+ * Cookie-based session renewal. Concurrent callers share one in-flight request
+ * so mid-upload 401 retries and keep-alive do not stampede /auth/renew.
+ */
 export async function renew() {
-  // Cookie-based renewal - no JWT parameter needed
-  // Backend reads cookie, validates, and sets new cookie
-  const apiPath = getApiPath("auth/renew")
-  const res = await fetch(apiPath, {
-    method: "POST",
-    credentials: 'same-origin', // Cookie is sent automatically, backend renews it
-  });
-  const body = await res.text();
-  if (res.status === 200) {
-    mutations.setSession(generateRandomCode(8));
-    // Backend sets the new cookie, no state management needed
-  } else {
+  if (renewInFlight) {
+    return renewInFlight;
+  }
+  renewInFlight = (async () => {
+    // Backend reads cookie, validates, and sets new cookie
+    const apiPath = getApiPath("auth/renew");
+    const res = await fetch(apiPath, {
+      method: "POST",
+      credentials: "same-origin",
+    });
+    const body = await res.text();
+    if (res.status === 200) {
+      mutations.setSession(generateRandomCode(8));
+      return;
+    }
     throw new Error(body);
+  })().finally(() => {
+    renewInFlight = null;
+  });
+  return renewInFlight;
+}
+
+/**
+ * Renew the session JWT when it is missing or within the refresh window.
+ * Concurrent callers share one in-flight renew; failures return false.
+ */
+export async function ensureSessionFresh(withinMs = SESSION_REFRESH_BEFORE_MS) {
+  if (getters.isShare?.() && !getters.isLoggedIn?.()) {
+    return false;
+  }
+  const exp = getSessionJwtExpiresAt();
+  if (!shouldRefreshBeforeExpiry(exp, withinMs)) {
+    return false;
+  }
+  try {
+    await renew();
+    return true;
+  } catch (err) {
+    console.warn("session keep-alive renew failed:", err);
+    return false;
+  }
+}
+
+export function startSessionKeepAlive() {
+  if (keepAliveTimer !== null) {
+    return;
+  }
+  void ensureSessionFresh();
+  keepAliveTimer = setInterval(() => {
+    void ensureSessionFresh();
+  }, KEEP_ALIVE_INTERVAL_MS);
+}
+
+export function stopSessionKeepAlive() {
+  if (keepAliveTimer !== null) {
+    clearInterval(keepAliveTimer);
+    keepAliveTimer = null;
   }
 }
 
@@ -79,6 +196,7 @@ export function generateRandomCode(length) {
 }
 
 export async function logout(redirectUrl) {
+  stopSessionKeepAlive();
   try {
     const res = await fetch(getApiPath("auth/logout"), {
       method: "POST",
@@ -91,7 +209,7 @@ export async function logout(redirectUrl) {
         destination = redirectUrl;
       }
       // Backend clears the cookie, but frontend does it as fail-safe cleanup
-      document.cookie = "filebrowser_quantum_jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+      document.cookie = `${SESSION_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/`;
       void mutations.setCurrentUser(null);
       // No need to clear state.jwt - cookie is the source of truth
       // Add a small delay to ensure cookie deletion completes before redirect
@@ -115,8 +233,9 @@ export async function logout(redirectUrl) {
 // redirects to the login page so the user can re-authenticate, instead of being
 // stuck on a raw "token is expired" error.
 export function sessionExpired() {
+  stopSessionKeepAlive();
   document.cookie =
-    "filebrowser_quantum_jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+    `${SESSION_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/`;
   void mutations.setCurrentUser(null);
   // Avoid a redirect loop if we're already on the login page.
   if (window.location.pathname.endsWith("/login")) {
@@ -125,14 +244,6 @@ export function sessionExpired() {
   const current = window.location.pathname + window.location.search;
   window.location.href = `${globalVars.baseURL}login?redirect=${encodeURIComponent(current)}`;
 }
-
-// Helper function to retrieve the value of a specific cookie
-//function getCookie(name) {
-//  return document.cookie
-//    .split('; ')
-//    .find(row => row.startsWith(name + '='))
-//    ?.split('=')[1];
-//}
 
 export async function initAuth() {
   if (!getters.isShare()) {

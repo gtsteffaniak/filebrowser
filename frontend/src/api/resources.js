@@ -6,6 +6,7 @@ import {
   notifyDownloadComplete,
   notifyDownloadError,
 } from '@/utils/appNotifications'
+import { renew } from '@/utils/auth'
 import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
 import { rememberViewToken } from './viewToken'
@@ -695,33 +696,79 @@ export function post(
       ...(isDir && { isDir: 'true' })
     });
 
-    const request = new XMLHttpRequest();
-    request.open("POST", apiPath, true);
+    const opState = { xhr: null, aborted: false };
 
-    Object.entries(headers).forEach(([header, value]) => {
-      request.setRequestHeader(header, value);
-    });
+    const rejectIfAborted = (reject) => {
+      if (!opState.aborted) {
+        return false;
+      }
+      reject(new Error("Upload aborted"));
+      return true;
+    };
 
-    if (typeof onupload === "function") {
-      request.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = Math.round(
-            (event.loaded / event.total) * 100
-          );
-          onupload(percentComplete); // Pass the percentage to the callback
+    const startRequest = (isRetry) =>
+      new Promise((resolve, reject) => {
+        if (rejectIfAborted(reject)) {
+          return;
         }
-      };
-    }
+        const request = new XMLHttpRequest();
+        opState.xhr = request;
+        request.open("POST", apiPath, true);
 
-    const promise = new Promise((resolve, reject) => {
-      request.onload = () => {
-        if (request.status >= 200 && request.status < 300) {
-          resolve(request.responseText);
-        } else if (request.status === 409) {
-          const error = new Error("conflict");
-          error.response = { status: request.status, responseText: request.responseText };
-          reject(error);
-        } else {
+        Object.entries(headers).forEach(([header, value]) => {
+          request.setRequestHeader(header, value);
+        });
+
+        if (typeof onupload === "function") {
+          request.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percentComplete = Math.round(
+                (event.loaded / event.total) * 100
+              );
+              onupload(percentComplete);
+            }
+          };
+        }
+
+        request.onload = () => {
+          if (request.status >= 200 && request.status < 300) {
+            resolve(request.responseText);
+            return;
+          }
+          if (request.status === 409) {
+            const error = new Error("conflict");
+            error.response = { status: request.status, responseText: request.responseText };
+            reject(error);
+            return;
+          }
+          // Session expired mid-upload: renew once and retry the same body.
+          if (request.status === 401 && !isRetry && !getters.isShare()) {
+            void renew()
+              .then(() => {
+                if (rejectIfAborted(reject)) {
+                  return;
+                }
+                return startRequest(true).then(resolve, reject);
+              })
+              .catch(() => {
+                if (rejectIfAborted(reject)) {
+                  return;
+                }
+                let errorMessage = "Upload failed";
+                try {
+                  const errorData = JSON.parse(request.responseText);
+                  errorMessage = errorData.message || errorMessage;
+                } catch (_e) {
+                  errorMessage = request.responseText || errorMessage;
+                }
+                const error = new Error(errorMessage);
+                error.status = request.status;
+                error.response = { status: request.status, responseText: request.responseText };
+                notify.showError(errorMessage);
+                reject(error);
+              });
+            return;
+          }
           let errorMessage = "Upload failed";
           try {
             const errorData = JSON.parse(request.responseText);
@@ -734,29 +781,45 @@ export function post(
           error.response = { status: request.status, responseText: request.responseText };
           notify.showError(errorMessage);
           reject(error);
+        };
+
+        request.onerror = () => reject(new Error("Network error"));
+        request.onabort = () => reject(new Error("Upload aborted"));
+
+        if (
+          content instanceof Blob &&
+          !["http:", "https:"].includes(window.location.protocol)
+        ) {
+          new Response(content).arrayBuffer()
+            .then((buffer) => {
+              if (rejectIfAborted(reject)) {
+                return;
+              }
+              request.send(buffer);
+            })
+            .catch((err) => reject(err));
+        } else {
+          request.send(content);
         }
-      };
+      });
 
-      request.onerror = () => reject(new Error("Network error"));
-      request.onabort = () => reject(new Error("Upload aborted"));
-
-      if (
-        content instanceof Blob &&
-        !["http:", "https:"].includes(window.location.protocol)
-      ) {
-        new Response(content).arrayBuffer()
-          .then(buffer => request.send(buffer))
-          .catch(err => reject(err));
-      } else {
-        request.send(content);
-      }
+    const uploadPromise = startRequest(false).then((result) => {
+      invalidateDirMetadataCache({ source, path: getParentDir(path) });
+      return result;
     });
-
-    promise.xhr = request;
-    promise.then(() => {
-      invalidateDirMetadataCache({ source, path: getParentDir(path) })
-    }).catch(() => { /* upload failed, so do nothing*/ });
-    return promise;
+    // Preserve .xhr for pause/abort; re-attach after .then() so callers still see it.
+    void Object.defineProperty(uploadPromise, "xhr", {
+      get: () => opState.xhr,
+      enumerable: true,
+    });
+    // Operation-level abort: stops a pending 401 renew+retry as well as the active XHR.
+    uploadPromise.abort = () => {
+      opState.aborted = true;
+      if (opState.xhr && opState.xhr.readyState !== XMLHttpRequest.DONE) {
+        opState.xhr.abort();
+      }
+    };
+    return uploadPromise;
   } catch (err) {
     notify.showError(err.message || "Error posting resource");
     // We are returning a promise, so we should return a rejected promise on error.
