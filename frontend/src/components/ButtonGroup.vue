@@ -9,7 +9,7 @@
         type="button"
         :key="index"
         class="clickable"
-        :class="{ active: activeButton === index }"
+        :class="{ active: !actionMode && activeButton === index }"
         :disabled="isDisabled"
         @click="setActiveButton(index, btn.value)"
       >
@@ -38,6 +38,11 @@ export default {
       type: String,
       default: "",
     },
+    /** When true, clicks always emit button-clicked (no toggle/active selection). */
+    actionMode: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -51,6 +56,10 @@ export default {
     },
     setActiveButton(index, value) {
       if (this.isDisabled) {
+        return;
+      }
+      if (this.actionMode) {
+        this.$emit("button-clicked", value);
         return;
       }
       if (value === "type:folder" && this.activeButton !== index) {
@@ -83,6 +92,10 @@ export default {
     initialActive: {
       immediate: true,
       handler(newVal) {
+        if (this.actionMode) {
+          this.activeButton = null;
+          return;
+        }
         // Find the button whose value matches initialActive
         const initialIndex = this.buttons.findIndex((btn) => btn.value === newVal);
         this.activeButton = initialIndex !== -1 ? initialIndex : null; // Set to matching button index or null
@@ -98,6 +111,8 @@ export default {
   margin: 1em;
   display: flex;
   flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow: var(--surfaceElevationShadow);
   overflow: hidden;
@@ -106,7 +121,8 @@ export default {
 
 button {
   cursor: pointer;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   height: 3em;
   padding: 8px 16px;
   border: none;
