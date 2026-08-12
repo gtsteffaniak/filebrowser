@@ -47,25 +47,47 @@ export const mutations = {
     emitStateChanged();
   },
   setEditorDirty: (value) => {
-    if (value === state.editorDirty) {
+    if (value === state.editor.dirty) {
       return;
     }
-    state.editorDirty = value;
+    state.editor.dirty = value;
     emitStateChanged();
   },
   setEditorSaveHandler: (handler) => {
-    state.editorSaveHandler = handler;
+    state.editor.saveHandler = handler;
     emitStateChanged();
   },
   setEditorStats: (stats) => {
-    if (JSON.stringify(state.editorStats) === JSON.stringify(stats)) return;
-    state.editorStats = stats;
+    if (JSON.stringify(state.editor.stats) === JSON.stringify(stats)) return;
+    state.editor.stats = stats;
     emitStateChanged();
   },
   setEditorFontSize: (size) => {
-    if (state.editorFontSize === size) return;
-    state.editorFontSize = size;
+    if (state.editor.fontSize === size) return;
+    state.editor.fontSize = size;
     localStorage.setItem('editorFontSize', size);
+    emitStateChanged();
+  },
+  setMarkdownSplitView: (value) => {
+    if (value === state.editor.markdownSplitView) return;
+    state.editor.markdownSplitView = value;
+    sessionStorage.setItem("markdownSplitView", value ? "true" : "false");
+    emitStateChanged();
+  },
+  toggleSplitView: () => {
+    mutations.setMarkdownSplitView(!state.editor.markdownSplitView);
+  },
+  setEditorScrollRatio: (ratio, source) => {
+    state.editor.scrollRatio = ratio;
+    state.editor.scrollSource = source;
+    emitStateChanged();
+  },
+  // Called by both Editor and MarkdownViewer on mounts
+  resetEditorScrollRatio: (path) => {
+    if (state.editor.scrollPath === path) return;
+    state.editor.scrollPath = path;
+    state.editor.scrollRatio = 0;
+    state.editor.scrollSource = null;
     emitStateChanged();
   },
   setDeletedItem: (value) => {
@@ -754,6 +776,13 @@ export const mutations = {
       next.hasPreview = enriched.hasPreview;
     }
     state.req = next;
+    emitStateChanged();
+  },
+  setRequestContent: (content) => {
+    if (!state.req || state.req.content === content) {
+      return;
+    }
+    state.req = { ...state.req, content };
     emitStateChanged();
   },
   setRequestViewToken: (viewToken) => {

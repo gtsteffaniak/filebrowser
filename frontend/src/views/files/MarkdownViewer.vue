@@ -1,5 +1,5 @@
 <template>
-  <div id="markedown-viewer">
+  <div id="markedown-viewer" ref="scrollContainer">
     <iframe
       v-if="isHtml"
       ref="viewer"
@@ -9,47 +9,221 @@
       sandbox="allow-scripts allow-popups allow-same-origin"
       referrerpolicy="no-referrer"
       title="HTML preview"
+      @load="applyHtmlPreviewHeight"
     ></iframe>
     <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
-      <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
+      <div ref="viewer" class="markdown-content">
+        <div
+          v-for="block in renderedContent"
+          :key="block.key"
+          class="md-block"
+          :data-line="block.line"
+          :data-code-line="block.codeLine"
+          v-html="block.html"
+        ></div>
+      </div>
     </div>
-    <div class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
+    <div v-if="!splitMode && !isHtml" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
   </div>
+  <FloatingButton
+    v-if="!splitMode && showSplitViewToggle"
+    icon="vertical_split"
+    :label="splitViewActionLabel"
+    @click="toggleSplitView"
+  />
 </template>
 
 <script lang="ts">
-import { Marked } from "marked";
+import type { PropType } from "vue";
+import type { HLJSApi } from 'highlight.js';
+import { Marked, Token } from "marked";
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
-import hljs from 'highlight.js';
+import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
+import FloatingButton from "@/components/FloatingButton.vue";
 import {
   buildHtmlPreview,
   buildPreviewResourceUrl,
+  rewriteHtmlResources,
+  rewriteDocumentStyles,
 } from "@/utils/htmlPreview";
 
-import githubLightCss from "highlight.js/styles/github.min.css?raw";
-import githubDarkCss from "highlight.js/styles/github-dark.min.css?raw";
+// Lazy load highlight.js -- it was making the viewer bloated, so now is on its own chunk grouped with its theme
+let hljsPromise: Promise<HLJSApi> | null = null;
+function loadHljs(): Promise<HLJSApi> {
+  if (hljsPromise === null) {
+    hljsPromise = import('highlight.js').then((mod) => mod.default).catch((err) => {
+      hljsPromise = null; // allow a later render to retry
+      throw err;
+    });
+  }
+  return hljsPromise;
+}
+
+const highlightCssPromises = new Map<"light" | "dark", Promise<string>>();
+function loadHighlightCss(variant: "light" | "dark"): Promise<string> {
+  let promise = highlightCssPromises.get(variant);
+  if (promise === undefined) {
+    promise = (
+      variant === "dark"
+        ? import("highlight.js/styles/github-dark.min.css?raw")
+        : import("highlight.js/styles/github.min.css?raw")
+    ).then((mod) => mod.default);
+    highlightCssPromises.set(variant, promise);
+  }
+  return promise;
+}
+
+const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
+
+const marked = new Marked({ gfm: true, breaks: true });
+marked.use({
+  extensions: [{
+    name: "blockKatexInterrupt",
+    level: "block",
+    start(src: string) {
+      const m = src.match(/\n\${1,2}[ \t]*(?:\n|$)/);
+      return m ? m.index : undefined;
+    },
+    tokenizer() { return undefined; },
+  }],
+});
+
+// Lazy load katex + mhchem (math + chemistry) -- so md files that don't have math/chemistry notation simply will not load katex
+// making the file load more faster, similar thing to the async components.
+const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^\s$][^$\n]*\$/;
+function contentHasMath(content: string): boolean {
+  return MATH_PATTERN.test(content);
+}
+let katexLoaded = false;
+let katexPromise: Promise<void> | null = null;
+function loadKatex(): Promise<void> {
+  if (katexLoaded) return Promise.resolve();
+  if (katexPromise === null) {
+    katexPromise = Promise.all([
+      import("marked-katex-extension"),
+      import("katex/contrib/mhchem"), // To render chemistry formulas
+    ]).then(([{ default: markedKatex }]) => {
+      marked.use(markedKatex({ throwOnError: false, output: "mathml" }));
+      katexLoaded = true;
+    }).catch((err) => {
+      console.error("Failed to load katex:", err);
+      katexPromise = null;
+      throw err;
+    });
+  }
+  return katexPromise;
+}
+
+// Void elements that not always need a closing tag
+const VOID_ELEMENTS = new Set([
+  "area", "base", "br", "col", "embed", "hr", "img", "input",
+  "link", "meta", "param", "source", "track", "wbr",
+]);
+
+// open-tag count in raw HTML tokens, used to regroup tokens split across
+function htmlTagBalance(raw: string): number {
+  const tagPattern = /<\/?([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*>/g;
+  let balance = 0;
+  let match: RegExpExecArray | null;
+  while ((match = tagPattern.exec(raw))) {
+    const [full, name] = match;
+    if (VOID_ELEMENTS.has(name.toLowerCase()) || full.endsWith("/>")) {
+      continue;
+    }
+    balance += full.startsWith("</") ? -1 : 1;
+  }
+  return balance;
+}
+
+// v-for block keys
+function hashText(text: string): string {
+  let hash = 5381;
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
+  }
+  return hash.toString(36);
+}
+
+// Rewrites resource attributes inside a HTML block written in the markdown
+function rewriteHtmlBlockForMd(html: string, filePath: string, source: string): string {
+  const doc = new DOMParser().parseFromString(`<!doctype html><body>${html}</body>`, "text/html");
+  rewriteHtmlResources(doc, filePath, source);
+  rewriteDocumentStyles(doc, filePath, source);
+  return doc.body.innerHTML;
+}
 
 export default {
   name: "markdownViewer",
+  components: {
+    FloatingButton,
+  },
+  props: {
+    splitMode: {
+      type: Boolean,
+      default: false,
+    },
+    liveContent: {
+      type: String,
+      default: null,
+    },
+    scrollTarget: {
+      type: Object as PropType<HTMLElement | null>,
+      default: null, // When null, falls back to the components own root (non-split view)
+    },
+  },
   data() {
     return {
       content: "",
+      scrollGuard: createScrollSyncGuard(),
+      boundScrollEl: null as HTMLElement | null,
+      isLoadingNewContent: false,
+      katexReady: false,
+      resizeObserver: null as ResizeObserver | null,
+      anchorCache: null as { line: number; top: number }[] | null,
     };
   },
   methods: {
-    // This theme switcher logic is correct and remains.
-    setHighlightTheme(isDark: boolean) {
+    toggleSplitView() {
+      mutations.toggleSplitView();
+    },
+    applyHtmlPreviewHeight() {
+      const iframe = this.$refs.viewer as HTMLIFrameElement | undefined;
+      if (!iframe || !this.isHtml) return;
+      const available = window.innerHeight - iframe.getBoundingClientRect().top;
+      iframe.style.height = `${available}px`;
+    },
+    observeResize() {
+      if (this.resizeObserver) return;
+      const target = this.$refs.scrollContainer as HTMLElement | undefined;
+      if (!target) return;
+      window.addEventListener("resize", this.handleContainerResize);
+      this.resizeObserver = new ResizeObserver(() => this.handleContainerResize());
+      this.resizeObserver.observe(target);
+    },
+    unobserveResize() {
+      if (!this.resizeObserver) return;
+      window.removeEventListener("resize", this.handleContainerResize);
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    },
+    handleContainerResize() {
+      if (this.isHtml) {
+        this.applyHtmlPreviewHeight();
+      } else {
+        this.invalidateAnchors();
+      }
+    },
+    async setHighlightTheme(isDark: boolean) {
       const THEME_STYLE_ID = "highlight-theme-style";
-      const cssText = isDark ? githubDarkCss : githubLightCss;
+      const themeMode = await loadHighlightCss(isDark ? "dark" : "light");
       const nonce =
         typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== ""
           ? globalVars.cspNonce
           : "";
-
       let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
       if (!style) {
         style = document.createElement("style");
@@ -61,30 +235,33 @@ export default {
       } else if (nonce) {
         style.setAttribute("nonce", nonce);
       }
-      style.textContent = cssText;
+      style.textContent = themeMode;
     },
-    // NEW METHOD: Finds and highlights all code blocks and adds line numbers
-    applyHighlighting() {
+    // Highlights code blocks and adds line numbers
+    async applyHighlighting() {
       const viewer = this.$refs.viewer as HTMLElement;
-      if (viewer) {
-        // This tells highlight.js to find and style every code block.
-        viewer.querySelectorAll('pre code').forEach((block) => {
-          const codeBlock = block as HTMLElement;
-          const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
-          const lang = langClass ? langClass.split('-')[1] : null;
-
-          if (lang && hljs.getLanguage(lang)) {
-            hljs.highlightElement(codeBlock);
-          } else {
-            const text = codeBlock.textContent;
-            const result = hljs.highlightAuto(text);
-            codeBlock.innerHTML = result.value;
-            codeBlock.classList.add('hljs');
-          }
-          // Add line numbers manually after highlighting
-          this.addLineNumbers(codeBlock);
-        });
+      if (!viewer?.querySelector('pre code')) return;
+      void this.setHighlightTheme(getters.isDarkMode());
+      let hljs: HLJSApi | null = null;
+      try {
+        hljs = await loadHljs();
+      } catch (err) {
+        console.error("Failed to load highlight.js:", err);
       }
+      // Re-query in case content changed while highlight.js was loading
+      viewer.querySelectorAll('pre code').forEach((block) => {
+        const codeBlock = block as HTMLElement;
+        if (codeBlock.classList.contains("line-numbers-added")) return;
+        const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
+        const lang = langClass ? langClass.split('-')[1] : null;
+
+        if (hljs && lang && hljs.getLanguage(lang)) {
+          hljs.highlightElement(codeBlock);
+        } else {
+          codeBlock.classList.add('hljs');
+        }
+        this.addLineNumbers(codeBlock);
+      });
     },
     // Manual line numbers implementation
     addLineNumbers(codeBlock: HTMLElement) {
@@ -144,11 +321,19 @@ export default {
       const highlightedHTML = codeBlock.innerHTML;
       const htmlLines = this.splitHighlightedHTML(highlightedHTML, lines.length);
 
+      // Absolute source line the code content starts on, gives each line its own anchor
+      const blockEl = codeBlock.closest<HTMLElement>('.md-block');
+      const parsedStart = Number(blockEl?.dataset.codeLine);
+      const codeStartLine = Number.isFinite(parsedStart) ? parsedStart : null;
+
       // Create code lines with preserved highlighting
       const codeLines = htmlLines.map((lineHTML, index) => {
         const lineElement = document.createElement('div');
         lineElement.className = 'code-line';
         lineElement.setAttribute('data-line', (index + 1).toString());
+        if (codeStartLine !== null) {
+          lineElement.dataset.sourceLine = String(codeStartLine + index);
+        }
         lineElement.innerHTML = lineHTML;
         return lineElement;
       });
@@ -256,22 +441,89 @@ export default {
       div.textContent = text;
       return div.innerHTML;
     },
-    parseMarkdown(content: string, filePath: string, source: string): string {
-      const parser = new Marked({ gfm: true });
-      parser.use({
-        walkTokens(token) {
-          if (token.type === "image" && token.href) {
-            token.href = buildPreviewResourceUrl(token.href, filePath, source);
-          }
-        },
-      });
-      const result = parser.parse(content);
-      if (typeof result !== "string") {
-        return DOMPurify.sanitize("Loading...");
+    parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
+      const parser = marked;
+      // Tag each top level block with its source line for scroll-sync
+      let tokens: Token[] | null;
+      try {
+        tokens = parser.lexer(content);
+      } catch (err) {
+        console.error("Failed to lex markdown:", err);
+        tokens = null;
       }
-      return DOMPurify.sanitize(result);
+      if (!tokens) {
+        return [{ key: "loading", line: 0, html: DOMPurify.sanitize(this.$t("general.loading"), MD_SANITIZE_CONFIG) }];
+      }
+      void parser.walkTokens(tokens, (token) => {
+        if (token.type === "image" && token.href) {
+          token.href = buildPreviewResourceUrl(token.href, filePath, source);
+        } else if (token.type === "html" && token.block === false && htmlTagBalance(token.raw) === 0 && /\s(?:src|href|style)=/i.test(token.raw)) {
+          const rewritten = rewriteHtmlBlockForMd(token.raw, filePath, source);
+          token.raw = rewritten;
+          token.text = rewritten;
+        }
+      });
+      // Blocks are keyed off a hash of their own source, so Vue can move it in the DOM
+      // instead of rendering it again.
+      const keyCounts = new Map<string, number>();
+      const nextKey = (raw: string): string => {
+        const base = hashText(raw);
+        const occurrence = keyCounts.get(base) ?? 0;
+        keyCounts.set(base, occurrence + 1);
+        return occurrence === 0 ? base : `${base}-${occurrence}`;
+      };
+      let line = 0;
+      const parts: { key: string; line: number; html: string; codeLine?: number }[] = [];
+      let group: { needsRewrite: unknown; html: string; raw: string; line: number; depth: number } | null = null;
+      for (const token of tokens) {
+        let html: string;
+        try {
+          const single = [token as never] as Token[] & { links?: Record<string, unknown> };
+          single.links = (tokens as Token[] & { links?: Record<string, unknown> }).links ?? {};
+          html = parser.parser(single as never);
+        } catch (_e) {
+          html = "";
+        }
+        const needsRewrite = !!html && (token.type === "html" || /<(?:video|audio|source|track)\b/i.test(token.raw));
+        const lineCount = (token.raw.match(/\n/g) || []).length;
+        const depth = token.type === "html" ? htmlTagBalance(token.raw) : 0;
+        // For code blocks, work out the exact line the code content starts, from the token own raw/text offset,so
+        // the scroll anchors can be placed correctly
+        let codeLine: number | null = null;
+        if (token.type === "code" && typeof (token as { text?: unknown }).text === "string") {
+          const codeText = (token as { text: string }).text;
+          const offset = token.raw.indexOf(codeText);
+          if (offset !== -1) {
+            codeLine = line + (token.raw.slice(0, offset).match(/\n/g) || []).length;
+          }
+        }
+        if (group) {
+          group.html += html;
+          group.raw += token.raw;
+          group.depth += depth;
+          group.needsRewrite = group.needsRewrite || needsRewrite;
+          if (group.depth <= 0) {
+            const finalHtml = group.needsRewrite ? rewriteHtmlBlockForMd(group.html, filePath, source) : group.html;
+            parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG) });
+            group = null;
+          }
+        } else if (depth > 0) {
+          group = { html, raw: token.raw, line, depth, needsRewrite };
+        } else {
+          const finalHtml = needsRewrite ? rewriteHtmlBlockForMd(html, filePath, source) : html;
+          parts.push({ key: nextKey(token.raw), line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG), codeLine: codeLine ?? undefined });
+        }
+        line += lineCount;
+      }
+      if (group) {
+        // Reached the end with tags still unclosed (maybe malformed HTML), so flush them rather than dropping.
+        const finalHtml = group.needsRewrite ? rewriteHtmlBlockForMd(group.html, filePath, source) : group.html;
+        parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG) });
+      }
+      return parts;
     },
     updateEditorStats() {
+      if (this.splitMode) return;
       const text = this.content.trim();
       const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
       const words = validWord.length;
@@ -279,6 +531,7 @@ export default {
       mutations.setEditorStats({ lines: null, words, chars });
     },
     reinit() {
+      mutations.resetEditorScrollRatio(state.req.path);
       mutations.resetSelected();
       mutations.addSelected({
         name: state.req.name,
@@ -289,30 +542,165 @@ export default {
         modified: state.req.modified,
         hasPreview: state.req.hasPreview,
       });
-      this.setHighlightTheme(getters.isDarkMode());
       // Set initial content. The `watch` will trigger the first highlight.
+      // In split mode, prefer the editor live buffer over the file.
       const fileContent = state.req.content === "empty-file-x6OlSil" ? "" : state.req.content || "";
-      this.content = fileContent;
+      const newContent = (this.splitMode && this.liveContent !== null) ? this.liveContent : fileContent;
+      if (newContent === this.content) {
+        this.scrollGuard.suppress();
+        this.finalizeContentRender(state.editor.scrollRatio);
+      } else {
+        this.isLoadingNewContent = true;
+        this.content = newContent;
+      }
       this.updateEditorStats();
+    },
+    finalizeContentRender(target: number | null) {
+      this.invalidateAnchors();
+      this.$nextTick(async () => {
+        try {
+          await this.applyHighlighting();
+        } catch (err) {
+          console.error("Failed to apply syntax highlighting:", err);
+        }
+        if (!this.isHtml && target !== null) this.applyScrollRatio(target);
+      });
+    },
+    attachScrollListener(el: HTMLElement | null) {
+      if (this.boundScrollEl === el) return;
+      this.boundScrollEl?.removeEventListener("scroll", this.handleScroll);
+      this.boundScrollEl = el;
+      el?.addEventListener("scroll", this.handleScroll, { passive: true });
+    },
+    getScrollContainer(): HTMLElement | null {
+      return this.splitMode
+        ? (this.scrollTarget as HTMLElement | null) || (this.$refs.scrollContainer as HTMLElement | null)
+        : document.getElementById("main");
+    },
+    getLineAnchors(): { line: number; top: number }[] {
+      if (this.anchorCache) return this.anchorCache;
+      const viewer = this.$refs.viewer as HTMLElement | null;
+      const container = this.getScrollContainer();
+      if (!viewer || !container) return [];
+      const containerTop = container.getBoundingClientRect().top - container.scrollTop;
+      const topOf = (el: HTMLElement) => el.getBoundingClientRect().top - containerTop;
+      const anchors = Array.from(viewer.querySelectorAll<HTMLElement>(".md-block")).map((el) => ({
+        line: Number(el.dataset.line),
+        top: topOf(el),
+      }));
+      // per-line anchors to keep the interpolation
+      viewer.querySelectorAll<HTMLElement>(".code-line[data-source-line]").forEach((el) => {
+        anchors.push({ line: Number(el.dataset.sourceLine), top: topOf(el) });
+      });
+      anchors.sort((a, b) => a.line - b.line);
+      this.anchorCache = anchors;
+      return anchors;
+    },
+    invalidateAnchors() {
+      this.anchorCache = null;
+    },
+    totalLines(): number {
+      return Math.max(0, this.content.split('\n').length - 1);
+    },
+    // Finds the pair of adjacent anchors 'value' along whatever axis 'getValue' reads off each anchor (top or line).
+    bracketAnchors(
+      anchors: { line: number; top: number }[],
+      getValue: (anchor: { line: number; top: number }) => number,
+      value: number,
+    ): [{ line: number; top: number }, { line: number; top: number }] {
+      for (let i = 0; i < anchors.length - 1; i++) {
+        if (getValue(anchors.at(i)) <= value && getValue(anchors.at(i + 1)) > value) {
+          return [anchors.at(i), anchors.at(i + 1)];
+        }
+      }
+      return [anchors.at(0), anchors.at(-1)];
+    },
+    // The line currently at the top of the viewport by interpolating between the near block anchors.
+    currentLine() {
+      const el = this.getScrollContainer();
+      if (!el) return 0;
+      const anchors = this.getLineAnchors();
+      if (!anchors.length) return 0;
+      const scrollTop = el.scrollTop;
+      const maxScrollTop = el.scrollHeight - el.clientHeight;
+      if (maxScrollTop > 0 && scrollTop >= maxScrollTop - 1) {
+        return this.totalLines();
+      }
+      const [a, b] = this.bracketAnchors(anchors, (anchor) => anchor.top, scrollTop);
+      const topSpan = b.top - a.top;
+      const frac = topSpan > 0 ? Math.min(1, Math.max(0, (scrollTop - a.top) / topSpan)) : 0;
+      return a.line + frac * (b.line - a.line);
+    },
+    syncScrollRatio() {
+      mutations.setEditorScrollRatio(this.currentLine(), "viewer");
+    },
+    handleScroll() {
+      if (this.isHtml) return;
+      this.scrollGuard.schedule(() => this.syncScrollRatio());
+    },
+    applyScrollRatio(line: number) {
+      const el = this.getScrollContainer();
+      if (!el) return;
+      const anchors = this.getLineAnchors();
+      if (!anchors.length) return;
+      const first = anchors.at(0);
+      let top;
+      if (line <= first.line) {
+        top = 0;
+      } else if (line >= this.totalLines()) {
+        top = el.scrollHeight - el.clientHeight;
+      } else {
+        const [a, b] = this.bracketAnchors(anchors, (anchor) => anchor.line, line);
+        const lineSpan = b.line - a.line;
+        top = lineSpan > 0
+          ? a.top + ((line - a.line) / lineSpan) * (b.top - a.top)
+          : a.top;
+      }
+      this.scrollGuard.applyRemote(() => { el.scrollTop = top; });
     },
   },
   watch: {
     // We now watch the `content` property.
     content() {
-      // When the content changes, Vue updates the DOM. We use `nextTick`
-      // to wait for that update to finish before applying highlighting.
-      this.$nextTick(() => {
-        this.applyHighlighting();
-      });
+      if (!katexLoaded && contentHasMath(this.content)) {
+        void loadKatex().then(() => { this.katexReady = true; }).catch(() => { /* logged inside loadKatex above */ });
+      }
+      const target = this.isLoadingNewContent
+        ? state.editor.scrollRatio
+        : (this.splitMode ? null : this.currentLine());
+      this.isLoadingNewContent = false;
+      this.scrollGuard.suppress();
+      this.finalizeContentRender(target);
       this.updateEditorStats();
     },
     // Watch for changes in state.req.content and update local content
     req() {
+      if (this.splitMode) return; // since we prefer the live content
       this.reinit()
     },
     darkMode() {
-      this.setHighlightTheme(getters.isDarkMode());
-    }
+      const viewer = this.$refs.viewer as HTMLElement | null;
+      if (viewer?.querySelector('pre code')) {
+        void this.setHighlightTheme(getters.isDarkMode());
+      }
+    },
+    editorScrollRatio() {
+      if (this.isHtml || state.editor.scrollSource === 'viewer') return;
+      this.applyScrollRatio(state.editor.scrollRatio);
+    },
+    liveContent(newVal) {
+      if (!this.splitMode || newVal === null) return;
+      if (this.content === "") this.isLoadingNewContent = true;
+      this.content = newVal;
+    },
+    scrollTarget(newEl) {
+      this.attachScrollListener(newEl);
+      const container = this.getScrollContainer();
+      this.attachScrollListener(container);
+      if (container && !this.isHtml) {
+        this.applyScrollRatio(state.editor.scrollRatio);
+      }
+    },
   },
   computed: {
     req() {
@@ -320,7 +708,13 @@ export default {
     },
     darkMode() {
       // This computed property returns the current dark mode state.
-      return state.user.darkMode;
+      return getters.isDarkMode();
+    },
+    showSplitViewToggle() {
+      return getters.showSplitViewToggle();
+    },
+    splitViewActionLabel() {
+      return getters.isSplitViewActive() ? this.$t("editor.exitSplitView") : this.$t("editor.splitView");
     },
     isHtml() {
       return isHtmlMimeType(state.req.type);
@@ -332,21 +726,35 @@ export default {
       return buildHtmlPreview(this.content, state.req.path, state.req.source);
     },
     renderedContent() {
+      void this.katexReady;
       return this.parseMarkdown(this.content, state.req.path, state.req.source);
     },
     spaceForStatusBar() {
       return state.isMobile ? 3.1 : 3.5;
     },
+    editorScrollRatio() {
+      return state.editor.scrollRatio;
+    },
   },
   mounted() {
     this.reinit();
+    this.$nextTick(() => {
+      this.attachScrollListener(this.getScrollContainer());
+    });
+    this.observeResize();
+  },
+  beforeUnmount() {
+    if (this.scrollGuard.cancel()) {
+      this.syncScrollRatio();
+    }
   },
   unmounted() {
-    const style = document.getElementById("highlight-theme-style");
-    if (style?.parentNode) {
-      style.parentNode.removeChild(style);
+    this.attachScrollListener(null);
+    this.unobserveResize();
+
+    if (!this.splitMode) {
+      mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
     }
-    mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
   }
 };
 </script>
@@ -359,7 +767,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container {
-  background-color: var(--alt-background);
+  background-color: var(--surfacePrimary);
   border-radius: 1em;
   padding: 1em;
 }
@@ -411,7 +819,18 @@ export default {
 
 #markedown-viewer .markdown-content-container.dark-mode code:not(pre code),
 #markedown-viewer .markdown-content-container.dark-mode .code-block-wrapper {
-  background-color: #161b22;
+  background-color: #0d1117;
+}
+
+/* keybinds like <kbd>Ctrl</kbd> */
+#markedown-viewer .markdown-content kbd {
+  background-color: var(--background);
+  border: 1px solid var(--divider);
+  border-radius: 0.35em;
+  padding: 0.1em 0.5em;
+  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.85em;
+  box-shadow: inset 0 -2px 0 var(--divider);
 }
 
 #markedown-viewer .markdown-content-container .copy-code-button {
@@ -420,7 +839,7 @@ export default {
   right: 0.3em;
   border-radius: 0.45em;
   color: var(--primaryColor);
-  background: var(--alt-background);
+  background: var(--background);
   font-size: 0.8em;
   padding: 0.2em 0.4em;
   transition: background 0.2s, color 0.2s;
@@ -436,19 +855,13 @@ export default {
   user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  background-color: #f1f3f4;
-  border-right: 1px solid #d0d7de;
+  background-color: var(--background);
+  border-right: 1px solid var(--divider);
   padding: 0.625em 0.5em 0.625em 0.75em;
   text-align: right;
-  color: #656d76;
-  min-width: 2.5em;
-  flex-shrink: 0;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-numbers {
-  background-color: #21262d;
-  border-right-color: #30363d;
   color: #7d8590;
+  min-width: 2em;
+  flex-shrink: 0;
 }
 
 #markedown-viewer .markdown-content-container .line-number {
@@ -461,23 +874,14 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .line-number:hover {
-  background-color: #e1e4e8;
-  color: #24292e;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-number:hover {
-  background-color: #30363d;
-  color: #f0f6fc;
+  background-color: transparent;
+  color: var(--primaryColor);
 }
 
 #markedown-viewer .markdown-content-container .line-number.active {
-  background-color: #0366d6;
-  color: white;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .line-number.active {
-  background-color: #1f6feb;
-  color: white;
+  background-color: color-mix(in srgb, var(--primaryColor) 30%, transparent);
+  color: var(--primaryColor);
+  border-radius: 0.25em;
 }
 
 /* Individual code lines */
@@ -490,11 +894,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .code-line.highlighted {
-  background-color: #fff8c5;
-}
-
-#markedown-viewer .markdown-content-container.dark-mode .code-line.highlighted {
-  background-color: #ffd33d20;
+  background-color: color-mix(in srgb, var(--primaryColor) 20%, transparent);
 }
 
 /* Code content styling */
@@ -506,7 +906,6 @@ export default {
 
 #markedown-viewer .markdown-content-container .code-content pre {
   margin: 0;
-  background: transparent;
   border-radius: 0;
   padding: 0;
   line-height: 1.45;
@@ -514,9 +913,8 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .code-content code {
-  background: transparent;
   padding: 0.5em;
-  padding-top: 0.75em;
+  padding-top: 0.65em;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
@@ -535,7 +933,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container .code-content a {
-  color: #3737c9;
+  color: var(--primaryColor);
   font-weight: 500;
 }
 
@@ -567,6 +965,112 @@ export default {
 #markedown-viewer .markdown-content img {
   max-width: 100%;
   height: auto;
+}
+
+/* Task list checkboxes */
+#markedown-viewer .markdown-content li:has(input[type="checkbox"]) {
+  list-style: none;
+  margin-left: -1.2em;
+}
+
+#markedown-viewer .markdown-content input[type="checkbox"] {
+  appearance: none;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5em;
+  border: 1.5px solid var(--divider);
+  border-radius: 0.25em;
+  vertical-align: middle;
+  position: relative;
+}
+
+#markedown-viewer .markdown-content input[type="checkbox"]:checked {
+  background-color: var(--primaryColor);
+  border-color: var(--primaryColor);
+}
+
+#markedown-viewer .markdown-content input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 0.28em;
+  top: 0.04em;
+  width: 0.28em;
+  height: 0.5em;
+  border: solid white;
+  border-width: 0 0.15em 0.15em 0;
+  transform: rotate(45deg);
+}
+
+#markedown-viewer .markdown-content li:has(input[type="checkbox"]:checked) {
+  color: color-mix(in srgb, var(--textPrimary) 55%, transparent);
+  text-decoration: line-through;
+}
+
+/* Links */
+#markedown-viewer .markdown-content a {
+  color: var(--primaryColor);
+}
+
+#markedown-viewer .markdown-content a:hover {
+  text-decoration: underline;
+}
+
+/* Tables */
+#markedown-viewer .markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  overflow-x: auto;
+  display: block;
+}
+
+#markedown-viewer .markdown-content th,
+#markedown-viewer .markdown-content td {
+  border: 2px solid var(--background);
+  padding: 0.4em 0.8em;
+}
+
+#markedown-viewer .markdown-content th {
+  font-weight: 600;
+  background-color: var(--background);
+}
+
+#markedown-viewer .markdown-content tbody tr:nth-child(even) {
+  background-color: color-mix(in srgb, var(--background) 40%, transparent);
+}
+
+/* Blockquotes */
+#markedown-viewer .markdown-content blockquote {
+  margin: 1em 0;
+  padding: 0.1em 1em;
+  border-left: 0.25em solid var(--primaryColor);
+  background-color: color-mix(in srgb, var(--primaryColor) 8%, transparent);
+  color: color-mix(in srgb, var(--textPrimary) 75%, transparent);
+  border-radius: 0 0.5em 0.5em 0;
+}
+
+#markedown-viewer .markdown-content blockquote blockquote {
+  border-left-color: color-mix(in srgb, var(--primaryColor) 50%, transparent);
+  background-color: transparent;
+}
+
+#markedown-viewer .markdown-content blockquote p {
+  margin: 0.5em 0;
+}
+
+#markedown-viewer .markdown-content blockquote > :first-child {
+  margin-top: 0;
+}
+
+#markedown-viewer .markdown-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* mark (highlight) tags */
+#markedown-viewer .markdown-content mark {
+  background-color: var(--primaryColor);
+  border-radius: 2px;
+  padding: 0 0.2em;
 }
 
 </style>

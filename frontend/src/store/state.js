@@ -31,15 +31,21 @@ export const state = reactive({
   displayPreferences: {},
   enforcedUserDefaults: {},
   usages: {},
-  editor: null,
-  editorDirty: false,
-  editorSaveHandler: null, // Function to save editor content
-  editorStats: {
-    lines: 0,
-    words: 0,
-    chars: 0,
+  editor: {
+    instance: null,
+    dirty: false,
+    saveHandler: null,
+    stats: {
+      lines: 0,
+      words: 0,
+      chars: 0,
+    },
+    fontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
+    markdownSplitView: loadMarkdownSplitView(),
+    scrollRatio: 0,
+    scrollSource: null,
+    scrollPath: "", // if the path differs to always start at the top of the file
   },
-  editorFontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering
@@ -194,6 +200,10 @@ function loadNotificationHistory() {
     console.error('Failed to load notification history:', error);
     return [];
   }
+}
+
+function loadMarkdownSplitView() {
+  return sessionStorage.getItem("markdownSplitView") === "true";
 }
 
 /**

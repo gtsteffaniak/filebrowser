@@ -1,24 +1,55 @@
 <template>
-  <div id="editor-container" :class="{ 'viewer-mode': viewerMode }">
-    <div id="editor"></div>
+  <div id="editor-root" ref="editorRoot" :class="{ 'split-active': isSplitActive }">
+    <div
+      id="editor-container"
+      :class="{ 'viewer-mode': viewerMode }"
+      :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
+    >
+      <EditorToolbar v-if="showEditorToolbar" :editor="editor" :is-markdown="isMarkdownFile" />
+      <div id="editor"></div>
+    </div>
+    <MarkdownSplitView
+      v-if="isMarkdownFile"
+      ref="splitView"
+      :editor="editor"
+      :active="isSplitActive"
+      :resize-container="resizeContainerEl"
+      @resize="editorPanePercent = $event"
+    />
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { RouteLocationNormalized } from "vue-router";
+import type { Ace } from "ace-builds";
 import { state, getters, mutations } from "@/store";
 import { resourcesApi } from "@/api";
-import {pathsMatch, removeLastDir } from "@/utils/url.js";
+import { pathsMatch, removeLastDir } from "@/utils/url.js";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
-import "ace-builds/src-min-noconflict/theme-github";
+import "ace-builds/src-noconflict/ext-searchbox";
+import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
 import "ace-builds/src-min-noconflict/mode-yaml";
 import "ace-builds/src-min-noconflict/mode-json";
 import "ace-builds/src-min-noconflict/mode-markdown";
+import EditorToolbar from "@/components/files/EditorToolbar.vue";
+import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
+import { editorConfig } from "@/utils/editorConfig";
+
+type Req = typeof state.req;
+interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }
+
+const THEME_DARK = "ace/theme/tomorrow_night_bright";
+const THEME_LIGHT = "ace/theme/chrome";
 
 export default {
   name: "editor",
+  components: {
+    EditorToolbar,
+    MarkdownSplitView,
+  },
   props: {
     viewerMode: {
       type: Boolean,
@@ -38,15 +69,22 @@ export default {
     }
   },
   data: () => ({
-    editor: null, // The editor instance
+    editor: null as Ace.Editor | null, // The editor instance
     isDirty: false,
-    originalReq: null,
+    savedContent: "", // content used for dirty comparisons
+    suppressDirtyTracking: false,
+    originalReq: null as Req | null,
     saveLocked: false, // Lock saves during req transitions
-    currentReqPath: null, // Track current path for transition detection
-    navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
+    saveUnlockTimer: null as ReturnType<typeof setTimeout> | null, // pending save-unlock timer
+    statsUpdateTimer: null as ReturnType<typeof setTimeout> | null, // throttle stats update
+    currentReqPath: null as string | null, // Track current path for transition detection
+    navigationGuard: null as (() => void) | null, // Navigation guard to prevent navigation with unsaved changes
     isPromptOpen: false, // Track if prompt is currently open for avoid navigation
-    pendingNavigation: null, // Store pending navigation while prompt is open
-    viewerResizeObserver: null,
+    pendingNavigation: null as RouteLocationNormalized | null, // Store pending navigation while prompt is open
+    viewerResizeObserver: null as ResizeObserver | null,
+    editorPanePercent: 50, // split-view editor pane width
+    resizeContainerEl: null as HTMLElement | null, // #editor-root element, passed to MarkdownSplitView for divider drag geometry
+    beforeUnloadHandler: null as ((event: BeforeUnloadEvent) => void) | null,
   }),
   computed: {
     permissions() {
@@ -114,48 +152,84 @@ export default {
       }
       return this.req.type === "textImmutable";
     },
+    isMarkdownFile() {
+      if (this.viewerMode) return false;
+      const type = this.req?.type;
+      return type === "text/markdown" || type === "text/x-markdown";
+    },
+    showEditorToolbar() {
+      return !this.editorReadOnly;
+    },
+    isSplitActive() {
+      return !this.viewerMode && this.isMarkdownFile && state.editor.markdownSplitView && !state.isMobile && this.permissions.modify;
+    },
+    editorScrollRatio() {
+      return state.editor.scrollRatio;
+    },
+    isTransitioning() {
+      return state.navigation.isTransitioning;
+    },
+    editorFontSize() {
+      return state.editor.fontSize;
+    },
+    wrapEditorContent() {
+      return editorConfig.wrapEditorContent;
+    },
+    editorAceOptions() {
+      return {
+        keybinding: editorConfig.keybinding,
+        tabSize: editorConfig.tabSize,
+        overscroll: editorConfig.overscroll,
+        showIndentGuides: editorConfig.showIndentGuides,
+        showGutter: editorConfig.showGutter,
+        fixedGutterWidth: editorConfig.fixedGutterWidth,
+        showLineNumbers: editorConfig.showLineNumbers,
+        relativeLineNumbers: editorConfig.relativeLineNumbers,
+        customScrollbar: editorConfig.customScrollbar,
+      };
+    },
   },
   watch: {
     // Lock saves during navigation transitions
-    'state.navigation.isTransitioning'(isTransitioning) {
+    isTransitioning(isTransitioning: boolean) {
       if (isTransitioning && !this.viewerMode) {
         this.saveLocked = true;
       } else if (!isTransitioning && !this.viewerMode) {
         // Unlock after a short delay to ensure req is fully loaded
-        setTimeout(() => {
-          this.saveLocked = false;
-        }, 300);
+        this.scheduleSaveUnlock(300);
       }
     },
     // Update originalReq and lock saves when req changes during navigation
-    'req'(newReq, oldReq) {
-      if (!this.viewerMode && oldReq && newReq && newReq.path !== oldReq.path) {
+    'req'(newReq: Req, oldReq: Req) {
+      if (!this.viewerMode && newReq && (newReq.path !== oldReq?.path || newReq.source !== oldReq.source)) {
         // Update originalReq to the new file
         this.originalReq = newReq;
         this.isDirty = false; // Reset dirty flag for new file
         mutations.setEditorDirty(false);
+        mutations.resetEditorScrollRatio(newReq.path);
 
         // Lock saves temporarily
         this.saveLocked = true;
         this.currentReqPath = newReq.path;
 
         // Unlock after content loads
-        setTimeout(() => {
-          if (this.req.path === this.currentReqPath) {
-            this.saveLocked = false;
-          }
-        }, 500);
+        this.scheduleSaveUnlock(500);
       }
     },
     // Update editor content reactively
-    editorContent(newContent) {
+    editorContent(newContent: string) {
       if (this.editor) {
         const currentValue = this.editor.getValue();
         if (currentValue !== newContent) {
+          this.suppressDirtyTracking = true;
           this.editor.setValue(newContent, -1); // -1 moves cursor to start
-          this.isDirty = false;
-          mutations.setEditorDirty(false);
+          this.editor.session.getUndoManager().reset();
+          this.updateEditorStats();
+          this.suppressDirtyTracking = false;
         }
+        this.savedContent = newContent;
+        this.isDirty = false;
+        mutations.setEditorDirty(false);
         if (this.viewerMode) {
           this.$nextTick(() => {
             if (this.editor) {
@@ -163,38 +237,60 @@ export default {
             }
           });
         }
+        if (this.isSplitActive) {
+          (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.setLiveContent(newContent);
+        }
       }
     },
     // Update editor language mode
-    editorLanguageMode(newMode) {
+    editorLanguageMode(newMode: string) {
       if (this.editor) {
         this.editor.session.setMode(newMode);
       }
     },
     // Update read-only state
-    editorReadOnly(isReadOnly) {
+    editorReadOnly(isReadOnly: boolean) {
       if (this.editor) {
         this.editor.setReadOnly(isReadOnly);
       }
     },
     // Update theme when dark mode changes
-    isDarkMode(newValue) {
+    isDarkMode(newValue: boolean) {
       if (this.editor) {
-        this.editor.setTheme(newValue ? "ace/theme/twilight" : "ace/theme/chrome");
+        this.editor.setTheme(newValue ? THEME_DARK : THEME_LIGHT);
       }
     },
     // Initialize navigation when state syncs for file editing
-    isStateSynced(synced) {
+    isStateSynced(synced: boolean) {
       if (synced && !this.viewerMode && this.req) {
         this.initializeNavigation();
       }
-    }
+    },
+    editorScrollRatio() {
+      if (this.viewerMode || !this.isMarkdownFile) return;
+      if (state.editor.scrollSource === 'editor') return;
+      (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.applyScrollRatio(state.editor.scrollRatio);
+    },
+    isSplitActive() {
+      this.$nextTick(() => {
+        if (this.editor) this.editor.resize();
+      });
+    },
+    editorFontSize() {
+      this.applyFontSize();
+    },
+    wrapEditorContent() {
+      this.applyWrap();
+    },
+    editorAceOptions(cfg) {
+      this.applyAceOptions(cfg);
+    },
   },
   created() {
-    window.addEventListener("keydown", this.keyEvent);
+    window.addEventListener("keydown", this.keyEvent, true);
 
     // Show generic browser dialog if the user closes the tab, or try to close the browser with unsaved changes
-    this.beforeUnloadHandler = (event) => {
+    this.beforeUnloadHandler = (event: BeforeUnloadEvent) => {
       if (this.isDirty && !this.viewerMode) {
         event.preventDefault();
       }
@@ -204,16 +300,26 @@ export default {
     this.setupNavigationGuard();
   },
   beforeUnmount() {
+    if (this.saveUnlockTimer) {
+      clearTimeout(this.saveUnlockTimer);
+      this.saveUnlockTimer = null;
+    }
+    if (this.statsUpdateTimer) {
+      clearTimeout(this.statsUpdateTimer);
+      this.statsUpdateTimer = null;
+    }
     if (this.viewerResizeObserver) {
       this.viewerResizeObserver.disconnect();
       this.viewerResizeObserver = null;
     }
 
-    window.removeEventListener("keydown", this.keyEvent);
-    window.removeEventListener("beforeunload", this.beforeUnloadHandler);
+    window.removeEventListener("keydown", this.keyEvent, true);
+    if (this.beforeUnloadHandler) {
+      window.removeEventListener("beforeunload", this.beforeUnloadHandler);
+    }
 
-    if (this.readOnly) {
-      return;
+    if (this.editor) {
+      this.editor.session.off('changeScrollTop', this.handleEditorScroll);
     }
 
     // Clear navigation guard
@@ -225,12 +331,15 @@ export default {
     mutations.setEditorDirty(false);
     mutations.setEditorSaveHandler(null);
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
-
+  },
+  unmounted() {
     if (this.editor) {
       this.editor.destroy();
+      this.editor = null;
     }
   },
   mounted: function () {
+    this.resizeContainerEl = (this.$refs.editorRoot as HTMLElement | undefined) || null;
     if (this.viewerMode) {
       this.$nextTick(() => {
         this.$nextTick(() => {
@@ -239,26 +348,35 @@ export default {
           this.setupViewerResizeObserver();
         });
       });
-      this.$watch(() => state.editorFontSize, () => {
-        this.applyFontSize();
-      });
       return;
     }
 
-    this.initializeEditor();
     this.originalReq = this.req;
+    this.currentReqPath = this.req?.path ?? null;
+    if (this.isMarkdownFile && this.req?.path) {
+      mutations.resetEditorScrollRatio(this.req.path);
+    }
+    this.initializeEditor(state.editor.scrollRatio);
 
     // Register save handler so other components can trigger save
     mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
     this.applyFontSize();
-    // Watch font size changes
-    this.$watch(() => state.editorFontSize, () => {
-      this.applyFontSize();
-    });
+    this.setupViewerResizeObserver();
   },
   methods: {
+    scheduleSaveUnlock(delay: number) {
+      if (this.saveUnlockTimer) {
+        clearTimeout(this.saveUnlockTimer);
+      }
+      this.saveUnlockTimer = setTimeout(() => {
+        this.saveUnlockTimer = null;
+        if (!state.navigation.isTransitioning && this.req?.path === this.currentReqPath) {
+          this.saveLocked = false;
+        }
+      }, delay);
+    },
     setupViewerResizeObserver() {
-      if (!this.viewerMode || typeof ResizeObserver === "undefined") {
+      if (typeof ResizeObserver === "undefined" || !this.editor) {
         return;
       }
       this.viewerResizeObserver = new ResizeObserver(() => {
@@ -266,7 +384,7 @@ export default {
           this.editor.resize();
         }
       });
-      this.viewerResizeObserver.observe(this.$el);
+      this.viewerResizeObserver.observe(this.editor.container);
       this.$nextTick(() => {
         if (this.editor) {
           this.editor.resize();
@@ -304,7 +422,7 @@ export default {
         directoryPath = '/';
       }
 
-      let listing;
+      let listing: unknown;
 
       if (this.req.items) {
         listing = this.req.items;
@@ -314,7 +432,7 @@ export default {
       } else if (directoryPath !== this.req.path) {
         // Fetch directory listing (now with '/' for root files)
         try {
-          let res;
+          let res: { items: unknown; };
           if (getters.isShare()) {
             res = await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash);
           } else {
@@ -335,7 +453,7 @@ export default {
         directoryPath: directoryPath
       });
     },
-    initializeEditor() {
+    initializeEditor(initialScrollRatio: number = state.editor.scrollRatio) {
       const editorEl = document.getElementById("editor");
       if (!editorEl) {
         return;
@@ -351,27 +469,40 @@ export default {
           mode: this.editorLanguageMode,
           value: this.editorContent,
           showPrintMargin: false,
-          showGutter: true,
-          showLineNumbers: true,
-          theme: this.isDarkMode ? "ace/theme/tomorrow_night_bright" : "ace/theme/github",
+          showGutter: editorConfig.showGutter,
+          showLineNumbers: editorConfig.showLineNumbers,
+          relativeLineNumbers: editorConfig.relativeLineNumbers,
+          theme: this.isDarkMode ? THEME_DARK : THEME_LIGHT,
           readOnly: this.editorReadOnly,
-          wrap: state.wrapEditor || false,
-          enableMobileMenu: !this.viewerMode,
-          useWorker: false,
-          scrollPastEnd: 0.5,
+          wrap: !!editorConfig.wrapEditorContent,
+          enableMobileMenu: false,
+          useWorker: true,
           cursorStyle: "smooth",
           highlightGutterLine: true,
           animatedScroll: true,
-          displayIndentGuides: true,
-          fixedWidthGutter: true,
+          displayIndentGuides: editorConfig.showIndentGuides,
+          fixedWidthGutter: editorConfig.fixedGutterWidth,
+          tabSize: editorConfig.tabSize,
+          scrollPastEnd: editorConfig.overscroll,
+          customScrollbar: editorConfig.customScrollbar,
+          keyboardHandler: editorConfig.keybinding || null,
+          fontSize: `${state.editor.fontSize}px`,
         });
 
-        this.editor.setOption('displayIndentGuides', true);
+        this.savedContent = this.editorContent;
+        this.editor.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
+        this.editor.commands.removeCommand("showSettingsMenu");
 
-        this.editor.on('change', () => {
-          this.isDirty = true;
-          mutations.setEditorDirty(true);
-          this.updateEditorStats();
+        const editorInstance = this.editor;
+        editorInstance.on('change', () => {
+          if (this.editor !== editorInstance) return;
+          if (this.suppressDirtyTracking) return;
+          if (!this.isDirty) {
+            this.isDirty = true;
+            mutations.setEditorDirty(true);
+          }
+          this.scheduleStatsUpdate();
+          (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.handleEditorChange();
         });
 
         // Initialize navigation for file editing mode when synced
@@ -382,11 +513,30 @@ export default {
         this.editor.selection.on('changeSelection', () => {
           this.updateEditorStats();
         });
+        if (!this.viewerMode) {
+          if (this.isMarkdownFile) {
+            this.$nextTick(() => {
+              if (this.editor !== editorInstance) return;
+              if (this.isSplitActive) {
+                (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.setLiveContent(editorInstance.getValue());
+              }
+              (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.applyScrollRatio(initialScrollRatio, true);
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  if (this.editor !== editorInstance) return;
+                  editorInstance.session.on('changeScrollTop', this.handleEditorScroll);
+                });
+              });
+            });
+          } else {
+            this.editor.session.on('changeScrollTop', this.handleEditorScroll);
+          }
+        }
       } catch (_e) {
         notify.showError(this.$t("editor.uninitialized"));
       }
     },
-    getAceMode(mode) {
+    getAceMode(mode: string): string {
       switch (mode) {
         case 'yaml': return 'ace/mode/yaml';
         case 'json': return 'ace/mode/json';
@@ -445,13 +595,20 @@ export default {
       }
 
       notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);
+      this.savedContent = this.editor.getValue();
+      mutations.setRequestContent(this.savedContent);
       this.isDirty = false;
       mutations.setEditorDirty(false);
     },
-    async keyEvent(event) {
+    async keyEvent(event: KeyboardEvent) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName()) return;
-
+      if ((ctrlKey || metaKey) && key === ",") {
+        event.preventDefault();
+        event.stopPropagation();
+        this.openEditorSettings();
+        return;
+      }
       // Skip save shortcut in viewer mode
       if (this.viewerMode) return;
 
@@ -464,25 +621,33 @@ export default {
         }
       }
     },
+    openEditorSettings() {
+      mutations.showPrompt({
+        name: "EditorSettings",
+      });
+    },
     setupNavigationGuard() {
       if (this.viewerMode) return;
 
       this.navigationGuard = this.$router.beforeEach((to, from, next) => {
         // If prompt is already open, block any new navigation attempts
         if (this.isPromptOpen) {
-          next(false);
-          return;
+          if (getters.currentPromptName() === "SaveBeforeExit") {
+            next(false);
+            return;
+          }
+          this.isPromptOpen = false;
+          this.pendingNavigation = null;
         }
 
         // Check if we are navigating to a different route
         const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
 
-        if (this.isDirty && !this.viewerMode && isDifferentRoute) {
-          if (this.req) {
-            this.pendingNavigation = { to, from, next };
-            this.showSaveBeforeExitPrompt();
-            return;
-          }
+        if (this.isDirty && !this.viewerMode && isDifferentRoute && this.req) {
+          next(false);
+          this.pendingNavigation = to;
+          this.showSaveBeforeExitPrompt();
+          return;
         }
         next();
       });
@@ -493,18 +658,15 @@ export default {
         name: "SaveBeforeExit",
         pinned: true,
         confirm: async () => {
-          // Save and exit - throw error if save fails to keep prompt open
           try {
             await this.handleEditorValueRequest();
-            this.isDirty = false;
-            mutations.setEditorDirty(false);
-            this.executePendingNavigation();
-          } catch (error) {
-            // If save fails, call next(false) to prevent navigation
-            next(false);
-            // Re-throw to keep prompt open
-            throw error;
+          } catch (_e) {
+            this.isPromptOpen = false;
+            return;
           }
+          this.isDirty = false;
+          mutations.setEditorDirty(false);
+          this.executePendingNavigation();
         },
         discard: () => {
           // Discard changes and exit
@@ -520,20 +682,18 @@ export default {
     },
     executePendingNavigation() {
       this.isPromptOpen = false;
-      if (this.pendingNavigation && typeof this.pendingNavigation.next === 'function') {
-        this.pendingNavigation.next();
-      }
+      const target = this.pendingNavigation;
       this.pendingNavigation = null;
+      if (target) {
+        this.$router.push(target.fullPath);
+      }
     },
     cancelPendingNavigation() {
       this.isPromptOpen = false;
-      if (this.pendingNavigation && typeof this.pendingNavigation.next === 'function') {
-        this.pendingNavigation.next(false);
-      }
       this.pendingNavigation = null;
     },
     getSelectedStats() {
-      if (!this.editor) return;
+      if (!this.editor) return undefined;
       const session = this.editor.session;
       const selectionRange = this.editor.selection.getRange();
       const isSelectionEmpty =
@@ -550,15 +710,17 @@ export default {
       }
 
       const chars = text.length;
-      const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
+      const validWord = text.split(/\s+/).filter((t: string) => /[a-zA-Z0-9]/.test(t));
       const words = validWord.length;
 
       return { lines, words, chars };
     },
     updateEditorStats() {
       if (!this.editor) return;
-      const { lines, words, chars } = this.getSelectedStats();
-      const isMarkdown = this.req.type === 'text/markdown' || this.req.type === 'text/x-markdown';
+      const stats = this.getSelectedStats();
+      if (!stats) return;
+      const { lines, words, chars } = stats;
+      const isMarkdown = this.isMarkdownFile;
       if (isMarkdown) {
         mutations.setEditorStats({ lines, words, chars });
       } else {
@@ -567,10 +729,46 @@ export default {
         mutations.setEditorStats({ lines, words: null, chars: null });
       }
     },
+    scheduleStatsUpdate() {
+      if (this.statsUpdateTimer) {
+        clearTimeout(this.statsUpdateTimer);
+      }
+      this.statsUpdateTimer = setTimeout(() => {
+        this.statsUpdateTimer = null;
+        this.updateEditorStats();
+      }, 185);
+    },
     applyFontSize() {
       if (this.editor) {
-        this.editor.container.style.fontSize = `${state.editorFontSize}px`;
+        this.editor.setOption('fontSize', `${state.editor.fontSize}px`);
       }
+    },
+    applyWrap() {
+      if (this.editor) {
+        this.editor.setOption('wrap', !!editorConfig.wrapEditorContent);
+      }
+    },
+    applyAceOptions(cfg = editorConfig) {
+      if (!this.editor) return;
+      const wasRelative = this.editor.getOption('relativeLineNumbers');
+      this.editor.setOption('keyboardHandler', cfg.keybinding || null);
+      this.editor.setOption('tabSize', cfg.tabSize);
+      this.editor.setOption('scrollPastEnd', cfg.overscroll);
+      this.editor.setOption('displayIndentGuides', cfg.showIndentGuides);
+      this.editor.setOption('showGutter', cfg.showGutter);
+      this.editor.setOption('fixedWidthGutter', cfg.fixedGutterWidth);
+      this.editor.setOption('showLineNumbers', cfg.showLineNumbers);
+      this.editor.setOption('relativeLineNumbers', cfg.relativeLineNumbers);
+      this.editor.setOption('customScrollbar', cfg.customScrollbar);
+      if (wasRelative && !cfg.relativeLineNumbers && cfg.showLineNumbers) {
+        const gutterLayer = (this.editor.renderer as unknown as AceRendererInternal).$gutterLayer;
+        if (gutterLayer?.$renderer) {
+          gutterLayer.$renderer = null;
+        }
+      }
+    },
+    handleEditorScroll() {
+      (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.handleEditorScroll();
     },
   },
 };
@@ -578,15 +776,38 @@ export default {
 </script>
 
 <style scoped>
+#editor-root {
+  height: 100%;
+}
+
+#editor-root.split-active {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+#editor-root.split-active #editor-container {
+  flex: 0 0 auto;
+  min-width: 0;
+  position: relative;
+}
+
+#editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#editor-container #editor {
+  flex: 1;
+  min-height: 0;
+}
+
 #editor-container.viewer-mode {
   position: absolute;
   inset: 0;
 }
 
-#editor-container.viewer-mode #editor {
-  position: absolute;
-  inset: 0;
-}
 </style>
 
 <style>
@@ -597,23 +818,6 @@ export default {
     -moz-user-select: text !important;
     -ms-user-select: text !important;
     user-select: text !important;
-}
-
-.ace_mobile-menu {
-    font-size: 16px !important;
-    border-radius: 12px !important;
-    padding: 10px !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
-}
-
-.ace_mobile-menu .ace_menu-item {
-    font-size: 16px !important;
-    margin: 8px 0 !important;
-    border-radius: 8px !important;
-    text-align: center !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
 }
 
 /* make sure the text selection is detected*/
@@ -652,6 +856,18 @@ export default {
 
 /* Lightened Tomorrow Night Bright Theme, was too dark */
 .ace-tomorrow-night-bright {
-  background-color: #1f1f1f !important; /* original of the theme is #000000 */
+  background-color: #151515 !important; /* original of the theme is #000000 */
+}
+
+.ace-tomorrow-night-bright .ace_marker-layer .ace_active-line {
+  background: #232323;
+}
+
+#editor-root.split-active .ace_scrollbar {
+  scrollbar-width: none;
+}
+
+#editor-root.split-active .ace_scrollbar::-webkit-scrollbar {
+  display: none;
 }
 </style>

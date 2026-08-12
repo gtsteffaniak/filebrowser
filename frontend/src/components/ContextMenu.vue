@@ -193,8 +193,8 @@
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
       <action v-if="showSendToAppInPreview" icon="ios_share" :label="$t('buttons.sendToApp')" @action="sendToAppFromPreview" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
-      <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
-      <action v-if="markdownPreview" icon="visibility" :label="$t('general.preview')" @action="switchToMarkdown" />
+      <action v-if="showEditButton" icon="edit" :label="$t('general.edit')" @action="goToEdit" />
+      <action v-if="showPreviewButton" icon="visibility" :label="$t('general.preview')" @action="goToPreview" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
     </div>
@@ -418,7 +418,13 @@ export default {
       return false
     },
     hasOverflowItems() {
-      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload || this.showUnarchiveInOverflow;
+      return this.showDelete
+        || this.showSave
+        || this.showGoToRaw
+        || this.hasDownload
+        || this.showUnarchiveInOverflow
+        || this.showEditButton
+        || this.showPreviewButton;
     },
     showUnarchiveInOverflow() {
       if (!this.permissions.create || getters.isShare()) return false;
@@ -434,10 +440,6 @@ export default {
       }
       const cv = getters.currentView();
       return cv === "preview" || cv === "markdownViewer" || cv === "editor";
-    },
-    showEdit() {
-      const cv = getters.currentView();
-      return cv === "markdownViewer" && this.permissions.modify;
     },
     showDelete() {
       if (this.showLimitedOptions) return false;
@@ -456,6 +458,17 @@ export default {
     },
     isPreview() {
       return getters.isPreviewView();
+    },
+    showEditButton() {
+      if (getters.isSplitViewActive()) return false;
+      if (getters.currentView() === "editor") return false;
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo?.allowEdit);
+      return isRichTextPreviewMimeType(state.req.type) && allowEdit;
+    },
+    showPreviewButton() {
+      if (getters.isSplitViewActive()) return false;
+      if (getters.currentView() !== "editor") return false;
+      return isRichTextPreviewMimeType(state.req.type);
     },
     showSave() {
       const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
@@ -506,10 +519,6 @@ export default {
     },
     currentPrompt() {
       return getters.currentPrompt();
-    },
-    markdownPreview() {
-      if (getters.currentView() !== 'editor') return false;
-      return isRichTextPreviewMimeType(state.req.type);
     },
   },
   watch: {
@@ -891,27 +900,31 @@ export default {
         },
       });
     },
-    async edit() {
-      this.$router.replace({ hash: '#edit' });
+    goToEdit() {
+      mutations.closeHovers();
+      void this.$router.replace({ hash: "#edit" });
     },
-    async switchToMarkdown() {
-      this.$router.replace({ hash: '#preview' });
+    goToPreview() {
+      mutations.closeHovers();
+      void this.$router.replace({ hash: "#preview" });
     },
     async save() {
       const button = "save";
       buttons.loading("save");
       try {
         // Call the editor save handler directly and await completion
-        if (state.editorSaveHandler) {
-          await state.editorSaveHandler();
+        if (state.editor.saveHandler) {
+          await state.editor.saveHandler();
+          buttons.success(button);
         } else {
-          throw new Error("Editor save handler not found");
+          const errorMsg = "No editor save handler registered";
+          notify.showError(errorMsg);
+          throw new Error(errorMsg);
         }
-        buttons.success(button);
-        notify.showSuccessToast(this.$t("editor.fileSaved"));
-      } catch (_e) {
-        // Don't show error notification here - API layer already showed it
+      } catch (e) {
         buttons.done(button);
+        mutations.closeHovers();
+        throw e;
       }
       mutations.closeHovers();
     },
