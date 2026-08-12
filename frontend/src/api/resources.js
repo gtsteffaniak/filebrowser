@@ -696,12 +696,23 @@ export function post(
       ...(isDir && { isDir: 'true' })
     });
 
-    const xhrState = { xhr: null };
+    const opState = { xhr: null, aborted: false };
+
+    const rejectIfAborted = (reject) => {
+      if (!opState.aborted) {
+        return false;
+      }
+      reject(new Error("Upload aborted"));
+      return true;
+    };
 
     const startRequest = (isRetry) =>
       new Promise((resolve, reject) => {
+        if (rejectIfAborted(reject)) {
+          return;
+        }
         const request = new XMLHttpRequest();
-        xhrState.xhr = request;
+        opState.xhr = request;
         request.open("POST", apiPath, true);
 
         Object.entries(headers).forEach(([header, value]) => {
@@ -733,8 +744,16 @@ export function post(
           // Session expired mid-upload: renew once and retry the same body.
           if (request.status === 401 && !isRetry && !getters.isShare()) {
             void renew()
-              .then(() => startRequest(true).then(resolve, reject))
+              .then(() => {
+                if (rejectIfAborted(reject)) {
+                  return;
+                }
+                return startRequest(true).then(resolve, reject);
+              })
               .catch(() => {
+                if (rejectIfAborted(reject)) {
+                  return;
+                }
                 let errorMessage = "Upload failed";
                 try {
                   const errorData = JSON.parse(request.responseText);
@@ -772,8 +791,13 @@ export function post(
           !["http:", "https:"].includes(window.location.protocol)
         ) {
           new Response(content).arrayBuffer()
-            .then(buffer => request.send(buffer))
-            .catch(err => reject(err));
+            .then((buffer) => {
+              if (rejectIfAborted(reject)) {
+                return;
+              }
+              request.send(buffer);
+            })
+            .catch((err) => reject(err));
         } else {
           request.send(content);
         }
@@ -785,9 +809,16 @@ export function post(
     });
     // Preserve .xhr for pause/abort; re-attach after .then() so callers still see it.
     void Object.defineProperty(uploadPromise, "xhr", {
-      get: () => xhrState.xhr,
+      get: () => opState.xhr,
       enumerable: true,
     });
+    // Operation-level abort: stops a pending 401 renew+retry as well as the active XHR.
+    uploadPromise.abort = () => {
+      opState.aborted = true;
+      if (opState.xhr && opState.xhr.readyState !== XMLHttpRequest.DONE) {
+        opState.xhr.abort();
+      }
+    };
     return uploadPromise;
   } catch (err) {
     notify.showError(err.message || "Error posting resource");

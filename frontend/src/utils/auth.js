@@ -119,26 +119,36 @@ export async function validateLogin(isPublicRoute = false) {
   return
 }
 
+/**
+ * Cookie-based session renewal. Concurrent callers share one in-flight request
+ * so mid-upload 401 retries and keep-alive do not stampede /auth/renew.
+ */
 export async function renew() {
-  // Cookie-based renewal - no JWT parameter needed
-  // Backend reads cookie, validates, and sets new cookie
-  const apiPath = getApiPath("auth/renew")
-  const res = await fetch(apiPath, {
-    method: "POST",
-    credentials: 'same-origin', // Cookie is sent automatically, backend renews it
-  });
-  const body = await res.text();
-  if (res.status === 200) {
-    mutations.setSession(generateRandomCode(8));
-    // Backend sets the new cookie, no state management needed
-  } else {
-    throw new Error(body);
+  if (renewInFlight) {
+    return renewInFlight;
   }
+  renewInFlight = (async () => {
+    // Backend reads cookie, validates, and sets new cookie
+    const apiPath = getApiPath("auth/renew");
+    const res = await fetch(apiPath, {
+      method: "POST",
+      credentials: "same-origin",
+    });
+    const body = await res.text();
+    if (res.status === 200) {
+      mutations.setSession(generateRandomCode(8));
+      return;
+    }
+    throw new Error(body);
+  })().finally(() => {
+    renewInFlight = null;
+  });
+  return renewInFlight;
 }
 
 /**
  * Renew the session JWT when it is missing or within the refresh window.
- * Concurrent callers share one in-flight renew.
+ * Concurrent callers share one in-flight renew; failures return false.
  */
 export async function ensureSessionFresh(withinMs = SESSION_REFRESH_BEFORE_MS) {
   if (getters.isShare?.() && !getters.isLoggedIn?.()) {
@@ -148,22 +158,11 @@ export async function ensureSessionFresh(withinMs = SESSION_REFRESH_BEFORE_MS) {
   if (!shouldRefreshBeforeExpiry(exp, withinMs)) {
     return false;
   }
-  if (renewInFlight) {
-    await renewInFlight;
-    return true;
-  }
-  renewInFlight = renew()
-    .catch((err) => {
-      console.warn("session keep-alive renew failed:", err);
-      throw err;
-    })
-    .finally(() => {
-      renewInFlight = null;
-    });
   try {
-    await renewInFlight;
+    await renew();
     return true;
-  } catch {
+  } catch (err) {
+    console.warn("session keep-alive renew failed:", err);
     return false;
   }
 }

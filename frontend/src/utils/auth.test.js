@@ -23,6 +23,7 @@ import {
   ensureSessionFresh,
   getSessionJwtExpiresAt,
   msUntilRefresh,
+  renew,
   SESSION_COOKIE_NAME,
   SESSION_REFRESH_BEFORE_MS,
   shouldRefreshBeforeExpiry,
@@ -164,6 +165,43 @@ describe('session JWT keep-alive', () => {
     const renewed = await ensureSessionFresh(SESSION_REFRESH_BEFORE_MS);
     expect(renewed).toBe(false);
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('ensureSessionFresh returns false for joined callers when renew fails', async () => {
+    const exp = Math.floor(Date.now() / 1000) + 60;
+    document.cookie = `${COOKIE}=${makeJwt(exp)}; path=/`;
+    let release;
+    const barrier = new Promise((resolve) => {
+      release = resolve;
+    });
+    global.fetch = vi.fn().mockImplementation(async () => {
+      await barrier;
+      return { status: 500, text: async () => 'renew failed' };
+    });
+
+    const first = ensureSessionFresh(SESSION_REFRESH_BEFORE_MS);
+    const second = ensureSessionFresh(SESSION_REFRESH_BEFORE_MS);
+    release();
+    expect(await first).toBe(false);
+    expect(await second).toBe(false);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('renew single-flights concurrent callers', async () => {
+    let release;
+    const barrier = new Promise((resolve) => {
+      release = resolve;
+    });
+    global.fetch = vi.fn().mockImplementation(async () => {
+      await barrier;
+      return { status: 200, text: async () => 'ok' };
+    });
+
+    const first = renew();
+    const second = renew();
+    release();
+    await Promise.all([first, second]);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   it('startSessionKeepAlive ticks ensureSessionFresh on an interval', async () => {
