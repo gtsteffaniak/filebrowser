@@ -169,6 +169,24 @@ func TestValidateReceivedBytes(t *testing.T) {
 	}
 }
 
+func TestIsContentUpload(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	if isContentUpload(req) {
+		t.Fatal("empty create request should not be a content upload")
+	}
+	req.Header.Set("X-File-Total-Size", "0")
+	if !isContentUpload(req) {
+		t.Fatal("expected total-size header to mark content upload")
+	}
+	req = httptest.NewRequest(http.MethodPost, "/", nil)
+	req.Header.Set("X-File-Upload-Session", "abc")
+	if !isContentUpload(req) {
+		t.Fatal("expected upload session header to mark content upload")
+	}
+}
+
 func TestValidateChunkBounds(t *testing.T) {
 	t.Parallel()
 
@@ -204,6 +222,23 @@ func TestUploadTempPathStable(t *testing.T) {
 	}
 	if filepath.Ext(a) != ".tmp" {
 		t.Fatalf("expected .tmp suffix, got %q", a)
+	}
+}
+
+func TestResourcePostHandler_CreateEmptyFileWithoutSession(t *testing.T) {
+	root, user := setupUploadHTTPTest(t)
+	status, err := postUpload(t, user, "/empty.txt", bytes.NewReader(nil), 0, map[string]string{
+		"X-File-Upload-Session": "",
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("status=%d err=%v", status, err)
+	}
+	got, err := os.ReadFile(filepath.Join(root, "empty.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("expected empty file, got %q", got)
 	}
 }
 

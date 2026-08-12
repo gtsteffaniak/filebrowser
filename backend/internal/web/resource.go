@@ -946,6 +946,16 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		preview.DelThumbs(r.Context(), *fileInfo)
 	}
 
+	if !isContentUpload(r) {
+		err = files.WriteFile(fileOpts.Source, fullIndexPath, r.Body)
+		if err != nil {
+			logger.Debugf("error writing file: %v", err)
+			return ErrToStatus(err), err
+		}
+		activity.RecordUpload(r, toActor(d), source, path, false)
+		return http.StatusOK, nil
+	}
+
 	totalSize, hasTotalSize, err := parseUploadTotalSize(r)
 	if err != nil {
 		logger.Debugf("%v", err)

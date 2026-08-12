@@ -83,3 +83,16 @@ func validateReceivedBytes(written, expectedTotal int64, hasExpected bool, conte
 	}
 	return nil
 }
+
+// isContentUpload reports whether the request is uploading file bytes (as opposed to
+// creating an empty file via POST with no upload metadata).
+func isContentUpload(r *http.Request) bool {
+	if r.Header.Get("X-File-Chunk-Offset") != "" {
+		return true
+	}
+	if r.Header.Get(uploadSessionHeader) != "" {
+		return true
+	}
+	_, ok, err := parseUploadTotalSize(r)
+	return err == nil && ok
+}
