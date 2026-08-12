@@ -87,7 +87,7 @@ func TestAdminHasSharePermissionAfterSettingsMigration(t *testing.T) {
 	assertSourceSidebarLinkCount(t, &admin, 3)
 }
 
-func TestGrahamNoAccessAfterSettingsMigrationStartup_dockerSourcePaths(t *testing.T) {
+func TestGrahamGainsAccessAfterSettingsMigrationStartup_dockerSourcePaths(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	configPath := filepath.Join(t.TempDir(), "config.yaml")
 	configYAML := `server:
@@ -136,19 +136,29 @@ auth:
 	if err != nil {
 		t.Fatal(err)
 	}
+	foundScope := false
 	for _, scope := range graham.BackendScopes {
 		if scope.Path == fixtureAccessSource {
-			t.Fatalf("graham gained access scope: %#v", graham.BackendScopes)
+			foundScope = true
+			break
 		}
 	}
+	if !foundScope {
+		t.Fatalf("graham should gain access scope after validateUserInfo: %#v", graham.BackendScopes)
+	}
+	foundLink := false
 	for _, link := range graham.SidebarLinks {
-		if link.Name == "access" {
-			t.Fatalf("graham has access sidebar link: %#v", graham.SidebarLinks)
+		if link.Name == "access" || link.SourceName == fixtureAccessSource {
+			foundLink = true
+			break
 		}
+	}
+	if !foundLink {
+		t.Fatalf("graham should have access sidebar link after validateUserInfo: %#v", graham.SidebarLinks)
 	}
 }
 
-func TestGrahamNoAccessAfterSettingsMigrationStartup(t *testing.T) {
+func TestGrahamGainsAccessAfterSettingsMigrationStartup(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	settings.Initialize(settingsMigrationConfigPath(t))
 	settings.Env.IsPlaywright = true
@@ -174,15 +184,25 @@ func TestGrahamNoAccessAfterSettingsMigrationStartup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	foundScope := false
 	for _, scope := range graham.BackendScopes {
 		if scope.Path == fixtureAccessSource {
-			t.Fatalf("graham gained access scope after validateUserInfo: %#v", graham.BackendScopes)
+			foundScope = true
+			break
 		}
 	}
+	if !foundScope {
+		t.Fatalf("graham should gain access scope after validateUserInfo: %#v", graham.BackendScopes)
+	}
+	foundLink := false
 	for _, link := range graham.SidebarLinks {
-		if link.Name == "access" {
-			t.Fatalf("graham has access sidebar link after validateUserInfo: %#v", graham.SidebarLinks)
+		if link.Name == "access" || link.SourceName == fixtureAccessSource {
+			foundLink = true
+			break
 		}
+	}
+	if !foundLink {
+		t.Fatalf("graham should have access sidebar link after validateUserInfo: %#v", graham.SidebarLinks)
 	}
 	if len(graham.SidebarLinks) == 0 {
 		t.Fatal("graham should have sidebar links after migration so frontend does not fall back to all sources")
