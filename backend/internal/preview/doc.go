@@ -3,17 +3,14 @@
 package preview
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"image/jpeg"
 	"io"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 
-	"github.com/gen2brain/go-fitz"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 )
 
@@ -29,7 +26,7 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 		return nil, ctx.Err()
 	}
 
-	// Serialize access to the entire go-fitz operation block (required for CGO thread safety)
+	// Serialize access to the entire MuPDF operation block (required for CGO thread safety)
 	s.docGenMutex.Lock()
 	defer s.docGenMutex.Unlock()
 
@@ -77,8 +74,8 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 				return nil, fmt.Errorf("text snippet: failed to close temporary file '%s': %w", tempFilePath, err)
 			}
 
-		docPath = tempFilePath // Update docPath to point to the new temporary text snippet file
-	}
+			docPath = tempFilePath // Update docPath to point to the new temporary text snippet file
+		}
 	}
 
 	// Check timeout before opening document
@@ -86,26 +83,9 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
 	}
 
-	doc, err := fitz.New(docPath) // This calls the CGo version
+	imageBytes, err := renderDocPageJPEG(docPath, pageNumber)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open PDF from memory for file '%s': %w", docPath, err)
-	}
-	defer doc.Close()
-
-	// Check timeout after opening document
-	if timeoutCtx.Err() != nil {
-		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
-	}
-
-	// Get the image from the doc page
-	numPages := doc.NumPage()
-	if pageNumber < 0 || pageNumber >= numPages {
-		return nil, fmt.Errorf("invalid page number %d for PDF with %d pages ('%s')", pageNumber, numPages, docPath)
-	}
-
-	img, err := doc.Image(pageNumber)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get image from page %d of '%s': %w", pageNumber, docPath, err)
+		return nil, fmt.Errorf("failed to create image for document '%s': %w", docPath, err)
 	}
 
 	// Check timeout after rendering image
@@ -113,15 +93,5 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
 	}
 
-	// Create a new buffer to hold the image bytes
-	var buf bytes.Buffer
-
-	// Encode the image directly into the buffer
-	err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: jpeg.DefaultQuality})
-	if err != nil {
-		return nil, fmt.Errorf("failed to encode image to jpeg for '%s': %w", docPath, err)
-	}
-
-	// Return the byte slice from the buffer
-	return buf.Bytes(), nil
+	return imageBytes, nil
 }

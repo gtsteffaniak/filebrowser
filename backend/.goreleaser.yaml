@@ -2,6 +2,10 @@
 project_name: filebrowser
 version: 2
 
+before:
+  hooks:
+    - ./scripts/setup-gofitz-cgo.sh
+
 builds:
   # Build configuration for linux amd64
   - id: linux-amd64
@@ -66,7 +70,8 @@ builds:
   - id: windows
     env:
       - CGO_ENABLED=1
-      - CC=zig cc -target x86_64-windows
+      # windows-gnu avoids zig rejecting Go's -tsaware when cross-compiling from macOS
+      - CC=zig cc -target x86_64-windows-gnu -lc
     tags:
       - analytics
       - mupdf
@@ -95,11 +100,14 @@ builds:
 
   # Build configuration for macos without upx
   - id: macos
+    env:
+      - CGO_ENABLED=1
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
     tags:
       - analytics
+      - mupdf
     goos:
       - darwin
     goarch:
