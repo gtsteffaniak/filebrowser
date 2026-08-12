@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
  - Session renew is handled by client keep-alive. removed per-request `X-Renew-Token` header handling.
+ - Added macos pdf and doc preview support
 
  **Bugfixes**:
  - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).
@@ -15,6 +16,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Disable auto logout/session expiry if there are active file transfers going (#2638)
  - upload options get cut off on mobile (#2685)
  - Uploading image: image gets cut-off (#2765)
+ - Process aborts (not just 500) during PDF thumbnail generation (#2763)
+ - PDF preview generation prevents file uploads from completing (#2752)
 
 ## v2.0.0
 
