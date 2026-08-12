@@ -6,15 +6,25 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 )
 
 const uploadSessionHeader = "X-File-Upload-Session"
 
+// uploadSessionTTL is how long an incomplete upload may keep exclusive claim on a path.
+// Successful chunks refresh the lease; abandoned sessions expire and can be replaced.
+var uploadSessionTTL = 30 * time.Minute
+
 var errUploadSessionConflict = errors.New("conflicting upload session")
+
+type uploadSessionEntry struct {
+	id       string
+	lastSeen time.Time
+}
 
 type uploadSessionRegistry struct {
 	mu       sync.Mutex
-	sessions map[string]string // realPath -> session ID
+	sessions map[string]uploadSessionEntry // realPath -> active session
 }
 
 var activeUploadSessions uploadSessionRegistry
@@ -23,21 +33,35 @@ func (r *uploadSessionRegistry) acquire(realPath, sessionID string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.sessions == nil {
-		r.sessions = make(map[string]string)
+		r.sessions = make(map[string]uploadSessionEntry)
 	}
-	active, ok := r.sessions[realPath]
-	if ok && active != sessionID {
-		return fmt.Errorf("%w for %q", errUploadSessionConflict, realPath)
+	now := time.Now()
+	if active, ok := r.sessions[realPath]; ok {
+		if now.Sub(active.lastSeen) > uploadSessionTTL {
+			delete(r.sessions, realPath)
+		} else if active.id != sessionID {
+			return fmt.Errorf("%w for %q", errUploadSessionConflict, realPath)
+		}
 	}
-	r.sessions[realPath] = sessionID
+	r.sessions[realPath] = uploadSessionEntry{id: sessionID, lastSeen: now}
 	return nil
 }
 
 func (r *uploadSessionRegistry) release(realPath, sessionID string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if active, ok := r.sessions[realPath]; ok && active == sessionID {
+	if active, ok := r.sessions[realPath]; ok && active.id == sessionID {
 		delete(r.sessions, realPath)
+	}
+}
+
+// expireForTest marks a path's session as expired without deleting it (for unit tests).
+func (r *uploadSessionRegistry) expireForTest(realPath string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if active, ok := r.sessions[realPath]; ok {
+		active.lastSeen = time.Now().Add(-uploadSessionTTL - time.Second)
+		r.sessions[realPath] = active
 	}
 }
 

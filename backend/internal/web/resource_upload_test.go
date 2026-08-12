@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 
@@ -196,6 +197,9 @@ func TestValidateChunkBounds(t *testing.T) {
 	if err := validateChunkBounds(-1, 10, 100); err == nil {
 		t.Fatal("expected negative offset error")
 	}
+	if err := validateChunkBounds(0, 10, -1); err == nil {
+		t.Fatal("expected negative total size error")
+	}
 	if err := validateChunkBounds(101, 1, 100); err == nil {
 		t.Fatal("expected offset exceeds total error")
 	}
@@ -207,6 +211,34 @@ func TestValidateChunkBounds(t *testing.T) {
 	}
 	if err := validateAssembledSize(90, 20, 100); err == nil {
 		t.Fatal("expected assembled size error")
+	}
+	if err := validateAssembledSize(0, -1, 100); err == nil {
+		t.Fatal("expected negative chunk size error")
+	}
+}
+
+func TestParseUploadSession(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	if _, err := parseUploadSession(req); err == nil {
+		t.Fatal("expected missing session error")
+	}
+
+	req.Header.Set(uploadSessionHeader, "valid-Session_123")
+	got, err := parseUploadSession(req)
+	if err != nil || got != "valid-Session_123" {
+		t.Fatalf("valid session: got=%q err=%v", got, err)
+	}
+
+	req.Header.Set(uploadSessionHeader, "bad token!")
+	if _, err = parseUploadSession(req); err == nil {
+		t.Fatal("expected invalid character error")
+	}
+
+	req.Header.Set(uploadSessionHeader, strings.Repeat("a", 129))
+	if _, err = parseUploadSession(req); err == nil {
+		t.Fatal("expected oversized session error")
 	}
 }
 
@@ -483,5 +515,48 @@ func TestResourcePostHandler_ConflictingUploadSessions(t *testing.T) {
 	want := append(append([]byte{}, part1...), part2...)
 	if !bytes.Equal(got, want) {
 		t.Fatalf("assembled mismatch: got %q want %q", got, want)
+	}
+}
+
+func TestResourcePostHandler_ExpiredSessionAllowsNewUpload(t *testing.T) {
+	root, user := setupUploadHTTPTest(t)
+	part1 := []byte("aaaa")
+	total := 8
+	realPath := filepath.Join(root, "stale.bin")
+
+	status, err := postUpload(t, user, "/stale.bin", bytes.NewReader(part1), int64(len(part1)), map[string]string{
+		"X-File-Upload-Session": "session-old",
+		"X-File-Chunk-Offset":   "0",
+		"X-File-Total-Size":     strconv.Itoa(total),
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("chunk1 status=%d err=%v", status, err)
+	}
+
+	// Abandoned session still blocks until the lease expires.
+	status, err = postUpload(t, user, "/stale.bin", bytes.NewReader([]byte("fullbody")), 8, map[string]string{
+		"X-File-Upload-Session": "session-new",
+		"X-File-Total-Size":     "8",
+	})
+	if status != http.StatusConflict || err == nil {
+		t.Fatalf("status=%d err=%v, want 409 while lease active", status, err)
+	}
+
+	activeUploadSessions.expireForTest(realPath)
+
+	body := []byte("replaced!")
+	status, err = postUpload(t, user, "/stale.bin", bytes.NewReader(body), int64(len(body)), map[string]string{
+		"X-File-Upload-Session": "session-new",
+		"X-File-Total-Size":     strconv.Itoa(len(body)),
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("after expiry status=%d err=%v", status, err)
+	}
+	got, err := os.ReadFile(realPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, body) {
+		t.Fatalf("got %q want %q", got, body)
 	}
 }
