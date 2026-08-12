@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bugfixes**:
  - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).
- - `defaultEnabled` sources are always merged into every user's scopes on startup (and on create), not only when `BackendScopes` is empty.
+ - `defaultEnabled` behavior change/fix so defaultEnabled means its always added to users on startup and login. (updated docs too)
 
 ## v2.0.0
 
