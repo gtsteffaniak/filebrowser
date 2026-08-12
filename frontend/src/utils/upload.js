@@ -575,10 +575,21 @@ class UploadManager {
       upload.overwrite = overwrite;
       upload.status = "pending";
       upload.connectionIssue = false; // Clear connection issue on retry
-      if (upload.type !== 'directory') {
-          upload.chunkOffset = 0; // Reset chunk offset for retries
+      const isChunked =
+        upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
+      const canResume = isChunked && upload.chunkOffset > 0;
+      if (!canResume) {
+        if (upload.type !== "directory") {
+          upload.chunkOffset = 0;
+        }
+        upload.progress = 0;
+      } else {
+        // Resume chunked uploads from the last successful chunk.
+        upload.progress =
+          upload.size > 0
+            ? Math.round((upload.chunkOffset / upload.size) * 1000) / 10
+            : 0;
       }
-      upload.progress = 0;
       void this.processQueue();
     }
   }
@@ -650,17 +661,36 @@ class UploadManager {
       upload.status = "conflict";
       upload.connectionIssue = false;
     } else if (err.message !== "Upload aborted") {
-      upload.status = "error";
-      
       // Detect connection-related errors
-      const isConnectionError = 
+      const isConnectionError =
         err.message === "Network error" ||
         err.message?.toLowerCase().includes("network") ||
         err.message?.toLowerCase().includes("timeout") ||
         err.message?.toLowerCase().includes("connection") ||
         err.message?.toLowerCase().includes("failed to fetch") ||
         !err.response; // No response usually means network issue
-      
+
+      const isChunked =
+        upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
+      const canResumeChunked =
+        isChunked && upload.chunkOffset > 0 && upload.chunkOffset < upload.size;
+
+      // Connection drops on chunked uploads: pause so Resume continues from last chunk
+      // (same semantics as the stall timeout path).
+      if (isConnectionError && canResumeChunked) {
+        upload.status = "paused";
+        upload.connectionIssue = true;
+        upload.errorDetails =
+          "Connection stalled - upload paused. Click resume to retry.";
+        upload.progress =
+          upload.size > 0
+            ? Math.round((upload.chunkOffset / upload.size) * 1000) / 10
+            : 0;
+        notifyUploadError(upload.name, upload.errorDetails);
+        return;
+      }
+
+      upload.status = "error";
       if (isConnectionError) {
         upload.connectionIssue = true;
         upload.errorDetails = `Connection error: ${this.formatErrorMessage(err)}. Click retry to resume.`;

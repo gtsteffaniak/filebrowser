@@ -40,39 +40,12 @@
         <div class="upload-prompt-container">
           <i v-if="files.length === 0" class="material-symbols">cloud_upload</i>
           <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
-          <div class="button-group">
-            <button
-              type="button"
-              @click="triggerFilePicker"
-              class="button button--flat"
-            >
-              {{ $t("general.file") }}
-            </button>
-            <button
-              type="button"
-              style="margin-left: 1em"
-              @click="triggerFolderPicker"
-              class="button button--flat"
-            >
-              {{ $t("general.folder") }}
-            </button>
-            <button
-              type="button"
-              style="margin-left: 1em"
-              @click="triggerCameraPicker"
-              class="button button--flat"
-            >
-              {{ $t("general.camera") }}
-            </button>
-            <button
-              type="button"
-              style="margin-left: 1em"
-              @click="triggerVideoPicker"
-              class="button button--flat"
-            >
-              {{ $t("general.video") }}
-            </button>
-          </div>
+          <ButtonGroup
+            class="upload-action-buttons"
+            :buttons="uploadActionButtons"
+            action-mode
+            @button-clicked="onUploadAction"
+          />
         </div>
       </div>
     </div>
@@ -219,6 +192,7 @@ import { notify } from "@/notify";
 import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import ButtonGroup from "@/components/ButtonGroup.vue";
 import i18n from "@/i18n";
 
 export default {
@@ -227,6 +201,7 @@ export default {
     ProgressBar,
     SettingsItem,
     ToggleSwitch,
+    ButtonGroup,
   },
   props: {
     initialItems: {
@@ -517,6 +492,32 @@ export default {
       if (videoInput.value) videoInput.value.click();
     };
 
+    const uploadActionButtons = computed(() => [
+      { label: i18n.global.t("general.file"), value: "file" },
+      { label: i18n.global.t("general.folder"), value: "folder" },
+      { label: i18n.global.t("general.camera"), value: "camera" },
+      { label: i18n.global.t("general.video"), value: "video" },
+    ]);
+
+    const onUploadAction = (value) => {
+      switch (value) {
+        case "file":
+          triggerFilePicker();
+          break;
+        case "folder":
+          triggerFolderPicker();
+          break;
+        case "camera":
+          triggerCameraPicker();
+          break;
+        case "video":
+          triggerVideoPicker();
+          break;
+        default:
+          break;
+      }
+    };
+
     const onFilePicked = (event) => {
       const pickedFiles = event.target.files;
       if (pickedFiles.length > 0) {
@@ -667,6 +668,8 @@ export default {
       triggerFolderPicker,
       triggerCameraPicker,
       triggerVideoPicker,
+      uploadActionButtons,
+      onUploadAction,
       onFilePicked,
       onFolderPicked,
       fileInput,
@@ -706,15 +709,6 @@ export default {
 </script>
 
 <style scoped>
-.button-group {
-  display: flex;
-  justify-content: center;
-}
-
-:deep(.settings-group-title) {
-  margin-top: 0;
-}
-
 .upload-prompt {
   text-align: center;
   padding: 2em;
@@ -734,6 +728,13 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.upload-action-buttons {
+  margin: 0.5em 0 0;
 }
 
 .upload-prompt i {

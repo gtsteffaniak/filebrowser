@@ -2,8 +2,6 @@ package web
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,10 +23,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-
 )
 
 var pauseCache = cache.NewCache[string](1 * time.Minute)
@@ -782,11 +779,14 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		}
 
 		var totalSize int64
-		totalSizeStr := r.Header.Get("X-File-Total-Size")
-		totalSize, err = strconv.ParseInt(totalSizeStr, 10, 64)
+		var hasTotalSize bool
+		totalSize, hasTotalSize, err = parseUploadTotalSize(r)
 		if err != nil {
-			logger.Debugf("invalid total size: %v", err)
-			return http.StatusBadRequest, fmt.Errorf("invalid total size: %v", err)
+			logger.Debugf("%v", err)
+			return http.StatusBadRequest, err
+		}
+		if !hasTotalSize {
+			return http.StatusBadRequest, fmt.Errorf("invalid total size: missing X-File-Total-Size")
 		}
 		// On the first chunk, check for conflicts or handle override
 		if offset == 0 {
@@ -814,11 +814,8 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			}
 		}
 
-		// Use a temporary file in the cache directory for chunks.
-		// Create a unique name for the temporary file to avoid collisions.
-		hasher := md5.New()
-		hasher.Write([]byte(realPath))
-		tempFilePath := fmt.Sprintf("%s.%s.uploading.tmp", realPath, hex.EncodeToString(hasher.Sum(nil)))
+		// Use a temporary file for chunks.
+		tempFilePath := uploadTempPath(realPath)
 		// Create or open the temporary file
 		var outFile *os.File
 		outFile, err = os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY, fileutils.PermFile)
@@ -860,15 +857,51 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				}
 			}
 
+			// Keep the partial temp file so the client can resume from offset.
 			if gracefulPause {
 				logger.Debugf("chunk upload ended after graceful pause; keeping partial file (source=%s path=%s)", source, path)
 				return 499, nil
 			}
-			_ = os.Remove(tempFilePath)
+			logger.Debugf("chunk upload failed; keeping partial file for resume (source=%s path=%s offset=%d)", source, path, offset)
 			return http.StatusInternalServerError, fmt.Errorf("could not write chunk to temp file: %v", err)
 		}
-		// check if the file is complete
-		if (offset + chunkSize) >= totalSize {
+
+		if err = validateReceivedBytes(chunkSize, 0, false, r.ContentLength); err != nil {
+			logger.Debugf("incomplete chunk: %v", err)
+			if truncErr := outFile.Truncate(offset); truncErr != nil {
+				logger.Debugf("could not truncate temp file after incomplete chunk (offset=%d): %v", offset, truncErr)
+			}
+			_ = outFile.Sync()
+			return http.StatusBadRequest, err
+		}
+
+		assembled := offset + chunkSize
+		if assembled > totalSize {
+			logger.Debugf("chunk exceeds total size: offset=%d chunk=%d total=%d", offset, chunkSize, totalSize)
+			if truncErr := outFile.Truncate(offset); truncErr != nil {
+				logger.Debugf("could not truncate temp file after oversized chunk (offset=%d): %v", offset, truncErr)
+			}
+			_ = outFile.Sync()
+			return http.StatusBadRequest, fmt.Errorf("chunk exceeds total size: offset %d + %d > %d", offset, chunkSize, totalSize)
+		}
+
+		// Finalize only when the assembled size matches the declared total exactly.
+		if assembled == totalSize {
+			if syncErr := outFile.Sync(); syncErr != nil {
+				logger.Debugf("could not sync temp file before finalize: %v", syncErr)
+				return http.StatusInternalServerError, fmt.Errorf("could not sync temp file: %v", syncErr)
+			}
+			var info os.FileInfo
+			info, err = outFile.Stat()
+			if err != nil {
+				logger.Debugf("could not stat temp file before finalize: %v", err)
+				return http.StatusInternalServerError, fmt.Errorf("could not stat temp file: %v", err)
+			}
+			if info.Size() != totalSize {
+				logger.Debugf("assembled file size mismatch: got %d want %d", info.Size(), totalSize)
+				_ = os.Remove(tempFilePath)
+				return http.StatusBadRequest, fmt.Errorf("upload incomplete: expected %d bytes, received %d", totalSize, info.Size())
+			}
 			// close file before moving
 			outFile.Close()
 			// Move the completed file from the temp location to the final destination
@@ -893,11 +926,51 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		preview.DelThumbs(r.Context(), *fileInfo)
 	}
 
-	err = files.WriteFile(fileOpts.Source, fullIndexPath, r.Body)
+	totalSize, hasTotalSize, err := parseUploadTotalSize(r)
 	if err != nil {
+		logger.Debugf("%v", err)
+		return http.StatusBadRequest, err
+	}
+
+	// Write to a temp file, verify size, then move into place so truncated
+	// uploads never leave a corrupt destination file.
+	if err = os.MkdirAll(filepath.Dir(realPath), fileutils.EffectiveDirPerm()); err != nil {
+		logger.Debugf("could not create parent directory: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("could not create parent directory: %v", err)
+	}
+	tempFilePath := uploadTempPath(realPath)
+	outFile, err := os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, fileutils.PermFile)
+	if err != nil {
+		logger.Debugf("could not open temp file: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("could not open temp file: %v", err)
+	}
+
+	written, copyErr := io.Copy(outFile, r.Body)
+	closeErr := outFile.Close()
+	if copyErr != nil {
+		_ = os.Remove(tempFilePath)
+		logger.Debugf("error writing file: %v", copyErr)
+		return ErrToStatus(copyErr), copyErr
+	}
+	if closeErr != nil {
+		_ = os.Remove(tempFilePath)
+		logger.Debugf("error closing temp file: %v", closeErr)
+		return http.StatusInternalServerError, closeErr
+	}
+
+	if err = validateReceivedBytes(written, totalSize, hasTotalSize, r.ContentLength); err != nil {
+		_ = os.Remove(tempFilePath)
+		logger.Debugf("%v", err)
+		return http.StatusBadRequest, err
+	}
+
+	err = files.MoveResource(false, source, source, tempFilePath, realPath)
+	if err != nil {
+		_ = os.Remove(tempFilePath)
 		logger.Debugf("error writing file: %v", err)
 		return ErrToStatus(err), err
 	}
+	reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
 	activity.RecordUpload(r, toActor(d), source, path, false)
 	return http.StatusOK, nil
 }
