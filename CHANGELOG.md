@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Uploading image: image gets cut-off (#2765)
  - Process aborts (not just 500) during PDF thumbnail generation (#2763)
  - PDF preview generation prevents file uploads from completing (#2752)
+ - Brings back double-tap to zoom images that was mistakenly removed.
 
 ## v2.0.0
 
