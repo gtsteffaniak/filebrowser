@@ -138,8 +138,8 @@
           @play="handlePlay"
           playsinline
         >
-          <track kind="captions" v-for="(sub, index) in subtitlesList" :key="sub.language || index" :src="sub.src"
-            :label="subtitleTrackLabel(sub)" :srclang="sub.language" />
+          <track kind="captions" v-for="(sub, index) in subtitlesList" :key="sub.srclang || index" :src="sub.src"
+            :label="sub.name || subtitleTrackLabel(sub)" :srclang="sub.srclang" />
         </video>
       </div>
       <div
@@ -588,6 +588,7 @@ export default {
               this.applyCustomSettings(this.player);
               this.syncCaptionSizeSettingsVisibility();
               this.applyCaptionSizeClass();
+              this.syncCaptionTrackBadges();
             });
           }
         } else if (this.player && this.previewType === 'video') {
@@ -595,6 +596,7 @@ export default {
             this.syncCaptionSizeSettingsVisibility();
             this.captionSizeMenuInitialized = false;
             this.applyCustomSettings(this.player);
+            this.syncCaptionTrackBadges();
           });
         }
       },
@@ -909,6 +911,34 @@ export default {
     subtitleTrackLabel(sub) {
       const ext = getSubtitleFormatExtension(sub?.name || '');
       return ext || sub?.name || '';
+    },
+    /** Plyr builds caption badges from srclang; rewrite them to show real language codes (eng, deu). */
+    syncCaptionTrackBadges() {
+      if (!this.player || this.previewType !== 'video' || !this.subtitlesList?.length) {
+        return;
+      }
+      const menu = this.player.elements?.settings?.panels?.captions?.querySelector('[role="menu"]');
+      if (!menu) {
+        return;
+      }
+      const items = menu.querySelectorAll('[role="menuitemradio"]');
+      let subIndex = 0;
+      for (let i = 1; i < items.length; i++) {
+        const sub = this.subtitlesList[subIndex];
+        if (!sub) {
+          break;
+        }
+        const badge = items[i].querySelector('.plyr__badge');
+        const lang = (sub.language ?? '').trim();
+        if (badge) {
+          if (lang) {
+            badge.textContent = lang.toUpperCase();
+          } else {
+            badge.remove();
+          }
+        }
+        subIndex++;
+      }
     },
     ownsMediaSession() {
       return ownsMediaSessionSlot(this.mediaSessionOwnerId, mediaSessionOwner);
@@ -2010,6 +2040,13 @@ export default {
       if (this.previewType === 'video') {
         this.player.on('enterfullscreen', this.applyCaptionSizeClass);
         this.player.on('exitfullscreen', this.applyCaptionSizeClass);
+        this.player.on('ready', () => this.syncCaptionTrackBadges());
+        const textTracks = this.mediaElement?.textTracks;
+        if (textTracks) {
+          textTracks.addEventListener('addtrack', () => {
+            this.$nextTick(() => this.syncCaptionTrackBadges());
+          });
+        }
       }
       this.ensurePlaybackModeApplied();
       if (this.previewType === 'video') {
@@ -3073,6 +3110,7 @@ export default {
           }
           this.applyCaptionSizeClass();
         }
+        this.syncCaptionTrackBadges();
       } catch (error) {
         console.error('Error applying custom settings:', error);
       }

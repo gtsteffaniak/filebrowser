@@ -72,7 +72,7 @@ import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
 import { isRawImageMimeType } from "@/utils/mimetype";
-import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
+import { convertToVTT, getSubtitleFormatExtension, buildSubtitleSrclang } from "@/utils/subtitles";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import {
@@ -457,6 +457,7 @@ export default {
         return [];
       }
       const subs = [];
+      const langUseCount = {};
       // Fetch subtitle content for each track using the media API
       for (let index = 0; index < state.req.subtitles.length; index++) {
         const subtitleTrack = state.req.subtitles.at(index);
@@ -483,13 +484,13 @@ export default {
             const blob = new Blob([vttContent], { type: "text/vtt" });
             const vttURL = URL.createObjectURL(blob);
 
-            const lang = (subtitleTrack.language ?? '').trim();
             const streamIndex = subtitleTrack.index ?? index;
+            const realLang = (subtitleTrack.language ?? '').trim().toLowerCase();
             subs.push({
               name: subtitleTrack.name,
               src: vttURL,
-              // Unique srclang per track — Plyr keys tracks by language; duplicates block switching.
-              language: lang || `und-x-${streamIndex}`,
+              language: realLang,
+              srclang: buildSubtitleSrclang(subtitleTrack.language, streamIndex, langUseCount),
             });
           } else {
             console.warn(

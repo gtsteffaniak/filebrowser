@@ -2,7 +2,6 @@ package ffmpeg
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -37,40 +36,39 @@ func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.Subtit
 
 func mapSubtitleTracks(tracks []goffmpeg.SubtitleTrack) []utils.SubtitleTrack {
 	subtitles := make([]utils.SubtitleTrack, 0, len(tracks))
-	seenLanguages := make(map[string]bool)
+	naming := &subtitleNaming{
+		seenCombo: make(map[string]int),
+	}
 	for _, stream := range tracks {
 		index := stream.Index
 		track := utils.SubtitleTrack{
 			Index:    &index,
 			Codec:    stream.Codec,
-			Language: uniqueSubtitleLanguage(stream.Language, stream.Index, seenLanguages),
+			Language: strings.TrimSpace(stream.Language),
 			Title:    stream.Title,
 			Embedded: true,
-		}
-		baseName := "Embedded Subtitle " + strconv.Itoa(stream.Index)
-		if track.Title != "" {
-			track.Name = baseName + " (" + track.Title + ")"
-		} else if stream.Language != "" {
-			track.Name = baseName + " (" + stream.Language + ")"
-		} else {
-			track.Name = baseName
+			Name:     naming.name(stream),
 		}
 		subtitles = append(subtitles, track)
 	}
 	return subtitles
 }
 
-// uniqueSubtitleLanguage returns a BCP 47 language tag that is unique per stream.
-// Plyr and HTML <track srclang> match tracks by language; duplicate or empty values
-// prevent switching between multiple embedded tracks (e.g. two undefined-language subs).
-func uniqueSubtitleLanguage(language string, streamIndex int, seen map[string]bool) string {
-	lang := strings.TrimSpace(language)
-	if lang == "" {
-		lang = "und"
+// subtitleNaming builds display names for the captions menu. Language is shown via Plyr's badge;
+// names are "Track" unless the same language+title pair appears more than once.
+type subtitleNaming struct {
+	seenCombo map[string]int
+}
+
+func (n *subtitleNaming) name(stream goffmpeg.SubtitleTrack) string {
+	title := strings.TrimSpace(stream.Title)
+	lang := strings.TrimSpace(stream.Language)
+	key := lang + "\x00" + title
+
+	count := n.seenCombo[key]
+	n.seenCombo[key] = count + 1
+	if count == 0 {
+		return "Track"
 	}
-	if seen[lang] {
-		return fmt.Sprintf("%s-%d", lang, streamIndex)
-	}
-	seen[lang] = true
-	return lang
+	return "Track " + strconv.Itoa(count)
 }
