@@ -4,6 +4,7 @@ version: 2
 
 before:
   hooks:
+    - go mod download
     - go run ./scripts/setup-gofitz-cgo
 
 builds:

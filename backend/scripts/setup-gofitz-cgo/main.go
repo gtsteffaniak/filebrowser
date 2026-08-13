@@ -3,13 +3,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	}
 
 	outPath := filepath.Join(backendDir, "internal", "preview", "gofitzinclude")
-	includeDir, err := goFitzIncludeDir()
+	includeDir, err := goFitzIncludeDir(backendDir)
 	if err != nil {
 		fatal(err)
 	}
@@ -54,16 +54,28 @@ func backendRoot() (string, error) {
 	return "", fmt.Errorf("could not find backend module root from %s", wd)
 }
 
-func goFitzIncludeDir() (string, error) {
-	out, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "github.com/gen2brain/go-fitz").Output()
+func goFitzIncludeDir(backendDir string) (string, error) {
+	cmd := exec.Command("go", "mod", "download", "-json", "github.com/gen2brain/go-fitz")
+	cmd.Dir = backendDir
+	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("go list go-fitz: %w", err)
+		if ee, ok := err.(*exec.ExitError); ok {
+			return "", fmt.Errorf("go mod download go-fitz: %w: %s", err, ee.Stderr)
+		}
+		return "", fmt.Errorf("go mod download go-fitz: %w", err)
 	}
-	modDir := strings.TrimSpace(string(out))
-	if modDir == "" {
-		return "", fmt.Errorf("go-fitz module path not found")
+
+	var modInfo struct {
+		Dir string `json:"Dir"`
 	}
-	include := filepath.Join(modDir, "include")
+	if err := json.Unmarshal(out, &modInfo); err != nil {
+		return "", fmt.Errorf("parse go mod download output: %w", err)
+	}
+	if modInfo.Dir == "" {
+		return "", fmt.Errorf("go-fitz module path not found after download")
+	}
+
+	include := filepath.Join(modInfo.Dir, "include")
 	if fi, err := os.Stat(include); err != nil || !fi.IsDir() {
 		return "", fmt.Errorf("go-fitz include directory not found: %s", include)
 	}
