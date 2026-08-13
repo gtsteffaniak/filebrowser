@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Disable auto logout/session expiry if there are active file transfers going (#2638)
  - upload options get cut off on mobile (#2685)
  - Uploading image: image gets cut-off (#2765)
+ - Brings back double-tap to zoom images that was mistakenly removed.
 
 ## v2.0.0
 
