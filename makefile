@@ -18,18 +18,23 @@ PLAYWRIGHT_TEST ?= "settings"
 .PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
 .PHONY: check-translations sync-translations test-playwright run-proxy screenshots
-.PHONY: check-icons generate-icons sync-icons
+.PHONY: check-icons generate-icons sync-icons setup-gofitz-cgo
 
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
 	if [ ! -f backend/test_config.yaml ]; then \
 		cp backend/config.yaml backend/test_config.yaml; \
 	fi
+	$(MAKE) setup-gofitz-cgo
 	echo "installing backend tooling..."
 	cd backend && go get tool
 	cd backend/internal/web && mkdir -p embed dist && touch embed/.gitignore
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
+
+setup-gofitz-cgo:
+	echo "linking go-fitz MuPDF headers for preview CGO..."
+	cd backend && go run ./scripts/setup-gofitz-cgo
 
 update:
 	cd backend && go get -u ./... && go mod tidy
@@ -49,7 +54,7 @@ build-backend:
 	@echo "✓ Backend built successfully"
 
 # New dev target with hot-reloading for frontend and backend
-dev: generate-docs generate-icons
+dev: generate-docs generate-icons setup-gofitz-cgo
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	pkill -f '[t]est_config.yaml' || true
 	pkill -f '[g]o tool air' || true
@@ -60,7 +65,7 @@ dev: generate-docs generate-icons
 	trap 'echo "Stopping..."; kill $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; sleep 1; kill -9 $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; exit 0' INT TERM; \
 	wait $$FRONTEND_PID $$BACKEND_PID 2>/dev/null || true
 
-run: build-frontend generate-docs
+run: build-frontend generate-docs setup-gofitz-cgo
 	cd backend && go tool swag init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
