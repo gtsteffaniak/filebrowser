@@ -7,7 +7,6 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
  - Session renew is handled by client keep-alive. removed per-request `X-Renew-Token` header handling.
- - Added PDF and document preview support
 
  **Bugfixes**:
  - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).

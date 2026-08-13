@@ -71,7 +71,7 @@ builds:
   - id: windows
     env:
       - CGO_ENABLED=1
-      # windows-gnu provides mingw headers; -lc links libc (required for CGO on Linux CI)
+      # windows-gnu avoids zig rejecting Go's -tsaware when cross-compiling from macOS
       - CC=zig cc -target x86_64-windows-gnu -lc
     tags:
       - analytics
@@ -99,35 +99,17 @@ builds:
     goarch:
       - amd64
 
-  # Build configuration for macos without upx (zig cross-compile from Linux CI)
-  - id: macos-arm64
-    env:
-      - CGO_ENABLED=1
-      - CC=zig cc -target aarch64-macos-gnu
+  # Build configuration for macos without upx (no mupdf: CGO cross-compile from Linux CI is unsupported)
+  - id: macos
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
     tags:
       - analytics
-      - mupdf
     goos:
       - darwin
     goarch:
       - arm64
-
-  - id: macos-amd64
-    env:
-      - CGO_ENABLED=1
-      - CC=zig cc -target x86_64-macos-gnu
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    tags:
-      - analytics
-      - mupdf
-    goos:
-      - darwin
-    goarch:
       - amd64
 
 archives:
