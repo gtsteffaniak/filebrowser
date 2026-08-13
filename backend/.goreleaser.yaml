@@ -71,7 +71,8 @@ builds:
   - id: windows
     env:
       - CGO_ENABLED=1
-      - CC=zig cc -target x86_64-windows
+      # windows-gnu provides mingw headers; -lc links libc (required for CGO on Linux CI)
+      - CC=zig cc -target x86_64-windows-gnu -lc
     tags:
       - analytics
       - mupdf
@@ -98,11 +99,17 @@ builds:
     goarch:
       - amd64
 
-  # Build configuration for macos without upx (zig cross-compile from Linux CI)
+  # Build configuration for macos without upx (zig cross-compile from Linux CI + macOS SDK)
   - id: macos-arm64
     env:
       - CGO_ENABLED=1
-      - CC=zig cc -target aarch64-macos-gnu
+      - MACOSX_DEPLOYMENT_TARGET=11.0
+      - >-
+        CGO_CFLAGS=-isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
+      - >-
+        CGO_LDFLAGS=-isysroot {{ .Env.SDK_PATH }}
+      - >-
+        CC=zig cc -target aarch64-macos-gnu --sysroot={{ .Env.SDK_PATH }}
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
@@ -117,7 +124,13 @@ builds:
   - id: macos-amd64
     env:
       - CGO_ENABLED=1
-      - CC=zig cc -target x86_64-macos-gnu
+      - MACOSX_DEPLOYMENT_TARGET=11.0
+      - >-
+        CGO_CFLAGS=-isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
+      - >-
+        CGO_LDFLAGS=-isysroot {{ .Env.SDK_PATH }}
+      - >-
+        CC=zig cc -target x86_64-macos-gnu --sysroot={{ .Env.SDK_PATH }}
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
