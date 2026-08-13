@@ -99,17 +99,22 @@ builds:
     goarch:
       - amd64
 
-  # Build configuration for macos without upx (zig cross-compile from Linux CI + macOS SDK)
+  # Build configuration for macos without upx (clang cross-compile from Linux CI + macOS SDK)
   - id: macos-arm64
     env:
       - CGO_ENABLED=1
+      - SDKROOT={{ .Env.SDK_PATH }}
       - MACOSX_DEPLOYMENT_TARGET=11.0
       - >-
         CGO_CFLAGS=-isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
       - >-
+        CGO_CXXFLAGS=-isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
+      - >-
         CGO_LDFLAGS=-isysroot {{ .Env.SDK_PATH }}
       - >-
-        CC=zig cc -target aarch64-macos-gnu --sysroot={{ .Env.SDK_PATH }}
+        CC=clang --target=aarch64-apple-darwin -isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
+      - >-
+        CXX=clang++ --target=aarch64-apple-darwin -isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
@@ -124,13 +129,18 @@ builds:
   - id: macos-amd64
     env:
       - CGO_ENABLED=1
+      - SDKROOT={{ .Env.SDK_PATH }}
       - MACOSX_DEPLOYMENT_TARGET=11.0
       - >-
         CGO_CFLAGS=-isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
       - >-
+        CGO_CXXFLAGS=-isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
+      - >-
         CGO_LDFLAGS=-isysroot {{ .Env.SDK_PATH }}
       - >-
-        CC=zig cc -target x86_64-macos-gnu --sysroot={{ .Env.SDK_PATH }}
+        CC=clang --target=x86_64-apple-darwin -isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
+      - >-
+        CXX=clang++ --target=x86_64-apple-darwin -isysroot {{ .Env.SDK_PATH }} -mmacosx-version-min=11.0
     ldflags: *ldflags
     main: main.go
     binary: filebrowser

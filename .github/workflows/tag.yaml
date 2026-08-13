@@ -23,7 +23,7 @@ jobs:
         run: npm i && npm run build
         working-directory: frontend
       - name: Install OS Requirements
-        run: sudo apt update && sudo apt install -y upx build-essential musl-tools
+        run: sudo apt update && sudo apt install -y upx build-essential musl-tools clang
       - uses: goto-bus-stop/setup-zig@v2
       - name: Install macOS SDK for darwin CGO cross-compile
         run: |
@@ -31,6 +31,11 @@ jobs:
             https://github.com/joseluisq/macosx-sdks/releases/download/13.3/MacOSX13.3.sdk.tar.xz
           tar xf "${RUNNER_TEMP}/MacOSX.sdk.tar.xz" -C "${RUNNER_TEMP}"
           echo "SDK_PATH=${RUNNER_TEMP}/MacOSX13.3.sdk" >> "$GITHUB_ENV"
+      - name: Verify macOS SDK
+        run: |
+          test -f "${SDK_PATH}/usr/include/pthread.h"
+          test -f "${SDK_PATH}/usr/include/stdlib.h"
+          echo "SDK_PATH=${SDK_PATH}"
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -38,6 +43,7 @@ jobs:
           workdir: backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SDK_PATH: ${{ env.SDK_PATH }}
 
   push_release_to_registry:
     name: Push release
