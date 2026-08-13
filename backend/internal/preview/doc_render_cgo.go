@@ -109,7 +109,6 @@ static int fb_render_document_page_jpeg(
 	}
 	fz_always(ctx) {
 		if (device) {
-			fz_close_device(ctx, device);
 			fz_drop_device(ctx, device);
 		}
 		if (pixmap) {

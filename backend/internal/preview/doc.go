@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 func docEnabled() bool {
@@ -43,35 +44,40 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 	if strings.HasPrefix(file.Type, "text") && !strings.HasSuffix(file.RealPath, ".txt") {
 		originalFile, err := os.Open(file.RealPath)
 		if err != nil {
-			return nil, fmt.Errorf("text snippet: failed to open original file '%s': %w", file.RealPath, err)
+			logger.Errorf("text snippet preview: failed to open file '%s': %v", file.Name, err)
+			return nil, fmt.Errorf("text snippet: failed to open file")
 		}
 		defer originalFile.Close() // Ensure original file is closed
 
 		buffer := make([]byte, 1024) // Buffer for up to 1KB
 		n, readErr := originalFile.Read(buffer)
 		if readErr != nil && readErr != io.EOF { // io.EOF is not an error if some bytes were read
-			return nil, fmt.Errorf("text snippet: failed to read from original file '%s': %w", file.RealPath, readErr)
+			logger.Errorf("text snippet preview: failed to read file '%s': %v", file.Name, readErr)
+			return nil, fmt.Errorf("text snippet: failed to read file")
 		}
 
 		if n == 0 {
-			return nil, fmt.Errorf("text snippet: original file '%s' is empty or unreadable", file.RealPath)
+			return nil, fmt.Errorf("text snippet: file is empty or unreadable")
 		} else {
 			tempFile, err := os.Create(tempFilePath)
 			if err != nil {
-				return nil, fmt.Errorf("text snippet: failed to create temporary file '%s': %w", tempFilePath, err)
+				logger.Errorf("text snippet preview: failed to create temp file for '%s': %v", file.Name, err)
+				return nil, fmt.Errorf("text snippet: failed to create temporary file")
 			}
 			defer os.Remove(tempFilePath) // Ensure cleanup on error
 			// Write the read content (up to 1KB or EOF) to the temporary file
 			if _, err := tempFile.Write(buffer[:n]); err != nil {
 				tempFile.Close()        // Attempt to close
 				os.Remove(tempFilePath) // Clean up on error
-				return nil, fmt.Errorf("text snippet: failed to write to temporary file '%s': %w", tempFilePath, err)
+				logger.Errorf("text snippet preview: failed to write temp file for '%s': %v", file.Name, err)
+				return nil, fmt.Errorf("text snippet: failed to write temporary file")
 			}
 
 			// Close the temporary file so it can be reliably opened by path by other processes/functions
 			if err := tempFile.Close(); err != nil {
 				os.Remove(tempFilePath) // Clean up on error
-				return nil, fmt.Errorf("text snippet: failed to close temporary file '%s': %w", tempFilePath, err)
+				logger.Errorf("text snippet preview: failed to close temp file for '%s': %v", file.Name, err)
+				return nil, fmt.Errorf("text snippet: failed to close temporary file")
 			}
 
 			docPath = tempFilePath // Update docPath to point to the new temporary text snippet file
@@ -85,7 +91,8 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 
 	imageBytes, err := renderDocPageJPEG(docPath, pageNumber)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create image for document '%s': %w", docPath, err)
+		logger.Errorf("document preview render failed for '%s': %v", file.Name, err)
+		return nil, fmt.Errorf("failed to create document preview")
 	}
 
 	// Check timeout after rendering image

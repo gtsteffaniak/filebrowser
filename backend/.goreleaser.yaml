@@ -4,7 +4,7 @@ version: 2
 
 before:
   hooks:
-    - ./scripts/setup-gofitz-cgo.sh
+    - go run ./scripts/setup-gofitz-cgo
 
 builds:
   # Build configuration for linux amd64
@@ -98,16 +98,13 @@ builds:
     goarch:
       - amd64
 
-  # Build configuration for macos without upx
+  # Build configuration for macos without upx (no mupdf: CGO cross-compile from Linux CI is unsupported)
   - id: macos
-    env:
-      - CGO_ENABLED=1
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
     tags:
       - analytics
-      - mupdf
     goos:
       - darwin
     goarch:

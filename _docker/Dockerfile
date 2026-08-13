@@ -5,8 +5,7 @@ ARG REVISION
 WORKDIR /app
 COPY ./backend ./
 RUN apk update && apk add --no-cache gcc musl-dev
-RUN GO_FITZ=$(go list -m -f '{{.Dir}}' github.com/gen2brain/go-fitz) && \
-	ln -sfn "$GO_FITZ/include" internal/preview/gofitzinclude
+RUN go run ./scripts/setup-gofitz-cgo
 ENV CGO_ENABLED=1
 RUN go build -tags analytics,mupdf,musl -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \

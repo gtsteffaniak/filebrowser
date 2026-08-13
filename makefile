@@ -10,8 +10,6 @@ endif
 
 PLAYWRIGHT_TEST ?= "settings"
 
-GO_FITZ_DIR := $(shell cd backend && go list -m -f '{{.Dir}}' github.com/gen2brain/go-fitz)
-
 # git checkout remote branch PR
 # git fetch origin pull/####/head:pr-####
 
@@ -36,8 +34,7 @@ setup:
 
 setup-gofitz-cgo:
 	echo "linking go-fitz MuPDF headers for preview CGO..."
-	cd backend && rm -f internal/preview/gofitzinclude && \
-	ln -sfn "$(GO_FITZ_DIR)/include" internal/preview/gofitzinclude
+	cd backend && go run ./scripts/setup-gofitz-cgo
 
 update:
 	cd backend && go get -u ./... && go mod tidy
