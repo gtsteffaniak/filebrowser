@@ -2,6 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
+  pre_cmd = ["go run ./scripts/setup-gofitz-cgo"]
   cmd = "go build -o ./tmp/filebrowser.exe --tags=mupdf --ldflags=\"-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=commitSHA' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=version'\" ."
   entrypoint = "./tmp/filebrowser.exe"
   full_bin = "FILEBROWSER_DEVMODE=true CGO_ENABLED=1 ./tmp/filebrowser.exe -c test_config.yaml"
