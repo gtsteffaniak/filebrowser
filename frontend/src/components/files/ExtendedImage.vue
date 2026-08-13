@@ -41,6 +41,10 @@ import { getters, mutations, state } from '@/store';
 import { globalVars } from "@/utils/constants";
 import { getBestCachedImage } from "@/utils/imageCache";
 import { isRawImageMimeType } from "@/utils/mimetype";
+import {
+  isInLeftNavTapZone,
+  isInRightNavTapZone,
+} from "@/utils/navigationEdgeZones.js";
 import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import throttle from "@/utils/throttle";
 
@@ -79,8 +83,10 @@ export default {
       isTiff: false,
       // Full-frame edge gestures (touch + mouse), zoom scale === 1 only
       edgeKind: null, // null | 'horizontal' | 'vertical-dismiss'
+      edgeGestureActive: false, // true only when this touch started at scale 1
       edgeStartX: 0,
       edgeStartY: 0,
+      edgeStartClientX: 0,
       edgeDx: 0,
       edgeDy: 0,
       dragOffsetX: 0,
@@ -225,6 +231,19 @@ export default {
         commitReady = this.navNextCommitReady;
       }
       mutations.setNavigationGestureHint({ kind, commitReady, flashClose });
+    },
+    peekNavChromeForEdgeTap(clientX) {
+      if (!this.navigationGestureAllowed) {
+        return;
+      }
+      const moveWithSidebar = getters.isSidebarVisible() && getters.isStickySidebar();
+      const sidebarWidthEm = state.sidebar?.width || 20;
+      const opts = { moveWithSidebar, sidebarWidthEm };
+      if (this.hasImagePrevious && isInLeftNavTapZone(clientX, opts)) {
+        mutations.peekNavigationChrome('left');
+      } else if (this.hasImageNext && isInRightNavTapZone(clientX)) {
+        mutations.peekNavigationChrome('right');
+      }
     },
     loadFullImage() {
       if (!this.src) return;
@@ -473,6 +492,7 @@ export default {
     },
     resetEdgeGestureImmediate() {
       this.edgeKind = null;
+      this.edgeGestureActive = false;
       this.gestureDecided = false;
       this.edgeDx = 0;
       this.edgeDy = 0;
@@ -495,6 +515,9 @@ export default {
         const ax = Math.abs(this.edgeDx);
         const ay = Math.abs(this.edgeDy);
         if (ax < this.edgeHintPx && ay < this.edgeHintPx) {
+          // Short tap: image touch handlers suppress synthetic click, so peek
+          // nav chrome here the same way plyrViewer does for video edge taps.
+          this.peekNavChromeForEdgeTap(this.edgeStartClientX);
           this.snapBackEdgeGesture();
           return;
         }
@@ -580,6 +603,7 @@ export default {
         this.edgeMouseActive = true;
         this.edgeStartX = event.clientX;
         this.edgeStartY = event.clientY;
+        this.edgeStartClientX = event.clientX;
         this.edgeDx = 0;
         this.edgeDy = 0;
         this.edgeKind = null;
@@ -621,8 +645,10 @@ export default {
       }
       if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
+        this.edgeGestureActive = true;
         this.edgeStartX = touch.pageX;
         this.edgeStartY = touch.pageY;
+        this.edgeStartClientX = touch.clientX;
         this.edgeDx = 0;
         this.edgeDy = 0;
         this.edgeKind = null;
@@ -631,12 +657,17 @@ export default {
         this.resetEdgeGestureImmediate();
         this.applyImgTransform();
       }
-      if (event.targetTouches.length === 2) {
+      // Sequential single-finger taps within 300ms → double-tap zoom
+      // (@dblclick is unreliable on mobile because touchend preventDefault blocks click synthesis)
+      if (event.targetTouches.length === 1) {
         setTimeout(() => {
           this.touches = 0;
         }, 300);
         this.touches++;
         if (this.touches > 1) {
+          // zoomAuto may set scale back to 1 before touchend; do not treat that
+          // touchend as an edge swipe (stale edgeStart would navigate).
+          this.edgeGestureActive = false;
           this.zoomAuto(event);
           event.preventDefault();
         }
@@ -744,7 +775,10 @@ export default {
         event.preventDefault();
         return;
       }
-      if (this.scale === 1 && event.changedTouches.length > 0) {
+      // Only finish edge gestures that started at scale 1. Double-tap zoom-out
+      // sets scale to 1 on touchstart; without this guard touchend would treat
+      // stale edgeStart coords as a swipe and navigate.
+      if (this.scale === 1 && this.edgeGestureActive && event.changedTouches.length > 0) {
         const t = event.changedTouches[0];
         this.edgeDx = t.pageX - this.edgeStartX;
         this.edgeDy = t.pageY - this.edgeStartY;
@@ -753,6 +787,7 @@ export default {
       } else if (this.scale > 1) {
         event.preventDefault();
       }
+      this.edgeGestureActive = false;
     },
   },
   watch: {
