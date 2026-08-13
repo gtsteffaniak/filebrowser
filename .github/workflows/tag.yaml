@@ -27,10 +27,10 @@ jobs:
       - uses: goto-bus-stop/setup-zig@v2
       - name: Install macOS SDK for darwin CGO cross-compile
         run: |
-          curl -sL -o MacOSX.sdk.tar.xz \
+          curl -sL -o "${RUNNER_TEMP}/MacOSX.sdk.tar.xz" \
             https://github.com/joseluisq/macosx-sdks/releases/download/13.3/MacOSX13.3.sdk.tar.xz
-          tar xf MacOSX.sdk.tar.xz
-          echo "SDK_PATH=${GITHUB_WORKSPACE}/MacOSX13.3.sdk" >> "$GITHUB_ENV"
+          tar xf "${RUNNER_TEMP}/MacOSX.sdk.tar.xz" -C "${RUNNER_TEMP}"
+          echo "SDK_PATH=${RUNNER_TEMP}/MacOSX13.3.sdk" >> "$GITHUB_ENV"
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
