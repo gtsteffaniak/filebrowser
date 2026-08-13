@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
  - Session renew is handled by client keep-alive. removed per-request `X-Renew-Token` header handling.
+ - Improvements to document thumbnail generation performance.
 
  **Bugfixes**:
  - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).
@@ -18,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Process aborts (not just 500) during PDF thumbnail generation (#2763)
  - PDF preview generation prevents file uploads from completing (#2752)
  - Brings back double-tap to zoom images that was mistakenly removed.
+ - multiple embedded subtitles with same language bug (#2756)
 
 ## v2.0.0
 

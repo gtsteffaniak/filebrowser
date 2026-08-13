@@ -2,7 +2,9 @@ package ffmpeg
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -35,24 +37,40 @@ func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.Subtit
 
 func mapSubtitleTracks(tracks []goffmpeg.SubtitleTrack) []utils.SubtitleTrack {
 	subtitles := make([]utils.SubtitleTrack, 0, len(tracks))
+	seenLanguages := make(map[string]bool)
 	for _, stream := range tracks {
 		index := stream.Index
 		track := utils.SubtitleTrack{
 			Index:    &index,
 			Codec:    stream.Codec,
-			Language: stream.Language,
+			Language: uniqueSubtitleLanguage(stream.Language, stream.Index, seenLanguages),
 			Title:    stream.Title,
 			Embedded: true,
 		}
 		baseName := "Embedded Subtitle " + strconv.Itoa(stream.Index)
 		if track.Title != "" {
 			track.Name = baseName + " (" + track.Title + ")"
-		} else if track.Language != "" {
-			track.Name = baseName + " (" + track.Language + ")"
+		} else if stream.Language != "" {
+			track.Name = baseName + " (" + stream.Language + ")"
 		} else {
 			track.Name = baseName
 		}
 		subtitles = append(subtitles, track)
 	}
 	return subtitles
+}
+
+// uniqueSubtitleLanguage returns a BCP 47 language tag that is unique per stream.
+// Plyr and HTML <track srclang> match tracks by language; duplicate or empty values
+// prevent switching between multiple embedded tracks (e.g. two undefined-language subs).
+func uniqueSubtitleLanguage(language string, streamIndex int, seen map[string]bool) string {
+	lang := strings.TrimSpace(language)
+	if lang == "" {
+		lang = "und"
+	}
+	if seen[lang] {
+		return fmt.Sprintf("%s-%d", lang, streamIndex)
+	}
+	seen[lang] = true
+	return lang
 }

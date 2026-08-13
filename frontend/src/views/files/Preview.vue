@@ -484,11 +484,12 @@ export default {
             const vttURL = URL.createObjectURL(blob);
 
             const lang = (subtitleTrack.language ?? '').trim();
+            const streamIndex = subtitleTrack.index ?? index;
             subs.push({
               name: subtitleTrack.name,
               src: vttURL,
-              // Empty srclang breaks Plyr language matching; use 'und' (undetermined) per BCP 47.
-              language: lang || 'und',
+              // Unique srclang per track — Plyr keys tracks by language; duplicates block switching.
+              language: lang || `und-x-${streamIndex}`,
             });
           } else {
             console.warn(
