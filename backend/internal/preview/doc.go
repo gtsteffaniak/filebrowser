@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime"
 	"strings"
 	"time"
 
@@ -21,23 +20,11 @@ func docEnabled() bool {
 	return true
 }
 
-func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) {
+func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int, previewSize string) ([]byte, error) {
 	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-
-	// Serialize access to the entire MuPDF operation block (required for CGO thread safety)
-	s.docGenMutex.Lock()
-	defer s.docGenMutex.Unlock()
-
-	// Lock the current goroutine to a single OS thread for CGo calls
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
-
-	// Create a 2-second timeout for document generation after acquiring locks
-	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-	defer cancel()
 
 	docPath := file.RealPath
 	// copy file to a temporary location if needed
@@ -84,18 +71,19 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 		}
 	}
 
-	// Check timeout before opening document
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
 	if timeoutCtx.Err() != nil {
 		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
 	}
 
-	imageBytes, err := renderDocPageJPEG(docPath, pageNumber)
+	imageBytes, err := s.renderDocPageJPEG(timeoutCtx, docPath, pageNumber, previewSize)
 	if err != nil {
 		logger.Errorf("document preview render failed for '%s': %v", file.Name, err)
 		return nil, fmt.Errorf("failed to create document preview")
 	}
 
-	// Check timeout after rendering image
 	if timeoutCtx.Err() != nil {
 		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
 	}

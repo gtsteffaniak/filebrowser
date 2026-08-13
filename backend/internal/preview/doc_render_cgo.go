@@ -14,12 +14,20 @@ static void fb_silence_warnings(void *user, const char *message) {
 	(void)message;
 }
 
+static double fb_dmin(double a, double b) { return a < b ? a : b; }
+static double fb_dmax(double a, double b) { return a > b ? a : b; }
+
 // fb_render_document_page_jpeg renders one page to JPEG bytes.
+// max_width/max_height <= 0 selects original mode (~150 DPI). Otherwise renders into that box.
+// resize_mode_fill: 0 = fit (no upscale), 1 = fill (center crop to exact box).
 // Returns 0 on success; on failure writes a message to err_buf and returns -1.
 // out is malloc'd; caller must free.
 static int fb_render_document_page_jpeg(
 	const char *path,
 	int page_num,
+	int max_width,
+	int max_height,
+	int resize_mode_fill,
 	int jpeg_quality,
 	unsigned char **out,
 	size_t *out_len,
@@ -76,12 +84,41 @@ static int fb_render_document_page_jpeg(
 
 		page = fz_load_page(ctx, doc, page_num);
 
-		// Match go-fitz ImageDPI scale used before resize in the preview pipeline.
-		double dpi = 150.0;
 		fz_rect bounds = fz_bound_page(ctx, page);
-		fz_matrix ctm = fz_scale(dpi / 72.0, dpi / 72.0);
-		bounds = fz_transform_rect(bounds, ctm);
-		fz_irect bbox = fz_round_rect(bounds);
+		fz_matrix ctm;
+		fz_irect bbox;
+
+		if (max_width <= 0 || max_height <= 0) {
+			double dpi = 150.0;
+			ctm = fz_scale(dpi / 72.0, dpi / 72.0);
+			bounds = fz_transform_rect(bounds, ctm);
+			bbox = fz_round_rect(bounds);
+		} else {
+			double page_w = bounds.x1 - bounds.x0;
+			double page_h = bounds.y1 - bounds.y0;
+			if (page_w <= 0 || page_h <= 0) {
+				fz_throw(ctx, FZ_ERROR_GENERIC, "invalid page bounds");
+			}
+
+			if (resize_mode_fill) {
+				double scale = fb_dmax((double)max_width / page_w, (double)max_height / page_h);
+				double tx = ((double)max_width - page_w * scale) / 2.0 - bounds.x0 * scale;
+				double ty = ((double)max_height - page_h * scale) / 2.0 - bounds.y0 * scale;
+				ctm = fz_concat(
+					fz_translate(tx, ty),
+					fz_concat(fz_scale(scale, scale), fz_translate(-bounds.x0, -bounds.y0))
+				);
+				bbox = fz_make_irect(0, 0, max_width, max_height);
+			} else {
+				double scale = fb_dmin((double)max_width / page_w, (double)max_height / page_h);
+				if (scale > 1.0) {
+					scale = 1.0;
+				}
+				ctm = fz_concat(fz_scale(scale, scale), fz_translate(-bounds.x0, -bounds.y0));
+				bounds = fz_transform_rect(bounds, ctm);
+				bbox = fz_round_rect(bounds);
+			}
+		}
 
 		pixmap = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), bbox, NULL, 0);
 		fz_clear_pixmap_with_value(ctx, pixmap, 0xff);
@@ -148,14 +185,43 @@ static int fb_render_document_page_jpeg(
 import "C"
 
 import (
+	"context"
 	"fmt"
+	"runtime"
 	"strings"
+	"time"
 	"unsafe"
 )
 
-const docRenderJPEGQuality = 75
+type docRenderParams struct {
+	maxWidth    int
+	maxHeight   int
+	fill        bool
+	jpegQuality int
+}
 
-func renderDocPageJPEG(path string, pageNumber int) ([]byte, error) {
+func docRenderParamsForPreviewSize(previewSize string) (docRenderParams, error) {
+	if previewSize == "original" {
+		return docRenderParams{jpegQuality: QualityHigh.jpegQuality()}, nil
+	}
+	opts, err := getPreviewOptions(previewSize)
+	if err != nil {
+		return docRenderParams{}, err
+	}
+	return docRenderParams{
+		maxWidth:    opts.Width,
+		maxHeight:   opts.Height,
+		fill:        opts.ResizeMode == ResizeModeFill,
+		jpegQuality: opts.Quality.jpegQuality(),
+	}, nil
+}
+
+func (s *Service) renderDocPageJPEG(ctx context.Context, path string, pageNumber int, previewSize string) ([]byte, error) {
+	params, err := docRenderParamsForPreviewSize(previewSize)
+	if err != nil {
+		return nil, err
+	}
+
 	cPath := C.CString(path)
 	defer C.free(unsafe.Pointer(cPath))
 
@@ -163,15 +229,35 @@ func renderDocPageJPEG(path string, pageNumber int) ([]byte, error) {
 	var outLen C.size_t
 	errBuf := make([]byte, 512)
 
+	fillMode := 0
+	if params.fill {
+		fillMode = 1
+	}
+
+	// MuPDF is not safe for concurrent CGO use; serialize only this call.
+	s.docGenMutex.Lock()
+	if err := ctx.Err(); err != nil {
+		s.docGenMutex.Unlock()
+		return nil, err
+	}
+	runtime.LockOSThread()
+	start := time.Now()
 	rc := C.fb_render_document_page_jpeg(
 		cPath,
 		C.int(pageNumber),
-		C.int(docRenderJPEGQuality),
+		C.int(params.maxWidth),
+		C.int(params.maxHeight),
+		C.int(fillMode),
+		C.int(params.jpegQuality),
 		&out,
 		&outLen,
 		(*C.char)(unsafe.Pointer(&errBuf[0])),
 		C.size_t(len(errBuf)),
 	)
+	elapsed := time.Since(start)
+	runtime.UnlockOSThread()
+	s.docGenMutex.Unlock()
+
 	if rc != 0 {
 		msg := strings.TrimRight(string(errBuf), "\x00")
 		if msg == "" {
