@@ -71,8 +71,7 @@ builds:
   - id: windows
     env:
       - CGO_ENABLED=1
-      # windows-gnu avoids zig rejecting Go's -tsaware when cross-compiling from macOS
-      - CC=zig cc -target x86_64-windows-gnu -lc
+      - CC=zig cc -target x86_64-windows
     tags:
       - analytics
       - mupdf
