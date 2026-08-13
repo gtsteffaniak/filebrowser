@@ -26,22 +26,6 @@ export function getSubtitleFormatExtension(filename) {
 }
 
 /**
- * Unique HTML srclang for Plyr/HTML track switching. First track per language uses the real
- * code (eng, deu); duplicates and unknown-language streams use a synthetic id.
- */
-export function buildSubtitleSrclang (language, streamIndex, langUseCount) {
-  const lang = (language ?? '').trim().toLowerCase()
-  if (lang) {
-    const count = langUseCount[lang] ?? 0
-    langUseCount[lang] = count + 1
-    if (count === 0) {
-      return lang
-    }
-  }
-  return `x-track-${streamIndex}`
-}
-
-/**
  * Strips ASS/SSA override blocks from dialogue text (e.g. {\fad(100,100)\blur3}).
  * Used only when converting .ass / .ssa to VTT. Other formats keep their styling.
  */

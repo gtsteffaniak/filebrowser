@@ -2,6 +2,7 @@ package ffmpeg
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -36,39 +37,42 @@ func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.Subtit
 
 func mapSubtitleTracks(tracks []goffmpeg.SubtitleTrack) []utils.SubtitleTrack {
 	subtitles := make([]utils.SubtitleTrack, 0, len(tracks))
-	naming := &subtitleNaming{
-		seenCombo: make(map[string]int),
+	mapper := &subtitleTrackMapper{
+		seenLang: make(map[string]int),
 	}
 	for _, stream := range tracks {
-		index := stream.Index
-		track := utils.SubtitleTrack{
-			Index:    &index,
-			Codec:    stream.Codec,
-			Language: strings.TrimSpace(stream.Language),
-			Title:    stream.Title,
-			Embedded: true,
-			Name:     naming.name(stream),
-		}
-		subtitles = append(subtitles, track)
+		subtitles = append(subtitles, mapper.track(stream))
 	}
 	return subtitles
 }
 
-// subtitleNaming builds display names for the captions menu. Language is shown via Plyr's badge;
-// names are "Track" unless the same language+title pair appears more than once.
-type subtitleNaming struct {
-	seenCombo map[string]int
+type subtitleTrackMapper struct {
+	seenLang map[string]int
 }
 
-func (n *subtitleNaming) name(stream goffmpeg.SubtitleTrack) string {
-	title := strings.TrimSpace(stream.Title)
+func (m *subtitleTrackMapper) track(stream goffmpeg.SubtitleTrack) utils.SubtitleTrack {
+	index := stream.Index
 	lang := strings.TrimSpace(stream.Language)
-	key := lang + "\x00" + title
-
-	count := n.seenCombo[key]
-	n.seenCombo[key] = count + 1
-	if count == 0 {
-		return "Track"
+	return utils.SubtitleTrack{
+		Index:    &index,
+		Codec:    stream.Codec,
+		Language: lang,
+		Srclang:  m.srclang(lang, stream.Index),
+		Title:    stream.Title,
+		Embedded: true,
+		Name:     "Track " + strconv.Itoa(stream.Index),
 	}
-	return "Track " + strconv.Itoa(count)
+}
+
+// srclang must be unique per stream so Plyr/HTML can switch tracks with the same Language.
+func (m *subtitleTrackMapper) srclang(language string, streamIndex int) string {
+	lang := strings.TrimSpace(strings.ToLower(language))
+	if lang != "" {
+		count := m.seenLang[lang]
+		m.seenLang[lang] = count + 1
+		if count == 0 {
+			return lang
+		}
+	}
+	return fmt.Sprintf("x-track-%d", streamIndex)
 }
