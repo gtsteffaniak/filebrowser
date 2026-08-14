@@ -1368,10 +1368,8 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			continue
 		}
 
-		// Get real paths
-		// Combine user scope with item paths BEFORE calling GetRealPath to avoid double scope application
-		fullSrcPath := utils.JoinScopedIndexPath(userscopeSrc, cleanFromPath)
-		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcPath)
+		// Get real paths (fullSrcIndexPath already includes user scope)
+		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcIndexPath)
 		if err != nil {
 			logger.Errorf("could not resolve source path: %v, fromPath: %v", err, clientFromPath)
 			item.Message = "could not resolve source path"
