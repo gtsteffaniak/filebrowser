@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	liberrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -433,8 +434,22 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
 	}
 
-	realPath, _, err := idx.GetRealPath(scopedFilePath)
+	bound := "/"
+	if d.Share.Hash != "" {
+		bound = d.Share.Path
+	} else {
+		userScope, scopeErr := d.User.GetScopeForSourceName(source)
+		if scopeErr != nil {
+			return http.StatusForbidden, scopeErr
+		}
+		bound = userScope
+	}
+
+	realPath, _, err := idx.GetRealPathScoped(bound, scopedFilePath)
 	if err != nil {
+		if errors.Is(err, liberrors.ErrPathEscapesScope) {
+			return http.StatusForbidden, err
+		}
 		return http.StatusInternalServerError, err
 	}
 
