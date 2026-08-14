@@ -299,7 +299,7 @@ func issueExtractUserTestToken(t *testing.T, duration time.Duration) (*users.Use
 		t.Fatal("failed to load user:", err)
 	}
 	user.Permissions = users.Permissions{Api: true}
-	if err := state.UpdateUser(&user, "", "permissions"); err != nil {
+	if err = state.UpdateUser(&user, "", "permissions"); err != nil {
 		t.Fatal("failed to set user permissions:", err)
 	}
 	user, err = state.GetUserByUsername("victim")
