@@ -1,5 +1,6 @@
 import { detectLocale } from '@/i18n';
-import { mutations, state } from '@/store';
+import { mutations } from './mutations';
+import { state } from './state';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
