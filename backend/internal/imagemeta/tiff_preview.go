@@ -19,6 +19,10 @@ const (
 	tiffTypeShort             = 3
 	tiffTypeLong              = 4
 	tiffTypeUndefined         = 7
+	maxTIFFIFDsVisited        = 128
+	maxTIFFIFDQueueLen        = 128
+	maxTIFFSubIFDsPerEntry    = 16
+	maxTIFFPreviewCandidates  = 32
 )
 
 type tiffIFD struct {
@@ -61,7 +65,7 @@ func collectTIFFPreviewCandidates(f *os.File) ([]previewCandidate, error) {
 	var ifds []tiffIFD
 	var queue []uint32
 	queue = append(queue, ifd0)
-	for len(queue) > 0 {
+	for len(queue) > 0 && len(seen) < maxTIFFIFDsVisited {
 		off := queue[0]
 		queue = queue[1:]
 		if off == 0 {
@@ -77,18 +81,37 @@ func collectTIFFPreviewCandidates(f *os.File) ([]previewCandidate, error) {
 			continue
 		}
 		ifds = append(ifds, ifd)
-		if next != 0 {
+		if next != 0 && len(queue) < maxTIFFIFDQueueLen {
 			queue = append(queue, next)
 		}
-		queue = append(queue, subIFDs...)
+		for _, sub := range subIFDs {
+			if len(queue) >= maxTIFFIFDQueueLen {
+				break
+			}
+			queue = append(queue, sub)
+		}
 	}
 
 	var out []previewCandidate
 	for _, ifd := range ifds {
-		out = append(out, jpgFromRawCandidates(ifd)...)
-		out = append(out, jpegInterchangeCandidates(ifd)...)
+		out = appendPreviewCandidates(out, jpgFromRawCandidates(ifd))
+		out = appendPreviewCandidates(out, jpegInterchangeCandidates(ifd))
+		if len(out) >= maxTIFFPreviewCandidates {
+			break
+		}
 	}
 	return out, nil
+}
+
+func appendPreviewCandidates(dst, src []previewCandidate) []previewCandidate {
+	remaining := maxTIFFPreviewCandidates - len(dst)
+	if remaining <= 0 {
+		return dst
+	}
+	if len(src) > remaining {
+		src = src[:remaining]
+	}
+	return append(dst, src...)
 }
 
 func jpgFromRawCandidates(ifd tiffIFD) []previewCandidate {
@@ -158,7 +181,7 @@ func parseTIFFIFD(data []byte, order binary.ByteOrder, offset uint32) (ifd tiffI
 		val := order.Uint32(data[entry+8 : entry+12])
 		ifd.tags[tagID] = tiffTag{typ: typ, count: cnt, valueOffset: val}
 		if tagID == tiffTagSubIFDs {
-			subIFDs = append(subIFDs, tiffTagUint32s(data, order, typ, cnt, val)...)
+			subIFDs = limitSubIFDs(tiffTagUint32s(data, order, typ, cnt, val))
 		}
 	}
 	nextOff := entryBase + count*12
@@ -168,9 +191,19 @@ func parseTIFFIFD(data []byte, order binary.ByteOrder, offset uint32) (ifd tiffI
 	return ifd, next, subIFDs, nil
 }
 
+func limitSubIFDs(offsets []uint32) []uint32 {
+	if len(offsets) > maxTIFFSubIFDsPerEntry {
+		return offsets[:maxTIFFSubIFDsPerEntry]
+	}
+	return offsets
+}
+
 func tiffTagUint32s(data []byte, order binary.ByteOrder, typ uint16, count uint32, valueOffset uint32) []uint32 {
 	if count == 0 {
 		return nil
+	}
+	if count > maxTIFFSubIFDsPerEntry {
+		count = maxTIFFSubIFDsPerEntry
 	}
 	var raw []byte
 	switch {
