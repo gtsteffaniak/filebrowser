@@ -574,7 +574,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
 
 	// Check access control for the target path
-	if !store.Access.Permitted(idx.Path, path, filePermUser.Username) {
+	if !store.Access.Permitted(idx.Path, fullIndexPath, filePermUser.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
@@ -965,9 +965,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		// Get real paths
-		// Combine user scope with item paths BEFORE calling GetRealPath to avoid double scope application
-		fullSrcPath := utils.JoinScopedIndexPath(userscopeSrc, item.FromPath)
-		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcPath)
+		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcIndexPath)
 		if err != nil {
 			logger.Errorf("could not resolve source path: %v, item.FromPath: %v", err, item.FromPath)
 			item.Message = "could not resolve source path"

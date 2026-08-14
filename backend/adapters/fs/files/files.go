@@ -173,7 +173,7 @@ func filterFilesByExt(files []iteminfo.ExtendedItemInfo, hideFileExt string) []i
 
 func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
 	items := Items{}
-	indexPath, _, topLevelErr := CheckPermissions(opts, access, user)
+	indexPath, userScope, topLevelErr := CheckPermissions(opts, access, user)
 	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
 	if topLevelErr != nil && !accessRulesErr {
 		return items, topLevelErr
@@ -183,14 +183,18 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	if idx == nil {
 		return items, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+	infoReq := indexing.FileInfoRequest{
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
 		HideFileExt:       opts.HideFileExt,
 		Expand:            true,
 		SkipExtendedAttrs: true,
-	})
+	}
+	if opts.FollowSymlinks {
+		infoReq.BoundIndexPath = userScope
+	}
+	info, err := idx.GetFileInfo(infoReq)
 	if err != nil {
 		return items, err // Path excluded by index rules OR doesn't exist
 	}
@@ -242,14 +246,18 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 	}
 	// Layer 2: INDEX RULES (global)
 	// Get file info using unified entry point (applies IsViewable/ShouldSkip)
-	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+	fileInfoReq := indexing.FileInfoRequest{
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
 		HideFileExt:       opts.HideFileExt,
 		Expand:            opts.Expand,
 		SkipExtendedAttrs: opts.SkipExtendedAttrs,
-	})
+	}
+	if opts.FollowSymlinks {
+		fileInfoReq.BoundIndexPath = userScope
+	}
+	info, err := idx.GetFileInfo(fileInfoReq)
 	if err != nil {
 		return response, err // Path excluded by index rules OR doesn't exist
 	}
@@ -266,7 +274,15 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 
 	// Build response
 	response.FileInfo = *info
-	response.RealPath = utils.JoinUnderSourceRoot(idx.Path, indexPath)
+	if opts.FollowSymlinks && info.Type != "directory" {
+		realPath, _, err := idx.GetRealPathScoped(userScope, indexPath)
+		if err != nil {
+			return response, err
+		}
+		response.RealPath = realPath
+	} else {
+		response.RealPath = utils.JoinUnderSourceRoot(idx.Path, indexPath)
+	}
 	response.Source = opts.Source
 	if shareStore != nil && user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
