@@ -512,6 +512,7 @@ export default {
       suppressRouteQueryNavigation: false,
       emptyCatalogHydrateTimer: null,
       advancedOptionsExpanded: false,
+      refreshQueued: false,
     };
   },
   computed: {
@@ -706,8 +707,7 @@ export default {
         return;
       }
       mutations.setReload(false);
-      mutations.resetSelected();
-      void this.runSearch();
+      this.scheduleSearchRefresh();
     },
     termInputs: {
       deep: true,
@@ -912,8 +912,18 @@ export default {
       if (data?.succeeded && data.succeeded.length === 0) {
         return;
       }
-      mutations.resetSelected();
-      void this.runSearch();
+      this.scheduleSearchRefresh();
+    },
+    scheduleSearchRefresh() {
+      if (this.refreshQueued) {
+        return;
+      }
+      this.refreshQueued = true;
+      this.$nextTick(() => {
+        this.refreshQueued = false;
+        mutations.resetSelected();
+        void this.runSearch();
+      });
     },
     /** When no source is toggled on, enable `state.sources.current` if known in the catalogue. */
     applyDefaultCurrentSourceIfNone() {

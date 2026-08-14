@@ -228,6 +228,12 @@ func TestPermitted_trailingSlashEquivalence(t *testing.T) {
 	if withSlash != withoutSlash {
 		t.Errorf("trailing slash mismatch: with=%v without=%v", withSlash, withoutSlash)
 	}
+	if withSlash {
+		t.Error("alice should be denied for /secret/ after DenyUser")
+	}
+	if withoutSlash {
+		t.Error("alice should be denied for /secret after DenyUser")
+	}
 }
 
 func TestPermitted_CombinedRules(t *testing.T) {
