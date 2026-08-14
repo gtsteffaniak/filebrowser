@@ -898,7 +898,9 @@ export default {
     alphanumericKeyPress(key) {
       const lowerKey = key.toLowerCase();
       const isSameKeyRepeat =
-        lowerKey === this.typeAheadLastKey && this.typeAheadPrefix !== '';
+        this.typeAheadPrefix.length === 1 &&
+        lowerKey === this.typeAheadLastKey &&
+        this.typeAheadPrefix === lowerKey;
 
       let prefix;
       if (isSameKeyRepeat) {
