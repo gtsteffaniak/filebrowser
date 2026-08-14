@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.5.2-stable
+
+ **Security**:
+ - [Moderate] Share create/update could set delete/modify/create flags beyond the owner's permissions; POST /api/share with hash could update another user's share (GHSA-x79q-5hqm-x839)
+
 ## v1.5.5
 
  **BugFixes**:
