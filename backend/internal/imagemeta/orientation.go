@@ -29,7 +29,7 @@ func GetOrientation(ctx context.Context, path string) string {
 
 	ext := strings.ToLower(filepath.Ext(path))
 	if isHEICExtension(ext) {
-		if _, err := f.Seek(0, io.SeekStart); err != nil {
+		if _, err = f.Seek(0, io.SeekStart); err != nil {
 			return ""
 		}
 		if orient := heicTransformOrientation(parseHEICTransform(f)); orient != "" {
@@ -40,7 +40,7 @@ func GetOrientation(ctx context.Context, path string) string {
 	var ex exif.Exif
 	switch ext {
 	case ".heic", ".heif", ".heics":
-		if _, err := f.Seek(0, io.SeekStart); err != nil {
+		if _, err = f.Seek(0, io.SeekStart); err != nil {
 			return ""
 		}
 		ex, err = extimagemeta.DecodeHeif(f)
