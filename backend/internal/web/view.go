@@ -63,7 +63,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	scopedPath := utils.JoinPathAsUnix(userscope, cleanPath)
+	scopedPath := utils.JoinScopedIndexPath(userscope, cleanPath)
 	return viewFilesHandler(w, r, d, source, []string{scopedPath})
 }
 
@@ -107,7 +107,7 @@ func PublicViewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if err = ValidateViewGrant(token, d, ""); err != nil {
 		return http.StatusForbidden, err
 	}
-	scopedPath := utils.JoinPathAsUnix(d.Share.Path, cleanFile)
+	scopedPath := utils.JoinScopedIndexPath(d.Share.Path, cleanFile)
 	status, err := viewFilesHandler(w, r, d, sourceInfo.Name, []string{scopedPath})
 	if err != nil {
 		if status == http.StatusForbidden {
