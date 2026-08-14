@@ -201,7 +201,10 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 
 	data.Token = tokenString
 	var tk users.AuthToken
-	token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+	// Validate signature without enforcing exp/iat so expired session JWTs can still yield
+	// user context on public-share routes; revocation is checked explicitly below.
+	parser := jwt.NewParser(jwt.WithoutClaimsValidation())
+	token, err := parser.ParseWithClaims(tokenString, &tk, keyFunc)
 	if err != nil {
 		return nil
 	}
@@ -210,13 +213,9 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return nil
 	}
 
-	// Signature is valid but the operator may have revoked this token (logout, DELETE /api/auth/token,
-	// or removal of the user's Api permission). Do not resurrect revoked tokens here.
 	if state.IsTokenRevoked(tokenString) {
 		return nil
 	}
-
-	// Token is valid and not revoked (but might be expired — jwt.ParseWithClaims rejects expired tokens)
 	var user *users.User
 	userValue, err := state.UserFromAPIToken(tk, tokenString)
 	if err == nil {
