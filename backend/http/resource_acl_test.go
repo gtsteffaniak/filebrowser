@@ -16,7 +16,7 @@ func TestResourcePostACLUsesFullIndexPathKey(t *testing.T) {
 		deniedFolder = "/home/alice/projects/acme/private"
 		relPath      = "/projects/acme/private/poison.docx"
 	)
-	fullIndexPath := utils.JoinPathAsUnix(userScope, relPath)
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, relPath)
 
 	alice := &users.User{
 		ID:       1,

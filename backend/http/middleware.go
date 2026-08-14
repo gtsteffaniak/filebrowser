@@ -201,7 +201,10 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 
 	data.token = tokenString
 	var tk users.AuthToken
-	token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+	// Validate signature without enforcing exp/iat so expired session JWTs can still yield
+	// user context on public-share routes; revocation is checked explicitly below.
+	parser := jwt.NewParser(jwt.WithoutClaimsValidation())
+	token, err := parser.ParseWithClaims(tokenString, &tk, keyFunc)
 	if err != nil {
 		return nil
 	}
@@ -210,8 +213,18 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return nil
 	}
 
-	// Token is valid (but might be expired or revoked)
-	// Try to get the user regardless of expiration status
+	if auth.IsRevokedApiToken(store.Access, tokenString) {
+		return nil
+	}
+
+	if tk.BelongsTo == 0 {
+		userID, found := store.Access.GetUserIDFromToken(tokenString)
+		if !found {
+			return nil
+		}
+		tk.BelongsTo = userID
+	}
+
 	user, err := store.Users.Get(tk.BelongsTo)
 	if err != nil {
 		logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
