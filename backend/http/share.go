@@ -225,7 +225,11 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if sourceName == "" {
 		return http.StatusBadRequest, fmt.Errorf("source not available for share")
 	}
-	userscope, err := d.user.GetScopeForSourceName(sourceName)
+	shareOwner, err := store.Users.Get(thisShare.UserID)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("share owner not found")
+	}
+	userscope, err := shareOwner.GetScopeForSourceName(sourceName)
 	if err != nil {
 		return http.StatusForbidden, err
 	}

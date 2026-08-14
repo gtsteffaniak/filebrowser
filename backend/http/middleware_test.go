@@ -144,6 +144,162 @@ func TestWithAdminHelper(t *testing.T) {
 	}
 }
 
+func TestPublicShare_RejectsRevokedJWT(t *testing.T) {
+	setupTestEnv(t)
+
+	victim := &users.User{
+		Username:    "victim",
+		Permissions: users.Permissions{Api: true},
+		Scopes: []users.SourceScope{
+			{Name: "srv", Scope: "/"},
+		},
+	}
+	if err := store.Users.Save(victim, true, true); err != nil {
+		t.Fatal("failed to create victim user:", err)
+	}
+
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+	if err := store.Settings.Save(&settings.Settings{Auth: settings.Auth{Key: "key"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	tokenString, _, err := auth.MakeSignedTokenAPI(victim, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, victim.Permissions, false)
+	if err != nil {
+		t.Fatalf("failed to issue token: %v", err)
+	}
+
+	shareLink := &share.Link{
+		Hash:   "revoked_jwt_hash",
+		UserID: victim.ID,
+		CommonShare: share.CommonShare{
+			Source:           "/srv",
+			Path:             "/",
+			AllowedUsernames: []string{"victim"},
+		},
+	}
+	if err := store.Share.Save(shareLink); err != nil {
+		t.Fatal("failed to create share:", err)
+	}
+
+	handler := withHashFile(publicGetResourceHandler)
+
+	makeRequest := func(jwt string) *httptest.ResponseRecorder {
+		recorder := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/public/api/resources?hash=revoked_jwt_hash&path=/", http.NoBody)
+		req.AddCookie(&http.Cookie{
+			Name:  "filebrowser_quantum_jwt",
+			Value: jwt,
+		})
+		handler.ServeHTTP(recorder, req)
+		return recorder
+	}
+
+	rec := makeRequest(tokenString)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("valid token: expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+
+	if err := auth.RevokeApiToken(store.Access, tokenString); err != nil {
+		t.Fatalf("failed to revoke token: %v", err)
+	}
+
+	rec = makeRequest(tokenString)
+	if rec.Code == http.StatusOK {
+		t.Fatalf("revoked token: expected non-200 status, got %d (JWT resurrection bypass)", rec.Code)
+	}
+}
+
+func TestExtractUserFromExpiredToken_RejectsRevokedJWT(t *testing.T) {
+	_, tokenString := issueExtractUserTestToken(t, time.Hour*2)
+	if err := auth.RevokeApiToken(store.Access, tokenString); err != nil {
+		t.Fatalf("failed to revoke token: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
+	req.AddCookie(&http.Cookie{
+		Name:  "filebrowser_quantum_jwt",
+		Value: tokenString,
+	})
+
+	data := &requestContext{}
+	if got := extractUserFromExpiredToken(req, data); got != nil {
+		t.Fatalf("extractUserFromExpiredToken() = user %q, want nil for revoked token", got.Username)
+	}
+}
+
+func TestExtractUserFromExpiredToken_AcceptsExpiredNonRevoked(t *testing.T) {
+	user, tokenString := issueExtractUserTestToken(t, -time.Hour)
+
+	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
+	req.AddCookie(&http.Cookie{
+		Name:  "filebrowser_quantum_jwt",
+		Value: tokenString,
+	})
+
+	data := &requestContext{}
+	got := extractUserFromExpiredToken(req, data)
+	if got == nil {
+		t.Fatal("extractUserFromExpiredToken() = nil, want user for expired non-revoked token")
+	}
+	if got.Username != user.Username {
+		t.Fatalf("extractUserFromExpiredToken() username = %q, want %q", got.Username, user.Username)
+	}
+}
+
+func TestExtractUserFromExpiredToken_RejectsRevokedExpired(t *testing.T) {
+	_, tokenString := issueExtractUserTestToken(t, -time.Hour)
+	if err := auth.RevokeApiToken(store.Access, tokenString); err != nil {
+		t.Fatalf("failed to revoke token: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
+	req.AddCookie(&http.Cookie{
+		Name:  "filebrowser_quantum_jwt",
+		Value: tokenString,
+	})
+
+	data := &requestContext{}
+	if got := extractUserFromExpiredToken(req, data); got != nil {
+		t.Fatalf("extractUserFromExpiredToken() = user %q, want nil for revoked expired token", got.Username)
+	}
+}
+
+func issueExtractUserTestToken(t *testing.T, duration time.Duration) (*users.User, string) {
+	t.Helper()
+	setupTestEnv(t)
+
+	user := &users.User{
+		Username:    "victim",
+		Permissions: users.Permissions{Api: true},
+	}
+	if err := store.Users.Save(user, true, true); err != nil {
+		t.Fatal("failed to create user:", err)
+	}
+	got, err := store.Users.Get(user.ID)
+	if err != nil {
+		t.Fatal("failed to load user:", err)
+	}
+	got.Permissions = users.Permissions{Api: true}
+	if err := store.Users.Save(got, false, false); err != nil {
+		t.Fatal("failed to set user permissions:", err)
+	}
+
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+	if err := store.Settings.Save(&settings.Settings{Auth: settings.Auth{Key: "key"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	tokenString, _, err := auth.MakeSignedTokenAPI(got, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), duration, got.Permissions, false)
+	if err != nil {
+		t.Fatalf("failed to issue token: %v", err)
+	}
+	return got, tokenString
+}
+
 func TestPublicShareHandlerAuthentication(t *testing.T) {
 	setupTestEnv(t)
 

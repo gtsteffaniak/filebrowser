@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] PATCH /api/share could re-point a share outside the owner's scope (GHSA-wfjp-qhvc-69wp)
+ - [High] Symlink following on read paths no longer escapes source or user/share scope (GHSA-mgqf-5mf5-prfj)
+ - [Moderate] Stored XSS via unsanitized DOCX hyperlink in DocViewer (GHSA-9wm6-jcjh-3m8c) -- thanks @karen93shieh
+ - [Moderate] Revoked JWTs could still authenticate on public-share and withOrWithoutUser routes until natural expiry, bypassing logout and Api-permission revocation on that surface (GHSA-4wmj-rq3c-m65v)
 
 ## v1.5.5
 
