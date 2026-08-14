@@ -220,8 +220,32 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if thisShare.UserID != d.user.ID && !d.user.Permissions.Admin {
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 	}
-	// Update the share path
-	err = store.Share.UpdateSharePath(body.Hash, sanitizedPath)
+
+	sourceName := thisShare.GetSourceName()
+	if sourceName == "" {
+		return http.StatusBadRequest, fmt.Errorf("source not available for share")
+	}
+	shareOwner, err := store.Users.Get(thisShare.UserID)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("share owner not found")
+	}
+	userscope, err := shareOwner.GetScopeForSourceName(sourceName)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	storedPath := utils.JoinPathAsUnix(userscope, body.Path)
+	storedPath = utils.AddTrailingSlashIfNotExists(storedPath)
+
+	idx := indexing.GetIndex(sourceName)
+	if idx == nil {
+		return http.StatusBadRequest, fmt.Errorf("index not found for source: %s", sourceName)
+	}
+	_, _, err = idx.GetRealPath(storedPath)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("path not found: %s", body.Path)
+	}
+
+	err = store.Share.UpdateSharePath(body.Hash, storedPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -394,7 +418,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, err
 	}
 
-	body.Path = utils.JoinPathAsUnix(userscope, cleanPath)
+	body.Path = utils.JoinScopedIndexPath(userscope, cleanPath)
 	body.Path = utils.AddTrailingSlashIfNotExists(body.Path)
 	// validate path exists as file or folder
 	_, _, err = idx.GetRealPath(body.Path)

@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] Share create/update could set delete/modify/create flags beyond the owner's permissions; POST /api/share with hash could update another user's share (GHSA-x79q-5hqm-x839)
+ - [Moderate] Authenticated upload and pause endpoints checked access rules on scope-relative paths, bypassing per-folder DENY rules (GHSA-cw65-p35p-633w)
+ - [Moderate] Logout did not invalidate session JWTs with equivalent Base64URL spellings (GHSA-8m35-wcjh-95q7)
+ - [Moderate] PATCH /api/share could re-point a share outside the owner's scope (GHSA-wfjp-qhvc-69wp) @maximeborges
+ - [High] Public upload ACL check used scope-stripped path, bypassing per-folder DENY rules (GHSA-qv53-4557-m65h) @hypnguyen1209
+ - [Moderate] Absolute paths in API path/file parameters could bypass user scope and read files outside the source mount (GHSA-rqqq-wv83-rp74)
+ - [High] Symlink following on read paths no longer escapes source or user/share scope (GHSA-mgqf-5mf5-prfj)
+ - [Moderate] Stored XSS via unsanitized DOCX hyperlink in DocViewer (GHSA-9wm6-jcjh-3m8c) -- thanks @karen93shieh
+ - [Moderate] Revoked JWTs could still authenticate on public-share and withOrWithoutUser routes until natural expiry, bypassing logout and Api-permission revocation on that surface (GHSA-4wmj-rq3c-m65v)
 
 ## v1.5.5
 
