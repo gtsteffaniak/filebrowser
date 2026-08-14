@@ -270,6 +270,12 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 		return s.generateHEICPreview(ctx, file, previewSize)
 
 	case previewTypeImage:
+		ext := strings.ToLower(filepath.Ext(file.Name))
+		if iteminfo.IsRawImage(ext) && s.ffmpegService != nil {
+			if bytes, err := s.convertImageWithFFmpeg(ctx, file.RealPath, previewSize); err == nil && len(bytes) >= minPreviewSize {
+				return bytes, nil
+			}
+		}
 		return s.generateImagePreview(ctx, file, previewSize)
 
 	case previewTypeVideo:
