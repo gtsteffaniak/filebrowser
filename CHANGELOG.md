@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
  - PDF preview generation prevents file uploads from completing (#2752)
  - Brings back double-tap to zoom images that was mistakenly removed.
  - multiple embedded subtitles with same language bug (#2756)
+ - gallery view download button missing (#2767)
 
 ## v2.0.0
 

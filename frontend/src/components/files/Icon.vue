@@ -512,6 +512,28 @@ export default {
   opacity: 0.7;
 }
 
+.overlay-icon--bottom {
+  top: auto;
+  left: auto;
+  bottom: 0;
+  right: 0;
+  width: auto !important;
+  height: auto !important;
+  pointer-events: auto;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: none;
+  line-height: 1;
+}
+
+.overlay-icon--bottom.clickable:hover {
+  transform: none;
+  box-shadow: none !important;
+  opacity: 1;
+}
+
 .file-icons [aria-label^="."] {
   opacity: 0.33;
 }
