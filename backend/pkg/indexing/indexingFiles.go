@@ -1057,14 +1057,11 @@ func (idx *Index) GetRealPathScoped(boundIndexPath string, relativePath ...strin
 func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, relativePath ...string) (string, bool, error) {
 	combined := append([]string{idx.Path}, relativePath...)
 	joinedPath := filepath.Join(combined...)
-	cacheKey := joinedPath
-	if enforceScope {
-		bound := boundIndexPath
-		if bound == "" {
-			bound = "/"
-		}
-		cacheKey = joinedPath + ":bound:" + bound
+	bound := boundIndexPath
+	if enforceScope && bound == "" {
+		bound = "/"
 	}
+	cacheKey := fmt.Sprintf("realpath|scoped=%t|bound=%q|path=%q", enforceScope, bound, joinedPath)
 	isDir, _ := IsDirCache.Get(cacheKey + ":isdir")
 	cached, ok := RealPathCache.Get(cacheKey)
 	if ok && cached != "" {

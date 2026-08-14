@@ -126,6 +126,43 @@ func TestGetRealPathScoped_AllowsInScopeTarget(t *testing.T) {
 	}
 }
 
+func TestGetRealPathScoped_CacheKeyDoesNotCollideWithUnscoped(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	insideSource := filepath.Join(sourceRoot, "secret-in-source.txt")
+	if err := os.WriteFile(insideSource, []byte("in source"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	userDir := filepath.Join(sourceRoot, "user1")
+	if err := os.WriteFile(filepath.Join(userDir, "foo"), []byte("legitimate"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Legacy scoped cache keys used joinedPath + ":bound:" + bound, which could collide
+	// with an unscoped joinedPath when ":bound:" appeared in a path component.
+	legacyKey := filepath.Join(sourceRoot, "user1", "foo") + ":bound:" + "/user1"
+	RealPathCache.Set(legacyKey, insideSource)
+	IsDirCache.Set(legacyKey+":isdir", false)
+
+	realPath, _, err := idx.GetRealPathScoped(userScope, "/user1/foo")
+	if err != nil {
+		t.Fatalf("scoped in-scope file should resolve: %v", err)
+	}
+	want := filepath.Join(userDir, "foo")
+	want, err = filepath.EvalSymlinks(want)
+	if err != nil {
+		t.Fatal(err)
+	}
+	realPath, err = filepath.EvalSymlinks(realPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if realPath != want {
+		t.Fatalf("scoped lookup returned %q, want in-scope file %q", realPath, want)
+	}
+}
+
 func TestGetFileInfo_RejectsSymlinkEscapeWithBound(t *testing.T) {
 	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
 	idx := symlinkTestIndex(sourceRoot)

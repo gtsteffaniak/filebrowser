@@ -434,13 +434,16 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
 	}
 
-	bound := "/"
+	var bound string
 	if d.Share.Hash != "" {
+		if d.Share.Path == "" {
+			return http.StatusForbidden, fmt.Errorf("share has no path scope")
+		}
 		bound = d.Share.Path
 	} else {
 		userScope, scopeErr := d.User.GetScopeForSourceName(source)
-		if scopeErr != nil {
-			return http.StatusForbidden, scopeErr
+		if scopeErr != nil || userScope == "" {
+			return http.StatusForbidden, fmt.Errorf("user has no access to source: %s", source)
 		}
 		bound = userScope
 	}
