@@ -261,14 +261,18 @@ func fileInfoFasterImpl(opts utils.FileOptions, user *users.User, s *Service) (*
 	}
 	// Layer 2: INDEX RULES (global)
 	// Get file info using unified entry point (applies IsViewable/ShouldSkip)
-	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+	fileInfoReq := indexing.FileInfoRequest{
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
 		HideFileExt:       opts.HideFileExt,
 		Expand:            opts.Expand,
 		SkipExtendedAttrs: opts.SkipExtendedAttrs,
-	})
+	}
+	if opts.FollowSymlinks {
+		fileInfoReq.BoundIndexPath = userScope
+	}
+	info, err := idx.GetFileInfo(fileInfoReq)
 	if err != nil {
 		return response, err // Path excluded by index rules OR doesn't exist
 	}
@@ -285,7 +289,15 @@ func fileInfoFasterImpl(opts utils.FileOptions, user *users.User, s *Service) (*
 
 	// Build response
 	response.FileInfo = *info
-	response.RealPath = filepath.Join(idx.Path, indexPath)
+	if opts.FollowSymlinks && info.Type != "directory" {
+		realPath, _, err := idx.GetRealPathScoped(userScope, indexPath)
+		if err != nil {
+			return response, err
+		}
+		response.RealPath = realPath
+	} else {
+		response.RealPath = filepath.Join(idx.Path, indexPath)
+	}
 	response.Source = opts.Source
 	if user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {
