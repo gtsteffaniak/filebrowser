@@ -344,6 +344,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		stringHash = string(hash)
 	}
 	if s != nil {
+		if !s.UserCanEdit(d.user) {
+			return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
+		}
+		share.ClampShareEditable(d.user.Permissions, &body.CommonShare)
+
 		// Check if downloads limit or per-user limit changed - reset counts if so
 		shouldResetCounts := s.DownloadsLimit != body.DownloadsLimit || s.PerUserDownloadLimit != body.PerUserDownloadLimit
 
@@ -424,6 +429,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if body.ShareType == "upload" && !body.AllowCreate {
 		body.AllowCreate = true
 	}
+	share.ClampShareEditable(d.user.Permissions, &body.CommonShare)
 	body.Source = source.Path // backend source is path
 	s = &share.Link{
 		Expire:       expire,
