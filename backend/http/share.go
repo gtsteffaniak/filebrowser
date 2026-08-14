@@ -389,7 +389,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, err
 	}
 
-	body.Path = utils.JoinPathAsUnix(userscope, cleanPath)
+	body.Path = utils.JoinScopedIndexPath(userscope, cleanPath)
 	body.Path = utils.AddTrailingSlashIfNotExists(body.Path)
 	// validate path exists as file or folder
 	_, _, err = idx.GetRealPath(body.Path)

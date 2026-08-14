@@ -143,7 +143,7 @@ func checkPermissionsImpl(opts utils.FileOptions, access *access.Storage, user *
 	}
 
 	// Combine scope + sanitized path
-	indexPath := utils.JoinPathAsUnix(userScope, safePath)
+	indexPath := utils.JoinScopedIndexPath(userScope, safePath)
 	// Layer 1: USER ACCESS CONTROL
 	// Quick check: Does THIS user have permission?
 	if !access.Permitted(idx.Path, indexPath, user.Username) {
@@ -266,7 +266,7 @@ func fileInfoFasterImpl(opts utils.FileOptions, access *access.Storage, user *us
 
 	// Build response
 	response.FileInfo = *info
-	response.RealPath = filepath.Join(idx.Path, indexPath)
+	response.RealPath = utils.JoinUnderSourceRoot(idx.Path, indexPath)
 	response.Source = opts.Source
 	if shareStore != nil && user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {

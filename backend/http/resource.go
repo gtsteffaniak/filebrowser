@@ -333,7 +333,7 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 				continue
 			}
 			withoutUserScope := strings.TrimPrefix(d.share.Path, userScope)
-			indexPath := utils.JoinPathAsUnix(withoutUserScope, sanitizedPath)
+			indexPath := utils.JoinScopedIndexPath(withoutUserScope, sanitizedPath)
 
 			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 				FollowSymlinks: true,
@@ -471,13 +471,15 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		logger.Debugf("source %s not found", source)
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	if _, err := d.user.GetScopeForSourceName(source); err != nil {
+	userscope, err := d.user.GetScopeForSourceName(source)
+	if err != nil {
 		return http.StatusForbidden, err
 	}
-	if !store.Access.Permitted(idx.Path, path, d.user.Username) {
-		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+	fullIndexPath := utils.JoinScopedIndexPath(userscope, path)
+	if !store.Access.Permitted(idx.Path, fullIndexPath, d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
 	}
-	pauseCache.Set(pauseUploadCacheKey(source, path), "1")
+	pauseCache.Set(pauseUploadCacheKey(source, fullIndexPath), "1")
 	return http.StatusOK, nil
 }
 
@@ -566,7 +568,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	userscope = strings.TrimRight(userscope, "/")
 
-	fullIndexPath := utils.JoinPathAsUnix(userscope, path)
+	fullIndexPath := utils.JoinScopedIndexPath(userscope, path)
 
 	// get scoped path
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
@@ -765,7 +767,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fullIndexPath := utils.JoinPathAsUnix(userScope, path)
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, path)
 	// Check access control for the target path
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -930,8 +932,8 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		// Build full index paths for access control
-		fullSrcIndexPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
-		fullDstIndexPath := utils.JoinPathAsUnix(userscopeDst, item.ToPath)
+		fullSrcIndexPath := utils.JoinScopedIndexPath(userscopeSrc, item.FromPath)
+		fullDstIndexPath := utils.JoinScopedIndexPath(userscopeDst, item.ToPath)
 		if fullDstIndexPath == "/" || fullSrcIndexPath == "/" {
 			item.Message = "source or destination is the root or unautharized directory"
 			response.Failed = append(response.Failed, item)
@@ -964,7 +966,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 		// Get real paths
 		// Combine user scope with item paths BEFORE calling GetRealPath to avoid double scope application
-		fullSrcPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
+		fullSrcPath := utils.JoinScopedIndexPath(userscopeSrc, item.FromPath)
 		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcPath)
 		if err != nil {
 			logger.Errorf("could not resolve source path: %v, item.FromPath: %v", err, item.FromPath)
@@ -981,7 +983,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 		// Check destination parent directory exists
 		dstParentPath := filepath.Dir(item.ToPath)
-		fullDstParentPath := utils.JoinPathAsUnix(userscopeDst, dstParentPath)
+		fullDstParentPath := utils.JoinScopedIndexPath(userscopeDst, dstParentPath)
 		parentDir, _, err := dstIdx.GetRealPath(fullDstParentPath)
 		if err != nil {
 			item.Message = "destination directory does not exist"
