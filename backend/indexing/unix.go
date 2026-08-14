@@ -4,10 +4,10 @@ package indexing
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 	"syscall"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -66,7 +66,7 @@ func (idx *Index) handleFile(file os.FileInfo, indexPath string, realFilePath st
 
 	// Use provided realFilePath if available, otherwise construct it
 	if realFilePath == "" {
-		realFilePath = filepath.Join(idx.Path, indexPath)
+		realFilePath = utils.JoinUnderSourceRoot(idx.Path, indexPath)
 	}
 
 	sys := file.Sys()
