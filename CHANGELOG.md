@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file. For commit 
  - gallery view download button missing (#2767)
  - fixed HEIC rotation regression from v1.5.x
  - fixed raw image preview regression from v1.5.x
+ - html viewer takes full height
 
 ## v2.0.0
 

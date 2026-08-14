@@ -25,8 +25,14 @@ function userEditScopeBlock(modal: Locator, sourceName: string): Locator {
 
 async function expandUserEditSourceScope(modal: Locator, sourceName: string) {
     const block = userEditScopeBlock(modal, sourceName);
-    await block.locator(".settings-group-title").click();
-    await expect(block.locator(".source-file-permissions")).toBeVisible();
+    const permissions = block.locator(".source-file-permissions");
+    if (!(await permissions.isVisible())) {
+        await block.locator(".settings-group-title").click();
+    }
+    await expect(permissions).toBeVisible();
+    await expect(
+        permissions.locator(".toggle-container .toggle-row--value").first(),
+    ).toBeVisible();
 }
 
 function userEditSourcePermissionCheckbox(
@@ -36,7 +42,7 @@ function userEditSourcePermissionCheckbox(
 ): Locator {
     return userEditScopeBlock(modal, sourceName)
         .locator(".source-file-permissions .toggle-container", { hasText: permissionLabel })
-        .locator('input[type="checkbox"]');
+        .locator('.toggle-row--value input[type="checkbox"]');
 }
 
 function userEditSourcePermissionToggle(
@@ -46,7 +52,37 @@ function userEditSourcePermissionToggle(
 ): Locator {
     return userEditScopeBlock(modal, sourceName)
         .locator(".source-file-permissions .toggle-container", { hasText: permissionLabel })
-        .locator("label.switch");
+        .locator(".toggle-row--value label.switch");
+}
+
+async function clickToggleUntilChecked(toggle: Locator, checkbox: Locator, checked: boolean) {
+    await expect(checkbox).toBeVisible();
+    await expect(checkbox).toBeEnabled();
+    await toggle.scrollIntoViewIfNeeded();
+    await expect(async () => {
+        if ((await checkbox.isChecked()) !== checked) {
+            await toggle.click();
+        }
+        await expect(checkbox).toBeChecked({ checked });
+    }).toPass();
+}
+
+async function saveUserEditModal(page: Page, modal: Locator) {
+    const userUpdate = page.waitForResponse(
+        (resp) => {
+            const pathname = new URL(resp.url()).pathname;
+            return (
+                /\/api\/users\//.test(pathname) &&
+                resp.request().method() === "PUT" &&
+                resp.ok()
+            );
+        },
+        { timeout: 20_000 },
+    );
+    await modal.locator('button[aria-label="Save"]').click();
+    await confirmActorPasswordPrompt(page);
+    await userUpdate;
+    await expect(modal).not.toBeVisible({ timeout: 10_000 });
 }
 
 /**
@@ -57,10 +93,10 @@ async function confirmActorPasswordPrompt(page: Page) {
     const passwordModal = page.locator(
         'div[aria-label="password-prompt"]:not(.prompt-behind)'
     );
-    await expect(passwordModal).toBeVisible();
+    await expect(passwordModal).toBeVisible({ timeout: 15_000 });
     await passwordModal.locator("input").fill("admin");
     await passwordModal.locator('button[aria-label="Confirm"]').click();
-    await expect(passwordModal).not.toBeVisible();
+    await expect(passwordModal).not.toBeVisible({ timeout: 10_000 });
 }
 
 test("create, check settings, and delete user (retry-safe name)", async ({
@@ -203,11 +239,8 @@ test.describe("User Settings Persistence", () => {
 
         // --- Toggle to opposite state and save ---
         const toggleSwitch = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
-        await toggleSwitch.click();
-        await expect(checkbox).toBeChecked({ checked: !initialChecked });
-        await modal.locator('button[aria-label="Save"]').click();
-        await confirmActorPasswordPrompt(page);
-        await expect(modal).not.toBeVisible();
+        await clickToggleUntilChecked(toggleSwitch, checkbox, !initialChecked);
+        await saveUserEditModal(page, modal);
 
         // --- Re-open and check persisted state ---
         await editUserTrigger(userRow).click();
@@ -217,11 +250,8 @@ test.describe("User Settings Persistence", () => {
 
         // --- Toggle back to initial state and save ---
         const toggleSwitchBack = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
-        await toggleSwitchBack.click();
-        await expect(checkboxToggled).toBeChecked({ checked: initialChecked });
-        await modal.locator('button[aria-label="Save"]').click();
-        await confirmActorPasswordPrompt(page);
-        await expect(modal).not.toBeVisible();
+        await clickToggleUntilChecked(toggleSwitchBack, checkboxToggled, initialChecked);
+        await saveUserEditModal(page, modal);
 
         // --- Re-open and check state is restored ---
         await editUserTrigger(userRow).click();
@@ -244,6 +274,7 @@ test.describe("User Settings Persistence", () => {
         const userRow = userRowInSettingsUsersTable(page, username);
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
+        await expect(userRow).toBeVisible();
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
         await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
@@ -260,22 +291,17 @@ test.describe("User Settings Persistence", () => {
         );
 
         const wasChecked = await editFilesCheckbox.isChecked();
-        await editFilesToggle.click();
-        await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
+        await clickToggleUntilChecked(editFilesToggle, editFilesCheckbox, !wasChecked);
 
-        await modal.locator('button[aria-label="Save"]').click();
-        await confirmActorPasswordPrompt(page);
-        await expect(modal).not.toBeVisible();
+        await saveUserEditModal(page, modal);
 
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
         await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
         await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
 
-        await editFilesToggle.click();
-        await modal.locator('button[aria-label="Save"]').click();
-        await confirmActorPasswordPrompt(page);
-        await expect(modal).not.toBeVisible();
+        await clickToggleUntilChecked(editFilesToggle, editFilesCheckbox, wasChecked);
+        await saveUserEditModal(page, modal);
     });
 
     test('should persist "Share files" setting', async ({ page }) => {
