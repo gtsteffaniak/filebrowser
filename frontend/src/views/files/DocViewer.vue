@@ -11,6 +11,7 @@ import { defineComponent } from "vue";
 import { resourcesApi } from "@/api";
 import { ensureViewToken, refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { state, mutations, getters } from "@/store";
+import { sanitizeDocxHtml } from "@/utils/docxPreview";
 import { removeLastDir } from "@/utils/url.js";
 
 export default defineComponent({
@@ -244,7 +245,7 @@ export default defineComponent({
         const mammoth = mammothModule.default ?? mammothModule;
         const { convertToHtml } = mammoth;
         const result = await convertToHtml({ arrayBuffer });
-        this.docxHtml = result.value;
+        this.docxHtml = sanitizeDocxHtml(result.value);
       } catch (e) {
         this.error = e.message || "An unknown error occurred.";
       } finally {
