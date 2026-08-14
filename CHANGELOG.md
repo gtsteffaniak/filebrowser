@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.5.2-stable
 
  **Security**:
+ - [Moderate] Logout did not invalidate session JWTs with equivalent Base64URL spellings (GHSA-8m35-wcjh-95q7)
  - [Moderate] PATCH /api/share could re-point a share outside the owner's scope (GHSA-wfjp-qhvc-69wp) @maximeborges
  - [High] Public upload ACL check used scope-stripped path, bypassing per-folder DENY rules (GHSA-qv53-4557-m65h) @hypnguyen1209
  - [Moderate] Absolute paths in API path/file parameters could bypass user scope and read files outside the source mount (GHSA-rqqq-wv83-rp74)
