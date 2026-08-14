@@ -12,6 +12,7 @@ import * as mammoth from "mammoth";
 import { resourcesApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
+import { sanitizeDocxHtml } from "@/utils/docxPreview";
 
 export default defineComponent({
   name: "DocxViewer",
@@ -185,7 +186,7 @@ export default defineComponent({
         }
 
         const result = await mammoth.convertToHtml({ arrayBuffer });
-        this.docxHtml = result.value;
+        this.docxHtml = sanitizeDocxHtml(result.value);
       } catch (e) {
         this.error = e.message || "An unknown error occurred.";
       } finally {
