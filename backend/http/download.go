@@ -180,7 +180,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 				// Try to get document ID for error logging
 				idx := indexing.GetIndex(source)
 				if idx != nil {
-					tempPath := utils.JoinPathAsUnix(userscope, firstFilePath)
+					tempPath := utils.JoinScopedIndexPath(userscope, firstFilePath)
 					if realPath, _, realErr := idx.GetRealPath(tempPath); realErr == nil {
 						if docId, _ := getOnlyOfficeId(realPath); docId != "" {
 							if ctx := getOnlyOfficeLogContext(docId); ctx != nil {
@@ -194,7 +194,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			return http.StatusForbidden, fmt.Errorf("user has no access to source: %s", source)
 		}
 		for i, filePath := range fileList {
-			fileList[i] = utils.JoinPathAsUnix(userscope, filePath)
+			fileList[i] = utils.JoinScopedIndexPath(userscope, filePath)
 		}
 	}
 	firstFilePath = fileList[0]
