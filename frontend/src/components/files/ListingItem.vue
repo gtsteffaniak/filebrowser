@@ -52,7 +52,7 @@
         class="material-symbols overlay-icon overlay-icon--bottom clickable"
         aria-label="Download"
         @click.stop.prevent="downloadFile"
-      >file_download</button>
+      >file_download</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
 
     <div class="text">
@@ -133,7 +133,7 @@
         class="material-symbols overlay-icon overlay-icon--bottom clickable"
         aria-label="Download"
         @click.stop.prevent="downloadFile"
-      >file_download</button>
+      >file_download</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
 
     <div class="text">
