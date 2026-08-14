@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.5.2-stable
+
+ **Security**:
+ - [Moderate] Authenticated upload and pause endpoints checked access rules on scope-relative paths, bypassing per-folder DENY rules (GHSA-cw65-p35p-633w)
+ - [High] Public upload ACL check used scope-stripped path, bypassing per-folder DENY rules (GHSA-qv53-4557-m65h)
+
 ## v1.5.5
 
  **BugFixes**:

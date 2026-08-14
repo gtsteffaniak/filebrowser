@@ -471,13 +471,15 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		logger.Debugf("source %s not found", source)
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	if _, err := d.user.GetScopeForSourceName(source); err != nil {
+	userScope, err := d.user.GetScopeForSourceName(source)
+	if err != nil {
 		return http.StatusForbidden, err
 	}
-	if !store.Access.Permitted(idx.Path, path, d.user.Username) {
-		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+	fullIndexPath := utils.JoinPathAsUnix(userScope, path)
+	if !store.Access.Permitted(idx.Path, fullIndexPath, d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
 	}
-	pauseCache.Set(pauseUploadCacheKey(source, path), "1")
+	pauseCache.Set(pauseUploadCacheKey(source, fullIndexPath), "1")
 	return http.StatusOK, nil
 }
 
@@ -572,8 +574,8 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
 
 	// Check access control for the target path
-	if !store.Access.Permitted(idx.Path, path, filePermUser.Username) {
-		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+	if !store.Access.Permitted(idx.Path, fullIndexPath, filePermUser.Username) {
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
 	}
 
 	// Check for file/folder conflicts before creation
