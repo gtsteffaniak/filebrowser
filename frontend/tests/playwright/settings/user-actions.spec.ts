@@ -56,7 +56,7 @@ function userEditSourcePermissionToggle(
 }
 
 async function clickToggleUntilChecked(toggle: Locator, checkbox: Locator, checked: boolean) {
-    await expect(checkbox).toBeVisible();
+    await expect(toggle).toBeVisible();
     await expect(checkbox).toBeEnabled();
     await toggle.scrollIntoViewIfNeeded();
     await expect(async () => {
@@ -219,6 +219,7 @@ test("two factor auth check", async ({ page, checkForErrors }) => {
 });
 
 test.describe("User Settings Persistence", () => {
+
     const username = "testuser1";
     test.beforeEach(async ({ page }) => {
         await page.goto("/settings");
