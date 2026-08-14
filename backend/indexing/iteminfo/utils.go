@@ -105,6 +105,51 @@ func (info *FileInfo) SortItems() {
 	})
 }
 
+// PathWithinRoot reports whether path is equal to or under root after resolving symlinks.
+// It is intended for validation only; use OpenContained for atomic file opens within a root.
+func PathWithinRoot(root, path string) error {
+	rootAbs, err := filepath.Abs(root)
+	if err != nil {
+		return fmt.Errorf("invalid root path: %w", err)
+	}
+	rootReal, err := filepath.EvalSymlinks(rootAbs)
+	if err != nil {
+		return fmt.Errorf("could not resolve root path: %w", err)
+	}
+	pathAbs, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("invalid path: %w", err)
+	}
+	pathReal, err := filepath.EvalSymlinks(pathAbs)
+	if err != nil {
+		return fmt.Errorf("could not resolve path: %w", err)
+	}
+	rel, err := filepath.Rel(rootReal, pathReal)
+	if err != nil {
+		return fmt.Errorf("path outside root: %w", err)
+	}
+	sep := string(filepath.Separator)
+	if rel == ".." || strings.HasPrefix(rel, ".."+sep) {
+		return fmt.Errorf("path escapes root")
+	}
+	return nil
+}
+
+// OpenContained opens relPath relative to rootDir without following symlinks that escape rootDir.
+// Prefer this over PathWithinRoot followed by os.Open to avoid TOCTOU races.
+func OpenContained(rootDir, relPath string) (*os.File, error) {
+	rel := filepath.Clean(filepath.FromSlash(strings.TrimPrefix(relPath, "/")))
+	if rel == "." || rel == "" || strings.HasPrefix(rel, "..") {
+		return nil, fmt.Errorf("path escapes root")
+	}
+	root, err := os.OpenRoot(rootDir)
+	if err != nil {
+		return nil, err
+	}
+	defer root.Close()
+	return root.Open(rel)
+}
+
 // ResolveSymlinks resolves symlinks in the given path and returns
 // Uses Go's filepath.EvalSymlinks which properly detects circular symlinks.
 func ResolveSymlinks(path string) (string, bool, error) {
