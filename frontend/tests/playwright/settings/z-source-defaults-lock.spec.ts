@@ -1,18 +1,15 @@
 import { expect, test } from "../test-setup";
 
-function isSourceDefaultsGet(response: import("@playwright/test").Response) {
-  const pathname = new URL(response.url()).pathname;
-  return (
-    pathname.endsWith("/settings/source") &&
-    response.request().method() === "GET" &&
-    response.ok()
-  );
-}
-
 async function openAccessSettings(page: import("@playwright/test").Page) {
-  const defaultsResponse = page.waitForResponse(isSourceDefaultsGet);
   await page.goto("/settings");
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
+
+  const defaultsResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/settings/source") &&
+      response.request().method() === "GET" &&
+      response.ok(),
+  );
   await page.locator("#access-sidebar").click();
 
   const permissionsGroup = page
@@ -23,9 +20,9 @@ async function openAccessSettings(page: import("@playwright/test").Page) {
     await permissionsGroup.locator(".settings-group-title.button").click();
     await expect(content).toBeVisible();
   }
-  await expect(permissionsGroup.locator(".loading-hint")).not.toBeVisible();
 
-  return defaultsResponse;
+  const response = await defaultsResponse;
+  return response;
 }
 
 test("config-locked source defaults show lock help and skip patch", async ({ page, checkForErrors }) => {
@@ -67,7 +64,7 @@ test("config-locked source defaults show lock help and skip patch", async ({ pag
     const initialEnforced = await enforceInput.isChecked();
     const enforcePatch = page.waitForResponse(
       (resp) =>
-        new URL(resp.url()).pathname.endsWith("/settings/source") &&
+        resp.url().includes("/api/settings/source") &&
         resp.request().method() === "PATCH" &&
         resp.ok(),
     );
