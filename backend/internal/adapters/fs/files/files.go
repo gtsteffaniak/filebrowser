@@ -154,7 +154,7 @@ func checkPermissionsImpl(opts utils.FileOptions, user *users.User, s *Service) 
 		return "", "", errors.ErrAccessDenied
 	}
 
-	indexPath := utils.JoinPathAsUnix(userScope, safePath)
+	indexPath := utils.JoinScopedIndexPath(userScope, safePath)
 	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
 	if err != nil {
 		return "", "", errors.ErrAccessDenied
@@ -285,7 +285,7 @@ func fileInfoFasterImpl(opts utils.FileOptions, user *users.User, s *Service) (*
 
 	// Build response
 	response.FileInfo = *info
-	response.RealPath = filepath.Join(idx.Path, indexPath)
+	response.RealPath = utils.JoinUnderSourceRoot(idx.Path, indexPath)
 	response.Source = opts.Source
 	if user.Permissions.Share && opts.ShowSharedAttr {
 		for i := range response.Files {

@@ -437,7 +437,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				continue
 			}
 			withoutUserScope := strings.TrimPrefix(d.Share.Path, userScope)
-			indexPath := utils.JoinPathAsUnix(withoutUserScope, sanitizedPath)
+			indexPath := utils.JoinScopedIndexPath(withoutUserScope, sanitizedPath)
 
 			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 				FollowSymlinks: true,
@@ -628,7 +628,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fullIndexPath := utils.JoinPathAsUnix(userscope, cleanPath)
+	fullIndexPath := utils.JoinScopedIndexPath(userscope, cleanPath)
 	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
 	}
@@ -717,7 +717,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 	userscope = strings.TrimRight(userscope, "/")
 
-	fullIndexPath := utils.JoinPathAsUnix(userscope, path)
+	fullIndexPath := utils.JoinScopedIndexPath(userscope, path)
 
 	// get scoped path
 	realPath, _, _ := idx.GetRealPath(fullIndexPath)
@@ -1109,7 +1109,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fullIndexPath := utils.JoinPathAsUnix(userScope, path)
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, path)
 	// Check access control for the target path
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -1163,7 +1163,7 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusBadRequest, err
 	}
 
-	resolvedPath := utils.JoinPathAsUnix(d.Share.Path, cleanPath)
+	resolvedPath := utils.JoinScopedIndexPath(d.Share.Path, cleanPath)
 	err = files.WriteFile(sourceName, resolvedPath, r.Body)
 	if err != nil {
 		logger.Errorf("public put handler: error updating resource with error %v", err)
@@ -1336,8 +1336,8 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		}
 
 		// Build full index paths for access control
-		fullSrcIndexPath := utils.JoinPathAsUnix(userscopeSrc, cleanFromPath)
-		fullDstIndexPath := utils.JoinPathAsUnix(userscopeDst, cleanToPath)
+		fullSrcIndexPath := utils.JoinScopedIndexPath(userscopeSrc, cleanFromPath)
+		fullDstIndexPath := utils.JoinScopedIndexPath(userscopeDst, cleanToPath)
 		if fullDstIndexPath == "/" || fullSrcIndexPath == "/" {
 			item.Message = "source or destination is the root or unautharized directory"
 			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
@@ -1370,7 +1370,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 
 		// Get real paths
 		// Combine user scope with item paths BEFORE calling GetRealPath to avoid double scope application
-		fullSrcPath := utils.JoinPathAsUnix(userscopeSrc, cleanFromPath)
+		fullSrcPath := utils.JoinScopedIndexPath(userscopeSrc, cleanFromPath)
 		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcPath)
 		if err != nil {
 			logger.Errorf("could not resolve source path: %v, fromPath: %v", err, clientFromPath)
@@ -1387,7 +1387,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 
 		// Check destination parent directory exists
 		dstParentPath := filepath.Dir(cleanToPath)
-		fullDstParentPath := utils.JoinPathAsUnix(userscopeDst, dstParentPath)
+		fullDstParentPath := utils.JoinScopedIndexPath(userscopeDst, dstParentPath)
 		parentDir, _, err := dstIdx.GetRealPath(fullDstParentPath)
 		if err != nil {
 			item.Message = "destination directory does not exist"
@@ -1536,13 +1536,13 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 			return http.StatusBadRequest, fmt.Errorf("invalid from path: %w", err)
 		}
 		req.Items[i].FromSource = sourceName
-		req.Items[i].FromPath = utils.JoinPathAsUnix(d.Share.Path, sanitizedPath)
+		req.Items[i].FromPath = utils.JoinScopedIndexPath(d.Share.Path, sanitizedPath)
 		sanitizedPath, err = utils.SanitizePath(req.Items[i].ToPath)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid to path: %w", err)
 		}
 		req.Items[i].ToSource = sourceName
-		req.Items[i].ToPath = utils.JoinPathAsUnix(d.Share.Path, sanitizedPath)
+		req.Items[i].ToPath = utils.JoinScopedIndexPath(d.Share.Path, sanitizedPath)
 	}
 	d.Data = req
 

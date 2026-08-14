@@ -3,6 +3,7 @@ package indexing
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -438,7 +439,7 @@ type FileInfoRequest struct {
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
 // This eliminates duplicate stat/lstat calls and redundant isHidden/isSymlink checks
 func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool) (*PathContext, error) {
-	realPath := filepath.Join(idx.Path, indexPath)
+	realPath := utils.JoinUnderSourceRoot(idx.Path, indexPath)
 
 	// ONE filesystem stat call
 	fileInfo, err := os.Lstat(realPath)
@@ -594,7 +595,7 @@ func (idx *Index) indexDirectory(indexPath string, opts Options, scanner *Scanne
 	if !strings.HasSuffix(indexPath, "/") {
 		indexPath = indexPath + "/"
 	}
-	realPath := filepath.Join(idx.Path, indexPath)
+	realPath := utils.JoinUnderSourceRoot(idx.Path, indexPath)
 
 	// Open the directory
 	dir, err := os.Open(realPath)
@@ -632,7 +633,7 @@ func (idx *Index) indexDirectory(indexPath string, opts Options, scanner *Scanne
 // GetFsInfoCore is the consolidated implementation for both GetFsInfo and GetFsInfoViewableOnly
 func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileInfo, error) {
 	// Handle symlinks if not following them
-	realPath := filepath.Join(idx.Path, indexPath)
+	realPath := utils.JoinUnderSourceRoot(idx.Path, indexPath)
 	if opts.FollowSymlinks {
 		var err error
 		realPath, err = filepath.EvalSymlinks(realPath)
@@ -991,8 +992,12 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, indexPath strin
 }
 
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
-	combined := append([]string{idx.Path}, relativePath...)
-	joinedPath := filepath.Join(combined...)
+	parts := make([]string, 0, len(relativePath)+1)
+	parts = append(parts, idx.Path)
+	for _, p := range relativePath {
+		parts = append(parts, strings.TrimPrefix(path.Clean(p), "/"))
+	}
+	joinedPath := filepath.Join(parts...)
 	isDir, _ := IsDirCache.Get(joinedPath + ":isdir")
 	cached, ok := RealPathCache.Get(joinedPath)
 	if ok && cached != "" {
@@ -1034,7 +1039,7 @@ func (idx *Index) RefreshDirectory(indexPath string, recursive bool) error {
 		indexPath = indexPath + "/"
 	}
 
-	realPath := filepath.Join(idx.Path, indexPath)
+	realPath := utils.JoinUnderSourceRoot(idx.Path, indexPath)
 
 	// Check if directory exists
 	dirInfo, err := os.Stat(realPath)
