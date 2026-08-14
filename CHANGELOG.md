@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.5.2-stable
 
  **Security**:
- - [Moderate] Share create/update could set delete/modify/create flags beyond the owner's permissions; POST /api/share with hash could update another user's share (GHSA-x79q-5hqm-x839)
+ - [High] Share create/update could set delete/modify/create flags beyond the owner's permissions; POST /api/share with hash could update another user's share (GHSA-x79q-5hqm-x839)
  - [Moderate] Authenticated upload and pause endpoints checked access rules on scope-relative paths, bypassing per-folder DENY rules (GHSA-cw65-p35p-633w)
  - [Moderate] Logout did not invalidate session JWTs with equivalent Base64URL spellings (GHSA-8m35-wcjh-95q7)
  - [Moderate] PATCH /api/share could re-point a share outside the owner's scope (GHSA-wfjp-qhvc-69wp) @maximeborges
