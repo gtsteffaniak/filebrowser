@@ -190,7 +190,6 @@ import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import {
-  getTypeAheadPrefix,
   isTypeAheadSessionActive,
   processTypeAheadKey,
   resetTypeAheadSession,
@@ -805,12 +804,6 @@ export default {
           !t.isContentEditable
         ) {
           event.preventDefault();
-          console.log('[listingTypeAhead] keyEvent → alphanumeric', {
-            key,
-            repeat: event.repeat,
-            selected: [...state.selected],
-            prefixBefore: getTypeAheadPrefix(),
-          });
           this.alphanumericKeyPress(key);
           return;
         }
@@ -898,33 +891,13 @@ export default {
     },
     alphanumericKeyPress(key) {
       const selectedIndex = state.selected.length === 1 ? state.selected[0] : null;
-      const selectedName = selectedIndex !== null
-        ? this.allItems.find((item) => item.index === selectedIndex)?.name
-        : null;
       const { matches, nextPos } = processTypeAheadKey(key, this.allItems, selectedIndex);
       if (matches.length === 0) {
-        console.log('[listingTypeAhead] no matches — selection unchanged', {
-          key,
-          selectedIndex,
-          selectedName,
-          prefixAfter: getTypeAheadPrefix(),
-        });
         return;
       }
 
       const target = matches.at(nextPos);
-      if (!target) {
-        console.log('[listingTypeAhead] no target at nextPos', { key, nextPos, matchCount: matches.length });
-        return;
-      }
-      console.log('[listingTypeAhead] selecting', {
-        key,
-        from: selectedName,
-        to: target.name,
-        targetIndex: target.index,
-        nextPos,
-        matchCount: matches.length,
-      });
+      if (!target) return;
       mutations.resetSelected();
       mutations.addSelected(target.index);
       this.scrollSelectedIntoView();
