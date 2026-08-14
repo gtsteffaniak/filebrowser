@@ -210,8 +210,13 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return nil
 	}
 
-	// Token is valid (but might be expired or revoked)
-	// Try to get the user regardless of expiration status
+	// Signature is valid but the operator may have revoked this token (logout, DELETE /api/auth/token,
+	// or removal of the user's Api permission). Do not resurrect revoked tokens here.
+	if state.IsTokenRevoked(tokenString) {
+		return nil
+	}
+
+	// Token is valid and not revoked (but might be expired — jwt.ParseWithClaims rejects expired tokens)
 	var user *users.User
 	userValue, err := state.UserFromAPIToken(tk, tokenString)
 	if err == nil {

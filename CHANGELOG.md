@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.1
 
+ **Security**:
+ - [Moderate] Revoked JWTs could still authenticate on public-share and withOrWithoutUser routes until natural expiry, bypassing logout and Api-permission revocation on that surface (GHSA-4wmj-rq3c-m65v)
+
  **Notes**:
  - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
  - Session renew is handled by client keep-alive. removed per-request `X-Renew-Token` header handling.

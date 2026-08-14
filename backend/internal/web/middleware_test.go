@@ -149,6 +149,120 @@ func TestWithAdminHelper(t *testing.T) {
 	}
 }
 
+func TestPublicShare_RejectsRevokedJWT(t *testing.T) {
+	setupTestEnv(t)
+
+	victim := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "victim",
+			Permissions: users.Permissions{Api: true},
+		},
+		BackendScopes: []users.BackendScope{
+			{Path: "/srv", Scope: "/"},
+		},
+	}
+	if err := state.CreateUser(victim, ""); err != nil {
+		t.Fatal("failed to create victim user:", err)
+	}
+	victim.Permissions = users.Permissions{Api: true}
+	if err := state.UpdateUser(victim, "", "permissions"); err != nil {
+		t.Fatal("failed to set victim permissions:", err)
+	}
+
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
+	tokenString, _, err := auth.MakeSignedTokenAPI(victim, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, victim.Permissions, false)
+	if err != nil {
+		t.Fatalf("failed to issue token: %v", err)
+	}
+
+	shareLink := &share.Share{
+		ShareSettings: share.ShareSettings{
+			ShareLimits: share.ShareLimits{
+				SourceName:       "srv",
+				AllowedUsernames: []string{"victim"},
+			},
+		},
+		ShareColumns: share.ShareColumns{
+			Hash: "revoked_jwt_hash",
+			Path: "/",
+		},
+		SourcePath: "/srv",
+		UserID:     victim.ID,
+	}
+	if err := state.CreateShare(shareLink); err != nil {
+		t.Fatal("failed to create share:", err)
+	}
+
+	handler := withHashFile(publicGetResourceHandler)
+
+	makeRequest := func(jwt string) *httptest.ResponseRecorder {
+		recorder := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/public/api/resources?hash=revoked_jwt_hash&path=/", http.NoBody)
+		req.AddCookie(&http.Cookie{
+			Name:  "filebrowser_quantum_jwt",
+			Value: jwt,
+		})
+		handler(recorder, req)
+		return recorder
+	}
+
+	// Valid token: allow-listed user can access the share.
+	rec := makeRequest(tokenString)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("valid token: expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+
+	if err := state.RevokeToken(tokenString); err != nil {
+		t.Fatalf("failed to revoke token: %v", err)
+	}
+
+	// Revoked token must not resurrect the victim on public-share routes.
+	rec = makeRequest(tokenString)
+	if rec.Code == http.StatusOK {
+		t.Fatalf("revoked token: expected non-200 status, got %d (JWT resurrection bypass)", rec.Code)
+	}
+}
+
+func TestExtractUserFromExpiredToken_RejectsRevokedJWT(t *testing.T) {
+	setupTestEnv(t)
+
+	user := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "victim",
+			Permissions: users.Permissions{Api: true},
+		},
+	}
+	if err := state.CreateUser(user, ""); err != nil {
+		t.Fatal("failed to create user:", err)
+	}
+
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
+	tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, user.Permissions, false)
+	if err != nil {
+		t.Fatalf("failed to issue token: %v", err)
+	}
+	if err := state.RevokeToken(tokenString); err != nil {
+		t.Fatalf("failed to revoke token: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
+	req.AddCookie(&http.Cookie{
+		Name:  "filebrowser_quantum_jwt",
+		Value: tokenString,
+	})
+
+	data := &requestContext{}
+	if got := extractUserFromExpiredToken(req, data); got != nil {
+		t.Fatalf("extractUserFromExpiredToken() = user %q, want nil for revoked token", got.Username)
+	}
+}
+
 func TestPublicShareHandlerAuthentication(t *testing.T) {
 	setupTestEnv(t)
 
