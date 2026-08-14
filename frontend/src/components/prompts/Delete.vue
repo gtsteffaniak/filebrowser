@@ -49,6 +49,7 @@
         type="button"
         @click="closeTopPrompt"
         class="button button--flat button--grey"
+        :disabled="deleting"
         :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
@@ -57,6 +58,7 @@
         type="button"
         @click="submit"
         class="button button--flat button--red"
+        :disabled="deleting"
         aria-label="Confirm-Delete"
         :title="$t('general.delete')">
         {{ $t("general.delete") }}
@@ -179,11 +181,27 @@ export default {
       return parts[parts.length - 1] || path;
     },
     getItemError(item) {
-      // Find matching failed item by comparing source and path
       for (const failedItem of this.failedItems.values()) {
         if (failedItem.source === item.source && failedItem.path === item.path) {
-          return failedItem.message || 'Unknown error';
+          return failedItem.message || "Unknown error";
         }
+      }
+      return null;
+    },
+    parseBulkDeleteFailures(error) {
+      if (error?.failed?.length) {
+        return error.failed;
+      }
+      if (!error?.message) {
+        return null;
+      }
+      try {
+        const parsed = JSON.parse(error.message);
+        if (Array.isArray(parsed?.failed) && parsed.failed.length > 0) {
+          return parsed.failed;
+        }
+      } catch (_e) {
+        // Not JSON — fall through
       }
       return null;
     },
@@ -221,9 +239,9 @@ export default {
 
       try {
         // Extract source and path from items (ignore previewUrl)
-        const itemsForDelete = this.itemsToDelete.map(item => ({
+        const itemsForDelete = this.itemsToDelete.map((item) => ({
           source: item.source,
-          path: item.path
+          path: item.path,
         }));
 
         if (itemsForDelete.length === 0) {
@@ -237,15 +255,12 @@ export default {
           ? await resourcesApi.bulkDeletePublic(itemsForDelete)
           : await resourcesApi.bulkDelete(itemsForDelete);
 
-        // Store failed items directly from response
-        if (response.failed && response.failed.length > 0) {
-          this.failedItems = response.failed;
-        } else {
-          this.failedItems = [];
-        }
+        const failed = Array.isArray(response?.failed) ? response.failed : [];
+        const succeeded = Array.isArray(response?.succeeded) ? response.succeeded : [];
+        this.failedItems = failed;
 
-        const succeededCount = response.succeeded ? response.succeeded.length : 0;
-        const failedCount = response.failed ? response.failed.length : 0;
+        const succeededCount = succeeded.length;
+        const failedCount = failed.length;
 
         if (failedCount === 0) {
           // All succeeded - close prompt and handle navigation
@@ -254,8 +269,8 @@ export default {
 
           if (this.items && this.items.length > 0) {
             eventBus.emit("itemsDeleted", {
-              succeeded: response.succeeded || [],
-              failed: []
+              succeeded,
+              failed,
             });
           }
           mutations.closeTopPrompt();
@@ -304,13 +319,23 @@ export default {
           // Emit event with partial results if items were passed as props
           if (this.items && this.items.length > 0) {
             eventBus.emit("itemsDeleted", {
-              succeeded: response.succeeded || [],
-              failed: response.failed || []
+              succeeded,
+              failed,
             });
+          }
+          if (failedCount > 0) {
+            notify.showError(
+              failed[0]?.message || this.$t("prompts.operationFailed")
+            );
           }
         } else {
           // All failed
           buttons.done("delete");
+          if (failedCount > 0) {
+            notify.showError(
+              failed[0]?.message || this.$t("prompts.operationFailed")
+            );
+          }
         }
 
         this.deleting = false;
@@ -318,12 +343,20 @@ export default {
         buttons.done("delete");
         this.deleting = false;
         console.error(e);
-        // On network/API errors, show error for all items
-        this.failedItems = this.itemsToDelete.map(item => ({
-          source: item.source,
-          path: item.path,
-          message: e.message || 'Delete failed'
-        }));
+        const parsedFailures = this.parseBulkDeleteFailures(e);
+        if (parsedFailures) {
+          this.failedItems = parsedFailures;
+          notify.showError(
+            parsedFailures[0]?.message || this.$t("prompts.operationFailed")
+          );
+        } else {
+          this.failedItems = this.itemsToDelete.map((item) => ({
+            source: item.source,
+            path: item.path,
+            message: e.message || "Delete failed",
+          }));
+          notify.showError(e.message || this.$t("prompts.operationFailed"));
+        }
       }
     },
   },

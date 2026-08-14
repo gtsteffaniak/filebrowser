@@ -247,6 +247,7 @@
 import { toolsApi } from "@/api";
 import router from "@/router";
 import { state, getters, mutations } from "@/store";
+import { eventBus } from "@/store/eventBus";
 import { globalVars } from "@/utils/constants";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -695,8 +696,19 @@ export default {
 
       return styles;
     },
+    reload() {
+      return state.reload;
+    },
   },
   watch: {
+    reload(shouldReload) {
+      if (!shouldReload || !this.isAdvancedSearchRoute || !this.searchExecuted) {
+        return;
+      }
+      mutations.setReload(false);
+      mutations.resetSelected();
+      void this.runSearch();
+    },
     termInputs: {
       deep: true,
       handler() {
@@ -844,6 +856,10 @@ export default {
     };
     window.addEventListener("resize", this.resizeListener);
 
+    eventBus.on("itemsDeleted", this.handleSearchResultsChanged);
+    eventBus.on("itemsMoved", this.handleSearchResultsChanged);
+    eventBus.on("itemsRenamed", this.handleSearchResultsChanged);
+
     if (state.req !== null && state.req !== undefined) {
       this.hadInitialReq = true;
       this.initialReqFrozen = JSON.stringify(state.req);
@@ -874,6 +890,11 @@ export default {
       window.removeEventListener("resize", this.resizeListener);
       this.resizeListener = null;
     }
+
+    eventBus.off("itemsDeleted", this.handleSearchResultsChanged);
+    eventBus.off("itemsMoved", this.handleSearchResultsChanged);
+    eventBus.off("itemsRenamed", this.handleSearchResultsChanged);
+
     if (!this.didApplySearchListing) {
       return;
     }
@@ -884,6 +905,16 @@ export default {
     mutations.replaceRequest(JSON.parse(this.initialReqFrozen));
   },
   methods: {
+    handleSearchResultsChanged(data) {
+      if (!this.isAdvancedSearchRoute || !this.searchExecuted) {
+        return;
+      }
+      if (data?.succeeded && data.succeeded.length === 0) {
+        return;
+      }
+      mutations.resetSelected();
+      void this.runSearch();
+    },
     /** When no source is toggled on, enable `state.sources.current` if known in the catalogue. */
     applyDefaultCurrentSourceIfNone() {
       if (!this.isAdvancedSearchRoute) {

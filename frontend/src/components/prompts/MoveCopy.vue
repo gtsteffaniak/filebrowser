@@ -30,6 +30,7 @@
       type="button"
       v-if="canCreateFolder && showNewDirInput"
       class="button button--flat"
+      :disabled="isLoading"
       @click="cancelNewDir"
       :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')"
@@ -40,6 +41,7 @@
       type="button"
       v-if="canCreateFolder && !showNewDirInput"
       class="button button--flat"
+      :disabled="isLoading"
       @click="createNewDir"
       :aria-label="$t('files.newFolder')"
       :title="$t('files.newFolder')"
@@ -50,7 +52,8 @@
     v-model.trim="newDirName" :placeholder="$t('files.newFolderMessage')" @keydown.enter="handleEnter" />
     <button
       type="button"
-      v-else :disabled="destContainsSrc"
+      v-else
+      :disabled="destContainsSrc || isLoading"
       class="button button--flat"
       @click="performOperation"
       :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')"
@@ -63,7 +66,7 @@
       v-if="showNewDirInput"
       class="button button--flat"
       @click="createDirectory"
-      :disabled="!newDirName || !isDirNameValid"
+      :disabled="isLoading || !newDirName || !isDirNameValid"
     >
       {{ $t("general.create") }}
     </button>
@@ -274,6 +277,9 @@ export default {
     },
     performOperation: async function (event) {
       event.preventDefault();
+      if (this.isLoading) {
+        return;
+      }
       this.isLoading = true; // Show loading spinner
       try {
         // Ensure destination source is set

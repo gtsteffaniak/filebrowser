@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Improvements to document thumbnail generation performance.
  - behavior changes for typing to select files in listing view.
  - next/previous buttons don't hide automatically on photos (#2767)
+ - added more actions available in advanced search (#2776)
 
  **Bugfixes**:
  - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).

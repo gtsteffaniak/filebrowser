@@ -215,6 +215,21 @@ func TestPermitted_NoRule(t *testing.T) {
 	}
 }
 
+func TestPermitted_trailingSlashEquivalence(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	if err := s.DenyUser("mnt/storage", idxPath("/secret/"), "alice"); err != nil {
+		t.Fatalf("DenyUser failed: %v", err)
+	}
+
+	withSlash := s.Permitted("mnt/storage", idxPath("/secret/"), "alice")
+	withoutSlash := s.Permitted("mnt/storage", idxPath("/secret"), "alice")
+	if withSlash != withoutSlash {
+		t.Errorf("trailing slash mismatch: with=%v without=%v", withSlash, withoutSlash)
+	}
+}
+
 func TestPermitted_CombinedRules(t *testing.T) {
 	setupTestSources()
 	s, userStore := createTestStorage(t)

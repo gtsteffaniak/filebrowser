@@ -390,7 +390,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 		if err != nil {
 			response.Failed = append(response.Failed, BulkDeleteItem{
 				Source:  item.Source,
-				Path:    sanitizedPath,
+				Path:    rawPath,
 				Message: err.Error(),
 			})
 			continue
@@ -401,7 +401,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if sourceName == "" {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "source name is empty",
 				})
 				continue
@@ -411,7 +411,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if idx == nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "source not found",
 				})
 				continue
@@ -420,7 +420,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if idx.Config.ReadOnly {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "source is read-only",
 				})
 				continue
@@ -431,7 +431,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "user does not have access",
 				})
 				continue
@@ -455,7 +455,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				logger.Errorf("resource bulk delete handler: error deleting file/directory: %v", err)
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "error deleting file/directory, admin must check the logs",
 				})
 				continue
@@ -467,7 +467,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if item.Source == "" {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "source was empty, source is required",
 				})
 				continue
@@ -478,7 +478,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: fmt.Sprintf("user does not have access: %v", err),
 				})
 				continue
@@ -487,7 +487,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if permErr != nil || !filePerms.Delete {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "user is not allowed to delete",
 				})
 				continue
@@ -497,7 +497,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if idx == nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "source not found",
 				})
 				continue
@@ -506,7 +506,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if idx.Config.ReadOnly {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: "source is read-only",
 				})
 				continue
@@ -522,7 +522,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: err.Error(),
 				})
 				continue
@@ -531,16 +531,18 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
-					Path:    sanitizedPath,
+					Path:    rawPath,
 					Message: err.Error(),
 				})
 				continue
 			}
 			preview.DelThumbs(r.Context(), *fileInfo)
 		}
-		// Success (log canonical path/source used for deletion)
-		loggedItem := item
-		loggedItem.Path = sanitizedPath
+		// Success — echo the client path in the response
+		loggedItem := BulkDeleteItem{
+			Source: item.Source,
+			Path:   rawPath,
+		}
 		if d.Share.Hash != "" {
 			loggedItem.Source = d.Share.GetSourceName()
 		}
@@ -1213,9 +1215,11 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 
 	// Process each item
 	for _, item := range req.Items {
+		clientFromPath := item.FromPath
+		clientToPath := item.ToPath
 
 		// Validate all fields are provided
-		if item.FromSource == "" || item.FromPath == "" || item.ToSource == "" || item.ToPath == "" {
+		if item.FromSource == "" || clientFromPath == "" || item.ToSource == "" || clientToPath == "" {
 			item.Message = "fromSource, fromPath, toSource, and toPath are required"
 			if d.Share.Hash != "" {
 				response.Failed = append(response.Failed, MoveCopyItem{
@@ -1223,23 +1227,21 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
-		cleanFromPath, err := utils.SanitizePath(item.FromPath)
+		cleanFromPath, err := utils.SanitizePath(clientFromPath)
 		if err != nil {
 			item.Message = fmt.Sprintf("invalid fromPath: %v", err)
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
-		cleanToPath, err := utils.SanitizePath(item.ToPath)
+		cleanToPath, err := utils.SanitizePath(clientToPath)
 		if err != nil {
 			item.Message = fmt.Sprintf("invalid toPath: %v", err)
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
-		item.FromPath = cleanFromPath
-		item.ToPath = cleanToPath
 
 		// Get user scopes for both sources
 		// For shares, paths are already absolute, so use empty scope
@@ -1249,19 +1251,19 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			userscopeSrc, err = d.User.GetScopeForSourceName(item.FromSource)
 			if err != nil {
 				item.Message = "source not available"
-				response.Failed = append(response.Failed, item)
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
 			userscopeDst, err = d.User.GetScopeForSourceName(item.ToSource)
 			if err != nil {
 				item.Message = "destination source not available"
-				response.Failed = append(response.Failed, item)
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
 			fromPerms, permErr := effectiveFilePerms(d, item.FromSource)
 			if permErr != nil {
 				item.Message = "permission denied"
-				response.Failed = append(response.Failed, item)
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
 			toPerms := fromPerms
@@ -1270,13 +1272,13 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				toPerms, toErr = effectiveFilePerms(d, item.ToSource)
 				if toErr != nil {
 					item.Message = "permission denied"
-					response.Failed = append(response.Failed, item)
+					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 					continue
 				}
 			}
 			if msg := resourcePatchPermCheck(req.Action, item.FromSource, item.ToSource, fromPerms, toPerms); msg != "" {
 				item.Message = msg
-				response.Failed = append(response.Failed, item)
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
 		}
@@ -1291,7 +1293,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 
@@ -1305,7 +1307,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 
@@ -1317,7 +1319,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 
@@ -1329,16 +1331,16 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 
 		// Build full index paths for access control
-		fullSrcIndexPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
-		fullDstIndexPath := utils.JoinPathAsUnix(userscopeDst, item.ToPath)
+		fullSrcIndexPath := utils.JoinPathAsUnix(userscopeSrc, cleanFromPath)
+		fullDstIndexPath := utils.JoinPathAsUnix(userscopeDst, cleanToPath)
 		if fullDstIndexPath == "/" || fullSrcIndexPath == "/" {
 			item.Message = "source or destination is the root or unautharized directory"
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 
@@ -1351,7 +1353,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 		if !state.AccessPermitted(dstIdx.Path, utils.IndexPathFromNormalized(fullDstIndexPath, true), d.User.Username) {
@@ -1362,16 +1364,16 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 
 		// Get real paths
 		// Combine user scope with item paths BEFORE calling GetRealPath to avoid double scope application
-		fullSrcPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
+		fullSrcPath := utils.JoinPathAsUnix(userscopeSrc, cleanFromPath)
 		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcPath)
 		if err != nil {
-			logger.Errorf("could not resolve source path: %v, item.FromPath: %v", err, item.FromPath)
+			logger.Errorf("could not resolve source path: %v, fromPath: %v", err, clientFromPath)
 			item.Message = "could not resolve source path"
 			if d.Share.Hash != "" {
 				response.Failed = append(response.Failed, MoveCopyItem{
@@ -1379,12 +1381,12 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 
 		// Check destination parent directory exists
-		dstParentPath := filepath.Dir(item.ToPath)
+		dstParentPath := filepath.Dir(cleanToPath)
 		fullDstParentPath := utils.JoinPathAsUnix(userscopeDst, dstParentPath)
 		parentDir, _, err := dstIdx.GetRealPath(fullDstParentPath)
 		if err != nil {
@@ -1395,10 +1397,10 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				})
 				continue
 			}
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
-		realDest := parentDir + "/" + filepath.Base(item.ToPath)
+		realDest := parentDir + "/" + filepath.Base(cleanToPath)
 
 		// Auto-rename if requested
 		if req.Rename {
@@ -1415,7 +1417,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 					})
 					continue
 				}
-				response.Failed = append(response.Failed, item)
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
 		}
@@ -1440,13 +1442,13 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				continue
 			}
 			item.Message = err.Error()
-			response.Failed = append(response.Failed, item)
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
 
 		// Success
-		response.Succeeded = append(response.Succeeded, item)
-		activity.RecordPatchItem(r, toActor(d), req.Action, activity.MoveCopyItem{FromSource: item.FromSource, FromPath: item.FromPath, ToPath: item.ToPath})
+		response.Succeeded = append(response.Succeeded, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+		activity.RecordPatchItem(r, toActor(d), req.Action, activity.MoveCopyItem{FromSource: item.FromSource, FromPath: clientFromPath, ToPath: clientToPath})
 	}
 
 	if len(response.Failed) == 0 && len(response.Succeeded) == 0 {
@@ -1716,6 +1718,12 @@ func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		return http.StatusInternalServerError, err
 	}
 	return RenderJSON(w, r, items)
+}
+
+func moveCopyWithClientPaths(item MoveCopyItem, clientFrom, clientTo string) MoveCopyItem {
+	item.FromPath = clientFrom
+	item.ToPath = clientTo
+	return item
 }
 
 func bulkDeleteActivityItems(items []BulkDeleteItem) []activity.BulkDeleteItem {
