@@ -987,13 +987,18 @@ export const mutations = {
 
     // Auto-show navigation when it's first set up (timer tracked so new opens clear it)
     if (state.navigation.enabled && (state.navigation.previousLink || state.navigation.nextLink)) {
-      mutations.setNavigationShow(true);
-      const hideTimer = setTimeout(() => {
-        if (!state.navigation.hoverNav) {
-          mutations.setNavigationShow(false);
-        }
-      }, 3000);
-      mutations.setNavigationTimeout(hideTimer);
+      const isImage = getTypeInfo(currentItem.type).simpleType === 'image';
+      if (isImage) {
+        mutations.showNavigationChromePersistent();
+      } else {
+        mutations.setNavigationShow(true);
+        const hideTimer = setTimeout(() => {
+          if (!state.navigation.hoverNav) {
+            mutations.setNavigationShow(false);
+          }
+        }, 3000);
+        mutations.setNavigationTimeout(hideTimer);
+      }
     }
   },
   getPrefetchUrl: (item) => {
@@ -1022,6 +1027,20 @@ export const mutations = {
     state.navigation.show = show;
     emitStateChanged();
   },
+  showNavigationChromePersistent: () => {
+    if (!state.navigation.enabled) {
+      return;
+    }
+    mutations.clearNavigationTimeout();
+    mutations.setNavigationShow(true);
+  },
+  toggleNavigationChrome: () => {
+    if (!state.navigation.enabled) {
+      return;
+    }
+    mutations.clearNavigationTimeout();
+    mutations.setNavigationShow(!state.navigation.show);
+  },
   /** Briefly reveal prev/next chrome (e.g. edge tap on video while gestures capture the event). */
   peekNavigationChrome: (side = null) => {
     if (!state.navigation.enabled) {
@@ -1041,6 +1060,10 @@ export const mutations = {
       return;
     }
     if (!side && !hasPrevious && !hasNext) {
+      return;
+    }
+    if (getters.previewType() === 'image') {
+      mutations.showNavigationChromePersistent();
       return;
     }
     mutations.setNavigationShow(true);

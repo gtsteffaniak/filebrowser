@@ -4,7 +4,7 @@ import { state } from './state';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
-import { getTypeInfo, isRichTextPreviewMimeType } from '@/utils/mimetype';
+import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
@@ -52,7 +52,10 @@ export const getters = {
   },
   isScrollable: () => {
     if (getters.currentView() === 'markdownViewer') {
-      return true
+      if (isHtmlMimeType(state.req?.type)) {
+        return false;
+      }
+      return true;
     }
     if (getters.isPreviewView()) {
       return false

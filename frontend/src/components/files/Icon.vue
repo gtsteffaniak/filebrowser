@@ -670,6 +670,10 @@ export default {
   position: relative;
 }
 
+.gallery .image-preview {
+  border-radius: 0;
+}
+
 /* Universal icon styling - uses --icon-font-size variable */
 .image-preview i {
   padding: 0.1em;
