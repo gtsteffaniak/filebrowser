@@ -189,8 +189,12 @@ import { url } from "@/utils";
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-
-const TYPE_AHEAD_RESET_MS = 1000;
+import {
+  getTypeAheadPrefix,
+  isTypeAheadSessionActive,
+  processTypeAheadKey,
+  resetTypeAheadSession,
+} from "@/utils/listingTypeAhead.js";
 
 export default {
   name: "listingView",
@@ -218,9 +222,6 @@ export default {
       selectionUpdatePending: false,
       isResizing: false,
       resizeTimeout: null,
-      typeAheadPrefix: '',
-      typeAheadLastKey: '',
-      typeAheadTimeoutId: null,
     };
   },
   watch: {
@@ -524,7 +525,7 @@ export default {
     }
   },
   beforeUnmount() {
-    this.resetTypeAhead();
+    resetTypeAheadSession();
 
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
@@ -782,6 +783,16 @@ export default {
       if (state.isSearchActive || getters.currentView() !== "listingView" ||
         getters.currentPromptName() || (event.repeat && (!isArrowKey || altKey))) return;
 
+      if (
+        (key === ' ' || key === '/') &&
+        isTypeAheadSessionActive() &&
+        !state.isSearchActive &&
+        !getters.currentPromptName()
+      ) {
+        event.preventDefault();
+        return;
+      }
+
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
       if (isAlphanumeric && !modifierKeys && state.selected.length <= 1) {
@@ -794,6 +805,12 @@ export default {
           !t.isContentEditable
         ) {
           event.preventDefault();
+          console.log('[listingTypeAhead] keyEvent → alphanumeric', {
+            key,
+            repeat: event.repeat,
+            selected: [...state.selected],
+            prefixBefore: getTypeAheadPrefix(),
+          });
           this.alphanumericKeyPress(key);
           return;
         }
@@ -879,55 +896,35 @@ export default {
           break;
       }
     },
-    resetTypeAhead() {
-      if (this.typeAheadTimeoutId !== null) {
-        clearTimeout(this.typeAheadTimeoutId);
-        this.typeAheadTimeoutId = null;
-      }
-      this.typeAheadPrefix = '';
-      this.typeAheadLastKey = '';
-    },
-    scheduleTypeAheadReset() {
-      if (this.typeAheadTimeoutId !== null) {
-        clearTimeout(this.typeAheadTimeoutId);
-      }
-      this.typeAheadTimeoutId = setTimeout(() => {
-        this.resetTypeAhead();
-      }, TYPE_AHEAD_RESET_MS);
-    },
     alphanumericKeyPress(key) {
-      const lowerKey = key.toLowerCase();
-      const isSameKeyRepeat =
-        this.typeAheadPrefix.length === 1 &&
-        lowerKey === this.typeAheadLastKey &&
-        this.typeAheadPrefix === lowerKey;
-
-      let prefix;
-      if (isSameKeyRepeat) {
-        prefix = this.typeAheadPrefix;
-      } else if (this.typeAheadPrefix === '') {
-        prefix = lowerKey;
-      } else {
-        prefix = this.typeAheadPrefix + lowerKey;
-      }
-
-      const matches = this.allItems.filter(item =>
-        item.name.toLowerCase().startsWith(prefix)
-      );
-      if (matches.length === 0) return;
-
-      this.typeAheadPrefix = prefix;
-      this.typeAheadLastKey = lowerKey;
-      this.scheduleTypeAheadReset();
-
-      let nextPos = 0;
-      if (isSameKeyRepeat && state.selected.length === 1) {
-        const curPos = matches.findIndex(m => m.index === state.selected[0]);
-        if (curPos !== -1) nextPos = (curPos + 1) % matches.length;
+      const selectedIndex = state.selected.length === 1 ? state.selected[0] : null;
+      const selectedName = selectedIndex !== null
+        ? this.allItems.find((item) => item.index === selectedIndex)?.name
+        : null;
+      const { matches, nextPos } = processTypeAheadKey(key, this.allItems, selectedIndex);
+      if (matches.length === 0) {
+        console.log('[listingTypeAhead] no matches — selection unchanged', {
+          key,
+          selectedIndex,
+          selectedName,
+          prefixAfter: getTypeAheadPrefix(),
+        });
+        return;
       }
 
       const target = matches.at(nextPos);
-      if (!target) return;
+      if (!target) {
+        console.log('[listingTypeAhead] no target at nextPos', { key, nextPos, matchCount: matches.length });
+        return;
+      }
+      console.log('[listingTypeAhead] selecting', {
+        key,
+        from: selectedName,
+        to: target.name,
+        targetIndex: target.index,
+        nextPos,
+        matchCount: matches.length,
+      });
       mutations.resetSelected();
       mutations.addSelected(target.index);
       this.scrollSelectedIntoView();
