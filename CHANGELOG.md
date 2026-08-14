@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file. For commit 
  - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
  - Session renew is handled by client keep-alive. removed per-request `X-Renew-Token` header handling.
  - Improvements to document thumbnail generation performance.
+ - behavior changes for typing to select files in listing view.
+ - next/previous buttons don't hide automatically on photos (#2767)
 
  **Bugfixes**:
  - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).

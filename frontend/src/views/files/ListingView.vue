@@ -190,6 +190,8 @@ import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
+const TYPE_AHEAD_RESET_MS = 1000;
+
 export default {
   name: "listingView",
   components: {
@@ -216,6 +218,9 @@ export default {
       selectionUpdatePending: false,
       isResizing: false,
       resizeTimeout: null,
+      typeAheadPrefix: '',
+      typeAheadLastKey: '',
+      typeAheadTimeoutId: null,
     };
   },
   watch: {
@@ -519,6 +524,8 @@ export default {
     }
   },
   beforeUnmount() {
+    this.resetTypeAhead();
+
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
       this.resizeTimeout = null;
@@ -872,18 +879,48 @@ export default {
           break;
       }
     },
+    resetTypeAhead() {
+      if (this.typeAheadTimeoutId !== null) {
+        clearTimeout(this.typeAheadTimeoutId);
+        this.typeAheadTimeoutId = null;
+      }
+      this.typeAheadPrefix = '';
+      this.typeAheadLastKey = '';
+    },
+    scheduleTypeAheadReset() {
+      if (this.typeAheadTimeoutId !== null) {
+        clearTimeout(this.typeAheadTimeoutId);
+      }
+      this.typeAheadTimeoutId = setTimeout(() => {
+        this.resetTypeAhead();
+      }, TYPE_AHEAD_RESET_MS);
+    },
     alphanumericKeyPress(key) {
-      const prefix = key.toLowerCase();
-      const allItems = this.allItems;
-      const matches = allItems.filter(item =>
+      const lowerKey = key.toLowerCase();
+      const isSameKeyRepeat =
+        lowerKey === this.typeAheadLastKey && this.typeAheadPrefix !== '';
+
+      let prefix;
+      if (isSameKeyRepeat) {
+        prefix = this.typeAheadPrefix;
+      } else if (this.typeAheadPrefix === '') {
+        prefix = lowerKey;
+      } else {
+        prefix = this.typeAheadPrefix + lowerKey;
+      }
+
+      const matches = this.allItems.filter(item =>
         item.name.toLowerCase().startsWith(prefix)
       );
       if (matches.length === 0) return;
 
+      this.typeAheadPrefix = prefix;
+      this.typeAheadLastKey = lowerKey;
+      this.scheduleTypeAheadReset();
+
       let nextPos = 0;
-      if (state.selected.length === 1) {
-        const curIdx = state.selected[0];
-        const curPos = matches.findIndex(m => m.index === curIdx);
+      if (isSameKeyRepeat && state.selected.length === 1) {
+        const curPos = matches.findIndex(m => m.index === state.selected[0]);
         if (curPos !== -1) nextPos = (curPos + 1) % matches.length;
       }
 
