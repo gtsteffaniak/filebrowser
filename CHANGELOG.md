@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] Stored XSS via unsanitized DOCX hyperlink in DocViewer (GHSA-9wm6-jcjh-3m8c) -- thanks @karen93shieh
+ - [Moderate] Revoked JWTs could still authenticate on public-share and withOrWithoutUser routes until natural expiry, bypassing logout and Api-permission revocation on that surface (GHSA-4wmj-rq3c-m65v)
 
 ## v1.5.5
 
