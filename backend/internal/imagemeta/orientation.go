@@ -4,6 +4,7 @@ package imagemeta
 
 import (
 	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,9 +28,21 @@ func GetOrientation(ctx context.Context, path string) string {
 	defer f.Close()
 
 	ext := strings.ToLower(filepath.Ext(path))
+	if isHEICExtension(ext) {
+		if _, err := f.Seek(0, io.SeekStart); err != nil {
+			return ""
+		}
+		if orient := heicTransformOrientation(parseHEICTransform(f)); orient != "" {
+			return orient
+		}
+	}
+
 	var ex exif.Exif
 	switch ext {
 	case ".heic", ".heif", ".heics":
+		if _, err := f.Seek(0, io.SeekStart); err != nil {
+			return ""
+		}
 		ex, err = extimagemeta.DecodeHeif(f)
 	default:
 		ex, err = extimagemeta.Decode(f)

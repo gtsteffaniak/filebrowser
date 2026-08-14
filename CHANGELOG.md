@@ -21,6 +21,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Brings back double-tap to zoom images that was mistakenly removed.
  - multiple embedded subtitles with same language bug (#2756)
  - gallery view download button missing (#2767)
+ - fixed HEIC rotation regression from v1.5.x
+ - fixed raw image preview regression from v1.5.x
 
 ## v2.0.0
 
