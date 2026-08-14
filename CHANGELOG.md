@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.5.2-stable
+
+ **Security**:
+ - [Moderate] PATCH /api/share could re-point a share outside the owner's scope (GHSA-wfjp-qhvc-69wp)
+
 ## v1.5.5
 
  **BugFixes**:
