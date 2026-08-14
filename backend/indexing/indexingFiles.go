@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	stderrors "errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -432,6 +433,7 @@ type PathContext struct {
 type FileInfoRequest struct {
 	IndexPath         string
 	FollowSymlinks    bool
+	BoundIndexPath    string // index prefix for symlink containment (e.g. user scope)
 	ShowHidden        bool
 	HideFileExt       string // Hide files based on their extension
 	Expand            bool   // get child items for directories
@@ -439,9 +441,63 @@ type FileInfoRequest struct {
 	SkipExtendedAttrs bool   // whether to skip extended attributes
 }
 
+// filesystemBound resolves the filesystem path for an index prefix under this source.
+func (idx *Index) filesystemBound(boundIndexPath string) (string, error) {
+	bound := boundIndexPath
+	if bound == "" {
+		bound = "/"
+	}
+	fsPath := idx.Path
+	if bound != "/" {
+		fsPath = filepath.Join(idx.Path, strings.TrimPrefix(bound, "/"))
+	}
+	abs, err := filepath.Abs(fsPath)
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks(abs)
+}
+
+// ensureResolvedContained rejects resolved filesystem paths outside the source or scope prefix.
+func (idx *Index) ensureResolvedContained(realPath, boundIndexPath string) error {
+	sourceRoot, err := idx.filesystemBound("/")
+	if err != nil {
+		return err
+	}
+	if err := iteminfo.PathWithinRoot(sourceRoot, realPath); err != nil {
+		return errors.ErrPathEscapesScope
+	}
+	bound := boundIndexPath
+	if bound == "" {
+		bound = "/"
+	}
+	if bound != "/" {
+		scopeRoot, err := idx.filesystemBound(bound)
+		if err != nil {
+			return err
+		}
+		if err := iteminfo.PathWithinRoot(scopeRoot, realPath); err != nil {
+			return errors.ErrPathEscapesScope
+		}
+	}
+	return nil
+}
+
+// resolveSymlinksContained resolves symlinks and ensures the target stays within bounds.
+func (idx *Index) resolveSymlinksContained(fsPath, boundIndexPath string) (string, error) {
+	resolved, err := filepath.EvalSymlinks(fsPath)
+	if err != nil {
+		return "", err
+	}
+	if err := idx.ensureResolvedContained(resolved, boundIndexPath); err != nil {
+		return "", err
+	}
+	return resolved, nil
+}
+
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
 // This eliminates duplicate stat/lstat calls and redundant isHidden/isSymlink checks
-func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool) (*PathContext, error) {
+func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool, boundIndexPath string) (*PathContext, error) {
 	realPath := filepath.Join(idx.Path, indexPath)
 
 	// ONE filesystem stat call
@@ -454,7 +510,7 @@ func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool) (*Pa
 
 	// Resolve symlink if requested
 	if isSymlink && followSymlinks {
-		realPath, err = filepath.EvalSymlinks(realPath)
+		realPath, err = idx.resolveSymlinksContained(realPath, boundIndexPath)
 		if err != nil {
 			return nil, err
 		}
@@ -510,7 +566,7 @@ func (idx *Index) evaluateIndexRules(ctx *PathContext, isRoutineScan bool) (isVi
 // User permission checking happens in the API layer (FileInfoFaster)
 func (idx *Index) GetFileInfo(req FileInfoRequest) (*iteminfo.FileInfo, error) {
 	// 1. Resolve path context (single stat call)
-	ctx, err := idx.resolvePathContext(req.IndexPath, req.FollowSymlinks)
+	ctx, err := idx.resolvePathContext(req.IndexPath, req.FollowSymlinks, req.BoundIndexPath)
 	if err != nil {
 		return nil, err
 	}
@@ -639,7 +695,7 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 	realPath := filepath.Join(idx.Path, indexPath)
 	if opts.FollowSymlinks {
 		var err error
-		realPath, err = filepath.EvalSymlinks(realPath)
+		realPath, err = idx.resolveSymlinksContained(realPath, "/")
 		if err != nil {
 			return nil, err
 		}
@@ -995,10 +1051,24 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, indexPath strin
 }
 
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
+	return idx.getRealPathInternal("/", false, relativePath...)
+}
+
+// GetRealPathScoped resolves an index path and rejects symlink targets outside the source and bound prefix.
+func (idx *Index) GetRealPathScoped(boundIndexPath string, relativePath ...string) (string, bool, error) {
+	return idx.getRealPathInternal(boundIndexPath, true, relativePath...)
+}
+
+func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, relativePath ...string) (string, bool, error) {
 	combined := append([]string{idx.Path}, relativePath...)
 	joinedPath := filepath.Join(combined...)
-	isDir, _ := IsDirCache.Get(joinedPath + ":isdir")
-	cached, ok := RealPathCache.Get(joinedPath)
+	bound := boundIndexPath
+	if enforceScope && bound == "" {
+		bound = "/"
+	}
+	cacheKey := fmt.Sprintf("realpath|scoped=%t|bound=%q|path=%q", enforceScope, bound, joinedPath)
+	isDir, _ := IsDirCache.Get(cacheKey + ":isdir")
+	cached, ok := RealPathCache.Get(cacheKey)
 	if ok && cached != "" {
 		return cached, isDir, nil
 	}
@@ -1007,11 +1077,53 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", joinedPath, err)
 	}
 	realPath, isDir, err := iteminfo.ResolveSymlinks(absolutePath)
-	if err == nil {
-		RealPathCache.Set(joinedPath, realPath)
-		IsDirCache.Set(joinedPath+":isdir", isDir)
+	if err != nil {
+		return realPath, isDir, err
 	}
-	return realPath, isDir, err
+	if enforceScope {
+		if err := idx.ensureResolvedContained(realPath, boundIndexPath); err != nil {
+			return "", false, err
+		}
+	} else if err := idx.ensureResolvedContained(realPath, "/"); err != nil {
+		return "", false, err
+	}
+	RealPathCache.Set(cacheKey, realPath)
+	IsDirCache.Set(cacheKey+":isdir", isDir)
+	return realPath, isDir, nil
+}
+
+func scopedIndexRel(boundIndexPath, indexPath string) string {
+	bound := boundIndexPath
+	if bound == "" {
+		bound = "/"
+	}
+	rel := indexPath
+	if bound != "/" {
+		rel = strings.TrimPrefix(indexPath, bound)
+	}
+	rel = strings.TrimPrefix(rel, "/")
+	return filepath.FromSlash(rel)
+}
+
+// OpenScopedPath opens indexPath relative to boundIndexPath using traversal-resistant APIs.
+func (idx *Index) OpenScopedPath(boundIndexPath, indexPath string) (*os.File, os.FileInfo, error) {
+	scopeRoot, err := idx.filesystemBound(boundIndexPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	file, err := iteminfo.OpenContained(scopeRoot, scopedIndexRel(boundIndexPath, indexPath))
+	if err != nil {
+		if _, _, scopeErr := idx.GetRealPathScoped(boundIndexPath, indexPath); stderrors.Is(scopeErr, errors.ErrPathEscapesScope) {
+			return nil, nil, scopeErr
+		}
+		return nil, nil, err
+	}
+	info, err := file.Stat()
+	if err != nil {
+		file.Close()
+		return nil, nil, err
+	}
+	return file, info, nil
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
