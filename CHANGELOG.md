@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.5.2-stable
+
+ **Security**:
+ - [Moderate] Logout did not invalidate session JWTs with equivalent Base64URL spellings (GHSA-8m35-wcjh-95q7)
+
 ## v1.5.5
 
  **BugFixes**:
