@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fixed HEIC rotation regression from v1.5.x
  - fixed raw image preview regression from v1.5.x
  - html viewer takes full height
+ - Members without download permission receive 403 when opening text-based files despite OnlyOffice preview being enabled (#2777)
 
 ## v2.0.0
 
