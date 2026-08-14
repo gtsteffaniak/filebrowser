@@ -575,7 +575,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Check access control for the target path
 	if !store.Access.Permitted(idx.Path, fullIndexPath, filePermUser.Username) {
-		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
 	}
 
 	// Check for file/folder conflicts before creation
@@ -692,7 +692,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 					publicPauseCache.Delete(k)
 				}
 			} else {
-				k := pauseUploadCacheKey(source, path)
+				k := pauseUploadCacheKey(source, fullIndexPath)
 				if _, ok := pauseCache.Get(k); ok {
 					gracefulPause = true
 					pauseCache.Delete(k)
