@@ -692,7 +692,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 					publicPauseCache.Delete(k)
 				}
 			} else {
-				k := pauseUploadCacheKey(source, path)
+				k := pauseUploadCacheKey(source, fullIndexPath)
 				if _, ok := pauseCache.Get(k); ok {
 					gracefulPause = true
 					pauseCache.Delete(k)
