@@ -189,7 +189,6 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
-	"time"
 	"unsafe"
 )
 
@@ -241,7 +240,6 @@ func (s *Service) renderDocPageJPEG(ctx context.Context, path string, pageNumber
 		return nil, err
 	}
 	runtime.LockOSThread()
-	start := time.Now()
 	rc := C.fb_render_document_page_jpeg(
 		cPath,
 		C.int(pageNumber),
@@ -254,7 +252,6 @@ func (s *Service) renderDocPageJPEG(ctx context.Context, path string, pageNumber
 		(*C.char)(unsafe.Pointer(&errBuf[0])),
 		C.size_t(len(errBuf)),
 	)
-	elapsed := time.Since(start)
 	runtime.UnlockOSThread()
 	s.docGenMutex.Unlock()
 
