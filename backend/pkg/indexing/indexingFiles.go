@@ -444,7 +444,7 @@ func (idx *Index) filesystemBound(boundIndexPath string) (string, error) {
 	}
 	fsPath := idx.Path
 	if bound != "/" {
-		fsPath = filepath.Join(idx.Path, strings.TrimPrefix(bound, "/"))
+		fsPath = utils.JoinUnderSourceRoot(idx.Path, bound)
 	}
 	abs, err := filepath.Abs(fsPath)
 	if err != nil {
@@ -493,7 +493,7 @@ func (idx *Index) resolveSymlinksContained(fsPath, boundIndexPath string) (strin
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
 // This eliminates duplicate stat/lstat calls and redundant isHidden/isSymlink checks
 func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool, boundIndexPath string) (*PathContext, error) {
-	realPath := filepath.Join(idx.Path, indexPath)
+	realPath := utils.JoinUnderSourceRoot(idx.Path, indexPath)
 
 	// ONE filesystem stat call
 	fileInfo, err := os.Lstat(realPath)
@@ -649,7 +649,7 @@ func (idx *Index) indexDirectory(indexPath string, opts Options, scanner *Scanne
 	if !strings.HasSuffix(indexPath, "/") {
 		indexPath = indexPath + "/"
 	}
-	realPath := filepath.Join(idx.Path, indexPath)
+	realPath := utils.JoinUnderSourceRoot(idx.Path, indexPath)
 
 	// Open the directory
 	dir, err := os.Open(realPath)
@@ -687,7 +687,7 @@ func (idx *Index) indexDirectory(indexPath string, opts Options, scanner *Scanne
 // GetFsInfoCore is the consolidated implementation for both GetFsInfo and GetFsInfoViewableOnly
 func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileInfo, error) {
 	// Handle symlinks if not following them
-	realPath := filepath.Join(idx.Path, indexPath)
+	realPath := utils.JoinUnderSourceRoot(idx.Path, indexPath)
 	if opts.FollowSymlinks {
 		var err error
 		realPath, err = idx.resolveSymlinksContained(realPath, "/")
@@ -1055,8 +1055,12 @@ func (idx *Index) GetRealPathScoped(boundIndexPath string, relativePath ...strin
 }
 
 func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, relativePath ...string) (string, bool, error) {
-	combined := append([]string{idx.Path}, relativePath...)
-	joinedPath := filepath.Join(combined...)
+	parts := make([]string, 0, len(relativePath)+1)
+	parts = append(parts, idx.Path)
+	for _, p := range relativePath {
+		parts = append(parts, utils.CleanIndexPathSegment(p))
+	}
+	joinedPath := filepath.Join(parts...)
 	bound := boundIndexPath
 	if enforceScope && bound == "" {
 		bound = "/"
@@ -1111,7 +1115,7 @@ func (idx *Index) RefreshDirectory(indexPath string, recursive bool) error {
 		indexPath = indexPath + "/"
 	}
 
-	realPath := filepath.Join(idx.Path, indexPath)
+	realPath := utils.JoinUnderSourceRoot(idx.Path, indexPath)
 
 	// Check if directory exists
 	dirInfo, err := os.Stat(realPath)

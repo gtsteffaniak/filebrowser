@@ -571,7 +571,7 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	scopedPath := utils.JoinPathAsUnix(userscope, cleanPath)
+	scopedPath := utils.JoinScopedIndexPath(userscope, cleanPath)
 	return streamFilesHandler(w, r, d, source, []string{scopedPath})
 }
 
@@ -618,7 +618,7 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if !IsMediaStreamFile(shareRelativeDisplayName(d, cleanFile)) {
 		return http.StatusForbidden, fmt.Errorf("stream endpoint supports audio and video only")
 	}
-	scopedPath := utils.JoinPathAsUnix(d.Share.Path, cleanFile)
+	scopedPath := utils.JoinScopedIndexPath(d.Share.Path, cleanFile)
 	status, err := streamFilesHandler(w, r, d, sourceInfo.Name, []string{scopedPath})
 	if err != nil {
 		if status == http.StatusForbidden {

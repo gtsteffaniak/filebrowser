@@ -154,7 +154,7 @@ func checkPermissionsImpl(opts utils.FileOptions, user *users.User, s *Service) 
 		return "", "", errors.ErrAccessDenied
 	}
 
-	indexPath := utils.JoinPathAsUnix(userScope, safePath)
+	indexPath := utils.JoinScopedIndexPath(userScope, safePath)
 	parsedPath, err := utils.ParseSanitizedIndexPath(indexPath, true)
 	if err != nil {
 		return "", "", errors.ErrAccessDenied
@@ -190,7 +190,7 @@ func GetDirItems(opts utils.FileOptions, user *users.User) (Items, error) {
 
 func getDirItemsImpl(opts utils.FileOptions, user *users.User, s *Service) (Items, error) {
 	items := Items{}
-	indexPath, _, topLevelErr := checkPermissionsImpl(opts, user, s)
+	indexPath, userScope, topLevelErr := checkPermissionsImpl(opts, user, s)
 	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
 	if topLevelErr != nil && !accessRulesErr {
 		return items, topLevelErr
@@ -200,14 +200,18 @@ func getDirItemsImpl(opts utils.FileOptions, user *users.User, s *Service) (Item
 	if idx == nil {
 		return items, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+	infoReq := indexing.FileInfoRequest{
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
 		HideFileExt:       opts.HideFileExt,
 		Expand:            true,
 		SkipExtendedAttrs: true,
-	})
+	}
+	if opts.FollowSymlinks {
+		infoReq.BoundIndexPath = userScope
+	}
+	info, err := idx.GetFileInfo(infoReq)
 	if err != nil {
 		return items, err // Path excluded by index rules OR doesn't exist
 	}
@@ -296,7 +300,7 @@ func fileInfoFasterImpl(opts utils.FileOptions, user *users.User, s *Service) (*
 		}
 		response.RealPath = realPath
 	} else {
-		response.RealPath = filepath.Join(idx.Path, indexPath)
+		response.RealPath = utils.JoinUnderSourceRoot(idx.Path, indexPath)
 	}
 	response.Source = opts.Source
 	if user.Permissions.Share && opts.ShowSharedAttr {
