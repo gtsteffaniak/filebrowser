@@ -505,6 +505,12 @@ export const getters = {
     }
     return false
   },
+  shouldFetchFileContent: (fileInfo: { name: string; source?: string; onlyOfficeId?: string }) => {
+    if (getters.fileViewingDisabled(fileInfo.name)) return false
+    if (fileInfo.onlyOfficeId && !getters.officeViewingDisabled(fileInfo.name)) return false
+    if (!getters.sourcePermissions(fileInfo.source).download) return false
+    return true
+  },
   anonymous: () => {
     return {
       id: 0,
