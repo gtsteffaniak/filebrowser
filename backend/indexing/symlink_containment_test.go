@@ -173,3 +173,54 @@ func TestGetFileInfo_RejectsSymlinkEscapeWithBound(t *testing.T) {
 		t.Fatalf("expected ErrPathEscapesScope from GetFileInfo, got %v", err)
 	}
 }
+
+func TestGetFileInfo_RejectsDirectorySymlinkOutsideUserScope(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	otherDir := filepath.Join(sourceRoot, "otheruser")
+	if err := os.MkdirAll(otherDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(otherDir, "leaked.txt"), []byte("leaked"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	userDir := filepath.Join(sourceRoot, "user1")
+	if err := os.Symlink(otherDir, filepath.Join(userDir, "escape_dir")); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := idx.GetFileInfo(FileInfoRequest{
+		IndexPath:      "/user1/escape_dir/",
+		FollowSymlinks: true,
+		BoundIndexPath: userScope,
+		Expand:         true,
+	})
+	if !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope for directory symlink outside scope, got %v", err)
+	}
+}
+
+func TestOpenScopedPath_RejectsEscapeOutsideUserScope(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	_, _, err := idx.OpenScopedPath(userScope, "/user1/secret_link")
+	if !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope from OpenScopedPath, got %v", err)
+	}
+}
+
+func TestOpenScopedPath_OpensInScopeFile(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	file, info, err := idx.OpenScopedPath(userScope, "/user1/allowed.txt")
+	if err != nil {
+		t.Fatalf("expected in-scope open to succeed: %v", err)
+	}
+	defer file.Close()
+	if info.IsDir() {
+		t.Fatal("expected file, got directory")
+	}
+}

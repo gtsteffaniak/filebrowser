@@ -173,7 +173,7 @@ func filterFilesByExt(files []iteminfo.ExtendedItemInfo, hideFileExt string) []i
 
 func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.User) (Items, error) {
 	items := Items{}
-	indexPath, _, topLevelErr := CheckPermissions(opts, access, user)
+	indexPath, userScope, topLevelErr := CheckPermissions(opts, access, user)
 	accessRulesErr := topLevelErr != nil && topLevelErr == errors.ErrAccessDenied && indexPath != ""
 	if topLevelErr != nil && !accessRulesErr {
 		return items, topLevelErr
@@ -183,14 +183,18 @@ func GetDirItems(opts utils.FileOptions, access *access.Storage, user *users.Use
 	if idx == nil {
 		return items, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+	infoReq := indexing.FileInfoRequest{
 		IndexPath:         indexPath,
 		FollowSymlinks:    opts.FollowSymlinks,
 		ShowHidden:        opts.ShowHidden,
 		HideFileExt:       opts.HideFileExt,
 		Expand:            true,
 		SkipExtendedAttrs: true,
-	})
+	}
+	if opts.FollowSymlinks {
+		infoReq.BoundIndexPath = userScope
+	}
+	info, err := idx.GetFileInfo(infoReq)
 	if err != nil {
 		return items, err // Path excluded by index rules OR doesn't exist
 	}

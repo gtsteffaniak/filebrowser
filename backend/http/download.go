@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -220,25 +219,30 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		bound = userscope
 	}
 
-	realPath, isDir, err := idx.GetRealPathScoped(bound, firstFilePath)
-	if err != nil {
-		if errors.Is(err, liberrors.ErrPathEscapesScope) {
-			return http.StatusForbidden, err
-		}
-		// Send OnlyOffice error log if this was an OnlyOffice file
-		if isOnlyOffice {
-			if docId, _ := getOnlyOfficeId(realPath); docId != "" {
-				if ctx := getOnlyOfficeLogContext(docId); ctx != nil {
-					sendOnlyOfficeLogEvent(ctx, "ERROR", "download",
-						fmt.Sprintf("OnlyOffice download failed - could not resolve path: %s - %v", firstFilePath, err))
+	// ** Single file download with Content-Length **
+	if len(fileList) == 1 {
+		fd, fileInfo, openErr := idx.OpenScopedPath(bound, firstFilePath)
+		if openErr != nil {
+			if errors.Is(openErr, liberrors.ErrPathEscapesScope) {
+				return http.StatusForbidden, openErr
+			}
+			if isOnlyOffice {
+				if docId, _ := getOnlyOfficeId(filepath.Join(idx.Path, firstFilePath)); docId != "" {
+					if ctx := getOnlyOfficeLogContext(docId); ctx != nil {
+						sendOnlyOfficeLogEvent(ctx, "ERROR", "download",
+							fmt.Sprintf("OnlyOffice download failed - could not open file: %s - %v", firstFilePath, openErr))
+					}
 				}
 			}
+			return http.StatusInternalServerError, openErr
 		}
-		return http.StatusInternalServerError, err
-	}
+		defer fd.Close()
+		realPath := fd.Name()
 
-	// ** Single file download with Content-Length **
-	if len(fileList) == 1 && !isDir {
+		if fileInfo.IsDir() {
+			return BuildAndStreamArchive(w, r, d, source, fileList)
+		}
+
 		// Get document ID and log context for OnlyOffice downloads
 		if isOnlyOffice {
 			documentId, _ = getOnlyOfficeId(realPath)
@@ -247,39 +251,16 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			}
 		}
 
-		// Verify access control before opening the file (direct rule check)
+		// Verify access control before serving the file (direct rule check)
 		if d.share == nil && store.Access != nil {
 			if !store.Access.Permitted(idx.Path, firstFilePath, d.user.Username) {
 				logger.Debugf("user %s denied access to path %s", d.user.Username, firstFilePath)
-				// Send OnlyOffice error log if this was an OnlyOffice download
 				if isOnlyOffice && logContext != nil {
 					sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
 						fmt.Sprintf("OnlyOffice download failed - access denied by rule: %s", firstFilePath))
 				}
 				return http.StatusForbidden, fmt.Errorf("access denied to path %s", firstFilePath)
 			}
-		}
-
-		fd, err2 := os.Open(realPath)
-		if err2 != nil {
-			// Send OnlyOffice error log if this was an OnlyOffice download
-			if isOnlyOffice && logContext != nil {
-				sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
-					fmt.Sprintf("OnlyOffice download failed - could not open file: %s - %v", firstFilePath, err2))
-			}
-			return http.StatusInternalServerError, err2
-		}
-		defer fd.Close()
-
-		// Get file size
-		fileInfo, err2 := fd.Stat()
-		if err2 != nil {
-			// Send OnlyOffice error log if this was an OnlyOffice download
-			if isOnlyOffice && logContext != nil {
-				sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
-					fmt.Sprintf("OnlyOffice download failed - could not get file info: %s - %v", firstFilePath, err2))
-			}
-			return http.StatusInternalServerError, err2
 		}
 
 		// Send success log for OnlyOffice downloads
@@ -295,13 +276,9 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		setContentDisposition(w, r, fileName)
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		// video scrubbing, etc.
-		// Note: http.ServeContent will respect our already-set Content-Disposition header
 		var reader io.ReadSeeker = fd
 		if d.share != nil && d.share.MaxBandwidth > 0 {
-			// convert KB/s to B/s
 			limit := rate.Limit(d.share.MaxBandwidth * 1024)
-			// burst size can be the same as limit
 			burst := d.share.MaxBandwidth * 1024
 			reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
 		}
