@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.5.5
 
  **BugFixes**:
+ - [High] Symlink following on read paths no longer escapes source or user/share scope (GHSA-mgqf-5mf5-prfj)
  - fix uncustomized (minimal) API tokens creation needed by webdav clients (#2503)
 
 ## v1.5.4

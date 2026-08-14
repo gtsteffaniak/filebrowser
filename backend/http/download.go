@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	liberrors "github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -173,7 +175,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	// modify all filepaths for user scope
 	if d.share == nil {
 		userscope, err = d.user.GetScopeForSourceName(source)
-		if err != nil {
+		if err != nil || userscope == "" {
 			// Send OnlyOffice error log if this was an OnlyOffice file
 			if isOnlyOffice {
 				// Try to get document ID for error logging
@@ -190,7 +192,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 					}
 				}
 			}
-			return http.StatusForbidden, err
+			return http.StatusForbidden, fmt.Errorf("user has no access to source: %s", source)
 		}
 		for i, filePath := range fileList {
 			fileList[i] = utils.JoinPathAsUnix(userscope, filePath)
@@ -207,8 +209,22 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
-	realPath, isDir, err := idx.GetRealPath(firstFilePath)
+
+	var bound string
+	if d.share != nil {
+		if d.share.Path == "" {
+			return http.StatusForbidden, fmt.Errorf("share has no path scope")
+		}
+		bound = d.share.Path
+	} else {
+		bound = userscope
+	}
+
+	realPath, isDir, err := idx.GetRealPathScoped(bound, firstFilePath)
 	if err != nil {
+		if errors.Is(err, liberrors.ErrPathEscapesScope) {
+			return http.StatusForbidden, err
+		}
 		// Send OnlyOffice error log if this was an OnlyOffice file
 		if isOnlyOffice {
 			if docId, _ := getOnlyOfficeId(realPath); docId != "" {
