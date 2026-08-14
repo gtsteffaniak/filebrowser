@@ -1,6 +1,6 @@
 *.db
 *.db.old
-*.sqlite
+*.sqlite**
 *.bak
 *.log
 *.mjs
@@ -8,6 +8,7 @@ _old
 rice-box.go
 .idea/
 /backend/backend
+/backend/internal
 /backend/filebrowser
 /backend/filebrowser.exe
 frontend/tsconfig.tsbuildinfo
