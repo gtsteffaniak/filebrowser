@@ -280,6 +280,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if getErr != nil {
 			return http.StatusBadRequest, fmt.Errorf("share not found")
 		}
+		if !beforeShare.UserCanEdit(d.User) {
+			return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
+		}
 		updateSourceName := beforeShare.GetSourceName()
 		if updateSourceName != "" {
 			ownerPerms, permErr := d.User.FilePermsForSourceName(updateSourceName)
@@ -307,7 +310,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			link.SourcePath = preservedSourcePath
 			link.PinnedItems = preservedPinned
 			link.Version = preservedVersion
-			link.UserID = d.User.ID
 			if link.ShareType == "upload" && !req.AllowCreate {
 				link.AllowCreate = true
 			}
