@@ -623,12 +623,17 @@ export const getters = {
     if (getters.isShare() && state.shareInfo.shareType === "upload") {
       return false;
     }
-    const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
-    return getters.currentView() === "listingView" || getters.isEditorOrMarkdownView() || isAdvancedSearchRoute;
+    return (
+      getters.currentView() === "listingView" ||
+      getters.isEditorOrMarkdownView() ||
+      getters.currentTool()?.component === "AdvancedSearch"
+    );
   },
   showGallerySizeSlider: () => {
-    const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
-    return getters.currentView() === "listingView" || isAdvancedSearchRoute;
+    return (
+      getters.currentView() === "listingView" ||
+      getters.currentTool()?.component === "AdvancedSearch"
+    );
   },
   globalPermissions: () => {
     if (getters.isShare()) {

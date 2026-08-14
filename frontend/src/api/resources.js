@@ -143,29 +143,34 @@ export async function bulkDelete(items) {
   }
   try {
     const apiPath = getApiPath('resources/bulk')
-    const response = await fetchURL(apiPath, {
+    const response = await fetch(apiPath, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        'sessionId': state.sessionId,
       },
+      credentials: 'same-origin',
       body: JSON.stringify(items),
     })
     const data = await response.json()
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
-    // Both are valid responses that should be returned, not thrown as errors
     if (response.status === 200 || response.status === 207) {
       items.forEach((item) => {
         invalidateDirMetadataCache({ source: item.source, path: getParentDir(item.path) })
       })
       return data
     }
-    // For other error status codes, throw an error
     const error = new Error(data.message || response.statusText)
     error.status = response.status
+    if (data.failed) {
+      error.failed = data.failed
+    }
+    if (data.succeeded) {
+      error.succeeded = data.succeeded
+    }
     throw error
   } catch (err) {
-    // Only show notification and re-throw if it's a real error (not 200/207)
-    if (err.status && err.status !== 200 && err.status !== 207) {
+    if (!err.status || (err.status !== 500 && err.status !== 200 && err.status !== 207)) {
       notify.showError(err.message || 'Error performing bulk delete')
     }
     throw err
