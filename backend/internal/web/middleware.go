@@ -201,7 +201,10 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 
 	data.Token = tokenString
 	var tk users.AuthToken
-	token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+	// Validate signature without enforcing exp/iat so expired session JWTs can still yield
+	// user context on public-share routes; revocation is checked explicitly below.
+	parser := jwt.NewParser(jwt.WithoutClaimsValidation())
+	token, err := parser.ParseWithClaims(tokenString, &tk, keyFunc)
 	if err != nil {
 		return nil
 	}
@@ -210,8 +213,9 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return nil
 	}
 
-	// Token is valid (but might be expired or revoked)
-	// Try to get the user regardless of expiration status
+	if state.IsTokenRevoked(tokenString) {
+		return nil
+	}
 	var user *users.User
 	userValue, err := state.UserFromAPIToken(tk, tokenString)
 	if err == nil {
@@ -454,10 +458,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 		// JWT library populates RegisteredClaims.ExpiresAt
 		if tk.RegisteredClaims.ExpiresAt == nil {
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
-		}
-		// Check if token is about to expire for renewal header
-		if tk.RegisteredClaims.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
-			w.Header().Add("X-Renew-Token", "true")
 		}
 		userValue, err := state.UserFromAPIToken(tk, data.Token)
 		if err == nil {

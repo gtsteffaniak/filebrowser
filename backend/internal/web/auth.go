@@ -144,12 +144,16 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 			return nil, err
 		}
 	}
-	if err := state.SyncUserGroups(username, groups); err != nil {
-		logger.Warningf("failed to sync ldap user %s groups: %v", username, err)
-	}
 	// Verify login method matches
 	if userValue.LoginMethod != loginMethod {
 		return nil, errors.ErrWrongLoginMethod
+	}
+	// Sync IdP groups into access-control GroupMap (write-through). Skip when the
+	// token/response omitted groups so a missing claim cannot wipe memberships.
+	if len(groups) > 0 {
+		if err := state.SyncUserGroups(username, groups); err != nil {
+			logger.Warningf("failed to sync user %s groups: %v", username, err)
+		}
 	}
 
 	return &userValue, nil

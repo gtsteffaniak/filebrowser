@@ -61,6 +61,9 @@ export default defineConfig(() => {
         },
         output: {
           manualChunks(id) {
+            if (id.includes("/src/store/")) {
+              return "store";
+            }
             if (id.includes("node_modules/highlight.js")) {
               return "highlightjs";
             }

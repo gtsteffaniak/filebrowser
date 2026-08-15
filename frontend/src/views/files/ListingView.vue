@@ -189,6 +189,11 @@ import { url } from "@/utils";
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import {
+  isTypeAheadSessionActive,
+  processTypeAheadKey,
+  resetTypeAheadSession,
+} from "@/utils/listingTypeAhead.js";
 
 export default {
   name: "listingView",
@@ -519,6 +524,8 @@ export default {
     }
   },
   beforeUnmount() {
+    resetTypeAheadSession();
+
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
       this.resizeTimeout = null;
@@ -775,6 +782,16 @@ export default {
       if (state.isSearchActive || getters.currentView() !== "listingView" ||
         getters.currentPromptName() || (event.repeat && (!isArrowKey || altKey))) return;
 
+      if (
+        (key === ' ' || key === '/') &&
+        isTypeAheadSessionActive() &&
+        !state.isSearchActive &&
+        !getters.currentPromptName()
+      ) {
+        event.preventDefault();
+        return;
+      }
+
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
       if (isAlphanumeric && !modifierKeys && state.selected.length <= 1) {
@@ -873,18 +890,10 @@ export default {
       }
     },
     alphanumericKeyPress(key) {
-      const prefix = key.toLowerCase();
-      const allItems = this.allItems;
-      const matches = allItems.filter(item =>
-        item.name.toLowerCase().startsWith(prefix)
-      );
-      if (matches.length === 0) return;
-
-      let nextPos = 0;
-      if (state.selected.length === 1) {
-        const curIdx = state.selected[0];
-        const curPos = matches.findIndex(m => m.index === curIdx);
-        if (curPos !== -1) nextPos = (curPos + 1) % matches.length;
+      const selectedIndex = state.selected.length === 1 ? state.selected[0] : null;
+      const { matches, nextPos } = processTypeAheadKey(key, this.allItems, selectedIndex);
+      if (matches.length === 0) {
+        return;
       }
 
       const target = matches.at(nextPos);

@@ -10,7 +10,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-func TestUpdateUserScopes_preservesPartialScopes(t *testing.T) {
+func TestUpdateUserScopes_mergesMissingDefaultEnabled(t *testing.T) {
 	settings.Initialize(settingsMigrationConfigPath(t))
 	alignSettingsSourcesForMigrationFixture(t)
 
@@ -22,18 +22,31 @@ func TestUpdateUserScopes_preservesPartialScopes(t *testing.T) {
 		},
 	}
 
-	updateUserScopes(user)
-	if len(user.BackendScopes) != 2 {
-		t.Fatalf("scopes=%#v want 2 partial scopes", user.BackendScopes)
+	if !updateUserScopes(user) {
+		t.Fatal("expected missing defaultEnabled access source to be merged")
 	}
+	if len(user.BackendScopes) != 3 {
+		t.Fatalf("scopes=%#v want 3 including access", user.BackendScopes)
+	}
+	found := false
 	for _, scope := range user.BackendScopes {
 		if scope.Path == fixtureAccessSource {
-			t.Fatalf("access source should not be added to partial-scope user: %#v", user.BackendScopes)
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("access source should be added for defaultEnabled: %#v", user.BackendScopes)
+	}
+	// Preserve existing scope paths
+	for _, scope := range user.BackendScopes {
+		if scope.Path == fixturePlaywrightSource && scope.Scope != "/myfolder" {
+			t.Fatalf("playwright scope path changed: %#v", scope)
 		}
 	}
 }
 
-func TestMigrationGraham_noAccessScopeOrSidebarLink(t *testing.T) {
+func TestMigrationGraham_gainsAccessAfterScopeMerge(t *testing.T) {
 	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
 	settings.Initialize(settingsMigrationConfigPath(t))
 	settings.Env.IsPlaywright = true
@@ -59,34 +72,38 @@ func TestMigrationGraham_noAccessScopeOrSidebarLink(t *testing.T) {
 	if graham.BackendSourcePermissions == nil {
 		t.Fatal("expected backend source permissions after migration")
 	}
+	// Migration fixture itself may omit access; merge happens in updateUserScopes.
 	if _, ok := graham.BackendSourcePermissions[fixtureAccessSource]; ok {
-		t.Fatalf("graham should not have access permissions after migration: %#v", graham.BackendSourcePermissions)
-	}
-
-	for _, link := range usersidebar.FrontendLinks(graham.SidebarLinks, true) {
-		if link.Name == "access" {
-			t.Fatalf("graham should not have access sidebar link after migration: %#v", graham.SidebarLinks)
-		}
+		t.Fatalf("graham should not have access permissions from migration alone: %#v", graham.BackendSourcePermissions)
 	}
 
 	updateUserScopes(graham)
 	updateSourcePermissions(graham)
 	updateSidebarLinks(graham)
 
+	foundScope := false
 	for _, scope := range graham.BackendScopes {
 		if scope.Path == fixtureAccessSource {
-			t.Fatalf("graham should not gain access scope: %#v", graham.BackendScopes)
+			foundScope = true
+			break
 		}
 	}
-	if _, ok := graham.BackendSourcePermissions[fixtureAccessSource]; ok {
-		t.Fatalf("graham should not have access source permissions: %#v", graham.BackendSourcePermissions)
+	if !foundScope {
+		t.Fatalf("graham should gain access scope after merge: %#v", graham.BackendScopes)
+	}
+	if _, ok := graham.BackendSourcePermissions[fixtureAccessSource]; !ok {
+		t.Fatalf("graham should have access source permissions after merge: %#v", graham.BackendSourcePermissions)
 	}
 
-	frontendLinks := usersidebar.FrontendLinks(graham.SidebarLinks, true)
-	for _, link := range frontendLinks {
-		if link.Name == "access" {
-			t.Fatalf("graham should not have access sidebar link: %#v", frontendLinks)
+	foundLink := false
+	for _, link := range usersidebar.FrontendLinks(graham.SidebarLinks, true) {
+		if link.Name == "access" || link.SourceName == fixtureAccessSource {
+			foundLink = true
+			break
 		}
+	}
+	if !foundLink {
+		t.Fatalf("graham should have access sidebar link after merge: %#v", graham.SidebarLinks)
 	}
 }
 

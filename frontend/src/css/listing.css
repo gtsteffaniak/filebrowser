@@ -170,6 +170,7 @@ body.rtl .listing-items {
   height: 100%;
   aspect-ratio: 1;
   transition: all 0.25s ease-out;
+  position: relative;
 }
 
 .listing-items.gallery .listing-item .text {

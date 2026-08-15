@@ -1,5 +1,6 @@
 import { detectLocale } from '@/i18n';
-import { mutations, state } from '@/store';
+import { mutations } from './mutations';
+import { state } from './state';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
 import { getFileExtension } from '@/utils/files.js';
@@ -7,14 +8,15 @@ import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/
 import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
+import type { DisplayPreference, FileListItem } from './types';
 
 export const getters = {
-  displayPreferenceFor: (source, path) => {
+  displayPreferenceFor: (source: string, path: string): DisplayPreference | null => {
     const sourceKey = getters.isShare() ? getters.currentHash() : source;
     if (!sourceKey || !path) {
       return null;
     }
-    return getNestedProperty(state.displayPreferences, sourceKey, path) || null;
+    return (getNestedProperty(state.displayPreferences, sourceKey, path) as DisplayPreference) || null;
   },
   eventTheme: () => {
     if (getters.isShare()) {
@@ -50,7 +52,10 @@ export const getters = {
   },
   isScrollable: () => {
     if (getters.currentView() === 'markdownViewer') {
-      return true
+      if (isHtmlMimeType(state.req?.type)) {
+        return false;
+      }
+      return true;
     }
     if (getters.isPreviewView()) {
       return false
@@ -193,15 +198,25 @@ export const getters = {
   isListing: () => getters.isFiles() || (getters.isShare() && state.req.type === 'directory'),
   selectedCount: () =>
     Array.isArray(state.selected) ? state.selected.length : 0,
-  getFirstSelected: () => typeof(state.selected[0]) === 'number' ? state.req.items[state.selected[0]] : state.selected[0],
+  getFirstSelected: () => {
+    const first = state.selected[0];
+    // eslint-disable-next-line security/detect-object-injection -- first is a numeric array index, not a property lookup
+    return typeof first === 'number' ? state.req.items[first] : first;
+  },
   isSingleFileSelected: () =>
     getters.selectedCount() === 1 &&
     getters.getFirstSelected()?.type !== 'directory',
   selectedDownloadUrl () {
+    if (!state.selected || state.selected.length === 0) return "";
+
     if (state.isSearchActive) {
-      return buildItemUrl(state.selected[0].source, state.selected[0].path)
+      const first = state.selected[0] as FileListItem;
+      return buildItemUrl(first.source, first.path)
     }
-    return buildItemUrl(state.req.items[state.selected[0]].source, state.req.items[state.selected[0]].path)
+    const first = state.selected[0] as number;
+    // eslint-disable-next-line security/detect-object-injection -- first is a numeric array index, not a property lookup
+    const item = state.req.items[first];
+    return item ? buildItemUrl(item.source, item.path) : "";
   },
   reqNumDirs: () => {
     let dirCount = 0
@@ -248,7 +263,8 @@ export const getters = {
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
-        item.Path = state.req.path;
+        // Pre-existing: capitalized "Path" (not FileListItem's "path"), never read elsewhere. Left as-is.
+        (item as FileListItem & { Path?: string }).Path = state.req.path;
         files.push(item);
       }
     }
@@ -336,7 +352,7 @@ export const getters = {
   isShare: () => {
     return getters.shareHash() !== ""
   },
-  currentView: () => {
+  currentView: (): string => {
     if (state.navigation.isTransitioning) return 'loading';
     const pathname = getters.routePath();
     if (!state.user || state.user?.username === "") return 'login';
@@ -399,8 +415,8 @@ export const getters = {
     return Math.ceil((sum / totalSize) * 100)
   },
   filesInUploadCount: () => {
-    const uploadsCount = state.upload.length
-    const queueCount = state.queue.length
+    const uploadsCount = Object.keys(state.upload.uploads || {}).length
+    const queueCount = state.upload.queue?.length || 0
     return uploadsCount + queueCount
   },
   currentPrompt: () => {
@@ -419,7 +435,7 @@ export const getters = {
       return ""
     }
     // Check if the name property is a string
-    const lastPrompt = state.prompts[state.prompts.length - 1]
+    const lastPrompt = state.prompts[state.prompts.length - 1] as { name?: string };
     if (typeof lastPrompt?.name !== 'string') {
       return ""
     }
@@ -438,14 +454,15 @@ export const getters = {
     const files = []
 
     for (const index of Object.keys(state.upload.uploads)) {
-      const upload = getObjectProperty(state.upload.uploads, index)
+      const upload = getObjectProperty(state.upload.uploads, index) as
+        { id: string | number; type: string; file: { name: string; type: string } } | undefined
       if (!upload) continue
       const id = upload.id
       const type = upload.type
       const name = upload.file.name
-      const size = getObjectProperty(state.upload.sizes, id) ?? 0 // Default to 0 if size is undefined
+      const size = (getObjectProperty(state.upload.sizes, id) as number | undefined) ?? 0 // Default to 0 if size is undefined
       const isDir = upload.file.type === 'directory'
-      const loaded = getObjectProperty(state.upload.progress, id) || 0 // Default to 0 if progress is undefined
+      const loaded = (getObjectProperty(state.upload.progress, id) as number | undefined) || 0 // Default to 0 if progress is undefined
       const safeSize = size > 0 ? size : 1
       const progress = isDir
         ? 100
@@ -492,6 +509,12 @@ export const getters = {
       }
     }
     return false
+  },
+  shouldFetchFileContent: (fileInfo: { name: string; source?: string; onlyOfficeId?: string }) => {
+    if (getters.fileViewingDisabled(fileInfo.name)) return false
+    if (fileInfo.onlyOfficeId && !getters.officeViewingDisabled(fileInfo.name)) return false
+    if (!getters.sourcePermissions(fileInfo.source).download) return false
+    return true
   },
   anonymous: () => {
     return {
@@ -623,12 +646,17 @@ export const getters = {
     if (getters.isShare() && state.shareInfo.shareType === "upload") {
       return false;
     }
-    const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
-    return getters.currentView() === "listingView" || getters.isEditorOrMarkdownView() || isAdvancedSearchRoute;
+    return (
+      getters.currentView() === "listingView" ||
+      getters.isEditorOrMarkdownView() ||
+      getters.currentTool()?.component === "AdvancedSearch"
+    );
   },
   showGallerySizeSlider: () => {
-    const isAdvancedSearchRoute = (state.route.path || "").startsWith("/tools/advancedSearch");
-    return getters.currentView() === "listingView" || isAdvancedSearchRoute;
+    return (
+      getters.currentView() === "listingView" ||
+      getters.currentTool()?.component === "AdvancedSearch"
+    );
   },
   globalPermissions: () => {
     if (getters.isShare()) {
@@ -649,7 +677,7 @@ export const getters = {
       archive: !!globalPerms.archive,
     };
   },
-  sourcePermissions: (source) => {
+  sourcePermissions: (source?: string) => {
     if (getters.isShare()) {
       return {
         view: !state.shareInfo?.disableFileViewer,

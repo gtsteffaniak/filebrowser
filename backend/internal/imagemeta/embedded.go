@@ -81,19 +81,11 @@ func extractTIFFEmbeddedPreview(f *os.File) ([]byte, error) {
 		return nil, err
 	}
 
-	for _, c := range previewCandidates(ex) {
-		if c.length == 0 {
-			continue
-		}
-		data, readErr := readFileRange(f, c.offset, c.length)
-		if readErr != nil || len(data) == 0 {
-			continue
-		}
-		if IsJPEG(data) {
-			return data, nil
-		}
+	candidates := previewCandidates(ex)
+	if scanCandidates, scanErr := collectTIFFPreviewCandidates(f); scanErr == nil {
+		candidates = append(candidates, scanCandidates...)
 	}
-	return nil, nil
+	return readLargestJPEGPreview(f, candidates)
 }
 
 type previewCandidate struct {
@@ -138,6 +130,26 @@ func previewCandidates(ex exif.Exif) []previewCandidate {
 	}
 
 	return out
+}
+
+func readLargestJPEGPreview(f *os.File, candidates []previewCandidate) ([]byte, error) {
+	var best []byte
+	for _, c := range candidates {
+		if c.length == 0 {
+			continue
+		}
+		data, err := readFileRange(f, c.offset, c.length)
+		if err != nil || len(data) == 0 || !IsJPEG(data) {
+			continue
+		}
+		if len(data) > len(best) {
+			best = data
+		}
+	}
+	if len(best) == 0 {
+		return nil, nil
+	}
+	return best, nil
 }
 
 const maxPreviewReadSize = 100 * 1024 * 1024 // embedded previews are never larger

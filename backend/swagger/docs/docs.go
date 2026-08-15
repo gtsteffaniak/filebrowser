@@ -7896,6 +7896,10 @@ const docTemplate = `{
                     "description": "filename for external, or descriptive name for embedded",
                     "type": "string"
                 },
+                "srclang": {
+                    "description": "unique HTML track language tag for Plyr (may differ from Language when duplicated)",
+                    "type": "string"
+                },
                 "title": {
                     "description": "title/description",
                     "type": "string"

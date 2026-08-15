@@ -5,6 +5,9 @@ on:
     branches:
       - "main"
 
+permissions:
+  contents: write
+
 jobs:
   test_playwright:
     name: Test Playwright
@@ -30,3 +33,44 @@ jobs:
           context: .
           file: ./_docker/Dockerfile.playwright-general
           push: false
+
+  create_beta_release:
+    needs: [test_playwright]
+    if: startsWith(github.event.head_commit.message, 'Beta/v')
+    name: Create Beta Release
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          fetch-depth: 0
+      - name: Extract version from commit message
+        id: extract_version
+        shell: bash
+        run: |
+          tag_name=$(echo "${{ github.event.head_commit.message }}" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')-beta
+          if [ -z "$tag_name" ] || [ "$tag_name" = "-beta" ]; then
+            echo "Could not extract version from: ${{ github.event.head_commit.message }}"
+            exit 1
+          fi
+          echo "tag_name=$tag_name" >> $GITHUB_OUTPUT
+      - name: Tag release commit on main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          TAG="${{ steps.extract_version.outputs.tag_name }}"
+          git tag -f "$TAG" "${{ github.sha }}"
+          git push origin "refs/tags/$TAG" --force
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          target_commitish: ${{ github.sha }}
+          token: ${{ secrets.PAT }}
+          tag_name: ${{ steps.extract_version.outputs.tag_name }}
+          prerelease: false
+          make_latest: false
+          draft: false
+          generate_release_notes: true
+          overwrite_existing: true
+          name: ${{ steps.extract_version.outputs.tag_name }}

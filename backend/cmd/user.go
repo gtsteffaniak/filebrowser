@@ -127,51 +127,9 @@ func dedupeFields(fields []string) []string {
 }
 
 func updateUserScopes(user *users.User) bool {
-	newScopes := []users.BackendScope{}
-	seen := make(map[string]struct{})
-	hadScopes := len(user.BackendScopes) > 0
-
-	// Build map for existing scopes by Name
-	existing := make(map[string]users.BackendScope)
-	for _, s := range user.BackendScopes {
-		existing[s.Path] = s
-	}
-
-	// Preserve order by using Config.Server.Sources
-	for _, src := range settings.Config.Server.Sources {
-		existingScope, ok := existing[src.Path]
-		if ok {
-			// If scope is empty and there's a default, apply default
-			if existingScope.Scope == "" {
-				existingScope.Scope = src.Config.DefaultUserScope
-			}
-		} else if src.Config.DefaultEnabled {
-			// Only seed default-enabled sources for users with no scopes yet.
-			// Partial-scope users (e.g. migrated graham) must not gain extra sources on startup.
-			if hadScopes {
-				continue
-			}
-			existingScope.Scope = src.Config.DefaultUserScope
-		} else {
-			continue
-		}
-		newScopes = append(newScopes, users.BackendScope{
-			Path:        src.Path,
-			Scope:       existingScope.Scope,
-			Permissions: existingScope.Permissions,
-		})
-		seen[src.Path] = struct{}{}
-	}
-
-	// Preserve user-defined scopes not matching current sources, append to end
-	for _, s := range user.BackendScopes {
-		if _, ok := seen[s.Path]; !ok {
-			newScopes = append(newScopes, s)
-		}
-	}
+	newScopes := settings.MergeDefaultEnabledBackendScopes(user.BackendScopes)
 	changed := !reflect.DeepEqual(user.BackendScopes, newScopes)
 	user.BackendScopes = newScopes
-
 	return changed
 }
 

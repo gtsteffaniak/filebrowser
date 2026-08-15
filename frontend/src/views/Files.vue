@@ -49,21 +49,23 @@ async function fetchShareItemWithParent(sharePassword) {
     return file;
   }
 
-  const content = !getters.fileViewingDisabled(file.name);
   let directoryPath = removeLastDir(state.shareInfo.subPath);
   if (!directoryPath || directoryPath === "") {
     directoryPath = "/";
   }
   const shouldFetchParent = directoryPath !== state.shareInfo.subPath;
-  const promises = [
-    resourcesApi.fetchFilesPublic(
-      state.shareInfo.subPath,
-      state.shareInfo.hash,
-      sharePassword,
-      content,
-      false
-    ),
-  ];
+  const contentPromise = getters.shouldFetchFileContent(file)
+    ? resourcesApi
+        .fetchFilesPublic(
+          state.shareInfo.subPath,
+          state.shareInfo.hash,
+          sharePassword,
+          true,
+          false
+        )
+        .catch(() => file)
+    : Promise.resolve(file);
+  const promises = [contentPromise];
   if (shouldFetchParent) {
     promises.push(
       resourcesApi
@@ -87,13 +89,15 @@ async function fetchAuthItemWithParent(fetchSource, fetchPath) {
   if (res.type === "directory") {
     return res;
   }
-  const content = !getters.fileViewingDisabled(res.name);
   let directoryPath = removeLastDir(res.path);
   if (!directoryPath || directoryPath === "") {
     directoryPath = "/";
   }
   const shouldFetchParent = directoryPath !== res.path;
-  const promises = [resourcesApi.fetchFiles(res.source, res.path, content, false)];
+  const contentPromise = getters.shouldFetchFileContent(res)
+    ? resourcesApi.fetchFiles(res.source, res.path, true, false).catch(() => res)
+    : Promise.resolve(res);
+  const promises = [contentPromise];
   if (shouldFetchParent) {
     promises.push(
       resourcesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)

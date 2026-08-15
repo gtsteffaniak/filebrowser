@@ -2,7 +2,9 @@ package ffmpeg
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -35,24 +37,42 @@ func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.Subtit
 
 func mapSubtitleTracks(tracks []goffmpeg.SubtitleTrack) []utils.SubtitleTrack {
 	subtitles := make([]utils.SubtitleTrack, 0, len(tracks))
+	mapper := &subtitleTrackMapper{
+		seenLang: make(map[string]int),
+	}
 	for _, stream := range tracks {
-		index := stream.Index
-		track := utils.SubtitleTrack{
-			Index:    &index,
-			Codec:    stream.Codec,
-			Language: stream.Language,
-			Title:    stream.Title,
-			Embedded: true,
-		}
-		baseName := "Embedded Subtitle " + strconv.Itoa(stream.Index)
-		if track.Title != "" {
-			track.Name = baseName + " (" + track.Title + ")"
-		} else if track.Language != "" {
-			track.Name = baseName + " (" + track.Language + ")"
-		} else {
-			track.Name = baseName
-		}
-		subtitles = append(subtitles, track)
+		subtitles = append(subtitles, mapper.track(stream))
 	}
 	return subtitles
+}
+
+type subtitleTrackMapper struct {
+	seenLang map[string]int
+}
+
+func (m *subtitleTrackMapper) track(stream goffmpeg.SubtitleTrack) utils.SubtitleTrack {
+	index := stream.Index
+	lang := strings.TrimSpace(stream.Language)
+	return utils.SubtitleTrack{
+		Index:    &index,
+		Codec:    stream.Codec,
+		Language: lang,
+		Srclang:  m.srclang(lang, stream.Index),
+		Title:    stream.Title,
+		Embedded: true,
+		Name:     "Track " + strconv.Itoa(stream.Index),
+	}
+}
+
+// srclang must be unique per stream so Plyr/HTML can switch tracks with the same Language.
+func (m *subtitleTrackMapper) srclang(language string, streamIndex int) string {
+	lang := strings.TrimSpace(strings.ToLower(language))
+	if lang != "" {
+		count := m.seenLang[lang]
+		m.seenLang[lang] = count + 1
+		if count == 0 {
+			return lang
+		}
+	}
+	return fmt.Sprintf("x-track-%d", streamIndex)
 }

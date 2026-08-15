@@ -79,8 +79,10 @@ export default {
       isTiff: false,
       // Full-frame edge gestures (touch + mouse), zoom scale === 1 only
       edgeKind: null, // null | 'horizontal' | 'vertical-dismiss'
+      edgeGestureActive: false, // true only when this touch started at scale 1
       edgeStartX: 0,
       edgeStartY: 0,
+      edgeStartClientX: 0,
       edgeDx: 0,
       edgeDy: 0,
       dragOffsetX: 0,
@@ -98,6 +100,13 @@ export default {
       edgeRubberMax: 100,
       pinchActive: false,
       viewTokenRetried: false,
+      zoomTapStartX: 0,
+      zoomTapStartY: 0,
+      zoomTapMoved: false,
+      zoomTapToggleTimer: null,
+      zoomMouseMoved: false,
+      zoomMouseStartX: 0,
+      zoomMouseStartY: 0,
     };
   },
   computed: {
@@ -200,6 +209,7 @@ export default {
       clearTimeout(this.disabledTimer);
       this.disabledTimer = null;
     }
+    this.cancelZoomTapNavToggle();
     this.teardownEdgeMouseListeners();
     mutations.setNavigationGestureHint({});
     window.removeEventListener("resize", this.onResize);
@@ -225,6 +235,28 @@ export default {
         commitReady = this.navNextCommitReady;
       }
       mutations.setNavigationGestureHint({ kind, commitReady, flashClose });
+    },
+    cancelZoomTapNavToggle() {
+      if (this.zoomTapToggleTimer) {
+        clearTimeout(this.zoomTapToggleTimer);
+        this.zoomTapToggleTimer = null;
+      }
+    },
+    scheduleZoomTapNavToggle() {
+      this.cancelZoomTapNavToggle();
+      this.zoomTapToggleTimer = setTimeout(() => {
+        this.zoomTapToggleTimer = null;
+        if (this.navigationGestureAllowed) {
+          mutations.toggleNavigationChrome();
+        }
+      }, 300);
+    },
+    tryToggleNavOnZoomedTap(startX, startY, endX, endY) {
+      const ax = Math.abs(endX - startX);
+      const ay = Math.abs(endY - startY);
+      if (ax < this.edgeHintPx && ay < this.edgeHintPx) {
+        this.scheduleZoomTapNavToggle();
+      }
     },
     loadFullImage() {
       if (!this.src) return;
@@ -473,6 +505,7 @@ export default {
     },
     resetEdgeGestureImmediate() {
       this.edgeKind = null;
+      this.edgeGestureActive = false;
       this.gestureDecided = false;
       this.edgeDx = 0;
       this.edgeDy = 0;
@@ -495,6 +528,9 @@ export default {
         const ax = Math.abs(this.edgeDx);
         const ay = Math.abs(this.edgeDy);
         if (ax < this.edgeHintPx && ay < this.edgeHintPx) {
+          if (this.navigationGestureAllowed) {
+            mutations.toggleNavigationChrome();
+          }
           this.snapBackEdgeGesture();
           return;
         }
@@ -580,6 +616,7 @@ export default {
         this.edgeMouseActive = true;
         this.edgeStartX = event.clientX;
         this.edgeStartY = event.clientY;
+        this.edgeStartClientX = event.clientX;
         this.edgeDx = 0;
         this.edgeDy = 0;
         this.edgeKind = null;
@@ -592,11 +629,18 @@ export default {
       this.lastX = null;
       this.lastY = null;
       this.inDrag = true;
+      this.zoomMouseMoved = false;
+      this.cancelZoomTapNavToggle();
+      this.zoomMouseStartX = event.clientX;
+      this.zoomMouseStartY = event.clientY;
       event.preventDefault();
     },
     mouseMove(event) {
       if (event.button !== 0) return;
       if (this.scale > 1 && this.inDrag) {
+        if (event.movementX !== 0 || event.movementY !== 0) {
+          this.zoomMouseMoved = true;
+        }
         this.doMove(event.movementX, event.movementY);
         event.preventDefault();
       }
@@ -604,6 +648,14 @@ export default {
     mouseUp(event) {
       if (event.button !== 0) return;
       if (this.scale > 1) {
+        if (!this.zoomMouseMoved) {
+          this.tryToggleNavOnZoomedTap(
+            this.zoomMouseStartX,
+            this.zoomMouseStartY,
+            event.clientX,
+            event.clientY,
+          );
+        }
         this.inDrag = false;
         event.preventDefault();
       }
@@ -621,22 +673,36 @@ export default {
       }
       if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
+        this.edgeGestureActive = true;
         this.edgeStartX = touch.pageX;
         this.edgeStartY = touch.pageY;
+        this.edgeStartClientX = touch.clientX;
         this.edgeDx = 0;
         this.edgeDy = 0;
         this.edgeKind = null;
         this.gestureDecided = false;
+      } else if (event.targetTouches.length === 1 && this.scale > 1) {
+        this.cancelZoomTapNavToggle();
+        const touch = event.targetTouches[0];
+        this.zoomTapStartX = touch.pageX;
+        this.zoomTapStartY = touch.pageY;
+        this.zoomTapMoved = false;
       } else {
         this.resetEdgeGestureImmediate();
         this.applyImgTransform();
       }
-      if (event.targetTouches.length === 2) {
+      // Sequential single-finger taps within 300ms → double-tap zoom
+      // (@dblclick is unreliable on mobile because touchend preventDefault blocks click synthesis)
+      if (event.targetTouches.length === 1) {
         setTimeout(() => {
           this.touches = 0;
         }, 300);
         this.touches++;
         if (this.touches > 1) {
+          this.cancelZoomTapNavToggle();
+          // zoomAuto may set scale back to 1 before touchend; do not treat that
+          // touchend as an edge swipe (stale edgeStart would navigate).
+          this.edgeGestureActive = false;
           this.zoomAuto(event);
           event.preventDefault();
         }
@@ -701,15 +767,21 @@ export default {
       }
       if (event.targetTouches.length === 1 && this.scale > 1) {
         if (this.moveDisabled) return;
+        const touch = event.targetTouches[0];
+        const ax = Math.abs(touch.pageX - this.zoomTapStartX);
+        const ay = Math.abs(touch.pageY - this.zoomTapStartY);
+        if (ax > 10 || ay > 10) {
+          this.zoomTapMoved = true;
+        }
         if (this.lastX === null) {
-          this.lastX = event.targetTouches[0].pageX;
-          this.lastY = event.targetTouches[0].pageY;
+          this.lastX = touch.pageX;
+          this.lastY = touch.pageY;
           return;
         }
-        const x = event.targetTouches[0].pageX - this.lastX;
-        const y = event.targetTouches[0].pageY - this.lastY;
-        this.lastX = event.targetTouches[0].pageX;
-        this.lastY = event.targetTouches[0].pageY;
+        const x = touch.pageX - this.lastX;
+        const y = touch.pageY - this.lastY;
+        this.lastX = touch.pageX;
+        this.lastY = touch.pageY;
         this.doMove(x, y);
       }
     },
@@ -744,15 +816,28 @@ export default {
         event.preventDefault();
         return;
       }
-      if (this.scale === 1 && event.changedTouches.length > 0) {
+      // Only finish edge gestures that started at scale 1. Double-tap zoom-out
+      // sets scale to 1 on touchstart; without this guard touchend would treat
+      // stale edgeStart coords as a swipe and navigate.
+      if (this.scale === 1 && this.edgeGestureActive && event.changedTouches.length > 0) {
         const t = event.changedTouches[0];
         this.edgeDx = t.pageX - this.edgeStartX;
         this.edgeDy = t.pageY - this.edgeStartY;
         this.finishEdgeGesture();
         event.preventDefault();
-      } else if (this.scale > 1) {
+      } else if (this.scale > 1 && event.changedTouches.length > 0) {
+        if (!this.zoomTapMoved) {
+          const t = event.changedTouches[0];
+          this.tryToggleNavOnZoomedTap(
+            this.zoomTapStartX,
+            this.zoomTapStartY,
+            t.pageX,
+            t.pageY,
+          );
+        }
         event.preventDefault();
       }
+      this.edgeGestureActive = false;
     },
   },
   watch: {

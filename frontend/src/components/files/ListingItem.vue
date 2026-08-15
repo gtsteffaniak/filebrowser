@@ -46,6 +46,13 @@
         :isShared="isShared"
         :viewToken="viewToken"
       />
+      <button
+        v-if="quickDownloadEnabled && galleryView"
+        type="button"
+        class="material-symbols overlay-icon overlay-icon--bottom clickable"
+        aria-label="Download"
+        @click.stop.prevent="downloadFile"
+      >file_download</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
 
     <div class="text">
@@ -68,7 +75,7 @@
 
     <Icon
       @click.stop="downloadFile"
-      v-if="quickDownloadEnabled"
+      v-if="quickDownloadEnabled && !galleryView"
       :filename="name"
       :hasPreview="hasPreview"
       mimetype="file_download"
@@ -120,6 +127,13 @@
         :isShared="isShared"
         :viewToken="viewToken"
       />
+      <button
+        v-if="quickDownloadEnabled && galleryView"
+        type="button"
+        class="material-symbols overlay-icon overlay-icon--bottom clickable"
+        aria-label="Download"
+        @click.stop.prevent="downloadFile"
+      >file_download</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
 
     <div class="text">
@@ -241,9 +255,9 @@ export default {
     },
     quickDownloadEnabled() {
       if (getters.isShare()) {
-        return state.shareInfo?.quickDownload && !this.galleryView;
+        return state.shareInfo?.quickDownload;
       }
-      return state.user?.quickDownload && !this.galleryView;
+      return state.user?.quickDownload;
     },
     quickDownloadPlaceholder() {
       if (getters.isShare()) {
@@ -762,6 +776,15 @@ export default {
             mutations.resetSelected();
             mutations.addSelected(this.index);
             mutations.setLastSelectedIndex(this.index);
+            return;
+          }
+
+          // Single-select: clicking the only selected item again should deselect it.
+          // ListingView's clickClear only runs when the click target is a child element,
+          // but list/compact rows are full-width <a> tags so clicks often hit the anchor directly.
+          mutations.resetSelected();
+          if (event.currentTarget instanceof HTMLElement) {
+            event.currentTarget.blur();
           }
           return;
         }

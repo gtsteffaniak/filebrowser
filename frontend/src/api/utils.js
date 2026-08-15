@@ -1,10 +1,5 @@
 import i18n from "@/i18n";
-import { getters, state } from "@/store";
-import { renew } from "@/utils/auth";
-
-function isPublicApiUrl(url) {
-  return typeof url === "string" && url.includes("public/api/");
-}
+import { state } from "@/store";
 
 const defaultRequestTimeoutMs = 5000;
 
@@ -20,7 +15,7 @@ export function requestTimeoutSignal(ms = defaultRequestTimeoutMs) {
   return controller.signal;
 }
 
-export async function fetchURL(url, opts, auth = true) {
+export async function fetchURL(url, opts, _auth = true) {
   opts = opts || {};
   opts.headers = opts.headers || {};
 
@@ -48,16 +43,7 @@ export async function fetchURL(url, opts, auth = true) {
     throw error;
   }
 
-  if (
-    auth &&
-    res.headers.get("X-Renew-Token") === "true" &&
-    !getters.isShare() &&
-    !isPublicApiUrl(url)
-  ) {
-    // Cookie is automatically sent, no need to pass JWT from state.
-    // Skip on public share routes: renew hits /api/auth/renew, which may sit behind proxy basic auth.
-    await renew();
-  }
+  // Session JWT renew is handled by utils/auth session keep-alive (not per-request headers).
 
   if (res.status < 200 || res.status > 299) {
     const error = new Error(await res.text());
