@@ -213,6 +213,10 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return nil
 	}
 
+	if tk.NotBefore != nil && !tk.VerifyNotBefore(time.Now(), false) {
+		return nil
+	}
+
 	if state.IsTokenRevoked(tokenString) {
 		return nil
 	}

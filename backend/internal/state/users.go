@@ -425,6 +425,7 @@ func applyScopesFromAPI(user *users.User) error {
 			return convErr
 		}
 		user.BackendScopes = backend
+		user.DeclinedDefaultSources = settings.ComputeDeclinedDefaultSources(user.BackendScopes)
 	} else if len(user.SourcePermissions) > 0 {
 		backendPerms, convErr := users.APISourcePermsToBackend(user.SourcePermissions)
 		if convErr != nil {

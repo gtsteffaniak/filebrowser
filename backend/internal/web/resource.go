@@ -808,6 +808,12 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			logger.Debugf("%v", acquireErr)
 			return http.StatusInternalServerError, acquireErr
 		}
+		abandonSession := true
+		defer func() {
+			if abandonSession {
+				activeUploadSessions.release(realPath, sessionID)
+			}
+		}()
 
 		// On the first chunk, check for conflicts or handle override
 		if offset == 0 {
@@ -881,9 +887,11 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			// Keep the partial temp file so the client can resume from offset.
 			if gracefulPause {
 				logger.Debugf("chunk upload ended after graceful pause; keeping partial file (source=%s path=%s)", source, path)
+				abandonSession = false
 				return 499, nil
 			}
 			logger.Debugf("chunk upload failed; keeping partial file for resume (source=%s path=%s offset=%d)", source, path, offset)
+			abandonSession = false
 			return http.StatusInternalServerError, fmt.Errorf("could not write chunk to temp file: %v", err)
 		}
 
@@ -893,6 +901,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				logger.Debugf("could not truncate temp file after incomplete chunk (offset=%d): %v", offset, truncErr)
 			}
 			_ = outFile.Sync()
+			abandonSession = false
 			return http.StatusBadRequest, err
 		}
 
@@ -902,6 +911,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				logger.Debugf("could not truncate temp file after oversized chunk (offset=%d): %v", offset, truncErr)
 			}
 			_ = outFile.Sync()
+			abandonSession = false
 			return http.StatusBadRequest, err
 		}
 		assembled := offset + chunkSize
@@ -929,12 +939,15 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			err = files.MoveResource(false, source, source, tempFilePath, realPath)
 			if err != nil {
 				logger.Debugf("could not move file from %v to %v: %v", tempFilePath, realPath, err)
+				abandonSession = false
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
 			activity.RecordUpload(r, toActor(d), source, path, false)
 			activeUploadSessions.release(realPath, sessionID)
+			abandonSession = false
 		}
+		abandonSession = false
 		return http.StatusOK, nil
 	}
 

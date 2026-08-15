@@ -93,6 +93,19 @@ static int fb_render_document_page_jpeg(
 			ctm = fz_scale(dpi / 72.0, dpi / 72.0);
 			bounds = fz_transform_rect(bounds, ctm);
 			bbox = fz_round_rect(bounds);
+			{
+				const int max_orig_w = 4096;
+				const int max_orig_h = 4096;
+				int w = bbox.x1 - bbox.x0;
+				int h = bbox.y1 - bbox.y0;
+				if (w > max_orig_w || h > max_orig_h) {
+					double scale = fb_dmin((double)max_orig_w / (double)w, (double)max_orig_h / (double)h);
+					ctm = fz_concat(ctm, fz_scale(scale, scale));
+					bounds = fz_bound_page(ctx, page);
+					bounds = fz_transform_rect(bounds, ctm);
+					bbox = fz_round_rect(bounds);
+				}
+			}
 		} else {
 			double page_w = bounds.x1 - bounds.x0;
 			double page_h = bounds.y1 - bounds.y0;

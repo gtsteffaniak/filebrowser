@@ -96,30 +96,31 @@ func (s *Storage) Flush() error {
 
 // persistGroupSQLNL upserts or deletes one groups row to match in-memory state.
 // Caller must hold s.mux. If the group is absent from s.Groups, it is deleted from SQL.
-func (s *Storage) persistGroupSQLNL(groupname string) {
+func (s *Storage) persistGroupSQLNL(groupname string) error {
 	if s.sqlStore == nil {
-		return
+		return nil
 	}
 	members, ok := s.Groups[groupname]
 	if !ok {
 		if err := s.sqlStore.DeleteGroup(groupname); err != nil {
-			logger.Errorf("failed to delete group %q from sql: %v", groupname, err)
+			return fmt.Errorf("failed to delete group %q from sql: %w", groupname, err)
 		}
-		return
+		return nil
 	}
 	if err := s.sqlStore.SaveGroup(groupname, members); err != nil {
-		logger.Errorf("failed to save group %q: %v", groupname, err)
+		return fmt.Errorf("failed to save group %q: %w", groupname, err)
 	}
+	return nil
 }
 
 // ensureGroupExistsNL creates an empty in-memory group if missing and write-through persists it.
 // Caller must hold s.mux.
-func (s *Storage) ensureGroupExistsNL(groupname string) {
+func (s *Storage) ensureGroupExistsNL(groupname string) error {
 	if _, ok := s.Groups[groupname]; ok {
-		return
+		return nil
 	}
 	s.Groups[groupname] = make(StringSet)
-	s.persistGroupSQLNL(groupname)
+	return s.persistGroupSQLNL(groupname)
 }
 
 // NewStorage creates a new Storage instance.
@@ -267,7 +268,9 @@ func (s *Storage) AllowUser(sourcePath string, indexPath utils.IndexPath, userna
 func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	s.ensureGroupExistsNL(groupname)
+	if err := s.ensureGroupExistsNL(groupname); err != nil {
+		return err
+	}
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Deny.Groups[groupname]; ok {
 		return errors.ErrExist
@@ -283,7 +286,9 @@ func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupn
 func (s *Storage) AllowGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	s.ensureGroupExistsNL(groupname)
+	if err := s.ensureGroupExistsNL(groupname); err != nil {
+		return err
+	}
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Allow.Groups[groupname]; ok {
 		return errors.ErrExist
@@ -540,7 +545,10 @@ func (s *Storage) AddUserToGroup(group, username string) error {
 		return nil
 	}
 	s.Groups[group][username] = struct{}{}
-	s.persistGroupSQLNL(group)
+	if err := s.persistGroupSQLNL(group); err != nil {
+		delete(s.Groups[group], username)
+		return err
+	}
 	s.clearAllCaches()
 	return nil
 }
@@ -610,7 +618,9 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 		}
 	}
 	for group := range affected {
-		s.persistGroupSQLNL(group)
+		if err := s.persistGroupSQLNL(group); err != nil {
+			return err
+		}
 	}
 	if len(affected) > 0 {
 		s.clearAllCaches()
@@ -630,7 +640,10 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 		return nil
 	}
 	delete(members, username)
-	s.persistGroupSQLNL(group)
+	if err := s.persistGroupSQLNL(group); err != nil {
+		s.Groups[group][username] = struct{}{}
+		return err
+	}
 	s.clearAllCaches()
 	return nil
 }

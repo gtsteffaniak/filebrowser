@@ -97,6 +97,25 @@ func TestGetOrientationSyntheticHEICRotate(t *testing.T) {
 	}
 }
 
+func TestFindBMFFBoxRangeRespectsDepthLimit(t *testing.T) {
+	target := bmffBox("targ", []byte{1, 2, 3})
+	nested := target
+	for i := 0; i < maxBMFFRecursionDepth+4; i++ {
+		nested = bmffBox("meta", nested)
+	}
+	if got := findBMFFBoxRange(nested, 0, len(nested), "targ", 0); got != nil {
+		t.Fatal("expected depth limit to prevent finding deeply nested box")
+	}
+}
+
+func TestParseIPCOPropertiesReadsPlainIrotBox(t *testing.T) {
+	ipco := bmffBox("ipco", bmffIrotBox(2))
+	props := parseIPCOProperties(ipco)
+	if len(props) != 1 || props[0].irot != 2 {
+		t.Fatalf("parseIPCOProperties() = %+v, want irot=2", props)
+	}
+}
+
 type heicItemFixture struct {
 	itemID uint16
 	irot   uint8
@@ -220,7 +239,7 @@ func bmffPITMBox(itemID uint16) []byte {
 }
 
 func bmffIrotBox(angle uint8) []byte {
-	return bmffFullBox("irot", 0, []byte{angle & 0x03})
+	return bmffBox("irot", []byte{angle & 0x03})
 }
 
 func bmffIPMABox(entries []ipmaEntryFixture) []byte {
