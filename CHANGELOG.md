@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.1
+
+ **Security**:
+ - [High] Symlink following on read paths no longer escapes source or user/share scope (GHSA-mgqf-5mf5-prfj) -- thanks @je-lv @KasperBuilds
+ - [Moderate] Absolute paths in API path/file parameters could bypass user scope and read files outside the source mount (GHSA-rqqq-wv83-rp74) -- thanks @Wei-Leo
+ - [Moderate] Logout did not invalidate session JWTs with equivalent Base64URL spellings (GHSA-8m35-wcjh-95q7) -- thanks @corbanvilla @soh3e @dderpym (This vulnerability was discovered as part of a U.C. Berkeley security research project by: Corban Villa, Sohee Kim, and Austin Chu)
+ - [Moderate] Stored XSS via unsanitized DOCX hyperlink in DocViewer (GHSA-9wm6-jcjh-3m8c) -- thanks @karen93shieh @je-lv @EclipsSec
+ - [Moderate] Revoked JWTs could still authenticate on public-share and withOrWithoutUser routes until natural expiry, bypassing logout and Api-permission revocation on that surface (GHSA-4wmj-rq3c-m65v) -- thanks @hypnguyen1209
+
+ **Notes**:
+ - GroupMap `SyncUserGroups` fix so JWT/OIDC/LDAP group memberships survive restart (#2742).
+ - Session renew is handled by client keep-alive. removed per-request `X-Renew-Token` header handling.
+ - Improvements to document thumbnail generation performance.
+ - behavior changes for typing to select files in listing view.
+ - next/previous buttons don't hide automatically on photos (#2767)
+ - added more actions available in advanced search (#2776)
+
+ **Bugfixes**:
+ - GroupMap mutations (`SyncUserGroups`, add/remove group members) are write-through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).
+ - `defaultEnabled` behavior change/fix so defaultEnabled means its always added to users on startup and login. (updated docs too)
+ - Long uploads/downloads no longer lose the session mid-transfer: proactive session JWT keep-alive renews before expiry (#2638).
+ - Disable auto logout/session expiry if there are active file transfers going (#2638)
+ - upload options get cut off on mobile (#2685)
+ - Uploading image: image gets cut-off (#2765)
+ - Process aborts (not just 500) during PDF thumbnail generation (#2763)
+ - PDF preview generation prevents file uploads from completing (#2752)
+ - Brings back double-tap to zoom images that was mistakenly removed.
+ - multiple embedded subtitles with same language bug (#2756)
+ - gallery view download button missing (#2767)
+ - fixed HEIC rotation regression from v1.5.x
+ - fixed raw image preview regression from v1.5.x
+ - html viewer takes full height
+ - Members without download permission receive 403 when opening text-based files despite OnlyOffice preview being enabled (#2777)
+
 ## v2.0.0
 
 This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions, [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) for a full summary, and the [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to convert legacy config.

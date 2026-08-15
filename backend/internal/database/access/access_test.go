@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func idxPath(s string) utils.IndexPath {
@@ -62,7 +62,13 @@ func (s *sqlStoreAdapter) DeleteByID(id uint64) error {
 }
 
 func createTestStorage(t *testing.T) (*access.Storage, *users.Storage) {
-	// Create a temporary directory for the test database
+	t.Helper()
+	accessStore, userStore, _ := createTestStorageWithSQL(t)
+	return accessStore, userStore
+}
+
+func createTestStorageWithSQL(t *testing.T) (*access.Storage, *users.Storage, *sqldb.SQLStore) {
+	t.Helper()
 	tempDir, err := os.MkdirTemp("", "access_test_*")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
@@ -71,7 +77,6 @@ func createTestStorage(t *testing.T) (*access.Storage, *users.Storage) {
 		os.RemoveAll(tempDir)
 	})
 
-	// Create an in-memory SQLite database for tests
 	dbPath := filepath.Join(tempDir, "test.db")
 	sqlStore, _, err := sqldb.NewSQLStore(dbPath)
 	if err != nil {
@@ -81,10 +86,11 @@ func createTestStorage(t *testing.T) (*access.Storage, *users.Storage) {
 		sqlStore.Close()
 	})
 
-	// Wrap SQLStore with adapter
 	adapter := &sqlStoreAdapter{store: sqlStore}
 	userStore := users.NewStorage(adapter)
-	return access.NewStorage(userStore), userStore
+	accessStore := access.NewStorage(userStore)
+	accessStore.SetSQLStore(sqlStore)
+	return accessStore, userStore, sqlStore
 }
 
 func createTestUser(t *testing.T, userStore *users.Storage, username string) {
@@ -206,6 +212,27 @@ func TestPermitted_NoRule(t *testing.T) {
 	s, _ := createTestStorage(t)
 	if !s.Permitted("mnt/storage", idxPath("/public"), "anyone") {
 		t.Error("anyone should be permitted if no rule exists")
+	}
+}
+
+func TestPermitted_trailingSlashEquivalence(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	if err := s.DenyUser("mnt/storage", idxPath("/secret/"), "alice"); err != nil {
+		t.Fatalf("DenyUser failed: %v", err)
+	}
+
+	withSlash := s.Permitted("mnt/storage", idxPath("/secret/"), "alice")
+	withoutSlash := s.Permitted("mnt/storage", idxPath("/secret"), "alice")
+	if withSlash != withoutSlash {
+		t.Errorf("trailing slash mismatch: with=%v without=%v", withSlash, withoutSlash)
+	}
+	if withSlash {
+		t.Error("alice should be denied for /secret/ after DenyUser")
+	}
+	if withoutSlash {
+		t.Error("alice should be denied for /secret after DenyUser")
 	}
 }
 
@@ -1712,3 +1739,115 @@ func TestRemoveUserCascade_MixedUsers(t *testing.T) {
 	t.Log("✓ Cascade delete only affects the specified user")
 }
 
+func TestSyncUserGroups_WriteThroughAndReload(t *testing.T) {
+	setupTestSources()
+	s, _, sqlStore := createTestStorageWithSQL(t)
+
+	if err := s.SyncUserGroups("alice", []string{"acme", "staff"}); err != nil {
+		t.Fatalf("SyncUserGroups: %v", err)
+	}
+
+	groups, err := sqlStore.GetAllGroups()
+	if err != nil {
+		t.Fatalf("GetAllGroups: %v", err)
+	}
+	if _, ok := groups["acme"]["alice"]; !ok {
+		t.Fatalf("expected alice in acme in SQL, got %#v", groups)
+	}
+	if _, ok := groups["staff"]["alice"]; !ok {
+		t.Fatalf("expected alice in staff in SQL, got %#v", groups)
+	}
+
+	// Simulate restart: new Storage loaded from SQL
+	reloaded := access.NewStorage(nil)
+	reloaded.Groups = groups
+	if got := reloaded.GetUserGroups("alice"); len(got) != 2 {
+		t.Fatalf("reloaded groups for alice: %v", got)
+	}
+
+	// Sync to a single group and ensure SQL drops the old membership
+	if err = s.SyncUserGroups("alice", []string{"acme"}); err != nil {
+		t.Fatalf("SyncUserGroups update: %v", err)
+	}
+	groups, err = sqlStore.GetAllGroups()
+	if err != nil {
+		t.Fatalf("GetAllGroups after update: %v", err)
+	}
+	if _, ok := groups["acme"]["alice"]; !ok {
+		t.Fatal("alice should remain in acme")
+	}
+	if _, ok := groups["staff"]["alice"]; ok {
+		t.Fatal("alice should no longer be in staff in SQL")
+	}
+}
+
+func TestAllowGroup_AutoCreatesMissingGroup(t *testing.T) {
+	setupTestSources()
+	s, _, sqlStore := createTestStorageWithSQL(t)
+
+	if err := s.AllowGroup("mnt/storage", idxPath("/tenant"), "acme"); err != nil {
+		t.Fatalf("AllowGroup should auto-create group: %v", err)
+	}
+	groups := s.GetAllGroups()
+	found := false
+	for _, g := range groups {
+		if g == "acme" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("expected acme group in memory")
+	}
+	sqlGroups, err := sqlStore.GetAllGroups()
+	if err != nil {
+		t.Fatalf("GetAllGroups: %v", err)
+	}
+	if _, ok := sqlGroups["acme"]; !ok {
+		t.Fatal("expected acme group persisted to SQL")
+	}
+
+	// After sync, user membership should permit access under denyByDefault
+	settings.Config.Server.SourceMap["mnt/storage"].Config.DenyByDefault = true
+	t.Cleanup(func() {
+		settings.Config.Server.SourceMap["mnt/storage"].Config.DenyByDefault = false
+	})
+	if s.Permitted("mnt/storage", idxPath("/tenant"), "alice") {
+		t.Fatal("alice should be denied before group membership")
+	}
+	if err := s.SyncUserGroups("alice", []string{"acme"}); err != nil {
+		t.Fatalf("SyncUserGroups: %v", err)
+	}
+	if !s.Permitted("mnt/storage", idxPath("/tenant"), "alice") {
+		t.Fatal("alice should be permitted after JWT-style group sync")
+	}
+}
+
+func TestAddUserToGroup_WriteThrough(t *testing.T) {
+	setupTestSources()
+	s, _, sqlStore := createTestStorageWithSQL(t)
+
+	if err := s.AddUserToGroup("editors", "bob"); err != nil {
+		t.Fatalf("AddUserToGroup: %v", err)
+	}
+	groups, err := sqlStore.GetAllGroups()
+	if err != nil {
+		t.Fatalf("GetAllGroups: %v", err)
+	}
+	if _, ok := groups["editors"]["bob"]; !ok {
+		t.Fatalf("expected bob in editors in SQL, got %#v", groups)
+	}
+
+	if err = s.RemoveUserFromGroup("editors", "bob"); err != nil {
+		t.Fatalf("RemoveUserFromGroup: %v", err)
+	}
+	groups, err = sqlStore.GetAllGroups()
+	if err != nil {
+		t.Fatalf("GetAllGroups after remove: %v", err)
+	}
+	if _, ok := groups["editors"]; !ok {
+		t.Fatal("expected editors group to remain after last member removed")
+	}
+	if _, still := groups["editors"]["bob"]; still {
+		t.Fatal("bob should be removed from editors in SQL")
+	}
+}

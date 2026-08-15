@@ -105,6 +105,35 @@ func (info *FileInfo) SortItems() {
 	})
 }
 
+// PathWithinRoot reports whether path is equal to or under root after resolving symlinks.
+func PathWithinRoot(root, path string) error {
+	rootAbs, err := filepath.Abs(root)
+	if err != nil {
+		return fmt.Errorf("invalid root path: %w", err)
+	}
+	rootReal, err := filepath.EvalSymlinks(rootAbs)
+	if err != nil {
+		return fmt.Errorf("could not resolve root path: %w", err)
+	}
+	pathAbs, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("invalid path: %w", err)
+	}
+	pathReal, err := filepath.EvalSymlinks(pathAbs)
+	if err != nil {
+		return fmt.Errorf("could not resolve path: %w", err)
+	}
+	rel, err := filepath.Rel(rootReal, pathReal)
+	if err != nil {
+		return fmt.Errorf("path outside root: %w", err)
+	}
+	sep := string(filepath.Separator)
+	if rel == ".." || strings.HasPrefix(rel, ".."+sep) {
+		return fmt.Errorf("path escapes root")
+	}
+	return nil
+}
+
 // ResolveSymlinks resolves symlinks in the given path and returns
 // Uses Go's filepath.EvalSymlinks which properly detects circular symlinks.
 func ResolveSymlinks(path string) (string, bool, error) {

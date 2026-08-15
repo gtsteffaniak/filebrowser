@@ -45,9 +45,12 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 			},
 			expectedPhase1: []users.BackendScope{
 				{Scope: "/home", Path: "/pathA"},
+				{Scope: "/defaultB", Path: "/pathB"},
 			},
+			// Phase2: both already present after phase1 merge.
 			expectedPhase2: []users.BackendScope{
 				{Scope: "/home", Path: "/pathA"},
+				{Scope: "/defaultB", Path: "/pathB"},
 			},
 		},
 		{
@@ -61,6 +64,7 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 				{Scope: "/defaultB", Path: "/pathB"},
 			},
 			expectedPhase2: []users.BackendScope{
+				{Scope: "/defaultA", Path: "/pathA"},
 				{Scope: "/defaultB", Path: "/pathB"},
 			},
 		},
@@ -95,6 +99,7 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 				{Scope: "/data", Path: "/somethingElse"},
 			},
 			expectedPhase2: []users.BackendScope{
+				{Scope: "/defaultA", Path: "/pathA"},
 				{Scope: "/home", Path: "/pathB"},
 				{Scope: "/data", Path: "/somethingElse"},
 			},
@@ -108,6 +113,7 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 				{Scope: "/defaultB", Path: "/pathB"},
 			},
 			expectedPhase2: []users.BackendScope{
+				{Scope: "/defaultA", Path: "/pathA"},
 				{Scope: "/defaultB", Path: "/pathB"},
 			},
 		},

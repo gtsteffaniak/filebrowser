@@ -148,15 +148,19 @@ const EXPECTED_USER_DETAILS: UserExpectation[] = [
             lockPassword: false,
         },
         loginMethod: "Password",
-        sources: sourcePermissionsForSources(
-            ["playwright + files", "docker"],
-            GRAHAM_SOURCE_PERMS,
-        ),
+        sources: {
+            ...sourcePermissionsForSources(
+                ["playwright + files", "docker"],
+                GRAHAM_SOURCE_PERMS,
+            ),
+            // defaultEnabled access is merged on startup (v2.0.1+) with source defaults.
+            access: { ...DEFAULT_SOURCE_PERMS },
+        },
         scopePaths: scopePathsForSources([
             ["playwright + files", "/myfolder"],
             ["docker", "/"],
+            ["access", "/"],
         ]),
-        absentSources: ["access"],
     },
     {
         username: "testuser1",
@@ -677,7 +681,7 @@ test.describe("Migration fixture verification", () => {
     test.describe("non-admin migrated users", () => {
         test.use({ storageState: { cookies: [], origins: [] } });
 
-        test("graham login keeps scoped sources and file access", async ({
+        test("graham login keeps scoped sources and gains defaultEnabled access", async ({
             page,
             checkForErrors,
         }) => {
@@ -686,7 +690,8 @@ test.describe("Migration fixture verification", () => {
 
             await expect(sourceSidebarLink(page, "playwright + files")).toBeVisible();
             await expect(sourceSidebarLink(page, "docker")).toBeVisible();
-            await expect(sourceSidebarLink(page, "access")).toHaveCount(0);
+            // access is defaultEnabled and is merged for existing users on startup (v2.0.1+).
+            await expect(sourceSidebarLink(page, "access")).toBeVisible();
 
             await expect(sourceSidebarLink(page, "playwright + files")).not.toHaveClass(/disabled/);
             await expect(sourceSidebarLink(page, "docker")).not.toHaveClass(/disabled/);

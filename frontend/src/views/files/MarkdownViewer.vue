@@ -1,5 +1,10 @@
 <template>
-  <div id="markedown-viewer" ref="scrollContainer">
+  <div
+    id="markedown-viewer"
+    ref="scrollContainer"
+    :class="{ 'html-viewer-mode': isHtml }"
+    :style="htmlViewerStyle"
+  >
     <iframe
       v-if="isHtml"
       ref="viewer"
@@ -735,6 +740,17 @@ export default {
     editorScrollRatio() {
       return state.editor.scrollRatio;
     },
+    htmlViewerStyle() {
+      if (!this.isHtml) {
+        return undefined;
+      }
+      const statusBar = this.spaceForStatusBar;
+      const height = `calc(100vh - 4em - ${statusBar}em - 0.5em)`;
+      return {
+        height,
+        minHeight: height,
+      };
+    },
   },
   mounted() {
     this.reinit();
@@ -766,6 +782,15 @@ export default {
   word-break: break-word;
 }
 
+#markedown-viewer.html-viewer-mode {
+  margin: 0.5em;
+  width: calc(100% - 1em);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
 #markedown-viewer .markdown-content-container {
   background-color: var(--surfacePrimary);
   border-radius: 1em;
@@ -783,6 +808,13 @@ export default {
   min-height: 24em;
   background: #fff;
   color-scheme: light dark;
+}
+
+#markedown-viewer.html-viewer-mode .html-content {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 #markedown-viewer .html-content img {

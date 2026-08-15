@@ -156,6 +156,7 @@ import { getters, mutations, state } from "@/store";
 import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 
 const boxes = {
@@ -266,6 +267,14 @@ export default {
 
     // Add keyboard event listener for "/" to activate search
     this.handleKeydown = (event) => {
+      if (
+        (event.key === '/' || event.key === ' ') &&
+        isTypeAheadSessionActive() &&
+        getters.currentView() === 'listingView'
+      ) {
+        event.preventDefault();
+        return;
+      }
       if ((event.key === '/' || event.key === ' ') && !state.isSearchActive && !getters.currentPrompt()) {
         event.preventDefault();
         this.open();

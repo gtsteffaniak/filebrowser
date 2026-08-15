@@ -172,8 +172,10 @@ export default {
       );
     },
     autoShowNavForMediaPreview() {
-      const pt = getters.previewType();
-      return pt === 'image' || pt === 'video';
+      return getters.previewType() === 'video';
+    },
+    isImagePreview() {
+      return getters.previewType() === 'image';
     },
     /** Close mirrors swipe-down dismiss only (not with prev/next on load or edge hover). */
     showCloseNavChrome() {
@@ -483,24 +485,32 @@ export default {
       });
     },
     showInitialNavigation() {
-      // Show navigation initially for 3 seconds when navigation is set up
-      if (this.enabled && (this.hasPrevious || this.hasNext || this.autoShowNavForMediaPreview)) {
-        mutations.setNavigationShow(true);
-
-        mutations.clearNavigationTimeout();
-        if (this.navigationTimeout) {
-          clearTimeout(this.navigationTimeout);
-          this.navigationTimeout = null;
-        }
-
-        this.navigationTimeout = setTimeout(() => {
-          if (!this.hoverNav) {
-            mutations.setNavigationShow(false);
-          }
-          this.navigationTimeout = null;
-        }, 3000);
-        mutations.setNavigationTimeout(this.navigationTimeout);
+      if (!this.enabled) {
+        return;
       }
+      if (!(this.hasPrevious || this.hasNext || this.autoShowNavForMediaPreview || this.isImagePreview)) {
+        return;
+      }
+
+      mutations.clearNavigationTimeout();
+      if (this.navigationTimeout) {
+        clearTimeout(this.navigationTimeout);
+        this.navigationTimeout = null;
+      }
+
+      if (this.isImagePreview) {
+        mutations.showNavigationChromePersistent();
+        return;
+      }
+
+      mutations.setNavigationShow(true);
+      this.navigationTimeout = setTimeout(() => {
+        if (!this.hoverNav) {
+          mutations.setNavigationShow(false);
+        }
+        this.navigationTimeout = null;
+      }, 3000);
+      mutations.setNavigationTimeout(this.navigationTimeout);
     },
     async handleClosePreviewClick() {
       if (!(await this.checkForUnsavedChanges())) {
@@ -1009,7 +1019,7 @@ export default {
   transform: translateY(-50%);
   width: 50px;
   height: 50px;
-  border: none;
+  border: var(--borderWidth) solid var(--divider);
   border-radius: 50%;
   background: var(--background);
   color: var(--textPrimary);

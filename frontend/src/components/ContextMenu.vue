@@ -286,7 +286,31 @@ export default {
       return this.showLimitedOptions && this.selectedCount === 1;
     },
     permissions() {
-      return { ...getters.globalPermissions(), ...getters.sourcePermissions() };
+      const global = getters.globalPermissions();
+      const items = this.providedItems;
+
+      if (items.length > 0) {
+        const merged = {
+          view: true,
+          download: true,
+          modify: true,
+          create: false,
+          delete: true,
+        };
+        for (const item of items) {
+          const source = item.source || state.sources?.current || "";
+          const perms = getters.sourcePermissions(source);
+          merged.view = merged.view && perms.view;
+          merged.download = merged.download && perms.download;
+          merged.modify = merged.modify && perms.modify;
+          merged.create = merged.create || perms.create;
+          merged.delete = merged.delete && perms.delete;
+        }
+        return { ...global, ...merged };
+      }
+
+      const source = state.req?.source || state.sources?.current || "";
+      return { ...global, ...getters.sourcePermissions(source) };
     },
     /**
      * Whether the (+) panel can be opened (create file ops and/or admin-only rows like access rules).
@@ -382,7 +406,11 @@ export default {
       return !this.showCreate && this.selectedCount === 1 && !!state.user?.showCopyPath;
     },
     showOpenParentFolder() {
-      return !this.showCreate && this.selectedCount === 1 && (this.isSearchActive || this.showLimitedOptions);
+      return (
+        !this.showCreate &&
+        this.selectedCount === 1 &&
+        (this.isSearchActive || this.showLimitedOptions || getters.currentTool()?.component === "AdvancedSearch")
+      );
     },
     showMove() {
       if (this.showLimitedOptions) return false;
@@ -462,7 +490,7 @@ export default {
     showEditButton() {
       if (getters.isSplitViewActive()) return false;
       if (getters.currentView() === "editor") return false;
-      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo?.allowEdit);
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo?.allowModify);
       return isRichTextPreviewMimeType(state.req.type) && allowEdit;
     },
     showPreviewButton() {
@@ -471,7 +499,7 @@ export default {
       return isRichTextPreviewMimeType(state.req.type);
     },
     showSave() {
-      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowModify);
       return getters.currentView() === "editor" && allowEdit;
     },
     showOverflow() {
