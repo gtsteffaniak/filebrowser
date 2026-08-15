@@ -55,28 +55,50 @@ func unixModeToFileMode(u uint32) os.FileMode {
 
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,
-// the file copy is used as a fallback.
+// the file is copied via a same-directory temporary file and then renamed into place.
 func MoveFile(src, dst string) error {
 	err := os.Rename(src, dst)
 	if err == nil {
 		return nil
 	}
 
-	// fallback
-	err = CopyFile(src, dst)
+	tmp, err := os.CreateTemp(filepath.Dir(dst), ".fb-move-*")
 	if err != nil {
-		logger.Errorf("CopyFile failed %v", err)
 		return err
 	}
-
-	go func() {
-		err = os.RemoveAll(src)
-		if err != nil {
-			logger.Errorf("os.Remove failed %v", err)
+	tmpPath := tmp.Name()
+	cleanup := true
+	defer func() {
+		_ = tmp.Close()
+		if cleanup {
+			_ = os.Remove(tmpPath)
 		}
 	}()
 
+	if err = copyFileContents(src, tmp); err != nil {
+		return err
+	}
+	if err = tmp.Close(); err != nil {
+		return err
+	}
+	if err = os.Rename(tmpPath, dst); err != nil {
+		return err
+	}
+	cleanup = false
+	if err = os.Remove(src); err != nil {
+		return err
+	}
 	return nil
+}
+
+func copyFileContents(src string, dst *os.File) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	_, err = io.Copy(dst, in)
+	return err
 }
 
 // CopyFile copies a file or directory from source to dest and returns an error if any.

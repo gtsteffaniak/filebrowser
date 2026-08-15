@@ -8,6 +8,7 @@ package preview
 #include <mupdf/fitz.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 static void fb_silence_warnings(void *user, const char *message) {
 	(void)user;
@@ -16,6 +17,25 @@ static void fb_silence_warnings(void *user, const char *message) {
 
 static double fb_dmin(double a, double b) { return a < b ? a : b; }
 static double fb_dmax(double a, double b) { return a > b ? a : b; }
+
+static int fb_rect_usable(fz_rect r) {
+	if (fz_is_infinite_rect(r) || fz_is_empty_rect(r)) {
+		return 0;
+	}
+	if (r.x1 <= r.x0 || r.y1 <= r.y0) {
+		return 0;
+	}
+	if (!isfinite(r.x0) || !isfinite(r.x1) || !isfinite(r.y0) || !isfinite(r.y1)) {
+		return 0;
+	}
+	return 1;
+}
+
+static int fb_bbox_within(fz_irect bbox, int max_w, int max_h) {
+	int w = bbox.x1 - bbox.x0;
+	int h = bbox.y1 - bbox.y0;
+	return w > 0 && h > 0 && w <= max_w && h <= max_h;
+}
 
 // fb_render_document_page_jpeg renders one page to JPEG bytes.
 // max_width/max_height <= 0 selects original mode (~150 DPI). Otherwise renders into that box.
@@ -85,6 +105,9 @@ static int fb_render_document_page_jpeg(
 		page = fz_load_page(ctx, doc, page_num);
 
 		fz_rect bounds = fz_bound_page(ctx, page);
+		if (!fb_rect_usable(bounds)) {
+			fz_throw(ctx, FZ_ERROR_GENERIC, "invalid page bounds");
+		}
 		fz_matrix ctm;
 		fz_irect bbox;
 
@@ -92,18 +115,30 @@ static int fb_render_document_page_jpeg(
 			double dpi = 150.0;
 			ctm = fz_scale(dpi / 72.0, dpi / 72.0);
 			bounds = fz_transform_rect(bounds, ctm);
+			if (!fb_rect_usable(bounds)) {
+				fz_throw(ctx, FZ_ERROR_GENERIC, "invalid transformed page bounds");
+			}
 			bbox = fz_round_rect(bounds);
 			{
 				const int max_orig_w = 4096;
 				const int max_orig_h = 4096;
-				int w = bbox.x1 - bbox.x0;
-				int h = bbox.y1 - bbox.y0;
-				if (w > max_orig_w || h > max_orig_h) {
+				if (!fb_bbox_within(bbox, max_orig_w, max_orig_h)) {
+					int w = bbox.x1 - bbox.x0;
+					int h = bbox.y1 - bbox.y0;
+					if (w <= 0 || h <= 0) {
+						fz_throw(ctx, FZ_ERROR_GENERIC, "invalid page bounds");
+					}
 					double scale = fb_dmin((double)max_orig_w / (double)w, (double)max_orig_h / (double)h);
 					ctm = fz_concat(ctm, fz_scale(scale, scale));
 					bounds = fz_bound_page(ctx, page);
 					bounds = fz_transform_rect(bounds, ctm);
+					if (!fb_rect_usable(bounds)) {
+						fz_throw(ctx, FZ_ERROR_GENERIC, "invalid transformed page bounds");
+					}
 					bbox = fz_round_rect(bounds);
+					if (!fb_bbox_within(bbox, max_orig_w, max_orig_h)) {
+						fz_throw(ctx, FZ_ERROR_GENERIC, "page exceeds maximum render size");
+					}
 				}
 			}
 		} else {

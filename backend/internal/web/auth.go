@@ -154,7 +154,7 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	// token/response omitted groups so a missing claim cannot wipe memberships.
 	if groupsPresent {
 		if err := state.SyncUserGroups(username, groups); err != nil {
-			logger.Warningf("failed to sync user %s groups: %v", username, err)
+			return nil, fmt.Errorf("failed to sync user %s groups: %w", username, err)
 		}
 	}
 

@@ -116,6 +116,14 @@ func TestParseIPCOPropertiesReadsPlainIrotBox(t *testing.T) {
 	}
 }
 
+func TestParseIPCOPropertiesReadsExtendedSizeIrotBox(t *testing.T) {
+	ipco := bmffBox("ipco", bmffExtendedIrotBox(1))
+	props := parseIPCOProperties(ipco)
+	if len(props) != 1 || props[0].irot != 1 {
+		t.Fatalf("parseIPCOProperties() = %+v, want irot=1 from extended-size box", props)
+	}
+}
+
 type heicItemFixture struct {
 	itemID uint16
 	irot   uint8
@@ -240,6 +248,17 @@ func bmffPITMBox(itemID uint16) []byte {
 
 func bmffIrotBox(angle uint8) []byte {
 	return bmffBox("irot", []byte{angle & 0x03})
+}
+
+func bmffExtendedIrotBox(angle uint8) []byte {
+	payload := []byte{angle & 0x03}
+	size := 16 + len(payload)
+	out := make([]byte, size)
+	binary.BigEndian.PutUint32(out[0:4], 1)
+	copy(out[4:8], "irot")
+	binary.BigEndian.PutUint64(out[8:16], uint64(size))
+	copy(out[16:], payload)
+	return out
 }
 
 func bmffIPMABox(entries []ipmaEntryFixture) []byte {

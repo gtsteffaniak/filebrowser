@@ -120,7 +120,11 @@ func (s *Storage) ensureGroupExistsNL(groupname string) error {
 		return nil
 	}
 	s.Groups[groupname] = make(StringSet)
-	return s.persistGroupSQLNL(groupname)
+	if err := s.persistGroupSQLNL(groupname); err != nil {
+		delete(s.Groups, groupname)
+		return err
+	}
+	return nil
 }
 
 // NewStorage creates a new Storage instance.
@@ -538,8 +542,10 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 func (s *Storage) AddUserToGroup(group, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	createdGroup := false
 	if _, ok := s.Groups[group]; !ok {
 		s.Groups[group] = make(StringSet)
+		createdGroup = true
 	}
 	if _, ok := s.Groups[group][username]; ok {
 		return nil
@@ -547,6 +553,9 @@ func (s *Storage) AddUserToGroup(group, username string) error {
 	s.Groups[group][username] = struct{}{}
 	if err := s.persistGroupSQLNL(group); err != nil {
 		delete(s.Groups[group], username)
+		if createdGroup {
+			delete(s.Groups, group)
+		}
 		return err
 	}
 	s.clearAllCaches()
@@ -584,7 +593,6 @@ func (s *Storage) GetUserGroups(username string) []string {
 func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	affected := make(map[string]struct{})
 
 	// Create a set of new groups for efficient lookup
 	newGroupsSet := make(StringSet, len(newGroups))
@@ -595,30 +603,52 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 		newGroupsSet[g] = struct{}{}
 	}
 
-	// Iterate over all existing groups to find the user's current memberships
+	affected := make(map[string]struct{})
 	for group, members := range s.Groups {
 		_, userIsInGroup := members[username]
 		_, groupIsInNewSet := newGroupsSet[group]
-
-		// If user is in a group that is not in their new set of groups, remove them.
 		if userIsInGroup && !groupIsInNewSet {
-			delete(s.Groups[group], username)
+			affected[group] = struct{}{}
+		}
+	}
+	for group := range newGroupsSet {
+		if _, ok := s.Groups[group]; !ok {
+			affected[group] = struct{}{}
+			continue
+		}
+		if _, ok := s.Groups[group][username]; !ok {
 			affected[group] = struct{}{}
 		}
 	}
 
-	// Add user to new groups
+	before := make(map[string]StringSet, len(affected))
+	for group := range affected {
+		before[group] = cloneStringSet(s.Groups[group])
+	}
+
+	for group, members := range s.Groups {
+		_, userIsInGroup := members[username]
+		_, groupIsInNewSet := newGroupsSet[group]
+		if userIsInGroup && !groupIsInNewSet {
+			delete(s.Groups[group], username)
+		}
+	}
 	for group := range newGroupsSet {
 		if _, ok := s.Groups[group]; !ok {
 			s.Groups[group] = make(StringSet)
 		}
-		if _, ok := s.Groups[group][username]; !ok {
-			s.Groups[group][username] = struct{}{}
-			affected[group] = struct{}{}
-		}
+		s.Groups[group][username] = struct{}{}
 	}
+
 	for group := range affected {
 		if err := s.persistGroupSQLNL(group); err != nil {
+			for g, snap := range before {
+				if len(snap) == 0 {
+					delete(s.Groups, g)
+				} else {
+					s.Groups[g] = snap
+				}
+			}
 			return err
 		}
 	}
@@ -626,6 +656,15 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 		s.clearAllCaches()
 	}
 	return nil
+}
+
+func cloneStringSet(src StringSet) StringSet {
+	if len(src) == 0 {
+		return nil
+	}
+	dst := make(StringSet, len(src))
+	maps.Copy(dst, src)
+	return dst
 }
 
 // RemoveUserFromGroup removes a username from a group.

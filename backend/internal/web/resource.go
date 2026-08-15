@@ -864,10 +864,6 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		chunkSize, err = io.Copy(outFile, r.Body)
 		if err != nil {
 			logger.Debugf("could not write chunk to temp file: %v", err)
-			if truncErr := outFile.Truncate(offset); truncErr != nil {
-				logger.Debugf("could not truncate temp file after failed chunk (offset=%d): %v", offset, truncErr)
-			}
-			_ = outFile.Sync()
 
 			gracefulPause := false
 			if d.Share.Hash != "" {
@@ -884,34 +880,34 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				}
 			}
 
-			// Keep the partial temp file so the client can resume from offset.
 			if gracefulPause {
-				logger.Debugf("chunk upload ended after graceful pause; keeping partial file (source=%s path=%s)", source, path)
-				abandonSession = false
-				return 499, nil
+				if rollbackChunkForResume(outFile, tempFilePath, offset) {
+					logger.Debugf("chunk upload ended after graceful pause; keeping partial file (source=%s path=%s)", source, path)
+					abandonSession = false
+					return 499, nil
+				}
+				return http.StatusInternalServerError, fmt.Errorf("could not write chunk to temp file: %v", err)
 			}
-			logger.Debugf("chunk upload failed; keeping partial file for resume (source=%s path=%s offset=%d)", source, path, offset)
-			abandonSession = false
+			if rollbackChunkForResume(outFile, tempFilePath, offset) {
+				logger.Debugf("chunk upload failed; keeping partial file for resume (source=%s path=%s offset=%d)", source, path, offset)
+				abandonSession = false
+			}
 			return http.StatusInternalServerError, fmt.Errorf("could not write chunk to temp file: %v", err)
 		}
 
 		if err = validateReceivedBytes(chunkSize, 0, false, r.ContentLength); err != nil {
 			logger.Debugf("incomplete chunk: %v", err)
-			if truncErr := outFile.Truncate(offset); truncErr != nil {
-				logger.Debugf("could not truncate temp file after incomplete chunk (offset=%d): %v", offset, truncErr)
+			if rollbackChunkForResume(outFile, tempFilePath, offset) {
+				abandonSession = false
 			}
-			_ = outFile.Sync()
-			abandonSession = false
 			return http.StatusBadRequest, err
 		}
 
 		if err = validateAssembledSize(offset, chunkSize, totalSize); err != nil {
 			logger.Debugf("%v", err)
-			if truncErr := outFile.Truncate(offset); truncErr != nil {
-				logger.Debugf("could not truncate temp file after oversized chunk (offset=%d): %v", offset, truncErr)
+			if rollbackChunkForResume(outFile, tempFilePath, offset) {
+				abandonSession = false
 			}
-			_ = outFile.Sync()
-			abandonSession = false
 			return http.StatusBadRequest, err
 		}
 		assembled := offset + chunkSize

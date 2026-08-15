@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -95,4 +96,18 @@ func isContentUpload(r *http.Request) bool {
 	}
 	_, ok, err := parseUploadTotalSize(r)
 	return err == nil && ok
+}
+
+// rollbackChunkForResume truncates a partial chunk write back to offset and syncs.
+// It returns false when rollback cannot be confirmed, in which case tempFilePath is removed.
+func rollbackChunkForResume(outFile *os.File, tempFilePath string, offset int64) bool {
+	if truncErr := outFile.Truncate(offset); truncErr != nil {
+		_ = os.Remove(tempFilePath)
+		return false
+	}
+	if syncErr := outFile.Sync(); syncErr != nil {
+		_ = os.Remove(tempFilePath)
+		return false
+	}
+	return true
 }

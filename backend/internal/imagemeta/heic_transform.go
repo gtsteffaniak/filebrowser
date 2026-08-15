@@ -235,8 +235,10 @@ func parseIPCOProperties(ipco []byte) []ipcoProperty {
 		}
 		child := payload[pos : pos+size]
 		prop := ipcoProperty{typ: string(child[4:8])}
-		if prop.typ == "irot" && len(child) >= 9 {
-			prop.irot = child[8] & 0x03
+		if prop.typ == "irot" {
+			if payload := bmffBoxPayload(child); len(payload) >= 1 {
+				prop.irot = payload[0] & 0x03
+			}
 		}
 		props = append(props, prop)
 		pos += size
