@@ -490,7 +490,7 @@ export default {
     showEditButton() {
       if (getters.isSplitViewActive()) return false;
       if (getters.currentView() === "editor") return false;
-      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo?.allowEdit);
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo?.allowModify);
       return isRichTextPreviewMimeType(state.req.type) && allowEdit;
     },
     showPreviewButton() {
@@ -499,7 +499,7 @@ export default {
       return isRichTextPreviewMimeType(state.req.type);
     },
     showSave() {
-      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowModify);
       return getters.currentView() === "editor" && allowEdit;
     },
     showOverflow() {

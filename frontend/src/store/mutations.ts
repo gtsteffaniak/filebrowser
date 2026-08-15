@@ -348,7 +348,7 @@ export const mutations = {
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  closeTopPrompt: (id) => {
+  closeTopPrompt: (id?: number) => {
     if (id === undefined) {
       // close topmost prompt
       if (state.prompts.length === 0) return;
