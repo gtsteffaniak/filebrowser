@@ -46,6 +46,18 @@ func setupTestEnv(t *testing.T) {
 	mockFileInfoFaster(t) // Mock FileInfoFasterFunc for this test
 }
 
+func saveTestUser(t *testing.T, user *users.User) *users.User {
+	t.Helper()
+	if err := store.Users.Save(user, false, false); err != nil {
+		t.Fatalf("Save(%s): %v", user.Username, err)
+	}
+	got, err := store.Users.Get(user.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return got
+}
+
 func mockFileInfoFaster(t *testing.T) {
 	// Backup the original function
 	originalFileInfoFaster := FileInfoFasterFunc
@@ -80,10 +92,10 @@ func TestWithAdminHelper(t *testing.T) {
 		Permissions: users.Permissions{Admin: false}, // Non-admin user
 	}
 	// Save the users to the mock database
-	if err := store.Users.Save(adminUser, true, true); err != nil {
+	if err := store.Users.Save(adminUser, false, false); err != nil {
 		t.Fatal("failed to save admin user:", err)
 	}
-	if err := store.Users.Save(nonAdminUser, true, true); err != nil {
+	if err := store.Users.Save(nonAdminUser, false, false); err != nil {
 		t.Fatal("failed to save non-admin user:", err)
 	}
 	// Test cases for different scenarios
@@ -154,7 +166,7 @@ func TestPublicShare_RejectsRevokedJWT(t *testing.T) {
 			{Name: "srv", Scope: "/"},
 		},
 	}
-	if err := store.Users.Save(victim, true, true); err != nil {
+	if err := store.Users.Save(victim, false, false); err != nil {
 		t.Fatal("failed to create victim user:", err)
 	}
 
@@ -274,7 +286,7 @@ func issueExtractUserTestToken(t *testing.T, duration time.Duration) (*users.Use
 		Username:    "victim",
 		Permissions: users.Permissions{Api: true},
 	}
-	if err := store.Users.Save(user, true, true); err != nil {
+	if err := store.Users.Save(user, false, false); err != nil {
 		t.Fatal("failed to create user:", err)
 	}
 	got, err := store.Users.Get(user.ID)
@@ -282,14 +294,14 @@ func issueExtractUserTestToken(t *testing.T, duration time.Duration) (*users.Use
 		t.Fatal("failed to load user:", err)
 	}
 	got.Permissions = users.Permissions{Api: true}
-	if err := store.Users.Save(got, false, false); err != nil {
+	if err = store.Users.Save(got, false, false); err != nil {
 		t.Fatal("failed to set user permissions:", err)
 	}
 
 	originalAuthKey := settings.Config.Auth.Key
 	settings.Config.Auth.Key = "key"
 	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
-	if err := store.Settings.Save(&settings.Settings{Auth: settings.Auth{Key: "key"}}); err != nil {
+	if err = store.Settings.Save(&settings.Settings{Auth: settings.Auth{Key: "key"}}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -314,7 +326,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			{Name: "srv", Scope: "/"}, // Root scope on srv source
 		},
 	}
-	if err := store.Users.Save(dummyUser, true, true); err != nil {
+	if err := store.Users.Save(dummyUser, false, false); err != nil {
 		t.Fatal("failed to save dummy user:", err)
 	}
 

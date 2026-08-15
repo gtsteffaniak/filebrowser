@@ -46,7 +46,7 @@ func TestSharePatchHandler_AnchorsPathToOwnerScope(t *testing.T) {
 			{Name: "/srv", Scope: "/public"},
 		},
 	}
-	if err := store.Users.Save(guest, true, true); err != nil {
+	if err := store.Users.Save(guest, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -122,7 +122,7 @@ func TestSharePatchHandler_AdminUpdateUsesOwnerScope(t *testing.T) {
 			{Name: "/srv", Scope: "/public"},
 		},
 	}
-	if err := store.Users.Save(owner, true, true); err != nil {
+	if err := store.Users.Save(owner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -137,7 +137,7 @@ func TestSharePatchHandler_AdminUpdateUsesOwnerScope(t *testing.T) {
 			{Name: "/srv", Scope: "/"},
 		},
 	}
-	if err := store.Users.Save(admin, true, true); err != nil {
+	if err := store.Users.Save(admin, false, false); err != nil {
 		t.Fatal(err)
 	}
 

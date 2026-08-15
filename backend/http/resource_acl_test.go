@@ -6,10 +6,25 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
+
+func setupResourceACLTestSource(t *testing.T) string {
+	t.Helper()
+	srvRoot := t.TempDir()
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		srvRoot: {Path: srvRoot, Name: "srv"},
+	}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{
+		"srv": {Path: srvRoot, Name: "srv"},
+	}
+	indexing.SetTestIndex("srv", srvRoot)
+	t.Cleanup(indexing.ClearTestIndices)
+	return srvRoot
+}
 
 func TestResourcePostACLUsesFullIndexPathKey(t *testing.T) {
 	setupTestEnv(t)
@@ -26,7 +41,7 @@ func TestResourcePostACLUsesFullIndexPathKey(t *testing.T) {
 		ID:       1,
 		Username: "alice",
 	}
-	if err := store.Users.Save(alice, true, true); err != nil {
+	if err := store.Users.Save(alice, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -44,25 +59,22 @@ func TestResourcePostACLUsesFullIndexPathKey(t *testing.T) {
 
 func TestResourcePostHandler_DeniesAuthenticatedUploadToDeniedPath(t *testing.T) {
 	setupTestEnv(t)
-
-	srvRoot := t.TempDir()
-	indexing.SetTestIndex("srv", srvRoot)
-	t.Cleanup(indexing.ClearTestIndices)
+	sourcePath := setupResourceACLTestSource(t)
 
 	alice := &users.User{
 		ID:          1,
 		Username:    "alice",
 		Permissions: users.Permissions{Create: true},
 		Scopes: []users.SourceScope{
-			{Name: "/srv", Scope: "/home/alice"},
+			{Name: sourcePath, Scope: "/home/alice"},
 		},
 	}
-	if err := store.Users.Save(alice, true, true); err != nil {
+	if err := store.Users.Save(alice, false, false); err != nil {
 		t.Fatal(err)
 	}
 
 	deniedFolder := "/home/alice/projects/acme/private"
-	if err := store.Access.DenyUser("/srv", deniedFolder, "alice"); err != nil {
+	if err := store.Access.DenyUser(sourcePath, deniedFolder, "alice"); err != nil {
 		t.Fatalf("DenyUser: %v", err)
 	}
 
@@ -81,23 +93,21 @@ func TestResourcePostHandler_DeniesAuthenticatedUploadToDeniedPath(t *testing.T)
 
 func TestResourcePauseHandler_DeniesAuthenticatedPauseOnDeniedPath(t *testing.T) {
 	setupTestEnv(t)
-
-	indexing.SetTestIndex("srv", t.TempDir())
-	t.Cleanup(indexing.ClearTestIndices)
+	sourcePath := setupResourceACLTestSource(t)
 
 	alice := &users.User{
 		ID:          1,
 		Username:    "alice",
 		Permissions: users.Permissions{Create: true},
 		Scopes: []users.SourceScope{
-			{Name: "/srv", Scope: "/home/alice"},
+			{Name: sourcePath, Scope: "/home/alice"},
 		},
 	}
-	if err := store.Users.Save(alice, true, true); err != nil {
+	if err := store.Users.Save(alice, false, false); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.Access.DenyUser("/srv", "/home/alice/projects/acme/private", "alice"); err != nil {
+	if err := store.Access.DenyUser(sourcePath, "/home/alice/projects/acme/private", "alice"); err != nil {
 		t.Fatalf("DenyUser: %v", err)
 	}
 

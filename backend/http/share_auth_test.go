@@ -44,7 +44,7 @@ func setupShareAuthUsers(t *testing.T) (owner, attacker, admin *users.User) {
 	}
 
 	for _, u := range []*users.User{owner, attacker, noDelete, admin} {
-		if err := store.Users.Save(u, true, true); err != nil {
+		if err := store.Users.Save(u, false, false); err != nil {
 			t.Fatalf("Save(%s): %v", u.Username, err)
 		}
 	}
@@ -160,7 +160,7 @@ func TestSharePostCreate_ClampsAllowDeleteWithoutUserDeletePerm(t *testing.T) {
 		Permissions: users.Permissions{Share: true, Delete: false, Create: true},
 		Scopes:      []users.SourceScope{{Name: "/srv", Scope: "/"}},
 	}
-	if err := store.Users.Save(user, true, true); err != nil {
+	if err := store.Users.Save(user, false, false); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Users.Get(user.ID)

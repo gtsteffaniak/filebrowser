@@ -322,13 +322,13 @@ func TestWebDAV_PROPFIND_UserScopes(t *testing.T) {
 	}
 
 	// Save users
-	if err := store.Users.Save(adminUser, true, true); err != nil {
+	if err := store.Users.Save(adminUser, false, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(scopedUser, true, true); err != nil {
+	if err := store.Users.Save(scopedUser, false, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(restrictedUser, true, true); err != nil {
+	if err := store.Users.Save(restrictedUser, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -464,13 +464,13 @@ func TestWebDAV_WriteOperations(t *testing.T) {
 	}
 
 	// Save users
-	if err := store.Users.Save(fullAccessUser, true, true); err != nil {
+	if err := store.Users.Save(fullAccessUser, false, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(readOnlyUser, true, true); err != nil {
+	if err := store.Users.Save(readOnlyUser, false, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(scopedUser, true, true); err != nil {
+	if err := store.Users.Save(scopedUser, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -602,10 +602,10 @@ func TestWebDAV_AccessControl(t *testing.T) {
 	}
 
 	// Save users
-	if err := store.Users.Save(user1, true, true); err != nil {
+	if err := store.Users.Save(user1, false, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Users.Save(user2, true, true); err != nil {
+	if err := store.Users.Save(user2, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -708,7 +708,7 @@ func TestWebDAV_IndexingStates(t *testing.T) {
 		},
 	}
 
-	if err := store.Users.Save(user, true, true); err != nil {
+	if err := store.Users.Save(user, false, false); err != nil {
 		t.Fatal(err)
 	}
 
