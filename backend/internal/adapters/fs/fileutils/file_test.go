@@ -117,3 +117,48 @@ func TestCopyFilePreservesModTime(t *testing.T) {
 		})
 	}
 }
+
+func TestMoveFileCrossDevicePreservesFilePermissions(t *testing.T) {
+	srcDir := t.TempDir()
+	dstDir := t.TempDir()
+	src := filepath.Join(srcDir, "secret.txt")
+	if err := os.WriteFile(src, []byte("data"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(dstDir, "secret.txt")
+
+	if err := moveFileCrossDevice(src, dst); err != nil {
+		t.Fatal(err)
+	}
+	got, err := os.Stat(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Mode().Perm() != 0o640 {
+		t.Fatalf("dst perm = %#o, want 0640", got.Mode().Perm())
+	}
+	if _, err := os.Stat(src); !os.IsNotExist(err) {
+		t.Fatalf("src should be removed, stat err = %v", err)
+	}
+}
+
+func TestMoveFileCrossDeviceMovesDirectory(t *testing.T) {
+	srcDir := t.TempDir()
+	dstParent := t.TempDir()
+	nested := filepath.Join(srcDir, "nested.txt")
+	if err := os.WriteFile(nested, []byte("nested"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(dstParent, "moved-dir")
+
+	if err := moveFileCrossDevice(srcDir, dst); err != nil {
+		t.Fatal(err)
+	}
+	movedNested := filepath.Join(dst, "nested.txt")
+	if _, err := os.Stat(movedNested); err != nil {
+		t.Fatalf("expected nested file at destination: %v", err)
+	}
+	if _, err := os.Stat(srcDir); !os.IsNotExist(err) {
+		t.Fatalf("source directory should be removed, stat err = %v", err)
+	}
+}

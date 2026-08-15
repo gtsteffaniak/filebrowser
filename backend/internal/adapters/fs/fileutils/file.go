@@ -55,14 +55,43 @@ func unixModeToFileMode(u uint32) os.FileMode {
 
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,
-// the file is copied via a same-directory temporary file and then renamed into place.
+// the resource is copied via a same-directory temporary path and then renamed into place.
 func MoveFile(src, dst string) error {
 	err := os.Rename(src, dst)
 	if err == nil {
 		return nil
 	}
+	return moveFileCrossDevice(src, dst)
+}
 
-	tmp, err := os.CreateTemp(filepath.Dir(dst), ".fb-move-*")
+func moveFileCrossDevice(src, dst string) error {
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	dstDir := filepath.Dir(dst)
+	if srcInfo.IsDir() {
+		tmpPath, err := os.MkdirTemp(dstDir, ".fb-move-dir-*")
+		if err != nil {
+			return err
+		}
+		cleanup := true
+		defer func() {
+			if cleanup {
+				_ = os.RemoveAll(tmpPath)
+			}
+		}()
+		if err = copyDirectory(src, tmpPath); err != nil {
+			return err
+		}
+		if err = os.Rename(tmpPath, dst); err != nil {
+			return err
+		}
+		cleanup = false
+		return os.RemoveAll(src)
+	}
+
+	tmp, err := os.CreateTemp(dstDir, ".fb-move-*")
 	if err != nil {
 		return err
 	}
@@ -81,14 +110,17 @@ func MoveFile(src, dst string) error {
 	if err = tmp.Close(); err != nil {
 		return err
 	}
+	if err = os.Chmod(tmpPath, srcInfo.Mode().Perm()); err != nil {
+		logger.Debugf("Could not set file permissions for %s: %v", tmpPath, err)
+	}
+	if err = os.Chtimes(tmpPath, srcInfo.ModTime(), srcInfo.ModTime()); err != nil {
+		logger.Debugf("Could not preserve modification time for %s: %v", tmpPath, err)
+	}
 	if err = os.Rename(tmpPath, dst); err != nil {
 		return err
 	}
 	cleanup = false
-	if err = os.Remove(src); err != nil {
-		return err
-	}
-	return nil
+	return os.Remove(src)
 }
 
 func copyFileContents(src string, dst *os.File) error {

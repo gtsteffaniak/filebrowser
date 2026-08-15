@@ -640,8 +640,15 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 		s.Groups[group][username] = struct{}{}
 	}
 
-	for group := range affected {
+	affectedGroups := slices.Sorted(maps.Keys(affected))
+	var persisted []string
+	for _, group := range affectedGroups {
 		if err := s.persistGroupSQLNL(group); err != nil {
+			for _, g := range persisted {
+				if restoreErr := s.restoreGroupSQLNL(g, before[g]); restoreErr != nil {
+					logger.Errorf("failed to restore group %q in sql after sync failure: %v", g, restoreErr)
+				}
+			}
 			for g, snap := range before {
 				if len(snap) == 0 {
 					delete(s.Groups, g)
@@ -651,9 +658,26 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 			}
 			return err
 		}
+		persisted = append(persisted, group)
 	}
 	if len(affected) > 0 {
 		s.clearAllCaches()
+	}
+	return nil
+}
+
+func (s *Storage) restoreGroupSQLNL(groupname string, members StringSet) error {
+	if s.sqlStore == nil {
+		return nil
+	}
+	if len(members) == 0 {
+		if err := s.sqlStore.DeleteGroup(groupname); err != nil {
+			return fmt.Errorf("failed to delete group %q from sql: %w", groupname, err)
+		}
+		return nil
+	}
+	if err := s.sqlStore.SaveGroup(groupname, members); err != nil {
+		return fmt.Errorf("failed to save group %q: %w", groupname, err)
 	}
 	return nil
 }
