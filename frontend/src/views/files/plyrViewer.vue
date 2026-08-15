@@ -139,7 +139,7 @@
           playsinline
         >
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-            :label="subtitleTrackLabel(sub)" :srclang="sub.language" />
+            :label="sub.name || subtitleTrackLabel(sub)" :srclang="sub.srclang || sub.language" />
         </video>
       </div>
       <div

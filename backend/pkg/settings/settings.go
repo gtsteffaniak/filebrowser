@@ -71,6 +71,49 @@ func AdminSourceFilePermissions() users.SourceFilePermissions {
 	}
 }
 
+// MergeDefaultEnabledBackendScopes ensures every defaultEnabled source is present in
+// BackendScopes. Existing scopes for configured sources are preserved (empty Scope is
+// filled from DefaultUserScope). Unknown paths not in Config.Server.Sources are kept
+// at the end. defaultEnabled: false sources are never auto-added.
+func MergeDefaultEnabledBackendScopes(existing []users.BackendScope) []users.BackendScope {
+	byPath := make(map[string]users.BackendScope, len(existing))
+	for _, s := range existing {
+		byPath[s.Path] = s
+	}
+
+	newScopes := make([]users.BackendScope, 0, len(existing)+len(Config.Server.Sources))
+	seen := make(map[string]struct{}, len(Config.Server.Sources))
+	for _, src := range Config.Server.Sources {
+		if src == nil {
+			continue
+		}
+		existingScope, ok := byPath[src.Path]
+		if ok {
+			if existingScope.Scope == "" {
+				existingScope.Scope = src.Config.DefaultUserScope
+			}
+		} else if src.Config.DefaultEnabled {
+			existingScope = users.BackendScope{
+				Scope: src.Config.DefaultUserScope,
+			}
+		} else {
+			continue
+		}
+		newScopes = append(newScopes, users.BackendScope{
+			Path:        src.Path,
+			Scope:       existingScope.Scope,
+			Permissions: existingScope.Permissions,
+		})
+		seen[src.Path] = struct{}{}
+	}
+	for _, s := range existing {
+		if _, ok := seen[s.Path]; !ok {
+			newScopes = append(newScopes, s)
+		}
+	}
+	return newScopes
+}
+
 // ApplyUserDefaults applies Config.UserDefaults to a user (tests and legacy callers).
 func ApplyUserDefaults(u *users.User) {
 	ApplyUserDefaultsFrom(u, Config.UserDefaults)
@@ -94,24 +137,20 @@ func ApplyUserDefaultsFrom(u *users.User, d UserDefaults) {
 
 	sourceDefaults := DefaultSourceFilePermissions()
 
-	if len(u.BackendScopes) == 0 {
-		for _, source := range Config.Server.Sources {
-			if source.Config.DefaultEnabled {
-				u.BackendScopes = append(u.BackendScopes, users.BackendScope{
-					Path:  source.Path,
-					Scope: source.Config.DefaultUserScope,
-				})
-				if len(u.SidebarLinks) == 0 {
-					u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
-						Name:       source.Name,
-						Category:   "source",
-						Target:     "/",
-						Icon:       "",
-						SourceName: source.Path,
-					})
-				}
-			}
+	u.BackendScopes = MergeDefaultEnabledBackendScopes(u.BackendScopes)
+	if len(u.SidebarLinks) == 0 && len(u.BackendScopes) > 0 {
+		scope := u.BackendScopes[0]
+		name := scope.Path
+		if src := Config.Server.SourceMap[scope.Path]; src != nil && src.Name != "" {
+			name = src.Name
 		}
+		u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
+			Name:       name,
+			Category:   "source",
+			Target:     "/",
+			Icon:       "",
+			SourceName: scope.Path,
+		})
 	}
 
 	if u.BackendSourcePermissions == nil {

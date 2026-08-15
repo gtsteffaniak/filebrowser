@@ -8,6 +8,27 @@ import {
 } from "@/utils/appNotifications";
 
 /**
+ * Upload session token for isolating concurrent uploads to the same path.
+ * Prefers crypto.randomUUID(); falls back for older browsers / non-secure contexts.
+ * @returns {string}
+ */
+export function newUploadSessionId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    // RFC 4122 version 4 bits
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
+  return `upload-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+/**
  * Accumulates every directory entry from a FileSystemDirectoryReader.
  *
  * Chromium and Safari cap DirectoryReader.readEntries() at roughly one batch
@@ -190,6 +211,7 @@ class UploadManager {
 
         const upload = {
           id: this.nextId++,
+          sessionId: newUploadSessionId(),
           name: dirName,
           size: 0,
           progress: 0,
@@ -212,6 +234,7 @@ class UploadManager {
       const destinationPath = `${basePath}${relativePath}`;
       const upload = {
         id,
+        sessionId: newUploadSessionId(),
         file,
         name: file.name,
         size: file.size,
@@ -355,14 +378,17 @@ class UploadManager {
         let promise;
         if (getters.isShare()) {
           promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
+            "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
           });
         } else {
           promise = resourcesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
+            "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
           });
         }
 
+        upload.xhrPromise = promise;
         upload.xhr = promise.xhr;
         await promise;
 
@@ -378,6 +404,7 @@ class UploadManager {
       } finally {
         this.activeUploads--;
         upload.xhr = null;
+        upload.xhrPromise = null;
         void this.processQueue();
       }
       return;
@@ -415,6 +442,7 @@ class UploadManager {
             upload.overwrite,
             chunkProgress,
             {
+              "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
             }
@@ -427,12 +455,14 @@ class UploadManager {
             upload.overwrite,
             chunkProgress,
             {
+              "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
             }
           );
         }
 
+        upload.xhrPromise = promise;
         upload.xhr = promise.xhr;
         await promise;
 
@@ -461,6 +491,7 @@ class UploadManager {
 
     this.activeUploads--;
     upload.xhr = null;
+    upload.xhrPromise = null;
     void this.processQueue();
   }
 
@@ -489,9 +520,25 @@ class UploadManager {
     });
   }
 
+  activeXhr(upload) {
+    return upload?.xhrPromise?.xhr || upload?.xhr || null;
+  }
+
+  /** Abort the in-flight upload operation, including a pending 401 renew+retry. */
+  abortUpload(upload) {
+    if (upload?.xhrPromise && typeof upload.xhrPromise.abort === "function") {
+      upload.xhrPromise.abort();
+      return;
+    }
+    const xhr = this.activeXhr(upload);
+    if (xhr && xhr.readyState !== XMLHttpRequest.DONE) {
+      xhr.abort();
+    }
+  }
+
   async pause(id) {
     const upload = this.findById(id);
-    if (upload?.status !== "uploading" || !upload.xhr) {
+    if (upload?.status !== "uploading") {
       return;
     }
     if (upload.type !== "directory" && upload.size >= this.chunkSizeBytes()) {
@@ -505,7 +552,7 @@ class UploadManager {
         console.warn("upload pause signal failed", e);
       }
     }
-    upload.xhr.abort();
+    this.abortUpload(upload);
     upload.status = "paused";
     this.clearProgressTimeout(id);
   }
@@ -559,8 +606,8 @@ class UploadManager {
 
   cancel(id) {
     const upload = this.findById(id);
-    if (upload?.status === "uploading" && upload.xhr) {
-      upload.xhr.abort();
+    if (upload?.status === "uploading" || upload?.status === "paused") {
+      this.abortUpload(upload);
     }
     this.clearProgressTimeout(id);
     const index = this.queue.findIndex((item) => item.id === id);
@@ -575,10 +622,21 @@ class UploadManager {
       upload.overwrite = overwrite;
       upload.status = "pending";
       upload.connectionIssue = false; // Clear connection issue on retry
-      if (upload.type !== 'directory') {
-          upload.chunkOffset = 0; // Reset chunk offset for retries
+      const isChunked =
+        upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
+      const canResume = isChunked && upload.chunkOffset > 0;
+      if (!canResume) {
+        if (upload.type !== "directory") {
+          upload.chunkOffset = 0;
+        }
+        upload.progress = 0;
+      } else {
+        // Resume chunked uploads from the last successful chunk.
+        upload.progress =
+          upload.size > 0
+            ? Math.round((upload.chunkOffset / upload.size) * 1000) / 10
+            : 0;
       }
-      upload.progress = 0;
       void this.processQueue();
     }
   }
@@ -595,6 +653,9 @@ class UploadManager {
       }
       if (state.user.fileLoading?.clearAll) {
         if (status === "error" || status === "conflict" || status === "paused") {
+          if (status === "paused") {
+            this.abortUpload(upload);
+          }
           this.clearProgressTimeout(upload.id);
           this.queue.splice(i, 1);
         }
@@ -650,17 +711,36 @@ class UploadManager {
       upload.status = "conflict";
       upload.connectionIssue = false;
     } else if (err.message !== "Upload aborted") {
-      upload.status = "error";
-      
       // Detect connection-related errors
-      const isConnectionError = 
+      const isConnectionError =
         err.message === "Network error" ||
         err.message?.toLowerCase().includes("network") ||
         err.message?.toLowerCase().includes("timeout") ||
         err.message?.toLowerCase().includes("connection") ||
         err.message?.toLowerCase().includes("failed to fetch") ||
         !err.response; // No response usually means network issue
-      
+
+      const isChunked =
+        upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
+      const canResumeChunked =
+        isChunked && upload.chunkOffset > 0 && upload.chunkOffset < upload.size;
+
+      // Connection drops on chunked uploads: pause so Resume continues from last chunk
+      // (same semantics as the stall timeout path).
+      if (isConnectionError && canResumeChunked) {
+        upload.status = "paused";
+        upload.connectionIssue = true;
+        upload.errorDetails =
+          "Connection stalled - upload paused. Click resume to retry.";
+        upload.progress =
+          upload.size > 0
+            ? Math.round((upload.chunkOffset / upload.size) * 1000) / 10
+            : 0;
+        notifyUploadError(upload.name, upload.errorDetails);
+        return;
+      }
+
+      upload.status = "error";
       if (isConnectionError) {
         upload.connectionIssue = true;
         upload.errorDetails = `Connection error: ${this.formatErrorMessage(err)}. Click retry to resume.`;

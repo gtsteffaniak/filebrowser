@@ -1,5 +1,9 @@
 <template>
-  <div id="markedown-viewer">
+  <div
+    id="markedown-viewer"
+    :class="{ 'html-viewer-mode': isHtml }"
+    :style="htmlViewerStyle"
+  >
     <iframe
       v-if="isHtml"
       ref="viewer"
@@ -13,7 +17,7 @@
     <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
       <div ref="viewer" v-html="renderedContent" class="markdown-content"></div>
     </div>
-    <div class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
+    <div v-if="!isHtml" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
   </div>
 </template>
 
@@ -337,6 +341,17 @@ export default {
     spaceForStatusBar() {
       return state.isMobile ? 3.1 : 3.5;
     },
+    htmlViewerStyle() {
+      if (!this.isHtml) {
+        return undefined;
+      }
+      const statusBar = this.spaceForStatusBar;
+      const height = `calc(100vh - 4em - ${statusBar}em - 0.5em)`;
+      return {
+        height,
+        minHeight: height,
+      };
+    },
   },
   mounted() {
     this.reinit();
@@ -358,6 +373,15 @@ export default {
   word-break: break-word;
 }
 
+#markedown-viewer.html-viewer-mode {
+  margin: 0.5em;
+  width: calc(100% - 1em);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
 #markedown-viewer .markdown-content-container {
   background-color: var(--alt-background);
   border-radius: 1em;
@@ -375,6 +399,13 @@ export default {
   min-height: 24em;
   background: #fff;
   color-scheme: light dark;
+}
+
+#markedown-viewer.html-viewer-mode .html-content {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 #markedown-viewer .html-content img {

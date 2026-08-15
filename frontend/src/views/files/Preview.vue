@@ -483,12 +483,10 @@ export default {
             const blob = new Blob([vttContent], { type: "text/vtt" });
             const vttURL = URL.createObjectURL(blob);
 
-            const lang = (subtitleTrack.language ?? '').trim();
             subs.push({
               name: subtitleTrack.name,
               src: vttURL,
-              // Empty srclang breaks Plyr language matching; use 'und' (undetermined) per BCP 47.
-              language: lang || 'und',
+              srclang: subtitleTrack.srclang || subtitleTrack.language,
             });
           } else {
             console.warn(

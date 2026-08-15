@@ -310,6 +310,11 @@ func GetSourceConfig() *SourceConfigProvider {
 	return sourceConfig
 }
 
+// GetSourceNameResolver returns the current source name resolver, or nil if unset.
+func GetSourceNameResolver() SourceNameResolver {
+	return sourceNameResolver
+}
+
 // SourceConfigLoaded reports whether SetSourceConfig has been called (needed for ResolveSourceKey).
 func SourceConfigLoaded() bool {
 	return sourceConfig != nil

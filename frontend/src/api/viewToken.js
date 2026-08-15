@@ -1,7 +1,13 @@
 import { getters, state } from "@/store";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
+import {
+  VIEW_REFRESH_BEFORE_MS,
+  msUntilRefresh,
+  shouldRefreshBeforeExpiry,
+} from "@/utils/auth";
 
-const REFRESH_BEFORE_MS = 10 * 60 * 1000;
+/** @deprecated use VIEW_REFRESH_BEFORE_MS — kept as alias for clarity in this module */
+const REFRESH_BEFORE_MS = VIEW_REFRESH_BEFORE_MS;
 
 let activeScope = "";
 let refreshTimer = null;
@@ -96,7 +102,8 @@ function scheduleViewGrantRefresh(source, scope) {
   if (!cached?.expiresAt) {
     return;
   }
-  const delay = Math.max(0, cached.expiresAt * 1000 - Date.now() - REFRESH_BEFORE_MS);
+  // Same pattern as session keep-alive: refresh before expiry, not on request headers.
+  const delay = msUntilRefresh(cached.expiresAt, REFRESH_BEFORE_MS);
   if (refreshTimer) {
     clearTimeout(refreshTimer);
   }
@@ -173,10 +180,9 @@ export async function refreshViewToken(source, existingToken, requestScope = nul
 export async function ensureViewToken(source) {
   const scope = viewGrantScope(source);
   const cached = readCacheForScope(scope);
-  const now = Date.now();
   if (
     cached?.viewToken &&
-    cached.expiresAt * 1000 - now > REFRESH_BEFORE_MS
+    !shouldRefreshBeforeExpiry(cached.expiresAt, REFRESH_BEFORE_MS)
   ) {
     return cached.viewToken;
   }

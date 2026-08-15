@@ -189,7 +189,7 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 		}
-		filePath := utils.JoinPathAsUnix(d.Share.Path, cleanFile)
+		filePath := utils.JoinScopedIndexPath(d.Share.Path, cleanFile)
 		fileList = append(fileList, filePath)
 	}
 
@@ -242,7 +242,7 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 			return http.StatusForbidden, err
 		}
 		for i, filePath := range fileList {
-			fileList[i] = utils.JoinPathAsUnix(userscope, filePath)
+			fileList[i] = utils.JoinScopedIndexPath(userscope, filePath)
 		}
 	}
 	firstFilePath = fileList[0]

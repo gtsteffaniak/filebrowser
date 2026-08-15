@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	liberrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -433,8 +434,25 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
 	}
 
-	realPath, _, err := idx.GetRealPath(scopedFilePath)
+	var bound string
+	if d.Share.Hash != "" {
+		if d.Share.Path == "" {
+			return http.StatusForbidden, fmt.Errorf("share has no path scope")
+		}
+		bound = d.Share.Path
+	} else {
+		userScope, scopeErr := d.User.GetScopeForSourceName(source)
+		if scopeErr != nil || userScope == "" {
+			return http.StatusForbidden, fmt.Errorf("user has no access to source: %s", source)
+		}
+		bound = userScope
+	}
+
+	realPath, _, err := idx.GetRealPathScoped(bound, scopedFilePath)
 	if err != nil {
+		if errors.Is(err, liberrors.ErrPathEscapesScope) {
+			return http.StatusForbidden, err
+		}
 		return http.StatusInternalServerError, err
 	}
 
@@ -553,7 +571,7 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	scopedPath := utils.JoinPathAsUnix(userscope, cleanPath)
+	scopedPath := utils.JoinScopedIndexPath(userscope, cleanPath)
 	return streamFilesHandler(w, r, d, source, []string{scopedPath})
 }
 
@@ -600,7 +618,7 @@ func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if !IsMediaStreamFile(shareRelativeDisplayName(d, cleanFile)) {
 		return http.StatusForbidden, fmt.Errorf("stream endpoint supports audio and video only")
 	}
-	scopedPath := utils.JoinPathAsUnix(d.Share.Path, cleanFile)
+	scopedPath := utils.JoinScopedIndexPath(d.Share.Path, cleanFile)
 	status, err := streamFilesHandler(w, r, d, sourceInfo.Name, []string{scopedPath})
 	if err != nil {
 		if status == http.StatusForbidden {
