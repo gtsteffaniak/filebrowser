@@ -909,7 +909,7 @@ export default {
       if (!this.isAdvancedSearchRoute || !this.searchExecuted) {
         return;
       }
-      if (data?.succeeded && data.succeeded.length === 0) {
+      if (data?.succeeded?.length === 0) {
         return;
       }
       this.scheduleSearchRefresh();
