@@ -1180,7 +1180,9 @@ export const mutations = {
   setPlaybackQueue: (playback) => {
     state.playbackQueue.queue = playback.queue || [];
     state.playbackQueue.currentIndex = playback.currentIndex ?? -1;
-    state.playbackQueue.mode = playback.mode || 'single';
+    state.playbackQueue.mode = playback.mode === 'sequential' || playback.mode === 'shuffle' || playback.mode === 'single'
+      ? playback.mode
+      : 'single';
     state.playbackQueue.loop = playback.loop || 'off';
     try {
       sessionStorage.setItem('playbackQueue', JSON.stringify({

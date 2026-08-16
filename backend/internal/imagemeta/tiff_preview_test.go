@@ -93,9 +93,31 @@ func TestCollectTIFFPreviewCandidatesBoundsIFDTraversal(t *testing.T) {
 	}
 }
 
+func TestTiffTagUint32sSupportsIFDType(t *testing.T) {
+	data := buildSyntheticTIFF(tiffFixture{
+		thumbnailJPEG: smallJPEG,
+		subIFDJPEG:    largeJPEG,
+		subIFDType:    tiffTypeIFD,
+	})
+	f := openBytesFile(t, data)
+
+	candidates, err := collectTIFFPreviewCandidates(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	preview, err := readLargestJPEGPreview(f, candidates)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(preview) != len(largeJPEG) {
+		t.Fatalf("preview size = %d, want %d (SubIFD type IFD)", len(preview), len(largeJPEG))
+	}
+}
+
 type tiffFixture struct {
 	thumbnailJPEG   []byte
 	subIFDJPEG      []byte
+	subIFDType      uint16
 	badJpgFromRaw   bool
 	badJPEGInterchg bool
 }
@@ -116,6 +138,9 @@ func openBytesFile(t *testing.T, data []byte) *os.File {
 
 func buildSyntheticTIFF(fix tiffFixture) []byte {
 	order := binary.LittleEndian
+	if fix.subIFDType == 0 {
+		fix.subIFDType = tiffTypeLong
+	}
 	buf := make([]byte, 64*1024)
 
 	thumbOff := uint32(4096)
@@ -149,7 +174,7 @@ func buildSyntheticTIFF(fix tiffFixture) []byte {
 	writeIFD(ifd1Off, ifd1Entries, 0)
 
 	ifd0Entries := []tiffEntry{
-		{tag: tiffTagSubIFDs, typ: tiffTypeLong, count: 1, value: ifd1Off},
+		{tag: tiffTagSubIFDs, typ: fix.subIFDType, count: 1, value: ifd1Off},
 		{tag: tiffTagJPEGInterchange, typ: tiffTypeLong, count: 1, value: thumbOff},
 		{tag: tiffTagJPEGInterchangeLen, typ: tiffTypeLong, count: 1, value: uint32(len(fix.thumbnailJPEG))},
 	}

@@ -1858,6 +1858,10 @@ definitions:
       debugOffice:
         description: debug onlyoffice editor
         type: boolean
+      declinedDefaultSources:
+        items:
+          type: string
+        type: array
       deleteAfterArchive:
         description: delete source files after successful creation/extraction of archives
         type: boolean

@@ -231,6 +231,13 @@ function eventTheme() {
   return disableEventThemes === "true"
 }
 
+function normalizePlaybackMode(mode: unknown): 'single' | 'sequential' | 'shuffle' {
+  if (mode === 'sequential' || mode === 'shuffle' || mode === 'single') {
+    return mode;
+  }
+  return 'single';
+}
+
 /**
  * Loads playback queue from localStorage.
  * @returns {Object} The playback queue state
@@ -240,20 +247,22 @@ function eventTheme() {
  *   @property {boolean} isPlaying     - False on load
  *   @property {string} loop           - 'off' | 'all' | 'single'
  */
-function loadPlaybackQueue() {
+function loadPlaybackQueue(): StoreState['playbackQueue'] {
+  const fallback: StoreState['playbackQueue'] = { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
   try {
     const storedQueue = sessionStorage.getItem('playbackQueue');
-    if (!storedQueue) return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
+    if (!storedQueue) return fallback;
     const playback = JSON.parse(storedQueue);
     if (Array.isArray(playback.queue) && typeof playback.currentIndex === 'number' && typeof playback.mode === 'string') {
+      const loop = playback.loop === 'all' || playback.loop === 'single' ? playback.loop : 'off';
       return {
         queue: playback.queue,
         currentIndex: playback.currentIndex,
-        mode: playback.mode,
+        mode: normalizePlaybackMode(playback.mode),
         isPlaying: false,
-        loop: playback.loop || 'off',
+        loop,
       };
     }
   } catch (_) { /* ignore */ }
-  return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
+  return fallback;
 }

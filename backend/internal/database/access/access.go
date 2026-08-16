@@ -96,30 +96,35 @@ func (s *Storage) Flush() error {
 
 // persistGroupSQLNL upserts or deletes one groups row to match in-memory state.
 // Caller must hold s.mux. If the group is absent from s.Groups, it is deleted from SQL.
-func (s *Storage) persistGroupSQLNL(groupname string) {
+func (s *Storage) persistGroupSQLNL(groupname string) error {
 	if s.sqlStore == nil {
-		return
+		return nil
 	}
 	members, ok := s.Groups[groupname]
 	if !ok {
 		if err := s.sqlStore.DeleteGroup(groupname); err != nil {
-			logger.Errorf("failed to delete group %q from sql: %v", groupname, err)
+			return fmt.Errorf("failed to delete group %q from sql: %w", groupname, err)
 		}
-		return
+		return nil
 	}
 	if err := s.sqlStore.SaveGroup(groupname, members); err != nil {
-		logger.Errorf("failed to save group %q: %v", groupname, err)
+		return fmt.Errorf("failed to save group %q: %w", groupname, err)
 	}
+	return nil
 }
 
 // ensureGroupExistsNL creates an empty in-memory group if missing and write-through persists it.
 // Caller must hold s.mux.
-func (s *Storage) ensureGroupExistsNL(groupname string) {
+func (s *Storage) ensureGroupExistsNL(groupname string) error {
 	if _, ok := s.Groups[groupname]; ok {
-		return
+		return nil
 	}
 	s.Groups[groupname] = make(StringSet)
-	s.persistGroupSQLNL(groupname)
+	if err := s.persistGroupSQLNL(groupname); err != nil {
+		delete(s.Groups, groupname)
+		return err
+	}
+	return nil
 }
 
 // NewStorage creates a new Storage instance.
@@ -267,7 +272,9 @@ func (s *Storage) AllowUser(sourcePath string, indexPath utils.IndexPath, userna
 func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	s.ensureGroupExistsNL(groupname)
+	if err := s.ensureGroupExistsNL(groupname); err != nil {
+		return err
+	}
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Deny.Groups[groupname]; ok {
 		return errors.ErrExist
@@ -283,7 +290,9 @@ func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupn
 func (s *Storage) AllowGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	s.ensureGroupExistsNL(groupname)
+	if err := s.ensureGroupExistsNL(groupname); err != nil {
+		return err
+	}
 	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Allow.Groups[groupname]; ok {
 		return errors.ErrExist
@@ -533,14 +542,22 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 func (s *Storage) AddUserToGroup(group, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	createdGroup := false
 	if _, ok := s.Groups[group]; !ok {
 		s.Groups[group] = make(StringSet)
+		createdGroup = true
 	}
 	if _, ok := s.Groups[group][username]; ok {
 		return nil
 	}
 	s.Groups[group][username] = struct{}{}
-	s.persistGroupSQLNL(group)
+	if err := s.persistGroupSQLNL(group); err != nil {
+		delete(s.Groups[group], username)
+		if createdGroup {
+			delete(s.Groups, group)
+		}
+		return err
+	}
 	s.clearAllCaches()
 	return nil
 }
@@ -576,7 +593,6 @@ func (s *Storage) GetUserGroups(username string) []string {
 func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	affected := make(map[string]struct{})
 
 	// Create a set of new groups for efficient lookup
 	newGroupsSet := make(StringSet, len(newGroups))
@@ -587,35 +603,92 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 		newGroupsSet[g] = struct{}{}
 	}
 
-	// Iterate over all existing groups to find the user's current memberships
+	affected := make(map[string]struct{})
 	for group, members := range s.Groups {
 		_, userIsInGroup := members[username]
 		_, groupIsInNewSet := newGroupsSet[group]
-
-		// If user is in a group that is not in their new set of groups, remove them.
 		if userIsInGroup && !groupIsInNewSet {
-			delete(s.Groups[group], username)
+			affected[group] = struct{}{}
+		}
+	}
+	for group := range newGroupsSet {
+		if _, ok := s.Groups[group]; !ok {
+			affected[group] = struct{}{}
+			continue
+		}
+		if _, ok := s.Groups[group][username]; !ok {
 			affected[group] = struct{}{}
 		}
 	}
 
-	// Add user to new groups
+	before := make(map[string]StringSet, len(affected))
+	for group := range affected {
+		before[group] = cloneStringSet(s.Groups[group])
+	}
+
+	for group, members := range s.Groups {
+		_, userIsInGroup := members[username]
+		_, groupIsInNewSet := newGroupsSet[group]
+		if userIsInGroup && !groupIsInNewSet {
+			delete(s.Groups[group], username)
+		}
+	}
 	for group := range newGroupsSet {
 		if _, ok := s.Groups[group]; !ok {
 			s.Groups[group] = make(StringSet)
 		}
-		if _, ok := s.Groups[group][username]; !ok {
-			s.Groups[group][username] = struct{}{}
-			affected[group] = struct{}{}
-		}
+		s.Groups[group][username] = struct{}{}
 	}
-	for group := range affected {
-		s.persistGroupSQLNL(group)
+
+	affectedGroups := slices.Sorted(maps.Keys(affected))
+	var persisted []string
+	for _, group := range affectedGroups {
+		if err := s.persistGroupSQLNL(group); err != nil {
+			for _, g := range persisted {
+				if restoreErr := s.restoreGroupSQLNL(g, before[g]); restoreErr != nil {
+					logger.Errorf("failed to restore group %q in sql after sync failure: %v", g, restoreErr)
+				}
+			}
+			for g, snap := range before {
+				if len(snap) == 0 {
+					delete(s.Groups, g)
+				} else {
+					s.Groups[g] = snap
+				}
+			}
+			return err
+		}
+		persisted = append(persisted, group)
 	}
 	if len(affected) > 0 {
 		s.clearAllCaches()
 	}
 	return nil
+}
+
+func (s *Storage) restoreGroupSQLNL(groupname string, members StringSet) error {
+	if s.sqlStore == nil {
+		return nil
+	}
+	if len(members) == 0 {
+		if err := s.sqlStore.DeleteGroup(groupname); err != nil {
+			return fmt.Errorf("failed to delete group %q from sql: %w", groupname, err)
+		}
+		return nil
+	}
+	if err := s.sqlStore.SaveGroup(groupname, members); err != nil {
+		return fmt.Errorf("failed to save group %q: %w", groupname, err)
+	}
+	return nil
+}
+
+func cloneStringSet(src StringSet) StringSet {
+	if len(src) == 0 {
+		return nil
+	}
+	dst := make(StringSet, len(src))
+	maps.Copy(dst, src)
+	return dst
 }
 
 // RemoveUserFromGroup removes a username from a group.
@@ -630,7 +703,10 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 		return nil
 	}
 	delete(members, username)
-	s.persistGroupSQLNL(group)
+	if err := s.persistGroupSQLNL(group); err != nil {
+		s.Groups[group][username] = struct{}{}
+		return err
+	}
 	s.clearAllCaches()
 	return nil
 }

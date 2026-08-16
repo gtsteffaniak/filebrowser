@@ -7602,6 +7602,12 @@ const docTemplate = `{
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
+                "declinedDefaultSources": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "deleteAfterArchive": {
                     "description": "delete source files after successful creation/extraction of archives",
                     "type": "boolean"

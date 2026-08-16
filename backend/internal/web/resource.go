@@ -808,6 +808,12 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			logger.Debugf("%v", acquireErr)
 			return http.StatusInternalServerError, acquireErr
 		}
+		abandonSession := true
+		defer func() {
+			if abandonSession {
+				activeUploadSessions.release(realPath, sessionID)
+			}
+		}()
 
 		// On the first chunk, check for conflicts or handle override
 		if offset == 0 {
@@ -858,10 +864,6 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		chunkSize, err = io.Copy(outFile, r.Body)
 		if err != nil {
 			logger.Debugf("could not write chunk to temp file: %v", err)
-			if truncErr := outFile.Truncate(offset); truncErr != nil {
-				logger.Debugf("could not truncate temp file after failed chunk (offset=%d): %v", offset, truncErr)
-			}
-			_ = outFile.Sync()
 
 			gracefulPause := false
 			if d.Share.Hash != "" {
@@ -878,30 +880,34 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				}
 			}
 
-			// Keep the partial temp file so the client can resume from offset.
 			if gracefulPause {
-				logger.Debugf("chunk upload ended after graceful pause; keeping partial file (source=%s path=%s)", source, path)
-				return 499, nil
+				if rollbackChunkForResume(outFile, tempFilePath, offset) {
+					logger.Debugf("chunk upload ended after graceful pause; keeping partial file (source=%s path=%s)", source, path)
+					abandonSession = false
+					return 499, nil
+				}
+				return http.StatusInternalServerError, fmt.Errorf("could not write chunk to temp file: %v", err)
 			}
-			logger.Debugf("chunk upload failed; keeping partial file for resume (source=%s path=%s offset=%d)", source, path, offset)
+			if rollbackChunkForResume(outFile, tempFilePath, offset) {
+				logger.Debugf("chunk upload failed; keeping partial file for resume (source=%s path=%s offset=%d)", source, path, offset)
+				abandonSession = false
+			}
 			return http.StatusInternalServerError, fmt.Errorf("could not write chunk to temp file: %v", err)
 		}
 
 		if err = validateReceivedBytes(chunkSize, 0, false, r.ContentLength); err != nil {
 			logger.Debugf("incomplete chunk: %v", err)
-			if truncErr := outFile.Truncate(offset); truncErr != nil {
-				logger.Debugf("could not truncate temp file after incomplete chunk (offset=%d): %v", offset, truncErr)
+			if rollbackChunkForResume(outFile, tempFilePath, offset) {
+				abandonSession = false
 			}
-			_ = outFile.Sync()
 			return http.StatusBadRequest, err
 		}
 
 		if err = validateAssembledSize(offset, chunkSize, totalSize); err != nil {
 			logger.Debugf("%v", err)
-			if truncErr := outFile.Truncate(offset); truncErr != nil {
-				logger.Debugf("could not truncate temp file after oversized chunk (offset=%d): %v", offset, truncErr)
+			if rollbackChunkForResume(outFile, tempFilePath, offset) {
+				abandonSession = false
 			}
-			_ = outFile.Sync()
 			return http.StatusBadRequest, err
 		}
 		assembled := offset + chunkSize
@@ -929,12 +935,15 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			err = files.MoveResource(false, source, source, tempFilePath, realPath)
 			if err != nil {
 				logger.Debugf("could not move file from %v to %v: %v", tempFilePath, realPath, err)
+				abandonSession = false
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
 			activity.RecordUpload(r, toActor(d), source, path, false)
 			activeUploadSessions.release(realPath, sessionID)
+			abandonSession = false
 		}
+		abandonSession = false
 		return http.StatusOK, nil
 	}
 

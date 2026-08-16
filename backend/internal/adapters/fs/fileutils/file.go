@@ -54,46 +54,60 @@ func unixModeToFileMode(u uint32) os.FileMode {
 }
 
 // MoveFile moves a file from src to dst.
-// By default, the rename system call is used. If src and dst point to different volumes,
-// the file copy is used as a fallback.
+// By default, the rename system call is used. If src and dst are on different volumes,
+// CopyFile is used as a fallback and the source is removed synchronously on success.
 func MoveFile(src, dst string) error {
-	err := os.Rename(src, dst)
-	if err == nil {
-		return nil
-	}
-
-	// fallback
-	err = CopyFile(src, dst)
-	if err != nil {
-		logger.Errorf("CopyFile failed %v", err)
-		return err
-	}
-
-	go func() {
-		err = os.RemoveAll(src)
-		if err != nil {
-			logger.Errorf("os.Remove failed %v", err)
+	if err := os.Rename(src, dst); err != nil {
+		if !isCrossDeviceRenameError(err) {
+			return err
 		}
-	}()
-
+		if err := CopyFile(src, dst); err != nil {
+			return err
+		}
+		return os.RemoveAll(src)
+	}
 	return nil
+}
+
+func preserveFileMode(path string, mode os.FileMode) error {
+	return os.Chmod(path, mode.Perm())
 }
 
 // CopyFile copies a file or directory from source to dest and returns an error if any.
 func CopyFile(source, dest string) error {
-	// Check if the source exists and whether it's a file or directory.
-	info, err := os.Stat(source)
+	info, err := os.Lstat(source)
 	if err != nil {
 		return err
 	}
-
+	if info.Mode()&os.ModeSymlink != 0 {
+		return copySymlink(source, dest)
+	}
 	if info.IsDir() {
-		// If the source is a directory, copy it recursively.
 		return copyDirectory(source, dest)
 	}
-
-	// If the source is a file, copy the file.
 	return copySingleFile(source, dest)
+}
+
+func copySymlink(source, dest string) error {
+	target, err := os.Readlink(source)
+	if err != nil {
+		return err
+	}
+	destDir := filepath.Dir(dest)
+	if err = os.MkdirAll(destDir, EffectiveDirPerm()); err != nil {
+		return err
+	}
+	tmpDir, err := os.MkdirTemp(destDir, ".fb-link-*")
+	if err != nil {
+		return err
+	}
+	defer func() { _ = os.RemoveAll(tmpDir) }()
+
+	tmpPath := filepath.Join(tmpDir, "link")
+	if err := os.Symlink(target, tmpPath); err != nil {
+		return err
+	}
+	return os.Rename(tmpPath, dest)
 }
 
 // copySingleFile handles copying a single file.
@@ -148,7 +162,7 @@ func copySingleFile(source, dest string) error {
 
 // copyDirectory handles copying directories recursively.
 func copyDirectory(source, dest string) error {
-	srcInfo, err := os.Stat(source)
+	srcInfo, err := os.Lstat(source)
 	if err != nil {
 		return err
 	}
@@ -156,6 +170,9 @@ func copyDirectory(source, dest string) error {
 	err = os.MkdirAll(dest, EffectiveDirPerm())
 	if err != nil {
 		return err
+	}
+	if err = preserveFileMode(dest, srcInfo.Mode()); err != nil {
+		logger.Debugf("Could not set directory permissions for %s: %v", dest, err)
 	}
 
 	// Read the contents of the source directory.
@@ -169,6 +186,17 @@ func copyDirectory(source, dest string) error {
 		srcPath := filepath.Join(source, entry.Name())
 		destPath := filepath.Join(dest, entry.Name())
 
+		if entry.Type()&os.ModeSymlink != 0 {
+			linkTarget := ""
+			linkTarget, err = os.Readlink(srcPath)
+			if err != nil {
+				return err
+			}
+			if err = os.Symlink(linkTarget, destPath); err != nil {
+				return err
+			}
+			continue
+		}
 		if entry.IsDir() {
 			// Recursively copy subdirectories.
 			err = copyDirectory(srcPath, destPath)

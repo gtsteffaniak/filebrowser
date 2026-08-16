@@ -117,3 +117,220 @@ func TestCopyFilePreservesModTime(t *testing.T) {
 		})
 	}
 }
+
+// moveViaCrossDeviceFallback mirrors MoveFile's EXDEV fallback (CopyFile + RemoveAll).
+func moveViaCrossDeviceFallback(t *testing.T, src, dst string) {
+	t.Helper()
+	if err := CopyFile(src, dst); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.RemoveAll(src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestMoveFileDoesNotFallbackOnNonCrossDeviceError(t *testing.T) {
+	srcDir := t.TempDir()
+	src := filepath.Join(srcDir, "file.txt")
+	if err := os.WriteFile(src, []byte("data"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(srcDir, "existing-dir")
+	if err := os.Mkdir(dst, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	err := MoveFile(src, dst)
+	if err == nil {
+		t.Fatal("expected rename error")
+	}
+	if _, statErr := os.Stat(src); statErr != nil {
+		t.Fatalf("source file should remain after rename failure: %v", statErr)
+	}
+	entries, err := os.ReadDir(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("destination directory should be unchanged, got %d entries", len(entries))
+	}
+}
+
+func TestMoveFileCrossDevicePreservesFilePermissions(t *testing.T) {
+	srcDir := t.TempDir()
+	dstDir := t.TempDir()
+	src := filepath.Join(srcDir, "secret.txt")
+	if err := os.WriteFile(src, []byte("data"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(dstDir, "secret.txt")
+
+	moveViaCrossDeviceFallback(t, src, dst)
+	got, err := os.Stat(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Mode().Perm() != 0o640 {
+		t.Fatalf("dst perm = %#o, want 0640", got.Mode().Perm())
+	}
+	if _, err := os.Stat(src); !os.IsNotExist(err) {
+		t.Fatalf("src should be removed, stat err = %v", err)
+	}
+}
+
+func TestMoveFileCrossDeviceMovesDirectory(t *testing.T) {
+	srcDir := t.TempDir()
+	dstParent := t.TempDir()
+	nested := filepath.Join(srcDir, "nested.txt")
+	if err := os.WriteFile(nested, []byte("nested"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(srcDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(dstParent, "moved-dir")
+
+	moveViaCrossDeviceFallback(t, srcDir, dst)
+	movedNested := filepath.Join(dst, "nested.txt")
+	if _, err := os.Stat(movedNested); err != nil {
+		t.Fatalf("expected nested file at destination: %v", err)
+	}
+	got, err := os.Stat(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Mode().Perm() != 0o755 {
+		t.Fatalf("dst dir perm = %#o, want 0755", got.Mode().Perm())
+	}
+	if _, err := os.Stat(srcDir); !os.IsNotExist(err) {
+		t.Fatalf("source directory should be removed, stat err = %v", err)
+	}
+}
+
+func TestMoveFileCrossDevicePreservesSymlinkToFile(t *testing.T) {
+	targetDir := t.TempDir()
+	target := filepath.Join(targetDir, "target.txt")
+	if err := os.WriteFile(target, []byte("data"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	srcDir := t.TempDir()
+	dstDir := t.TempDir()
+	link := filepath.Join(srcDir, "link")
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(dstDir, "link")
+
+	moveViaCrossDeviceFallback(t, link, dst)
+	gotTarget, err := os.Readlink(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotTarget != target {
+		t.Fatalf("link target = %q, want %q", gotTarget, target)
+	}
+	info, err := os.Lstat(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		t.Fatal("expected destination to remain a symlink")
+	}
+	if _, err := os.Stat(link); !os.IsNotExist(err) {
+		t.Fatalf("source symlink should be removed, stat err = %v", err)
+	}
+}
+
+func TestMoveFileCrossDevicePreservesSymlinkToDirectory(t *testing.T) {
+	targetDir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(targetDir, "inside"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	srcDir := t.TempDir()
+	dstDir := t.TempDir()
+	link := filepath.Join(srcDir, "dirlink")
+	if err := os.Symlink(targetDir, link); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(dstDir, "dirlink")
+
+	moveViaCrossDeviceFallback(t, link, dst)
+	gotTarget, err := os.Readlink(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotTarget != targetDir {
+		t.Fatalf("link target = %q, want %q", gotTarget, targetDir)
+	}
+	info, err := os.Lstat(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		t.Fatal("expected destination to remain a symlink")
+	}
+}
+
+func TestMoveFileCrossDeviceMovesDirectoryWithNestedSymlink(t *testing.T) {
+	target := filepath.Join(t.TempDir(), "target.txt")
+	if err := os.WriteFile(target, []byte("linked"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	srcDir := t.TempDir()
+	if err := os.Symlink(target, filepath.Join(srcDir, "nested-link")); err != nil {
+		t.Fatal(err)
+	}
+	dstParent := t.TempDir()
+	dst := filepath.Join(dstParent, "moved-dir")
+
+	moveViaCrossDeviceFallback(t, srcDir, dst)
+	movedLink := filepath.Join(dst, "nested-link")
+	gotTarget, err := os.Readlink(movedLink)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotTarget != target {
+		t.Fatalf("nested link target = %q, want %q", gotTarget, target)
+	}
+	info, err := os.Lstat(movedLink)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		t.Fatal("expected nested entry to remain a symlink")
+	}
+}
+
+func TestCopySymlinkReplacesExistingDestination(t *testing.T) {
+	target := filepath.Join(t.TempDir(), "target.txt")
+	if err := os.WriteFile(target, []byte("data"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	workDir := t.TempDir()
+	src := filepath.Join(workDir, "link")
+	if err := os.Symlink(target, src); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(workDir, "existing")
+	if err := os.WriteFile(dst, []byte("old"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := copySymlink(src, dst); err != nil {
+		t.Fatal(err)
+	}
+	gotTarget, err := os.Readlink(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotTarget != target {
+		t.Fatalf("link target = %q, want %q", gotTarget, target)
+	}
+	info, err := os.Lstat(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		t.Fatal("expected destination to be a symlink")
+	}
+}

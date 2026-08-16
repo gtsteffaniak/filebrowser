@@ -213,6 +213,10 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return nil
 	}
 
+	if tk.NotBefore != nil && !tk.VerifyNotBefore(time.Now(), false) {
+		return nil
+	}
+
 	if state.IsTokenRevoked(tokenString) {
 		return nil
 	}
@@ -696,11 +700,12 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 
 		// Log timeout warning at 80% of timeout duration
 		warningTime := time.Duration(float64(timeout) * 0.8)
+		method, path := r.Method, r.URL.Path
 		go func() {
 			select {
 			case <-time.After(warningTime):
 				if ctx.Err() == nil {
-					logger.Api(http.StatusRequestTimeout, fmt.Sprintf("Request approaching timeout (%.1fs/%.0fs): %s %s", warningTime.Seconds(), timeout.Seconds(), r.Method, r.URL.Path))
+					logger.Api(http.StatusRequestTimeout, fmt.Sprintf("Request approaching timeout (%.1fs/%.0fs): %s %s", warningTime.Seconds(), timeout.Seconds(), method, path))
 				}
 			case <-ctx.Done():
 				// Context finished before warning time
