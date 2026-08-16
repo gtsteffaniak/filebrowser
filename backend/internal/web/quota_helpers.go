@@ -3,7 +3,10 @@ package web
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -40,6 +43,21 @@ func checkUploadQuota(ctx quota.UploadContext) error {
 
 func commitUploadQuota(ctx quota.UploadContext) error {
 	return quota.CommitUpload(ctx)
+}
+
+func commitUploadQuotaAfterMove(ctx quota.UploadContext) error {
+	if err := quota.CommitUpload(ctx); err != nil {
+		logger.Warningf("quota commit after upload failed, retrying: %v", err)
+		delta := quota.UploadCommitDelta(ctx)
+		if retryErr := state.ForceCommitSessionQuota(ctx.SessionID, delta); retryErr != nil {
+			return retryErr
+		}
+	}
+	return nil
+}
+
+func newQuotaSessionID() string {
+	return uuid.New().String()
 }
 
 func releaseUploadQuota(sessionID string) {

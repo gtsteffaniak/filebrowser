@@ -326,9 +326,25 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if err3 != nil {
 			return http.StatusInternalServerError, err3
 		}
-		if updatedShare.QuotaLimitBytes > 0 {
+		if beforeShare.QuotaLimitBytes > 0 && updatedShare.QuotaLimitBytes <= 0 {
+			if qerr := state.DeleteShareQuotaCounter(updatedShare.Hash); qerr != nil {
+				return http.StatusInternalServerError, qerr
+			}
+		} else if updatedShare.QuotaLimitBytes > 0 {
 			if qerr := state.EnsureShareQuotaCounter(updatedShare.Hash); qerr != nil {
 				return http.StatusInternalServerError, qerr
+			}
+			if beforeShare.QuotaLimitBytes <= 0 {
+				idx := indexing.GetIndex(updatedShare.GetSourceName())
+				if idx != nil {
+					indexPath := updatedShare.Path
+					if indexPath == "" {
+						indexPath = "/"
+					}
+					if rbErr := state.RebuildShareQuotaUsage(updatedShare.Hash, updatedShare.GetSourceName(), indexPath); rbErr != nil {
+						logger.Warningf("rebuild share quota usage failed: %v", rbErr)
+					}
+				}
 			}
 		}
 		changes := activity.ShareUpdateChanges(&beforeShare, &updatedShare)

@@ -37,7 +37,7 @@ func CheckUploadLength(ctx UploadContext) error {
 
 // ReserveUpload reserves quota for an upload session.
 func ReserveUpload(ctx UploadContext) error {
-	delta := uploadDelta(ctx)
+	delta := uploadReserveDelta(ctx)
 	if delta <= 0 {
 		return nil
 	}
@@ -53,12 +53,15 @@ func ReserveUpload(ctx UploadContext) error {
 
 // CommitUpload commits quota after successful upload.
 func CommitUpload(ctx UploadContext) error {
-	delta := uploadDelta(ctx)
-	if delta <= 0 {
-		state.ReleaseQuota(ctx.SessionID)
-		return nil
+	commitDelta := uploadCommitDelta(ctx)
+	if commitDelta > 0 {
+		return state.CommitQuota(ctx.SessionID, commitDelta)
 	}
-	return state.CommitQuota(ctx.SessionID, delta)
+	state.ReleaseQuota(ctx.SessionID)
+	if commitDelta < 0 {
+		return state.ApplyAccountedUsageDelta(ctx.Principal, ctx.SourceName, ctx.SourcePath, ctx.DestIndexPath, ctx.ShareHash, commitDelta)
+	}
+	return nil
 }
 
 // ReleaseUpload releases quota reservation on failure.
@@ -77,7 +80,12 @@ func PrincipalForUpload(actor *users.User, shareOwnerID uint64, shareHash string
 	return actor
 }
 
-func uploadDelta(ctx UploadContext) int64 {
+// UploadCommitDelta returns signed byte change for an upload (negative when file shrinks).
+func UploadCommitDelta(ctx UploadContext) int64 {
+	return uploadCommitDelta(ctx)
+}
+
+func uploadCommitDelta(ctx UploadContext) int64 {
 	if !ctx.HasKnownSize {
 		return 0
 	}
@@ -87,7 +95,11 @@ func uploadDelta(ctx UploadContext) int64 {
 			oldSize = stat.Size()
 		}
 	}
-	delta := ctx.TotalSize - oldSize
+	return ctx.TotalSize - oldSize
+}
+
+func uploadReserveDelta(ctx UploadContext) int64 {
+	delta := uploadCommitDelta(ctx)
 	if delta < 0 {
 		return 0
 	}

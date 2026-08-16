@@ -90,7 +90,7 @@ func quotasGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			preview := state.FolderQuotaUsagePreview(sourceName, fullPath)
 			return RenderJSON(w, r, []folderQuotaResponse{folderUsagePreviewResponse(sourceName, path, preview)})
 		}
-		return RenderJSON(w, r, folderQuotaToResponse(*q, sourceName, path))
+		return RenderJSON(w, r, []folderQuotaResponse{folderQuotaToResponse(*q, sourceName, path)})
 	}
 	rows := state.ListFolderQuotasForSource(sourceInfo.Path)
 	out := make([]folderQuotaResponse, 0, len(rows))
@@ -134,53 +134,98 @@ func quotasPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		return http.StatusBadRequest, err
 	}
 	activity.RecordQuotaCreate(r, toActor(d), body.Source, clean, activity.QuotaFolderCreateChanges(*q))
-	return RenderJSON(w, r, folderQuotaToResponse(*q, body.Source, clean))
+	return RenderJSON(w, r, []folderQuotaResponse{folderQuotaToResponse(*q, body.Source, clean)})
 }
 
 func quotasPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	var body struct {
-		Source     string `json:"source"`
-		Path       string `json:"path"`
-		Username   string `json:"username"`
-		LimitBytes int64  `json:"limitBytes"`
-		Meter      string `json:"meter"`
-	}
-	if err := decodeJSON(r, &body); err != nil {
+	var raw map[string]json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
 		return http.StatusBadRequest, err
 	}
-	if body.Source == "" || body.Path == "" {
+	sourceName, err := patchStringField(raw, "source")
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	pathVal, err := patchStringField(raw, "path")
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	if sourceName == "" || pathVal == "" {
 		return http.StatusBadRequest, fmt.Errorf("source and path are required")
 	}
-	sourceInfo, ok := settings.Config.Server.NameToSource[body.Source]
+	sourceInfo, ok := settings.Config.Server.NameToSource[sourceName]
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source")
 	}
-	clean, err := utils.SanitizePath(body.Path)
+	clean, err := utils.SanitizePath(pathVal)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	userID, err := resolveFolderQuotaUserID(body.Username, d.User)
-	if err != nil {
-		return ErrToStatus(err), err
+	var lookupUserID uint64
+	if _, hasUsername := raw["username"]; hasUsername {
+		username, uerr := patchStringField(raw, "username")
+		if uerr != nil {
+			return http.StatusBadRequest, uerr
+		}
+		lookupUserID, err = resolveFolderQuotaUserID(username, d.User)
+		if err != nil {
+			return ErrToStatus(err), err
+		}
 	}
-	userscope, err := d.User.GetScopeForSourceName(body.Source)
+	userscope, err := d.User.GetScopeForSourceName(sourceName)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	fullPath := utils.JoinScopedIndexPath(userscope, clean)
-	before, err := state.GetFolderQuotaByPathAndUser(sourceInfo.Path, fullPath, userID)
+	before, err := state.GetFolderQuotaByPathAndUser(sourceInfo.Path, fullPath, lookupUserID)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
-	q, err := state.UpdateFolderQuota(before.ID, userID, body.LimitBytes, body.Meter)
+	var limitBytes int64
+	if v, ok := raw["limitBytes"]; ok {
+		if err := json.Unmarshal(v, &limitBytes); err != nil {
+			return http.StatusBadRequest, err
+		}
+	}
+	var meter string
+	if v, ok := raw["meter"]; ok {
+		if err := json.Unmarshal(v, &meter); err != nil {
+			return http.StatusBadRequest, err
+		}
+	}
+	var userIDPatch *uint64
+	if _, hasUsername := raw["username"]; hasUsername {
+		username, uerr := patchStringField(raw, "username")
+		if uerr != nil {
+			return http.StatusBadRequest, uerr
+		}
+		uid, uerr := resolveFolderQuotaUserID(username, d.User)
+		if uerr != nil {
+			return ErrToStatus(uerr), uerr
+		}
+		userIDPatch = &uid
+	}
+	q, err := state.UpdateFolderQuota(before.ID, limitBytes, meter, userIDPatch)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 	changes := activity.QuotaFolderUpdateChanges(*before, *q)
 	if len(changes) > 0 {
-		activity.RecordQuotaUpdate(r, toActor(d), body.Source, clean, changes)
+		activity.RecordQuotaUpdate(r, toActor(d), sourceName, clean, changes)
 	}
-	return RenderJSON(w, r, folderQuotaToResponse(*q, body.Source, clean))
+	return RenderJSON(w, r, []folderQuotaResponse{folderQuotaToResponse(*q, sourceName, clean)})
+}
+
+func patchStringField(raw map[string]json.RawMessage, key string) (string, error) {
+	v, ok := raw[key]
+	if !ok {
+		return "", nil
+	}
+	var s string
+	if err := json.Unmarshal(v, &s); err != nil {
+		return "", err
+	}
+	return s, nil
 }
 
 func quotasDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {

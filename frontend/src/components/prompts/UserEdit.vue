@@ -715,6 +715,7 @@ export default {
         permissions: scope.permissions
           ? { ...scope.permissions }
           : undefined,
+        quota: scope.quota ? { ...scope.quota } : undefined,
         permissionsExplicit: !!scope.permissions,
       }));
 

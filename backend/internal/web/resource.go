@@ -264,9 +264,26 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
+	principal := quota.PrincipalForUpload(d.User, d.Share.UserID, d.Share.Hash)
+	sourceInfo, ok := settings.Config.Server.NameToSource[source]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	}
+	var deleteBytes int64
+	if fileInfo.Type == "directory" {
+		deleteBytes, _ = state.IndexedPathBytes(source, fileInfo.Path, true)
+	} else {
+		deleteBytes = fileInfo.Size
+	}
+
 	err = files.DeleteFiles(source, fileInfo.RealPath, fileInfo.Type == "directory")
 	if err != nil {
 		return ErrToStatus(err), err
+	}
+	if deleteBytes > 0 {
+		if adjErr := state.ApplyAccountedUsageDelta(principal, source, sourceInfo.Path, fileInfo.Path, d.Share.Hash, -deleteBytes); adjErr != nil {
+			logger.Warningf("quota adjust after delete failed: %v", adjErr)
+		}
 	}
 	activity.RecordDelete(r, toActor(d), source, path)
 	return http.StatusOK, nil
@@ -949,7 +966,9 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
-			if commitErr := commitUploadQuota(quotaCtx); commitErr != nil {
+			if commitErr := commitUploadQuotaAfterMove(quotaCtx); commitErr != nil {
+				quotaReserved = false
+				abandonSession = false
 				return renderQuotaError(w, r, commitErr)
 			}
 			quotaReserved = false
@@ -1009,10 +1028,21 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 
 	quotaCtx := uploadQuotaContext(d, source, fullIndexPath, realPath, r, sessionID, totalSize, hasTotalSize)
+	quotaReserved := false
+	abandonSession := true
+	defer func() {
+		if abandonSession {
+			activeUploadSessions.release(realPath, sessionID)
+		}
+		if quotaReserved && abandonSession {
+			releaseUploadQuota(sessionID)
+		}
+	}()
+
 	if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
-		activeUploadSessions.release(realPath, sessionID)
 		return renderQuotaError(w, r, quotaErr)
 	}
+	quotaReserved = true
 
 	tempFilePath := uploadTempPath(realPath, sessionID)
 	outFile, err := os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, fileutils.PermFile)
@@ -1025,23 +1055,17 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	closeErr := outFile.Close()
 	if copyErr != nil {
 		_ = os.Remove(tempFilePath)
-		activeUploadSessions.release(realPath, sessionID)
-		releaseUploadQuota(sessionID)
 		logger.Debugf("error writing file: %v", copyErr)
 		return ErrToStatus(copyErr), copyErr
 	}
 	if closeErr != nil {
 		_ = os.Remove(tempFilePath)
-		activeUploadSessions.release(realPath, sessionID)
-		releaseUploadQuota(sessionID)
 		logger.Debugf("error closing temp file: %v", closeErr)
 		return http.StatusInternalServerError, closeErr
 	}
 
 	if err = validateReceivedBytes(written, totalSize, hasTotalSize, r.ContentLength); err != nil {
 		_ = os.Remove(tempFilePath)
-		activeUploadSessions.release(realPath, sessionID)
-		releaseUploadQuota(sessionID)
 		logger.Debugf("%v", err)
 		return http.StatusBadRequest, err
 	}
@@ -1049,18 +1073,18 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	err = files.MoveResource(false, source, source, tempFilePath, realPath)
 	if err != nil {
 		_ = os.Remove(tempFilePath)
-		activeUploadSessions.release(realPath, sessionID)
-		releaseUploadQuota(sessionID)
 		logger.Debugf("error writing file: %v", err)
 		return ErrToStatus(err), err
 	}
 	reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
-	if commitErr := commitUploadQuota(quotaCtx); commitErr != nil {
-		activeUploadSessions.release(realPath, sessionID)
+	if commitErr := commitUploadQuotaAfterMove(quotaCtx); commitErr != nil {
+		quotaReserved = false
+		abandonSession = false
 		return renderQuotaError(w, r, commitErr)
 	}
+	quotaReserved = false
 	activity.RecordUpload(r, toActor(d), source, path, false)
-	activeUploadSessions.release(realPath, sessionID)
+	abandonSession = false
 	return http.StatusOK, nil
 }
 
@@ -1457,8 +1481,11 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			}
 		}
 
-		overwriteBytes := quota.OverwriteBytesAtPath(item.ToSource, fullDstIndexPath, isSrcDir)
-		patchSessionID := fmt.Sprintf("patch-%d", time.Now().UnixNano())
+		overwriteBytes := int64(0)
+		if !req.Rename {
+			overwriteBytes = quota.OverwriteBytesAtPath(item.ToSource, fullDstIndexPath, isSrcDir)
+		}
+		patchSessionID := newQuotaSessionID()
 		quotaCtx := copyMoveQuotaContext(
 			d,
 			req.Action,
@@ -1514,7 +1541,10 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		}
 
 		if commitErr := commitCopyMoveQuota(patchSessionID); commitErr != nil {
-			logger.Warningf("quota commit after patch failed: %v", commitErr)
+			logger.Warningf("quota commit after patch failed, retrying: %v", commitErr)
+			if retryErr := state.ForceCommitSessionQuota(patchSessionID, 0); retryErr != nil {
+				logger.Warningf("quota commit after patch failed: %v", retryErr)
+			}
 		}
 
 		// Success

@@ -139,11 +139,11 @@ func TestQuotasDeleteHandler_RecordsActivityDetails(t *testing.T) {
 		t.Fatalf("setup post failed: status=%d err=%v", status, handlerErr)
 	}
 
-	var created map[string]any
-	if unmarshalErr := json.Unmarshal(createRec.Body.Bytes(), &created); unmarshalErr != nil {
+	var createdList []map[string]any
+	if unmarshalErr := json.Unmarshal(createRec.Body.Bytes(), &createdList); unmarshalErr != nil {
 		t.Fatal(unmarshalErr)
 	}
-	if created["limitBytes"] == nil {
+	if len(createdList) == 0 || createdList[0]["limitBytes"] == nil {
 		t.Fatal("expected limitBytes in create response")
 	}
 

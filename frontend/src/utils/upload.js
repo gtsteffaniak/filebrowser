@@ -289,20 +289,20 @@ class UploadManager {
     }
 
     if (this.quotaBatchAborted) {
-      return;
-    }
-
-    const maxConcurrent = state.user.fileLoading?.maxConcurrentUpload || 3;
-    while (
-      this.activeUploads < maxConcurrent &&
-      this.hasPending()
-    ) {
-      const upload = this.queue.find((item) => item.status === "pending");
-      if (upload) {
-        if (this.overwriteAll) {
-          upload.overwrite = true;
+      // Still run batch bookkeeping below; only block scheduling new uploads.
+    } else {
+      const maxConcurrent = state.user.fileLoading?.maxConcurrentUpload || 3;
+      while (
+        this.activeUploads < maxConcurrent &&
+        this.hasPending()
+      ) {
+        const upload = this.queue.find((item) => item.status === "pending");
+        if (upload) {
+          if (this.overwriteAll) {
+            upload.overwrite = true;
+          }
+          this.start(upload.id);
         }
-        this.start(upload.id);
       }
     }
 
@@ -349,11 +349,14 @@ class UploadManager {
     upload.status = "uploading";
 
     try {
+      let promise;
       if (getters.isShare()) {
-        await resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
+        promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       } else {
-        await resourcesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
+        promise = resourcesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       }
+      upload.xhrPromise = promise;
+      await promise;
 
       upload.status = "completed";
       upload.progress = 100;
@@ -725,13 +728,8 @@ class UploadManager {
       this.quotaBatchAborted = true;
       for (const item of this.queue) {
         if (item.status === "uploading") {
-          if (item.xhr?.abort) {
-            try {
-              item.xhr.abort();
-            } catch {
-              // ignore abort errors
-            }
-          }
+          this.abortUpload(item);
+        }
         }
         if (item.status === "pending" || item.status === "uploading") {
           item.status = "error";

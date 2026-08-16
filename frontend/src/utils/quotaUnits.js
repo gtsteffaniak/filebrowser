@@ -30,5 +30,8 @@ export function customAmountFromBytes(bytes) {
   if (b % MB === 0) {
     return { amount: b / MB, unit: "mb" };
   }
+  if (b < GB) {
+    return { amount: Math.round((b / MB) * 100) / 100, unit: "mb" };
+  }
   return { amount: Math.round((b / GB) * 10) / 10, unit: "gb" };
 }

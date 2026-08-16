@@ -60,6 +60,8 @@ func InitQuotas(cfg settings.Database) error {
 		storeFolderQuota(q)
 	}
 
+	startQuotaFlusher(cfg.Quotas)
+
 	counters, err := sqlDb.GetAllQuotaCounters()
 	if err != nil {
 		return fmt.Errorf("load quota counters: %w", err)
@@ -67,11 +69,16 @@ func InitQuotas(cfg settings.Database) error {
 	for _, c := range counters {
 		quotaCounters[c.QuotaID] = &quotaCounterMem{
 			UsedBytes:     c.UsedBytes,
-			ReservedBytes: c.ReservedBytes,
+			ReservedBytes: 0,
+		}
+		if c.ReservedBytes > 0 {
+			quotaCounters[c.QuotaID].Dirty = true
+			if quotaFlusher != nil {
+				quotaFlusher.markDirty(c.QuotaID)
+			}
 		}
 	}
 
-	startQuotaFlusher(cfg.Quotas)
 	return nil
 }
 
@@ -185,8 +192,8 @@ func CreateFolderQuota(source, path string, userID uint64, limitBytes int64, met
 	return &copyQ, nil
 }
 
-// UpdateFolderQuota updates limit, optional user binding, and optional meter.
-func UpdateFolderQuota(id string, userID uint64, limitBytes int64, meter string) (*quota.FolderQuota, error) {
+// UpdateFolderQuota updates limit and optional meter; userID is applied only when userIDPatch is non-nil.
+func UpdateFolderQuota(id string, limitBytes int64, meter string, userIDPatch *uint64) (*quota.FolderQuota, error) {
 	quotasMux.Lock()
 	defer quotasMux.Unlock()
 
@@ -197,7 +204,9 @@ func UpdateFolderQuota(id string, userID uint64, limitBytes int64, meter string)
 	if limitBytes > 0 {
 		q.LimitBytes = limitBytes
 	}
-	q.UserID = userID
+	if userIDPatch != nil {
+		q.UserID = *userIDPatch
+	}
 	meter = strings.TrimSpace(meter)
 	if meter != "" {
 		sourceName := sourceNameForPath(q.Source)
@@ -273,6 +282,29 @@ func DeleteShareQuotaCounter(hash string) error {
 	delete(quotaCounters, id)
 	delete(pendingIndexDelta, id)
 	return sqlDb.DeleteQuotaCounter(id)
+}
+
+// RebuildShareQuotaUsage sets share counter used bytes from indexed size at indexPath.
+func RebuildShareQuotaUsage(hash, sourceName, indexPath string) error {
+	size, ok := IndexedPathBytes(sourceName, indexPath, true)
+	if !ok {
+		size = 0
+	}
+	id := quota.ShareQuotaID(hash)
+	quotasMux.Lock()
+	defer quotasMux.Unlock()
+	if err := ensureQuotaCounterMemLocked(id); err != nil {
+		return err
+	}
+	c := quotaCounters[id]
+	c.UsedBytes = size
+	c.ReservedBytes = 0
+	c.Dirty = true
+	if quotaFlusher != nil {
+		quotaFlusher.markDirty(id)
+	}
+	signalQuotaFlush()
+	return nil
 }
 
 // GetQuotaCounterSnapshot returns used/reserved for a quota_id.
@@ -576,6 +608,10 @@ func CommitQuota(sessionID string, deltaBytes int64) error {
 func ReleaseQuota(sessionID string) {
 	quotasMux.Lock()
 	defer quotasMux.Unlock()
+	releaseSessionReservationsLocked(sessionID)
+}
+
+func releaseSessionReservationsLocked(sessionID string) {
 	rs, ok := reservationsBySession[sessionID]
 	if !ok {
 		return
@@ -590,6 +626,99 @@ func ReleaseQuota(sessionID string) {
 			}
 		}
 	}
+}
+
+// ForceCommitSessionQuota commits reserved usage for a session; retries once on failure.
+func ForceCommitSessionQuota(sessionID string, deltaBytes int64) error {
+	if err := CommitQuota(sessionID, deltaBytes); err != nil {
+		return CommitQuota(sessionID, deltaBytes)
+	}
+	return nil
+}
+
+// ApplyAccountedUsageDelta adjusts accounted and share quota counters for a path (negative delta frees space).
+func ApplyAccountedUsageDelta(principal *users.User, sourceName, sourcePath, indexPath, shareHash string, delta int64) error {
+	if delta == 0 || principal == nil {
+		return nil
+	}
+	principalID := principal.ID
+	quotasMux.Lock()
+	defer quotasMux.Unlock()
+
+	for _, fq := range applicableFolderQuotasLocked(sourcePath, indexPath, principalID) {
+		configured := configuredFolderMeter(fq)
+		effective := quota.EffectiveMeter(configured, sourceName, fq.Path)
+		if effective != quota.MeterAccounted {
+			continue
+		}
+		if err := applyCounterDeltaLocked(fq.ID, delta); err != nil {
+			return err
+		}
+	}
+
+	for _, bs := range principal.BackendScopes {
+		if bs.Path != sourcePath || bs.Quota == nil || bs.Quota.LimitBytes <= 0 {
+			continue
+		}
+		sq := bs.Quota
+		configured := sq.Meter
+		if configured == "" {
+			configured = quota.MeterIndexScope
+		}
+		scopePath := scopeIndexPath(principal, sourceName)
+		effective := quota.EffectiveMeter(configured, sourceName, scopePath)
+		if effective != quota.MeterAccounted {
+			continue
+		}
+		if err := applyCounterDeltaLocked(sq.ID, delta); err != nil {
+			return err
+		}
+	}
+
+	if shareHash != "" {
+		id := quota.ShareQuotaID(shareHash)
+		if err := applyCounterDeltaLocked(id, delta); err != nil {
+			return err
+		}
+	}
+
+	signalQuotaFlush()
+	return nil
+}
+
+func applicableFolderQuotasLocked(sourcePath, destIndexPath string, principalUserID uint64) []quota.FolderQuota {
+	destIndexPath = normalizeQuotaPath(destIndexPath)
+	var out []quota.FolderQuota
+	for _, id := range folderQuotasBySource[sourcePath] {
+		q := folderQuotasByID[id]
+		if q == nil || q.LimitBytes <= 0 {
+			continue
+		}
+		if q.UserID != 0 && q.UserID != principalUserID {
+			continue
+		}
+		if !indexPathCovers(q.Path, destIndexPath) {
+			continue
+		}
+		out = append(out, *q)
+	}
+	return out
+}
+
+func applyCounterDeltaLocked(quotaID string, delta int64) error {
+	if err := ensureQuotaCounterMemLocked(quotaID); err != nil {
+		return err
+	}
+	c := quotaCounters[quotaID]
+	c.UsedBytes += delta
+	if c.UsedBytes < 0 {
+		c.UsedBytes = 0
+	}
+	c.Dirty = true
+	if quotaFlusher != nil {
+		quotaFlusher.markDirty(quotaID)
+	}
+	return nil
 }
 
 type QuotaReserveCheck struct {
@@ -911,7 +1040,11 @@ func (f *quotaCounterFlusher) flush() {
 	quotasMux.Lock()
 	for _, c := range batch {
 		if mem := quotaCounters[c.QuotaID]; mem != nil {
-			mem.Dirty = false
+			if mem.UsedBytes == c.UsedBytes && mem.ReservedBytes == c.ReservedBytes {
+				mem.Dirty = false
+			} else if quotaFlusher != nil {
+				quotaFlusher.markDirty(c.QuotaID)
+			}
 		}
 	}
 	quotasMux.Unlock()
@@ -939,5 +1072,17 @@ func OnUserScopeQuotaChanged(sq *users.ScopeQuota) error {
 	}
 	quotasMux.Lock()
 	defer quotasMux.Unlock()
-	return ensureQuotaCounterMem(sq.ID)
+	return ensureQuotaCounterMemLocked(sq.ID)
+}
+
+// OnUserScopeQuotaRemoved deletes counter for a removed or disabled scope quota.
+func OnUserScopeQuotaRemoved(quotaID string) error {
+	if quotaID == "" {
+		return nil
+	}
+	quotasMux.Lock()
+	defer quotasMux.Unlock()
+	delete(quotaCounters, quotaID)
+	delete(pendingIndexDelta, quotaID)
+	return sqlDb.DeleteQuotaCounter(quotaID)
 }

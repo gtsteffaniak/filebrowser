@@ -313,7 +313,7 @@ func RecordQuotaMutation(r *http.Request, actor *Actor, eventType activitydb.Eve
 	})
 }
 
-func QuotaFolderCreateChanges(q quota.FolderQuota) []activitydb.FieldChange {
+func quotaFolderChanges(q quota.FolderQuota) []activitydb.FieldChange {
 	changes := []activitydb.FieldChange{
 		{Field: "limitBytes", To: strconv.FormatInt(q.LimitBytes, 10)},
 		{Field: "meter", To: q.Meter},
@@ -327,18 +327,12 @@ func QuotaFolderCreateChanges(q quota.FolderQuota) []activitydb.FieldChange {
 	return changes
 }
 
+func QuotaFolderCreateChanges(q quota.FolderQuota) []activitydb.FieldChange {
+	return quotaFolderChanges(q)
+}
+
 func QuotaFolderDeleteChanges(q quota.FolderQuota) []activitydb.FieldChange {
-	changes := []activitydb.FieldChange{
-		{Field: "limitBytes", To: strconv.FormatInt(q.LimitBytes, 10)},
-		{Field: "meter", To: q.Meter},
-	}
-	if q.UserID > 0 {
-		changes = append(changes, activitydb.FieldChange{
-			Field: "userId",
-			To:    strconv.FormatUint(q.UserID, 10),
-		})
-	}
-	return changes
+	return quotaFolderChanges(q)
 }
 
 func QuotaFolderUpdateChanges(before, after quota.FolderQuota) []activitydb.FieldChange {

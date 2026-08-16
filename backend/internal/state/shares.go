@@ -105,9 +105,18 @@ func CreateShare(link *share.Share) error {
 		return fmt.Errorf("share with hash %s already exists", link.Hash)
 	}
 
+	if link.QuotaLimitBytes > 0 {
+		if err := EnsureShareQuotaCounter(link.Hash); err != nil {
+			return err
+		}
+	}
+
 	// 2. Write to database
 	err := sqlDb.SaveShare(link)
 	if err != nil {
+		if link.QuotaLimitBytes > 0 {
+			_ = DeleteShareQuotaCounter(link.Hash)
+		}
 		return err
 	}
 
@@ -117,12 +126,6 @@ func CreateShare(link *share.Share) error {
 
 	// Add to path index
 	sharesByPath[pathKey] = append(sharesByPath[pathKey], link.Hash)
-
-	if link.QuotaLimitBytes > 0 {
-		if err := EnsureShareQuotaCounter(link.Hash); err != nil {
-			return err
-		}
-	}
 
 	return nil
 }
@@ -191,6 +194,9 @@ func DeleteShare(hash string) error {
 	}
 
 	if err := DeleteShareQuotaCounter(hash); err != nil {
+		if saveErr := sqlDb.SaveShare(link); saveErr != nil {
+			return fmt.Errorf("delete share quota counter failed and rollback failed: %v (rollback: %v)", err, saveErr)
+		}
 		return err
 	}
 

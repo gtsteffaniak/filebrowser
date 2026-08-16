@@ -806,6 +806,13 @@ export default {
         this.quotaCustomUnit = unit;
       }
     },
+    resetQuotaForm() {
+      this.quotaEnabled = false;
+      this.quotaCustomAmount = 1;
+      this.quotaCustomUnit = "gb";
+      this.quotaUsedBytes = 0;
+      this.quotaReservedBytes = 0;
+    },
     shareManagementLabel() {
       return this.$t("general.shareManagement");
     },
@@ -1063,6 +1070,7 @@ export default {
         // Clear editing link when switching to create new share
         this.editingLink = null;
         this.isChangingPassword = false;
+        this.resetQuotaForm();
         // Set default sidebar links for new shares
         this.setDefaultSidebarLinks();
         this.populateDefaults();
