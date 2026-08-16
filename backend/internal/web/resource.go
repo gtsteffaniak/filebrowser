@@ -19,6 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -808,15 +809,24 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			logger.Debugf("%v", acquireErr)
 			return http.StatusInternalServerError, acquireErr
 		}
+		quotaReserved := false
+		quotaCtx := uploadQuotaContext(d, source, fullIndexPath, realPath, r, sessionID, totalSize, hasTotalSize)
 		abandonSession := true
 		defer func() {
 			if abandonSession {
 				activeUploadSessions.release(realPath, sessionID)
 			}
+			if quotaReserved && abandonSession {
+				releaseUploadQuota(sessionID)
+			}
 		}()
 
-		// On the first chunk, check for conflicts or handle override
+		// On the first chunk, check quota and conflicts
 		if offset == 0 {
+			if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
+				return renderQuotaError(w, r, quotaErr)
+			}
+			quotaReserved = true
 			// Check for file/folder conflicts for chunked uploads
 			if stat, statErr := os.Stat(realPath); statErr == nil {
 				existingIsDir := stat.IsDir()
@@ -939,6 +949,10 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
+			if commitErr := commitUploadQuota(quotaCtx); commitErr != nil {
+				return renderQuotaError(w, r, commitErr)
+			}
+			quotaReserved = false
 			activity.RecordUpload(r, toActor(d), source, path, false)
 			activeUploadSessions.release(realPath, sessionID)
 			abandonSession = false
@@ -994,6 +1008,12 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusInternalServerError, acquireErr
 	}
 
+	quotaCtx := uploadQuotaContext(d, source, fullIndexPath, realPath, r, sessionID, totalSize, hasTotalSize)
+	if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
+		activeUploadSessions.release(realPath, sessionID)
+		return renderQuotaError(w, r, quotaErr)
+	}
+
 	tempFilePath := uploadTempPath(realPath, sessionID)
 	outFile, err := os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
@@ -1006,12 +1026,14 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if copyErr != nil {
 		_ = os.Remove(tempFilePath)
 		activeUploadSessions.release(realPath, sessionID)
+		releaseUploadQuota(sessionID)
 		logger.Debugf("error writing file: %v", copyErr)
 		return ErrToStatus(copyErr), copyErr
 	}
 	if closeErr != nil {
 		_ = os.Remove(tempFilePath)
 		activeUploadSessions.release(realPath, sessionID)
+		releaseUploadQuota(sessionID)
 		logger.Debugf("error closing temp file: %v", closeErr)
 		return http.StatusInternalServerError, closeErr
 	}
@@ -1019,6 +1041,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if err = validateReceivedBytes(written, totalSize, hasTotalSize, r.ContentLength); err != nil {
 		_ = os.Remove(tempFilePath)
 		activeUploadSessions.release(realPath, sessionID)
+		releaseUploadQuota(sessionID)
 		logger.Debugf("%v", err)
 		return http.StatusBadRequest, err
 	}
@@ -1027,10 +1050,15 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if err != nil {
 		_ = os.Remove(tempFilePath)
 		activeUploadSessions.release(realPath, sessionID)
+		releaseUploadQuota(sessionID)
 		logger.Debugf("error writing file: %v", err)
 		return ErrToStatus(err), err
 	}
 	reconcileSharesAfterMove(false, source, source, tempFilePath, realPath)
+	if commitErr := commitUploadQuota(quotaCtx); commitErr != nil {
+		activeUploadSessions.release(realPath, sessionID)
+		return renderQuotaError(w, r, commitErr)
+	}
 	activity.RecordUpload(r, toActor(d), source, path, false)
 	activeUploadSessions.release(realPath, sessionID)
 	return http.StatusOK, nil
@@ -1429,6 +1457,37 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			}
 		}
 
+		overwriteBytes := quota.OverwriteBytesAtPath(item.ToSource, fullDstIndexPath, isSrcDir)
+		patchSessionID := fmt.Sprintf("patch-%d", time.Now().UnixNano())
+		quotaCtx := copyMoveQuotaContext(
+			d,
+			req.Action,
+			item.FromSource,
+			item.ToSource,
+			srcIdx.Path,
+			dstIdx.Path,
+			fullSrcIndexPath,
+			fullDstIndexPath,
+			isSrcDir,
+			overwriteBytes,
+			patchSessionID,
+		)
+		if quotaErr := checkCopyMoveQuota(quotaCtx); quotaErr != nil {
+			if qe, ok := quota.AsError(quotaErr); ok {
+				item.Message = qe.DisplayMessage()
+			} else {
+				item.Message = quotaErr.Error()
+			}
+			if d.Share.Hash != "" {
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
+			}
+			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+			continue
+		}
+
 		// Perform the action
 		err = patchAction(r.Context(), patchActionParams{
 			action:   req.Action,
@@ -1440,6 +1499,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			isSrcDir: isSrcDir,
 		})
 		if err != nil {
+			releaseCopyMoveQuota(patchSessionID)
 			logger.Errorf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
 			if d.Share.Hash != "" {
 				item.Message = "could not run patch action"
@@ -1451,6 +1511,10 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			item.Message = err.Error()
 			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
+		}
+
+		if commitErr := commitCopyMoveQuota(patchSessionID); commitErr != nil {
+			logger.Warningf("quota commit after patch failed: %v", commitErr)
 		}
 
 		// Success

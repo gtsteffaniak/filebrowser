@@ -326,6 +326,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if err3 != nil {
 			return http.StatusInternalServerError, err3
 		}
+		if updatedShare.QuotaLimitBytes > 0 {
+			if qerr := state.EnsureShareQuotaCounter(updatedShare.Hash); qerr != nil {
+				return http.StatusInternalServerError, qerr
+			}
+		}
 		changes := activity.ShareUpdateChanges(&beforeShare, &updatedShare)
 		host, scheme := shareURLParams(r)
 		prepared := state.PrepShareForFrontend(d.User, r, host, scheme, updatedShare)
@@ -702,7 +707,43 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			Target:   frontendShareInfo.SourceURL,
 		})
 	}
-	return RenderJSON(w, r, frontendShareInfo)
+	resp := struct {
+		share.FrontendShareInfo
+		QuotaLimitBytes     int64 `json:"quotaLimitBytes,omitempty"`
+		QuotaUsedBytes      int64 `json:"quotaUsedBytes,omitempty"`
+		QuotaAvailableBytes int64 `json:"quotaAvailableBytes,omitempty"`
+		FolderQuotas        []publicFolderQuotaSnapshot `json:"folderQuotas,omitempty"`
+	}{
+		FrontendShareInfo: frontendShareInfo,
+		QuotaLimitBytes:   shareInfo.QuotaLimitBytes,
+	}
+	if shareInfo.QuotaLimitBytes > 0 {
+		used, reserved := state.GetShareQuotaUsage(hash)
+		resp.QuotaUsedBytes = used
+		avail := shareInfo.QuotaLimitBytes - used - reserved
+		if avail < 0 {
+			avail = 0
+		}
+		resp.QuotaAvailableBytes = avail
+	}
+	if sourceInfo, ok := settings.Config.Server.SourceMap[shareInfo.SourcePath]; ok {
+		sourceName := shareInfo.GetSourceName()
+		for _, fq := range state.ApplicableFolderQuotas(sourceInfo.Path, shareInfo.Path, shareInfo.UserID) {
+			snap := state.FolderQuotaSnapshot(fq, sourceName)
+			resp.FolderQuotas = append(resp.FolderQuotas, publicFolderQuotaSnapshot{
+				LimitBytes:    snap.LimitBytes,
+				UsedBytes:     snap.UsedBytes,
+				ReservedBytes: snap.ReservedBytes,
+			})
+		}
+	}
+	return RenderJSON(w, r, resp)
+}
+
+type publicFolderQuotaSnapshot struct {
+	LimitBytes    int64 `json:"limitBytes"`
+	UsedBytes     int64 `json:"usedBytes,omitempty"`
+	ReservedBytes int64 `json:"reservedBytes,omitempty"`
 }
 
 type sharePinnedItemPatchRequest struct {

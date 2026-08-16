@@ -7,6 +7,7 @@ import (
 	"time"
 
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
@@ -285,6 +286,85 @@ func RecordAccessDelete(r *http.Request, actor *Actor, source, path string, chan
 			Changes: changes,
 		},
 	})
+}
+
+func RecordQuotaCreate(r *http.Request, actor *Actor, source, path string, changes []activitydb.FieldChange) {
+	RecordQuotaMutation(r, actor, activitydb.EventQuotaCreate, source, path, changes)
+}
+
+func RecordQuotaUpdate(r *http.Request, actor *Actor, source, path string, changes []activitydb.FieldChange) {
+	RecordQuotaMutation(r, actor, activitydb.EventQuotaUpdate, source, path, changes)
+}
+
+func RecordQuotaDelete(r *http.Request, actor *Actor, source, path string, changes []activitydb.FieldChange) {
+	RecordQuotaMutation(r, actor, activitydb.EventQuotaDelete, source, path, changes)
+}
+
+func RecordQuotaMutation(r *http.Request, actor *Actor, eventType activitydb.EventType, source, path string, changes []activitydb.FieldChange) {
+	RecordUser(r, actor, activitydb.Entry{
+		EventType: eventType,
+		Source:    source,
+		Path:      path,
+		Details: activitydb.Details{
+			Source:  source,
+			Path:    path,
+			Changes: changes,
+		},
+	})
+}
+
+func QuotaFolderCreateChanges(q quota.FolderQuota) []activitydb.FieldChange {
+	changes := []activitydb.FieldChange{
+		{Field: "limitBytes", To: strconv.FormatInt(q.LimitBytes, 10)},
+		{Field: "meter", To: q.Meter},
+	}
+	if q.UserID > 0 {
+		changes = append(changes, activitydb.FieldChange{
+			Field: "userId",
+			To:    strconv.FormatUint(q.UserID, 10),
+		})
+	}
+	return changes
+}
+
+func QuotaFolderDeleteChanges(q quota.FolderQuota) []activitydb.FieldChange {
+	changes := []activitydb.FieldChange{
+		{Field: "limitBytes", To: strconv.FormatInt(q.LimitBytes, 10)},
+		{Field: "meter", To: q.Meter},
+	}
+	if q.UserID > 0 {
+		changes = append(changes, activitydb.FieldChange{
+			Field: "userId",
+			To:    strconv.FormatUint(q.UserID, 10),
+		})
+	}
+	return changes
+}
+
+func QuotaFolderUpdateChanges(before, after quota.FolderQuota) []activitydb.FieldChange {
+	var changes []activitydb.FieldChange
+	if before.LimitBytes != after.LimitBytes {
+		changes = append(changes, activitydb.FieldChange{
+			Field: "limitBytes",
+			From:  strconv.FormatInt(before.LimitBytes, 10),
+			To:    strconv.FormatInt(after.LimitBytes, 10),
+		})
+	}
+	if before.Meter != after.Meter {
+		changes = append(changes, activitydb.FieldChange{
+			Field: "meter",
+			From:  before.Meter,
+			To:    after.Meter,
+		})
+	}
+	if before.UserID != after.UserID {
+		changes = append(changes, activitydb.FieldChange{
+			Field: "userId",
+			From:  strconv.FormatUint(before.UserID, 10),
+			To:    strconv.FormatUint(after.UserID, 10),
+		})
+	}
+	return changes
 }
 
 func AccessRuleCreateChanges(allow bool, ruleCategory, value string) []activitydb.FieldChange {

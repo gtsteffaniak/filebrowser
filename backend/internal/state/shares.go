@@ -118,6 +118,12 @@ func CreateShare(link *share.Share) error {
 	// Add to path index
 	sharesByPath[pathKey] = append(sharesByPath[pathKey], link.Hash)
 
+	if link.QuotaLimitBytes > 0 {
+		if err := EnsureShareQuotaCounter(link.Hash); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -181,6 +187,10 @@ func DeleteShare(hash string) error {
 	// 2. Delete from database
 	err := sqlDb.DeleteShare(hash)
 	if err != nil {
+		return err
+	}
+
+	if err := DeleteShareQuotaCounter(hash); err != nil {
 		return err
 	}
 
@@ -383,7 +393,25 @@ func PrepSharesForFrontend(viewer *users.User, r *http.Request, publicHost, publ
 		}
 		return u.Username
 	}
-	return share.PrepForFrontend(viewer, r, publicHost, publicScheme, ownerLookup, links...)
+	out := share.PrepForFrontend(viewer, r, publicHost, publicScheme, ownerLookup, links...)
+	enrichShareQuotaFields(out)
+	return out
+}
+
+func enrichShareQuotaFields(out []*share.ShareFrontend) {
+	for _, s := range out {
+		if s == nil || s.QuotaLimitBytes <= 0 {
+			continue
+		}
+		used, reserved := GetShareQuotaUsage(s.Hash)
+		s.QuotaUsedBytes = used
+		s.QuotaReservedBytes = reserved
+		avail := s.QuotaLimitBytes - used - reserved
+		if avail < 0 {
+			avail = 0
+		}
+		s.QuotaAvailableBytes = avail
+	}
 }
 
 // PrepShareValuesForFrontend builds API-safe ShareFrontend copies from immutable share values.

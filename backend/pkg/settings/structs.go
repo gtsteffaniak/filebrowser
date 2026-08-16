@@ -85,10 +85,16 @@ type ActivityConfig struct {
 	MaxBufferSize        int  `json:"maxBufferSize"`        // max in-memory buffer before immediate flush (default 10000)
 }
 
+type QuotasConfig struct {
+	FlushIntervalSeconds int `json:"flushIntervalSeconds"` // default 10
+	FlushMaxBuffers      int `json:"flushMaxBuffers"`      // default 500
+}
+
 type Database struct {
 	Path        string         `json:"path"`        // path to SQLite database file
 	MigrateFrom string         `json:"migrateFrom"` // path to legacy database file for migration (optional)
 	Activity    ActivityConfig `json:"activity"`    // activity audit logging configuration
+	Quotas      QuotasConfig   `json:"quotas"`      // quota counter batch flush configuration
 }
 
 type Filesystem struct {

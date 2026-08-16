@@ -89,7 +89,8 @@
                   v-else
                   :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                   :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
-                  :max="sourceInfo[link.sourceName]?.total || 1" 
+                  :val-background="getProgressBarReserved(sourceInfo[link.sourceName] || {})"
+                  :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})" 
                   :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -158,7 +159,8 @@
               <ProgressBar 
                 v-else
                 :val="getProgressBarValue(activeSourceLink, activeSourceInfo)" 
-                :max="(activeSourceInfo).total || 1" 
+                :val-background="getProgressBarReserved(activeSourceInfo)"
+                :max="getProgressBarMax(activeSourceLink, activeSourceInfo)" 
                 :status="getProgressBarStatus(activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
@@ -333,12 +335,11 @@ export default {
     },
     getIconClass,
     hasUsageInfo(link) {
-      // Check if usage info should be displayed for this link (source only; source-minimal hides usage)
-      // Returns true when link is accessible and has usage > 0
       if (!this.isSourceCategory(link.category) || !link.sourceName) return false;
       if (!this.hasSourceInfo || !this.isLinkAccessible(link)) return false;
       if (link.category === 'source-minimal') return false;
       const info = this.sourceInfo[link.sourceName] || {};
+      if (info.scopeQuota?.limitBytes > 0) return true;
       return (info.used || 0) > 0 || (info.usedAlt || 0) > 0;
     },
     getLinkHref(link) {
@@ -438,11 +439,23 @@ export default {
       return 'default';
     },
     getProgressBarValue(link, sourceInfo) {
+      if (sourceInfo.scopeQuota?.limitBytes > 0) {
+        return sourceInfo.scopeQuota.usedBytes || 0;
+      }
       // Called with (link, sourceInfo) from both modes
       if (link.category === 'source-alt') {
         return sourceInfo.usedAlt || 0;
       }
       return sourceInfo.used || 0;
+    },
+    getProgressBarMax(link, sourceInfo) {
+      if (sourceInfo.scopeQuota?.limitBytes > 0) {
+        return sourceInfo.scopeQuota.limitBytes;
+      }
+      return sourceInfo.total || 1;
+    },
+    getProgressBarReserved(sourceInfo) {
+      return sourceInfo.scopeQuota?.reservedBytes || 0;
     },
     handleLinkClick(link) {
       // Handle special share actions

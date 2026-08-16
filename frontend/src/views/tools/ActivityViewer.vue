@@ -384,6 +384,12 @@ const ACCESS_EVENT_TYPES = [
   "accessDelete",
 ];
 
+const QUOTA_EVENT_TYPES = [
+  "quotaCreate",
+  "quotaUpdate",
+  "quotaDelete",
+];
+
 const SHARE_EVENT_TYPES = [
   "shareCreate",
   "shareUpdate",
@@ -413,6 +419,7 @@ const ADMIN_EVENT_TYPES = [
 const EVENT_TYPES = [
   ...FILE_EVENT_TYPES,
   ...ACCESS_EVENT_TYPES,
+  ...QUOTA_EVENT_TYPES,
   ...SHARE_EVENT_TYPES,
   ...AUTH_EVENT_TYPES,
   ...TOOL_EVENT_TYPES,
@@ -541,7 +548,7 @@ const VALID_RANGES = new Set(["1h", "24h", "7d", "30d", "custom"]);
 const VALID_VIEWS = new Set(["table", "chart", "line", "pie", "summary"]);
 const VALID_INTERVALS = new Set(["minute", "hour", "day"]);
 const VALID_SPLITS = new Set(["eventType", "user", "none"]);
-const VALID_SCOPES = new Set(["all", "files", "access", "shares"]);
+const VALID_SCOPES = new Set(["all", "files", "access", "quotas", "shares"]);
 const ANONYMOUS_USERNAME = "anonymous";
 const ACTIVITY_QUERY_KEYS = [
   "range",
@@ -612,6 +619,7 @@ export default {
     visibleEventTypes() {
       if (this.activityScope === "files") return FILE_EVENT_TYPES;
       if (this.activityScope === "access") return ACCESS_EVENT_TYPES;
+      if (this.activityScope === "quotas") return QUOTA_EVENT_TYPES;
       if (this.activityScope === "shares") return [...SHARE_EVENT_TYPES, "download"];
       return EVENT_TYPES;
     },
@@ -619,7 +627,9 @@ export default {
       return this.activityScope === "all";
     },
     showFileFilters() {
-      return this.activityScope === "files" || this.activityScope === "access";
+      return this.activityScope === "files"
+        || this.activityScope === "access"
+        || this.activityScope === "quotas";
     },
     showShareFilters() {
       return this.activityScope === "shares";
@@ -640,7 +650,7 @@ export default {
       return Object.keys(state.sources?.info || {}).sort();
     },
     activityScopeOptions() {
-      return ["all", "files", "access", "shares"].map((scope) => ({
+      return ["all", "files", "access", "quotas", "shares"].map((scope) => ({
         value: scope,
         label: this.activityScopeLabel(scope),
       }));
@@ -1091,7 +1101,7 @@ export default {
           this.visibleEventTypes,
         );
       }
-      if (this.activityScope === "files" || this.activityScope === "all" || this.activityScope === "access") {
+      if (this.activityScope === "files" || this.activityScope === "all" || this.activityScope === "access" || this.activityScope === "quotas") {
         this.filterShareHash = "";
       }
       if (this.activityScope === "shares") {
@@ -1158,6 +1168,9 @@ export default {
       const eventTypes = normalizeEventTypeQueryValue(query.eventType);
       if (eventTypes.some((type) => ACCESS_EVENT_TYPES.includes(type))) {
         return "access";
+      }
+      if (eventTypes.some((type) => QUOTA_EVENT_TYPES.includes(type))) {
+        return "quotas";
       }
       if (queryValuePresent(query.source)
         || queryValuePresent(query.path)
@@ -1743,6 +1756,9 @@ export default {
       }
       if (scope === "access") {
         return this.$t("tools.activityViewer.scopeAccess");
+      }
+      if (scope === "quotas") {
+        return this.$t("tools.activityViewer.scopeQuotas");
       }
       if (scope === "shares") {
         return this.$t("tools.activityViewer.scopeShares");

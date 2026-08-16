@@ -194,16 +194,24 @@ type User struct {
 	UserLegacyFields         `json:",inline"`
 }
 
+type ScopeQuota struct {
+	ID         string `json:"id"`
+	LimitBytes int64  `json:"limitBytes"` // 0 = unlimited
+	Meter      string `json:"meter,omitempty"` // index_scope | accounted
+}
+
 type FrontendScope struct {
 	Name        string                `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
 	Scope       string                `json:"scope"` // index path within that source
 	Permissions *SourceFilePermissions `json:"permissions,omitempty"`
+	Quota       *ScopeQuota           `json:"quota,omitempty"`
 }
 
 type BackendScope struct {
 	Path        string               `json:"path"`  // real path for the source
 	Scope       string               `json:"scope"` // index path within that source
 	Permissions SourceFilePermissions `json:"permissions,omitempty"`
+	Quota       *ScopeQuota          `json:"quota,omitempty"`
 }
 
 // json tags must match variable name with smaller case first letter

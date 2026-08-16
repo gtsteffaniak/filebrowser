@@ -166,6 +166,7 @@ import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { goToItemNotificationButton } from "@/utils/notificationActions";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications";
 import Icon from "@/components/files/Icon.vue";
 
 export default {
@@ -649,9 +650,8 @@ export default {
           mutations.closeTopPrompt();
           mutations.setReload(true);
         } catch (error) {
-          // Close the prompt and let error handling continue
           mutations.closeTopPrompt();
-          throw error;
+          notifyMoveCopyFailure(error);
         }
       };
 
@@ -669,13 +669,21 @@ export default {
 
             event.preventDefault();
             mutations.closeTopPrompt();
-            await action(overwrite, rename);
+            try {
+              await action(overwrite, rename);
+            } catch (error) {
+              notifyMoveCopyFailure(error);
+            }
           },
         });
         return;
       }
 
-      await action(false, false);
+      try {
+        await action(false, false);
+      } catch (error) {
+        notifyMoveCopyFailure(error);
+      }
     },
     /** @param {TouchEvent} event */
     addSelected(event) {

@@ -24,7 +24,10 @@
         <template v-else>{{ $t("general.permanent") }}</template>
       </template>
       <template #cell-downloads="{ row }">
-        <template v-if="row.downloadsLimit && row.downloadsLimit > 0">{{ row.downloads }} / {{ row.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <template v-if="row.quotaLimitBytes && row.quotaLimitBytes > 0">
+          {{ formatBytes(row.quotaUsedBytes || 0) }} / {{ formatBytes(row.quotaLimitBytes) }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        </template>
+        <template v-else-if="row.downloadsLimit && row.downloadsLimit > 0">{{ row.downloads }} / {{ row.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <template v-else>{{ row.downloads }}</template>
       </template>
       <template #cell-warning="{ row }">
@@ -177,6 +180,19 @@ export default {
   methods: {
     shareManagementLabel() {
       return this.$t("general.shareManagement");
+    },
+    formatBytes(bytes) {
+      const n = Number(bytes) || 0;
+      if (n < 1024) return `${n} B`;
+      const units = ["KB", "MB", "GB", "TB"];
+      let v = n;
+      let i = -1;
+      do {
+        v /= 1024;
+        i += 1;
+      } while (v >= 1024 && i < units.length - 1);
+      // eslint-disable-next-line security/detect-object-injection -- units index is bounded by loop
+      return `${v.toFixed(1)} ${units[i]}`;
     },
     async copyToClipboard(text) {
       await copyToClipboard(text);

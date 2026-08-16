@@ -8,6 +8,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
@@ -346,6 +347,31 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 	}
 	if err := settings.ValidateUserScopePermissionsAgainstEnforced(existingUser, sourceDefaults, sourceEnforced); err != nil {
 		return err
+	}
+
+	for _, bs := range existingUser.BackendScopes {
+		if bs.Quota == nil || bs.Quota.LimitBytes <= 0 {
+			continue
+		}
+		meter := bs.Quota.Meter
+		if meter == "" {
+			meter = quota.MeterIndexScope
+		}
+		sourceName := ""
+		if src, ok := settings.Config.Server.SourceMap[bs.Path]; ok {
+			sourceName = src.Name
+		}
+		if sourceName != "" {
+			if err := quota.ValidateConfiguredMeter(sourceName, meter); err != nil {
+				return fmt.Errorf("scope quota: %w", err)
+			}
+		}
+	}
+
+	for _, bs := range existingUser.BackendScopes {
+		if err := OnUserScopeQuotaChanged(bs.Quota); err != nil {
+			return err
+		}
 	}
 
 	if oldUsername != existingUser.Username {

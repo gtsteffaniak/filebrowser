@@ -5,7 +5,10 @@ import { getters } from "@/store/getters";
 import {
   notifyUploadComplete,
   notifyUploadError,
+  notifyOperationError,
 } from "@/utils/appNotifications";
+import { notify } from "@/notify";
+import { rejectUploadIfQuotaExceeded, isQuotaExceededError, extractQuotaErrorMessage } from "@/utils/uploadQuota";
 
 /**
  * Upload session token for isolating concurrent uploads to the same path.
@@ -84,6 +87,7 @@ class UploadManager {
     this.probedDirs = new Set(); // Track directories that were probed/created during conflict check
     this.progressTimeouts = new Map(); // Track progress timeouts per upload ID
     this.PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without progress = pause
+    this.quotaBatchAborted = false;
   }
 
   setOnConflict(handler) {
@@ -97,6 +101,12 @@ class UploadManager {
     }
     if (basePath.slice(-1) !== "/") {
       basePath += "/";
+    }
+
+    this.quotaBatchAborted = false;
+
+    if (await rejectUploadIfQuotaExceeded(basePath, items)) {
+      return;
     }
 
     // Pre-upload conflict check for top-level directories
@@ -275,6 +285,10 @@ class UploadManager {
     }
 
     if (this.isOverallPaused) {
+      return;
+    }
+
+    if (this.quotaBatchAborted) {
       return;
     }
 
@@ -705,7 +719,40 @@ class UploadManager {
     return true;
   }
 
+  handleQuotaExceededBatch(err, upload) {
+    const message = extractQuotaErrorMessage(err);
+    if (!this.quotaBatchAborted) {
+      this.quotaBatchAborted = true;
+      for (const item of this.queue) {
+        if (item.status === "uploading") {
+          if (item.xhr?.abort) {
+            try {
+              item.xhr.abort();
+            } catch {
+              // ignore abort errors
+            }
+          }
+        }
+        if (item.status === "pending" || item.status === "uploading") {
+          item.status = "error";
+          item.errorDetails = message;
+          item.connectionIssue = false;
+        }
+      }
+      notify.showError(message);
+      notifyOperationError(message);
+    }
+    upload.status = "error";
+    upload.connectionIssue = false;
+    upload.errorDetails = message;
+  }
+
   async handleUploadError(upload, err) {
+    if (isQuotaExceededError(err)) {
+      this.handleQuotaExceededBatch(err, upload);
+      return;
+    }
+
     // Check if the error is a 409 Conflict
     if (err?.response?.status === 409) {
       upload.status = "conflict";

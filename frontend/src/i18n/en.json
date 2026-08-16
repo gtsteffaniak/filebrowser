@@ -131,6 +131,10 @@
     "actions": "Actions{suffix}",
     "enabled": "Enabled{suffix}",
     "disabled": "Disabled{suffix}",
+    "limit": "Limit{suffix}",
+    "remove": "Remove{suffix}",
+    "saved": "Saved{suffix}",
+    "removed": "Removed{suffix}",
     "permissions": "Permissions{suffix}",
     "management": "Management{suffix}",
     "profile": "Profile{suffix}",
@@ -311,6 +315,26 @@
     "invalidCredentials": "Invalid credentials provided",
     "passkeyLogin": "Use Passkey"
   },
+  "quotas": {
+    "title": "Storage quota",
+    "openDescription": "Open the storage quota dialog for this folder.",
+    "folderDescription": "Limit storage for this folder.",
+    "shareLimit": "Limit storage through this share",
+    "shareLimitDescription": "Counts uploads through this link. Also applies to the owner's source quota.",
+    "scopeLimit": "Storage limit for this source",
+    "scopeLimitDescription": "Cap storage for this user's assignment on this source.",
+    "indexingDisabledMeterHint": "Indexing is disabled on this source. Only application usage is available.",
+    "meterIndexHint": "Counts indexed files under this folder. See docs for limitations.",
+    "meterAccountedHint": "Counts FileBrowser-mediated writes only. See docs for limitations.",
+    "meterIndexScope": "Index folder size",
+    "meterAccounted": "Application usage",
+    "usageCounting": "Count usage by",
+    "usageSyncPending": "Usage is still syncing with the index.",
+    "accountedFallback": "Index size is not ready yet; enforcing via application usage until index size is available.",
+    "errors": {
+      "exceeded": "Storage quota exceeded"
+    }
+  },
   "share": {
     "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
     "readOnlySourceNotice": "This source is read-only. Upload shares and permissions that modify files are disabled.",
@@ -454,7 +478,6 @@
     "firstLoadBody": "A new database was created on startup. If this is not what you expected, please double check your configuration file for `server.database` path and ensure it exists. On docker, database path could be `./data/database.db` or `./database.db`.",
     "halloweenTitle": "Happy Halloween!",
     "halloweenBody": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme.",
-    "moveFailed": "Move failed",
     "operationFailed": "Operation failed",
     "partialSuccess": "Some operations failed: {succeeded} succeeded, {failed} failed",
     "confirmPasswordToSaveUser": "Enter your current password to save these user changes."
@@ -712,6 +735,8 @@
   "access": {
     "all": "Deny All",
     "rules": "Access rules",
+    "hasRules": "Access rules configured",
+    "manageDescription": "Open access rules for this path.",
     "deny": "Deny",
     "totalDenied": "Denied",
     "totalAllowed": "Allowed",
@@ -944,6 +969,7 @@
       "scopeAll": "All activity",
       "scopeFiles": "File activity",
       "scopeAccess": "Access activity",
+      "scopeQuotas": "Quota activity",
       "scopeShares": "Share activity",
       "eventBulkDelete": "Bulk delete",
       "eventShareCreate": "Share create",
@@ -955,6 +981,9 @@
       "eventAccessCreate": "Access create",
       "eventAccessUpdate": "Access update",
       "eventAccessDelete": "Access delete",
+      "eventQuotaCreate": "Quota create",
+      "eventQuotaUpdate": "Quota update",
+      "eventQuotaDelete": "Quota delete",
       "eventTokenCreate": "Token create",
       "eventTokenDelete": "Token delete",
       "webSessionNamed": "Web session ({name})",

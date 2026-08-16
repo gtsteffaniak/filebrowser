@@ -844,6 +844,10 @@ func SetDefaults(generate bool) Settings {
 					FlushIntervalSeconds: 10,
 					MaxBufferSize:        10000,
 				},
+				Quotas: QuotasConfig{
+					FlushIntervalSeconds: 10,
+					FlushMaxBuffers:      500,
+				},
 			},
 			SourceMap:        map[string]*Source{},
 			NameToSource:     map[string]*Source{},

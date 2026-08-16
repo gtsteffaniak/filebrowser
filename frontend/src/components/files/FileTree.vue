@@ -83,6 +83,7 @@ import { eventBus } from '@/store/eventBus';
 import { goToItem, joinPath } from '@/utils/url';
 import { goToItemNotificationButton } from '@/utils/notificationActions';
 import { notify } from '@/notify';
+import { notifyMoveCopyFailure } from '@/utils/appNotifications';
 import { getObjectProperty } from '@/utils/object.js';
 
 export default {
@@ -604,7 +605,7 @@ export default {
           mutations.setReload(true);
         } catch (error) {
           mutations.closeTopPrompt();
-          throw error;
+          notifyMoveCopyFailure(error);
         }
       };
       if (conflict) {
@@ -616,12 +617,20 @@ export default {
             const rename = option === 'rename';
             event.preventDefault();
             mutations.closeTopPrompt();
-            await performAction(overwrite, rename);
+            try {
+              await performAction(overwrite, rename);
+            } catch (error) {
+              notifyMoveCopyFailure(error);
+            }
           },
         });
         return;
       }
-      await performAction(false, false);
+      try {
+        await performAction(false, false);
+      } catch (error) {
+        notifyMoveCopyFailure(error);
+      }
     },
 
     isSelected(node) {

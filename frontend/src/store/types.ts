@@ -65,6 +65,15 @@ export interface ShareInfoObject {
   allowDelete?: boolean;
   disableDownload?: boolean;
   showHidden?: boolean;
+  quotaLimitBytes?: number;
+  quotaUsedBytes?: number;
+  quotaAvailableBytes?: number;
+  /** Applicable folder storage quotas for this share root (from share/info). */
+  folderQuotas?: Array<{
+    limitBytes: number;
+    usedBytes?: number;
+    reservedBytes?: number;
+  }>;
 }
 
 export interface Permissions {
@@ -122,6 +131,7 @@ export interface SourceInfo {
   scanners: unknown[];
   readOnly: boolean;
   private: boolean;
+  indexingDisabled?: boolean;
 }
 
 /** Raw shape of a single source entry as sent by /api/settings/sources or SSE updates. */
@@ -140,6 +150,7 @@ export interface SourceInfoUpdate {
   scanners?: unknown[];
   readOnly?: boolean;
   private?: boolean;
+  indexingDisabled?: boolean;
 }
 
 export interface SourceFilePermissions {

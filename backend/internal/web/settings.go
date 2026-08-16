@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
+	quotadb "github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -104,7 +106,11 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 
 func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	sources := d.User.GetSourceNames()
-	reducedIndexes := map[string]indexing.ReducedIndex{}
+	type sourceInfoResponse struct {
+		indexing.ReducedIndex
+		ScopeQuota *quotadb.Snapshot `json:"scopeQuota,omitempty"`
+	}
+	reducedIndexes := map[string]sourceInfoResponse{}
 	for _, source := range sources {
 		reducedIndex, err := indexing.GetIndexInfo(source, false)
 		if err != nil {
@@ -115,7 +121,11 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		if !showScannerInfo {
 			reducedIndex.Scanners = nil
 		}
-		reducedIndexes[source] = reducedIndex
+		entry := sourceInfoResponse{ReducedIndex: reducedIndex}
+		if snap, ok := quota.ScopeQuotaForSource(d.User, source); ok {
+			entry.ScopeQuota = &snap
+		}
+		reducedIndexes[source] = entry
 	}
 	return RenderJSON(w, r, reducedIndexes)
 }
