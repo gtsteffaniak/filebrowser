@@ -300,3 +300,37 @@ func TestMoveFileCrossDeviceMovesDirectoryWithNestedSymlink(t *testing.T) {
 		t.Fatal("expected nested entry to remain a symlink")
 	}
 }
+
+func TestCopySymlinkReplacesExistingDestination(t *testing.T) {
+	target := filepath.Join(t.TempDir(), "target.txt")
+	if err := os.WriteFile(target, []byte("data"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	workDir := t.TempDir()
+	src := filepath.Join(workDir, "link")
+	if err := os.Symlink(target, src); err != nil {
+		t.Fatal(err)
+	}
+	dst := filepath.Join(workDir, "existing")
+	if err := os.WriteFile(dst, []byte("old"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := copySymlink(src, dst); err != nil {
+		t.Fatal(err)
+	}
+	gotTarget, err := os.Readlink(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotTarget != target {
+		t.Fatalf("link target = %q, want %q", gotTarget, target)
+	}
+	info, err := os.Lstat(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		t.Fatal("expected destination to be a symlink")
+	}
+}

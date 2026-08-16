@@ -93,10 +93,21 @@ func copySymlink(source, dest string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(dest), EffectiveDirPerm()); err != nil {
+	destDir := filepath.Dir(dest)
+	if err := os.MkdirAll(destDir, EffectiveDirPerm()); err != nil {
 		return err
 	}
-	return os.Symlink(target, dest)
+	tmpDir, err := os.MkdirTemp(destDir, ".fb-link-*")
+	if err != nil {
+		return err
+	}
+	defer func() { _ = os.RemoveAll(tmpDir) }()
+
+	tmpPath := filepath.Join(tmpDir, "link")
+	if err := os.Symlink(target, tmpPath); err != nil {
+		return err
+	}
+	return os.Rename(tmpPath, dest)
 }
 
 // copySingleFile handles copying a single file.
