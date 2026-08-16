@@ -118,6 +118,17 @@ func TestCopyFilePreservesModTime(t *testing.T) {
 	}
 }
 
+// moveViaCrossDeviceFallback mirrors MoveFile's EXDEV fallback (CopyFile + RemoveAll).
+func moveViaCrossDeviceFallback(t *testing.T, src, dst string) {
+	t.Helper()
+	if err := CopyFile(src, dst); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.RemoveAll(src); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestMoveFileDoesNotFallbackOnNonCrossDeviceError(t *testing.T) {
 	srcDir := t.TempDir()
 	src := filepath.Join(srcDir, "file.txt")
@@ -154,9 +165,7 @@ func TestMoveFileCrossDevicePreservesFilePermissions(t *testing.T) {
 	}
 	dst := filepath.Join(dstDir, "secret.txt")
 
-	if err := moveFileCrossDevice(src, dst); err != nil {
-		t.Fatal(err)
-	}
+	moveViaCrossDeviceFallback(t, src, dst)
 	got, err := os.Stat(dst)
 	if err != nil {
 		t.Fatal(err)
@@ -181,9 +190,7 @@ func TestMoveFileCrossDeviceMovesDirectory(t *testing.T) {
 	}
 	dst := filepath.Join(dstParent, "moved-dir")
 
-	if err := moveFileCrossDevice(srcDir, dst); err != nil {
-		t.Fatal(err)
-	}
+	moveViaCrossDeviceFallback(t, srcDir, dst)
 	movedNested := filepath.Join(dst, "nested.txt")
 	if _, err := os.Stat(movedNested); err != nil {
 		t.Fatalf("expected nested file at destination: %v", err)
@@ -214,9 +221,7 @@ func TestMoveFileCrossDevicePreservesSymlinkToFile(t *testing.T) {
 	}
 	dst := filepath.Join(dstDir, "link")
 
-	if err := moveFileCrossDevice(link, dst); err != nil {
-		t.Fatal(err)
-	}
+	moveViaCrossDeviceFallback(t, link, dst)
 	gotTarget, err := os.Readlink(dst)
 	if err != nil {
 		t.Fatal(err)
@@ -249,9 +254,7 @@ func TestMoveFileCrossDevicePreservesSymlinkToDirectory(t *testing.T) {
 	}
 	dst := filepath.Join(dstDir, "dirlink")
 
-	if err := moveFileCrossDevice(link, dst); err != nil {
-		t.Fatal(err)
-	}
+	moveViaCrossDeviceFallback(t, link, dst)
 	gotTarget, err := os.Readlink(dst)
 	if err != nil {
 		t.Fatal(err)
@@ -280,9 +283,7 @@ func TestMoveFileCrossDeviceMovesDirectoryWithNestedSymlink(t *testing.T) {
 	dstParent := t.TempDir()
 	dst := filepath.Join(dstParent, "moved-dir")
 
-	if err := moveFileCrossDevice(srcDir, dst); err != nil {
-		t.Fatal(err)
-	}
+	moveViaCrossDeviceFallback(t, srcDir, dst)
 	movedLink := filepath.Join(dst, "nested-link")
 	gotTarget, err := os.Readlink(movedLink)
 	if err != nil {

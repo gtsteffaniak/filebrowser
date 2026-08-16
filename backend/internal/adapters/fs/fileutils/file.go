@@ -54,125 +54,49 @@ func unixModeToFileMode(u uint32) os.FileMode {
 }
 
 // MoveFile moves a file from src to dst.
-// By default, the rename system call is used. If src and dst point to different volumes,
-// the resource is copied via a same-directory temporary path and then renamed into place.
+// By default, the rename system call is used. If src and dst are on different volumes,
+// CopyFile is used as a fallback and the source is removed synchronously on success.
 func MoveFile(src, dst string) error {
-	err := os.Rename(src, dst)
-	if err == nil {
-		return nil
-	}
-	if !isCrossDeviceRenameError(err) {
-		return err
-	}
-	return moveFileCrossDevice(src, dst)
-}
-
-func moveFileCrossDevice(src, dst string) error {
-	srcInfo, err := os.Lstat(src)
-	if err != nil {
-		return err
-	}
-	if srcInfo.Mode()&os.ModeSymlink != 0 {
-		return moveSymlinkCrossDevice(src, dst)
-	}
-	dstDir := filepath.Dir(dst)
-	if srcInfo.IsDir() {
-		tmpPath := ""
-		tmpPath, err = os.MkdirTemp(dstDir, ".fb-move-dir-*")
-		if err != nil {
+	if err := os.Rename(src, dst); err != nil {
+		if !isCrossDeviceRenameError(err) {
 			return err
 		}
-		cleanup := true
-		defer func() {
-			if cleanup {
-				_ = os.RemoveAll(tmpPath)
-			}
-		}()
-		if err = copyDirectory(src, tmpPath); err != nil {
+		if err := CopyFile(src, dst); err != nil {
 			return err
 		}
-		if err = os.Rename(tmpPath, dst); err != nil {
-			return err
-		}
-		cleanup = false
 		return os.RemoveAll(src)
 	}
-
-	tmp, err := os.CreateTemp(dstDir, ".fb-move-*")
-	if err != nil {
-		return err
-	}
-	tmpPath := tmp.Name()
-	cleanup := true
-	defer func() {
-		_ = tmp.Close()
-		if cleanup {
-			_ = os.Remove(tmpPath)
-		}
-	}()
-
-	if err = copyFileContents(src, tmp); err != nil {
-		return err
-	}
-	if err = tmp.Close(); err != nil {
-		return err
-	}
-	if err = os.Chmod(tmpPath, srcInfo.Mode().Perm()); err != nil {
-		logger.Debugf("Could not set file permissions for %s: %v", tmpPath, err)
-	}
-	if err = os.Chtimes(tmpPath, srcInfo.ModTime(), srcInfo.ModTime()); err != nil {
-		logger.Debugf("Could not preserve modification time for %s: %v", tmpPath, err)
-	}
-	if err = os.Rename(tmpPath, dst); err != nil {
-		return err
-	}
-	cleanup = false
-	return os.Remove(src)
-}
-
-func moveSymlinkCrossDevice(src, dst string) error {
-	target, err := os.Readlink(src)
-	if err != nil {
-		return err
-	}
-	if err = os.MkdirAll(filepath.Dir(dst), EffectiveDirPerm()); err != nil {
-		return err
-	}
-	if err = os.Symlink(target, dst); err != nil {
-		return err
-	}
-	return os.Remove(src)
+	return nil
 }
 
 func preserveFileMode(path string, mode os.FileMode) error {
 	return os.Chmod(path, mode.Perm())
 }
 
-func copyFileContents(src string, dst *os.File) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-	_, err = io.Copy(dst, in)
-	return err
-}
-
 // CopyFile copies a file or directory from source to dest and returns an error if any.
 func CopyFile(source, dest string) error {
-	// Check if the source exists and whether it's a file or directory.
-	info, err := os.Stat(source)
+	info, err := os.Lstat(source)
 	if err != nil {
 		return err
 	}
-
+	if info.Mode()&os.ModeSymlink != 0 {
+		return copySymlink(source, dest)
+	}
 	if info.IsDir() {
-		// If the source is a directory, copy it recursively.
 		return copyDirectory(source, dest)
 	}
-
-	// If the source is a file, copy the file.
 	return copySingleFile(source, dest)
+}
+
+func copySymlink(source, dest string) error {
+	target, err := os.Readlink(source)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(dest), EffectiveDirPerm()); err != nil {
+		return err
+	}
+	return os.Symlink(target, dest)
 }
 
 // copySingleFile handles copying a single file.
