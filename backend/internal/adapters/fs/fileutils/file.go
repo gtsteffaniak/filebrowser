@@ -176,7 +176,8 @@ func copyDirectory(source, dest string) error {
 		destPath := filepath.Join(dest, entry.Name())
 
 		if entry.Type()&os.ModeSymlink != 0 {
-			linkTarget, err := os.Readlink(srcPath)
+			linkTarget := ""
+			linkTarget, err = os.Readlink(srcPath)
 			if err != nil {
 				return err
 			}
