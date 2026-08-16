@@ -61,17 +61,24 @@ func MoveFile(src, dst string) error {
 	if err == nil {
 		return nil
 	}
+	if !isCrossDeviceRenameError(err) {
+		return err
+	}
 	return moveFileCrossDevice(src, dst)
 }
 
 func moveFileCrossDevice(src, dst string) error {
-	srcInfo, err := os.Stat(src)
+	srcInfo, err := os.Lstat(src)
 	if err != nil {
 		return err
 	}
+	if srcInfo.Mode()&os.ModeSymlink != 0 {
+		return moveSymlinkCrossDevice(src, dst)
+	}
 	dstDir := filepath.Dir(dst)
 	if srcInfo.IsDir() {
-		tmpPath, err := os.MkdirTemp(dstDir, ".fb-move-dir-*")
+		tmpPath := ""
+		tmpPath, err = os.MkdirTemp(dstDir, ".fb-move-dir-*")
 		if err != nil {
 			return err
 		}
@@ -121,6 +128,24 @@ func moveFileCrossDevice(src, dst string) error {
 	}
 	cleanup = false
 	return os.Remove(src)
+}
+
+func moveSymlinkCrossDevice(src, dst string) error {
+	target, err := os.Readlink(src)
+	if err != nil {
+		return err
+	}
+	if err = os.MkdirAll(filepath.Dir(dst), EffectiveDirPerm()); err != nil {
+		return err
+	}
+	if err = os.Symlink(target, dst); err != nil {
+		return err
+	}
+	return os.Remove(src)
+}
+
+func preserveFileMode(path string, mode os.FileMode) error {
+	return os.Chmod(path, mode.Perm())
 }
 
 func copyFileContents(src string, dst *os.File) error {
@@ -202,7 +227,7 @@ func copySingleFile(source, dest string) error {
 
 // copyDirectory handles copying directories recursively.
 func copyDirectory(source, dest string) error {
-	srcInfo, err := os.Stat(source)
+	srcInfo, err := os.Lstat(source)
 	if err != nil {
 		return err
 	}
@@ -210,6 +235,9 @@ func copyDirectory(source, dest string) error {
 	err = os.MkdirAll(dest, EffectiveDirPerm())
 	if err != nil {
 		return err
+	}
+	if err = preserveFileMode(dest, srcInfo.Mode()); err != nil {
+		logger.Debugf("Could not set directory permissions for %s: %v", dest, err)
 	}
 
 	// Read the contents of the source directory.
@@ -223,6 +251,16 @@ func copyDirectory(source, dest string) error {
 		srcPath := filepath.Join(source, entry.Name())
 		destPath := filepath.Join(dest, entry.Name())
 
+		if entry.Type()&os.ModeSymlink != 0 {
+			linkTarget, err := os.Readlink(srcPath)
+			if err != nil {
+				return err
+			}
+			if err = os.Symlink(linkTarget, destPath); err != nil {
+				return err
+			}
+			continue
+		}
 		if entry.IsDir() {
 			// Recursively copy subdirectories.
 			err = copyDirectory(srcPath, destPath)
