@@ -94,7 +94,7 @@ func copySymlink(source, dest string) error {
 		return err
 	}
 	destDir := filepath.Dir(dest)
-	if err := os.MkdirAll(destDir, EffectiveDirPerm()); err != nil {
+	if err = os.MkdirAll(destDir, EffectiveDirPerm()); err != nil {
 		return err
 	}
 	tmpDir, err := os.MkdirTemp(destDir, ".fb-link-*")
