@@ -372,7 +372,7 @@ export interface StoreState {
   playbackQueue: {
     queue: unknown[];
     currentIndex: number;
-    mode: 'sequential' | 'shuffle';
+    mode: 'single' | 'sequential' | 'shuffle';
     isPlaying: boolean;
     loop: 'off' | 'all' | 'single';
     shouldTogglePlayPause?: boolean;

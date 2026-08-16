@@ -75,7 +75,12 @@ func AdminSourceFilePermissions() users.SourceFilePermissions {
 // BackendScopes. Existing scopes for configured sources are preserved (empty Scope is
 // filled from DefaultUserScope). Unknown paths not in Config.Server.Sources are kept
 // at the end. defaultEnabled: false sources are never auto-added.
-func MergeDefaultEnabledBackendScopes(existing []users.BackendScope) []users.BackendScope {
+// declined lists defaultEnabled source paths the user explicitly removed via scope edits.
+func MergeDefaultEnabledBackendScopes(existing []users.BackendScope, declined []string) []users.BackendScope {
+	declinedSet := make(map[string]struct{}, len(declined))
+	for _, path := range declined {
+		declinedSet[path] = struct{}{}
+	}
 	byPath := make(map[string]users.BackendScope, len(existing))
 	for _, s := range existing {
 		byPath[s.Path] = s
@@ -93,6 +98,9 @@ func MergeDefaultEnabledBackendScopes(existing []users.BackendScope) []users.Bac
 				existingScope.Scope = src.Config.DefaultUserScope
 			}
 		} else if src.Config.DefaultEnabled {
+			if _, omitted := declinedSet[src.Path]; omitted {
+				continue
+			}
 			existingScope = users.BackendScope{
 				Scope: src.Config.DefaultUserScope,
 			}
@@ -112,6 +120,25 @@ func MergeDefaultEnabledBackendScopes(existing []users.BackendScope) []users.Bac
 		}
 	}
 	return newScopes
+}
+
+// ComputeDeclinedDefaultSources records defaultEnabled sources intentionally omitted
+// from a user's persisted BackendScopes after an explicit scope edit.
+func ComputeDeclinedDefaultSources(scopes []users.BackendScope) []string {
+	present := make(map[string]struct{}, len(scopes))
+	for _, scope := range scopes {
+		present[scope.Path] = struct{}{}
+	}
+	var declined []string
+	for _, src := range Config.Server.Sources {
+		if src == nil || !src.Config.DefaultEnabled {
+			continue
+		}
+		if _, ok := present[src.Path]; !ok {
+			declined = append(declined, src.Path)
+		}
+	}
+	return declined
 }
 
 // ApplyUserDefaults applies Config.UserDefaults to a user (tests and legacy callers).
@@ -137,7 +164,7 @@ func ApplyUserDefaultsFrom(u *users.User, d UserDefaults) {
 
 	sourceDefaults := DefaultSourceFilePermissions()
 
-	u.BackendScopes = MergeDefaultEnabledBackendScopes(u.BackendScopes)
+	u.BackendScopes = MergeDefaultEnabledBackendScopes(u.BackendScopes, nil)
 	if len(u.SidebarLinks) == 0 && len(u.BackendScopes) > 0 {
 		scope := u.BackendScopes[0]
 		name := scope.Path

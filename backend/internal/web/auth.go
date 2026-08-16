@@ -79,8 +79,10 @@ func ExtractToken(r *http.Request) (string, error) {
 }
 
 // getOrCreateAuthenticatedUser is a common helper for retrieving or auto-creating users
-// across different authentication methods (proxy, JWT, LDAP, OIDC)
-func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string) (*users.User, error) {
+// across different authentication methods (proxy, JWT, LDAP, OIDC).
+// When groupsPresent is false the groups claim was omitted and existing memberships are left unchanged.
+// When groupsPresent is true, groups (including empty) are synced into access-control GroupMap.
+func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string, groupsPresent bool) (*users.User, error) {
 	// Try to get existing user
 	userValue, err := state.GetUserByUsername(username)
 	if err != nil {
@@ -150,9 +152,9 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	}
 	// Sync IdP groups into access-control GroupMap (write-through). Skip when the
 	// token/response omitted groups so a missing claim cannot wipe memberships.
-	if len(groups) > 0 {
+	if groupsPresent {
 		if err := state.SyncUserGroups(username, groups); err != nil {
-			logger.Warningf("failed to sync user %s groups: %v", username, err)
+			return nil, fmt.Errorf("failed to sync user %s groups: %w", username, err)
 		}
 	}
 
@@ -162,7 +164,7 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {
 	// Check if username matches admin username
 	isAdmin := proxyUser == settings.Config.Auth.AdminUsername
-	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, []string{})
+	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, nil, false)
 }
 
 // setupJwtUser retrieves or creates a user based on external JWT token claims
@@ -170,7 +172,9 @@ func SetupJwtUser(r *http.Request, data *Context, username string, claims map[st
 	// Determine if user should be admin
 	isAdmin := username == settings.Config.Auth.AdminUsername
 	// Check if user should be admin based on groups
-	groups := auth.ExtractGroupsFromClaims(claims, settings.Config.Auth.Methods.JwtAuth.GroupsClaim)
+	groupsClaim := settings.Config.Auth.Methods.JwtAuth.GroupsClaim
+	_, groupsPresent := claims[groupsClaim]
+	groups := auth.ExtractGroupsFromClaims(claims, groupsClaim)
 	for _, group := range groups {
 		if group == settings.Config.Auth.Methods.JwtAuth.AdminGroup {
 			isAdmin = true
@@ -178,7 +182,7 @@ func SetupJwtUser(r *http.Request, data *Context, username string, claims map[st
 		}
 	}
 
-	return getOrCreateAuthenticatedUser(username, users.LoginMethodJwt, isAdmin, groups)
+	return getOrCreateAuthenticatedUser(username, users.LoginMethodJwt, isAdmin, groups, groupsPresent)
 }
 
 // loginHandler handles user authentication via password.

@@ -224,5 +224,5 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		isAdmin = settings.Config.UserDefaults.Account.Permissions.Admin
 	}
 
-	return getOrCreateAuthenticatedUser(username, users.LoginMethodLdap, isAdmin, groups)
+	return getOrCreateAuthenticatedUser(username, users.LoginMethodLdap, isAdmin, groups, true)
 }

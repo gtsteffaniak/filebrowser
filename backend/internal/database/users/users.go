@@ -183,6 +183,7 @@ type User struct {
 	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
 	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
 	BackendScopes            []BackendScope                   `json:"backendScopes,omitempty"`
+	DeclinedDefaultSources   []string                         `json:"declinedDefaultSources,omitempty"`
 	BackendSourcePermissions map[string]SourceFilePermissions `json:"backendSourcePermissions,omitempty"` // key = source path
 	Tokens                   map[string]AuthToken             `json:"tokens,omitempty"`
 	TOTPSecret               string                           `json:"totpSecret,omitempty"`

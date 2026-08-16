@@ -127,7 +127,7 @@ func dedupeFields(fields []string) []string {
 }
 
 func updateUserScopes(user *users.User) bool {
-	newScopes := settings.MergeDefaultEnabledBackendScopes(user.BackendScopes)
+	newScopes := settings.MergeDefaultEnabledBackendScopes(user.BackendScopes, user.DeclinedDefaultSources)
 	changed := !reflect.DeepEqual(user.BackendScopes, newScopes)
 	user.BackendScopes = newScopes
 	return changed

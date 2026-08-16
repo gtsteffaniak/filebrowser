@@ -5,10 +5,15 @@ package imagemeta
 import (
 	"encoding/binary"
 	"io"
+	"math"
 	"os"
 )
 
-const heicMetadataScanLimit = 32 * 1024 * 1024
+const (
+	heicMetadataInitialScan = 256 * 1024
+	heicMetadataScanLimit   = 32 * 1024 * 1024
+	maxBMFFRecursionDepth   = 64
+)
 
 type heicTransform struct {
 	irot  uint8
@@ -23,19 +28,37 @@ func parseHEICTransform(f *os.File) heicTransform {
 	if err != nil {
 		return heicTransform{}
 	}
-	size := info.Size()
-	if size > heicMetadataScanLimit {
-		size = heicMetadataScanLimit
-	}
-	if size < 12 {
+	fileSize := info.Size()
+	if fileSize < 12 {
 		return heicTransform{}
 	}
-	buf := make([]byte, size)
-	n, err := f.ReadAt(buf, 0)
-	if err != nil && err != io.EOF {
-		return heicTransform{}
+
+	scanLimit := int64(heicMetadataInitialScan)
+	if fileSize < scanLimit {
+		scanLimit = fileSize
 	}
-	return parseHEICPrimaryIrot(buf[:n])
+	for {
+		buf := make([]byte, scanLimit)
+		n, readErr := f.ReadAt(buf, 0)
+		if readErr != nil && readErr != io.EOF {
+			return heicTransform{}
+		}
+		data := buf[:n]
+		if result := parseHEICPrimaryIrot(data); result.found || findBMFFBox(data, "meta") != nil {
+			return result
+		}
+		if scanLimit >= fileSize || scanLimit >= heicMetadataScanLimit {
+			return parseHEICPrimaryIrot(data)
+		}
+		next := scanLimit * 2
+		if next > heicMetadataScanLimit {
+			next = heicMetadataScanLimit
+		}
+		if next > fileSize {
+			next = fileSize
+		}
+		scanLimit = next
+	}
 }
 
 func parseHEICPrimaryIrot(data []byte) heicTransform {
@@ -75,10 +98,13 @@ func parseHEICPrimaryIrot(data []byte) heicTransform {
 }
 
 func findBMFFBox(data []byte, typ string) []byte {
-	return findBMFFBoxRange(data, 0, len(data), typ)
+	return findBMFFBoxRange(data, 0, len(data), typ, 0)
 }
 
-func findBMFFBoxRange(data []byte, start, end int, typ string) []byte {
+func findBMFFBoxRange(data []byte, start, end int, typ string, depth int) []byte {
+	if depth > maxBMFFRecursionDepth {
+		return nil
+	}
 	pos := start
 	for pos+8 <= end {
 		size, header, ok := bmffBoxHeader(data, pos, end)
@@ -86,14 +112,14 @@ func findBMFFBoxRange(data []byte, start, end int, typ string) []byte {
 			break
 		}
 		boxEnd := pos + size
-		if boxEnd > end {
+		if boxEnd > end || boxEnd < pos {
 			break
 		}
 		if string(data[pos+4:pos+8]) == typ {
 			return data[pos:boxEnd]
 		}
 		if isBMFFContainerType(data[pos+4 : pos+8]) {
-			if child := findBMFFBoxRange(data, pos+header, boxEnd, typ); child != nil {
+			if child := findBMFFBoxRange(data, pos+header, boxEnd, typ, depth+1); child != nil {
 				return child
 			}
 		}
@@ -107,7 +133,7 @@ func findBMFFChildBox(container []byte, typ string) []byte {
 	if payload == nil {
 		return nil
 	}
-	return findBMFFBoxRange(payload, 0, len(payload), typ)
+	return findBMFFBoxRange(payload, 0, len(payload), typ, 0)
 }
 
 func isBMFFContainerType(typ []byte) bool {
@@ -131,7 +157,14 @@ func bmffBoxHeader(data []byte, pos, end int) (size int, header int, ok bool) {
 		if pos+16 > end {
 			return 0, 0, false
 		}
-		return int(binary.BigEndian.Uint64(data[pos+8 : pos+16])), 16, true
+		size64 := binary.BigEndian.Uint64(data[pos+8 : pos+16])
+		if size64 < 16 || size64 > math.MaxInt32 {
+			return 0, 0, false
+		}
+		return int(size64), 16, true
+	}
+	if size32 < 8 {
+		return 0, 0, false
 	}
 	return int(size32), 8, true
 }
@@ -156,7 +189,7 @@ func bmffBoxPayload(box []byte) []byte {
 
 func isBMFFFullBoxType(typ string) bool {
 	switch typ {
-	case "meta", "pitm", "irot", "imir", "ispe", "ipma", "hdlr", "iloc", "iinf", "infe":
+	case "meta", "pitm", "ispe", "ipma", "hdlr", "iloc", "iinf", "infe":
 		return true
 	default:
 		return false
@@ -202,8 +235,10 @@ func parseIPCOProperties(ipco []byte) []ipcoProperty {
 		}
 		child := payload[pos : pos+size]
 		prop := ipcoProperty{typ: string(child[4:8])}
-		if prop.typ == "irot" && len(child) >= 13 {
-			prop.irot = child[12] & 0x03
+		if prop.typ == "irot" {
+			if payload := bmffBoxPayload(child); len(payload) >= 1 {
+				prop.irot = payload[0] & 0x03
+			}
 		}
 		props = append(props, prop)
 		pos += size
