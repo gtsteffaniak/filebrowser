@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.0
+
+ **Notes**:
+ - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
+ - Enhancements to cross-source copy/move permissions and behavior.
+ - Improved resume upload behavior.
+
 ## v2.0.1
 
  **Security**:
