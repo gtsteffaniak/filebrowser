@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
-	quotadb "github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -108,7 +107,7 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	sources := d.User.GetSourceNames()
 	type sourceInfoResponse struct {
 		indexing.ReducedIndex
-		ScopeQuota *quotadb.Snapshot `json:"scopeQuota,omitempty"`
+		ScopeQuota *scopeQuotaResponse `json:"scopeQuota,omitempty"`
 	}
 	reducedIndexes := map[string]sourceInfoResponse{}
 	for _, source := range sources {
@@ -123,7 +122,8 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		}
 		entry := sourceInfoResponse{ReducedIndex: reducedIndex}
 		if snap, ok := quota.ScopeQuotaForSource(d.User, source); ok {
-			entry.ScopeQuota = &snap
+			resp := scopeQuotaToResponse(snap)
+			entry.ScopeQuota = &resp
 		}
 		reducedIndexes[source] = entry
 	}

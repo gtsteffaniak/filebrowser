@@ -42,7 +42,7 @@
   </div>
   <div class="card-actions">
     <button type="button" class="button button--flat" @click="close">{{ $t("general.cancel") }}</button>
-    <button v-if="quotaId" type="button" class="button button--flat button--red" @click="removeQuota">
+    <button v-if="quotaExists" type="button" class="button button--flat button--red" @click="removeQuota">
       {{ $t("general.remove") }}
     </button>
     <button type="button" class="button button--flat button--blue" @click="save">{{ $t("general.save") }}</button>
@@ -78,7 +78,7 @@ export default {
       customAmount: 10,
       customUnit: "gb",
       meter: "index_size",
-      quotaId: "",
+      quotaExists: false,
       snapshot: {},
     };
   },
@@ -142,9 +142,9 @@ export default {
         const data = Array.isArray(raw) ? raw[0] : raw;
         if (!data) return;
         this.applySnapshot(data);
-        if (data.id) {
-          this.quotaId = data.id;
-          this.enabled = data.limitBytes > 0;
+        if ((data.limitBytes || 0) > 0) {
+          this.quotaExists = true;
+          this.enabled = true;
           this.meter = data.configuredMeter || data.meter || "index_size";
           if (this.indexingDisabled) {
             this.meter = "accounted";
@@ -163,24 +163,28 @@ export default {
     async save() {
       try {
         if (!this.enabled) {
-          if (this.quotaId) await quotasApi.remove(this.quotaId);
+          if (this.quotaExists) {
+            await quotasApi.remove(this.source, this.displayPath);
+          }
           notify.showSuccess(this.$t("general.saved"));
           this.close();
           return;
         }
         const meter = this.indexingDisabled ? "accounted" : this.meter;
         const body = {
-          source: this.source,
-          path: this.displayPath,
           limitBytes: this.limitBytes,
           meter,
         };
-        if (this.quotaId) {
-          const updated = await quotasApi.update(this.quotaId, { limitBytes: this.limitBytes, meter });
+        if (this.quotaExists) {
+          const updated = await quotasApi.update(this.source, this.displayPath, body);
           this.applySnapshot(updated);
         } else {
-          const created = await quotasApi.create(body);
-          this.quotaId = created.id;
+          const created = await quotasApi.create({
+            source: this.source,
+            path: this.displayPath,
+            ...body,
+          });
+          this.quotaExists = true;
           this.applySnapshot(created);
         }
         notify.showSuccess(this.$t("general.saved"));
@@ -190,9 +194,9 @@ export default {
       }
     },
     async removeQuota() {
-      if (!this.quotaId) return;
+      if (!this.quotaExists) return;
       try {
-        await quotasApi.remove(this.quotaId);
+        await quotasApi.remove(this.source, this.displayPath);
         notify.showSuccess(this.$t("general.removed"));
         this.close();
       } catch (/** @type {any} */ err) {

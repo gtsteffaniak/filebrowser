@@ -114,12 +114,17 @@ func GetFolderQuotaByID(id string) (*quota.FolderQuota, error) {
 }
 
 func GetFolderQuotaByPath(source, path string) (*quota.FolderQuota, error) {
+	return GetFolderQuotaByPathAndUser(source, path, 0)
+}
+
+// GetFolderQuotaByPathAndUser returns a folder quota for exact source, path, and user binding (0 = all users).
+func GetFolderQuotaByPathAndUser(source, path string, userID uint64) (*quota.FolderQuota, error) {
 	path = normalizeQuotaPath(path)
 	quotasMux.RLock()
 	defer quotasMux.RUnlock()
 	for _, id := range folderQuotasBySource[source] {
 		q := folderQuotasByID[id]
-		if q != nil && normalizeQuotaPath(q.Path) == path {
+		if q != nil && normalizeQuotaPath(q.Path) == path && q.UserID == userID {
 			copyQ := *q
 			return &copyQ, nil
 		}

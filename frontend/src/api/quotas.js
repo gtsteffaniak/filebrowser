@@ -5,11 +5,13 @@ import { fetchJSON, fetchURL } from "./utils";
 /**
  * @param {string} source
  * @param {string} [path]
+ * @param {string} [username]
  */
-export async function get(source, path) {
+export async function get(source, path, username) {
   try {
     const params = { source };
     if (path) params.path = path;
+    if (username) params.username = username;
     return await fetchJSON(getApiPath("quotas", params));
   } catch (/** @type {any} */ err) {
     if (err.status !== 404) {
@@ -35,14 +37,18 @@ export async function create(body) {
 }
 
 /**
- * @param {string} id
+ * @param {string} source
+ * @param {string} path
  * @param {Record<string, any>} body
+ * @param {string} [username]
  */
-export async function update(id, body) {
+export async function update(source, path, body, username) {
   try {
-    return await fetchJSON(getApiPath(`quotas/${id}`), {
+    const payload = { source, path, ...body };
+    if (username) payload.username = username;
+    return await fetchJSON(getApiPath("quotas"), {
       method: "PATCH",
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     });
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || "Error updating quota");
@@ -51,27 +57,17 @@ export async function update(id, body) {
 }
 
 /**
- * @param {string} id
+ * @param {string} source
+ * @param {string} path
+ * @param {string} [username]
  */
-export async function remove(id) {
+export async function remove(source, path, username) {
   try {
-    await fetchURL(getApiPath(`quotas/${id}`), { method: "DELETE" });
+    const params = { source, path };
+    if (username) params.username = username;
+    await fetchURL(getApiPath("quotas", params), { method: "DELETE" });
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || "Error deleting quota");
-    throw err;
-  }
-}
-
-/**
- * @param {string} username
- * @param {string} source
- */
-export async function getUserScopeSnapshot(username, source) {
-  try {
-    const params = { source };
-    return await fetchJSON(getApiPath(`users/${encodeURIComponent(username)}/quota-snapshot`, params));
-  } catch (/** @type {any} */ err) {
-    notify.showError(err.message || "Error fetching scope quota");
     throw err;
   }
 }

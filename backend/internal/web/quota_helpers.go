@@ -94,15 +94,10 @@ func renderQuotaError(w http.ResponseWriter, r *http.Request, err error) (int, e
 	payload := map[string]interface{}{
 		"code":          qe.Code,
 		"quotaKind":     qe.QuotaKind,
-		"quotaId":       qe.QuotaID,
 		"limitBytes":    qe.LimitBytes,
 		"usedBytes":     qe.UsedBytes,
 		"reservedBytes": qe.ReservedBytes,
 		"message":       qe.DisplayMessage(),
 	}
-	_, renderErr := RenderJSON(w, r, payload, status)
-	if renderErr != nil {
-		return status, err
-	}
-	return status, err
+	return RenderJSON(w, r, payload, status)
 }

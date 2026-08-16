@@ -130,9 +130,8 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// ========================================
 	api.HandleFunc("GET /quotas", withAdmin(quotasGetHandler))
 	api.HandleFunc("POST /quotas", withAdmin(quotasPostHandler))
-	api.HandleFunc("PATCH /quotas/{id}", withAdmin(quotasPatchHandler))
-	api.HandleFunc("DELETE /quotas/{id}", withAdmin(quotasDeleteHandler))
-	api.HandleFunc("GET /users/{username}/quota-snapshot", withUser(userQuotaSnapshotHandler))
+	api.HandleFunc("PATCH /quotas", withAdmin(quotasPatchHandler))
+	api.HandleFunc("DELETE /quotas", withAdmin(quotasDeleteHandler))
 
 	// ========================================
 	// Tools Routes - /api/tools/

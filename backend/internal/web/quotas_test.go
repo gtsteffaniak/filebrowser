@@ -143,13 +143,11 @@ func TestQuotasDeleteHandler_RecordsActivityDetails(t *testing.T) {
 	if unmarshalErr := json.Unmarshal(createRec.Body.Bytes(), &created); unmarshalErr != nil {
 		t.Fatal(unmarshalErr)
 	}
-	id, _ := created["id"].(string)
-	if id == "" {
-		t.Fatal("expected quota id in create response")
+	if created["limitBytes"] == nil {
+		t.Fatal("expected limitBytes in create response")
 	}
 
-	delReq := httptest.NewRequest(http.MethodDelete, "/api/quotas/"+id, nil)
-	delReq.SetPathValue("id", id)
+	delReq := httptest.NewRequest(http.MethodDelete, "/api/quotas?source=Downloads&path=/archive", nil)
 	delReq.RemoteAddr = "127.0.0.1:1234"
 	delRec := httptest.NewRecorder()
 	status, handlerErr := quotasDeleteHandler(delRec, delReq, ctx)

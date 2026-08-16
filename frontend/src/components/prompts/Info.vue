@@ -177,7 +177,7 @@ export default {
       hashResult: "",
       generatingHash: false,
       quotaSnapshot: {},
-      quotaId: "",
+      quotaExists: false,
       accessRule: {
         denyAll: false,
         deny: { users: [], groups: [] },
@@ -265,7 +265,7 @@ export default {
       return this.isAdmin && this.source && this.filePath;
     },
     quotaEnabled() {
-      return Boolean(this.quotaId) && (this.quotaSnapshot.limitBytes || 0) > 0;
+      return this.quotaExists && (this.quotaSnapshot.limitBytes || 0) > 0;
     },
     quotaLimitBytes() {
       return this.quotaSnapshot.limitBytes || 0;
@@ -306,8 +306,8 @@ export default {
           measurementStatus: data.measurementStatus,
           limitBytes: data.limitBytes,
         };
-        if (data.id) {
-          this.quotaId = data.id;
+        if ((data.limitBytes || 0) > 0) {
+          this.quotaExists = true;
         }
       } catch {
         // no quota or preview unavailable

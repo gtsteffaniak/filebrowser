@@ -8,6 +8,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -15,13 +16,22 @@ import (
 )
 
 type folderQuotaResponse struct {
-	ID                string `json:"id"`
 	Source            string `json:"source"`
 	Path              string `json:"path"`
-	UserID            uint64 `json:"userId,omitempty"`
 	LimitBytes        int64  `json:"limitBytes"`
 	UsedBytes         int64  `json:"usedBytes,omitempty"`
 	ReservedBytes     int64  `json:"reservedBytes,omitempty"`
+	Meter             string `json:"meter,omitempty"`
+	ConfiguredMeter   string `json:"configuredMeter,omitempty"`
+	EffectiveMeter    string `json:"effectiveMeter,omitempty"`
+	MeasurementStatus string `json:"measurementStatus,omitempty"`
+}
+
+type scopeQuotaResponse struct {
+	QuotaKind         string `json:"quotaKind"`
+	LimitBytes        int64  `json:"limitBytes"`
+	UsedBytes         int64  `json:"usedBytes"`
+	ReservedBytes     int64  `json:"reservedBytes"`
 	Meter             string `json:"meter,omitempty"`
 	ConfiguredMeter   string `json:"configuredMeter,omitempty"`
 	EffectiveMeter    string `json:"effectiveMeter,omitempty"`
@@ -71,17 +81,22 @@ func quotasGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	fullPath := utils.JoinScopedIndexPath(userscope, path)
 	logger.Debugf("quota GET: source=%s queryPath=%q userScope=%q fullIndexPath=%q", sourceName, path, userscope, fullPath)
 	if path != "" {
-		q, err := state.GetFolderQuotaByPath(sourceInfo.Path, fullPath)
+		userID, err := resolveFolderQuotaUserID(r.URL.Query().Get("username"), d.User)
+		if err != nil {
+			return ErrToStatus(err), err
+		}
+		q, err := state.GetFolderQuotaByPathAndUser(sourceInfo.Path, fullPath, userID)
 		if err != nil {
 			preview := state.FolderQuotaUsagePreview(sourceName, fullPath)
 			return RenderJSON(w, r, []folderQuotaResponse{folderUsagePreviewResponse(sourceName, path, preview)})
 		}
-		return RenderJSON(w, r, folderQuotaToResponse(*q, sourceName))
+		return RenderJSON(w, r, folderQuotaToResponse(*q, sourceName, path))
 	}
 	rows := state.ListFolderQuotasForSource(sourceInfo.Path)
 	out := make([]folderQuotaResponse, 0, len(rows))
 	for _, q := range rows {
-		out = append(out, folderQuotaToResponse(q, sourceName))
+		displayPath := quotaClientPathFromIndex(userscope, q.Path)
+		out = append(out, folderQuotaToResponse(q, sourceName, displayPath))
 	}
 	return RenderJSON(w, r, out)
 }
@@ -90,7 +105,7 @@ func quotasPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	var body struct {
 		Source     string `json:"source"`
 		Path       string `json:"path"`
-		UserID     uint64 `json:"userId"`
+		Username   string `json:"username"`
 		LimitBytes int64  `json:"limitBytes"`
 		Meter      string `json:"meter"`
 	}
@@ -105,122 +120,144 @@ func quotasPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
+	userID, err := resolveFolderQuotaUserID(body.Username, d.User)
+	if err != nil {
+		return ErrToStatus(err), err
+	}
 	userscope, err := d.User.GetScopeForSourceName(body.Source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	fullPath := utils.JoinScopedIndexPath(userscope, clean)
-	q, err := state.CreateFolderQuota(sourceInfo.Path, fullPath, body.UserID, body.LimitBytes, body.Meter)
+	q, err := state.CreateFolderQuota(sourceInfo.Path, fullPath, userID, body.LimitBytes, body.Meter)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 	activity.RecordQuotaCreate(r, toActor(d), body.Source, clean, activity.QuotaFolderCreateChanges(*q))
-	return RenderJSON(w, r, folderQuotaToResponse(*q, body.Source))
+	return RenderJSON(w, r, folderQuotaToResponse(*q, body.Source, clean))
 }
 
 func quotasPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	id := r.PathValue("id")
-	if id == "" {
-		return http.StatusBadRequest, fmt.Errorf("id is required")
-	}
 	var body struct {
-		UserID     uint64 `json:"userId"`
+		Source     string `json:"source"`
+		Path       string `json:"path"`
+		Username   string `json:"username"`
 		LimitBytes int64  `json:"limitBytes"`
 		Meter      string `json:"meter"`
 	}
 	if err := decodeJSON(r, &body); err != nil {
 		return http.StatusBadRequest, err
 	}
-	before, err := state.GetFolderQuotaByID(id)
+	if body.Source == "" || body.Path == "" {
+		return http.StatusBadRequest, fmt.Errorf("source and path are required")
+	}
+	sourceInfo, ok := settings.Config.Server.NameToSource[body.Source]
+	if !ok {
+		return http.StatusBadRequest, fmt.Errorf("invalid source")
+	}
+	clean, err := utils.SanitizePath(body.Path)
 	if err != nil {
-		return http.StatusNotFound, err
+		return http.StatusBadRequest, err
 	}
-	q, err := state.UpdateFolderQuota(id, body.UserID, body.LimitBytes, body.Meter)
+	userID, err := resolveFolderQuotaUserID(body.Username, d.User)
 	if err != nil {
-		return http.StatusNotFound, err
+		return ErrToStatus(err), err
 	}
-	sourceName := q.Source
-	if src, ok := settings.Config.Server.SourceMap[q.Source]; ok {
-		sourceName = src.Name
-	}
-	userscope, err := d.User.GetScopeForSourceName(sourceName)
+	userscope, err := d.User.GetScopeForSourceName(body.Source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	displayPath := quotaClientPathFromIndex(userscope, q.Path)
+	fullPath := utils.JoinScopedIndexPath(userscope, clean)
+	before, err := state.GetFolderQuotaByPathAndUser(sourceInfo.Path, fullPath, userID)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	q, err := state.UpdateFolderQuota(before.ID, userID, body.LimitBytes, body.Meter)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
 	changes := activity.QuotaFolderUpdateChanges(*before, *q)
 	if len(changes) > 0 {
-		activity.RecordQuotaUpdate(r, toActor(d), sourceName, displayPath, changes)
+		activity.RecordQuotaUpdate(r, toActor(d), body.Source, clean, changes)
 	}
-	return RenderJSON(w, r, folderQuotaToResponse(*q, sourceName))
+	return RenderJSON(w, r, folderQuotaToResponse(*q, body.Source, clean))
 }
 
 func quotasDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	id := r.PathValue("id")
-	if id == "" {
-		return http.StatusBadRequest, fmt.Errorf("id is required")
+	sourceName := r.URL.Query().Get("source")
+	path := r.URL.Query().Get("path")
+	if sourceName == "" || path == "" {
+		return http.StatusBadRequest, fmt.Errorf("source and path are required")
 	}
-	before, err := state.GetFolderQuotaByID(id)
+	sourceInfo, ok := settings.Config.Server.NameToSource[sourceName]
+	if !ok {
+		return http.StatusBadRequest, fmt.Errorf("invalid source")
+	}
+	clean, err := utils.SanitizePath(path)
 	if err != nil {
-		return http.StatusNotFound, err
+		return http.StatusBadRequest, err
 	}
-	sourceName := before.Source
-	if src, ok := settings.Config.Server.SourceMap[before.Source]; ok {
-		sourceName = src.Name
+	userID, err := resolveFolderQuotaUserID(r.URL.Query().Get("username"), d.User)
+	if err != nil {
+		return ErrToStatus(err), err
 	}
 	userscope, err := d.User.GetScopeForSourceName(sourceName)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	displayPath := quotaClientPathFromIndex(userscope, before.Path)
-	if err := state.DeleteFolderQuota(id); err != nil {
+	fullPath := utils.JoinScopedIndexPath(userscope, clean)
+	before, err := state.GetFolderQuotaByPathAndUser(sourceInfo.Path, fullPath, userID)
+	if err != nil {
 		return http.StatusNotFound, err
 	}
-	activity.RecordQuotaDelete(r, toActor(d), sourceName, displayPath, activity.QuotaFolderDeleteChanges(*before))
+	if err := state.DeleteFolderQuota(before.ID); err != nil {
+		return http.StatusNotFound, err
+	}
+	activity.RecordQuotaDelete(r, toActor(d), sourceName, clean, activity.QuotaFolderDeleteChanges(*before))
 	return http.StatusNoContent, nil
 }
 
-func userQuotaSnapshotHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	sourceName := r.URL.Query().Get("source")
-	if sourceName == "" {
-		return http.StatusBadRequest, fmt.Errorf("source is required")
+func resolveFolderQuotaUserID(username string, actor *users.User) (uint64, error) {
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return 0, nil
 	}
-	username := r.PathValue("username")
-	target := d.User
-	if username != "" && username != d.User.Username {
-		if !d.User.Permissions.Admin {
-			return http.StatusForbidden, fmt.Errorf("admin required")
-		}
-		u, err := state.GetUserByUsername(username)
-		if err != nil {
-			return http.StatusNotFound, err
-		}
-		target = &u
+	if username != actor.Username && !actor.Permissions.Admin {
+		return 0, fmt.Errorf("admin required")
 	}
-	for _, bs := range target.BackendScopes {
-		sourceInfo, ok := settings.Config.Server.NameToSource[sourceName]
-		if !ok {
-			return http.StatusBadRequest, fmt.Errorf("invalid source")
-		}
-		if bs.Path != sourceInfo.Path || bs.Quota == nil {
-			continue
-		}
-		return RenderJSON(w, r, state.ScopeQuotaSnapshot(target, sourceName, bs.Quota))
+	u, err := state.GetUserByUsername(username)
+	if err != nil {
+		return 0, err
 	}
-	return http.StatusNotFound, fmt.Errorf("no scope quota for source")
+	return u.ID, nil
+}
+
+func scopeQuotaToResponse(snap quota.Snapshot) scopeQuotaResponse {
+	return scopeQuotaResponse{
+		QuotaKind:         snap.Kind,
+		LimitBytes:        snap.LimitBytes,
+		UsedBytes:         snap.UsedBytes,
+		ReservedBytes:     snap.ReservedBytes,
+		Meter:             snap.Meter,
+		ConfiguredMeter:   snap.ConfiguredMeter,
+		EffectiveMeter:    snap.EffectiveMeter,
+		MeasurementStatus: snap.MeasurementStatus,
+	}
 }
 
 func decodeJSON(r *http.Request, dest interface{}) error {
 	return json.NewDecoder(r.Body).Decode(dest)
 }
 
-func folderQuotaToResponse(q quota.FolderQuota, sourceName string) folderQuotaResponse {
+func folderQuotaToResponse(q quota.FolderQuota, sourceName, clientPath string) folderQuotaResponse {
 	snap := state.FolderQuotaSnapshot(q, sourceName)
+	path := clientPath
+	if path == "" {
+		path = q.Path
+	}
 	return folderQuotaResponse{
-		ID:                q.ID,
 		Source:            sourceName,
-		Path:              q.Path,
-		UserID:            q.UserID,
+		Path:              path,
 		LimitBytes:        q.LimitBytes,
 		UsedBytes:         snap.UsedBytes,
 		ReservedBytes:     snap.ReservedBytes,
