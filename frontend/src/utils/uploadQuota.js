@@ -237,6 +237,36 @@ export function extractQuotaErrorMessage(err) {
 }
 
 /**
+ * Block save when growth would exceed folder or share quota.
+ * @param {string} destinationPath
+ * @param {number} newByteLength
+ * @param {number} [oldByteLength]
+ * @returns {Promise<boolean>} true when save was rejected
+ */
+export async function rejectPutIfQuotaExceeded(destinationPath, newByteLength, oldByteLength = 0) {
+  const growthBytes = newByteLength - oldByteLength;
+  if (growthBytes <= 0) {
+    return false;
+  }
+
+  const folderSnapshots = await resolveFolderQuotaSnapshots(destinationPath);
+  for (const snapshot of folderSnapshots) {
+    if (wouldExceedQuota(snapshot, growthBytes)) {
+      notifyQuotaExceeded();
+      return true;
+    }
+  }
+
+  const shareSnapshot = getShareLinkQuotaSnapshot();
+  if (shareSnapshot && wouldExceedQuota(shareSnapshot, growthBytes)) {
+    notifyQuotaExceeded();
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Block upload when known batch size exceeds folder or share quota.
  * @param {string} destinationPath
  * @param {{ file?: File; relativePath?: string }[]} items

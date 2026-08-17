@@ -22,6 +22,8 @@ import (
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -275,6 +277,72 @@ func (ff *filteredFile) Readdir(count int) ([]os.FileInfo, error) {
 	return entries, nil
 }
 
+// quotaPutFile stages WebDAV PUT writes through a temp file when storage quotas apply.
+type quotaPutFile struct {
+	*filteredFile
+	tempPath      string
+	written       int64
+	quotaCtx      quota.UploadContext
+	quotaReserved bool
+	totalSize     int64
+	hasTotalSize  bool
+	contentLength int64
+	sourceName    string
+	realPath      string
+}
+
+func (f *quotaPutFile) Write(p []byte) (int, error) {
+	n, err := f.File.Write(p)
+	f.written += int64(n)
+	return n, err
+}
+
+func (f *quotaPutFile) Close() error {
+	if f.tempPath == "" {
+		return f.filteredFile.Close()
+	}
+
+	if err := f.File.Close(); err != nil {
+		_ = os.Remove(f.tempPath)
+		if f.quotaReserved {
+			releaseUploadQuota(f.quotaCtx.SessionID)
+		}
+		return err
+	}
+
+	if err := validateReceivedBytes(f.written, f.totalSize, f.hasTotalSize, f.contentLength); err != nil {
+		_ = os.Remove(f.tempPath)
+		if f.quotaReserved {
+			releaseUploadQuota(f.quotaCtx.SessionID)
+		}
+		return err
+	}
+
+	if err := fileutils.MoveFile(f.tempPath, f.realPath); err != nil {
+		if f.quotaReserved {
+			releaseUploadQuota(f.quotaCtx.SessionID)
+		}
+		return err
+	}
+	if idx := indexing.GetIndex(f.sourceName); idx != nil && !idx.Config.ResolvedRules.IndexingDisabled {
+		go files.RefreshIndex(f.sourceName, filepath.Dir(f.realPath), true, false) //nolint:errcheck
+	}
+
+	if f.quotaReserved {
+		if commitErr := commitUploadQuotaAfterMove(f.quotaCtx); commitErr != nil {
+			return commitErr
+		}
+		f.quotaReserved = false
+	}
+
+	if !f.desiredMtime.IsZero() {
+		if chtimesErr := os.Chtimes(f.realPath, time.Now(), f.desiredMtime); chtimesErr != nil {
+			logger.Errorf("failed to set mtime on %s: %v", f.realPath, chtimesErr)
+		}
+	}
+	return nil
+}
+
 func (ffs *filteredFileSystem) sourceFilePerms() users.SourceFilePermissions {
 	return ffs.filePerms
 }
@@ -308,6 +376,7 @@ func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.F
 func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string, flag int, perm os.FileMode) (webdav.File, error) {
 	// Check if this is a write operation
 	isWrite := (flag&os.O_WRONLY) != 0 || (flag&os.O_RDWR) != 0 || (flag&os.O_CREATE) != 0
+	isReplaceWrite := isWrite && ((flag&os.O_TRUNC) != 0 || (flag&os.O_CREATE) != 0)
 
 	if isWrite {
 		// Check user permissions first
@@ -322,6 +391,73 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 		}
 	}
 
+	var desiredMtime time.Time
+	if isReplaceWrite && ffs.httpReq != nil && flag&os.O_CREATE != 0 {
+		if raw := ffs.httpReq.Header.Get("X-OC-Mtime"); raw != "" {
+			if seconds, parseErr := strconv.ParseFloat(raw, 64); parseErr == nil {
+				desiredMtime = time.Unix(int64(seconds), 0)
+			} else {
+				logger.Debugf("OpenFile: invalid X-OC-Mtime header %q for %s: %v", raw, requestPath, parseErr)
+			}
+		}
+	}
+
+	if isReplaceWrite && ffs.httpReq != nil {
+		userScope, scopeErr := ffs.user.GetScopeForSourceName(ffs.source)
+		if scopeErr == nil {
+			rel := strings.TrimPrefix(requestPath, "/")
+			fullIndexPath := utils.JoinScopedIndexPath(userScope, rel)
+			idx := indexing.GetIndex(ffs.source)
+			if idx != nil {
+				sourcePath := idx.Path
+				if sourceInfo, ok := settings.Config.Server.NameToSource[ffs.source]; ok {
+					sourcePath = sourceInfo.Path
+				}
+				realPath, _, _ := idx.GetRealPath(fullIndexPath)
+				principal := quota.PrincipalForUpload(ffs.user, 0, "")
+				if state.HasApplicableQuotas(principal, sourcePath, fullIndexPath, "", 0) {
+					totalSize, hasTotalSize, sizeErr := parsePutTotalSize(ffs.httpReq)
+					if sizeErr != nil {
+						return nil, sizeErr
+					}
+					sessionID := newQuotaSessionID()
+					quotaCtx := buildUploadQuotaContext(principal, ffs.source, sourcePath, fullIndexPath, realPath, "", 0, sessionID, totalSize, hasTotalSize)
+					if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
+						return nil, quotaErr
+					}
+
+					if err := os.MkdirAll(filepath.Dir(realPath), fileutils.EffectiveDirPerm()); err != nil {
+						return nil, err
+					}
+					tempPath := uploadTempPath(realPath, sessionID)
+					tempFile, err := os.OpenFile(tempPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, fileutils.PermFile)
+					if err != nil {
+						releaseUploadQuota(sessionID)
+						return nil, err
+					}
+
+					return &quotaPutFile{
+						filteredFile: &filteredFile{
+							File:         tempFile,
+							fs:           ffs,
+							requestPath:  requestPath,
+							isDir:        false,
+							desiredMtime: desiredMtime,
+						},
+						tempPath:      tempPath,
+						quotaCtx:      quotaCtx,
+						quotaReserved: true,
+						totalSize:     totalSize,
+						hasTotalSize:  hasTotalSize,
+						contentLength: ffs.httpReq.ContentLength,
+						sourceName:    ffs.source,
+						realPath:      realPath,
+					}, nil
+				}
+			}
+		}
+	}
+
 	file, err := ffs.fs.OpenFile(ctx, requestPath, flag, perm)
 	if err != nil {
 		return nil, err
@@ -331,18 +467,6 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 	if err != nil {
 		file.Close()
 		return nil, err
-	}
-
-	// only new uploads carry mtime
-	var desiredMtime time.Time
-	if flag&os.O_CREATE != 0 && ffs.httpReq != nil {
-		if raw := ffs.httpReq.Header.Get("X-OC-Mtime"); raw != "" {
-			if seconds, parseErr := strconv.ParseFloat(raw, 64); parseErr == nil {
-				desiredMtime = time.Unix(int64(seconds), 0)
-			} else {
-				logger.Debugf("OpenFile: invalid X-OC-Mtime header %q for %s: %v", raw, requestPath, parseErr)
-			}
-		}
 	}
 
 	// Wrap the file to filter directory listings

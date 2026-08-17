@@ -1190,8 +1190,8 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusMethodNotAllowed, fmt.Errorf("path is a directory")
 	}
 
-	err = files.WriteFile(source, fullIndexPath, r.Body)
-	return ErrToStatus(err), err
+	realPath, _, _ := idx.GetRealPath(fullIndexPath)
+	return putResourceWithQuota(w, r, d, source, fullIndexPath, realPath)
 }
 
 // publicPutHandler handles the PUT request for a public share.
@@ -1225,12 +1225,12 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	resolvedPath := utils.JoinScopedIndexPath(d.Share.Path, cleanPath)
-	err = files.WriteFile(sourceName, resolvedPath, r.Body)
-	if err != nil {
-		logger.Errorf("public put handler: error updating resource with error %v", err)
-		return http.StatusInternalServerError, fmt.Errorf("an error occurred while updating the resource")
+	idx := indexing.GetIndex(sourceName)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
-	return http.StatusOK, nil
+	realPath, _, _ := idx.GetRealPath(resolvedPath)
+	return putResourceWithQuota(w, r, d, sourceName, resolvedPath, realPath)
 }
 
 // resourcePatchHandler performs a patch operation (e.g., move, copy, rename) on resources.
