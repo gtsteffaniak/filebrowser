@@ -282,6 +282,7 @@ type quotaPutFile struct {
 	*filteredFile
 	tempPath      string
 	written       int64
+	writeErr      error
 	quotaCtx      quota.UploadContext
 	quotaReserved bool
 	totalSize     int64
@@ -294,6 +295,9 @@ type quotaPutFile struct {
 func (f *quotaPutFile) Write(p []byte) (int, error) {
 	n, err := f.File.Write(p)
 	f.written += int64(n)
+	if err != nil {
+		f.writeErr = err
+	}
 	return n, err
 }
 
@@ -310,30 +314,25 @@ func (f *quotaPutFile) Close() error {
 		return err
 	}
 
-	if err := validateReceivedBytes(f.written, f.totalSize, f.hasTotalSize, f.contentLength); err != nil {
+	if f.writeErr != nil {
 		_ = os.Remove(f.tempPath)
 		if f.quotaReserved {
 			releaseUploadQuota(f.quotaCtx.SessionID)
 		}
-		return err
+		return f.writeErr
 	}
 
-	if err := fileutils.MoveFile(f.tempPath, f.realPath); err != nil {
-		if f.quotaReserved {
+	stillReserved, finalizeErr := finalizeQuotaPut(f.quotaCtx, f.tempPath, f.realPath, f.sourceName, f.written, f.totalSize, f.hasTotalSize, f.contentLength)
+	if finalizeErr != nil {
+		if f.quotaReserved && stillReserved {
 			releaseUploadQuota(f.quotaCtx.SessionID)
 		}
-		return err
-	}
-	if idx := indexing.GetIndex(f.sourceName); idx != nil && !idx.Config.ResolvedRules.IndexingDisabled {
-		go files.RefreshIndex(f.sourceName, filepath.Dir(f.realPath), true, false) //nolint:errcheck
-	}
-
-	if f.quotaReserved {
-		if commitErr := commitUploadQuotaAfterMove(f.quotaCtx); commitErr != nil {
-			return commitErr
+		if !stillReserved {
+			f.quotaReserved = false
 		}
-		f.quotaReserved = false
+		return finalizeErr
 	}
+	f.quotaReserved = false
 
 	if !f.desiredMtime.IsZero() {
 		if chtimesErr := os.Chtimes(f.realPath, time.Now(), f.desiredMtime); chtimesErr != nil {
@@ -413,9 +412,13 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 				if sourceInfo, ok := settings.Config.Server.NameToSource[ffs.source]; ok {
 					sourcePath = sourceInfo.Path
 				}
-				realPath, _, _ := idx.GetRealPath(fullIndexPath)
 				principal := quota.PrincipalForUpload(ffs.user, 0, "")
 				if state.HasApplicableQuotas(principal, sourcePath, fullIndexPath, "", 0) {
+					realPath, pathErr := resolvePutRealPath(idx, fullIndexPath)
+					if pathErr != nil {
+						_, clientErr := sanitizePutPathError(pathErr)
+						return nil, clientErr
+					}
 					totalSize, hasTotalSize, sizeErr := parsePutTotalSize(ffs.httpReq)
 					if sizeErr != nil {
 						return nil, sizeErr
