@@ -38,6 +38,25 @@ type scopeQuotaResponse struct {
 	MeasurementStatus string `json:"measurementStatus,omitempty"`
 }
 
+// folderQuotaCreateBody is the POST /quotas request body.
+type folderQuotaCreateBody struct {
+	Source     string `json:"source"`
+	Path       string `json:"path"`
+	Username   string `json:"username"`
+	LimitBytes int64  `json:"limitBytes"`
+	Meter      string `json:"meter"`
+}
+
+// folderQuotaPatchBody is the PATCH /quotas request body.
+// Username sets a new owner binding when present; locate the quota with the username query param.
+type folderQuotaPatchBody struct {
+	Source     string  `json:"source"`
+	Path       string  `json:"path"`
+	Username   *string `json:"username"`
+	LimitBytes *int64  `json:"limitBytes"`
+	Meter      *string `json:"meter"`
+}
+
 func quotaClientPathFromIndex(userScope, indexPath string) string {
 	indexPath = strings.TrimSuffix(indexPath, "/")
 	userScope = strings.TrimRight(userScope, "/")
@@ -102,13 +121,7 @@ func quotasGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 }
 
 func quotasPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	var body struct {
-		Source     string `json:"source"`
-		Path       string `json:"path"`
-		Username   string `json:"username"`
-		LimitBytes int64  `json:"limitBytes"`
-		Meter      string `json:"meter"`
-	}
+	var body folderQuotaCreateBody
 	if err := decodeJSON(r, &body); err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -138,41 +151,26 @@ func quotasPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 }
 
 func quotasPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	var raw map[string]json.RawMessage
-	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
+	var body folderQuotaPatchBody
+	if err := decodeJSON(r, &body); err != nil {
 		return http.StatusBadRequest, err
 	}
-	sourceName, err := patchStringField(raw, "source")
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-	pathVal, err := patchStringField(raw, "path")
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-	if sourceName == "" || pathVal == "" {
+	if body.Source == "" || body.Path == "" {
 		return http.StatusBadRequest, fmt.Errorf("source and path are required")
 	}
-	sourceInfo, ok := settings.Config.Server.NameToSource[sourceName]
+	sourceInfo, ok := settings.Config.Server.NameToSource[body.Source]
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source")
 	}
-	clean, err := utils.SanitizePath(pathVal)
+	clean, err := utils.SanitizePath(body.Path)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	var lookupUserID uint64
-	if _, hasUsername := raw["username"]; hasUsername {
-		username, uerr := patchStringField(raw, "username")
-		if uerr != nil {
-			return http.StatusBadRequest, uerr
-		}
-		lookupUserID, err = resolveFolderQuotaUserID(username, d.User)
-		if err != nil {
-			return ErrToStatus(err), err
-		}
+	lookupUserID, err := resolveFolderQuotaUserID(r.URL.Query().Get("username"), d.User)
+	if err != nil {
+		return ErrToStatus(err), err
 	}
-	userscope, err := d.User.GetScopeForSourceName(sourceName)
+	userscope, err := d.User.GetScopeForSourceName(body.Source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -182,24 +180,16 @@ func quotasPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusNotFound, err
 	}
 	var limitBytes int64
-	if v, ok := raw["limitBytes"]; ok {
-		if err := json.Unmarshal(v, &limitBytes); err != nil {
-			return http.StatusBadRequest, err
-		}
+	if body.LimitBytes != nil {
+		limitBytes = *body.LimitBytes
 	}
 	var meter string
-	if v, ok := raw["meter"]; ok {
-		if err := json.Unmarshal(v, &meter); err != nil {
-			return http.StatusBadRequest, err
-		}
+	if body.Meter != nil {
+		meter = *body.Meter
 	}
 	var userIDPatch *uint64
-	if _, hasUsername := raw["username"]; hasUsername {
-		username, uerr := patchStringField(raw, "username")
-		if uerr != nil {
-			return http.StatusBadRequest, uerr
-		}
-		uid, uerr := resolveFolderQuotaUserID(username, d.User)
+	if body.Username != nil {
+		uid, uerr := resolveFolderQuotaUserID(*body.Username, d.User)
 		if uerr != nil {
 			return ErrToStatus(uerr), uerr
 		}
@@ -211,21 +201,9 @@ func quotasPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	}
 	changes := activity.QuotaFolderUpdateChanges(*before, *q)
 	if len(changes) > 0 {
-		activity.RecordQuotaUpdate(r, toActor(d), sourceName, clean, changes)
+		activity.RecordQuotaUpdate(r, toActor(d), body.Source, clean, changes)
 	}
-	return RenderJSON(w, r, []folderQuotaResponse{folderQuotaToResponse(*q, sourceName, clean)})
-}
-
-func patchStringField(raw map[string]json.RawMessage, key string) (string, error) {
-	v, ok := raw[key]
-	if !ok {
-		return "", nil
-	}
-	var s string
-	if err := json.Unmarshal(v, &s); err != nil {
-		return "", err
-	}
-	return s, nil
+	return RenderJSON(w, r, []folderQuotaResponse{folderQuotaToResponse(*q, body.Source, clean)})
 }
 
 func quotasDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {

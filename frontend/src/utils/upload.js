@@ -730,7 +730,6 @@ class UploadManager {
         if (item.status === "uploading") {
           this.abortUpload(item);
         }
-        }
         if (item.status === "pending" || item.status === "uploading") {
           item.status = "error";
           item.errorDetails = message;

@@ -44,9 +44,10 @@ export async function create(body) {
  */
 export async function update(source, path, body, username) {
   try {
+    const params = { source, path };
+    if (username) params.username = username;
     const payload = { source, path, ...body };
-    if (username) payload.username = username;
-    return await fetchJSON(getApiPath("quotas"), {
+    return await fetchJSON(getApiPath("quotas", params), {
       method: "PATCH",
       body: JSON.stringify(payload),
     });

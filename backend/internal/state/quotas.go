@@ -60,12 +60,12 @@ func InitQuotas(cfg settings.Database) error {
 		storeFolderQuota(q)
 	}
 
-	startQuotaFlusher(cfg.Quotas)
-
 	counters, err := sqlDb.GetAllQuotaCounters()
 	if err != nil {
 		return fmt.Errorf("load quota counters: %w", err)
 	}
+	var staleReservedIDs []string
+	quotasMux.Lock()
 	for _, c := range counters {
 		quotaCounters[c.QuotaID] = &quotaCounterMem{
 			UsedBytes:     c.UsedBytes,
@@ -73,9 +73,16 @@ func InitQuotas(cfg settings.Database) error {
 		}
 		if c.ReservedBytes > 0 {
 			quotaCounters[c.QuotaID].Dirty = true
-			if quotaFlusher != nil {
-				quotaFlusher.markDirty(c.QuotaID)
-			}
+			staleReservedIDs = append(staleReservedIDs, c.QuotaID)
+		}
+	}
+	quotasMux.Unlock()
+
+	startQuotaFlusher(cfg.Quotas)
+
+	for _, id := range staleReservedIDs {
+		if quotaFlusher != nil {
+			quotaFlusher.markDirty(id)
 		}
 	}
 
@@ -274,14 +281,17 @@ func EnsureShareQuotaCounter(hash string) error {
 	return ensureQuotaCounterMem(quota.ShareQuotaID(hash))
 }
 
-// DeleteShareQuotaCounter removes share quota counter.
+// DeleteShareQuotaCounter removes share quota counter from SQL and memory.
 func DeleteShareQuotaCounter(hash string) error {
 	quotasMux.Lock()
 	defer quotasMux.Unlock()
 	id := quota.ShareQuotaID(hash)
+	if err := sqlDb.DeleteQuotaCounter(id); err != nil {
+		return err
+	}
 	delete(quotaCounters, id)
 	delete(pendingIndexDelta, id)
-	return sqlDb.DeleteQuotaCounter(id)
+	return nil
 }
 
 // RebuildShareQuotaUsage sets share counter used bytes from indexed size at indexPath.
@@ -573,7 +583,9 @@ func CommitQuota(sessionID string, deltaBytes int64) error {
 	defer quotasMux.Unlock()
 
 	rs := reservationsBySession[sessionID]
-	delete(reservationsBySession, sessionID)
+	if len(rs) == 0 {
+		return nil
+	}
 
 	for _, r := range rs {
 		isAccounted := r.Meter == quota.MeterAccounted || r.Kind == "share"
@@ -600,6 +612,8 @@ func CommitQuota(sessionID string, deltaBytes int64) error {
 			pendingIndexDelta[r.QuotaID] += commitBytes
 		}
 	}
+
+	delete(reservationsBySession, sessionID)
 	signalQuotaFlush()
 	return nil
 }
@@ -630,8 +644,11 @@ func releaseSessionReservationsLocked(sessionID string) {
 
 // ForceCommitSessionQuota commits reserved usage for a session; retries once on failure.
 func ForceCommitSessionQuota(sessionID string, deltaBytes int64) error {
-	if err := CommitQuota(sessionID, deltaBytes); err != nil {
-		return CommitQuota(sessionID, deltaBytes)
+	if err := CommitQuota(sessionID, deltaBytes); err == nil {
+		return nil
+	}
+	if retryErr := CommitQuota(sessionID, deltaBytes); retryErr != nil {
+		return fmt.Errorf("quota commit failed after retry: %w", retryErr)
 	}
 	return nil
 }

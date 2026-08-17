@@ -197,6 +197,17 @@ func DeleteShare(hash string) error {
 		if saveErr := sqlDb.SaveShare(link); saveErr != nil {
 			return fmt.Errorf("delete share quota counter failed and rollback failed: %v (rollback: %v)", err, saveErr)
 		}
+		if restoreErr := EnsureShareQuotaCounter(hash); restoreErr != nil {
+			return fmt.Errorf("delete share quota counter failed and counter restore failed: %v (restore: %v)", err, restoreErr)
+		}
+		sourceName := link.GetSourceName()
+		indexPath := link.Path
+		if indexPath == "" {
+			indexPath = "/"
+		}
+		if rebuildErr := RebuildShareQuotaUsage(hash, sourceName, indexPath); rebuildErr != nil {
+			logger.Warningf("rebuild share quota usage after delete rollback failed: %v", rebuildErr)
+		}
 		return err
 	}
 

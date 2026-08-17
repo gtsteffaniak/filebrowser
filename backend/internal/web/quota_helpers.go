@@ -41,10 +41,6 @@ func checkUploadQuota(ctx quota.UploadContext) error {
 	return quota.ReserveUpload(ctx)
 }
 
-func commitUploadQuota(ctx quota.UploadContext) error {
-	return quota.CommitUpload(ctx)
-}
-
 func commitUploadQuotaAfterMove(ctx quota.UploadContext) error {
 	if err := quota.CommitUpload(ctx); err != nil {
 		logger.Warningf("quota commit after upload failed, retrying: %v", err)

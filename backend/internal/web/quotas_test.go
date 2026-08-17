@@ -169,3 +169,139 @@ func TestQuotasDeleteHandler_RecordsActivityDetails(t *testing.T) {
 	assertActivityChange(t, rows[0].Details.Changes, "limitBytes", "5368709120")
 	assertActivityChange(t, rows[0].Details.Changes, "meter", "accounted")
 }
+
+func TestQuotasPatchHandler_UpdatesLimitWithoutRebindingOwner(t *testing.T) {
+	setupQuotaHTTPTest(t)
+
+	bob := &users.User{
+		ID: 2,
+		FrontendUser: users.FrontendUser{
+			Username: "bob",
+		},
+	}
+	if err := state.CreateUser(bob, ""); err != nil {
+		t.Fatal(err)
+	}
+	bob.BackendScopes = []users.BackendScope{{Path: "/downloads", Scope: "/"}}
+	if err := state.UpdateUser(bob, "", "backendScopes"); err != nil {
+		t.Fatal(err)
+	}
+
+	adminUser, err := state.GetUserByUsername("admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := &requestContext{User: &adminUser}
+
+	createBody, err := json.Marshal(map[string]any{
+		"source":     "Downloads",
+		"path":       "/bob-quota",
+		"username":   "bob",
+		"limitBytes": 1073741824,
+		"meter":      "accounted",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	createReq := httptest.NewRequest(http.MethodPost, "/api/quotas", bytes.NewReader(createBody))
+	createReq.Header.Set("Content-Type", "application/json")
+	createRec := httptest.NewRecorder()
+	if status, handlerErr := quotasPostHandler(createRec, createReq, ctx); status != http.StatusOK || handlerErr != nil {
+		t.Fatalf("setup post failed: status=%d err=%v", status, handlerErr)
+	}
+
+	patchBody, err := json.Marshal(map[string]any{
+		"source":     "Downloads",
+		"path":       "/bob-quota",
+		"limitBytes": 2147483648,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	patchReq := httptest.NewRequest(http.MethodPatch, "/api/quotas?username=bob", bytes.NewReader(patchBody))
+	patchReq.Header.Set("Content-Type", "application/json")
+	patchRec := httptest.NewRecorder()
+	status, handlerErr := quotasPatchHandler(patchRec, patchReq, ctx)
+	if status != http.StatusOK || handlerErr != nil {
+		t.Fatalf("patch failed: status=%d err=%v body=%s", status, handlerErr, patchRec.Body.String())
+	}
+
+	var out []folderQuotaResponse
+	if unmarshalErr := json.Unmarshal(patchRec.Body.Bytes(), &out); unmarshalErr != nil {
+		t.Fatal(unmarshalErr)
+	}
+	if len(out) != 1 || out[0].LimitBytes != 2147483648 {
+		t.Fatalf("unexpected patch response: %+v", out)
+	}
+
+	q, err := state.GetFolderQuotaByPathAndUser("/downloads", "/bob-quota", bob.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if q.UserID != bob.ID {
+		t.Fatalf("owner rebinding: got userID=%d want %d", q.UserID, bob.ID)
+	}
+	if q.LimitBytes != 2147483648 {
+		t.Fatalf("limit not updated: got %d", q.LimitBytes)
+	}
+}
+
+func TestQuotasPatchHandler_RebindsOwnerFromBody(t *testing.T) {
+	setupQuotaHTTPTest(t)
+
+	bob := &users.User{
+		ID: 2,
+		FrontendUser: users.FrontendUser{
+			Username: "bob",
+		},
+	}
+	if err := state.CreateUser(bob, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	adminUser, err := state.GetUserByUsername("admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := &requestContext{User: &adminUser}
+
+	createBody, err := json.Marshal(map[string]any{
+		"source":     "Downloads",
+		"path":       "/shared-quota",
+		"limitBytes": 1073741824,
+		"meter":      "accounted",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	createReq := httptest.NewRequest(http.MethodPost, "/api/quotas", bytes.NewReader(createBody))
+	createReq.Header.Set("Content-Type", "application/json")
+	createRec := httptest.NewRecorder()
+	if status, handlerErr := quotasPostHandler(createRec, createReq, ctx); status != http.StatusOK || handlerErr != nil {
+		t.Fatalf("setup post failed: status=%d err=%v", status, handlerErr)
+	}
+
+	patchBody, err := json.Marshal(map[string]any{
+		"source":   "Downloads",
+		"path":     "/shared-quota",
+		"username": "bob",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	patchReq := httptest.NewRequest(http.MethodPatch, "/api/quotas", bytes.NewReader(patchBody))
+	patchReq.Header.Set("Content-Type", "application/json")
+	patchRec := httptest.NewRecorder()
+	status, handlerErr := quotasPatchHandler(patchRec, patchReq, ctx)
+	if status != http.StatusOK || handlerErr != nil {
+		t.Fatalf("patch failed: status=%d err=%v body=%s", status, handlerErr, patchRec.Body.String())
+	}
+
+	q, err := state.GetFolderQuotaByPathAndUser("/downloads", "/shared-quota", bob.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if q.UserID != bob.ID {
+		t.Fatalf("owner not rebound: got userID=%d want %d", q.UserID, bob.ID)
+	}
+}
