@@ -141,13 +141,21 @@ func finalizeQuotaPut(quotaCtx quota.UploadContext, tempPath, realPath, sourceNa
 		_ = os.Remove(tempPath)
 		return true, err
 	}
-	if idx := indexing.GetIndex(sourceName); idx != nil && !idx.Config.ResolvedRules.IndexingDisabled {
+	if shouldRefreshIndexAfterPut(sourceName) {
 		go files.RefreshIndex(sourceName, filepath.Dir(realPath), true, false) //nolint:errcheck
 	}
 	if err := commitUploadQuotaAfterMove(quotaCtx); err != nil {
 		return false, err
 	}
 	return false, nil
+}
+
+func shouldRefreshIndexAfterPut(sourceName string) bool {
+	idx := indexing.GetIndex(sourceName)
+	if idx == nil || indexing.GetIndexDB() == nil {
+		return false
+	}
+	return !idx.Config.ResolvedRules.IndexingDisabled
 }
 
 func isMissingPutTargetError(err error) bool {

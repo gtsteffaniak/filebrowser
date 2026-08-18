@@ -17,6 +17,16 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
+func TestShouldRefreshIndexAfterPut_SkipsWithoutIndexDB(t *testing.T) {
+	indexing.SetTestIndex("Downloads", t.TempDir())
+	t.Cleanup(func() {
+		indexing.ClearTestIndices()
+	})
+	if shouldRefreshIndexAfterPut("Downloads") {
+		t.Fatal("expected false when shared index DB is not initialized")
+	}
+}
+
 func symlinkPutFixture(t *testing.T) (downloadsPath string, idx *indexing.Index) {
 	t.Helper()
 	downloadsPath = filepath.Join(t.TempDir(), "downloads")

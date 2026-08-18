@@ -197,7 +197,7 @@ type User struct {
 type ScopeQuota struct {
 	ID         string `json:"id"`
 	LimitBytes int64  `json:"limitBytes"` // 0 = unlimited
-	Meter      string `json:"meter,omitempty"` // index_scope | accounted
+	Meter      string `json:"meter,omitempty"` // index_scope (indexed size) | accounted (tracked usage)
 }
 
 type FrontendScope struct {

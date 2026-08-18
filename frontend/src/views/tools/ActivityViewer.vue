@@ -1758,7 +1758,7 @@ export default {
         return this.$t("tools.activityViewer.scopeAccess");
       }
       if (scope === "quotas") {
-        return this.$t("tools.activityViewer.scopeQuotas");
+        return this.$t("quotas.title");
       }
       if (scope === "shares") {
         return this.$t("tools.activityViewer.scopeShares");

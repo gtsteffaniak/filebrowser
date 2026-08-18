@@ -206,7 +206,6 @@
     "selectPath": "パスを選択",
     "renameSuccess": "アイテム名の変更に成功しました！",
     "newFileSuccess": "ファイルは正常に作成されました！",
-    "moveFailed": "移動に失敗しました",
     "operationFailed": "操作失敗",
     "partialSuccess": "{succeeded} は成功、{failed} は失敗。",
     "renameFailed": "アイテム名の変更に失敗しました",
@@ -611,7 +610,11 @@
     "viewFiles": "ファイルの表示と一覧表示",
     "source": "{prefix}出典{suffix}",
     "sources": "{prefix}出典{suffix}",
-    "enforce": "適用する{suffix}"
+    "enforce": "適用する{suffix}",
+    "limit": "上限{suffix}",
+    "remove": "削除{suffix}",
+    "saved": "保存済み{suffix}",
+    "removed": "削除済み{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -630,7 +633,9 @@
     "defaultBehavior": "デフォルト動作{suffix}",
     "deletedCascade": "パスとすべてのサブパスからアクセスルールが削除されました！",
     "cascadeDelete": "再帰的削除",
-    "cascadeDeleteDescription": "有効な場合、アクセスルールを削除すると、すべてのサブディレクトリからも削除される。これにより、ディレクトリツリー全体からユーザーまたはグループを 完全に削除することができる。"
+    "cascadeDeleteDescription": "有効な場合、アクセスルールを削除すると、すべてのサブディレクトリからも削除される。これにより、ディレクトリツリー全体からユーザーまたはグループを 完全に削除することができる。",
+    "hasRules": "アクセスルールが設定されました",
+    "manageDescription": "この経路に関するオープンアクセスに関する規則。"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",
@@ -1084,5 +1089,25 @@
     "days": "日{suffix}",
     "months": "ヶ月{suffix}",
     "timeUnit": "時間単位"
+  },
+  "quotas": {
+    "title": "ストレージの割り当て容量",
+    "openDescription": "このフォルダのストレージ使用量制限ダイアログを開きます。",
+    "folderDescription": "このフォルダの保存容量に制限を設ける。",
+    "shareLimit": "この共有フォルダへの保存容量を制限する",
+    "shareLimitDescription": "このリンク経由でのアップロード回数をカウントします。また、所有者のソースクォータにも適用されます。",
+    "scopeLimit": "このソースの保存容量制限",
+    "scopeLimitDescription": "このソースにおける、このユーザーの割り当てに対するキャップの保存容量。",
+    "indexingDisabledMeterHint": "このソースではインデックス作成が無効になっています。追跡された使用状況のみ利用可能です。",
+    "meterIndexHint": "このフォルダ内のインデックス登録済みファイルの合計サイズを使用します。インデックスの更新時に、FileBrowserの外で行われた変更も含まれます。",
+    "meterAccountedHint": "FileBrowser を通じて行われたアップロード、保存、削除のみをカウントします。",
+    "meterIndexScope": "インデックス付きサイズ",
+    "meterAccounted": "利用状況の追跡",
+    "usageCounting": "使用回数を以下ごとに集計する",
+    "usageSyncPending": "使用状況は現在もインデックスとの同期中です。",
+    "accountedFallback": "インデックス化されたサイズはまだ準備ができていません。インデックスが利用可能になるまでは、追跡された使用量を使用します。",
+    "errors": {
+      "exceeded": "ストレージの割り当て上限を超えました"
+    }
   }
 }

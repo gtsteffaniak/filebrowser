@@ -206,7 +206,6 @@
     "selectPath": "Vyberte cestu",
     "renameSuccess": "Položka bola úspešne premenovaná!",
     "newFileSuccess": "Súbor bol úspešne vytvorený!",
-    "moveFailed": "Presun zlyhal",
     "operationFailed": "Operácia zlyhala",
     "partialSuccess": "Niektoré operácie zlyhali: {succeeded} sa podarilo, {failed} sa nepodarilo",
     "renameFailed": "Nepodarilo sa premenovať položku",
@@ -611,7 +610,11 @@
     "viewFiles": "Zobraziť a vymenovať súbory",
     "source": "{prefix}Zdroj{suffix}",
     "sources": "{prefix}Zdroje{suffix}",
-    "enforce": "Uplatniť{suffix}"
+    "enforce": "Uplatniť{suffix}",
+    "limit": "Limit{suffix}",
+    "remove": "Odstrániť{suffix}",
+    "saved": "Uložené{suffix}",
+    "removed": "Odstránené{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Predvolená akcia{suffix}",
     "deletedCascade": "Prístupové pravidlá odstránené z cesty a všetkých podcestí!",
     "cascadeDelete": "Rekurzívne vymazanie",
-    "cascadeDeleteDescription": "Ak je táto možnosť povolená, odstránením pravidla prístupu sa odstráni aj zo všetkých podadresárov. To umožňuje úplne odstrániť používateľa alebo skupinu z celého stromu adresárov."
+    "cascadeDeleteDescription": "Ak je táto možnosť povolená, odstránením pravidla prístupu sa odstráni aj zo všetkých podadresárov. To umožňuje úplne odstrániť používateľa alebo skupinu z celého stromu adresárov.",
+    "hasRules": "Nastavené pravidlá prístupu",
+    "manageDescription": "Pravidlá otvoreného prístupu pre túto trasu."
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",
@@ -1084,5 +1089,25 @@
     "days": "Dni{suffix}",
     "months": "Mesiace{suffix}",
     "timeUnit": "Časová jednotka"
+  },
+  "quotas": {
+    "title": "Kvóta úložného priestoru",
+    "openDescription": "Otvorte dialógové okno s kvótou úložného priestoru pre tento priečinok.",
+    "folderDescription": "Obmedziť priestor na ukladanie pre tento priečinok.",
+    "shareLimit": "Obmedziť úložný priestor prostredníctvom tohto zdieľaného priečinka",
+    "shareLimitDescription": "Počíta nahrania prostredníctvom tohto odkazu. Týka sa to aj kvóty majiteľa.",
+    "scopeLimit": "Limit úložného priestoru pre tento zdroj",
+    "scopeLimitDescription": "Kapacita úložiska pre úlohu tohto používateľa v tomto zdroji.",
+    "indexingDisabledMeterHint": "Indexovanie je v tomto zdroji vypnuté. K dispozícii je len sledovanie využitia.",
+    "meterIndexHint": "Využíva celkovú veľkosť indexovaných súborov v tomto priečinku. Zahrňuje aj zmeny vykonané mimo programu FileBrowser pri aktualizácii indexu.",
+    "meterAccountedHint": "Počíta sa len nahrávanie, ukladanie a mazanie vykonané prostredníctvom FileBrowseru.",
+    "meterIndexScope": "Indexovaná veľkosť",
+    "meterAccounted": "Sledovanie využitia",
+    "usageCounting": "Počítať počet použití podľa",
+    "usageSyncPending": "Údaje o využívaní sa stále synchronizujú s indexom.",
+    "accountedFallback": "Indexovaná veľkosť ešte nie je pripravená; dovtedy, kým nebude index k dispozícii, sa bude sledovať využitie.",
+    "errors": {
+      "exceeded": "Prekročený úložný limit"
+    }
   }
 }

@@ -48,11 +48,11 @@ export function activityEventLabel(eventType, $t) {
     case "accessDelete":
       return $t("tools.activityViewer.eventAccessDelete");
     case "quotaCreate":
-      return $t("tools.activityViewer.eventQuotaCreate");
+      return $t("general.create");
     case "quotaUpdate":
-      return $t("tools.activityViewer.eventQuotaUpdate");
+      return $t("general.update");
     case "quotaDelete":
-      return $t("tools.activityViewer.eventQuotaDelete");
+      return $t("general.delete");
     case "tokenCreate":
       return $t("tools.activityViewer.eventTokenCreate");
     case "tokenDelete":

@@ -163,7 +163,11 @@
     "viewFiles": "Bestanden bekijken en weergeven",
     "source": "{prefix}Bron{suffix}",
     "sources": "{prefix}Bronnen{suffix}",
-    "enforce": "Handhaven{suffix}"
+    "enforce": "Handhaven{suffix}",
+    "limit": "Limiet{suffix}",
+    "remove": "Verwijderen{suffix}",
+    "saved": "Opgeslagen{suffix}",
+    "removed": "Verwijderd{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -454,7 +458,6 @@
     "firstLoadBody": "Er is een nieuwe database aangemaakt bij het opstarten. Als dit niet is wat u verwachtte, controleer dan het configuratiebestand voor het `server.database` pad en zorg ervoor dat het bestaat. Op docker kan het databasepad `./data/database.db` of `./database.db` zijn.",
     "halloweenTitle": "Happy Halloween!",
     "halloweenBody": "Het Halloween-thema is toegepast. U kunt het uitschakelen als u dit niet prettig vindt, of permanent uitschakelen in de profielinstellingen door een ander thema te selecteren.",
-    "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Bewerking is mislukt",
     "partialSuccess": "Enkele bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
     "confirmPasswordToSaveUser": "Voer uw huidige wachtwoord in om deze gebruikerswijzigingen op te slaan."
@@ -715,7 +718,9 @@
     "defaultBehavior": "Standaardactie{suffix}",
     "defaultBehaviorDescription": "Dit laat zien wat er gebeurt als een gebruiker toegang probeert te krijgen tot een pad waarvoor geen specifieke toegangsregels bestaan. Toestaan' betekent dat gebruikers standaard toegang hebben, 'Weigeren' betekent dat gebruikers standaard worden geblokkeerd tenzij ze expliciet toestemming krijgen.",
     "cascadeDelete": "Recursief verwijderen",
-    "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kunt u een gebruiker of groep volledig verwijderen uit de hele mappenstructuur."
+    "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kunt u een gebruiker of groep volledig verwijderen uit de hele mappenstructuur.",
+    "hasRules": "Toegangsregels geconfigureerd",
+    "manageDescription": "Regels inzake open toegang voor dit traject."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",
@@ -1084,5 +1089,25 @@
     "days": "Dagen{suffix}",
     "months": "Maanden{suffix}",
     "timeUnit": "Tijdseenheid"
+  },
+  "quotas": {
+    "title": "Opslagquota",
+    "openDescription": "Open het dialoogvenster met de opslagquota voor deze map.",
+    "folderDescription": "Stel een opslaglimiet in voor deze map.",
+    "shareLimit": "Beperk de opslagcapaciteit via deze share",
+    "shareLimitDescription": "Telt het aantal uploads via deze link. Dit telt ook mee voor de bronquota van de eigenaar.",
+    "scopeLimit": "Opslaglimiet voor deze bron",
+    "scopeLimitDescription": "Opslagcapaciteit voor de opdracht van deze gebruiker voor deze bron.",
+    "indexingDisabledMeterHint": "Indexering is voor deze bron uitgeschakeld. Alleen bijgehouden gebruik is beschikbaar.",
+    "meterIndexHint": "Maakt gebruik van de totale grootte van de geïndexeerde bestanden in deze map. Hierbij worden ook wijzigingen meegerekend die buiten FileBrowser zijn aangebracht wanneer de index wordt bijgewerkt.",
+    "meterAccountedHint": "Telt alleen uploads, opslagbewerkingen en verwijderingen die via FileBrowser zijn uitgevoerd.",
+    "meterIndexScope": "Geïndexeerde grootte",
+    "meterAccounted": "Gebruiksgegevens bijgehouden",
+    "usageCounting": "Gebruik tellen per",
+    "usageSyncPending": "Het gebruik wordt nog steeds gesynchroniseerd met de index.",
+    "accountedFallback": "De geïndexeerde grootte is nog niet beschikbaar; totdat de index beschikbaar is, wordt het bijgehouden gebruik gebruikt.",
+    "errors": {
+      "exceeded": "Opslaglimiet overschreden"
+    }
   }
 }

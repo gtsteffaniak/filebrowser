@@ -14,7 +14,7 @@ type FolderQuota struct {
 	Path       string `json:"path"`   // index path within source
 	UserID     uint64 `json:"userId,omitempty"` // 0 = all users
 	LimitBytes int64  `json:"limitBytes"`
-	Meter      string `json:"meter,omitempty"` // index_size | accounted
+	Meter      string `json:"meter,omitempty"` // index_size | index_scope (indexed size) | accounted (tracked usage)
 }
 
 // Counter holds accounted usage for a quota_id.

@@ -206,7 +206,6 @@
     "selectPath": "Wybierz ścieżkę",
     "renameSuccess": "Nazwa elementu została zmieniona pomyślnie!",
     "newFileSuccess": "Plik został utworzony pomyślnie!",
-    "moveFailed": "Przenoszenie nie powiodło się",
     "operationFailed": "Operacja nie powiodła się",
     "partialSuccess": "Niektóre operacje nie powiodły się: {succeeded} powiodło się, {failed} nie powiodło się",
     "renameFailed": "Nie udało się zmienić nazwy elementu",
@@ -611,7 +610,11 @@
     "viewFiles": "Wyświetlanie i wyświetlanie listy plików",
     "source": "{prefix}Źródło{suffix}",
     "sources": "{prefix}Źródła{suffix}",
-    "enforce": "Egzekwować{suffix}"
+    "enforce": "Egzekwować{suffix}",
+    "limit": "Limit{suffix}",
+    "remove": "Usuń{suffix}",
+    "saved": "Zapisano{suffix}",
+    "removed": "Usunięto{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Działanie domyślne{suffix}",
     "deletedCascade": "Reguły dostępu usunięte ze ścieżki i wszystkich podścieżek!",
     "cascadeDelete": "Usuwanie rekursywne",
-    "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów."
+    "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów.",
+    "hasRules": "Skonfigurowane reguły dostępu",
+    "manageDescription": "Zasady otwartego dostępu dla tej ścieżki."
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",
@@ -1084,5 +1089,25 @@
     "days": "Dni{suffix}",
     "months": "Miesiące{suffix}",
     "timeUnit": "Jednostka czasu"
+  },
+  "quotas": {
+    "title": "Limit przestrzeni dyskowej",
+    "openDescription": "Otwórz okno dialogowe limitu miejsca dla tego folderu.",
+    "folderDescription": "Ogranicz pojemność tego folderu.",
+    "shareLimit": "Ogranicz przestrzeń dyskową w tym folderze współdzielonym",
+    "shareLimitDescription": "Zlicza przesłania za pośrednictwem tego linku. Wpływa to również na limit przesyłania właściciela.",
+    "scopeLimit": "Limit przestrzeni dyskowej dla tego źródła",
+    "scopeLimitDescription": "Limit przechowywania danych dla zadania tego użytkownika w tym źródle.",
+    "indexingDisabledMeterHint": "W tym źródle indeksowanie jest wyłączone. Dostępne są jedynie dane dotyczące śledzenia wykorzystania.",
+    "meterIndexHint": "Wykorzystuje łączny rozmiar zindeksowanych plików w tym folderze. Uwzględnia zmiany wprowadzone poza programem FileBrowser podczas aktualizacji indeksu.",
+    "meterAccountedHint": "Uwzględnia wyłącznie operacje przesyłania, zapisywania i usuwania wykonywane za pośrednictwem programu FileBrowser.",
+    "meterIndexScope": "Rozmiar indeksowany",
+    "meterAccounted": "Śledzenie wykorzystania",
+    "usageCounting": "Zliczanie wykorzystania według",
+    "usageSyncPending": "Dane o wykorzystaniu są nadal synchronizowane z indeksem.",
+    "accountedFallback": "Rozmiar indeksowany nie jest jeszcze gotowy; do czasu udostępnienia indeksu wykorzystywane są dane dotyczące użytkowania.",
+    "errors": {
+      "exceeded": "Przekroczono limit przestrzeni dyskowej"
+    }
   }
 }
