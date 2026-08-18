@@ -5,9 +5,9 @@ import (
 	"fmt"
 )
 
-// currentSchemaVersion is the SQLite schema marker for this codebase (version 1).
+// currentSchemaVersion is the SQLite schema marker for this codebase (version 2).
 // BoltDB has no schema_version; importing via cmd/migrate builds this SQLite shape directly.
-const currentSchemaVersion = 1
+const currentSchemaVersion = 2
 
 // Schema creates all tables for the SQLite database
 func createSchema(db *sql.DB) error {
@@ -124,6 +124,28 @@ func createSchema(db *sql.DB) error {
 	CREATE INDEX IF NOT EXISTS idx_activity_user_created ON activity_log(user_id, created_at DESC);
 	CREATE INDEX IF NOT EXISTS idx_activity_event_created ON activity_log(event_type, created_at DESC);
 	CREATE INDEX IF NOT EXISTS idx_activity_user_event_created ON activity_log(user_id, event_type, created_at DESC);
+
+	-- Folder quotas (path-bound caps; meter: index_size | accounted)
+	CREATE TABLE IF NOT EXISTS quotas (
+		id TEXT PRIMARY KEY NOT NULL,
+		source TEXT NOT NULL,
+		path TEXT NOT NULL,
+		user_id TEXT,
+		limit_bytes INTEGER NOT NULL DEFAULT 0,
+		meter TEXT NOT NULL DEFAULT 'index_size',
+		created_at INTEGER NOT NULL
+	);
+	CREATE INDEX IF NOT EXISTS idx_quotas_source ON quotas(source);
+	CREATE INDEX IF NOT EXISTS idx_quotas_source_path ON quotas(source, path);
+
+	-- Accounted usage counters (scope, share, optional folder accounted in future)
+	CREATE TABLE IF NOT EXISTS quota_counters (
+		quota_id TEXT PRIMARY KEY NOT NULL,
+		used_bytes INTEGER NOT NULL DEFAULT 0,
+		reserved_bytes INTEGER NOT NULL DEFAULT 0,
+		version INTEGER NOT NULL DEFAULT 0,
+		updated_at INTEGER NOT NULL
+	);
 	`
 
 	_, err := db.Exec(schema)
@@ -183,6 +205,10 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 		switch v {
 		case 1:
 			// Canonical schema is createSchema + Bolt import; no step migrations.
+		case 2:
+			if err := migrateV2(db); err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("unknown schema version: %d", v)
 		}
@@ -194,5 +220,47 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 		return fmt.Errorf("failed to update schema version: %w", err)
 	}
 
+	return nil
+}
+
+func migrateV2(db *sql.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS quotas (
+		id TEXT PRIMARY KEY NOT NULL,
+		source TEXT NOT NULL,
+		path TEXT NOT NULL,
+		user_id TEXT,
+		limit_bytes INTEGER NOT NULL DEFAULT 0,
+		meter TEXT NOT NULL DEFAULT 'index_size',
+		created_at INTEGER NOT NULL
+	);
+	CREATE INDEX IF NOT EXISTS idx_quotas_source ON quotas(source);
+	CREATE INDEX IF NOT EXISTS idx_quotas_source_path ON quotas(source, path);
+
+	CREATE TABLE IF NOT EXISTS quota_counters (
+		quota_id TEXT PRIMARY KEY NOT NULL,
+		used_bytes INTEGER NOT NULL DEFAULT 0,
+		reserved_bytes INTEGER NOT NULL DEFAULT 0,
+		version INTEGER NOT NULL DEFAULT 0,
+		updated_at INTEGER NOT NULL
+	);
+	`
+	if _, err := db.Exec(schema); err != nil {
+		return fmt.Errorf("migrate v2: %w", err)
+	}
+	return migrateV2AddMeterColumn(db)
+}
+
+func migrateV2AddMeterColumn(db *sql.DB) error {
+	var count int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('quotas') WHERE name = 'meter'`).Scan(&count); err != nil {
+		return fmt.Errorf("migrate v2 meter column check: %w", err)
+	}
+	if count > 0 {
+		return nil
+	}
+	if _, err := db.Exec(`ALTER TABLE quotas ADD COLUMN meter TEXT NOT NULL DEFAULT 'index_size'`); err != nil {
+		return fmt.Errorf("migrate v2 add meter column: %w", err)
+	}
 	return nil
 }

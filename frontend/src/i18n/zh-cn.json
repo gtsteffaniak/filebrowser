@@ -206,7 +206,6 @@
     "selectPath": "选择路径",
     "renameSuccess": "项目重命名成功！",
     "newFileSuccess": "文件创建成功！",
-    "moveFailed": "移动失败",
     "operationFailed": "操作失败",
     "partialSuccess": "某些操作失败：{succeeded} 成功，{failed} 失败",
     "renameFailed": "重命名项目失败",
@@ -707,7 +706,11 @@
     "viewFiles": "查看和列出文件",
     "source": "{prefix}来源{suffix}",
     "sources": "{prefix}来源{suffix}",
-    "enforce": "执行{suffix}"
+    "enforce": "执行{suffix}",
+    "limit": "极限{suffix}",
+    "remove": "删除{suffix}",
+    "saved": "已保存{suffix}",
+    "removed": "已删除{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -726,7 +729,9 @@
     "defaultBehavior": "默认操作{suffix}",
     "deletedCascade": "从路径和所有子路径删除访问规则！",
     "cascadeDelete": "递归删除",
-    "cascadeDeleteDescription": "启用后，删除访问规则也会从所有子目录中删除该规则。这样就可以从整个目录树中完全删除用户或组。"
+    "cascadeDeleteDescription": "启用后，删除访问规则也会从所有子目录中删除该规则。这样就可以从整个目录树中完全删除用户或组。",
+    "hasRules": "已配置访问规则",
+    "manageDescription": "此路径的开放访问规则。"
   },
   "editor": {
     "stats": {
@@ -1084,5 +1089,25 @@
     "days": "天{suffix}",
     "months": "月份{suffix}",
     "timeUnit": "时间单位"
+  },
+  "quotas": {
+    "title": "存储配额",
+    "openDescription": "打开此文件夹的存储配额对话框。",
+    "folderDescription": "限制此文件夹的存储空间。",
+    "shareLimit": "限制此共享的存储空间",
+    "shareLimitDescription": "统计通过此链接的上传次数。这也计入所有者的源配额。",
+    "scopeLimit": "此数据源的存储限制",
+    "scopeLimitDescription": "该用户在此来源上的作业的字节上限。",
+    "indexingDisabledMeterHint": "此来源已禁用索引功能。仅提供使用情况跟踪数据。",
+    "meterIndexHint": "使用此文件夹中已建立索引的文件的总大小。包括在索引更新时，在 FileBrowser 外部所做的更改。",
+    "meterAccountedHint": "仅统计通过 FileBrowser 执行的上传、保存和删除操作。",
+    "meterIndexScope": "索引大小",
+    "meterAccounted": "已追踪的使用情况",
+    "usageCounting": "按以下方式统计使用情况",
+    "usageSyncPending": "使用情况仍在与索引同步。",
+    "accountedFallback": "索引大小尚未准备就绪；在索引可用之前，将使用已追踪的使用情况数据。",
+    "errors": {
+      "exceeded": "存储配额已超出"
+    }
   }
 }

@@ -120,6 +120,34 @@
                 :permissions="sourcePermissionsFor(source.name)"
                 @changed="markScopePermissionsExplicit(source.name)"
               />
+              <div class="scope-quota-block">
+                <ToggleSwitch
+                  class="item"
+                  :model-value="scopeQuotaEnabled(source)"
+                  :name="$t('quotas.scopeLimit')"
+                  :description="$t('quotas.scopeLimitDescription')"
+                  @update:model-value="(v) => setScopeQuotaEnabled(source, v)"
+                />
+                <div v-if="scopeQuotaEnabled(source)" class="scope-quota-fields">
+                  <ExpandDropdown
+                    :model-value="scopeQuotaMeter(source)"
+                    :options="scopeMeterOptions(source)"
+                    :aria-label="$t('quotas.usageCounting')"
+                    @update:model-value="(v) => setScopeQuotaMeter(source, v)"
+                  />
+                  <p v-if="sourceIndexingDisabled(source.name)" class="scope-quota-hint">
+                    {{ $t("quotas.indexingDisabledMeterHint") }}
+                  </p>
+                  <p>{{ $t("general.limit") }}</p>
+                  <QuotaCustomLimitInput
+                    :amount="scopeQuotaCustomAmount(source)"
+                    :unit="scopeQuotaCustomUnit(source)"
+                    :aria-label="$t('general.limit')"
+                    @update:amount="(v) => setScopeQuotaCustomAmount(source, v)"
+                    @update:unit="(v) => setScopeQuotaCustomUnit(source, v)"
+                  />
+                </div>
+              </div>
             </SettingsItem>
           </div>
         </div>
@@ -173,6 +201,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
@@ -180,6 +209,11 @@ import { validateLogin } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 import { setObjectProperty } from '@/utils/object.js';
+import {
+  GB,
+  bytesFromCustomAmount,
+  customAmountFromBytes,
+} from "@/utils/quotaUnits";
 
 export default {
   name: "user-edit",
@@ -189,6 +223,7 @@ export default {
     SourceFilePermissions,
     SettingsItem,
     ToggleSwitch,
+    QuotaCustomLimitInput,
     UserDefaultsAccountSection,
     Errors,
   },
@@ -391,6 +426,73 @@ export default {
     },
   },
   methods: {
+    sourceIndexingDisabled(sourceName) {
+      // eslint-disable-next-line security/detect-object-injection -- source name from configured source list
+      return Boolean(state.sources.info?.[sourceName]?.indexingDisabled);
+    },
+    scopeMeterOptions(source) {
+      const opts = [
+        { value: "index_scope", label: this.$t("quotas.meterIndexScope") },
+        { value: "accounted", label: this.$t("quotas.meterAccounted") },
+      ];
+      if (this.sourceIndexingDisabled(source.name)) {
+        return opts.filter((o) => o.value === "accounted");
+      }
+      return opts;
+    },
+    ensureScopeQuota(source) {
+      if (!source.quota) {
+        source.quota = {
+          limitBytes: 0,
+          meter: "index_scope",
+          customAmount: 10,
+          customUnit: "gb",
+        };
+      }
+      return source.quota;
+    },
+    scopeQuotaEnabled(source) {
+      return (source.quota?.limitBytes || 0) > 0;
+    },
+    setScopeQuotaEnabled(source, enabled) {
+      const q = this.ensureScopeQuota(source);
+      if (!enabled) {
+        q.limitBytes = 0;
+        return;
+      }
+      if (!q.limitBytes) {
+        q.limitBytes = 10 * GB;
+        q.customAmount = 10;
+        q.customUnit = "gb";
+      }
+      if (this.sourceIndexingDisabled(source.name)) {
+        q.meter = "accounted";
+      }
+    },
+    scopeQuotaMeter(source) {
+      return this.ensureScopeQuota(source).meter || "index_scope";
+    },
+    setScopeQuotaMeter(source, meter) {
+      this.ensureScopeQuota(source).meter = meter;
+    },
+    scopeQuotaCustomAmount(source) {
+      return this.ensureScopeQuota(source).customAmount || 10;
+    },
+    scopeQuotaCustomUnit(source) {
+      return this.ensureScopeQuota(source).customUnit || "gb";
+    },
+    setScopeQuotaCustomAmount(source, value) {
+      this.setScopeQuotaCustom(source, value, this.scopeQuotaCustomUnit(source));
+    },
+    setScopeQuotaCustomUnit(source, unit) {
+      this.setScopeQuotaCustom(source, this.scopeQuotaCustomAmount(source), unit);
+    },
+    setScopeQuotaCustom(source, amount, unit) {
+      const q = this.ensureScopeQuota(source);
+      q.customAmount = Number(amount) || 1;
+      q.customUnit = unit === "mb" ? "mb" : "gb";
+      q.limitBytes = bytesFromCustomAmount(q.customAmount, q.customUnit);
+    },
     defaultPermissions() {
       return {
         admin: false,
@@ -512,6 +614,7 @@ export default {
         permissions: scope?.permissions
           ? { ...scope.permissions }
           : undefined,
+        quota: scope?.quota ? { ...scope.quota } : undefined,
         permissionsExplicit: !!scope?.permissions,
       })) : [];
       if (legacySourcePermissions && typeof legacySourcePermissions === "object") {
@@ -524,6 +627,11 @@ export default {
       for (const entry of normalized) {
         if (!entry.permissions) {
           entry.permissionsExplicit = false;
+        }
+        if (entry.quota?.limitBytes > 0) {
+          const { amount, unit } = customAmountFromBytes(entry.quota.limitBytes);
+          entry.quota.customAmount = amount;
+          entry.quota.customUnit = unit;
         }
       }
       return normalized;
@@ -607,6 +715,7 @@ export default {
         permissions: scope.permissions
           ? { ...scope.permissions }
           : undefined,
+        quota: scope.quota ? { ...scope.quota } : undefined,
         permissionsExplicit: !!scope.permissions,
       }));
 
@@ -619,11 +728,23 @@ export default {
       }
     },
     buildScopesPayload() {
-      return this.selectedSources.map((source) => ({
-        name: source.name || "",
-        scope: this.normalizeScopeForApi(source.scope),
-        permissions: { ...this.sourcePermissionsFor(source.name) },
-      }));
+      return this.selectedSources.map((source) => {
+        const entry = {
+          name: source.name || "",
+          scope: this.normalizeScopeForApi(source.scope),
+          permissions: { ...this.sourcePermissionsFor(source.name) },
+        };
+        if (source.quota && source.quota.limitBytes > 0) {
+          entry.quota = {
+            id: source.quota.id || "",
+            limitBytes: source.quota.limitBytes,
+            meter: this.sourceIndexingDisabled(source.name)
+              ? "accounted"
+              : (source.quota.meter || "index_scope"),
+          };
+        }
+        return entry;
+      });
     },
     normalizeScopesForCompare(scopes) {
       return [...scopes]
@@ -631,6 +752,7 @@ export default {
           name: scope.name || "",
           scope: this.normalizeScopeForApi(scope.scope),
           permissions: scope.permissions ? { ...scope.permissions } : undefined,
+          quota: scope.quota ? { ...scope.quota } : undefined,
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
     },
@@ -991,6 +1113,17 @@ export default {
   padding: 0.5em 0.75em;
   border: 1px solid var(--borderColor, #ddd);
   border-radius: var(--borderRadius, 4px);
+}
+
+.scope-quota-block {
+  margin-top: 1rem;
+}
+
+.scope-quota-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .scope-path-display {

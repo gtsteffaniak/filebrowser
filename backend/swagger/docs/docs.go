@@ -5553,6 +5553,14 @@ const docTemplate = `{
                 "path": {
                     "description": "path to SQLite database file",
                     "type": "string"
+                },
+                "quotas": {
+                    "description": "quota counter batch flush configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.QuotasConfig"
+                        }
+                    ]
                 }
             }
         },
@@ -6132,6 +6140,19 @@ const docTemplate = `{
                 "userIdentifier": {
                     "description": "the field value to use as the username. Default is \"preferred_username\" in oidc, \"sub\" in jwt. Other common values are \"email\" or \"username\", or \"phone\"",
                     "type": "string"
+                }
+            }
+        },
+        "settings.QuotasConfig": {
+            "type": "object",
+            "properties": {
+                "flushIntervalSeconds": {
+                    "description": "default 10",
+                    "type": "integer"
+                },
+                "flushMaxBuffers": {
+                    "description": "default 500",
+                    "type": "integer"
                 }
             }
         },
@@ -6742,6 +6763,9 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
+                "quotaLimitBytes": {
+                    "type": "integer"
+                },
                 "shareTheme": {
                     "type": "string"
                 },
@@ -6916,6 +6940,18 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
+                "quotaAvailableBytes": {
+                    "type": "integer"
+                },
+                "quotaLimitBytes": {
+                    "type": "integer"
+                },
+                "quotaReservedBytes": {
+                    "type": "integer"
+                },
+                "quotaUsedBytes": {
+                    "type": "integer"
+                },
                 "shareTheme": {
                     "type": "string"
                 },
@@ -7072,6 +7108,9 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
+                "quotaLimitBytes": {
+                    "type": "integer"
+                },
                 "shareTheme": {
                     "type": "string"
                 },
@@ -7156,6 +7195,9 @@ const docTemplate = `{
                 "permissions": {
                     "$ref": "#/definitions/users.SourceFilePermissions"
                 },
+                "quota": {
+                    "$ref": "#/definitions/users.ScopeQuota"
+                },
                 "scope": {
                     "description": "index path within that source",
                     "type": "string"
@@ -7188,6 +7230,9 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.SourceFilePermissions"
+                },
+                "quota": {
+                    "$ref": "#/definitions/users.ScopeQuota"
                 },
                 "scope": {
                     "description": "index path within that source",
@@ -7500,6 +7545,22 @@ const docTemplate = `{
                 "video": {
                     "description": "show thumbnail preview image for video files",
                     "type": "boolean"
+                }
+            }
+        },
+        "users.ScopeQuota": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "limitBytes": {
+                    "description": "0 = unlimited",
+                    "type": "integer"
+                },
+                "meter": {
+                    "description": "index_scope (indexed size) | accounted (tracked usage)",
+                    "type": "string"
                 }
             }
         },

@@ -769,7 +769,9 @@ export function post(
                 const error = new Error(errorMessage);
                 error.status = request.status;
                 error.response = { status: request.status, responseText: request.responseText };
-                notify.showError(errorMessage);
+                if (request.status !== 507) {
+                  notify.showError(errorMessage);
+                }
                 reject(error);
               });
             return;
@@ -784,7 +786,9 @@ export function post(
           const error = new Error(errorMessage);
           error.status = request.status;
           error.response = { status: request.status, responseText: request.responseText };
-          notify.showError(errorMessage);
+          if (request.status !== 507) {
+            notify.showError(errorMessage);
+          }
           reject(error);
         };
 
@@ -884,8 +888,14 @@ export async function moveCopy(
     }
 
     // For other error status codes (like 500), preserve the response data
-    const error = new Error(data.message || response.statusText)
-    error.status = response.status
+    const failedMsg = Array.isArray(data.failed)
+      ? data.failed.map((item) => item?.message).find(Boolean)
+      : undefined;
+    const error = new Error(failedMsg || data.message || response.statusText || "Error moving/copying resources");
+    error.status = response.status;
+    if (data.code) {
+      error.code = data.code;
+    }
     // Attach the response data so the caller can access failed items
     if (data.failed) {
       error.failed = data.failed
@@ -1294,7 +1304,10 @@ export function postPublic(
 
           const error = new Error(errorMessage);
           error.status = request.status;
-          notify.showError(errorMessage);
+          error.response = { status: request.status, responseText: request.responseText };
+          if (request.status !== 507) {
+            notify.showError(errorMessage);
+          }
           reject(error);
         }
       };

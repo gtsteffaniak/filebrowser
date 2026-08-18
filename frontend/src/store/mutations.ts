@@ -181,6 +181,7 @@ export const mutations = {
             scanners: source.scanners || [],
             readOnly: source.readOnly || false,
             private: source.private || false,
+            indexingDisabled: source.indexingDisabled || false,
           };
           info = setObjectProperty(info, k, updated) as Record<string, SourceInfo>;
           if (updated.total > 0 || updated.used > 0 || updated.usedAlt > 0) hasAny = true;
@@ -245,6 +246,7 @@ export const mutations = {
         scanners: merge && prev.scanners ? [...prev.scanners] : [],
         readOnly: merge ? prev.readOnly : false,
         private: merge ? prev.private : false,
+        indexingDisabled: merge ? prev.indexingDisabled : false,
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace

@@ -20,6 +20,19 @@ func uploadTempPath(realPath, sessionID string) string {
 	return fmt.Sprintf("%s.%s.uploading.tmp", realPath, hex.EncodeToString(hasher.Sum(nil)))
 }
 
+// parsePutTotalSize returns the declared body size for PUT / in-place writes.
+// Uses X-File-Total-Size when set, otherwise Content-Length when positive.
+func parsePutTotalSize(r *http.Request) (total int64, ok bool, err error) {
+	total, ok, err = parseUploadTotalSize(r)
+	if err != nil || ok {
+		return total, ok, err
+	}
+	if r.ContentLength > 0 {
+		return r.ContentLength, true, nil
+	}
+	return 0, false, nil
+}
+
 // parseUploadTotalSize reads optional X-File-Total-Size.
 // ok is false when the header is absent.
 func parseUploadTotalSize(r *http.Request) (total int64, ok bool, err error) {

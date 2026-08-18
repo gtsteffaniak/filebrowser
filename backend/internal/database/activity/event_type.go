@@ -24,6 +24,9 @@ const (
 	EventAccessUpdate  EventType = "accessUpdate"
 	EventAccessCreate  EventType = "accessCreate"
 	EventAccessDelete  EventType = "accessDelete"
+	EventQuotaCreate   EventType = "quotaCreate"
+	EventQuotaUpdate   EventType = "quotaUpdate"
+	EventQuotaDelete   EventType = "quotaDelete"
 	EventLogin             EventType = "login"
 	EventLogout            EventType = "logout"
 	EventSignup            EventType = "signup"
@@ -54,6 +57,9 @@ var AllEventTypes = []EventType{
 	EventAccessUpdate,
 	EventAccessCreate,
 	EventAccessDelete,
+	EventQuotaCreate,
+	EventQuotaUpdate,
+	EventQuotaDelete,
 	EventLogin,
 	EventLogout,
 	EventSignup,
@@ -84,6 +90,13 @@ var AccessEventTypes = []EventType{
 	EventAccessDelete,
 }
 
+// QuotaEventTypes are folder quota mutations (scope=quotas).
+var QuotaEventTypes = []EventType{
+	EventQuotaCreate,
+	EventQuotaUpdate,
+	EventQuotaDelete,
+}
+
 // ShareEventTypes are share lifecycle events (scope=shares). Share downloads are
 // EventDownload rows with a non-empty details.shareHash.
 var ShareEventTypes = []EventType{
@@ -108,13 +121,15 @@ func ResolveScopeEventTypes(scope string, explicit []EventType) ([]EventType, er
 		allowed = FileEventTypes
 	case "access":
 		allowed = AccessEventTypes
+	case "quotas":
+		allowed = QuotaEventTypes
 	case "shares":
 		if len(explicit) == 0 {
 			return nil, nil
 		}
 		allowed = ShareScopeEventTypes
 	default:
-		return nil, fmt.Errorf("scope must be all, files, access, or shares")
+		return nil, fmt.Errorf("scope must be all, files, access, quotas, or shares")
 	}
 	if len(explicit) == 0 {
 		return allowed, nil
@@ -144,6 +159,7 @@ func (e EventType) Valid() bool {
 		EventArchive, EventUnarchive,
 		EventShareCreate, EventShareUpdate, EventShareDelete,
 		EventUserCreate, EventUserUpdate, EventUserDelete, EventAccessUpdate, EventAccessCreate, EventAccessDelete,
+		EventQuotaCreate, EventQuotaUpdate, EventQuotaDelete,
 		EventLogin, EventLogout, EventSignup,
 		EventPasskeyRegister, EventPasskeyDelete,
 		EventTokenCreate, EventTokenDelete,

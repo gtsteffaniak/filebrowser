@@ -305,6 +305,31 @@
             <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
           </div>
 
+          <div>
+            <ToggleSwitch
+              class="item"
+              v-model="quotaEnabled"
+              :name="$t('quotas.shareLimit')"
+              :description="$t('quotas.shareLimitDescription')"
+            />
+            <div v-if="quotaEnabled" class="quota-share-fields">
+              <p>{{ $t("general.limit") }}</p>
+              <QuotaCustomLimitInput
+                :amount="quotaCustomAmount"
+                :unit="quotaCustomUnit"
+                :aria-label="$t('general.limit')"
+                @update:amount="quotaCustomAmount = $event"
+                @update:unit="quotaCustomUnit = $event"
+              />
+              <ProgressBar
+                v-if="quotaLimitBytes > 0"
+                :val="quotaUsedBytes"
+                :val-background="quotaReservedBytes"
+                :max="quotaLimitBytes"
+                unit="bytes"
+              />
+            </div>
+          </div>
 
           <p>
             {{ $t("prompts.shareThemeColor") }}
@@ -399,11 +424,17 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
+import ProgressBar from "@/components/ProgressBar.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import FileList from "../files/FileList.vue";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
+import {
+  bytesFromCustomAmount,
+  customAmountFromBytes,
+} from "@/utils/quotaUnits";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 
 export default {
@@ -414,6 +445,8 @@ export default {
     SettingsTable,
     FileList,
     ExpandDropdown,
+    QuotaCustomLimitInput,
+    ProgressBar,
     ActivityViewerButton,
     //ViewMode,
   },
@@ -477,6 +510,11 @@ export default {
       extractEmbeddedSubtitles: false,
       disableLoginOption: false,
       sidebarLinks: [],
+      quotaEnabled: false,
+      quotaCustomAmount: 10,
+      quotaCustomUnit: "gb",
+      quotaUsedBytes: 0,
+      quotaReservedBytes: 0,
       /** @type {Share | null} */
       editingLink: null,
       isEditingPath: false,
@@ -502,6 +540,10 @@ export default {
   computed: {
     createAllowed() {
       return this.allowCreate;
+    },
+    quotaLimitBytes() {
+      if (!this.quotaEnabled) return 0;
+      return bytesFromCustomAmount(this.quotaCustomAmount, this.quotaCustomUnit);
     },
     displayPath() {
       // When editing, use the link's path; otherwise use the item's path
@@ -705,6 +747,7 @@ export default {
           this.shareType = this.link.shareType || "normal";
           this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
           this.disableLoginOption = this.link.disableLoginOption || false;
+          this.applyQuotaFromLink(this.link);
           this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
           //this.viewMode = this.link.viewMode || "normal";
           if (this.sourceReadOnly) {
@@ -752,6 +795,24 @@ export default {
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
   },
   methods: {
+    applyQuotaFromLink(link) {
+      const limit = link?.quotaLimitBytes || 0;
+      this.quotaEnabled = limit > 0;
+      this.quotaUsedBytes = link?.quotaUsedBytes || 0;
+      this.quotaReservedBytes = link?.quotaReservedBytes || 0;
+      if (limit > 0) {
+        const { amount, unit } = customAmountFromBytes(limit);
+        this.quotaCustomAmount = amount;
+        this.quotaCustomUnit = unit;
+      }
+    },
+    resetQuotaForm() {
+      this.quotaEnabled = false;
+      this.quotaCustomAmount = 1;
+      this.quotaCustomUnit = "gb";
+      this.quotaUsedBytes = 0;
+      this.quotaReservedBytes = 0;
+    },
     shareManagementLabel() {
       return this.$t("general.shareManagement");
     },
@@ -821,6 +882,7 @@ export default {
           allowReplacements: this.allowReplacements,
           maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth, 10) : 0,
           downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit, 10) : 0,
+          quotaLimitBytes: this.quotaLimitBytes,
           perUserDownloadLimit: this.perUserDownloadLimit,
           shareTheme: this.shareTheme,
           disableFileViewer: this.disableFileViewer,
@@ -954,6 +1016,7 @@ export default {
       this.shareType = link.shareType || "normal";
       this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
       this.disableLoginOption = link.disableLoginOption || false;
+      this.applyQuotaFromLink(link);
       this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
       // Store the link being edited
       this.editingLink = link;
@@ -1007,6 +1070,7 @@ export default {
         // Clear editing link when switching to create new share
         this.editingLink = null;
         this.isChangingPassword = false;
+        this.resetQuotaForm();
         // Set default sidebar links for new shares
         this.setDefaultSidebarLinks();
         this.populateDefaults();
@@ -1257,6 +1321,14 @@ export default {
   font-size: 0.9em;
   color: var(--textSecondary, #666);
   margin-top: 0.25em;
+}
+
+.quota-share-fields {
+  margin: 0.5em 0 1em 0;
+}
+
+.quota-custom-row {
+  margin-top: 0.5rem;
 }
 
 select.input option:disabled {

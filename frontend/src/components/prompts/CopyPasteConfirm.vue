@@ -45,6 +45,7 @@
 
 <script>
 import { mutations } from "@/store";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications";
 
 export default {
   name: "copy-paste-confirm",
@@ -86,8 +87,9 @@ export default {
     async confirm() {
       try {
         await this.onConfirm();
-      } finally {
         mutations.closeTopPrompt();
+      } catch (error) {
+        notifyMoveCopyFailure(error);
       }
     },
   },

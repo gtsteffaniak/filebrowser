@@ -206,7 +206,6 @@
     "selectPath": "Välj sökväg",
     "renameSuccess": "Objektet har bytt namn framgångsrikt!",
     "newFileSuccess": "Filen skapades framgångsrikt!",
-    "moveFailed": "Flyttning misslyckades",
     "operationFailed": "Operationen misslyckades",
     "partialSuccess": "Vissa operationer misslyckades: {succeeded} lyckades, {failed} misslyckades",
     "renameFailed": "Misslyckades med att byta namn på objekt",
@@ -707,7 +706,11 @@
     "viewFiles": "Visa och lista filer",
     "source": "{prefix}Källa{suffix}",
     "sources": "{prefix}Källor{suffix}",
-    "enforce": "Tillämpa{suffix}"
+    "enforce": "Tillämpa{suffix}",
+    "limit": "Gräns{suffix}",
+    "remove": "Ta bort{suffix}",
+    "saved": "Sparat{suffix}",
+    "removed": "Borttagen{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -726,7 +729,9 @@
     "defaultBehavior": "Standardåtgärd{suffix}",
     "deletedCascade": "Åtkomstregler raderade från sökvägen och alla undervägar!",
     "cascadeDelete": "Rekursiv radering",
-    "cascadeDeleteDescription": "Om funktionen är aktiverad tas en åtkomstregel även bort från alla underkataloger. På så sätt kan du helt ta bort en användare eller grupp från hela katalogträdet."
+    "cascadeDeleteDescription": "Om funktionen är aktiverad tas en åtkomstregel även bort från alla underkataloger. På så sätt kan du helt ta bort en användare eller grupp från hela katalogträdet.",
+    "hasRules": "Konfigurerade åtkomstregler",
+    "manageDescription": "Regler för fri åtkomst för denna väg."
   },
   "editor": {
     "stats": {
@@ -1084,5 +1089,25 @@
     "days": "Dagar{suffix}",
     "months": "Månader{suffix}",
     "timeUnit": "Tidsenhet"
+  },
+  "quotas": {
+    "title": "Lagringskvot",
+    "openDescription": "Öppna dialogrutan för lagringskvoten för den här mappen.",
+    "folderDescription": "Begränsa lagringsutrymmet för den här mappen.",
+    "shareLimit": "Begränsa lagringsutrymmet via den här delningen",
+    "shareLimitDescription": "Räknar uppladdningar via den här länken. Detta påverkar även ägarens källkvot.",
+    "scopeLimit": "Lagringsgräns för denna källa",
+    "scopeLimitDescription": "Lagringsutrymme för den här användarens uppdrag på den här källan.",
+    "indexingDisabledMeterHint": "Indexering är inaktiverad för denna källa. Endast spårad användning är tillgänglig.",
+    "meterIndexHint": "Använder den totala storleken på de indexerade filerna i den här mappen. Inkluderar ändringar som gjorts utanför FileBrowser när indexet uppdateras.",
+    "meterAccountedHint": "Räknar endast uppladdningar, sparningar och raderingar som utförs via FileBrowser.",
+    "meterIndexScope": "Indexerad storlek",
+    "meterAccounted": "Spårad användning",
+    "usageCounting": "Räkna användningen efter",
+    "usageSyncPending": "Användningen synkroniseras fortfarande med indexet.",
+    "accountedFallback": "Den indexerade storleken är inte klar ännu; vi använder uppföljda användningsuppgifter tills indexet är tillgängligt.",
+    "errors": {
+      "exceeded": "Lagringskvoten har överskridits"
+    }
   }
 }

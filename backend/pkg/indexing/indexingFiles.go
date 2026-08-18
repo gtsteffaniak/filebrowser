@@ -94,11 +94,12 @@ type Stats struct {
 // reduced index is json exposed to the client
 type ReducedIndex struct {
 	Stats
-	IdxName  string         `json:"name"`
-	ReadOnly bool           `json:"readOnly"`
-	Private  bool           `json:"private"`
-	Status   IndexStatus    `json:"status"`
-	Scanners []*ScannerInfo `json:"scanners,omitempty"`
+	IdxName          string         `json:"name"`
+	ReadOnly         bool           `json:"readOnly"`
+	Private          bool           `json:"private"`
+	IndexingDisabled bool           `json:"indexingDisabled,omitempty"`
+	Status           IndexStatus    `json:"status"`
+	Scanners         []*ScannerInfo `json:"scanners,omitempty"`
 }
 
 type Index struct {
@@ -1218,7 +1219,7 @@ func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previo
 
 // GetFolderSizeForDisplay retrieves folder size with appropriate formatting based on config
 func (idx *Index) GetFolderSizeForDisplay(path string) int64 {
-	size, exists := idx.GetFolderSize(path)
+	size, exists := idx.GetFolderSizeForIndexPath(path)
 	if !exists {
 		// No cached size - return appropriate default
 		if idx.Config.UseLogicalSize {

@@ -67,6 +67,9 @@ server:
       retentionDays: 30                   # purge activity rows older than this many days (default 30)
       flushIntervalSeconds: 10            # buffer flush interval in seconds (default 10)
       maxBufferSize: 10000                # max in-memory buffer before immediate flush (default 10000)
+    quotas:                               # quota counter batch flush configuration
+      flushIntervalSeconds: 10            # default 10
+      flushMaxBuffers: 500                # default 500
 auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:

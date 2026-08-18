@@ -206,7 +206,6 @@
     "selectPath": "Seleccionar ruta",
     "renameSuccess": "El cambio de nombre se ha realizado correctamente",
     "newFileSuccess": "¡Archivo creado con éxito!",
-    "moveFailed": "Error al mover",
     "operationFailed": "Operación fallida",
     "partialSuccess": "Algunas acciones fallaron: {succeeded} se completaron, y {failed} fallaron",
     "renameFailed": "Error al cambiar de nombre",
@@ -611,7 +610,11 @@
     "viewFiles": "Ver y enumerar archivos",
     "source": "{prefix}Fuente{suffix}",
     "sources": "{prefix}Fuentes{suffix}",
-    "enforce": "Aplicar{suffix}"
+    "enforce": "Aplicar{suffix}",
+    "limit": "Límite{suffix}",
+    "remove": "Eliminar{suffix}",
+    "saved": "Guardado{suffix}",
+    "removed": "Eliminado{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Regla por defecto {suffix}",
     "deletedCascade": "Reglas de acceso eliminadas",
     "cascadeDelete": "Eliminación en cascada",
-    "cascadeDeleteDescription": "Si eliminas una regla de acceso con esta opción, también la eliminará para todo el contenido (archivos y carpetas), lo cual nos permite eliminar por completo un usuario o grupo de todo el árbol de directorios"
+    "cascadeDeleteDescription": "Si eliminas una regla de acceso con esta opción, también la eliminará para todo el contenido (archivos y carpetas), lo cual nos permite eliminar por completo un usuario o grupo de todo el árbol de directorios",
+    "hasRules": "Normas de acceso configuradas",
+    "manageDescription": "Normas de libre acceso para esta ruta."
   },
   "fileLoading": {
     "title": "Subida y Descarga",
@@ -1084,5 +1089,25 @@
     "days": "{prefix}Días{suffix}",
     "months": "{prefix}Meses{suffix}",
     "timeUnit": "Unidad de tiempo"
+  },
+  "quotas": {
+    "title": "Cuota de almacenamiento",
+    "openDescription": "Abre el cuadro de diálogo de cuota de almacenamiento de esta carpeta.",
+    "folderDescription": "Limitar el espacio de almacenamiento de esta carpeta.",
+    "shareLimit": "Limitar el almacenamiento en esta unidad compartida",
+    "shareLimitDescription": "Cuenta las subidas realizadas a través de este enlace. También se descuenta de la cuota de origen del propietario.",
+    "scopeLimit": "Límite de almacenamiento para esta fuente",
+    "scopeLimitDescription": "Límite de almacenamiento para la tarea de este usuario en esta fuente.",
+    "indexingDisabledMeterHint": "La indexación está desactivada en esta fuente. Solo está disponible el seguimiento del uso.",
+    "meterIndexHint": "Utiliza el tamaño total de los archivos indexados en esta carpeta. Incluye los cambios realizados fuera de FileBrowser cuando se actualiza el índice.",
+    "meterAccountedHint": "Solo cuenta las subidas, guardados y eliminaciones realizadas a través de FileBrowser.",
+    "meterIndexScope": "Tamaño indexado",
+    "meterAccounted": "Uso registrado",
+    "usageCounting": "Contar el uso por",
+    "usageSyncPending": "El uso aún se está sincronizando con el índice.",
+    "accountedFallback": "El tamaño indexado aún no está listo; se utilizará el uso registrado hasta que el índice esté disponible.",
+    "errors": {
+      "exceeded": "Se ha superado el límite de almacenamiento"
+    }
   }
 }
