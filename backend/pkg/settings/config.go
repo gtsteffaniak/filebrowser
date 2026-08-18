@@ -154,18 +154,17 @@ func testCacheDirSpeed() {
 		logger.Fatalf("%s failed to create cache directory: %v\n%s", msgPrfx, err, failSuffix)
 	}
 
-	testFileName := filepath.Join(Config.Server.CacheDir, "speed_test.tmp")
+	file, err := os.CreateTemp(Config.Server.CacheDir, "speed_test_*.tmp")
+	if err != nil {
+		logger.Fatalf("%s failed to create test file: %v\n%s", msgPrfx, err, failSuffix)
+	}
+	testFileName := file.Name()
 
 	// Create test data (10MB of zeros)
 	testData := make([]byte, testFileSize)
 
 	// Test write performance
 	writeStart := time.Now()
-	file, err := os.Create(testFileName)
-	if err != nil {
-		logger.Fatalf("%s failed to create test file: %v\n%s", msgPrfx, err, failSuffix)
-	}
-
 	written, err := file.Write(testData)
 	if err != nil {
 		file.Close()
@@ -843,6 +842,10 @@ func SetDefaults(generate bool) Settings {
 					RetentionDays:        30,
 					FlushIntervalSeconds: 10,
 					MaxBufferSize:        10000,
+				},
+				Quotas: QuotasConfig{
+					FlushIntervalSeconds: 10,
+					FlushMaxBuffers:      500,
 				},
 			},
 			SourceMap:        map[string]*Source{},

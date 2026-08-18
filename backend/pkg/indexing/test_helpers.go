@@ -16,8 +16,10 @@ func SetTestIndex(name string, path string) {
 			Name: name,
 			Path: path,
 		},
-		WebdavLock: webdav.NewMemLS(),
-		mock:       true,
+		WebdavLock:          webdav.NewMemLS(),
+		mock:                true,
+		folderSizes:         make(map[string]uint64),
+		folderSizesUnsynced: make(map[string]struct{}),
 	}
 	indexes[name] = idx
 }

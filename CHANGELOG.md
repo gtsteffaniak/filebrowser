@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.1.0
 
+ **New Features**:
+ - Added Storage Quotas
+   - configurable by folder, source, user, and share.
+   - Administrators can create, edit, view, and delete folder quotas through the interface.
+   - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
+
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
  - Enhancements to cross-source copy/move permissions and behavior.

@@ -206,7 +206,6 @@
     "selectPath": "Pfad auswählen",
     "renameSuccess": "Artikel erfolgreich umbenannt!",
     "newFileSuccess": "Datei erfolgreich erstellt!",
-    "moveFailed": "Verschieben fehlgeschlagen",
     "operationFailed": "Operation fehlgeschlagen",
     "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen",
     "renameFailed": "Element kann nicht umbenannt werden",
@@ -611,7 +610,11 @@
     "viewFiles": "Dateien anzeigen und auflisten",
     "source": "{prefix}Quelle{suffix}",
     "sources": "{prefix}Quellen{suffix}",
-    "enforce": "Durchsetzen{suffix}"
+    "enforce": "Durchsetzen{suffix}",
+    "limit": "Grenzwert{suffix}",
+    "remove": "Entfernen{suffix}",
+    "saved": "Gespeichert{suffix}",
+    "removed": "Entfernt{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Standard-Aktion{suffix}",
     "deletedCascade": "Zugriffsregeln aus Pfad und allen Unterpfaden gelöscht!",
     "cascadeDelete": "Rekursives Löschen",
-    "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen."
+    "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen.",
+    "hasRules": "Zugriffsregeln konfiguriert",
+    "manageDescription": "Zugangsregeln für diesen Pfad."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",
@@ -1084,5 +1089,25 @@
     "days": "Tage{suffix}",
     "months": "Monate{suffix}",
     "timeUnit": "Zeiteinheit"
+  },
+  "quotas": {
+    "title": "Speicherkontingent",
+    "openDescription": "Öffnen Sie das Dialogfeld „Speicherkontingent“ für diesen Ordner.",
+    "folderDescription": "Speicherplatz für diesen Ordner begrenzen.",
+    "shareLimit": "Speicherplatz über diese Freigabe begrenzen",
+    "shareLimitDescription": "Zählt Uploads über diesen Link. Wird ebenfalls auf das Quellkontingent des Eigentümers angerechnet.",
+    "scopeLimit": "Speicherbegrenzung für diese Quelle",
+    "scopeLimitDescription": "Speicherplatzbegrenzung für die Aufgabe dieses Benutzers bei dieser Quelle.",
+    "indexingDisabledMeterHint": "Die Indizierung ist für diese Quelle deaktiviert. Es stehen lediglich Nutzungsdaten zur Verfügung.",
+    "meterIndexHint": "Verwendet die Gesamtgröße der indizierten Dateien in diesem Ordner. Berücksichtigt dabei auch Änderungen, die außerhalb von FileBrowser vorgenommen wurden, wenn der Index aktualisiert wird.",
+    "meterAccountedHint": "Zählt nur Uploads, Speichervorgänge und Löschvorgänge, die über den FileBrowser durchgeführt wurden.",
+    "meterIndexScope": "Indizierte Größe",
+    "meterAccounted": "Erfasste Nutzung",
+    "usageCounting": "Nutzung nach",
+    "usageSyncPending": "Die Nutzungsdaten werden noch mit dem Index synchronisiert.",
+    "accountedFallback": "Die indizierte Größe ist noch nicht verfügbar; bis zur Verfügbarkeit des Indexes wird die erfasste Nutzung herangezogen.",
+    "errors": {
+      "exceeded": "Speicherkontingent überschritten"
+    }
   }
 }

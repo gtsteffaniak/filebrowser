@@ -276,7 +276,6 @@
     "selectPath": "Vybrat cestu",
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
-    "moveFailed": "Přesun se nezdařil",
     "operationFailed": "Operace se nezdařila",
     "partialSuccess": "Některé operace se nezdařily: {succeeded} uspěl, {failed} neuspěl.",
     "renameFailed": "Nepodařilo se přejmenovat položku",
@@ -707,7 +706,11 @@
     "viewFiles": "Zobrazení a seznam souborů",
     "source": "{prefix}Zdroj{suffix}",
     "sources": "{prefix}Zdroje{suffix}",
-    "enforce": "Vynutit{suffix}"
+    "enforce": "Vynutit{suffix}",
+    "limit": "Limit{suffix}",
+    "remove": "Odstranit{suffix}",
+    "saved": "Uloženo{suffix}",
+    "removed": "Odstraněno{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -726,7 +729,9 @@
     "defaultBehavior": "Výchozí akce{suffix}",
     "deletedCascade": "Přístupová pravidla odstraněna z cesty a všech podcest!",
     "cascadeDelete": "Rekurzivní mazání",
-    "cascadeDeleteDescription": "Pokud je tato možnost povolena, odstraní se pravidlo přístupu také ze všech podadresářů. To umožňuje zcela odstranit uživatele nebo skupinu z celého adresářového stromu."
+    "cascadeDeleteDescription": "Pokud je tato možnost povolena, odstraní se pravidlo přístupu také ze všech podadresářů. To umožňuje zcela odstranit uživatele nebo skupinu z celého adresářového stromu.",
+    "hasRules": "Nastavená pravidla přístupu",
+    "manageDescription": "Pravidla otevřeného přístupu pro tuto trasu."
   },
   "editor": {
     "stats": {
@@ -1084,5 +1089,25 @@
     "days": "Dny{suffix}",
     "months": "Měsíce{suffix}",
     "timeUnit": "Časová jednotka"
+  },
+  "quotas": {
+    "title": "Úložný limit",
+    "openDescription": "Otevřete dialogové okno s kvótou úložiště pro tuto složku.",
+    "folderDescription": "Omezit kapacitu úložiště pro tuto složku.",
+    "shareLimit": "Omezit úložiště prostřednictvím tohoto sdíleného adresáře",
+    "shareLimitDescription": "Počítá nahrání prostřednictvím tohoto odkazu. Vztahuje se také na kvótu zdroje vlastníka.",
+    "scopeLimit": "Limit úložného prostoru pro tento zdroj",
+    "scopeLimitDescription": "Limit pro ukládání dat v rámci úkolu tohoto uživatele v tomto zdroji.",
+    "indexingDisabledMeterHint": "U tohoto zdroje je indexování deaktivováno. K dispozici je pouze sledování využití.",
+    "meterIndexHint": "Vychází z celkové velikosti indexovaných souborů v této složce. Zahrnuje změny provedené mimo aplikaci FileBrowser při aktualizaci indexu.",
+    "meterAccountedHint": "Počítá pouze nahrání, uložení a smazání provedené prostřednictvím aplikace FileBrowser.",
+    "meterIndexScope": "Indexovaná velikost",
+    "meterAccounted": "Sledování využití",
+    "usageCounting": "Počítat počet použití podle",
+    "usageSyncPending": "Údaje o využití se stále synchronizují s indexem.",
+    "accountedFallback": "Indexovaná velikost ještě není připravena; dokud nebude index k dispozici, bude se sledovat využití.",
+    "errors": {
+      "exceeded": "Překročen limit úložného prostoru"
+    }
   }
 }

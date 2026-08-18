@@ -206,7 +206,6 @@
     "selectPath": "Yol Seçin",
     "renameSuccess": "Öğe başarıyla yeniden adlandırıldı!",
     "newFileSuccess": "Dosya başarıyla oluşturuldu!",
-    "moveFailed": "Taşıma başarısız",
     "operationFailed": "İşlem başarısız oldu",
     "partialSuccess": "Bazı işlemler başarısız oldu: {succeeded} başarılı, {failed} başarısız",
     "renameFailed": "Öğenin adı değiştirilemedi",
@@ -611,7 +610,11 @@
     "viewFiles": "Dosyaları görüntüleme ve listeleme",
     "source": "{prefix}Kaynak{suffix}",
     "sources": "{prefix}Kaynaklar{suffix}",
-    "enforce": "Uygula{suffix}"
+    "enforce": "Uygula{suffix}",
+    "limit": "Sınır{suffix}",
+    "remove": "Kaldır{suffix}",
+    "saved": "Kaydedildi{suffix}",
+    "removed": "Kaldırıldı{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Varsayılan eylem{suffix}",
     "deletedCascade": "Erişim kuralları yoldan ve tüm alt yollardan silindi!",
     "cascadeDelete": "Yinelemeli Silme",
-    "cascadeDeleteDescription": "Etkinleştirildiğinde, bir erişim kuralı silindiğinde tüm alt dizinlerden de kaldırılır. Bu, bir kullanıcıyı veya grubu tüm dizin ağacından tamamen kaldırmanıza olanak tanır."
+    "cascadeDeleteDescription": "Etkinleştirildiğinde, bir erişim kuralı silindiğinde tüm alt dizinlerden de kaldırılır. Bu, bir kullanıcıyı veya grubu tüm dizin ağacından tamamen kaldırmanıza olanak tanır.",
+    "hasRules": "Erişim kuralları yapılandırıldı",
+    "manageDescription": "Bu yol için açık erişim kuralları."
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",
@@ -1084,5 +1089,25 @@
     "days": "Günler{suffix}",
     "months": "Aylar{suffix}",
     "timeUnit": "Zaman birimi"
+  },
+  "quotas": {
+    "title": "Depolama kotası",
+    "openDescription": "Bu klasörün depolama kotası iletişim kutusunu açın.",
+    "folderDescription": "Bu klasörün depolama alanını sınırlayın.",
+    "shareLimit": "Bu paylaşım yoluyla depolama alanını sınırlayın",
+    "shareLimitDescription": "Bu bağlantı üzerinden yapılan yüklemeleri sayar. Ayrıca, hesabın sahiplerinin kaynak kotasına da dahil edilir.",
+    "scopeLimit": "Bu kaynak için depolama sınırı",
+    "scopeLimitDescription": "Bu kaynağındaki bu kullanıcının ödevi için karakter sınırı.",
+    "indexingDisabledMeterHint": "Bu kaynakta indeksleme devre dışı bırakılmıştır. Yalnızca kullanım takibi mevcuttur.",
+    "meterIndexHint": "Bu klasördeki dizinlenmiş dosyaların toplam boyutunu kullanır. Dizin güncellendiğinde FileBrowser dışında yapılan değişiklikleri de içerir.",
+    "meterAccountedHint": "Yalnızca FileBrowser aracılığıyla gerçekleştirilen yükleme, kaydetme ve silme işlemlerini sayar.",
+    "meterIndexScope": "Dizinlenmiş boyut",
+    "meterAccounted": "Kullanım takibi",
+    "usageCounting": "Kullanımı şuna göre say",
+    "usageSyncPending": "Kullanım verileri hâlâ dizinle senkronize ediliyor.",
+    "accountedFallback": "Dizinlenmiş boyut henüz hazır değil; dizin kullanıma sunulana kadar izlenen kullanım verileri kullanılıyor.",
+    "errors": {
+      "exceeded": "Depolama kotası aşıldı"
+    }
   }
 }

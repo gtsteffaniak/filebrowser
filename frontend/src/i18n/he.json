@@ -206,7 +206,6 @@
     "selectPath": "בחר נתיב",
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
-    "moveFailed": "העברה נכשלה",
     "operationFailed": "הפעולה נכשלה",
     "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו",
     "renameFailed": "לא ניתן לשנות את שם הפריט",
@@ -611,7 +610,11 @@
     "viewFiles": "הצגת קבצים ורשימת קבצים",
     "source": "{prefix}מקור{suffix}",
     "sources": "{prefix}מקורות{suffix}",
-    "enforce": "לאכוף{suffix}"
+    "enforce": "לאכוף{suffix}",
+    "limit": "גבול{suffix}",
+    "remove": "הסר{suffix}",
+    "saved": "נשמר{suffix}",
+    "removed": "הוסר{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -630,7 +633,9 @@
     "defaultBehavior": "פעולה ברירת מחדל{suffix}",
     "deletedCascade": "כללי הגישה נמחקו מהנתיב ומכל הנתיבים המשניים!",
     "cascadeDelete": "מחיקה רקורסיבית",
-    "cascadeDeleteDescription": "כאשר אפשרות זו מופעלת, מחיקת כלל גישה תסיר אותו גם מכל הספריות המשנה. כך תוכל להסיר משתמש או קבוצה לחלוטין מכל עץ הספריות."
+    "cascadeDeleteDescription": "כאשר אפשרות זו מופעלת, מחיקת כלל גישה תסיר אותו גם מכל הספריות המשנה. כך תוכל להסיר משתמש או קבוצה לחלוטין מכל עץ הספריות.",
+    "hasRules": "כללי הגישה הוגדרו",
+    "manageDescription": "כללי הגישה הפתוחה לנתיב זה."
   },
   "fileLoading": {
     "title": "העלאות והורדות",
@@ -1084,5 +1089,25 @@
     "days": "ימים{suffix}",
     "months": "חודשים{suffix}",
     "timeUnit": "יחידת זמן"
+  },
+  "quotas": {
+    "title": "מכסת אחסון",
+    "openDescription": "פתח את תיבת הדו-שיח של מכסת האחסון עבור תיקייה זו.",
+    "folderDescription": "הגבל את שטח האחסון של תיקייה זו.",
+    "shareLimit": "הגבל את נפח האחסון בשיתוף זה",
+    "shareLimitDescription": "סופר את מספר ההעלאות דרך קישור זה. נכלל גם במכסת המקור של הבעלים.",
+    "scopeLimit": "מגבלת האחסון עבור מקור זה",
+    "scopeLimitDescription": "מגבלת האחסון עבור המשימה של המשתמש הזה במקור זה.",
+    "indexingDisabledMeterHint": "האינדקס של מקור זה מושבת. ניתן לעקוב רק אחר השימוש בו.",
+    "meterIndexHint": "משתמש בגודל הכולל של הקבצים המאינדקסים בתיקייה זו. כולל שינויים שבוצעו מחוץ ל-FileBrowser בעת עדכון האינדקס.",
+    "meterAccountedHint": "סופר רק פעולות העלאה, שמירה ומחיקה שבוצעו באמצעות FileBrowser.",
+    "meterIndexScope": "גודל ממופה",
+    "meterAccounted": "מעקב אחר השימוש",
+    "usageCounting": "ספירת השימוש לפי",
+    "usageSyncPending": "השימוש עדיין מתסנכרן עם האינדקס.",
+    "accountedFallback": "הנתונים הממוינים לפי אינדקס עדיין אינם מוכנים; עד שהאינדקס יהיה זמין, נעשה שימוש בנתוני השימוש המעקב.",
+    "errors": {
+      "exceeded": "חריגה ממכסת האחסון"
+    }
   }
 }

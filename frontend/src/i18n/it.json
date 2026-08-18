@@ -163,7 +163,11 @@
     "viewFiles": "Visualizza ed elenca i file",
     "source": "{prefix}Fonte{suffix}",
     "sources": "{prefix}Fonti{suffix}",
-    "enforce": "Applicare{suffix}"
+    "enforce": "Applicare{suffix}",
+    "limit": "Limite{suffix}",
+    "remove": "Rimuovi{suffix}",
+    "saved": "Salvato{suffix}",
+    "removed": "Rimosso{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -453,7 +457,6 @@
     "firstLoadBody": "È stato creato un nuovo database all'avvio. Se non è quello che ti aspettavi, controlla il percorso `server.database` nel file di configurazione. Su Docker, il percorso potrebbe essere `./data/database.db` o `./database.db`.",
     "halloweenTitle": "Buon Halloween!",
     "halloweenBody": "Il tema di Halloween è stato applicato. Puoi disabilitarlo o cambiarlo permanentemente nelle impostazioni del profilo.",
-    "moveFailed": "Spostamento fallito",
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
     "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
@@ -715,7 +718,9 @@
     "defaultBehavior": "Azione predefinita{suffix}",
     "defaultBehaviorDescription": "Cosa succede quando non esistono regole specifiche. 'Consenti' permette l'accesso, 'Nega' blocca tutto tranne gli esplicitamente autorizzati.",
     "cascadeDelete": "Eliminazione Ricorsiva",
-    "cascadeDeleteDescription": "Se abilitato, l'eliminazione di una regola rimuoverà anche quelle nelle sottodirectory."
+    "cascadeDeleteDescription": "Se abilitato, l'eliminazione di una regola rimuoverà anche quelle nelle sottodirectory.",
+    "hasRules": "Regole di accesso configurate",
+    "manageDescription": "Regole di libero accesso per questo percorso."
   },
   "fileLoading": {
     "title": "Caricamenti e Download",
@@ -1084,5 +1089,25 @@
     "days": "Giorni{suffix}",
     "months": "Mesi{suffix}",
     "timeUnit": "Unità di tempo"
+  },
+  "quotas": {
+    "title": "Quota di archiviazione",
+    "openDescription": "Apri la finestra di dialogo relativa alla quota di spazio di archiviazione per questa cartella.",
+    "folderDescription": "Limita lo spazio di archiviazione per questa cartella.",
+    "shareLimit": "Limita lo spazio di archiviazione su questa condivisione",
+    "shareLimitDescription": "Conta i caricamenti effettuati tramite questo link. Incide anche sulla quota di origine del proprietario.",
+    "scopeLimit": "Limite di archiviazione per questa fonte",
+    "scopeLimitDescription": "Spazio di archiviazione per il compito di questo utente su questa fonte.",
+    "indexingDisabledMeterHint": "L'indicizzazione è disabilitata per questa fonte. È disponibile solo il monitoraggio dell'utilizzo.",
+    "meterIndexHint": "Utilizza la dimensione totale dei file indicizzati in questa cartella. Include le modifiche apportate al di fuori di FileBrowser al momento dell'aggiornamento dell'indice.",
+    "meterAccountedHint": "Conta solo i caricamenti, i salvataggi e le eliminazioni effettuati tramite FileBrowser.",
+    "meterIndexScope": "Dimensione indicizzata",
+    "meterAccounted": "Monitoraggio dell'utilizzo",
+    "usageCounting": "Conta l'utilizzo in base a",
+    "usageSyncPending": "L'utilizzo è ancora in fase di sincronizzazione con l'indice.",
+    "accountedFallback": "La dimensione indicizzata non è ancora pronta; fino a quando l’indice non sarà disponibile, verrà utilizzato il monitoraggio dell’utilizzo.",
+    "errors": {
+      "exceeded": "Quota di archiviazione superata"
+    }
   }
 }

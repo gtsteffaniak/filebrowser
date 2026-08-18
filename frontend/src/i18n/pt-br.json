@@ -206,7 +206,6 @@
     "selectPath": "Selecionar caminho",
     "renameSuccess": "Item renomeado com sucesso!",
     "newFileSuccess": "Arquivo criado com sucesso!",
-    "moveFailed": "Falha ao mover",
     "operationFailed": "Falha na operação",
     "partialSuccess": "Algumas operações falharam: {succeeded} foi bem-sucedido, {failed} falhou",
     "renameFailed": "Falha ao renomear o item",
@@ -611,7 +610,11 @@
     "viewFiles": "Visualizar e listar arquivos",
     "source": "{prefix}Fonte{suffix}",
     "sources": "{prefix}Fontes{suffix}",
-    "enforce": "Aplicar{suffix}"
+    "enforce": "Aplicar{suffix}",
+    "limit": "Limite{suffix}",
+    "remove": "Remover{suffix}",
+    "saved": "Salvo{suffix}",
+    "removed": "Removido{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Ação padrão{suffix}",
     "deletedCascade": "Regras de acesso excluídas do caminho e de todos os subcaminhos!",
     "cascadeDelete": "Exclusão recursiva",
-    "cascadeDeleteDescription": "Quando ativada, a exclusão de uma regra de acesso também a removerá de todos os subdiretórios. Isso permite remover completamente um usuário ou grupo de toda a árvore de diretórios."
+    "cascadeDeleteDescription": "Quando ativada, a exclusão de uma regra de acesso também a removerá de todos os subdiretórios. Isso permite remover completamente um usuário ou grupo de toda a árvore de diretórios.",
+    "hasRules": "Regras de acesso configuradas",
+    "manageDescription": "Regras de acesso aberto para este caminho."
   },
   "fileLoading": {
     "title": "Uploads e downloads",
@@ -1084,5 +1089,25 @@
     "days": "Dias{suffix}",
     "months": "Meses{suffix}",
     "timeUnit": "Unidade de tempo"
+  },
+  "quotas": {
+    "title": "Cota de armazenamento",
+    "openDescription": "Abra a caixa de diálogo de cota de armazenamento desta pasta.",
+    "folderDescription": "Limite o espaço de armazenamento desta pasta.",
+    "shareLimit": "Limitar o espaço de armazenamento neste compartilhamento",
+    "shareLimitDescription": "Conta os uploads feitos por meio deste link. Também conta para a cota de origem do proprietário.",
+    "scopeLimit": "Limite de armazenamento para esta fonte",
+    "scopeLimitDescription": "Limite de armazenamento para a tarefa deste usuário nesta fonte.",
+    "indexingDisabledMeterHint": "A indexação está desativada nesta fonte. Apenas o uso rastreado está disponível.",
+    "meterIndexHint": "Utiliza o tamanho total dos arquivos indexados nesta pasta. Inclui as alterações feitas fora do FileBrowser quando o índice é atualizado.",
+    "meterAccountedHint": "Conta apenas os envios, salvamentos e exclusões realizados por meio do FileBrowser.",
+    "meterIndexScope": "Tamanho indexado",
+    "meterAccounted": "Uso monitorado",
+    "usageCounting": "Contar o uso por",
+    "usageSyncPending": "Os dados de uso ainda estão sendo sincronizados com o índice.",
+    "accountedFallback": "O tamanho indexado ainda não está pronto; estamos utilizando os dados de uso monitorados até que o índice esteja disponível.",
+    "errors": {
+      "exceeded": "Quota de armazenamento excedida"
+    }
   }
 }

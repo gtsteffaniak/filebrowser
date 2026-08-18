@@ -560,3 +560,19 @@ func TestResourcePostHandler_ExpiredSessionAllowsNewUpload(t *testing.T) {
 		t.Fatalf("got %q want %q", got, body)
 	}
 }
+
+func TestParsePutTotalSize_UsesContentLength(t *testing.T) {
+	t.Parallel()
+
+	body := "hello"
+	req := httptest.NewRequest(http.MethodPut, "/api/resources", strings.NewReader(body))
+	req.ContentLength = int64(len(body))
+
+	total, ok, err := parsePutTotalSize(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok || total != int64(len(body)) {
+		t.Fatalf("parsePutTotalSize: got total=%d ok=%v", total, ok)
+	}
+}

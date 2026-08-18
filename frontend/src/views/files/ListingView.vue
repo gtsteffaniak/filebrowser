@@ -194,6 +194,7 @@ import {
   processTypeAheadKey,
   resetTypeAheadSession,
 } from "@/utils/listingTypeAhead.js";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications";
 
 export default {
   name: "listingView",
@@ -1088,7 +1089,7 @@ export default {
                   mutations.setReload(true);
                   resolve();
                 } catch (error) {
-                  console.error("Error moving/copying items:", error);
+                  notifyMoveCopyFailure(error);
                   reject(error);
                 }
               };

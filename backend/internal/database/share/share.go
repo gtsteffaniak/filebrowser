@@ -48,6 +48,7 @@ type ShareLimits struct {
 	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"`
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
+	QuotaLimitBytes          int64    `json:"quotaLimitBytes,omitempty"`
 	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
 	Banner                   string   `json:"banner,omitempty"`
 	SourceName               string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
@@ -85,8 +86,11 @@ type ShareEditable struct {
 type ShareFrontend struct {
 	ShareEditable
 	ShareColumns
-	Username   string `json:"username,omitempty"`
-	PathExists bool   `json:"pathExists,omitempty"`
+	Username            string `json:"username,omitempty"`
+	PathExists          bool   `json:"pathExists,omitempty"`
+	QuotaUsedBytes      int64  `json:"quotaUsedBytes,omitempty"`
+	QuotaReservedBytes  int64  `json:"quotaReservedBytes,omitempty"`
+	QuotaAvailableBytes int64  `json:"quotaAvailableBytes,omitempty"`
 }
 
 // SharePostBody is POST /api/share JSON. Plaintext password is hashed to Share.PasswordHash before persist.

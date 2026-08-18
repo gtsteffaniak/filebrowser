@@ -16,6 +16,7 @@ import (
 	"time"
 
 	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -140,6 +141,12 @@ func ErrToStatus(err error) int {
 	case errors.Is(err, libErrors.ErrIsDirectory):
 		return http.StatusMethodNotAllowed
 	default:
+		if qe, ok := quota.AsError(err); ok {
+			if qe.Code == quota.CodeLengthRequired {
+				return http.StatusBadRequest
+			}
+			return http.StatusInsufficientStorage
+		}
 		return http.StatusInternalServerError
 	}
 }

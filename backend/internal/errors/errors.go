@@ -34,4 +34,5 @@ var (
 	ErrPasskeyExists        = errors.New("passkey credential already exists")
 	ErrPasskeyNotEnabled    = errors.New("passkey authentication is not enabled")
 	ErrPasskeyInvalidSession = errors.New("invalid or expired passkey session")
+	ErrQuotaExceeded         = errors.New("quota exceeded")
 )

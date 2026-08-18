@@ -47,6 +47,12 @@ export function activityEventLabel(eventType, $t) {
       return $t("tools.activityViewer.eventAccessUpdate");
     case "accessDelete":
       return $t("tools.activityViewer.eventAccessDelete");
+    case "quotaCreate":
+      return $t("general.create");
+    case "quotaUpdate":
+      return $t("general.update");
+    case "quotaDelete":
+      return $t("general.delete");
     case "tokenCreate":
       return $t("tools.activityViewer.eventTokenCreate");
     case "tokenDelete":
@@ -66,6 +72,7 @@ const DELETE_EVENT_TYPES = new Set([
   "shareDelete",
   "userDelete",
   "accessDelete",
+  "quotaDelete",
 ]);
 
 const CREATE_EVENT_TYPES = new Set([
@@ -73,6 +80,7 @@ const CREATE_EVENT_TYPES = new Set([
   "shareCreate",
   "userCreate",
   "accessCreate",
+  "quotaCreate",
 ]);
 
 const CHANGE_EVENT_TYPES = new Set([
@@ -82,6 +90,7 @@ const CHANGE_EVENT_TYPES = new Set([
   "shareUpdate",
   "userUpdate",
   "accessUpdate",
+  "quotaUpdate",
   "archive",
   "unarchive",
 ]);
@@ -315,14 +324,15 @@ function formatActivityFieldChange(change, eventType) {
   const hasFrom = fromRaw !== null && fromRaw !== undefined && fromRaw !== "";
   const hasTo = toRaw !== null && toRaw !== undefined && toRaw !== "";
 
-  if (eventType === "accessCreate" || eventType === "accessDelete") {
+  if (eventType === "accessCreate" || eventType === "accessDelete"
+    || eventType === "quotaCreate" || eventType === "quotaDelete") {
     if (hasTo) {
       return String(toRaw);
     }
     return "—";
   }
 
-  if (eventType === "accessUpdate") {
+  if (eventType === "accessUpdate" || eventType === "quotaUpdate") {
     const from = hasFrom ? String(fromRaw) : "—";
     const to = hasTo ? String(toRaw) : "—";
     if (hasFrom || hasTo) {

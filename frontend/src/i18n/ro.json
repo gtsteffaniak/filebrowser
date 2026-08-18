@@ -206,7 +206,6 @@
     "selectPath": "Selectați calea",
     "renameSuccess": "Element redenumit cu succes!",
     "newFileSuccess": "Fișier creat cu succes!",
-    "moveFailed": "Mutarea a eșuat",
     "operationFailed": "Operațiunea a eșuat",
     "partialSuccess": "Unele operațiuni au eșuat: {succeeded} a reușit, {failed} a eșuat",
     "renameFailed": "A eșuat redenumirea elementului",
@@ -611,7 +610,11 @@
     "viewFiles": "Vizualizarea și listarea fișierelor",
     "source": "{prefix}Sursă{suffix}",
     "sources": "{prefix}Surse{suffix}",
-    "enforce": "Aplicare{suffix}"
+    "enforce": "Aplicare{suffix}",
+    "limit": "Limită{suffix}",
+    "remove": "Eliminare{suffix}",
+    "saved": "Salvat{suffix}",
+    "removed": "Eliminat{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Acțiune implicită{suffix}",
     "deletedCascade": "Reguli de acces șterse din traseu și din toate subtratamentele!",
     "cascadeDelete": "Ștergere recursivă",
-    "cascadeDeleteDescription": "Atunci când este activată, ștergerea unei reguli de acces o va elimina și din toate subdirectoarele. Acest lucru vă permite să eliminați complet un utilizator sau un grup din întregul arbore de directoare."
+    "cascadeDeleteDescription": "Atunci când este activată, ștergerea unei reguli de acces o va elimina și din toate subdirectoarele. Acest lucru vă permite să eliminați complet un utilizator sau un grup din întregul arbore de directoare.",
+    "hasRules": "Reguli de acces configurate",
+    "manageDescription": "Reguli de acces liber pentru această cale."
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",
@@ -1084,5 +1089,25 @@
     "days": "Zile{suffix}",
     "months": "Luni{suffix}",
     "timeUnit": "Unitate de timp"
+  },
+  "quotas": {
+    "title": "Cota de stocare",
+    "openDescription": "Deschideți fereastra de dialog privind cota de stocare pentru acest folder.",
+    "folderDescription": "Limitați spațiul de stocare pentru acest folder.",
+    "shareLimit": "Limitați spațiul de stocare prin această partajare",
+    "shareLimitDescription": "Se înregistrează încărcările efectuate prin acest link. Se aplică și cotei de sursă a proprietarului.",
+    "scopeLimit": "Limita de stocare pentru această sursă",
+    "scopeLimitDescription": "Limita de stocare pentru sarcina acestui utilizator pe această sursă.",
+    "indexingDisabledMeterHint": "Indexarea este dezactivată pentru această sursă. Este disponibilă doar monitorizarea utilizării.",
+    "meterIndexHint": "Utilizează dimensiunea totală a fișierelor indexate din acest folder. Include modificările efectuate în afara aplicației FileBrowser atunci când se actualizează indexul.",
+    "meterAccountedHint": "Se iau în calcul doar operațiunile de încărcare, salvare și ștergere efectuate prin FileBrowser.",
+    "meterIndexScope": "Dimensiune indexată",
+    "meterAccounted": "Utilizare monitorizată",
+    "usageCounting": "Numără utilizările după",
+    "usageSyncPending": "Datele privind utilizarea sunt încă în curs de sincronizare cu indexul.",
+    "accountedFallback": "Dimensiunea indexată nu este încă disponibilă; se utilizează datele de utilizare monitorizate până când indexul va fi disponibil.",
+    "errors": {
+      "exceeded": "S-a depășit cota de stocare"
+    }
   }
 }

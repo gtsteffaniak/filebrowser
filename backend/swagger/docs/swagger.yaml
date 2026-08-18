@@ -359,6 +359,10 @@ definitions:
       path:
         description: path to SQLite database file
         type: string
+      quotas:
+        allOf:
+        - $ref: '#/definitions/settings.QuotasConfig'
+        description: quota counter batch flush configuration
     type: object
   settings.ExternalLink:
     properties:
@@ -810,6 +814,15 @@ definitions:
           "phone"
         type: string
     type: object
+  settings.QuotasConfig:
+    properties:
+      flushIntervalSeconds:
+        description: default 10
+        type: integer
+      flushMaxBuffers:
+        description: default 500
+        type: integer
+    type: object
   settings.Recaptcha:
     properties:
       host:
@@ -1252,6 +1265,8 @@ definitions:
         $ref: '#/definitions/share.PinnedItems'
       quickDownload:
         type: boolean
+      quotaLimitBytes:
+        type: integer
       shareTheme:
         type: string
       shareType:
@@ -1369,6 +1384,14 @@ definitions:
         type: boolean
       quickDownload:
         type: boolean
+      quotaAvailableBytes:
+        type: integer
+      quotaLimitBytes:
+        type: integer
+      quotaReservedBytes:
+        type: integer
+      quotaUsedBytes:
+        type: integer
       shareTheme:
         type: string
       shareType:
@@ -1474,6 +1497,8 @@ definitions:
         type: boolean
       quickDownload:
         type: boolean
+      quotaLimitBytes:
+        type: integer
       shareTheme:
         type: string
       shareType:
@@ -1531,6 +1556,8 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/users.SourceFilePermissions'
+      quota:
+        $ref: '#/definitions/users.ScopeQuota'
       scope:
         description: index path within that source
         type: string
@@ -1553,6 +1580,8 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/users.SourceFilePermissions'
+      quota:
+        $ref: '#/definitions/users.ScopeQuota'
       scope:
         description: index path within that source
         type: string
@@ -1784,6 +1813,17 @@ definitions:
       video:
         description: show thumbnail preview image for video files
         type: boolean
+    type: object
+  users.ScopeQuota:
+    properties:
+      id:
+        type: string
+      limitBytes:
+        description: 0 = unlimited
+        type: integer
+      meter:
+        description: index_scope (indexed size) | accounted (tracked usage)
+        type: string
     type: object
   users.SidebarLink:
     properties:

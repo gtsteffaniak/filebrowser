@@ -206,7 +206,6 @@
     "selectPath": "Sélectionner un chemin",
     "renameSuccess": "L'élément a été renommé avec succès !",
     "newFileSuccess": "Fichier créé avec succès !",
-    "moveFailed": "Échec du déplacement",
     "operationFailed": "Échec de l'opération",
     "partialSuccess": "Certaines opérations ont échoué : {succeeded} a réussi, {failed} a échoué",
     "renameFailed": "Échec du renommage de l'élément",
@@ -611,7 +610,11 @@
     "viewFiles": "Afficher et répertorier les fichiers",
     "source": "{prefix}Source{suffix}",
     "sources": "{prefix}Sources{suffix}",
-    "enforce": "Appliquer{suffix}"
+    "enforce": "Appliquer{suffix}",
+    "limit": "Limite{suffix}",
+    "remove": "Supprimer{suffix}",
+    "saved": "Enregistré{suffix}",
+    "removed": "Supprimé{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Action par défaut{suffix}",
     "deletedCascade": "Règles d'accès supprimées du chemin et de tous les sous-chemins !",
     "cascadeDelete": "Suppression récursive",
-    "cascadeDeleteDescription": "Lorsque cette option est activée, la suppression d'une règle d'accès s'applique également à tous les sous-répertoires. Cela vous permet de supprimer complètement un utilisateur ou un groupe de toute l'arborescence des répertoires."
+    "cascadeDeleteDescription": "Lorsque cette option est activée, la suppression d'une règle d'accès s'applique également à tous les sous-répertoires. Cela vous permet de supprimer complètement un utilisateur ou un groupe de toute l'arborescence des répertoires.",
+    "hasRules": "Règles d'accès configurées",
+    "manageDescription": "Règles d'accès libre pour ce chemin."
   },
   "fileLoading": {
     "title": "Importations et téléchargements",
@@ -1084,5 +1089,25 @@
     "days": "Jours{suffix}",
     "months": "Mois{suffix}",
     "timeUnit": "Unité de temps"
+  },
+  "quotas": {
+    "title": "Quota de stockage",
+    "openDescription": "Ouvrez la boîte de dialogue relative au quota de stockage de ce dossier.",
+    "folderDescription": "Limiter l'espace de stockage de ce dossier.",
+    "shareLimit": "Limiter l'espace de stockage sur ce partage",
+    "shareLimitDescription": "Compte les téléchargements effectués via ce lien. Cela s'applique également au quota de source du propriétaire.",
+    "scopeLimit": "Limite de stockage pour cette source",
+    "scopeLimitDescription": "Limite de stockage pour la mission de cet utilisateur sur cette source.",
+    "indexingDisabledMeterHint": "L'indexation est désactivée pour cette source. Seul le suivi de l'utilisation est disponible.",
+    "meterIndexHint": "Utilise la taille totale des fichiers indexés dans ce dossier. Prend en compte les modifications effectuées en dehors de FileBrowser lors de la mise à jour de l'index.",
+    "meterAccountedHint": "Ne prend en compte que les opérations de téléchargement, d'enregistrement et de suppression effectuées via FileBrowser.",
+    "meterIndexScope": "Taille indexée",
+    "meterAccounted": "Suivi de l'utilisation",
+    "usageCounting": "Compter le nombre d'utilisations par",
+    "usageSyncPending": "Les données d'utilisation sont toujours en cours de synchronisation avec l'index.",
+    "accountedFallback": "La taille indexée n'est pas encore disponible ; l'utilisation suivie est utilisée en attendant que l'index soit disponible.",
+    "errors": {
+      "exceeded": "Quota de stockage dépassé"
+    }
   }
 }

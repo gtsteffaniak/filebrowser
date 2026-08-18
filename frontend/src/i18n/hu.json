@@ -206,7 +206,6 @@
     "selectPath": "Útvonal kiválasztása",
     "renameSuccess": "Az elem átnevezése sikeres volt!",
     "newFileSuccess": "A fájl sikeresen létrehozva!",
-    "moveFailed": "Áthelyezés sikertelen",
     "operationFailed": "A művelet sikertelen",
     "partialSuccess": "Néhány művelet sikertelen: {succeeded} sikeres volt, {failed} sikertelen.",
     "renameFailed": "Nem sikerült átnevezni az elemet",
@@ -611,7 +610,11 @@
     "viewFiles": "Fájlok megtekintése és felsorolása",
     "source": "{prefix}Forrás{suffix}",
     "sources": "{prefix}Források{suffix}",
-    "enforce": "Kötelezővé tenni{suffix}"
+    "enforce": "Kötelezővé tenni{suffix}",
+    "limit": "Határ{suffix}",
+    "remove": "Eltávolítás{suffix}",
+    "saved": "Elmentve{suffix}",
+    "removed": "Eltávolítva{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -630,7 +633,9 @@
     "defaultBehavior": "Alapértelmezett cselekvés{suffix}",
     "deletedCascade": "Hozzáférési szabályok törlése az elérési útvonalból és az összes alútvonalból!",
     "cascadeDelete": "Rekurzív törlés",
-    "cascadeDeleteDescription": "Ha engedélyezve van, egy hozzáférési szabály törlése az összes alkönyvtárból is eltávolítja azt. Ez lehetővé teszi egy felhasználó vagy csoport teljes eltávolítását a teljes könyvtárfából."
+    "cascadeDeleteDescription": "Ha engedélyezve van, egy hozzáférési szabály törlése az összes alkönyvtárból is eltávolítja azt. Ez lehetővé teszi egy felhasználó vagy csoport teljes eltávolítását a teljes könyvtárfából.",
+    "hasRules": "A hozzáférési szabályok beállítása",
+    "manageDescription": "A hozzáférésre vonatkozó szabályok ezen az útvonalon."
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",
@@ -1084,5 +1089,25 @@
     "days": "Napok{suffix}",
     "months": "Hónapok{suffix}",
     "timeUnit": "Időegység"
+  },
+  "quotas": {
+    "title": "Tárolási kvóta",
+    "openDescription": "Nyissa meg a mappa tárhelykvótájára vonatkozó párbeszédpanelt.",
+    "folderDescription": "A mappa tárolási kapacitásának korlátozása.",
+    "shareLimit": "A tárolási korlát beállítása ezen a megosztáson keresztül",
+    "shareLimitDescription": "Ezen a linken keresztül feltöltött fájlokat számolja. A tulajdonos forráskvótájára is vonatkozik.",
+    "scopeLimit": "A forrás tárolási korlátja",
+    "scopeLimitDescription": "A felhasználó ezen forráson végzett feladatához tartozó tárolási korlát.",
+    "indexingDisabledMeterHint": "Az indexelés ezen a forráson ki van kapcsolva. Csak a nyomon követett használat érhető el.",
+    "meterIndexHint": "A mappában található indexelt fájlok teljes méretét veszi figyelembe. Ide tartoznak azok a módosítások is, amelyeket a FileBrowser-en kívül hajtottak végre az index frissítésekor.",
+    "meterAccountedHint": "Csak a FileBrowser segítségével végrehajtott feltöltéseket, mentéseket és törléseket számolja.",
+    "meterIndexScope": "Indexált méret",
+    "meterAccounted": "Nyomon követett használat",
+    "usageCounting": "A használat számlálása",
+    "usageSyncPending": "A használati adatok még mindig szinkronizálódnak az indexszel.",
+    "accountedFallback": "Az indexelt méret még nem áll rendelkezésre; az index elérhetővé válásáig a nyomon követett felhasználási adatokat használjuk.",
+    "errors": {
+      "exceeded": "A tárhelykvóta túllépése"
+    }
   }
 }

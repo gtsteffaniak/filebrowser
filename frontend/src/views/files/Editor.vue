@@ -37,6 +37,7 @@ import "ace-builds/src-min-noconflict/mode-markdown";
 import EditorToolbar from "@/components/files/EditorToolbar.vue";
 import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
 import { editorConfig } from "@/utils/editorConfig";
+import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota";
 
 type Req = typeof state.req;
 interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }
@@ -586,12 +587,21 @@ export default {
         throw new Error(errorMsg);
       }
 
+      const content = this.editor.getValue();
+      const newBytes = new TextEncoder().encode(content).length;
+      const oldBytes = this.originalReq?.size ?? 0;
+      const quotaPath = removeLastDir(this.originalReq.path) || "/";
+      if (await rejectPutIfQuotaExceeded(quotaPath, newBytes, oldBytes)) {
+        const errorMsg = this.$t("quotas.errors.exceeded");
+        throw new Error(errorMsg);
+      }
+
       if (getters.isShare()) {
         // Save the file
-        await resourcesApi.putPublic(state.shareInfo.hash, this.originalReq.path, this.editor.getValue());
+        await resourcesApi.putPublic(state.shareInfo.hash, this.originalReq.path, content);
       } else {
         // Save the file
-        await resourcesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
+        await resourcesApi.put(this.originalReq.source, this.originalReq.path, content);
       }
 
       notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);

@@ -118,6 +118,7 @@ import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
 import UserDefaults from "./UserDefaults.vue";
+import Quota from "./Quota.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -165,6 +166,7 @@ export default {
     AnalyticsDiagnostic,
     ConfigViewer,
     UserDefaults,
+    Quota,
   },
   data() {
     return {
@@ -326,6 +328,8 @@ export default {
           return this.$t("prompts.deleteTitle");
         case "access":
           return this.$t("access.rules");
+        case "quota":
+          return this.$t("quotas.title");
         case "officedebug":
           return this.$t("onlyoffice.debug");
         case "download":

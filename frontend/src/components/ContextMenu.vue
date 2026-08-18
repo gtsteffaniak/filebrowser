@@ -65,6 +65,18 @@
         @action="showUploadPrompt"
       />
       <action
+        v-if="showQuotaAction"
+        icon="storage"
+        :label="quotaActionLabel"
+        @action="showQuotaPrompt"
+      />
+      <action
+        v-if="showAccess"
+        icon="lock"
+        :label="$t('access.rules')"
+        @action="showAccessPrompt"
+      />
+      <action
         v-if="showArchive"
         icon="archive"
         :label="$t('prompts.archive')"
@@ -153,12 +165,6 @@
         icon="delete"
         :label="$t('general.delete')"
         @action="showDeletePrompt"
-      />
-      <action
-        v-if="showAccess"
-        icon="lock"
-        :label="$t('access.rules')"
-        @action="showAccessPrompt"
       />
       <action
         v-if="showSelectMultiple"
@@ -515,6 +521,22 @@ export default {
       }
       return getters.isAdmin() && this.showCreate;
     },
+    showQuotaAction() {
+      if (this.showLimitedOptions) return false;
+      if (getters.isShare()) return false;
+      if (!getters.isAdmin()) return false;
+      if (!this.showCreate) return false;
+      if (this.isSearchActive) return false;
+      if (this.selectedCount > 1) return false;
+      if (this.selectedCount === 1) {
+        return this.isFolderItem(this.firstSelected);
+      }
+      // Create menu with no selection: quota on the current folder
+      return true;
+    },
+    quotaActionLabel() {
+      return this.$t("quotas.title");
+    },
     showShare() {
       if (getters.isShare()) {
         return false;
@@ -635,6 +657,25 @@ export default {
           path: path,
         },
       });
+    },
+    showQuotaPrompt() {
+      mutations.closeHovers();
+      const item = this.firstSelected;
+      const target = item || state.req;
+      const sourceName = target?.source || state.req.source;
+      const path = target?.path || state.req.path;
+      mutations.showPrompt({
+        name: "Quota",
+        props: {
+          item: target,
+          source: sourceName,
+          path,
+        },
+      });
+    },
+    isFolderItem(item) {
+      if (!item) return false;
+      return item.isDir || item.type === "directory";
     },
     // Animation methods
     beforeEnter(el) {

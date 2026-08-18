@@ -206,7 +206,6 @@
     "selectPath": "Pad kiezen",
     "renameSuccess": "Item hernoemd succesvol!",
     "newFileSuccess": "Bestand succesvol aangemaakt!",
-    "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Operatie mislukt",
     "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
     "renameFailed": "Hernoemen van item mislukt",
@@ -707,7 +706,11 @@
     "viewFiles": "Bestanden bekijken en weergeven",
     "source": "{prefix}Bron{suffix}",
     "sources": "{prefix}Bronnen{suffix}",
-    "enforce": "Handhaven{suffix}"
+    "enforce": "Handhaven{suffix}",
+    "limit": "Limiet{suffix}",
+    "remove": "Verwijderen{suffix}",
+    "saved": "Opgeslagen{suffix}",
+    "removed": "Verwijderd{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -726,7 +729,9 @@
     "defaultBehavior": "Standaardactie{suffix}",
     "deletedCascade": "Toegangsregels verwijderd van pad en alle subpaden!",
     "cascadeDelete": "Recursief verwijderen",
-    "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kun je een gebruiker of groep volledig verwijderen uit de hele mappenstructuur."
+    "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kun je een gebruiker of groep volledig verwijderen uit de hele mappenstructuur.",
+    "hasRules": "Toegangsregels geconfigureerd",
+    "manageDescription": "Regels voor open toegang voor dit pad."
   },
   "editor": {
     "stats": {
@@ -1084,5 +1089,25 @@
     "days": "Dagen{suffix}",
     "months": "Maanden{suffix}",
     "timeUnit": "Tijdseenheid"
+  },
+  "quotas": {
+    "title": "Opslagquota",
+    "openDescription": "Open het dialoogvenster met de opslagquota voor deze map.",
+    "folderDescription": "Stel een opslaglimiet in voor deze map.",
+    "shareLimit": "Beperk de opslagcapaciteit via deze share",
+    "shareLimitDescription": "Telt het aantal uploads via deze link. Dit telt ook mee voor de bronquota van de eigenaar.",
+    "scopeLimit": "Opslaglimiet voor deze bron",
+    "scopeLimitDescription": "Opslagcapaciteit voor de opdracht van deze gebruiker op deze bron.",
+    "indexingDisabledMeterHint": "Indexering is voor deze bron uitgeschakeld. Alleen bijgehouden gebruik is beschikbaar.",
+    "meterIndexHint": "Maakt gebruik van de totale grootte van de geïndexeerde bestanden in deze map. Hierbij worden ook wijzigingen meegerekend die buiten FileBrowser zijn aangebracht op het moment dat de index wordt bijgewerkt.",
+    "meterAccountedHint": "Telt alleen uploads, opslagbewerkingen en verwijderingen die via FileBrowser zijn uitgevoerd.",
+    "meterIndexScope": "Geïndexeerde grootte",
+    "meterAccounted": "Gebruiksstatistieken",
+    "usageCounting": "Gebruik tellen op basis van",
+    "usageSyncPending": "Het gebruik wordt nog steeds gesynchroniseerd met de index.",
+    "accountedFallback": "De geïndexeerde omvang is nog niet beschikbaar; totdat de index beschikbaar is, wordt het bijgehouden gebruik gebruikt.",
+    "errors": {
+      "exceeded": "Opslaglimiet overschreden"
+    }
   }
 }

@@ -42,6 +42,56 @@
         </div>
       </div>
 
+      <!-- Storage quota (admin, folders) -->
+      <div v-if="showQuotaSection" class="info-section">
+        <h3 class="section-title">{{ $t("quotas.title") }}</h3>
+        <SettingsButton
+          class="info-manage-link"
+          :name="$t('quotas.title')"
+          :description="$t('quotas.openDescription')"
+          @click="openQuotaPrompt"
+        />
+        <div class="info-item">
+          <strong>{{ $t("general.enabled") }}</strong>
+          <span>{{ quotaEnabled ? $t("general.yes") : $t("general.no") }}</span>
+        </div>
+        <div v-if="quotaEnabled" class="info-quota-usage">
+          <QuotaFolderBar
+            class="info-quota-bar"
+            :source="source"
+            :path="filePath"
+            :enabled="true"
+            :limit-bytes="quotaLimitBytes"
+            :snapshot="quotaSnapshot"
+          />
+        </div>
+      </div>
+
+      <!-- Access rules (admin) -->
+      <div v-if="showAccessSection" class="info-section">
+        <h3 class="section-title">{{ $t("access.rules") }}</h3>
+        <SettingsButton
+          class="info-manage-link"
+          :name="$t('access.accessManagement')"
+          :description="$t('access.manageDescription')"
+          @click="openAccessPrompt"
+        />
+        <div class="info-item">
+          <strong>{{ $t("access.hasRules") }}</strong>
+          <span>{{ hasAccessRules ? $t("general.yes") : $t("general.no") }}</span>
+        </div>
+        <div v-if="accessRuleEntries.length" class="access-rules-list">
+          <div
+            v-for="entry in accessRuleEntries"
+            :key="accessEntryKey(entry)"
+            class="info-item access-rule-entry"
+          >
+            <strong>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</strong>
+            <span>{{ accessEntryLabel(entry) }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Additional Information Section -->
       <div class="info-section" v-if="additionalInfo.length > 0">
         <h3 class="section-title">{{ $t("prompts.additionalInfo") }}</h3>
@@ -98,18 +148,22 @@
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp } from "@/utils/moment";
 import { copyToClipboard } from "@/utils/clipboard";
-import { resourcesApi } from "@/api";
-import { state } from "@/store";
+import { resourcesApi, quotasApi, accessApi } from "@/api";
+import { getters, mutations, state } from "@/store";
 import { notify } from "@/notify";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
+import QuotaFolderBar from "@/components/prompts/QuotaFolderBar.vue";
 
 export default {
   name: "info",
   components: {
     ExpandDropdown,
     ActivityViewerButton,
+    SettingsButton,
+    QuotaFolderBar,
   },
   props: {
     item: {
@@ -122,7 +176,22 @@ export default {
       selectedHashAlgo: "md5",
       hashResult: "",
       generatingHash: false,
+      quotaSnapshot: {},
+      quotaExists: false,
+      accessRule: {
+        denyAll: false,
+        deny: { users: [], groups: [] },
+        allow: { users: [], groups: [] },
+      },
     };
+  },
+  async mounted() {
+    if (this.showQuotaSection) {
+      await this.loadQuota();
+    }
+    if (this.showAccessSection) {
+      await this.loadAccessRules();
+    }
   },
   computed: {
     hashAlgoOptions() {
@@ -186,8 +255,107 @@ export default {
 
       return info;
     },
+    isAdmin() {
+      return getters.isAdmin();
+    },
+    showQuotaSection() {
+      return this.isAdmin && this.dir && this.source && this.filePath;
+    },
+    showAccessSection() {
+      return this.isAdmin && this.source && this.filePath;
+    },
+    quotaEnabled() {
+      return this.quotaExists && (this.quotaSnapshot.limitBytes || 0) > 0;
+    },
+    quotaLimitBytes() {
+      return this.quotaSnapshot.limitBytes || 0;
+    },
+    accessRuleEntries() {
+      /** @type {{allow: boolean, type: "user" | "group" | "all", name: string}[]} */
+      const entries = [];
+      if (this.accessRule.denyAll) {
+        entries.push({ allow: false, type: "all", name: this.$t("access.all") });
+      }
+      (this.accessRule.deny?.users || []).forEach((name) => {
+        entries.push({ allow: false, type: "user", name });
+      });
+      (this.accessRule.deny?.groups || []).forEach((name) => {
+        entries.push({ allow: false, type: "group", name });
+      });
+      (this.accessRule.allow?.users || []).forEach((name) => {
+        entries.push({ allow: true, type: "user", name });
+      });
+      (this.accessRule.allow?.groups || []).forEach((name) => {
+        entries.push({ allow: true, type: "group", name });
+      });
+      return entries;
+    },
+    hasAccessRules() {
+      return this.accessRuleEntries.length > 0;
+    },
   },
   methods: {
+    async loadQuota() {
+      try {
+        const raw = await quotasApi.get(this.source, this.filePath);
+        const data = Array.isArray(raw) ? raw[0] : raw;
+        if (!data) return;
+        this.quotaSnapshot = {
+          usedBytes: data.usedBytes,
+          reservedBytes: data.reservedBytes,
+          measurementStatus: data.measurementStatus,
+          limitBytes: data.limitBytes,
+        };
+        if ((data.limitBytes || 0) > 0) {
+          this.quotaExists = true;
+        }
+      } catch {
+        // no quota or preview unavailable
+      }
+    },
+    async loadAccessRules() {
+      try {
+        const response = await accessApi.get(this.source, this.filePath);
+        this.accessRule = response;
+      } catch {
+        this.accessRule = {
+          denyAll: false,
+          deny: { users: [], groups: [] },
+          allow: { users: [], groups: [] },
+        };
+      }
+    },
+    openQuotaPrompt() {
+      mutations.showPrompt({
+        name: "Quota",
+        props: {
+          item: this.item,
+          source: this.source,
+          path: this.filePath,
+        },
+      });
+    },
+    openAccessPrompt() {
+      mutations.showPrompt({
+        name: "access",
+        props: {
+          sourceName: this.source,
+          path: this.filePath,
+        },
+      });
+    },
+    accessEntryKey(entry) {
+      return `${entry.type}-${entry.name}-${entry.allow}`;
+    },
+    accessEntryLabel(entry) {
+      if (entry.type === "user") {
+        return `${this.$t("general.user")}: ${entry.name}`;
+      }
+      if (entry.type === "group") {
+        return `${this.$t("general.group")}: ${entry.name}`;
+      }
+      return entry.name;
+    },
     async generateHash() {
       if (this.generatingHash || !this.item) return;
 
@@ -222,6 +390,24 @@ export default {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+.info-manage-link {
+  padding: 0.25em 0.5em;
+}
+
+.info-quota-usage {
+  padding: 0.5em;
+}
+
+.access-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+.access-rule-entry strong {
+  min-width: 72px;
 }
 
 .info-description {
