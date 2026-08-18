@@ -7559,7 +7559,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "meter": {
-                    "description": "index_scope | accounted",
+                    "description": "index_scope (indexed size) | accounted (tracked usage)",
                     "type": "string"
                 }
             }
