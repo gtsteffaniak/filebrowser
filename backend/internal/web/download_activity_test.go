@@ -3,10 +3,70 @@ package web
 import (
 	stderrors "errors"
 	"net/http"
+	"os"
+	"path/filepath"
+	"reflect"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 )
+
+func TestPublicDownloadFileListForSingleFileShareUsesSharePath(t *testing.T) {
+	t.Parallel()
+	sourceRoot := t.TempDir()
+	filePath := filepath.Join(sourceRoot, "workspace", "direct-test.txt")
+	if err := os.MkdirAll(filepath.Dir(filePath), 0o755); err != nil {
+		t.Fatalf("create source directory: %v", err)
+	}
+	if err := os.WriteFile(filePath, []byte("direct download"), 0o644); err != nil {
+		t.Fatalf("create source file: %v", err)
+	}
+	d := &Context{
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Path: "/workspace/direct-test.txt"},
+			SourcePath:   sourceRoot,
+		},
+	}
+
+	for _, files := range [][]string{{"direct-test.txt"}, {""}, nil} {
+		got, err := publicDownloadFileList(d, files)
+		if err != nil {
+			t.Fatalf("publicDownloadFileList(%#v): %v", files, err)
+		}
+		want := []string{"/workspace/direct-test.txt"}
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("publicDownloadFileList(%#v) = %#v, want %#v", files, got, want)
+		}
+	}
+}
+
+func TestPublicDownloadFileListForDirectoryShareJoinsRelativePath(t *testing.T) {
+	t.Parallel()
+	d := &Context{
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Path: "/workspace"},
+		},
+	}
+
+	got, err := publicDownloadFileList(d, []string{"nested/file.txt"})
+	if err != nil {
+		t.Fatalf("publicDownloadFileList: %v", err)
+	}
+	want := []string{"/workspace/nested/file.txt"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("publicDownloadFileList() = %#v, want %#v", got, want)
+	}
+}
+
+func TestPublicDownloadFileListRejectsTraversal(t *testing.T) {
+	t.Parallel()
+	d := &Context{Share: share.Share{ShareColumns: share.ShareColumns{Path: "/workspace"}}}
+
+	if _, err := publicDownloadFileList(d, []string{"../secret.txt"}); err == nil {
+		t.Fatal("publicDownloadFileList() accepted a traversal path")
+	}
+}
 
 func TestResolveDownloadInlineDisposition(t *testing.T) {
 	t.Parallel()

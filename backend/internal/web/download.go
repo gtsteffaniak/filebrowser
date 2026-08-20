@@ -183,14 +183,9 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	}
 	actualSourceName := sourceInfo.Name
 
-	fileList := []string{}
-	for _, file := range files {
-		cleanFile, err := utils.SanitizePath(file)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
-		}
-		filePath := utils.JoinScopedIndexPath(d.Share.Path, cleanFile)
-		fileList = append(fileList, filePath)
+	fileList, err := publicDownloadFileList(d, files)
+	if err != nil {
+		return http.StatusBadRequest, err
 	}
 
 	status, err := RawFilesHandler(w, r, d, actualSourceName, fileList)
@@ -211,6 +206,35 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		}
 	}
 	return status, nil
+}
+
+func publicDownloadFileList(d *Context, files []string) ([]string, error) {
+	if len(files) == 0 {
+		files = []string{"/"}
+	}
+	singleFileShare := d.Share.IsSingleFileShare()
+
+	cleanFiles := make([]string, 0, len(files))
+	for _, file := range files {
+		if singleFileShare && file == "" {
+			continue
+		}
+		cleanFile, err := utils.SanitizePath(file)
+		if err != nil {
+			return nil, fmt.Errorf("invalid file path: %v", err)
+		}
+		cleanFiles = append(cleanFiles, cleanFile)
+	}
+
+	if singleFileShare {
+		return []string{d.Share.Path}, nil
+	}
+
+	fileList := make([]string, 0, len(cleanFiles))
+	for _, file := range cleanFiles {
+		fileList = append(fileList, utils.JoinScopedIndexPath(d.Share.Path, file))
+	}
+	return fileList, nil
 }
 
 func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source string, fileList []string) (int, error) {
