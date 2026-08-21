@@ -46,18 +46,6 @@ func setupTestEnv(t *testing.T) {
 	mockFileInfoFaster(t) // Mock FileInfoFasterFunc for this test
 }
 
-func saveTestUser(t *testing.T, user *users.User) *users.User {
-	t.Helper()
-	if err := store.Users.Save(user, false, false); err != nil {
-		t.Fatalf("Save(%s): %v", user.Username, err)
-	}
-	got, err := store.Users.Get(user.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return got
-}
-
 func mockFileInfoFaster(t *testing.T) {
 	// Backup the original function
 	originalFileInfoFaster := FileInfoFasterFunc
