@@ -450,7 +450,7 @@
     "token": "Token",
     "onlyOfficeId": "OnlyOffice-ID",
     "firstLoadTitle": "Welkom bij FileBrowser Quantum!",
-    "firstLoadBody": "Er is een nieuwe database aangemaakt bij het opstarten. Als dit niet is wat u verwachtte, controleer dan het configuratiebestand voor het `server.database` pad en zorg ervoor dat het bestaat. Op docker kan het databasepad `./data/database.db` of `./database.db` zijn.",
+    "firstLoadBody": "Er is een nieuwe database aangemaakt bij het opstarten. Als dit niet is wat u verwachtte, controleer dan het configuratiebestand voor het `server.database` pad en zorg ervoor dat het bestaat. Op docker kan het databasepad `./data/filebrowser.sqlite` of `./filebrowser.sqlite` zijn.",
     "halloweenTitle": "Happy Halloween!",
     "halloweenBody": "Het Halloween-thema is toegepast. U kunt het uitschakelen als u dit niet prettig vindt, of permanent uitschakelen in de profielinstellingen door een ander thema te selecteren.",
     "moveFailed": "Verplaatsen mislukt",
