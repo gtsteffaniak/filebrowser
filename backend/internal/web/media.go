@@ -13,7 +13,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-
 )
 
 // subtitlesHandler handles subtitle requests for both external files and embedded streams
@@ -33,17 +32,18 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/media/subtitles [get]
 func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	name := r.URL.Query().Get("name")
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	name := r.URL.Query().Get("name")
 	embedded := r.URL.Query().Get("embedded") == "true"
 
-	if path == "" || source == "" {
-		return http.StatusBadRequest, fmt.Errorf("path and source are required")
-	}
 	if name == "" {
 		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
 	}
+	if path == "" {
+		return http.StatusBadRequest, fmt.Errorf("path parameter is required")
+	}
+
 	filePerms, err := effectiveFilePerms(d, source)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -52,18 +52,47 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
 	}
 
-	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		FollowSymlinks:           true,
-		Path:                     path,
-		Source:                   source,
-		Expand:                   true,
-		Content:                  false,
-		Metadata:                 true,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
-		ShowHidden:               d.User.ShowHidden,
-		HideFileExt:              d.User.HideFileExt,
-		SkipExtendedAttrs:        false,
-	}, d.User)
+	fileUser := d.User
+	var fileOpts utils.FileOptions
+
+	if d.Share.Hash != "" {
+		source = d.Share.GetSourceName()
+		if source == "" {
+			return http.StatusNotFound, fmt.Errorf("source not found")
+		}
+		path = d.IndexPath
+		fileUser = d.ShareUser
+		fileOpts = utils.FileOptions{
+			Path:                     path,
+			Source:                   source,
+			Expand:                   true,
+			Content:                  false,
+			Metadata:                 true,
+			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.Share.ExtractEmbeddedSubtitles,
+			ShowHidden:               d.Share.ShowHidden,
+			HideFileExt:              d.User.HideFileExt,
+			FollowSymlinks:           false,
+			SkipExtendedAttrs:        false,
+		}
+	} else {
+		if source == "" {
+			return http.StatusBadRequest, fmt.Errorf("source is required")
+		}
+		fileOpts = utils.FileOptions{
+			FollowSymlinks:           true,
+			Path:                     path,
+			Source:                   source,
+			Expand:                   true,
+			Content:                  false,
+			Metadata:                 true,
+			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+			ShowHidden:               d.User.ShowHidden,
+			HideFileExt:              d.User.HideFileExt,
+			SkipExtendedAttrs:        false,
+		}
+	}
+
+	fileInfo, err := files.FileInfoFaster(fileOpts, fileUser)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -288,4 +317,21 @@ func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusInternalServerError, errors.New("failed to extract lyrics")
 	}
 	return RenderJSON(w, r, map[string]any{"lyrics": lyrics})
+}
+
+// publicSubtitlesHandler is the share-link variant of subtitlesHandler.
+// @Summary Get subtitle content (public share)
+// @Tags Media
+// @Produce text/plain
+// @Param hash query string true "Share hash"
+// @Param path query string false "Path within the share"
+// @Param name query string true "Subtitle track name"
+// @Param embedded query bool false "Whether this is an embedded stream"
+// @Success 200 {string} string "Raw subtitle content"
+// @Router /public/api/media/subtitles [get]
+func publicSubtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
+	return subtitlesHandler(w, r, d)
 }

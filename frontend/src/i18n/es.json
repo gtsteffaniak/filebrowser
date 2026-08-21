@@ -202,7 +202,7 @@
     "firstLoadTitle": "¡Bienvenido a FileBrowser Quantum!",
     "halloweenTitle": "¡Feliz Halloween!",
     "halloweenBody": "¡Se aplicó el tema de Halloween! Puedes desactivarlo si no te gusta (temporal o permanentemente) en los ajustes seleccionando cualquier otro tema.",
-    "firstLoadBody": "Se creó una nueva base de datos al iniciar. Si esto no es lo que esperabas, aseguráte de que en tu configuración (config.yaml) tienes una ruta para la base de datos en `server.database`, y verifica si existe. Si usas Docker, la ubicación de la base de datos se encuentra en `./data/database.db`.",
+    "firstLoadBody": "Se creó una nueva base de datos al iniciar. Si esto no es lo que esperabas, aseguráte de que en tu configuración (config.yaml) tienes una ruta para la base de datos en `server.database`, y verifica si existe. Si usas Docker, la ubicación de la base de datos se encuentra en `./data/filebrowser.sqlite`.",
     "selectPath": "Seleccionar ruta",
     "renameSuccess": "El cambio de nombre se ha realizado correctamente",
     "newFileSuccess": "¡Archivo creado con éxito!",

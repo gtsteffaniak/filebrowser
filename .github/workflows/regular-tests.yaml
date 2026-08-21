@@ -22,11 +22,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
-      - uses: golangci/golangci-lint-action@v7
-        with:
-          version: 'v2.1.6'
-          working-directory: backend
-          install-mode: goinstall
+      - working-directory: backend
+        run: go tool golangci-lint run --path-prefix=backend
   format-backend:
     runs-on: ubuntu-24.04-arm
     steps:

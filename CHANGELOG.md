@@ -25,6 +25,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
  - Added some missing styles in the markdown viewer (#2714)
 
+## v2.0.2
+
+ **Bugfixes**:
+ - Wrong extension in the 'new database was created popup (#2817) (#2824)
+ - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
+
 ## v2.0.1
 
  **Security**:
