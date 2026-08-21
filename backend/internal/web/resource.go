@@ -687,6 +687,9 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusBadRequest, err
 	}
 	path = cleanPath
+	// Apply the configured Unicode normalization form to the name being
+	// created (final segment only — parents keep their on-disk form).
+	path = utils.NormalizeFinalSegment(path, settings.Config.Server.Filesystem.FilenameNormalization)
 
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -1237,6 +1240,11 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			continue
 		}
 		cleanToPath, err := utils.SanitizePath(clientToPath)
+		if err == nil {
+			// The destination name is what gets created on disk: apply the
+			// configured Unicode normalization form to its final segment.
+			cleanToPath = utils.NormalizeFinalSegment(cleanToPath, settings.Config.Server.Filesystem.FilenameNormalization)
+		}
 		if err != nil {
 			item.Message = fmt.Sprintf("invalid toPath: %v", err)
 			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
