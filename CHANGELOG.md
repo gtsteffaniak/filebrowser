@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.5.2-stable
 
+ **BugFixes**:
+ - root download of a shared directory returns HTTP 500 (#2807) (#2810) (#2821) (#2818)
+## v1.5.2-stable
+
  **Security**:
  - [High] Symlink following on read paths no longer escapes source or user/share scope (GHSA-mgqf-5mf5-prfj) -- thanks @je-lv @KasperBuilds
  - [High] Share create/update could set delete/modify/create flags beyond the owner's permissions; POST /api/share with hash could update another user's share (GHSA-x79q-5hqm-x839) -- thanks @pant0m
