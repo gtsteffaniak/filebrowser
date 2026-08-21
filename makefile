@@ -27,7 +27,7 @@ setup:
 	fi
 	$(MAKE) setup-gofitz-cgo
 	echo "installing backend tooling..."
-	cd backend && go get tool
+	cd backend && go get tool && go mod tidy
 	cd backend/internal/web && mkdir -p embed dist && touch embed/.gitignore
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
@@ -37,7 +37,7 @@ setup-gofitz-cgo:
 	cd backend && go run ./scripts/setup-gofitz-cgo
 
 update:
-	cd backend && go get -u ./... && go mod tidy
+	cd backend && go get -u ./... && go get -u tool && go mod tidy
 	cd frontend && npm update
 
 build: build-frontend build-backend
