@@ -2052,8 +2052,7 @@ export default {
       const surface = this.getPlyrGestureSurface();
       if (!surface || !this.player) return;
 
-      const DOUBLE_MS = 320;
-      const EDGE_CLICK_TOGGLE_DELAY_MS = 200;
+      const EDGE_CLICK_MS = 200;
 
       const peekNavChromeForEdgeTap = (clientX, zone) => {
         if (this.previewType !== 'video' || !state.navigation.enabled) {
@@ -2110,7 +2109,7 @@ export default {
       };
       const handleEdgeZoneTap = (zone, event) => {
         const now = Date.now();
-        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < DOUBLE_MS) {
+        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < 300) {
           applySeek(zone === 'left');
           if (event) {
             event.preventDefault();
