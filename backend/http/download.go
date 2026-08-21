@@ -221,6 +221,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	// ** Single file download with Content-Length **
 	if len(fileList) == 1 {
+
 		fd, fileInfo, openErr := idx.OpenScopedPath(bound, firstFilePath)
 		if openErr != nil {
 			if errors.Is(openErr, liberrors.ErrPathEscapesScope) {

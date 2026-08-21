@@ -1,7 +1,6 @@
 package indexing
 
 import (
-	stderrors "errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -1089,30 +1088,14 @@ func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, 
 	return realPath, isDir, nil
 }
 
-func scopedIndexRel(boundIndexPath, indexPath string) string {
-	bound := boundIndexPath
-	if bound == "" {
-		bound = "/"
-	}
-	rel := indexPath
-	if bound != "/" {
-		rel = strings.TrimPrefix(indexPath, bound)
-	}
-	rel = strings.TrimPrefix(rel, "/")
-	return filepath.FromSlash(rel)
-}
-
 // OpenScopedPath opens indexPath relative to boundIndexPath using traversal-resistant APIs.
 func (idx *Index) OpenScopedPath(boundIndexPath, indexPath string) (*os.File, os.FileInfo, error) {
-	scopeRoot, err := idx.filesystemBound(boundIndexPath)
+	realPath, _, err := idx.GetRealPathScoped(boundIndexPath, indexPath)
 	if err != nil {
 		return nil, nil, err
 	}
-	file, err := iteminfo.OpenContained(scopeRoot, scopedIndexRel(boundIndexPath, indexPath))
+	file, err := os.Open(realPath)
 	if err != nil {
-		if _, _, scopeErr := idx.GetRealPathScoped(boundIndexPath, indexPath); stderrors.Is(scopeErr, errors.ErrPathEscapesScope) {
-			return nil, nil, scopeErr
-		}
 		return nil, nil, err
 	}
 	info, err := file.Stat()
