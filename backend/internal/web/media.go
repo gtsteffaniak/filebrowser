@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -67,6 +68,60 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return ErrToStatus(err), err
 	}
+	return serveSubtitleContent(w, r, fileInfo, name, embedded)
+}
+
+// publicSubtitlesHandler is the share-link variant of subtitlesHandler.
+// @Summary Get subtitle content (public share)
+// @Description Returns raw subtitle content from external files or embedded streams for a visitor with valid access to a public share
+// @Tags Media
+// @Accept json
+// @Produce text/plain
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string false "Path within the share"
+// @Param name query string true "Subtitle track name (filename for external, descriptive name for embedded)"
+// @Param embedded query bool false "Whether this is an embedded stream (true) or external file (false), defaults to false"
+// @Success 200 {string} string "Raw subtitle content in original format"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /public/api/media/subtitles [get]
+func publicSubtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	name := r.URL.Query().Get("name")
+	embedded := r.URL.Query().Get("embedded") == "true"
+	if name == "" {
+		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
+	}
+	if d.Share.ShareType == "upload" {
+		return http.StatusForbidden, fmt.Errorf("subtitles are disabled for upload shares")
+	}
+	sourceCfg, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		FollowSymlinks:           false,
+		Path:                     d.IndexPath,
+		Source:                   sourceCfg.Name,
+		Expand:                   true,
+		Content:                  false,
+		Metadata:                 true,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.Share.ShowHidden,
+		HideFileExt:              d.User.HideFileExt,
+		SkipExtendedAttrs:        false,
+	}, d.ShareUser)
+	if err != nil {
+		return ErrToStatus(err), err
+	}
+	return serveSubtitleContent(w, r, fileInfo, name, embedded)
+}
+
+// serveSubtitleContent locates the requested track on an already-loaded video
+// fileInfo and writes the raw subtitle content. Shared by the authenticated
+// and public-share subtitle handlers.
+func serveSubtitleContent(w http.ResponseWriter, r *http.Request, fileInfo *iteminfo.ExtendedFileInfo, name string, embedded bool) (int, error) {
 	if !strings.HasPrefix(fileInfo.Type, "video") {
 		return http.StatusNotFound, fmt.Errorf("file is not a video")
 	}
@@ -77,6 +132,7 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	var content string
+	var err error
 	if !embedded {
 		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
 		content, err = utils.GetSubtitleSidecarContent(subtitlePath)

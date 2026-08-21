@@ -22,6 +22,34 @@ export async function getSubtitleContent(source, path, subtitleName, embedded = 
   }
 }
 
+// GET /public/api/media/subtitles
+export async function getSubtitleContentPublic(path, hash, password, subtitleName, embedded = false) {
+    const params = {
+        path,
+        hash,
+        name: subtitleName,
+        embedded: embedded.toString(),
+        ...(state.shareInfo.token && { token: state.shareInfo.token }),
+    };
+    const apiPath = getPublicApiPath("media/subtitles", params);
+    const response = await fetch(apiPath, {
+        headers: { "X-SHARE-PASSWORD": password || "" },
+    });
+    if (!response.ok) {
+        const error = new Error(response.statusText);
+        try {
+            const data = await response.json();
+            if (data?.message) {
+                error.message = data.message;
+            }
+        } catch {
+            // non-JSON error body
+        }
+        error.status = response.status;
+        throw error;
+    }
+    return await response.text();
+}
 // GET /api/media/lyrics
 export async function getLyrics(source, path) {
     const apiPath = getApiPath('media/lyrics', {

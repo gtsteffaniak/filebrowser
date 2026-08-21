@@ -461,13 +461,27 @@ export default {
       for (let index = 0; index < state.req.subtitles.length; index++) {
         const subtitleTrack = state.req.subtitles.at(index);
         try {
-          // Fetch subtitle content from API using name and embedded
-          const content = await mediaApi.getSubtitleContent(
-            state.req.source,
-            state.req.path,
-            subtitleTrack.name,
-            subtitleTrack.embedded
-          );
+          // Fetch subtitle content from API using name and embedded.
+          // The authenticated endpoint 401s for anonymous share visitors;
+          // share context routes through the public endpoint instead (#2822).
+          let content;
+          if (getters.isShare()) {
+            const password = localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '';
+            content = await mediaApi.getSubtitleContentPublic(
+              state.shareInfo.subPath || state.req.path,
+              state.shareInfo.hash,
+              password,
+              subtitleTrack.name,
+              subtitleTrack.embedded
+            );
+          } else {
+            content = await mediaApi.getSubtitleContent(
+              state.req.source,
+              state.req.path,
+              subtitleTrack.name,
+              subtitleTrack.embedded
+            );
+          }
           if (!content || content.length === 0) {
             console.warn("Subtitle track has no content:", subtitleTrack.name);
             continue;
