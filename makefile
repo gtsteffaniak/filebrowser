@@ -37,7 +37,7 @@ setup-gofitz-cgo:
 	cd backend && go run ./scripts/setup-gofitz-cgo
 
 update:
-	cd backend && go get -u ./... && go mod tidy
+	cd backend && go get -u ./... && go get -u tool && go mod tidy
 	cd frontend && npm update
 
 build: build-frontend build-backend

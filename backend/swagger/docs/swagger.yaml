@@ -5074,6 +5074,37 @@ paths:
       summary: Stream a single media file from a public share for inline viewing
       tags:
       - Resources
+  /public/api/media/subtitles:
+    get:
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share
+        in: query
+        name: path
+        type: string
+      - description: Subtitle track name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: Whether this is an embedded stream
+        in: query
+        name: embedded
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Raw subtitle content
+          schema:
+            type: string
+      summary: Get subtitle content (public share)
+      tags:
+      - Media
   /public/api/resources:
     get:
       consumes:
