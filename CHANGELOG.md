@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bugfixes**:
  - Wrong extension in the 'new database was created popup (#2817) (#2824)
- - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) ()
+ - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
 
 ## v2.0.1
 
