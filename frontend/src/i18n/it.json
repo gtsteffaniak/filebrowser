@@ -454,7 +454,7 @@
     "token": "Token",
     "onlyOfficeId": "ID OnlyOffice",
     "firstLoadTitle": "Benvenuto in FileBrowser Quantum!",
-    "firstLoadBody": "È stato creato un nuovo database all'avvio. Se non è quello che ti aspettavi, controlla il percorso `server.database` nel file di configurazione. Su Docker, il percorso potrebbe essere `./data/database.db` o `./database.db`.",
+    "firstLoadBody": "È stato creato un nuovo database all'avvio. Se non è quello che ti aspettavi, controlla il percorso `server.database` nel file di configurazione. Su Docker, il percorso potrebbe essere `./data/filebrowser.sqlite` o `./filebrowser.sqlite`.",
     "halloweenTitle": "Buon Halloween!",
     "halloweenBody": "Il tema di Halloween è stato applicato. Puoi disabilitarlo o cambiarlo permanentemente nelle impostazioni del profilo.",
     "operationFailed": "Operazione fallita",

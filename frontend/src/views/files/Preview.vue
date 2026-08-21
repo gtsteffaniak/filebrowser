@@ -466,7 +466,7 @@ export default {
             state.req.source,
             state.req.path,
             subtitleTrack.name,
-            subtitleTrack.embedded
+            subtitleTrack.embedded,
           );
           if (!content || content.length === 0) {
             console.warn("Subtitle track has no content:", subtitleTrack.name);

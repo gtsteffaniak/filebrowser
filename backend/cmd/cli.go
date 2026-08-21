@@ -238,11 +238,14 @@ func createConfig(configpath string, noInput bool) error {
 	}
 
 	for {
-		config.Server.DatabaseV2.Path = askQuestion(reader, "What should the file name and path be for the database?", "./database.db")
-		if strings.HasSuffix(config.Server.DatabaseV2.Path, ".db") {
+		// "database.db" is the reserved legacy-bolt filename and is rejected
+		// at startup (see backend/cmd/migrate.go), so the wizard must not
+		// suggest it as the default.
+		config.Server.DatabaseV2.Path = askQuestion(reader, "What should the file name and path be for the database?", "./filebrowser.sqlite")
+		if strings.HasSuffix(config.Server.DatabaseV2.Path, ".sqlite") {
 			break
 		}
-		fmt.Printf("Error: '%s' is not a valid path. Please enter a path to a file ending in .db", config.Server.DatabaseV2.Path)
+		fmt.Printf("Error: '%s' is not a valid path. Please enter a path to a file ending in .sqlite", config.Server.DatabaseV2.Path)
 	}
 	config.Frontend.Name = askQuestion(reader, "What should the application brand name be?", "FileBrowser Quantum")
 	config.Auth.AdminUsername = askQuestion(reader, "What should the default admin username be?", "admin")

@@ -125,6 +125,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			(r.Method == "POST" && strings.Contains(r.URL.Path, "/resources/view-token")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/media/metadata")) ||
+			(r.Method == "GET" && strings.Contains(r.URL.Path, "/media/subtitles")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/download")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/view")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/media/stream")) {
