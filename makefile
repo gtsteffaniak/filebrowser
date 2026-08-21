@@ -27,7 +27,7 @@ setup:
 	fi
 	$(MAKE) setup-gofitz-cgo
 	echo "installing backend tooling..."
-	cd backend && go get tool && go mod tidy
+	cd backend && go get tool
 	cd backend/internal/web && mkdir -p embed dist && touch embed/.gitignore
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
