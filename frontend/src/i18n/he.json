@@ -203,7 +203,7 @@
     "firstLoadTitle": "ברוכים הבאים ל-FileBrowser Quantum!",
     "halloweenTitle": "חג ליל כל הקדושים שמח!",
     "halloweenBody": "נושא ליל כל הקדושים הוחל. ניתן להשבית אותו אם אינו מוצא חן בעיניך, או להשבית אותו לצמיתות בהגדרות הפרופיל על ידי בחירת נושא אחר.",
-    "firstLoadBody": "במהלך ההפעלה נוצר מסד נתונים חדש. אם זה לא מה שציפית, אנא בדוק שוב את קובץ התצורה שלך עבור הנתיב `server.database` וודא שהוא קיים. ב-docker, נתיב מסד הנתונים יכול להיות `./data/database.db` או `./database.db`.",
+    "firstLoadBody": "במהלך ההפעלה נוצר מסד נתונים חדש. אם זה לא מה שציפית, אנא בדוק שוב את קובץ התצורה שלך עבור הנתיב `server.database` וודא שהוא קיים. ב-docker, נתיב מסד הנתונים יכול להיות `./data/filebrowser.sqlite` או `./filebrowser.sqlite`.",
     "selectPath": "בחר נתיב",
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",

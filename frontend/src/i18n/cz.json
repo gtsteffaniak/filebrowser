@@ -273,7 +273,7 @@
     "firstLoadTitle": "Vítejte v aplikaci FileBrowser Quantum!",
     "halloweenTitle": "Šťastný Halloween!",
     "halloweenBody": "Bylo použito téma Halloween. Pokud se vám nelíbí, můžete jej vypnout nebo trvale zakázat v nastavení profilu výběrem jiného motivu.",
-    "firstLoadBody": "Při spuštění byla vytvořena nová databáze. Pokud to není to, co jste očekávali, překontrolujte prosím konfigurační soubor pro cestu `server.database` a ujistěte se, že existuje. V dockeru může být cesta k databázi `./data/database.db` nebo `./database.db`.",
+    "firstLoadBody": "Při spuštění byla vytvořena nová databáze. Pokud to není to, co jste očekávali, překontrolujte prosím konfigurační soubor pro cestu `server.database` a ujistěte se, že existuje. V dockeru může být cesta k databázi `./data/filebrowser.sqlite` nebo `./filebrowser.sqlite`.",
     "selectPath": "Vybrat cestu",
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
