@@ -33,14 +33,26 @@ import (
 // @Router /api/media/subtitles [get]
 func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	name := r.URL.Query().Get("name")
+	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
 	embedded := r.URL.Query().Get("embedded") == "true"
 
 	if name == "" {
 		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
 	}
+	if path == "" {
+		return http.StatusBadRequest, fmt.Errorf("path parameter is required")
+	}
+
+	filePerms, err := effectiveFilePerms(d, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
 
 	fileUser := d.User
-	var path, source string
 	var fileOpts utils.FileOptions
 
 	if d.Share.Hash != "" {
@@ -63,17 +75,8 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			SkipExtendedAttrs:        false,
 		}
 	} else {
-		path = r.URL.Query().Get("path")
-		source = r.URL.Query().Get("source")
-		if path == "" || source == "" {
-			return http.StatusBadRequest, fmt.Errorf("path and source are required")
-		}
-		filePerms, err := effectiveFilePerms(d, source)
-		if err != nil {
-			return http.StatusForbidden, err
-		}
-		if !filePerms.View {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+		if source == "" {
+			return http.StatusBadRequest, fmt.Errorf("source is required")
 		}
 		fileOpts = utils.FileOptions{
 			FollowSymlinks:           true,
