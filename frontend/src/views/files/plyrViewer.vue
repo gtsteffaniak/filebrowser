@@ -2195,7 +2195,7 @@ export default {
               if (this.previewType === 'video') {
                 togglePlayPause();
               }
-            }, EDGE_CLICK_TOGGLE_DELAY_MS);
+            }, EDGE_CLICK_MS);
           }
           peekNavChromeForEdgeTap(event.clientX, zone);
         } else if (this.previewType === 'video') {
