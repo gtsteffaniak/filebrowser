@@ -118,12 +118,12 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("PUT /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("PATCH /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("GET /settings/analytics/preview", withTimeout(time30s, withAdminHelper(settingsAnalyticsPreviewHandler)))
-	api.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
-	api.HandleFunc("PATCH /settings/user-defaults", withTimeout(time5s, withAdminHelper(settingsUserDefaultsPatchHandler)))
-	publicApi.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
 	api.HandleFunc("GET /settings/source", withTimeout(time5s, withUserHelper(settingsSourceGetHandler)))
 	api.HandleFunc("PATCH /settings/source", withTimeout(time5s, withAdminHelper(settingsSourcePatchHandler)))
 	api.HandleFunc("GET /settings/sources", withUser(getSourceInfoHandler))
+	api.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
+	api.HandleFunc("PATCH /settings/user-defaults", withTimeout(time5s, withAdminHelper(settingsUserDefaultsPatchHandler)))
+	publicApi.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
 
 	// ========================================
 	// Tools Routes - /api/tools/
@@ -143,9 +143,9 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("GET /media/metadata", withTimeout(time60s, withUserHelper(metadataHandler)))
 	api.HandleFunc("GET /media/lyrics", withTimeout(time60s, withUserHelper(lyricsHandler)))
 	api.HandleFunc("GET /media/stream", withTimeout(time60s, withUserHelper(streamHandler)))
+	publicApi.HandleFunc("GET /media/subtitles", withTimeout(time60s, withHashFileHelper(publicSubtitlesHandler)))
 	publicApi.HandleFunc("GET /media/metadata", withTimeout(time60s, withHashFileHelper(publicMetadataHandler)))
 	publicApi.HandleFunc("GET /media/lyrics", withTimeout(time60s, withHashFileHelper(publicLyricsHandler)))
-	publicApi.HandleFunc("GET /media/subtitles", withTimeout(time60s, withHashFileHelper(publicSubtitlesHandler)))
 	publicApi.HandleFunc("GET /media/stream", withTimeout(time60s, withHashFileHelper(publicStreamHandler)))
 
 	// ========================================

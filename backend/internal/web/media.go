@@ -13,7 +13,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-
 )
 
 // subtitlesHandler handles subtitle requests for both external files and embedded streams
@@ -33,37 +32,64 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/media/subtitles [get]
 func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	path := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
 	name := r.URL.Query().Get("name")
 	embedded := r.URL.Query().Get("embedded") == "true"
 
-	if path == "" || source == "" {
-		return http.StatusBadRequest, fmt.Errorf("path and source are required")
-	}
 	if name == "" {
 		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
 	}
-	filePerms, err := effectiveFilePerms(d, source)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	if !filePerms.View {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+
+	fileUser := d.User
+	var path, source string
+	var fileOpts utils.FileOptions
+
+	if d.Share.Hash != "" {
+		source = d.Share.GetSourceName()
+		if source == "" {
+			return http.StatusNotFound, fmt.Errorf("source not found")
+		}
+		path = d.IndexPath
+		fileUser = d.ShareUser
+		fileOpts = utils.FileOptions{
+			Path:                     path,
+			Source:                   source,
+			Expand:                   true,
+			Content:                  false,
+			Metadata:                 true,
+			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.Share.ExtractEmbeddedSubtitles,
+			ShowHidden:               d.Share.ShowHidden,
+			HideFileExt:              d.User.HideFileExt,
+			FollowSymlinks:           false,
+			SkipExtendedAttrs:        false,
+		}
+	} else {
+		path = r.URL.Query().Get("path")
+		source = r.URL.Query().Get("source")
+		if path == "" || source == "" {
+			return http.StatusBadRequest, fmt.Errorf("path and source are required")
+		}
+		filePerms, err := effectiveFilePerms(d, source)
+		if err != nil {
+			return http.StatusForbidden, err
+		}
+		if !filePerms.View {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+		}
+		fileOpts = utils.FileOptions{
+			FollowSymlinks:           true,
+			Path:                     path,
+			Source:                   source,
+			Expand:                   true,
+			Content:                  false,
+			Metadata:                 true,
+			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+			ShowHidden:               d.User.ShowHidden,
+			HideFileExt:              d.User.HideFileExt,
+			SkipExtendedAttrs:        false,
+		}
 	}
 
-	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		FollowSymlinks:           true,
-		Path:                     path,
-		Source:                   source,
-		Expand:                   true,
-		Content:                  false,
-		Metadata:                 true,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
-		ShowHidden:               d.User.ShowHidden,
-		HideFileExt:              d.User.HideFileExt,
-		SkipExtendedAttrs:        false,
-	}, d.User)
+	fileInfo, err := files.FileInfoFaster(fileOpts, fileUser)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -304,64 +330,5 @@ func publicSubtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) 
 	if d.Share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
 	}
-	name := r.URL.Query().Get("name")
-	embedded := r.URL.Query().Get("embedded") == "true"
-	if name == "" {
-		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
-	}
-
-	sourceCfg, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
-	if !ok {
-		return http.StatusNotFound, fmt.Errorf("source not found")
-	}
-
-	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Path:                     d.IndexPath,
-		Source:                   sourceCfg.Name,
-		Expand:                   true,
-		Content:                  false,
-		Metadata:                 true,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.Share.ExtractEmbeddedSubtitles,
-		ShowHidden:               d.Share.ShowHidden,
-		HideFileExt:              d.User.HideFileExt,
-		FollowSymlinks:           false,
-	}, d.ShareUser)
-	if err != nil {
-		return ErrToStatus(err), err
-	}
-	if !strings.HasPrefix(fileInfo.Type, "video") {
-		return http.StatusNotFound, fmt.Errorf("file is not a video")
-	}
-
-	track := findSubtitleTrack(fileInfo.Subtitles, name, embedded)
-	if track == nil {
-		return http.StatusNotFound, fmt.Errorf("subtitle track '%s' not found", name)
-	}
-
-	var content string
-	if !embedded {
-		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
-		content, err = utils.GetSubtitleSidecarContent(subtitlePath)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("failed to get subtitle sidecar content: %v", err)
-		}
-	} else {
-		if track.Index == nil {
-			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
-		}
-		svc := ffmpeg.Get()
-		if svc == nil {
-			return http.StatusInternalServerError, fmt.Errorf("ffmpeg service not available")
-		}
-		content, err = svc.ExtractSubtitle(r.Context(), fileInfo.RealPath, *track.Index)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
-		}
-	}
-
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("Content-Disposition", "inline")
-	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, name, time.Now(), bytes.NewReader([]byte(content)))
-	return http.StatusOK, nil
+	return subtitlesHandler(w, r, d)
 }
