@@ -145,6 +145,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("GET /media/stream", withTimeout(time60s, withUserHelper(streamHandler)))
 	publicApi.HandleFunc("GET /media/metadata", withTimeout(time60s, withHashFileHelper(publicMetadataHandler)))
 	publicApi.HandleFunc("GET /media/lyrics", withTimeout(time60s, withHashFileHelper(publicLyricsHandler)))
+	publicApi.HandleFunc("GET /media/subtitles", withTimeout(time60s, withHashFileHelper(publicSubtitlesHandler)))
 	publicApi.HandleFunc("GET /media/stream", withTimeout(time60s, withHashFileHelper(publicStreamHandler)))
 
 	// ========================================

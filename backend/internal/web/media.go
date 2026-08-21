@@ -289,3 +289,79 @@ func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 	return RenderJSON(w, r, map[string]any{"lyrics": lyrics})
 }
+
+// publicSubtitlesHandler is the share-link variant of subtitlesHandler.
+// @Summary Get subtitle content (public share)
+// @Tags Media
+// @Produce text/plain
+// @Param hash query string true "Share hash"
+// @Param path query string false "Path within the share"
+// @Param name query string true "Subtitle track name"
+// @Param embedded query bool false "Whether this is an embedded stream"
+// @Success 200 {string} string "Raw subtitle content"
+// @Router /public/api/media/subtitles [get]
+func publicSubtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
+	name := r.URL.Query().Get("name")
+	embedded := r.URL.Query().Get("embedded") == "true"
+	if name == "" {
+		return http.StatusBadRequest, fmt.Errorf("name parameter is required")
+	}
+
+	sourceCfg, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		Path:                     d.IndexPath,
+		Source:                   sourceCfg.Name,
+		Expand:                   true,
+		Content:                  false,
+		Metadata:                 true,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && d.Share.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.Share.ShowHidden,
+		HideFileExt:              d.User.HideFileExt,
+		FollowSymlinks:           false,
+	}, d.ShareUser)
+	if err != nil {
+		return ErrToStatus(err), err
+	}
+	if !strings.HasPrefix(fileInfo.Type, "video") {
+		return http.StatusNotFound, fmt.Errorf("file is not a video")
+	}
+
+	track := findSubtitleTrack(fileInfo.Subtitles, name, embedded)
+	if track == nil {
+		return http.StatusNotFound, fmt.Errorf("subtitle track '%s' not found", name)
+	}
+
+	var content string
+	if !embedded {
+		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
+		content, err = utils.GetSubtitleSidecarContent(subtitlePath)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to get subtitle sidecar content: %v", err)
+		}
+	} else {
+		if track.Index == nil {
+			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
+		}
+		svc := ffmpeg.Get()
+		if svc == nil {
+			return http.StatusInternalServerError, fmt.Errorf("ffmpeg service not available")
+		}
+		content, err = svc.ExtractSubtitle(r.Context(), fileInfo.RealPath, *track.Index)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Disposition", "inline")
+	w.Header().Set("Cache-Control", "private")
+	http.ServeContent(w, r, name, time.Now(), bytes.NewReader([]byte(content)))
+	return http.StatusOK, nil
+}
