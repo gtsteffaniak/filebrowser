@@ -213,11 +213,13 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusForbidden, err
 	}
 
+	shareToken := shareTokenForOnlyOffice(d)
+
 	// Build view URL that OnlyOffice server will use to fetch the file
-	documentURL := buildOnlyOfficeViewURL(r, source, providedPath, d.FileInfo.Hash, viewToken, d.Token)
+	documentURL := buildOnlyOfficeViewURL(r, source, providedPath, d.FileInfo.Hash, viewToken, d.Token, shareToken)
 
 	// Build callback URL for OnlyOffice to notify us of changes
-	callbackURL := buildOnlyOfficeCallbackURL(r, source, providedPath, d.FileInfo.Hash, d.Token)
+	callbackURL := buildOnlyOfficeCallbackURL(r, source, providedPath, d.FileInfo.Hash, d.Token, shareToken)
 
 	// Build OnlyOffice client configuration
 	clientConfig := map[string]interface{}{
@@ -296,14 +298,26 @@ func joinOnlyOfficeAPIURL(baseURL, apiPath string) string {
 	return base + "/" + path
 }
 
+// shareTokenForOnlyOffice returns the share download token for OnlyOffice server URLs.
+// Only password-protected shares have a token; callers must already have passed share auth.
+func shareTokenForOnlyOffice(d *Context) string {
+	if d.Share.Hash == "" || d.Share.PasswordHash == "" || d.Share.Token == "" {
+		return ""
+	}
+	return d.Share.Token
+}
+
 // buildOnlyOfficeViewURL constructs the view URL that OnlyOffice server uses to fetch the document.
-func buildOnlyOfficeViewURL(r *http.Request, source, path, hash, viewToken, authToken string) string {
+func buildOnlyOfficeViewURL(r *http.Request, source, path, hash, viewToken, authToken, shareToken string) string {
 	baseURL := onlyOfficeFileBrowserBaseURL(r)
 	params := url.Values{}
 	params.Set("file", path)
 	params.Set("viewToken", viewToken)
 	if hash != "" {
 		params.Set("hash", hash)
+		if shareToken != "" {
+			params.Set("token", shareToken)
+		}
 		return joinOnlyOfficeAPIURL(baseURL, "public/api/resources/view") + "?" + params.Encode()
 	}
 	params.Set("source", source)
@@ -312,7 +326,7 @@ func buildOnlyOfficeViewURL(r *http.Request, source, path, hash, viewToken, auth
 }
 
 // buildOnlyOfficeCallbackURL constructs the callback URL that OnlyOffice server will use to notify us of changes
-func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token string) string {
+func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, authToken, shareToken string) string {
 	baseURL := onlyOfficeFileBrowserBaseURL(r)
 
 	params := url.Values{}
@@ -320,14 +334,17 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 		// Share callback URL - use public API and don't expose source, use path relative to share
 		params.Set("hash", hash)
 		params.Set("path", path)
-		params.Set("auth", token)
+		params.Set("auth", authToken)
+		if shareToken != "" {
+			params.Set("token", shareToken)
+		}
 		return joinOnlyOfficeAPIURL(baseURL, "public/api/office/callback") + "?" + params.Encode()
 	}
 
 	// Regular callback URL - include source for non-share requests
 	params.Set("source", source)
 	params.Set("path", path)
-	params.Set("auth", token)
+	params.Set("auth", authToken)
 	return joinOnlyOfficeAPIURL(baseURL, "api/office/callback") + "?" + params.Encode()
 }
 

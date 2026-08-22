@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
@@ -60,17 +61,94 @@ func TestBuildOnlyOfficeViewURL(t *testing.T) {
 	settings.Config.Http.BaseURL = "/testing/"
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	got := buildOnlyOfficeViewURL(req, "Downloads", "/doc.docx", "", "view-token", "session.jwt.token")
+	got := buildOnlyOfficeViewURL(req, "Downloads", "/doc.docx", "", "view-token", "session.jwt.token", "")
 	want := "http://filebrowser:8080/testing/api/resources/view?auth=session.jwt.token&file=%2Fdoc.docx&source=Downloads&viewToken=view-token"
 	if got != want {
 		t.Fatalf("buildOnlyOfficeViewURL() = %q, want %q", got, want)
 	}
 
-	shareGot := buildOnlyOfficeViewURL(req, "Downloads", "/doc.docx", "share-hash", "view-token", "session.jwt.token")
+	shareGot := buildOnlyOfficeViewURL(req, "Downloads", "/doc.docx", "share-hash", "view-token", "session.jwt.token", "")
 	shareWant := "http://filebrowser:8080/testing/public/api/resources/view?file=%2Fdoc.docx&hash=share-hash&viewToken=view-token"
 	if shareGot != shareWant {
 		t.Fatalf("buildOnlyOfficeViewURL(share) = %q, want %q", shareGot, shareWant)
 	}
+}
+
+func TestBuildOnlyOfficeShareURLs(t *testing.T) {
+	origHTTP := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = origHTTP })
+	settings.Config.Http.BaseURL = "/files/"
+	settings.Config.Http.InternalUrl = ""
+
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/files/public/api/office/config?hash=abc", nil)
+
+	t.Run("share view URL includes share token", func(t *testing.T) {
+		got := buildOnlyOfficeViewURL(req, "source", "/doc.docx", "shareHash", "view-token", "jwt-token", "share-download-token")
+		parsed, err := url.Parse(got)
+		if err != nil {
+			t.Fatalf("parse view URL: %v", err)
+		}
+		q := parsed.Query()
+		if q.Get("hash") != "shareHash" {
+			t.Errorf("hash = %q, want shareHash", q.Get("hash"))
+		}
+		if q.Get("viewToken") != "view-token" {
+			t.Errorf("viewToken = %q, want view-token", q.Get("viewToken"))
+		}
+		if q.Get("token") != "share-download-token" {
+			t.Errorf("token = %q, want share-download-token", q.Get("token"))
+		}
+		if q.Get("file") != "/doc.docx" {
+			t.Errorf("file = %q, want /doc.docx", q.Get("file"))
+		}
+	})
+
+	t.Run("share view URL omits token when empty", func(t *testing.T) {
+		got := buildOnlyOfficeViewURL(req, "source", "/doc.docx", "shareHash", "view-token", "jwt-token", "")
+		parsed, err := url.Parse(got)
+		if err != nil {
+			t.Fatalf("parse view URL: %v", err)
+		}
+		if parsed.Query().Get("token") != "" {
+			t.Errorf("expected no token param, got %q", parsed.Query().Get("token"))
+		}
+	})
+
+	t.Run("non-share view URL unchanged", func(t *testing.T) {
+		got := buildOnlyOfficeViewURL(req, "my-source", "/doc.docx", "", "view-token", "jwt-token", "share-download-token")
+		if strings.Contains(got, "token=") {
+			t.Errorf("non-share URL should not include share token: %q", got)
+		}
+		if !strings.Contains(got, "source=my-source") {
+			t.Errorf("expected source in URL, got %q", got)
+		}
+	})
+
+	t.Run("share callback URL includes share token", func(t *testing.T) {
+		got := buildOnlyOfficeCallbackURL(req, "source", "/doc.docx", "shareHash", "jwt-token", "share-download-token")
+		parsed, err := url.Parse(got)
+		if err != nil {
+			t.Fatalf("parse callback URL: %v", err)
+		}
+		q := parsed.Query()
+		if q.Get("token") != "share-download-token" {
+			t.Errorf("token = %q, want share-download-token", q.Get("token"))
+		}
+		if q.Get("auth") != "jwt-token" {
+			t.Errorf("auth = %q, want jwt-token", q.Get("auth"))
+		}
+	})
+
+	t.Run("share callback URL omits token when empty", func(t *testing.T) {
+		got := buildOnlyOfficeCallbackURL(req, "source", "/doc.docx", "shareHash", "jwt-token", "")
+		parsed, err := url.Parse(got)
+		if err != nil {
+			t.Fatalf("parse callback URL: %v", err)
+		}
+		if parsed.Query().Get("token") != "" {
+			t.Errorf("expected no token param, got %q", parsed.Query().Get("token"))
+		}
+	})
 }
 
 func TestJoinOnlyOfficeAPIURL(t *testing.T) {

@@ -1,4 +1,5 @@
 import { notify } from '@/notify'
+import { state } from '@/store'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { fetchURL } from './utils'
 
@@ -8,7 +9,16 @@ export async function getConfig(req) {
     const params = {
       path: req.path,
       ...(req.hash && { hash: req.hash }),
-      ...(req.source && { source: req.source })
+      ...(req.source && { source: req.source }),
+      ...(req.hash && state.shareInfo?.token && { token: state.shareInfo.token }),
+    }
+
+    const headers = {}
+    if (req.hash) {
+      const sharePassword = localStorage.getItem(`sharepass:${req.hash}`)
+      if (sharePassword) {
+        headers['X-SHARE-PASSWORD'] = sharePassword
+      }
     }
     
     let apiPath
@@ -18,7 +28,7 @@ export async function getConfig(req) {
       apiPath = getApiPath('office/config', params)
     }
     
-    const res = await fetchURL(apiPath)
+    const res = await fetchURL(apiPath, { headers })
     return await res.json()
   } catch (err) {
     notify.showError(err.message || 'Error fetching OnlyOffice configuration')
