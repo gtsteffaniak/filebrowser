@@ -427,6 +427,8 @@ github.com/gtsteffaniak/go-cache v1.1.0 h1:ni/2cJpCxpGmaMZd92iTDIGOy+yUcMcxQuW7b
 github.com/gtsteffaniak/go-cache v1.1.0/go.mod h1:rHUZvf4huhMX/bnNK4/oQ3sNAE2fYC2jFpAWZiBPWac=
 github.com/gtsteffaniak/go-ffmpeg v0.5.1 h1:gpKXi/0mn0j1Ug3v9x21tqbkT/2EZ6cDB1Ngqe8YfjI=
 github.com/gtsteffaniak/go-ffmpeg v0.5.1/go.mod h1:FefhoD+KZzHWqBaUpntcKp6lXtUzdFW00F74axnENUQ=
+github.com/gtsteffaniak/go-ffmpeg v0.5.2 h1:KVnKM3zewY9yeZVd59Hb0/10gSbhYf01yRM5RftXGEU=
+github.com/gtsteffaniak/go-ffmpeg v0.5.2/go.mod h1:FefhoD+KZzHWqBaUpntcKp6lXtUzdFW00F74axnENUQ=
 github.com/gtsteffaniak/go-logger v1.1.0 h1:baFds+iibuLLNpNLwygz32bDqdsunI6dGWcdxwMIVKI=
 github.com/gtsteffaniak/go-logger v1.1.0/go.mod h1:rapapTju4D7bwt6h4JOdZNUXDjnp0WkTBd6TN5yWglI=
 github.com/hairyhenderson/go-codeowners v0.7.0 h1:s0W4wF8bdsBEjTWzwzSlsatSthWtTAF2xLgo4a4RwAo=
