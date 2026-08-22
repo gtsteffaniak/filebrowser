@@ -498,28 +498,11 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 
 var lyricsSidecarExts = []string{".lrc", ".elrc", ".srt", ".vtt"}
 
-func hasLyricsSidecar(realPath string) bool {
+func findLyricsSidecar(realPath string) (data []byte, ext string, ok bool) {
 	dir := filepath.Dir(realPath)
 	base := filepath.Base(realPath)
 	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
-	for _, ext := range lyricsSidecarExts {
-		info, err := os.Lstat(filepath.Join(dir, nameWithoutExt+ext))
-		if err != nil {
-			continue
-		}
-		if info.Mode().IsRegular() {
-			return true
-		}
-	}
-	return false
-}
-
-// Returns raw lyrics from an audio file (from embedded tags or from sidecar files with the same name).
-func ExtractLyrics(realPath string) (string, string, error) {
-	dir := filepath.Dir(realPath)
-	base := filepath.Base(realPath)
-	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
-	for _, ext := range lyricsSidecarExts {
+	for _, ext = range lyricsSidecarExts {
 		sidecarPath := filepath.Join(dir, nameWithoutExt+ext)
 		info, err := os.Lstat(sidecarPath)
 		if err != nil {
@@ -531,11 +514,27 @@ func ExtractLyrics(realPath string) (string, string, error) {
 		if info.Size() > 50*1024*1024 { // 50MB
 			continue
 		}
-		data, err := os.ReadFile(sidecarPath)
+		data, err = os.ReadFile(sidecarPath)
 		if err != nil {
 			continue
 		}
-		return string(data), strings.TrimPrefix(ext, "."), nil
+		if strings.TrimSpace(string(data)) == "" {
+			continue
+		}
+		return data, strings.TrimPrefix(ext, "."), true
+	}
+	return nil, "", false
+}
+
+func hasLyricsSidecar(realPath string) bool {
+	_, _, ok := findLyricsSidecar(realPath)
+	return ok
+}
+
+// Returns raw lyrics from an audio file (from embedded tags or from sidecar files with the same name).
+func ExtractLyrics(realPath string) (string, string, error) {
+	if data, ext, ok := findLyricsSidecar(realPath); ok {
+		return string(data), ext, nil
 	}
 	file, err := os.Open(realPath)
 	if err != nil {

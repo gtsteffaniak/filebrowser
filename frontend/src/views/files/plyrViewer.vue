@@ -687,13 +687,8 @@ export default {
     lyricsMeta() {
       const lyricsTitle = this.lyrics?.lrcMeta?.title;
       const lyricsArtist = this.lyrics?.lrcMeta?.artist;
-      if (lyricsTitle || lyricsArtist) {
-        if (lyricsTitle && lyricsArtist) return `${lyricsTitle} - ${lyricsArtist}`;
-        return lyricsTitle || lyricsArtist || '';
-      }
-      const { title, artist } = this.metadata || {};
-      if (title && artist) return `${title} - ${artist}`;
-      return title || artist || '';
+      if (lyricsTitle && lyricsArtist) return `${lyricsTitle} - ${lyricsArtist}`;
+      return lyricsTitle || lyricsArtist || '';
     },
     scrubPreviewEnabled() {
       return (
