@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Wrong extension in the 'new database was created popup (#2817) (#2824)
  - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
  - OnlyOffice is inaccessible on password-protected shares (#2811)
+ - FFmpeg 9.0 incorrectly detected as below minimum 5.0.0 on Windows (#2820) -- thanks @yzxcj797
 
 ## v2.0.1
 
