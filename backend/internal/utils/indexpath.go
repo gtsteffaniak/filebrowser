@@ -34,10 +34,6 @@ func ParseSanitizedIndexPath(userPath string, isDir bool) (IndexPath, error) {
 }
 
 func parseIndexPath(path string, isDir bool, strict bool) (IndexPath, error) {
-	if strict && strings.Contains(path, `\`) {
-		return IndexPath{}, fmt.Errorf("invalid path: backslashes not allowed")
-	}
-
 	inner := strings.Trim(path, "/")
 	if inner == "" {
 		return IndexPath{IsDir: isDir}, nil
