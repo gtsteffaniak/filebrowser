@@ -10,7 +10,7 @@ import (
 	"hash"
 	"io"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
@@ -69,22 +69,23 @@ type FileOptions struct {
 // SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.
 // Rule 1: Do Not Use User Input in File Paths (without validation)
 func SanitizeUserPath(userPath string) (string, error) {
-	clean := filepath.Clean(userPath)
+	userPath = strings.ReplaceAll(userPath, `\`, `/`)
+	clean := path.Clean(userPath)
 
-	// Split the path into segments to check for path traversal attempts
-	// We check if ".." appears as a complete path segment (not just in a filename)
-	segments := strings.Split(clean, string(filepath.Separator))
+	// Split the path into segments to check for path traversal attempts.
+	// We check if ".." appears as a complete path segment (not just in a filename).
+	segments := strings.Split(clean, "/")
 
 	for _, segment := range segments {
-		// Check if any segment is exactly ".." (path traversal attempt)
-		// This catches any ".." that filepath.Clean couldn't resolve (i.e., escape attempts)
+		// Check if any segment is exactly ".." (path traversal attempt).
+		// This catches any ".." that path.Clean couldn't resolve (i.e., escape attempts).
 		if segment == ".." {
 			return "", fmt.Errorf("invalid path: path traversal detected")
 		}
 	}
 
 	if clean == "." {
-		return "", fmt.Errorf("invalid path: path must standard index path")
+		return "", fmt.Errorf("invalid path: path must be a standard index path")
 	}
 
 	return clean, nil

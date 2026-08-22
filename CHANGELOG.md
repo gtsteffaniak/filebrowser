@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.5.2-stable
 
  **BugFixes**:
+ - windows backslash inserted into directory URLs causing malformed paths and path escapes from parent (#2815) (#2816)
  - root download of a shared directory returns HTTP 500 (#2807) (#2810) (#2821) (#2818)
  - OnlyOffice is inaccessible if share has optional password (#2811)
 
