@@ -3227,7 +3227,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns raw lyrics text and it's format (lrc, elrc, srt, vtt, embedded)
+      description: Returns raw lyrics text and its format (lrc, elrc, srt, vtt, embedded)
         from a sidecar file or embedded tags.
       parameters:
       - description: Path to the directory or file

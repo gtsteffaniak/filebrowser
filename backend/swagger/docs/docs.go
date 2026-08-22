@@ -1311,7 +1311,7 @@ const docTemplate = `{
         },
         "/api/media/lyrics": {
             "get": {
-                "description": "Returns raw lyrics text and it's format (lrc, elrc, srt, vtt, embedded) from a sidecar file or embedded tags.",
+                "description": "Returns raw lyrics text and its format (lrc, elrc, srt, vtt, embedded) from a sidecar file or embedded tags.",
                 "consumes": [
                     "application/json"
                 ],
