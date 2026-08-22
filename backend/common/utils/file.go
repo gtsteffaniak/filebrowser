@@ -69,6 +69,7 @@ type FileOptions struct {
 // SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.
 // Rule 1: Do Not Use User Input in File Paths (without validation)
 func SanitizeUserPath(userPath string) (string, error) {
+	userPath = strings.ReplaceAll(userPath, `\`, `/`)
 	clean := path.Clean(userPath)
 
 	// Split the path into segments to check for path traversal attempts.
