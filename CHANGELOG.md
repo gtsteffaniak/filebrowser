@@ -28,8 +28,10 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.0.2
 
  **Bugfixes**:
+ - Windows: fix backslash duplication in navigation URLs, folder sizes showing 4 KB, and download/preview failures (#2815, #2816)
  - Wrong extension in the 'new database was created popup (#2817) (#2824)
  - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
+ - OnlyOffice is inaccessible on password-protected shares (#2811)
 
 ## v2.0.1
 
