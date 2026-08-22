@@ -205,11 +205,16 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	// Send initial log event with detailed path information
 	sendOnlyOfficeLogEvent(logContext, "INFO", "config", fmt.Sprintf("OnlyOffice session started for document: %s ", path))
 
+	shareToken := ""
+	if d.share != nil {
+		shareToken = d.share.Token
+	}
+
 	// Build download URL that OnlyOffice server will use
-	downloadURL := buildOnlyOfficeDownloadURL(r, source, providedPath, d.fileInfo.Hash, d.token)
+	downloadURL := buildOnlyOfficeDownloadURL(r, source, providedPath, d.fileInfo.Hash, d.token, shareToken)
 
 	// Build callback URL for OnlyOffice to notify us of changes
-	callbackURL := buildOnlyOfficeCallbackURL(r, source, providedPath, d.fileInfo.Hash, d.token)
+	callbackURL := buildOnlyOfficeCallbackURL(r, source, providedPath, d.fileInfo.Hash, d.token, shareToken)
 
 	// Build OnlyOffice client configuration
 	clientConfig := map[string]interface{}{
@@ -255,7 +260,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 }
 
 // buildOnlyOfficeDownloadURL constructs the download URL that OnlyOffice server will use to fetch the file
-func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token string) string {
+func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, authToken, shareToken string) string {
 	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
 	var baseURL string
 	if config.Server.InternalUrl != "" {
@@ -290,16 +295,23 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 
 	escapedPath := url.QueryEscape(path)
 	downloadURL := fmt.Sprintf("%s/api/resources/download?file=%s&auth=%s&source=%s",
-		strings.TrimSuffix(baseURL, "/"), escapedPath, token, url.QueryEscape(source))
+		strings.TrimSuffix(baseURL, "/"), escapedPath, authToken, url.QueryEscape(source))
 	if hash != "" {
-		downloadURL = fmt.Sprintf("%s/public/api/resources/download?file=%s&auth=%s&hash=%s",
-			strings.TrimSuffix(baseURL, "/"), escapedPath, token, hash)
+		params := url.Values{}
+		params.Set("file", path)
+		params.Set("auth", authToken)
+		params.Set("hash", hash)
+		if shareToken != "" {
+			params.Set("token", shareToken)
+		}
+		downloadURL = fmt.Sprintf("%s/public/api/resources/download?%s",
+			strings.TrimSuffix(baseURL, "/"), params.Encode())
 	}
 	return downloadURL
 }
 
 // buildOnlyOfficeCallbackURL constructs the callback URL that OnlyOffice server will use to notify us of changes
-func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token string) string {
+func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, authToken, shareToken string) string {
 	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
 	var baseURL string
 	if config.Server.InternalUrl != "" {
@@ -338,7 +350,10 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 		params := url.Values{}
 		params.Set("hash", hash)
 		params.Set("path", path) // This should be the path relative to the share, not the full filesystem path
-		params.Set("auth", token)
+		params.Set("auth", authToken)
+		if shareToken != "" {
+			params.Set("token", shareToken)
+		}
 
 		callbackURL = fmt.Sprintf("%s/public/api/office/callback?%s",
 			strings.TrimSuffix(baseURL, "/"), params.Encode())
@@ -347,7 +362,7 @@ func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token strin
 		params := url.Values{}
 		params.Set("source", source)
 		params.Set("path", path)
-		params.Set("auth", token)
+		params.Set("auth", authToken)
 
 		callbackURL = fmt.Sprintf("%s/api/office/callback?%s",
 			strings.TrimSuffix(baseURL, "/"), params.Encode())
