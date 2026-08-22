@@ -2,7 +2,9 @@ package http
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
@@ -13,6 +15,86 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
+
+func TestBuildOnlyOfficeShareURLs(t *testing.T) {
+	setupTestEnv(t)
+	origBaseURL := config.Server.BaseURL
+	origInternalURL := config.Server.InternalUrl
+	t.Cleanup(func() {
+		config.Server.BaseURL = origBaseURL
+		config.Server.InternalUrl = origInternalURL
+	})
+	config.Server.BaseURL = "/files/"
+	config.Server.InternalUrl = ""
+
+	req := httptestNewRequest(t, "http://example.com/files/public/api/office/config?hash=abc")
+
+	t.Run("share download URL includes share token", func(t *testing.T) {
+		got := buildOnlyOfficeDownloadURL(req, "source", "/doc.docx", "shareHash", "jwt-token", "share-download-token")
+		parsed, err := url.Parse(got)
+		if err != nil {
+			t.Fatalf("parse download URL: %v", err)
+		}
+		q := parsed.Query()
+		if q.Get("hash") != "shareHash" {
+			t.Errorf("hash = %q, want shareHash", q.Get("hash"))
+		}
+		if q.Get("auth") != "jwt-token" {
+			t.Errorf("auth = %q, want jwt-token", q.Get("auth"))
+		}
+		if q.Get("token") != "share-download-token" {
+			t.Errorf("token = %q, want share-download-token", q.Get("token"))
+		}
+		if q.Get("file") != "/doc.docx" {
+			t.Errorf("file = %q, want /doc.docx", q.Get("file"))
+		}
+	})
+
+	t.Run("share download URL omits token when empty", func(t *testing.T) {
+		got := buildOnlyOfficeDownloadURL(req, "source", "/doc.docx", "shareHash", "jwt-token", "")
+		parsed, err := url.Parse(got)
+		if err != nil {
+			t.Fatalf("parse download URL: %v", err)
+		}
+		if parsed.Query().Get("token") != "" {
+			t.Errorf("expected no token param, got %q", parsed.Query().Get("token"))
+		}
+	})
+
+	t.Run("non-share download URL unchanged", func(t *testing.T) {
+		got := buildOnlyOfficeDownloadURL(req, "my-source", "/doc.docx", "", "jwt-token", "share-download-token")
+		if strings.Contains(got, "token=") {
+			t.Errorf("non-share URL should not include share token: %q", got)
+		}
+		if !strings.Contains(got, "source=my-source") {
+			t.Errorf("expected source in URL, got %q", got)
+		}
+	})
+
+	t.Run("share callback URL includes share token", func(t *testing.T) {
+		got := buildOnlyOfficeCallbackURL(req, "source", "/doc.docx", "shareHash", "jwt-token", "share-download-token")
+		parsed, err := url.Parse(got)
+		if err != nil {
+			t.Fatalf("parse callback URL: %v", err)
+		}
+		q := parsed.Query()
+		if q.Get("token") != "share-download-token" {
+			t.Errorf("token = %q, want share-download-token", q.Get("token"))
+		}
+		if q.Get("auth") != "jwt-token" {
+			t.Errorf("auth = %q, want jwt-token", q.Get("auth"))
+		}
+	})
+}
+
+func httptestNewRequest(t *testing.T, rawURL string) *http.Request {
+	t.Helper()
+	req, err := http.NewRequest(http.MethodGet, rawURL, http.NoBody)
+	if err != nil {
+		t.Fatalf("http.NewRequest: %v", err)
+	}
+	return req
+}
 
 func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 	orig := config.Integrations.OnlyOffice
