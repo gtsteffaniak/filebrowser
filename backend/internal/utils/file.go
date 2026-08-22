@@ -69,6 +69,7 @@ type FileOptions struct {
 // SanitizePath cleans and validates a path or path-like filter (index paths, globs, etc.)
 // to block traversal. Rule 1: Do Not Use Untrusted Input in File Paths (without validation).
 func SanitizePath(inputPath string) (string, error) {
+	inputPath = strings.ReplaceAll(inputPath, `\`, `/`)
 	clean := path.Clean(inputPath)
 
 	// Split the path into segments to check for path traversal attempts.
