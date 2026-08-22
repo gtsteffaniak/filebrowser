@@ -22,7 +22,7 @@ require (
 	github.com/gtsteffaniak/go-ffmpeg v0.5.1
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/kovidgoyal/imaging v1.8.23
-	github.com/mattn/go-sqlite3 v1.14.49
+	github.com/mattn/go-sqlite3 v1.14.50
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.12.1
@@ -38,7 +38,7 @@ require (
 	golang.org/x/time v0.15.0
 	golang.org/x/tools v0.49.0
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.56.0
+	modernc.org/sqlite v1.57.0
 )
 
 require (
@@ -118,7 +118,7 @@ require (
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/firefart/nonamedreturns v1.0.8 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
 	github.com/ghostiam/protogetter v0.3.21 // indirect
@@ -146,7 +146,7 @@ require (
 	github.com/go-toolsmith/strparse v1.1.0 // indirect
 	github.com/go-toolsmith/typep v1.1.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
-	github.com/go-webauthn/x v0.2.8 // indirect
+	github.com/go-webauthn/x v0.3.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/godoc-lint/godoc-lint v0.11.2 // indirect
@@ -154,7 +154,7 @@ require (
 	github.com/gohugoio/hashstructure v1.0.0 // indirect
 	github.com/gohugoio/hugo v0.165.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
-	github.com/golang/geo v0.0.0-20260810185319-42794aff7523 // indirect
+	github.com/golang/geo v0.0.0-20260818125358-b200a1149890 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golangci/asciicheck v0.5.0 // indirect
 	github.com/golangci/dupl v0.0.0-20260401084720-c99c5cf5c202 // indirect
@@ -296,9 +296,9 @@ require (
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/tools v0.8.1 // indirect
-	modernc.org/libc v1.75.3 // indirect
+	modernc.org/libc v1.75.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.12.0 // indirect
+	modernc.org/memory v1.12.1 // indirect
 	mvdan.cc/gofumpt v0.11.0 // indirect
 	mvdan.cc/unparam v0.0.0-20260820064413-a201bf8e0538 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
