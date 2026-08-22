@@ -503,7 +503,11 @@ func hasLyricsSidecar(realPath string) bool {
 	base := filepath.Base(realPath)
 	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
 	for _, ext := range lyricsSidecarExts {
-		if _, err := os.Stat(filepath.Join(dir, nameWithoutExt+ext)); err == nil {
+		info, err := os.Lstat(filepath.Join(dir, nameWithoutExt+ext))
+		if err != nil {
+			continue
+		}
+		if info.Mode().IsRegular() {
 			return true
 		}
 	}
@@ -517,11 +521,14 @@ func ExtractLyrics(realPath string) (string, string, error) {
 	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
 	for _, ext := range lyricsSidecarExts {
 		sidecarPath := filepath.Join(dir, nameWithoutExt+ext)
-		info, err := os.Stat(sidecarPath)
+		info, err := os.Lstat(sidecarPath)
 		if err != nil {
 			continue
 		}
 		if !info.Mode().IsRegular() {
+			continue
+		}
+		if info.Size() > 50*1024*1024 { // 50MB
 			continue
 		}
 		data, err := os.ReadFile(sidecarPath)
