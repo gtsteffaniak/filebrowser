@@ -516,9 +516,19 @@ func ExtractLyrics(realPath string) (string, string, error) {
 	base := filepath.Base(realPath)
 	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
 	for _, ext := range lyricsSidecarExts {
-		if data, err := os.ReadFile(filepath.Join(dir, nameWithoutExt+ext)); err == nil {
-			return string(data), strings.TrimPrefix(ext, "."), nil
+		sidecarPath := filepath.Join(dir, nameWithoutExt+ext)
+		info, err := os.Stat(sidecarPath)
+		if err != nil {
+			continue
 		}
+		if !info.Mode().IsRegular() {
+			continue
+		}
+		data, err := os.ReadFile(sidecarPath)
+		if err != nil {
+			continue
+		}
+		return string(data), strings.TrimPrefix(ext, "."), nil
 	}
 	file, err := os.Open(realPath)
 	if err != nil {
