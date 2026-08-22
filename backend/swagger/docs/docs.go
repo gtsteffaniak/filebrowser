@@ -1311,7 +1311,7 @@ const docTemplate = `{
         },
         "/api/media/lyrics": {
             "get": {
-                "description": "Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.",
+                "description": "Returns raw lyrics text and it's format (lrc, elrc, srt, vtt, embedded) from a sidecar file or embedded tags.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1340,7 +1340,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lyrics array",
+                        "description": "Raw lyrics text and format",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -3863,7 +3863,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lyrics array",
+                        "description": "Raw lyrics text and format",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -5384,18 +5384,6 @@ const docTemplate = `{
                 }
             }
         },
-        "iteminfo.Lyric": {
-            "type": "object",
-            "properties": {
-                "text": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "description": "milliseconds",
-                    "type": "integer"
-                }
-            }
-        },
         "iteminfo.MediaMetadata": {
             "type": "object",
             "properties": {
@@ -5433,13 +5421,6 @@ const docTemplate = `{
                 "hasLyrics": {
                     "description": "checks if lyrics are available without parse them",
                     "type": "boolean"
-                },
-                "lyrics": {
-                    "description": "lyrics (from embedded tags or .lrc files)",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/iteminfo.Lyric"
-                    }
                 },
                 "title": {
                     "description": "track/video title",

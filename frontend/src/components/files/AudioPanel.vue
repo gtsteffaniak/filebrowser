@@ -42,6 +42,7 @@
         <!-- Scrollable area -->
         <div class="lyrics-scrollable" ref="lyricsScrollable">
           <div v-if="lyrics.length" class="lyrics-list">
+            <p v-if="lyricsMeta" class="lyrics-meta-header" aria-hidden="true">{{ lyricsMeta }}</p>
             <p
               v-for="(line, index) in lyrics"
               :key="index"
@@ -54,7 +55,15 @@
               :tabindex="syncedLyrics ? 0 : undefined"
               :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
             >
-              {{ line.text }}
+              <template v-if="index === activeLyricIndex && line.words && line.words.length">
+                <span
+                  v-for="(word, w) in line.words"
+                  :key="w"
+                  class="lyric-word"
+                  :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
+                >{{ word.text }}&nbsp;</span>
+              </template>
+              <template v-else>{{ line.text }}</template>
             </p>
           </div>
           <div v-else class="no-lyrics">
@@ -111,7 +120,9 @@ export default {
   components: { PlaybackQueue, FloatingButton },
   props: {
     lyrics: { type: Array, default: () => [] },
+    lyricsMeta: { type: String, default: '' },
     activeLyricIndex: { type: Number, default: -1 },
+    activeWordIndex: { type: Number, default: -1 },
     player: { type: Object, default: null },
     audioContext: { type: Object, default: null },
     audioSource: { type: Object, default: null }, // MediaElementAudioSourceNode, see https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode
@@ -876,11 +887,25 @@ export default {
   color: var(--textPrimary);
 }
 
+.lyrics-meta-header {
+  padding: 0 0 0.6em;
+  margin: 0;
+  opacity: 0.55;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: default;
+  user-select: none;
+}
+
 .lyric-line {
   padding: 0.5em 0;
   opacity: 0.6;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
+  transform: scale(1);
+  transform-origin: center;
   font-size: 1.15rem;
 }
 
@@ -893,6 +918,27 @@ export default {
   font-weight: bold;
   color: var(--primaryColor);
   font-size: 1.35rem;
+  animation: lyric-line-in 0.3s ease;
+}
+
+@keyframes lyric-line-in {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.lyric-word {
+  display: inline-block;
+  opacity: 0.4;
+  transform: translateY(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.lyric-word.sung {
+  opacity: 1;
+}
+
+.lyric-word.current {
+  transform: translateY(-0.04em);
 }
 
 .no-lyrics {

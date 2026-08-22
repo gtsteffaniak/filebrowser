@@ -1,13 +1,11 @@
 package files
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,8 +22,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
-
-var reDuration = regexp.MustCompile(`^\[(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})\.(\d+)\](.*)`)
 
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
 var CheckPermissionsFunc = func(opts utils.FileOptions, user *users.User) (string, string, error) {
@@ -50,7 +46,7 @@ func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileO
 		wg.Go(func() {
 			fullPath := response.RealPath + "/" + fileItem.Name
 			if isAudio {
-				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, false, sharedFFmpegService); err != nil {
+				if err := extractAudioMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, opts.Metadata, sharedFFmpegService); err != nil {
 					logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
 				}
 			} else {
@@ -393,7 +389,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		extItem := &iteminfo.ExtendedItemInfo{
 			ItemInfo: info.ItemInfo,
 		}
-		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, false, nil)
+		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content, nil)
 		if err != nil {
 			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
 		} else {
@@ -427,57 +423,10 @@ func generateOfficeId(realPath string) string {
 	return key
 }
 
-// Parses raw LRC text into a slice of Lyric.
-// Lines with [hh:mm:ss.xx] (timestamps) will be parsed to ms for synced lyrics
-// The ones without timestamp are kept as unsynced (timestamp 0).
-func parseLRC(raw string) []iteminfo.Lyric {
-	var lines []iteminfo.Lyric
-	scanner := bufio.NewScanner(strings.NewReader(raw))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-		matches := reDuration.FindStringSubmatch(line)
-		if len(matches) == 6 {
-			// Hours default to 0 (if not present in the timestamps)
-			h := 0
-			if matches[1] != "" {
-				h, _ = strconv.Atoi(matches[1])
-			}
-			min, _ := strconv.Atoi(matches[2])
-			sec, _ := strconv.Atoi(matches[3])
-
-			msStr := matches[4]
-			// Normalise to 3 digits, some songs have more than 3 digits in the milliseconds
-			switch {
-			case len(msStr) < 3:
-				msStr += strings.Repeat("0", 3-len(msStr))
-			case len(msStr) > 3:
-				msStr = msStr[:3]
-			}
-			ms, _ := strconv.Atoi(msStr)
-			timestamp := int64((h*3600+min*60+sec)*1000 + ms)
-			text := strings.TrimSpace(matches[5])
-			lines = append(lines, iteminfo.Lyric{
-				Text:      text,
-				Timestamp: timestamp,
-			})
-		} else {
-			// Line without a valid timestamp – treat as unsynced (timestamp 0)
-			lines = append(lines, iteminfo.Lyric{
-				Text:      line,
-				Timestamp: 0,
-			})
-		}
-	}
-	return lines
-}
-
 // extractAudioMetadata extracts metadata from an audio file using dhowden/tag
 // and optionally extracts duration using the ffmpeg service with concurrency control
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
-func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, getDuration bool, getLyrics bool, ffmpegService *ffmpeg.FFmpegService) error {
+func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, getDuration bool, ffmpegService *ffmpeg.FFmpegService) error {
 	file, err := os.Open(realPath)
 	if err != nil {
 		return err
@@ -514,28 +463,7 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	item.Metadata.Track = track
 
 	// Check if lyrics are available without extract them
-	if rawLyrics := m.Lyrics(); rawLyrics != "" {
-		item.Metadata.HasLyrics = true
-	} else {
-		// Check for sidecar .lrc file
-		dir := filepath.Dir(realPath)
-		base := filepath.Base(realPath)
-		ext := filepath.Ext(base)
-		nameWithoutExt := strings.TrimSuffix(base, ext)
-		lrcPath := filepath.Join(dir, nameWithoutExt+".lrc")
-		if _, err := os.Stat(lrcPath); err == nil {
-			item.Metadata.HasLyrics = true
-		}
-	}
-
-	if getLyrics {
-		lyrics, err := ExtractLyrics(realPath)
-		if err != nil {
-			logger.Debugf("failed to extract lyrics for %s: %v", realPath, err)
-		} else if len(lyrics) > 0 {
-			item.Metadata.Lyrics = lyrics
-		}
-	}
+	item.Metadata.HasLyrics = hasLyricsSidecar(realPath) || m.Lyrics() != ""
 
 	// Extract duration ONLY if explicitly requested using the ffmpeg VideoService
 	// This respects concurrency limits and gracefully handles missing ffmpeg
@@ -568,35 +496,43 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	return nil
 }
 
-// Returns lyrics from an audio file (from embedded tags or from a .lrc file with the same name).
-func ExtractLyrics(realPath string) ([]iteminfo.Lyric, error) {
-	file, err := os.Open(realPath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+var lyricsSidecarExts = []string{".lrc", ".elrc", ".srt", ".vtt"}
 
-	m, err := tag.ReadFrom(file)
-	if err != nil {
-		return nil, err
-	}
-
-	var lyrics []iteminfo.Lyric
-	if raw := m.Lyrics(); raw != "" {
-		lyrics = parseLRC(raw)
-	}
-	if len(lyrics) == 0 {
-		// Check for sidecar .lrc file
-		dir := filepath.Dir(realPath)
-		base := filepath.Base(realPath)
-		ext := filepath.Ext(base)
-		nameWithoutExt := strings.TrimSuffix(base, ext)
-		lrcPath := filepath.Join(dir, nameWithoutExt+".lrc")
-		if data, err := os.ReadFile(lrcPath); err == nil {
-			lyrics = parseLRC(string(data))
+func hasLyricsSidecar(realPath string) bool {
+	dir := filepath.Dir(realPath)
+	base := filepath.Base(realPath)
+	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
+	for _, ext := range lyricsSidecarExts {
+		if _, err := os.Stat(filepath.Join(dir, nameWithoutExt+ext)); err == nil {
+			return true
 		}
 	}
-	return lyrics, nil
+	return false
+}
+
+// Returns raw lyrics from an audio file (from embedded tags or from sidecar files with the same name).
+func ExtractLyrics(realPath string) (string, string, error) {
+	dir := filepath.Dir(realPath)
+	base := filepath.Base(realPath)
+	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
+	for _, ext := range lyricsSidecarExts {
+		if data, err := os.ReadFile(filepath.Join(dir, nameWithoutExt+ext)); err == nil {
+			return string(data), strings.TrimPrefix(ext, "."), nil
+		}
+	}
+	file, err := os.Open(realPath)
+	if err != nil {
+		return "", "", err
+	}
+	defer file.Close()
+	m, err := tag.ReadFrom(file)
+	if err != nil {
+		return "", "", err
+	}
+	if raw := m.Lyrics(); raw != "" {
+		return raw, "embedded", nil
+	}
+	return "", "", nil
 }
 
 // extractVideoMetadata extracts duration and codec info from video files using ffprobe.
