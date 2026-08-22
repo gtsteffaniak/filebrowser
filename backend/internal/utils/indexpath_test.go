@@ -53,6 +53,9 @@ func TestSanitizePath_indexPaths(t *testing.T) {
 		{"traversal segment", "..", "", true},
 		{"resolved traversal", "/../secret", "/secret", false},
 		{"empty", "", "", true},
+		{"backslash traversal", `..\secret`, "", true},
+		{"backslash double traversal", `..\..\secret`, "", true},
+		{"backslash path normalized", `\foo\bar`, "/foo/bar", false},
 	}
 
 	for _, tt := range tests {
@@ -108,6 +111,14 @@ func TestParseSanitizedIndexPath(t *testing.T) {
 	}
 	if got.String() != "/secret/" {
 		t.Errorf("got %q want /secret/", got.String())
+	}
+
+	got, err = ParseSanitizedIndexPath(`\foo\bar\`, true)
+	if err != nil {
+		t.Fatalf("unexpected error for backslash path: %v", err)
+	}
+	if got.String() != "/foo/bar/" {
+		t.Errorf("got %q want /foo/bar/", got.String())
 	}
 }
 
