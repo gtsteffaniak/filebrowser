@@ -929,8 +929,8 @@ export default {
 .lyric-word {
   display: inline-block;
   opacity: 0.4;
-  transform: translateY(0);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .lyric-word.sung {
@@ -938,7 +938,8 @@ export default {
 }
 
 .lyric-word.current {
-  transform: translateY(-0.04em);
+  opacity: 1;
+  transform: scale(1.06);
 }
 
 .no-lyrics {

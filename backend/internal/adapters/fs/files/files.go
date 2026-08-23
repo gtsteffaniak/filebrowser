@@ -511,7 +511,7 @@ func findLyricsSidecar(realPath string) (data []byte, ext string, ok bool) {
 		if !info.Mode().IsRegular() {
 			continue
 		}
-		if info.Size() > 50*1024*1024 { // 50MB
+		if info.Size() > 15*1024*1024 { // 15MB
 			continue
 		}
 		data, err = os.ReadFile(sidecarPath)

@@ -468,6 +468,12 @@ export default {
         this.$nextTick(() => this.scrollMobileLyrics());
       }
     },
+    lyrics(newLyrics, oldLyrics) {
+      if (newLyrics !== oldLyrics) {
+        this.activeLyricIndex = -1;
+        this.activeWordIndex = -1;
+      }
+    },
     mobileLyricsScrollLocked(val) {
       if (!val && this.showMobileLyrics && this.lyrics.length) {
         this.$nextTick(() => this.scrollMobileLyrics());
@@ -1262,8 +1268,11 @@ export default {
       if (!this.lyrics.length || !this.syncedLyrics) return;
       const currentMs = this.player.currentTime * 1000;
       let idx = this.activeLyricIndex;
-      if (idx > 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
-        idx = 0;
+      if (idx > this.lyrics.length - 1) {
+        idx = -1;
+      }
+      if (idx >= 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
+        idx = -1;
       }
       while (
         idx + 1 < this.lyrics.length &&
@@ -1272,7 +1281,10 @@ export default {
         idx++;
       }
       let first = idx;
-      while (first > 0 && this.lyrics.at(first - 1).timestamp === this.lyrics.at(idx).timestamp) {
+      while (
+        first > 0 &&
+        this.lyrics.at(first - 1)?.timestamp === this.lyrics.at(idx)?.timestamp
+      ) {
         first--;
       }
       if (first !== this.activeLyricIndex) {
@@ -1283,12 +1295,15 @@ export default {
     },
     // Update active word within the active lyric line (for elrc)
     syncActiveWord(currentMs) {
-      const words = this.lyrics.at(this.activeLyricIndex)?.words;
+      const words = this.activeLyricIndex >= 0 ? this.lyrics.at(this.activeLyricIndex)?.words : null;
       if (!words?.length) {
         this.activeWordIndex = -1;
         return;
       }
       let idx = this.activeWordIndex;
+      if (idx > words.length - 1) {
+        idx = -1;
+      }
       if (idx < 0 || words.at(idx)?.timestamp > currentMs) {
         idx = 0;
       }
@@ -3725,8 +3740,8 @@ export default {
 .lyric-word {
   display: inline-block;
   opacity: 0.4;
-  transform: translateY(0);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .lyric-word.sung {
@@ -3734,7 +3749,7 @@ export default {
 }
 
 .lyric-word.current {
-  transform: translateY(-0.04em);
+  transform: scale(1.06);
 }
 
 .lyrics-mobile {
