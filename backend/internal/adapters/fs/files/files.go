@@ -498,23 +498,31 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 
 var lyricsSidecarExts = []string{".lrc", ".elrc", ".srt", ".vtt"}
 
+func lyricsSidecar(dir, nameWithoutExt, ext string) (path string, ok bool) {
+	sidecarPath := filepath.Join(dir, nameWithoutExt+ext)
+	info, err := os.Lstat(sidecarPath)
+	if err != nil {
+		return "", false
+	}
+	if !info.Mode().IsRegular() {
+		return "", false
+	}
+	if info.Size() > 15*1024*1024 { // 15MB
+		return "", false
+	}
+	return sidecarPath, true
+}
+
 func findLyricsSidecar(realPath string) (data []byte, ext string, ok bool) {
 	dir := filepath.Dir(realPath)
 	base := filepath.Base(realPath)
 	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
 	for _, ext = range lyricsSidecarExts {
-		sidecarPath := filepath.Join(dir, nameWithoutExt+ext)
-		info, err := os.Lstat(sidecarPath)
-		if err != nil {
+		sidecarPath, candOk := lyricsSidecar(dir, nameWithoutExt, ext)
+		if !candOk {
 			continue
 		}
-		if !info.Mode().IsRegular() {
-			continue
-		}
-		if info.Size() > 15*1024*1024 { // 15MB
-			continue
-		}
-		data, err = os.ReadFile(sidecarPath)
+		data, err := os.ReadFile(sidecarPath)
 		if err != nil {
 			continue
 		}
@@ -527,8 +535,32 @@ func findLyricsSidecar(realPath string) (data []byte, ext string, ok bool) {
 }
 
 func hasLyricsSidecar(realPath string) bool {
-	_, _, ok := findLyricsSidecar(realPath)
-	return ok
+	dir := filepath.Dir(realPath)
+	base := filepath.Base(realPath)
+	nameWithoutExt := strings.TrimSuffix(base, filepath.Ext(base))
+	for _, ext := range lyricsSidecarExts {
+		sidecarPath, ok := lyricsSidecar(dir, nameWithoutExt, ext)
+		if !ok {
+			continue
+		}
+		f, err := os.Open(sidecarPath)
+		if err != nil {
+			continue
+		}
+		buf := make([]byte, 4096)
+		for {
+			n, readErr := f.Read(buf)
+			if n > 0 && strings.TrimSpace(string(buf[:n])) != "" {
+				f.Close()
+				return true
+			}
+			if readErr != nil {
+				break
+			}
+		}
+		f.Close()
+	}
+	return false
 }
 
 // Returns raw lyrics from an audio file (from embedded tags or from sidecar files with the same name).
