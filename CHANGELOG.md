@@ -4,10 +4,8 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.2
 
- **Notes**:
- - OIDC: `groupsClaim` now defaults to `groups` for all authentication methods that share `adminGroup` / `userGroups` options (OIDC, JWT, LDAP, proxy). When the ID token omits the groups claim, FileBrowser falls back to the UserInfo endpoint if `adminGroup` or `userGroups` is configured (fixes PocketID and similar providers when the `groups` scope is included).
-
  **Bugfixes**:
+ - OIDC: `groupsClaim` value is always included in requested scopes and falls back to the UserInfo endpoint when the ID token omits the groups claim.
  - Windows: fix backslash duplication in navigation URLs, folder sizes showing 4 KB, and download/preview failures (#2815, #2816)
  - Wrong extension in the 'new database was created popup (#2817) (#2824)
  - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
