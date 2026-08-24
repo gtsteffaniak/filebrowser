@@ -9,6 +9,15 @@ All notable changes to this project will be documented in this file. For commit 
    - configurable by folder, source, user, and share.
    - Administrators can create, edit, view, and delete folder quotas through the interface.
    - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
+ - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755).
+
+# TODO
+#- sidebar link defaults and enforcements
+#- share defaults and enforcements
+#- tool defaults and enforcement
+#- Add more groups support, deprecated source.config.defaultEnabled and make source enablement prefer group-based
+#- make ffmpeg preview generation faster by skipping resize processing.
+
 
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.

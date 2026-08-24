@@ -83,6 +83,30 @@ func ExtractToken(r *http.Request) (string, error) {
 // When groupsPresent is false the groups claim was omitted and existing memberships are left unchanged.
 // When groupsPresent is true, groups (including empty) are synced into access-control GroupMap.
 func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string, groupsPresent bool) (*users.User, error) {
+	allowedGroups := []string{}
+	switch loginMethod {
+	case users.LoginMethodJwt:
+		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
+	case users.LoginMethodLdap:
+		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
+	case users.LoginMethodOidc:
+		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
+	case users.LoginMethodProxy:
+		allowedGroups = settings.Config.Auth.Methods.ProxyAuth.UserGroups
+	}
+	allowed := len(allowedGroups) == 0
+	for _, userGroup := range groups {
+		for _, allowedGroup := range allowedGroups {
+			if userGroup == allowedGroup {
+				allowed = true
+				break
+			}
+		}
+	}
+	if !allowed {
+		return nil, fmt.Errorf("user is not in allowed groups")
+	}
+
 	// Try to get existing user
 	userValue, err := state.GetUserByUsername(username)
 	if err != nil {
@@ -116,27 +140,6 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 			return nil, err
 		}
 	}
-	allowedGroups := []string{}
-	switch loginMethod {
-	case users.LoginMethodJwt:
-		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
-	case users.LoginMethodLdap:
-		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
-	case users.LoginMethodOidc:
-		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
-	}
-	allowed := len(allowedGroups) == 0
-	for _, userGroup := range groups {
-		for _, allowedGroup := range allowedGroups {
-			if userGroup == allowedGroup {
-				allowed = true
-				break
-			}
-		}
-	}
-	if !allowed {
-		return nil, fmt.Errorf("user is not in allowed groups")
-	}
 	// Sync admin status if needed (in case admin username changed)
 	if isAdmin && !userValue.Permissions.Admin {
 		userValue.Permissions.Admin = true
@@ -162,9 +165,20 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 }
 
 func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {
-	// Check if username matches admin username
+	proxyCfg := settings.Config.Auth.Methods.ProxyAuth
+	groups, groupsPresent := auth.ExtractGroupsFromHeader(r, proxyCfg.GroupsClaim)
+
 	isAdmin := proxyUser == settings.Config.Auth.AdminUsername
-	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, nil, false)
+	if proxyCfg.AdminGroup != "" {
+		for _, group := range groups {
+			if group == proxyCfg.AdminGroup {
+				isAdmin = true
+				break
+			}
+		}
+	}
+
+	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, groups, groupsPresent)
 }
 
 // setupJwtUser retrieves or creates a user based on external JWT token claims

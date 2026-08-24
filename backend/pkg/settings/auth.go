@@ -277,6 +277,18 @@ func verifyLdapConnection() error {
 	return nil
 }
 
+// ValidateProxyAuth checks proxy config. Call when proxy auth is enabled.
+func ValidateProxyAuth() error {
+	proxyCfg := &Config.Auth.Methods.ProxyAuth
+	if proxyCfg.Header == "" {
+		return fmt.Errorf("proxy header is required when proxy auth is enabled")
+	}
+	if (len(proxyCfg.UserGroups) > 0 || proxyCfg.AdminGroup != "") && proxyCfg.GroupsClaim == "" {
+		return fmt.Errorf("groupsClaim is required when userGroups or adminGroup is set for proxy auth")
+	}
+	return nil
+}
+
 // ValidateJwtAuth checks JWT config and sets defaults. Call when JWT auth is enabled.
 func ValidateJwtAuth() error {
 	jwtCfg := &Config.Auth.Methods.JwtAuth

@@ -514,6 +514,10 @@ func setupAuth(generate bool) {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
 	if Config.Auth.Methods.ProxyAuth.Enabled {
+		err := ValidateProxyAuth()
+		if err != nil && !generate {
+			logger.Fatalf("Error validating proxy auth: %v", err)
+		}
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "proxy")
 	}
 	if Config.Auth.Methods.NoAuth {
