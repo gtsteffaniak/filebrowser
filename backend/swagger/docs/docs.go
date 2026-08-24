@@ -6122,11 +6122,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminPassword": {
-                    "description": "secret: password-auth admin password. If set, reset on startup.",
+                    "description": "secret: password for admin auto-assigned admin account. If set, reset on startup.",
                     "type": "string"
                 },
                 "adminUsername": {
-                    "description": "secret: password-auth admin username. If not set, the default is \"admin\".",
+                    "description": "secret: admin username auto-assigned. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "enabled": {

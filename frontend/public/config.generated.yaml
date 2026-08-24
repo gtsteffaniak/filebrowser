@@ -85,8 +85,8 @@ auth:
     noauth: false                         # if set to true, overrides all other auth methods and disables authentication
     password:                             #  validate:omitempty
       enabled: true
-      adminUsername: "admin"              # secret: password-auth admin username. If not set, the default is "admin".
-      adminPassword: "admin"              # secret: password-auth admin password. If set, reset on startup.
+      adminUsername: "admin"              # secret: admin username auto-assigned. If not set, the default is "admin".
+      adminPassword: "admin"              # secret: password for admin auto-assigned admin account. If set, reset on startup.
       minLength: 5                        # minimum pasword length required, default is 5.  validate:omitempty
       signup: false                       # allow signups on login page if enabled -- not secure.  validate:omitempty
       recaptcha:                          # recaptcha config, only used if signup is enabled  validate:omitempty

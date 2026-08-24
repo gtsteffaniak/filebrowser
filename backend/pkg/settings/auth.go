@@ -47,8 +47,8 @@ type AuthCommon struct {
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"` // time in hours each web UI session token is valid for. Default is 2 hours.
 	Methods              LoginMethods `json:"methods"`
-	Key                  string       `json:"key"`        // secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
-	TotpSecret           string       `json:"totpSecret"` // secret: secret used to encrypt TOTP secrets
+	Key                  string       `json:"key"`           // secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
+	TotpSecret           string       `json:"totpSecret"`    // secret: secret used to encrypt TOTP secrets
 	AdminUsername        string       `json:"adminUsername"` // deprecated: use auth.methods.password.adminUsername. secret: password-auth admin username.
 	AdminPassword        string       `json:"adminPassword"` // deprecated: use auth.methods.password.adminPassword. secret: password-auth admin password.
 	AuthMethods          []string     `json:"-"`
@@ -66,8 +66,8 @@ type LoginMethods struct {
 
 type PasswordAuthConfig struct {
 	Enabled       bool      `json:"enabled"`
-	AdminUsername string    `json:"adminUsername"` // secret: password-auth admin username. If not set, the default is "admin".
-	AdminPassword string    `json:"adminPassword"` // secret: password-auth admin password. If set, reset on startup.
+	AdminUsername string    `json:"adminUsername"`                  // secret: admin username auto-assigned. If not set, the default is "admin".
+	AdminPassword string    `json:"adminPassword"`                  // secret: password for admin auto-assigned admin account. If set, reset on startup.
 	MinLength     int       `json:"minLength" validate:"omitempty"` // minimum pasword length required, default is 5.
 	Signup        bool      `json:"signup" validate:"omitempty"`    // allow signups on login page if enabled -- not secure.
 	Recaptcha     Recaptcha `json:"recaptcha" validate:"omitempty"` // recaptcha config, only used if signup is enabled
