@@ -515,6 +515,7 @@ func setupAuth(generate bool) {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
 	if Config.Auth.Methods.ProxyAuth.Enabled {
+		applyAuthCommonDefaults(&Config.Auth.Methods.ProxyAuth.AuthCommon)
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "proxy")
 	}
 	if Config.Auth.Methods.NoAuth {

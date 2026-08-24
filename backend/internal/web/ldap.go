@@ -69,7 +69,7 @@ func authenticateLDAP(username, password string) ([]string, map[string]string, e
 	// Build list of attributes to fetch
 	groupAttr := c.GroupsClaim
 	if groupAttr == "" {
-		groupAttr = "memberOf"
+		groupAttr = "groups"
 	}
 	attributes := []string{"dn", groupAttr}
 	if c.UserIdentifier != "" {
