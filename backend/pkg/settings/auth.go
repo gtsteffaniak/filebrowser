@@ -91,9 +91,13 @@ func PasswordAdminPassword() string {
 // auth.adminPassword into auth.methods.password when the new location is unset.
 func MigrateLegacyPasswordAdminFromAuth() {
 	pwd := &Config.Auth.Methods.PasswordAuth
-	if Config.Auth.AdminUsername != "" && pwd.AdminUsername == "" {
-		pwd.AdminUsername = Config.Auth.AdminUsername
-		logger.Warning("auth.adminUsername is deprecated; use auth.methods.password.adminUsername")
+	legacyUser := strings.TrimSpace(Config.Auth.AdminUsername)
+	if legacyUser != "" {
+		nestedUser := strings.TrimSpace(pwd.AdminUsername)
+		if nestedUser == "" || (nestedUser == "admin" && legacyUser != "admin") {
+			pwd.AdminUsername = legacyUser
+			logger.Warning("auth.adminUsername is deprecated; use auth.methods.password.adminUsername")
+		}
 	}
 	if Config.Auth.AdminPassword != "" && pwd.AdminPassword == "" {
 		pwd.AdminPassword = Config.Auth.AdminPassword

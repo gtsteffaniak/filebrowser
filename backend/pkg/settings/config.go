@@ -875,10 +875,9 @@ func SetDefaults(generate bool) Settings {
 			TokenExpirationHours: 2,
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
-					Enabled:       true,
-					AdminUsername: "admin",
-					MinLength:     5,
-					Signup:        false,
+					Enabled:   true,
+					MinLength: 5,
+					Signup:    false,
 				},
 			},
 		},

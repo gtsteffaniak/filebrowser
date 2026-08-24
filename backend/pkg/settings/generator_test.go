@@ -373,6 +373,12 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 				if strings.Contains(yamlOutput, "secret123") {
 					t.Error("Secret values should not appear in output")
 				}
+				if strings.Contains(yamlOutput, "adminPassword: \"password\"") || strings.Contains(yamlOutput, "adminPassword: password") {
+					t.Error("adminPassword value should not appear in output")
+				}
+				if strings.Contains(yamlOutput, "adminUsername: \"admin\"") || strings.Contains(yamlOutput, "adminUsername: admin") {
+					t.Error("adminUsername value should not appear in output")
+				}
 			}
 
 			// Check deprecated field filtering
