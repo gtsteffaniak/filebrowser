@@ -5488,7 +5488,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "adminUsername": {
-                    "description": "secret: the username of the admin user. If not set, the default is \"admin\".",
+                    "description": "secret: password-auth admin username. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "key": {
