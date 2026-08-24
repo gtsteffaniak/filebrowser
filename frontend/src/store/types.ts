@@ -304,6 +304,11 @@ export interface StoreState {
   };
   previewRaw: string;
   oldReq: unknown;
+  /** Sort config for destination picker dialogs (copy/move/archive). Independent of the main listing sort. */
+  pickerSorting: {
+    by: string;
+    asc: boolean;
+  } | null;
   clipboard: {
     key: string;
     items: unknown[];

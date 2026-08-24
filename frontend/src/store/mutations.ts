@@ -796,6 +796,15 @@ export const mutations = {
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
   },
+  updatePickerSortConfig: ({ field, asc }) => {
+    state.pickerSorting = { by: field, asc };
+    try {
+      localStorage.setItem("pickerSorting", JSON.stringify(state.pickerSorting));
+    } catch (_error) {
+      // ignore storage errors (e.g. private mode)
+    }
+    emitStateChanged();
+  },
   updateListingItems: () => {
     mutations.replaceRequest(state.req);
     emitStateChanged();

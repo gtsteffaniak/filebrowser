@@ -6,6 +6,8 @@
       role="button"
       tabindex="0"
       @click="sort('name')"
+      @keydown.enter.prevent="sort('name')"
+      @keydown.space.prevent="sort('name')"
       :title="$t('files.sortByName')"
       :aria-label="$t('files.sortByName')"
     >
@@ -19,6 +21,8 @@
       role="button"
       tabindex="0"
       @click="sort('size')"
+      @keydown.enter.prevent="sort('size')"
+      @keydown.space.prevent="sort('size')"
       :title="$t('files.sortBySize')"
       :aria-label="$t('files.sortBySize')"
     >
@@ -32,6 +36,8 @@
       role="button"
       tabindex="0"
       @click="sort('modified')"
+      @keydown.enter.prevent="sort('modified')"
+      @keydown.space.prevent="sort('modified')"
       :title="$t('files.sortByLastModified')"
       :aria-label="$t('files.sortByLastModified')"
     >
@@ -46,6 +52,8 @@
       role="button"
       tabindex="0"
       @click="sort('duration')"
+      @keydown.enter.prevent="sort('duration')"
+      @keydown.space.prevent="sort('duration')"
       :title="$t('files.sortByDuration')"
       :aria-label="$t('files.sortByDuration')"
     >

@@ -20,6 +20,7 @@
       <file-list
         ref="fileList"
         :hide-path-chrome="!isShareContext"
+        :sortable="true"
         @update:selected="updateDestination"
       >
       </file-list>
