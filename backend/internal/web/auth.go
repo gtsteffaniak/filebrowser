@@ -8,6 +8,7 @@ import (
 	libError "errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -140,13 +141,14 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 			return nil, err
 		}
 	}
-	// Sync admin status if needed (in case admin username changed)
-	if isAdmin && !userValue.Permissions.Admin {
-		userValue.Permissions.Admin = true
-		// No password change, pass empty string
-		err = state.UpdateUser(&userValue, "", "permissions")
-		if err != nil {
-			return nil, err
+	// Sync admin from current group membership when the auth source sent groups.
+	if groupsPresent {
+		if userValue.Permissions.Admin != isAdmin {
+			userValue.Permissions.Admin = isAdmin
+			err = state.UpdateUser(&userValue, "", "permissions")
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	// Verify login method matches
@@ -164,37 +166,25 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	return &userValue, nil
 }
 
+func isAdminFromGroups(adminGroup string, groups []string) bool {
+	return adminGroup != "" && slices.Contains(groups, adminGroup)
+}
+
 func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {
 	proxyCfg := settings.Config.Auth.Methods.ProxyAuth
 	groups, groupsPresent := auth.ExtractGroupsFromHeader(r, proxyCfg.GroupsClaim)
-
-	isAdmin := proxyUser == settings.Config.Auth.AdminUsername
-	if proxyCfg.AdminGroup != "" {
-		for _, group := range groups {
-			if group == proxyCfg.AdminGroup {
-				isAdmin = true
-				break
-			}
-		}
-	}
+	isAdmin := isAdminFromGroups(proxyCfg.AdminGroup, groups)
 
 	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, groups, groupsPresent)
 }
 
 // setupJwtUser retrieves or creates a user based on external JWT token claims
 func SetupJwtUser(r *http.Request, data *Context, username string, claims map[string]interface{}) (*users.User, error) {
-	// Determine if user should be admin
-	isAdmin := username == settings.Config.Auth.AdminUsername
-	// Check if user should be admin based on groups
-	groupsClaim := settings.Config.Auth.Methods.JwtAuth.GroupsClaim
+	jwtCfg := settings.Config.Auth.Methods.JwtAuth
+	groupsClaim := jwtCfg.GroupsClaim
 	_, groupsPresent := claims[groupsClaim]
 	groups := auth.ExtractGroupsFromClaims(claims, groupsClaim)
-	for _, group := range groups {
-		if group == settings.Config.Auth.Methods.JwtAuth.AdminGroup {
-			isAdmin = true
-			break
-		}
-	}
+	isAdmin := isAdminFromGroups(jwtCfg.AdminGroup, groups)
 
 	return getOrCreateAuthenticatedUser(username, users.LoginMethodJwt, isAdmin, groups, groupsPresent)
 }

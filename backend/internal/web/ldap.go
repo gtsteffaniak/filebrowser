@@ -213,15 +213,10 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		for _, g := range groups {
 			if ldapGroupMatchesAdmin(g, ldapCfg.AdminGroup) {
 				isAdmin = true
+				logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, ldapCfg.AdminGroup)
 				break
 			}
 		}
-		if isAdmin {
-			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, ldapCfg.AdminGroup)
-		}
-	} else {
-		// If no admin group configured, use default permissions
-		isAdmin = settings.Config.UserDefaults.Account.Permissions.Admin
 	}
 
 	return getOrCreateAuthenticatedUser(username, users.LoginMethodLdap, isAdmin, groups, true)

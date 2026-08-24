@@ -108,23 +108,31 @@ func TestSetupProxyUser_NoGroupConfigAllowsAll(t *testing.T) {
 	}
 }
 
-func TestSetupProxyUser_AdminUsernameStillPromotes(t *testing.T) {
+func TestSetupProxyUser_CosmosAdminRevokedOnRoleDowngrade(t *testing.T) {
 	setupTestEnv(t)
-	settings.Config.Auth.Methods.ProxyAuth = settings.ProxyAuthConfig{
-		AuthCommon: settings.AuthCommon{Enabled: true},
-		Header:     "X-Cosmos-User",
-	}
-	settings.Config.Auth.AdminUsername = "legacy-admin"
-	t.Cleanup(func() {
-		settings.Config.Auth.Methods.ProxyAuth = settings.ProxyAuthConfig{}
-		settings.Config.Auth.AdminUsername = ""
-	})
+	configureCosmosProxyAuth(t)
 
-	user, err := SetupProxyUser(proxyRequest(t, "legacy-admin", ""), &Context{}, "legacy-admin")
+	user, err := SetupProxyUser(proxyRequest(t, "downgrade-user", "2"), &Context{}, "downgrade-user")
 	if err != nil {
-		t.Fatalf("SetupProxyUser: %v", err)
+		t.Fatalf("SetupProxyUser admin: %v", err)
 	}
 	if !user.Permissions.Admin {
-		t.Fatal("expected admin promotion via auth.adminUsername")
+		t.Fatal("expected admin after role 2")
+	}
+
+	user, err = SetupProxyUser(proxyRequest(t, "downgrade-user", "1"), &Context{}, "downgrade-user")
+	if err != nil {
+		t.Fatalf("SetupProxyUser user: %v", err)
+	}
+	if user.Permissions.Admin {
+		t.Fatal("expected admin revoked after downgrade to role 1")
+	}
+
+	reloaded, err := state.GetUserByUsername("downgrade-user")
+	if err != nil {
+		t.Fatalf("GetUserByUsername: %v", err)
+	}
+	if reloaded.Permissions.Admin {
+		t.Fatal("expected admin revoked in persisted user record")
 	}
 }
