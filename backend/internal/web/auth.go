@@ -8,6 +8,7 @@ import (
 	libError "errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -83,6 +84,30 @@ func ExtractToken(r *http.Request) (string, error) {
 // When groupsPresent is false the groups claim was omitted and existing memberships are left unchanged.
 // When groupsPresent is true, groups (including empty) are synced into access-control GroupMap.
 func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string, groupsPresent bool) (*users.User, error) {
+	allowedGroups := []string{}
+	switch loginMethod {
+	case users.LoginMethodJwt:
+		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
+	case users.LoginMethodLdap:
+		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
+	case users.LoginMethodOidc:
+		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
+	case users.LoginMethodProxy:
+		allowedGroups = settings.Config.Auth.Methods.ProxyAuth.UserGroups
+	}
+	allowed := len(allowedGroups) == 0
+	for _, userGroup := range groups {
+		for _, allowedGroup := range allowedGroups {
+			if userGroup == allowedGroup {
+				allowed = true
+				break
+			}
+		}
+	}
+	if !allowed {
+		return nil, fmt.Errorf("user is not in allowed groups")
+	}
+
 	// Try to get existing user
 	userValue, err := state.GetUserByUsername(username)
 	if err != nil {
@@ -116,34 +141,14 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 			return nil, err
 		}
 	}
-	allowedGroups := []string{}
-	switch loginMethod {
-	case users.LoginMethodJwt:
-		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
-	case users.LoginMethodLdap:
-		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
-	case users.LoginMethodOidc:
-		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
-	}
-	allowed := len(allowedGroups) == 0
-	for _, userGroup := range groups {
-		for _, allowedGroup := range allowedGroups {
-			if userGroup == allowedGroup {
-				allowed = true
-				break
+	// Sync admin from current group membership when the auth source sent groups.
+	if groupsPresent {
+		if userValue.Permissions.Admin != isAdmin {
+			userValue.Permissions.Admin = isAdmin
+			err = state.UpdateUser(&userValue, "", "permissions")
+			if err != nil {
+				return nil, err
 			}
-		}
-	}
-	if !allowed {
-		return nil, fmt.Errorf("user is not in allowed groups")
-	}
-	// Sync admin status if needed (in case admin username changed)
-	if isAdmin && !userValue.Permissions.Admin {
-		userValue.Permissions.Admin = true
-		// No password change, pass empty string
-		err = state.UpdateUser(&userValue, "", "permissions")
-		if err != nil {
-			return nil, err
 		}
 	}
 	// Verify login method matches
@@ -161,26 +166,25 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	return &userValue, nil
 }
 
+func isAdminFromGroups(adminGroup string, groups []string) bool {
+	return adminGroup != "" && slices.Contains(groups, adminGroup)
+}
+
 func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {
-	// Check if username matches admin username
-	isAdmin := proxyUser == settings.Config.Auth.AdminUsername
-	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, nil, false)
+	proxyCfg := settings.Config.Auth.Methods.ProxyAuth
+	groups, groupsPresent := auth.ExtractGroupsFromHeader(r, proxyCfg.GroupsClaim)
+	isAdmin := isAdminFromGroups(proxyCfg.AdminGroup, groups)
+
+	return getOrCreateAuthenticatedUser(proxyUser, users.LoginMethodProxy, isAdmin, groups, groupsPresent)
 }
 
 // setupJwtUser retrieves or creates a user based on external JWT token claims
 func SetupJwtUser(r *http.Request, data *Context, username string, claims map[string]interface{}) (*users.User, error) {
-	// Determine if user should be admin
-	isAdmin := username == settings.Config.Auth.AdminUsername
-	// Check if user should be admin based on groups
-	groupsClaim := settings.Config.Auth.Methods.JwtAuth.GroupsClaim
+	jwtCfg := settings.Config.Auth.Methods.JwtAuth
+	groupsClaim := jwtCfg.GroupsClaim
 	_, groupsPresent := claims[groupsClaim]
 	groups := auth.ExtractGroupsFromClaims(claims, groupsClaim)
-	for _, group := range groups {
-		if group == settings.Config.Auth.Methods.JwtAuth.AdminGroup {
-			isAdmin = true
-			break
-		}
-	}
+	isAdmin := isAdminFromGroups(jwtCfg.AdminGroup, groups)
 
 	return getOrCreateAuthenticatedUser(username, users.LoginMethodJwt, isAdmin, groups, groupsPresent)
 }

@@ -15,10 +15,7 @@ type NoAuth struct{}
 
 // AuthenticateNoAuth authenticates as the configured admin user with no credentials required.
 func AuthenticateNoAuth(r *http.Request, user *users.Storage) (*users.User, error) {
-	admin := settings.Config.Auth.AdminUsername
-	if admin == "" {
-		admin = "admin"
-	}
+	admin := settings.PasswordAdminUsername()
 	id, err := users.ResolveUsernameToID(admin)
 	if err != nil {
 		return nil, err
