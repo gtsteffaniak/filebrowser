@@ -66,11 +66,7 @@ func authenticateLDAP(username, password string) ([]string, map[string]string, e
 		logger.Debugf("ldap: no service account bind (userPassword empty)")
 	}
 
-	// Build list of attributes to fetch
-	groupAttr := c.GroupsClaim
-	if groupAttr == "" {
-		groupAttr = "groups"
-	}
+	groupAttr := settings.ResolveGroupsClaim(c.GroupsClaim)
 	attributes := []string{"dn", groupAttr}
 	if c.UserIdentifier != "" {
 		attributes = append(attributes, c.UserIdentifier)

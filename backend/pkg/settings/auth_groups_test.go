@@ -15,3 +15,12 @@ func TestApplyAuthCommonDefaults(t *testing.T) {
 		t.Fatalf("custom groupsClaim = %q, want memberOf", custom.GroupsClaim)
 	}
 }
+
+func TestResolveGroupsClaim(t *testing.T) {
+	if got := ResolveGroupsClaim(""); got != "groups" {
+		t.Fatalf("ResolveGroupsClaim(\"\") = %q, want groups", got)
+	}
+	if got := ResolveGroupsClaim("memberOf"); got != "memberOf" {
+		t.Fatalf("ResolveGroupsClaim(memberOf) = %q, want memberOf", got)
+	}
+}
