@@ -50,6 +50,14 @@ type UserDefaults struct {
 }
 
 type Auth struct {
+	Methods LoginMethods ` + "`json:\"methods\"`" + `
+}
+
+type LoginMethods struct {
+	PasswordAuth PasswordAuthConfig ` + "`json:\"password\"`" + `
+}
+
+type PasswordAuthConfig struct {
 	AdminUsername string ` + "`json:\"adminUsername\"`" + `
 }
 `
@@ -65,7 +73,11 @@ type Auth struct {
 			},
 		},
 		Auth: Auth{
-			AdminUsername: "admin",
+			Methods: LoginMethods{
+				PasswordAuth: PasswordAuthConfig{
+					AdminUsername: "admin",
+				},
+			},
 		},
 	}
 
@@ -294,9 +306,13 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 			},
 		},
 		Auth: Auth{
-			Key:           "secret123", // This is secret
-			AdminUsername: "admin",     // This is secret
-			AdminPassword: "password",  // This is secret
+			Key: "secret123", // This is secret
+			Methods: LoginMethods{
+				PasswordAuth: PasswordAuthConfig{
+					AdminUsername: "admin",    // This is secret
+					AdminPassword: "password", // This is secret
+				},
+			},
 		},
 	}
 

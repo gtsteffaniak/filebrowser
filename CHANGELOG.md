@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file. For commit 
    - configurable by folder, source, user, and share.
    - Administrators can create, edit, view, and delete folder quotas through the interface.
    - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
- - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only; `auth.adminUsername` is for password users.
+ - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
+ - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
 
 # TODO
 #- sidebar link defaults and enforcements

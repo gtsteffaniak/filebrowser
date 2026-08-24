@@ -64,10 +64,7 @@ func validateUserInfo(newDB bool) {
 			user.Version = users.ProfileStorageVersion
 			changedFields = append(changedFields, "version")
 		}
-		adminUser := settings.Config.Auth.AdminUsername
-		if adminUser == "" {
-			adminUser = "admin"
-		}
+		adminUser := settings.PasswordAdminUsername()
 		if user.Username == adminUser && user.Permissions.Admin {
 			adminPerms := settings.AdminPerms()
 			if user.Permissions.Share != adminPerms.Share || user.Permissions.Api != adminPerms.Api {
@@ -77,10 +74,10 @@ func validateUserInfo(newDB bool) {
 				changedFields = append(changedFields, "permissions")
 			}
 		}
-		if user.Username == adminUser && settings.Config.Auth.AdminPassword != "" && user.LoginMethod == users.LoginMethodPassword {
+		if user.Username == adminUser && settings.PasswordAdminPassword() != "" && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions = settings.AdminPerms()
-			user.Password = settings.Config.Auth.AdminPassword
+			user.Password = settings.PasswordAdminPassword()
 			changedFields = append(changedFields, "permissions", "password")
 			changePass = true
 		}

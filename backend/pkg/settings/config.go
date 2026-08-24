@@ -508,7 +508,8 @@ func setupUrls() {
 
 func setupAuth(generate bool) {
 	if generate {
-		Config.Auth.AdminPassword = "admin"
+		Config.Auth.Methods.PasswordAuth.AdminUsername = "admin"
+		Config.Auth.Methods.PasswordAuth.AdminPassword = "admin"
 	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
@@ -676,6 +677,8 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
 
+	MigrateLegacyPasswordAdminFromAuth()
+
 	if err := applyLoadedUserDefaultsFromConfig(generate); err != nil {
 		return err
 	}
@@ -776,7 +779,7 @@ func loadEnvConfig() {
 	adminPassword, ok := os.LookupEnv("FILEBROWSER_ADMIN_PASSWORD")
 	if ok {
 		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
-		Config.Auth.AdminPassword = adminPassword
+		Config.Auth.Methods.PasswordAuth.AdminPassword = adminPassword
 	}
 	officeSecret, ok := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
 	if ok {
@@ -869,13 +872,13 @@ func SetDefaults(generate bool) Settings {
 			},
 		},
 		Auth: Auth{
-			AdminUsername:        "admin",
 			TokenExpirationHours: 2,
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
-					Enabled:   true,
-					MinLength: 5,
-					Signup:    false,
+					Enabled:       true,
+					AdminUsername: "admin",
+					MinLength:     5,
+					Signup:        false,
 				},
 			},
 		},
