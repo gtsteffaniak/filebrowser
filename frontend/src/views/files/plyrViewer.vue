@@ -341,6 +341,7 @@ export default {
       activeLyricIndex: -1,
       activeWordIndex: -1,
       doubleTapSeekCleanup: null,
+      rewindForwardFeedback: null,
       mobileLyricsScrollLocked: false,
 
       // Audio Visualizer
@@ -364,10 +365,8 @@ export default {
       skipFeedbackTimer: null,
       skipNextTap: false,
       skipNextTapTimer: null, // Timer for clearing skipNextTap
-      pendingPlayPauseTapTimer: null,
       edgeTapLastTime: 0,
       edgeTapLastZone: null,
-      edgeSeekAt: 0,
       ignoreClickUntil: 0,
 
       hasStartedPlayback: false,
@@ -487,6 +486,11 @@ export default {
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
       this.togglePlayPause();
+      }
+    },
+    isPlaying(isPlaying) {
+      if (this.previewType === 'video') {
+        this.overlaidHintApi?.onPlaybackToggle(isPlaying);
       }
     },
     'req.path'() {
@@ -617,6 +621,9 @@ export default {
     },
     shouldTogglePlayPause() {
       return state.playbackQueue.shouldTogglePlayPause || false;
+    },
+    isPlaying() {
+      return state.playbackQueue.isPlaying || false;
     },
     playbackQueue() {
       return state.playbackQueue.queue;
@@ -1033,6 +1040,7 @@ export default {
         }
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
+        this.clearRewindForwardFeedback();
         this.cleanupAudioVisualizer();
         this.clearMediaSession();
         this.cleanupAlbumArt();
@@ -1960,16 +1968,10 @@ export default {
         ended: this.handleMediaEnd,
         play: () => {
           this.hasStartedPlayback = true;
-          if (this.previewType === 'video') {
-            this.overlaidHintApi?.onPlaybackToggle(true);
-          }
           mutations.setPlaybackState(true);
           this.updateMediaSessionPlaybackState();
         },
         pause: () => {
-          if (this.previewType === 'video' && this.hasStartedPlayback && !this.player?.ended) {
-            this.overlaidHintApi?.onPlaybackToggle(false);
-          }
           mutations.setPlaybackState(false);
           this.updateMediaSessionPlaybackState();
         },
@@ -2001,6 +2003,7 @@ export default {
       if (this.previewType === 'video' || this.previewType === 'audio') {
         this.setupDoubleTapSeek();
         this.setupVideoSwipeGestures();
+        this.setupRewindForwardFeedback();
       }
       if (this.previewType === 'video') {
         this.setupOverlaidHintController();
@@ -2048,6 +2051,32 @@ export default {
         this.doubleTapSeekCleanup = null;
       }
     },
+    setupRewindForwardFeedback() {
+      this.clearRewindForwardFeedback();
+      const container = this.player?.elements?.container;
+      if (!container) {
+        return;
+      }
+      const rewind = container.querySelector('[data-plyr="rewind"]');
+      const forward = container.querySelector('[data-plyr="fast-forward"]');
+      if (!rewind && !forward) {
+        return;
+      }
+      const onRewind = () => this.flashSkipFeedback(true);
+      const onForward = () => this.flashSkipFeedback(false);
+      rewind?.addEventListener('click', onRewind);
+      forward?.addEventListener('click', onForward);
+      this.rewindForwardFeedback = () => {
+        rewind?.removeEventListener('click', onRewind);
+        forward?.removeEventListener('click', onForward);
+      };
+    },
+    clearRewindForwardFeedback() {
+      if (typeof this.rewindForwardFeedback === 'function') {
+        this.rewindForwardFeedback();
+      }
+      this.rewindForwardFeedback = null;
+    },
     setupOverlaidHintController() {
       this.teardownOverlaidHintController();
       if (!this.player) {
@@ -2068,14 +2097,7 @@ export default {
       this.overlaidHintCleanup = null;
       this.overlaidHintApi = null;
     },
-    clearPendingPlayPauseTap() {
-      if (this.pendingPlayPauseTapTimer) {
-        clearTimeout(this.pendingPlayPauseTapTimer);
-        this.pendingPlayPauseTapTimer = null;
-      }
-    },
     clearEdgeTapGestureState() {
-      this.clearPendingPlayPauseTap();
       this.edgeTapLastTime = 0;
       this.edgeTapLastZone = null;
     },
@@ -2087,7 +2109,7 @@ export default {
       const surface = this.getPlyrGestureSurface();
       if (!surface || !this.player) return;
 
-      const DOUBLE_MS = 320;
+      const EDGE_CLICK_MS = 200;
 
       const peekNavChromeForEdgeTap = (clientX, zone) => {
         if (this.previewType !== 'video' || !state.navigation.enabled) {
@@ -2107,9 +2129,21 @@ export default {
         const rect = surface.getBoundingClientRect();
         return zoneFromClientX(clientX, rect);
       };
+      const OVERLAID_BUTTON_TOUCH_PADDING = 8;
+      const isOverlaidButtonHit = (clientX, clientY) => {
+        const btn = this.player?.elements?.container?.querySelector('.plyr__control--overlaid');
+        if (!btn) return false;
+        const r = btn.getBoundingClientRect();
+        if (!r.width || !r.height) return false;
+        const cx = r.left + (r.width / 2);
+        const cy = r.top + (r.height / 2);
+        const radius = (Math.min(r.width, r.height) / 2) + OVERLAID_BUTTON_TOUCH_PADDING;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+        return (dx * dx) + (dy * dy) <= radius * radius;
+      };
 
       const applySeek = (rewind) => {
-        this.edgeSeekAt = Date.now();
         this.clearEdgeTapGestureState();
         this.clearLongPressTimer();
         this.longPressPending = false;
@@ -2130,22 +2164,9 @@ export default {
           this.player.play();
         }
       };
-
-      const scheduleEdgePlayPause = () => {
-        this.clearPendingPlayPauseTap();
-        this.pendingPlayPauseTapTimer = setTimeout(() => {
-          this.pendingPlayPauseTapTimer = null;
-          this.edgeTapLastTime = 0;
-          this.edgeTapLastZone = null;
-          if (!this.skipNextTap && this.previewType === 'video') {
-            togglePlayPause();
-          }
-        }, DOUBLE_MS);
-      };
-
       const handleEdgeZoneTap = (zone, event) => {
         const now = Date.now();
-        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < DOUBLE_MS) {
+        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < 300) {
           applySeek(zone === 'left');
           if (event) {
             event.preventDefault();
@@ -2155,7 +2176,6 @@ export default {
         }
         this.edgeTapLastTime = now;
         this.edgeTapLastZone = zone;
-        scheduleEdgePlayPause();
         if (event) {
           event.preventDefault();
           event.stopPropagation();
@@ -2188,17 +2208,28 @@ export default {
           this.clearEdgeTapGestureState();
           return;
         }
-        const zone = zoneFromSurfaceX(t.clientX);
-        if (zone === 'center') {
+        if (isOverlaidButtonHit(t.clientX, t.clientY)) {
           handleCenterTap(event);
           this.ignoreClickUntil = Date.now() + 500;
           return;
         }
-        handleEdgeZoneTap(zone, event);
-        peekNavChromeForEdgeTap(t.clientX, zone);
+        const zone = zoneFromSurfaceX(t.clientX);
+        if (zone === 'left' || zone === 'right') {
+          handleEdgeZoneTap(zone, event);
+          peekNavChromeForEdgeTap(t.clientX, zone);
+          this.ignoreClickUntil = Date.now() + 500;
+          return;
+        }
+        this.clearEdgeTapGestureState();
         this.ignoreClickUntil = Date.now() + 500;
       };
-
+      let edgeClickToggleTimer = null;
+      const clearEdgeClickToggleTimer = () => {
+        if (edgeClickToggleTimer) {
+          clearTimeout(edgeClickToggleTimer);
+          edgeClickToggleTimer = null;
+        }
+      };
       const onClick = (event) => {
         if (Date.now() < this.ignoreClickUntil) {
           event.preventDefault();
@@ -2209,27 +2240,39 @@ export default {
           return;
         }
         if (this.skipNextTap) return;
+        this.clearEdgeTapGestureState();
         const zone = zoneFromSurfaceX(event.clientX);
-        if (zone === 'center') {
-          handleCenterTap(event);
-          return;
+        if (zone === 'left' || zone === 'right') {
+          if (event.detail >= 2) {
+            clearEdgeClickToggleTimer();
+          } else {
+            clearEdgeClickToggleTimer();
+            edgeClickToggleTimer = setTimeout(() => {
+              edgeClickToggleTimer = null;
+              if (this.previewType === 'video') {
+                togglePlayPause();
+              }
+            }, EDGE_CLICK_MS);
+          }
+          peekNavChromeForEdgeTap(event.clientX, zone);
+        } else if (this.previewType === 'video') {
+          togglePlayPause();
         }
-        handleEdgeZoneTap(zone, event);
-        peekNavChromeForEdgeTap(event.clientX, zone);
+
+        event.preventDefault();
+        event.stopPropagation();
       };
 
       const onDblClick = (event) => {
+        if (Date.now() < this.ignoreClickUntil) {
+          return;
+        }
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
         const zone = zoneFromSurfaceX(event.clientX);
         if (zone === 'left' || zone === 'right') {
-          this.clearEdgeTapGestureState();
-          if (Date.now() - this.edgeSeekAt < 400) {
-            event.preventDefault();
-            event.stopPropagation();
-            return;
-          }
+          clearEdgeClickToggleTimer();
           applySeek(zone === 'left');
           event.preventDefault();
           event.stopPropagation();
@@ -2244,6 +2287,7 @@ export default {
         surface.removeEventListener('touchend', onTouchEnd);
         surface.removeEventListener('click', onClick);
         surface.removeEventListener('dblclick', onDblClick);
+        clearEdgeClickToggleTimer();
         this.clearEdgeTapGestureState();
       };
     },
@@ -2823,6 +2867,7 @@ export default {
       }
     },
     handleMediaEnd() {
+      mutations.setPlaybackState(false);
       const queue = state.playbackQueue.queue;
       const currentIndex = state.playbackQueue.currentIndex;
       const loop = state.playbackQueue.loop;

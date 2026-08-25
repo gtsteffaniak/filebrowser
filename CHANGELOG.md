@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file. For commit 
    - configurable by folder, source, user, and share.
    - Administrators can create, edit, view, and delete folder quotas through the interface.
    - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
+ - Enhancements to the editor (#2714):
+   - Added a button to open a resizable split view with live editing for markdown files.
+   - Added a toolbar: This toolbar is present on all the files, markdown files will have a richer toolbar with more actions.
+   - Added editor config in UI, to configure some things like word wrap, keybinds, etc. The config prompt is accessible via the toolbar in the three-dots menu.
+   - The markdown viewer now supports rendering LaTeX Math and Chemistry formulas.
  - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
  - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
 
@@ -24,6 +29,11 @@ All notable changes to this project will be documented in this file. For commit 
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
  - Enhancements to cross-source copy/move permissions and behavior.
  - Improved resume upload behavior.
+ - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
+
+ **Bug Fixes**:
+ - Undo in a fresh opened file on the editor was setting the file empty (#2714)
+ - Added some missing styles in the markdown viewer (#2714)
 
 ## v2.0.2
 
