@@ -357,10 +357,7 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		targetUsername = strings.TrimSpace(req.User.Username)
 	}
 	if targetUsername == "" && settings.Config.Auth.Methods.NoAuth {
-		admin := settings.Config.Auth.AdminUsername
-		if admin == "" {
-			admin = "admin"
-		}
+		admin := settings.PasswordAdminUsername()
 		targetUsername = admin
 	}
 	if targetUsername == "" && d.User != nil && d.User.Username != "" && d.User.Username != "anonymous" {

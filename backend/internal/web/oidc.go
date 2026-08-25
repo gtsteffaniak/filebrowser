@@ -272,6 +272,11 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				// Even if parsing succeeded, if essential claims are missing, use UserInfo
 				if _, ok := userdata.Claims[oidcCfg.UserIdentifier]; ok {
 					claimsFromIDToken = true
+					needsGroups := oidcCfg.AdminGroup != "" || len(oidcCfg.UserGroups) > 0
+					if needsGroups && len(userdata.Groups) == 0 {
+						logger.Debugf("OIDC: ID token missing groups claim (adminGroup/userGroups configured); fetching UserInfo")
+						claimsFromIDToken = false
+					}
 				}
 			}
 		}
@@ -336,16 +341,9 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		logger.Debugf("User %s is in required group, allowing access.", username)
 	}
 
-	// Determine if user should be admin
-	isAdmin := false
-	if oidcCfg.AdminGroup != "" {
-		if slices.Contains(groups, oidcCfg.AdminGroup) {
-			isAdmin = true
-			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, oidcCfg.AdminGroup)
-		}
-	} else {
-		// If no admin group configured, use default permissions
-		isAdmin = settings.Config.UserDefaults.Account.Permissions.Admin
+	isAdmin := isAdminFromGroups(oidcCfg.AdminGroup, groups)
+	if isAdmin {
+		logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, oidcCfg.AdminGroup)
 	}
 
 	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)

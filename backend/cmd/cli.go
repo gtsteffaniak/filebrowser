@@ -248,8 +248,8 @@ func createConfig(configpath string, noInput bool) error {
 		fmt.Printf("Error: '%s' is not a valid path. Please enter a path to a file ending in .sqlite", config.Server.DatabaseV2.Path)
 	}
 	config.Frontend.Name = askQuestion(reader, "What should the application brand name be?", "FileBrowser Quantum")
-	config.Auth.AdminUsername = askQuestion(reader, "What should the default admin username be?", "admin")
-	config.Auth.AdminPassword = askQuestion(reader, "What should the default admin password be?", "admin")
+	config.Auth.Methods.PasswordAuth.AdminUsername = askQuestion(reader, "What should the default admin username be?", "admin")
+	config.Auth.Methods.PasswordAuth.AdminPassword = askQuestion(reader, "What should the default admin password be?", "admin")
 
 	modifyDefault := askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
 	config.Server.Sources[0].Config.DefaultPermissions = settings.NormalizeSourceFilePermissions(users.SourceFilePermissions{
