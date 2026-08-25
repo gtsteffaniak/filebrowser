@@ -191,14 +191,6 @@ definitions:
         description: type of the file, either "directory" or a file mimetype
         type: string
     type: object
-  iteminfo.Lyric:
-    properties:
-      text:
-        type: string
-      timestamp:
-        description: milliseconds
-        type: integer
-    type: object
   iteminfo.MediaMetadata:
     properties:
       album:
@@ -227,11 +219,6 @@ definitions:
       hasLyrics:
         description: checks if lyrics are available without parse them
         type: boolean
-      lyrics:
-        description: lyrics (from embedded tags or .lrc files)
-        items:
-          $ref: '#/definitions/iteminfo.Lyric'
-        type: array
       title:
         description: track/video title
         type: string
@@ -3248,8 +3235,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns parsed lyrics with optional timestamps from embedded tags
-        or sidecar .lrc files.
+      description: Returns raw lyrics text and its format (lrc, elrc, srt, vtt, embedded)
+        from a sidecar file or embedded tags.
       parameters:
       - description: Path to the directory or file
         in: query
@@ -3265,7 +3252,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Lyrics array
+          description: Raw lyrics text and format
           schema:
             additionalProperties: true
             type: object
@@ -5029,7 +5016,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Lyrics array
+          description: Raw lyrics text and format
           schema:
             additionalProperties: true
             type: object

@@ -73,6 +73,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
 import { isRawImageMimeType } from "@/utils/mimetype";
 import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
+import { parseLyrics } from "@/utils/lyrics";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import {
@@ -392,9 +393,11 @@ export default {
             if (getters.isShare()) {
               const hash = state.shareInfo.hash;
               const password = localStorage.getItem(`sharepass:${hash}`) || "";
-              this.lyrics = await mediaApi.getLyricsPublic(state.req.path, hash, password);
+              const { lyrics: raw, format } = await mediaApi.getLyricsPublic(state.req.path, hash, password);
+              this.lyrics = parseLyrics(raw, format);
             } else {
-              this.lyrics = await mediaApi.getLyrics(state.req.source, state.req.path);
+              const { lyrics: raw, format } = await mediaApi.getLyrics(state.req.source, state.req.path);
+              this.lyrics = parseLyrics(raw, format);
             }
           } catch (err) {
             console.warn("Failed to fetch lyrics:", err);

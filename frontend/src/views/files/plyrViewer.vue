@@ -62,7 +62,9 @@
           <AudioPanel
             v-if="!isMobile && showDesktopPanel"
             :lyrics="lyrics"
+            :lyrics-meta="lyricsMeta"
             :active-lyric-index="activeLyricIndex"
+            :active-word-index="activeWordIndex"
             :player="player"
             :audio-context="audioContext"
             :audio-source="audioSource"
@@ -77,6 +79,7 @@
       <div v-if="isMobile && showMobileLyrics && lyrics.length" class="lyrics-mobile">
         <!-- Scrollable area -->
         <div class="lyrics-mobile-scrollable" ref="lyricsMobileScrollable">
+          <p v-if="lyricsMeta" class="lyrics-meta-header" aria-hidden="true">{{ lyricsMeta }}</p>
           <p
             v-for="(line, i) in lyrics"
             :key="i"
@@ -87,7 +90,15 @@
             role="button"
             :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
           >
-            {{ line.text }}
+            <template v-if="i === activeLyricIndex && line.words && line.words.length">
+              <span
+                v-for="(word, w) in line.words"
+                :key="w"
+                class="lyric-word"
+                :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
+              >{{ word.text }}&nbsp;</span>
+            </template>
+            <template v-else>{{ line.text }}</template>
           </p>
         </div>
       </div>
@@ -328,7 +339,9 @@ export default {
 
       // Lyrics
       activeLyricIndex: -1,
+      activeWordIndex: -1,
       doubleTapSeekCleanup: null,
+      rewindForwardFeedback: null,
       mobileLyricsScrollLocked: false,
 
       // Audio Visualizer
@@ -352,10 +365,8 @@ export default {
       skipFeedbackTimer: null,
       skipNextTap: false,
       skipNextTapTimer: null, // Timer for clearing skipNextTap
-      pendingPlayPauseTapTimer: null,
       edgeTapLastTime: 0,
       edgeTapLastZone: null,
-      edgeSeekAt: 0,
       ignoreClickUntil: 0,
 
       hasStartedPlayback: false,
@@ -456,6 +467,12 @@ export default {
         this.$nextTick(() => this.scrollMobileLyrics());
       }
     },
+    lyrics(newLyrics, oldLyrics) {
+      if (newLyrics !== oldLyrics) {
+        this.activeLyricIndex = -1;
+        this.activeWordIndex = -1;
+      }
+    },
     mobileLyricsScrollLocked(val) {
       if (!val && this.showMobileLyrics && this.lyrics.length) {
         this.$nextTick(() => this.scrollMobileLyrics());
@@ -469,6 +486,11 @@ export default {
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
       this.togglePlayPause();
+      }
+    },
+    isPlaying(isPlaying) {
+      if (this.previewType === 'video') {
+        this.overlaidHintApi?.onPlaybackToggle(isPlaying);
       }
     },
     'req.path'() {
@@ -600,6 +622,9 @@ export default {
     shouldTogglePlayPause() {
       return state.playbackQueue.shouldTogglePlayPause || false;
     },
+    isPlaying() {
+      return state.playbackQueue.isPlaying || false;
+    },
     playbackQueue() {
       return state.playbackQueue.queue;
     },
@@ -670,6 +695,13 @@ export default {
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
+    },
+    // "Title - Artist" shown above the lyrics from the [ti:] [ar:] tags on lyrics (if present)
+    lyricsMeta() {
+      const lyricsTitle = this.lyrics?.lrcMeta?.title;
+      const lyricsArtist = this.lyrics?.lrcMeta?.artist;
+      if (lyricsTitle && lyricsArtist) return `${lyricsTitle} - ${lyricsArtist}`;
+      return lyricsTitle || lyricsArtist || '';
     },
     scrubPreviewEnabled() {
       return (
@@ -1008,6 +1040,7 @@ export default {
         }
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
+        this.clearRewindForwardFeedback();
         this.cleanupAudioVisualizer();
         this.clearMediaSession();
         this.cleanupAlbumArt();
@@ -1243,8 +1276,11 @@ export default {
       if (!this.lyrics.length || !this.syncedLyrics) return;
       const currentMs = this.player.currentTime * 1000;
       let idx = this.activeLyricIndex;
-      if (idx > 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
-        idx = 0;
+      if (idx > this.lyrics.length - 1) {
+        idx = -1;
+      }
+      if (idx >= 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
+        idx = -1;
       }
       while (
         idx + 1 < this.lyrics.length &&
@@ -1253,11 +1289,40 @@ export default {
         idx++;
       }
       let first = idx;
-      while (first > 0 && this.lyrics.at(first - 1).timestamp === this.lyrics.at(idx).timestamp) {
+      while (
+        first > 0 &&
+        this.lyrics.at(first - 1)?.timestamp === this.lyrics.at(idx)?.timestamp
+      ) {
         first--;
       }
       if (first !== this.activeLyricIndex) {
         this.activeLyricIndex = first;
+        this.activeWordIndex = -1;
+      }
+      this.syncActiveWord(currentMs);
+    },
+    // Update active word within the active lyric line (for elrc)
+    syncActiveWord(currentMs) {
+      const words = this.activeLyricIndex >= 0 ? this.lyrics.at(this.activeLyricIndex)?.words : null;
+      if (!words?.length) {
+        this.activeWordIndex = -1;
+        return;
+      }
+      let idx = this.activeWordIndex;
+      if (idx > words.length - 1) {
+        idx = -1;
+      }
+      if (idx < 0 || words.at(idx)?.timestamp > currentMs) {
+        idx = 0;
+      }
+      while (idx + 1 < words.length && words.at(idx + 1).timestamp <= currentMs) {
+        idx++;
+      }
+      if (words.at(idx)?.timestamp > currentMs) {
+        idx = -1;
+      }
+      if (idx !== this.activeWordIndex) {
+        this.activeWordIndex = idx;
       }
     },
     scrollMobileLyrics() {
@@ -1903,16 +1968,10 @@ export default {
         ended: this.handleMediaEnd,
         play: () => {
           this.hasStartedPlayback = true;
-          if (this.previewType === 'video') {
-            this.overlaidHintApi?.onPlaybackToggle(true);
-          }
           mutations.setPlaybackState(true);
           this.updateMediaSessionPlaybackState();
         },
         pause: () => {
-          if (this.previewType === 'video' && this.hasStartedPlayback && !this.player?.ended) {
-            this.overlaidHintApi?.onPlaybackToggle(false);
-          }
           mutations.setPlaybackState(false);
           this.updateMediaSessionPlaybackState();
         },
@@ -1944,6 +2003,7 @@ export default {
       if (this.previewType === 'video' || this.previewType === 'audio') {
         this.setupDoubleTapSeek();
         this.setupVideoSwipeGestures();
+        this.setupRewindForwardFeedback();
       }
       if (this.previewType === 'video') {
         this.setupOverlaidHintController();
@@ -1991,6 +2051,32 @@ export default {
         this.doubleTapSeekCleanup = null;
       }
     },
+    setupRewindForwardFeedback() {
+      this.clearRewindForwardFeedback();
+      const container = this.player?.elements?.container;
+      if (!container) {
+        return;
+      }
+      const rewind = container.querySelector('[data-plyr="rewind"]');
+      const forward = container.querySelector('[data-plyr="fast-forward"]');
+      if (!rewind && !forward) {
+        return;
+      }
+      const onRewind = () => this.flashSkipFeedback(true);
+      const onForward = () => this.flashSkipFeedback(false);
+      rewind?.addEventListener('click', onRewind);
+      forward?.addEventListener('click', onForward);
+      this.rewindForwardFeedback = () => {
+        rewind?.removeEventListener('click', onRewind);
+        forward?.removeEventListener('click', onForward);
+      };
+    },
+    clearRewindForwardFeedback() {
+      if (typeof this.rewindForwardFeedback === 'function') {
+        this.rewindForwardFeedback();
+      }
+      this.rewindForwardFeedback = null;
+    },
     setupOverlaidHintController() {
       this.teardownOverlaidHintController();
       if (!this.player) {
@@ -2011,14 +2097,7 @@ export default {
       this.overlaidHintCleanup = null;
       this.overlaidHintApi = null;
     },
-    clearPendingPlayPauseTap() {
-      if (this.pendingPlayPauseTapTimer) {
-        clearTimeout(this.pendingPlayPauseTapTimer);
-        this.pendingPlayPauseTapTimer = null;
-      }
-    },
     clearEdgeTapGestureState() {
-      this.clearPendingPlayPauseTap();
       this.edgeTapLastTime = 0;
       this.edgeTapLastZone = null;
     },
@@ -2030,7 +2109,7 @@ export default {
       const surface = this.getPlyrGestureSurface();
       if (!surface || !this.player) return;
 
-      const DOUBLE_MS = 320;
+      const EDGE_CLICK_MS = 200;
 
       const peekNavChromeForEdgeTap = (clientX, zone) => {
         if (this.previewType !== 'video' || !state.navigation.enabled) {
@@ -2050,9 +2129,21 @@ export default {
         const rect = surface.getBoundingClientRect();
         return zoneFromClientX(clientX, rect);
       };
+      const OVERLAID_BUTTON_TOUCH_PADDING = 8;
+      const isOverlaidButtonHit = (clientX, clientY) => {
+        const btn = this.player?.elements?.container?.querySelector('.plyr__control--overlaid');
+        if (!btn) return false;
+        const r = btn.getBoundingClientRect();
+        if (!r.width || !r.height) return false;
+        const cx = r.left + (r.width / 2);
+        const cy = r.top + (r.height / 2);
+        const radius = (Math.min(r.width, r.height) / 2) + OVERLAID_BUTTON_TOUCH_PADDING;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+        return (dx * dx) + (dy * dy) <= radius * radius;
+      };
 
       const applySeek = (rewind) => {
-        this.edgeSeekAt = Date.now();
         this.clearEdgeTapGestureState();
         this.clearLongPressTimer();
         this.longPressPending = false;
@@ -2073,22 +2164,9 @@ export default {
           this.player.play();
         }
       };
-
-      const scheduleEdgePlayPause = () => {
-        this.clearPendingPlayPauseTap();
-        this.pendingPlayPauseTapTimer = setTimeout(() => {
-          this.pendingPlayPauseTapTimer = null;
-          this.edgeTapLastTime = 0;
-          this.edgeTapLastZone = null;
-          if (!this.skipNextTap && this.previewType === 'video') {
-            togglePlayPause();
-          }
-        }, DOUBLE_MS);
-      };
-
       const handleEdgeZoneTap = (zone, event) => {
         const now = Date.now();
-        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < DOUBLE_MS) {
+        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < 300) {
           applySeek(zone === 'left');
           if (event) {
             event.preventDefault();
@@ -2098,7 +2176,6 @@ export default {
         }
         this.edgeTapLastTime = now;
         this.edgeTapLastZone = zone;
-        scheduleEdgePlayPause();
         if (event) {
           event.preventDefault();
           event.stopPropagation();
@@ -2131,17 +2208,28 @@ export default {
           this.clearEdgeTapGestureState();
           return;
         }
-        const zone = zoneFromSurfaceX(t.clientX);
-        if (zone === 'center') {
+        if (isOverlaidButtonHit(t.clientX, t.clientY)) {
           handleCenterTap(event);
           this.ignoreClickUntil = Date.now() + 500;
           return;
         }
-        handleEdgeZoneTap(zone, event);
-        peekNavChromeForEdgeTap(t.clientX, zone);
+        const zone = zoneFromSurfaceX(t.clientX);
+        if (zone === 'left' || zone === 'right') {
+          handleEdgeZoneTap(zone, event);
+          peekNavChromeForEdgeTap(t.clientX, zone);
+          this.ignoreClickUntil = Date.now() + 500;
+          return;
+        }
+        this.clearEdgeTapGestureState();
         this.ignoreClickUntil = Date.now() + 500;
       };
-
+      let edgeClickToggleTimer = null;
+      const clearEdgeClickToggleTimer = () => {
+        if (edgeClickToggleTimer) {
+          clearTimeout(edgeClickToggleTimer);
+          edgeClickToggleTimer = null;
+        }
+      };
       const onClick = (event) => {
         if (Date.now() < this.ignoreClickUntil) {
           event.preventDefault();
@@ -2152,27 +2240,39 @@ export default {
           return;
         }
         if (this.skipNextTap) return;
+        this.clearEdgeTapGestureState();
         const zone = zoneFromSurfaceX(event.clientX);
-        if (zone === 'center') {
-          handleCenterTap(event);
-          return;
+        if (zone === 'left' || zone === 'right') {
+          if (event.detail >= 2) {
+            clearEdgeClickToggleTimer();
+          } else {
+            clearEdgeClickToggleTimer();
+            edgeClickToggleTimer = setTimeout(() => {
+              edgeClickToggleTimer = null;
+              if (this.previewType === 'video') {
+                togglePlayPause();
+              }
+            }, EDGE_CLICK_MS);
+          }
+          peekNavChromeForEdgeTap(event.clientX, zone);
+        } else if (this.previewType === 'video') {
+          togglePlayPause();
         }
-        handleEdgeZoneTap(zone, event);
-        peekNavChromeForEdgeTap(event.clientX, zone);
+
+        event.preventDefault();
+        event.stopPropagation();
       };
 
       const onDblClick = (event) => {
+        if (Date.now() < this.ignoreClickUntil) {
+          return;
+        }
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
         const zone = zoneFromSurfaceX(event.clientX);
         if (zone === 'left' || zone === 'right') {
-          this.clearEdgeTapGestureState();
-          if (Date.now() - this.edgeSeekAt < 400) {
-            event.preventDefault();
-            event.stopPropagation();
-            return;
-          }
+          clearEdgeClickToggleTimer();
           applySeek(zone === 'left');
           event.preventDefault();
           event.stopPropagation();
@@ -2187,6 +2287,7 @@ export default {
         surface.removeEventListener('touchend', onTouchEnd);
         surface.removeEventListener('click', onClick);
         surface.removeEventListener('dblclick', onDblClick);
+        clearEdgeClickToggleTimer();
         this.clearEdgeTapGestureState();
       };
     },
@@ -2766,6 +2867,7 @@ export default {
       }
     },
     handleMediaEnd() {
+      mutations.setPlaybackState(false);
       const queue = state.playbackQueue.queue;
       const currentIndex = state.playbackQueue.currentIndex;
       const loop = state.playbackQueue.loop;
@@ -3655,7 +3757,9 @@ export default {
 .lyric-line {
   padding: 0.2em 0;
   opacity: 0.5;
-  transition: opacity 0.2s, font-weight 0.2s, font-size 0.2s;
+  transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
+  transform: scale(1);
+  transform-origin: center;
   word-break: break-word;
   cursor: pointer;
   font-size: 1.15rem;
@@ -3670,6 +3774,27 @@ export default {
   font-weight: bold;
   color: var(--primaryColor);
   font-size: 1.35rem;
+  animation: lyric-line-in 0.3s ease;
+}
+
+@keyframes lyric-line-in {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.lyric-word {
+  display: inline-block;
+  opacity: 0.4;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.lyric-word.sung {
+  opacity: 1;
+}
+
+.lyric-word.current {
+  transform: scale(1.06);
 }
 
 .lyrics-mobile {
@@ -3691,6 +3816,17 @@ export default {
 
 .lyrics-mobile-scrollable .lyric-line:first-child {
   padding-top: 0;
+}
+
+.lyrics-meta-header {
+  padding: 0.2em 0 0.6em;
+  margin: 0;
+  opacity: 0.55;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  user-select: none;
 }
 
 /* Hide scrollbars in lyrics */
