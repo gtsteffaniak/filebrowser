@@ -203,7 +203,7 @@
     "firstLoadTitle": "歡迎來到 FileBrowser Quantum！",
     "halloweenTitle": "萬聖節快樂",
     "halloweenBody": "已套用萬聖節主題。如果不喜歡，可以暫時停用，或在個人資料設定中改選其他主題來永久停用。",
-    "firstLoadBody": "系統啟動時已建立新的資料庫。如果這不是預期行為，請再次檢查設定檔中的 `server.database` 路徑，並確認該路徑存在。在 Docker 環境中，資料庫路徑可能是 `./data/database.db` 或 `./database.db`。",
+    "firstLoadBody": "系統啟動時已建立新的資料庫。如果這不是預期行為，請再次檢查設定檔中的 `server.database` 路徑，並確認該路徑存在。在 Docker 環境中，資料庫路徑可能是 `./data/filebrowser.sqlite` 或 `./filebrowser.sqlite`。",
     "selectPath": "選擇路徑",
     "renameSuccess": "項目已成功重新命名！",
     "newFileSuccess": "檔案已成功建立！",
