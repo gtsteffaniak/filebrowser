@@ -66,11 +66,7 @@ func authenticateLDAP(username, password string) ([]string, map[string]string, e
 		logger.Debugf("ldap: no service account bind (userPassword empty)")
 	}
 
-	// Build list of attributes to fetch
-	groupAttr := c.GroupsClaim
-	if groupAttr == "" {
-		groupAttr = "memberOf"
-	}
+	groupAttr := settings.ResolveGroupsClaim(c.GroupsClaim)
 	attributes := []string{"dn", groupAttr}
 	if c.UserIdentifier != "" {
 		attributes = append(attributes, c.UserIdentifier)
@@ -213,15 +209,10 @@ func getOrCreateLdapUser(username string, groups []string) (*users.User, error) 
 		for _, g := range groups {
 			if ldapGroupMatchesAdmin(g, ldapCfg.AdminGroup) {
 				isAdmin = true
+				logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, ldapCfg.AdminGroup)
 				break
 			}
 		}
-		if isAdmin {
-			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, ldapCfg.AdminGroup)
-		}
-	} else {
-		// If no admin group configured, use default permissions
-		isAdmin = settings.Config.UserDefaults.Account.Permissions.Admin
 	}
 
 	return getOrCreateAuthenticatedUser(username, users.LoginMethodLdap, isAdmin, groups, true)

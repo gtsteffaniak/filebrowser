@@ -5465,11 +5465,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminPassword": {
-                    "description": "secret: the password of the admin user. If not set, the default is \"admin\".",
+                    "description": "deprecated: use auth.methods.password.adminPassword. secret: password-auth admin password.",
                     "type": "string"
                 },
                 "adminUsername": {
-                    "description": "secret: the username of the admin user. If not set, the default is \"admin\".",
+                    "description": "deprecated: use auth.methods.password.adminUsername. secret: password-auth admin username.",
                     "type": "string"
                 },
                 "key": {
@@ -6102,6 +6102,14 @@ const docTemplate = `{
         "settings.PasswordAuthConfig": {
             "type": "object",
             "properties": {
+                "adminPassword": {
+                    "description": "secret: password for admin auto-assigned admin account. If set, reset on startup.",
+                    "type": "string"
+                },
+                "adminUsername": {
+                    "description": "secret: admin username auto-assigned. If not set, the default is \"admin\".",
+                    "type": "string"
+                },
                 "enabled": {
                     "type": "boolean"
                 },

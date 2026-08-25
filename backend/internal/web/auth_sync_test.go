@@ -113,6 +113,37 @@ func TestSetupJwtUser_FailsWhenGroupSyncFails(t *testing.T) {
 	}
 }
 
+func TestSetupJwtUser_AdminRevokedWhenGroupRemoved(t *testing.T) {
+	setupTestEnv(t)
+	settings.Config.Auth.Methods.JwtAuth.GroupsClaim = "groups"
+	settings.Config.Auth.Methods.JwtAuth.AdminGroup = "admins"
+	settings.Config.Auth.Methods.JwtAuth.UserGroups = []string{"users", "admins"}
+	t.Cleanup(func() {
+		settings.Config.Auth.Methods.JwtAuth = settings.JwtAuthConfig{}
+	})
+
+	req := httptestNewRequest(t)
+	user, err := SetupJwtUser(req, &Context{}, "jwt-downgrade", map[string]interface{}{
+		"groups": []string{"admins"},
+	})
+	if err != nil {
+		t.Fatalf("SetupJwtUser admin: %v", err)
+	}
+	if !user.Permissions.Admin {
+		t.Fatal("expected admin when in admins group")
+	}
+
+	user, err = SetupJwtUser(req, &Context{}, "jwt-downgrade", map[string]interface{}{
+		"groups": []string{"users"},
+	})
+	if err != nil {
+		t.Fatalf("SetupJwtUser user: %v", err)
+	}
+	if user.Permissions.Admin {
+		t.Fatal("expected admin revoked when admins group removed")
+	}
+}
+
 func httptestNewRequest(t *testing.T) *http.Request {
 	t.Helper()
 	req, err := http.NewRequest(http.MethodGet, "/", http.NoBody)

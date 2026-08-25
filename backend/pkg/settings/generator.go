@@ -1098,48 +1098,6 @@ func identifySecretFieldsByReflection(v reflect.Value, typeName string, secrets 
 	}
 }
 
-// identifyDeprecatedFieldsByReflection identifies deprecated fields by known field names
-func identifyDeprecatedFieldsByReflection(v reflect.Value, typeName string, deprecated DeprecatedFieldsMap) {
-	if v.Kind() == reflect.Pointer {
-		if v.IsNil() {
-			return
-		}
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
-		return
-	}
-
-	t := v.Type()
-	if deprecated[typeName] == nil {
-		deprecated[typeName] = make(map[string]bool)
-	}
-
-	// Known deprecated field names
-	deprecatedFields := map[string]bool{
-		"IndexAlbumArt":           true,
-		"DisableOfficePreviewExt": true,
-	}
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		if deprecatedFields[field.Name] {
-			deprecated[typeName][field.Name] = true
-		}
-
-		// Recursively check nested structs
-		fieldValue := v.Field(i)
-		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Pointer && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
-			nestedTypeName := field.Type.Name()
-			if field.Type.Kind() == reflect.Pointer {
-				nestedTypeName = field.Type.Elem().Name()
-			}
-			identifyDeprecatedFieldsByReflection(fieldValue, nestedTypeName, deprecated)
-		}
-	}
-}
-
 // GenerateConfigYamlWithEmptyMaps generates YAML without comment parsing when source files are unavailable
 func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, error) {
 	// Create empty maps
@@ -1225,18 +1183,6 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 	}
 	if secretsEmpty {
 		identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
-	}
-
-	// If deprecated map is empty (directory parsing failed), use reflection to identify deprecated fields
-	deprecatedEmpty := true
-	for typeName := range deprecated {
-		if len(deprecated[typeName]) > 0 {
-			deprecatedEmpty = false
-			break
-		}
-	}
-	if deprecatedEmpty {
-		identifyDeprecatedFieldsByReflection(reflect.ValueOf(config), "Settings", deprecated)
 	}
 
 	// If not filtering deprecated fields, clear the deprecated map

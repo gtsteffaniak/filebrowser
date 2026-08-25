@@ -9,6 +9,16 @@ All notable changes to this project will be documented in this file. For commit 
    - configurable by folder, source, user, and share.
    - Administrators can create, edit, view, and delete folder quotas through the interface.
    - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
+ - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
+ - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
+
+# TODO
+#- sidebar link defaults and enforcements
+#- share defaults and enforcements
+#- tool defaults and enforcement
+#- Add more groups support, deprecated source.config.defaultEnabled and make source enablement prefer group-based
+#- make ffmpeg preview generation faster by skipping resize processing.
+
 
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
@@ -18,10 +28,12 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.0.2
 
  **Bugfixes**:
+ - OIDC: `groupsClaim` value is always included in requested scopes and falls back to the UserInfo endpoint when the ID token omits the groups claim.
  - Windows: fix backslash duplication in navigation URLs, folder sizes showing 4 KB, and download/preview failures (#2815, #2816)
  - Wrong extension in the 'new database was created popup (#2817) (#2824)
  - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
  - OnlyOffice is inaccessible on password-protected shares (#2811)
+ - FFmpeg 9.0 incorrectly detected as below minimum 5.0.0 on Windows (#2820) -- thanks @yzxcj797
 
 ## v2.0.1
 

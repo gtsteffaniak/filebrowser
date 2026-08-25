@@ -508,12 +508,18 @@ func setupUrls() {
 
 func setupAuth(generate bool) {
 	if generate {
-		Config.Auth.AdminPassword = "admin"
+		Config.Auth.Methods.PasswordAuth.AdminUsername = "admin"
+		Config.Auth.Methods.PasswordAuth.AdminPassword = "admin"
 	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
 	if Config.Auth.Methods.ProxyAuth.Enabled {
+		applyAuthCommonDefaults(&Config.Auth.Methods.ProxyAuth.AuthCommon)
+		err := ValidateProxyAuth()
+		if err != nil && !generate {
+			logger.Fatalf("Error validating proxy auth: %v", err)
+		}
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "proxy")
 	}
 	if Config.Auth.Methods.NoAuth {
@@ -672,6 +678,8 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
 
+	MigrateLegacyPasswordAdminFromAuth()
+
 	if err := applyLoadedUserDefaultsFromConfig(generate); err != nil {
 		return err
 	}
@@ -772,7 +780,7 @@ func loadEnvConfig() {
 	adminPassword, ok := os.LookupEnv("FILEBROWSER_ADMIN_PASSWORD")
 	if ok {
 		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
-		Config.Auth.AdminPassword = adminPassword
+		Config.Auth.Methods.PasswordAuth.AdminPassword = adminPassword
 	}
 	officeSecret, ok := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
 	if ok {
@@ -865,7 +873,6 @@ func SetDefaults(generate bool) Settings {
 			},
 		},
 		Auth: Auth{
-			AdminUsername:        "admin",
 			TokenExpirationHours: 2,
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
