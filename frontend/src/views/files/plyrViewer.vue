@@ -62,7 +62,9 @@
           <AudioPanel
             v-if="!isMobile && showDesktopPanel"
             :lyrics="lyrics"
+            :lyrics-meta="lyricsMeta"
             :active-lyric-index="activeLyricIndex"
+            :active-word-index="activeWordIndex"
             :player="player"
             :audio-context="audioContext"
             :audio-source="audioSource"
@@ -77,6 +79,7 @@
       <div v-if="isMobile && showMobileLyrics && lyrics.length" class="lyrics-mobile">
         <!-- Scrollable area -->
         <div class="lyrics-mobile-scrollable" ref="lyricsMobileScrollable">
+          <p v-if="lyricsMeta" class="lyrics-meta-header" aria-hidden="true">{{ lyricsMeta }}</p>
           <p
             v-for="(line, i) in lyrics"
             :key="i"
@@ -87,7 +90,15 @@
             role="button"
             :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
           >
-            {{ line.text }}
+            <template v-if="i === activeLyricIndex && line.words && line.words.length">
+              <span
+                v-for="(word, w) in line.words"
+                :key="w"
+                class="lyric-word"
+                :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
+              >{{ word.text }}&nbsp;</span>
+            </template>
+            <template v-else>{{ line.text }}</template>
           </p>
         </div>
       </div>
@@ -328,6 +339,7 @@ export default {
 
       // Lyrics
       activeLyricIndex: -1,
+      activeWordIndex: -1,
       doubleTapSeekCleanup: null,
       rewindForwardFeedback: null,
       mobileLyricsScrollLocked: false,
@@ -453,6 +465,12 @@ export default {
     activeLyricIndex() {
       if (this.showMobileLyrics && this.isMobile) {
         this.$nextTick(() => this.scrollMobileLyrics());
+      }
+    },
+    lyrics(newLyrics, oldLyrics) {
+      if (newLyrics !== oldLyrics) {
+        this.activeLyricIndex = -1;
+        this.activeWordIndex = -1;
       }
     },
     mobileLyricsScrollLocked(val) {
@@ -677,6 +695,13 @@ export default {
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
+    },
+    // "Title - Artist" shown above the lyrics from the [ti:] [ar:] tags on lyrics (if present)
+    lyricsMeta() {
+      const lyricsTitle = this.lyrics?.lrcMeta?.title;
+      const lyricsArtist = this.lyrics?.lrcMeta?.artist;
+      if (lyricsTitle && lyricsArtist) return `${lyricsTitle} - ${lyricsArtist}`;
+      return lyricsTitle || lyricsArtist || '';
     },
     scrubPreviewEnabled() {
       return (
@@ -1251,8 +1276,11 @@ export default {
       if (!this.lyrics.length || !this.syncedLyrics) return;
       const currentMs = this.player.currentTime * 1000;
       let idx = this.activeLyricIndex;
-      if (idx > 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
-        idx = 0;
+      if (idx > this.lyrics.length - 1) {
+        idx = -1;
+      }
+      if (idx >= 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
+        idx = -1;
       }
       while (
         idx + 1 < this.lyrics.length &&
@@ -1261,11 +1289,40 @@ export default {
         idx++;
       }
       let first = idx;
-      while (first > 0 && this.lyrics.at(first - 1).timestamp === this.lyrics.at(idx).timestamp) {
+      while (
+        first > 0 &&
+        this.lyrics.at(first - 1)?.timestamp === this.lyrics.at(idx)?.timestamp
+      ) {
         first--;
       }
       if (first !== this.activeLyricIndex) {
         this.activeLyricIndex = first;
+        this.activeWordIndex = -1;
+      }
+      this.syncActiveWord(currentMs);
+    },
+    // Update active word within the active lyric line (for elrc)
+    syncActiveWord(currentMs) {
+      const words = this.activeLyricIndex >= 0 ? this.lyrics.at(this.activeLyricIndex)?.words : null;
+      if (!words?.length) {
+        this.activeWordIndex = -1;
+        return;
+      }
+      let idx = this.activeWordIndex;
+      if (idx > words.length - 1) {
+        idx = -1;
+      }
+      if (idx < 0 || words.at(idx)?.timestamp > currentMs) {
+        idx = 0;
+      }
+      while (idx + 1 < words.length && words.at(idx + 1).timestamp <= currentMs) {
+        idx++;
+      }
+      if (words.at(idx)?.timestamp > currentMs) {
+        idx = -1;
+      }
+      if (idx !== this.activeWordIndex) {
+        this.activeWordIndex = idx;
       }
     },
     scrollMobileLyrics() {
@@ -3700,7 +3757,9 @@ export default {
 .lyric-line {
   padding: 0.2em 0;
   opacity: 0.5;
-  transition: opacity 0.2s, font-weight 0.2s, font-size 0.2s;
+  transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
+  transform: scale(1);
+  transform-origin: center;
   word-break: break-word;
   cursor: pointer;
   font-size: 1.15rem;
@@ -3715,6 +3774,27 @@ export default {
   font-weight: bold;
   color: var(--primaryColor);
   font-size: 1.35rem;
+  animation: lyric-line-in 0.3s ease;
+}
+
+@keyframes lyric-line-in {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.lyric-word {
+  display: inline-block;
+  opacity: 0.4;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.lyric-word.sung {
+  opacity: 1;
+}
+
+.lyric-word.current {
+  transform: scale(1.06);
 }
 
 .lyrics-mobile {
@@ -3736,6 +3816,17 @@ export default {
 
 .lyrics-mobile-scrollable .lyric-line:first-child {
   padding-top: 0;
+}
+
+.lyrics-meta-header {
+  padding: 0.2em 0 0.6em;
+  margin: 0;
+  opacity: 0.55;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  user-select: none;
 }
 
 /* Hide scrollbars in lyrics */
