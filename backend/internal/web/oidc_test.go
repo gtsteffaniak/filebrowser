@@ -206,6 +206,42 @@ func TestUserInfoUnmarshaller_InvalidJSON(t *testing.T) {
 	}
 }
 
+func TestMergeMissingOidcClaims_PreservesIDTokenIdentifier(t *testing.T) {
+	userdata := userInfo{
+		Claims: map[string]any{"groups": []any{"admins"}},
+		Groups: []string{"admins"},
+	}
+	idTokenClaims := map[string]any{
+		"preferred_username": "alice",
+		"sub":                "user-123",
+	}
+
+	mergeMissingOidcClaims(&userdata, idTokenClaims)
+
+	if userdata.Claims["preferred_username"] != "alice" {
+		t.Fatalf("preferred_username = %v, want alice", userdata.Claims["preferred_username"])
+	}
+	if userdata.Claims["sub"] != "user-123" {
+		t.Fatalf("sub = %v, want user-123", userdata.Claims["sub"])
+	}
+	if _, ok := userdata.Claims["groups"]; !ok {
+		t.Fatal("UserInfo groups claim should be preserved")
+	}
+}
+
+func TestMergeMissingOidcClaims_UserInfoWinsOnConflict(t *testing.T) {
+	userdata := userInfo{
+		Claims: map[string]any{"email": "from-userinfo@example.com"},
+	}
+	idTokenClaims := map[string]any{"email": "from-idtoken@example.com"}
+
+	mergeMissingOidcClaims(&userdata, idTokenClaims)
+
+	if userdata.Claims["email"] != "from-userinfo@example.com" {
+		t.Fatalf("email = %v, want UserInfo value preserved", userdata.Claims["email"])
+	}
+}
+
 func TestOidcRedirectURLTrustProxyHeaders(t *testing.T) {
 	settings.Config.Http.BaseURL = "/"
 	settings.Config.Http.TrustProxyHeaders = true

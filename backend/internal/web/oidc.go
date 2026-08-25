@@ -239,9 +239,10 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	rawIDToken, ok := token.Extra("id_token").(string)
 	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
 
-	var userdata userInfo      // Declare userdata here to be populated by either source
-	claimsFromIDToken := false // Flag to track if we successfully got claims from ID token
-	loginUsername := ""        // Variable to hold the login username
+	var userdata userInfo                // Declare userdata here to be populated by either source
+	var idTokenClaims map[string]any   // Verified ID-token claims preserved across UserInfo fallback
+	claimsFromIDToken := false           // Flag to track if we successfully got claims from ID token
+	loginUsername := ""                  // Variable to hold the login username
 
 	// Create custom unmarshaller for userInfo
 	userInfoUnmarshaller := &userInfoUnmarshaller{
@@ -267,6 +268,9 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			} else {
 				// Successfully verified and decoded ID token claims
 				logger.Debugf("ID Token verified and claims decoded: %+v", userdata)
+				if len(userdata.Claims) > 0 {
+					idTokenClaims = maps.Clone(userdata.Claims)
+				}
 
 				// Decide if we rely on ID token claims or still need UserInfo
 				// Even if parsing succeeded, if essential claims are missing, use UserInfo
@@ -301,6 +305,9 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			logger.Errorf("failed to decode user info from endpoint: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info from endpoint: %v", err)
 		}
+		if len(idTokenClaims) > 0 {
+			mergeMissingOidcClaims(&userdata, idTokenClaims)
+		}
 	}
 
 	// --- Determine login username dynamically ---
@@ -317,6 +324,18 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
 	return loginWithOidcUser(w, r, loginUsername, userdata.Groups)
+}
+
+// mergeMissingOidcClaims copies claims from from into userdata when absent after UserInfo fallback.
+func mergeMissingOidcClaims(userdata *userInfo, from map[string]any) {
+	if userdata.Claims == nil {
+		userdata.Claims = make(map[string]any)
+	}
+	for k, v := range from {
+		if _, exists := userdata.Claims[k]; !exists {
+			userdata.Claims[k] = v
+		}
+	}
 }
 
 // loginWithOidcUser extracts the username from the user claims (userInfo)
