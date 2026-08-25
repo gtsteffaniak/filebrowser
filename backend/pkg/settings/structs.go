@@ -92,8 +92,13 @@ type Database struct {
 }
 
 type Filesystem struct {
-	CreateFilePermission      string `json:"createFilePermission" validate:"required,file_permission"`      // Unix permissions like 644, 755, 2755 (default: 644)
-	CreateDirectoryPermission string `json:"createDirectoryPermission" validate:"required,file_permission"` // Unix permissions like 755, 2755, 1777 (default: 755)
+	CreateFilePermission      string `json:"createFilePermission" validate:"required,file_permission"`      // Unix permissions like 644, 755, 2775 (default: 644)
+	CreateDirectoryPermission string `json:"createDirectoryPermission" validate:"required,file_permission"` // Unix permissions like 755, 1777, 2775 (default: 755)
+	// FilenameNormalization normalizes the name of newly created / renamed
+	// files and directories: none (default), nfc, or nfd. macOS uploads
+	// arrive NFD while the macOS SMB client asks for NFC, so aligning new
+	// names with the share's consumers keeps uploaded files usable over SMB.
+	FilenameNormalization string `json:"filenameNormalization" validate:"omitempty,filename_normalization"` // none | nfc | nfd (default: none)
 }
 
 // Index SQL startup integrity modes (IndexSqlConfig.StartupIntegrityCheck).

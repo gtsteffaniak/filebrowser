@@ -740,6 +740,9 @@ func ValidateConfig(config Settings) error {
 
 	// Register custom validator for file permissions
 	err := validate.RegisterValidation("file_permission", validateFilePermission)
+	if err == nil {
+		err = validate.RegisterValidation("filename_normalization", validateFilenameNormalization)
+	}
 	if err != nil {
 		return fmt.Errorf("could not register file_permission validator: %v", err)
 	}
@@ -768,6 +771,16 @@ func validateFilePermission(fl validator.FieldLevel) bool {
 	}
 
 	return true
+}
+// validateFilenameNormalization accepts the empty string (unset) and the
+	// supported Unicode normalization forms for new file/directory names.
+func validateFilenameNormalization(fl validator.FieldLevel) bool {
+	switch fl.Field().String() {
+	case "", "none", "nfc", "nfd":
+		return true
+	default:
+		return false
+	}
 }
 
 func loadEnvConfig() {
@@ -860,6 +873,7 @@ func SetDefaults(generate bool) Settings {
 			Filesystem: Filesystem{
 				CreateFilePermission:      "644",
 				CreateDirectoryPermission: "755",
+				FilenameNormalization:     "none",
 			},
 		},
 		Auth: Auth{
