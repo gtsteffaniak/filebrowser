@@ -1,6 +1,6 @@
 // src/utils/lyrics.ts
 
-// the supported formats are: lrc, elrc, srt, vtt, or embedded (in that exact order) coming from the backend.
+// the supported formats are: elrc, lrc, srt, vtt, or embedded (in that exact order) coming from the backend.
 // and only .elrc will have `words` for word by word highligh.
 
 export interface LyricWord {

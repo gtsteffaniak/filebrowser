@@ -496,7 +496,7 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	return nil
 }
 
-var lyricsSidecarExts = []string{".lrc", ".elrc", ".srt", ".vtt"}
+var lyricsSidecarExts = []string{".elrc", ".lrc", ".srt", ".vtt"}
 
 func lyricsSidecar(dir, nameWithoutExt, ext string) (path string, ok bool) {
 	sidecarPath := filepath.Join(dir, nameWithoutExt+ext)

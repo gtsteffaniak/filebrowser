@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
    - The markdown viewer now supports rendering LaTeX Math and Chemistry formulas.
  - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
  - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
+ - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
 
 # TODO
 #- sidebar link defaults and enforcements
@@ -44,6 +45,7 @@ All notable changes to this project will be documented in this file. For commit 
  - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
  - OnlyOffice is inaccessible on password-protected shares (#2811)
  - FFmpeg 9.0 incorrectly detected as below minimum 5.0.0 on Windows (#2820) -- thanks @yzxcj797
+ - Queue buttons not clickable in the desktop panel in audio files.
 
 ## v2.0.1
 
