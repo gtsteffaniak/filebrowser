@@ -272,6 +272,11 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				// Even if parsing succeeded, if essential claims are missing, use UserInfo
 				if _, ok := userdata.Claims[oidcCfg.UserIdentifier]; ok {
 					claimsFromIDToken = true
+					needsGroups := oidcCfg.AdminGroup != "" || len(oidcCfg.UserGroups) > 0
+					if needsGroups && len(userdata.Groups) == 0 {
+						logger.Debugf("OIDC: ID token missing groups claim (adminGroup/userGroups configured); fetching UserInfo")
+						claimsFromIDToken = false
+					}
 				}
 			}
 		}
