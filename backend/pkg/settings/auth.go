@@ -149,6 +149,7 @@ func ValidateLdapAuth() error {
 	if ldapCfg.UserFilter == "" {
 		ldapCfg.UserFilter = "(&(cn=%s)(objectClass=user))"
 	}
+	applyAuthCommonDefaults(&ldapCfg.AuthCommon)
 	if err := verifyLdapConnection(); err != nil {
 		logger.Fatalf("LDAP connection check failed: %v", err)
 	}
@@ -158,9 +159,7 @@ func ValidateLdapAuth() error {
 // ValidateOidcAuth processes the OIDC callback and retrieves user identity
 func validateOidcAuth() error {
 	oidcCfg := &Config.Auth.Methods.OidcAuth // Use a pointer to modify the original config
-	if oidcCfg.GroupsClaim == "" {
-		oidcCfg.GroupsClaim = "groups"
-	}
+	applyAuthCommonDefaults(&oidcCfg.AuthCommon)
 	if oidcCfg.UserIdentifier == "" {
 		oidcCfg.UserIdentifier = "preferred_username"
 	}
@@ -289,9 +288,7 @@ func ValidateJwtAuth() error {
 	if jwtCfg.Algorithm == "" {
 		jwtCfg.Algorithm = "HS256"
 	}
-	if jwtCfg.GroupsClaim == "" {
-		jwtCfg.GroupsClaim = "groups"
-	}
+	applyAuthCommonDefaults(&jwtCfg.AuthCommon)
 	if jwtCfg.UserIdentifier == "" {
 		jwtCfg.UserIdentifier = "sub"
 	}
