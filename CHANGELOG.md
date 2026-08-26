@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.5.4-stable
 
  **New Features**:
- - Added aption to globally disable the "Install App" message via `frontend.disablePWAInstall`
+ - Added option to globally disable the "Install App" message via `frontend.disablePWAInstall`
 
  **BugFixes**:
  - "install app" message reappears after being cleared on device.
