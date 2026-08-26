@@ -245,6 +245,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"loginButtonText":        config.Frontend.LoginButtonText,
 		"passkeyAvailable":       config.Auth.Methods.PasskeyAuth.Enabled,
 		"passkeyLoginButtonText": config.Auth.Methods.PasskeyAuth.LoginButtonText,
+		"disablePWAInstall":      config.Frontend.DisablePWAInstall,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage
