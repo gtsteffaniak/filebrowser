@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v1.5.2-stable
+## v1.5.4-stable
+
+ **New Features**:
+ - Added aption to globally disable the "Install App" message via `frontend.disablePWAInstall`
+
+ **BugFixes**:
+ - "install app" message reappears after being cleared on device.
+
+## v1.5.3-stable
 
  **BugFixes**:
  - windows backslash inserted into directory URLs causing malformed paths and path escapes from parent (#2815) (#2816)
