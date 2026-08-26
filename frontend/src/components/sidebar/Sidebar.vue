@@ -57,19 +57,12 @@ export default {
       resizeStartX: 0,
       resizeStartWidth: 0,
       previousSidebarSize: null, // Remember the previous width when switching from desktop to mobile.
-      pwaInstallDismissed: false,
+      pwaInstallDismissed: localStorage.getItem("pwaInstallDismissed") === "true",
     };
   },
   mounted() {
     // Ensure the sidebar is initialized correctly
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
-    this.pwaInstallDismissed =
-      localStorage.getItem("pwaInstallDismissed") === "true" ||
-      sessionStorage.getItem("pwaInstallDismissed") === "true";
-    if (this.pwaInstallDismissed) {
-      localStorage.setItem("pwaInstallDismissed", "true");
-      sessionStorage.removeItem("pwaInstallDismissed");
-    }
     // Add keyboard event listener for Ctrl+B to toggle sidebar
     this.handleKeydown = (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
@@ -193,7 +186,6 @@ export default {
     dismissPwaInstall() {
       this.pwaInstallDismissed = true;
       localStorage.setItem("pwaInstallDismissed", "true");
-      sessionStorage.removeItem("pwaInstallDismissed");
     },
   },
 };
