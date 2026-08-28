@@ -94,7 +94,7 @@ describe("rewriteCssContent", () => {
 });
 
 describe("buildHtmlPreview", () => {
-  it("rewrites linked assets and preserves scripts in sandboxed srcdoc", () => {
+  it("rewrites linked assets and strips script tags from srcdoc", () => {
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -109,11 +109,19 @@ describe("buildHtmlPreview", () => {
 
     const { srcdoc } = buildHtmlPreview(html, "/pages/index.html", "src");
     expect(srcdoc).toContain(encodeURIComponent("/pages/theme.css"));
-    expect(srcdoc).toContain(encodeURIComponent("/pages/app.js"));
+    expect(srcdoc).not.toContain("<script");
+    expect(srcdoc).not.toContain("app.js");
     expect(srcdoc).toContain(encodeURIComponent("/pages/photo.jpg"));
     expect(srcdoc).toContain(encodeURIComponent("/pages/other.html"));
-    expect(srcdoc).toContain("<script");
     expect(srcdoc).not.toContain("javascript:");
+  });
+
+  it("strips inline and external scripts from uploaded HTML", () => {
+    const html = `<!DOCTYPE html><html><head><script>alert(document.cookie)</script></head><body><script src="https://evil.example/x.js"></script><p>ok</p></body></html>`;
+    const { srcdoc } = buildHtmlPreview(html, "/index.html", "src");
+    expect(srcdoc).not.toContain("<script");
+    expect(srcdoc).not.toContain("evil.example");
+    expect(srcdoc).toContain("<p>ok</p>");
   });
 
   it("strips dangerous protocols from attributes", () => {

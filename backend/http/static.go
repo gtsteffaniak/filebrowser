@@ -42,13 +42,36 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 			return fmt.Errorf("error reloading template: %w", err)
 		}
 	}
-	// Set headers
+	nonce, err := utils.CSPNonceFromData(data)
+	if err != nil {
+		return err
+	}
+
+	// Inherited by srcdoc preview frames: nonce'd SPA scripts run; untrusted preview scripts do not.
+	w.Header().Set("Content-Security-Policy", spaContentSecurityPolicy(nonce))
 	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("X-Accel-Expires", "0")
 	w.Header().Set("Transfer-Encoding", "identity")
 	// Execute the template with the provided data
 	return templates.ExecuteTemplate(w, name, data)
+}
+
+func spaContentSecurityPolicy(nonce string) string {
+	return strings.Join([]string{
+		"default-src 'self'",
+		fmt.Sprintf("script-src 'self' 'nonce-%s' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com", nonce),
+		"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+		"img-src 'self' data: blob: https:",
+		"font-src 'self' data:",
+		"media-src 'self' blob:",
+		"connect-src 'self'",
+		"frame-src 'self' blob: https:",
+		"worker-src 'self' blob:",
+		"object-src 'none'",
+		"base-uri 'self'",
+		"form-action 'self'",
+	}, "; ")
 }
 
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
@@ -247,6 +270,14 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"passkeyLoginButtonText": config.Auth.Methods.PasskeyAuth.LoginButtonText,
 		"disablePWAInstall":      config.Frontend.DisablePWAInstall,
 	}
+
+	cspNonce, err := utils.CSPNonce()
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("csp nonce: %w", err)
+	}
+	globalVars := data["globalVars"].(map[string]interface{})
+	globalVars["cspNonce"] = cspNonce
+	data["cspNonce"] = cspNonce
 
 	// Marshal each variable to JSON strings for direct template usage
 	globalVarsJSON, err := json.Marshal(data["globalVars"])
