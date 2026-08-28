@@ -14,19 +14,11 @@ export async function validateLogin(isPublicRoute = false) {
   });
 
   if (res.status !== 200) {
-    // A 401 from the non-public self check means our session cookie (JWT) is no
-    // longer valid — typically it expired. Clear it and redirect to login so the
-    // user can re-authenticate, instead of leaving the stale cookie in place
-    // (which otherwise leaves the app stuck on reload). Only do this for a real,
-    // non-public session: public routes legitimately 401 for anonymous share
-    // visitors, and we skip it when there is no session cookie to clear.
-    if (
-      res.status === 401 &&
-      !isPublicRoute &&
-      document.cookie
-        .split(";")
-        .some((c) => c.trim().startsWith("filebrowser_quantum_jwt="))
-    ) {
+    // A 401 from the non-public self check means our session is no longer valid —
+    // typically the HttpOnly JWT cookie expired. Redirect to login when the app
+    // still considers the user logged in (public routes legitimately 401 for
+    // anonymous share visitors).
+    if (res.status === 401 && !isPublicRoute && getters.isLoggedIn()) {
       sessionExpired();
     }
     throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
@@ -88,8 +80,7 @@ export async function logout(redirectUrl) {
       if (redirectUrl) {
         destination = redirectUrl;
       }
-      // Backend clears the cookie, but frontend does it as fail-safe cleanup
-      document.cookie = "filebrowser_quantum_jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+      // Backend clears the HttpOnly session cookie.
       void mutations.setCurrentUser(null);
       // No need to clear state.jwt - cookie is the source of truth
       // Add a small delay to ensure cookie deletion completes before redirect
@@ -106,15 +97,10 @@ export async function logout(redirectUrl) {
   }
 }
 
-// Handle an authenticated request that came back 401 because the session cookie
-// (JWT) is no longer valid — typically it expired while the tab was idle. Unlike
-// logout(), this does NOT call the server (which would itself 401 on an expired
-// token and leave the stale cookie in place); it clears the cookie locally and
-// redirects to the login page so the user can re-authenticate, instead of being
-// stuck on a raw "token is expired" error.
+// Handle an authenticated request that came back 401 because the session is no
+// longer valid — typically it expired while the tab was idle. Unlike logout(),
+// this does NOT call the server; it clears client state and redirects to login.
 export function sessionExpired() {
-  document.cookie =
-    "filebrowser_quantum_jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
   void mutations.setCurrentUser(null);
   // Avoid a redirect loop if we're already on the login page.
   if (window.location.pathname.endsWith("/login")) {

@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -71,4 +72,23 @@ func CSPNonce() (string, error) {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(b), nil
+}
+
+// CSPNonceFromData returns an existing cspNonce from map template data, or generates
+// and stores one when data is a map[string]interface{}. For other data types it
+// generates a fresh nonce without modifying data.
+func CSPNonceFromData(data interface{}) (string, error) {
+	m, ok := data.(map[string]interface{})
+	if !ok {
+		return CSPNonce()
+	}
+	if nonce, ok := m["cspNonce"].(string); ok && nonce != "" {
+		return nonce, nil
+	}
+	nonce, err := CSPNonce()
+	if err != nil {
+		return "", fmt.Errorf("csp nonce: %w", err)
+	}
+	m["cspNonce"] = nonce
+	return nonce, nil
 }

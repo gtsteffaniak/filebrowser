@@ -252,22 +252,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		logger.Errorf("Failed to revoke token on logout: %v", err)
 	}
 
-	// Clear the authentication cookie by setting it to expire in the past
-	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
-	host := r.Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = r.Host
-	}
-	cookie := &http.Cookie{
-		Name:     "filebrowser_quantum_jwt",
-		Value:    "",
-		Domain:   strings.Split(host, ":")[0],
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
-		Expires:  time.Unix(0, 0), // Expire immediately
-		MaxAge:   -1,              // Delete cookie
-	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, sessionCookie(r, "", time.Unix(0, 0), -1, http.SameSiteStrictMode))
 
 	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL) // Default fallback
 	if d.user != nil && d.user.LoginMethod == users.LoginMethodProxy {
@@ -435,20 +420,29 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	return 200, nil
 }
 
-// setSessionCookie - sets the authentication token as an HTTP cookie
-// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
-func setSessionCookie(w http.ResponseWriter, r *http.Request, token string, expiresTime time.Time) {
+const sessionCookieName = "filebrowser_quantum_jwt"
+
+// sessionCookie builds the JWT cookie. HttpOnly prevents srcdoc XSS from reading
+// document.cookie; Secure is set when the request is HTTPS (including via proxy).
+func sessionCookie(r *http.Request, token string, expiresTime time.Time, maxAge int, sameSite http.SameSite) *http.Cookie {
 	host := r.Header.Get("X-Forwarded-Host")
 	if host == "" {
 		host = r.Host
 	}
-	cookie := &http.Cookie{
-		Name:     "filebrowser_quantum_jwt",
+	return &http.Cookie{
+		Name:     sessionCookieName,
 		Value:    token,
-		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
+		Domain:   strings.Split(host, ":")[0],
 		Path:     "/",
-		SameSite: http.SameSiteStrictMode, // strict mode prevents cookie from being sent to other domains
+		SameSite: sameSite,
+		HttpOnly: true,
+		Secure:   getScheme(r) == "https",
 		Expires:  expiresTime,
+		MaxAge:   maxAge,
 	}
-	http.SetCookie(w, cookie)
+}
+
+// setSessionCookie - sets the authentication token as an HTTP cookie
+func setSessionCookie(w http.ResponseWriter, r *http.Request, token string, expiresTime time.Time) {
+	http.SetCookie(w, sessionCookie(r, token, expiresTime, 0, http.SameSiteStrictMode))
 }

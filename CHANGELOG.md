@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - "install app" message reappears after being cleared on device.
 
+ **Security**:
+ - [High] Stored XSS via HTML preview: `<script>` is no longer preserved in srcdoc, the preview iframe is opaque-origin (no `allow-same-origin`), the session cookie is HttpOnly, and the SPA shell sends a `script-src` CSP inherited by srcdoc frames (GHSA-vvm6-jwrf-hgmg) -- thanks @qrn12580
+
 ## v1.5.3-stable
 
  **BugFixes**:
