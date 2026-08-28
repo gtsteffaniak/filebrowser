@@ -548,6 +548,7 @@ export const getters = {
       disableQuickToggles: false,
       disableSearchOptions: false,
       deleteWithoutConfirming: false,
+      promptRightCloseButton: false,
       deleteAfterArchive: true,
       stickySidebar: true,
       hideFilesInTree: false,

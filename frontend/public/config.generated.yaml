@@ -177,6 +177,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     showTools: true                       # show sidebar links with category "tool"; default is true
   listing:
     deleteWithoutConfirming: false        # delete files without confirmation
+    promptRightCloseButton: false         # show the prompts close button on the right
     dateFormat: false                     # when false, the date is relative, when true, the date is an exact timestamp
     showHidden: false                     # show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
     quickDownload: false                  # show icon to download in one click

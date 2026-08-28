@@ -352,6 +352,7 @@ type UserDefaultsSidebar struct {
 // UserDefaultsListing holds file listing display settings
 type UserDefaultsListing struct {
 	DeleteWithoutConfirming bool   `json:"deleteWithoutConfirming"` // delete files without confirmation
+	PromptRightCloseButton  bool   `json:"promptRightCloseButton"`  // show the prompts close button on the right
 	DateFormat              bool   `json:"dateFormat"`              // when false, the date is relative, when true, the date is an exact timestamp
 	ShowHidden              bool   `json:"showHidden"`              // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
 	QuickDownload           bool   `json:"quickDownload"`           // show icon to download in one click

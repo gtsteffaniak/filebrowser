@@ -658,6 +658,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Mostrar botão de fechamento de prompts à direita",
+    "promptRightCloseButtonDescription": "Mostrar o botão de fechamento dos prompts no lado direito em vez do esquerdo",
     "hideFileExt": "Ocultar certos arquivos (por extensão)",
     "hideFileExtDescription": "Uma lista de extensões de arquivo separadas por espaços. As extensões inseridas neste campo serão ocultadas em toda a interface do usuário (visualmente, como na lista ou árvore de arquivos) — Continuam acessíveis.",
     "preferEditorForMarkdown": "Preferir editor primeiro para arquivos Markdown",

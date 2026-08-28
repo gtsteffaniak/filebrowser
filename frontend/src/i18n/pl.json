@@ -658,6 +658,8 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Pokaż przycisk zamykania okien dialogowych po prawej stronie",
+    "promptRightCloseButtonDescription": "Pokaż przycisk zamykania okien dialogowych po prawej stronie zamiast po lewej",
     "hideFileExt": "Ukryj wybrane pliki (według rozszerzenia)",
     "hideFileExtDescription": "Lista rozszerzeń plików oddzielonych spacjami. Rozszerzenia wprowadzone w tym polu zostaną ukryte w całym interfejsie użytkownika (wizualnie, np. na liście lub w drzewie plików) — Nadal pozostają dostępne.",
     "preferEditorForMarkdown": "Preferuj edytor dla plików Markdown",

@@ -22,6 +22,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 		},
 		Listing: UserDefaultsListing{
 			DeleteWithoutConfirming: u.DeleteWithoutConfirming,
+			PromptRightCloseButton:  u.PromptRightCloseButton,
 			DateFormat:              u.DateFormat,
 			ShowHidden:              u.ShowHidden,
 			QuickDownload:           u.QuickDownload,
@@ -106,6 +107,7 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.DeleteAfterArchive = p.Listing.DeleteAfterArchive
 	u.ViewMode = p.Listing.ViewMode
 	u.GallerySize = p.Listing.GallerySize
+	u.PromptRightCloseButton = p.Listing.PromptRightCloseButton
 
 	u.Preview.DisableHideSidebar = p.Sidebar.DisableHideOnPreview
 	u.Preview.Image = boolValueOrDefault(p.Preview.Image, true)

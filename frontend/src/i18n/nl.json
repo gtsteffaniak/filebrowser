@@ -486,6 +486,8 @@
     "allFileTypes": "Alle bestandstypen"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Toon sluitknop van prompts rechts",
+    "promptRightCloseButtonDescription": "Toon de sluitknop van de prompts aan de rechterkant in plaats van aan de linkerkant",
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
     "hideFileExtDescription": "Een door spaties gescheiden lijst van bestandsextensies. Extensies die in dit veld worden ingevoerd, worden verborgen in de hele gebruikersinterface (visueel, zoals in de lijst of bestandsboom) — Ze blijven toegankelijk.",
     "preferEditorForMarkdown": "Geef de voorkeur aan editor voor Markdown-bestanden",

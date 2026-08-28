@@ -658,6 +658,8 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Mostrar botón de cerrar en el lado derecho de las ventanas",
+    "promptRightCloseButtonDescription": "Mostrar el botón de cerrar en el lado derecho de las ventanas en vez del lado izquierdo",
     "hideFileExt": "Ocultar ciertos archivos (por extensión)",
     "hideFileExtDescription": "Una lista de extensiones de archivo separadas por espacios. Las extensiones que agreges aquí se ocultarán de toda la interfaz (visualmente, como en la lista o en la navegación de árbol) — Los archivos siguen siendo accesibles.",
     "preferEditorForMarkdown": "Preferir editor para archivos Markdown",
