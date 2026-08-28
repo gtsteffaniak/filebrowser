@@ -110,6 +110,10 @@ export const getters = {
   sorting: () => {
     return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
   },
+  /** Sort config for destination picker dialogs (copy/move/archive), independent of the main listing sort. */
+  pickerSorting: () => {
+    return state.pickerSorting || { by: "name", asc: true };
+  },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   /** Audio/video preview uses folder listing nav links unless a multi-item playback queue is active. */
   isPreviewPlaybackQueueNavMode: () => {

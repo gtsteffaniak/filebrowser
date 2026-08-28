@@ -36,7 +36,7 @@
     "katex": "^0.17.0",
     "mammoth": "^1.9.1",
     "marked": "^15.0.6",
-    "marked-katex-extension": "^5.1.10",
+    "marked-katex-extension": "5.1.10",
     "normalize.css": "^8.0.1",
     "plyr": "^3.8.4",
     "qrcode.vue": "^3.4.1",
