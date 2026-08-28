@@ -352,11 +352,12 @@ export default {
       const editor = this.editor;
       if (!editor) return;
       try {
-        const parsed = JSON.parse(editor.getValue());
+        const textToFormat = editor.getValue();
+        const parsed = JSON.parse(textToFormat);
         const next = state.editor.jsonFormatted
           ? JSON.stringify(parsed)
           : JSON.stringify(parsed, null, 2);
-        editor.setValue(next, -1);
+        if (next !== textToFormat) editor.setValue(next, -1);
         mutations.setEditorJsonFormatted(!state.editor.jsonFormatted);
         notify.showSuccessToast(this.$t("general.formatJSONSuccess"));
       } catch (e) {
