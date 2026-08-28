@@ -331,7 +331,6 @@ export default {
     // Clear dirty state and save handler when leaving editor
     mutations.setEditorDirty(false);
     mutations.setEditorSaveHandler(null);
-    mutations.setEditorFormatJSONHandler(null);
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
   },
   unmounted() {
@@ -362,7 +361,6 @@ export default {
 
     // Register save handler so other components can trigger save
     mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
-    mutations.setEditorFormatJSONHandler(() => this.formatJSON());
     this.applyFontSize();
     this.setupViewerResizeObserver();
   },
@@ -551,18 +549,6 @@ export default {
         case 'text': return 'ace/mode/text';
         case 'xml': return 'ace/mode/xml';
         default: return `ace/mode/${mode}`;
-      }
-    },
-    async formatJSON() {
-      try {
-        if (!this.editor) return;
-        const textToFormat = this.editor.getValue();
-        const parsed = JSON.parse(textToFormat);
-        const formatted = JSON.stringify(parsed, null, 2);
-        this.editor.setValue(formatted, -1);
-        notify.showSuccessToast(this.$t("general.formatJSONSuccess"));
-      } catch (e) {
-        notify.showErrorToast(this.$t("general.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
       }
     },
     async handleEditorValueRequest() {

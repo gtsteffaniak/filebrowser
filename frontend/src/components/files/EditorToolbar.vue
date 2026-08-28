@@ -140,6 +140,7 @@ import { eventBus } from "@/store/eventBus";
 import { removeLastDir } from "@/utils/url.js";
 import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
 import { copyToClipboard } from "@/utils/clipboard.js";
+import { notify } from "@/notify";
 
 interface AnchorRange {
   start: Ace.Anchor;
@@ -250,12 +251,12 @@ export default {
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
         { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
       ];
-      const isJson = state.req?.name?.toLowerCase().endsWith('.json');
+      const isJson = state.req.type === "application/json"
       if (isJson && getters.sourcePermissions().modify) {
         alwaysAvailable.push({
-          id: "formatJSON", 
-          icon: "data_object", 
-          title: this.$t("general.formatJSON"), 
+          id: "formatJSON",
+          icon: "data_object",
+          title: this.$t("general.formatJSON"),
           action: () => this.formatJSON(),
         });
       }
@@ -347,10 +348,21 @@ export default {
     focusEditor() {
       if (this.editor) this.editor.focus();
     },
-    async formatJSON() {
-      if (state.editor.formatJSONHandler) {
-        await state.editor.formatJSONHandler();
+    formatJSON() {
+      const editor = this.editor;
+      if (!editor) return;
+      try {
+        const parsed = JSON.parse(editor.getValue());
+        const next = state.editor.jsonFormatted
+          ? JSON.stringify(parsed)
+          : JSON.stringify(parsed, null, 2);
+        editor.setValue(next, -1);
+        mutations.setEditorJsonFormatted(!state.editor.jsonFormatted);
+        notify.showSuccessToast(this.$t("general.formatJSONSuccess"));
+      } catch (e) {
+        notify.showErrorToast(this.$t("general.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
       }
+      this.focusEditor();
     },
     undo() {
       const editor = this.editor;

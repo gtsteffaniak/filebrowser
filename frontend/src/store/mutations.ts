@@ -58,8 +58,9 @@ export const mutations = {
     state.editor.saveHandler = handler;
     emitStateChanged();
   },
-  setEditorFormatJSONHandler: (handler) => {
-    state.editor.formatJSONHandler = handler;
+  setEditorJsonFormatted: (value) => {
+    if (value === state.editor.jsonFormatted) return;
+    state.editor.jsonFormatted = value;
     emitStateChanged();
   },
   setEditorStats: (stats) => {
