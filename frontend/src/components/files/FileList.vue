@@ -24,56 +24,10 @@
     </div>
 
     <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
-    <div
+    <ListingHeader
       v-if="sortable && !loading"
-      class="listing-item-header card"
-      :class="{ 'dark-mode': isDarkMode, 'desktop-view': !isMobile }"
-    >
-      <p
-        :class="{ active: nameSorted }"
-        class="name"
-        role="button"
-        tabindex="0"
-        @click="sortColumn('name')"
-        @keydown.enter.prevent="sortColumn('name')"
-        @keydown.space.prevent="sortColumn('name')"
-        :title="$t('files.sortByName')"
-        :aria-label="$t('files.sortByName')"
-      >
-        <span>{{ $t("general.name") }}</span>
-        <i v-if="nameSorted" class="material-symbols">{{ nameIcon }}</i>
-      </p>
-
-      <p
-        :class="{ active: sizeSorted }"
-        class="size"
-        role="button"
-        tabindex="0"
-        @click="sortColumn('size')"
-        @keydown.enter.prevent="sortColumn('size')"
-        @keydown.space.prevent="sortColumn('size')"
-        :title="$t('files.sortBySize')"
-        :aria-label="$t('files.sortBySize')"
-      >
-        <i v-if="sizeSorted" class="material-symbols">{{ sizeIcon }}</i>
-        <span>{{ $t("general.size") }}</span>
-      </p>
-
-      <p
-        :class="{ active: modifiedSorted }"
-        class="modified"
-        role="button"
-        tabindex="0"
-        @click="sortColumn('modified')"
-        @keydown.enter.prevent="sortColumn('modified')"
-        @keydown.space.prevent="sortColumn('modified')"
-        :title="$t('files.sortByLastModified')"
-        :aria-label="$t('files.sortByLastModified')"
-      >
-        <i v-if="modifiedSorted" class="material-symbols">{{ modifiedIcon }}</i>
-        <span>{{ $t("files.lastModified") }}</span>
-      </p>
-    </div>
+      use-picker-sorting
+    />
 
     <!-- File List -->
     <div v-if="!loading" class="listing-items list">
@@ -109,6 +63,7 @@
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { resourcesApi } from "@/api";
+import ListingHeader from "@/components/files/ListingHeader.vue";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -117,6 +72,7 @@ import { sortedItems } from "@/utils/sort.js";
 export default {
   name: "file-list",
   components: {
+    ListingHeader,
     ListingItem,
     LoadingSpinner,
     ExpandDropdown,
@@ -203,35 +159,9 @@ export default {
     };
   },
   computed: {
+    /** Sorting config used by sortEntries; follows the picker sort when sortable. */
     pickerSort() {
       return this.sortable ? getters.pickerSorting() : getters.sorting();
-    },
-    nameSorted() {
-      return this.pickerSort.by === "name";
-    },
-    sizeSorted() {
-      return this.pickerSort.by === "size";
-    },
-    modifiedSorted() {
-      return this.pickerSort.by === "modified";
-    },
-    nameIcon() {
-      if (this.nameSorted && !this.pickerSort.asc) {
-        return "arrow_upward";
-      }
-      return "arrow_downward";
-    },
-    sizeIcon() {
-      if (this.sizeSorted && this.pickerSort.asc) {
-        return "arrow_downward";
-      }
-      return "arrow_upward";
-    },
-    modifiedIcon() {
-      if (this.modifiedSorted && this.pickerSort.asc) {
-        return "arrow_downward";
-      }
-      return "arrow_upward";
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -282,6 +212,12 @@ export default {
     currentSource(newSource) {
       if (newSource && newSource !== this.source) {
         this.resetToSource(newSource);
+      }
+    },
+    // Re-sort local items when the picker header changes the sort config
+    pickerSort() {
+      if (this.sortable) {
+        this.resortItems();
       }
     },
   },
@@ -448,18 +384,6 @@ export default {
         ...sortedItems(dirs, sorting.by, sorting.asc),
         ...sortedItems(files, sorting.by, sorting.asc),
       ];
-    },
-    sortColumn(field) {
-      let asc = false;
-      if (
-        (field === "name" && this.nameIcon === "arrow_upward") ||
-        (field === "size" && this.sizeIcon === "arrow_upward") ||
-        (field === "modified" && this.modifiedIcon === "arrow_upward")
-      ) {
-        asc = true;
-      }
-      mutations.updatePickerSortConfig({ field, asc });
-      this.resortItems();
     },
     resortItems() {
       const parentEntry = this.items.find((item) => item.name === "..");
@@ -671,84 +595,6 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 2em 0;
-}
-
-/* Sortable header (mirrors ListingHeader.vue styles) */
-.listing-item-header {
-  display: flex;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, .1);
-  padding: .85em;
-  width: 100%;
-  box-sizing: border-box;
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
-  margin-bottom: 0 !important;
-  justify-content: space-between;
-}
-
-.listing-item-header.dark-mode {
-  border-color: var(--divider) !important;
-  background: var(--surfacePrimary) !important;
-  user-select: none;
-}
-
-.listing-item-header p {
-  margin: 0;
-  cursor: pointer;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.listing-item-header span {
-  vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.listing-item-header .name {
-  flex: 1;
-}
-
-.listing-item-header .size,
-.listing-item-header .modified {
-  flex: 1;
-  justify-content: flex-end;
-  text-align: end;
-}
-
-.listing-item-header.desktop-view .size {
-  width: 12%;
-  min-width: 80px;
-  flex: 0 0 auto;
-}
-
-.listing-item-header.desktop-view .modified {
-  width: 18%;
-  min-width: fit-content;
-  flex: 0 0 auto;
-}
-
-.listing-item-header i {
-  font-size: 1.5em;
-  vertical-align: middle;
-  margin-left: .2em;
-  opacity: 0;
-  transition: .1s ease all;
-  flex-shrink: 0;
-}
-
-.listing-item-header p:hover i,
-.listing-item-header .active i {
-  opacity: 1;
-}
-
-.listing-item-header .active {
-  font-weight: bold;
 }
 
 </style>

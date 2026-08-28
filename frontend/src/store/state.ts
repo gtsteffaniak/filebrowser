@@ -238,7 +238,9 @@ function loadPickerSorting() {
     ) {
       return { by: parsed.by, asc: parsed.asc };
     }
-  } catch (_) { /* ignore */ }
+  } catch (error) {
+    console.error('Failed to load picker sorting:', error);
+  }
   return null;
 }
 

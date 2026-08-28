@@ -74,6 +74,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    /** When true, sort via pickerSorting (destination pickers) instead of the main listing sort. */
+    usePickerSorting: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     isMobile() {
@@ -82,20 +87,23 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
+    sortConfig() {
+      return this.usePickerSorting ? getters.pickerSorting() : getters.sorting();
+    },
     nameSorted() {
-      return getters.sorting().by === "name";
+      return this.sortConfig.by === "name";
     },
     sizeSorted() {
-      return getters.sorting().by === "size";
+      return this.sortConfig.by === "size";
     },
     modifiedSorted() {
-      return getters.sorting().by === "modified";
+      return this.sortConfig.by === "modified";
     },
     durationSorted() {
-      return getters.sorting().by === "duration";
+      return this.sortConfig.by === "duration";
     },
     ascOrdered() {
-      return getters.sorting().asc;
+      return this.sortConfig.asc;
     },
     galleryView() {
       return getters.viewMode() === "gallery";
@@ -125,6 +133,9 @@ export default {
       return "arrow_upward";
     },
     quickDownloadEnabled() {
+      if (this.usePickerSorting) {
+        return false;
+      }
       if (state.isMobile) {
         return false
       }
@@ -146,6 +157,10 @@ export default {
         asc = true;
       }
       // Commit the updateSort mutation
+      if (this.usePickerSorting) {
+        mutations.updatePickerSortConfig({ field, asc });
+        return;
+      }
       mutations.updateListingSortConfig({ field, asc });
       mutations.updateListingItems();
     },
@@ -206,7 +221,7 @@ span {
 
 .desktop-view .modified {
   width: 18%;
-  min-width: 110px;
+  min-width: fit-content;
   flex: 0 0 auto;
   justify-content: flex-end;
   text-align: right;
