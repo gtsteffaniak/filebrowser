@@ -1,13 +1,16 @@
 package utils
 
 import (
+	"net/http"
 	"os"
+	"strings"
 	"unicode/utf8"
 )
 
 // IsTextFile checks if a file is viewable/editable as text (like with cat or a text editor).
 // It returns true if the file appears to be text, false if it's likely binary.
 // This function uses simple heuristics:
+// - No binary format signature (PDF, images, archives, ...)
 // - Valid UTF-8 encoding
 // - Not full of null bytes (which indicate binary data)
 func IsTextFile(realPath string) (bool, error) {
@@ -27,7 +30,13 @@ func IsTextFile(realPath string) (bool, error) {
 	if len(content) > sampleSize {
 		sample = content[:sampleSize]
 	}
-	// Check 1: Count null bytes - binary files typically have many nulls
+	// Check 1: Reject a binary format signature. A PDF with a long ASCII text
+	// layer looks like text for far more than sampleSize bytes.
+	if mimeType := http.DetectContentType(sample); !strings.HasPrefix(mimeType, "text/") && mimeType != "image/svg+xml" {
+		return false, nil
+	}
+
+	// Check 2: Count null bytes - binary files typically have many nulls
 	nullCount := 0
 	for _, b := range sample {
 		if b == 0x00 {
@@ -42,7 +51,7 @@ func IsTextFile(realPath string) (bool, error) {
 		}
 	}
 
-	// Check 2: Validate UTF-8 encoding
+	// Check 3: Validate UTF-8 encoding
 	// Trim sample to last complete UTF-8 rune to avoid false negatives
 	trimmedSample := sample
 	for len(trimmedSample) > 0 {
