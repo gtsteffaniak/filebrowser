@@ -12,6 +12,7 @@
           :browse-source="itemSource"
           :show-folders="true"
           :show-files="false"
+          :sortable="true"
           @update:selected="updateDestination"
         />
       </template>

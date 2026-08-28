@@ -828,6 +828,16 @@ export const mutations = {
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
   },
+  updatePickerSortConfig: ({ field, asc }) => {
+    state.pickerSorting = { by: field, asc };
+    try {
+      localStorage.setItem("pickerSorting", JSON.stringify(state.pickerSorting));
+    } catch (error) {
+      // localStorage can throw in private mode; log but don't block sorting
+      console.error('Failed to save picker sorting:', error);
+    }
+    emitStateChanged();
+  },
   updateListingItems: () => {
     mutations.replaceRequest(state.req);
     emitStateChanged();
