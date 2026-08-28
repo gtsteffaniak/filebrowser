@@ -668,6 +668,7 @@ export const mutations = {
         "fileLoading",
         "deleteAfterArchive",
         "deleteWithoutConfirming",
+        "promptRightCloseButton",
         "preferEditorForMarkdown",
         "disablePreviewExt",
         "disableViewingExt",

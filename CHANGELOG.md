@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
  - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
  - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
+ - Added setting to configure the placement of the prompts close button in profile settings (#2853).
 
 # TODO
 #- sidebar link defaults and enforcements

@@ -658,6 +658,8 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Bildirim kapatma düğmesini sağda göster",
+    "promptRightCloseButtonDescription": "Bildirimlerin kapatma düğmesini sol yerine sağ tarafta göster",
     "hideFileExt": "Belirli dosyaları gizle (uzantıya göre)",
     "hideFileExtDescription": "Boşlukla ayrılmış dosya uzantıları listesi. Bu alana girilen uzantılar tüm kullanıcı arayüzünden (görsel olarak, liste veya Dosya Ağacı gibi) gizlenecektir — Hâlâ erişilebilir durumdadırlar.",
     "preferEditorForMarkdown": "Markdown dosyaları için önce düzenleyiciyi tercih et",

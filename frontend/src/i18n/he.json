@@ -658,6 +658,8 @@
     "orange": "כתום"
   },
   "profileSettings": {
+    "promptRightCloseButton": "הצגת כפתור סגירת ההנחיות בצד ימין",
+    "promptRightCloseButtonDescription": "הצגת כפתור הסגירה של ההנחיות בצד ימין במקום בצד שמאל",
     "hideFileExt": "הסתר קבצים מסוימים (לפי סיומת)",
     "hideFileExtDescription": "רשימה של סיומות קבצים מופרדות ברווחים. סיומות שהוזנו בשדה זה יוסתרו מכל ממשק המשתמש (חזותית, כמו ברשימה או בעץ הקבצים) — הן עדיין נגישות.",
     "preferEditorForMarkdown": "העדף עורך תחילה עבור קבצי Markdown",
