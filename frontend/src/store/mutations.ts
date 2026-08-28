@@ -800,8 +800,9 @@ export const mutations = {
     state.pickerSorting = { by: field, asc };
     try {
       localStorage.setItem("pickerSorting", JSON.stringify(state.pickerSorting));
-    } catch (_error) {
-      // ignore storage errors (e.g. private mode)
+    } catch (error) {
+      // localStorage can throw in private mode; log but don't block sorting
+      console.error('Failed to save picker sorting:', error);
     }
     emitStateChanged();
   },
