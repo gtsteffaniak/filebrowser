@@ -18,8 +18,6 @@ vi.mock('@/utils/url.js', () => ({
 
 import { validateLogin } from './auth.js';
 
-const COOKIE = 'filebrowser_quantum_jwt';
-
 function respond(status, body = '') {
   global.fetch = vi.fn().mockResolvedValue({
     status,
@@ -31,7 +29,7 @@ function respond(status, body = '') {
 describe('validateLogin session-expiry handling', () => {
   beforeEach(() => {
     storeMock.mutations.setCurrentUser.mockClear();
-    document.cookie = `${COOKIE}=stale; path=/`;
+    storeMock.getters.isLoggedIn.mockReturnValue(true);
     // Stub navigation via Vitest's global-stub API (jsdom doesn't implement
     // real navigation). pathname+search feed the redirect; href captures it.
     vi.stubGlobal('location', { pathname: '/files/', search: '?a=1', href: '' });
@@ -41,12 +39,10 @@ describe('validateLogin session-expiry handling', () => {
     vi.unstubAllGlobals();
   });
 
-  it('clears the cookie + user and redirects (with encoded return path) on a non-public 401 with a session cookie', async () => {
+  it('clears user state and redirects (with encoded return path) on a non-public 401 while logged in', async () => {
     respond(401, 'token is expired');
     await expect(validateLogin(false)).rejects.toThrow();
     expect(storeMock.mutations.setCurrentUser).toHaveBeenCalledWith(null);
-    expect(document.cookie.includes(`${COOKIE}=stale`)).toBe(false);
-    // Full redirect contract: login route + correctly encoded current path+query.
     expect(window.location.href).toBe(
       `/login?redirect=${encodeURIComponent('/files/?a=1')}`
     );
@@ -56,12 +52,11 @@ describe('validateLogin session-expiry handling', () => {
     respond(401, 'unauthorized');
     await expect(validateLogin(true)).rejects.toThrow();
     expect(storeMock.mutations.setCurrentUser).not.toHaveBeenCalledWith(null);
-    expect(document.cookie.includes(`${COOKIE}=stale`)).toBe(true);
     expect(window.location.href).toBe('');
   });
 
-  it('does NOT log out or redirect on a non-public 401 when there is NO session cookie', async () => {
-    document.cookie = `${COOKIE}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/`;
+  it('does NOT log out or redirect on a non-public 401 when the user is NOT logged in', async () => {
+    storeMock.getters.isLoggedIn.mockReturnValue(false);
     respond(401, 'unauthorized');
     await expect(validateLogin(false)).rejects.toThrow();
     expect(storeMock.mutations.setCurrentUser).not.toHaveBeenCalledWith(null);
@@ -72,7 +67,6 @@ describe('validateLogin session-expiry handling', () => {
     respond(500, 'server error');
     await expect(validateLogin(false)).rejects.toThrow();
     expect(storeMock.mutations.setCurrentUser).not.toHaveBeenCalledWith(null);
-    expect(document.cookie.includes(`${COOKIE}=stale`)).toBe(true);
     expect(window.location.href).toBe('');
   });
 });
