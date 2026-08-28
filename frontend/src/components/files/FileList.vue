@@ -729,7 +729,7 @@ export default {
 
 .listing-item-header.desktop-view .modified {
   width: 18%;
-  min-width: 110px;
+  min-width: fit-content;
   flex: 0 0 auto;
 }
 
