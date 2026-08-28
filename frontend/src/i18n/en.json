@@ -167,7 +167,10 @@
     "clearSelection": "Clear selection",
     "interval": "Interval{suffix}",
     "none": "None",
-    "enforce": "Enforce{suffix}"
+    "enforce": "Enforce{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",

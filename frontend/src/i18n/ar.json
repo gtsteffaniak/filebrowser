@@ -614,7 +614,10 @@
     "limit": "الحد الأقصى{suffix}",
     "remove": "إزالة{suffix}",
     "saved": "تم الحفظ{suffix}",
-    "removed": "تم حذفه{suffix}"
+    "removed": "تم حذفه{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "قواعد الوصول",

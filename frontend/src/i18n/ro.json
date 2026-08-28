@@ -614,7 +614,10 @@
     "limit": "Limită{suffix}",
     "remove": "Eliminare{suffix}",
     "saved": "Salvat{suffix}",
-    "removed": "Eliminat{suffix}"
+    "removed": "Eliminat{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "Reguli de acces",

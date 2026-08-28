@@ -167,7 +167,10 @@
     "limit": "Лимит{suffix}",
     "remove": "Премахни{suffix}",
     "saved": "Запазено{suffix}",
-    "removed": "Премахнато{suffix}"
+    "removed": "Премахнато{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "buttons": {
     "copySuccess": "Копирано в клипборда!",

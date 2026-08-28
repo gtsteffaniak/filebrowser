@@ -250,6 +250,15 @@ export default {
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
         { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
       ];
+      const isJson = state.req?.name?.toLowerCase().endsWith('.json');
+      if (isJson && getters.sourcePermissions().modify) {
+        alwaysAvailable.push({
+          id: "formatJSON", 
+          icon: "data_object", 
+          title: this.$t("general.formatJSON"), 
+          action: () => this.formatJSON(),
+        });
+      }
       if (!this.isMarkdown) {
         return [
           ...alwaysAvailable,
@@ -337,6 +346,11 @@ export default {
     expandLeave,
     focusEditor() {
       if (this.editor) this.editor.focus();
+    },
+    async formatJSON() {
+      if (state.editor.formatJSONHandler) {
+        await state.editor.formatJSONHandler();
+      }
     },
     undo() {
       const editor = this.editor;

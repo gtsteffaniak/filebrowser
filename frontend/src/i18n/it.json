@@ -167,7 +167,10 @@
     "limit": "Limite{suffix}",
     "remove": "Rimuovi{suffix}",
     "saved": "Salvato{suffix}",
-    "removed": "Rimosso{suffix}"
+    "removed": "Rimosso{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",

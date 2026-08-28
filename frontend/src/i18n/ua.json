@@ -710,7 +710,10 @@
     "limit": "Обмеження{suffix}",
     "remove": "Видалити{suffix}",
     "saved": "Збережено{suffix}",
-    "removed": "Видалено{suffix}"
+    "removed": "Видалено{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "Правила доступу",

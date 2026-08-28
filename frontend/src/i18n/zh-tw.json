@@ -710,7 +710,10 @@
     "limit": "上限{suffix}",
     "remove": "移除{suffix}",
     "saved": "已儲存{suffix}",
-    "removed": "已移除{suffix}"
+    "removed": "已移除{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "存取規則",

@@ -710,7 +710,10 @@
     "limit": "Gräns{suffix}",
     "remove": "Ta bort{suffix}",
     "saved": "Sparat{suffix}",
-    "removed": "Borttagen{suffix}"
+    "removed": "Borttagen{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "Regler för åtkomst",

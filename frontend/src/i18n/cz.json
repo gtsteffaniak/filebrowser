@@ -710,7 +710,10 @@
     "limit": "Limit{suffix}",
     "remove": "Odstranit{suffix}",
     "saved": "Uloženo{suffix}",
-    "removed": "Odstraněno{suffix}"
+    "removed": "Odstraněno{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "Pravidla přístupu",

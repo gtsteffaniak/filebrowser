@@ -614,7 +614,10 @@
     "limit": "Limite{suffix}",
     "remove": "Supprimer{suffix}",
     "saved": "Enregistré{suffix}",
-    "removed": "Supprimé{suffix}"
+    "removed": "Supprimé{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "Règles d'accès",

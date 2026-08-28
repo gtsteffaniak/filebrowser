@@ -614,7 +614,10 @@
     "limit": "גבול{suffix}",
     "remove": "הסר{suffix}",
     "saved": "נשמר{suffix}",
-    "removed": "הוסר{suffix}"
+    "removed": "הוסר{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "כללי גישה",

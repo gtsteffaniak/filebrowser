@@ -614,7 +614,10 @@
     "limit": "Sınır{suffix}",
     "remove": "Kaldır{suffix}",
     "saved": "Kaydedildi{suffix}",
-    "removed": "Kaldırıldı{suffix}"
+    "removed": "Kaldırıldı{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "Erişim kuralları",

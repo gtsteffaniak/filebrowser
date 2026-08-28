@@ -614,7 +614,10 @@
     "limit": "Határ{suffix}",
     "remove": "Eltávolítás{suffix}",
     "saved": "Elmentve{suffix}",
-    "removed": "Eltávolítva{suffix}"
+    "removed": "Eltávolítva{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

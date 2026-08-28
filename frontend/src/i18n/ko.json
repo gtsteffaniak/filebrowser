@@ -614,7 +614,10 @@
     "limit": "한도{suffix}",
     "remove": "제거{suffix}",
     "saved": "저장됨{suffix}",
-    "removed": "삭제됨{suffix}"
+    "removed": "삭제됨{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "액세스 규칙",

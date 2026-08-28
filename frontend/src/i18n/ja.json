@@ -614,7 +614,10 @@
     "limit": "上限{suffix}",
     "remove": "削除{suffix}",
     "saved": "保存済み{suffix}",
-    "removed": "削除済み{suffix}"
+    "removed": "削除済み{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "アクセスルール",

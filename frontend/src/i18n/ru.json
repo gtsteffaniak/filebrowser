@@ -614,7 +614,10 @@
     "limit": "Предел{suffix}",
     "remove": "Удалить{suffix}",
     "saved": "Сохранено{suffix}",
-    "removed": "Удалено{suffix}"
+    "removed": "Удалено{suffix}",
+    "formatJSON": "Format JSON",
+    "formatJSONSuccess": "JSON formatted successfully",
+    "invalidJSON": "Invalid JSON: {message}"
   },
   "access": {
     "rules": "Правила доступа",
