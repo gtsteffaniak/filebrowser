@@ -207,6 +207,7 @@ export default {
         this.originalReq = newReq;
         this.isDirty = false; // Reset dirty flag for new file
         mutations.setEditorDirty(false);
+        mutations.setEditorJsonFormatted(false);
         mutations.resetEditorScrollRatio(newReq.path);
 
         // Lock saves temporarily
