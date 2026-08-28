@@ -16,6 +16,12 @@
           :description="$t('profileSettings.deleteWithoutConfirmingDescription')"
         />
         <ProfilePreferenceToggle
+          field="promptRightCloseButton"
+          section="listing"
+          :name="$t('profileSettings.promptRightCloseButton')"
+          :description="$t('profileSettings.promptRightCloseButtonDescription')"
+        />
+        <ProfilePreferenceToggle
           field="dateFormat"
           section="listing"
           :name="$t('profileSettings.setDateFormat')"

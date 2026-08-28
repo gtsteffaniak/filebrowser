@@ -658,6 +658,8 @@
     "orange": "オレンジ"
   },
   "profileSettings": {
+    "promptRightCloseButton": "プロンプトの閉じるボタンを右側に表示",
+    "promptRightCloseButtonDescription": "プロンプトの閉じるボタンを左側ではなく右側に表示",
     "hideFileExt": "特定のファイルを非表示にする（拡張子で）",
     "hideFileExtDescription": "スペース区切りのファイル拡張子リスト。このフィールドに入力された拡張子は、すべてのUI（リストやファイルツリーなどの視覚的な部分）から非表示になります — ただし、アクセスは可能です。",
     "preferEditorForMarkdown": "Markdownファイルではエディタを優先する",

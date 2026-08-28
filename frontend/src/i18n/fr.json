@@ -658,6 +658,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Afficher le bouton de fermeture des invites à droite",
+    "promptRightCloseButtonDescription": "Afficher le bouton de fermeture des invites sur le côté droit au lieu du côté gauche",
     "hideFileExt": "Masquer certains fichiers (par extension)",
     "hideFileExtDescription": "Une liste d'extensions de fichiers séparées par des espaces. Les extensions saisies dans ce champ seront masquées dans toute l'interface utilisateur (visuellement, comme dans la liste ou l'arborescence) — Elles restent accessibles.",
     "preferEditorForMarkdown": "Privilégier d'abord l'éditeur pour les fichiers Markdown",

@@ -486,6 +486,8 @@
     "allFileTypes": "Tutti i tipi di file"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Mostra il pulsante di chiusura dei prompt a destra",
+    "promptRightCloseButtonDescription": "Mostra il pulsante di chiusura dei prompt sul lato destro invece che sul sinistro",
     "hideFileExt": "Nascondere determinati file (per estensione)",
     "hideFileExtDescription": "Un elenco di estensioni di file separate da spazi. Le estensioni inserite in questo campo verranno nascoste da tutta l'interfaccia utente (visivamente, come nell'elenco o nell'albero dei file) — Rimangono comunque accessibili.",
     "preferEditorForMarkdown": "Preferisci editor per file Markdown",

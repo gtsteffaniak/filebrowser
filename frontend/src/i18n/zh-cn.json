@@ -476,6 +476,8 @@
     "orange": "橘色"
   },
   "profileSettings": {
+    "promptRightCloseButton": "在右侧显示提示框关闭按钮",
+    "promptRightCloseButtonDescription": "在右侧而不是左侧显示提示框的关闭按钮",
     "hideFileExt": "隐藏特定文件（按扩展名）",
     "hideFileExtDescription": "空格分隔的文件扩展名列表。在此字段中输入的扩展名将从所有用户界面中隐藏（视觉上，如列表或文件树）——它们仍然可访问。",
     "preferEditorForMarkdown": "优先使用编辑器打开 Markdown 文件",

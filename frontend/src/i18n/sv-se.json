@@ -476,6 +476,8 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Visa stängknapp för uppmaningar till höger",
+    "promptRightCloseButtonDescription": "Visa stängknappen för uppmaningar på höger sida istället för vänster",
     "hideFileExt": "Dölj vissa filer (efter filändelse)",
     "hideFileExtDescription": "En blankstegsseparerad lista över filändelser. Filändelser som anges i detta fält kommer att döljas från hela användargränssnittet (visuellt, som i listan eller filträdet) — De är fortfarande tillgängliga.",
     "preferEditorForMarkdown": "Föredra redigerare för Markdown-filer",

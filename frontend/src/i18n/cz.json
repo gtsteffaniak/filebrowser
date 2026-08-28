@@ -316,6 +316,8 @@
     "allFileTypes": "Všechny typy souborů"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Zobrazit tlačítko zavření dialogů vpravo",
+    "promptRightCloseButtonDescription": "Zobrazit tlačítko zavření dialogů na pravé straně místo na levé",
     "hideFileExt": "Skrýt určité soubory (podle přípony)",
     "hideFileExtDescription": "Seznam přípon souborů oddělených mezerami. Přípony zadané v tomto poli budou skryty ve všech částech UI (vizuálně, např. v seznamu nebo stromu souborů) — stále jsou přístupné.",
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",

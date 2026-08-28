@@ -658,6 +658,8 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Zobraziť tlačidlo zatvorenia výziev vpravo",
+    "promptRightCloseButtonDescription": "Zobraziť tlačidlo zatvorenia výziev na pravej strane namiesto ľavej",
     "hideFileExt": "Skryť určité súbory (podľa prípony)",
     "hideFileExtDescription": "Zoznam prípon súborov oddelených medzerami. Prípony zadané v tomto poli budú skryté v celom používateľskom rozhraní (vizuálne, napr. v zozname alebo strome súborov) — Stále sú prístupné.",
     "preferEditorForMarkdown": "Uprednostniť editor pre Markdown súbory",
