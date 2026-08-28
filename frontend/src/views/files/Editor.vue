@@ -562,7 +562,7 @@ export default {
         this.editor.setValue(formatted, -1);
         notify.showSuccessToast(this.$t("general.formatJSONSuccess"));
       } catch (e) {
-        notify.showError(this.$t("general.invalidJSON", { message: (e as Error).message }));
+        notify.showErrorToast(this.$t("general.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
       }
     },
     async handleEditorValueRequest() {
