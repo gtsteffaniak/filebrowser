@@ -131,10 +131,10 @@ func checkPermissionsImpl(opts utils.FileOptions, user *users.User, s *Service) 
 		return "", "", fmt.Errorf("user not provided")
 	}
 	if opts.Path == "" {
-		return "", "", fmt.Errorf("path not provided")
+		return "", "", fmt.Errorf("%w: path not provided", errors.ErrInvalidRequestParams)
 	}
 	if opts.Source == "" {
-		return "", "", fmt.Errorf("source not provided")
+		return "", "", fmt.Errorf("%w: source not provided", errors.ErrInvalidRequestParams)
 	}
 
 	// Get index
