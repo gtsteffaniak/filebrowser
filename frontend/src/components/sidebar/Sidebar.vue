@@ -57,7 +57,7 @@ export default {
       resizeStartX: 0,
       resizeStartWidth: 0,
       previousSidebarSize: null, // Remember the previous width when switching from desktop to mobile.
-      pwaInstallDismissed: sessionStorage.getItem("pwaInstallDismissed") === "true",
+      pwaInstallDismissed: localStorage.getItem("pwaInstallDismissed") === "true",
     };
   },
   mounted() {
@@ -121,7 +121,7 @@ export default {
       );
     },
     showPwaInstall() {
-      return installAvailable.value && !this.pwaInstallDismissed && !this.isSettings;
+      return installAvailable.value && !this.pwaInstallDismissed && !this.isSettings && !globalVars.disablePWAInstall;
     },
   },
   methods: {
@@ -178,11 +178,14 @@ export default {
       mutations.setSeenUpdate(globalVars.updateAvailable);
     },
     async installPwa() {
-      await promptInstall();
+      const accepted = await promptInstall();
+      if (accepted) {
+        this.dismissPwaInstall();
+      }
     },
     dismissPwaInstall() {
       this.pwaInstallDismissed = true;
-      sessionStorage.setItem("pwaInstallDismissed", "true");
+      localStorage.setItem("pwaInstallDismissed", "true");
     },
   },
 };

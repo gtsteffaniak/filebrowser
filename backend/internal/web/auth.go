@@ -146,6 +146,7 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	}
 	// Verify login method matches
 	if userValue.LoginMethod != loginMethod {
+		logger.Debugf("login rejected: user %q attempted %s login but account loginMethod is %q", username, loginMethod, userValue.LoginMethod)
 		return nil, errors.ErrWrongLoginMethod
 	}
 	// Sync IdP groups into access-control GroupMap (write-through). Skip when the
@@ -233,17 +234,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 
 	// Clear the authentication cookie by setting it to expire in the past
-	host := sessionCookieDomain(r)
-	cookie := &http.Cookie{
-		Name:     "filebrowser_quantum_jwt",
-		Value:    "",
-		Domain:   host,
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
-		Expires:  time.Unix(0, 0), // Expire immediately
-		MaxAge:   -1,              // Delete cookie
-	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, sessionCookie(r, "", time.Unix(0, 0), -1, http.SameSiteStrictMode))
 
 	logoutUrl := fmt.Sprintf("%vlogin", settings.Config.Http.BaseURL) // Default fallback
 	if d.User != nil && d.User.LoginMethod == users.LoginMethodProxy {
@@ -427,17 +418,27 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 	return 200, nil
 }
 
-// SetSessionCookie sets the authentication token as an HTTP cookie.
-func SetSessionCookie(w http.ResponseWriter, r *http.Request, token string, expiresTime time.Time) {
-	cookie := &http.Cookie{
-		Name:     "filebrowser_quantum_jwt",
+const sessionCookieName = "filebrowser_quantum_jwt"
+
+// sessionCookie builds the JWT cookie. HttpOnly prevents srcdoc XSS from reading
+// document.cookie; Secure is set when the request is HTTPS (including via proxy).
+func sessionCookie(r *http.Request, token string, expiresTime time.Time, maxAge int, sameSite http.SameSite) *http.Cookie {
+	return &http.Cookie{
+		Name:     sessionCookieName,
 		Value:    token,
 		Domain:   sessionCookieDomain(r),
 		Path:     "/",
-		SameSite: http.SameSiteStrictMode, // strict mode prevents cookie from being sent to other domains
+		SameSite: sameSite,
+		HttpOnly: true,
+		Secure:   requestScheme(r) == "https",
 		Expires:  expiresTime,
+		MaxAge:   maxAge,
 	}
-	http.SetCookie(w, cookie)
+}
+
+// SetSessionCookie sets the authentication token as an HTTP cookie.
+func SetSessionCookie(w http.ResponseWriter, r *http.Request, token string, expiresTime time.Time) {
+	http.SetCookie(w, sessionCookie(r, token, expiresTime, 0, http.SameSiteStrictMode))
 }
 
 // applyNamedApiTokenGlobalCaps intersects owner globals with JWT global caps for named custom API tokens.

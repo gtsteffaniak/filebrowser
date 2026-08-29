@@ -25,6 +25,7 @@ var (
 	ErrNotViewable          = errors.New("directory or item is not viewable")
 	ErrPathEscapesScope     = errors.New("resolved path escapes scope")
 	ErrWrongLoginMethod     = errors.New("user attempted to login with wrong login method")
+	ErrInvalidLoginMethod   = errors.New("invalid login method")
 	ErrDownloadNotAllowed   = errors.New("downloads are not allowed for this share")
 	ErrUseMediaStream       = errors.New("use /media/stream for audio and video")
 	ErrUploadNotAllowed     = errors.New("upload permission not allowed for this share")
