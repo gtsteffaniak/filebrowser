@@ -141,7 +141,7 @@ describe("rewriteCssContent", () => {
 });
 
 describe("buildHtmlPreview", () => {
-  it("rewrites linked assets and strips scripts from sandboxed srcdoc", () => {
+  it("rewrites linked assets and strips user scripts from sandboxed srcdoc", () => {
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -158,7 +158,9 @@ describe("buildHtmlPreview", () => {
     expect(srcdoc).toContain(encodeURIComponent("/pages/theme.css"));
     expect(srcdoc).toContain(encodeURIComponent("/pages/photo.jpg"));
     expect(srcdoc).toContain(encodeURIComponent("/pages/other.html"));
-    expect(srcdoc).not.toContain("<script");
+    expect(srcdoc).not.toContain("app.js");
+    expect(srcdoc).not.toContain("<script src=");
+    expect(srcdoc).toContain("scrollIntoView");
     expect(srcdoc).not.toContain("javascript:");
   });
 
