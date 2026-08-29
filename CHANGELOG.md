@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.0.3
 
  **Bugfixes**:
+ - Fixed Fuji `.raf` thumbnail preview by extracting the camera-embedded JPEG from the RAF header (regression for files where TIFF-based raw extraction does not apply).
+ - Image previews for unsupported decodable formats now return HTTP 415 immediately instead of attempting JPEG decode and returning HTTP 500.
  - OIDC: preserve the verified ID-token user identifier when falling back to the UserInfo endpoint for missing groups, so login no longer fails with HTTP 500 when UserInfo returns groups but omits the configured identifier.
  - LDAP: restore `memberOf` as the default `groupsClaim` when unset, fixing group-based admin and login authorization for existing LDAP configs after the v2.0.2 default changed to `groups`.
 

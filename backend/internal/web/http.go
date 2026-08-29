@@ -18,6 +18,7 @@ import (
 	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -139,6 +140,8 @@ func ErrToStatus(err error) int {
 		return http.StatusBadRequest
 	case errors.Is(err, libErrors.ErrIsDirectory):
 		return http.StatusMethodNotAllowed
+	case errors.Is(err, preview.ErrUnsupportedFormat):
+		return http.StatusUnsupportedMediaType
 	default:
 		return http.StatusInternalServerError
 	}
