@@ -164,6 +164,51 @@ func TestNormalizeSidebarLinks_dedupesToolsLink(t *testing.T) {
 	}
 }
 
+func TestNormalizeSidebarLinks_preservesMultipleFolderShortcutsOnSameSource(t *testing.T) {
+	testSourceConfig(t)
+
+	in := []users.SidebarLink{
+		{Name: "docker", Category: "source", SourceName: ".", Target: "/"},
+		{Name: "Photos", Category: string(users.SidebarLinkSourceMinimal), Icon: "photo", SourceName: ".", Target: "/photos"},
+		{Name: "Docs", Category: string(users.SidebarLinkSourceAlt), Icon: "folder", SourceName: ".", Target: "/docs"},
+		{Name: "divider", Category: "divider", Target: "#"},
+	}
+
+	out, changed := NormalizeSidebarLinks(in)
+	if changed {
+		t.Fatal("expected canonical folder shortcuts unchanged")
+	}
+	if len(out) != 4 {
+		t.Fatalf("len(out) = %d, want 4", len(out))
+	}
+	if out[1].Name != "Photos" || out[1].Icon != "photo" || out[1].Target != "/photos" {
+		t.Fatalf("photos link = %#v", out[1])
+	}
+	if out[2].Category != string(users.SidebarLinkSourceAlt) {
+		t.Fatalf("docs category = %q", out[2].Category)
+	}
+}
+
+func TestNormalizeSidebarLinks_dedupesSameSourceAndTarget(t *testing.T) {
+	testSourceConfig(t)
+
+	in := []users.SidebarLink{
+		{Name: "docker", Category: "source", SourceName: ".", Target: "/"},
+		{Name: "docker root", Category: "source-minimal", Icon: "home", SourceName: "docker", Target: "/"},
+	}
+
+	out, changed := NormalizeSidebarLinks(in)
+	if !changed {
+		t.Fatal("expected changed=true")
+	}
+	if len(out) != 1 {
+		t.Fatalf("len(out) = %d, want 1", len(out))
+	}
+	if out[0].Name != "docker" {
+		t.Fatalf("first link wins: %#v", out[0])
+	}
+}
+
 func TestNormalizeSidebarLinks_noConfigLoaded(t *testing.T) {
 	had := users.SourceConfigLoaded()
 	t.Cleanup(func() {
