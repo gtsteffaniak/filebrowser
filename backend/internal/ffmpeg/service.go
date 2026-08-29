@@ -107,20 +107,11 @@ func (s *Service) Release() {
 }
 
 // VideoPreview extracts a JPEG preview frame to w.
-func (s *Service) VideoPreview(ctx context.Context, w io.Writer, videoPath string, percentageSeek int) error {
+func (s *Service) VideoPreview(ctx context.Context, w io.Writer, opts ops.PreviewOptions) error {
 	if s == nil || s.inner == nil {
 		return fmt.Errorf("ffmpeg service not available")
 	}
-	if err := s.Acquire(ctx); err != nil {
-		return err
-	}
-	defer s.Release()
-
-	return s.inner.VideoPreview(ctx, w, ops.PreviewOptions{
-		Input:       videoPath,
-		SeekPercent: float64(percentageSeek),
-		Quality:     10,
-	})
+	return s.inner.VideoPreview(ctx, w, opts)
 }
 
 // ExtractSubtitle returns embedded subtitle content as WebVTT.

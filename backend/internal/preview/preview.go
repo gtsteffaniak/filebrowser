@@ -279,7 +279,7 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 		return s.generateImagePreview(ctx, file, previewSize)
 
 	case previewTypeVideo:
-		return s.generateVideoPreviewBytes(ctx, file, seekPercentage)
+		return s.generateVideoPreviewBytes(ctx, file, previewSize, seekPercentage)
 
 	case previewTypeAudio:
 		if file.Metadata != nil && len(file.Metadata.AlbumArt) > 0 {
@@ -324,7 +324,7 @@ func (s *Service) generateHEICPreview(ctx context.Context, file iteminfo.Extende
 }
 
 // generateVideoPreviewBytes generates preview frame from video file
-func (s *Service) generateVideoPreviewBytes(ctx context.Context, file iteminfo.ExtendedFileInfo, seekPercentage int) ([]byte, error) {
+func (s *Service) generateVideoPreviewBytes(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string, seekPercentage int) ([]byte, error) {
 	// Check if this video format is enabled for preview generation
 	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(file.Name)), ".")
 	if !settings.CanConvertVideo(ext) {
@@ -336,7 +336,7 @@ func (s *Service) generateVideoPreviewBytes(ctx context.Context, file iteminfo.E
 		videoSeekPercentage = 10
 	}
 
-	imageBytes, err := s.GenerateVideoPreview(ctx, file.RealPath, videoSeekPercentage)
+	imageBytes, err := s.GenerateVideoPreview(ctx, file.RealPath, previewSize, videoSeekPercentage)
 	if err != nil {
 		// Don't log client cancellations as errors
 		if ctx.Err() != context.Canceled {
@@ -421,9 +421,10 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
-	// MuPDF document previews render at target size in CGO; they only need docGenMutex.
+	// MuPDF document previews render at target size in CGO; FFmpeg video previews scale at decode.
 	previewTypeEarly := determinePreviewType(file)
-	skipImageSem := previewTypeEarly == previewTypeDocument && settings.Env.MuPdfAvailable
+	skipImageSem := (previewTypeEarly == previewTypeDocument && settings.Env.MuPdfAvailable) ||
+		(previewTypeEarly == previewTypeVideo && settings.Env.FFmpegAvailable)
 	if !skipImageSem {
 		const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
 		if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
@@ -492,7 +493,8 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	// When we got bytes from type-specific path, regular images are already resized; others need resize below.
 	previewType := determinePreviewType(file)
 	if !fromEmbeddedPreview && (previewType == previewTypeImage ||
-		(previewType == previewTypeDocument && settings.Env.MuPdfAvailable)) {
+		(previewType == previewTypeDocument && settings.Env.MuPdfAvailable) ||
+		(previewType == previewTypeVideo && settings.Env.FFmpegAvailable)) {
 		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)
 		}

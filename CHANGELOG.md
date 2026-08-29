@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file. For commit 
 #- share defaults and enforcements
 #- tool defaults and enforcement
 #- Add more groups support, deprecated source.config.defaultEnabled and make source enablement prefer group-based
-#- make ffmpeg preview generation faster by skipping resize processing.
+#- make ffmpeg preview generation faster by skipping resize processing. (done: VideoPreview sized at decode)
 
 
  **Notes**:
