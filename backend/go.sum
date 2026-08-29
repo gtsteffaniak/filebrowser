@@ -427,8 +427,8 @@ github.com/gostaticanalysis/testutil v0.5.0 h1:Dq4wT1DdTwTGCQQv3rl3IvD5Ld0E6HiY+
 github.com/gostaticanalysis/testutil v0.5.0/go.mod h1:OLQSbuM6zw2EvCcXTz1lVq5unyoNft372msDY0nY5Hs=
 github.com/gtsteffaniak/go-cache v1.1.0 h1:ni/2cJpCxpGmaMZd92iTDIGOy+yUcMcxQuW7bSKhkCE=
 github.com/gtsteffaniak/go-cache v1.1.0/go.mod h1:rHUZvf4huhMX/bnNK4/oQ3sNAE2fYC2jFpAWZiBPWac=
-github.com/gtsteffaniak/go-ffmpeg v1.0.0 h1:dUWvlZmWnkiujDtIMLGwrpfSAOnM+IOtk93HXF6HR0U=
-github.com/gtsteffaniak/go-ffmpeg v1.0.0/go.mod h1:FefhoD+KZzHWqBaUpntcKp6lXtUzdFW00F74axnENUQ=
+github.com/gtsteffaniak/go-ffmpeg v1.2.0 h1:WSFfRL5xVUpEXBNI4D3f2Uz8yxbc3OEqTtjp4Z9yPUo=
+github.com/gtsteffaniak/go-ffmpeg v1.2.0/go.mod h1:FefhoD+KZzHWqBaUpntcKp6lXtUzdFW00F74axnENUQ=
 github.com/gtsteffaniak/go-logger v1.1.0 h1:baFds+iibuLLNpNLwygz32bDqdsunI6dGWcdxwMIVKI=
 github.com/gtsteffaniak/go-logger v1.1.0/go.mod h1:rapapTju4D7bwt6h4JOdZNUXDjnp0WkTBd6TN5yWglI=
 github.com/hairyhenderson/go-codeowners v0.7.0 h1:s0W4wF8bdsBEjTWzwzSlsatSthWtTAF2xLgo4a4RwAo=

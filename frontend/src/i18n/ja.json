@@ -813,6 +813,11 @@
       "alignCenter": "中央揃え",
       "justify": "両端揃え",
       "fontColor": "フォントの色"
+    },
+    "json": {
+      "formatJSON": "JSON形式",
+      "formatJSONSuccess": "JSON形式への変換に成功しました",
+      "invalidJSON": "無効なJSON：{message}"
     }
   },
   "player": {

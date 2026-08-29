@@ -813,6 +813,11 @@
       "alignCenter": "居中对齐",
       "justify": "两端对齐",
       "fontColor": "字体颜色"
+    },
+    "json": {
+      "formatJSON": "JSON 格式",
+      "formatJSONSuccess": "JSON 格式化成功",
+      "invalidJSON": "无效的 JSON：{message}"
     }
   },
   "player": {

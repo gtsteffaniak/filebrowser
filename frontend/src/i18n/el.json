@@ -813,6 +813,11 @@
       "alignCenter": "Στοίχιση στο κέντρο",
       "justify": "Πλήρης στοίχιση",
       "fontColor": "Χρώμα γραμματοσειράς"
+    },
+    "json": {
+      "formatJSON": "Μορφή JSON",
+      "formatJSONSuccess": "Η μορφοποίηση σε JSON ολοκληρώθηκε με επιτυχία",
+      "invalidJSON": "Μη έγκυρο JSON: {message}"
     }
   },
   "player": {

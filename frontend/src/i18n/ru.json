@@ -813,6 +813,11 @@
       "alignCenter": "Выравнивание по центру",
       "justify": "Выравнивание по ширине",
       "fontColor": "Цвет шрифта"
+    },
+    "json": {
+      "formatJSON": "Формат JSON",
+      "formatJSONSuccess": "Форматирование в JSON прошло успешно",
+      "invalidJSON": "Недопустимый JSON: {message}"
     }
   },
   "player": {

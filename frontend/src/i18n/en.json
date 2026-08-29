@@ -853,6 +853,11 @@
       "alignCenter": "Align center",
       "justify": "Justify",
       "fontColor": "Font color"
+    },
+    "json": {
+      "formatJSON": "Format JSON",
+      "formatJSONSuccess": "JSON formatted successfully",
+      "invalidJSON": "Invalid JSON: {message}"
     }
   },
   "player": {

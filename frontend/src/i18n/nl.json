@@ -822,6 +822,11 @@
       "alignCenter": "Centreren",
       "justify": "Uitvullen",
       "fontColor": "Letterkleur"
+    },
+    "json": {
+      "formatJSON": "JSON-formaat",
+      "formatJSONSuccess": "JSON is succesvol opgemaakt",
+      "invalidJSON": "Ongeldige JSON: {message}"
     }
   },
   "player": {

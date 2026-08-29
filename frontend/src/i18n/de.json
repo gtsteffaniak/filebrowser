@@ -813,6 +813,11 @@
       "alignCenter": "Zentrieren",
       "justify": "Blocksatz",
       "fontColor": "Schriftfarbe"
+    },
+    "json": {
+      "formatJSON": "JSON-Format",
+      "formatJSONSuccess": "JSON wurde erfolgreich formatiert",
+      "invalidJSON": "Ungültiges JSON: {message}"
     }
   },
   "player": {
