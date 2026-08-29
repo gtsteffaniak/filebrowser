@@ -5675,6 +5675,10 @@ const docTemplate = `{
                     "description": "disable the nav buttons in the sidebar",
                     "type": "boolean"
                 },
+                "disablePWAInstall": {
+                    "description": "disable the PWA install button in the sidebar",
+                    "type": "boolean"
+                },
                 "disableUsedPercentage": {
                     "description": "disable used percentage for the sources in the sidebar",
                     "type": "boolean"

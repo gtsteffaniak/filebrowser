@@ -1,6 +1,5 @@
 import { getters, mutations, state } from "@/store";
 import { globalVars } from "@/utils/constants";
-import { getCookie } from "@/utils/cookie.js";
 import { getApiPath } from "@/utils/url.js";
 
 /** Session JWT: renew when within 30 minutes of expiry (former X-Renew-Token threshold). */
@@ -14,6 +13,29 @@ const KEEP_ALIVE_INTERVAL_MS = 60 * 1000;
 
 let keepAliveTimer = null;
 let renewInFlight = null;
+let sessionExpiresAt = null;
+
+function decodeJwtExp(token) {
+  if (!token) {
+    return null;
+  }
+  const parts = token.split(".");
+  if (parts.length < 2) {
+    return null;
+  }
+  try {
+    const padded = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padLength = (4 - (padded.length % 4)) % 4;
+    const payload = JSON.parse(atob(padded + "=".repeat(padLength)));
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
+
+function setSessionExpiresAtFromToken(token) {
+  sessionExpiresAt = decodeJwtExp(token);
+}
 
 /**
  * @param {number|null|undefined} expiresAtSeconds Unix expiry in seconds
@@ -36,36 +58,9 @@ export function shouldRefreshBeforeExpiry(expiresAtSeconds, refreshBeforeMs) {
   return msUntilRefresh(expiresAtSeconds, refreshBeforeMs) === 0;
 }
 
-function decodeBase64UrlJson(segment) {
-  const padded = segment.replace(/-/g, "+").replace(/_/g, "/");
-  const padLength = (4 - (padded.length % 4)) % 4;
-  const base64 = padded + "=".repeat(padLength);
-  return JSON.parse(atob(base64));
-}
-
-/** Unix `exp` from the session JWT cookie, or null if missing/unreadable. */
+/** Unix `exp` tracked from the last successful renew response, or null if unknown. */
 export function getSessionJwtExpiresAt() {
-  const raw = getCookie(SESSION_COOKIE_NAME);
-  if (!raw) {
-    return null;
-  }
-  // Cookie value may be URI-encoded depending on how it was set.
-  let token = raw;
-  try {
-    token = decodeURIComponent(raw);
-  } catch {
-    // use raw
-  }
-  const parts = token.split(".");
-  if (parts.length < 2) {
-    return null;
-  }
-  try {
-    const payload = decodeBase64UrlJson(parts[1]);
-    return typeof payload.exp === "number" ? payload.exp : null;
-  } catch {
-    return null;
-  }
+  return sessionExpiresAt;
 }
 
 export async function validateLogin(isPublicRoute = false) {
@@ -80,19 +75,11 @@ export async function validateLogin(isPublicRoute = false) {
   });
 
   if (res.status !== 200) {
-    // A 401 from the non-public self check means our session cookie (JWT) is no
-    // longer valid — typically it expired. Clear it and redirect to login so the
-    // user can re-authenticate, instead of leaving the stale cookie in place
-    // (which otherwise leaves the app stuck on reload). Only do this for a real,
-    // non-public session: public routes legitimately 401 for anonymous share
-    // visitors, and we skip it when there is no session cookie to clear.
-    if (
-      res.status === 401 &&
-      !isPublicRoute &&
-      document.cookie
-        .split(";")
-        .some((c) => c.trim().startsWith(`${SESSION_COOKIE_NAME}=`))
-    ) {
+    // A 401 from the non-public self check means our session is no longer valid —
+    // typically the HttpOnly JWT cookie expired. Redirect to login when the app
+    // still considers the user logged in (public routes legitimately 401 for
+    // anonymous share visitors).
+    if (res.status === 401 && !isPublicRoute && getters.isLoggedIn()) {
       sessionExpired();
     }
     throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
@@ -136,6 +123,7 @@ export async function renew() {
     });
     const body = await res.text();
     if (res.status === 200) {
+      setSessionExpiresAtFromToken(body);
       mutations.setSession(generateRandomCode(8));
       return;
     }
@@ -208,8 +196,8 @@ export async function logout(redirectUrl) {
       if (redirectUrl) {
         destination = redirectUrl;
       }
-      // Backend clears the cookie, but frontend does it as fail-safe cleanup
-      document.cookie = `${SESSION_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/`;
+      // Backend clears the HttpOnly session cookie.
+      sessionExpiresAt = null;
       void mutations.setCurrentUser(null);
       // No need to clear state.jwt - cookie is the source of truth
       // Add a small delay to ensure cookie deletion completes before redirect
@@ -226,16 +214,12 @@ export async function logout(redirectUrl) {
   }
 }
 
-// Handle an authenticated request that came back 401 because the session cookie
-// (JWT) is no longer valid — typically it expired while the tab was idle. Unlike
-// logout(), this does NOT call the server (which would itself 401 on an expired
-// token and leave the stale cookie in place); it clears the cookie locally and
-// redirects to the login page so the user can re-authenticate, instead of being
-// stuck on a raw "token is expired" error.
+// Handle an authenticated request that came back 401 because the session is no
+// longer valid — typically it expired while the tab was idle. Unlike logout(),
+// this does NOT call the server; it clears client state and redirects to login.
 export function sessionExpired() {
   stopSessionKeepAlive();
-  document.cookie =
-    `${SESSION_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/`;
+  sessionExpiresAt = null;
   void mutations.setCurrentUser(null);
   // Avoid a redirect loop if we're already on the login page.
   if (window.location.pathname.endsWith("/login")) {

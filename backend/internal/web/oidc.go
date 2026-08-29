@@ -394,19 +394,8 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	// This allows backend to identify expired sessions and provide better user feedback
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
-	// Set the authentication token as an HTTP cookie
-	host := requestHost(r)
-	cookie := &http.Cookie{
-		Name:     "filebrowser_quantum_jwt",
-		Value:    tokenString,
-		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode, // Lax mode allows cookie on navigation from OIDC provider
-		Expires:  expiresTime,
-		// HttpOnly: true, // Cannot use HttpOnly since frontend needs to read cookie for renew operations
-		// Secure: true, // Enable this in production with HTTPS
-	}
-	http.SetCookie(w, cookie)
+	// Set the authentication token as an HTTP cookie (Lax for OIDC redirect return).
+	http.SetCookie(w, sessionCookie(r, tokenString, expiresTime, 0, http.SameSiteLaxMode))
 
 	// Set the authenticated user in the request context or response writer
 	// This allows subsequent handlers to access the current user.

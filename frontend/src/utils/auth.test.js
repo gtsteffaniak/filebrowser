@@ -24,7 +24,6 @@ import {
   getSessionJwtExpiresAt,
   msUntilRefresh,
   renew,
-  SESSION_COOKIE_NAME,
   SESSION_REFRESH_BEFORE_MS,
   shouldRefreshBeforeExpiry,
   startSessionKeepAlive,
@@ -32,8 +31,6 @@ import {
   validateLogin,
   VIEW_REFRESH_BEFORE_MS,
 } from './auth.js';
-
-const COOKIE = SESSION_COOKIE_NAME;
 
 function respond(status, body = '') {
   global.fetch = vi.fn().mockResolvedValue({
@@ -58,10 +55,8 @@ function makeJwt(expSeconds) {
 describe('validateLogin session-expiry handling', () => {
   beforeEach(() => {
     storeMock.mutations.setCurrentUser.mockClear();
+    storeMock.getters.isLoggedIn.mockReturnValue(true);
     stopSessionKeepAlive();
-    document.cookie = `${COOKIE}=stale; path=/`;
-    // Stub navigation via Vitest's global-stub API (jsdom doesn't implement
-    // real navigation). pathname+search feed the redirect; href captures it.
     vi.stubGlobal('location', { pathname: '/files/', search: '?a=1', href: '' });
   });
 
@@ -70,12 +65,10 @@ describe('validateLogin session-expiry handling', () => {
     vi.unstubAllGlobals();
   });
 
-  it('clears the cookie + user and redirects (with encoded return path) on a non-public 401 with a session cookie', async () => {
+  it('clears the user and redirects (with encoded return path) on a non-public 401 while logged in', async () => {
     respond(401, 'token is expired');
     await expect(validateLogin(false)).rejects.toThrow();
     expect(storeMock.mutations.setCurrentUser).toHaveBeenCalledWith(null);
-    expect(document.cookie.includes(`${COOKIE}=stale`)).toBe(false);
-    // Full redirect contract: login route + correctly encoded current path+query.
     expect(window.location.href).toBe(
       `/login?redirect=${encodeURIComponent('/files/?a=1')}`
     );
@@ -85,12 +78,11 @@ describe('validateLogin session-expiry handling', () => {
     respond(401, 'unauthorized');
     await expect(validateLogin(true)).rejects.toThrow();
     expect(storeMock.mutations.setCurrentUser).not.toHaveBeenCalledWith(null);
-    expect(document.cookie.includes(`${COOKIE}=stale`)).toBe(true);
     expect(window.location.href).toBe('');
   });
 
-  it('does NOT log out or redirect on a non-public 401 when there is NO session cookie', async () => {
-    document.cookie = `${COOKIE}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/`;
+  it('does NOT log out or redirect on a non-public 401 when the app is not logged in', async () => {
+    storeMock.getters.isLoggedIn.mockReturnValue(false);
     respond(401, 'unauthorized');
     await expect(validateLogin(false)).rejects.toThrow();
     expect(storeMock.mutations.setCurrentUser).not.toHaveBeenCalledWith(null);
@@ -101,7 +93,6 @@ describe('validateLogin session-expiry handling', () => {
     respond(500, 'server error');
     await expect(validateLogin(false)).rejects.toThrow();
     expect(storeMock.mutations.setCurrentUser).not.toHaveBeenCalledWith(null);
-    expect(document.cookie.includes(`${COOKIE}=stale`)).toBe(true);
     expect(window.location.href).toBe('');
   });
 });
@@ -133,22 +124,24 @@ describe('session JWT keep-alive', () => {
   afterEach(() => {
     stopSessionKeepAlive();
     vi.useRealTimers();
-    document.cookie = `${COOKIE}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/`;
   });
 
-  it('parses exp from the session cookie JWT', () => {
+  it('tracks exp from the renew response JWT', async () => {
     const exp = Math.floor(Date.now() / 1000) + 3600;
-    document.cookie = `${COOKIE}=${makeJwt(exp)}; path=/`;
+    global.fetch = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => makeJwt(exp),
+    });
+    await renew();
     expect(getSessionJwtExpiresAt()).toBe(exp);
   });
 
   it('ensureSessionFresh renews when JWT is within the refresh window', async () => {
     const exp = Math.floor(Date.now() / 1000) + 60; // 1 minute left
-    document.cookie = `${COOKIE}=${makeJwt(exp)}; path=/`;
-    global.fetch = vi.fn().mockResolvedValue({
-      status: 200,
-      text: async () => 'new-token',
-    });
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ status: 200, text: async () => makeJwt(exp) })
+      .mockResolvedValueOnce({ status: 200, text: async () => makeJwt(exp + 3600) });
+    await renew();
     const renewed = await ensureSessionFresh(SESSION_REFRESH_BEFORE_MS);
     expect(renewed).toBe(true);
     expect(global.fetch).toHaveBeenCalledWith(
@@ -160,7 +153,11 @@ describe('session JWT keep-alive', () => {
 
   it('ensureSessionFresh skips renew when JWT is still fresh', async () => {
     const exp = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours left
-    document.cookie = `${COOKIE}=${makeJwt(exp)}; path=/`;
+    global.fetch = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => makeJwt(exp),
+    });
+    await renew();
     global.fetch = vi.fn();
     const renewed = await ensureSessionFresh(SESSION_REFRESH_BEFORE_MS);
     expect(renewed).toBe(false);
@@ -169,7 +166,11 @@ describe('session JWT keep-alive', () => {
 
   it('ensureSessionFresh returns false for joined callers when renew fails', async () => {
     const exp = Math.floor(Date.now() / 1000) + 60;
-    document.cookie = `${COOKIE}=${makeJwt(exp)}; path=/`;
+    global.fetch = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => makeJwt(exp),
+    });
+    await renew();
     let release;
     const barrier = new Promise((resolve) => {
       release = resolve;
@@ -206,10 +207,9 @@ describe('session JWT keep-alive', () => {
 
   it('startSessionKeepAlive ticks ensureSessionFresh on an interval', async () => {
     const exp = Math.floor(Date.now() / 1000) + 60;
-    document.cookie = `${COOKIE}=${makeJwt(exp)}; path=/`;
     global.fetch = vi.fn().mockResolvedValue({
       status: 200,
-      text: async () => 'new-token',
+      text: async () => makeJwt(exp),
     });
     startSessionKeepAlive();
     expect(global.fetch).toHaveBeenCalledTimes(1);

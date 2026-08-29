@@ -50,7 +50,7 @@
   <link rel="canonical" href="https://filebrowserquantum.com">
 
   <!-- Injected variables come from backend server -->
-  <script>
+  <script nonce="{{ .cspNonce }}">
     window.globalVars = {{ .globalVars }};
     window.__pwaDeferredPrompt = null;
     window.addEventListener("beforeinstallprompt", function (event) {
