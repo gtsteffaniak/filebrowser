@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file. For commit 
 #- share defaults and enforcements
 #- tool defaults and enforcement
 #- Add more groups support, deprecated source.config.defaultEnabled and make source enablement prefer group-based
-#- make ffmpeg preview generation faster by skipping resize processing. (done: VideoPreview sized at decode)
+#- make  (done: VideoPreview sized at decode)
 
 
  **Notes**:
@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Enhancements to cross-source copy/move permissions and behavior.
  - Improved resume upload behavior.
  - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
+ - ffmpeg video thumbnail generation optimized and skip downscale process.
 
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
