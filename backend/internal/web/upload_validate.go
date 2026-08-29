@@ -3,7 +3,9 @@ package web
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"strconv"
@@ -95,4 +97,28 @@ func isContentUpload(r *http.Request) bool {
 	}
 	_, ok, err := parseUploadTotalSize(r)
 	return err == nil && ok
+}
+
+func drainRequestBody(r *http.Request) {
+	if r.Body == nil {
+		return
+	}
+	_, _ = io.Copy(io.Discard, r.Body)
+	_ = r.Body.Close()
+}
+
+type chunkUploadResponse struct {
+	Offset   int64 `json:"offset"`
+	Total    int64 `json:"total"`
+	Complete bool  `json:"complete"`
+}
+
+func writeChunkUploadResponse(w http.ResponseWriter, offset, total int64, complete bool) error {
+	w.Header().Set("Connection", "close")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	return json.NewEncoder(w).Encode(chunkUploadResponse{
+		Offset:   offset,
+		Total:    total,
+		Complete: complete,
+	})
 }

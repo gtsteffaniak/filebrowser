@@ -4,11 +4,20 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.3
 
+ **Security**:
+ - [High] Stored XSS via HTML preview: strip `<script>` from sanitized srcdoc, remove `allow-same-origin` from the preview iframe sandbox, set HttpOnly on the session cookie, and add a nonce-based `script-src` CSP on the SPA shell (GHSA-vvm6-jwrf-hgmg) -- thanks @qrn12580
+
+ **New Features**:
+ - Added option to globally disable the "Install App" message via `frontend.disablePWAInstall`
+
  **Bugfixes**:
  - Fixed Fuji `.raf` thumbnail preview by extracting the camera-embedded JPEG from the RAF header (regression for files where TIFF-based raw extraction does not apply).
  - Image previews for unsupported decodable formats now return HTTP 415 immediately instead of attempting JPEG decode and returning HTTP 500.
  - OIDC: preserve the verified ID-token user identifier when falling back to the UserInfo endpoint for missing groups, so login no longer fails with HTTP 500 when UserInfo returns groups but omits the configured identifier.
  - LDAP: restore `memberOf` as the default `groupsClaim` when unset, fixing group-based admin and login authorization for existing LDAP configs after the v2.0.2 default changed to `groups`.
+ - "Install app" message reappears after being cleared on device.
+ - Restored upload chunk size `0` to disable chunking as documented ([#2202](https://github.com/gtsteffaniak/filebrowser/issues/2202)).
+ - Fixed iOS 26 / WebKit multi-chunk upload stall by isolating chunk connections and returning partial chunk JSON responses ([#2734](https://github.com/gtsteffaniak/filebrowser/issues/2734)).
 
 ## v2.0.2
 

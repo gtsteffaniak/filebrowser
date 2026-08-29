@@ -300,6 +300,7 @@ type Frontend struct {
 	LoginIcon             string         `json:"loginIcon"`           // path to an image file for the login page icon
 	LoginButtonText       string         `json:"loginButtonText"`     // text to display on the login button
 	OIDCLoginButtonText   string         `json:"oidcLoginButtonText"` // text to display on the OIDC login button
+	DisablePWAInstall     bool           `json:"disablePWAInstall"`   // disable the PWA install button in the sidebar
 }
 
 type StylingConfig struct {
