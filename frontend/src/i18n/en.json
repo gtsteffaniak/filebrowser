@@ -686,7 +686,7 @@
     "maxConcurrentUpload": "Max concurrent uploads",
     "maxConcurrentUploadHelp": "The maximum number of concurrent uploads. Higher values typically perform better, but this depends on many factors.",
     "uploadChunkSizeMb": "Upload chunk size in MB",
-    "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking.",
+    "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking. On iOS 26+ devices, if multi-chunk uploads stall after the first chunk, set this to 0 or larger than your largest file.",
     "downloadChunkSizeMb": "Download chunk size in MB",
     "downloadChunkSizeMbHelp": "Chunk size for chunked downloads. Files larger than this size will be downloaded in chunks to prevent timeout issues (e.g., Cloudflare 524 errors). Setting to 0 disables chunked downloads.",
     "clearAll": "Clear completed should remove error, pause, and conflict",

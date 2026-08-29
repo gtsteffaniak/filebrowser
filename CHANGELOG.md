@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - "install app" message reappears after being cleared on device.
  - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
+ - Restored upload chunk size `0` to disable chunking as documented ([#2202](https://github.com/gtsteffaniak/filebrowser/issues/2202)); workaround for iOS 26 multi-chunk upload stalls ([#2734](https://github.com/gtsteffaniak/filebrowser/issues/2734)).
 
 ## v1.5.3-stable
 
