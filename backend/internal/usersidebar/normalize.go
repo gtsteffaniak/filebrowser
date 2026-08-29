@@ -20,7 +20,7 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 		return links, false
 	}
 
-	seenSourceKeys := make(map[string]struct{})
+	seenSourceKeys := make(map[sourceLinkDedupeKey]struct{})
 	hasTools := false
 	out := make([]users.SidebarLink, 0, len(links))
 	changed := false
@@ -41,12 +41,12 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 			}
 			normalized.Target = normalizeSidebarTarget(normalized.Target)
 
-			dedupeKey := sourceLinkDedupeKey(source.Path, normalized.Target)
-			if _, dup := seenSourceKeys[dedupeKey]; dup {
+			key := sourceLinkDedupeKey{sourcePath: source.Path, target: normalized.Target}
+			if _, dup := seenSourceKeys[key]; dup {
 				changed = true
 				continue
 			}
-			seenSourceKeys[dedupeKey] = struct{}{}
+			seenSourceKeys[key] = struct{}{}
 
 			if normalized != link {
 				changed = true
@@ -94,6 +94,7 @@ func normalizeSidebarTarget(target string) string {
 	return t
 }
 
-func sourceLinkDedupeKey(sourcePath, target string) string {
-	return sourcePath + "|" + normalizeSidebarTarget(target)
+type sourceLinkDedupeKey struct {
+	sourcePath string
+	target     string
 }

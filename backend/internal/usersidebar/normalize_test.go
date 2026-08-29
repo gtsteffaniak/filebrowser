@@ -209,6 +209,43 @@ func TestNormalizeSidebarLinks_dedupesSameSourceAndTarget(t *testing.T) {
 	}
 }
 
+func TestNormalizeSidebarLinks_noCollisionOnPipeInPathOrTarget(t *testing.T) {
+	had := users.SourceConfigLoaded()
+	t.Cleanup(func() {
+		if !had {
+			users.SetSourceConfig(nil)
+		}
+	})
+	users.SetSourceConfig(&users.SourceConfigProvider{
+		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
+			switch path {
+			case "a":
+				return users.SourceInfo{Path: "a", Name: "src-a"}, true
+			case "a|/b":
+				return users.SourceInfo{Path: "a|/b", Name: "src-pipe"}, true
+			default:
+				return users.SourceInfo{}, false
+			}
+		},
+		GetSourceByName: func(name string) (users.SourceInfo, bool) {
+			return users.SourceInfo{}, false
+		},
+	})
+
+	in := []users.SidebarLink{
+		{Name: "one", Category: "source", SourceName: "a", Target: "/b|/c"},
+		{Name: "two", Category: "source", SourceName: "a|/b", Target: "/c"},
+	}
+
+	out, changed := NormalizeSidebarLinks(in)
+	if changed {
+		t.Fatal("expected changed=false for distinct path/target pairs")
+	}
+	if len(out) != 2 {
+		t.Fatalf("len(out) = %d, want 2 (no false dedupe)", len(out))
+	}
+}
+
 func TestNormalizeSidebarLinks_noConfigLoaded(t *testing.T) {
 	had := users.SourceConfigLoaded()
 	t.Cleanup(func() {
