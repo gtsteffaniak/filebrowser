@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	stderrors "errors"
 	"fmt"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,15 +11,17 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
-	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type UserRequest struct {
@@ -273,6 +273,25 @@ func validatePatchWhich(which []string) error {
 	return nil
 }
 
+// validateNonAdminSelfPatchWhich rejects self-service PATCH attempts that touch privileged fields.
+// Non-admins may only update NonAdminEditable profile fields, plus password (with X-Password) and otpEnabled.
+func validateNonAdminSelfPatchWhich(which []string) error {
+	allowed := nonAdminEditableFieldNameSet()
+	for _, w := range which {
+		f := utils.CapitalizeFirst(strings.TrimSpace(w))
+		if f == "" {
+			return fmt.Errorf("which must not contain empty field names")
+		}
+		if strings.EqualFold(f, "Password") || strings.EqualFold(f, "OtpEnabled") {
+			continue
+		}
+		if _, ok := allowed[f]; !ok {
+			return fmt.Errorf("cannot update privileged user fields without admin permissions")
+		}
+	}
+	return nil
+}
+
 // userPutOnlyNonAdminEditableFields reports whether req.Which lists exclusively NonAdminEditable fields,
 // excluding Password.
 func userPutOnlyNonAdminEditableFields(which []string) bool {
@@ -372,6 +391,11 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	if !d.User.Permissions.Admin && targetUsername != d.User.Username {
 		return http.StatusForbidden, nil
+	}
+	if !d.User.Permissions.Admin && targetUsername == d.User.Username {
+		if err = validateNonAdminSelfPatchWhich(req.Which); err != nil {
+			return http.StatusForbidden, err
+		}
 	}
 
 	uValue, err2 := state.GetUserByUsername(targetUsername)

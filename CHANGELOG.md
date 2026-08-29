@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [High] Stored XSS via HTML preview: strip `<script>` from sanitized srcdoc, remove `allow-same-origin` from the preview iframe sandbox, set HttpOnly on the session cookie, and add a nonce-based `script-src` CSP on the SPA shell (GHSA-vvm6-jwrf-hgmg) -- thanks @qrn12580
+ - [Moderate] Non-admin users could PATCH privileged fields on their own account (scopes, permissions, etc.), allowing privilege escalation; restores v1 non-admin field guard on PATCH /api/users (GHSA-p5cc-4p84-c4m2) -- thanks @Chri6s
 
  **New Features**:
  - Added option to globally disable the "Install App" message via `frontend.disablePWAInstall`
@@ -18,6 +19,8 @@ All notable changes to this project will be documented in this file. For commit 
  - "Install app" message reappears after being cleared on device.
  - Restored upload chunk size `0` to disable chunking as documented ([#2202](https://github.com/gtsteffaniak/filebrowser/issues/2202)).
  - Fixed iOS 26 / WebKit multi-chunk upload stall by isolating chunk connections and returning partial chunk JSON responses ([#2734](https://github.com/gtsteffaniak/filebrowser/issues/2734)).
+ - Sidebar folder links with custom names, icons, or styles no longer disappear after restart; multiple shortcuts to different folders on the same source are preserved ([#2809](https://github.com/gtsteffaniak/filebrowser/issues/2809)).
+ - Adding a source to a user via scopes now auto-adds a matching sidebar link; removing a source keeps the link (shown disabled) so users can delete it manually.
 
 ## v2.0.2
 
