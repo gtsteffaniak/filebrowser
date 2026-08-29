@@ -27,7 +27,8 @@ var global *Service
 // InitOptions configures startup initialization.
 type InitOptions struct {
 	FFmpegPath           string
-	MaxConcurrent        int
+	MaxConcurrent        int // deprecated: use Concurrency
+	Concurrency          goffmpeg.Concurrency
 	CacheDir             string
 	SkipHWTests          bool
 	HardwareAcceleration bool
@@ -35,9 +36,6 @@ type InitOptions struct {
 
 // Initialize creates the global ffmpeg service and runs capability detection.
 func Initialize(ctx context.Context, opts InitOptions) error {
-	if opts.MaxConcurrent < 1 {
-		opts.MaxConcurrent = 4
-	}
 	if opts.CacheDir == "" {
 		opts.CacheDir = os.TempDir()
 	}
@@ -46,12 +44,20 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 		logger.Info("Detecting ffmpeg hardware codec support...")
 	}
 
-	svc, err := goffmpeg.New(ctx, goffmpeg.Config{
+	cfg := goffmpeg.Config{
 		FFmpegPath:    opts.FFmpegPath,
-		MaxConcurrent: opts.MaxConcurrent,
+		Concurrency:   opts.Concurrency,
 		Logger:        goffmpeg.NopLogger(),
 		SkipHWTests:   opts.SkipHWTests,
-	})
+	}
+	if opts.Concurrency.MaxProbe == 0 && opts.Concurrency.MaxDecode == 0 && opts.Concurrency.MaxEncode == 0 {
+		if opts.MaxConcurrent < 1 {
+			opts.MaxConcurrent = 4
+		}
+		cfg.MaxConcurrent = opts.MaxConcurrent
+	}
+
+	svc, err := goffmpeg.New(ctx, cfg)
 	if err != nil {
 		global = nil
 		return err
@@ -107,20 +113,12 @@ func (s *Service) Release() {
 }
 
 // VideoPreview extracts a JPEG preview frame to w.
-func (s *Service) VideoPreview(ctx context.Context, w io.Writer, videoPath string, percentageSeek int) error {
+// go-ffmpeg Service methods acquire concurrency slots automatically; do not Acquire before calling.
+func (s *Service) VideoPreview(ctx context.Context, w io.Writer, opts ops.PreviewOptions) error {
 	if s == nil || s.inner == nil {
 		return fmt.Errorf("ffmpeg service not available")
 	}
-	if err := s.Acquire(ctx); err != nil {
-		return err
-	}
-	defer s.Release()
-
-	return s.inner.VideoPreview(ctx, w, ops.PreviewOptions{
-		Input:       videoPath,
-		SeekPercent: float64(percentageSeek),
-		Quality:     10,
-	})
+	return s.inner.VideoPreview(ctx, w, opts)
 }
 
 // ExtractSubtitle returns embedded subtitle content as WebVTT.
@@ -137,11 +135,6 @@ func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamI
 	if content, ok := SubtitleContentCache.Get(cacheKey); ok {
 		return content, nil
 	}
-
-	if err = s.Acquire(ctx); err != nil {
-		return "", err
-	}
-	defer s.Release()
 
 	content, err := s.inner.ExtractSubtitle(ctx, videoPath, streamIndex)
 	if err != nil {
