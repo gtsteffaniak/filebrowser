@@ -24,8 +24,6 @@ All notable changes to this project will be documented in this file. For commit 
 #- share defaults and enforcements
 #- tool defaults and enforcement
 #- Add more groups support, deprecated source.config.defaultEnabled and make source enablement prefer group-based
-#- make  (done: VideoPreview sized at decode)
-
 
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
