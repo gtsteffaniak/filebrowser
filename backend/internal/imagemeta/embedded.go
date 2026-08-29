@@ -56,6 +56,8 @@ func ExtractEmbeddedPreview(ctx context.Context, path string) ([]byte, error) {
 	switch {
 	case ext == ".cr3":
 		data, err = extimagemeta.PreviewCR3(f)
+	case ext == ".raf":
+		data, err = extractRAFEmbeddedPreview(f)
 	case isRawImageExtension(ext):
 		data, err = extractTIFFEmbeddedPreview(f)
 	case isHEICExtension(ext):
