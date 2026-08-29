@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Added option to globally disable the "Install App" message via `frontend.disablePWAInstall`
- - PWA improvements for installed mobile apps: dedicated maskable icons (192/512), manifest and splash colors that follow the instance default theme, runtime `theme-color` sync on dark-mode toggle, and edge-to-edge safe-area layout for notched devices (#2625) (#2625) -- thanks @APatenaude
+ - PWA improvements for installed mobile apps: dedicated maskable icons (192/512), manifest and splash colors that follow the instance default theme, runtime `theme-color` sync on dark-mode toggle, and edge-to-edge safe-area layout for notched devices (#2625) (#2869) -- thanks @APatenaude
 
  **Bugfixes**:
  - Fixed Fuji `.raf` thumbnail preview by extracting the camera-embedded JPEG from the RAF header (regression for files where TIFF-based raw extraction does not apply).
