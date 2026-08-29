@@ -126,7 +126,7 @@ func ValidateRecaptcha() {
 		return
 	}
 	parsed, err := url.Parse(r.Host)
-	if err != nil || !strings.EqualFold(parsed.Scheme, "https") {
+	if err != nil || !strings.EqualFold(parsed.Scheme, "https") || parsed.Hostname() == "" {
 		logger.Warning(fmt.Sprintf("configured recaptcha host %q is not a valid https URL - disabling recaptcha", r.Host))
 		r.Host = ""
 		r.Key = ""
