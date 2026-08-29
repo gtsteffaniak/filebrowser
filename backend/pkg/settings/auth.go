@@ -71,7 +71,7 @@ type PasswordAuthConfig struct {
 	AdminPassword string    `json:"adminPassword"`                  // secret: password for admin auto-assigned admin account. If set, reset on startup.
 	MinLength     int       `json:"minLength" validate:"omitempty"` // minimum pasword length required, default is 5.
 	Signup        bool      `json:"signup" validate:"omitempty"`    // allow signups on login page if enabled -- not secure.
-	Recaptcha     Recaptcha `json:"recaptcha" validate:"omitempty"` // recaptcha config, only used if signup is enabled
+	Recaptcha     Recaptcha `json:"recaptcha" validate:"omitempty"` // recaptcha config. If configured will show up the checkbox verification in the login page
 	EnforcedOtp   bool      `json:"enforcedOtp"`                    // if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
 }
 

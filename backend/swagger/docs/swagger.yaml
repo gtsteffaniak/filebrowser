@@ -767,7 +767,8 @@ definitions:
       recaptcha:
         allOf:
         - $ref: '#/definitions/settings.Recaptcha'
-        description: recaptcha config, only used if signup is enabled
+        description: recaptcha config. If configured will show up the checkbox verification
+          in the login page
       signup:
         description: allow signups on login page if enabled -- not secure.
         type: boolean

@@ -89,7 +89,7 @@ auth:
       adminPassword: "admin"              # secret: password for admin auto-assigned admin account. If set, reset on startup.
       minLength: 5                        # minimum pasword length required, default is 5.  validate:omitempty
       signup: false                       # allow signups on login page if enabled -- not secure.  validate:omitempty
-      recaptcha:                          # recaptcha config, only used if signup is enabled  validate:omitempty
+      recaptcha:                          # recaptcha config. If configured will show up the checkbox verification in the login page  validate:omitempty
         host: ""                          #  validate:required
         key: ""                           #  validate:required
         secret: ""                        #  validate:required
