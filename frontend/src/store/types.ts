@@ -277,6 +277,7 @@ export interface StoreState {
     instance: unknown;
     dirty: boolean;
     saveHandler: (() => Promise<void>) | null;
+    jsonFormatted: boolean;
     stats: {
       lines: number | null;
       words: number | null;

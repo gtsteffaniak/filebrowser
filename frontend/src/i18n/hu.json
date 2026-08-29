@@ -812,6 +812,11 @@
       "alignCenter": "Középre igazítás",
       "justify": "Sorkizárt",
       "fontColor": "Betűszín"
+    },
+    "json": {
+      "formatJSON": "JSON formázása",
+      "formatJSONSuccess": "A JSON formázása sikeresen megtörtént",
+      "invalidJSON": "Érvénytelen JSON: {message}"
     }
   },
   "player": {

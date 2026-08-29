@@ -812,6 +812,11 @@
       "alignCenter": "Zarovnať na stred",
       "justify": "Zarovnať do bloku",
       "fontColor": "Farba písma"
+    },
+    "json": {
+      "formatJSON": "Formát JSON",
+      "formatJSONSuccess": "Formátovanie JSON prebehlo úspešne",
+      "invalidJSON": "Neplatný JSON: {message}"
     }
   },
   "player": {

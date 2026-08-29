@@ -812,6 +812,11 @@
       "alignCenter": "Centrera",
       "justify": "Kantutjämna",
       "fontColor": "Typsnittsfärg"
+    },
+    "json": {
+      "formatJSON": "JSON-format",
+      "formatJSONSuccess": "JSON-formateringen lyckades",
+      "invalidJSON": "Ogiltig JSON: {message}"
     }
   },
   "player": {

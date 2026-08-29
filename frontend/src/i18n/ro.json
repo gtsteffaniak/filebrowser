@@ -812,6 +812,11 @@
       "alignCenter": "Aliniere la centru",
       "justify": "Aliniere între margini",
       "fontColor": "Culoarea fontului"
+    },
+    "json": {
+      "formatJSON": "Format JSON",
+      "formatJSONSuccess": "Formatarea JSON s-a realizat cu succes",
+      "invalidJSON": "JSON nevalid: {message}"
     }
   },
   "player": {

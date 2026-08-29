@@ -812,6 +812,11 @@
       "alignCenter": "יישור למרכז",
       "justify": "יישור דו-צדדי",
       "fontColor": "צבע גופן"
+    },
+    "json": {
+      "formatJSON": "פורמט JSON",
+      "formatJSONSuccess": "הפורמט JSON הומר בהצלחה",
+      "invalidJSON": "JSON לא תקין: {message}"
     }
   },
   "player": {

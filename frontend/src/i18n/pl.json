@@ -812,6 +812,11 @@
       "alignCenter": "Wyśrodkuj",
       "justify": "Wyjustuj",
       "fontColor": "Kolor czcionki"
+    },
+    "json": {
+      "formatJSON": "Format JSON",
+      "formatJSONSuccess": "Formatowanie JSON przebiegło pomyślnie",
+      "invalidJSON": "Nieprawidłowy plik JSON: {message}"
     }
   },
   "player": {

@@ -812,6 +812,11 @@
       "alignCenter": "محاذاة إلى المنتصف",
       "justify": "ضبط",
       "fontColor": "لون الخط"
+    },
+    "json": {
+      "formatJSON": "تنسيق JSON",
+      "formatJSONSuccess": "تم تنسيق JSON بنجاح",
+      "invalidJSON": "JSON غير صالح: {message}"
     }
   },
   "player": {

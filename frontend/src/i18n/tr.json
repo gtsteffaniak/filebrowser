@@ -812,6 +812,11 @@
       "alignCenter": "Ortala",
       "justify": "İki yana yasla",
       "fontColor": "Yazı tipi rengi"
+    },
+    "json": {
+      "formatJSON": "JSON biçimi",
+      "formatJSONSuccess": "JSON biçimlendirme başarıyla tamamlandı",
+      "invalidJSON": "Geçersiz JSON: {message}"
     }
   },
   "player": {

@@ -36,6 +36,7 @@ export const state: StoreState = reactive({
     instance: null,
     dirty: false,
     saveHandler: null,
+    jsonFormatted: false,
     stats: {
       lines: 0,
       words: 0,
