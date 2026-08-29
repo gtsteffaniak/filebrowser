@@ -25,7 +25,7 @@ func TestFfmpegPreviewParamsForSize(t *testing.T) {
 			wantW:    256,
 			wantH:    256,
 			wantMode: ops.ScaleFill,
-			wantQual: 5,
+			wantQual: 10,
 		},
 		{
 			name:     "large fit",
@@ -33,7 +33,7 @@ func TestFfmpegPreviewParamsForSize(t *testing.T) {
 			wantW:    640,
 			wantH:    640,
 			wantMode: ops.ScaleFit,
-			wantQual: 2,
+			wantQual: 10,
 		},
 		{
 			name:     "xlarge fit",
@@ -41,12 +41,12 @@ func TestFfmpegPreviewParamsForSize(t *testing.T) {
 			wantW:    1024,
 			wantH:    1024,
 			wantMode: ops.ScaleFit,
-			wantQual: 2,
+			wantQual: 10,
 		},
 		{
 			name:     "original no scale",
 			size:     "original",
-			wantQual: 1,
+			wantQual: 10,
 		},
 		{
 			name:      "unsupported",

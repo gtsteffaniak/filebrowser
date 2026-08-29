@@ -8,6 +8,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 )
 
 func requireFFmpegBinaries(t *testing.T) {
@@ -40,8 +42,8 @@ func testSampleMP4(t *testing.T) string {
 	return out
 }
 
-// TestGetMediaDurationConcurrentNoDeadlock guards against double-acquire on go-ffmpeg v1.0+.
-// With MaxConcurrent=2, four concurrent GetMediaDuration calls must all complete.
+// TestGetMediaDurationConcurrentNoDeadlock ensures probe-tier concurrency does not deadlock.
+// With MaxProbe=2, four concurrent GetMediaDuration calls queue and complete.
 func TestGetMediaDurationConcurrentNoDeadlock(t *testing.T) {
 	requireFFmpegBinaries(t)
 	sample := testSampleMP4(t)
@@ -50,7 +52,11 @@ func TestGetMediaDurationConcurrentNoDeadlock(t *testing.T) {
 	defer cancel()
 
 	err := Initialize(ctx, InitOptions{
-		MaxConcurrent:        2,
+		Concurrency: goffmpeg.Concurrency{
+			MaxProbe:  2,
+			MaxDecode: 4,
+			MaxEncode: 2,
+		},
 		CacheDir:             t.TempDir(),
 		SkipHWTests:          true,
 		HardwareAcceleration: false,
@@ -88,7 +94,7 @@ func TestGetMediaDurationConcurrentNoDeadlock(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(25 * time.Second):
-		t.Fatal("concurrent GetMediaDuration calls deadlocked with MaxConcurrent=2")
+		t.Fatal("concurrent GetMediaDuration calls deadlocked with MaxProbe=2")
 	}
 
 	close(errCh)
