@@ -21,6 +21,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
+	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -364,14 +365,18 @@ func isGoTest() bool {
 }
 
 func setupFFmpegIntegration() {
-	maxConcurrent := Config.Server.NumImageProcessors
-	if maxConcurrent < 1 {
-		maxConcurrent = 4
+	n := Config.Server.NumImageProcessors
+	if n < 1 {
+		n = 4
 	}
-	ffmpegConcurrency := (maxConcurrent + 1) / 2
+	maxDecode := (n + 1) / 2
 	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
-		FFmpegPath:           Config.Integrations.Media.FfmpegPath,
-		MaxConcurrent:        ffmpegConcurrency,
+		FFmpegPath: Config.Integrations.Media.FfmpegPath,
+		Concurrency: goffmpeg.Concurrency{
+			MaxProbe:  16,
+			MaxDecode: maxDecode,
+			MaxEncode: 2,
+		},
 		CacheDir:             Config.Server.CacheDir,
 		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
 		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
