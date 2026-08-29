@@ -21,6 +21,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Fixed iOS 26 / WebKit multi-chunk upload stall by isolating chunk connections and returning partial chunk JSON responses ([#2734](https://github.com/gtsteffaniak/filebrowser/issues/2734)).
  - Sidebar folder links with custom names, icons, or styles no longer disappear after restart; multiple shortcuts to different folders on the same source are preserved ([#2809](https://github.com/gtsteffaniak/filebrowser/issues/2809)).
  - Adding a source to a user via scopes now auto-adds a matching sidebar link; removing a source keeps the link (shown disabled) so users can delete it manually.
+ - A password reset via CLI returns user to a password method user.
+ - Authentication login methods are consistently enforced without modifying existing account settings.
 
 ## v2.0.2
 
