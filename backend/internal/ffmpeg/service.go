@@ -107,6 +107,7 @@ func (s *Service) Release() {
 }
 
 // VideoPreview extracts a JPEG preview frame to w.
+// go-ffmpeg Service methods acquire concurrency slots automatically; do not Acquire before calling.
 func (s *Service) VideoPreview(ctx context.Context, w io.Writer, opts ops.PreviewOptions) error {
 	if s == nil || s.inner == nil {
 		return fmt.Errorf("ffmpeg service not available")
@@ -128,11 +129,6 @@ func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamI
 	if content, ok := SubtitleContentCache.Get(cacheKey); ok {
 		return content, nil
 	}
-
-	if err = s.Acquire(ctx); err != nil {
-		return "", err
-	}
-	defer s.Release()
 
 	content, err := s.inner.ExtractSubtitle(ctx, videoPath, streamIndex)
 	if err != nil {

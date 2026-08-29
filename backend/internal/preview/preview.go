@@ -421,10 +421,9 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
-	// MuPDF document previews render at target size in CGO; FFmpeg video previews scale at decode.
+	// MuPDF document previews render at target size in CGO; they only need docGenMutex.
 	previewTypeEarly := determinePreviewType(file)
-	skipImageSem := (previewTypeEarly == previewTypeDocument && settings.Env.MuPdfAvailable) ||
-		(previewTypeEarly == previewTypeVideo && settings.Env.FFmpegAvailable)
+	skipImageSem := previewTypeEarly == previewTypeDocument && settings.Env.MuPdfAvailable
 	if !skipImageSem {
 		const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
 		if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
