@@ -3824,19 +3824,19 @@ const docTemplate = `{
                     "403": {
                         "description": "Forbidden",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
                 }
