@@ -273,8 +273,12 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 		ext := strings.ToLower(filepath.Ext(file.Name))
 		if iteminfo.IsRawImage(ext) {
 			if s.ffmpegService != nil {
-				if bytes, err := s.convertImageWithFFmpeg(ctx, file.RealPath, previewSize); err == nil && len(bytes) >= minPreviewSize {
-					return bytes, nil
+				previewBytes, err := s.convertImageWithFFmpeg(ctx, file.RealPath, previewSize)
+				if err == nil && len(previewBytes) >= minPreviewSize {
+					return previewBytes, nil
+				}
+				if ctx.Err() != nil {
+					return nil, ctx.Err()
 				}
 			}
 			return nil, ErrUnsupportedFormat

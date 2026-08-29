@@ -39,7 +39,7 @@ func TestExtractRAFEmbeddedPreviewSynthetic(t *testing.T) {
 
 func TestExtractRAFEmbeddedPreviewIgnoresInvalidMagic(t *testing.T) {
 	data := make([]byte, 256)
-	copy(data[:8], []byte("NOTARAF "))
+	copy(data[:rafMagicLen], []byte("FUJIFILMCCD-RAW!"))
 	path := filepath.Join(t.TempDir(), "bad.raf")
 	if err := os.WriteFile(path, data, 0o600); err != nil {
 		t.Fatal(err)

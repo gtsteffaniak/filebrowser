@@ -10,7 +10,7 @@ import (
 
 const (
 	rafMagicLen       = 16
-	rafMagic          = "FUJIFILMCCD-RAW"
+	rafMagic          = "FUJIFILMCCD-RAW "
 	rafJPEGOffsetPos  = 0x54
 	rafJPEGLengthPos  = 0x58
 	rafHeaderMinBytes = 0x5C

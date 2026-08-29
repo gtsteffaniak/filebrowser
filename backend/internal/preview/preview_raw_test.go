@@ -77,7 +77,8 @@ func TestGenerateImagePreviewUsesPNGFormat(t *testing.T) {
 	dir := t.TempDir()
 	svc := NewPreviewGenerator(1, dir)
 
-	// 1x1 red PNG
+	// 1x1 red PNG; pad past maxSizeForOriginal (256KB) so we exercise format selection.
+	const maxSizeForOriginal = 256 * 1024
 	pngBytes := []byte{
 		0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 		0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
@@ -89,8 +90,10 @@ func TestGenerateImagePreviewUsesPNGFormat(t *testing.T) {
 		0xb4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e,
 		0x44, 0xae, 0x42, 0x60, 0x82,
 	}
+	payload := make([]byte, maxSizeForOriginal+1)
+	copy(payload, pngBytes)
 	path := filepath.Join(dir, "pixel.png")
-	if err := os.WriteFile(path, pngBytes, 0o600); err != nil {
+	if err := os.WriteFile(path, payload, 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -98,7 +101,7 @@ func TestGenerateImagePreviewUsesPNGFormat(t *testing.T) {
 		FileInfo: iteminfo.FileInfo{
 			ItemInfo: iteminfo.ItemInfo{
 				Name:    "pixel.png",
-				Size:    int64(len(pngBytes)),
+				Size:    int64(len(payload)),
 				ModTime: time.Now(),
 				Type:    "image/png",
 			},
@@ -110,7 +113,7 @@ func TestGenerateImagePreviewUsesPNGFormat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got) == 0 {
-		t.Fatal("expected non-empty preview bytes")
+	if len(got) < 8 || string(got[:8]) != "\x89PNG\r\n\x1a\n" {
+		t.Fatalf("expected PNG signature, got %x", got[:min(8, len(got))])
 	}
 }
