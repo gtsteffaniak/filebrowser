@@ -304,8 +304,6 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/gtsteffaniak/go-ffmpeg => ../../go-ffmpeg
-
 tool (
 	github.com/air-verse/air
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
