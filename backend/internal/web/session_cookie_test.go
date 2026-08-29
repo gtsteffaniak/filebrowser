@@ -51,7 +51,7 @@ func TestSessionCookie_NotSecureOnHTTP(t *testing.T) {
 
 func TestSpaContentSecurityPolicy_BlocksUntrustedScripts(t *testing.T) {
 	csp := spaContentSecurityPolicy("testnonce")
-	if csp != "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com" {
+	if csp != "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com; worker-src blob:" {
 		t.Fatalf("unexpected CSP: %s", csp)
 	}
 	if strings.Contains(csp, "'unsafe-inline'") {
