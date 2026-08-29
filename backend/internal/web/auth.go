@@ -146,6 +146,7 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	}
 	// Verify login method matches
 	if userValue.LoginMethod != loginMethod {
+		logger.Debugf("login rejected: user %q attempted %s login but account loginMethod is %q", username, loginMethod, userValue.LoginMethod)
 		return nil, errors.ErrWrongLoginMethod
 	}
 	// Sync IdP groups into access-control GroupMap (write-through). Skip when the

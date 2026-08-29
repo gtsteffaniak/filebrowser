@@ -387,6 +387,9 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 				if err == errors.ErrNoTotpProvided {
 					return 403, err
 				}
+				if status, mapped := loginMethodHTTPStatus(err); status != 0 {
+					return status, mapped
+				}
 				return 401, errors.ErrUnauthorized
 			}
 			d.User = user
@@ -504,6 +507,9 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	// Setup user based on JWT claims
 	user, err := SetupJwtUser(r, data, username, claims)
 	if err != nil {
+		if status, mapped := loginMethodHTTPStatus(err); status != 0 {
+			return status, mapped
+		}
 		return http.StatusForbidden, err
 	}
 	data.User = user
@@ -535,6 +541,9 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	// proxy user logic
 	user, err := SetupProxyUser(r, data, proxyUser)
 	if err != nil {
+		if status, mapped := loginMethodHTTPStatus(err); status != 0 {
+			return status, mapped
+		}
 		return http.StatusForbidden, err
 	}
 	data.User = user
