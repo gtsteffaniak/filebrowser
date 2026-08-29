@@ -51,6 +51,11 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	return templates.ExecuteTemplate(w, name, data)
 }
 
+func recaptchaSettings(pwd settings.PasswordAuthConfig) (enabled bool, host, key string) {
+	enabled = pwd.Recaptcha.Host != "" && pwd.Recaptcha.Key != ""
+	return enabled, pwd.Recaptcha.Host, pwd.Recaptcha.Key
+}
+
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
 	userSelectedTheme := ""
@@ -127,6 +132,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 		shareHash = d.Share.Hash
 	}
+	recaptchaEnabled, recaptchaHost, recaptchaKey := recaptchaSettings(settings.Config.Auth.Methods.PasswordAuth)
+
 	// Set login icon URL
 	loginIcon := staticURL + "/loginIcon"
 
@@ -223,6 +230,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"loginButtonText":        settings.Config.Frontend.LoginButtonText,
 		"passkeyAvailable":       settings.Config.Auth.Methods.PasskeyAuth.Enabled,
 		"passkeyLoginButtonText": settings.Config.Auth.Methods.PasskeyAuth.LoginButtonText,
+		"recaptcha":              recaptchaEnabled,
+		"recaptchaHost":          recaptchaHost,
+		"recaptchaKey":           recaptchaKey,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

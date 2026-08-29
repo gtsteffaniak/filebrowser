@@ -143,7 +143,8 @@
     "wrongCredentials": "Неверные данные",
     "failedLogin": "Не удалось войти в систему",
     "invalidCredentials": "Предоставлены неверные учетные данные",
-    "passkeyLogin": "Использовать ключ доступа"
+    "passkeyLogin": "Использовать ключ доступа",
+    "recaptchaRequired": "Требуется проверка Recaptcha"
   },
   "prompts": {
     "deleteMessageSingle": "Удалить этот файл/папку?",

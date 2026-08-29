@@ -313,7 +313,8 @@
     "wrongCredentials": "Wrong credentials",
     "failedLogin": "Failed to login",
     "invalidCredentials": "Invalid credentials provided",
-    "passkeyLogin": "Use Passkey"
+    "passkeyLogin": "Use Passkey",
+    "recaptchaRequired": "Recaptcha challenge required"
   },
   "quotas": {
     "title": "Storage quota",

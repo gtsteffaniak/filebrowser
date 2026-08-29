@@ -143,7 +143,8 @@
     "wrongCredentials": "Nesprávné přihlašovací údaje",
     "failedLogin": "Nepodařilo se přihlásit",
     "invalidCredentials": "Neplatné zadané pověření",
-    "passkeyLogin": "Použít Passkey"
+    "passkeyLogin": "Použít Passkey",
+    "recaptchaRequired": "Je vyžadováno ověření Recaptcha"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",

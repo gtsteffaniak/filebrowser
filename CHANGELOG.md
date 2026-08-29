@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
  - Added some missing styles in the markdown viewer (#2714)
+ - Recaptcha not working (#1925) (#2861)
 
 ## v2.0.2
 

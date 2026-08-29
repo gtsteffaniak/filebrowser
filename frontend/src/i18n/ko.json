@@ -143,7 +143,8 @@
     "wrongCredentials": "사용자 이름 또는 비밀번호를 확인하십시오",
     "failedLogin": "로그인에 실패했습니다.",
     "invalidCredentials": "제공된 자격 증명이 잘못되었습니다.",
-    "passkeyLogin": "패스키 사용"
+    "passkeyLogin": "패스키 사용",
+    "recaptchaRequired": "Recaptcha 인증이 필요합니다"
   },
   "prompts": {
     "deleteMessageSingle": "파일 혹은 디렉토리를 삭제하시겠습니까?",
