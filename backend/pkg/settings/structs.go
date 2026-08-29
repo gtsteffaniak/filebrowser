@@ -38,6 +38,7 @@ type Http struct {
 }
 
 type Environment struct {
+	IsCLIMode                        bool     `json:"-"` // true when running a CLI subcommand (user set, promote, etc.)
 	IsPlaywright                     bool     `json:"-"`
 	IsDevMode                        bool     `json:"-"`
 	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application

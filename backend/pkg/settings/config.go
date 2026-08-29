@@ -31,6 +31,16 @@ const (
 )
 
 func Initialize(configFile string) {
+	initializeConfig(configFile, false)
+}
+
+// InitializeCLI loads config for CLI subcommands without server-only setup (ffmpeg, frontend, etc.).
+func InitializeCLI(configFile string) {
+	initializeConfig(configFile, true)
+}
+
+func initializeConfig(configFile string, cliMode bool) {
+	Env.IsCLIMode = cliMode
 	err := loadConfigWithDefaults(configFile, false)
 	if err != nil {
 		logger.Error("unable to load config, waiting 5 seconds before exiting...")
@@ -57,6 +67,9 @@ func Initialize(configFile string) {
 	setupSources(false)
 	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
 	setupUrls()
+	if cliMode {
+		return
+	}
 	warnHttpProxyConfig()
 	setupFrontend(false)
 	setupMedia(false)

@@ -376,6 +376,9 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 
 	user, err := getOrCreateAuthenticatedUser(username, users.LoginMethodOidc, isAdmin, groups)
 	if err != nil {
+		if status, mapped := loginMethodHTTPStatus(err); status != 0 {
+			return status, mapped
+		}
 		return http.StatusUnauthorized, err
 	}
 

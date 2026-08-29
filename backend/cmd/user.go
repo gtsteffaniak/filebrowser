@@ -81,7 +81,8 @@ func validateUserInfo(newDB bool) {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
-			changedFields = append(changedFields, "permissions", "password")
+			user.LoginMethod = users.LoginMethodPassword
+			changedFields = append(changedFields, "permissions", "password", "loginMethod")
 			changePass = true
 		}
 
