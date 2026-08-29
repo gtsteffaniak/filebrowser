@@ -98,9 +98,9 @@ func setUser(username, password string, asAdmin bool) error {
 		}
 
 		if asAdmin {
-			logger.Debugf("Creating user as admin: %s\n", username)
+			logger.Infof("Creating user as admin: %s\n", username)
 		} else {
-			logger.Debugf("Creating non-admin user: %s\n", username)
+			logger.Infof("Creating non-admin user: %s\n", username)
 		}
 		newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Account.Permissions)
 		newUser.Permissions.Admin = asAdmin
