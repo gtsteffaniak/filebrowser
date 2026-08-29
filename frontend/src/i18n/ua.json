@@ -710,10 +710,7 @@
     "limit": "Обмеження{suffix}",
     "remove": "Видалити{suffix}",
     "saved": "Збережено{suffix}",
-    "removed": "Видалено{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Видалено{suffix}"
   },
   "access": {
     "rules": "Правила доступу",
@@ -813,6 +810,11 @@
       "alignCenter": "Вирівняти по центру",
       "justify": "Вирівняти по ширині",
       "fontColor": "Колір шрифту"
+    },
+    "json": {
+      "formatJSON": "Формат JSON",
+      "formatJSONSuccess": "Форматування у форматі JSON завершено успішно",
+      "invalidJSON": "Неправильний JSON: {message}"
     }
   },
   "player": {

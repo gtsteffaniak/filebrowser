@@ -614,10 +614,7 @@
     "limit": "上限{suffix}",
     "remove": "削除{suffix}",
     "saved": "保存済み{suffix}",
-    "removed": "削除済み{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "削除済み{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -813,6 +810,11 @@
       "alignCenter": "中央揃え",
       "justify": "両端揃え",
       "fontColor": "フォントの色"
+    },
+    "json": {
+      "formatJSON": "JSON形式",
+      "formatJSONSuccess": "JSON形式への変換に成功しました",
+      "invalidJSON": "無効なJSON：{message}"
     }
   },
   "player": {

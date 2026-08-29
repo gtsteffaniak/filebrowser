@@ -710,10 +710,7 @@
     "limit": "Limiet{suffix}",
     "remove": "Verwijderen{suffix}",
     "saved": "Opgeslagen{suffix}",
-    "removed": "Verwijderd{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Verwijderd{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -813,6 +810,11 @@
       "alignCenter": "Centreren",
       "justify": "Uitvullen",
       "fontColor": "Letterkleur"
+    },
+    "json": {
+      "formatJSON": "JSON-formaat",
+      "formatJSONSuccess": "JSON succesvol opgemaakt",
+      "invalidJSON": "Ongeldige JSON: {message}"
     }
   },
   "player": {

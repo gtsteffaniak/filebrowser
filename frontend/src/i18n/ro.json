@@ -614,10 +614,7 @@
     "limit": "Limită{suffix}",
     "remove": "Eliminare{suffix}",
     "saved": "Salvat{suffix}",
-    "removed": "Eliminat{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Eliminat{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -813,6 +810,11 @@
       "alignCenter": "Aliniere la centru",
       "justify": "Aliniere între margini",
       "fontColor": "Culoarea fontului"
+    },
+    "json": {
+      "formatJSON": "Format JSON",
+      "formatJSONSuccess": "Formatarea JSON s-a realizat cu succes",
+      "invalidJSON": "JSON nevalid: {message}"
     }
   },
   "player": {

@@ -614,10 +614,7 @@
     "limit": "Határ{suffix}",
     "remove": "Eltávolítás{suffix}",
     "saved": "Elmentve{suffix}",
-    "removed": "Eltávolítva{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Eltávolítva{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -813,6 +810,11 @@
       "alignCenter": "Középre igazítás",
       "justify": "Sorkizárt",
       "fontColor": "Betűszín"
+    },
+    "json": {
+      "formatJSON": "JSON formázása",
+      "formatJSONSuccess": "A JSON formázása sikeresen megtörtént",
+      "invalidJSON": "Érvénytelen JSON: {message}"
     }
   },
   "player": {

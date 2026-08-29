@@ -614,10 +614,7 @@
     "limit": "한도{suffix}",
     "remove": "제거{suffix}",
     "saved": "저장됨{suffix}",
-    "removed": "삭제됨{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "삭제됨{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -813,6 +810,11 @@
       "alignCenter": "가운데 정렬",
       "justify": "양쪽 정렬",
       "fontColor": "글꼴 색상"
+    },
+    "json": {
+      "formatJSON": "JSON 형식",
+      "formatJSONSuccess": "JSON 형식으로 성공적으로 변환되었습니다.",
+      "invalidJSON": "잘못된 JSON: {message}"
     }
   },
   "player": {

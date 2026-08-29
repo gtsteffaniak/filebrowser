@@ -614,10 +614,7 @@
     "limit": "الحد الأقصى{suffix}",
     "remove": "إزالة{suffix}",
     "saved": "تم الحفظ{suffix}",
-    "removed": "تم حذفه{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "تم حذفه{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -813,6 +810,11 @@
       "alignCenter": "محاذاة إلى المنتصف",
       "justify": "ضبط",
       "fontColor": "لون الخط"
+    },
+    "json": {
+      "formatJSON": "تنسيق JSON",
+      "formatJSONSuccess": "تم تنسيق JSON بنجاح",
+      "invalidJSON": "JSON غير صالح: {message}"
     }
   },
   "player": {

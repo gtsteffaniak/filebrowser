@@ -256,7 +256,7 @@ export default {
         alwaysAvailable.push({
           id: "formatJSON",
           icon: "data_object",
-          title: this.$t("general.formatJSON"),
+          title: this.$t("editor.json.formatJSON"),
           action: () => this.formatJSON(),
         });
       }
@@ -359,9 +359,9 @@ export default {
           : JSON.stringify(parsed, null, 2);
         if (next !== textToFormat) editor.setValue(next, -1);
         mutations.setEditorJsonFormatted(!state.editor.jsonFormatted);
-        notify.showSuccessToast(this.$t("general.formatJSONSuccess"));
+        notify.showSuccessToast(this.$t("editor.json.formatJSONSuccess"));
       } catch (e) {
-        notify.showErrorToast(this.$t("general.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
+        notify.showErrorToast(this.$t("editor.json.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
       }
       this.focusEditor();
     },

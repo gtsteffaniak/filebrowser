@@ -614,10 +614,7 @@
     "limit": "גבול{suffix}",
     "remove": "הסר{suffix}",
     "saved": "נשמר{suffix}",
-    "removed": "הוסר{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "הוסר{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -813,6 +810,11 @@
       "alignCenter": "יישור למרכז",
       "justify": "יישור דו-צדדי",
       "fontColor": "צבע גופן"
+    },
+    "json": {
+      "formatJSON": "פורמט JSON",
+      "formatJSONSuccess": "הפורמט JSON הומר בהצלחה",
+      "invalidJSON": "JSON לא תקין: {message}"
     }
   },
   "player": {

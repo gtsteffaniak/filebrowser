@@ -614,10 +614,7 @@
     "limit": "Sınır{suffix}",
     "remove": "Kaldır{suffix}",
     "saved": "Kaydedildi{suffix}",
-    "removed": "Kaldırıldı{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Kaldırıldı{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -813,6 +810,11 @@
       "alignCenter": "Ortala",
       "justify": "İki yana yasla",
       "fontColor": "Yazı tipi rengi"
+    },
+    "json": {
+      "formatJSON": "JSON biçimi",
+      "formatJSONSuccess": "JSON biçimlendirme başarıyla tamamlandı",
+      "invalidJSON": "Geçersiz JSON: {message}"
     }
   },
   "player": {

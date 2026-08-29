@@ -614,10 +614,7 @@
     "limit": "Предел{suffix}",
     "remove": "Удалить{suffix}",
     "saved": "Сохранено{suffix}",
-    "removed": "Удалено{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Удалено{suffix}"
   },
   "access": {
     "rules": "Правила доступа",
@@ -813,6 +810,11 @@
       "alignCenter": "Выравнивание по центру",
       "justify": "Выравнивание по ширине",
       "fontColor": "Цвет шрифта"
+    },
+    "json": {
+      "formatJSON": "Формат JSON",
+      "formatJSONSuccess": "Форматирование в JSON прошло успешно",
+      "invalidJSON": "Недопустимый JSON: {message}"
     }
   },
   "player": {

@@ -167,10 +167,7 @@
     "limit": "Лимит{suffix}",
     "remove": "Премахни{suffix}",
     "saved": "Запазено{suffix}",
-    "removed": "Премахнато{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Премахнато{suffix}"
   },
   "buttons": {
     "copySuccess": "Копирано в клипборда!",
@@ -833,6 +830,11 @@
       "alignCenter": "Центриране",
       "justify": "Двустранно подравняване",
       "fontColor": "Цвят на шрифта"
+    },
+    "json": {
+      "formatJSON": "Формат JSON",
+      "formatJSONSuccess": "Форматирането в JSON беше успешно",
+      "invalidJSON": "Невалиден JSON: {message}"
     }
   },
   "player": {

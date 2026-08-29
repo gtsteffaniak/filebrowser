@@ -710,10 +710,7 @@
     "limit": "上限{suffix}",
     "remove": "移除{suffix}",
     "saved": "已儲存{suffix}",
-    "removed": "已移除{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "已移除{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -813,6 +810,11 @@
       "alignCenter": "居中對齊",
       "justify": "對齊",
       "fontColor": "字體顏色"
+    },
+    "json": {
+      "formatJSON": "JSON 格式",
+      "formatJSONSuccess": "JSON 格式化成功",
+      "invalidJSON": "無效的 JSON：{message}"
     }
   },
   "player": {

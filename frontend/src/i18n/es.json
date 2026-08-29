@@ -614,10 +614,7 @@
     "limit": "Límite{suffix}",
     "remove": "Eliminar{suffix}",
     "saved": "Guardado{suffix}",
-    "removed": "Eliminado{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Eliminado{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -813,6 +810,11 @@
       "alignCenter": "Alinear al centro",
       "justify": "Justificar",
       "fontColor": "Color de fuente"
+    },
+    "json": {
+      "formatJSON": "Formato JSON",
+      "formatJSONSuccess": "El formato JSON se ha generado correctamente",
+      "invalidJSON": "JSON no válido: {message}"
     }
   },
   "player": {

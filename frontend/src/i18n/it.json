@@ -167,10 +167,7 @@
     "limit": "Limite{suffix}",
     "remove": "Rimuovi{suffix}",
     "saved": "Salvato{suffix}",
-    "removed": "Rimosso{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Rimosso{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -822,6 +819,11 @@
       "alignCenter": "Allinea al centro",
       "justify": "Giustifica",
       "fontColor": "Colore del carattere"
+    },
+    "json": {
+      "formatJSON": "Formato JSON",
+      "formatJSONSuccess": "Formattazione JSON completata con successo",
+      "invalidJSON": "JSON non valido: {message}"
     }
   },
   "player": {

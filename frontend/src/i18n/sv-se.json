@@ -710,10 +710,7 @@
     "limit": "Gräns{suffix}",
     "remove": "Ta bort{suffix}",
     "saved": "Sparat{suffix}",
-    "removed": "Borttagen{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Borttagen{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -813,6 +810,11 @@
       "alignCenter": "Centrera",
       "justify": "Kantutjämna",
       "fontColor": "Typsnittsfärg"
+    },
+    "json": {
+      "formatJSON": "JSON-format",
+      "formatJSONSuccess": "JSON-formateringen lyckades",
+      "invalidJSON": "Ogiltig JSON: {message}"
     }
   },
   "player": {

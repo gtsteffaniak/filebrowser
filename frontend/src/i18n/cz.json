@@ -710,10 +710,7 @@
     "limit": "Limit{suffix}",
     "remove": "Odstranit{suffix}",
     "saved": "Uloženo{suffix}",
-    "removed": "Odstraněno{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Odstraněno{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -813,6 +810,11 @@
       "alignCenter": "Zarovnat na střed",
       "justify": "Zarovnat do bloku",
       "fontColor": "Barva písma"
+    },
+    "json": {
+      "formatJSON": "Formát JSON",
+      "formatJSONSuccess": "Formátování do JSON proběhlo úspěšně",
+      "invalidJSON": "Neplatný JSON: {message}"
     }
   },
   "player": {

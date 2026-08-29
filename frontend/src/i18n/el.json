@@ -614,10 +614,7 @@
     "limit": "Όριο{suffix}",
     "remove": "Κατάργηση{suffix}",
     "saved": "Αποθηκεύτηκε{suffix}",
-    "removed": "Διαγράφηκε{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "removed": "Διαγράφηκε{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",
@@ -813,6 +810,11 @@
       "alignCenter": "Στοίχιση στο κέντρο",
       "justify": "Πλήρης στοίχιση",
       "fontColor": "Χρώμα γραμματοσειράς"
+    },
+    "json": {
+      "formatJSON": "Μορφή JSON",
+      "formatJSONSuccess": "Η μορφοποίηση σε JSON ολοκληρώθηκε με επιτυχία",
+      "invalidJSON": "Μη έγκυρο JSON: {message}"
     }
   },
   "player": {

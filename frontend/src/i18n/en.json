@@ -167,10 +167,7 @@
     "clearSelection": "Clear selection",
     "interval": "Interval{suffix}",
     "none": "None",
-    "enforce": "Enforce{suffix}",
-    "formatJSON": "Format JSON",
-    "formatJSONSuccess": "JSON formatted successfully",
-    "invalidJSON": "Invalid JSON: {message}"
+    "enforce": "Enforce{suffix}"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -853,6 +850,11 @@
       "alignCenter": "Align center",
       "justify": "Justify",
       "fontColor": "Font color"
+    },
+    "json": {
+      "formatJSON": "Format JSON",
+      "formatJSONSuccess": "JSON formatted successfully",
+      "invalidJSON": "Invalid JSON: {message}"
     }
   },
   "player": {
