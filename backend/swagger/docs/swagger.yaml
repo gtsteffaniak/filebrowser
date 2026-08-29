@@ -5019,6 +5019,49 @@ paths:
       summary: Directory with media metadata (public share)
       tags:
       - Shares
+  /public/api/media/subtitles:
+    get:
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share
+        in: query
+        name: path
+        type: string
+      - description: Subtitle track name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: Whether this is an embedded stream
+        in: query
+        name: embedded
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Raw subtitle content
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get subtitle content (public share)
+      tags:
+      - Shares
   /public/api/resources:
     get:
       consumes:

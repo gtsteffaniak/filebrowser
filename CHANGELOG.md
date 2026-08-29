@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - "install app" message reappears after being cleared on device.
+ - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
 
 ## v1.5.3-stable
 

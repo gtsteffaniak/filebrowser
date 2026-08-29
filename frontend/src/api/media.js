@@ -3,16 +3,35 @@ import { state } from "@/store";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { adjustedData, fetchURL } from "./utils";
 
-// GET /api/media/subtitles
+// GET /api/media/subtitles or /public/api/media/subtitles
 export async function getSubtitleContent(source, path, subtitleName, embedded = false) {
   try {
-    const apiPath = getApiPath('media/subtitles', {
-      source: source,
-      path: path,
+    const hash = state.shareInfo?.hash || null
+    const baseParams = {
+      path,
       name: subtitleName,
-      embedded: embedded.toString()
-    })
-    const res = await fetchURL(apiPath)
+      ...(embedded && { embedded: 'true' }),
+    }
+
+    let res
+    if (hash) {
+      const apiPath = getPublicApiPath('media/subtitles', {
+        hash,
+        ...baseParams,
+        ...(state.shareInfo.token && { token: state.shareInfo.token }),
+      })
+      const sharePassword = localStorage.getItem(`sharepass:${hash}`) || ''
+      res = await fetchURL(apiPath, {
+        headers: { 'X-SHARE-PASSWORD': sharePassword },
+      })
+    } else {
+      const apiPath = getApiPath('media/subtitles', {
+        source,
+        ...baseParams,
+      })
+      res = await fetchURL(apiPath)
+    }
+
     const content = await res.text()
     return content
   } catch (err) {
