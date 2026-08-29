@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -423,6 +424,65 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, status)
 			}
 		})
+	}
+}
+
+func TestWithHashFileHelper_SkipsPrefetchForMediaSubtitles(t *testing.T) {
+	setupTestEnv(t)
+
+	dummyUser := &users.User{
+		ID:       1,
+		Username: "testuser",
+		Scopes: []users.SourceScope{
+			{Name: "srv", Scope: "/"},
+		},
+	}
+	if err := store.Users.Save(dummyUser, false, false); err != nil {
+		t.Fatal("failed to save dummy user:", err)
+	}
+
+	shareLink := &share.Link{
+		Hash:   "subtitle_share_hash",
+		UserID: 1,
+		CommonShare: share.CommonShare{
+			Source: "/srv",
+			Path:   "/",
+		},
+	}
+	if err := store.Share.Save(shareLink); err != nil {
+		t.Fatal("failed to save share:", err)
+	}
+
+	fileInfoCalled := false
+	originalFileInfoFaster := FileInfoFasterFunc
+	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
+	FileInfoFasterFunc = func(opts utils.FileOptions, access *access.Storage, user *users.User, share *share.Storage) (*iteminfo.ExtendedFileInfo, error) {
+		fileInfoCalled = true
+		return nil, fmt.Errorf("FileInfoFasterFunc should not be called for /media/subtitles")
+	}
+
+	handlerCalled := false
+	handler := withHashFileHelper(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+		handlerCalled = true
+		return http.StatusOK, nil
+	})
+
+	if err := store.Settings.Save(&settings.Settings{Auth: settings.Auth{Key: "key"}}); err != nil {
+		t.Fatal("failed to save settings:", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/public/api/media/subtitles?hash=subtitle_share_hash&path=/video.mkv&name=sub.srt", http.NoBody)
+
+	status, err := handler(recorder, req, &requestContext{})
+	if status != http.StatusOK {
+		t.Fatalf("expected status %d, got %d (err=%v)", http.StatusOK, status, err)
+	}
+	if !handlerCalled {
+		t.Fatal("expected wrapped handler to run")
+	}
+	if fileInfoCalled {
+		t.Fatal("FileInfoFasterFunc should not be called for GET /media/subtitles")
 	}
 }
 

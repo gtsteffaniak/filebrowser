@@ -334,7 +334,7 @@ func publicSubtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestCo
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Content-Disposition", "inline")
-	w.Header().Set("Cache-Control", "private")
+	w.Header().Set("Cache-Control", "no-store")
 	http.ServeContent(w, r, name, time.Now(), bytes.NewReader([]byte(content)))
 	return http.StatusOK, nil
 }
