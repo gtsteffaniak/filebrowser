@@ -47,7 +47,7 @@
               :placeholder="$t('login.passwordConfirm')" />
 
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
-            <input class="button button--block" type="submit"
+            <input class="button button--block" type="submit" :disabled="globalVars.recaptcha && !recaptchaReady"
               :value="createMode ? $t('general.signup') : getLoginButtonValue()" />
             <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
@@ -203,6 +203,36 @@ import { globalVars } from "@/utils/constants";
 import Tooltip from "@/components/Tooltip.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
+function loadRecaptcha(onReady, onError) {
+  if (typeof window.grecaptcha !== "undefined") {
+    onReady();
+    return;
+  }
+  const host = globalVars.recaptchaHost; // commonly https://www.google.com/recaptcha/api.js
+  const existing = document.querySelector(`script[src="${host}"]`);
+  if (!existing) {
+    const script = document.createElement("script");
+    script.src = host;
+    script.async = true;
+    script.defer = true;
+    script.onerror = () => onError(new Error('Failed to load recaptcha script'));
+    document.head.appendChild(script);
+  }
+  const startedAt = Date.now();
+  const waitForRecaptcha = () => {
+    if (typeof window.grecaptcha !== "undefined") {
+      onReady();
+      return;
+    }
+    if (Date.now() - startedAt > 15000) {
+      onError(new Error("recaptcha loading timed out"));
+      return;
+    }
+    setTimeout(waitForRecaptcha, 100);
+  };
+  waitForRecaptcha();
+}
+
 export default {
   name: "login",
   components: {
@@ -232,10 +262,20 @@ export default {
     username: "",
     password: "",
     recaptcha: globalVars.recaptcha,
+    recaptchaReady: false,
+    recaptchaId: null,
     passwordConfirm: "",
     loginURL: `${globalVars.baseURL}api/auth/oidc/login`,
     inProgress: false,
   }),
+  watch: {
+    // To render a new captcha whenever the login form is re-created (which can happen with wrong credentials)
+    inProgress(isInProgress, wasInProgress) {
+      if (!globalVars.recaptcha || !wasInProgress || isInProgress) return;
+      this.recaptchaReady = false;
+      this.$nextTick(() => this.renderRecaptcha());
+    },
+  },
   mounted() {
     let redirect = state.route.query.redirect;
     if (redirect) {
@@ -250,13 +290,22 @@ export default {
       }
     }
     if (!globalVars.recaptcha) return;
-    window.globalVars.recaptcha.ready(() => {
-      window.globalVars.recaptcha.render("globalVars.recaptcha", {
-        sitekey: globalVars.globalVars.recaptchaKey,
-      });
-    });
+    loadRecaptcha(
+      () => this.renderRecaptcha(),
+      (err) => console.error("recaptcha failed to load:", err)
+    );
   },
   methods: {
+    renderRecaptcha() {
+      const container = document.getElementById("globalVars.recaptcha");
+      if (!container) return;
+      window.grecaptcha.ready(() => {
+        this.recaptchaId = window.grecaptcha.render(container, {
+          sitekey: globalVars.recaptchaKey,
+        });
+        this.recaptchaReady = true;
+      });
+    },
     getOrLabel() {
       return this.$t("general.or").toUpperCase();
     },
@@ -321,9 +370,13 @@ export default {
 
       let captcha = "";
       if (globalVars.recaptcha) {
-        captcha = window.gglobalVars.recaptcha.getResponse();
+        if (!this.recaptchaReady) {
+          this.inProgress = false;
+          return;
+        }
+        captcha = window.grecaptcha.getResponse(this.recaptchaId);
         if (captcha === "") {
-          this.error = this.$t("login.wrongCredentials");
+          this.error = this.$t("login.recaptchaRequired");
           this.inProgress = false;
           return;
         }
