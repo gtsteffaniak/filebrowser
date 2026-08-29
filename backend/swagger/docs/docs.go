@@ -6201,12 +6201,15 @@ const docTemplate = `{
             ],
             "properties": {
                 "host": {
+                    "description": "google recaptcha host, for example: https://www.google.com/recaptcha/api.js",
                     "type": "string"
                 },
                 "key": {
+                    "description": "v2 site key",
                     "type": "string"
                 },
                 "secret": {
+                    "description": "v2 secret key",
                     "type": "string"
                 }
             }

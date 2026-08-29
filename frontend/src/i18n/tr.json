@@ -143,7 +143,8 @@
     "wrongCredentials": "Yanlış hesap bilgileri",
     "failedLogin": "Giriş yapılamadı",
     "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı",
-    "passkeyLogin": "Geçiş Anahtarını Kullan"
+    "passkeyLogin": "Geçiş Anahtarını Kullan",
+    "recaptchaRequired": "Recaptcha doğrulaması gerekli"
   },
   "prompts": {
     "deleteMessageSingle": "Bu dosyayı/klasörü silmek istediğinizden emin misiniz?",

@@ -114,9 +114,9 @@ type ProxyAuthConfig struct {
 }
 
 type Recaptcha struct {
-	Host   string `json:"host" validate:"required"`
-	Key    string `json:"key" validate:"required"`
-	Secret string `json:"secret" validate:"required"`
+	Host   string `json:"host" validate:"required"`   // google recaptcha host, for example: https://www.google.com/recaptcha/api.js
+	Key    string `json:"key" validate:"required"`    // v2 site key
+	Secret string `json:"secret" validate:"required"` // v2 secret key
 }
 
 // ValidateRecaptcha disables recaptcha at startup if the configured host isn't a valid https URL

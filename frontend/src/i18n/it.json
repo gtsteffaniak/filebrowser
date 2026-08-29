@@ -313,7 +313,8 @@
     "wrongCredentials": "Credenziali errate",
     "failedLogin": "Accesso fallito",
     "invalidCredentials": "Credenziali fornite non valide",
-    "passkeyLogin": "Usa Passkey"
+    "passkeyLogin": "Usa Passkey",
+    "recaptchaRequired": "Richiesta verifica Recaptcha"
   },
   "share": {
     "notice": "Nota: quando viene creata una condivisione, essa diventa pubblica e segue regole di accesso diverse. Se non configurata correttamente, chiunque potrebbe accedervi.",

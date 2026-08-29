@@ -143,7 +143,8 @@
     "wrongCredentials": "Λάθος όνομα ή/και κωδικός πρόσβασης",
     "failedLogin": "Απέτυχε η σύνδεση",
     "invalidCredentials": "Παρέχονται άκυρα διαπιστευτήρια",
-    "passkeyLogin": "Χρήση Passkey"
+    "passkeyLogin": "Χρήση Passkey",
+    "recaptchaRequired": "Απαιτείται πρόκληση Recaptcha"
   },
   "prompts": {
     "deleteMessageSingle": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το αρχείο/φάκελο;",

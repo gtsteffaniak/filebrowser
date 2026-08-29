@@ -143,7 +143,8 @@
     "wrongCredentials": "Ops! Dados incorretos.",
     "failedLogin": "Falha no login",
     "invalidCredentials": "Credenciais inválidas fornecidas",
-    "passkeyLogin": "Usar chave de acesso"
+    "passkeyLogin": "Usar chave de acesso",
+    "recaptchaRequired": "Desafio Recaptcha necessário"
   },
   "prompts": {
     "deleteMessageSingle": "Deseja apagar esta pasta/arquivo?",

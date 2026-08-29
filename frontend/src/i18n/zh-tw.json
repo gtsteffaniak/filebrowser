@@ -143,7 +143,8 @@
     "wrongCredentials": "帳號或密碼錯誤",
     "failedLogin": "登入失敗",
     "invalidCredentials": "提供的認證資料無效",
-    "passkeyLogin": "使用通行密鑰"
+    "passkeyLogin": "使用通行密鑰",
+    "recaptchaRequired": "需要 Recaptcha 驗證"
   },
   "prompts": {
     "deleteMessageSingle": "確定要刪除此檔案或資料夾嗎？",
