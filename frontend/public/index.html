@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
   <title>"{{ .htmlVars.title }}"</title>
 
   <link rel="icon" type="image/png" sizes="256x256" href="{{ .htmlVars.favicon }}">
@@ -21,7 +21,7 @@
 
   <!-- Add to home screen for Safari on iOS/iPadOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="assets">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ .htmlVars.appIcon }}">
 
@@ -71,6 +71,14 @@
       --textSecondary: gray;
       --iconBackground: #dddddd;
       --activeWhiteIcon: gray;
+    }
+    /* paint safe areas + iOS overscroll with app background (notched PWAs) */
+    html {
+      background-color: {{ .htmlVars.lightBackground }};
+      min-height: calc(100% + env(safe-area-inset-top, 0px));
+    }
+    html:has(.dark-mode) {
+      background-color: {{ .htmlVars.darkBackground }};
     }
     .dark-mode {
       --background: {{ .htmlVars.darkBackground }};

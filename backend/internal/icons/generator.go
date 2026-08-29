@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -28,8 +30,9 @@ const (
 
 // iconSize defines an icon size to generate
 type iconSize struct {
-	size int
-	name string
+	size     int
+	name     string
+	maskable bool
 }
 
 // determineSourceType determines which type of favicon source we have
@@ -153,13 +156,16 @@ func handleRasterFavicon(faviconPath string) ([]byte, error) {
 func getIconSizesToGenerate() []iconSize {
 	return []iconSize{
 		// Browser favicon (32x32 PNG for Safari/older browsers)
-		{32, "favicon-32x32.png"},
+		{32, "favicon-32x32.png", false},
 		// PWA icons (PNG required for Apple PWA compatibility)
-		{192, "pwa-icon-192.png"},
-		{256, "pwa-icon-256.png"}, // Also serves as Windows tile
-		{512, "pwa-icon-512.png"},
+		{192, "pwa-icon-192.png", false},
+		{256, "pwa-icon-256.png", false}, // Also serves as Windows tile
+		{512, "pwa-icon-512.png", false},
+		// Maskable PWA icons: art inset into the Android adaptive-icon safe zone
+		{192, "pwa-icon-maskable-192.png", true},
+		{512, "pwa-icon-maskable-512.png", true},
 		// Platform-specific icons
-		{180, "apple-touch-icon.png"}, // iOS home screen (required for Apple)
+		{180, "apple-touch-icon.png", false}, // iOS home screen (required for Apple)
 	}
 }
 
@@ -193,8 +199,55 @@ func generateIconSizes(sourceData []byte) error {
 	return nil
 }
 
+// generateMaskableIcon insets the art into the safe zone on an opaque background, since launchers zoom maskable icons to fill the mask edge-to-edge
+func generateMaskableIcon(sourceData []byte, icon iconSize) error {
+	img, err := imaging.Decode(bytes.NewReader(sourceData))
+	if err != nil {
+		return fmt.Errorf("failed to decode source: %w", err)
+	}
+
+	// Android adaptive-icon content ratio (72/108 ≈ 2/3) keeps square art inside every mask shape
+	inner := icon.size * 2 / 3
+	art := imaging.Fit(img, inner, inner, imaging.Lanczos)
+	canvas := imaging.PasteCenter(imaging.New(icon.size, icon.size, maskableBackground(img)), art)
+
+	outputPath := filepath.Join(settings.PWAIconsCacheDir(), icon.name)
+	outFile, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %w", err)
+	}
+	defer outFile.Close()
+
+	if err := imaging.Encode(outFile, canvas, imaging.PNG); err != nil {
+		os.Remove(outputPath)
+		return fmt.Errorf("encode failed: %w", err)
+	}
+	return nil
+}
+
+// maskableBackground samples the art's corners then edge midpoints for an opaque pad color, else white
+func maskableBackground(img image.Image) color.Color {
+	b := img.Bounds()
+	cx, cy := (b.Min.X+b.Max.X)/2, (b.Min.Y+b.Max.Y)/2
+	points := []image.Point{
+		{b.Min.X, b.Min.Y}, {b.Max.X - 1, b.Min.Y}, {b.Min.X, b.Max.Y - 1}, {b.Max.X - 1, b.Max.Y - 1},
+		{cx, b.Min.Y}, {cx, b.Max.Y - 1}, {b.Min.X, cy}, {b.Max.X - 1, cy},
+	}
+	for _, p := range points {
+		r, g, bl, a := img.At(p.X, p.Y).RGBA()
+		if a == 0xffff {
+			return color.NRGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(bl >> 8), A: 255}
+		}
+	}
+	return color.White
+}
+
 // generateSingleIcon generates a single icon file at the specified size
 func generateSingleIcon(previewService *preview.Service, sourceData []byte, icon iconSize) error {
+	if icon.maskable {
+		return generateMaskableIcon(sourceData, icon)
+	}
+
 	outputPath := filepath.Join(settings.PWAIconsCacheDir(), icon.name)
 
 	// Create output file
