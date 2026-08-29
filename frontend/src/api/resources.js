@@ -19,6 +19,14 @@ export { fetchPreviewImage } from '@/utils/previewRequests'
 
 const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
 
+function chunkUploadApiPath(apiPath, headers) {
+  if (headers["X-File-Chunk-Offset"] === undefined) {
+    return apiPath;
+  }
+  const sep = apiPath.includes("?") ? "&" : "?";
+  return `${apiPath}${sep}_chunkSeq=${headers["X-File-Chunk-Offset"]}`;
+}
+
 function cacheViewTokenFromListing(data) {
   const scope = getters.isShare()
     ? state.shareInfo?.hash || data?.source
@@ -718,11 +726,15 @@ export function post(
         }
         const request = new XMLHttpRequest();
         opState.xhr = request;
-        request.open("POST", apiPath, true);
+        const resolvedPath = chunkUploadApiPath(apiPath, headers);
+        request.open("POST", resolvedPath, true);
 
         Object.entries(headers).forEach(([header, value]) => {
           request.setRequestHeader(header, value);
         });
+        if (headers["X-File-Chunk-Offset"] !== undefined) {
+          request.setRequestHeader("Connection", "close");
+        }
 
         if (typeof onupload === "function") {
           request.upload.onprogress = (event) => {
@@ -1268,11 +1280,14 @@ export function postPublic(
     });
 
     const request = new XMLHttpRequest();
-    request.open("POST", apiPath, true);
+    request.open("POST", chunkUploadApiPath(apiPath, headers), true);
 
     Object.entries(headers).forEach(([header, value]) => {
       request.setRequestHeader(header, value);
     });
+    if (headers["X-File-Chunk-Offset"] !== undefined) {
+      request.setRequestHeader("Connection", "close");
+    }
 
     if (typeof onupload === "function") {
       request.upload.onprogress = (event) => {

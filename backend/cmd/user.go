@@ -78,7 +78,8 @@ func validateUserInfo(newDB bool) {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions = settings.AdminPerms()
 			user.Password = settings.PasswordAdminPassword()
-			changedFields = append(changedFields, "permissions", "password")
+			user.LoginMethod = users.LoginMethodPassword
+			changedFields = append(changedFields, "permissions", "password", "loginMethod")
 			changePass = true
 		}
 
@@ -230,35 +231,27 @@ func updatePreviewSettings(user *users.User) bool {
 
 // updateSidebarLinks normalizes sidebar links and ensures scoped sources have sidebar entries.
 func updateSidebarLinks(user *users.User) bool {
-	updated := false
+	needsEnsure := usersidebar.NeedsSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes)
+	validBefore := usersidebar.ValidSourceSidebarLinkCount(user.SidebarLinks)
 
-	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
-		user.SidebarLinks = normalized
-		updated = true
-	}
-
-	if !usersidebar.NeedsSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes) {
-		return updated
+	links, changed := usersidebar.PrepareSidebarLinksForPersist(user.SidebarLinks, user.BackendScopes)
+	if !changed {
+		return false
 	}
 
-	if usersidebar.ValidSourceSidebarLinkCount(user.SidebarLinks) == 0 && len(user.SidebarLinks) > 0 {
-		logger.Infof("User %s has stale source sidebar links, merging missing links from scopes", user.Username)
-	} else if usersidebar.ValidSourceSidebarLinkCount(user.SidebarLinks) == 0 {
-		logger.Infof("User %s has no source sidebar links, building from scopes", user.Username)
-	} else {
-		logger.Infof("User %s is missing sidebar links for some scoped sources, merging from scopes", user.Username)
+	user.SidebarLinks = links
+
+	if needsEnsure {
+		if validBefore == 0 && len(user.SidebarLinks) > 0 {
+			logger.Infof("User %s has stale source sidebar links, merging missing links from scopes", user.Username)
+		} else if validBefore == 0 {
+			logger.Infof("User %s has no source sidebar links, building from scopes", user.Username)
+		} else {
+			logger.Infof("User %s is missing sidebar links for some scoped sources, merging from scopes", user.Username)
+		}
 	}
 
-	merged, changed := usersidebar.EnsureSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes)
-	if changed {
-		user.SidebarLinks = merged
-		updated = true
-	}
-	if normalized, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks); changed {
-		user.SidebarLinks = normalized
-		updated = true
-	}
-	return updated
+	return true
 }
 
 func updateTokens(user *users.User) bool {

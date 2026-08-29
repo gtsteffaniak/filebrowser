@@ -821,6 +821,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		if acquireErr := activeUploadSessions.acquire(realPath, sessionID); acquireErr != nil {
 			if isUploadSessionConflict(acquireErr) {
 				logger.Debugf("%v", acquireErr)
+				drainRequestBody(r)
 				return http.StatusConflict, acquireErr
 			}
 			logger.Debugf("%v", acquireErr)
@@ -852,6 +853,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				// If type mismatch (existing dir vs requesting file) and not overriding
 				if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
 					logger.Debugf("Type conflict detected in chunked: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
+					drainRequestBody(r)
 					return http.StatusConflict, nil
 				}
 			}
@@ -861,6 +863,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
+					drainRequestBody(r)
 					return http.StatusConflict, nil
 				}
 				// If overriding, delete existing thumbnails
@@ -975,6 +978,9 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			activity.RecordUpload(r, toActor(d), source, path, false)
 			activeUploadSessions.release(realPath, sessionID)
 			abandonSession = false
+		}
+		if err = writeChunkUploadResponse(w, assembled, totalSize, assembled == totalSize); err != nil {
+			logger.Debugf("could not write chunk upload response: %v", err)
 		}
 		abandonSession = false
 		return http.StatusOK, nil
