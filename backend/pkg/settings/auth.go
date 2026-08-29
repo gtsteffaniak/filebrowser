@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -116,6 +117,20 @@ type Recaptcha struct {
 	Host   string `json:"host" validate:"required"`
 	Key    string `json:"key" validate:"required"`
 	Secret string `json:"secret" validate:"required"`
+}
+
+// ValidateRecaptcha disables recaptcha at startup if the configured host isn't a valid https URL
+func ValidateRecaptcha() {
+	r := &Config.Auth.Methods.PasswordAuth.Recaptcha
+	if r.Host == "" || r.Key == "" {
+		return
+	}
+	parsed, err := url.Parse(r.Host)
+	if err != nil || !strings.EqualFold(parsed.Scheme, "https") {
+		logger.Warning(fmt.Sprintf("configured recaptcha host %q is not a valid https URL - disabling recaptcha", r.Host))
+		r.Host = ""
+		r.Key = ""
+	}
 }
 
 // OpenID OAuth2.0

@@ -209,6 +209,10 @@ function loadRecaptcha(onReady, onError) {
     return;
   }
   const host = globalVars.recaptchaHost; // commonly https://www.google.com/recaptcha/api.js
+  if (!/^https:\/\//i.test(host)) { // Backend should already have filtered non-https URLs but we filter it here too just in case
+    onError(new Error(`the configured recaptcha host is not a valid https URL`));
+    return;
+  }
   const existing = document.querySelector(`script[src="${host}"]`);
   if (!existing) {
     const script = document.createElement("script");

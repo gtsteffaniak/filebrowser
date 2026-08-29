@@ -52,7 +52,7 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 }
 
 func recaptchaSettings(pwd settings.PasswordAuthConfig) (enabled bool, host, key string) {
-	enabled = pwd.Signup && pwd.Recaptcha.Host != "" && pwd.Recaptcha.Key != ""
+	enabled = pwd.Recaptcha.Host != "" && pwd.Recaptcha.Key != ""
 	return enabled, pwd.Recaptcha.Host, pwd.Recaptcha.Key
 }
 

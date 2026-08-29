@@ -513,6 +513,7 @@ func setupAuth(generate bool) {
 	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
+		ValidateRecaptcha()
 	}
 	if Config.Auth.Methods.ProxyAuth.Enabled {
 		applyAuthCommonDefaults(&Config.Auth.Methods.ProxyAuth.AuthCommon)
