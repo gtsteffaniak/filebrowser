@@ -32,6 +32,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
  - improved video thumbnail generation speed and efficiency.
 
+ **Security**:
+ - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
+
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
  - Added some missing styles in the markdown viewer (#2714)
