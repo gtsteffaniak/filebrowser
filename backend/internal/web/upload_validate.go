@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"net/http"
 	"os"
@@ -127,12 +126,13 @@ func rollbackChunkForResume(outFile *os.File, tempFilePath string, offset int64)
 	return true
 }
 
-func drainRequestBody(r *http.Request) {
-	if r.Body == nil {
-		return
+// abortConflictingUpload closes an upload body without draining it and marks the
+// response connection for closure so the server can return immediately.
+func abortConflictingUpload(w http.ResponseWriter, r *http.Request) {
+	if r.Body != nil {
+		_ = r.Body.Close()
 	}
-	_, _ = io.Copy(io.Discard, r.Body)
-	_ = r.Body.Close()
+	w.Header().Set("Connection", "close")
 }
 
 type chunkUploadResponse struct {
