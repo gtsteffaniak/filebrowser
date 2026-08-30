@@ -29,8 +29,12 @@ import (
 
 var runtimeApp *app.App
 
-func initializeDatabase(configFile string) bool {
-	settings.Initialize(configFile)
+func initializeDatabase(configFile string, cliMode bool) bool {
+	if cliMode {
+		settings.InitializeCLI(configFile)
+	} else {
+		settings.Initialize(configFile)
+	}
 
 	if err := validateDatabasePaths(); err != nil {
 		logger.Fatalf("%v", err)

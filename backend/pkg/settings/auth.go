@@ -199,6 +199,9 @@ func ValidateLdapAuth() error {
 	if ldapCfg.UserFilter == "" {
 		ldapCfg.UserFilter = "(&(cn=%s)(objectClass=user))"
 	}
+	if ldapCfg.GroupsClaim == "" {
+		ldapCfg.GroupsClaim = defaultLdapGroupsClaim
+	}
 	applyAuthCommonDefaults(&ldapCfg.AuthCommon)
 	if err := verifyLdapConnection(); err != nil {
 		logger.Fatalf("LDAP connection check failed: %v", err)

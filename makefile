@@ -56,11 +56,13 @@ build-backend:
 # New dev target with hot-reloading for frontend and backend
 dev: generate-docs generate-icons setup-gofitz-cgo
 	@echo "Starting dev servers... Press Ctrl+C to stop."
-	pkill -f '[t]est_config.yaml' || true
-	pkill -f '[g]o tool air' || true
+	if command -v pkill >/dev/null 2>&1; then \
+		pkill -f '[t]est_config.yaml' || true; \
+		pkill -f '[g]o tool air' || true; \
+	fi
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \
-	cd backend && export FILEBROWSER_DEVMODE=true && go tool air $$([ "$(OS)" = "Windows_NT" ] && echo "-c .air.windows.toml" || echo "") & \
+	cd backend && export FILEBROWSER_DEVMODE=true && go tool air & \
 	BACKEND_PID=$$!; \
 	trap 'echo "Stopping..."; kill $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; sleep 1; kill -9 $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; exit 0' INT TERM; \
 	wait $$FRONTEND_PID $$BACKEND_PID 2>/dev/null || true
