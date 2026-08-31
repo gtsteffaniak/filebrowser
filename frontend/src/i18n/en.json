@@ -506,6 +506,8 @@
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Show prompts close button in the right",
+    "promptRightCloseButtonDescription": "Show the close button of the prompts in the right side instead of in the left",
     "enforcedByAdmin": "Your administrator has prevented users from changing this property",
     "hideFileExt": "Hide certain files (by extension)",
     "hideFileExtDescription": "A space-separated list of file extensions. Extensions in this field will be hidden from all the UI (visually, like the listing or FileTree) -- The files still accessible.",

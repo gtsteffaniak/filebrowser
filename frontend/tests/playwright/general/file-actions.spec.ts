@@ -175,3 +175,52 @@ test("delete nested file prompt", async({ page, checkForErrors }) => {
   await expect(page.locator('.card-content')).toContainText('/folder#hash/file#.sh');
   checkForErrors();
 })
+
+test("copy destination dialog is sortable and remembers sort order", async ({ page, checkForErrors }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="copyme.txt"]').click({ button: "right" });
+  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+  await page.locator('button[aria-label="Copy file"]').click();
+
+  const copyPrompt = page.locator('div[aria-label="copy-prompt"]');
+  const header = copyPrompt.locator('.listing-item-header');
+  const firstItem = () => copyPrompt.locator('.listing-item').first();
+
+  await expect(copyPrompt).toBeVisible();
+  await expect(header).toBeVisible();
+  await expect(header.locator('.name')).toBeVisible();
+  await expect(header.locator('.size')).toBeVisible();
+  await expect(header.locator('.modified')).toBeVisible();
+
+  // Default sort is name ascending, so the first folder is "denied"
+  await expect(firstItem()).toHaveAttribute("aria-label", "denied");
+
+  // Click the Name column header to sort descending
+  await header.locator('.name').click();
+  await expect(firstItem()).toHaveAttribute("aria-label", "text-files");
+  await expect(header.locator('.name')).toHaveClass(/active/);
+
+  // Close and reopen the dialog: the sort order is remembered in-session
+  await copyPrompt.locator('.prompt-close').click();
+  await page.locator('a[aria-label="copyme.txt"]').click({ button: "right" });
+  await page.locator('button[aria-label="Copy file"]').click();
+  await expect(copyPrompt).toBeVisible();
+  await expect(firstItem()).toHaveAttribute("aria-label", "text-files");
+
+  // Reload the page: the sort order is persisted in localStorage
+  await page.reload();
+  await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="copyme.txt"]').click({ button: "right" });
+  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+  await page.locator('button[aria-label="Copy file"]').click();
+  await expect(copyPrompt).toBeVisible();
+  await expect(firstItem()).toHaveAttribute("aria-label", "text-files");
+
+  // Sorting by Size also works and toggles the active column
+  await copyPrompt.locator('.listing-item-header .size').click();
+  await expect(copyPrompt.locator('.listing-item-header .size')).toHaveClass(/active/);
+  await expect(copyPrompt.locator('.listing-item-header .name')).not.toHaveClass(/active/);
+  checkForErrors();
+})

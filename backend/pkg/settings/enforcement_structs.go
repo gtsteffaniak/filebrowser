@@ -23,6 +23,7 @@ type UserDefaultsSidebarEnforcement struct {
 
 type UserDefaultsListingEnforcement struct {
 	DeleteWithoutConfirming bool `json:"deleteWithoutConfirming,omitempty"`
+	PromptRightCloseButton  bool `json:"promptRightCloseButton,omitempty"`
 	DateFormat              bool `json:"dateFormat,omitempty"`
 	ShowHidden              bool `json:"showHidden,omitempty"`
 	QuickDownload           bool `json:"quickDownload,omitempty"`

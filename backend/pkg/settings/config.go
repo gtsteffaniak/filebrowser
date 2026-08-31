@@ -897,6 +897,7 @@ func SetDefaults(generate bool) Settings {
 			},
 			Listing: UserDefaultsListing{
 				DeleteWithoutConfirming: false,
+				PromptRightCloseButton:  false,
 				DateFormat:              false,
 				ShowHidden:              false,
 				QuickDownload:           false,

@@ -6544,6 +6544,10 @@ const docTemplate = `{
                     "description": "space separated list of file extensions to hide in UI",
                     "type": "string"
                 },
+                "promptRightCloseButton": {
+                    "description": "show the prompts close button on the right",
+                    "type": "boolean"
+                },
                 "quickDownload": {
                     "description": "show icon to download in one click",
                     "type": "boolean"
@@ -7402,6 +7406,10 @@ const docTemplate = `{
                 "preview": {
                     "$ref": "#/definitions/users.Preview"
                 },
+                "promptRightCloseButton": {
+                    "description": "show the prompts close button on the right",
+                    "type": "boolean"
+                },
                 "quickDownload": {
                     "description": "show icon to download in one click",
                     "type": "boolean"
@@ -7817,6 +7825,10 @@ const docTemplate = `{
                 },
                 "preview": {
                     "$ref": "#/definitions/users.Preview"
+                },
+                "promptRightCloseButton": {
+                    "description": "show the prompts close button on the right",
+                    "type": "boolean"
                 },
                 "quickDownload": {
                     "description": "show icon to download in one click",

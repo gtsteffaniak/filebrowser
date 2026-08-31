@@ -75,6 +75,7 @@ export const state: StoreState = reactive({
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
+    promptRightCloseButton: false, // to show the prompts close button on the right
     scopes: [],
     permissions: {}, // Default to an empty object for permissions
     darkMode: true, // Default to false, assuming this is a boolean
@@ -111,6 +112,7 @@ export const state: StoreState = reactive({
   },
   previewRaw: "",
   oldReq: {},
+  pickerSorting: loadPickerSorting(),
   clipboard: {
     key: "",
     items: [],
@@ -236,6 +238,28 @@ function normalizePlaybackMode(mode: unknown): 'single' | 'sequential' | 'shuffl
     return mode;
   }
   return 'single';
+}
+
+/**
+ * Loads the destination picker sort preference from localStorage.
+ * @returns {{ by: string, asc: boolean } | null} The saved sort config, or null if unset/invalid
+ */
+function loadPickerSorting() {
+  try {
+    const stored = localStorage.getItem("pickerSorting");
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    if (
+      parsed &&
+      ["name", "size", "modified"].includes(parsed.by) &&
+      typeof parsed.asc === "boolean"
+    ) {
+      return { by: parsed.by, asc: parsed.asc };
+    }
+  } catch (error) {
+    console.error('Failed to load picker sorting:', error);
+  }
+  return null;
 }
 
 /**

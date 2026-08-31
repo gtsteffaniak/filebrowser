@@ -48,6 +48,7 @@ export function sectionsFromFlatUser(user) {
       deleteAfterArchive: !!u.deleteAfterArchive,
       viewMode: u.viewMode,
       gallerySize: u.gallerySize,
+      promptRightCloseButton: !!u.promptRightCloseButton,
     },
     preview: {
       image: boolPtr(preview.image),
@@ -114,6 +115,7 @@ export function applySectionsToFlatUser(user, sections) {
     : !!sidebar.showTools;
 
   user.deleteWithoutConfirming = !!listing.deleteWithoutConfirming;
+  user.promptRightCloseButton = !!listing.promptRightCloseButton;
   user.dateFormat = !!listing.dateFormat;
   user.showHidden = !!listing.showHidden;
   user.quickDownload = !!listing.quickDownload;

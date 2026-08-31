@@ -25,7 +25,7 @@
     >
       <header
         class="prompt-taskbar"
-        :class="{ 'is-dragging': isDragging(prompt.id) }"
+        :class="{ 'is-dragging': isDragging(prompt.id), 'prompt-close-right': promptRightCloseButton }"
         @mousedown="onPointerDown($event, prompt.id, 'mouse')"
         @touchstart.passive="onPointerDown($event, prompt.id, 'touch')"
       >
@@ -44,18 +44,25 @@
         <div class="prompt-taskbar-drag">
           <span class="prompt-title">{{ prompt?.props?.title || getDisplayTitle(prompt?.name) }}</span>
         </div>
-        <svg 
+        <svg
           class="prompt-resize-corner"
+          :class="{ 'prompt-resize-corner-left': promptRightCloseButton }"
           width="24" 
           height="24" 
           viewBox="0 0 24 24" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg"
-          @mousedown.stop="startResize($event, prompt.id, 'top-right')"
-          @touchstart.stop="startResize($event, prompt.id, 'top-right')"
+          @mousedown.stop="startResize($event, prompt.id, promptRightCloseButton ? 'top-left' : 'top-right')"
+          @touchstart.stop="startResize($event, prompt.id, promptRightCloseButton ? 'top-left' : 'top-right')"
         >
-          <line x1="12" y1="2" x2="22" y2="12" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="17" y1="2" x2="22" y2="7" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+          <template v-if="promptRightCloseButton">
+            <line x1="12" y1="2" x2="2" y2="12" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="7" y1="2" x2="2" y2="7" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+          </template>
+          <template v-else>
+            <line x1="12" y1="2" x2="22" y2="12" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="17" y1="2" x2="22" y2="7" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+          </template>
         </svg>
       </header>
       <!-- Resize for prompts -->
@@ -215,6 +222,9 @@ export default {
     },
     isDarkMode() {
       return getters.isDarkMode();
+    },
+    promptRightCloseButton() {
+      return !!state.user?.promptRightCloseButton;
     },
     pinnedPromptExists() {
       return this.prompts.some(p => p.pinned);
@@ -938,6 +948,16 @@ export default {
   transition: background 0.15s, filter 0.15s;
 }
 
+.prompt-close-right .prompt-close {
+  order: 3;
+}
+
+.prompt-close-right .prompt-resize-corner {
+  order: -1;
+  margin-left: 0;
+  margin-right: auto;
+}
+
 .prompt-close:hover {
   background: #b71c1c;
   filter: brightness(1.1);
@@ -955,6 +975,10 @@ export default {
   opacity: 0.5;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+.prompt-resize-corner-left {
+  cursor: nw-resize;
 }
 
 .prompt-resize-corner:hover {

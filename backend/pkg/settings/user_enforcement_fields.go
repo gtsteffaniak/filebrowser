@@ -15,6 +15,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"hideFilesInTree":            "sidebar.hideFiles",
 	"showToolsInSidebar":         "sidebar.showTools",
 	"deleteWithoutConfirming":    "listing.deleteWithoutConfirming",
+	"promptRightCloseButton":     "listing.promptRightCloseButton",
 	"dateFormat":                 "listing.dateFormat",
 	"showHidden":                 "listing.showHidden",
 	"quickDownload":              "listing.quickDownload",

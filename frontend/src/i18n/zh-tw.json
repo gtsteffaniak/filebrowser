@@ -445,6 +445,8 @@
     "unavailable": "無法使用"
   },
   "profileSettings": {
+    "promptRightCloseButton": "在右側顯示提示框關閉按鈕",
+    "promptRightCloseButtonDescription": "在右側而不是左側顯示提示框的關閉按鈕",
     "hideFileExt": "隱藏特定檔案（按副檔名）",
     "hideFileExtDescription": "空格分隔的副檔名列表。在此欄位中輸入的副檔名將從所有使用者介面中隱藏（視覺上，如清單或檔案樹）——它們仍然可存取。",
     "preferEditorForMarkdown": "優先使用編輯器開啟 Markdown 檔案",
