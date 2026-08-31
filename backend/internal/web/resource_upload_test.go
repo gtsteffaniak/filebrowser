@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -516,6 +517,62 @@ func TestResourcePostHandler_ConflictingUploadSessions(t *testing.T) {
 	want := append(append([]byte{}, part1...), part2...)
 	if !bytes.Equal(got, want) {
 		t.Fatalf("assembled mismatch: got %q want %q", got, want)
+	}
+}
+
+type neverEndingReader struct{}
+
+func (neverEndingReader) Read(p []byte) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+	p[0] = 'x'
+	return 1, nil
+}
+
+func TestResourcePostHandler_ConflictingUploadNonTerminatingBody(t *testing.T) {
+	_, user := setupUploadHTTPTest(t)
+	part1 := []byte("aaaa")
+	total := 8
+
+	status, err := postUpload(t, user, "/hang.bin", bytes.NewReader(part1), int64(len(part1)), map[string]string{
+		"X-File-Upload-Session": "session-a",
+		"X-File-Chunk-Offset":   "0",
+		"X-File-Total-Size":     strconv.Itoa(total),
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("chunk1 status=%d err=%v", status, err)
+	}
+
+	done := make(chan struct{})
+	var conflictStatus int
+	var conflictErr error
+	var connHeader string
+
+	go func() {
+		defer close(done)
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/resources?source=uploads&path=/hang.bin", neverEndingReader{})
+		req.ContentLength = int64(len(part1))
+		req.Header.Set("X-File-Upload-Session", "session-b")
+		req.Header.Set("X-File-Chunk-Offset", "0")
+		req.Header.Set("X-File-Total-Size", strconv.Itoa(total))
+
+		conflictStatus, conflictErr = ResourcePostHandler(rec, req, &requestContext{User: user})
+		connHeader = rec.Header().Get("Connection")
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("handler blocked on conflicting upload body")
+	}
+
+	if conflictStatus != http.StatusConflict || conflictErr == nil {
+		t.Fatalf("status=%d err=%v, want 409", conflictStatus, conflictErr)
+	}
+	if connHeader != "close" {
+		t.Fatalf("expected Connection: close, got %q", connHeader)
 	}
 }
 
