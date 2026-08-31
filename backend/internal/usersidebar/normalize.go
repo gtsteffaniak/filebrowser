@@ -8,9 +8,10 @@ import (
 
 // NormalizeSidebarLinks canonicalizes persisted sidebar links for storage.
 // Source links are resolved via ResolveSourceKey on SourceName, with Name as fallback.
-// SourceName is set to the canonical backend path; Name to the configured display name.
-// Unresolvable source links are dropped. Source links are deduped by canonical path
-// (first occurrence wins). Non-source links pass through; duplicate Tools links are deduped.
+// SourceName is set to the canonical backend path; custom Name, Icon, and Category are preserved.
+// Unresolvable source links are dropped. Source links are deduped by canonical path plus target
+// (first occurrence wins), so multiple folder shortcuts on one source are kept. Non-source links
+// pass through; duplicate Tools links are deduped.
 func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool) {
 	if !users.SourceConfigLoaded() {
 		return links, false
@@ -19,7 +20,7 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 		return links, false
 	}
 
-	seenSourcePaths := make(map[string]struct{})
+	seenSourceKeys := make(map[sourceLinkDedupeKey]struct{})
 	hasTools := false
 	out := make([]users.SidebarLink, 0, len(links))
 	changed := false
@@ -31,11 +32,6 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 				changed = true
 				continue
 			}
-			if _, dup := seenSourcePaths[source.Path]; dup {
-				changed = true
-				continue
-			}
-			seenSourcePaths[source.Path] = struct{}{}
 
 			normalized := link
 			normalized.Category = users.NormalizeSidebarLinkCategory(normalized.Category)
@@ -43,9 +39,15 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 			if strings.TrimSpace(normalized.Name) == "" {
 				normalized.Name = source.Name
 			}
-			if normalized.Target == "" {
-				normalized.Target = "/"
+			normalized.Target = normalizeSidebarTarget(normalized.Target)
+
+			key := sourceLinkDedupeKey{sourcePath: source.Path, target: normalized.Target}
+			if _, dup := seenSourceKeys[key]; dup {
+				changed = true
+				continue
 			}
+			seenSourceKeys[key] = struct{}{}
+
 			if normalized != link {
 				changed = true
 			}
@@ -76,4 +78,23 @@ func resolveSourceLink(link users.SidebarLink) (users.SourceInfo, bool) {
 		return users.ResolveSourceKey(link.Name)
 	}
 	return users.SourceInfo{}, false
+}
+
+func normalizeSidebarTarget(target string) string {
+	t := strings.TrimSpace(target)
+	if t == "" || t == "#" {
+		return "/"
+	}
+	if !strings.HasPrefix(t, "/") {
+		t = "/" + t
+	}
+	if t != "/" && strings.HasSuffix(t, "/") {
+		t = strings.TrimSuffix(t, "/")
+	}
+	return t
+}
+
+type sourceLinkDedupeKey struct {
+	sourcePath string
+	target     string
 }

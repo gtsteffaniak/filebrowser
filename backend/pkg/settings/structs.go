@@ -38,6 +38,7 @@ type Http struct {
 }
 
 type Environment struct {
+	IsCLIMode                        bool     `json:"-"` // true when running a CLI subcommand (user set, promote, etc.)
 	IsPlaywright                     bool     `json:"-"`
 	IsDevMode                        bool     `json:"-"`
 	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
@@ -306,6 +307,7 @@ type Frontend struct {
 	LoginIcon             string         `json:"loginIcon"`           // path to an image file for the login page icon
 	LoginButtonText       string         `json:"loginButtonText"`     // text to display on the login button
 	OIDCLoginButtonText   string         `json:"oidcLoginButtonText"` // text to display on the OIDC login button
+	DisablePWAInstall     bool           `json:"disablePWAInstall"`   // disable the PWA install button in the sidebar
 }
 
 type StylingConfig struct {

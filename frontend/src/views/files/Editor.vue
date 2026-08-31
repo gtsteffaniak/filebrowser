@@ -207,6 +207,7 @@ export default {
         this.originalReq = newReq;
         this.isDirty = false; // Reset dirty flag for new file
         mutations.setEditorDirty(false);
+        mutations.setEditorJsonFormatted(false);
         mutations.resetEditorScrollRatio(newReq.path);
 
         // Lock saves temporarily
@@ -498,9 +499,10 @@ export default {
         editorInstance.on('change', () => {
           if (this.editor !== editorInstance) return;
           if (this.suppressDirtyTracking) return;
-          if (!this.isDirty) {
-            this.isDirty = true;
-            mutations.setEditorDirty(true);
+          const dirty = editorInstance.getValue() !== this.savedContent;
+          if (this.isDirty !== dirty) {
+            this.isDirty = dirty;
+            mutations.setEditorDirty(dirty);
           }
           this.scheduleStatsUpdate();
           (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.handleEditorChange();

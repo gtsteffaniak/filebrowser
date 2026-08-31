@@ -5664,6 +5664,10 @@ const docTemplate = `{
                     "description": "disable the nav buttons in the sidebar",
                     "type": "boolean"
                 },
+                "disablePWAInstall": {
+                    "description": "disable the PWA install button in the sidebar",
+                    "type": "boolean"
+                },
                 "disableUsedPercentage": {
                     "description": "disable used percentage for the sources in the sidebar",
                     "type": "boolean"
@@ -6122,7 +6126,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "recaptcha": {
-                    "description": "recaptcha config, only used if signup is enabled",
+                    "description": "recaptcha config. If configured will show up the checkbox verification in the login page",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.Recaptcha"
@@ -6201,12 +6205,15 @@ const docTemplate = `{
             ],
             "properties": {
                 "host": {
+                    "description": "google recaptcha host, for example: https://www.google.com/recaptcha/api.js",
                     "type": "string"
                 },
                 "key": {
+                    "description": "v2 site key",
                     "type": "string"
                 },
                 "secret": {
+                    "description": "v2 secret key",
                     "type": "string"
                 }
             }

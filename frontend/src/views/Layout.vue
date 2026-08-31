@@ -167,6 +167,15 @@ export default {
     $route() {
       this.reEval()
     },
+    isDarkMode: {
+      immediate: true,
+      handler(dark) {
+        const color = dark ? globalVars.darkBackground : globalVars.lightBackground;
+        if (!color) return;
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", color);
+      },
+    },
   },
   methods: {
     reEval() {

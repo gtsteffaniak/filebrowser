@@ -143,7 +143,8 @@
     "wrongCredentials": "Falsche Zugangsdaten",
     "failedLogin": "Anmeldung fehlgeschlagen",
     "invalidCredentials": "Ungültige Anmeldedaten angegeben",
-    "passkeyLogin": "Passkey verwenden"
+    "passkeyLogin": "Passkey verwenden",
+    "recaptchaRequired": "Recaptcha-Überprüfung erforderlich"
   },
   "prompts": {
     "deleteMessageSingle": "Sind Sie sicher, dass Sie diesen Ordner/diese Datei löschen möchten?",
@@ -812,6 +813,11 @@
       "alignCenter": "Zentrieren",
       "justify": "Blocksatz",
       "fontColor": "Schriftfarbe"
+    },
+    "json": {
+      "formatJSON": "JSON-Format",
+      "formatJSONSuccess": "JSON wurde erfolgreich formatiert",
+      "invalidJSON": "Ungültiges JSON: {message}"
     }
   },
   "player": {

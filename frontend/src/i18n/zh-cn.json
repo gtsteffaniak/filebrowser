@@ -143,7 +143,8 @@
     "wrongCredentials": "用户名或密码错误",
     "failedLogin": "登录失败",
     "invalidCredentials": "提供的证书无效",
-    "passkeyLogin": "使用通行密钥"
+    "passkeyLogin": "使用通行密钥",
+    "recaptchaRequired": "需要 Recaptcha 验证"
   },
   "prompts": {
     "deleteMessageSingle": "你确定要删除这个文件/文件夹吗？",
@@ -812,6 +813,11 @@
       "alignCenter": "居中对齐",
       "justify": "两端对齐",
       "fontColor": "字体颜色"
+    },
+    "json": {
+      "formatJSON": "JSON 格式",
+      "formatJSONSuccess": "JSON 格式化成功",
+      "invalidJSON": "无效的 JSON：{message}"
     }
   },
   "player": {

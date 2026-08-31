@@ -32,9 +32,37 @@ All notable changes to this project will be documented in this file. For commit 
  - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
  - improved video thumbnail generation speed and efficiency.
 
+ **Security**:
+ - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
+
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
  - Added some missing styles in the markdown viewer (#2714)
+ - Recaptcha not working (#1925) (#2861)
+
+## v2.0.3
+
+ **Security**:
+ - [High] Stored XSS via HTML preview: strip `<script>` from sanitized srcdoc, remove `allow-same-origin` from the preview iframe sandbox, set HttpOnly on the session cookie, and add a nonce-based `script-src` CSP on the SPA shell (GHSA-vvm6-jwrf-hgmg) -- thanks @qrn12580
+ - [Moderate] Non-admin users could PATCH privileged fields on their own account (scopes, permissions, etc.), allowing privilege escalation; restores v1 non-admin field guard on PATCH /api/users (GHSA-p5cc-4p84-c4m2) -- thanks @Chri6s
+
+ **New Features**:
+ - Added option to globally disable the "Install App" message via `frontend.disablePWAInstall`
+ - PWA improvements for installed mobile apps: dedicated maskable icons (192/512), manifest and splash colors that follow the instance default theme, runtime `theme-color` sync on dark-mode toggle, and edge-to-edge safe-area layout for notched devices (#2625) (#2869) -- thanks @APatenaude
+
+ **Bugfixes**:
+ - Fixed Fuji `.raf` thumbnail preview by extracting the camera-embedded JPEG from the RAF header (regression for files where TIFF-based raw extraction does not apply).
+ - Image previews for unsupported decodable formats now return HTTP 415 immediately instead of attempting JPEG decode and returning HTTP 500.
+ - OIDC: preserve the verified ID-token user identifier when falling back to the UserInfo endpoint for missing groups, so login no longer fails with HTTP 500 when UserInfo returns groups but omits the configured identifier.
+ - LDAP: restore `memberOf` as the default `groupsClaim` when unset, fixing group-based admin and login authorization for existing LDAP configs after the v2.0.2 default changed to `groups`.
+ - "Install app" message reappears after being cleared on device.
+ - Restored upload chunk size `0` to disable chunking as documented ([#2202](https://github.com/gtsteffaniak/filebrowser/issues/2202)).
+ - Fixed iOS 26 / WebKit multi-chunk upload stall by isolating chunk connections and returning partial chunk JSON responses ([#2734](https://github.com/gtsteffaniak/filebrowser/issues/2734)).
+ - Sidebar folder links with custom names, icons, or styles no longer disappear after restart; multiple shortcuts to different folders on the same source are preserved ([#2809](https://github.com/gtsteffaniak/filebrowser/issues/2809)).
+ - Adding a source to a user via scopes now auto-adds a matching sidebar link; removing a source keeps the link (shown disabled) so users can delete it manually.
+ - A password reset via CLI returns user to a password method user.
+ - Authentication login methods are consistently enforced without modifying existing account settings.
+
 
 ## v2.0.2
 
@@ -46,6 +74,7 @@ All notable changes to this project will be documented in this file. For commit 
  - OnlyOffice is inaccessible on password-protected shares (#2811)
  - FFmpeg 9.0 incorrectly detected as below minimum 5.0.0 on Windows (#2820) -- thanks @yzxcj797
  - Queue buttons not clickable in the desktop panel in audio files.
+
 
 ## v2.0.1
 

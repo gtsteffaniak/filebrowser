@@ -9,6 +9,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ports"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // Service performs authentication using injected user reads. It never persists users.
@@ -72,6 +73,7 @@ func (s *Service) AuthenticatePassword(r *http.Request, disableOtp bool) (*users
 		}
 	}
 	if user.LoginMethod != users.LoginMethodPassword {
+		logger.Debugf("login rejected: user %q attempted password login but account loginMethod is %q", username, user.LoginMethod)
 		return nil, errors.ErrWrongLoginMethod
 	}
 	return &user, nil

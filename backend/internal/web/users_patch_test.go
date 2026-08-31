@@ -53,3 +53,51 @@ func TestValidatePatchWhich(t *testing.T) {
 		}
 	})
 }
+
+func TestValidateNonAdminSelfPatchWhich(t *testing.T) {
+	t.Run("allows profile fields", func(t *testing.T) {
+		for _, which := range [][]string{
+			{"locale"},
+			{"darkMode", "viewMode"},
+			{"preview"},
+			{"sorting"},
+		} {
+			if err := validateNonAdminSelfPatchWhich(which); err != nil {
+				t.Fatalf("unexpected error for which=%v: %v", which, err)
+			}
+		}
+	})
+
+	t.Run("allows password and otpEnabled", func(t *testing.T) {
+		for _, which := range [][]string{
+			{"password"},
+			{"otpEnabled"},
+			{"locale", "password"},
+		} {
+			if err := validateNonAdminSelfPatchWhich(which); err != nil {
+				t.Fatalf("unexpected error for which=%v: %v", which, err)
+			}
+		}
+	})
+
+	t.Run("rejects privileged fields", func(t *testing.T) {
+		for _, which := range [][]string{
+			{"scopes"},
+			{"permissions"},
+			{"sourcePermissions"},
+			{"loginMethod"},
+			{"lockPassword"},
+			{"disableSettings"},
+		} {
+			if err := validateNonAdminSelfPatchWhich(which); err == nil {
+				t.Fatalf("expected error for which=%v", which)
+			}
+		}
+	})
+
+	t.Run("rejects mixed privileged and profile fields", func(t *testing.T) {
+		if err := validateNonAdminSelfPatchWhich([]string{"locale", "scopes"}); err == nil {
+			t.Fatal("expected error when which mixes profile and privileged fields")
+		}
+	})
+}

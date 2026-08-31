@@ -115,7 +115,7 @@ func setUser(username, password string, asAdmin bool) error {
 		return nil
 	}
 	if user.LoginMethod != users.LoginMethodPassword {
-		return fmt.Errorf("user %s is not allowed to login with password authentication, cannot set password", username)
+		logger.Infof("Converting user %s from %s to password login method", username, user.LoginMethod)
 	}
 	user.TOTPSecret = ""
 	user.TOTPNonce = ""
@@ -138,6 +138,9 @@ func promoteUser(username string) error {
 	user, err := state.GetUserByUsername(username)
 	if err != nil {
 		return fmt.Errorf("user %s not found", username)
+	}
+	if user.LoginMethod != users.LoginMethodPassword {
+		return fmt.Errorf("user %s cannot be promoted: only password-login users can be granted admin via CLI", username)
 	}
 	if user.Permissions.Admin {
 		fmt.Printf("user %s is already an admin\n", username)

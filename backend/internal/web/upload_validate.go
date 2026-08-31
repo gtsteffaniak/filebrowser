@@ -3,6 +3,7 @@ package web
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
@@ -123,4 +124,29 @@ func rollbackChunkForResume(outFile *os.File, tempFilePath string, offset int64)
 		return false
 	}
 	return true
+}
+
+// abortConflictingUpload closes an upload body without draining it and marks the
+// response connection for closure so the server can return immediately.
+func abortConflictingUpload(w http.ResponseWriter, r *http.Request) {
+	if r.Body != nil {
+		_ = r.Body.Close()
+	}
+	w.Header().Set("Connection", "close")
+}
+
+type chunkUploadResponse struct {
+	Offset   int64 `json:"offset"`
+	Total    int64 `json:"total"`
+	Complete bool  `json:"complete"`
+}
+
+func writeChunkUploadResponse(w http.ResponseWriter, offset, total int64, complete bool) error {
+	w.Header().Set("Connection", "close")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	return json.NewEncoder(w).Encode(chunkUploadResponse{
+		Offset:   offset,
+		Total:    total,
+		Complete: complete,
+	})
 }

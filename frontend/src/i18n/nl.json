@@ -313,7 +313,8 @@
     "wrongCredentials": "Verkeerde inloggegevens",
     "failedLogin": "Inloggen is mislukt",
     "invalidCredentials": "Ongeldige inloggegevens verstrekt",
-    "passkeyLogin": "Passkey gebruiken"
+    "passkeyLogin": "Passkey gebruiken",
+    "recaptchaRequired": "Recaptcha-uitdaging vereist"
   },
   "share": {
     "notice": "Opmerking: wanneer een gedeelde map wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als uw gedeelde map niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
@@ -821,6 +822,11 @@
       "alignCenter": "Centreren",
       "justify": "Uitvullen",
       "fontColor": "Letterkleur"
+    },
+    "json": {
+      "formatJSON": "JSON-formaat",
+      "formatJSONSuccess": "JSON is succesvol opgemaakt",
+      "invalidJSON": "Ongeldige JSON: {message}"
     }
   },
   "player": {

@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 )
 
 // User operations
@@ -223,6 +224,10 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 
 	users.SyncBackendSourcePermissionsMap(user)
 
+	if links, changed := usersidebar.PrepareSidebarLinksForPersist(user.SidebarLinks, user.BackendScopes); changed {
+		user.SidebarLinks = links
+	}
+
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
@@ -327,6 +332,19 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 	if fieldListRequiresScopeConversion(fields) {
 		if err := applyScopesFromAPI(existingUser); err != nil {
 			return err
+		}
+	}
+
+	if sidebarFieldsPatched(fields) {
+		var links []users.SidebarLink
+		var changed bool
+		if fieldListRequiresScopeConversion(fields) {
+			links, changed = usersidebar.PrepareSidebarLinksForPersist(existingUser.SidebarLinks, existingUser.BackendScopes)
+		} else {
+			links, changed = usersidebar.NormalizeSidebarLinks(existingUser.SidebarLinks)
+		}
+		if changed {
+			existingUser.SidebarLinks = links
 		}
 	}
 
@@ -450,6 +468,10 @@ func fieldListPatchesAPISourcePermissions(fields []string) bool {
 
 func fieldListRequiresScopeConversion(fields []string) bool {
 	return fieldListPatchesBackendScopes(fields) || fieldListPatchesAPISourcePermissions(fields)
+}
+
+func sidebarFieldsPatched(fields []string) bool {
+	return FieldListIncludes(fields, "sidebarLinks") || fieldListRequiresScopeConversion(fields)
 }
 
 // applyScopesFromAPI converts API scopes (with nested permissions) into BackendScopes.

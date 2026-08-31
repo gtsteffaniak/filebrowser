@@ -44,14 +44,14 @@ func pwaManifestName(name string) string {
 }
 
 // generatePWAManifest creates the PWA manifest structure
-func generatePWAManifest(name, description, baseURL, themeColor, pwaIcon192, pwaIcon256, pwaIcon512 string) PWAManifest {
+func generatePWAManifest(name, description, baseURL, themeColor, backgroundColor, pwaIcon192, pwaIcon256, pwaIcon512, pwaIconMaskable192, pwaIconMaskable512 string) PWAManifest {
 	return PWAManifest{
 		Name:            pwaManifestName(name),
 		ID:              baseURL,
 		Scope:           baseURL,
 		StartURL:        baseURL,
 		Display:         "standalone",
-		BackgroundColor: "#ffffff",
+		BackgroundColor: backgroundColor,
 		ThemeColor:      themeColor,
 		Description:     description,
 		Icons: []PWAIcon{
@@ -65,13 +65,25 @@ func generatePWAManifest(name, description, baseURL, themeColor, pwaIcon192, pwa
 				Src:     pwaIcon256,
 				Sizes:   "256x256",
 				Type:    "image/png",
-				Purpose: "any maskable",
+				Purpose: "any",
 			},
 			{
 				Src:     pwaIcon512,
 				Sizes:   "512x512",
 				Type:    "image/png",
 				Purpose: "any",
+			},
+			{
+				Src:     pwaIconMaskable192,
+				Sizes:   "192x192",
+				Type:    "image/png",
+				Purpose: "maskable",
+			},
+			{
+				Src:     pwaIconMaskable512,
+				Sizes:   "512x512",
+				Type:    "image/png",
+				Purpose: "maskable",
 			},
 		},
 	}
@@ -85,11 +97,13 @@ func InitializePWAManifest() {
 	staticURL := config.Http.BaseURL + "public/static"
 	title := config.Frontend.Name
 	description := config.Frontend.Description
-	defaultThemeColor := "#455a64"
-
 	pwaIcon192 := staticURL + "/icons/pwa-icon-192.png"
 	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"
 	pwaIcon512 := staticURL + "/icons/pwa-icon-512.png"
+	pwaIconMaskable192 := staticURL + "/icons/pwa-icon-maskable-192.png"
+	pwaIconMaskable512 := staticURL + "/icons/pwa-icon-maskable-512.png"
 
-	CachedManifest = generatePWAManifest(title, description, config.Http.BaseURL, defaultThemeColor, pwaIcon192, pwaIcon256, pwaIcon512)
+	backgroundColor := settings.DefaultBackgroundColor()
+
+	CachedManifest = generatePWAManifest(title, description, config.Http.BaseURL, backgroundColor, backgroundColor, pwaIcon192, pwaIcon256, pwaIcon512, pwaIconMaskable192, pwaIconMaskable512)
 }

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net/http"
 	"os"
 	"unicode/utf8"
 )
@@ -27,7 +28,13 @@ func IsTextFile(realPath string) (bool, error) {
 	if len(content) > sampleSize {
 		sample = content[:sampleSize]
 	}
-	// Check 1: Count null bytes - binary files typically have many nulls
+	// Check 1: Reject PDFs. A PDF with a long ASCII text layer looks like text
+	// for far more than sampleSize bytes.
+	if http.DetectContentType(sample) == "application/pdf" {
+		return false, nil
+	}
+
+	// Check 2: Count null bytes - binary files typically have many nulls
 	nullCount := 0
 	for _, b := range sample {
 		if b == 0x00 {
@@ -42,7 +49,7 @@ func IsTextFile(realPath string) (bool, error) {
 		}
 	}
 
-	// Check 2: Validate UTF-8 encoding
+	// Check 3: Validate UTF-8 encoding
 	// Trim sample to last complete UTF-8 rune to avoid false negatives
 	trimmedSample := sample
 	for len(trimmedSample) > 0 {
