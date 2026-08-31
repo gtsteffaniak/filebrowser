@@ -67,6 +67,7 @@ describe('overlaidHintController', () => {
       player,
       hasStartedPlayback: () => true,
       baseUrl: '/files/',
+      isPlaying: player.playing,
     });
 
     player.emit('controlsshown');
@@ -85,6 +86,7 @@ describe('overlaidHintController', () => {
       player,
       hasStartedPlayback: () => true,
       baseUrl: '/files/',
+      isPlaying: player.playing,
     });
 
     player.emit('controlsshown');
