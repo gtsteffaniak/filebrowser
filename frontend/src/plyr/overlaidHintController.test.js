@@ -51,7 +51,7 @@ describe('overlaidHintController', () => {
       baseUrl: '/files/',
     });
 
-    api.onPlaybackToggle(true);
+    api.syncPlayback(true);
     vi.advanceTimersByTime(400);
     expect(player.elements.container.classList.contains('fb-overlaid--shown')).toBe(false);
 
@@ -90,7 +90,7 @@ describe('overlaidHintController', () => {
     player.emit('controlsshown');
     expect(player.elements.container.classList.contains('fb-overlaid--shown')).toBe(true);
 
-    api.onPlaybackToggle(false);
+    api.syncPlayback(false);
     expect(player.elements.container.classList.contains('fb-overlaid--shown')).toBe(false);
     expect(player.elements.container.classList.contains('fb-overlaid--fade-in')).toBe(false);
     expect(player.elements.container.classList.contains('fb-overlaid--fade-out')).toBe(false);

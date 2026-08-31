@@ -490,7 +490,7 @@ export default {
     },
     isPlaying(isPlaying) {
       if (this.previewType === 'video') {
-        this.overlaidHintApi?.onPlaybackToggle(isPlaying);
+        this.overlaidHintApi?.syncPlayback(isPlaying);
       }
     },
     'req.path'() {
@@ -2086,6 +2086,7 @@ export default {
         player: this.player,
         hasStartedPlayback: () => this.hasStartedPlayback,
         baseUrl: globalVars.baseURL,
+        isPlaying: this.isPlaying,
       });
       this.overlaidHintApi = api;
       this.overlaidHintCleanup = api.cleanup;
