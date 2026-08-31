@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -574,5 +575,53 @@ func TestParsePutTotalSize_UsesContentLength(t *testing.T) {
 	}
 	if !ok || total != int64(len(body)) {
 		t.Fatalf("parsePutTotalSize: got total=%d ok=%v", total, ok)
+	}
+}
+
+func TestResourcePostHandler_PartialChunkResponse(t *testing.T) {
+	_, user := setupUploadHTTPTest(t)
+	part1 := []byte("aaaa")
+	total := 8
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/resources?source=uploads&path=/partial.bin", bytes.NewReader(part1))
+	req.ContentLength = int64(len(part1))
+	req.Header.Set("X-File-Upload-Session", "session-partial")
+	req.Header.Set("X-File-Chunk-Offset", "0")
+	req.Header.Set("X-File-Total-Size", strconv.Itoa(total))
+
+	status, err := ResourcePostHandler(rec, req, &requestContext{User: user})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("chunk1 status=%d err=%v", status, err)
+	}
+	if rec.Header().Get("Connection") != "close" {
+		t.Fatalf("expected Connection: close, got %q", rec.Header().Get("Connection"))
+	}
+	var payload chunkUploadResponse
+	if decodeErr := json.NewDecoder(rec.Body).Decode(&payload); decodeErr != nil {
+		t.Fatalf("decode response: %v", decodeErr)
+	}
+	if payload.Complete || payload.Offset != int64(len(part1)) || payload.Total != int64(total) {
+		t.Fatalf("unexpected payload: %+v", payload)
+	}
+
+	part2 := []byte("bbbb")
+	rec2 := httptest.NewRecorder()
+	req2 := httptest.NewRequest(http.MethodPost, "/api/resources?source=uploads&path=/partial.bin", bytes.NewReader(part2))
+	req2.ContentLength = int64(len(part2))
+	req2.Header.Set("X-File-Upload-Session", "session-partial")
+	req2.Header.Set("X-File-Chunk-Offset", strconv.Itoa(len(part1)))
+	req2.Header.Set("X-File-Total-Size", strconv.Itoa(total))
+
+	status, err = ResourcePostHandler(rec2, req2, &requestContext{User: user})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("chunk2 status=%d err=%v", status, err)
+	}
+	var finalPayload chunkUploadResponse
+	if decodeErr := json.NewDecoder(rec2.Body).Decode(&finalPayload); decodeErr != nil {
+		t.Fatalf("decode final response: %v", decodeErr)
+	}
+	if !finalPayload.Complete || finalPayload.Offset != int64(total) {
+		t.Fatalf("unexpected final payload: %+v", finalPayload)
 	}
 }

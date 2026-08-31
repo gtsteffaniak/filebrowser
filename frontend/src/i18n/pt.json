@@ -143,7 +143,8 @@
     "wrongCredentials": "Dados errados",
     "failedLogin": "Falha no início de sessão",
     "invalidCredentials": "Credenciais inválidas fornecidas",
-    "passkeyLogin": "Usar chave de acesso"
+    "passkeyLogin": "Usar chave de acesso",
+    "recaptchaRequired": "Desafio Recaptcha necessário"
   },
   "prompts": {
     "deleteMessageSingle": "Quer eliminar esta pasta/ficheiro?",
@@ -812,6 +813,11 @@
       "alignCenter": "Alinhar ao centro",
       "justify": "Justificar",
       "fontColor": "Cor da fonte"
+    },
+    "json": {
+      "formatJSON": "Formato JSON",
+      "formatJSONSuccess": "O JSON foi formatado com sucesso",
+      "invalidJSON": "JSON inválido: {message}"
     }
   },
   "player": {

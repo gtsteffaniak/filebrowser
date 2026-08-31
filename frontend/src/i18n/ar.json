@@ -143,7 +143,8 @@
     "wrongCredentials": "بيانات دخول خاطئة",
     "failedLogin": "فشل في تسجيل الدخول",
     "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة",
-    "passkeyLogin": "استخدام مفتاح المرور"
+    "passkeyLogin": "استخدام مفتاح المرور",
+    "recaptchaRequired": "تحدي Recaptcha مطلوب"
   },
   "prompts": {
     "deleteMessageSingle": "هل تريد بالتأكيد حذف هذا الملف/المجلد؟",
@@ -812,6 +813,11 @@
       "alignCenter": "محاذاة إلى المنتصف",
       "justify": "ضبط",
       "fontColor": "لون الخط"
+    },
+    "json": {
+      "formatJSON": "تنسيق JSON",
+      "formatJSONSuccess": "تم تنسيق JSON بنجاح",
+      "invalidJSON": "JSON غير صالح: {message}"
     }
   },
   "player": {

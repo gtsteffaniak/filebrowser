@@ -21,6 +21,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
+	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -31,6 +32,16 @@ const (
 )
 
 func Initialize(configFile string) {
+	initializeConfig(configFile, false)
+}
+
+// InitializeCLI loads config for CLI subcommands without server-only setup (ffmpeg, frontend, etc.).
+func InitializeCLI(configFile string) {
+	initializeConfig(configFile, true)
+}
+
+func initializeConfig(configFile string, cliMode bool) {
+	Env.IsCLIMode = cliMode
 	err := loadConfigWithDefaults(configFile, false)
 	if err != nil {
 		logger.Error("unable to load config, waiting 5 seconds before exiting...")
@@ -57,6 +68,9 @@ func Initialize(configFile string) {
 	setupSources(false)
 	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
 	setupUrls()
+	if cliMode {
+		return
+	}
 	warnHttpProxyConfig()
 	setupFrontend(false)
 	setupMedia(false)
@@ -364,14 +378,18 @@ func isGoTest() bool {
 }
 
 func setupFFmpegIntegration() {
-	maxConcurrent := Config.Server.NumImageProcessors
-	if maxConcurrent < 1 {
-		maxConcurrent = 4
+	n := Config.Server.NumImageProcessors
+	if n < 1 {
+		n = 4
 	}
-	ffmpegConcurrency := (maxConcurrent + 1) / 2
+	maxDecode := (n + 1) / 2
 	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
-		FFmpegPath:           Config.Integrations.Media.FfmpegPath,
-		MaxConcurrent:        ffmpegConcurrency,
+		FFmpegPath: Config.Integrations.Media.FfmpegPath,
+		Concurrency: goffmpeg.Concurrency{
+			MaxProbe:  16,
+			MaxDecode: maxDecode,
+			MaxEncode: 2,
+		},
 		CacheDir:             Config.Server.CacheDir,
 		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
 		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
@@ -513,6 +531,7 @@ func setupAuth(generate bool) {
 	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
+		ValidateRecaptcha()
 	}
 	if Config.Auth.Methods.ProxyAuth.Enabled {
 		applyAuthCommonDefaults(&Config.Auth.Methods.ProxyAuth.AuthCommon)
@@ -562,6 +581,7 @@ func setupAuth(generate bool) {
 	if len(Config.Auth.AuthMethods) == 0 {
 		Config.Auth.Methods.PasswordAuth.Enabled = true
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
+		ValidateRecaptcha()
 	}
 	Config.UserDefaults.Account.LoginMethod = Config.Auth.AuthMethods[0]
 

@@ -30,6 +30,7 @@ export const availableLocales: Record<string, string> = {
   ru: 'ru',
   sk: 'sk',
   svSE: 'sv-se',
+  tr: 'tr',
   ua: 'ua',
   zhCN: 'zh-cn',
   zhTW: 'zh-tw',

@@ -143,7 +143,8 @@
     "wrongCredentials": "Nesprávne prihlasovacie údaje",
     "failedLogin": "Nepodarilo sa prihlásiť",
     "invalidCredentials": "Zadané neplatné poverenia",
-    "passkeyLogin": "Použiť Passkey"
+    "passkeyLogin": "Použiť Passkey",
+    "recaptchaRequired": "Vyžaduje sa overenie Recaptcha"
   },
   "prompts": {
     "deleteMessageSingle": "Naozaj chcete odstrániť tento súbor/priečinok?",
@@ -812,6 +813,11 @@
       "alignCenter": "Zarovnať na stred",
       "justify": "Zarovnať do bloku",
       "fontColor": "Farba písma"
+    },
+    "json": {
+      "formatJSON": "Formát JSON",
+      "formatJSONSuccess": "Formátovanie JSON prebehlo úspešne",
+      "invalidJSON": "Neplatný JSON: {message}"
     }
   },
   "player": {

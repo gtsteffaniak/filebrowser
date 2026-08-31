@@ -49,7 +49,9 @@ func initialize(dbPath string) (bool, error) {
 	defer sharesMux.Unlock()
 	defer indexMux.Unlock()
 
-	logger.Info("Initializing state management system...")
+	if !settings.Env.IsCLIMode {
+		logger.Info("Initializing state management system...")
+	}
 	var existingDb bool
 	var err error
 	sqlDb, existingDb, err = sqldb.NewSQLStore(dbPath)

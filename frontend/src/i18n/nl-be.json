@@ -143,7 +143,8 @@
     "wrongCredentials": "Verkeerde inloggegevens",
     "failedLogin": "Aanmelden mislukt",
     "invalidCredentials": "Ongeldige referenties verstrekt",
-    "passkeyLogin": "Passkey gebruiken"
+    "passkeyLogin": "Passkey gebruiken",
+    "recaptchaRequired": "Recaptcha-uitdaging vereist"
   },
   "prompts": {
     "deleteMessageSingle": "Weet u zeker dat u dit bestand/map wil verwijderen?",
@@ -812,6 +813,11 @@
       "alignCenter": "Centreren",
       "justify": "Uitvullen",
       "fontColor": "Letterkleur"
+    },
+    "json": {
+      "formatJSON": "JSON-formaat",
+      "formatJSONSuccess": "JSON succesvol opgemaakt",
+      "invalidJSON": "Ongeldige JSON: {message}"
     }
   },
   "player": {

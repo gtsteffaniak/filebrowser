@@ -19,6 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -140,6 +141,8 @@ func ErrToStatus(err error) int {
 		return http.StatusBadRequest
 	case errors.Is(err, libErrors.ErrIsDirectory):
 		return http.StatusMethodNotAllowed
+	case errors.Is(err, preview.ErrUnsupportedFormat):
+		return http.StatusUnsupportedMediaType
 	default:
 		if qe, ok := quota.AsError(err); ok {
 			if qe.Code == quota.CodeLengthRequired {

@@ -11,7 +11,7 @@
       :key="req.path"
       class="html-content"
       :srcdoc="htmlPreview.srcdoc"
-      sandbox="allow-scripts allow-popups allow-same-origin"
+      sandbox="allow-scripts allow-popups"
       referrerpolicy="no-referrer"
       title="HTML preview"
       @load="applyHtmlPreviewHeight"

@@ -143,7 +143,8 @@
     "wrongCredentials": "Невірне ім'я користувача або пароль",
     "failedLogin": "Не вдалося увійти в систему",
     "invalidCredentials": "Надано невірні облікові дані",
-    "passkeyLogin": "Використати ключ доступу"
+    "passkeyLogin": "Використати ключ доступу",
+    "recaptchaRequired": "Потрібна перевірка Recaptcha"
   },
   "prompts": {
     "deleteMessageSingle": "Видалити цей файл/каталог?",
@@ -812,6 +813,11 @@
       "alignCenter": "Вирівняти по центру",
       "justify": "Вирівняти по ширині",
       "fontColor": "Колір шрифту"
+    },
+    "json": {
+      "formatJSON": "Формат JSON",
+      "formatJSONSuccess": "Форматування у форматі JSON завершено успішно",
+      "invalidJSON": "Неправильний JSON: {message}"
     }
   },
   "player": {

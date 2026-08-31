@@ -17,11 +17,6 @@ func (s *Service) convertHEICToJPEGWithFFmpeg(ctx context.Context, filePath stri
 		return nil, ctx.Err()
 	}
 
-	if err := s.ffmpegService.Acquire(ctx); err != nil {
-		return nil, err
-	}
-	defer s.ffmpegService.Release()
-
 	var quality string
 	switch previewSize {
 	case "large":
@@ -45,11 +40,6 @@ func (s *Service) convertImageWithFFmpeg(ctx context.Context, filePath string, p
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-
-	if err := s.ffmpegService.Acquire(ctx); err != nil {
-		return nil, err
-	}
-	defer s.ffmpegService.Release()
 
 	var width, height int
 	var quality string

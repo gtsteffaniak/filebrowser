@@ -210,14 +210,14 @@ func runCLI() (keepGoing bool, dbExists bool) {
 	switch {
 	case cmd == "" || cmd == "run":
 		requireExistingConfig(configPath)
-		dbExists = initializeDatabase(configPath)
+		dbExists = initializeDatabase(configPath, false)
 		return true, dbExists
 	case cmd == "version" || cmd == "setup":
 		parser.FatalIfErrorf(ctx.Run(&rootCLI))
 		return false, false
 	case cmd == "set rule" || cmd == "set" || strings.HasPrefix(cmd, "user set") || strings.HasPrefix(cmd, "user promote"):
 		requireExistingConfig(configPath)
-		dbExists = initializeDatabase(configPath)
+		dbExists = initializeDatabase(configPath, true)
 		parser.FatalIfErrorf(ctx.Run(&rootCLI))
 		return false, dbExists
 	default:

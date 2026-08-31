@@ -374,15 +374,12 @@ class UploadManager {
     this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
 
-    // Get chunk size in MB, default to 5 if not set or if 0
-    let chunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb ?? 5;
-    if (chunkSizeMb === 0) {
-      chunkSizeMb = 5;
-    }
+    // Default to 5 MB when unset; explicit 0 disables chunking (single-shot upload).
+    const chunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb ?? 5;
     const chunkSize = chunkSizeMb * 1024 * 1024;
 
-    // Use non-chunked upload if file size is less than chunk size
-    if (upload.size < chunkSize) {
+    // Single-shot upload when chunking is disabled or file is smaller than chunk size.
+    if (chunkSize === 0 || upload.size < chunkSize) {
       const progress = (percent) => {
         this.updateProgress(upload, percent);
       };
@@ -513,10 +510,7 @@ class UploadManager {
   }
 
   chunkSizeBytes() {
-    let chunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb ?? 5;
-    if (chunkSizeMb === 0) {
-      chunkSizeMb = 5;
-    }
+    const chunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb ?? 5;
     return chunkSizeMb * 1024 * 1024;
   }
 
@@ -558,7 +552,7 @@ class UploadManager {
     if (upload?.status !== "uploading") {
       return;
     }
-    if (upload.type !== "directory" && upload.size >= this.chunkSizeBytes()) {
+    if (upload.type !== "directory" && this.chunkSizeBytes() > 0 && upload.size >= this.chunkSizeBytes()) {
       try {
         if (getters.isShare()) {
           await resourcesApi.signalUploadPause(null, upload.path, state.shareInfo.hash);

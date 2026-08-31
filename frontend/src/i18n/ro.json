@@ -143,7 +143,8 @@
     "wrongCredentials": "Informații greșite",
     "failedLogin": "A eșuat autentificarea",
     "invalidCredentials": "Acreditări invalide furnizate",
-    "passkeyLogin": "Folosește cheie de acces"
+    "passkeyLogin": "Folosește cheie de acces",
+    "recaptchaRequired": "Este necesară verificarea Recaptcha"
   },
   "prompts": {
     "deleteMessageSingle": "Ești sigur că vrei să ștergi acest fișier/director?",
@@ -812,6 +813,11 @@
       "alignCenter": "Aliniere la centru",
       "justify": "Aliniere între margini",
       "fontColor": "Culoarea fontului"
+    },
+    "json": {
+      "formatJSON": "Format JSON",
+      "formatJSONSuccess": "Formatarea JSON s-a realizat cu succes",
+      "invalidJSON": "JSON nevalid: {message}"
     }
   },
   "player": {

@@ -140,6 +140,7 @@ import { eventBus } from "@/store/eventBus";
 import { removeLastDir } from "@/utils/url.js";
 import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
 import { copyToClipboard } from "@/utils/clipboard.js";
+import { notify } from "@/notify";
 
 interface AnchorRange {
   start: Ace.Anchor;
@@ -250,6 +251,15 @@ export default {
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
         { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
       ];
+      const isJson = state.req.type === "application/json"
+      if (isJson && getters.sourcePermissions().modify) {
+        alwaysAvailable.push({
+          id: "formatJSON",
+          icon: "data_object",
+          title: this.$t("editor.json.formatJSON"),
+          action: () => this.formatJSON(),
+        });
+      }
       if (!this.isMarkdown) {
         return [
           ...alwaysAvailable,
@@ -337,6 +347,23 @@ export default {
     expandLeave,
     focusEditor() {
       if (this.editor) this.editor.focus();
+    },
+    formatJSON() {
+      const editor = this.editor;
+      if (!editor) return;
+      try {
+        const textToFormat = editor.getValue();
+        const parsed = JSON.parse(textToFormat);
+        const next = state.editor.jsonFormatted
+          ? JSON.stringify(parsed)
+          : JSON.stringify(parsed, null, 2);
+        if (next !== textToFormat) editor.setValue(next, -1);
+        mutations.setEditorJsonFormatted(!state.editor.jsonFormatted);
+        notify.showSuccessToast(this.$t("editor.json.formatJSONSuccess"));
+      } catch (e) {
+        notify.showErrorToast(this.$t("editor.json.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
+      }
+      this.focusEditor();
     },
     undo() {
       const editor = this.editor;
