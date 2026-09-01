@@ -66,7 +66,8 @@ export default {
         'table_rows_narrow',
         'content_copy',
         'file_copy',
-        'copy_all'
+        'copy_all',
+        'insert_drive_file'
       ];
       return outlinedIcons.includes(this.icon)
         ? 'material-symbols-outlined'
