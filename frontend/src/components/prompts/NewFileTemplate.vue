@@ -7,15 +7,15 @@
       :ref="el => itemRefs[index] = el"
       class="new-file-template-row"
       :class="{ 'is-dragging': draggingIndex === index }"
-      @dragover.prevent="onDragOver(index)"
-      @drop.prevent="onDrop(index)"
     >
       <i
         class="material-symbols drag-handle"
         aria-hidden="true"
-        draggable="true"
-        @dragstart="onDragStart(index, $event)"
-        @dragend="onDragEnd"
+        @pointerdown="onPointerDown(index, $event)"
+        @pointermove="onPointerMove"
+        @pointerup="onPointerUp"
+        @pointercancel="onPointerCancel"
+        @lostpointercapture="onPointerCancel"
       >drag_indicator</i>
       <i
         class="file-type-icon"
@@ -104,7 +104,21 @@ export default {
       draggingIndex: null,
       itemRefs: {},
       originalItems: null, // store original order in case drag gets cancelled
+      pointerId: null,
+      dragClone: null,
+      dragOffsetY: 0,
+      dragCorrectionX: 0,
+      dragCorrectionY: 0,
+      scrollParent: null,
+      autoScrollRAF: null,
+      autoScrollDelta: 0,
+      lastClientY: 0,
     };
+  },
+  beforeUnmount() {
+    if (this.draggingIndex !== null || this.autoScrollRAF !== null) {
+      this.finishDrag(false);
+    }
   },
   methods: {
     addItem() {
@@ -119,53 +133,153 @@ export default {
     typeInfoFor(item) {
       return getTypeInfoFromExt(item);
     },
-    // I tried to make the same drag behavior that the SidebarLinks.vue prompt has 
-    onDragStart(index, event) {
+    onPointerDown(index, event) {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      event.preventDefault();
       this.draggingIndex = index;
       this.originalItems = [...this.localItems];
+      this.pointerId = event.pointerId;
+      this.lastClientY = event.clientY;
+      // make all pointermove/up events for this pointer go to this element
+      event.target.setPointerCapture(event.pointerId);
 
-      if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("text/plain", String(index));
+      const row = getObjectProperty(this.itemRefs, index);
+      if (row) {
+        const rect = row.getBoundingClientRect();
+        this.dragOffsetY = event.clientY - rect.top;
+        const clone = row.cloneNode(true);
+        clone.style.position = "fixed";
+        clone.style.left = `${rect.left}px`;
+        clone.style.top = `${rect.top}px`;
+        clone.style.width = `${rect.width}px`;
+        clone.style.margin = "0";
+        clone.style.pointerEvents = "none";
+        clone.style.zIndex = "9999";
+        clone.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.25)";
+        row.parentNode.insertBefore(clone, row.nextSibling);
+        const actualRect = clone.getBoundingClientRect();
+        this.dragCorrectionX = rect.left - actualRect.left;
+        this.dragCorrectionY = rect.top - actualRect.top;
+        if (this.dragCorrectionX || this.dragCorrectionY) {
+          clone.style.left = `${rect.left + this.dragCorrectionX}px`;
+          clone.style.top = `${rect.top + this.dragCorrectionY}px`;
+        }
+        this.dragClone = clone;
+        this.scrollParent = this.getScrollParent(row);
+      }
+    },
+    onPointerMove(event) {
+      if (this.draggingIndex === null || event.pointerId !== this.pointerId) return;
+      event.preventDefault();
+      this.lastClientY = event.clientY;
+      if (this.dragClone) {
+        const top = event.clientY - this.dragOffsetY + (this.dragCorrectionY || 0);
+        this.dragClone.style.top = `${top}px`;
+      }
+      this.updateHoveredIndex(event.clientY);
+      this.updateAutoScroll(event.clientY);
+    },
+    onPointerUp(event) {
+      if (event.pointerId !== this.pointerId) return;
+      this.finishDrag(true);
+    },
+    onPointerCancel(event) {
+      if (event.pointerId !== this.pointerId) return;
+      this.finishDrag(false);
+    },
+    finishDrag(commit) {
+      // If drag was cancelled (not a clean pointerup), restore original order
+      if (!commit && this.originalItems !== null) {
+        this.localItems = this.originalItems;
+      }
+      this.originalItems = null;
+      this.draggingIndex = null;
+      this.pointerId = null;
 
-        const row = getObjectProperty(this.itemRefs, index);
-        if (row) {
-          const clone = row.cloneNode(true);
-          clone.style.position = 'fixed';
-          clone.style.top = '-9999px';
-          clone.style.left = '-9999px';
-          clone.style.width = `${row.offsetWidth}px`;
+      if (this.dragClone) {
+        this.dragClone.remove();
+        this.dragClone = null;
+      }
+      if (this.autoScrollRAF) {
+        cancelAnimationFrame(this.autoScrollRAF);
+        this.autoScrollRAF = null;
+      }
+      this.autoScrollDelta = 0;
+      this.scrollParent = null;
+    },
+    updateHoveredIndex(clientY) {
+      if (this.draggingIndex === null) return;
+      const entries = Object.entries(this.itemRefs)
+        .map(([i, el]) => [Number(i), el])
+        .filter(([, el]) => !!el)
+        .sort((a, b) => a[0] - b[0]);
 
-          // Insert it as a sibling so inherits the theme dark mode
-          row.parentNode.insertBefore(clone, row.nextSibling);
-          event.dataTransfer.setDragImage(clone, event.offsetX, event.offsetY);
-
-          setTimeout(() => {
-            clone.remove();
-          }, 0);
+      let targetIndex = entries.length ? entries[entries.length - 1][0] : this.draggingIndex;
+      for (const [i, el] of entries) {
+        const rect = el.getBoundingClientRect();
+        if (clientY < rect.top + rect.height / 2) {
+          targetIndex = i;
+          break;
         }
       }
-    },
-    onDragOver(index) {
-      if (this.draggingIndex === null || this.draggingIndex === index) return;
-      const array = [...this.localItems];
-      const [moved] = array.splice(this.draggingIndex, 1);
-      array.splice(index, 0, moved);
-
-      this.localItems = array;
-      this.draggingIndex = index; // Update positio
-    },
-    onDrop() {
-      this.draggingIndex = null;
-      this.originalItems = null; // Clear the backup
-    },
-    onDragEnd() {
-      // If drag was cancelled restore original order
-      if (this.originalItems !== null) {
-        this.localItems = this.originalItems;
-        this.originalItems = null;
+      if (targetIndex !== this.draggingIndex) {
+        const array = [...this.localItems];
+        const [moved] = array.splice(this.draggingIndex, 1);
+        array.splice(targetIndex, 0, moved);
+        this.localItems = array;
+        this.draggingIndex = targetIndex;
       }
-      this.draggingIndex = null;
+    },
+    getScrollParent(node) {
+      let el = node?.parentElement;
+      while (el) {
+        const style = getComputedStyle(el);
+        const scrollable =
+          (style.overflowY === "auto" || style.overflowY === "scroll") &&
+          el.scrollHeight > el.clientHeight;
+        if (scrollable) return el;
+        el = el.parentElement;
+      }
+      return document.scrollingElement || document.documentElement;
+    },
+    updateAutoScroll(clientY) {
+      const EDGE = 50;
+      const MAX_SPEED = 16;
+      const parent = this.scrollParent;
+      if (!parent) return;
+      const isWindowScroll = parent === document.scrollingElement || parent === document.documentElement;
+      const rect = isWindowScroll ? null : parent.getBoundingClientRect();
+      const top = isWindowScroll ? 0 : rect.top;
+      const bottom = isWindowScroll ? window.innerHeight : rect.bottom;
+
+      let delta = 0;
+      if (clientY < top + EDGE) {
+        delta = -MAX_SPEED * (1 - Math.max(0, clientY - top) / EDGE);
+      } else if (clientY > bottom - EDGE) {
+        delta = MAX_SPEED * (1 - Math.max(0, bottom - clientY) / EDGE);
+      }
+      this.autoScrollDelta = delta;
+      if (delta !== 0 && this.autoScrollRAF === null) {
+        this.autoScroll();
+      }
+    },
+    autoScroll() {
+      const isWindowScroll =
+        this.scrollParent === document.scrollingElement || this.scrollParent === document.documentElement;
+      const step = () => {
+        if (this.autoScrollDelta !== 0 && this.scrollParent) {
+          if (isWindowScroll) {
+            window.scrollBy(0, this.autoScrollDelta);
+          } else {
+            this.scrollParent.scrollTop += this.autoScrollDelta;
+          }
+          this.updateHoveredIndex(this.lastClientY);
+          this.autoScrollRAF = requestAnimationFrame(step);
+        } else {
+          this.autoScrollRAF = null;
+        }
+      };
+      this.autoScrollRAF = requestAnimationFrame(step);
     },
     cancel() {
       mutations.closeTopPrompt();
@@ -205,6 +319,7 @@ export default {
   cursor: grab;
   color: var(--textSecondary);
   flex-shrink: 0;
+  touch-action: none;
 }
 
 .drag-handle:active {
@@ -228,5 +343,4 @@ export default {
   color: red;
   font-variation-settings: 'FILL' 1;
 }
-
 </style>
