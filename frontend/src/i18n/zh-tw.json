@@ -43,6 +43,7 @@
     "requestTimedOut": "請求已超時。請檢查您的網路或反向代理設定。"
   },
   "files": {
+    "emptyFile": "空檔案",
     "lastModified": "最後修改{suffix}",
     "multipleSelectionEnabled": "多選模式已開啟",
     "sortByLastModified": "按最後修改時間排序",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "需要 Recaptcha 驗證"
   },
   "prompts": {
+    "noTemplate": "您的模板為空！",
+    "newFileTemplate": "新建檔案模板",
+    "newFileTemplateMessage": "在此處添加新檔案名稱，它們將用作上下文選單中新建檔案的模板！",
+    "newFileTemplatePlaceholder": "輸入帶副檔名的檔案名稱",
     "deleteMessageSingle": "確定要刪除此檔案或資料夾嗎？",
     "deleteTitle": "刪除檔案",
     "displayName": "名稱：",

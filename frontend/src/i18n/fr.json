@@ -43,6 +43,7 @@
     "requestTimedOut": "La requête a dépassé le délai d'attente. Vérifiez votre connexion réseau ou les paramètres de votre proxy inverse."
   },
   "files": {
+    "emptyFile": "Fichier vide",
     "lastModified": "Dernière modification",
     "multipleSelectionEnabled": "Sélection multiple activée",
     "sortByLastModified": "Trier par date de dernière modification",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Défi Recaptcha requis"
   },
   "prompts": {
+    "noTemplate": "Votre modèle est vide !",
+    "newFileTemplate": "Modèle de nouveau fichier",
+    "newFileTemplateMessage": "Ajoutez ici de nouveaux noms de fichiers, ils seront utilisés comme modèle pour la création de nouveaux fichiers dans le menu contextuel !",
+    "newFileTemplatePlaceholder": "Entrez un nom de fichier avec une extension",
     "deleteMessageSingle": "Êtes-vous sûr de vouloir supprimer cet élément ?",
     "deleteTitle": "Supprimer",
     "displayName": "Nom :",

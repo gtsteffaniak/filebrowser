@@ -43,6 +43,7 @@
     "requestTimedOut": "A kérés időtúllépése történt. Ellenőrizze a hálózati vagy a fordított proxy beállításait."
   },
   "files": {
+    "emptyFile": "Üres fájl",
     "lastModified": "Utoljára módosítva",
     "multipleSelectionEnabled": "Többszörös kijelölés aktiválva",
     "sortByLastModified": "Rendezés utolsó módosítás szerint",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Recaptcha-ellenőrzés szükséges"
   },
   "prompts": {
+    "noTemplate": "A sablon üres!",
+    "newFileTemplate": "Új fájl sablon",
+    "newFileTemplateMessage": "Adjon hozzá új fájlneveket itt, ezek sablonként szolgálnak az új fájlok létrehozásához a helyi menüben!",
+    "newFileTemplatePlaceholder": "Adjon meg egy fájlnevet kiterjesztéssel",
     "deleteMessageSingle": "Biztosan törölni szeretné ezt a fájl vagy mappát?",
     "deleteTitle": "Fájlok törlése",
     "displayName": "Megjelenített név:",

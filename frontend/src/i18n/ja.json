@@ -43,6 +43,7 @@
     "requestTimedOut": "リクエストがタイムアウトしました。ネットワークまたはリバースプロキシの設定を確認してください。"
   },
   "files": {
+    "emptyFile": "空のファイル",
     "lastModified": "最終変更",
     "multipleSelectionEnabled": "複数選択有効",
     "sortByLastModified": "最終変更日付によるソート",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Recaptcha認証が必要です"
   },
   "prompts": {
+    "noTemplate": "テンプレートが空です！",
+    "newFileTemplate": "新規ファイルテンプレート",
+    "newFileTemplateMessage": "新しいファイル名をここに追加すると、コンテキストメニューでの新規ファイル作成のテンプレートとして使用されます！",
+    "newFileTemplatePlaceholder": "拡張子付きのファイル名を入力",
     "deleteMessageSingle": "このファイル/フォルダを本当に削除してよろしいですか。",
     "deleteTitle": "ファイルを削除",
     "displayName": "名前：",

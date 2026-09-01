@@ -43,6 +43,7 @@
     "requestTimedOut": "Запит завершився через перевищення ліміту часу. Перевірте налаштування мережі або зворотного проксі-сервера."
   },
   "files": {
+    "emptyFile": "Порожній файл",
     "lastModified": "Останній раз змінено",
     "multipleSelectionEnabled": "Мультивибір включений",
     "sortByLastModified": "Сортувати за останнім зміненням",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Потрібна перевірка Recaptcha"
   },
   "prompts": {
+    "noTemplate": "Ваш шаблон порожній!",
+    "newFileTemplate": "Шаблон нового файлу",
+    "newFileTemplateMessage": "Додайте нові імена файлів тут, вони будуть використовуватися як шаблон для створення нових файлів у контекстному меню!",
+    "newFileTemplatePlaceholder": "Введіть ім'я файлу з розширенням",
     "deleteMessageSingle": "Видалити цей файл/каталог?",
     "deleteTitle": "Видалити файлы",
     "displayName": "Відображене ім'я:",

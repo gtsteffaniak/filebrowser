@@ -43,6 +43,7 @@
     "requestTimedOut": "S-a depășit timpul de așteptare pentru cerere. Verificați setările rețelei sau ale proxy-ului invers."
   },
   "files": {
+    "emptyFile": "Fișier gol",
     "lastModified": "Ultima modificare",
     "multipleSelectionEnabled": "Selecție multiplă activată",
     "sortByLastModified": "Ordonează dup ultima modificare",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Este necesară verificarea Recaptcha"
   },
   "prompts": {
+    "noTemplate": "Șablonul tău este gol!",
+    "newFileTemplate": "Șablon fișier nou",
+    "newFileTemplateMessage": "Adăugați nume de fișiere noi aici, acestea vor fi folosite ca șablon pentru crearea de fișiere noi în meniul contextual!",
+    "newFileTemplatePlaceholder": "Introduceți un nume de fișier cu extensie",
     "deleteMessageSingle": "Ești sigur că vrei să ștergi acest fișier/director?",
     "deleteTitle": "Șterge fișiere",
     "displayName": "Nume afișat:",

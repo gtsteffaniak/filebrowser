@@ -43,6 +43,7 @@
     "requestTimedOut": "הבקשה פקעה. בדוק את הגדרות הרשת או את הגדרות ה-proxy ההפוך."
   },
   "files": {
+    "emptyFile": "קובץ ריק",
     "lastModified": "שונה לאחרונה",
     "multipleSelectionEnabled": "בחירה מרובה מופעלת",
     "sortByLastModified": "מיין לפי השינוי האחרון",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "נדרש אתגר Recaptcha"
   },
   "prompts": {
+    "noTemplate": "התבנית שלך ריקה!",
+    "newFileTemplate": "תבנית קובץ חדש",
+    "newFileTemplateMessage": "הוסף שמות קבצים חדשים כאן, הם ישמשו כתבנית ליצירת קבצים חדשים בתפריט ההקשר!",
+    "newFileTemplatePlaceholder": "הזן שם קובץ עם סיומת",
     "deleteMessageSingle": "האם אתה בטוח שברצונך למחוק את הקובץ או התקייה?",
     "deleteTitle": "מחק קבצים",
     "displayName": "שם:",
