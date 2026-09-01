@@ -34,6 +34,7 @@ type UserDefaultsListingEnforcement struct {
 	DeleteAfterArchive      bool `json:"deleteAfterArchive,omitempty"`
 	ViewMode                bool `json:"viewMode,omitempty"`
 	GallerySize             bool `json:"gallerySize,omitempty"`
+	NewFileTemplate         bool `json:"newFileTemplate,omitempty"`
 }
 
 type UserDefaultsPreviewEnforcement struct {

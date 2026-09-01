@@ -49,10 +49,14 @@ export default {
       type: [String, Object, null],
       default: null,
     },
+    initialName: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
-      name: "",
+      name: this.initialName || "",
       creating: false,
     };
   },

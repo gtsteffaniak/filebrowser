@@ -213,6 +213,7 @@
     "requestTimedOut": "The request timed out. Check your network or reverse proxy settings."
   },
   "files": {
+    "emptyFile": "Empty File",
     "lastModified": "Last modified{suffix}",
     "duration": "Duration{suffix}",
     "lonely": "Nothing to show here...",
@@ -407,6 +408,10 @@
     "deleteFailed": "Failed to delete share"
   },
   "prompts": {
+    "noTemplate": "Your template is empty!",
+    "newFileTemplate": "New file template",
+    "newFileTemplateMessage": "Add new filenames here, they will be used as template for new file creation in the context menu!",
+    "newFileTemplatePlaceholder": "Enter a filename with an extension",
     "operationInProgress": "Operation in progress, please wait...",
     "quickJump": "Quickly jump to other files",
     "downloadsLimit": "Number of downloads limit",

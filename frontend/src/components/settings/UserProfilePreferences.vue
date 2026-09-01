@@ -63,6 +63,28 @@
           :description="$t('profileSettings.deleteAfterArchiveDescription')"
         />
       </div>
+      <div
+        class="preference-field-block"
+        :class="{ 'preference-field-block--enforceable': enforceable }"
+      >
+        <div class="settings-items">
+          <SettingsButton
+            class="item"
+            :name="$t('prompts.newFileTemplate')"
+            :description="$t('prompts.newFileTemplateMessage')"
+            :disabled="fieldDisabled('listing', 'newFileTemplate')"
+            @click="openNewFileTemplateEditor"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'newFileTemplate')"
+            @mouseleave="hideTooltip"
+          />
+        </div>
+        <ProfileEnforceSwitch
+          :visible="enforceable"
+          :enforced="enforcedFlag('listing', 'newFileTemplate')"
+          :disabled="disabled"
+          @update:enforced="(v) => emitEnforced('listing', 'newFileTemplate', v)"
+        />
+      </div>
       <template v-if="showExtensionInputs">
         <div
           class="preference-field-block"
@@ -567,6 +589,7 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 
 export default {
   name: "UserProfilePreferences",
@@ -578,6 +601,7 @@ export default {
     ButtonGroup,
     ProfilePreferenceToggle,
     ProfileEnforceSwitch,
+    SettingsButton,
   },
   provide() {
     return { profilePrefs: this };
@@ -961,6 +985,24 @@ export default {
       };
       this.sections = next;
       this.emitSectionChange("fileViewer", "disableViewingExt");
+    },
+    openNewFileTemplateEditor() {
+      if (this.fieldDisabled('listing', 'newFileTemplate')) return;
+      const current = getObjectProperty(getObjectProperty(this.sections, 'listing'), 'newFileTemplate') || [];
+      mutations.showPrompt({
+        name: "new-file-template",
+        props: {
+          items: [...current],
+        },
+        confirm: (updated) => {
+          const next = {
+            ...this.sections,
+            listing: { ...(this.sections.listing || {}), newFileTemplate: updated },
+          };
+          this.sections = next;
+          this.emitSectionChange("listing", "newFileTemplate");
+        },
+      });
     },
     submitHideExtChange() {
       if (!this.validateExtensions(this.formHideExt)) {

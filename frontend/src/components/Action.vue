@@ -44,7 +44,7 @@ import { getters, mutations, state } from "@/store";
 
 export default {
   name: "action",
-  props: ["icon", "label", "counter", "show", "isDisabled"],
+  props: ["icon", "label", "counter", "show", "isDisabled", "customIconClass"],
   computed: {
     req() {
       return state.req;
@@ -59,6 +59,9 @@ export default {
       return getters.currentView();
     },
     iconClass() {
+      if (this.customIconClass) {
+        return this.customIconClass;
+      }
       const outlinedIcons = [
         'table_rows_narrow',
         'content_copy',

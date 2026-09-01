@@ -227,6 +227,7 @@ type NonAdminEditable struct {
 	Password                   string               `json:"password,omitempty"`
 	Locale                     string               `json:"locale"`      // language to use: eg. de, en, or fr
 	ViewMode                   string               `json:"viewMode"`    // view mode to use: eg. normal, list, grid, or compact
+	NewFileTemplate            []string             `json:"newFileTemplate"` // list of custom filenames that will be used as template for new files
 	SingleClick                bool                 `json:"singleClick"` // open directory on single click, also enables middle click to open in new tab
 	Sorting                    Sorting              `json:"sorting"`
 	ShowHidden                 bool                 `json:"showHidden"`                 // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files

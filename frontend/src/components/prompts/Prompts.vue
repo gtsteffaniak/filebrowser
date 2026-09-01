@@ -126,6 +126,7 @@ import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
 import UserDefaults from "./UserDefaults.vue";
 import Quota from "./Quota.vue";
+import NewFileTemplate from "./NewFileTemplate.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -174,6 +175,7 @@ export default {
     ConfigViewer,
     UserDefaults,
     Quota,
+    NewFileTemplate,
   },
   data() {
     return {
@@ -413,6 +415,8 @@ export default {
           return this.$t("threejs.controls");
         case "activityeventdetails":
           return this.$t("general.details");
+        case "new-file-template":
+          return this.$t("prompts.newFileTemplate")
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types

@@ -365,6 +365,7 @@ type UserDefaultsListing struct {
 	DeleteAfterArchive      bool   `json:"deleteAfterArchive"`      // delete source files after successful creation/extraction of archives
 	ViewMode                string `json:"viewMode"`                // view mode to use: eg. normal, list, grid, or compact
 	GallerySize             int    `json:"gallerySize"`             // 0-9 - the size of the gallery thumbnails
+	NewFileTemplate         []string `json:"newFileTemplate"`       // list of custom filenames that will be used as template for new files
 }
 
 // UserDefaultsPreview holds preview-related settings

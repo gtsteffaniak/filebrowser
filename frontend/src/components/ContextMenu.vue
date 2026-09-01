@@ -12,166 +12,200 @@
       :style="centered ? {} : { top: `${posY}px`, left: `${posX}px` }"
       class="no-select floating-window"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
-      :key="showCreate ? 'create-mode' : 'normal-mode'"
+      :key="showNewFileTemplate ? 'template-mode' : (showCreate ? 'create-mode' : 'normal-mode')"
     >
-      <div
-        v-if="showCreateToggle"
-        class="context-menu-header"
-      >
+      <template v-if="showNewFileTemplate">
+        <div class="context-menu-header">
+          <div
+            class="action button clickable context-menu-create-toggle"
+            aria-label="Back"
+            role="button"
+            tabindex="0"
+            @click="closeNewFilePicker"
+            @keydown.enter.prevent="closeNewFilePicker"
+            @keydown.space.prevent="closeNewFilePicker"
+          >
+            <i class="material-symbols">arrow_back</i>
+          </div>
+        </div>
+        <hr class="divider">
+        <p v-if="newFileTemplates.length === 0" class="context-menu-empty-message">
+          {{ $t('prompts.noTemplate') }}
+        </p>
+        <action
+          v-for="item in newFileTemplateItems"
+          :key="item.name"
+          :icon="item.icon"
+          :custom-icon-class="item.iconClass"
+          :label="item.name"
+          @action="createFromTemplate(item.name)"
+        />
+        <action
+          icon="insert_drive_file"
+          :label="$t('files.emptyFile')"
+          @action="createEmptyFile"
+        />
+      </template>
+      <template v-else>
         <div
           v-if="showCreateToggle"
-          class="action button clickable context-menu-create-toggle"
-          aria-label="Create Actions Toggle"
-          :class="{ 'context-menu-create-toggle--disabled': createToggleDisabled }"
-          role="button"
-          :aria-disabled="createToggleDisabled ? 'true' : 'false'"
-          :tabindex="createToggleDisabled ? -1 : 0"
-          @click="onCreateToggleClick"
-          @keydown.enter.prevent="onCreateToggleClick"
-          @keydown.space.prevent="onCreateToggleClick"
-          @mouseenter="onCreateToggleMouseEnter"
-          @mouseleave="hideTooltip"
+          class="context-menu-header"
         >
-          <i v-if="!showCreate" class="material-symbols">add</i>
-          <i v-else class="material-symbols">arrow_back</i>
+          <div
+            v-if="showCreateToggle"
+            class="action button clickable context-menu-create-toggle"
+            aria-label="Create Actions Toggle"
+            :class="{ 'context-menu-create-toggle--disabled': createToggleDisabled }"
+            role="button"
+            :aria-disabled="createToggleDisabled ? 'true' : 'false'"
+            :tabindex="createToggleDisabled ? -1 : 0"
+            @click="onCreateToggleClick"
+            @keydown.enter.prevent="onCreateToggleClick"
+            @keydown.space.prevent="onCreateToggleClick"
+            @mouseenter="onCreateToggleMouseEnter"
+            @mouseleave="hideTooltip"
+          >
+            <i v-if="!showCreate" class="material-symbols">add</i>
+            <i v-else class="material-symbols">arrow_back</i>
+          </div>
+          <div
+            v-if="selectedCount > 0"
+            @mouseleave="hideTooltip"
+            @mouseenter="showTooltip($event, $t('buttons.selectedCount'))"
+            class="button selected-count-header"
+            :class="{ 'selected-count-header--circle': selectedCount <= 99 }"
+          >
+            <span>{{ selectedCount }}</span>
+          </div>
         </div>
-        <div
-          v-if="selectedCount > 0"
-          @mouseleave="hideTooltip"
-          @mouseenter="showTooltip($event, $t('buttons.selectedCount'))"
-          class="button selected-count-header"
-          :class="{ 'selected-count-header--circle': selectedCount <= 99 }"
-        >
-          <span>{{ selectedCount }}</span>
-        </div>
-      </div>
-      <hr v-if="showDivider" class="divider">
-      <action
-        v-if="showCreateFileActions"
-        icon="create_new_folder"
-        :label="$t('files.newFolder')"
-        @action="showNewDirPrompt"
-      />
-      <action
-        v-if="showCreateFileActions"
-        icon="note_add"
-        :label="$t('files.newFile')"
-        @action="showPrompt('newFile')"
-      />
-      <action
-        v-if="showCreateFileActions"
-        icon="file_upload"
-        :label="$t('general.upload')"
-        @action="showUploadPrompt"
-      />
-      <action
-        v-if="showQuotaAction"
-        icon="storage"
-        :label="quotaActionLabel"
-        @action="showQuotaPrompt"
-      />
-      <action
-        v-if="showAccess"
-        icon="lock"
-        :label="$t('access.rules')"
-        @action="showAccessPrompt"
-      />
-      <action
-        v-if="showArchive"
-        icon="archive"
-        :label="$t('prompts.archive')"
-        @action="showArchivePrompt"
-      />
-      <action
-        v-if="showInfo"
-        icon="info"
-        :label="$t('general.info')"
-        @action="showInfoPrompt"
-      />
-      <action
-        v-if="showDownload"
-        icon="file_download"
-        :label="$t('general.download')"
-        @action="startDownload"
-      />
-      <action
-        v-if="showSendToApp"
-        icon="ios_share"
-        :label="$t('buttons.sendToApp')"
-        @action="sendToApp"
-      />
-      <action
-        v-if="showUnarchive"
-        icon="unarchive"
-        :label="$t('prompts.unarchive')"
-        @action="showUnarchivePrompt"
-      />
-      <action
-        v-if="showShareAction"
-        icon="share"
-        :label="$t('general.share')"
-        @action="showSharePrompt"
-      />
-      <action
-        v-if="showPinAction"
-        icon="push_pin"
-        :label="pinActionLabel"
-        @action="togglePin"
-      />
-      <action
-        v-if="showRename"
-        icon="edit"
-        :label="$t('general.rename')"
-        @action="showRenamePrompt"
-      />
-      <action
-        v-if="showCopy"
-        icon="file_copy"
-        :label="$t('buttons.copyFile')"
-        @action="showCopyPrompt"
-      />
-      <action
-        v-if="showCopyPath"
-        icon="copy_all"
-        :label="$t('buttons.copyPath')"
-        @action="copyPathToClipboard"
-      />
-      <action
-        v-if="showOpenParentFolder"
-        icon="folder"
-        :label="$t('buttons.openParentFolder')"
-        @action="openParentFolder"
-      />
-      <action
-        v-if="showGoToItem"
-        icon="folder"
-        :label="$t('buttons.goToItem')"
-        @action="goToItem"
-      />
-      <action
-        v-if="showMove"
-        icon="forward"
-        :label="$t('buttons.moveFile')"
-        @action="showMovePrompt"
-      />
-      <action
-        v-if="showSelectAll"
-        icon="select_all"
-        :label="$t('buttons.selectAll')"
-        @action="selectAllItems"
-      />
-      <action
-        v-if="showDelete"
-        icon="delete"
-        :label="$t('general.delete')"
-        @action="showDeletePrompt"
-      />
-      <action
-        v-if="showSelectMultiple"
-        icon="check_circle"
-        :label="$t('buttons.selectMultiple')"
-        @action="toggleMultipleSelection"
-      />
+        <hr v-if="showDivider" class="divider">
+        <action
+          v-if="showCreateFileActions"
+          icon="create_new_folder"
+          :label="$t('files.newFolder')"
+          @action="showNewDirPrompt"
+        />
+        <action
+          v-if="showCreateFileActions"
+          icon="note_add"
+          :label="$t('files.newFile')"
+          @action="onNewFileClick"
+        />
+        <action
+          v-if="showCreateFileActions"
+          icon="file_upload"
+          :label="$t('general.upload')"
+          @action="showUploadPrompt"
+        />
+        <action
+          v-if="showQuotaAction"
+          icon="storage"
+          :label="quotaActionLabel"
+          @action="showQuotaPrompt"
+        />
+        <action
+          v-if="showAccess"
+          icon="lock"
+          :label="$t('access.rules')"
+          @action="showAccessPrompt"
+        />
+        <action
+          v-if="showArchive"
+          icon="archive"
+          :label="$t('prompts.archive')"
+          @action="showArchivePrompt"
+        />
+        <action
+          v-if="showInfo"
+          icon="info"
+          :label="$t('general.info')"
+          @action="showInfoPrompt"
+        />
+        <action
+          v-if="showDownload"
+          icon="file_download"
+          :label="$t('general.download')"
+          @action="startDownload"
+        />
+        <action
+          v-if="showSendToApp"
+          icon="ios_share"
+          :label="$t('buttons.sendToApp')"
+          @action="sendToApp"
+        />
+        <action
+          v-if="showUnarchive"
+          icon="unarchive"
+          :label="$t('prompts.unarchive')"
+          @action="showUnarchivePrompt"
+        />
+        <action
+          v-if="showShareAction"
+          icon="share"
+          :label="$t('general.share')"
+          @action="showSharePrompt"
+        />
+        <action
+          v-if="showPinAction"
+          icon="push_pin"
+          :label="pinActionLabel"
+          @action="togglePin"
+        />
+        <action
+          v-if="showRename"
+          icon="edit"
+          :label="$t('general.rename')"
+          @action="showRenamePrompt"
+        />
+        <action
+          v-if="showCopy"
+          icon="file_copy"
+          :label="$t('buttons.copyFile')"
+          @action="showCopyPrompt"
+        />
+        <action
+          v-if="showCopyPath"
+          icon="copy_all"
+          :label="$t('buttons.copyPath')"
+          @action="copyPathToClipboard"
+        />
+        <action
+          v-if="showOpenParentFolder"
+          icon="folder"
+          :label="$t('buttons.openParentFolder')"
+          @action="openParentFolder"
+        />
+        <action
+          v-if="showGoToItem"
+          icon="folder"
+          :label="$t('buttons.goToItem')"
+          @action="goToItem"
+        />
+        <action
+          v-if="showMove"
+          icon="forward"
+          :label="$t('buttons.moveFile')"
+          @action="showMovePrompt"
+        />
+        <action
+          v-if="showSelectAll"
+          icon="select_all"
+          :label="$t('buttons.selectAll')"
+          @action="selectAllItems"
+        />
+        <action
+          v-if="showDelete"
+          icon="delete"
+          :label="$t('general.delete')"
+          @action="showDeletePrompt"
+        />
+        <action
+          v-if="showSelectMultiple"
+          icon="check_circle"
+          :label="$t('buttons.selectMultiple')"
+          @action="toggleMultipleSelection"
+        />
+      </template>
     </div>
   </transition>
   <transition
@@ -218,7 +252,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
-import { isRichTextPreviewMimeType } from "@/utils/mimetype";
+import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype";
 import { isMediaRequest } from "@/utils/mediaFile";
 
 function isArchivePath(pathOrName) {
@@ -237,6 +271,7 @@ export default {
       posX: 0,
       posY: 0,
       showCreate: false,
+      showNewFileTemplate: false,
       isAnimating: false,
       createStateInitialized: false,
     };
@@ -290,6 +325,19 @@ export default {
     },
     showGoToItem() {
       return this.showLimitedOptions && this.selectedCount === 1;
+    },
+    newFileTemplates() {
+      return Array.isArray(state.user?.newFileTemplate) ? state.user.newFileTemplate : [];
+    },
+    newFileTemplateItems() {
+      return this.newFileTemplates.map((template) => {
+        const typeInfo = getTypeInfoFromExt(template);
+        return {
+          name: template,
+          icon: typeInfo.materialSymbol,
+          iconClass: typeInfo.classes,
+        };
+      });
     },
     permissions() {
       const global = getters.globalPermissions();
@@ -593,6 +641,7 @@ export default {
         } else {
           // Reset the flag when menu is hidden so it reinitializes next time
           this.createStateInitialized = false;
+          this.showNewFileTemplate = false;
         }
       },
       immediate: true
@@ -785,12 +834,48 @@ export default {
       this.posY = contextProps.posY;
     },
     initializeCreateState() {
+      this.showNewFileTemplate = false;
       if (this.createOnly) {
         this.showCreate = true;
         return;
       }
       // Right-click / prompt: start in normal mode; user opens create via + or sidebar (createOnly).
       this.showCreate = false;
+    },
+    closeNewFilePicker() {
+      this.showNewFileTemplate = false;
+    },
+    templateBase() {
+      const selectedItem = this.firstSelected;
+      if (selectedItem?.isDir) {
+        return {
+          path: selectedItem.path,
+          source: selectedItem.source,
+        };
+      }
+      return null;
+    },
+    onNewFileClick() {
+      this.showNewFileTemplate = true;
+    },
+    createFromTemplate(template) {
+      mutations.closeHovers();
+      mutations.showPrompt({
+        name: "newFile",
+        props: {
+          base: this.templateBase(),
+          initialName: template,
+        },
+      });
+    },
+    createEmptyFile() {
+      mutations.closeHovers();
+      mutations.showPrompt({
+        name: "newFile",
+        props: {
+          base: this.templateBase(),
+        },
+      });
     },
     toggleMultipleSelection() {
       mutations.setMultiple(true);
@@ -1074,6 +1159,14 @@ export default {
 .context-menu-create-toggle--disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.context-menu-empty-message {
+  padding: 0.5em 1em;
+  margin: 0;
+  font-size: 0.85em;
+  color: var(--textSecondary);
+  text-align: center;
 }
 
 #context-menu .action {
