@@ -213,7 +213,7 @@
     "requestTimedOut": "The request timed out. Check your network or reverse proxy settings."
   },
   "files": {
-    "emptyFile": "Empty File",
+    "emptyFile": "Empty file",
     "lastModified": "Last modified{suffix}",
     "duration": "Duration{suffix}",
     "lonely": "Nothing to show here...",
