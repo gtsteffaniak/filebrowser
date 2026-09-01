@@ -49,7 +49,7 @@
         type="text"
         v-model.trim="newItem"
         :placeholder="$t('prompts.newFileTemplatePlaceholder')"
-        @keyup.enter="addItem"
+        @keydown.enter.prevent="addItem"
       />
       <button
         type="button"

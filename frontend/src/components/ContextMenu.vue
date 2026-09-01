@@ -33,17 +33,17 @@
           {{ $t('prompts.noTemplate') }}
         </p>
         <action
-          icon="insert_drive_file"
-          :label="$t('files.emptyFile')"
-          @action="createEmptyFile"
-        />
-        <action
           v-for="(item, index) in newFileTemplateItems"
           :key="`${index}-${item.name}`"
           :icon="item.icon"
           :custom-icon-class="item.iconClass"
           :label="item.name"
           @action="createFromTemplate(item.name)"
+        />
+        <action
+          icon="insert_drive_file"
+          :label="$t('files.emptyFile')"
+          @action="createEmptyFile"
         />
       </template>
       <template v-else>
