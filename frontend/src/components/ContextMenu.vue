@@ -254,6 +254,7 @@ import downloadFiles from "@/utils/download";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
 import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype";
 import { isMediaRequest } from "@/utils/mediaFile";
+import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -729,61 +730,39 @@ export default {
     // Animation methods
     beforeEnter(el) {
       this.isAnimating = true;
-      el.style.height = '0';
-      el.style.opacity = '0';
+      expandBeforeEnter(el);
     },
     enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      // Force reflow
-      void el.offsetHeight;
-      // Calculate the height after ensuring all content is rendered
+      const BUFFER = 8;
       this.$nextTick(() => {
-        // Temporarily set to auto to get true height, then measure
-        el.style.height = 'auto';
-        el.style.visibility = 'hidden';
-        void el.offsetHeight; // Force reflow
-        const fullHeight = el.scrollHeight;
-        const fullWidth = el.scrollWidth;
-
-        // Adjust position now that we have dimensions
-        const BUFFER = 8;
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        let newX = this.posX;
-        let newY = this.posY;
-
-        if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
-        if (newX < BUFFER) newX = BUFFER;
-        if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
-        if (newY < BUFFER) newY = BUFFER;
-
-        this.posX = newX;
-        this.posY = newY;
-
-        // Reset to 0 for animation
-        el.style.height = '0';
-        el.style.visibility = 'visible';
-        el.style.transition = 'height 0.3s, opacity 0.3s';
-        void el.offsetHeight; // Force reflow
-        // Animate to full height
-        el.style.height = `${fullHeight}px`;
-        el.style.opacity = '1';
-        setTimeout(() => {
+        expandEnter(el, () => {
           this.isAnimating = false;
           done();
-        }, 300);
+        }, 300, {
+          onMeasured: (fullHeight, fullWidth) => {
+            const screenWidth = window.visualViewport?.width || window.innerWidth;
+            const screenHeight = window.visualViewport?.height || window.innerHeight;
+            let newX = this.posX;
+            let newY = this.posY;
+            if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
+            if (newX < BUFFER) newX = BUFFER;
+            if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
+            if (newY < BUFFER) newY = BUFFER;
+            this.posX = newX;
+            this.posY = newY;
+          },
+          getMaxHeight: () => {
+            const viewportHeight = window.visualViewport?.height || window.innerHeight;
+            return this.centered
+              ? viewportHeight - BUFFER * 2
+              : viewportHeight - this.posY - BUFFER;
+          },
+        });
       });
     },
     leave(el, done) {
       this.isAnimating = true;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
-      setTimeout(() => {
+      expandLeave(el, () => {
         this.isAnimating = false;
         done();
       }, 300);
@@ -1126,6 +1105,7 @@ export default {
   justify-content: center;
   border-radius: 1em;
   padding: 0.5em;
+  overscroll-behavior: contain;
 }
 
 #context-menu.centered {
@@ -1173,6 +1153,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  flex-shrink: 0;
+}
+
+#context-menu > .context-menu-header,
+#context-menu > hr.divider {
+  flex-shrink: 0;
 }
 
 #context-menu > div,

@@ -94,6 +94,16 @@ export default {
 </script>
 
 <style>
+.action span {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.action i {
+  flex-shrink: 0;
+}
+
 .ham {
   width: 2.5em;
   -webkit-tap-highlight-color: transparent;

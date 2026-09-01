@@ -39,6 +39,11 @@
       </button>
     </div>
     <div class="new-file-template-add">
+      <i
+        class="file-type-icon"
+        :class="typeInfoFor(newItem).classes"
+        aria-hidden="true"
+      >{{ typeInfoFor(newItem).materialSymbol }}</i>
       <input
         class="input"
         type="text"
