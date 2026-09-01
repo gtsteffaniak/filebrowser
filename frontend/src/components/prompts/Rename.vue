@@ -9,12 +9,16 @@
       <p>{{ $t("prompts.renameMessage") }}</p>
 
       <div v-if="item.type !== 'directory'" class="filename-inputs">
+      <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
       <input ref="filenameInput" aria-label="New Name" class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileName" @input="updateFullName" />
       <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
       <input class="input extension-input" type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileExtension" @input="updateFullName" />
     </div>
 
-    <input v-else ref="directoryInput" class="input" aria-label="New Name" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="name" />
+    <div v-else class="filename-inputs">
+      <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
+      <input ref="directoryInput" class="input" aria-label="New Name" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="name" />
+    </div>
     <p v-if="!validation.valid && name.length > 0" class="validation-error">
       <span v-if="validation.reason === 'conflict'">
         {{ $t("prompts.renameMessageConflict", { filename: name }) }}
@@ -47,6 +51,7 @@ import { mutations, state, getters } from "@/store";
 import { eventBus } from '@/store/eventBus';
 import { notify } from "@/notify";
 import { getFileExtension, removePrefix } from '@/utils/files.js';
+import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
 import { url } from "@/utils";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
@@ -100,6 +105,9 @@ export default {
     },
     isPreviewView() {
       return getters.isPreviewView();
+    },
+    typeInfo() {
+      return this.item.type === 'directory' ? getTypeInfo('directory') : getTypeInfoFromExt(this.name);
     },
   },
   mounted() {
@@ -290,6 +298,10 @@ export default {
 
 .extension-separator {
   font-weight: bold;
+}
+
+.file-type-icon {
+  flex-shrink: 0;
 }
 
 .loading-content {
