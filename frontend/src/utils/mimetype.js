@@ -579,7 +579,7 @@ const TYPE_TABLE = [
     // Generic text/* fallback (only reached if nothing more specific matched above)
     prefix: "text/",
     extensions: [".txt"],
-    classes: "white-icons material-symbols",
+    classes: "white-icons material-symbols-outlined",
     materialSymbol: "description",
     simpleType: "text",
   },

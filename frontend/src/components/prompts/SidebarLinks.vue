@@ -870,22 +870,21 @@ export default {
       if (linkItem) {
         // Create a clone for the drag image to avoid affecting the original
         const clone = linkItem.cloneNode(true);
-        clone.style.position = 'absolute';
+        clone.style.position = 'fixed';
         clone.style.top = '-9999px';
         clone.style.left = '-9999px';
 
         // Set the clone width to match the original element's width
         const originalWidth = linkItem.offsetWidth;
         clone.style.width = `${originalWidth}px`;
-
-        document.body.appendChild(clone);
+        linkItem.parentNode.insertBefore(clone, linkItem.nextSibling);
 
         // Set it as the drag image
         event.dataTransfer.setDragImage(clone, event.offsetX, event.offsetY);
 
         // Clean up the clone after a brief delay
         setTimeout(() => {
-          document.body.removeChild(clone);
+          clone.remove();
         }, 0);
       }
     },
