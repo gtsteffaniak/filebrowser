@@ -9,7 +9,7 @@
       <p>{{ $t("files.newFolderMessage") }}</p>
       <div class="new-dir-input-row">
         <i class="primary-icons material-symbols file-type-icon" aria-hidden="true">folder</i>
-        <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
+        <input :aria-label="$t('files.newFolder')" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
           v-focus />
       </div>
     </div>

@@ -753,6 +753,12 @@ export default {
           },
           getMaxHeight: () => {
             const viewportHeight = window.visualViewport?.height || window.innerHeight;
+            if (this.showOverflow) {
+              return Math.max(
+                0,
+                viewportHeight - el.getBoundingClientRect().top - BUFFER,
+              );
+            }
             return this.centered
               ? viewportHeight - BUFFER * 2
               : viewportHeight - this.posY - BUFFER;

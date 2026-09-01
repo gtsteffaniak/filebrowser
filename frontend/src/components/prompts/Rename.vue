@@ -15,7 +15,7 @@
       <input
         class="input extension-input"
         type="text"
-        :aria-label="$t('prompts.renameMessage')"
+        :aria-label="$t('general.rename')"
         @keydown="onKeydown"
         @keyup="onKeyup"
         v-model.trim="fileExtension"
