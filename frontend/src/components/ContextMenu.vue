@@ -1191,6 +1191,10 @@ export default {
   display: none;
 }
 
+#context-menu .action:hover :deep(.material-symbols-outlined) {
+  font-variation-settings: 'FILL' 1;
+}
+
 /* Animation styles */
 .expand-enter-active,
 .expand-leave-active {
