@@ -38,8 +38,8 @@
           @action="createEmptyFile"
         />
         <action
-          v-for="item in newFileTemplateItems"
-          :key="item.name"
+          v-for="(item, index) in newFileTemplateItems"
+          :key="`${index}-${item.name}`"
           :icon="item.icon"
           :custom-icon-class="item.iconClass"
           :label="item.name"

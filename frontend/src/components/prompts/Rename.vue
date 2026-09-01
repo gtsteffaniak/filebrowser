@@ -12,7 +12,15 @@
       <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
       <input ref="filenameInput" aria-label="New Name" class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileName" @input="updateFullName" />
       <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
-      <input class="input extension-input" type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileExtension" @input="updateFullName" />
+      <input
+        class="input extension-input"
+        type="text"
+        :aria-label="$t('prompts.renameMessage')"
+        @keydown="onKeydown"
+        @keyup="onKeyup"
+        v-model.trim="fileExtension"
+        @input="updateFullName"
+      />
     </div>
 
     <div v-else class="filename-inputs">
