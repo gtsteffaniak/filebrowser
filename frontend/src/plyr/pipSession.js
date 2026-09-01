@@ -136,8 +136,6 @@ export function isPipBlockedForPreview(source, path, _media = null) {
   return false;
 }
 
-const PLYR_CONTROLS_TRANSITION_MS = 400;
-
 function resolveMediaSource(source) {
   if (source) {
     return source;
@@ -500,5 +498,3 @@ export function initPipSession() {
   document.addEventListener('leavepictureinpicture', onDocumentPipStateChange);
   listenerRegistered = true;
 }
-
-export { PLYR_CONTROLS_TRANSITION_MS };
