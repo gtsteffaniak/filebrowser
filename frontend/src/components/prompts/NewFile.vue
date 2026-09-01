@@ -11,15 +11,17 @@
         <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
         <input ref="filenameInput" class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
           v-model.trim="fileName" @input="updateFullName" />
-        <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
-        <input
-          class="input extension-input"
-          type="text"
-          :aria-label="$t('prompts.newFileMessage')"
-          @keyup.enter="submit"
-          v-model.trim="fileExtension"
-          @input="updateFullName"
-        />
+        <template v-if="fileExtension">
+          <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
+          <input
+            class="input extension-input"
+            type="text"
+            :aria-label="$t('prompts.newFileMessage')"
+            @keyup.enter="submit"
+            v-model.trim="fileExtension"
+            @input="updateFullName"
+          />
+        </template>
       </div>
       <div v-else class="new-file-input-row">
         <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
