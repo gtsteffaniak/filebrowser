@@ -585,17 +585,16 @@ const TYPE_TABLE = [
   },
 ];
 
-// Absolute fallback when nothing in TYPE_TABLE matches at all.
+// fallback when nothing in TYPE_TABLE matches at all
 const DEFAULT_TYPE_INFO = {
-  classes: "lightgray-icons material-symbols",
+  classes: "lightgray-icons material-symbols-outlined",
   materialSymbol: "description",
   simpleType: "blob",
 };
 
-// Fallback specifically for a missing/empty mimeType (kept distinct from
-// DEFAULT_TYPE_INFO to preserve existing callers relying on this exact shape).
+// Fallback for missing mimeTypes
 const EMPTY_MIME_TYPE_INFO = {
-  classes: "material-symbols",
+  classes: "material-symbols-outlined",
   materialSymbol: "file",
   simpleType: "file",
 };
@@ -604,8 +603,6 @@ function toTypeInfo(entry) {
   return { classes: entry.classes, materialSymbol: entry.materialSymbol, simpleType: entry.simpleType };
 }
 
-// Build lookup indexes once. Earlier TYPE_TABLE entries win ties (mirrors the
-// original if/else-if chain, e.g. "image/gif" before the generic "image/").
 const MIME_EXACT_INDEX = new Map();
 const EXTENSION_INDEX = new Map();
 const PREFIX_RULES = [];
