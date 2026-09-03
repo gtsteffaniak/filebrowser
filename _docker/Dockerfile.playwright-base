@@ -1,5 +1,4 @@
 FROM node:slim
 WORKDIR /app/frontend
-ENV PLAYWRIGHT_SKIP_FFMPEG_INSTALL=1
 RUN npm i @playwright/test oauth2-mock-server @types/node
-RUN npx playwright install --with-deps chromium
+RUN npx playwright install --with-deps chromium-headless-shell
