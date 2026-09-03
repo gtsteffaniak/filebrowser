@@ -43,6 +43,7 @@
     "requestTimedOut": "انتهت مهلة الطلب. يرجى التحقق من إعدادات الشبكة أو إعدادات الوكيل العكسي."
   },
   "files": {
+    "emptyFile": "ملف فارغ",
     "lastModified": "آخر تعديل",
     "multipleSelectionEnabled": "التحديد المتعدد مفعل",
     "sortByLastModified": "الترتيب بآخر تعديل",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "تحدي Recaptcha مطلوب"
   },
   "prompts": {
+    "noTemplate": "قالبك فارغ!",
+    "newFileTemplate": "قالب الملف الجديد",
+    "newFileTemplateMessage": "أضف أسماء ملفات جديدة هنا، سيتم استخدامها كقالب لإنشاء ملفات جديدة في قائمة السياق!",
+    "newFileTemplatePlaceholder": "أدخل اسم ملف مع امتداد",
     "deleteMessageSingle": "هل تريد بالتأكيد حذف هذا الملف/المجلد؟",
     "deleteTitle": "حذف الملفات",
     "displayName": "الإسم:",

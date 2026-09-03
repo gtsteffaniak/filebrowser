@@ -43,6 +43,7 @@
     "requestTimedOut": "A solicitação atingiu o tempo limite. Verifique as configurações da sua rede ou do proxy reverso."
   },
   "files": {
+    "emptyFile": "Arquivo vazio",
     "lastModified": "Última modificação",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última modificação",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Desafio Recaptcha necessário"
   },
   "prompts": {
+    "noTemplate": "Seu modelo está vazio!",
+    "newFileTemplate": "Modelo de novo arquivo",
+    "newFileTemplateMessage": "Adicione novos nomes de arquivos aqui, eles serão usados como modelo para criar novos arquivos no menu de contexto!",
+    "newFileTemplatePlaceholder": "Insira um nome de arquivo com extensão",
     "deleteMessageSingle": "Deseja apagar esta pasta/arquivo?",
     "deleteTitle": "Apagar arquivos",
     "displayName": "Nome:",

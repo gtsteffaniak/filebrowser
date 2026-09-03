@@ -43,6 +43,7 @@
     "requestTimedOut": "Došlo k časovému limitu požiadavky. Skontrolujte nastavenia siete alebo reverzného proxy."
   },
   "files": {
+    "emptyFile": "Prázdny súbor",
     "lastModified": "Posledná zmena",
     "multipleSelectionEnabled": "Zapnutý viacnásobný výber",
     "sortByLastModified": "Zoradiť podľa dátumu",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Vyžaduje sa overenie Recaptcha"
   },
   "prompts": {
+    "noTemplate": "Vaša šablóna je prázdna!",
+    "newFileTemplate": "Šablóna nového súboru",
+    "newFileTemplateMessage": "Tu pridajte nové názvy súborov, budú sa používať ako šablóna na vytváranie nových súborov v kontextovej ponuke!",
+    "newFileTemplatePlaceholder": "Zadajte názov súboru s príponou",
     "deleteMessageSingle": "Naozaj chcete odstrániť tento súbor/priečinok?",
     "deleteTitle": "Odstránenie súborov",
     "displayName": "Zobrazený názov:",

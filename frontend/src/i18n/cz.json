@@ -43,6 +43,7 @@
     "requestTimedOut": "Došlo k vypršení časového limitu požadavku. Zkontrolujte nastavení sítě nebo reverzního proxy."
   },
   "files": {
+    "emptyFile": "Prázdný soubor",
     "lastModified": "Poslední změna",
     "multipleSelectionEnabled": "Povoleno vícenásobné označení",
     "sortByLastModified": "Řadit podle poslední změny",
@@ -217,6 +218,10 @@
     "readOnlySourceNotice": "Tento zdroj je určen pouze pro čtení. Sdílení nahrávání a oprávnění, která upravují soubory, jsou zakázána."
   },
   "prompts": {
+    "noTemplate": "Vaše šablona je prázdná!",
+    "newFileTemplate": "Šablona nového souboru",
+    "newFileTemplateMessage": "Zde přidejte nové názvy souborů, budou použity jako šablona pro vytváření nových souborů v kontextové nabídce!",
+    "newFileTemplatePlaceholder": "Zadejte název souboru s příponou",
     "deleteMessageSingle": "Opravdu chcete smazat tento soubor/složku?",
     "deleteUserMessage": "Opravdu chcete tohoto uživatele smazat?",
     "deleteTitle": "Smazat soubory",

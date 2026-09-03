@@ -189,6 +189,8 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     deleteAfterArchive: true              # delete source files after successful creation/extraction of archives
     viewMode: "normal"                    # view mode to use: eg. normal, list, grid, or compact
     gallerySize: 3                        # 0-9 - the size of the gallery thumbnails
+    newFileTemplate:                      # list of custom filenames that will be used as template for new files
+      - ""
   preview:
     image: true                           # show thumbnails for image files
     video: true                           # show thumbnails for video files

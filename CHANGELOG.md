@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
  - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
  - Added setting to configure the placement of the prompts close button in profile settings (#2853).
+ - Added "New file templates". You can now add and configure pre-defined filenames + extension for the creation of new files in the context menu on profile settings! (#2881) (#1239).
 
 # TODO
 #- sidebar link defaults and enforcements
@@ -31,6 +32,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Improved resume upload behavior.
  - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
  - improved video thumbnail generation speed and efficiency.
+ - Added icons based on extension to the upload prompt and new file/folder/rename prompts (#2881).
 
  **Security**:
  - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).

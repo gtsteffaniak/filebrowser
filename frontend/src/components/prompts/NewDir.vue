@@ -7,8 +7,11 @@
     </div>
     <div v-show="!creating">
       <p>{{ $t("files.newFolderMessage") }}</p>
-      <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
-        v-focus />
+      <div class="new-dir-input-row">
+        <i class="primary-icons material-symbols file-type-icon" aria-hidden="true">folder</i>
+        <input aria-label="New Folder Name" class="input" type="text" @keyup.enter="submit" v-model.trim="name"
+          v-focus />
+      </div>
     </div>
   </div>
 
@@ -237,5 +240,19 @@ export default {
 
 .card-content {
   position: relative;
+}
+
+.new-dir-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.new-dir-input-row .input {
+  flex: 1;
+}
+
+.file-type-icon {
+  flex-shrink: 0;
 }
 </style>

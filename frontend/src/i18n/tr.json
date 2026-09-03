@@ -43,6 +43,7 @@
     "requestTimedOut": "İstek zaman aşımına uğradı. Ağ ayarlarınızı veya ters proxy ayarlarınızı kontrol edin."
   },
   "files": {
+    "emptyFile": "Boş dosya",
     "lastModified": "Son değiştirilme{suffix}",
     "multipleSelectionEnabled": "Çoklu seçim etkin",
     "sortByLastModified": "Güncelleme tarihine göre sırala",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Recaptcha doğrulaması gerekli"
   },
   "prompts": {
+    "noTemplate": "Şablonunuz boş!",
+    "newFileTemplate": "Yeni dosya şablonu",
+    "newFileTemplateMessage": "Buraya yeni dosya adları ekleyin, bunlar bağlam menüsünde yeni dosya oluşturmak için şablon olarak kullanılacaktır!",
+    "newFileTemplatePlaceholder": "Uzantılı bir dosya adı girin",
     "deleteMessageSingle": "Bu dosyayı/klasörü silmek istediğinizden emin misiniz?",
     "deleteTitle": "Dosyaları sil",
     "displayName": "Görünen Ad:",

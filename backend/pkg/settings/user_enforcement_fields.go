@@ -26,6 +26,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"deleteAfterArchive":         "listing.deleteAfterArchive",
 	"viewMode":                   "listing.viewMode",
 	"gallerySize":                "listing.gallerySize",
+	"newFileTemplate":            "listing.newFileTemplate",
 	"disablePreviewExt":          "preview.disablePreviewExt",
 	"disableSearchOptions":       "search.disableOptions",
 	"editorQuickSave":            "fileViewer.editorQuickSave",

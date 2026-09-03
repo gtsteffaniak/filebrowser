@@ -33,6 +33,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 			DeleteAfterArchive:      u.DeleteAfterArchive,
 			ViewMode:                u.ViewMode,
 			GallerySize:             u.GallerySize,
+			NewFileTemplate:         u.NewFileTemplate,
 		},
 		Preview: UserDefaultsPreview{
 			Image:              boolPtr(u.Preview.Image),
@@ -108,6 +109,7 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.ViewMode = p.Listing.ViewMode
 	u.GallerySize = p.Listing.GallerySize
 	u.PromptRightCloseButton = p.Listing.PromptRightCloseButton
+	u.NewFileTemplate = p.Listing.NewFileTemplate
 
 	u.Preview.DisableHideSidebar = p.Sidebar.DisableHideOnPreview
 	u.Preview.Image = boolValueOrDefault(p.Preview.Image, true)

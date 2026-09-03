@@ -43,6 +43,7 @@
     "requestTimedOut": "La solicitud ha superado el tiempo de espera. Comprueba la configuración de tu red o del proxy inverso."
   },
   "files": {
+    "emptyFile": "Archivo vacío",
     "lastModified": "Última modificación",
     "multipleSelectionEnabled": "Selección múltiple activada",
     "sortByLastModified": "Ordenar por fecha de modificación",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Se requiere verificación de recaptcha"
   },
   "prompts": {
+    "noTemplate": "¡Tu plantilla está vacía!",
+    "newFileTemplate": "Plantilla para nuevos archivos",
+    "newFileTemplateMessage": "¡Añade nuevos nombres de archivo aquí, se usarán como plantilla para crear nuevos archivos en el menú contextual!",
+    "newFileTemplatePlaceholder": "Introduce un nombre de archivo con extensión",
     "deleteMessageSingle": "¿Estás seguro que quieres borrar este archivo?",
     "deleteTitle": "Borrar archivos",
     "displayName": "Nombre:",

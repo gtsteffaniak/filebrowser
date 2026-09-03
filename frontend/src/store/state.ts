@@ -77,6 +77,7 @@ export const state: StoreState = reactive({
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
     promptRightCloseButton: false, // to show the prompts close button on the right
+    newFileTemplate: [], // custom filenames that will be used as template for new files
     scopes: [],
     permissions: {}, // Default to an empty object for permissions
     darkMode: true, // Default to false, assuming this is a boolean
