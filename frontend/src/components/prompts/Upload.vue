@@ -68,7 +68,7 @@
       </div>
       <div class="upload-list">
         <div v-for="file in files" :key="file.id" class="upload-item">
-          <i class="material-symbols file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="file-icon" :class="fileTypeInfo(file).classes">{{ fileTypeInfo(file).materialSymbol }}</i>
           <div class="file-info">
             <p class="file-name">{{ file.name }}</p>
             <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
@@ -187,6 +187,7 @@
 <script>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
+import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
 import { notify } from "@/notify";
 import ProgressBar from "@/components/ProgressBar.vue";
@@ -650,6 +651,10 @@ export default {
       }
     };
 
+    const fileTypeInfo = (file) => {
+      return file.type === "directory" ? getTypeInfo("directory") : getTypeInfoFromExt(file.name);
+    };
+
     const getHelpText = (file) => {
       if (file.status === 'error' && file.errorDetails) {
         return file.errorDetails;
@@ -702,6 +707,7 @@ export default {
       hideTooltip,
       getStatusText,
       getHelpText,
+      fileTypeInfo,
       updateUploadSettings,
     };
   },
@@ -756,7 +762,6 @@ export default {
 
 .file-icon {
   margin-right: 0.5em;
-  color: #999;
 }
 
 .file-info {

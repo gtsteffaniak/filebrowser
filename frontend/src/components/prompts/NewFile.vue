@@ -7,8 +7,27 @@
     </div>
     <div v-show="!creating">
       <p>{{ $t("prompts.newFileMessage") }}</p>
-      <input class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
-        v-model.trim="name" />
+      <div v-if="usesTemplate" class="filename-inputs">
+        <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
+        <input ref="filenameInput" class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
+          v-model.trim="fileName" @input="updateFullName" />
+        <template v-if="fileExtension">
+          <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
+          <input
+            class="input extension-input"
+            type="text"
+            :aria-label="$t('prompts.newFileMessage')"
+            @keyup.enter="submit"
+            v-model.trim="fileExtension"
+            @input="updateFullName"
+          />
+        </template>
+      </div>
+      <div v-else class="new-file-input-row">
+        <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
+        <input class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
+          v-model.trim="name" />
+      </div>
     </div>
   </div>
 
@@ -38,6 +57,8 @@ import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 import { url } from "@/utils";
 import { goToItemNotificationButton } from "@/utils/notificationActions";
+import { getTypeInfoFromExt } from "@/utils/mimetype";
+import { getFileExtension, removePrefix } from '@/utils/files.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "new-file",
@@ -49,10 +70,25 @@ export default {
       type: [String, Object, null],
       default: null,
     },
+    initialName: {
+      type: String,
+      default: "",
+    },
   },
   data() {
+    const usesTemplate = !!(this.initialName && this.initialName.trim() !== "");
+    let fileName = "";
+    let fileExtension = "";
+    if (usesTemplate) {
+      const ext = getFileExtension(this.initialName);
+      fileName = this.initialName.substring(0, this.initialName.length - ext.length);
+      fileExtension = removePrefix(ext, ".");
+    }
     return {
-      name: "",
+      usesTemplate,
+      fileName,
+      fileExtension,
+      name: this.initialName || "",
       creating: false,
     };
   },
@@ -90,6 +126,9 @@ export default {
     currentPromptName() {
       return getters.currentPromptName();
     },
+    typeInfo() {
+      return getTypeInfoFromExt(this.name);
+    },
   },
   watch: {
     currentPromptName(newName, oldName) {
@@ -98,7 +137,21 @@ export default {
       }
     },
   },
+  mounted() {
+    if (this.usesTemplate) {
+      this.$nextTick(() => {
+        this.$refs.filenameInput?.select();
+      });
+    }
+  },
   methods: {
+    updateFullName() {
+      if (this.usesTemplate) {
+        this.name = this.fileExtension
+          ? `${this.fileName}.${this.fileExtension}`
+          : this.fileName;
+      }
+    },
     async submit(event) {
       try {
         event.preventDefault();
@@ -234,5 +287,33 @@ export default {
 
 .card-content {
   position: relative;
+}
+
+.new-file-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.new-file-input-row .input {
+  flex: 1;
+}
+
+.filename-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.extension-input {
+  width: 6em;
+}
+
+.extension-separator {
+  font-weight: bold;
+}
+
+.file-type-icon {
+  flex-shrink: 0;
 }
 </style>

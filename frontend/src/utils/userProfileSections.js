@@ -49,6 +49,7 @@ export function sectionsFromFlatUser(user) {
       viewMode: u.viewMode,
       gallerySize: u.gallerySize,
       promptRightCloseButton: !!u.promptRightCloseButton,
+      newFileTemplate: Array.isArray(u.newFileTemplate) ? [...u.newFileTemplate] : [],
     },
     preview: {
       image: boolPtr(preview.image),
@@ -130,6 +131,7 @@ export function applySectionsToFlatUser(user, sections) {
   if (listing.gallerySize !== undefined) {
     user.gallerySize = listing.gallerySize;
   }
+  user.newFileTemplate = Array.isArray(listing.newFileTemplate) ? [...listing.newFileTemplate] : [];
 
   user.preview.image = boolPtr(preview.image);
   user.preview.video = boolPtr(preview.video);

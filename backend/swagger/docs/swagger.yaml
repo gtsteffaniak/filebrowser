@@ -1085,6 +1085,12 @@ definitions:
       hideFileExt:
         description: space separated list of file extensions to hide in UI
         type: string
+      newFileTemplate:
+        description: list of custom filenames that will be used as template for new
+          files
+        items:
+          type: string
+        type: array
       promptRightCloseButton:
         description: show the prompts close button on the right
         type: boolean
@@ -1667,6 +1673,12 @@ definitions:
         type: boolean
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
+      newFileTemplate:
+        description: list of custom filenames that will be used as template for new
+          files
+        items:
+          type: string
+        type: array
       otpEnabled:
         type: boolean
       passkeyCredentials:
@@ -1978,6 +1990,12 @@ definitions:
         type: boolean
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
+      newFileTemplate:
+        description: list of custom filenames that will be used as template for new
+          files
+        items:
+          type: string
+        type: array
       otpEnabled:
         type: boolean
       passkeyCredentials:

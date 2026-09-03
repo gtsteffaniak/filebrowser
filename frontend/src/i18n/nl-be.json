@@ -43,6 +43,7 @@
     "requestTimedOut": "De tijdlimiet voor het verzoek is verstreken. Controleer je netwerk- of reverse-proxy-instellingen."
   },
   "files": {
+    "emptyFile": "Leeg bestand",
     "lastModified": "Laatst bewerkt",
     "multipleSelectionEnabled": "Meerdere items selecteren ingeschakeld",
     "sortByLastModified": "Sorteren op laatst bewerkt",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Recaptcha-uitdaging vereist"
   },
   "prompts": {
+    "noTemplate": "Uw sjabloon is leeg!",
+    "newFileTemplate": "Sjabloon voor nieuw bestand",
+    "newFileTemplateMessage": "Voeg hier nieuwe bestandsnamen toe, ze worden gebruikt als sjabloon voor het aanmaken van nieuwe bestanden in het contextmenu!",
+    "newFileTemplatePlaceholder": "Voer een bestandsnaam met extensie in",
     "deleteMessageSingle": "Weet u zeker dat u dit bestand/map wil verwijderen?",
     "deleteTitle": "Bestanden verwijderen",
     "displayName": "Weergavenaam: ",

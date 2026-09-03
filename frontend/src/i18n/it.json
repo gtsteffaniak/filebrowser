@@ -213,6 +213,7 @@
     "requestTimedOut": "La richiesta ha superato il limite di tempo. Controlla le impostazioni di rete o del proxy inverso."
   },
   "files": {
+    "emptyFile": "File vuoto",
     "lastModified": "Ultima modifica{suffix}",
     "duration": "Durata{suffix}",
     "lonely": "Nulla da mostrare qui...",
@@ -387,6 +388,10 @@
     "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate."
   },
   "prompts": {
+    "noTemplate": "Il tuo modello è vuoto!",
+    "newFileTemplate": "Modello nuovo file",
+    "newFileTemplateMessage": "Aggiungi qui nuovi nomi di file, verranno utilizzati come modello per la creazione di nuovi file nel menu contestuale!",
+    "newFileTemplatePlaceholder": "Inserisci un nome file con estensione",
     "operationInProgress": "Operazione in corso, attendere...",
     "quickJump": "Passa rapidamente ad altri file",
     "downloadsLimit": "Limite numero di download",

@@ -43,6 +43,7 @@
     "requestTimedOut": "Истекло время ожидания запроса. Проверьте настройки сети или обратного прокси-сервера."
   },
   "files": {
+    "emptyFile": "Пустой файл",
     "lastModified": "Последнее изменение",
     "multipleSelectionEnabled": "Мультивыбор включен",
     "sortByLastModified": "Сортировка по дате изменения",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Требуется проверка Recaptcha"
   },
   "prompts": {
+    "noTemplate": "Ваш шаблон пуст!",
+    "newFileTemplate": "Шаблон нового файла",
+    "newFileTemplateMessage": "Добавьте новые имена файлов здесь, они будут использоваться как шаблон для создания новых файлов в контекстном меню!",
+    "newFileTemplatePlaceholder": "Введите имя файла с расширением",
     "deleteMessageSingle": "Удалить этот файл/папку?",
     "deleteTitle": "Удалить файлы",
     "displayName": "Отображаемое имя:",

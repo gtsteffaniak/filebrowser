@@ -6551,6 +6551,13 @@ const docTemplate = `{
                     "description": "space separated list of file extensions to hide in UI",
                     "type": "string"
                 },
+                "newFileTemplate": {
+                    "description": "list of custom filenames that will be used as template for new files",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "promptRightCloseButton": {
                     "description": "show the prompts close button on the right",
                     "type": "boolean"
@@ -7390,6 +7397,13 @@ const docTemplate = `{
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
                 },
+                "newFileTemplate": {
+                    "description": "list of custom filenames that will be used as template for new files",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "otpEnabled": {
                     "type": "boolean"
                 },
@@ -7813,6 +7827,13 @@ const docTemplate = `{
                 },
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
+                },
+                "newFileTemplate": {
+                    "description": "list of custom filenames that will be used as template for new files",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "otpEnabled": {
                     "type": "boolean"

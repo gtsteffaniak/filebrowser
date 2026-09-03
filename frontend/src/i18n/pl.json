@@ -43,6 +43,7 @@
     "requestTimedOut": "Wystąpił limit czasu żądania. Sprawdź ustawienia sieci lub serwera proxy odwrotnego."
   },
   "files": {
+    "emptyFile": "Pusty plik",
     "lastModified": "Ostatnio modyfikowane",
     "multipleSelectionEnabled": "Zaznaczenie wielu włączone",
     "sortByLastModified": "Sortuj wg. daty modyfikacji",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Wymagane jest sprawdzenie Recaptcha"
   },
   "prompts": {
+    "noTemplate": "Twój szablon jest pusty!",
+    "newFileTemplate": "Szablon nowego pliku",
+    "newFileTemplateMessage": "Dodaj tutaj nowe nazwy plików, będą one używane jako szablon do tworzenia nowych plików w menu kontekstowym!",
+    "newFileTemplatePlaceholder": "Wprowadź nazwę pliku z rozszerzeniem",
     "deleteMessageSingle": "Czy jesteś pewien, że chcesz usunąć ten plik/folder?",
     "deleteTitle": "Usuń pliki",
     "displayName": "Wyświetlana Nazwa:",
