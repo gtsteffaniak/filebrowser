@@ -247,6 +247,7 @@ func DocumentWithAllSources(doc SidebarLinkDefaultsDocument) SidebarLinkDefaults
 			continue
 		}
 		out = append(out, SidebarLinkDefaultItem{
+			Enabled: true,
 			Link: users.SidebarLink{
 				Name:       src.Name,
 				Category:   string(users.SidebarLinkSource),
@@ -272,4 +273,58 @@ func ConfiguredSourceNames() []string {
 		names = append(names, src.Name)
 	}
 	return names
+}
+
+// EnsureAllSourcesInDefaults merges in any configured sources missing from doc (enabled by default).
+func EnsureAllSourcesInDefaults(doc SidebarLinkDefaultsDocument) (SidebarLinkDefaultsDocument, bool) {
+	merged := DocumentWithAllSources(doc)
+	if len(merged.Items) == len(doc.Items) {
+		return doc, false
+	}
+	return merged, true
+}
+
+// InitialSidebarLinkDefaultsDocument returns enabled defaults for every configured source.
+func InitialSidebarLinkDefaultsDocument() SidebarLinkDefaultsDocument {
+	return DocumentWithAllSources(SidebarLinkDefaultsDocument{Items: []SidebarLinkDefaultItem{}})
+}
+
+// FrontendDefaultItem converts one defaults item for API responses.
+func FrontendDefaultItem(item SidebarLinkDefaultItem) SidebarLinkDefaultItem {
+	if prepared, ok := prepareFrontendLink(item.Link); ok {
+		item.Link = prepared
+	}
+	return item
+}
+
+// FrontendDefaultsDocument converts stored defaults for API responses.
+func FrontendDefaultsDocument(doc SidebarLinkDefaultsDocument) SidebarLinkDefaultsDocument {
+	if len(doc.Items) == 0 {
+		return doc
+	}
+	out := make([]SidebarLinkDefaultItem, len(doc.Items))
+	for i, item := range doc.Items {
+		out[i] = FrontendDefaultItem(item)
+	}
+	return SidebarLinkDefaultsDocument{Items: out}
+}
+
+// NormalizeDefaultsDocument canonicalizes incoming defaults for storage.
+func NormalizeDefaultsDocument(doc SidebarLinkDefaultsDocument) SidebarLinkDefaultsDocument {
+	if len(doc.Items) == 0 {
+		return doc
+	}
+	out := make([]SidebarLinkDefaultItem, 0, len(doc.Items))
+	for _, item := range doc.Items {
+		normalized, _ := NormalizeSidebarLinks([]users.SidebarLink{item.Link})
+		if len(normalized) == 0 {
+			continue
+		}
+		out = append(out, SidebarLinkDefaultItem{
+			Enabled:  item.Enabled,
+			Enforced: item.Enforced,
+			Link:     normalized[0],
+		})
+	}
+	return SidebarLinkDefaultsDocument{Items: out}
 }

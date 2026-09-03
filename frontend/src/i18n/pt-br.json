@@ -298,7 +298,8 @@
     "accountDefaults": "Configurações padrão da conta",
     "disableUserSettings": "Desativar a página de configurações do usuário",
     "userDefaultFieldLockedFromConfig": "Essa configuração padrão é definida no arquivo de configuração e não pode ser alterada aqui.",
-    "sourceAccessDefaultsHelp": "Permissões padrão de arquivo aplicadas a fontes e novos usuários. A opção “Enforçar” define um valor fixo para todos os usuários que não sejam administradores."
+    "sourceAccessDefaultsHelp": "Permissões padrão de arquivo aplicadas a fontes e novos usuários. A opção “Enforçar” define um valor fixo para todos os usuários que não sejam administradores.",
+    "editAsYaml": "Editar como YAML"
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
@@ -319,10 +320,7 @@
     "linkUrl": "URL do link",
     "linkUrlPlaceholder": "Insira o URL ou o caminho (por exemplo, /files/path ou https://example.com)",
     "linkIcon": "Ícone de link",
-    "linksUpdatedSuccess": "Os links da barra lateral foram atualizados com sucesso!",
-    "linksUpdateFailed": "Falha ao atualizar os links da barra lateral",
     "sourceNotAccessible": "Essa fonte não está mais acessível para você",
-    "noLinksYet": "Ainda não há links configurados. Adicione seu primeiro link abaixo.",
     "customizeShareLinksDescription": "Personalize os links mostrados na barra lateral para esse compartilhamento. Arraste e solte para reordenar.",
     "editLink": "Editar link",
     "selectShare": "Selecionar compartilhamento",
@@ -339,7 +337,12 @@
     "usageTextDisk": "uso conforme relatado pelo disco/partição",
     "dividerNamePlaceholder": "Texto do divisor (deixe em branco para mostrar uma linha)",
     "showIndexedUsage": "Mostrar uso conforme indexado",
-    "showDiskUsage": "Mostrar o uso conforme relatado pelo disco/partição"
+    "showDiskUsage": "Mostrar o uso conforme relatado pelo disco/partição",
+    "sidebarLinkDefaults": "Configurações padrão dos links da barra lateral",
+    "sidebarLinkDefaultsDescription": "Configure os links padrão e obrigatórios da barra lateral para todos os usuários.",
+    "sidebarLinkDefaultsHelp": "Esses são os links padrão que serão adicionados para todos os novos usuários. Se você tornar um link obrigatório, ele será adicionado para todos os usuários e não poderá ser removido por usuários que não sejam administradores.",
+    "sidebarLinkDefaultSourceHelp": "Aplica-se apenas quando o usuário tem acesso a essa fonte.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML inválido. Verifique o formato e tente novamente."
   },
   "share": {
     "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",
@@ -620,7 +623,8 @@
     "limit": "Limite{suffix}",
     "remove": "Remover{suffix}",
     "saved": "Salvo{suffix}",
-    "removed": "Removido{suffix}"
+    "removed": "Removido{suffix}",
+    "back": "Voltar{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Navegue pela biblioteca completa de ícones"
     },
     "toolNotFound": "Ferramenta não encontrada",
-    "backToTools": "Voltar para Ferramentas",
     "fileWatcher": {
       "name": "Observador de arquivos",
       "description": "Assista e acompanhe arquivos em tempo real com monitoramento de latência",

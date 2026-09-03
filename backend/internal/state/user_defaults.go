@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -271,7 +272,33 @@ func EffectiveUserDefaults() settings.UserDefaults {
 	return userDefaultsDefault
 }
 
-// ApplyUserDefaults applies persisted defaults to a user.
+// ApplyUserDefaults applies persisted defaults to a user, including sidebar link defaults.
 func ApplyUserDefaults(u *users.User) {
+	applyUserSettingsDefaults(u)
+	applySidebarLinkDefaults(u)
+}
+
+func applyUserSettingsDefaults(u *users.User) {
 	settings.ApplyUserDefaultsFrom(u, EffectiveUserDefaults())
+}
+
+func applySidebarLinkDefaults(u *users.User) {
+	if u == nil || u.Username == "anonymous" {
+		return
+	}
+	doc := EffectiveSidebarLinkDefaults()
+	changed := false
+	if links, c := usersidebar.MergeDefaultLinks(u.SidebarLinks, u.BackendScopes, doc); c {
+		u.SidebarLinks = links
+		changed = true
+	}
+	if links, c := usersidebar.MergeEnforcedLinks(u.SidebarLinks, u.BackendScopes, doc, u.Permissions.Admin); c {
+		u.SidebarLinks = links
+		changed = true
+	}
+	if changed {
+		if normalized, c := usersidebar.NormalizeSidebarLinks(u.SidebarLinks); c {
+			u.SidebarLinks = normalized
+		}
+	}
 }

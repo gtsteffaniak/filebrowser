@@ -23,8 +23,8 @@
       />
       <SettingsButton
         class="item"
-        :name="$t('settings.sidebarLinkDefaults')"
-        :description="$t('settings.sidebarLinkDefaultsDescription')"
+        :name="$t('sidebar.sidebarLinkDefaults')"
+        :description="$t('sidebar.sidebarLinkDefaultsDescription')"
         @click="openSidebarLinkDefaultsPrompt"
       />
       <ActivityViewerButton class="item" :href="activityViewerHref" />
@@ -179,7 +179,7 @@ export default {
       mutations.showPrompt({
         name: "sidebar-link-defaults",
         props: {
-          title: this.$t("settings.sidebarLinkDefaults"),
+          title: this.$t("sidebar.sidebarLinkDefaults"),
         },
       });
     },

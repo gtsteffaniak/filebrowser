@@ -12,8 +12,9 @@ import (
 const sidebarLinkDefaultsSettingKey = "sidebarLinkDefaults"
 
 var (
-	sidebarLinkDefaultsMu sync.RWMutex
-	sidebarLinkDefaults   usersidebar.SidebarLinkDefaultsDocument
+	sidebarLinkDefaultsMu       sync.RWMutex
+	sidebarLinkDefaults         usersidebar.SidebarLinkDefaultsDocument
+	sidebarLinkDefaultsNeedResync bool
 )
 
 // InitSidebarLinkDefaults loads persisted sidebar link defaults into memory.
@@ -26,14 +27,26 @@ func InitSidebarLinkDefaults() error {
 		return err
 	}
 	if !found {
-		doc = usersidebar.SidebarLinkDefaultsDocument{Items: []usersidebar.SidebarLinkDefaultItem{}}
+		doc = usersidebar.InitialSidebarLinkDefaultsDocument()
 		if saveErr := saveSidebarLinkDefaultsDocument(doc); saveErr != nil {
 			return saveErr
+		}
+	} else {
+		ensured, changed := usersidebar.EnsureAllSourcesInDefaults(doc)
+		if changed {
+			if saveErr := saveSidebarLinkDefaultsDocument(ensured); saveErr != nil {
+				return saveErr
+			}
+			doc = ensured
+			sidebarLinkDefaultsNeedResync = true
 		}
 	}
 	sidebarLinkDefaultsMu.Lock()
 	sidebarLinkDefaults = doc
 	sidebarLinkDefaultsMu.Unlock()
+	if !found {
+		sidebarLinkDefaultsNeedResync = true
+	}
 	return nil
 }
 
@@ -78,6 +91,7 @@ type SidebarLinkDefaultsSettings struct {
 // GetSidebarLinkDefaults returns admin settings merged with all configured sources (memory only).
 func GetSidebarLinkDefaults() SidebarLinkDefaultsSettings {
 	doc := usersidebar.DocumentWithAllSources(EffectiveSidebarLinkDefaults())
+	doc = usersidebar.FrontendDefaultsDocument(doc)
 	return SidebarLinkDefaultsSettings{
 		Items:   doc.Items,
 		Sources: usersidebar.ConfiguredSourceNames(),
@@ -89,6 +103,7 @@ func PatchSidebarLinkDefaults(doc usersidebar.SidebarLinkDefaultsDocument) error
 	if doc.Items == nil {
 		doc.Items = []usersidebar.SidebarLinkDefaultItem{}
 	}
+	doc = usersidebar.NormalizeDefaultsDocument(doc)
 
 	sidebarLinkDefaultsMu.Lock()
 	prev := sidebarLinkDefaults

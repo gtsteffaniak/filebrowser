@@ -1,8 +1,8 @@
 <template>
-  <div class="yaml-editor-panel">
+  <div class="yaml-editor-panel" :class="{ 'yaml-editor-panel--fill': fill }">
     <div ref="editorHost" class="yaml-editor-host"></div>
     <p v-if="error" class="yaml-error">{{ error }}</p>
-    <div class="yaml-actions">
+    <div v-if="!fill" class="yaml-actions">
       <button type="button" class="button button--flat button--grey" @click="$emit('cancel')">
         {{ $t("general.cancel") }}
       </button>
@@ -27,12 +27,17 @@ export default {
       type: String,
       required: true,
     },
+    fill: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ["update:modelValue", "apply", "cancel"],
   data() {
     return {
       editor: null,
       error: "",
+      resizeObserver: null,
     };
   },
   mounted() {
@@ -45,11 +50,26 @@ export default {
       showPrintMargin: false,
       wrap: true,
     });
+    if (this.fill) {
+      this.resizeEditor();
+      this.resizeObserver = new ResizeObserver(() => {
+        this.resizeEditor();
+      });
+      this.resizeObserver.observe(this.$refs.editorHost);
+    }
   },
   beforeUnmount() {
+    this.resizeObserver?.disconnect();
     this.editor?.destroy();
   },
   methods: {
+    resizeEditor() {
+      if (!this.editor || !this.$refs.editorHost) {
+        return;
+      }
+      const { offsetWidth, offsetHeight } = this.$refs.editorHost;
+      this.editor.resize(offsetWidth, offsetHeight);
+    },
     apply() {
       this.error = "";
       const text = this.editor?.getValue() ?? "";
@@ -61,6 +81,19 @@ export default {
 </script>
 
 <style scoped>
+.yaml-editor-panel--fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.yaml-editor-panel--fill .yaml-editor-host {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .yaml-editor-host {
   min-height: 280px;
   width: 100%;

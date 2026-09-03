@@ -124,3 +124,81 @@ func TestEnforcedLinkKeys_nonAdminOnly(t *testing.T) {
 		t.Fatalf("user keys=%v", keys)
 	}
 }
+
+func TestInitialSidebarLinkDefaultsDocument_enablesAllSources(t *testing.T) {
+	initDefaultsTestConfig(t)
+	doc := InitialSidebarLinkDefaultsDocument()
+	if len(doc.Items) == 0 {
+		t.Fatal("expected source defaults")
+	}
+	for _, item := range doc.Items {
+		if !item.Enabled {
+			t.Fatalf("source %q should be enabled by default", item.Link.SourceName)
+		}
+		if !users.IsSourceSidebarCategory(item.Link.Category) {
+			t.Fatalf("expected source category, got %q", item.Link.Category)
+		}
+	}
+}
+
+func TestEnsureAllSourcesInDefaults_addsMissingSourcesEnabled(t *testing.T) {
+	initDefaultsTestConfig(t)
+	doc := SidebarLinkDefaultsDocument{Items: []SidebarLinkDefaultItem{}}
+	merged, changed := EnsureAllSourcesInDefaults(doc)
+	if !changed || len(merged.Items) == 0 {
+		t.Fatalf("got %#v changed=%v", merged, changed)
+	}
+	for _, item := range merged.Items {
+		if !item.Enabled {
+			t.Fatalf("new source %q should default to enabled", item.Link.SourceName)
+		}
+	}
+}
+
+func TestFrontendDefaultsDocument_usesSourceDisplayName(t *testing.T) {
+	initDefaultsTestConfig(t)
+	doc := SidebarLinkDefaultsDocument{
+		Items: []SidebarLinkDefaultItem{
+			{
+				Enabled: true,
+				Link: users.SidebarLink{
+					Name:       "exclude",
+					Category:   "source",
+					Target:     "/",
+					SourceName: "/stale/path/not/in/sourcemap",
+				},
+			},
+		},
+	}
+	out := FrontendDefaultsDocument(doc)
+	if len(out.Items) != 1 {
+		t.Fatalf("got %#v", out.Items)
+	}
+	if out.Items[0].Link.SourceName != "exclude" {
+		t.Fatalf("expected display name exclude via name fallback, got %q", out.Items[0].Link.SourceName)
+	}
+}
+
+func TestNormalizeDefaultsDocument_storesSourcePath(t *testing.T) {
+	initDefaultsTestConfig(t)
+	doc := SidebarLinkDefaultsDocument{
+		Items: []SidebarLinkDefaultItem{
+			{
+				Enabled: true,
+				Link: users.SidebarLink{
+					Name:       "exclude",
+					Category:   "source",
+					Target:     "/",
+					SourceName: "exclude",
+				},
+			},
+		},
+	}
+	out := NormalizeDefaultsDocument(doc)
+	if len(out.Items) != 1 {
+		t.Fatalf("got %#v", out.Items)
+	}
+	if out.Items[0].Link.SourceName == "exclude" {
+		t.Fatalf("expected canonical path, got display name %q", out.Items[0].Link.SourceName)
+	}
+}

@@ -293,7 +293,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "sidebarlinks";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -370,7 +370,7 @@ export default {
         case "user-defaults":
           return this.$t("settings.userDefaults");
         case "sidebar-link-defaults":
-          return this.$t("settings.sidebarLinkDefaults");
+          return this.$t("sidebar.sidebarLinkDefaults");
         case "upload":
           return this.$t("general.upload");
         case "createapi":

@@ -73,6 +73,7 @@
     "navigation": "Navigation{suffix}",
     "loading": "Loading{suffix}",
     "add": "Add{suffix}",
+    "back": "Back{suffix}",
     "stay": "Stay{suffix}",
     "cancel": "Cancel{suffix}",
     "change": "Change{suffix}",
@@ -598,13 +599,6 @@
     "configViewerDescription": "Open a read-only view of the current server configuration.",
     "userDefaults": "User defaults",
     "userDefaultsDescription": "Configure default settings applied to new users and enforced policy for all users.",
-    "sidebarLinkDefaults": "Sidebar link defaults",
-    "sidebarLinkDefaultsDescription": "Default and enforced sidebar links for all users. Source links apply only when a user has access to that source. Enabled links are merged for every user; enforced links cannot be removed by non-admins.",
-    "sidebarLinkDefaultEnabled": "Default",
-    "sidebarLinkDefaultsLoadFailed": "Failed to load sidebar link defaults.",
-    "sidebarLinkDefaultsSaveFailed": "Failed to save sidebar link defaults.",
-    "sidebarLinkDefaultsSaved": "Sidebar link defaults saved.",
-    "sidebarLinkDefaultsYamlInvalid": "Invalid YAML. Check the format and try again.",
     "editAsYaml": "Edit as YAML",
     "userDefaultFieldLockedFromConfig": "This default is set in the config file and cannot be changed here.",
     "accountDefaults": "Account defaults",
@@ -692,10 +686,12 @@
     "browseIcons": "Browse Icons",
     "pickIcon": "Pick an Icon",
     "pickIconDescription": "Search and select an icon from the Material Icons library",
-    "linksUpdatedSuccess": "Sidebar links updated successfully!",
-    "linksUpdateFailed": "Failed to update sidebar links",
     "sourceNotAccessible": "This source is no longer accessible to you",
-    "noLinksYet": "No links configured yet. Add your first link below.",
+    "sidebarLinkDefaults": "Sidebar link defaults",
+    "sidebarLinkDefaultsDescription": "Configure default and enforced sidebar links for all users.",
+    "sidebarLinkDefaultsHelp": "These are the default links that will be added for all new users. If you enforce a link, it will be added for all users and cannot be removed by non-admins.",
+    "sidebarLinkDefaultSourceHelp": "Applies only when the user has access to this source.",
+    "sidebarLinkDefaultsYamlInvalid": "Invalid YAML. Check the format and try again.",
     "switchMode": "Switch sidebar mode"
   },
   "api": {
@@ -1047,8 +1043,7 @@
       "viewActivity": "View activity",
       "tableColumns": "Table columns"
     },
-    "toolNotFound": "Tool not found",
-    "backToTools": "Back to Tools"
+    "toolNotFound": "Tool not found"
   },
   "notifications": {
     "title": "Notifications",

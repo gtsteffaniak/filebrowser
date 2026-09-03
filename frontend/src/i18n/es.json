@@ -298,7 +298,8 @@
     "accountDefaults": "Configuración predeterminada de la cuenta",
     "disableUserSettings": "Desactivar la página de configuración del usuario",
     "userDefaultFieldLockedFromConfig": "Este valor por defecto se establece en el archivo de configuración y no se puede modificar aquí.",
-    "sourceAccessDefaultsHelp": "Permisos predeterminados de los archivos aplicados a las fuentes y a los nuevos usuarios. La opción «Aplicar» fija un valor para todos los usuarios que no sean administradores."
+    "sourceAccessDefaultsHelp": "Permisos predeterminados de los archivos aplicados a las fuentes y a los nuevos usuarios. La opción «Aplicar» fija un valor para todos los usuarios que no sean administradores.",
+    "editAsYaml": "Editar como YAML"
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",
@@ -319,10 +320,7 @@
     "linkUrl": "Enlace",
     "linkUrlPlaceholder": "Introduzca una ruta o URL (ej: /archivos/ruta o https://example.com)",
     "linkIcon": "Icono del acceso directo:",
-    "linksUpdatedSuccess": "¡Se actualizaron los accesos directos!",
-    "linksUpdateFailed": "Hubo un error al actualizar los accesos directos",
     "sourceNotAccessible": "No se pudo acceder a la fuente",
-    "noLinksYet": "Aún no configuraste ningún acceso directo, ¡Añade uno!",
     "customizeShareLinksDescription": "Aquí puedes personalizar los accesos directos del panel lateral para este recurso compartido, necesitas crear el recurso primero.",
     "editLink": "Editar acceso directo",
     "selectShare": "Seleccionar recurso compartido",
@@ -339,7 +337,12 @@
     "usageTextDisk": "uso por disco/partición",
     "showIndexedUsage": "Mostrar uso indexado",
     "showDiskUsage": "Mostrar uso del disco/partición",
-    "dividerNamePlaceholder": "Separador visual (déjalo en blanco para mostrar una línea)"
+    "dividerNamePlaceholder": "Separador visual (déjalo en blanco para mostrar una línea)",
+    "sidebarLinkDefaults": "Valores predeterminados de los enlaces de la barra lateral",
+    "sidebarLinkDefaultsDescription": "Configura los enlaces predeterminados y obligatorios de la barra lateral para todos los usuarios.",
+    "sidebarLinkDefaultsHelp": "Estos son los enlaces predeterminados que se añadirán para todos los nuevos usuarios. Si se establece un enlace como obligatorio, se añadirá para todos los usuarios y los usuarios que no sean administradores no podrán eliminarlo.",
+    "sidebarLinkDefaultSourceHelp": "Solo se aplica cuando el usuario tiene acceso a esta fuente.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML no válido. Comprueba el formato e inténtalo de nuevo."
   },
   "share": {
     "notice": "Cuando se crea un recurso compartido, este quedará más expuesto al público y tendrá diferentes reglas de acceso. Si no está configurado de forma forma segura, cualquiera podrá acceder a él.",
@@ -620,7 +623,8 @@
     "limit": "Límite{suffix}",
     "remove": "Eliminar{suffix}",
     "saved": "Guardado{suffix}",
-    "removed": "Eliminado{suffix}"
+    "removed": "Eliminado{suffix}",
+    "back": "Atrás{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Mira la la colección completa aqui"
     },
     "toolNotFound": "No se encontró la herramienta",
-    "backToTools": "Volver a Herramientas",
     "fileWatcher": {
       "name": "Visor en tiempo real",
       "description": "Visualiza el contenido de archivos en tiempo real",

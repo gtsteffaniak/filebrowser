@@ -19,9 +19,10 @@ All notable changes to this project will be documented in this file. For commit 
  - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
  - Added setting to configure the placement of the prompts close button in profile settings (#2853).
  - Added "New file templates". You can now add and configure pre-defined filenames + extension for the creation of new files in the context menu on profile settings! (#2881) (#1239).
+ - sidebar link defaults and enforcements available in user management
+
 
 # TODO
-#- sidebar link defaults and enforcements
 #- share defaults and enforcements
 #- tool defaults and enforcement
 #- Add more groups support, deprecated source.config.defaultEnabled and make source enablement prefer group-based

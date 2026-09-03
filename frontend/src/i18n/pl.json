@@ -298,7 +298,8 @@
     "accountDefaults": "Ustawienia domyślne konta",
     "disableUserSettings": "Wyłącz stronę ustawień użytkownika",
     "userDefaultFieldLockedFromConfig": "To domyślne ustawienie jest określone w pliku konfiguracyjnym i nie można go tutaj zmienić.",
-    "sourceAccessDefaultsHelp": "Domyślne uprawnienia do plików stosowane w przypadku plików źródłowych i nowych użytkowników. Opcja „Wymuś” ustala stałą wartość dla wszystkich użytkowników niebędących administratorami."
+    "sourceAccessDefaultsHelp": "Domyślne uprawnienia do plików stosowane w przypadku plików źródłowych i nowych użytkowników. Opcja „Wymuś” ustala stałą wartość dla wszystkich użytkowników niebędących administratorami.",
+    "editAsYaml": "Edytuj jako YAML"
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",
@@ -319,10 +320,7 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Wprowadź adres URL lub ścieżkę (np. /files/path lub https://example.com).",
     "linkIcon": "Ikona łącza",
-    "linksUpdatedSuccess": "Linki na pasku bocznym zostały pomyślnie zaktualizowane!",
-    "linksUpdateFailed": "Nie udało się zaktualizować linków paska bocznego",
     "sourceNotAccessible": "To źródło nie jest już dostępne",
-    "noLinksYet": "Nie skonfigurowano jeszcze żadnych linków. Dodaj swój pierwszy link poniżej.",
     "customizeShareLinksDescription": "Dostosuj łącza wyświetlane na pasku bocznym dla tego udziału. Przeciągnij i upuść, aby zmienić kolejność.",
     "editLink": "Edytuj łącze",
     "selectShare": "Wybierz udział",
@@ -339,7 +337,12 @@
     "usageTextDisk": "użycie zgłoszone przez dysk/partycję",
     "dividerNamePlaceholder": "Tekst podziału (pozostaw pusty, aby wyświetlić linię)",
     "showIndexedUsage": "Pokaż zastosowania zgodnie z indeksem",
-    "showDiskUsage": "Pokaż wykorzystanie według dysku/partycji"
+    "showDiskUsage": "Pokaż wykorzystanie według dysku/partycji",
+    "sidebarLinkDefaults": "Domyślne ustawienia linków w pasku bocznym",
+    "sidebarLinkDefaultsDescription": "Skonfiguruj domyślne i obowiązkowe linki w pasku bocznym dla wszystkich użytkowników.",
+    "sidebarLinkDefaultsHelp": "Są to domyślne linki, które zostaną dodane dla wszystkich nowych użytkowników. Jeśli ustawisz link jako obowiązkowy, zostanie on dodany dla wszystkich użytkowników i nie będzie można go usunąć, jeśli nie jest się administratorem.",
+    "sidebarLinkDefaultSourceHelp": "Ma zastosowanie wyłącznie wtedy, gdy użytkownik ma dostęp do tego źródła.",
+    "sidebarLinkDefaultsYamlInvalid": "Nieprawidłowy plik YAML. Sprawdź format i spróbuj ponownie."
   },
   "share": {
     "notice": "Uwaga: po utworzeniu folderu udostępnionego staje się on bardziej dostępny publicznie i ma inne zasady dostępu. Jeśli udział nie jest bezpiecznie skonfigurowany, może być dostępny dla każdego.",
@@ -620,7 +623,8 @@
     "limit": "Limit{suffix}",
     "remove": "Usuń{suffix}",
     "saved": "Zapisano{suffix}",
-    "removed": "Usunięto{suffix}"
+    "removed": "Usunięto{suffix}",
+    "back": "Powrót{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Przeglądaj pełną bibliotekę ikon"
     },
     "toolNotFound": "Nie znaleziono narzędzia",
-    "backToTools": "Powrót do Narzędzi",
     "fileWatcher": {
       "name": "File Watcher",
       "description": "Monitorowanie opóźnień i plików w czasie rzeczywistym",

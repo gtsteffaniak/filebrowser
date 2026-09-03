@@ -216,7 +216,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
-	ApplyUserDefaults(user)
+	applyUserSettingsDefaults(user)
 	defaults := EffectiveUserDefaults()
 	enforced := EffectiveEnforced()
 	settings.ApplyEnforcedDefaultsFrom(user, defaults, enforced)
@@ -224,9 +224,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 
 	users.SyncBackendSourcePermissionsMap(user)
 
-	if ApplySidebarLinkDefaultsToUser(user) {
-		// links updated from admin defaults
-	}
+	applySidebarLinkDefaults(user)
 
 	if links, changed := usersidebar.PrepareSidebarLinksForPersist(user.SidebarLinks, user.BackendScopes); changed {
 		user.SidebarLinks = links

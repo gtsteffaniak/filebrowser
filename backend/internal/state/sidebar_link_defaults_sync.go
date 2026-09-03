@@ -3,7 +3,6 @@ package state
 import (
 	"fmt"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -89,23 +88,4 @@ func ResyncEnforcedSidebarLinksForAllUsers() error {
 		logger.Debugf("synced enforced sidebar links for %d users", updated)
 	}
 	return nil
-}
-
-// ApplySidebarLinkDefaultsToUser merges enabled and enforced sidebar link defaults onto u.
-// Returns true if sidebar links changed.
-func ApplySidebarLinkDefaultsToUser(u *users.User) bool {
-	if u == nil {
-		return false
-	}
-	doc := EffectiveSidebarLinkDefaults()
-	changed := false
-	if links, c := usersidebar.MergeDefaultLinks(u.SidebarLinks, u.BackendScopes, doc); c {
-		u.SidebarLinks = links
-		changed = true
-	}
-	if links, c := usersidebar.MergeEnforcedLinks(u.SidebarLinks, u.BackendScopes, doc, u.Permissions.Admin); c {
-		u.SidebarLinks = links
-		changed = true
-	}
-	return changed
 }

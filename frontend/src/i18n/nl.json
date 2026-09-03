@@ -167,7 +167,8 @@
     "limit": "Limiet{suffix}",
     "remove": "Verwijderen{suffix}",
     "saved": "Opgeslagen{suffix}",
-    "removed": "Verwijderd{suffix}"
+    "removed": "Verwijderd{suffix}",
+    "back": "Terug{suffix}"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -616,7 +617,8 @@
     "accountDefaults": "Standaardinstellingen voor accounts",
     "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
     "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd.",
-    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn."
+    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn.",
+    "editAsYaml": "Bewerken als YAML"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",
@@ -651,13 +653,15 @@
     "browseIcons": "Bladeren door pictogrammen",
     "pickIcon": "Kies een pictogram",
     "pickIconDescription": "Zoek en selecteer een pictogram uit de bibliotheek met materiaalpictogrammen",
-    "linksUpdatedSuccess": "Koppelingen in zijbalk succesvol bijgewerkt!",
-    "linksUpdateFailed": "Bijwerken van koppelingen in zijbalk is mislukt",
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
-    "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
     "switchMode": "Zijbalkmodus wijzigen",
     "showIndexedUsage": "Gebruik weergeven zoals geïndexeerd",
-    "showDiskUsage": "Weergave van het gebruik zoals gerapporteerd per schijf/partitie"
+    "showDiskUsage": "Weergave van het gebruik zoals gerapporteerd per schijf/partitie",
+    "sidebarLinkDefaults": "Standaardinstellingen voor links in de zijbalk",
+    "sidebarLinkDefaultsDescription": "Stel de standaard- en verplichte links in de zijbalk in voor alle gebruikers.",
+    "sidebarLinkDefaultsHelp": "Dit zijn de standaardlinks die voor alle nieuwe gebruikers worden toegevoegd. Als je een link verplicht stelt, wordt deze voor alle gebruikers toegevoegd en kan deze niet worden verwijderd door gebruikers die geen beheerder zijn.",
+    "sidebarLinkDefaultSourceHelp": "Dit geldt alleen als de gebruiker toegang heeft tot deze bron.",
+    "sidebarLinkDefaultsYamlInvalid": "Ongeldige YAML. Controleer de opmaak en probeer het opnieuw."
   },
   "api": {
     "title": "API-sleutels",
@@ -946,7 +950,6 @@
       "chooseFile": "Kies een bestand"
     },
     "toolNotFound": "Gereedschap niet gevonden",
-    "backToTools": "Terug naar Gereedschap",
     "activityViewer": {
       "name": "Activiteitenoverzicht",
       "description": "Gebruikersactiviteiten bekijken en exporteren, waaronder downloads, wijzigingen in bestanden, het delen van bestanden en beheerdersacties",
