@@ -22,21 +22,23 @@
         :class="typeInfoFor(item).classes"
         aria-hidden="true"
       >{{ typeInfoFor(item).materialSymbol }}</i>
-      <input
-        class="input"
-        type="text"
-        v-model.trim="localItems[index]"
-        :aria-label="`Template ${index + 1}`"
-      />
-      <button
-        type="button"
-        class="button button--flat button--grey"
-        :title="$t('general.delete')"
-        :aria-label="$t('general.delete')"
-        @click="removeItem(index)"
-      >
-        <i class="material-symbols-outlined">delete</i>
-      </button>
+      <div class="form-flex-group form-grow">
+        <input
+          class="input form-form flat-right"
+          type="text"
+          v-model.trim="localItems[index]"
+          :aria-label="`Template ${index + 1}`"
+        />
+        <button
+          type="button"
+          class="button form-button flat-left"
+          :title="$t('general.delete')"
+          :aria-label="$t('general.delete')"
+          @click="removeItem(index)"
+        >
+          <i class="material-symbols-outlined">delete</i>
+        </button>
+      </div>
     </div>
     <div class="new-file-template-add">
       <i
@@ -44,22 +46,24 @@
         :class="typeInfoFor(newItem).classes"
         aria-hidden="true"
       >{{ typeInfoFor(newItem).materialSymbol }}</i>
-      <input
-        class="input"
-        type="text"
-        v-model.trim="newItem"
-        :placeholder="$t('prompts.newFileTemplatePlaceholder')"
-        @keydown.enter.prevent="addItem"
-      />
-      <button
-        type="button"
-        class="button button--flat"
-        :title="$t('general.add')"
-        :aria-label="$t('general.add')"
-        @click="addItem"
-      >
-        {{ $t('general.add') }}
-      </button>
+      <div class="form-flex-group form-grow">
+        <input
+          class="input form-form flat-right"
+          type="text"
+          v-model.trim="newItem"
+          :placeholder="$t('prompts.newFileTemplatePlaceholder')"
+          @keydown.enter.prevent="addItem"
+        />
+        <button
+          type="button"
+          class="button form-button flat-left"
+          :title="$t('general.add')"
+          :aria-label="$t('general.add')"
+          @click="addItem"
+        >
+          <i class="material-symbols-outlined">add</i>
+        </button>
+      </div>
     </div>
   </div>
   <div class="card-actions">
@@ -330,17 +334,11 @@ export default {
   flex-shrink: 0;
 }
 
-.new-file-template-row .input,
-.new-file-template-add .input {
-  flex: 1;
-}
-
 .new-file-template-row .material-symbols-outlined {
   transition: color 0.15s;
 }
 
 .new-file-template-row button:hover .material-symbols-outlined {
-  color: red;
   font-variation-settings: 'FILL' 1;
 }
 </style>
