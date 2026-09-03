@@ -1,9 +1,16 @@
 <template>
   <div class="card-content sidebar-links-content">
-    <p v-if="!showAddForm">{{ contextDescription }}</p>
+    <p v-if="!showAddForm && !yamlMode">{{ contextDescription }}</p>
+
+    <YamlEditorPanel
+      v-if="yamlMode"
+      v-model="yamlText"
+      @apply="applyYamlLinks"
+      @cancel="yamlMode = false"
+    />
 
     <!-- Existing Links List - only show when not in edit/add mode -->
-    <div v-if="!showAddForm && !isSelectingPath" class="links-list">
+    <div v-if="!showAddForm && !isSelectingPath && !yamlMode" class="links-list">
       <h3>{{ $t('sidebar.currentLinks') }}</h3>
       <div v-if="links.length === 0" class="empty-state">
         <p>{{ $t('sidebar.noLinksYet') }}</p>
@@ -30,7 +37,9 @@
             type="button"
             class="action"
             @click="editLink(index)"
+            :disabled="isLinkEnforced(link)"
             :aria-label="$t('general.edit')"
+            :title="isLinkEnforced(link) ? $t('profileSettings.enforcedByAdmin') : $t('general.edit')"
           >
             <i class="material-symbols">edit</i>
           </button>
@@ -38,7 +47,9 @@
             type="button"
             class="action"
             @click="removeLink(index)"
+            :disabled="isLinkEnforced(link)"
             :aria-label="$t('general.delete')"
+            :title="isLinkEnforced(link) ? $t('profileSettings.enforcedByAdmin') : $t('general.delete')"
           >
             <i class="material-symbols">delete</i>
           </button>
@@ -46,7 +57,7 @@
       </div>
     </div>
 
-    <div v-if="!showAddForm && context === 'user'" class="settings-items">
+    <div v-if="!showAddForm && context === 'user' && !yamlMode" class="settings-items">
       <ToggleSwitch class="item" :modelValue="showToolsInSidebar"
         @update:modelValue="onShowToolsInSidebarChange"
         :name="$t('profileSettings.showToolsInSidebar')"
@@ -54,7 +65,7 @@
     </div>
 
     <!-- Add New Link Section -->
-    <div v-if="!showAddForm" class="add-link-section">
+  <div v-if="!showAddForm && !yamlMode" class="add-link-section">
       <button
         type="button"
         @click="showAddForm = true"
@@ -62,6 +73,13 @@
       >
         <i class="material-symbols">add</i>
         {{ $t('sidebar.addNewLink') }}
+      </button>
+      <button
+        type="button"
+        class="button button--flat add-link-button"
+        @click="openYamlEditor"
+      >
+        {{ $t('settings.editAsYaml') }}
       </button>
     </div>
 
@@ -230,7 +248,7 @@
     </div>
   </div>
 
-  <div class="card-actions">
+  <div v-if="!yamlMode" class="card-actions">
     <!-- When selecting a path -->
     <template v-if="isSelectingPath">
       <button
@@ -301,7 +319,10 @@ import { getObjectProperty } from '@/utils/object.js';
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import YamlEditorPanel from "@/components/prompts/YamlEditorPanel.vue";
 import { eventBus } from "@/store/eventBus";
+import { sidebarLinkKey } from "@/utils/sidebarLinkKeys.js";
+import yaml from "js-yaml";
 
 export default {
   name: "SidebarLinks",
@@ -309,6 +330,7 @@ export default {
     FileList,
     ToggleSwitch,
     ExpandDropdown,
+    YamlEditorPanel,
   },
   props: {
     context: {
@@ -346,9 +368,15 @@ export default {
       tempSelectedPath: "",
       tempSelectedSource: "",
       showToolsInSidebar: true,
+      yamlMode: false,
+      yamlText: "",
     };
   },
   computed: {
+    enforcedLinkKeys() {
+      const keys = state.user?.enforcedSidebarLinkKeys;
+      return Array.isArray(keys) ? new Set(keys) : new Set();
+    },
     availableSources() {
       return state.sources?.info || {};
     },
@@ -501,6 +529,29 @@ export default {
     onShowToolsInSidebarChange(value) {
       this.showToolsInSidebar = value;
       this.syncMainToolsHubLinkRow(value);
+    },
+    isLinkEnforced(link) {
+      if (this.context !== "user" || getters.isAdmin()) {
+        return false;
+      }
+      return this.enforcedLinkKeys.has(sidebarLinkKey(link));
+    },
+    openYamlEditor() {
+      this.yamlText = yaml.dump(this.links, { lineWidth: 120, noRefs: true });
+      this.yamlMode = true;
+    },
+    applyYamlLinks(text) {
+      try {
+        const parsed = yaml.load(text);
+        if (!Array.isArray(parsed)) {
+          throw new Error("expected array");
+        }
+        this.links = parsed.map((link) => ({ ...link }));
+        this.yamlMode = false;
+        void this.saveLinks();
+      } catch (_e) {
+        notify.showError(this.$t("settings.sidebarLinkDefaultsYamlInvalid"));
+      }
     },
     getIconClass,
     getShareHash(target) {
@@ -760,7 +811,7 @@ export default {
     },
     editLink(index) {
       const link = this.links.at(index);
-      if (!link) return;
+      if (!link || this.isLinkEnforced(link)) return;
       this.editingIndex = index;
       this.showAddForm = true;
 
@@ -1047,6 +1098,12 @@ export default {
 .link-category {
   font-size: 0.85em;
   color: var(--textSecondary);
+}
+
+.add-link-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
 }
 
 .add-link-button {

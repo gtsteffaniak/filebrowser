@@ -75,6 +75,18 @@ export async function patchUserDefaults(partial) {
   });
 }
 
+export function getSidebarLinkDefaults() {
+  return fetchJSON(getApiPath("settings/sidebar-link-defaults"));
+}
+
+export async function patchSidebarLinkDefaults(doc) {
+  return fetchJSON(getApiPath("settings/sidebar-link-defaults"), {
+    method: "PATCH",
+    body: JSON.stringify(doc),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 export function getSourceSettings() {
   return fetchJSON(getApiPath("settings/source"));
 }

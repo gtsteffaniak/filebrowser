@@ -125,6 +125,7 @@ import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
 import UserDefaults from "./UserDefaults.vue";
+import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
 import Quota from "./Quota.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
@@ -173,6 +174,7 @@ export default {
     AnalyticsDiagnostic,
     ConfigViewer,
     UserDefaults,
+    SidebarLinkDefaults,
     Quota,
   },
   data() {
@@ -289,7 +291,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -365,6 +367,8 @@ export default {
           return this.$t("settings.configViewer");
         case "user-defaults":
           return this.$t("settings.userDefaults");
+        case "sidebar-link-defaults":
+          return this.$t("settings.sidebarLinkDefaults");
         case "upload":
           return this.$t("general.upload");
         case "createapi":

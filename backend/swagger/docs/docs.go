@@ -7349,6 +7349,13 @@ const docTemplate = `{
                     "description": "show quick save button in editor",
                     "type": "boolean"
                 },
+                "enforcedSidebarLinkKeys": {
+                    "description": "response-only: set in PrepForFrontend",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "fileLoading": {
                     "description": "upload and download settings",
                     "allOf": [
@@ -7762,6 +7769,13 @@ const docTemplate = `{
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
+                },
+                "enforcedSidebarLinkKeys": {
+                    "description": "response-only: set in PrepForFrontend",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "fileLoading": {
                     "description": "upload and download settings",

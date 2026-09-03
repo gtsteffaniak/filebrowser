@@ -7338,6 +7338,13 @@
                     "description": "show quick save button in editor",
                     "type": "boolean"
                 },
+                "enforcedSidebarLinkKeys": {
+                    "description": "response-only: set in PrepForFrontend",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "fileLoading": {
                     "description": "upload and download settings",
                     "allOf": [
@@ -7751,6 +7758,13 @@
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
+                },
+                "enforcedSidebarLinkKeys": {
+                    "description": "response-only: set in PrepForFrontend",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "fileLoading": {
                     "description": "upload and download settings",

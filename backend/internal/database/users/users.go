@@ -166,6 +166,7 @@ type FrontendUser struct {
 	OtpEnabled        bool                             `json:"otpEnabled"`
 	ShowFirstLogin       bool             `json:"showFirstLogin"`
 	Perm                 Permissions      `json:"perm,omitzero"`
+	EnforcedSidebarLinkKeys []string      `json:"enforcedSidebarLinkKeys,omitempty"` // response-only: set in PrepForFrontend
 }
 
 // PinnedItems maps source filesystem path -> index directory path -> pinned item names.

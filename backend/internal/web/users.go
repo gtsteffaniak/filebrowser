@@ -448,7 +448,8 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		var locked settings.ErrEnforcedUserField
 		var mismatch settings.ErrEnforcedUserValueMismatch
-		if stderrors.As(err, &locked) || stderrors.As(err, &mismatch) {
+		var enforcedLink usersidebar.ErrEnforcedSidebarLinkRemoved
+		if stderrors.As(err, &locked) || stderrors.As(err, &mismatch) || stderrors.As(err, &enforcedLink) {
 			return http.StatusForbidden, err
 		}
 		return http.StatusBadRequest, err
@@ -484,6 +485,7 @@ func PrepForFrontend(u users.User) users.User {
 	u.Permissions = users.GlobalPermissionsOnly(u.Permissions)
 	u.SourcePermissions = nil
 	u.SidebarLinks = usersidebar.FrontendLinks(u.SidebarLinks, u.ShowToolsInSidebar)
+	u.EnforcedSidebarLinkKeys = usersidebar.EnforcedLinkKeys(u.BackendScopes, state.EffectiveSidebarLinkDefaults(), u.Permissions.Admin)
 	u.Password = ""
 	u.ApiKeys = nil
 	u.Tokens = nil

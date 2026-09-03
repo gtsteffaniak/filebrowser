@@ -201,6 +201,7 @@ export interface UserObject {
   hideFileExt?: string;
   themeColor?: string;
   sidebarLinks?: SidebarLink[];
+  enforcedSidebarLinkKeys?: string[];
   profile: {
     username: string;
     email: string;
