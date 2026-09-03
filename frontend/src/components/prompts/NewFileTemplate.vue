@@ -218,8 +218,9 @@ export default {
         .filter(([, el]) => !!el)
         .sort((a, b) => a[0] - b[0]);
 
-      let targetIndex = entries.length ? entries[entries.length - 1][0] : this.draggingIndex;
+      let targetIndex = entries.length;
       for (const [i, el] of entries) {
+        if (i === this.draggingIndex) continue;
         const rect = el.getBoundingClientRect();
         if (clientY < rect.top + rect.height / 2) {
           targetIndex = i;
@@ -229,6 +230,7 @@ export default {
       if (targetIndex !== this.draggingIndex) {
         const array = [...this.localItems];
         const [moved] = array.splice(this.draggingIndex, 1);
+        if (targetIndex > this.draggingIndex) targetIndex -= 1;
         array.splice(targetIndex, 0, moved);
         this.localItems = array;
         this.draggingIndex = targetIndex;
