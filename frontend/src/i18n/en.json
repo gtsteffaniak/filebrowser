@@ -366,7 +366,7 @@
     "selectBannerImage": "Select banner image",
     "selectFaviconImage": "Select favicon image",
     "disableDownload": "Disable downloading files",
-    "disableDownloadDescription": "Anyone won't be able to download files or view a file's content.",
+    "disableDownloadDescription": "Users won't be able to download files, view file contents, or access OnlyOffice.",
     "allowModify": "Allow editing files",
     "allowModifyDescription": "Anyone can edit files in this share.",
     "allowDelete": "Allow deleting files",
