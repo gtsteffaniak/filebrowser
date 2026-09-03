@@ -43,6 +43,7 @@
     "requestTimedOut": "요청이 시간 초과되었습니다. 네트워크 또는 리버스 프록시 설정을 확인해 주세요."
   },
   "files": {
+    "emptyFile": "빈 파일",
     "lastModified": "최종 수정",
     "multipleSelectionEnabled": "다중 선택 켜짐",
     "sortByLastModified": "수정시간순 정렬",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Recaptcha 인증이 필요합니다"
   },
   "prompts": {
+    "noTemplate": "템플릿이 비어 있습니다!",
+    "newFileTemplate": "새 파일 템플릿",
+    "newFileTemplateMessage": "여기에 새 파일 이름을 추가하면 컨텍스트 메뉴에서 새 파일 생성 템플릿으로 사용됩니다!",
+    "newFileTemplatePlaceholder": "확장자가 있는 파일 이름 입력",
     "deleteMessageSingle": "파일 혹은 디렉토리를 삭제하시겠습니까?",
     "deleteTitle": "파일 삭제",
     "displayName": "게시 이름:",

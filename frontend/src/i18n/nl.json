@@ -213,6 +213,7 @@
     "requestTimedOut": "De tijdlimiet voor het verzoek is verstreken. Controleer je netwerk- of reverse-proxy-instellingen."
   },
   "files": {
+    "emptyFile": "Leeg bestand",
     "lastModified": "Laatst gewijzigd{suffix}",
     "duration": "Duur{suffix}",
     "lonely": "Hier is niets te zien...",
@@ -387,6 +388,10 @@
     "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
   },
   "prompts": {
+    "noTemplate": "Uw sjabloon is leeg!",
+    "newFileTemplate": "Sjabloon voor nieuw bestand",
+    "newFileTemplateMessage": "Voeg hier nieuwe bestandsnamen toe, ze worden gebruikt als sjabloon voor het aanmaken van nieuwe bestanden in het contextmenu!",
+    "newFileTemplatePlaceholder": "Voer een bestandsnaam met extensie in",
     "operationInProgress": "Werk in uitvoering, even geduld...",
     "quickJump": "Snel navigeren naar andere bestanden",
     "downloadsLimit": "Max. aantal downloads",

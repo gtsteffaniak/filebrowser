@@ -688,6 +688,7 @@ export const mutations = {
         "showSelectMultiple",
         "debugOffice",
         "disableUpdateNotifications",
+        "newFileTemplate",
       ];
       const updatedProperties = Object.keys(value).filter(
         (key) =>

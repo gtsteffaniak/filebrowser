@@ -849,7 +849,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 		// Check if element is a struct or pointer to struct
 		isStructSlice := elemType.Kind() == reflect.Struct ||
 			(elemType.Kind() == reflect.Pointer && elemType.Elem().Kind() == reflect.Struct)
-		if !isStructSlice {
+		if !isStructSlice && elemType.Kind() != reflect.String {
 			seq.Style = yaml.FlowStyle
 		}
 		for i := 0; i < v.Len(); i++ {

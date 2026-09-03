@@ -928,6 +928,7 @@ func SetDefaults(generate bool) Settings {
 				DeleteAfterArchive:      true,
 				ViewMode:                "normal",
 				GallerySize:             3,
+				NewFileTemplate:         []string{""},
 			},
 			Preview: UserDefaultsPreview{
 				Image:              boolPtr(true),

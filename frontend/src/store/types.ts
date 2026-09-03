@@ -199,6 +199,7 @@ export interface UserObject {
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
   hideFileExt?: string;
+  newFileTemplate?: string[];
   themeColor?: string;
   sidebarLinks?: SidebarLink[];
   profile: {
@@ -270,6 +271,7 @@ export interface StoreState {
   enforcedUserDefaults: {
     listing?: {
       viewMode?: string;
+      newFileTemplate?: boolean;
     };
   };
   usages: unknown;

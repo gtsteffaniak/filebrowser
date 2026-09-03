@@ -43,6 +43,7 @@
     "requestTimedOut": "Die Anfrage ist abgelaufen. Überprüfen Sie Ihre Netzwerk- oder Reverse-Proxy-Einstellungen."
   },
   "files": {
+    "emptyFile": "Leere Datei",
     "lastModified": "Zuletzt geändert",
     "multipleSelectionEnabled": "Mehrfachauswahl aktiviert",
     "sortByLastModified": "Nach Änderungsdatum sortieren",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Recaptcha-Überprüfung erforderlich"
   },
   "prompts": {
+    "noTemplate": "Ihre Vorlage ist leer!",
+    "newFileTemplate": "Vorlage für neue Dateien",
+    "newFileTemplateMessage": "Fügen Sie hier neue Dateinamen hinzu, diese werden als Vorlage für die Erstellung neuer Dateien im Kontextmenü verwendet!",
+    "newFileTemplatePlaceholder": "Geben Sie einen Dateinamen mit Erweiterung ein",
     "deleteMessageSingle": "Sind Sie sicher, dass Sie diesen Ordner/diese Datei löschen möchten?",
     "deleteTitle": "Dateien löschen",
     "displayName": "Anzeigename:",

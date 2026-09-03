@@ -43,6 +43,7 @@
     "requestTimedOut": "Begäran gick ut. Kontrollera dina nätverksinställningar eller inställningarna för omvänd proxy."
   },
   "files": {
+    "emptyFile": "Tom fil",
     "lastModified": "Senast ändrad",
     "multipleSelectionEnabled": "Flerval är på",
     "sortByLastModified": "Sortera på senast ändrad",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "Recaptcha-utmaning krävs"
   },
   "prompts": {
+    "noTemplate": "Din mall är tom!",
+    "newFileTemplate": "Mall för ny fil",
+    "newFileTemplateMessage": "Lägg till nya filnamn här, de kommer att användas som mall för att skapa nya filer i snabbmenyn!",
+    "newFileTemplatePlaceholder": "Ange ett filnamn med filändelse",
     "deleteMessageSingle": "Är du säker på att du vill radera denna fil/mapp",
     "deleteTitle": "Ta bort filer",
     "displayName": "Visningsnamn:",

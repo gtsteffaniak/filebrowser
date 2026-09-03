@@ -43,6 +43,7 @@
     "requestTimedOut": "请求超时。请检查您的网络或反向代理设置。"
   },
   "files": {
+    "emptyFile": "空文件",
     "lastModified": "最后修改",
     "multipleSelectionEnabled": "多选模式已开启",
     "sortByLastModified": "按最后修改时间排序",
@@ -147,6 +148,10 @@
     "recaptchaRequired": "需要 Recaptcha 验证"
   },
   "prompts": {
+    "noTemplate": "您的模板为空！",
+    "newFileTemplate": "新建文件模板",
+    "newFileTemplateMessage": "在此处添加新文件名，它们将用作上下文菜单中新建文件的模板！",
+    "newFileTemplatePlaceholder": "输入带扩展名的文件名",
     "deleteMessageSingle": "你确定要删除这个文件/文件夹吗？",
     "deleteTitle": "删除文件",
     "displayName": "名称：",
