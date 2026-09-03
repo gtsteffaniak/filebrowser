@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Added setting to configure the placement of the prompts close button in profile settings (#2853).
  - Added "New file templates". You can now add and configure pre-defined filenames + extension for the creation of new files in the context menu on profile settings! (#2881) (#1239).
  - sidebar link defaults and enforcements available in user management
+ - sidebar links can be bulk edited as yaml (#1963)
 
 
 # TODO
