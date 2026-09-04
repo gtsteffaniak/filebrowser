@@ -1,4 +1,4 @@
-FROM ghcr.io/gtsteffaniak/playwright-base
+FROM ghcr.io/gtsteffaniak/playwright-base:chromium
 WORKDIR /app
 
 WORKDIR /app/frontend
