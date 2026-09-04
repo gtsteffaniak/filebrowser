@@ -1644,11 +1644,6 @@ definitions:
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
-      enforcedSidebarLinkKeys:
-        description: 'response-only: set in PrepForFrontend'
-        items:
-          type: string
-        type: array
       fileLoading:
         allOf:
         - $ref: '#/definitions/users.FileLoading'
@@ -1959,11 +1954,6 @@ definitions:
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
-      enforcedSidebarLinkKeys:
-        description: 'response-only: set in PrepForFrontend'
-        items:
-          type: string
-        type: array
       fileLoading:
         allOf:
         - $ref: '#/definitions/users.FileLoading'

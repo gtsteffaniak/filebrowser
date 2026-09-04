@@ -30,6 +30,11 @@ export default {
       default: null,
     },
   },
+  mounted() {
+    if (this.context === "user") {
+      void mutations.syncSidebarLinkDefaultsPolicy();
+    }
+  },
   methods: {
     async saveLinks({ links, showToolsInSidebar }) {
       try {
@@ -51,6 +56,8 @@ export default {
             showToolsInSidebar,
           });
         }
+
+        mutations.closeTopPrompt();
       } catch (e) {
         notify.showError(e);
       }

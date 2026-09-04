@@ -67,6 +67,11 @@ export function getEnforcedUserDefaults() {
   return fetchJSON(getPublicApiPath("settings/user-defaults"));
 }
 
+/** Sidebar link defaults policy for the current user (enforcement UI). */
+export function getSidebarLinkDefaultsPolicy() {
+  return fetchJSON(getPublicApiPath("settings/sidebar-link-defaults"));
+}
+
 export async function patchUserDefaults(partial) {
   await fetchURL(getApiPath("settings/user-defaults"), {
     method: "PATCH",

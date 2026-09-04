@@ -485,7 +485,6 @@ func PrepForFrontend(u users.User) users.User {
 	u.Permissions = users.GlobalPermissionsOnly(u.Permissions)
 	u.SourcePermissions = nil
 	u.SidebarLinks = usersidebar.FrontendLinks(u.SidebarLinks, u.ShowToolsInSidebar)
-	u.EnforcedSidebarLinkKeys = usersidebar.EnforcedLinkKeys(u.BackendScopes, state.EffectiveSidebarLinkDefaults(), u.Permissions.Admin)
 	u.Password = ""
 	u.ApiKeys = nil
 	u.Tokens = nil

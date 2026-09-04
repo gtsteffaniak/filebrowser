@@ -464,8 +464,15 @@ export default {
       return this.links.map((link) => ({ link }));
     },
     enforcedLinkKeys() {
-      const keys = state.user?.enforcedSidebarLinkKeys;
-      return Array.isArray(keys) ? new Set(keys) : new Set();
+      const items = state.sidebarLinkDefaultsPolicy?.items;
+      if (!Array.isArray(items)) {
+        return new Set();
+      }
+      return new Set(
+        items
+          .filter((item) => item?.enforced && item?.link)
+          .map((item) => sidebarLinkKey(item.link))
+      );
     },
     availableSources() {
       return state.sources?.info || {};

@@ -123,8 +123,9 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("GET /settings/sources", withUser(getSourceInfoHandler))
 	api.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
 	api.HandleFunc("PATCH /settings/user-defaults", withTimeout(time5s, withAdminHelper(settingsUserDefaultsPatchHandler)))
-	api.HandleFunc("GET /settings/sidebar-link-defaults", withTimeout(time5s, withAdminHelper(settingsSidebarLinkDefaultsGetHandler)))
+	api.HandleFunc("GET /settings/sidebar-link-defaults", withTimeout(time5s, withUserHelper(settingsSidebarLinkDefaultsGetHandler)))
 	api.HandleFunc("PATCH /settings/sidebar-link-defaults", withTimeout(time5s, withAdminHelper(settingsSidebarLinkDefaultsPatchHandler)))
+	publicApi.HandleFunc("GET /settings/sidebar-link-defaults", withTimeout(time5s, withUserHelper(settingsSidebarLinkDefaultsGetHandler)))
 	publicApi.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
 
 	// ========================================

@@ -103,10 +103,28 @@ func TestValidateEnforcedSidebarLinks_blocksRemoval(t *testing.T) {
 	}
 }
 
-func TestEnforcedLinkKeys_nonAdminOnly(t *testing.T) {
+func TestFilterDefaultsDocumentForUser_filtersInaccessibleSources(t *testing.T) {
 	initDefaultsTestConfig(t)
 	doc := SidebarLinkDefaultsDocument{
 		Items: []SidebarLinkDefaultItem{
+			{
+				Enforced: true,
+				Link: users.SidebarLink{
+					Name:       "exclude",
+					Category:   "source",
+					Target:     "/",
+					SourceName: "exclude",
+				},
+			},
+			{
+				Enforced: true,
+				Link: users.SidebarLink{
+					Name:       "include",
+					Category:   "source",
+					Target:     "/",
+					SourceName: "include",
+				},
+			},
 			{
 				Enforced: true,
 				Link: users.SidebarLink{
@@ -117,11 +135,14 @@ func TestEnforcedLinkKeys_nonAdminOnly(t *testing.T) {
 			},
 		},
 	}
-	if keys := EnforcedLinkKeys(nil, doc, true); len(keys) != 0 {
-		t.Fatalf("admin keys=%v", keys)
+	excludeSource, ok := users.ResolveSourceKey("exclude")
+	if !ok {
+		t.Fatal("exclude source not in test config")
 	}
-	if keys := EnforcedLinkKeys(nil, doc, false); len(keys) != 1 {
-		t.Fatalf("user keys=%v", keys)
+	scopes := []users.BackendScope{{Path: excludeSource.Path}}
+	filtered := FilterDefaultsDocumentForUser(doc, scopes)
+	if len(filtered.Items) != 2 {
+		t.Fatalf("len(items)=%d want 2 (exclude source + custom): %#v", len(filtered.Items), filtered.Items)
 	}
 }
 

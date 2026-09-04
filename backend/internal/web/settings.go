@@ -284,7 +284,7 @@ func settingsSourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Conte
 }
 
 func settingsSidebarLinkDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	return RenderJSON(w, r, state.GetSidebarLinkDefaults())
+	return RenderJSON(w, r, state.GetSidebarLinkDefaultsForUser(d.User))
 }
 
 func settingsSidebarLinkDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {

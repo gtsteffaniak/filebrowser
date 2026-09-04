@@ -98,6 +98,20 @@ func GetSidebarLinkDefaults() SidebarLinkDefaultsSettings {
 	}
 }
 
+// GetSidebarLinkDefaultsForUser returns sidebar link defaults visible to u.
+// Admins receive the full admin view; other users only see items and sources they can access.
+func GetSidebarLinkDefaultsForUser(u *users.User) SidebarLinkDefaultsSettings {
+	if u == nil || u.Username == "anonymous" || u.Permissions.Admin {
+		return GetSidebarLinkDefaults()
+	}
+	doc := usersidebar.FrontendDefaultsDocument(EffectiveSidebarLinkDefaults())
+	doc = usersidebar.FilterDefaultsDocumentForUser(doc, u.BackendScopes)
+	return SidebarLinkDefaultsSettings{
+		Items:   doc.Items,
+		Sources: usersidebar.SourceDisplayNamesForScopes(u.BackendScopes),
+	}
+}
+
 // PatchSidebarLinkDefaults replaces the full sidebar link defaults document and resyncs users when needed.
 func PatchSidebarLinkDefaults(doc usersidebar.SidebarLinkDefaultsDocument) error {
 	if doc.Items == nil {

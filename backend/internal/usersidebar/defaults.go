@@ -68,6 +68,35 @@ func defaultItemAppliesToUser(item SidebarLinkDefaultItem, scopes []users.Backen
 	return UserHasSourceAccess(scopes, source.Path)
 }
 
+// FilterDefaultsDocumentForUser returns defaults items that apply to the user's scopes.
+func FilterDefaultsDocumentForUser(doc SidebarLinkDefaultsDocument, scopes []users.BackendScope) SidebarLinkDefaultsDocument {
+	if len(doc.Items) == 0 {
+		return doc
+	}
+	out := make([]SidebarLinkDefaultItem, 0, len(doc.Items))
+	for _, item := range doc.Items {
+		if defaultItemAppliesToUser(item, scopes) {
+			out = append(out, item)
+		}
+	}
+	return SidebarLinkDefaultsDocument{Items: out}
+}
+
+// SourceDisplayNamesForScopes returns display names for the given backend scopes.
+func SourceDisplayNamesForScopes(scopes []users.BackendScope) []string {
+	names := make([]string, 0, len(scopes))
+	for _, scope := range scopes {
+		name := scope.Path
+		if users.SourceConfigLoaded() {
+			if src := settings.Config.Server.SourceMap[scope.Path]; src != nil && src.Name != "" {
+				name = src.Name
+			}
+		}
+		names = append(names, name)
+	}
+	return names
+}
+
 func prepareDefaultLink(link users.SidebarLink) (users.SidebarLink, bool) {
 	normalized, changed := NormalizeSidebarLinks([]users.SidebarLink{link})
 	if len(normalized) == 0 {
@@ -196,28 +225,6 @@ func ValidateEnforcedSidebarLinks(links []users.SidebarLink, scopes []users.Back
 		}
 	}
 	return nil
-}
-
-// EnforcedLinkKeys returns stable keys for enforced items that apply to the given user.
-func EnforcedLinkKeys(scopes []users.BackendScope, doc SidebarLinkDefaultsDocument, isAdmin bool) []string {
-	if isAdmin {
-		return nil
-	}
-	keys := make([]string, 0)
-	for _, item := range doc.Items {
-		if !item.Enforced {
-			continue
-		}
-		if !defaultItemAppliesToUser(item, scopes) {
-			continue
-		}
-		prepared, ok := prepareDefaultLink(item.Link)
-		if !ok {
-			continue
-		}
-		keys = append(keys, LinkKeyForDisplay(prepared))
-	}
-	return keys
 }
 
 // DocumentWithAllSources merges configured sources into the defaults document for admin UI.

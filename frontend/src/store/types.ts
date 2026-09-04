@@ -202,7 +202,6 @@ export interface UserObject {
   newFileTemplate?: string[];
   themeColor?: string;
   sidebarLinks?: SidebarLink[];
-  enforcedSidebarLinkKeys?: string[];
   profile: {
     username: string;
     email: string;
@@ -274,6 +273,14 @@ export interface StoreState {
       viewMode?: string;
       newFileTemplate?: boolean;
     };
+  };
+  sidebarLinkDefaultsPolicy: {
+    items?: Array<{
+      enabled?: boolean;
+      enforced?: boolean;
+      link?: SidebarLink;
+    }>;
+    sources?: string[];
   };
   usages: unknown;
   editor: {
