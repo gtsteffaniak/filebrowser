@@ -200,6 +200,7 @@ import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
 import { globalVars } from "@/utils/constants";
+import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
 import Tooltip from "@/components/Tooltip.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
@@ -220,7 +221,7 @@ export default {
     name: () => globalVars.name || "FileBrowser Quantum",
     loginIconUrl: () => globalVars.loginIcon,
     isDarkMode() {
-      return globalVars.darkMode;
+      return defaultDarkMode();
     },
     loginName() {
       return this.name;
@@ -237,6 +238,7 @@ export default {
     inProgress: false,
   }),
   mounted() {
+    syncDocumentTheme(this.isDarkMode);
     let redirect = state.route.query.redirect;
     if (redirect) {
       redirect = removeLeadingSlash(redirect);

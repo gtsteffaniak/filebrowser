@@ -1,5 +1,6 @@
 import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
+import { globalVars } from "@/utils/constants";
 import type { StoreState } from "./types";
 
 export const state: StoreState = reactive({
@@ -71,7 +72,7 @@ export const state: StoreState = reactive({
     showHidden: false, // Default to false, assuming this is a boolean
     scopes: [],
     permissions: {}, // Default to an empty object for permissions
-    darkMode: true, // Default to false, assuming this is a boolean
+    darkMode: globalVars.darkMode === true,
     disableSettings: false,
     debugOffice: false, // Debug mode for OnlyOffice integration
     preferEditorForMarkdown: false,
