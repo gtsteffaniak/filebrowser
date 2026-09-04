@@ -52,7 +52,7 @@ type CommonShare struct {
 type CreateBody struct {
 	CommonShare
 	Hash     string `json:"hash,omitempty"`
-	Password string `json:"password"`
+	Password *string `json:"password"`
 	Expires  string `json:"expires"`
 	Unit     string `json:"unit"`
 }

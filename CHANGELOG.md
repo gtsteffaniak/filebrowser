@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.5.6
+
+ **BugFixes**:
+ - Saving an existing share clears its password, even with no changes made (#2898)
+
 ## v1.5.5
 
  **BugFixes**:

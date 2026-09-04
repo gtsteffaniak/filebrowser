@@ -319,7 +319,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		expire = time.Now().Add(add).Unix()
 	}
 
-	hash, status, err := getSharePasswordHash(body)
+	hash, status, err := sharePasswordFromRequest(body.Password)
 	if err != nil {
 		return status, err
 	}
@@ -353,8 +353,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		shouldResetCounts := s.DownloadsLimit != body.DownloadsLimit || s.PerUserDownloadLimit != body.PerUserDownloadLimit
 
 		s.Expire = expire
-		s.PasswordHash = stringHash
-		s.Token = token
+		if err = applySharePasswordUpdate(s, body.Password, stringHash, token); err != nil {
+			return http.StatusInternalServerError, err
+		}
 		// Preserve immutable fields for updates. Path and Source should not change on edits.
 		// If the request attempts to provide empty values (or any values) for these,
 		// keep the existing ones from the stored share.
@@ -692,17 +693,41 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return renderJSON(w, r, commonShare)
 }
 
-func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
-	if body.Password == "" {
+func getSharePasswordHash(plaintextPassword string) (data []byte, statuscode int, err error) {
+	if plaintextPassword == "" {
 		return nil, 0, nil
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(plaintextPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("failed to hash password")
 	}
 
 	return hash, 0, nil
+}
+
+// sharePasswordFromRequest hashes a password for new shares. Nil or empty means no password.
+func sharePasswordFromRequest(password *string) ([]byte, int, error) {
+	if password == nil || *password == "" {
+		return nil, 0, nil
+	}
+	return getSharePasswordHash(*password)
+}
+
+// applySharePasswordUpdate sets or preserves password credentials on share update.
+// Nil password omits the field (keep existing); empty string clears; non-empty replaces.
+func applySharePasswordUpdate(link *share.Link, password *string, hashedPassword, token string) error {
+	if password == nil {
+		return nil
+	}
+	if *password == "" {
+		link.PasswordHash = ""
+		link.Token = ""
+		return nil
+	}
+	link.PasswordHash = hashedPassword
+	link.Token = token
+	return nil
 }
 
 func generateShortUUID() (string, error) {
