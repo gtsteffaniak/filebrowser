@@ -31,7 +31,6 @@
     "css-vars-ponyfill": "^2.4.3",
     "dompurify": "^3.2.4",
     "epubjs": "^0.3.93",
-    "glob": "^9.3.5",
     "highlight.js": "^11.11.1",
     "mammoth": "^1.9.1",
     "marked": "^15.0.6",
