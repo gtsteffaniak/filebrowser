@@ -1,4 +1,4 @@
-FROM ghcr.io/gtsteffaniak/playwright-base:chromium
+FROM ghcr.io/gtsteffaniak/playwright-base:sha256:5445e7f042606f4d05adb329fefb7a5e25614913d3816bed44d4a4853f14f9de
 WORKDIR /app
 
 WORKDIR /app/frontend

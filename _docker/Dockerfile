@@ -14,11 +14,11 @@ RUN go build -tags analytics,mupdf,musl -ldflags="-w -s \
 
 FROM node:jod-slim AS nbuild
 WORKDIR /build
-COPY ./frontend/package.json ./frontend/
+COPY ./frontend/package.json ./frontend/package-lock.json ./frontend/
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && git config --global url."https://github.com/".insteadOf "git@github.com:" \
     && git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-RUN cd frontend && npm i --maxsockets 1
+RUN cd frontend && npm ci --maxsockets 1
 COPY ./frontend/ ./frontend/
 WORKDIR /build/frontend
 RUN npm run build:docker
