@@ -36,8 +36,9 @@ setup-gofitz-cgo:
 	echo "linking go-fitz MuPDF headers for preview CGO..."
 	cd backend && go run ./scripts/setup-gofitz-cgo
 
+# lock v2.0.0 of go-ffmpeg v0.5.2
 update:
-	cd backend && go get -u ./... && go get -u tool && go mod tidy
+	cd backend && go get -u ./... && go get -u github.com/gtsteffaniak/go-ffmpeg@v0.5.2 && go get -u tool && go mod tidy
 	cd frontend && npm update
 
 build: build-frontend build-backend

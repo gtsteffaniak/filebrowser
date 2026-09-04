@@ -5,7 +5,7 @@
   "type": "module",
   "engines": {
     "npm": ">=9.0.0",
-    "node": ">=20.0.0"
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
   },
   "scripts": {
     "build": "rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
