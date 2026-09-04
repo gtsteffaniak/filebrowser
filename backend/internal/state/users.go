@@ -216,13 +216,15 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
-	ApplyUserDefaults(user)
+	applyUserSettingsDefaults(user)
 	defaults := EffectiveUserDefaults()
 	enforced := EffectiveEnforced()
 	settings.ApplyEnforcedDefaultsFrom(user, defaults, enforced)
 	settings.ApplyEnforcedSourcePermissionsFrom(user, GetSourceAccessDefaults(), GetEnforcedSourcePermissions())
 
 	users.SyncBackendSourcePermissionsMap(user)
+
+	applySidebarLinkDefaults(user)
 
 	if links, changed := usersidebar.PrepareSidebarLinksForPersist(user.SidebarLinks, user.BackendScopes); changed {
 		user.SidebarLinks = links
@@ -346,6 +348,9 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		if changed {
 			existingUser.SidebarLinks = links
 		}
+		if enforcedErr := usersidebar.ValidateEnforcedSidebarLinks(existingUser.SidebarLinks, existingUser.BackendScopes, EffectiveSidebarLinkDefaults(), existingUser.Permissions.Admin); enforcedErr != nil {
+			return enforcedErr
+		}
 	}
 
 	return commitUserUpdate(existingUser, storedSnapshot, sourceDefaults, sourceEnforced)
@@ -365,6 +370,9 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 		return err
 	}
 	if err := settings.ValidateUserScopePermissionsAgainstEnforced(existingUser, sourceDefaults, sourceEnforced); err != nil {
+		return err
+	}
+	if err := usersidebar.ValidateEnforcedSidebarLinks(existingUser.SidebarLinks, existingUser.BackendScopes, EffectiveSidebarLinkDefaults(), existingUser.Permissions.Admin); err != nil {
 		return err
 	}
 

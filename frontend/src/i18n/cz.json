@@ -446,7 +446,8 @@
     "accountDefaults": "Výchozí nastavení účtu",
     "disableUserSettings": "Zakázat stránku uživatelských nastavení",
     "userDefaultFieldLockedFromConfig": "Toto výchozí nastavení je definováno v konfiguračním souboru a zde jej nelze změnit.",
-    "sourceAccessDefaultsHelp": "Výchozí oprávnění k souborům se vztahují na zdrojové soubory a nové uživatele. Nastavení „Vynutit“ určuje pevnou hodnotu pro všechny uživatele, kteří nejsou správci."
+    "sourceAccessDefaultsHelp": "Výchozí oprávnění k souborům se vztahují na zdrojové soubory a nové uživatele. Nastavení „Vynutit“ určuje pevnou hodnotu pro všechny uživatele, kteří nejsou správci.",
+    "editAsYaml": "Upravit jako YAML"
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",
@@ -467,10 +468,7 @@
     "linkUrl": "Adresa URL odkazu",
     "linkUrlPlaceholder": "Zadejte adresu URL nebo cestu (např. /files/path nebo https://example.com).",
     "linkIcon": "Ikona odkazu",
-    "linksUpdatedSuccess": "Odkazy na postranním panelu úspěšně aktualizovány!",
-    "linksUpdateFailed": "Nepodařilo se aktualizovat odkazy na postranním panelu",
     "sourceNotAccessible": "Tento zdroj již není přístupný",
-    "noLinksYet": "Zatím nejsou nakonfigurovány žádné odkazy. Přidejte svůj první odkaz níže.",
     "customizeShareLinksDescription": "Přizpůsobte si odkazy zobrazené v postranním panelu pro toto sdílení. Přetažením změníte pořadí.",
     "editLink": "Upravit odkaz",
     "selectShare": "Zvolte možnost Sdílet",
@@ -487,7 +485,12 @@
     "usageTextDisk": "využití podle hlášení disku/oddílu",
     "dividerNamePlaceholder": "Text oddělovače (pro zobrazení řádku nechte prázdný)",
     "showIndexedUsage": "Zobrazit použití podle indexu",
-    "showDiskUsage": "Zobrazit využití podle údajů o disku/oddílu"
+    "showDiskUsage": "Zobrazit využití podle údajů o disku/oddílu",
+    "sidebarLinkDefaults": "Výchozí nastavení odkazů v postranním panelu",
+    "sidebarLinkDefaultsDescription": "Nastavte výchozí a povinné odkazy v postranním panelu pro všechny uživatele.",
+    "sidebarLinkDefaultsHelp": "Toto jsou výchozí odkazy, které budou přidány všem novým uživatelům. Pokud nastavíte odkaz jako povinný, bude přidán všem uživatelům a uživatelé bez oprávnění správce jej nebudou moci odstranit.",
+    "sidebarLinkDefaultSourceHelp": "Platí pouze v případě, že má uživatel přístup k tomuto zdroji.",
+    "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Zkontrolujte formát a zkuste to znovu."
   },
   "api": {
     "createdAt": "Vytvořeno:",
@@ -718,7 +721,8 @@
     "limit": "Limit{suffix}",
     "remove": "Odstranit{suffix}",
     "saved": "Uloženo{suffix}",
-    "removed": "Odstraněno{suffix}"
+    "removed": "Odstraněno{suffix}",
+    "back": "Zpět{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Procházet celou knihovnu ikon"
     },
     "toolNotFound": "Nástroj nebyl nalezen",
-    "backToTools": "Zpět na Nástroje",
     "fileWatcher": {
       "name": "Sledování souborů",
       "description": "Sledování souborů v reálném čase s možností sledování latence",

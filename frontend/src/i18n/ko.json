@@ -298,7 +298,8 @@
     "accountDefaults": "계정 기본 설정",
     "disableUserSettings": "사용자 설정 페이지 비활성화",
     "userDefaultFieldLockedFromConfig": "이 기본값은 설정 파일에서 지정되며, 여기서는 변경할 수 없습니다.",
-    "sourceAccessDefaultsHelp": "소스 및 신규 사용자에게 기본 파일 권한이 적용됩니다. ‘enforce’는 관리자 권한이 없는 모든 사용자에 대해 해당 값을 강제 적용합니다."
+    "sourceAccessDefaultsHelp": "소스 및 신규 사용자에게 기본 파일 권한이 적용됩니다. ‘enforce’는 관리자 권한이 없는 모든 사용자에 대해 해당 값을 강제 적용합니다.",
+    "editAsYaml": "YAML로 편집"
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",
@@ -319,10 +320,7 @@
     "linkUrl": "링크 URL",
     "linkUrlPlaceholder": "URL 또는 경로 입력(예: /files/path 또는 https://example.com)",
     "linkIcon": "링크 아이콘",
-    "linksUpdatedSuccess": "사이드바 링크가 성공적으로 업데이트되었습니다!",
-    "linksUpdateFailed": "사이드바 링크를 업데이트하지 못했습니다.",
     "sourceNotAccessible": "이 소스에 더 이상 액세스할 수 없습니다.",
-    "noLinksYet": "아직 구성된 링크가 없습니다. 아래에 첫 번째 링크를 추가하세요.",
     "customizeShareLinksDescription": "이 공유의 사이드바에 표시되는 링크를 사용자 지정합니다. 드래그 앤 드롭하여 순서를 변경합니다.",
     "editLink": "링크 편집",
     "selectShare": "공유를 선택합니다.",
@@ -339,7 +337,12 @@
     "usageTextDisk": "디스크/파티션별로 보고된 사용량",
     "dividerNamePlaceholder": "디바이더 텍스트(줄을 표시하려면 비워둡니다)",
     "showIndexedUsage": "색인에 등록된 대로 사용법 표시",
-    "showDiskUsage": "디스크/파티션별로 보고된 사용량 표시"
+    "showDiskUsage": "디스크/파티션별로 보고된 사용량 표시",
+    "sidebarLinkDefaults": "사이드바 링크 기본 설정",
+    "sidebarLinkDefaultsDescription": "모든 사용자에 대해 기본 및 필수 사이드바 링크를 설정합니다.",
+    "sidebarLinkDefaultsHelp": "다음은 모든 신규 사용자에게 추가되는 기본 링크입니다. 특정 링크를 필수로 설정하면 모든 사용자에게 추가되며, 관리자가 아닌 사용자는 이를 삭제할 수 없습니다.",
+    "sidebarLinkDefaultSourceHelp": "사용자가 이 소스에 대한 액세스 권한이 있는 경우에만 적용됩니다.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML 형식이 잘못되었습니다. 형식을 확인한 후 다시 시도해 주세요."
   },
   "share": {
     "notice": "참고: 공유가 생성되면 공개에 더 많이 노출되고 액세스 규칙이 달라집니다. 공유를 안전하게 구성하지 않으면 누구나 액세스할 수 있습니다.",
@@ -620,7 +623,8 @@
     "limit": "한도{suffix}",
     "remove": "제거{suffix}",
     "saved": "저장됨{suffix}",
-    "removed": "삭제됨{suffix}"
+    "removed": "삭제됨{suffix}",
+    "back": "뒤로{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "전체 아이콘 라이브러리 찾아보기"
     },
     "toolNotFound": "도구를 찾을 수 없습니다.",
-    "backToTools": "도구로 돌아가기",
     "fileWatcher": {
       "name": "파일 감시자",
       "description": "지연 시간 모니터링으로 실시간 파일 감시 및 추적",

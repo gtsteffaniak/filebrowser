@@ -285,12 +285,19 @@ export async function createShareAndGetHash(
   return shareHash;
 }
 
-export const test = base.extend<{
-  checkForErrors: (expectedConsoleErrors?: number, expectedApiErrors?: number) => void;
-  openContextMenu: () => Promise<void>;
-  theme: 'light' | 'dark';
-  checkForNotification: (message: string | RegExp) => Promise<import('@playwright/test').Locator>;
-}>({
+export type PlaywrightTheme = "light" | "dark";
+
+export type PlaywrightTestOptions = {
+  theme: PlaywrightTheme;
+};
+
+export const test = base.extend<
+  PlaywrightTestOptions & {
+    checkForErrors: (expectedConsoleErrors?: number, expectedApiErrors?: number) => void;
+    openContextMenu: () => Promise<void>;
+    checkForNotification: (message: string | RegExp) => Promise<import('@playwright/test').Locator>;
+  }
+>({
   checkForErrors: async ({ page }, use) => {
     const { checkForErrors } = setupErrorTracking(page);
     await use(checkForErrors);
@@ -300,10 +307,7 @@ export const test = base.extend<{
       await openContextMenuHelper(page);
     });
   },
-  theme: async ({}, use, testInfo) => {
-    const theme = (testInfo.project.use as { theme?: 'light' | 'dark' }).theme || 'dark';
-    await use(theme);
-  },
+  theme: ["dark", { option: true }],
   checkForNotification: async ({ page }, use) => {
     await use(async (message: string | RegExp) => {
       return await checkForNotification(page, message);

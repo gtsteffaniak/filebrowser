@@ -10,6 +10,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -280,4 +281,28 @@ func settingsSourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Conte
 		}
 	}
 	return RenderJSON(w, r, state.GetSourceSettings())
+}
+
+func settingsSidebarLinkDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	return RenderJSON(w, r, state.GetSidebarLinkDefaultsForUser(d.User))
+}
+
+func settingsSidebarLinkDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("read sidebar link defaults patch: %w", err)
+	}
+	defer r.Body.Close()
+	if len(body) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty sidebar link defaults patch body")
+	}
+	var doc usersidebar.SidebarLinkDefaultsDocument
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid sidebar link defaults JSON: %w", err)
+	}
+	if err := state.PatchSidebarLinkDefaults(doc); err != nil {
+		logger.Errorf("failed to patch sidebar link defaults: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to update sidebar link defaults")
+	}
+	return RenderJSON(w, r, state.GetSidebarLinkDefaults())
 }

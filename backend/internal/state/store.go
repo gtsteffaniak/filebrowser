@@ -26,6 +26,12 @@ func Open(dbPath string) (*Store, bool, error) {
 	if err != nil {
 		return nil, existingDb, err
 	}
+	if sidebarLinkDefaultsNeedResync {
+		if err := ResyncSidebarLinkDefaultsForAllUsers(); err != nil {
+			return nil, existingDb, err
+		}
+		sidebarLinkDefaultsNeedResync = false
+	}
 	defaultStore = &Store{}
 	return defaultStore, existingDb, nil
 }

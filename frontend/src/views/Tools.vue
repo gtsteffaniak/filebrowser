@@ -32,7 +32,7 @@
     <div v-else class="tool-not-found">
       <i class="material-symbols-outlined">error</i>
       <h2>{{ $t('tools.toolNotFound') }}</h2>
-      <router-link to="/tools" class="button button--flat">{{ $t('tools.backToTools') }}</router-link>
+      <router-link to="/tools" class="button button--flat">{{ $t('general.back') }}</router-link>
     </div>
   </div>
 </template>
