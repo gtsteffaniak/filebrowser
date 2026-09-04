@@ -80,8 +80,6 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-no-config
           - name: settings
             dockerfile: ./_docker/Dockerfile.playwright-settings
-          - name: screenshots
-            dockerfile: ./_docker/Dockerfile.playwright-screenshots
           - name: previews
             dockerfile: ./_docker/Dockerfile.playwright-previews
           - name: jwt
