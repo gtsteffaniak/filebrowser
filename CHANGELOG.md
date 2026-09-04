@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - Saving an existing share clears its password, even with no changes made (#2898)
+ - Fixed infinite loading spinner on `/` and `/login` after CSP security hardening (#2886, #2890)
 
 ## v1.5.5
 

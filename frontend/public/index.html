@@ -49,9 +49,9 @@
   <link rel="canonical" href="https://github.com/quantumx-apps">
   <link rel="canonical" href="https://filebrowserquantum.com">
 
-  <!-- Injected variables come from backend server -->
+  <!-- Injected variables come from backend server (JSON block is not subject to script-src CSP) -->
+  <script id="app-config" type="application/json">{{ .globalVars }}</script>
   <script nonce="{{ .cspNonce }}">
-    window.globalVars = {{ .globalVars }};
     window.__pwaDeferredPrompt = null;
     window.addEventListener("beforeinstallprompt", function (event) {
       event.preventDefault();
