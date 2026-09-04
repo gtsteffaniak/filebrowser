@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.5.6
 
+ **Security**:
+ - [Moderate] public metadata api returns file content to anonymous share visitors, ignoring the share's download limit and file-viewer setting (GHSA-55mw-cwg7-m8f5) -- thanks @kta1kri
+
  **BugFixes**:
  - Saving an existing share clears its password, even with no changes made (#2898)
  - Fixed infinite loading spinner on `/` and `/login` after CSP security hardening (#2886, #2890)
