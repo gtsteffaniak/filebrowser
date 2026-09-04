@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.5
+
+ **Bugfixes**:
+ - fixed darkmode styling bug where background wouldn't respect configured settings when not logged in
+ - fixed styling bug where padding was missing from right side of listing view.
+
 ## v2.0.4
 
  **Bugfixes**:
