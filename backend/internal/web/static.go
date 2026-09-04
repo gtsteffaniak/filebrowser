@@ -61,10 +61,46 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 // spaContentSecurityPolicy restricts only scripts. srcdoc preview frames inherit
 // this header, blocking inline scripts without limiting frames, images, or API calls.
 func spaContentSecurityPolicy(nonce string) string {
-	return fmt.Sprintf(
+	policy := fmt.Sprintf(
 		"script-src 'self' 'nonce-%s' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com",
 		nonce,
 	)
+	for _, origin := range onlyOfficeScriptSrcOrigins() {
+		policy += " " + origin
+	}
+	return policy
+}
+
+func onlyOfficeScriptSrcOrigins() []string {
+	oo := settings.Config.Integrations.OnlyOffice
+	candidates := []string{
+		cspOriginFromURL(oo.Url),
+		cspOriginFromURL(oo.InternalUrl),
+	}
+	var origins []string
+	seen := make(map[string]struct{}, len(candidates))
+	for _, origin := range candidates {
+		if origin == "" {
+			continue
+		}
+		if _, ok := seen[origin]; ok {
+			continue
+		}
+		seen[origin] = struct{}{}
+		origins = append(origins, origin)
+	}
+	return origins
+}
+
+func cspOriginFromURL(raw string) string {
+	if raw == "" {
+		return ""
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return ""
+	}
+	return u.Scheme + "://" + u.Host
 }
 
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
