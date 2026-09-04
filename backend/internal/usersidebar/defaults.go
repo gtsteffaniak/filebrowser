@@ -232,36 +232,47 @@ func DocumentWithAllSources(doc SidebarLinkDefaultsDocument) SidebarLinkDefaults
 	if !users.SourceConfigLoaded() {
 		return doc
 	}
-	bySource := make(map[string]SidebarLinkDefaultItem)
+	bySourcePath := make(map[string][]SidebarLinkDefaultItem)
 	custom := make([]SidebarLinkDefaultItem, 0, len(doc.Items))
 	for _, item := range doc.Items {
 		if users.IsSourceSidebarCategory(item.Link.Category) {
 			if source, ok := resolveSourceLink(item.Link); ok {
-				bySource[source.Path] = item
+				bySourcePath[source.Path] = append(bySourcePath[source.Path], item)
 				continue
 			}
 		}
 		custom = append(custom, item)
 	}
 
-	out := make([]SidebarLinkDefaultItem, 0, len(settings.Config.Server.Sources)+len(custom))
+	out := make([]SidebarLinkDefaultItem, 0, len(doc.Items)+len(settings.Config.Server.Sources))
 	for _, src := range settings.Config.Server.Sources {
 		if src == nil {
 			continue
 		}
-		if item, ok := bySource[src.Path]; ok {
-			out = append(out, item)
-			continue
+		items := bySourcePath[src.Path]
+		hasRoot := false
+		for _, item := range items {
+			if normalizeSidebarTarget(item.Link.Target) == "/" {
+				hasRoot = true
+				break
+			}
 		}
-		out = append(out, SidebarLinkDefaultItem{
-			Enabled: true,
-			Link: users.SidebarLink{
-				Name:       src.Name,
-				Category:   string(users.SidebarLinkSource),
-				Target:     "/",
-				SourceName: src.Path,
-			},
-		})
+		if !hasRoot {
+			out = append(out, SidebarLinkDefaultItem{
+				Enabled: true,
+				Link: users.SidebarLink{
+					Name:       src.Name,
+					Category:   string(users.SidebarLinkSource),
+					Target:     "/",
+					SourceName: src.Path,
+				},
+			})
+		}
+		out = append(out, items...)
+		delete(bySourcePath, src.Path)
+	}
+	for _, items := range bySourcePath {
+		out = append(out, items...)
 	}
 	out = append(out, custom...)
 	return SidebarLinkDefaultsDocument{Items: out}

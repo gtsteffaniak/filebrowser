@@ -763,21 +763,36 @@ export default {
           throw new Error("expected array");
         }
         if (this.isDefaultsMode) {
-          const items = parsed.map((item) => ({
-            enabled: !!item.enabled,
-            enforced: !!item.enforced,
-            link: { ...item.link },
-          }));
+          const items = parsed.map((item) => this.parseYamlDefaultItem(item));
           this.emitDefaultsUpdate(items);
           this.yamlMode = false;
           return;
         }
-        this.links = parsed.map((link) => ({ ...link }));
+        this.links = parsed.map((link) => this.parseYamlLink(link));
         this.yamlMode = false;
         void this.saveLinks();
       } catch (_e) {
         notify.showError(this.$t("sidebar.sidebarLinkDefaultsYamlInvalid"));
       }
+    },
+    parseYamlDefaultItem(item) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
+        throw new Error("invalid defaults item");
+      }
+      return {
+        enabled: !!item.enabled,
+        enforced: !!item.enforced,
+        link: this.parseYamlLink(item.link),
+      };
+    },
+    parseYamlLink(link) {
+      if (!link || typeof link !== "object" || Array.isArray(link)) {
+        throw new Error("invalid link");
+      }
+      if (typeof link.category !== "string" || !link.category.trim()) {
+        throw new Error("invalid link category");
+      }
+      return { ...link };
     },
     getIconClass,
     getShareHash(target) {

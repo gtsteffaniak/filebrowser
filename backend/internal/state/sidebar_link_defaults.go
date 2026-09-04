@@ -12,9 +12,13 @@ import (
 const sidebarLinkDefaultsSettingKey = "sidebarLinkDefaults"
 
 var (
-	sidebarLinkDefaultsMu       sync.RWMutex
-	sidebarLinkDefaults         usersidebar.SidebarLinkDefaultsDocument
-	sidebarLinkDefaultsNeedResync bool
+	sidebarLinkDefaultsMu            sync.RWMutex
+	sidebarLinkDefaultsPatchMu       sync.Mutex
+	sidebarLinkDefaults              usersidebar.SidebarLinkDefaultsDocument
+	sidebarLinkDefaultsNeedResync    bool
+	sidebarLinkDefaultsResyncPending bool
+	// errInjectResyncSidebarDefaults is set by tests in this package only.
+	errInjectResyncSidebarDefaults error
 )
 
 // InitSidebarLinkDefaults loads persisted sidebar link defaults into memory.
@@ -114,6 +118,9 @@ func GetSidebarLinkDefaultsForUser(u *users.User) SidebarLinkDefaultsSettings {
 
 // PatchSidebarLinkDefaults replaces the full sidebar link defaults document and resyncs users when needed.
 func PatchSidebarLinkDefaults(doc usersidebar.SidebarLinkDefaultsDocument) error {
+	sidebarLinkDefaultsPatchMu.Lock()
+	defer sidebarLinkDefaultsPatchMu.Unlock()
+
 	if doc.Items == nil {
 		doc.Items = []usersidebar.SidebarLinkDefaultItem{}
 	}
@@ -121,20 +128,31 @@ func PatchSidebarLinkDefaults(doc usersidebar.SidebarLinkDefaultsDocument) error
 
 	sidebarLinkDefaultsMu.Lock()
 	prev := sidebarLinkDefaults
-	if err := saveSidebarLinkDefaultsDocument(doc); err != nil {
-		sidebarLinkDefaultsMu.Unlock()
-		return fmt.Errorf("save sidebar link defaults: %w", err)
+	docChanged := !sidebarLinkDefaultsEqual(prev, doc)
+	if docChanged {
+		if err := saveSidebarLinkDefaultsDocument(doc); err != nil {
+			sidebarLinkDefaultsMu.Unlock()
+			return fmt.Errorf("save sidebar link defaults: %w", err)
+		}
+		sidebarLinkDefaults = doc
 	}
-	sidebarLinkDefaults = doc
+	syncDoc := sidebarLinkDefaults
+	needsResync := docChanged || sidebarLinkDefaultsResyncPending
 	sidebarLinkDefaultsMu.Unlock()
 
-	if sidebarLinkDefaultsEqual(prev, doc) {
+	if !needsResync {
 		return nil
 	}
-	if err := ResyncSidebarLinkDefaultsForAllUsers(); err != nil {
+	if err := resyncSidebarLinkDefaultsForAllUsers(syncDoc); err != nil {
+		sidebarLinkDefaultsResyncPending = true
 		return err
 	}
-	return ResyncEnforcedSidebarLinksForAllUsers()
+	if err := resyncEnforcedSidebarLinksForAllUsers(syncDoc); err != nil {
+		sidebarLinkDefaultsResyncPending = true
+		return err
+	}
+	sidebarLinkDefaultsResyncPending = false
+	return nil
 }
 
 func sidebarLinkDefaultsEqual(a, b usersidebar.SidebarLinkDefaultsDocument) bool {

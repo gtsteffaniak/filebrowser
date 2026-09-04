@@ -9,8 +9,13 @@ import (
 
 // ResyncSidebarLinkDefaultsForAllUsers merges enabled default sidebar links for every user.
 func ResyncSidebarLinkDefaultsForAllUsers() error {
-	doc := EffectiveSidebarLinkDefaults()
+	return resyncSidebarLinkDefaultsForAllUsers(EffectiveSidebarLinkDefaults())
+}
 
+func resyncSidebarLinkDefaultsForAllUsers(doc usersidebar.SidebarLinkDefaultsDocument) error {
+	if errInjectResyncSidebarDefaults != nil {
+		return errInjectResyncSidebarDefaults
+	}
 	usersMux.Lock()
 	defer usersMux.Unlock()
 
@@ -49,8 +54,10 @@ func ResyncSidebarLinkDefaultsForAllUsers() error {
 
 // ResyncEnforcedSidebarLinksForAllUsers merges enforced sidebar links for non-admin users.
 func ResyncEnforcedSidebarLinksForAllUsers() error {
-	doc := EffectiveSidebarLinkDefaults()
+	return resyncEnforcedSidebarLinksForAllUsers(EffectiveSidebarLinkDefaults())
+}
 
+func resyncEnforcedSidebarLinksForAllUsers(doc usersidebar.SidebarLinkDefaultsDocument) error {
 	usersMux.Lock()
 	defer usersMux.Unlock()
 

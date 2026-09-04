@@ -223,3 +223,48 @@ func TestNormalizeDefaultsDocument_storesSourcePath(t *testing.T) {
 		t.Fatalf("expected canonical path, got display name %q", out.Items[0].Link.SourceName)
 	}
 }
+
+func TestDocumentWithAllSources_preservesDistinctSourceTargets(t *testing.T) {
+	initDefaultsTestConfig(t)
+	excludeSource, ok := users.ResolveSourceKey("exclude")
+	if !ok {
+		t.Fatal("exclude source not in test config")
+	}
+	doc := SidebarLinkDefaultsDocument{
+		Items: []SidebarLinkDefaultItem{
+			{
+				Enabled: true,
+				Link: users.SidebarLink{
+					Name:       "exclude",
+					Category:   "source",
+					Target:     "/",
+					SourceName: excludeSource.Path,
+				},
+			},
+			{
+				Enabled: true,
+				Link: users.SidebarLink{
+					Name:       "exclude subfolder",
+					Category:   "source",
+					Target:     "/myfolder",
+					SourceName: excludeSource.Path,
+				},
+			},
+		},
+	}
+	out := DocumentWithAllSources(doc)
+	var excludeTargets []string
+	for _, item := range out.Items {
+		if !users.IsSourceSidebarCategory(item.Link.Category) {
+			continue
+		}
+		source, ok := users.ResolveSourceKey(item.Link.SourceName)
+		if !ok || source.Path != excludeSource.Path {
+			continue
+		}
+		excludeTargets = append(excludeTargets, item.Link.Target)
+	}
+	if len(excludeTargets) != 2 {
+		t.Fatalf("expected two exclude targets, got %#v", excludeTargets)
+	}
+}
