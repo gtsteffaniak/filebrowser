@@ -448,7 +448,8 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		var locked settings.ErrEnforcedUserField
 		var mismatch settings.ErrEnforcedUserValueMismatch
-		if stderrors.As(err, &locked) || stderrors.As(err, &mismatch) {
+		var enforcedLink usersidebar.ErrEnforcedSidebarLinkRemoved
+		if stderrors.As(err, &locked) || stderrors.As(err, &mismatch) || stderrors.As(err, &enforcedLink) {
 			return http.StatusForbidden, err
 		}
 		return http.StatusBadRequest, err

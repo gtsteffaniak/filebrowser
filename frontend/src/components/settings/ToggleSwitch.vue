@@ -38,7 +38,7 @@
       class="toggle-row toggle-row--enforced border-radius"
       :class="{ 'toggle-row--disabled': enforcementDisabled }"
     >
-      <label class="enforced-label" :for="enforcedInputId">{{ enforcedLabelText }}</label>
+      <span class="enforced-label">{{ enforcedLabelText }}</span>
       <label class="switch">
         <input
           :id="enforcedInputId"
@@ -196,13 +196,12 @@ export default {
 }
 
 .toggle-row--enforced .enforced-label {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   padding-right: 0.75em;
 }
 
 .enforced-label {
-  cursor: pointer;
   user-select: none;
   font-size: 1rem;
 }

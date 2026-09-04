@@ -356,6 +356,28 @@ body.rtl .card-content .small+input {
     cursor: pointer;
 }
 
+.icon-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-size);
+    height: var(--icon-size);
+    flex: 0 0 var(--icon-size);
+    border: 1px solid var(--borderColor);
+    background: var(--surfaceSecondary);
+    color: var(--primaryColor);
+}
+
+.icon-preview .material-symbols,
+.icon-preview .material-symbols-outlined {
+    font-size: 2em;
+}
+
+.icon-preview-placeholder {
+    color: var(--textSecondary);
+    opacity: 0.6;
+}
+
 .clickable:hover,
 .plyr .plyr__control:hover,
 button:hover,

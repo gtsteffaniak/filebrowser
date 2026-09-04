@@ -298,7 +298,8 @@
     "accountDefaults": "账户默认设置",
     "disableUserSettings": "禁用“用户设置”页面",
     "userDefaultFieldLockedFromConfig": "此默认设置在配置文件中设定，无法在此处进行修改。",
-    "sourceAccessDefaultsHelp": "对源文件和新用户应用默认文件权限。强制对所有非管理员用户锁定该值。"
+    "sourceAccessDefaultsHelp": "对源文件和新用户应用默认文件权限。强制对所有非管理员用户锁定该值。",
+    "editAsYaml": "以 YAML 格式编辑"
   },
   "sidebar": {
     "updateIsAvailable": "有了最新进展！",
@@ -319,10 +320,7 @@
     "linkUrl": "链接网址",
     "linkUrlPlaceholder": "输入 URL 或路径（如 /files/path 或 https://example.com）",
     "linkIcon": "链接图标",
-    "linksUpdatedSuccess": "侧边栏链接更新成功！",
-    "linksUpdateFailed": "更新侧边栏链接失败",
     "sourceNotAccessible": "您已无法访问此信息源",
-    "noLinksYet": "尚未配置链接。请在下面添加您的第一个链接。",
     "customizeShareLinksDescription": "自定义此分享侧边栏中显示的链接。拖放即可重新排序。",
     "editLink": "编辑链接",
     "selectShare": "选择共享",
@@ -339,7 +337,12 @@
     "usageTextDisk": "磁盘/分区报告的使用量",
     "dividerNamePlaceholder": "分隔线文本（留空以显示一行）",
     "showIndexedUsage": "按索引显示用法",
-    "showDiskUsage": "显示磁盘/分区报告的已用空间"
+    "showDiskUsage": "显示磁盘/分区报告的已用空间",
+    "sidebarLinkDefaults": "侧边栏链接的默认设置",
+    "sidebarLinkDefaultsDescription": "为所有用户配置默认和强制显示的侧边栏链接。",
+    "sidebarLinkDefaultsHelp": "这些是将为所有新用户添加的默认链接。如果您强制启用某个链接，该链接将添加给所有用户，且非管理员无法将其删除。",
+    "sidebarLinkDefaultSourceHelp": "仅当用户有权访问此来源时才适用。",
+    "sidebarLinkDefaultsYamlInvalid": "YAML 格式无效。请检查格式后重试。"
   },
   "share": {
     "notice": "注意：创建共享后，它将更多地向公众开放，并有不同的访问规则。如果未对共享进行安全配置，任何人都可以访问它。",
@@ -718,7 +721,8 @@
     "limit": "极限{suffix}",
     "remove": "删除{suffix}",
     "saved": "已保存{suffix}",
-    "removed": "已删除{suffix}"
+    "removed": "已删除{suffix}",
+    "back": "返回{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "浏览完整图标库"
     },
     "toolNotFound": "未找到工具",
-    "backToTools": "返回工具",
     "fileWatcher": {
       "name": "文件监视器",
       "description": "通过延迟监控实时观察和跟踪文件",

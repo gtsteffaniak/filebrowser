@@ -165,20 +165,6 @@ func ApplyUserDefaultsFrom(u *users.User, d UserDefaults) {
 	sourceDefaults := DefaultSourceFilePermissions()
 
 	u.BackendScopes = MergeDefaultEnabledBackendScopes(u.BackendScopes, nil)
-	if len(u.SidebarLinks) == 0 && len(u.BackendScopes) > 0 {
-		scope := u.BackendScopes[0]
-		name := scope.Path
-		if src := Config.Server.SourceMap[scope.Path]; src != nil && src.Name != "" {
-			name = src.Name
-		}
-		u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
-			Name:       name,
-			Category:   "source",
-			Target:     "/",
-			Icon:       "",
-			SourceName: scope.Path,
-		})
-	}
 
 	if u.BackendSourcePermissions == nil {
 		u.BackendSourcePermissions = make(map[string]users.SourceFilePermissions)

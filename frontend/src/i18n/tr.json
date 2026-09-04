@@ -298,7 +298,8 @@
     "accountDefaults": "Hesap varsayılan ayarları",
     "disableUserSettings": "Kullanıcı ayarları sayfasını devre dışı bırak",
     "userDefaultFieldLockedFromConfig": "Bu varsayılan ayar, yapılandırma dosyasında belirlenmiştir ve buradan değiştirilemez.",
-    "sourceAccessDefaultsHelp": "Kaynaklara ve yeni kullanıcılara uygulanan varsayılan dosya izinleri. \"Uygula\" seçeneği, yönetici olmayan tüm kullanıcılar için bir değeri kilitler."
+    "sourceAccessDefaultsHelp": "Kaynaklara ve yeni kullanıcılara uygulanan varsayılan dosya izinleri. \"Uygula\" seçeneği, yönetici olmayan tüm kullanıcılar için bir değeri kilitler.",
+    "editAsYaml": "YAML olarak düzenle"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
@@ -319,10 +320,7 @@
     "linkUrl": "Bağlantı URL'si",
     "linkUrlPlaceholder": "URL veya yol girin (örn. /files/path veya https://example.com)",
     "linkIcon": "Bağlantı Simgesi",
-    "linksUpdatedSuccess": "Kenar çubuğu bağlantıları başarıyla güncellendi!",
-    "linksUpdateFailed": "Kenar çubuğu bağlantıları güncellenemedi",
     "sourceNotAccessible": "Bu kaynak artık sizin için erişilebilir değil",
-    "noLinksYet": "Henüz yapılandırılmış bağlantı yok. İlk bağlantınızı aşağıya ekleyin.",
     "customizeShareLinksDescription": "Bu paylaşım için kenar çubuğunda gösterilen bağlantıları özelleştirin. Yeniden sıralamak için sürükleyip bırakın.",
     "editLink": "Bağlantıyı Düzenle",
     "selectShare": "Paylaşım Seç",
@@ -339,7 +337,12 @@
     "usageTextDisk": "disk/bölüm tarafından bildirilen kullanım",
     "dividerNamePlaceholder": "Ayırıcı metin (bir çizgi göstermek için boş bırakın)",
     "showIndexedUsage": "Kullanımı dizinlenmiş haliyle göster",
-    "showDiskUsage": "Disk/bölüm tarafından bildirilen kullanım miktarını göster"
+    "showDiskUsage": "Disk/bölüm tarafından bildirilen kullanım miktarını göster",
+    "sidebarLinkDefaults": "Kenar çubuğu bağlantılarının varsayılan ayarları",
+    "sidebarLinkDefaultsDescription": "Tüm kullanıcılar için varsayılan ve zorunlu kenar çubuğu bağlantılarını yapılandırın.",
+    "sidebarLinkDefaultsHelp": "Bunlar, tüm yeni kullanıcılar için eklenecek varsayılan bağlantılardır. Bir bağlantıyı zorunlu kılarsanız, bu bağlantı tüm kullanıcılar için eklenecek ve yönetici olmayan kullanıcılar tarafından kaldırılamayacaktır.",
+    "sidebarLinkDefaultSourceHelp": "Bu, yalnızca kullanıcının bu kaynağa erişimi olması durumunda geçerlidir.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML geçersiz. Biçimi kontrol edin ve tekrar deneyin."
   },
   "share": {
     "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",
@@ -620,7 +623,8 @@
     "limit": "Sınır{suffix}",
     "remove": "Kaldır{suffix}",
     "saved": "Kaydedildi{suffix}",
-    "removed": "Kaldırıldı{suffix}"
+    "removed": "Kaldırıldı{suffix}",
+    "back": "Geri{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Simge kitaplığının tamamına göz atın"
     },
     "toolNotFound": "Araç bulunamadı",
-    "backToTools": "Araçlara Geri Dön",
     "fileWatcher": {
       "name": "Dosya İzleyici",
       "description": "Gecikme izleme ile dosyaları gerçek zamanlı olarak izleyin ve takip edin",

@@ -298,7 +298,8 @@
     "accountDefaults": "Predvolené nastavenia účtu",
     "disableUserSettings": "Deaktivovať stránku nastavení používateľa",
     "userDefaultFieldLockedFromConfig": "Toto predvolené nastavenie je definované v konfiguračnom súbore a tu ho nie je možné zmeniť.",
-    "sourceAccessDefaultsHelp": "Na zdrojové súbory a nových používateľov sa uplatňujú predvolené oprávnenia súborov. Nastavenie „Enforce“ uzamkne túto hodnotu pre všetkých používateľov, ktorí nie sú správcami."
+    "sourceAccessDefaultsHelp": "Na zdrojové súbory a nových používateľov sa uplatňujú predvolené oprávnenia súborov. Nastavenie „Enforce“ uzamkne túto hodnotu pre všetkých používateľov, ktorí nie sú správcami.",
+    "editAsYaml": "Upraviť ako YAML"
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",
@@ -319,10 +320,7 @@
     "linkUrl": "Adresa URL prepojenia",
     "linkUrlPlaceholder": "Zadajte adresu URL alebo cestu (napr. /files/path alebo https://example.com).",
     "linkIcon": "Ikona prepojenia",
-    "linksUpdatedSuccess": "Odkazy na bočnom paneli úspešne aktualizované!",
-    "linksUpdateFailed": "Nepodarilo sa aktualizovať odkazy na bočnom paneli",
     "sourceNotAccessible": "Tento zdroj už nie je prístupný",
-    "noLinksYet": "Zatiaľ nie sú nakonfigurované žiadne odkazy. Pridajte svoj prvý odkaz nižšie.",
     "customizeShareLinksDescription": "Prispôsobte si odkazy zobrazené na bočnom paneli pre túto akciu. Ťahaním a púšťaním môžete zmeniť poradie.",
     "editLink": "Upraviť odkaz",
     "selectShare": "Vyberte položku Zdieľať",
@@ -339,7 +337,12 @@
     "usageTextDisk": "využitie podľa hlásenia disku/oddielu",
     "dividerNamePlaceholder": "Text oddeľovača (nechajte prázdny, aby sa zobrazil riadok)",
     "showIndexedUsage": "Zobraziť použitie podľa indexu",
-    "showDiskUsage": "Zobraziť využitie podľa údajov z disku/partície"
+    "showDiskUsage": "Zobraziť využitie podľa údajov z disku/partície",
+    "sidebarLinkDefaults": "Predvolené nastavenia odkazov v bočnom paneli",
+    "sidebarLinkDefaultsDescription": "Nastavte predvolené a povinné odkazy v bočnom paneli pre všetkých používateľov.",
+    "sidebarLinkDefaultsHelp": "Toto sú predvolené odkazy, ktoré sa pridajú všetkým novým používateľom. Ak nastavíte odkaz ako povinný, pridá sa všetkým používateľom a používatelia bez správcovských oprávnení ho nebudú môcť odstrániť.",
+    "sidebarLinkDefaultSourceHelp": "Platí len v prípade, že má používateľ prístup k tomuto zdroju.",
+    "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Skontrolujte formát a skúste to znova."
   },
   "share": {
     "notice": "Poznámka: po vytvorení zdieľanej zložky sa táto stáva verejne prístupnou a platia pre ňu iné pravidlá prístupu. Ak vaša zdieľaná zložka nie je bezpečne nakonfigurovaná, môže k nej mať prístup ktokoľvek.",
@@ -620,7 +623,8 @@
     "limit": "Limit{suffix}",
     "remove": "Odstrániť{suffix}",
     "saved": "Uložené{suffix}",
-    "removed": "Odstránené{suffix}"
+    "removed": "Odstránené{suffix}",
+    "back": "Späť{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Prehľadávať celú knižnicu ikon"
     },
     "toolNotFound": "Nástroj nebol nájdený",
-    "backToTools": "Späť na Nástroje",
     "fileWatcher": {
       "name": "Sledovanie súborov",
       "description": "Sledovanie súborov v reálnom čase s monitorovaním latencie",

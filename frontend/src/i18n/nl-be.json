@@ -298,7 +298,8 @@
     "accountDefaults": "Standaardinstellingen voor accounts",
     "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
     "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd.",
-    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn."
+    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn.",
+    "editAsYaml": "Bewerken als YAML"
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",
@@ -319,10 +320,7 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Voer een URL of pad in (bijvoorbeeld /files/path of https://example.com)",
     "linkIcon": "Link pictogram",
-    "linksUpdatedSuccess": "Zijbalk links succesvol bijgewerkt!",
-    "linksUpdateFailed": "Het bijwerken van links in de zijbalk is mislukt",
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
-    "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
     "customizeShareLinksDescription": "Pas de links aan die worden weergegeven in de zijbalk voor deze share. Slepen en neerzetten om te herschikken.",
     "editLink": "Link bewerken",
     "selectShare": "Selecteer aandeel",
@@ -339,7 +337,12 @@
     "usageTextDisk": "gebruik zoals gerapporteerd door schijf/partitie",
     "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",
     "showIndexedUsage": "Gebruik weergeven zoals geïndexeerd",
-    "showDiskUsage": "Weergave van het gebruik zoals gerapporteerd per schijf/partitie"
+    "showDiskUsage": "Weergave van het gebruik zoals gerapporteerd per schijf/partitie",
+    "sidebarLinkDefaults": "Standaardinstellingen voor links in de zijbalk",
+    "sidebarLinkDefaultsDescription": "Stel de standaard- en verplichte links in de zijbalk in voor alle gebruikers.",
+    "sidebarLinkDefaultsHelp": "Dit zijn de standaardlinks die voor alle nieuwe gebruikers worden toegevoegd. Als je een link verplicht stelt, wordt deze voor alle gebruikers toegevoegd en kan deze niet worden verwijderd door gebruikers die geen beheerder zijn.",
+    "sidebarLinkDefaultSourceHelp": "Dit geldt alleen als de gebruiker toegang heeft tot deze bron.",
+    "sidebarLinkDefaultsYamlInvalid": "Ongeldige YAML. Controleer de opmaak en probeer het opnieuw."
   },
   "share": {
     "notice": "Opmerking: wanneer een share wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als je share niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
@@ -718,7 +721,8 @@
     "limit": "Limiet{suffix}",
     "remove": "Verwijderen{suffix}",
     "saved": "Opgeslagen{suffix}",
-    "removed": "Verwijderd{suffix}"
+    "removed": "Verwijderd{suffix}",
+    "back": "Terug{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Blader door de volledige pictogrammenbibliotheek"
     },
     "toolNotFound": "Gereedschap niet gevonden",
-    "backToTools": "Terug naar Gereedschap",
     "fileWatcher": {
       "name": "Bestandsbewaker",
       "description": "Bestanden in realtime bekijken en volgen met latentiebewaking",

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import type { PlaywrightTestOptions } from "./tests/playwright/test-setup";
 
 /**
  * Read environment variables from file.
@@ -9,7 +10,7 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-export default defineConfig({
+export default defineConfig<PlaywrightTestOptions>({
   globalSetup: "./tests/playwright/screenshots-setup.ts",
   timeout: 5000,
   testDir: "./tests/playwright/screenshots",

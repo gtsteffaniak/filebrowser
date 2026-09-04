@@ -298,7 +298,8 @@
     "accountDefaults": "アカウントのデフォルト設定",
     "disableUserSettings": "ユーザー設定ページを無効にする",
     "userDefaultFieldLockedFromConfig": "このデフォルト設定は設定ファイルで指定されており、ここでは変更できません。",
-    "sourceAccessDefaultsHelp": "ソースおよび新規ユーザーにデフォルトのファイル権限が適用されます。「強制」を選択すると、管理者以外のすべてのユーザーに対して値が固定されます。"
+    "sourceAccessDefaultsHelp": "ソースおよび新規ユーザーにデフォルトのファイル権限が適用されます。「強制」を選択すると、管理者以外のすべてのユーザーに対して値が固定されます。",
+    "editAsYaml": "YAMLとして編集"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",
@@ -319,10 +320,7 @@
     "linkUrl": "リンクURL",
     "linkUrlPlaceholder": "URLまたはパスを入力してください（例：/files/pathまたはhttps://example.com）。",
     "linkIcon": "リンクアイコン",
-    "linksUpdatedSuccess": "サイドバーのリンクが正常に更新されました！",
-    "linksUpdateFailed": "サイドバーリンクの更新に失敗しました",
     "sourceNotAccessible": "このソースにはもうアクセスできません",
-    "noLinksYet": "まだリンクは設定されていません。以下に最初のリンクを追加してください。",
     "customizeShareLinksDescription": "この共有のサイドバーに表示されるリンクをカスタマイズします。ドラッグ＆ドロップで並び替えができます。",
     "editLink": "リンクの編集",
     "selectShare": "シェアを選択",
@@ -339,7 +337,12 @@
     "usageTextDisk": "ディスク/パーティションごとの使用量",
     "dividerNamePlaceholder": "分割テキスト（行を表示するには空白にする）",
     "showIndexedUsage": "インデックスに登録された使用例を表示する",
-    "showDiskUsage": "ディスク／パーティションごとの使用状況を表示する"
+    "showDiskUsage": "ディスク／パーティションごとの使用状況を表示する",
+    "sidebarLinkDefaults": "サイドバーのリンクのデフォルト設定",
+    "sidebarLinkDefaultsDescription": "すべてのユーザーに対して、デフォルトおよび必須のサイドバーリンクを設定します。",
+    "sidebarLinkDefaultsHelp": "これらは、すべての新規ユーザーに対して追加されるデフォルトのリンクです。リンクを必須設定にすると、すべてのユーザーに追加され、管理者以外のユーザーは削除できなくなります。",
+    "sidebarLinkDefaultSourceHelp": "ユーザーがこの情報源にアクセスできる場合にのみ適用されます。",
+    "sidebarLinkDefaultsYamlInvalid": "YAMLが不正です。形式を確認して、もう一度試してください。"
   },
   "share": {
     "notice": "注意：共有が作成されると、公開されるようになり、アクセスに関するルールが異なります。共有が安全に設定されていない場合、誰でもアクセスできる可能性があります。",
@@ -620,7 +623,8 @@
     "limit": "上限{suffix}",
     "remove": "削除{suffix}",
     "saved": "保存済み{suffix}",
-    "removed": "削除済み{suffix}"
+    "removed": "削除済み{suffix}",
+    "back": "戻る{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "アイコンライブラリをすべて見る"
     },
     "toolNotFound": "ツールが見つかりません",
-    "backToTools": "ツールに戻る",
     "fileWatcher": {
       "name": "ファイルウォッチャー",
       "description": "レイテンシ監視でリアルタイムにファイルを監視し、テールする",

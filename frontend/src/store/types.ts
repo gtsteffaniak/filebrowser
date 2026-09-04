@@ -274,6 +274,14 @@ export interface StoreState {
       newFileTemplate?: boolean;
     };
   };
+  sidebarLinkDefaultsPolicy: {
+    items?: Array<{
+      enabled?: boolean;
+      enforced?: boolean;
+      link?: SidebarLink;
+    }>;
+    sources?: string[];
+  };
   usages: unknown;
   editor: {
     instance: unknown;

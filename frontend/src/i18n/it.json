@@ -167,7 +167,8 @@
     "limit": "Limite{suffix}",
     "remove": "Rimuovi{suffix}",
     "saved": "Salvato{suffix}",
-    "removed": "Rimosso{suffix}"
+    "removed": "Rimosso{suffix}",
+    "back": "Indietro{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -616,7 +617,8 @@
     "accountDefaults": "Impostazioni predefinite dell'account",
     "disableUserSettings": "Disattiva la pagina delle impostazioni utente",
     "userDefaultFieldLockedFromConfig": "Questa impostazione predefinita è configurata nel file di configurazione e non può essere modificata in questa sede.",
-    "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori."
+    "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori.",
+    "editAsYaml": "Modifica come YAML"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",
@@ -651,13 +653,15 @@
     "browseIcons": "Sfoglia Icone",
     "pickIcon": "Scegli un'Icona",
     "pickIconDescription": "Cerca e seleziona un'icona dalla libreria Material Icons",
-    "linksUpdatedSuccess": "Link barra laterale aggiornati!",
-    "linksUpdateFailed": "Aggiornamento link fallito",
     "sourceNotAccessible": "Questa sorgente non è più accessibile",
-    "noLinksYet": "Nessun link configurato. Aggiungi il primo qui sotto.",
     "switchMode": "Cambia modalità barra laterale",
     "showIndexedUsage": "Mostra l'utilizzo come indicizzato",
-    "showDiskUsage": "Mostra l'utilizzo in base ai dati riportati dal disco/dalla partizione"
+    "showDiskUsage": "Mostra l'utilizzo in base ai dati riportati dal disco/dalla partizione",
+    "sidebarLinkDefaults": "Impostazioni predefinite dei link nella barra laterale",
+    "sidebarLinkDefaultsDescription": "Configurare i collegamenti predefiniti e obbligatori nella barra laterale per tutti gli utenti.",
+    "sidebarLinkDefaultsHelp": "Questi sono i link predefiniti che verranno aggiunti per tutti i nuovi utenti. Se si imposta un link come obbligatorio, questo verrà aggiunto per tutti gli utenti e non potrà essere rimosso dagli utenti che non sono amministratori.",
+    "sidebarLinkDefaultSourceHelp": "Si applica solo se l'utente ha accesso a questa fonte.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML non valido. Controlla il formato e riprova."
   },
   "api": {
     "title": "Token API",
@@ -933,7 +937,6 @@
       "chooseFile": "Scegli un file"
     },
     "toolNotFound": "Strumento non trovato",
-    "backToTools": "Torna agli Strumenti",
     "advancedSearch": {
       "name": "Ricerca avanzata",
       "description": "Ricerca nell'indice con pieno controllo delle fonti, dei filtri e delle opzioni",

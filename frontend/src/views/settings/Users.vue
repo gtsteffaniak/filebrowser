@@ -21,6 +21,12 @@
         :description="$t('settings.userDefaultsDescription')"
         @click="openUserDefaultsPrompt"
       />
+      <SettingsButton
+        class="item"
+        :name="$t('sidebar.sidebarLinkDefaults')"
+        :description="$t('sidebar.sidebarLinkDefaultsDescription')"
+        @click="openSidebarLinkDefaultsPrompt"
+      />
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
     <settings-table
@@ -166,6 +172,14 @@ export default {
         name: "user-defaults",
         props: {
           title: this.$t("settings.userDefaults"),
+        },
+      });
+    },
+    openSidebarLinkDefaultsPrompt() {
+      mutations.showPrompt({
+        name: "sidebar-link-defaults",
+        props: {
+          title: this.$t("sidebar.sidebarLinkDefaults"),
         },
       });
     },

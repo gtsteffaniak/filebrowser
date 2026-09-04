@@ -298,7 +298,8 @@
     "accountDefaults": "Standardinställningar för konton",
     "disableUserSettings": "Inaktivera sidan för användarinställningar",
     "userDefaultFieldLockedFromConfig": "Denna standardinställning anges i konfigurationsfilen och kan inte ändras här.",
-    "sourceAccessDefaultsHelp": "Standardfilbehörigheter som tillämpas på källor och nya användare. Med ”Enforce” låses ett värde fast för alla användare som inte är administratörer."
+    "sourceAccessDefaultsHelp": "Standardfilbehörigheter som tillämpas på källor och nya användare. Med ”Enforce” låses ett värde fast för alla användare som inte är administratörer.",
+    "editAsYaml": "Redigera som YAML"
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",
@@ -319,10 +320,7 @@
     "linkUrl": "Länk URL",
     "linkUrlPlaceholder": "Ange URL eller sökväg (t.ex. /files/path eller https://example.com)",
     "linkIcon": "Länk-ikon",
-    "linksUpdatedSuccess": "Sidofältets länkar uppdaterades framgångsrikt!",
-    "linksUpdateFailed": "Misslyckades med att uppdatera sidofältets länkar",
     "sourceNotAccessible": "Denna källa är inte längre tillgänglig för dig",
-    "noLinksYet": "Inga länkar konfigurerade ännu. Lägg till din första länk nedan.",
     "customizeShareLinksDescription": "Anpassa länkarna som visas i sidofältet för den här aktien. Dra och släpp för att ändra ordning.",
     "editLink": "Redigera länk",
     "selectShare": "Välj Dela",
@@ -339,7 +337,12 @@
     "usageTextDisk": "användning som rapporteras av disk/partition",
     "dividerNamePlaceholder": "Delningstext (lämna tom för att visa en rad)",
     "showIndexedUsage": "Visa användningen enligt indexeringen",
-    "showDiskUsage": "Visa användning enligt uppgifter från disk/partition"
+    "showDiskUsage": "Visa användning enligt uppgifter från disk/partition",
+    "sidebarLinkDefaults": "Standardinställningar för länkar i sidofältet",
+    "sidebarLinkDefaultsDescription": "Konfigurera standardlänkar och obligatoriska länkar i sidomenyn för alla användare.",
+    "sidebarLinkDefaultsHelp": "Detta är de standardlänkar som läggs till för alla nya användare. Om du gör en länk obligatorisk kommer den att läggas till för alla användare och kan inte tas bort av användare som inte är administratörer.",
+    "sidebarLinkDefaultSourceHelp": "Gäller endast om användaren har tillgång till denna källa.",
+    "sidebarLinkDefaultsYamlInvalid": "Ogiltig YAML. Kontrollera formatet och försök igen."
   },
   "share": {
     "notice": "Observera: När en andel skapas blir den mer exponerad för allmänheten och har andra regler för åtkomst. Om din andel inte är säkert konfigurerad kan vem som helst komma åt den.",
@@ -718,7 +721,8 @@
     "limit": "Gräns{suffix}",
     "remove": "Ta bort{suffix}",
     "saved": "Sparat{suffix}",
-    "removed": "Borttagen{suffix}"
+    "removed": "Borttagen{suffix}",
+    "back": "Tillbaka{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Bläddra i hela ikonbiblioteket"
     },
     "toolNotFound": "Verktyget hittades inte",
-    "backToTools": "Tillbaka till Verktyg",
     "fileWatcher": {
       "name": "Filövervakare",
       "description": "Titta på och följ filer i realtid med latensövervakning",

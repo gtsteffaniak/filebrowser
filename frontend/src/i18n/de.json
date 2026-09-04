@@ -298,7 +298,8 @@
     "accountDefaults": "Standardwerte für Konten",
     "disableUserSettings": "Seite „Benutzereinstellungen“ deaktivieren",
     "userDefaultFieldLockedFromConfig": "Diese Standardeinstellung wird in der Konfigurationsdatei festgelegt und kann hier nicht geändert werden.",
-    "sourceAccessDefaultsHelp": "Standard-Dateiberechtigungen für Quellen und neue Benutzer. Mit „Enforce“ wird ein Wert für alle Benutzer ohne Administratorrechte festgelegt."
+    "sourceAccessDefaultsHelp": "Standard-Dateiberechtigungen für Quellen und neue Benutzer. Mit „Enforce“ wird ein Wert für alle Benutzer ohne Administratorrechte festgelegt.",
+    "editAsYaml": "Als YAML bearbeiten"
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",
@@ -319,10 +320,7 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "URL oder Pfad eingeben (z. B. /files/path oder https://example.com)",
     "linkIcon": "Link-Symbol",
-    "linksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
-    "linksUpdateFailed": "Links in der Seitenleiste können nicht aktualisiert werden",
     "sourceNotAccessible": "Diese Quelle ist für Sie nicht mehr zugänglich",
-    "noLinksYet": "Noch keine Links konfiguriert. Fügen Sie unten Ihren ersten Link hinzu.",
     "customizeShareLinksDescription": "Passen Sie die in der Seitenleiste angezeigten Links für diese Freigabe an. Durch Ziehen und Ablegen können Sie die Reihenfolge ändern.",
     "editLink": "Link bearbeiten",
     "selectShare": "Aktie auswählen",
@@ -339,7 +337,12 @@
     "usageTextDisk": "Nutzung, wie von der Festplatte/Partition gemeldet",
     "dividerNamePlaceholder": "Teilertext (leer lassen, um eine Zeile anzuzeigen)",
     "showIndexedUsage": "Verwendung gemäß Index anzeigen",
-    "showDiskUsage": "Nutzung nach Festplatte/Partition anzeigen"
+    "showDiskUsage": "Nutzung nach Festplatte/Partition anzeigen",
+    "sidebarLinkDefaults": "Standardwerte für Links in der Seitenleiste",
+    "sidebarLinkDefaultsDescription": "Konfigurieren Sie die Standard- und obligatorischen Links in der Seitenleiste für alle Benutzer.",
+    "sidebarLinkDefaultsHelp": "Dies sind die Standard-Links, die für alle neuen Benutzer hinzugefügt werden. Wenn Sie einen Link als obligatorisch festlegen, wird er für alle Benutzer hinzugefügt und kann von Benutzern ohne Administratorrechte nicht entfernt werden.",
+    "sidebarLinkDefaultSourceHelp": "Gilt nur, wenn der Benutzer Zugriff auf diese Quelle hat.",
+    "sidebarLinkDefaultsYamlInvalid": "Ungültiges YAML. Überprüfen Sie das Format und versuchen Sie es erneut."
   },
   "share": {
     "notice": "Hinweis: Wenn eine Freigabe erstellt wird, ist sie der Öffentlichkeit stärker ausgesetzt und unterliegt anderen Zugriffsregeln. Wenn Ihre Freigabe nicht sicher konfiguriert ist, kann jeder auf sie zugreifen.",
@@ -620,7 +623,8 @@
     "limit": "Grenzwert{suffix}",
     "remove": "Entfernen{suffix}",
     "saved": "Gespeichert{suffix}",
-    "removed": "Entfernt{suffix}"
+    "removed": "Entfernt{suffix}",
+    "back": "Zurück{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Vollständige Symbolbibliothek durchsuchen"
     },
     "toolNotFound": "Werkzeug nicht gefunden",
-    "backToTools": "Zurück zu Tools",
     "fileWatcher": {
       "name": "Dateiüberwacher",
       "description": "Überwachung und Verfolgung von Dateien in Echtzeit mit Latenzüberwachung",

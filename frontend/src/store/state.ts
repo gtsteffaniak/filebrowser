@@ -31,6 +31,7 @@ export const state: StoreState = reactive({
   showSidebar: false,
   displayPreferences: {},
   enforcedUserDefaults: {},
+  sidebarLinkDefaultsPolicy: { items: [] },
   usages: {},
   editor: {
     instance: null,

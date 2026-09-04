@@ -298,7 +298,8 @@
     "accountDefaults": "Fiók alapbeállításai",
     "disableUserSettings": "A felhasználói beállítások oldal letiltása",
     "userDefaultFieldLockedFromConfig": "Ez az alapértelmezett beállítás a konfigurációs fájlban van megadva, és itt nem módosítható.",
-    "sourceAccessDefaultsHelp": "A forrásfájlokra és az új felhasználókra alkalmazott alapértelmezett fájlhozzáférési jogosultságok. Az „Enforce” beállítás egy értéket rögzít minden nem rendszergazda felhasználó számára."
+    "sourceAccessDefaultsHelp": "A forrásfájlokra és az új felhasználókra alkalmazott alapértelmezett fájlhozzáférési jogosultságok. Az „Enforce” beállítás egy értéket rögzít minden nem rendszergazda felhasználó számára.",
+    "editAsYaml": "Szerkesztés YAML formátumban"
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",
@@ -319,10 +320,7 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Adja meg az URL-címet vagy elérési utat (pl. /files/path vagy https://example.com).",
     "linkIcon": "Link ikon",
-    "linksUpdatedSuccess": "Oldalsáv linkek sikeresen frissítve!",
-    "linksUpdateFailed": "Nem sikerült frissíteni az oldalsáv linkjeit",
     "sourceNotAccessible": "Ez a forrás már nem elérhető az Ön számára",
-    "noLinksYet": "Még nincsenek linkek konfigurálva. Adja hozzá az első linket alább.",
     "customizeShareLinksDescription": "Az oldalsávban megjelenő linkek testreszabása ehhez a megosztáshoz. Húzza és ejtse át a sorrend átrendezéséhez.",
     "editLink": "Link szerkesztése",
     "selectShare": "Megosztás kiválasztása",
@@ -339,7 +337,12 @@
     "usageTextDisk": "lemez/partíció által bejelentett használat",
     "dividerNamePlaceholder": "Választószöveg (üresen hagyva egy sor megjelenítéséhez)",
     "showIndexedUsage": "Az indexelt használat megjelenítése",
-    "showDiskUsage": "A lemez/partíció által jelentett felhasználás megjelenítése"
+    "showDiskUsage": "A lemez/partíció által jelentett felhasználás megjelenítése",
+    "sidebarLinkDefaults": "Az oldalsáv linkjeinek alapértelmezett beállításai",
+    "sidebarLinkDefaultsDescription": "Az összes felhasználó számára állítsa be az alapértelmezett és kötelező oldalsáv-linkeket.",
+    "sidebarLinkDefaultsHelp": "Ezek azok az alapértelmezett linkek, amelyek minden új felhasználóhoz hozzáadódnak. Ha egy linket kötelezővé teszel, az minden felhasználóhoz hozzáadódik, és a rendszergazdák kivételével senki sem tudja eltávolítani.",
+    "sidebarLinkDefaultSourceHelp": "Ez csak akkor érvényes, ha a felhasználónak hozzáférése van ehhez a forráshoz.",
+    "sidebarLinkDefaultsYamlInvalid": "Érvénytelen YAML. Ellenőrizze a formátumot, majd próbálja meg újra."
   },
   "share": {
     "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",
@@ -620,7 +623,8 @@
     "limit": "Határ{suffix}",
     "remove": "Eltávolítás{suffix}",
     "saved": "Elmentve{suffix}",
-    "removed": "Eltávolítva{suffix}"
+    "removed": "Eltávolítva{suffix}",
+    "back": "Vissza{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -918,7 +922,6 @@
       "browseFullLibrary": "Teljes ikonkönyvtár böngészése"
     },
     "toolNotFound": "Eszköz nem található",
-    "backToTools": "Vissza az Eszközökhöz",
     "fileWatcher": {
       "name": "Fájl figyelő",
       "description": "Fájlok figyelése és követése valós időben a késleltetés figyelésével",

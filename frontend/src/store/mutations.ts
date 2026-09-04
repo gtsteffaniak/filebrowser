@@ -1,7 +1,7 @@
 import { setActiveViewGrantScope } from "@/api/viewToken.js";
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
-import { getEnforcedUserDefaults } from "@/api/settings";
+import { getEnforcedUserDefaults, getSidebarLinkDefaultsPolicy } from "@/api/settings";
 import { detectLocale, setLocale } from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
@@ -445,6 +445,7 @@ export const mutations = {
       if (!value) {
         state.user = value;
         state.enforcedUserDefaults = {};
+        state.sidebarLinkDefaultsPolicy = { items: [] };
         emitStateChanged();
         return;
       }
@@ -532,6 +533,28 @@ export const mutations = {
       state.enforcedUserDefaults = data.enforced || {};
     } catch {
       state.enforcedUserDefaults = {};
+    }
+    emitStateChanged();
+  },
+  syncSidebarLinkDefaultsPolicy: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      getters.isAdmin() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.sidebarLinkDefaultsPolicy = { items: [] };
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await getSidebarLinkDefaultsPolicy();
+      state.sidebarLinkDefaultsPolicy = {
+        items: Array.isArray(data?.items) ? data.items : [],
+        sources: Array.isArray(data?.sources) ? data.sources : [],
+      };
+    } catch {
+      state.sidebarLinkDefaultsPolicy = { items: [] };
     }
     emitStateChanged();
   },
