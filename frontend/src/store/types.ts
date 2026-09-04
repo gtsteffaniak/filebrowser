@@ -282,6 +282,10 @@ export interface StoreState {
     }>;
     sources?: string[];
   };
+  shareDefaultsPolicy: {
+    values?: Record<string, unknown>;
+    enforced?: Record<string, boolean>;
+  };
   usages: unknown;
   editor: {
     instance: unknown;

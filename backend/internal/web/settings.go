@@ -306,3 +306,72 @@ func settingsSidebarLinkDefaultsPatchHandler(w http.ResponseWriter, r *http.Requ
 	}
 	return RenderJSON(w, r, state.GetSidebarLinkDefaults())
 }
+
+type shareDefaultsResponse struct {
+	Values   *settings.ShareDefaults            `json:"values,omitempty"`
+	Enforced settings.ShareDefaultsEnforcement `json:"enforced"`
+}
+
+func settingsShareDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	enforced := state.GetEnforcedShareDefaults()
+	if !d.User.Permissions.Admin {
+		values := state.GetShareDefaults()
+		return RenderJSON(w, r, shareDefaultsResponse{
+			Values:   &values,
+			Enforced: enforced,
+		})
+	}
+	values := state.GetShareDefaults()
+	return RenderJSON(w, r, shareDefaultsResponse{
+		Values:   &values,
+		Enforced: enforced,
+	})
+}
+
+func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	patchJSON, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("read share defaults patch: %w", err)
+	}
+	defer r.Body.Close()
+	if len(patchJSON) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty share defaults patch body")
+	}
+
+	var top map[string]json.RawMessage
+	if err = json.Unmarshal(patchJSON, &top); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid share defaults patch JSON: %w", err)
+	}
+	var enforcedPatch []byte
+	if raw, ok := top["enforced"]; ok {
+		enforcedPatch = raw
+		delete(top, "enforced")
+	}
+	valuesPatch, err := json.Marshal(top)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("marshal share defaults values patch: %w", err)
+	}
+
+	hasValues := len(valuesPatch) > 2
+	hasEnforced := len(enforcedPatch) > 0
+	if hasValues && hasEnforced {
+		return http.StatusBadRequest, fmt.Errorf("patch values and enforced in a single request is not supported")
+	}
+	if !hasValues && !hasEnforced {
+		return http.StatusBadRequest, fmt.Errorf("empty share defaults patch body")
+	}
+
+	if hasValues {
+		if err := state.PatchShareDefaults(valuesPatch); err != nil {
+			logger.Errorf("failed to patch share defaults: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to update share defaults")
+		}
+	}
+	if hasEnforced {
+		if err := state.PatchShareDefaultsEnforced(enforcedPatch); err != nil {
+			logger.Errorf("failed to patch enforced share defaults: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to update enforced share defaults")
+		}
+	}
+	return settingsShareDefaultsGetHandler(w, r, d)
+}

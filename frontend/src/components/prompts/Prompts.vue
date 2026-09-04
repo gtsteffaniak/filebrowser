@@ -125,6 +125,7 @@ import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
 import UserDefaults from "./UserDefaults.vue";
+import ShareDefaults from "./ShareDefaults.vue";
 import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
@@ -176,6 +177,7 @@ export default {
     ConfigViewer,
     UserDefaults,
     SidebarLinkDefaults,
+    ShareDefaults,
     Quota,
     NewFileTemplate,
   },
@@ -293,7 +295,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "sidebarlinks";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarlinks";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -371,6 +373,8 @@ export default {
           return this.$t("settings.userDefaults");
         case "sidebar-link-defaults":
           return this.$t("sidebar.sidebarLinkDefaults");
+        case "share-defaults":
+          return this.$t("share.shareDefaults");
         case "upload":
           return this.$t("general.upload");
         case "createapi":

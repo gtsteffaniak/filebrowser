@@ -102,3 +102,20 @@ export async function patchSourceSettings(partial) {
     body: JSON.stringify(partial),
   });
 }
+
+export function getShareDefaults() {
+  return fetchJSON(getApiPath("settings/share-defaults"));
+}
+
+/** Share defaults and enforcement policy (works on public routes behind proxy basic auth). */
+export function getShareDefaultsPolicy() {
+  return fetchJSON(getPublicApiPath("settings/share-defaults"));
+}
+
+export async function patchShareDefaults(partial) {
+  await fetchURL(getApiPath("settings/share-defaults"), {
+    method: "PATCH",
+    body: JSON.stringify(partial),
+    headers: { "Content-Type": "application/json" },
+  });
+}

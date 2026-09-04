@@ -19,12 +19,29 @@ import (
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/sharedefaults"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+func applyShareDefaultsPolicy(u *users.User, editable *share.ShareEditable, isCreate bool) (int, error) {
+	if u == nil || u.Permissions.Admin {
+		return 0, nil
+	}
+	defaults := state.GetShareDefaults()
+	enforced := state.GetEnforcedShareDefaults()
+	if isCreate {
+		sharedefaults.ApplyDefaultsToEditable(editable, defaults)
+	}
+	if err := sharedefaults.ValidateEditableNotEnforced(editable, enforced, defaults); err != nil {
+		return http.StatusForbidden, err
+	}
+	sharedefaults.ApplyEnforcedDefaults(editable, defaults, enforced)
+	return 0, nil
+}
 
 // shareListHandler returns a list of all share links.
 // @Summary List share links
@@ -291,6 +308,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			}
 			share.ClampShareEditable(ownerPerms, &req.ShareEditable)
 		}
+		if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, false); policyErr != nil {
+			return status, policyErr
+		}
 		err = state.UpdateShare(req.Hash, func(link *share.Share) error {
 			shouldResetCounts := link.DownloadsLimit != req.DownloadsLimit ||
 				link.PerUserDownloadLimit != req.PerUserDownloadLimit
@@ -397,6 +417,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusForbidden, permErr
 	}
 	share.ClampShareEditable(ownerPerms, &req.ShareEditable)
+	if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, true); policyErr != nil {
+		return status, policyErr
+	}
 	shareLimits := req.ShareLimits
 	shareLimits.SourceName = source.Name
 
@@ -725,9 +748,9 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 	resp := struct {
 		share.FrontendShareInfo
-		QuotaLimitBytes     int64 `json:"quotaLimitBytes,omitempty"`
-		QuotaUsedBytes      int64 `json:"quotaUsedBytes,omitempty"`
-		QuotaAvailableBytes int64 `json:"quotaAvailableBytes,omitempty"`
+		QuotaLimitBytes     int64                       `json:"quotaLimitBytes,omitempty"`
+		QuotaUsedBytes      int64                       `json:"quotaUsedBytes,omitempty"`
+		QuotaAvailableBytes int64                       `json:"quotaAvailableBytes,omitempty"`
 		FolderQuotas        []publicFolderQuotaSnapshot `json:"folderQuotas,omitempty"`
 	}{
 		FrontendShareInfo: frontendShareInfo,

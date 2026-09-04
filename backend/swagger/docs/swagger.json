@@ -6305,6 +6305,14 @@
                 "server": {
                     "$ref": "#/definitions/settings.Server"
                 },
+                "shareDefaults": {
+                    "description": "optional defaults for new shares; managed in the UI",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.ShareDefaults"
+                        }
+                    ]
+                },
                 "userDefaults": {
                     "description": "optional signup/CLI defaults; per-user values are managed in the UI",
                     "allOf": [
@@ -6312,6 +6320,116 @@
                             "$ref": "#/definitions/settings.UserDefaults"
                         }
                     ]
+                }
+            }
+        },
+        "settings.ShareDefaults": {
+            "type": "object",
+            "properties": {
+                "allowCreate": {
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "type": "boolean"
+                },
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "banner": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "disableDownload": {
+                    "type": "boolean"
+                },
+                "disableFileViewer": {
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "type": "boolean"
+                },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
+                    "type": "boolean"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "type": "string"
+                },
+                "extractEmbeddedSubtitles": {
+                    "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "type": "string"
+                },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
+                "maxBandwidth": {
+                    "type": "integer"
+                },
+                "perUserDownloadLimit": {
+                    "type": "boolean"
+                },
+                "quickDownload": {
+                    "type": "boolean"
+                },
+                "quotaLimitBytes": {
+                    "type": "integer"
+                },
+                "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
+                },
+                "sidebarLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "viewMode": {
+                    "type": "string"
                 }
             }
         },

@@ -114,278 +114,52 @@
         </settings-table>
       </div>
       <div v-else>
-        <div v-if="!showMoreExpanded">
-          <p>
-            {{ $t("files.duration") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
-          </p>
-          <div class="form-flex-group">
-            <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
-              @keyup.enter="submit" v-model.trim="time" />
-            <ExpandDropdown
-              v-model="unit"
-              class="flat-left form-compact form-dropdown"
-              :options="timeUnitOptions"
-              :aria-label="timeUnitLabel()"
-            />
-          </div>
-          <p>
-            {{ $t("prompts.optionalPassword") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.passwordDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
-          </p>
-          <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
-            <button
-              type="button"
-              class="button button--flat button--blue"
-              @click="isChangingPassword = true" style="width: 100%;"
-            >
-              <i class="material-symbols">lock_reset</i>
-              {{ $t("general.change") }}
-            </button>
-          </div>
-          <input v-else class="input" type="password" autocomplete="new-password" v-model.trim="password" />
-          <p>
-            {{ $t("share.shareType") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareTypeDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
-          </p>
+        <p>
+          {{ $t("files.duration") }}
+          <i class="material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))" @mouseleave="hideTooltip">
+            help
+          </i>
+        </p>
+        <div class="form-flex-group">
+          <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
+            @keyup.enter="submit" v-model.trim="time" />
           <ExpandDropdown
-            v-model="shareType"
-            :options="shareTypeOptions"
-            :aria-label="$t('share.shareType')"
+            v-model="unit"
+            class="flat-left form-compact form-dropdown"
+            :options="timeUnitOptions"
+            :aria-label="timeUnitLabel()"
           />
+        </div>
+        <p>
+          {{ $t("prompts.optionalPassword") }}
+          <i class="material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.passwordDescription'))" @mouseleave="hideTooltip">
+            help
+          </i>
+        </p>
+        <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
           <button
             type="button"
-            @click="openSidebarLinksCustomization"
-            class="button button--flat customize-sidebar-links-button"
+            class="button button--flat button--blue"
+            @click="isChangingPassword = true" style="width: 100%;"
           >
-            <i class="material-symbols">link</i>
-            {{ $t('share.customizeSidebarLinksButton') }}
+            <i class="material-symbols">lock_reset</i>
+            {{ $t("general.change") }}
           </button>
-          <div class="settings-items" style="margin-top: 0.5em;">
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify"
-              :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')"
-              aria-label="allow editing files toggle" :disabled="sourceReadOnly" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate"
-              :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')"
-              aria-label="allow creating and uploading files and folders toggle" :disabled="sourceReadOnly" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete"
-              :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')"
-              aria-label="allow deleting files toggle" :disabled="sourceReadOnly" />
-          </div>
         </div>
-        <SettingsItem :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')" :collapsable="true"
-          :start-collapsed="!showMoreExpanded" @toggle="showMoreExpanded = $event">
-          <div class="settings-items">
-            <p>
-              {{ shareThemeLabel() }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
-            </p>
-            <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-              <ExpandDropdown
-                v-model="shareTheme"
-                :options="shareThemeOptions"
-                :aria-label="shareThemeLabel()"
-              />
-            </div>
-            <div v-if="shareType === 'normal'">
-              <p>
-                {{ $t("share.defaultViewMode") }}
-                <i class="material-symbols-outlined tooltip-info-icon"
-                  @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))" @mouseleave="hideTooltip">
-                  help
-                </i>
-              </p>
-              <ExpandDropdown
-                v-model="viewMode"
-                :options="viewModeOptions"
-                :aria-label="$t('share.defaultViewMode')"
-              />
-            </div>
-            <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements"
-              :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')"
-              :disabled="sourceReadOnly" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload"
-              :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')"
-              aria-label="disable downloading files toggle" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer"
-              :name="$t('share.disableFileViewer')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="quickDownload"
-              :name="$t('profileSettings.showQuickDownload')"
-              :description="$t('profileSettings.showQuickDownloadDescription')" />
-            <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')"
-              :description="$t('share.disableAnonymousDescription')" />
-            <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')"
-              :description="$t('share.enableAllowedUsernamesDescription')" />
-
-            <div v-if="enableAllowedUsernames" class="item">
-              <input class="input" type="text" v-model.trim="allowedUsernames"
-                :placeholder="$t('share.allowedUsernamesPlaceholder')" />
-            </div>
-            <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice"
-              :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')"
-              :disabled="sourceReadOnly" />
-            <p>
-              {{ $t("share.enforceDarkLightMode") }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))"
-                @mouseleave="hideTooltip">
-                help
-              </i>
-            </p>
-            <ExpandDropdown
-              v-model="enforceDarkLightMode"
-              :options="enforceDarkLightModeOptions"
-              :aria-label="$t('share.enforceDarkLightMode')"
-            />
-            <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')"
-              :description="$t('share.keepAfterExpirationDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails"
-              :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="showHidden"
-              :name="$t('profileSettings.showHiddenFiles')"
-              :description="$t('profileSettings.showHiddenFilesDescription')" />
-            <div>
-              <p>
-                {{ $t("profileSettings.hideFileExt") }}
-                <i class="material-symbols-outlined tooltip-info-icon"
-                  @mouseenter="showTooltip($event, $t('profileSettings.hideFileExtDescription'))"
-                  @mouseleave="hideTooltip">
-                  help
-                </i>
-              </p>
-            <input class="input"
-              :class="{ 'form-invalid': !validateExtensions(hideFileExt) }"
-              type="text"
-              :placeholder="$t('profileSettings.disableFileExtensions')"
-              v-model.trim="hideFileExt" />
-            </div>
-            <ToggleSwitch v-if="shareType !== 'upload'" class="item" v-model="disableNavButtons"
-              :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
-            <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
-              :description="$t('share.disableShareCardDescription')" />
-            <ToggleSwitch class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')"
-              :description="$t('share.disableSidebarDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit"
-              :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles"
-              :name="$t('share.extractEmbeddedSubtitles')"
-              :description="$t('share.extractEmbeddedSubtitlesDescription')" />
-            <ToggleSwitch class="item" v-model="disableLoginOption" :name="$t('share.disableLoginOption')"
-              :description="$t('share.disableLoginOptionDescription')" />
-          </div>
-
-          <div v-if="shareType === 'normal'">
-            <p>
-              {{ $t("prompts.downloadsLimit") }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
-            </p>
-            <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-            <p>
-              {{ $t("prompts.maxBandwidth") }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
-            </p>
-            <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-          </div>
-
-          <div>
-            <ToggleSwitch
-              class="item"
-              v-model="quotaEnabled"
-              :name="$t('quotas.shareLimit')"
-              :description="$t('quotas.shareLimitDescription')"
-            />
-            <div v-if="quotaEnabled" class="quota-share-fields">
-              <p>{{ $t("general.limit") }}</p>
-              <QuotaCustomLimitInput
-                :amount="quotaCustomAmount"
-                :unit="quotaCustomUnit"
-                :aria-label="$t('general.limit')"
-                @update:amount="quotaCustomAmount = $event"
-                @update:unit="quotaCustomUnit = $event"
-              />
-              <ProgressBar
-                v-if="quotaLimitBytes > 0"
-                :val="quotaUsedBytes"
-                :val-background="quotaReservedBytes"
-                :max="quotaLimitBytes"
-                unit="bytes"
-              />
-            </div>
-          </div>
-
-          <p>
-            {{ $t("prompts.shareThemeColor") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareThemeColorDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
-          </p>
-          <input class="input" type="text" v-model.trim="themeColor" />
-
-          <p>
-            {{ shareTitleLabel() }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
-          </p>
-          <input class="input" type="text" v-model.trim="title" />
-
-          <p>
-            {{ $t("prompts.shareDescription") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareDescriptionHelp'))" @mouseleave="hideTooltip">
-              help
-            </i>
-          </p>
-          <textarea class="input" v-model.trim="description"></textarea>
-
-          <p>
-            {{ $t("prompts.shareBanner") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareBannerDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
-          </p>
-          <div class="file-picker-input-group">
-            <input class="input file-picker-input" type="text" v-model.trim="banner" />
-            <div class="file-picker-button clickable" @click="openBannerPicker" :title="$t('share.browseFiles')">
-              <i class="material-symbols">folder_open</i>
-            </div>
-          </div>
-
-          <p>
-            {{ $t("prompts.shareFavicon") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareFaviconDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
-          </p>
-          <div class="file-picker-input-group">
-            <input class="input file-picker-input" type="text" v-model.trim="favicon" />
-            <div class="file-picker-button clickable" @click="openFaviconPicker" :title="$t('share.browseFiles')">
-              <i class="material-symbols">folder_open</i>
-            </div>
-          </div>
-        </SettingsItem>
+        <input v-else class="input" type="password" autocomplete="new-password" v-model.trim="password" />
+        <ShareOptionsForm
+          v-model="shareForm"
+          :enforced="shareEnforced"
+          :read-only-source="sourceReadOnly"
+          :show-quota-usage="showShareQuotaUsage"
+          :quota-used-bytes="quotaUsedBytes"
+          :quota-reserved-bytes="quotaReservedBytes"
+          @customize-sidebar-links="openSidebarLinksCustomization"
+          @pick-banner="openBannerPicker"
+          @pick-favicon="openFaviconPicker"
+        />
       </div>
     </div>
   </div>
@@ -421,33 +195,28 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsTable from "@/components/settings/Table.vue";
-import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
-import ProgressBar from "@/components/ProgressBar.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import ShareOptionsForm from "@/components/share/ShareOptionsForm.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import FileList from "../files/FileList.vue";
-import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 import {
   bytesFromCustomAmount,
   customAmountFromBytes,
 } from "@/utils/quotaUnits";
+import { applyShareDefaultsToForm } from "@/utils/shareDefaultsForm";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 
 export default {
   name: "share",
   components: {
-    ToggleSwitch,
-    SettingsItem,
     SettingsTable,
     FileList,
     ExpandDropdown,
-    QuotaCustomLimitInput,
-    ProgressBar,
     ActivityViewerButton,
+    ShareOptionsForm,
     //ViewMode,
   },
   props: {
@@ -526,7 +295,6 @@ export default {
       /** Set while a pathPicker for banner/favicon is open; cleared on select/cancel. */
       pendingBannerFaviconContextId: null,
       filePickerField: null, // 'banner' or 'favicon'
-      showMoreExpanded: false,
       /** True while fetching existing shares for the path (create flow); table uses its placeholder spinner. */
       linksLoading: true,
       //viewMode: "normal",
@@ -538,12 +306,95 @@ export default {
     }
   },
   computed: {
-    createAllowed() {
-      return this.allowCreate;
-    },
     quotaLimitBytes() {
       if (!this.quotaEnabled) return 0;
       return bytesFromCustomAmount(this.quotaCustomAmount, this.quotaCustomUnit);
+    },
+    shareEnforced() {
+      return state.shareDefaultsPolicy?.enforced || {};
+    },
+    showShareQuotaUsage() {
+      return (this.isEditMode || !!this.editingLink) && this.quotaLimitBytes > 0;
+    },
+    shareForm: {
+      get() {
+        return {
+          shareType: this.shareType,
+          allowModify: this.allowModify,
+          allowCreate: this.allowCreate,
+          allowDelete: this.allowDelete,
+          allowReplacements: this.allowReplacements,
+          shareTheme: this.shareTheme,
+          viewMode: this.viewMode,
+          disableDownload: this.disableDownload,
+          disableFileViewer: this.disableFileViewer,
+          quickDownload: this.quickDownload,
+          disableAnonymous: this.disableAnonymous,
+          enableAllowedUsernames: this.enableAllowedUsernames,
+          allowedUsernames: this.allowedUsernames,
+          enableOnlyOffice: this.enableOnlyOffice,
+          enforceDarkLightMode: this.enforceDarkLightMode,
+          keepAfterExpiration: this.keepAfterExpiration,
+          disableThumbnails: this.disableThumbnails,
+          showHidden: this.showHidden,
+          hideFileExt: this.hideFileExt,
+          hideNavButtons: this.disableNavButtons,
+          disableShareCard: this.disableShareCard,
+          disableSidebar: this.disableSidebar,
+          perUserDownloadLimit: this.perUserDownloadLimit,
+          extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
+          disableLoginOption: this.disableLoginOption,
+          downloadsLimit: this.downloadsLimit,
+          maxBandwidth: this.maxBandwidth,
+          quotaEnabled: this.quotaEnabled,
+          quotaCustomAmount: this.quotaCustomAmount,
+          quotaCustomUnit: this.quotaCustomUnit,
+          themeColor: this.themeColor,
+          title: this.title,
+          description: this.description,
+          banner: this.banner,
+          favicon: this.favicon,
+          sidebarLinks: this.sidebarLinks,
+        };
+      },
+      set(form) {
+        this.shareType = form.shareType;
+        this.allowModify = form.allowModify;
+        this.allowCreate = form.allowCreate;
+        this.allowDelete = form.allowDelete;
+        this.allowReplacements = form.allowReplacements;
+        this.shareTheme = form.shareTheme;
+        this.viewMode = form.viewMode;
+        this.disableDownload = form.disableDownload;
+        this.disableFileViewer = form.disableFileViewer;
+        this.quickDownload = form.quickDownload;
+        this.disableAnonymous = form.disableAnonymous;
+        this.enableAllowedUsernames = form.enableAllowedUsernames;
+        this.allowedUsernames = form.allowedUsernames;
+        this.enableOnlyOffice = form.enableOnlyOffice;
+        this.enforceDarkLightMode = form.enforceDarkLightMode;
+        this.keepAfterExpiration = form.keepAfterExpiration;
+        this.disableThumbnails = form.disableThumbnails;
+        this.showHidden = form.showHidden;
+        this.hideFileExt = form.hideFileExt;
+        this.disableNavButtons = form.hideNavButtons;
+        this.disableShareCard = form.disableShareCard;
+        this.disableSidebar = form.disableSidebar;
+        this.perUserDownloadLimit = form.perUserDownloadLimit;
+        this.extractEmbeddedSubtitles = form.extractEmbeddedSubtitles;
+        this.disableLoginOption = form.disableLoginOption;
+        this.downloadsLimit = form.downloadsLimit;
+        this.maxBandwidth = form.maxBandwidth;
+        this.quotaEnabled = form.quotaEnabled;
+        this.quotaCustomAmount = form.quotaCustomAmount;
+        this.quotaCustomUnit = form.quotaCustomUnit;
+        this.themeColor = form.themeColor;
+        this.title = form.title;
+        this.description = form.description;
+        this.banner = form.banner;
+        this.favicon = form.favicon;
+        this.sidebarLinks = form.sidebarLinks;
+      },
     },
     displayPath() {
       // When editing, use the link's path; otherwise use the item's path
@@ -569,49 +420,11 @@ export default {
       const info = state.sources.info?.[this.displaySource];
       return info?.readOnly === true;
     },
-    onlyOfficeAvailable() {
-      return globalVars.onlyOfficeUrl !== "";
-    },
-    availableThemes() {
-      return globalVars.userSelectableThemes || {};
-    },
     timeUnitOptions() {
       return [
         { value: "minutes", label: this.$t("time.minutes") },
         { value: "hours", label: this.$t("time.hours") },
         { value: "days", label: this.$t("time.days") },
-      ];
-    },
-    shareTypeOptions() {
-      return [
-        { value: "normal", label: this.$t("share.normalShare") },
-        {
-          value: "upload",
-          label: this.$t("share.uploadShare"),
-          disabled: this.sourceReadOnly,
-        },
-      ];
-    },
-    shareThemeOptions() {
-      return Object.entries(this.availableThemes).map(([key, theme]) => ({
-        value: key,
-        label: String(key) === "default"
-          ? this.$t("profileSettings.defaultThemeDescription")
-          : `${key} - ${theme.description}`,
-      }));
-    },
-    viewModeOptions() {
-      return [
-        { value: "normal", label: this.$t("buttons.normalView") },
-        { value: "list", label: this.$t("buttons.listView") },
-        { value: "gallery", label: this.$t("buttons.galleryView") },
-      ];
-    },
-    enforceDarkLightModeOptions() {
-      return [
-        { value: "default", label: this.$t("share.default") },
-        { value: "dark", label: this.$t("share.dark") },
-        { value: "light", label: this.$t("share.light") },
       ];
     },
     req() {
@@ -815,12 +628,6 @@ export default {
     },
     shareManagementLabel() {
       return this.$t("general.shareManagement");
-    },
-    shareThemeLabel() {
-      return this.$t("general.shareTheme");
-    },
-    shareTitleLabel() {
-      return this.$t("general.shareTitle");
     },
     timeUnitLabel() {
       return this.$t("time.timeUnit");
@@ -1077,31 +884,66 @@ export default {
       }
     },
     setDefaultSidebarLinks() {
-      // Only set defaults if creating a new share (not editing) and no links are configured
-      if (!this.isEditMode && !this.editingLink && this.sidebarLinks.length === 0) {
-        this.sidebarLinks = [
-          {
-            name: "Share QR Code and Info",
-            category: "shareInfo",
-            target: "#",
-            icon: "qr_code"
-          }
-        ];
-
-        // Only add Download link for normal shares, not upload shares
-        if (this.shareType !== 'upload') {
-          this.sidebarLinks.push({
-            name: "Download",
-            category: "download",
-            target: "#",
-            icon: "download"
-          });
-        }
-      }
+      this.applyShareDefaultsFromPolicy();
     },
     populateDefaults() {
-      this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
-      this.description = this.$t("share.descriptionDefault");
+      this.applyShareDefaultsFromPolicy();
+    },
+    applyShareDefaultsFromPolicy() {
+      if (this.isEditMode || this.editingLink) {
+        return;
+      }
+      const values = state.shareDefaultsPolicy?.values;
+      const titleDefault = this.$t("share.titleDefault", { title: this.item.name || "share" });
+      const descriptionDefault = this.$t("share.descriptionDefault");
+      if (!values || Object.keys(values).length === 0) {
+        this.title = titleDefault;
+        this.description = descriptionDefault;
+        if (this.sidebarLinks.length === 0) {
+          const form = {};
+          applyShareDefaultsToForm(form, {}, { titleDefault, descriptionDefault });
+          this.sidebarLinks = form.sidebarLinks;
+        }
+        return;
+      }
+      const form = {};
+      applyShareDefaultsToForm(form, values, { titleDefault, descriptionDefault });
+      this.shareTheme = form.shareTheme;
+      this.disableAnonymous = form.disableAnonymous;
+      this.disableDownload = form.disableDownload;
+      this.allowModify = form.allowModify;
+      this.allowDelete = form.allowDelete;
+      this.allowCreate = form.allowCreate;
+      this.allowReplacements = form.allowReplacements;
+      this.downloadsLimit = form.downloadsLimit;
+      this.perUserDownloadLimit = form.perUserDownloadLimit;
+      this.maxBandwidth = form.maxBandwidth;
+      this.shareType = form.shareType;
+      this.disableFileViewer = form.disableFileViewer;
+      this.disableThumbnails = form.disableThumbnails;
+      this.showHidden = form.showHidden;
+      this.hideFileExt = form.hideFileExt;
+      this.enableAllowedUsernames = form.enableAllowedUsernames;
+      this.allowedUsernames = form.allowedUsernames;
+      this.keepAfterExpiration = form.keepAfterExpiration;
+      this.themeColor = form.themeColor;
+      this.banner = form.banner;
+      this.favicon = form.favicon;
+      this.quickDownload = form.quickDownload;
+      this.disableNavButtons = form.hideNavButtons;
+      this.disableShareCard = form.disableShareCard;
+      this.disableSidebar = form.disableSidebar;
+      this.enforceDarkLightMode = form.enforceDarkLightMode;
+      this.viewMode = form.viewMode;
+      this.enableOnlyOffice = form.enableOnlyOffice;
+      this.extractEmbeddedSubtitles = form.extractEmbeddedSubtitles;
+      this.disableLoginOption = form.disableLoginOption;
+      this.quotaEnabled = form.quotaEnabled;
+      this.quotaCustomAmount = form.quotaCustomAmount;
+      this.quotaCustomUnit = form.quotaCustomUnit;
+      this.title = form.title;
+      this.description = form.description;
+      this.sidebarLinks = form.sidebarLinks;
     },
     /**
      * @param {{path: string, source: string}} pathOrData

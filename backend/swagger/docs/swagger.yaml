@@ -908,11 +908,88 @@ definitions:
         $ref: '#/definitions/settings.Integrations'
       server:
         $ref: '#/definitions/settings.Server'
+      shareDefaults:
+        allOf:
+        - $ref: '#/definitions/settings.ShareDefaults'
+        description: optional defaults for new shares; managed in the UI
       userDefaults:
         allOf:
         - $ref: '#/definitions/settings.UserDefaults'
         description: optional signup/CLI defaults; per-user values are managed in
           the UI
+    type: object
+  settings.ShareDefaults:
+    properties:
+      allowCreate:
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        type: boolean
+      allowReplacements:
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        type: boolean
+      disableFileViewer:
+        type: boolean
+      disableLoginOption:
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        type: string
+      extractEmbeddedSubtitles:
+        type: boolean
+      favicon:
+        type: string
+      hideFileExt:
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      quotaLimitBytes:
+        type: integer
+      shareTheme:
+        type: string
+      shareType:
+        type: string
+      showHidden:
+        type: boolean
+      sidebarLinks:
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      themeColor:
+        type: string
+      title:
+        type: string
+      viewMode:
+        type: string
     type: object
   settings.Source:
     properties:

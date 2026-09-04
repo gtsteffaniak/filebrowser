@@ -18,7 +18,8 @@ type Settings struct {
 	Server       Server       `json:"server"`
 	Auth         Auth         `json:"auth"`
 	Frontend     Frontend     `json:"frontend"`
-	UserDefaults UserDefaults `json:"userDefaults"` // optional signup/CLI defaults; per-user values are managed in the UI
+	UserDefaults  UserDefaults  `json:"userDefaults"` // optional signup/CLI defaults; per-user values are managed in the UI
+	ShareDefaults ShareDefaults `json:"shareDefaults"` // optional defaults for new shares; managed in the UI
 	Integrations Integrations `json:"integrations"`
 	Http         Http         `json:"http"`
 }
