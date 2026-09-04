@@ -5,7 +5,7 @@
   "type": "module",
   "engines": {
     "npm": ">=9.0.0",
-    "node": ">=20.0.0"
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
   },
   "scripts": {
     "build": "rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
@@ -31,7 +31,6 @@
     "css-vars-ponyfill": "^2.4.3",
     "dompurify": "^3.2.4",
     "epubjs": "^0.3.93",
-    "glob": "^9.3.5",
     "highlight.js": "^11.11.1",
     "mammoth": "^1.9.1",
     "marked": "^15.0.6",
@@ -69,7 +68,7 @@
     "vite": "^6.2.0",
     "vite-plugin-checker": "^0.10.3",
     "vite-plugin-compression2": "^1.0.0",
-    "vitest": "^4.1.8",
+    "vitest": "^5.0.0",
     "vue-eslint-parser": "^10.4.0",
     "vue-tsc": "^2.0.7",
     "wawoff2": "^2.0.1"

@@ -46,6 +46,7 @@ import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
+import { syncDocumentTheme } from "@/utils/theme";
 import Search from "@/components/Search.vue";
 
 export default {
@@ -170,10 +171,7 @@ export default {
     isDarkMode: {
       immediate: true,
       handler(dark) {
-        const color = dark ? globalVars.darkBackground : globalVars.lightBackground;
-        if (!color) return;
-        const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute("content", color);
+        syncDocumentTheme(dark);
       },
     },
   },

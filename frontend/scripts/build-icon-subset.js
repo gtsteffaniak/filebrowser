@@ -1,6 +1,6 @@
 // scripts/build-icon-subset.js
 import fs from 'fs-extra';
-import { sync } from 'glob';
+import { globSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import wawoff2 from 'wawoff2';
@@ -73,7 +73,7 @@ function addIcon(icons, value) {
 }
 
 function scanVueAndTemplates(icons) {
-  const files = sync(path.join(srcDir, '**/*.vue'));
+  const files = globSync(path.join(srcDir, '**/*.vue'));
   const materialTag = new RegExp(
     `material-symbols(?:-outlined)?[^>]*>\\s*(${ICON_NAME})\\s*<`,
     'g',

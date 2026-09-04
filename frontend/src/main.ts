@@ -7,8 +7,10 @@ import router from "./router"; // Adjust the path as per your setup
 import "./css/styles.css";
 import "./css/dark.css";
 import { initPwaInstall } from "@/utils/pwaInstall";
+import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
 
 initPwaInstall();
+syncDocumentTheme(defaultDarkMode());
 
 const app = createApp(App);
 

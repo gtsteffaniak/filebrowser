@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{{ if .htmlVars.defaultDarkMode }}dark-mode{{ end }}">
 
 <head>
   <meta charset="utf-8">
@@ -52,6 +52,10 @@
   <!-- Injected variables come from backend server -->
   <script nonce="{{ .cspNonce }}">
     window.globalVars = {{ .globalVars }};
+    (function () {
+      var dark = window.globalVars && window.globalVars.darkMode === true;
+      document.documentElement.classList.toggle("dark-mode", dark);
+    })();
     window.__pwaDeferredPrompt = null;
     window.addEventListener("beforeinstallprompt", function (event) {
       event.preventDefault();
@@ -74,11 +78,8 @@
     }
     /* paint safe areas + iOS overscroll with app background (notched PWAs) */
     html {
-      background-color: {{ .htmlVars.lightBackground }};
+      background-color: var(--background);
       min-height: calc(100% + env(safe-area-inset-top, 0px));
-    }
-    html:has(.dark-mode) {
-      background-color: {{ .htmlVars.darkBackground }};
     }
     .dark-mode {
       --background: {{ .htmlVars.darkBackground }};

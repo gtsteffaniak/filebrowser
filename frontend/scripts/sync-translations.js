@@ -1,10 +1,10 @@
 /* eslint-disable security/detect-object-injection */
 // scripts/sync-translations.js
 import path from 'node:path';
+import { globSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Translator } from 'deepl-node';
 import fs from 'fs-extra';
-import { sync } from 'glob';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 const localesDir = path.resolve(__dirname, '../src/i18n');
 const masterLocaleFile = path.join(localesDir, 'en.json');
 const masterLanguageCode = 'en';
-const targetLocaleFiles = sync(path.join(localesDir, '*.json'))
+const targetLocaleFiles = globSync(path.join(localesDir, '*.json'))
   .filter(file => path.basename(file) !== `${masterLanguageCode}.json`)
 
 const requireApiKey = !checkOnly && !enforceOrder && !cleanupOnly;
