@@ -390,6 +390,8 @@
     "disableLoginOption": "Hide login option",
     "disableLoginOptionDescription": "Hide the login button in the sidebar for anonymous users. When enabled, anonymous users won't see the option to log in.",
     "customizeSidebarLinksButton": "Customize Links",
+    "shareDefaults": "Share defaults",
+    "shareDefaultsDescription": "Configure default share options for new shares and enforce policies for non-admin users.",
     "browseFiles": "Browse files",
     "selectBannerImage": "Select banner image",
     "selectFaviconImage": "Select favicon image",
