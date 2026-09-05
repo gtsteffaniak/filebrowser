@@ -170,7 +170,7 @@ export default {
 .notifications-view {
   max-width: 60em;
   margin: 0 auto;
-  padding: 2em;
+  padding: 1em;
 }
 
 .card-title h2 {

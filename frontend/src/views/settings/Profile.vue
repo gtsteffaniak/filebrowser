@@ -123,7 +123,7 @@ export default {
 
 <style scoped>
 .card-content :deep(.settings-group) {
-  margin-bottom: 0.75rem;
+  margin-bottom: -0.35em;
 }
 .settings-group {
   padding-top: 0.5em;

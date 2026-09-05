@@ -90,10 +90,6 @@ export default {
 </script>
 
 <style>
-.action {
-  color: #546e7a;
-}
-
 .ham {
   width: 2.5em;
   -webkit-tap-highlight-color: transparent;

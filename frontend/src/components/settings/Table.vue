@@ -1,89 +1,91 @@
 <template>
-  <table
-    class="settings-table border-radius"
-    :class="{ 'settings-table--loading': loading }"
-    :aria-label="ariaLabel"
-    :aria-busy="loading ? 'true' : undefined"
-  >
-    <thead>
-      <tr v-if="headerTitle">
-        <th
-          :colspan="emptyColumnSpan"
-          scope="col"
-          class="settings-table__align-center settings-table__th--nosort settings-table__th--unified"
-        >
-          {{ headerTitle }}
-        </th>
-      </tr>
-      <tr v-else>
-        <th
-          v-for="column in columns"
-          :key="column.key"
-          scope="col"
-          :class="[
-            alignClass(column),
-            headerSortClass(column),
-          ]"
-          :aria-sort="ariaSortState(column)"
-          @click="column.sortable === true ? toggleSort(column) : undefined"
-        >
-          {{ column.label }}
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-if="loading" class="settings-table__loading-row">
-        <td :colspan="emptyColumnSpan" class="settings-table__loading-cell">
-          <div class="settings-table__loading-inner">
-            <LoadingSpinner size="small" mode="placeholder" />
-          </div>
-        </td>
-      </tr>
-      <template v-else>
-        <tr
-          v-for="item in sortedItems"
-          :key="resolvedKey(item)"
-          :class="{ 'settings-table__row--clickable': rowClickable }"
-          :tabindex="rowClickable ? 0 : undefined"
-          :role="rowClickable ? 'button' : undefined"
-          @click="onRowClick(item, $event)"
-          @keydown.enter.prevent="onRowClick(item, $event)"
-          @keydown.space.prevent="onRowClick(item, $event)"
-        >
-          <td
+  <div class="settings-table-wrapper">
+    <table
+      class="settings-table border-radius"
+      :class="{ 'settings-table--loading': loading }"
+      :aria-label="ariaLabel"
+      :aria-busy="loading ? 'true' : undefined"
+    >
+      <thead>
+        <tr v-if="headerTitle">
+          <th
+            :colspan="emptyColumnSpan"
+            scope="col"
+            class="settings-table__align-center settings-table__th--nosort settings-table__th--unified"
+          >
+            {{ headerTitle }}
+          </th>
+        </tr>
+        <tr v-else>
+          <th
             v-for="column in columns"
             :key="column.key"
+            scope="col"
             :class="[
               alignClass(column),
-              column.narrow === true ? 'settings-table__td--narrow' : '',
+              headerSortClass(column),
             ]"
+            :aria-sort="ariaSortState(column)"
+            @click="column.sortable === true ? toggleSort(column) : undefined"
           >
-            <slot
-              :name="cellSlot(column.key)"
-              :row="item"
-              :value="cellValue(item, column)"
-              :column="column"
+            {{ column.label }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="loading" class="settings-table__loading-row">
+          <td :colspan="emptyColumnSpan" class="settings-table__loading-cell">
+            <div class="settings-table__loading-inner">
+              <LoadingSpinner size="small" mode="placeholder" />
+            </div>
+          </td>
+        </tr>
+        <template v-else>
+          <tr
+            v-for="item in sortedItems"
+            :key="resolvedKey(item)"
+            :class="{ 'settings-table__row--clickable': rowClickable }"
+            :tabindex="rowClickable ? 0 : undefined"
+            :role="rowClickable ? 'button' : undefined"
+            @click="onRowClick(item, $event)"
+            @keydown.enter.prevent="onRowClick(item, $event)"
+            @keydown.space.prevent="onRowClick(item, $event)"
+          >
+            <td
+              v-for="column in columns"
+              :key="column.key"
+              :class="[
+                alignClass(column),
+                column.narrow === true ? 'settings-table__td--narrow' : '',
+              ]"
             >
-              {{ renderCell(item, column) }}
-            </slot>
-          </td>
-        </tr>
-        <tr v-if="sortedItems.length === 0">
-          <td
-            :colspan="emptyColumnSpan"
-            class="settings-table__empty settings-table__empty-cell"
-          >
-            <slot name="empty">
-              <h2 class="message settings-table__lonely">
-                <i class="material-symbols-outlined" aria-hidden="true">sentiment_dissatisfied</i>
-                <span>{{ lonelyCaption }}</span>
-              </h2>
-            </slot>
-          </td>
-        </tr>
-      </template>
-    </tbody>
-  </table>
+              <slot
+                :name="cellSlot(column.key)"
+                :row="item"
+                :value="cellValue(item, column)"
+                :column="column"
+              >
+                {{ renderCell(item, column) }}
+              </slot>
+            </td>
+          </tr>
+          <tr v-if="sortedItems.length === 0">
+            <td
+              :colspan="emptyColumnSpan"
+              class="settings-table__empty settings-table__empty-cell"
+            >
+              <slot name="empty">
+                <h2 class="message settings-table__lonely">
+                  <i class="material-symbols-outlined" aria-hidden="true">sentiment_dissatisfied</i>
+                  <span>{{ lonelyCaption }}</span>
+                </h2>
+              </slot>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <script>
@@ -355,13 +357,17 @@ export default {
 
 <style scoped>
 /* Radius: separate .border-radius utility (_variables.css) so it stays easy to override */
+.settings-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .settings-table {
   width: 100%;
   border-collapse: collapse;
   font-family: inherit;
   font-size: 1em;
   margin: 0;
-  margin-top: 0.8em;
   background: var(--surfacePrimary);
   border: 1px solid var(--divider);
   outline: 1px solid var(--divider);
@@ -546,4 +552,3 @@ body.rtl .settings-table__align-center {
   text-align: center;
 }
 </style>
-
