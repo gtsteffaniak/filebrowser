@@ -64,19 +64,16 @@ export default {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  min-height: 23em;
   overflow: hidden;
 }
 
 .yaml-editor-panel--fill .yaml-editor-host {
   flex: 1 1 auto;
-  min-height: 0;
 }
 
 .yaml-editor-host {
   position: relative;
   width: 100%;
-  min-height: 280px;
   border: 1px solid var(--borderColor);
   border-radius: 0.5em;
   overflow: hidden;

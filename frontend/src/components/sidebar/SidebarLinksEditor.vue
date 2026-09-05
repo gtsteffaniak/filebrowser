@@ -1466,10 +1466,9 @@ export default {
 
 .yaml-editor-container {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 40vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .sidebar-links-body-scroll {
