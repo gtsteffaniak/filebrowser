@@ -10,14 +10,14 @@
     :model-value="items"
     :description="$t('sidebar.sidebarLinkDefaultsHelp')"
     :disabled="!canPatch()"
-    :show-prompt-actions="false"
     @update:model-value="onItemsUpdate"
-    @change="save"
+    @save="save"
   />
 </template>
 
 <script>
 import { notify } from "@/notify";
+import { mutations } from "@/store";
 import { getSidebarLinkDefaults, patchSidebarLinkDefaults } from "@/api/settings";
 import SidebarLinksEditor from "@/components/sidebar/SidebarLinksEditor.vue";
 
@@ -84,6 +84,7 @@ export default {
       try {
         const data = await patchSidebarLinkDefaults({ items: this.items });
         this.applyItems(data);
+        mutations.closeTopPrompt();
       } catch (e) {
         notify.showError(e);
         console.error(e);

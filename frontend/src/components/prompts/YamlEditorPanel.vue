@@ -69,11 +69,13 @@ export default {
 
 .yaml-editor-panel--fill .yaml-editor-host {
   flex: 1 1 auto;
+  min-height: 0;
 }
 
 .yaml-editor-host {
   position: relative;
   width: 100%;
+  height: 20rem;
   border: 1px solid var(--borderColor);
   border-radius: 0.5em;
   overflow: hidden;
