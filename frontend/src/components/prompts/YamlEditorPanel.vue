@@ -76,6 +76,7 @@ export default {
 .yaml-editor-host {
   position: relative;
   width: 100%;
+  min-height: 280px;
   border: 1px solid var(--borderColor);
   border-radius: 0.5em;
   overflow: hidden;
