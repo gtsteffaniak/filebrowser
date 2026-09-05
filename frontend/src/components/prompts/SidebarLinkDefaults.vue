@@ -85,6 +85,7 @@ export default {
         const data = await patchSidebarLinkDefaults({ items: this.items });
         this.applyItems(data);
         mutations.closeTopPrompt();
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         notify.showError(e);
         console.error(e);
