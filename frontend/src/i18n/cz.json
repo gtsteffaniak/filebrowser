@@ -563,6 +563,8 @@
     "orange": "oranžová"
   },
   "general": {
+    "import": "Importovat",
+    "export": "Exportovat",
     "name": "Název",
     "path": "Cesta",
     "user": "Uživatel",

@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "Na vygenerovanie autentifikačného kódu je potrebné vaše heslo."
   },
   "general": {
+    "import": "Importovať",
+    "export": "Exportovať",
     "name": "Názov",
     "path": "Cesta",
     "user": "Používateľ",

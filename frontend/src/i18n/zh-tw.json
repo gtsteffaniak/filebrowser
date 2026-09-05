@@ -563,6 +563,8 @@
     "orange": "橘色"
   },
   "general": {
+    "import": "匯入",
+    "export": "匯出",
     "name": "名稱{suffix}",
     "path": "路徑{suffix}",
     "user": "使用者{suffix}",

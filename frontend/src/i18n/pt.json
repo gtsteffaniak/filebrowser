@@ -563,6 +563,8 @@
     "darkMode": "Modo escuro"
   },
   "general": {
+    "import": "Importar",
+    "export": "Exportar",
     "name": "Nome",
     "path": "Caminho",
     "user": "Utilizador",
