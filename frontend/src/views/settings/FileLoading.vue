@@ -147,4 +147,8 @@ export default {
 .item {
   padding: 1em;
 }
+
+.card-actions {
+  margin-top: 1em;
+}
 </style>

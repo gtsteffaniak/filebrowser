@@ -361,6 +361,7 @@ export default {
   font-family: inherit;
   font-size: 1em;
   margin: 0;
+  margin-top: 0.8em;
   background: var(--surfacePrimary);
   border: 1px solid var(--divider);
   outline: 1px solid var(--divider);

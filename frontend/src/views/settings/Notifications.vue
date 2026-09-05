@@ -8,13 +8,15 @@
         {{ $t("notifications.appUnsupported") }}
       </p>
       <template v-else>
-        <ToggleSwitch
-          class="item"
-          v-model="appNotificationsEnabled"
-          @change="onAppNotificationsChange"
-          :name="$t('notifications.appEnabled')"
-          :description="$t('notifications.appEnabledDescription')"
-        />
+        <div class="settings-items">
+          <ToggleSwitch
+            class="item"
+            v-model="appNotificationsEnabled"
+            @change="onAppNotificationsChange"
+            :name="$t('notifications.appEnabled')"
+            :description="$t('notifications.appEnabledDescription')"
+          />
+        </div>
       </template>
     </div>
 
@@ -24,7 +26,7 @@
         <button
           type="button"
           @click="clearHistory"
-          class="button button--flat button--grey clear-button"
+          class="button button--flat button--red clear-button"
         >
           <i class="material-symbols">delete_sweep</i>
           {{ $t("notifications.clearAll") }}
@@ -174,7 +176,7 @@ export default {
 .card-title h2 {
   font-size: 1.5em;
   font-weight: 500;
-  margin: 0;
+  margin-bottom: 1em;
 }
 
 .app-notifications-settings {
