@@ -651,7 +651,7 @@ export default {
       return classes.join(" ");
     },
     bodyScrollClass() {
-      return "sidebar-links-body-scroll";
+      return "sidebar-links-body";
     },
     showCardActions() {
       if (this.yamlMode) {
@@ -1365,12 +1365,7 @@ export default {
   gap: 0.5em;
 }
 
-.sidebar-links-body-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
+.sidebar-links-body {
   padding: 0 6px;
   margin: 0 -6px;
 }
