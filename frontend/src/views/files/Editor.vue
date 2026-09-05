@@ -6,7 +6,7 @@
       :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
     >
       <EditorToolbar v-if="showEditorToolbar" :editor="editor" :is-markdown="isMarkdownFile" />
-      <div id="editor"></div>
+      <div id="editor" ref="editorEl"></div>
     </div>
     <MarkdownSplitView
       v-if="isMarkdownFile"
@@ -456,7 +456,7 @@ export default {
       });
     },
     initializeEditor(initialScrollRatio: number = state.editor.scrollRatio) {
-      const editorEl = document.getElementById("editor");
+      const editorEl = this.$refs.editorEl as HTMLElement | undefined;
       if (!editorEl) {
         return;
       }
