@@ -1,6 +1,14 @@
 <template>
   <div class="yaml-editor-panel" :class="{ 'yaml-editor-panel--fill': fill }">
-    <div ref="editorHost" class="yaml-editor-host"></div>
+    <div class="yaml-editor-host">
+      <Editor
+        ref="editor"
+        :viewer-mode="true"
+        :content="modelValue"
+        :editor-mode="'yaml'"
+        :read-only="false"
+      />
+    </div>
     <p v-if="error" class="yaml-error">{{ error }}</p>
     <div v-if="!fill" class="yaml-actions">
       <button type="button" class="button button--flat button--grey" @click="$emit('cancel')">
@@ -14,14 +22,13 @@
 </template>
 
 <script>
-import ace from "ace-builds";
-import "ace-builds/src-min-noconflict/mode-yaml";
-import "ace-builds/src-min-noconflict/theme-chrome";
-import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
-import { getters } from "@/store";
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 
 export default {
   name: "YamlEditorPanel",
+  components: {
+    Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
+  },
   props: {
     modelValue: {
       type: String,
@@ -35,44 +42,16 @@ export default {
   emits: ["update:modelValue", "apply", "cancel"],
   data() {
     return {
-      editor: null,
       error: "",
-      resizeObserver: null,
     };
   },
-  mounted() {
-    this.editor = ace.edit(this.$refs.editorHost);
-    this.editor.session.setMode("ace/mode/yaml");
-    this.editor.setTheme(getters.isDarkMode() ? "ace/theme/tomorrow_night_bright" : "ace/theme/chrome");
-    this.editor.setValue(this.modelValue || "", -1);
-    this.editor.setOptions({
-      fontSize: "14px",
-      showPrintMargin: false,
-      wrap: true,
-    });
-    if (this.fill) {
-      this.resizeEditor();
-      this.resizeObserver = new ResizeObserver(() => {
-        this.resizeEditor();
-      });
-      this.resizeObserver.observe(this.$refs.editorHost);
-    }
-  },
-  beforeUnmount() {
-    this.resizeObserver?.disconnect();
-    this.editor?.destroy();
-  },
   methods: {
-    resizeEditor() {
-      if (!this.editor || !this.$refs.editorHost) {
-        return;
-      }
-      const { offsetWidth, offsetHeight } = this.$refs.editorHost;
-      this.editor.resize(offsetWidth, offsetHeight);
+    getValue() {
+      return this.$refs.editor?.getValue() ?? this.modelValue ?? "";
     },
     apply() {
       this.error = "";
-      const text = this.editor?.getValue() ?? "";
+      const text = this.getValue();
       this.$emit("update:modelValue", text);
       this.$emit("apply", text);
     },
@@ -85,7 +64,7 @@ export default {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 23em;
   overflow: hidden;
 }
 
@@ -95,10 +74,11 @@ export default {
 }
 
 .yaml-editor-host {
-  min-height: 280px;
+  position: relative;
   width: 100%;
   border: 1px solid var(--borderColor);
   border-radius: 0.5em;
+  overflow: hidden;
 }
 
 .yaml-error {

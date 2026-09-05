@@ -283,6 +283,35 @@
     <template v-if="yamlMode">
       <button
         type="button"
+        class="button button--flat button--red"
+        @click="exportYaml"
+        :aria-label="$t('general.export')"
+        :title="$t('general.export')"
+      >
+        <i class="material-symbols">upload</i>
+        {{ $t('general.export') }}
+      </button>
+      <button
+        type="button"
+        class="button button--flat button--red"
+        :disabled="disabled"
+        @click="triggerYamlImport"
+        :aria-label="$t('general.import')"
+        :title="$t('general.import')"
+      >
+        <i class="material-symbols">download</i>
+        {{ $t('general.import') }}
+      </button>
+      <input
+        ref="yamlFileInput"
+        type="file"
+        accept=".yaml,.yml,text/yaml"
+        class="hidden"
+        @change="importYaml"
+      />
+      <span class="card-actions-spacer"></span>
+      <button
+        type="button"
         class="button button--flat button--grey"
         :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')"
@@ -722,6 +751,31 @@ export default {
     },
     applyYamlFromEditor() {
       this.$refs.yamlEditor?.apply();
+    },
+    exportYaml() {
+      const text = this.$refs.yamlEditor?.getValue() ?? this.yamlText;
+      const blob = new Blob([text], { type: "text/yaml" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = this.isDefaultsMode ? "sidebar-link-defaults.yaml" : "sidebar-links.yaml";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    },
+    triggerYamlImport() {
+      this.$refs.yamlFileInput?.click();
+    },
+    importYaml(event) {
+      const file = event.target.files?.[0];
+      event.target.value = ""; // to allow selecting the same file again
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.yamlText = typeof reader.result === "string" ? reader.result : "";
+      };
+      reader.readAsText(file);
     },
     onYamlModeChange(enabled) {
       if (enabled) {

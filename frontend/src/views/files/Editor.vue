@@ -139,7 +139,7 @@ export default {
     },
     // Editor read-only state
     editorReadOnly() {
-      if (!this.permissions.modify) {
+      if (!this.viewerMode && !this.permissions.modify) {
         return true;
       }
       if (this.readOnly !== null) {
@@ -538,6 +538,9 @@ export default {
       } catch (_e) {
         notify.showError(this.$t("editor.uninitialized"));
       }
+    },
+    getValue(): string {
+      return this.editor?.getValue() ?? this.editorContent;
     },
     getAceMode(mode: string): string {
       switch (mode) {
