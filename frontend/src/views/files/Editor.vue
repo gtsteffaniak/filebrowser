@@ -335,6 +335,7 @@ export default {
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
   },
   unmounted() {
+    (this.$refs.editorRoot as HTMLElement | undefined)?.removeEventListener("keydown", this.stopEnterPropagation);
     if (this.editor) {
       this.editor.destroy();
       this.editor = null;
@@ -342,6 +343,7 @@ export default {
   },
   mounted: function () {
     this.resizeContainerEl = (this.$refs.editorRoot as HTMLElement | undefined) || null;
+    this.resizeContainerEl?.addEventListener("keydown", this.stopEnterPropagation); // to avoid trigger prompts primary button when the editor is embedded
     if (this.viewerMode) {
       this.$nextTick(() => {
         this.$nextTick(() => {
@@ -614,6 +616,11 @@ export default {
       mutations.setRequestContent(this.savedContent);
       this.isDirty = false;
       mutations.setEditorDirty(false);
+    },
+    stopEnterPropagation(event: KeyboardEvent) {
+      if (event.key === "Enter") {
+        event.stopPropagation();
+      }
     },
     async keyEvent(event: KeyboardEvent) {
       const { key, ctrlKey, metaKey } = event;
