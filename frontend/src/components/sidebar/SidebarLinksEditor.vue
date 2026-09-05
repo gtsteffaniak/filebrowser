@@ -1363,7 +1363,7 @@ export default {
 .links-container {
   display: flex;
   flex-direction: column;
-  padding-bottom: 1em;
+  padding-bottom: 0.5em;
   gap: 0.5em;
 }
 
