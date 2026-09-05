@@ -335,7 +335,8 @@ export default {
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
   },
   unmounted() {
-    (this.$refs.editorRoot as HTMLElement | undefined)?.removeEventListener("keydown", this.stopEnterPropagation);
+    this.resizeContainerEl?.removeEventListener("keydown", this.stopEnterPropagation);
+    this.resizeContainerEl = null;
     if (this.editor) {
       this.editor.destroy();
       this.editor = null;
