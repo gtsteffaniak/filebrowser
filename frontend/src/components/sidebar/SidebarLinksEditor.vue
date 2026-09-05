@@ -34,7 +34,7 @@
           class="link-item input no-select" :class="{ 'dragging': dragReorder.draggingIndex === index }">
           <div
             class="link-drag-handle"
-            @pointerdown="dragReorder.onPointerDown(index, $event)"
+            @pointerdown="!disabled && dragReorder.onPointerDown(index, $event)"
             @pointermove="dragReorder.onPointerMove($event)"
             @pointerup="dragReorder.onPointerUp($event)"
             @pointercancel="dragReorder.onPointerCancel($event)"
