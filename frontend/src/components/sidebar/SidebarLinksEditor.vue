@@ -1368,6 +1368,7 @@ export default {
 .sidebar-links-body {
   padding: 0 6px;
   margin: 0 -6px;
+  overflow-x: hidden;
 }
 
 .add-link-form {
