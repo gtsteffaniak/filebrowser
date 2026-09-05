@@ -563,6 +563,8 @@
     "darkMode": "深色模式"
   },
   "general": {
+    "import": "导入",
+    "export": "导出",
     "name": "名称",
     "path": "路径",
     "user": "用户",

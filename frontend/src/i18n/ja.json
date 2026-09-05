@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "認証コードを生成するにはパスワードが必要です。"
   },
   "general": {
+    "import": "インポート",
+    "export": "エクスポート",
     "name": "名前",
     "path": "パス",
     "user": "ユーザー",

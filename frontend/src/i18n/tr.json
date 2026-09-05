@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "Kimlik doğrulayıcı kodu oluşturmak için parolanız gereklidir."
   },
   "general": {
+    "import": "İçe Aktar",
+    "export": "Dışa Aktar",
     "name": "İsim{suffix}",
     "path": "Yol{suffix}",
     "user": "Kullanıcı{suffix}",

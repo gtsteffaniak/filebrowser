@@ -563,6 +563,8 @@
     "darkMode": "Donkere modus"
   },
   "general": {
+    "import": "Importeren",
+    "export": "Exporteren",
     "name": "Naam",
     "path": "Pad",
     "user": "Gebruiker",

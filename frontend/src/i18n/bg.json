@@ -9,6 +9,8 @@
     "noCreateOptions": "Няма налични опции за създаване"
   },
   "general": {
+    "import": "Импортиране",
+    "export": "Експортиране",
     "to": "до{suffix}",
     "and": "и{suffix}",
     "or": "или{suffix}",

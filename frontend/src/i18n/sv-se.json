@@ -563,6 +563,8 @@
     "darkMode": "Mörkt läge"
   },
   "general": {
+    "import": "Importera",
+    "export": "Exportera",
     "name": "Namn",
     "path": "Väg",
     "user": "Användare",

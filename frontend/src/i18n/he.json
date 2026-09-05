@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "יש להזין את הסיסמה שלך כדי ליצור קוד אימות."
   },
   "general": {
+    "import": "ייבוא",
+    "export": "ייצוא",
     "name": "שם",
     "path": "נתיב",
     "user": "משתמש",

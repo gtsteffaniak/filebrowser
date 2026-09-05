@@ -30,11 +30,16 @@
         <p>{{ $t('files.lonely') }}</p>
       </div>
       <div class="links-container">
-        <div v-for="(entry, index) in displayEntries" :key="entryKey(entry, index)" :ref="el => linkItemRefs[index] = el"
-          class="link-item input no-select" :class="{ 'dragging': draggingIndex === index }"
-          @dragover.prevent="handleDragOver($event, index)" @drop="handleDrop($event, index)">
-          <div draggable="true" @dragstart="handleDragStart($event, index)" @dragend="handleDragEnd"
-            class="link-drag-handle">
+        <div v-for="(entry, index) in displayEntries" :key="index" :ref="el => dragReorder.itemRefs[index] = el"
+          class="link-item input no-select" :class="{ 'dragging': dragReorder.draggingIndex === index }">
+          <div
+            class="link-drag-handle"
+            @pointerdown="!disabled && dragReorder.onPointerDown(index, $event)"
+            @pointermove="dragReorder.onPointerMove($event)"
+            @pointerup="dragReorder.onPointerUp($event)"
+            @pointercancel="dragReorder.onPointerCancel($event)"
+            @lostpointercapture="dragReorder.onPointerCancel($event)"
+          >
             <i class="material-symbols">drag_indicator</i>
           </div>
           <div v-if="entry.link.category === 'divider'" class="link-icon">
@@ -283,6 +288,35 @@
     <template v-if="yamlMode">
       <button
         type="button"
+        class="button button--flat button--red"
+        @click="exportYaml"
+        :aria-label="$t('general.export')"
+        :title="$t('general.export')"
+      >
+        <i class="material-symbols">upload</i>
+        {{ $t('general.export') }}
+      </button>
+      <button
+        type="button"
+        class="button button--flat button--red"
+        :disabled="disabled"
+        @click="triggerYamlImport"
+        :aria-label="$t('general.import')"
+        :title="$t('general.import')"
+      >
+        <i class="material-symbols">download</i>
+        {{ $t('general.import') }}
+      </button>
+      <input
+        ref="yamlFileInput"
+        type="file"
+        accept=".yaml,.yml,text/yaml"
+        class="hidden"
+        @change="importYaml"
+      />
+      <span class="card-actions-spacer"></span>
+      <button
+        type="button"
         class="button button--flat button--grey"
         :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')"
@@ -353,6 +387,7 @@
         type="button"
         aria-label="Save Links"
         class="button button--flat button--blue"
+        :disabled="disabled"
         @click="saveLinks"
         :title="$t('general.save')"
       >
@@ -368,12 +403,12 @@ import { notify } from "@/notify";
 import { shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-symbols";
-import { getObjectProperty } from '@/utils/object.js';
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import YamlEditorPanel from "@/components/prompts/YamlEditorPanel.vue";
 import { sidebarLinkKey } from "@/utils/sidebarLinkKeys.js";
+import { createDragReorder } from "@/utils/dragAndDropReorder.js";
 import yaml from "js-yaml";
 
 export default {
@@ -419,6 +454,9 @@ export default {
     },
   },
   emits: ["update:modelValue", "change", "save"],
+  beforeUnmount() {
+    this.dragReorder.cancel();
+  },
   data() {
     return {
       links: [],
@@ -431,10 +469,6 @@ export default {
         sourceName: "",
         sourcePath: "",
       },
-      draggingIndex: null,
-      dragOverIndex: null,
-      linkItemRefs: {},
-      originalLinks: null, // Store original order in case drag is cancelled
       availableTools: [
         { name: 'tools.title', path: '/tools', icon: 'build' }, // Main tools page
         ...tools() // Individual tools
@@ -448,6 +482,10 @@ export default {
       yamlMode: false,
       yamlText: "",
       editMeta: { enabled: true, enforced: false },
+      dragReorder: createDragReorder({
+        getOrder: () => this.getReorderSnapshot(),
+        setOrder: (snapshot) => this.applyReorderSnapshot(snapshot),
+      }),
     };
   },
   computed: {
@@ -605,7 +643,7 @@ export default {
     },
     rootClass() {
       const classes = ["sidebar-links-content"];
-      if (this.embedded || this.yamlMode) {
+      if (this.yamlMode) {
         classes.unshift("card-content", "prompt-panel");
       } else {
         classes.unshift("card-content");
@@ -613,7 +651,7 @@ export default {
       return classes.join(" ");
     },
     bodyScrollClass() {
-      return this.embedded ? "sidebar-links-body-scroll" : "";
+      return "sidebar-links-body";
     },
     showCardActions() {
       if (this.yamlMode) {
@@ -672,7 +710,6 @@ export default {
     emitDefaultsUpdate(items) {
       const next = this.cloneDefaultsItems(items);
       this.$emit("update:modelValue", next);
-      this.$emit("change", next);
     },
     getReorderSnapshot() {
       if (this.isDefaultsMode) {
@@ -722,6 +759,31 @@ export default {
     },
     applyYamlFromEditor() {
       this.$refs.yamlEditor?.apply();
+    },
+    exportYaml() {
+      const text = this.$refs.yamlEditor?.getValue() ?? this.yamlText;
+      const blob = new Blob([text], { type: "text/yaml" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = this.isDefaultsMode ? "sidebar-link-defaults.yaml" : "sidebar-links.yaml";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    },
+    triggerYamlImport() {
+      this.$refs.yamlFileInput?.click();
+    },
+    importYaml(event) {
+      const file = event.target.files?.[0];
+      event.target.value = ""; // to allow selecting the same file again
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.yamlText = typeof reader.result === "string" ? reader.result : "";
+      };
+      reader.readAsText(file);
     },
     onYamlModeChange(enabled) {
       if (enabled) {
@@ -1191,81 +1253,11 @@ export default {
         sourcePath: "",
       };
     },
-    handleDragStart(event, index) {
-      this.draggingIndex = index;
-      this.dragOverIndex = null;
-
-      // Store original order in case drag is cancelled
-      this.originalLinks = this.getReorderSnapshot();
-
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/html", event.target);
-
-      // Set the entire link item as the drag image
-      const linkItem = getObjectProperty(this.linkItemRefs, index);
-      if (linkItem) {
-        // Create a clone for the drag image to avoid affecting the original
-        const clone = linkItem.cloneNode(true);
-        clone.style.position = 'fixed';
-        clone.style.top = '-9999px';
-        clone.style.left = '-9999px';
-
-        // Set the clone width to match the original element's width
-        const originalWidth = linkItem.offsetWidth;
-        clone.style.width = `${originalWidth}px`;
-        linkItem.parentNode.insertBefore(clone, linkItem.nextSibling);
-
-        // Set it as the drag image
-        event.dataTransfer.setDragImage(clone, event.offsetX, event.offsetY);
-
-        // Clean up the clone after a brief delay
-        setTimeout(() => {
-          clone.remove();
-        }, 0);
-      }
-    },
-    handleDragOver(_event, index) {
-      if (this.draggingIndex === null || this.draggingIndex === index) return;
-
-      // Only reorder if we're hovering over a different item
-      if (this.dragOverIndex !== index) {
-        this.dragOverIndex = index;
-
-        // Live reorder: move the dragged item to the new position
-        const newLinks = [...this.getReorderSnapshot()];
-        const draggedLink = newLinks[this.draggingIndex];
-
-        // Remove from current position
-        newLinks.splice(this.draggingIndex, 1);
-
-        // Insert at hover position
-        newLinks.splice(index, 0, draggedLink);
-
-        // Update the array and dragging index
-        this.applyReorderSnapshot(newLinks);
-        this.draggingIndex = index; // Update to new position
-      }
-    },
-    handleDrop(event) {
-      event.preventDefault();
-
-      // The array is already in the correct order from handleDragOver
-      // Just clean up the drag state
-      this.draggingIndex = null;
-      this.dragOverIndex = null;
-      this.originalLinks = null; // Clear the backup
-    },
-    handleDragEnd() {
-      // If drag was cancelled (no drop event), restore original order
-      if (this.originalLinks !== null) {
-        this.applyReorderSnapshot(this.originalLinks);
-        this.originalLinks = null;
-      }
-
-      this.draggingIndex = null;
-      this.dragOverIndex = null;
-    },
     async saveLinks() {
+      if (this.isDefaultsMode) {
+        this.$emit("save", this.cloneDefaultsItems(this.modelValue));
+        return;
+      }
       this.$emit("save", {
         links: [...this.links],
         showToolsInSidebar: this.showToolsInSidebar,
@@ -1309,6 +1301,7 @@ export default {
 .links-container {
   display: flex;
   flex-direction: column;
+  padding-bottom: 0.5em;
   gap: 0.5em;
 }
 
@@ -1318,7 +1311,7 @@ export default {
   align-items: center;
   gap: 0.5em;
   background: var(--surfaceSecondary);
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .link-item.dragging {
@@ -1330,6 +1323,7 @@ export default {
 .link-drag-handle {
   color: var(--textSecondary);
   cursor: grab;
+  touch-action: none;
 }
 
 .link-drag-handle:active {
@@ -1369,6 +1363,12 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 0.5em;
+}
+
+.sidebar-links-body {
+  padding: 0 6px;
+  margin: 0 -6px;
+  overflow-x: hidden;
 }
 
 .add-link-form {
@@ -1411,17 +1411,9 @@ export default {
 
 .yaml-editor-container {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 40vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-}
-
-.sidebar-links-body-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 </style>
