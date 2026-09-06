@@ -65,20 +65,20 @@
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.smallerThan") }}</p>
                     <input
-                      class="sizeInput"
+                      class="sizeInput input"
                       v-model="smallerThan"
                       type="number"
                       min="0"
                       placeholder="MB"
                     />
                     <p>{{ $t("search.largerThan") }}</p>
-                    <input class="sizeInput" v-model="largerThan" type="number" placeholder="MB" />
+                    <input class="sizeInput input" v-model="largerThan" type="number" placeholder="MB" />
                   </div>
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.olderThanDate") }}</p>
-                    <input class="sizeInput" v-model="modifiedOlderThan" type="date" />
+                    <input class="sizeInput input" v-model="modifiedOlderThan" type="date" />
                     <p>{{ $t("search.newerThanDate") }}</p>
-                    <input class="sizeInput" v-model="modifiedNewerThan" type="date" />
+                    <input class="sizeInput input" v-model="modifiedNewerThan" type="date" />
                   </div>
                 </div>
                 <div class="settings-items">
@@ -907,7 +907,7 @@ export default {
   border-top-right-radius: 0px;
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
-  background-color: lightgray;
+  background-color: var(--surfacePrimary);
   max-height: 80vh;
   overflow: hidden;
   display: flex;
@@ -973,7 +973,7 @@ export default {
   border: 0;
   background-color: transparent;
   padding: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--divider);
   font-size: 0.95em;
 }
 
@@ -983,7 +983,7 @@ export default {
 }
 
 #search.active .search-input-container input {
-  color: inherit;
+  color: var(--textPrimary);
 }
 
 #search .search-input-container input::placeholder {
@@ -1107,11 +1107,11 @@ body.rtl #search #result ul>* {
 }
 
 #search .search-input-container input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--divider) 50%, transparent);
 }
 
 #search.active .search-input-container input::placeholder {
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--textSecondary);
 }
 
 #search.dark-mode .search-input-container {
@@ -1269,6 +1269,7 @@ body.rtl #search .boxes h3 {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(6px);
     height: 4em;
+    background: var(--surfacePrimary)
   }
 
   #search.active>div {

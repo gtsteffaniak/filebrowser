@@ -960,6 +960,10 @@ export default {
 </script>
 
 <style scoped>
+label + .form-flex-group {
+  margin-top: 0.35em;
+}
+
 .scope-blocks {
   display: flex;
   flex-direction: column;
@@ -989,8 +993,9 @@ export default {
 
 .scope-block :deep(.settings-group-title) {
   padding: 0.5em 0.75em;
-  border: 1px solid var(--borderColor, #ddd);
+  border: 1px solid var(--divider);
   border-radius: var(--borderRadius, 4px);
+  margin-top: -0.5em;
 }
 
 .scope-path-display {

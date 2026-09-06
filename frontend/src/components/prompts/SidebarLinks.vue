@@ -1002,6 +1002,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.5em;
+  padding-bottom: 0.5em;
 }
 
 /* Link item styles */

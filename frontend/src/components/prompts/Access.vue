@@ -18,6 +18,7 @@
       </div>
       <div v-else>
       <PathPickerButton
+        class="path-picker"
         v-model:path="currentPath"
         v-model:source="currentSource"
         aria-label="access-path"
@@ -26,7 +27,9 @@
         :placeholder="$t('sidebar.chooseSource')"
         @navigate="onPathPickerNavigate"
       />
-      <ActivityViewerButton :href="activityViewerHref" />
+      <div class="settings-items">
+        <ActivityViewerButton class="item" :href="activityViewerHref" />
+      </div>
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
@@ -358,6 +361,12 @@ export default {
   align-items: center;
   padding: 0.25em !important;
   gap: 0.5em;
+  margin-top: 0.70rem;
+}
+
+.path-picker,
+.banner-content {
+  margin-bottom: 0.70rem;
 }
 
 .cascade-toggle-section {
