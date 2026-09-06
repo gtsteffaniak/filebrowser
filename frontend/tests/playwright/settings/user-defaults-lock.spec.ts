@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test, expectLockTooltipOnRowHover } from "../test-setup";
 
 async function expandUserDefaultsGroup(
   page: import("@playwright/test").Page,
@@ -44,10 +44,9 @@ test("config-locked user defaults show lock help and skip patch", async ({ page,
 
     const showHiddenRow = page.locator(".user-defaults-prompt .item").filter({ hasText: "Show hidden files" });
     await expect(showHiddenRow).toBeVisible();
-    await showHiddenRow.locator(".toggle-row--value").hover();
-    const lockTooltip = page.locator(".floating-tooltip");
-    await expect(lockTooltip).toBeVisible();
-    await expect(lockTooltip).toHaveText(
+    await expectLockTooltipOnRowHover(
+      page,
+      showHiddenRow,
       "This default is set in the config file and cannot be changed here.",
     );
 

@@ -30,6 +30,21 @@ export async function closeSharePromptIfOpen(page: Page): Promise<void> {
   await dismissSharePrompt(page, page.locator("div[aria-label='share-prompt']"));
 }
 
+/** Hover a disabled toggle row until its config-lock tooltip is visible (Firefox headless can spuriously mouseleave). */
+export async function expectLockTooltipOnRowHover(
+  page: Page,
+  row: Locator,
+  text: string,
+): Promise<void> {
+  const hoverTarget = row.locator(".toggle-row--value");
+  const lockTooltip = page.locator(".floating-tooltip");
+  await expect.poll(async () => {
+    await hoverTarget.hover();
+    return await lockTooltip.isVisible();
+  }).toBe(true);
+  await expect(lockTooltip).toHaveText(text);
+}
+
 /** Closes the file-actions / listing context menu if it is still open. */
 export async function closeContextMenuIfOpen(page: Page): Promise<void> {
   const contextMenu = page.locator("#context-menu");

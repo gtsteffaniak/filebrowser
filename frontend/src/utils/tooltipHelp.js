@@ -38,7 +38,7 @@ export function useTapForTooltip() {
 }
 
 export function tooltipEventCoords(event) {
-  if (event?.clientX != null && event?.clientY != null) {
+  if (event?.clientX !== null && event?.clientY !== null) {
     return { x: event.clientX, y: event.clientY };
   }
   const touch = event?.changedTouches?.[0] || event?.touches?.[0];

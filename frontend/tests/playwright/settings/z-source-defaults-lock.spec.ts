@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test, expectLockTooltipOnRowHover } from "../test-setup";
 
 async function openAccessSettings(page: import("@playwright/test").Page) {
   await page.goto("/settings");
@@ -35,10 +35,9 @@ test("config-locked source defaults show lock help and skip patch", async ({ pag
       .locator(".source-file-permissions .item")
       .filter({ hasText: "Edit files" });
     await expect(modifyRow).toBeVisible();
-    await modifyRow.locator(".toggle-row--value").hover();
-    const lockTooltip = page.locator(".floating-tooltip");
-    await expect(lockTooltip).toBeVisible();
-    await expect(lockTooltip).toHaveText(
+    await expectLockTooltipOnRowHover(
+      page,
+      modifyRow,
       "This default is set in the config file and cannot be changed here.",
     );
 

@@ -44,6 +44,8 @@ describe("tooltipHelp", () => {
     storeMock.mutations.showTooltip.mockClear();
     storeMock.mutations.hideTooltip.mockClear();
     hideInteractiveTooltip(true);
+    storeMock.mutations.showTooltip.mockClear();
+    storeMock.mutations.hideTooltip.mockClear();
     vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false })));
   });
 
