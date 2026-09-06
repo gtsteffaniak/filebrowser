@@ -32,6 +32,7 @@ import {
   shouldIgnoreOutsideTap,
   showHoverTooltip,
   showInteractiveTooltip,
+  tooltipEventCoords,
 } from "./tooltipHelp.js";
 
 describe("tooltipHelp", () => {
@@ -52,6 +53,27 @@ describe("tooltipHelp", () => {
   afterEach(() => {
     hideInteractiveTooltip(true);
     vi.unstubAllGlobals();
+  });
+
+  it("uses touch coordinates from touchend events", () => {
+    const coords = tooltipEventCoords({
+      changedTouches: [{ clientX: 42, clientY: 84 }],
+    });
+    expect(coords).toEqual({ x: 42, y: 84 });
+  });
+
+  it("prefers touch coordinates when clientX is undefined", () => {
+    const coords = tooltipEventCoords({
+      clientX: undefined,
+      clientY: undefined,
+      changedTouches: [{ clientX: 10, clientY: 20 }],
+    });
+    expect(coords).toEqual({ x: 10, y: 20 });
+  });
+
+  it("uses mouse coordinates for hover events", () => {
+    const coords = tooltipEventCoords({ clientX: 15, clientY: 25 });
+    expect(coords).toEqual({ x: 15, y: 25 });
   });
 
   it("shows tooltip on desktop hover", () => {

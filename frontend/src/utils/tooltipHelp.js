@@ -38,12 +38,19 @@ export function useTapForTooltip() {
 }
 
 export function tooltipEventCoords(event) {
-  if (event?.clientX !== null && event?.clientY !== null) {
-    return { x: event.clientX, y: event.clientY };
-  }
   const touch = event?.changedTouches?.[0] || event?.touches?.[0];
   if (touch) {
     return { x: touch.clientX, y: touch.clientY };
+  }
+  if (typeof event?.clientX === "number" && typeof event?.clientY === "number") {
+    return { x: event.clientX, y: event.clientY };
+  }
+  if (event?.currentTarget instanceof Element) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    };
   }
   return { x: 0, y: 0 };
 }
