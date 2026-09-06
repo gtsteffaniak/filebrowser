@@ -15,13 +15,13 @@ import (
 
 	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -400,6 +400,10 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 			info.Metadata = extItem.Metadata
 			info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
 		}
+		return
+	}
+
+	if !opts.Content {
 		return
 	}
 

@@ -110,10 +110,7 @@
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
-          <i class="material-symbols-outlined tooltip-info-icon" @mouseenter="showHelpTooltip"
-            @mouseleave="hideTooltip">
-            help
-          </i>
+          <HelpTooltipIcon :text="searchHelpText" />
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
@@ -146,6 +143,7 @@
 
 <script>
 import { resourcesApi, toolsApi } from "@/api";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Icon from "@/components/files/Icon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -158,6 +156,7 @@ import { globalVars } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import { shouldIgnoreOutsideTap } from "@/utils/tooltipHelp.js";
 
 const boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -171,6 +170,7 @@ const boxes = {
 
 export default {
   components: {
+    HelpTooltipIcon,
     Icon,
     ToggleSwitch,
     SettingsItem,
@@ -351,6 +351,12 @@ export default {
     },
     isEmpty() {
       return this.results.length === 0;
+    },
+    searchHelpText() {
+      return [
+        this.$t("search.helpText1", { minSearchLength: globalVars.minSearchLength }),
+        this.$t("search.helpText2"),
+      ].join("\n\n");
     },
     text() {
       if (this.ongoing > 0) {
@@ -580,21 +586,14 @@ export default {
         this.noneMessage = this.$t("search.noResults");
       }
     },
-    showHelpTooltip(event) {
-      const helpText = [
-        this.$t("search.helpText1", { minSearchLength: globalVars.minSearchLength }),
-        this.$t("search.helpText2"),
-      ].join("\n\n");
-      mutations.showTooltip({
-        content: helpText,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
-    },
-    clearContext() {
+    clearContext(event) {
+      const target = event?.target;
+      if (target instanceof Element && target.closest(".tooltip-info-icon, .floating-tooltip")) {
+        return;
+      }
+      if (shouldIgnoreOutsideTap()) {
+        return;
+      }
       mutations.closeHovers();
     },
     getThumbnailUrl(s) {

@@ -64,13 +64,7 @@
         >
           <div class="centered-with-tooltip">
             <h3>{{ $t("profileSettings.hideFileExt") }}</h3>
-            <i
-              class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showFieldHelp($event, 'listing', 'hideFileExt', $t('profileSettings.hideFileExtDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('profileSettings.hideFileExtDescription')" />
           </div>
           <div
             class="form-flex-group"
@@ -187,13 +181,7 @@
           >
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
-              <i
-                class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showFieldHelp($event, 'preview', 'disablePreviewExt', $t('profileSettings.disableThumbnailPreviewsDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+              <HelpTooltipIcon :text="$t('profileSettings.disableThumbnailPreviewsDescription')" />
           </div>
           <div
             class="form-flex-group"
@@ -340,13 +328,7 @@
         >
           <div class="centered-with-tooltip">
             <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
-            <i
-              class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showFieldHelp($event, 'fileViewer', 'disableViewingExt', $t('profileSettings.disableViewingFilesDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('profileSettings.disableViewingFilesDescription')" />
           </div>
           <div
             class="form-flex-group"
@@ -384,13 +366,7 @@
           >
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
-              <i
-                class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showFieldHelp($event, 'fileViewer', 'disableOnlyOfficeExt', $t('profileSettings.disableOfficeEditorDescription'))"
-                @mouseleave="hideTooltip"
-              >
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('profileSettings.disableOfficeEditorDescription')" />
             </div>
             <div
               class="form-flex-group"
@@ -552,8 +528,13 @@
 <script>
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants.js";
-import { state, mutations, getters } from "@/store";
+import {
+  hideInteractiveTooltip,
+  showHoverTooltip,
+} from "@/utils/tooltipHelp.js";
+import { state, getters, mutations } from "@/store";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProfilePreferenceToggle from "@/components/settings/ProfilePreferenceToggle.vue";
 import ProfileEnforceSwitch from "@/components/settings/ProfileEnforceSwitch.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -565,6 +546,7 @@ import ButtonGroup from "@/components/ButtonGroup.vue";
 export default {
   name: "UserProfilePreferences",
   components: {
+    HelpTooltipIcon,
     ToggleSwitch,
     SettingsItem,
     Languages,
@@ -819,10 +801,7 @@ export default {
       if (!this.fieldDisabled(section, field) || !this.isEnforcementLocked(section, field)) {
         return;
       }
-      this.showTooltip(event, this.$t("profileSettings.enforcedByAdmin"));
-    },
-    showFieldHelp(event, section, field, description) {
-      this.showTooltip(event, this.helpText(section, field, description));
+      showHoverTooltip(this.$t("profileSettings.enforcedByAdmin"), event);
     },
     sectionBool(section, field) {
       if (section === "account" && field.includes(".")) {
@@ -913,15 +892,8 @@ export default {
       this.$emit("locale-change", locale);
       this.emitSectionChange("ui", "locale");
     },
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
     hideTooltip() {
-      mutations.hideTooltip();
+      hideInteractiveTooltip();
     },
     validateExtensions(value) {
       const normalized = String(value ?? "").trim();

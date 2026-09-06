@@ -36,10 +36,7 @@
           <i class="material-symbols">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           {{ $t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? $t("access.deny") : $t("access.allow")
           }}
-          <i class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('access.defaultBehaviorDescription'))" @mouseleave="hideTooltip">
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('access.defaultBehaviorDescription')" />
         </div>
 
       </div>
@@ -113,7 +110,7 @@
 <script>
 import { notify } from "@/notify";
 import { accessApi } from "@/api";
-import { mutations } from "@/store";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -126,6 +123,7 @@ import { eventBus } from "@/store/eventBus";
 export default {
   name: "access",
   components: {
+    HelpTooltipIcon,
     FileList,
     ToggleSwitch,
     LoadingSpinner,
@@ -336,16 +334,6 @@ export default {
         console.error(e);
       }
     },
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
-    }
   }
 };
 </script>
