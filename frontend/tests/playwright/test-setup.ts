@@ -30,7 +30,7 @@ export async function closeSharePromptIfOpen(page: Page): Promise<void> {
   await dismissSharePrompt(page, page.locator("div[aria-label='share-prompt']"));
 }
 
-/** Hover a disabled toggle row until its config-lock tooltip is visible (Firefox headless can spuriously mouseleave). */
+/** Show a disabled toggle row's config-lock tooltip and assert its text. */
 export async function expectLockTooltipOnRowHover(
   page: Page,
   row: Locator,
@@ -38,10 +38,19 @@ export async function expectLockTooltipOnRowHover(
 ): Promise<void> {
   const hoverTarget = row.locator(".toggle-row--value");
   const lockTooltip = page.locator(".floating-tooltip");
-  await expect.poll(async () => {
-    await hoverTarget.hover();
-    return await lockTooltip.isVisible();
-  }).toBe(true);
+  await hoverTarget.scrollIntoViewIfNeeded();
+  // Playwright hover is flaky in Firefox (hover: none); dispatch mouseenter on the row.
+  await hoverTarget.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    el.dispatchEvent(
+      new MouseEvent("mouseenter", {
+        bubbles: false,
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2,
+      }),
+    );
+  });
+  await expect(lockTooltip).toBeVisible();
   await expect(lockTooltip).toHaveText(text);
 }
 
