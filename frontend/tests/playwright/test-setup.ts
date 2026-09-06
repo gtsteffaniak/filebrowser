@@ -53,12 +53,14 @@ export async function expectLockTooltipOnRowHover(
   const lockTooltip = page.locator(".floating-tooltip");
   await hoverTarget.scrollIntoViewIfNeeded();
 
-  await expect(async () => {
-    const box = await hoverTarget.boundingBox();
-    if (box) {
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    }
-    await hoverTarget.hover({ force: true });
+  const box = await hoverTarget.boundingBox();
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  }
+  await hoverTarget.hover({ force: true });
+  await hoverTarget.dispatchEvent("mouseenter");
+
+  await expect.poll(async () => {
     await hoverTarget.dispatchEvent("mouseenter");
     if (!(await lockTooltip.isVisible())) {
       throw new Error("lock tooltip not visible");
@@ -67,6 +69,7 @@ export async function expectLockTooltipOnRowHover(
     if (tooltipText !== text) {
       throw new Error(`expected tooltip "${text}", got "${tooltipText ?? ""}"`);
     }
+    return true;
   }).toPass({ timeout: 4000, intervals: [100, 250, 500] });
 }
 
