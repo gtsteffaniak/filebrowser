@@ -407,7 +407,7 @@ button.flat-right.flat-left,
 /* ExpandDropdown integration with adjacent inputs/buttons */
 .expand-dropdown.form-compact {
   width: auto;
-  min-width: 0;
+  min-width: max-content;
   flex: 0 1 auto;
 }
 
