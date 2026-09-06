@@ -110,18 +110,34 @@ export function hideInteractiveTooltip(force = false) {
   mutations.hideTooltip();
 }
 
-export function showInteractiveTooltip(content, event) {
-  const tap = useTapForTooltip();
+export function showHoverTooltip(content, event) {
   const { x, y } = tooltipEventCoords(event);
   mutations.showTooltip({
     content,
     x,
     y,
-    pointerEvents: tap,
+    pointerEvents: false,
   });
-  if (tap) {
-    registerTooltipDismiss();
+}
+
+function showTapTooltip(content, event) {
+  const { x, y } = tooltipEventCoords(event);
+  mutations.showTooltip({
+    content,
+    x,
+    y,
+    pointerEvents: true,
+  });
+  registerTooltipDismiss();
+}
+
+/** @deprecated Use showHoverTooltip or tap handlers instead */
+export function showInteractiveTooltip(content, event) {
+  if (useTapForTooltip()) {
+    showTapTooltip(content, event);
+    return;
   }
+  showHoverTooltip(content, event);
 }
 
 export function isTooltipContentVisible(content) {
@@ -133,14 +149,14 @@ export function isTooltipContentVisible(content) {
 }
 
 export function onTooltipHelpMouseEnter(event, content) {
-  if (useTapForTooltip()) {
+  if (tapCooldown || isTapOpenedTooltip()) {
     return;
   }
-  showInteractiveTooltip(content, event);
+  showHoverTooltip(content, event);
 }
 
 export function onTooltipHelpMouseLeave() {
-  if (useTapForTooltip()) {
+  if (isTapOpenedTooltip()) {
     return;
   }
   hideInteractiveTooltip(true);
@@ -153,7 +169,7 @@ export function onTooltipHelpTouchEnd(event, content) {
   event.stopPropagation();
   startTapCooldown();
   unregisterTooltipDismiss();
-  showInteractiveTooltip(content, event);
+  showTapTooltip(content, event);
 }
 
 export function onTooltipHelpClick(event, content) {
@@ -161,7 +177,7 @@ export function onTooltipHelpClick(event, content) {
   if (useTapForTooltip()) {
     return;
   }
-  showInteractiveTooltip(content, event);
+  showHoverTooltip(content, event);
 }
 
 export function isComponentTooltipVisible(component, propsMatcher = () => true) {
@@ -169,6 +185,36 @@ export function isComponentTooltipVisible(component, propsMatcher = () => true) 
     return false;
   }
   return propsMatcher(state.tooltip.componentProps ?? {});
+}
+
+export function showHoverComponentTooltip({
+  component,
+  componentProps,
+  event,
+  width,
+}) {
+  const { x, y } = tooltipEventCoords(event);
+  mutations.showTooltip({
+    component,
+    componentProps,
+    x,
+    y,
+    width: width ?? null,
+    pointerEvents: false,
+  });
+}
+
+function showTapComponentTooltip({ component, componentProps, event, width }) {
+  const { x, y } = tooltipEventCoords(event);
+  mutations.showTooltip({
+    component,
+    componentProps,
+    x,
+    y,
+    width: width ?? null,
+    pointerEvents: true,
+  });
+  registerTooltipDismiss();
 }
 
 export function showInteractiveComponentTooltip({
@@ -179,18 +225,11 @@ export function showInteractiveComponentTooltip({
   width,
 }) {
   const tap = pointerEvents ?? useTapForTooltip();
-  const { x, y } = tooltipEventCoords(event);
-  mutations.showTooltip({
-    component,
-    componentProps,
-    x,
-    y,
-    width: width ?? null,
-    pointerEvents: tap,
-  });
   if (tap) {
-    registerTooltipDismiss();
+    showTapComponentTooltip({ component, componentProps, event, width });
+    return;
   }
+  showHoverComponentTooltip({ component, componentProps, event, width });
 }
 
 export function onComponentTooltipTouchEnd(options) {
@@ -201,7 +240,7 @@ export function onComponentTooltipTouchEnd(options) {
   event.stopPropagation();
   startTapCooldown();
   unregisterTooltipDismiss();
-  showInteractiveComponentTooltip(options);
+  showTapComponentTooltip(options);
 }
 
 export function onComponentTooltipClick(options) {
@@ -210,5 +249,5 @@ export function onComponentTooltipClick(options) {
   if (useTapForTooltip()) {
     return;
   }
-  showInteractiveComponentTooltip(options);
+  showHoverComponentTooltip(options);
 }

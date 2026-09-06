@@ -111,7 +111,6 @@
 import { notify } from "@/notify";
 import { accessApi } from "@/api";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
-import { mutations } from "@/store";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";

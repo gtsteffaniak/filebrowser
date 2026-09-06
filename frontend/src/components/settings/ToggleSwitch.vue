@@ -51,7 +51,7 @@
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import {
   hideInteractiveTooltip,
-  showInteractiveTooltip,
+  showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
 
 let enforcedIdCounter = 0;
@@ -128,11 +128,11 @@ export default {
         return;
       }
       if (this.valueTooltip) {
-        showInteractiveTooltip(this.valueTooltip, event);
+        showHoverTooltip(this.valueTooltip, event);
         return;
       }
       if (this.enforcementLocked) {
-        showInteractiveTooltip(this.$t("profileSettings.enforcedByAdmin"), event);
+        showHoverTooltip(this.$t("profileSettings.enforcedByAdmin"), event);
       }
     },
     hideTooltip() {

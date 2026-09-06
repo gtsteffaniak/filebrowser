@@ -77,7 +77,7 @@ import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import {
   hideInteractiveTooltip,
-  showInteractiveTooltip,
+  showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
 import SidebarLinks from "./Links.vue";
 import { url } from "@/utils";
@@ -237,7 +237,7 @@ export default {
     },
     showTooltip(event, text) {
       if (text) {
-        showInteractiveTooltip(text, event);
+        showHoverTooltip(text, event);
       }
     },
     hideTooltip() {

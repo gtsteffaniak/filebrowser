@@ -208,7 +208,7 @@ import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
 import {
   hideInteractiveTooltip,
-  showInteractiveTooltip,
+  showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
 import { url } from "@/utils";
 import buttons from "@/utils/buttons";
@@ -594,7 +594,7 @@ export default {
       hideInteractiveTooltip();
     },
     showTooltip(event, text) {
-      showInteractiveTooltip(text, event);
+      showHoverTooltip(text, event);
     },
     onCreateToggleClick() {
       if (this.createToggleDisabled) return;

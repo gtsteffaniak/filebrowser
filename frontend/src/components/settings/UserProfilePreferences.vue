@@ -530,7 +530,7 @@ import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants.js";
 import {
   hideInteractiveTooltip,
-  showInteractiveTooltip,
+  showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
@@ -801,7 +801,7 @@ export default {
       if (!this.fieldDisabled(section, field) || !this.isEnforcementLocked(section, field)) {
         return;
       }
-      showInteractiveTooltip(this.$t("profileSettings.enforcedByAdmin"), event);
+      showHoverTooltip(this.$t("profileSettings.enforcedByAdmin"), event);
     },
     sectionBool(section, field) {
       if (section === "account" && field.includes(".")) {

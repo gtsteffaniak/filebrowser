@@ -314,7 +314,7 @@ import SettingsTable from "@/components/settings/Table.vue";
 import Errors from "@/views/Errors.vue";
 import {
   hideInteractiveTooltip,
-  showInteractiveComponentTooltip,
+  showHoverComponentTooltip,
 } from "@/utils/tooltipHelp.js";
 import { getters, mutations, state } from "@/store";
 import { toStandardLocale } from "@/i18n";
@@ -1361,7 +1361,7 @@ export default {
       return hasActivityDetails(row);
     },
     showDetailsTooltip(event, row) {
-      showInteractiveComponentTooltip({
+      showHoverComponentTooltip({
         component: ActivityDetailsInfo,
         componentProps: {
           row,

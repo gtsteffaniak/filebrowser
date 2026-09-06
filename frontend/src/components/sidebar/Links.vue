@@ -208,8 +208,8 @@ import {
   hideInteractiveTooltip,
   onComponentTooltipClick,
   onComponentTooltipTouchEnd,
-  showInteractiveComponentTooltip,
-  showInteractiveTooltip,
+  showHoverComponentTooltip,
+  showHoverTooltip,
   useTapForTooltip,
 } from "@/utils/tooltipHelp.js";
 import ProgressBar from "@/components/ProgressBar.vue";
@@ -586,7 +586,7 @@ export default {
     },
     showTooltip(event, text) {
       if (text) {
-        showInteractiveTooltip(text, event);
+        showHoverTooltip(text, event);
       }
     },
     hideTooltip() {
@@ -617,10 +617,7 @@ export default {
       };
     },
     onSourceInfoMouseEnter(event, info) {
-      if (this.useTapForSourceTooltip) {
-        return;
-      }
-      this.showSourceTooltip(event, info);
+      this.showSourceHoverTooltip(event, info);
     },
     onSourceInfoMouseLeave() {
       this.pressedSourceInfo = null;
@@ -629,15 +626,14 @@ export default {
       }
       this.hideTooltip();
     },
-    showSourceTooltip(event, info) {
+    showSourceHoverTooltip(event, info) {
       if (!info?.name) {
         return;
       }
-      showInteractiveComponentTooltip({
+      showHoverComponentTooltip({
         component: IndexInfo,
         componentProps: { info },
         event,
-        pointerEvents: this.useTapForSourceTooltip,
       });
     },
     async showEditShareHover() {

@@ -169,7 +169,7 @@ import { toolsApi } from "@/api";
 import { state, mutations } from "@/store";
 import {
   hideInteractiveTooltip,
-  showInteractiveTooltip,
+  showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
@@ -686,7 +686,7 @@ export default {
         const displayPath = this.getDisplayPath(item.path);
         const size = this.humanSize(item.size);
         const tooltipContent = `${displayPath} (${size})`;
-        showInteractiveTooltip(tooltipContent, {
+        showHoverTooltip(tooltipContent, {
           clientX: this.tooltipMouseX,
           clientY: this.tooltipMouseY,
         });

@@ -17,8 +17,7 @@ import {
   hideInteractiveTooltip,
   onComponentTooltipClick,
   onComponentTooltipTouchEnd,
-  showInteractiveComponentTooltip,
-  useTapForTooltip,
+  showHoverComponentTooltip,
 } from "@/utils/tooltipHelp.js";
 
 export default {
@@ -88,7 +87,7 @@ export default {
       if (!text || !this.label) {
         return;
       }
-      showInteractiveComponentTooltip({
+      showHoverComponentTooltip({
         component: ActivityTableValueInfo,
         componentProps: {
           label: this.label,
@@ -125,9 +124,6 @@ export default {
       };
     },
     onBadgeMouseEnter(event) {
-      if (useTapForTooltip()) {
-        return;
-      }
       this.showComponentTooltip(event);
     },
     hideTooltip() {

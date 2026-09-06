@@ -30,6 +30,7 @@ import {
   onTooltipHelpMouseLeave,
   onTooltipHelpTouchEnd,
   shouldIgnoreOutsideTap,
+  showHoverTooltip,
   showInteractiveTooltip,
 } from "./tooltipHelp.js";
 
@@ -52,6 +53,18 @@ describe("tooltipHelp", () => {
   });
 
   it("shows tooltip on desktop hover", () => {
+    const event = { clientX: 10, clientY: 20 };
+    onTooltipHelpMouseEnter(event, "help text");
+    expect(storeMock.mutations.showTooltip).toHaveBeenCalledWith({
+      content: "help text",
+      x: 10,
+      y: 20,
+      pointerEvents: false,
+    });
+  });
+
+  it("shows hover tooltip even when tap mode is enabled", () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
     const event = { clientX: 10, clientY: 20 };
     onTooltipHelpMouseEnter(event, "help text");
     expect(storeMock.mutations.showTooltip).toHaveBeenCalledWith({
@@ -149,6 +162,70 @@ describe("tooltipHelp", () => {
     expect(storeMock.mutations.hideTooltip).toHaveBeenCalled();
   });
 
+  it("ignores synthetic mouseleave while a tap tooltip is open", () => {
+    storeMock.getters.isMobile.mockReturnValue(true);
+    onTooltipHelpTouchEnd(
+      { clientX: 1, clientY: 2, stopPropagation: vi.fn() },
+      "tap help",
+    );
+    storeMock.state.tooltip.show = true;
+    storeMock.state.tooltip.pointerEvents = true;
+    storeMock.mutations.hideTooltip.mockClear();
+
+    onTooltipHelpMouseLeave();
+    expect(storeMock.mutations.hideTooltip).not.toHaveBeenCalled();
+  });
+
+  it("does not replace a tap tooltip with a hover tooltip on mouseenter", () => {
+    storeMock.getters.isMobile.mockReturnValue(true);
+    onTooltipHelpTouchEnd(
+      { clientX: 1, clientY: 2, stopPropagation: vi.fn() },
+      "tap help",
+    );
+    storeMock.state.tooltip.show = true;
+    storeMock.state.tooltip.pointerEvents = true;
+    storeMock.mutations.showTooltip.mockClear();
+
+    onTooltipHelpMouseEnter({ clientX: 3, clientY: 4 }, "hover help");
+    expect(storeMock.mutations.showTooltip).not.toHaveBeenCalled();
+  });
+
+  it("switches tap tooltip when tapping another icon", () => {
+    storeMock.getters.isMobile.mockReturnValue(true);
+    const firstEvent = {
+      clientX: 5,
+      clientY: 6,
+      stopPropagation: vi.fn(),
+    };
+    const secondEvent = {
+      clientX: 20,
+      clientY: 30,
+      stopPropagation: vi.fn(),
+    };
+
+    onTooltipHelpTouchEnd(firstEvent, "first help");
+    storeMock.state.tooltip.show = true;
+    storeMock.state.tooltip.content = "first help";
+    storeMock.state.tooltip.pointerEvents = true;
+    onTooltipHelpMouseLeave();
+
+    storeMock.mutations.showTooltip.mockClear();
+    storeMock.mutations.hideTooltip.mockClear();
+
+    onTooltipHelpTouchEnd(secondEvent, "second help");
+    storeMock.state.tooltip.show = true;
+    storeMock.state.tooltip.pointerEvents = true;
+    onTooltipHelpMouseLeave();
+
+    expect(storeMock.mutations.hideTooltip).not.toHaveBeenCalled();
+    expect(storeMock.mutations.showTooltip).toHaveBeenCalledWith({
+      content: "second help",
+      x: 20,
+      y: 30,
+      pointerEvents: true,
+    });
+  });
+
   it("switches tooltip when tapping a different help icon", () => {
     storeMock.getters.isMobile.mockReturnValue(true);
     const firstEvent = {
@@ -179,6 +256,17 @@ describe("tooltipHelp", () => {
       x: 20,
       y: 30,
       pointerEvents: true,
+    });
+  });
+
+  it("showHoverTooltip always uses hover mode", () => {
+    storeMock.getters.isMobile.mockReturnValue(true);
+    showHoverTooltip("hover help", { clientX: 3, clientY: 4 });
+    expect(storeMock.mutations.showTooltip).toHaveBeenCalledWith({
+      content: "hover help",
+      x: 3,
+      y: 4,
+      pointerEvents: false,
     });
   });
 });
