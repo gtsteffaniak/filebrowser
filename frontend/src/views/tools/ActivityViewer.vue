@@ -312,6 +312,10 @@ import ActivityDetailsInfo from "@/components/tools/ActivityDetailsInfo.vue";
 import ActivityTableValueCell from "@/components/tools/ActivityTableValueCell.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import Errors from "@/views/Errors.vue";
+import {
+  hideInteractiveTooltip,
+  showInteractiveComponentTooltip,
+} from "@/utils/tooltipHelp.js";
 import { getters, mutations, state } from "@/store";
 import { toStandardLocale } from "@/i18n";
 import {
@@ -1357,19 +1361,18 @@ export default {
       return hasActivityDetails(row);
     },
     showDetailsTooltip(event, row) {
-      mutations.showTooltip({
+      showInteractiveComponentTooltip({
         component: ActivityDetailsInfo,
         componentProps: {
           row,
           eventLabel: this.eventTypeLabel(row.eventType),
         },
-        x: event.clientX,
-        y: event.clientY,
+        event,
         width: "22rem",
       });
     },
     hideDetailsTooltip() {
-      mutations.hideTooltip();
+      hideInteractiveTooltip();
     },
     chartTheme() {
       const root = chartThemeStyles();

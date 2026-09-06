@@ -167,6 +167,10 @@
 <script>
 import { toolsApi } from "@/api";
 import { state, mutations } from "@/store";
+import {
+  hideInteractiveTooltip,
+  showInteractiveTooltip,
+} from "@/utils/tooltipHelp.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import { globalVars } from "@/utils/constants";
@@ -682,10 +686,9 @@ export default {
         const displayPath = this.getDisplayPath(item.path);
         const size = this.humanSize(item.size);
         const tooltipContent = `${displayPath} (${size})`;
-        mutations.showTooltip({
-          content: tooltipContent,
-          x: this.tooltipMouseX,
-          y: this.tooltipMouseY,
+        showInteractiveTooltip(tooltipContent, {
+          clientX: this.tooltipMouseX,
+          clientY: this.tooltipMouseY,
         });
         this.tooltipHoverTimer = null;
       }, 500);
@@ -699,7 +702,7 @@ export default {
         clearTimeout(this.tooltipHoverTimer);
         this.tooltipHoverTimer = null;
       }
-      mutations.hideTooltip();
+      hideInteractiveTooltip();
     },
   },
 };

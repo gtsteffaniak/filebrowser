@@ -3,15 +3,23 @@
   <div v-else class="table-value-cell">
     <span
       :class="badgeClasses"
-      @mouseenter="showTooltip"
+      @click.stop="onBadgeClick"
+      @touchend.stop="onBadgeTouchEnd"
+      @mouseenter="onBadgeMouseEnter"
       @mouseleave="hideTooltip"
     >{{ displayText }}</span>
   </div>
 </template>
 
 <script>
-import { mutations } from "@/store";
 import ActivityTableValueInfo from "@/components/tools/ActivityTableValueInfo.vue";
+import {
+  hideInteractiveTooltip,
+  onComponentTooltipClick,
+  onComponentTooltipTouchEnd,
+  showInteractiveComponentTooltip,
+  useTapForTooltip,
+} from "@/utils/tooltipHelp.js";
 
 export default {
   name: "ActivityTableValueCell",
@@ -72,24 +80,58 @@ export default {
     },
   },
   methods: {
-    showTooltip(event) {
+    componentPropsMatcher(props) {
+      return props.label === this.label && props.value === this.tooltipText;
+    },
+    showComponentTooltip(event) {
       const text = this.tooltipText;
       if (!text || !this.label) {
         return;
       }
-      mutations.showTooltip({
+      showInteractiveComponentTooltip({
         component: ActivityTableValueInfo,
         componentProps: {
           label: this.label,
           value: text,
         },
-        x: event.clientX,
-        y: event.clientY,
+        event,
         width: "22rem",
       });
     },
+    onBadgeClick(event) {
+      const text = this.tooltipText;
+      if (!text || !this.label) {
+        return;
+      }
+      onComponentTooltipClick(this.badgeTooltipOptions(event, text));
+    },
+    onBadgeTouchEnd(event) {
+      const text = this.tooltipText;
+      if (!text || !this.label) {
+        return;
+      }
+      onComponentTooltipTouchEnd(this.badgeTooltipOptions(event, text));
+    },
+    badgeTooltipOptions(event, text) {
+      return {
+        event,
+        component: ActivityTableValueInfo,
+        componentProps: {
+          label: this.label,
+          value: text,
+        },
+        width: "22rem",
+        propsMatcher: (props) => this.componentPropsMatcher(props),
+      };
+    },
+    onBadgeMouseEnter(event) {
+      if (useTapForTooltip()) {
+        return;
+      }
+      this.showComponentTooltip(event);
+    },
     hideTooltip() {
-      mutations.hideTooltip();
+      hideInteractiveTooltip();
     },
   },
 };

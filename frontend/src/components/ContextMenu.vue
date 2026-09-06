@@ -206,6 +206,10 @@ import { resourcesApi, shareApi, usersApi } from "@/api";
 import Action from "@/components/Action.vue";
 import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
+import {
+  hideInteractiveTooltip,
+  showInteractiveTooltip,
+} from "@/utils/tooltipHelp.js";
 import { url } from "@/utils";
 import buttons from "@/utils/buttons";
 import { copyToClipboard } from "@/utils/clipboard";
@@ -587,14 +591,10 @@ export default {
       mutations.closeHovers();
     },
     hideTooltip() {
-      mutations.hideTooltip();
+      hideInteractiveTooltip();
     },
     showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
+      showInteractiveTooltip(text, event);
     },
     onCreateToggleClick() {
       if (this.createToggleDisabled) return;

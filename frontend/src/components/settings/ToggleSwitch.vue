@@ -13,14 +13,7 @@
     >
       <div class="toggle-name-container">
         <span class="toggle-name">{{ name }}</span>
-        <i
-          v-if="description"
-          class="material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip"
-          @mouseleave="hideTooltip"
-        >
-          help
-        </i>
+        <HelpTooltipIcon v-if="description" :text="description" />
       </div>
       <label class="switch">
         <input
@@ -55,12 +48,17 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
+import {
+  hideInteractiveTooltip,
+  showInteractiveTooltip,
+} from "@/utils/tooltipHelp.js";
 
 let enforcedIdCounter = 0;
 
 export default {
   name: "ToggleSwitch",
+  components: { HelpTooltipIcon },
   props: {
     modelValue: {
       type: Boolean,
@@ -125,37 +123,20 @@ export default {
     updateEnforced(event) {
       this.$emit("update:enforced", event.target.checked);
     },
-    showTooltip(event) {
-      if (this.description) {
-        mutations.showTooltip({
-          content: this.description,
-          x: event.clientX,
-          y: event.clientY,
-        });
-      }
-    },
     showValueRowTooltipIfNeeded(event) {
       if (!this.disabled) {
         return;
       }
       if (this.valueTooltip) {
-        mutations.showTooltip({
-          content: this.valueTooltip,
-          x: event.clientX,
-          y: event.clientY,
-        });
+        showInteractiveTooltip(this.valueTooltip, event);
         return;
       }
       if (this.enforcementLocked) {
-        mutations.showTooltip({
-          content: this.$t("profileSettings.enforcedByAdmin"),
-          x: event.clientX,
-          y: event.clientY,
-        });
+        showInteractiveTooltip(this.$t("profileSettings.enforcedByAdmin"), event);
       }
     },
     hideTooltip() {
-      mutations.hideTooltip();
+      hideInteractiveTooltip();
     },
   },
 };

@@ -7,10 +7,7 @@
           <div class="settings-number-input item">
             <div class="no-padding">
               <label for="maxConcurrentUpload">{{ $t("fileLoading.maxConcurrentUpload") }}</label>
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('fileLoading.maxConcurrentUploadHelp'))" @mouseleave="hideTooltip">
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('fileLoading.maxConcurrentUploadHelp')" />
             </div>
             <div>
               <input v-model.number="maxConcurrentUpload" type="range" min="1" max="10" @change="updateUploadSettings" />
@@ -20,10 +17,7 @@
           <div class="settings-number-input item">
             <div class="no-padding">
               <label for="uploadChunkSizeMb">{{ $t("fileLoading.uploadChunkSizeMb") }}</label>
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('fileLoading.uploadChunkSizeMbHelp'))" @mouseleave="hideTooltip">
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('fileLoading.uploadChunkSizeMbHelp')" />
             </div>
             <div class="no-padding">
               <input class="sizeInput input" v-model.number="uploadChunkSizeMb" type="number" min="0" @change="updateUploadSettings" />
@@ -189,6 +183,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
 import { mutations, state } from "@/store";
 import { notify } from "@/notify";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -198,6 +193,7 @@ import i18n from "@/i18n";
 export default {
   name: "UploadFiles",
   components: {
+    HelpTooltipIcon,
     ProgressBar,
     SettingsItem,
     ToggleSwitch,
@@ -253,18 +249,6 @@ export default {
     const maxConcurrentUpload = ref(state.user.fileLoading?.maxConcurrentUpload);
     const uploadChunkSizeMb = ref(state.user.fileLoading?.uploadChunkSizeMb);
     const clearAll = ref(state.user.fileLoading?.clearAll || false);
-
-    const showTooltip = (event, text) => {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    };
-
-    const hideTooltip = () => {
-      mutations.hideTooltip();
-    };
 
     const updateUploadSettings = async () => {
       try {
@@ -698,8 +682,6 @@ export default {
       maxConcurrentUpload,
       uploadChunkSizeMb,
       clearAll,
-      showTooltip,
-      hideTooltip,
       getStatusText,
       getHelpText,
       updateUploadSettings,

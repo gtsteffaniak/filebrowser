@@ -17,17 +17,7 @@ import (
 //   - test.yaml + database-test.yaml + frontend-test.yaml
 //   - myapp.yml + server-myapp.yml
 func combineYAMLFiles(configFilePath string) ([]byte, error) {
-	// Get absolute path and expand tilde
-	expandedPath := configFilePath
-	if strings.HasPrefix(configFilePath, "~/") {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return nil, fmt.Errorf("failed to expand home directory: %v", err)
-		}
-		expandedPath = filepath.Join(homeDir, configFilePath[2:])
-	}
-
-	absPath, err := filepath.Abs(expandedPath)
+	absPath, err := AbsPath(configFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve config file path: %v", err)
 	}

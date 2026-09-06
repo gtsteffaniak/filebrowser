@@ -75,6 +75,10 @@
 import { logout } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
+import {
+  hideInteractiveTooltip,
+  showInteractiveTooltip,
+} from "@/utils/tooltipHelp.js";
 import SidebarLinks from "./Links.vue";
 import { url } from "@/utils";
 
@@ -233,15 +237,11 @@ export default {
     },
     showTooltip(event, text) {
       if (text) {
-        mutations.showTooltip({
-          content: text,
-          x: event.clientX,
-          y: event.clientY,
-        });
+        showInteractiveTooltip(text, event);
       }
     },
     hideTooltip() {
-      mutations.hideTooltip();
+      hideInteractiveTooltip();
     },
   },
 };
