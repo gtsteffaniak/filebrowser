@@ -343,7 +343,8 @@ header {
 }
 
 :deep(.action.nav-toggle-button .line),
-:deep(.action.menu-button) {
+:deep(.action.menu-button),
+:deep(.action.overflow-menu-button) {
   stroke: #546e7a;
   color: #546e7a;
 }
