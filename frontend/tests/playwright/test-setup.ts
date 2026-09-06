@@ -60,7 +60,7 @@ export async function expectLockTooltipOnRowHover(
   await hoverTarget.hover({ force: true });
   await hoverTarget.dispatchEvent("mouseenter");
 
-  await expect.poll(async () => {
+  await expect(async () => {
     await hoverTarget.dispatchEvent("mouseenter");
     if (!(await lockTooltip.isVisible())) {
       throw new Error("lock tooltip not visible");
@@ -69,7 +69,6 @@ export async function expectLockTooltipOnRowHover(
     if (tooltipText !== text) {
       throw new Error(`expected tooltip "${text}", got "${tooltipText ?? ""}"`);
     }
-    return true;
   }).toPass({ timeout: 4000, intervals: [100, 250, 500] });
 }
 
