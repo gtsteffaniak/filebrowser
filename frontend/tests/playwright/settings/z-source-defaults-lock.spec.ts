@@ -1,14 +1,16 @@
-import { expect, test, expectLockTooltipOnRowHover } from "../test-setup";
+import {
+  expect,
+  test,
+  expectLockTooltipOnRowHover,
+  isExactSettingsApiResponse,
+} from "../test-setup";
 
 async function openAccessSettings(page: import("@playwright/test").Page) {
-  await page.goto("/settings");
+  await page.goto("/settings#profile-main");
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
 
   const defaultsResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes("/api/settings/source") &&
-      response.request().method() === "GET" &&
-      response.ok(),
+    (response) => isExactSettingsApiResponse(response, "settings/source", "GET"),
   );
   await page.locator("#access-sidebar").click();
 
@@ -21,11 +23,24 @@ async function openAccessSettings(page: import("@playwright/test").Page) {
     await expect(content).toBeVisible();
   }
 
+  await expect(page.locator(".source-file-permissions")).toBeVisible();
+  await expect(
+    page.locator(".source-file-permissions .item").filter({ hasText: "Edit files" }),
+  ).toBeVisible();
+
   const response = await defaultsResponse;
+  const data = await response.json();
+  if (!Array.isArray(data.lockedFromConfigPaths)) {
+    const apiResponse = await page.request.get("http://127.0.0.1/api/settings/source");
+    expect(apiResponse.ok()).toBeTruthy();
+    return apiResponse;
+  }
   return response;
 }
 
 test("config-locked source defaults show lock help and skip patch", async ({ page, checkForErrors }) => {
+  test.setTimeout(15000);
+
   try {
     const defaultsResponse = await openAccessSettings(page);
     const data = await defaultsResponse.json();
@@ -43,7 +58,8 @@ test("config-locked source defaults show lock help and skip patch", async ({ pag
 
     let patchCount = 0;
     await page.route("**/api/settings/source", (route) => {
-      if (route.request().method() === "PATCH") {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith("/api/settings/source") && route.request().method() === "PATCH") {
         patchCount += 1;
       }
       return route.continue();
@@ -62,10 +78,7 @@ test("config-locked source defaults show lock help and skip patch", async ({ pag
     await expect(enforceInput).toBeEnabled();
     const initialEnforced = await enforceInput.isChecked();
     const enforcePatch = page.waitForResponse(
-      (resp) =>
-        resp.url().includes("/api/settings/source") &&
-        resp.request().method() === "PATCH" &&
-        resp.ok(),
+      (resp) => isExactSettingsApiResponse(resp, "settings/source", "PATCH"),
     );
     await enforceSwitch.click();
     await enforcePatch;

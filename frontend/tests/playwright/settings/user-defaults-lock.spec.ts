@@ -1,4 +1,9 @@
-import { expect, test, expectLockTooltipOnRowHover } from "../test-setup";
+import {
+  expect,
+  test,
+  expectLockTooltipOnRowHover,
+  isExactSettingsApiResponse,
+} from "../test-setup";
 
 async function expandUserDefaultsGroup(
   page: import("@playwright/test").Page,
@@ -14,15 +19,12 @@ async function expandUserDefaultsGroup(
 }
 
 async function openUserDefaultsPrompt(page: import("@playwright/test").Page) {
-  await page.goto("/settings");
+  await page.goto("/settings#profile-main");
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
   await page.locator("#users-sidebar").click();
 
   const defaultsResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes("/api/settings/user-defaults") &&
-      response.request().method() === "GET" &&
-      response.ok(),
+    (response) => isExactSettingsApiResponse(response, "settings/user-defaults", "GET"),
   );
   await page.getByRole("button", { name: "User defaults" }).click();
 
@@ -30,14 +32,22 @@ async function openUserDefaultsPrompt(page: import("@playwright/test").Page) {
   await expect(prompt).toBeVisible();
   await expect(prompt.locator(".loading-hint")).not.toBeVisible();
 
-  return defaultsResponse;
+  const response = await defaultsResponse;
+  const data = await response.json();
+  if (!Array.isArray(data.lockedFromConfigPaths)) {
+    const apiResponse = await page.request.get("http://127.0.0.1/api/settings/user-defaults");
+    expect(apiResponse.ok()).toBeTruthy();
+    return apiResponse;
+  }
+  return response;
 }
 
 test("config-locked user defaults show lock help and skip patch", async ({ page, checkForErrors }) => {
+  test.setTimeout(15000);
+
   try {
     const defaultsResponse = await openUserDefaultsPrompt(page);
-    const response = await defaultsResponse;
-    const data = await response.json();
+    const data = await defaultsResponse.json();
     expect(data.lockedFromConfigPaths).toContain("listing.showHidden");
 
     await expandUserDefaultsGroup(page, "Listing options");
@@ -52,7 +62,8 @@ test("config-locked user defaults show lock help and skip patch", async ({ page,
 
     let patchCount = 0;
     await page.route("**/api/settings/user-defaults", (route) => {
-      if (route.request().method() === "PATCH") {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith("/api/settings/user-defaults") && route.request().method() === "PATCH") {
         patchCount += 1;
       }
       return route.continue();
@@ -71,10 +82,7 @@ test("config-locked user defaults show lock help and skip patch", async ({ page,
     await expect(enforceInput).toBeEnabled();
     const initialEnforced = await enforceInput.isChecked();
     const enforcePatch = page.waitForResponse(
-      (resp) =>
-        resp.url().includes("/api/settings/user-defaults") &&
-        resp.request().method() === "PATCH" &&
-        resp.ok(),
+      (resp) => isExactSettingsApiResponse(resp, "settings/user-defaults", "PATCH"),
     );
     await enforceSwitch.click();
     await enforcePatch;

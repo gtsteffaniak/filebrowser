@@ -1,7 +1,20 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Locator, Page, Response } from "@playwright/test";
 import { test as base, expect } from "@playwright/test";
 
 const PLAYWRIGHT_RETRY_INTERVALS = [500, 1000, 1500, 2000];
+
+/** Match a single settings API path (not e.g. /api/settings/sources for /api/settings/source). */
+export function isExactSettingsApiResponse(
+  response: Response,
+  resource: string,
+  method = "GET",
+): boolean {
+  if (response.request().method() !== method || !response.ok()) {
+    return false;
+  }
+  const path = new URL(response.url()).pathname;
+  return path === `/api/${resource}` || path.endsWith(`/api/${resource}`);
+}
 
 async function dismissSharePrompt(page: Page, sharePrompt: Locator): Promise<void> {
   if (!(await sharePrompt.isVisible())) {
@@ -39,19 +52,22 @@ export async function expectLockTooltipOnRowHover(
   const hoverTarget = row.locator(".toggle-row--value");
   const lockTooltip = page.locator(".floating-tooltip");
   await hoverTarget.scrollIntoViewIfNeeded();
-  // Playwright hover is flaky in Firefox (hover: none); dispatch mouseenter on the row.
-  await hoverTarget.evaluate((el) => {
-    const rect = el.getBoundingClientRect();
-    el.dispatchEvent(
-      new MouseEvent("mouseenter", {
-        bubbles: false,
-        clientX: rect.left + rect.width / 2,
-        clientY: rect.top + rect.height / 2,
-      }),
-    );
-  });
-  await expect(lockTooltip).toBeVisible();
-  await expect(lockTooltip).toHaveText(text);
+
+  await expect(async () => {
+    const box = await hoverTarget.boundingBox();
+    if (box) {
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    }
+    await hoverTarget.hover({ force: true });
+    await hoverTarget.dispatchEvent("mouseenter");
+    if (!(await lockTooltip.isVisible())) {
+      throw new Error("lock tooltip not visible");
+    }
+    const tooltipText = (await lockTooltip.textContent())?.trim();
+    if (tooltipText !== text) {
+      throw new Error(`expected tooltip "${text}", got "${tooltipText ?? ""}"`);
+    }
+  }).toPass({ timeout: 4000, intervals: [100, 250, 500] });
 }
 
 /** Closes the file-actions / listing context menu if it is still open. */
