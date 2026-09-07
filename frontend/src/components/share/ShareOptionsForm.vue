@@ -661,6 +661,7 @@
 
 <script>
 import { getters } from "@/store";
+import { getObjectProperty } from "@/utils/object.js";
 import { globalVars } from "@/utils/constants";
 import { bytesFromCustomAmount } from "@/utils/quotaUnits";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
@@ -798,10 +799,10 @@ export default {
       this.$emit("enforced-change", field, value);
     },
     enforcedFlag(field) {
-      return !!this.enforced[field];
+      return !!getObjectProperty(this.enforced, field);
     },
     fieldLocked(field) {
-      return !this.enforceable && !getters.isAdmin() && this.enforced[field];
+      return !this.enforceable && !getters.isAdmin() && getObjectProperty(this.enforced, field);
     },
     fieldDisabled(field) {
       if (this.fieldLocked(field)) {

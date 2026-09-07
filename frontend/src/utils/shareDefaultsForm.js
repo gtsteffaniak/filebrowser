@@ -177,7 +177,7 @@ export function defaultSidebarLinksForShareType(shareType) {
 /**
  * Apply admin share defaults onto a share prompt form object (mutates target).
  */
-export function applyShareDefaultsToForm(target, values, { itemName, titleDefault, descriptionDefault } = {}) {
+export function applyShareDefaultsToForm(target, values, { titleDefault, descriptionDefault } = {}) {
   if (!values || !target) {
     return;
   }
