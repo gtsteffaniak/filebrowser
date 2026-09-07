@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - a few styling fixes for inconsistencies (#2908)
 
  **New Features**:
- - Admins can set default view mode and thumbnail size for existing users from the user edit prompt. These act as fallbacks on new browsers or devices and do not override locally saved view preferences ([#2884](https://github.com/gtsteffaniak/filebrowser/issues/2884)).
+ - Users can set default view mode and thumbnail size from Profile settings (Listing options). Admins can set the same defaults for existing users from the user edit prompt. Values persist to the account and apply on new browsers or devices; they do not override view preferences already saved locally ([#2884](https://github.com/gtsteffaniak/filebrowser/issues/2884)).
  - Admins can edit all profile preference defaults for existing users from the user management panel (listing, preview, sidebar, theme, and related options), matching what was previously available only for new users and global user defaults.
 
 ## v2.0.4

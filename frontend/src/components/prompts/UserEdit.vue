@@ -698,7 +698,6 @@ export default {
         this.error = e;
       } finally {
         mutations.setLoading("users", false);
-        this.loaded = true;
         // Update prompt name after user data is loaded
         this.updatePromptTitle();
       }
@@ -733,6 +732,7 @@ export default {
       if (!this.isNew) {
         this.originalSnapshot = JSON.parse(JSON.stringify(this.buildEditableSnapshot()));
       }
+      this.loaded = true;
     },
     buildScopesPayload() {
       return this.selectedSources.map((source) => ({
@@ -896,6 +896,8 @@ export default {
       try {
         this.applyEditAccountToUser();
         this.applyProfileUserToFormUser();
+        // Profile sections carry a stale account snapshot; restore admin-edited account fields.
+        this.applyEditAccountToUser();
         const scopesToSend = this.buildScopesPayload();
         const payload = {
           ...this.user,

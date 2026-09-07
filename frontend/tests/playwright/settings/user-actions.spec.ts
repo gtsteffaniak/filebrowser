@@ -1,5 +1,10 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "../test-setup";
+import {
+    accountPermissionCheckbox,
+    startUserEditLoadWaiters,
+    waitForUserEditReady,
+} from "./user-edit-helpers";
 
 
 /** Users tab uses SettingsTable (no `tr.item`); scoped to `.settings-table` body rows only. */
@@ -97,11 +102,12 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     await expect(userRowInSettingsUsersTable(page, username)).toBeVisible();
 
     // Now, click the edit button for the new user
-    await editUserTrigger(userRowInSettingsUsersTable(page, username)).click();
-
-    // Now on the edit page, toggle the settings
-    await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
+    const userRow = userRowInSettingsUsersTable(page, username);
     const modal = page.locator('div[aria-label="user-edit-prompt"]');
+    const editWaiters = startUserEditLoadWaiters(page, username);
+    await editUserTrigger(userRow).click();
+    await expect(modal).toBeVisible();
+    await waitForUserEditReady(modal, editWaiters);
 
     const settingsToToggle = [
         "Administrator",
@@ -112,9 +118,7 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     ];
 
     for (const settingName of settingsToToggle) {
-        const toggleContainer = modal.locator(".toggle-container", { hasText: settingName });
-        const toggleSwitch = toggleContainer.locator("label.switch");
-        await toggleSwitch.click();
+        await accountPermissionCheckbox(modal, settingName).switch.click();
     }
 
     // Save the updated settings (admin actor password required for sensitive user fields)
@@ -123,12 +127,13 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     await expect(modal).not.toBeVisible();
 
     // Re-open the modal to check the settings
-    await editUserTrigger(userRowInSettingsUsersTable(page, username)).click();
-    await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
+    const verifyWaiters = startUserEditLoadWaiters(page, username);
+    await editUserTrigger(userRow).click();
+    await expect(modal).toBeVisible();
+    await waitForUserEditReady(modal, verifyWaiters);
 
     for (const settingName of settingsToToggle) {
-        const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).toBeChecked();
+        await expect(accountPermissionCheckbox(modal, settingName).input).toBeChecked();
     }
 
     // Delete the user
@@ -195,38 +200,42 @@ test.describe("User Settings Persistence", () => {
 
         // --- Open modal and read initial toggle state ---
         await expect(userRow).toBeVisible({ timeout: 5000 });
+        const openWaiters = startUserEditLoadWaiters(page, username);
         await editUserTrigger(userRow).click();
-
         await expect(modal).toBeVisible();
-        const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await waitForUserEditReady(modal, openWaiters);
+
+        const checkbox = accountPermissionCheckbox(modal, settingName).input;
         const initialChecked = await checkbox.isChecked();
 
         // --- Toggle to opposite state and save ---
-        const toggleSwitch = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
-        await toggleSwitch.click();
+        await accountPermissionCheckbox(modal, settingName).switch.click();
         await expect(checkbox).toBeChecked({ checked: !initialChecked });
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check persisted state ---
+        const verifyWaiters = startUserEditLoadWaiters(page, username);
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
-        const checkboxToggled = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await waitForUserEditReady(modal, verifyWaiters);
+        const checkboxToggled = accountPermissionCheckbox(modal, settingName).input;
         await expect(checkboxToggled).toBeChecked({ checked: !initialChecked });
 
         // --- Toggle back to initial state and save ---
-        const toggleSwitchBack = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
-        await toggleSwitchBack.click();
+        await accountPermissionCheckbox(modal, settingName).switch.click();
         await expect(checkboxToggled).toBeChecked({ checked: initialChecked });
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check state is restored ---
+        const restoreWaiters = startUserEditLoadWaiters(page, username);
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
-        const checkboxRestored = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await waitForUserEditReady(modal, restoreWaiters);
+        const checkboxRestored = accountPermissionCheckbox(modal, settingName).input;
         await expect(checkboxRestored).toBeChecked({ checked: initialChecked });
 
         await modal.locator('button[aria-label="Cancel"]').click();
@@ -244,8 +253,10 @@ test.describe("User Settings Persistence", () => {
         const userRow = userRowInSettingsUsersTable(page, username);
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
 
+        const openWaiters = startUserEditLoadWaiters(page, username);
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
+        await waitForUserEditReady(modal, openWaiters);
         await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
 
         const editFilesToggle = userEditSourcePermissionToggle(
@@ -267,8 +278,10 @@ test.describe("User Settings Persistence", () => {
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
+        const verifyWaiters = startUserEditLoadWaiters(page, username);
         await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
+        await waitForUserEditReady(modal, verifyWaiters);
         await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
         await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
 
@@ -292,9 +305,11 @@ test.describe("User Settings Persistence", () => {
 
     test('should persist "allowed login method" setting', async ({ page, checkForErrors }) => {
         const userRow = userRowInSettingsUsersTable(page, username);
-        await editUserTrigger(userRow).click();
         const modal = page.locator('div[aria-label="user-edit-prompt"]');
+        const openWaiters = startUserEditLoadWaiters(page, username);
+        await editUserTrigger(userRow).click();
         await expect(modal).toBeVisible();
+        await waitForUserEditReady(modal, openWaiters);
 
         const loginMethodSelector = modal.locator(
             "#loginMethod .expand-dropdown-trigger-label"

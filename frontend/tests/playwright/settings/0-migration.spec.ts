@@ -5,6 +5,11 @@ import {
     sortAccessRules,
     type AccessRuleExpectation,
 } from "./access-behavior-fixture";
+import {
+    accountPermissionCheckbox,
+    startUserEditLoadWaiters,
+    waitForUserEditReady,
+} from "./user-edit-helpers";
 
 /**
  * Snapshot of the settings Playwright docker fixture after BoltDB → SQLite migration.
@@ -302,7 +307,7 @@ async function expandUserEditSourceScope(modal: Locator, sourceName: string) {
 }
 
 function globalPermissionCheckbox(modal: Locator, label: string): Locator {
-    return modal.locator(".toggle-container", { hasText: label }).locator('input[type="checkbox"]');
+    return accountPermissionCheckbox(modal, label).input;
 }
 
 function sourcePermissionCheckbox(
@@ -454,15 +459,11 @@ test.describe("Migration fixture verification", () => {
         }
 
         for (const expected of EXPECTED_USER_DETAILS) {
-            const userLoad = page.waitForResponse(
-                (response) =>
-                    response.url().includes(`/public/api/users?username=${expected.username}`) &&
-                    response.ok(),
-            );
+            const editWaiters = startUserEditLoadWaiters(page, expected.username);
             await editUserTrigger(userRowInSettingsUsersTable(page, expected.username)).click();
             const modal = page.locator('div[aria-label="user-edit-prompt"]');
             await expect(modal).toBeVisible();
-            await userLoad;
+            await waitForUserEditReady(modal, editWaiters);
 
             await expectCheckboxState(
                 globalPermissionCheckbox(modal, "Administrator"),
