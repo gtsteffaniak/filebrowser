@@ -49,3 +49,26 @@ func TestValidateEditableNotEnforced_blocksMismatch(t *testing.T) {
 		t.Fatal("expected enforcement error")
 	}
 }
+
+func TestValidateEditableNotEnforced_blocksZeroEnforcedValue(t *testing.T) {
+	defaults := settings.ShareDefaults{AllowModify: false}
+	enforced := settings.ShareDefaultsEnforcement{AllowModify: true}
+	editable := share.ShareEditable{
+		FrontendShareInfo: share.FrontendShareInfo{AllowModify: true},
+	}
+	if err := ValidateEditableNotEnforced(&editable, enforced, defaults); err == nil {
+		t.Fatal("expected enforcement error for zero-valued enforced default")
+	}
+}
+
+func TestApplyEnforcedDefaults_appliesZeroBool(t *testing.T) {
+	defaults := settings.ShareDefaults{AllowModify: false}
+	enforced := settings.ShareDefaultsEnforcement{AllowModify: true}
+	editable := share.ShareEditable{
+		FrontendShareInfo: share.FrontendShareInfo{AllowModify: true},
+	}
+	ApplyEnforcedDefaults(&editable, defaults, enforced)
+	if editable.AllowModify {
+		t.Fatal("expected enforced allowModify=false")
+	}
+}

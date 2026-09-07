@@ -227,7 +227,7 @@
           :model-value="modelValue.enableAllowedUsernames"
           :name="$t('share.enableAllowedUsernames')"
           :description="$t('share.enableAllowedUsernamesDescription')"
-          :disabled="fieldDisabled('enableAllowedUsernames')"
+          :disabled="fieldDisabled('allowedUsernames')"
           @update:model-value="setField('enableAllowedUsernames', $event)"
         />
 
@@ -516,6 +516,7 @@
             :amount="modelValue.quotaCustomAmount"
             :unit="modelValue.quotaCustomUnit"
             :aria-label="$t('general.limit')"
+            :disabled="fieldDisabled('quotaLimitBytes')"
             @update:amount="setField('quotaCustomAmount', $event)"
             @update:unit="setField('quotaCustomUnit', $event)"
           />

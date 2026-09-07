@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -36,6 +37,7 @@ func applyShareDefaultsPolicy(u *users.User, editable *share.ShareEditable, isCr
 	if isCreate {
 		sharedefaults.ApplyDefaultsToEditable(editable, defaults)
 	}
+	sharedefaults.NormalizeUploadShareEditable(editable)
 	if err := sharedefaults.ValidateEditableNotEnforced(editable, enforced, defaults); err != nil {
 		return http.StatusForbidden, err
 	}
@@ -233,12 +235,19 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 // @Router /api/share [post]
 func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	var req share.SharePostBody
+	var bodyBytes []byte
 	var err error
 	if r.Body != nil {
-		if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-			return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+		bodyBytes, err = io.ReadAll(r.Body)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to read body: %w", err)
 		}
 		defer r.Body.Close()
+	}
+	if len(bodyBytes) > 0 {
+		if err = json.Unmarshal(bodyBytes, &req); err != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+		}
 	}
 
 	if req.Hash != "" {
@@ -301,15 +310,20 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 		}
 		updateSourceName := beforeShare.GetSourceName()
+		mergedEditable, mergeErr := sharedefaults.MergeEditableUpdate(share.EditableFromShare(&beforeShare), bodyBytes)
+		if mergeErr != nil {
+			return http.StatusBadRequest, mergeErr
+		}
+		req.ShareEditable = mergedEditable
+		if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, false); policyErr != nil {
+			return status, policyErr
+		}
 		if updateSourceName != "" {
 			ownerPerms, permErr := d.User.FilePermsForSourceName(updateSourceName)
 			if permErr != nil {
 				return http.StatusForbidden, permErr
 			}
 			share.ClampShareEditable(ownerPerms, &req.ShareEditable)
-		}
-		if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, false); policyErr != nil {
-			return status, policyErr
 		}
 		err = state.UpdateShare(req.Hash, func(link *share.Share) error {
 			shouldResetCounts := link.DownloadsLimit != req.DownloadsLimit ||
@@ -330,9 +344,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			link.SourcePath = preservedSourcePath
 			link.PinnedItems = preservedPinned
 			link.Version = preservedVersion
-			if link.ShareType == "upload" && !req.AllowCreate {
-				link.AllowCreate = true
-			}
 			if shouldResetCounts {
 				link.ResetDownloadCounts()
 			}
@@ -409,17 +420,14 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	storedPath := utils.JoinPathAsUnix(userscope, cleanPath)
 
-	if req.ShareType == "upload" && !req.AllowCreate {
-		req.AllowCreate = true
+	if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, true); policyErr != nil {
+		return status, policyErr
 	}
 	ownerPerms, permErr := d.User.FilePermsForSourceName(source.Name)
 	if permErr != nil {
 		return http.StatusForbidden, permErr
 	}
 	share.ClampShareEditable(ownerPerms, &req.ShareEditable)
-	if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, true); policyErr != nil {
-		return status, policyErr
-	}
 	shareLimits := req.ShareLimits
 	shareLimits.SourceName = source.Name
 

@@ -925,6 +925,12 @@ export default {
       this.title = form.title;
       this.description = form.description;
       this.sidebarLinks = form.sidebarLinks;
+      const policyDescription = form.description;
+      if (policyDescription) {
+        this.$nextTick(() => {
+          this.description = policyDescription;
+        });
+      }
     },
     /**
      * @param {{path: string, source: string}} pathOrData

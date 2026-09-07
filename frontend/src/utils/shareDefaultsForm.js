@@ -169,7 +169,7 @@ const DEFAULT_SIDEBAR_LINKS = [
 
 export function defaultSidebarLinksForShareType(shareType) {
   if (shareType === "upload") {
-    return [DEFAULT_SIDEBAR_LINKS[0]];
+    return [{ ...DEFAULT_SIDEBAR_LINKS[0] }];
   }
   return DEFAULT_SIDEBAR_LINKS.map((link) => ({ ...link }));
 }

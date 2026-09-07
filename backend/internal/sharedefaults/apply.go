@@ -2,11 +2,17 @@ package sharedefaults
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
+
+// NormalizeUploadShareEditable ensures upload shares always request create permission.
+func NormalizeUploadShareEditable(editable *share.ShareEditable) {
+	if editable != nil && editable.ShareType == "upload" {
+		editable.AllowCreate = true
+	}
+}
 
 // ApplyDefaultsToEditable merges default template values into editable for new shares.
 func ApplyDefaultsToEditable(editable *share.ShareEditable, defaults settings.ShareDefaults) {
@@ -70,27 +76,13 @@ func ValidateEditableNotEnforced(after *share.ShareEditable, enforced settings.S
 	if len(paths) == 0 {
 		return nil
 	}
-	afterBytes, err := json.Marshal(EditableToDefaults(*after))
-	if err != nil {
-		return fmt.Errorf("marshal share editable: %w", err)
-	}
-	defBytes, err := json.Marshal(defaults)
-	if err != nil {
-		return fmt.Errorf("marshal share defaults: %w", err)
-	}
-	var afterMap, defMap map[string]interface{}
-	if err := json.Unmarshal(afterBytes, &afterMap); err != nil {
-		return fmt.Errorf("parse share editable: %w", err)
-	}
-	if err := json.Unmarshal(defBytes, &defMap); err != nil {
-		return fmt.Errorf("parse share defaults: %w", err)
-	}
+	afterDefaults := EditableToDefaults(*after)
 	for path := range paths {
-		expected, ok := valueAtJSONPath(defMap, path)
+		expected, ok := settings.ShareDefaultsValueAtPath(defaults, path)
 		if !ok {
 			continue
 		}
-		actual, ok := valueAtJSONPath(afterMap, path)
+		actual, ok := settings.ShareDefaultsValueAtPath(afterDefaults, path)
 		if !ok || !jsonValuesEqual(expected, actual) {
 			return settings.ErrEnforcedShareValueMismatch{Path: path}
 		}
@@ -99,19 +91,13 @@ func ValidateEditableNotEnforced(after *share.ShareEditable, enforced settings.S
 }
 
 func patchJSONForPaths(source settings.ShareDefaults, paths map[string]struct{}) ([]byte, error) {
-	srcBytes, err := json.Marshal(source)
-	if err != nil {
-		return nil, err
-	}
-	var srcMap map[string]interface{}
-	if err := json.Unmarshal(srcBytes, &srcMap); err != nil {
-		return nil, err
-	}
-	patchMap := make(map[string]interface{})
+	patchMap := make(map[string]interface{}, len(paths))
 	for path := range paths {
-		if val, ok := valueAtJSONPath(srcMap, path); ok {
-			setAtJSONPath(patchMap, path, val)
+		val, ok := settings.ShareDefaultsValueAtPath(source, path)
+		if !ok {
+			continue
 		}
+		patchMap[path] = val
 	}
 	return json.Marshal(patchMap)
 }
@@ -144,60 +130,6 @@ func deepMergeMaps(base, patch map[string]interface{}) {
 		}
 		base[key] = patchVal
 	}
-}
-
-func valueAtJSONPath(root map[string]interface{}, path string) (interface{}, bool) {
-	parts := splitPath(path)
-	var cur interface{} = root
-	for _, part := range parts {
-		m, ok := cur.(map[string]interface{})
-		if !ok {
-			return nil, false
-		}
-		val, exists := m[part]
-		if !exists {
-			return nil, false
-		}
-		cur = val
-	}
-	return cur, true
-}
-
-func setAtJSONPath(root map[string]interface{}, path string, value interface{}) {
-	parts := splitPath(path)
-	cur := root
-	for i, part := range parts {
-		if i == len(parts)-1 {
-			cur[part] = value
-			return
-		}
-		next, ok := cur[part].(map[string]interface{})
-		if !ok {
-			next = make(map[string]interface{})
-			cur[part] = next
-		}
-		cur = next
-	}
-}
-
-func splitPath(path string) []string {
-	if path == "" {
-		return nil
-	}
-	out := make([]string, 0, 4)
-	start := 0
-	for i := 0; i < len(path); i++ {
-		if path[i] == '.' {
-			if i > start {
-				out = append(out, path[start:i])
-			}
-			start = i + 1
-		}
-	}
-	if start < len(path) {
-		out = append(out, path[start:])
-	}
-	return out
 }
 
 func jsonValuesEqual(a, b interface{}) bool {

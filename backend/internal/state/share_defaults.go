@@ -3,6 +3,7 @@ package state
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -90,35 +91,69 @@ func GetEnforcedShareDefaults() settings.ShareDefaultsEnforcement {
 
 // PatchShareDefaults merges patch JSON into share defaults and persists.
 func PatchShareDefaults(patchJSON []byte) error {
-	shareDefaultsMu.Lock()
-	merged, mergeErr := settings.MergeShareDefaultsPatchJSON(shareDefaultsDefault, patchJSON)
-	if mergeErr != nil {
-		shareDefaultsMu.Unlock()
-		return mergeErr
-	}
-	if saveErr := sqlDb.SaveSetting(shareDefaultsDefaultSettingKey, merged); saveErr != nil {
-		shareDefaultsMu.Unlock()
-		return fmt.Errorf("save share defaults: %w", saveErr)
-	}
-	shareDefaultsDefault = merged
-	settings.Config.ShareDefaults = merged
-	shareDefaultsMu.Unlock()
-	return nil
+	return patchShareDefaultsLocked(patchJSON, nil)
 }
 
 // PatchShareDefaultsEnforced merges enforcement patch JSON and persists.
 func PatchShareDefaultsEnforced(patchJSON []byte) error {
+	return patchShareDefaultsLocked(nil, patchJSON)
+}
+
+// PatchShareDefaultsCombined merges values and enforcement patches atomically.
+func PatchShareDefaultsCombined(valuesPatch, enforcedPatch []byte) error {
+	return patchShareDefaultsLocked(valuesPatch, enforcedPatch)
+}
+
+// IsShareDefaultsPersistenceError reports whether a patch error came from storage.
+func IsShareDefaultsPersistenceError(err error) bool {
+	return err != nil && strings.HasPrefix(err.Error(), "save ")
+}
+
+func patchShareDefaultsLocked(valuesPatch, enforcedPatch []byte) error {
 	shareDefaultsMu.Lock()
-	merged, mergeErr := settings.MergeShareEnforcedPatchJSON(shareDefaultsEnforcedDefault, patchJSON)
-	if mergeErr != nil {
-		shareDefaultsMu.Unlock()
-		return mergeErr
+	prevValues := shareDefaultsDefault
+
+	newValues := shareDefaultsDefault
+	newEnforced := shareDefaultsEnforcedDefault
+
+	if len(valuesPatch) > 0 {
+		merged, mergeErr := settings.MergeShareDefaultsPatchJSON(shareDefaultsDefault, valuesPatch)
+		if mergeErr != nil {
+			shareDefaultsMu.Unlock()
+			return mergeErr
+		}
+		newValues = merged
 	}
-	if saveErr := sqlDb.SaveSetting(shareDefaultsEnforcedDefaultKey, merged); saveErr != nil {
-		shareDefaultsMu.Unlock()
-		return fmt.Errorf("save enforced share defaults: %w", saveErr)
+	if len(enforcedPatch) > 0 {
+		merged, mergeErr := settings.MergeShareEnforcedPatchJSON(shareDefaultsEnforcedDefault, enforcedPatch)
+		if mergeErr != nil {
+			shareDefaultsMu.Unlock()
+			return mergeErr
+		}
+		newEnforced = merged
 	}
-	shareDefaultsEnforcedDefault = merged
+
+	if len(valuesPatch) > 0 {
+		if saveErr := sqlDb.SaveSetting(shareDefaultsDefaultSettingKey, newValues); saveErr != nil {
+			shareDefaultsMu.Unlock()
+			return fmt.Errorf("save share defaults: %w", saveErr)
+		}
+	}
+	if len(enforcedPatch) > 0 {
+		if saveErr := sqlDb.SaveSetting(shareDefaultsEnforcedDefaultKey, newEnforced); saveErr != nil {
+			if len(valuesPatch) > 0 {
+				_ = sqlDb.SaveSetting(shareDefaultsDefaultSettingKey, prevValues)
+			}
+			shareDefaultsMu.Unlock()
+			return fmt.Errorf("save enforced share defaults: %w", saveErr)
+		}
+	}
+
+	shareDefaultsDefault = newValues
+	shareDefaultsEnforcedDefault = newEnforced
+	if len(valuesPatch) > 0 {
+		settings.Config.ShareDefaults = newValues
+	}
 	shareDefaultsMu.Unlock()
 	return nil
 }

@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -15,6 +16,22 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+const maxSettingsPatchBodySize = 1 << 20 // 1 MiB
+
+func readSettingsPatchBody(w http.ResponseWriter, r *http.Request) ([]byte, error) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxSettingsPatchBodySize)
+	patchJSON, err := io.ReadAll(r.Body)
+	if err != nil {
+		var maxErr *http.MaxBytesError
+		if errors.As(err, &maxErr) {
+			return nil, fmt.Errorf("request body too large")
+		}
+		return nil, err
+	}
+	defer r.Body.Close()
+	return patchJSON, nil
+}
 
 // settingsGetHandler retrieves the current system settings.
 // @Summary Get system settings
@@ -329,11 +346,13 @@ func settingsShareDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *
 }
 
 func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	patchJSON, err := io.ReadAll(r.Body)
+	patchJSON, err := readSettingsPatchBody(w, r)
 	if err != nil {
+		if err.Error() == "request body too large" {
+			return http.StatusRequestEntityTooLarge, err
+		}
 		return http.StatusBadRequest, fmt.Errorf("read share defaults patch: %w", err)
 	}
-	defer r.Body.Close()
 	if len(patchJSON) == 0 {
 		return http.StatusBadRequest, fmt.Errorf("empty share defaults patch body")
 	}
@@ -354,23 +373,37 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 
 	hasValues := len(valuesPatch) > 2
 	hasEnforced := len(enforcedPatch) > 0
-	if hasValues && hasEnforced {
-		return http.StatusBadRequest, fmt.Errorf("patch values and enforced in a single request is not supported")
-	}
 	if !hasValues && !hasEnforced {
 		return http.StatusBadRequest, fmt.Errorf("empty share defaults patch body")
 	}
 
+	if hasValues && hasEnforced {
+		if err := state.PatchShareDefaultsCombined(valuesPatch, enforcedPatch); err != nil {
+			if state.IsShareDefaultsPersistenceError(err) {
+				logger.Errorf("failed to patch share defaults: %v", err)
+				return http.StatusInternalServerError, fmt.Errorf("failed to update share defaults")
+			}
+			return http.StatusBadRequest, err
+		}
+		return settingsShareDefaultsGetHandler(w, r, d)
+	}
+
 	if hasValues {
 		if err := state.PatchShareDefaults(valuesPatch); err != nil {
-			logger.Errorf("failed to patch share defaults: %v", err)
-			return http.StatusInternalServerError, fmt.Errorf("failed to update share defaults")
+			if state.IsShareDefaultsPersistenceError(err) {
+				logger.Errorf("failed to patch share defaults: %v", err)
+				return http.StatusInternalServerError, fmt.Errorf("failed to update share defaults")
+			}
+			return http.StatusBadRequest, err
 		}
 	}
 	if hasEnforced {
 		if err := state.PatchShareDefaultsEnforced(enforcedPatch); err != nil {
-			logger.Errorf("failed to patch enforced share defaults: %v", err)
-			return http.StatusInternalServerError, fmt.Errorf("failed to update enforced share defaults")
+			if state.IsShareDefaultsPersistenceError(err) {
+				logger.Errorf("failed to patch enforced share defaults: %v", err)
+				return http.StatusInternalServerError, fmt.Errorf("failed to update enforced share defaults")
+			}
+			return http.StatusBadRequest, err
 		}
 	}
 	return settingsShareDefaultsGetHandler(w, r, d)

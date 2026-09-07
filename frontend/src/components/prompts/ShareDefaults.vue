@@ -110,7 +110,7 @@ export default {
     },
     openSidebarLinksCustomization() {
       mutations.showPrompt({
-        name: "sidebarlinks",
+        name: "sidebarLinks",
         props: {
           context: "share",
           shareData: {
@@ -126,8 +126,10 @@ export default {
       }
       this.saving = true;
       try {
-        await patchShareDefaults(shareDefaultsToApiPayload(this.values));
-        await patchShareDefaults({ enforced: this.enforced });
+        await patchShareDefaults({
+          ...shareDefaultsToApiPayload(this.values),
+          enforced: this.enforced,
+        });
         notify.showSuccess(this.$t("general.saved"));
         this.close();
       } catch (e) {

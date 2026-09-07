@@ -30,3 +30,22 @@ func TestPatchShareDefaultsEnforced_persistsFlags(t *testing.T) {
 		t.Fatal("expected allowModify enforced")
 	}
 }
+
+func TestPatchShareDefaultsCombined_persistsBoth(t *testing.T) {
+	initSidebarLinkTestDB(t)
+
+	if err := PatchShareDefaultsCombined(
+		[]byte(`{"shareType":"upload","allowCreate":true}`),
+		[]byte(`{"allowModify":true}`),
+	); err != nil {
+		t.Fatal(err)
+	}
+	values := GetShareDefaults()
+	if values.ShareType != "upload" {
+		t.Fatalf("shareType=%q want upload", values.ShareType)
+	}
+	enforced := GetEnforcedShareDefaults()
+	if !enforced.AllowModify {
+		t.Fatal("expected allowModify enforced")
+	}
+}

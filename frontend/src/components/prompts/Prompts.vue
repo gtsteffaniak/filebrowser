@@ -295,7 +295,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarlinks";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarLinks" || prompt?.name === "sidebarlinks";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -381,6 +381,7 @@ export default {
           return this.$t("api.createTitle");
         case "actionapi":
           return this.$t("api.title");
+        case "sidebarLinks":
         case "sidebarlinks":
           return this.$t("sidebar.customizeLinks");
         case "password":
