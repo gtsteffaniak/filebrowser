@@ -125,10 +125,6 @@
         </div>
       </div>
 
-      <p v-if="stateUser.username !== user.username">
-        <label for="locale">{{ $t("general.language") }}</label>
-        <languages id="locale" v-model:locale="user.locale" @input="emitUpdate"></languages>
-      </p>
       <div v-if="stateUser.permissions.admin">
         <label for="loginMethod">{{ $t("settings.loginMethod") }}</label>
         <ExpandDropdown
@@ -141,11 +137,26 @@
       </div>
 
       <UserDefaultsAccountSection
-        v-if="stateUser.permissions.admin"
+        v-if="stateUser.permissions.admin && loaded"
         :enforceable="false"
         :start-collapsed="false"
         :account="editAccount"
+        :enforced="enforcedAccount"
+        :enforced-permissions="enforcedAccountPermissions"
+        respect-enforced-policy
         @account-change="onEditAccountChange"
+      />
+
+      <UserProfilePreferences
+        v-if="stateUser.permissions.admin && loaded"
+        :key="profileLoadKey"
+        v-model="profileSections"
+        :enforced="enforcedPreferences"
+        :default-expanded-section="null"
+        respect-enforced-policy
+        show-extension-inputs
+        :show-thumbnail-master="false"
+        @change="onPreferenceChange"
       />
     </div>
   </div>
@@ -168,28 +179,66 @@
 <script>
 import { mutations, state } from "@/store";
 import { usersApi, settingsApi, authApi } from "@/api";
-import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
+import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 import { validateLogin } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 import { setObjectProperty } from '@/utils/object.js';
+import {
+  sectionsFromFlatUser,
+  applySectionsToFlatUser,
+  isFlatProfileFieldEnforced,
+} from "@/utils/userProfileSections.js";
+
+/** Flat user fields editable via admin user edit (matches profile PATCH surface). */
+const PROFILE_SNAPSHOT_FIELDS = [
+  "locale",
+  "dateFormat",
+  "themeColor",
+  "customTheme",
+  "quickDownload",
+  "preview",
+  "stickySidebar",
+  "singleClick",
+  "darkMode",
+  "showHidden",
+  "showToolsInSidebar",
+  "fileLoading",
+  "deleteAfterArchive",
+  "deleteWithoutConfirming",
+  "preferEditorForMarkdown",
+  "disablePreviewExt",
+  "disableViewingExt",
+  "disableOnlyOfficeExt",
+  "hideFileExt",
+  "disableQuickToggles",
+  "disableSearchOptions",
+  "hideSidebarFileActions",
+  "showCopyPath",
+  "hideFilesInTree",
+  "editorQuickSave",
+  "showSelectMultiple",
+  "debugOffice",
+  "viewMode",
+  "gallerySize",
+];
 
 export default {
   name: "user-edit",
   components: {
-    Languages,
     ExpandDropdown,
     SourceFilePermissions,
     SettingsItem,
     ToggleSwitch,
     UserDefaultsAccountSection,
+    UserProfilePreferences,
     Errors,
   },
   props: {
@@ -218,6 +267,8 @@ export default {
       showDelete: false,
       createUserDir: false,
       loaded: false,
+      profileLoadKey: 0,
+      profileUser: { preview: {}, permissions: {}, fileLoading: {} },
       originalUserScope: ".",
       sourceList: [],
       selectedSources: [],
@@ -241,6 +292,7 @@ export default {
     };
   },
   async created() {
+    await mutations.syncEnforcedUserDefaults();
     await this.fetchData();
     await this.initializeForm();
   },
@@ -374,6 +426,23 @@ export default {
       if (this.globalVars.ldapAvailable) return "ldap";
       return "password"; // fallback
     },
+    profileSections: {
+      get() {
+        return sectionsFromFlatUser(this.profileUser);
+      },
+      set(sections) {
+        applySectionsToFlatUser(this.profileUser, sections);
+      },
+    },
+    enforcedPreferences() {
+      return state.enforcedUserDefaults || {};
+    },
+    enforcedAccount() {
+      return this.enforcedPreferences.account || {};
+    },
+    enforcedAccountPermissions() {
+      return this.enforcedAccount.permissions || {};
+    },
   },
   watch: {
     stateUser() {
@@ -391,6 +460,28 @@ export default {
     },
   },
   methods: {
+    cloneUserRecord(user) {
+      return JSON.parse(
+        JSON.stringify(user ?? { preview: {}, permissions: {}, fileLoading: {} })
+      );
+    },
+    syncProfileUserFromFormUser() {
+      const prepared = this.prepareProfileUser(this.cloneUserRecord(this.user));
+      if (typeof prepared.showToolsInSidebar !== "boolean") {
+        prepared.showToolsInSidebar = true;
+      }
+      this.profileUser = prepared;
+      this.profileLoadKey += 1;
+    },
+    applyProfileUserToFormUser() {
+      applySectionsToFlatUser(this.user, sectionsFromFlatUser(this.profileUser));
+    },
+    async fetchExistingUserRecord(username) {
+      if (username === state.user?.username) {
+        return this.cloneUserRecord(state.user);
+      }
+      return await usersApi.get(username);
+    },
     defaultPermissions() {
       return {
         admin: false,
@@ -461,8 +552,21 @@ export default {
     sourceBlockTitle(source) {
       return source?.name || "";
     },
-    normalizeFormUser(raw) {
+    normalizeFormUser(raw, { fromDefaultsTemplate = false } = {}) {
       const user = { ...(raw ?? {}) };
+      // Flat API users always have `preview`; only merge nested defaults for template payloads.
+      if (fromDefaultsTemplate) {
+        applySectionsToFlatUser(user, {
+          sidebar: user.sidebar || {},
+          listing: user.listing || {},
+          preview: user.preview || {},
+          fileViewer: user.fileViewer || {},
+          search: user.search || {},
+          ui: user.ui || {},
+          account: user.account || {},
+          fileLoading: user.fileLoading || {},
+        });
+      }
       if (user.account && typeof user.account === "object") {
         const account = user.account;
         user.lockPassword = !!account.lockPassword;
@@ -496,13 +600,23 @@ export default {
       delete user.account;
       delete user.sidebar;
       delete user.listing;
-      delete user.preview;
       delete user.fileViewer;
       delete user.search;
       delete user.ui;
-      delete user.fileLoading;
       user.scopes = this.normalizeScopesForForm(user.scopes, user.sourcePermissions);
       delete user.sourcePermissions;
+      return this.prepareProfileUser(user);
+    },
+    prepareProfileUser(user) {
+      if (!user.preview || typeof user.preview !== "object") {
+        user.preview = {};
+      }
+      if (!user.fileLoading || typeof user.fileLoading !== "object") {
+        user.fileLoading = {};
+      }
+      if (typeof user.showToolsInSidebar !== "boolean") {
+        user.showToolsInSidebar = true;
+      }
       return user;
     },
     normalizeScopesForForm(scopes, legacySourcePermissions) {
@@ -542,7 +656,7 @@ export default {
         if (this.isNew) {
           const response = await settingsApi.getUserDefaults();
           const defaults = response?.values ?? response;
-          this.user = this.normalizeFormUser(defaults);
+          this.user = this.normalizeFormUser(defaults, { fromDefaultsTemplate: true });
           this.user.password = "";
           // Ensure loginMethod is valid, set to first available method if not set or invalid
           const validMethods = [];
@@ -555,12 +669,13 @@ export default {
           if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
             this.user.loginMethod = this.firstAvailableLoginMethod;
           }
+          this.syncProfileUserFromFormUser();
         } else {
           const uname = this.targetUsername;
           if (!uname) {
             return;
           }
-          this.user = this.normalizeFormUser(await usersApi.get(uname));
+          this.user = this.normalizeFormUser(await this.fetchExistingUserRecord(uname));
           this.user.password = "";
           // Normalize scopes to ensure they're in {name, scope} format only
           if (this.user.scopes && Array.isArray(this.user.scopes)) {
@@ -577,12 +692,12 @@ export default {
           if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
             this.user.loginMethod = this.firstAvailableLoginMethod;
           }
+          this.syncProfileUserFromFormUser();
         }
       } catch (e) {
         this.error = e;
       } finally {
         mutations.setLoading("users", false);
-        this.loaded = true;
         // Update prompt name after user data is loaded
         this.updatePromptTitle();
       }
@@ -617,6 +732,7 @@ export default {
       if (!this.isNew) {
         this.originalSnapshot = JSON.parse(JSON.stringify(this.buildEditableSnapshot()));
       }
+      this.loaded = true;
     },
     buildScopesPayload() {
       return this.selectedSources.map((source) => ({
@@ -634,13 +750,25 @@ export default {
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
     },
+    buildProfileSnapshot(user) {
+      const snapshot = {};
+      for (const field of PROFILE_SNAPSHOT_FIELDS) {
+        snapshot[field] = user?.[field];
+      }
+      if (snapshot.preview && typeof snapshot.preview === "object") {
+        snapshot.preview = { ...snapshot.preview };
+      }
+      if (snapshot.fileLoading && typeof snapshot.fileLoading === "object") {
+        snapshot.fileLoading = { ...snapshot.fileLoading };
+      }
+      return snapshot;
+    },
     buildEditableSnapshot() {
       this.applyEditAccountToUser();
       const permissions = this.user.permissions || this.defaultPermissions();
       return {
         scopes: this.normalizeScopesForCompare(this.buildScopesPayload()),
         loginMethod: this.user.loginMethod ?? null,
-        locale: this.user.locale ?? "",
         otpEnabled: !!this.user.otpEnabled,
         lockPassword: !!this.user.lockPassword,
         disableSettings: !!this.user.disableSettings,
@@ -651,6 +779,7 @@ export default {
           api: !!permissions.api,
           realtime: !!permissions.realtime,
         },
+        profile: this.buildProfileSnapshot(this.profileUser),
       };
     },
     computeChangedFields() {
@@ -666,23 +795,40 @@ export default {
       if (current.loginMethod !== orig.loginMethod) {
         fields.push("loginMethod");
       }
-      if (current.locale !== orig.locale) {
-        fields.push("locale");
-      }
       if (current.otpEnabled !== orig.otpEnabled) {
         fields.push("otpEnabled");
       }
-      if (current.lockPassword !== orig.lockPassword) {
+      if (current.lockPassword !== orig.lockPassword && !this.enforcedAccount.lockPassword) {
         fields.push("lockPassword");
       }
-      if (current.disableSettings !== orig.disableSettings) {
+      if (current.disableSettings !== orig.disableSettings && !this.enforcedAccount.disableSettings) {
         fields.push("disableSettings");
       }
-      if (current.disableUpdateNotifications !== orig.disableUpdateNotifications) {
+      if (
+        current.disableUpdateNotifications !== orig.disableUpdateNotifications
+        && !this.enforcedAccount.disableUpdateNotifications
+      ) {
         fields.push("disableUpdateNotifications");
       }
       if (JSON.stringify(current.permissions) !== JSON.stringify(orig.permissions)) {
-        fields.push("permissions");
+        const permissionFields = ["admin", "share", "api", "realtime"];
+        for (const perm of permissionFields) {
+          if (
+            current.permissions[perm] !== orig.permissions[perm]
+            && !this.enforcedAccountPermissions[perm]
+          ) {
+            fields.push("permissions");
+            break;
+          }
+        }
+      }
+      for (const field of PROFILE_SNAPSHOT_FIELDS) {
+        if (isFlatProfileFieldEnforced(this.enforcedPreferences, field)) {
+          continue;
+        }
+        if (JSON.stringify(current.profile?.[field]) !== JSON.stringify(orig.profile?.[field])) {
+          fields.push(field);
+        }
       }
       return fields;
     },
@@ -712,6 +858,9 @@ export default {
     },
     onEditAccountChange() {
       this.applyEditAccountToUser();
+      this.emitUpdate();
+    },
+    onPreferenceChange() {
       this.emitUpdate();
     },
     deletePrompt() {
@@ -745,6 +894,9 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
+        this.applyEditAccountToUser();
+        this.applyProfileUserToFormUser();
+        // Profile sections carry a stale account snapshot; restore admin-edited account fields.
         this.applyEditAccountToUser();
         const scopesToSend = this.buildScopesPayload();
         const payload = {

@@ -391,7 +391,11 @@
     "enforcedByAdmin": "Váš správce zakázal uživatelům měnit tuto vlastnost",
     "singleClick": "Otevření souborů jedním kliknutím",
     "stickySidebar": "Lepivý postranní panel",
-    "darkMode": "Tmavý režim"
+    "darkMode": "Tmavý režim",
+    "defaultViewMode": "Výchozí režim zobrazení",
+    "defaultViewModeDescription": "Výchozí režim zobrazení v nových prohlížečích nebo na nových zařízeních. Nepřepíše nastavení zobrazení, která jsou již uložena lokálně.",
+    "defaultGallerySize": "Výchozí velikost miniatury",
+    "defaultGallerySizeDescription": "Výchozí měřítko miniatur v galerii nebo seznamu (1–9) v nových prohlížečích nebo na nových zařízeních. Nepřepíše velikosti, které jsou již uloženy lokálně."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
