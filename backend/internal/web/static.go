@@ -67,10 +67,47 @@ func recaptchaSettings(pwd settings.PasswordAuthConfig) (enabled bool, host, key
 // this header, blocking inline scripts without limiting frames, images, or API calls.
 // worker-src blob: is required for Ace editor web workers (analytics/config preview).
 func spaContentSecurityPolicy(nonce string) string {
-	return fmt.Sprintf(
-		"script-src 'self' 'nonce-%s' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com; worker-src blob:",
+	policy := fmt.Sprintf(
+		"script-src 'self' 'nonce-%s' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com",
 		nonce,
 	)
+	for _, origin := range onlyOfficeScriptSrcOrigins() {
+		policy += " " + origin
+	}
+	policy += "; worker-src blob:"
+	return policy
+}
+
+func onlyOfficeScriptSrcOrigins() []string {
+	oo := settings.Config.Integrations.OnlyOffice
+	candidates := []string{
+		cspOriginFromURL(oo.Url),
+		cspOriginFromURL(oo.InternalUrl),
+	}
+	var origins []string
+	seen := make(map[string]struct{}, len(candidates))
+	for _, origin := range candidates {
+		if origin == "" {
+			continue
+		}
+		if _, ok := seen[origin]; ok {
+			continue
+		}
+		seen[origin] = struct{}{}
+		origins = append(origins, origin)
+	}
+	return origins
+}
+
+func cspOriginFromURL(raw string) string {
+	if raw == "" {
+		return ""
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return ""
+	}
+	return u.Scheme + "://" + u.Host
 }
 
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
@@ -194,6 +231,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"title":              title,
 		"customCSS":          template.CSS(settings.Config.Frontend.Styling.CustomCSSRaw),
 		"userSelectedTheme":  template.CSS(userSelectedTheme),
+		"defaultDarkMode":    settings.DefaultDarkMode(),
 		"lightBackground":    settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":     settings.Config.Frontend.Styling.DarkBackground,
 		"staticURL":          staticURL,

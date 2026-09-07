@@ -38,6 +38,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
       - working-directory: frontend
         run: npm i && npm run lint
   test-frontend:
@@ -45,6 +47,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
       - working-directory: frontend
         run: npm i && npm run test
   check-translations:
@@ -52,6 +56,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
       - working-directory: frontend
         run: npm i && npm run i18n:check
   check-docs:
@@ -68,5 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
       - working-directory: frontend
         run: npm i && npm run icons:check

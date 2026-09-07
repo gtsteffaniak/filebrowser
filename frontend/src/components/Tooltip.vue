@@ -20,7 +20,8 @@
 </template>
 
 <script>
-import { getters, mutations, state } from "@/store";
+import { getters, state } from "@/store";
+import { hideInteractiveTooltip } from "@/utils/tooltipHelp.js";
 
 export default {
   name: "Tooltip",
@@ -63,7 +64,7 @@ export default {
   watch: {
     $route: {
       handler() {
-        mutations.hideTooltip();
+        hideInteractiveTooltip(true);
       },
     },
     tooltip: {
@@ -149,5 +150,17 @@ export default {
   font-size: 1em !important;
   padding: 0.1em !important;
   padding-left: 0.5em !important;
+  touch-action: manipulation;
+}
+
+.tooltip-info-icon[role="button"] {
+  cursor: pointer;
+}
+
+.tooltip-info-icon:active,
+.tooltip-info-icon.tooltip-info-icon--pressed,
+.tooltip-info-icon:hover {
+  font-variation-settings: 'FILL' 1;
+  opacity: 1;
 }
 </style>

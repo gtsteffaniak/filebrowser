@@ -560,7 +560,11 @@
     "enforcedByAdmin": "系统管理员已禁止用户更改此属性",
     "singleClick": "单击即可打开文件",
     "stickySidebar": "固定侧边栏",
-    "darkMode": "深色模式"
+    "darkMode": "深色模式",
+    "defaultViewMode": "默认视图模式",
+    "defaultViewModeDescription": "在新浏览器或设备上的初始视图模式。不会覆盖已保存在本地的视图偏好设置。",
+    "defaultGallerySize": "默认缩略图大小",
+    "defaultGallerySizeDescription": "在新浏览器或设备上显示的图库或列表缩略图初始缩放比例（1–9）。不会覆盖已保存在本地中的尺寸设置。"
   },
   "general": {
     "name": "名称",

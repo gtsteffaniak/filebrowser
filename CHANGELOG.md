@@ -2,6 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+
 ## v2.1.0
 
  **New Features**:
@@ -44,6 +45,28 @@ All notable changes to this project will be documented in this file. For commit 
  - Added some missing styles in the markdown viewer (#2714)
  - Recaptcha not working (#1925) (#2861)
 
+## v2.0.5
+
+ **New Features**:
+ - Users can set default view mode and thumbnail size from Profile settings (Listing options). Admins can set the same defaults for existing users from the user edit prompt. Values persist to the account and apply on new browsers or devices; they do not override view preferences already saved locally ([#2884](https://github.com/gtsteffaniak/filebrowser/issues/2884)).
+ - Admins can edit all profile preference defaults for existing users from the user management panel (listing, preview, sidebar, theme, and related options), matching what was previously available only for new users and global user defaults.
+
+ **Security**:
+ - [Moderate] public metadata api returns file content to anonymous share visitors, ignoring the share's download limit and file-viewer setting (GHSA-55mw-cwg7-m8f5) -- thanks @kta1kri
+
+ **Bugfixes**:
+ - Fixed infinite loading spinner on `/` and `/login` after CSP security hardening ([#2886](https://github.com/gtsteffaniak/filebrowser/issues/2886), [#2890](https://github.com/gtsteffaniak/filebrowser/issues/2890))
+ - fixed darkmode styling bug where background wouldn't respect configured settings when not logged in
+ - fixed styling bug where padding was missing from right side of listing view.
+ - tilde paths for sources were not properly expanded. (eg "~" for home)
+ - fixed tooltip not showing up for some circumstances on mobile, improved consistency.
+ - a few styling fixes for inconsistencies (#2908)
+
+## v2.0.4
+
+ **Bugfixes**:
+ - OnlyOffice editor failed to load after the CSP security fix; allow configured `integrations.office.url` and `integrations.office.internalUrl` origins in `script-src` ([#2874](https://github.com/gtsteffaniak/filebrowser/issues/2874)).
+
 ## v2.0.3
 
  **Security**:
@@ -67,7 +90,6 @@ All notable changes to this project will be documented in this file. For commit 
  - A password reset via CLI returns user to a password method user.
  - Authentication login methods are consistently enforced without modifying existing account settings.
 
-
 ## v2.0.2
 
  **Bugfixes**:
@@ -78,7 +100,6 @@ All notable changes to this project will be documented in this file. For commit 
  - OnlyOffice is inaccessible on password-protected shares (#2811)
  - FFmpeg 9.0 incorrectly detected as below minimum 5.0.0 on Windows (#2820) -- thanks @yzxcj797
  - Queue buttons not clickable in the desktop panel in audio files.
-
 
 ## v2.0.1
 

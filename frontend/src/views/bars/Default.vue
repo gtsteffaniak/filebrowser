@@ -2,6 +2,7 @@
   <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
     <action
       v-if="!disableNavButtons"
+      class="nav-toggle-button"
       icon="close_back"
       :label="$t('general.close')"
       :disabled="isDisabledMultiAction"
@@ -330,17 +331,22 @@ header button:hover {
 }
 
 header {
-  background-color: rgb(37 49 55 / 5%) !important;
+  background-color: color-mix(in srgb, var(--alt-background) 15%, transparent);
 }
 /* Header with backdrop-filter support */
 @supports (backdrop-filter: none) {
   header {
     backdrop-filter: blur(16px) invert(0.1);
   }
-  .dark-mode-header {
-    background-color: rgb(37 49 55 / 33%) !important;
-  }
 }
+
+:deep(.action.nav-toggle-button .line),
+:deep(.action.menu-button),
+:deep(.action.overflow-menu-button) {
+  stroke: #546e7a;
+  color: #546e7a;
+}
+
 
 .search-bar-container {
   display: flex;
