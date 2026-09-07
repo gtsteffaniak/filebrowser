@@ -35,10 +35,7 @@
           <div v-if="passwordAvailable || ldapAvailable" class="password-entry">
             <div v-if="error !== ''" class="wrong-login card">
               <span>{{ $t("login.failedLogin") }}</span>
-              <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, error)"
-                @mouseleave="hideTooltip">
-                help <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              </i>
+              <HelpTooltipIcon :text="error" />
             </div>
             <input autofocus class="input" type="text" autocapitalize="off" v-model="username"
               :placeholder="$t('general.username')" />
@@ -200,6 +197,8 @@ import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
 import { globalVars } from "@/utils/constants";
+import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
@@ -207,6 +206,7 @@ export default {
   name: "login",
   components: {
     Prompts,
+    HelpTooltipIcon,
     Tooltip,
     LoadingSpinner,
   },
@@ -220,7 +220,7 @@ export default {
     name: () => globalVars.name || "FileBrowser Quantum",
     loginIconUrl: () => globalVars.loginIcon,
     isDarkMode() {
-      return globalVars.darkMode;
+      return defaultDarkMode();
     },
     loginName() {
       return this.name;
@@ -237,6 +237,7 @@ export default {
     inProgress: false,
   }),
   mounted() {
+    syncDocumentTheme(this.isDarkMode);
     let redirect = state.route.query.redirect;
     if (redirect) {
       redirect = removeLeadingSlash(redirect);
@@ -296,16 +297,6 @@ export default {
       el.style.height = '0';
       el.style.opacity = '0';
       setTimeout(done, 300);
-    },
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
     },
     toggleMode() {
       this.createMode = !this.createMode;

@@ -725,7 +725,11 @@
     "enforcedByAdmin": "A rendszergazda letiltotta a felhasználók számára ennek a tulajdonságnak a módosítását",
     "singleClick": "A fájlok megnyitásához elég egy kattintás",
     "stickySidebar": "Rögzített oldalsáv",
-    "darkMode": "Sötét mód"
+    "darkMode": "Sötét mód",
+    "defaultViewMode": "Alapértelmezett megjelenítési mód",
+    "defaultViewModeDescription": "Alapértelmezett megjelenítési mód új böngészőkön vagy eszközökön. Nem írja felül a már helyileg elmentett megjelenítési beállításokat.",
+    "defaultGallerySize": "Alapértelmezett miniatűrméret",
+    "defaultGallerySizeDescription": "A galéria vagy lista miniatűrjeinek kezdeti mérete (1–9) új böngészőkön vagy eszközökön. A már helyileg elmentett méreteket nem írja felül."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

@@ -725,7 +725,11 @@
     "enforcedByAdmin": "Váš správca zakázal používateľom meniť túto vlastnosť",
     "singleClick": "Otvorenie súborov jedným kliknutím",
     "stickySidebar": "Lepivý bočný panel",
-    "darkMode": "Tmavý režim"
+    "darkMode": "Tmavý režim",
+    "defaultViewMode": "Predvolený režim zobrazenia",
+    "defaultViewModeDescription": "Režim počiatočného zobrazenia v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje nastavenia zobrazenia, ktoré sú už uložené lokálne.",
+    "defaultGallerySize": "Predvolená veľkosť náhľadu",
+    "defaultGallerySizeDescription": "Počiatočné zväčšenie miniatúr v galérii alebo zozname (1–9) v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje veľkosti, ktoré sú už uložené lokálne."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

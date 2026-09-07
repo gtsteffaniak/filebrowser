@@ -347,6 +347,7 @@ export default {
 }
 .card-content.full :deep(.settings-group) {
   margin-bottom: 0.75rem;
+  margin-top: 0.5em;
 }
 .loading-hint {
   opacity: 0.7;

@@ -8,6 +8,7 @@ import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/
 import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
+import { defaultDarkMode } from '@/utils/theme';
 import type { DisplayPreference, FileListItem } from './types';
 
 export const getters = {
@@ -165,8 +166,8 @@ export const getters = {
     if (!getters.isShare() && getters.eventTheme() === "halloween") {
       return true
     }
-    if (state.user === null) {
-      return true
+    if (!getters.isLoggedIn()) {
+      return defaultDarkMode()
     }
     return state.user.darkMode === true
   },
@@ -546,7 +547,7 @@ export const getters = {
       deleteAfterArchive: true,
       stickySidebar: true,
       hideFilesInTree: false,
-      darkMode: true,
+      darkMode: defaultDarkMode(),
       dateFormat: false,
       disableViewingExt: "",
       disableOfficePreviewExt: "",

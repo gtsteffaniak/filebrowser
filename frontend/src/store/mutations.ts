@@ -658,6 +658,8 @@ export const mutations = {
         "showSelectMultiple",
         "debugOffice",
         "disableUpdateNotifications",
+        "viewMode",
+        "gallerySize",
       ];
       const updatedProperties = Object.keys(value).filter(
         (key) =>
