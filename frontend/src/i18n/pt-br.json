@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "Sua senha é necessária para gerar um código de autenticação."
   },
   "general": {
+    "import": "Importar",
+    "export": "Exportar",
     "name": "Nome",
     "path": "Caminho",
     "user": "Usuário",

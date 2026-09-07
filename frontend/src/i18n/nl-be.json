@@ -567,6 +567,8 @@
     "defaultGallerySizeDescription": "Standaardschaal (1–9) voor miniatuurafbeeldingen in galerijen of lijsten in nieuwe browsers of op nieuwe apparaten. Dit overschrijft geen afmetingen die al lokaal zijn opgeslagen."
   },
   "general": {
+    "import": "Importeren",
+    "export": "Exporteren",
     "name": "Naam",
     "path": "Pad",
     "user": "Gebruiker",

@@ -58,6 +58,7 @@ export default {
         }
 
         mutations.closeTopPrompt();
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         notify.showError(e);
       }

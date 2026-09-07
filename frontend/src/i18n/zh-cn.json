@@ -567,6 +567,8 @@
     "defaultGallerySizeDescription": "在新浏览器或设备上显示的图库或列表缩略图初始缩放比例（1–9）。不会覆盖已保存在本地中的尺寸设置。"
   },
   "general": {
+    "import": "导入",
+    "export": "导出",
     "name": "名称",
     "path": "路径",
     "user": "用户",

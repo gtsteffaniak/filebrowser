@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "A hitelesítési kód generálásához a jelszóra van szükség."
   },
   "general": {
+    "import": "Importálás",
+    "export": "Exportálás",
     "name": "Név",
     "path": "Útvonal",
     "user": "Felhasználó",

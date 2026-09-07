@@ -9,6 +9,8 @@
     "noCreateOptions": "Non sono disponibili opzioni di creazione"
   },
   "general": {
+    "import": "Importa",
+    "export": "Esporta",
     "divider": "Divisore{suffix}",
     "office": "Office{suffix}",
     "format": "Formato{suffix}",

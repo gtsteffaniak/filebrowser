@@ -9,6 +9,8 @@
     "noCreateOptions": "Er zijn geen opties beschikbaar"
   },
   "general": {
+    "import": "Importeren",
+    "export": "Exporteren",
     "divider": "Scheiding{suffix}",
     "office": "Office{suffix}",
     "format": "Formaat{suffix}",

@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "كلمة المرور الخاصة بك مطلوبة لإنشاء رمز المصادقة."
   },
   "general": {
+    "import": "استيراد",
+    "export": "تصدير",
     "name": "الاسم",
     "path": "المسار",
     "user": "المستخدم",

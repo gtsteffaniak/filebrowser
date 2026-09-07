@@ -567,6 +567,8 @@
     "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já guardados localmente."
   },
   "general": {
+    "import": "Importar",
+    "export": "Exportar",
     "name": "Nome",
     "path": "Caminho",
     "user": "Utilizador",

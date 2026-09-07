@@ -9,6 +9,8 @@
     "noCreateOptions": "No create options are available"
   },
   "general": {
+    "import": "Import",
+    "export": "Export",
     "to": "to{suffix}",
     "and": "and{suffix}",
     "or": "or{suffix}",

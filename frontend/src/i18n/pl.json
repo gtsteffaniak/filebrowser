@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "Hasło jest wymagane do wygenerowania kodu uwierzytelniającego."
   },
   "general": {
+    "import": "Importuj",
+    "export": "Eksportuj",
     "name": "Nazwa",
     "path": "Ścieżka",
     "user": "Użytkownik",

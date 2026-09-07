@@ -6,7 +6,7 @@
       :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
     >
       <EditorToolbar v-if="showEditorToolbar" :editor="editor" :is-markdown="isMarkdownFile" />
-      <div id="editor"></div>
+      <div id="editor" ref="editorEl"></div>
     </div>
     <MarkdownSplitView
       v-if="isMarkdownFile"
@@ -139,7 +139,7 @@ export default {
     },
     // Editor read-only state
     editorReadOnly() {
-      if (!this.permissions.modify) {
+      if (!this.viewerMode && !this.permissions.modify) {
         return true;
       }
       if (this.readOnly !== null) {
@@ -335,6 +335,8 @@ export default {
     mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
   },
   unmounted() {
+    this.resizeContainerEl?.removeEventListener("keydown", this.stopEnterPropagation);
+    this.resizeContainerEl = null;
     if (this.editor) {
       this.editor.destroy();
       this.editor = null;
@@ -342,6 +344,7 @@ export default {
   },
   mounted: function () {
     this.resizeContainerEl = (this.$refs.editorRoot as HTMLElement | undefined) || null;
+    this.resizeContainerEl?.addEventListener("keydown", this.stopEnterPropagation); // to avoid trigger prompts primary button when the editor is embedded
     if (this.viewerMode) {
       this.$nextTick(() => {
         this.$nextTick(() => {
@@ -456,7 +459,7 @@ export default {
       });
     },
     initializeEditor(initialScrollRatio: number = state.editor.scrollRatio) {
-      const editorEl = document.getElementById("editor");
+      const editorEl = this.$refs.editorEl as HTMLElement | undefined;
       if (!editorEl) {
         return;
       }
@@ -539,6 +542,9 @@ export default {
         notify.showError(this.$t("editor.uninitialized"));
       }
     },
+    getValue(): string {
+      return this.editor?.getValue() ?? this.editorContent;
+    },
     getAceMode(mode: string): string {
       switch (mode) {
         case 'yaml': return 'ace/mode/yaml';
@@ -611,6 +617,11 @@ export default {
       mutations.setRequestContent(this.savedContent);
       this.isDirty = false;
       mutations.setEditorDirty(false);
+    },
+    stopEnterPropagation(event: KeyboardEvent) {
+      if (event.key === "Enter") {
+        event.stopPropagation();
+      }
     },
     async keyEvent(event: KeyboardEvent) {
       const { key, ctrlKey, metaKey } = event;

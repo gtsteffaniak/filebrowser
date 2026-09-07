@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "인증 코드를 생성하려면 비밀번호가 필요합니다."
   },
   "general": {
+    "import": "가져오기",
+    "export": "내보내기",
     "name": "이름",
     "path": "경로",
     "user": "사용자",

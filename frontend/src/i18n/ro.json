@@ -465,6 +465,8 @@
     "passwordRequiredForGeneration": "Parola dvs. este necesară pentru a genera un cod de autentificare."
   },
   "general": {
+    "import": "Import",
+    "export": "Export",
     "name": "Nume și prenume",
     "path": "Calea",
     "user": "Utilizator",

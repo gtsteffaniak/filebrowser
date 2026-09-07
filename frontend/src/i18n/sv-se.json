@@ -567,6 +567,8 @@
     "defaultGallerySizeDescription": "Initial skala för miniatyrbilder i gallerier eller listor (1–9) i nya webbläsare eller på nya enheter. Åsidosätter inte storlekar som redan sparats lokalt."
   },
   "general": {
+    "import": "Importera",
+    "export": "Exportera",
     "name": "Namn",
     "path": "Väg",
     "user": "Användare",
