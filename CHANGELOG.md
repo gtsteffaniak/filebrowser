@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - [Moderate] public metadata api returns file content to anonymous share visitors, ignoring the share's download limit and file-viewer setting (GHSA-55mw-cwg7-m8f5) -- thanks @kta1kri
 
  **Bugfixes**:
+ - Fixed infinite loading spinner on `/` and `/login` after CSP security hardening ([#2886](https://github.com/gtsteffaniak/filebrowser/issues/2886), [#2890](https://github.com/gtsteffaniak/filebrowser/issues/2890))
  - fixed darkmode styling bug where background wouldn't respect configured settings when not logged in
  - fixed styling bug where padding was missing from right side of listing view.
  - tilde paths for sources were not properly expanded. (eg "~" for home)
