@@ -290,27 +290,4 @@ export default defineComponent({
 .nav-button:hover {
   background-color: var(--alt-background);
 }
-
-/* Copied directly from your example */
-.floating-close {
-  position: fixed;
-  left: 50%;
-  transform: translate(-50%, -5em); /* Start offscreen */
-  transition: transform 0.4s ease;
-  background: var(--surfaceSecondary);
-  font-size: 0.5em;
-  top: 0;
-  z-index: 1002;
-}
-
-.float-in {
-  transform: translate(-50%, 2.75em); /* Animate to final position */
-}
-
-.floating-close i {
-  font-size: 2em;
-  padding-right: 1em;
-  padding-left: 1em;
-  color: var(--textPrimary);
-}
 </style>

@@ -1017,20 +1017,20 @@ export default {
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
+  width: var(--fab-size);
+  height: var(--fab-size);
   border: var(--borderWidth) solid var(--divider);
   border-radius: 50%;
   background: var(--background);
   color: var(--textPrimary);
   cursor: pointer;
-  transition: opacity 0.4s ease, transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, left 0.2s ease;
+  transition: opacity 0.4s ease, transform var(--fab-transition), background-color var(--fab-transition), box-shadow var(--fab-transition), left 0.2s ease;
   pointer-events: auto;
   z-index: 1001;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--fab-shadow);
   opacity: 1;
   margin-top: 2em;
   user-select: none;
@@ -1049,10 +1049,7 @@ export default {
 .nav-button.active {
   background: var(--primaryColor);
   transform: translateY(-50%) scale(1.1);
-  box-shadow:
-        inset 0 -3em 3em rgba(217, 217, 217, 0.211),
-        0 0 0 2px var(--alt-background),
-        0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--fab-elevation-hover);
   color: white;
   opacity: 1;
 }
@@ -1143,9 +1140,9 @@ export default {
 }
 
 .nav-button i.material-symbols {
-  font-size: 24px;
+  font-size: var(--fab-icon-size);
   line-height: 1;
-  transition: transform 0.2s ease;
+  transition: transform var(--fab-transition);
 }
 
 .nav-button:hover i.material-symbols,
@@ -1156,8 +1153,8 @@ export default {
 /* Mobile styles */
 @media (max-width: 768px) {
   .nav-button {
-    width: 44px;
-    height: 44px;
+    width: var(--fab-size-small);
+    height: var(--fab-size-small);
   }
 
   .nav-button i.material-symbols {

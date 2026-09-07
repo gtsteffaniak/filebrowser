@@ -1,13 +1,14 @@
 <template>
-  <button
+  <FloatingActionButton
     v-if="isAdmin"
-    type="button"
+    icon="add"
+    variant="primary"
+    position="bottom-right"
+    :edge-offset="{ bottom: '1rem', right: '1rem' }"
+    :auto-hide="false"
+    :label="newUserLabel()"
     @click="openPrompt(null)"
-    class="button floating-action-button"
-    :aria-label="newUserLabel()"
-  >
-    {{ $t("general.new") }}
-  </button>
+  />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("general.users") }}</h2>
@@ -68,6 +69,7 @@ import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
@@ -78,6 +80,7 @@ export default {
     SettingsTable,
     SettingsButton,
     ActivityViewerButton,
+    FloatingActionButton,
   },
   data: function () {
     return {

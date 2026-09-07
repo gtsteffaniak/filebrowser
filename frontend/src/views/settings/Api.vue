@@ -1,11 +1,13 @@
 <template>
-  <button
-    type="button"
-    @click.prevent="createPrompt"
-    class="button floating-action-button"
-  >
-    {{ $t("general.new") }}
-  </button>
+  <FloatingActionButton
+    icon="add"
+    variant="primary"
+    position="bottom-right"
+    :edge-offset="{ bottom: '1rem', right: '1rem' }"
+    :auto-hide="false"
+    :label="$t('general.new')"
+    @click="createPrompt"
+  />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("api.title") }}</h2>
@@ -79,6 +81,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
@@ -88,6 +91,7 @@ export default {
     Errors,
     SettingsTable,
     ActivityViewerButton,
+    FloatingActionButton,
   },
   data: () => ({
     error: null,

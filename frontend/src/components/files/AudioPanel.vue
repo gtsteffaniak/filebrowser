@@ -29,13 +29,14 @@
       </div>
       <div v-else-if="activeTab === 'lyrics'" class="tab-lyrics">
         <!-- Lock button -->
-        <FloatingButton
+        <FloatingActionButton
           v-if="lyrics.length && syncedLyrics"
           icon="lock"
           :icon-outlined="lyricsScrollLocked"
           size="small"
+          position-mode="absolute"
+          :edge-offset="{ top: '0.5em', right: '0.5em' }"
           :auto-hide="false"
-          :offset="{ position: 'absolute', top: '0.5em', right: '0.5em' }"
           @click="lyricsScrollLocked = !lyricsScrollLocked"
           :label="lyricsLockToggleLabel"
         />
@@ -73,11 +74,12 @@
         </div>
       </div>
       <div v-else-if="activeTab === 'visualizer'" class="tab-visualizer">
-        <FloatingButton
+        <FloatingActionButton
           icon="tune"
           size="small"
+          position-mode="absolute"
+          :edge-offset="{ top: '0.5em', right: '0.5em' }"
           :auto-hide="false"
-          :offset="{ position: 'absolute', top: '0.5em', right: '0.5em' }"
           @click="showVisualizerSettings"
           :label="visualizerSettingsLabel"
         />
@@ -89,7 +91,7 @@
 
 <script>
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
-import FloatingButton from "@/components/FloatingButton.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { getters, mutations, state } from "@/store";
 import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
@@ -117,7 +119,7 @@ const FREQ_LABELS = [
 
 export default {
   name: "AudioPanel",
-  components: { PlaybackQueue, FloatingButton },
+  components: { PlaybackQueue, FloatingActionButton },
   props: {
     lyrics: { type: Array, default: () => [] },
     lyricsMeta: { type: String, default: '' },

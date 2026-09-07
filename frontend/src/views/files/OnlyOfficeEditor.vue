@@ -5,9 +5,14 @@
   <div v-else>
     <p>{{ $t("general.loading", { suffix: "..." }) }}</p>
   </div>
-  <div @click="close" class="floating-close button" :class="{ 'float-in': floatIn }">
-    <i class="material-symbols">close</i>
-  </div>
+  <FloatingActionButton
+    icon="close"
+    position="top-center"
+    :slide-in="floatIn"
+    :auto-hide="false"
+    :label="$t('general.close', { suffix: '' })"
+    @click="close"
+  />
 </template>
 
 <script>
@@ -18,11 +23,13 @@ import { state, mutations } from "@/store";
 import { removeLastDir } from "@/utils/url";
 import { officeApi } from "@/api";
 import { toStandardLocale } from "@/i18n";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 
 export default {
   name: "onlyOfficeEditor",
   components: {
     DocumentEditor,
+    FloatingActionButton,
   },
   data() {
     return {
@@ -112,25 +119,3 @@ export default {
   },
 };
 </script>
-
-<style >
-.floating-close {
-  position: fixed;
-  left: 50%;
-  transform: translate(-50%, -5em);
-  transition: transform 0.4s ease;
-  background: var(--surfaceSecondary);
-  font-size: .5em;
-  top: 0;
-}
-
-.float-in {
-  transform: translate(-50%, 2.75em);
-}
-
-.floating-close i {
-  font-size: 2em;
-  padding-right: 1em;
-  padding-left: 1em;
-}
-</style>

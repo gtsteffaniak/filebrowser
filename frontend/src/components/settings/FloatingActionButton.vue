@@ -4,7 +4,7 @@
     ref="zoneEl"
     class="fab-zone"
     :class="`fab-zone--${position}`"
-    :style="{ width: zoneWidth, height: zoneHeight }"
+    :style="zoneStyle"
   ></div>
 
   <button
@@ -13,10 +13,15 @@
     class="fab-button floating"
     :class="[
       `fab-button--${position}`,
-      `fab-button--${size}`,
-      { 'dark-mode': darkMode },
+      `fab-button--${effectiveSize}`,
+      `fab-button--${variant}`,
+      {
+        'dark-mode': darkMode,
+        'fab-button--extended': extended,
+        'fab-button--slide-in-visible': slideInVisible,
+      },
     ]"
-    :style="accountSidebar"
+    :style="buttonStyle"
     :disabled="disabled"
     @click="handleClick"
     @touchstart="resetButtonTimer"
@@ -26,6 +31,7 @@
     :title="label"
   >
     <i :class="iconOutlined ? 'material-symbols-outlined' : 'material-symbols'">{{ icon }}</i>
+    <span v-if="extended && label" class="fab-label">{{ label }}</span>
     <span v-if="badge" class="fab-badge">{{ badge }}</span>
   </button>
 </template>
@@ -34,7 +40,6 @@
 import { reactive } from "vue";
 import { state, getters } from "@/store";
 
-// Buttons that show and dissapear together, on plyr the buttons at the right and left for example
 const buttonGroup = new Map<string, { visible: boolean; zoneActive: boolean; timer: ReturnType<typeof setTimeout> | null }>();
 
 function getGroupState(group: string) {
@@ -46,8 +51,10 @@ function getGroupState(group: string) {
   return entry;
 }
 
+const POSITIONS = ["top-right", "top-left", "bottom-right", "bottom-left", "top-center"] as const;
+
 export default {
-  name: "floatingButton",
+  name: "floatingActionButton",
   emits: ["click"],
   props: {
     icon: {
@@ -58,7 +65,10 @@ export default {
       type: Boolean,
       default: false,
     },
-    // this is optional, plyr uses it for the queue button which has the number of tracks at the right top of the button
+    extended: {
+      type: Boolean,
+      default: false,
+    },
     badge: {
       type: [String, Number],
       default: null,
@@ -66,32 +76,46 @@ export default {
     position: {
       type: String,
       default: "top-right",
-      validator: (v: string) => ["top-right", "top-left", "bottom-right", "bottom-left"].includes(v),
+      validator: (v: string) => POSITIONS.includes(v as typeof POSITIONS[number]),
+    },
+    positionMode: {
+      type: String,
+      default: "fixed",
+      validator: (v: string) => ["fixed", "absolute"].includes(v),
+    },
+    edgeOffset: {
+      type: [String, Object],
+      default: null,
     },
     size: {
       type: String,
       default: "normal",
       validator: (v: string) => ["normal", "small"].includes(v),
     },
+    variant: {
+      type: String,
+      default: "neutral",
+      validator: (v: string) => ["neutral", "primary"].includes(v),
+    },
     disabled: {
       type: Boolean,
       default: false,
     },
-    // Sets both the title and aria-label
     label: {
       type: String,
       default: "",
     },
-    // Inline style overrides for positioning
     offset: {
       type: Object,
       default: () => ({}),
     },
-    // To hide the button after 3s. If set to false will keep the button always visible
-    // (in which case no detection zone at all)
     autoHide: {
       type: Boolean,
       default: true,
+    },
+    autoHideDelay: {
+      type: Number,
+      default: 3000,
     },
     zoneWidth: {
       type: String,
@@ -101,10 +125,13 @@ export default {
       type: String,
       default: "5em",
     },
-    // Buttons that show and dissapear together, on plyr the buttons at the right and left for example
     group: {
       type: String,
       default: "",
+    },
+    slideIn: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -113,11 +140,15 @@ export default {
       buttonZone: false,
       buttonTimer: null as ReturnType<typeof setTimeout> | null,
       pointerInsideZone: false,
+      slideInVisible: false,
     };
   },
   computed: {
     darkMode(): boolean {
       return getters.isDarkMode();
+    },
+    effectiveSize(): string {
+      return this.extended ? "normal" : this.size;
     },
     sharedState() {
       return this.group ? getGroupState(this.group) : null;
@@ -134,18 +165,62 @@ export default {
     showButton(): boolean {
       return !this.autoHide || this.isRevealed || this.isZoneActive;
     },
-    // Account for the sidebar width for button positioned at the left
-    // skipped if some caller specifies their own left in the offset props
-    accountSidebar(): Record<string, string> {
+    normalizedEdgeOffset(): Record<string, string> {
+      if (!this.edgeOffset) return {};
+      if (typeof this.edgeOffset === "string") {
+        return {
+          top: this.edgeOffset,
+          right: this.edgeOffset,
+          bottom: this.edgeOffset,
+          left: this.edgeOffset,
+        };
+      }
+      const edge = this.edgeOffset as { top?: string; right?: string; bottom?: string; left?: string };
+      const result: Record<string, string> = {};
+      if (edge.top !== undefined) result.top = edge.top;
+      if (edge.right !== undefined) result.right = edge.right;
+      if (edge.bottom !== undefined) result.bottom = edge.bottom;
+      if (edge.left !== undefined) result.left = edge.left;
+      return result;
+    },
+    buttonStyle(): Record<string, string> {
+      const style: Record<string, string> = {
+        position: this.positionMode,
+        ...(this.offset as Record<string, string>),
+        ...this.normalizedEdgeOffset,
+      };
+
       const isLeftPositioned = this.position === "top-left" || this.position === "bottom-left";
       const pushedBySidebar = isLeftPositioned && getters.isSidebarVisible() && getters.isStickySidebar();
-      if (!pushedBySidebar || (this.offset as Record<string, string>).left !== undefined) return this.offset;
-      return { ...this.offset, left: `calc(20px + ${state.sidebar.width}em)` };
+      if (pushedBySidebar && style.left === undefined) {
+        style.left = `calc(var(--fab-edge-offset-media) + ${state.sidebar.width}em)`;
+      }
+
+      return style;
+    },
+    zoneStyle(): Record<string, string> {
+      return {
+        width: this.zoneWidth,
+        height: this.zoneHeight,
+        position: this.positionMode,
+      };
+    },
+  },
+  watch: {
+    slideIn(visible: boolean) {
+      if (visible) {
+        this.slideInVisible = true;
+      }
     },
   },
   mounted() {
+    if (this.slideIn) {
+      requestAnimationFrame(() => {
+        this.slideInVisible = true;
+      });
+    }
     if (this.autoHide) {
-      this.resetButtonTimer(); // show buttons initially
+      this.resetButtonTimer();
       window.addEventListener("pointermove", this.handleGlobalPointerMove, { passive: true });
       window.addEventListener("touchstart", this.handleGlobalTouchStart, { passive: true });
     }
@@ -156,7 +231,6 @@ export default {
     window.removeEventListener("touchstart", this.handleGlobalTouchStart);
   },
   methods: {
-    // click/touch pass through to whatever is behind, so detection happens here against the zone bounds
     isInsideZone(x: number, y: number): boolean {
       const el = this.$refs.zoneEl as HTMLElement | undefined;
       if (!el) return false;
@@ -198,7 +272,7 @@ export default {
         shared.timer = setTimeout(() => {
           if (!shared.zoneActive) shared.visible = false;
           shared.timer = null;
-        }, 3000);
+        }, this.autoHideDelay);
         return;
       }
       this.buttonVisible = true;
@@ -206,7 +280,7 @@ export default {
       this.buttonTimer = setTimeout(() => {
         if (!this.buttonZone) this.buttonVisible = false;
         this.buttonTimer = null;
-      }, 3000);
+      }, this.autoHideDelay);
     },
     handleClick(event: MouseEvent) {
       this.resetButtonTimer();
@@ -218,7 +292,6 @@ export default {
 
 <style scoped>
 .fab-zone {
-  position: fixed;
   pointer-events: none;
   z-index: 1000;
   background: transparent;
@@ -234,6 +307,13 @@ export default {
   left: 0;
 }
 
+.fab-zone--top-center {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8em !important;
+}
+
 .fab-zone--bottom-right {
   bottom: 0;
   right: 0;
@@ -245,43 +325,69 @@ export default {
 }
 
 .fab-button {
-  position: fixed;
-  width: 50px;
-  height: 50px;
+  width: var(--fab-size);
+  height: var(--fab-size);
   border: none;
   border-radius: 50%;
   background: var(--background);
   color: var(--textPrimary);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background-color var(--fab-transition),
+    color var(--fab-transition),
+    transform var(--fab-transition),
+    box-shadow var(--fab-transition),
+    opacity var(--fab-transition);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--fab-shadow);
   outline: none;
   z-index: 9998;
-  animation: fab-button-show 0.4s ease-out;
+  animation: fab-button-show 200ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-.fab-button.dark-mode {
+.fab-button.dark-mode:not(.fab-button--primary) {
   background: var(--surfacePrimary);
 }
 
-.fab-button:hover {
+.fab-button--neutral:hover:not(:disabled) {
   background: var(--primaryColor);
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(var(--primaryColor-rgb), 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--fab-elevation-hover);
   color: white;
+}
+
+.fab-button--primary,
+.fab-button--primary.dark-mode {
+  background: var(--primaryColor);
+  color: white;
+}
+
+.fab-button--primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--fab-elevation-hover);
+}
+
+.fab-button:active:not(:disabled) {
+  box-shadow: var(--fab-elevation-pressed);
+}
+
+.fab-button:focus-visible {
+  outline: 2px solid var(--primaryColor);
+  outline-offset: 2px;
 }
 
 .fab-button i.material-symbols,
 .fab-button i.material-symbols-outlined {
-  font-size: 24px;
-  transition: transform 0.2s ease, font-variation-settings 0.25s ease;
+  font-size: var(--fab-icon-size);
+  transition: transform var(--fab-transition);
 }
 
-.fab-button:hover i.material-symbols,
-.fab-button:hover i.material-symbols-outlined {
+.fab-button--neutral:hover:not(:disabled) i.material-symbols,
+.fab-button--neutral:hover:not(:disabled) i.material-symbols-outlined,
+.fab-button--primary:hover:not(:disabled) i.material-symbols,
+.fab-button--primary:hover:not(:disabled) i.material-symbols-outlined {
   transform: scale(1.1);
 }
 
@@ -291,36 +397,73 @@ export default {
   pointer-events: none;
 }
 
-/* sizes */
+.fab-button--extended {
+  width: auto;
+  min-width: var(--fab-size);
+  padding: 0 20px;
+  gap: 8px;
+  border-radius: calc(var(--fab-size) / 2);
+}
+
+.fab-label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
 .fab-button--small {
-  width: 36px;
-  height: 36px;
+  width: var(--fab-size-small);
+  height: var(--fab-size-small);
+  min-width: var(--fab-size-small);
 }
 
-.fab-button--small i.material-symbols,
-.fab-button--small i.material-symbols-outlined {
-  font-size: 24px;
-}
-
-/* positions */
 .fab-button--top-right {
   top: 80px;
-  right: 20px;
+  right: var(--fab-edge-offset-media);
 }
 
 .fab-button--top-left {
   top: 80px;
-  left: 20px;
+  left: var(--fab-edge-offset-media);
+}
+
+.fab-button--top-center {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -5em);
+  animation: none;
+  transition:
+    transform 0.4s ease,
+    background-color var(--fab-transition),
+    color var(--fab-transition),
+    box-shadow var(--fab-transition);
+}
+
+.fab-button--top-center.fab-button--slide-in-visible {
+  transform: translate(-50%, 2.75em);
+}
+
+.fab-button--top-center.fab-button--neutral:hover:not(:disabled) {
+  transform: translate(-50%, calc(2.75em - 2px)) scale(1.05);
+}
+
+.fab-button--top-center.fab-button--primary:hover:not(:disabled) {
+  transform: translate(-50%, calc(2.75em - 2px)) scale(1.05);
 }
 
 .fab-button--bottom-right {
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
-  right: calc(env(safe-area-inset-right, 0px) + 20px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fab-edge-offset-media));
+  right: calc(env(safe-area-inset-right, 0px) + var(--fab-edge-offset-media));
 }
 
 .fab-button--bottom-left {
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
-  left: calc(env(safe-area-inset-left, 0px) + 20px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fab-edge-offset-media));
+  left: calc(env(safe-area-inset-left, 0px) + var(--fab-edge-offset-media));
+}
+
+.fab-button--slide-in {
+  animation: none;
 }
 
 .fab-badge {
@@ -352,6 +495,17 @@ export default {
   100% {
     opacity: 1;
     transform: translateY(-2px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab-button {
+    animation: none;
+    transition: background-color var(--fab-transition), color var(--fab-transition), box-shadow var(--fab-transition);
+  }
+
+  .fab-button--top-center.fab-button--slide-in-visible {
+    transform: translate(-50%, 2.75em);
   }
 }
 </style>
