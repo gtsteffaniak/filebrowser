@@ -412,7 +412,9 @@
     "selectBannerImage": "Wybierz obraz banera",
     "selectFaviconImage": "Wybierz obraz favicon",
     "deleteFailed": "Nie udało się usunąć udziału",
-    "readOnlySourceNotice": "To źródło jest tylko do odczytu. Udziały przesyłania i uprawnienia modyfikujące pliki są wyłączone."
+    "readOnlySourceNotice": "To źródło jest tylko do odczytu. Udziały przesyłania i uprawnienia modyfikujące pliki są wyłączone.",
+    "shareDefaults": "Ustawienia domyślne udostępniania",
+    "shareDefaultsDescription": "Skonfiguruj domyślne opcje udostępniania dla nowych zasobów oraz egzekwuj zasady dotyczące użytkowników niebędących administratorami."
   },
   "api": {
     "createdAt": "Utworzono w:",
@@ -743,7 +745,11 @@
     "enforcedByAdmin": "Administrator zablokował użytkownikom możliwość zmiany tej właściwości",
     "singleClick": "Wystarczy jedno kliknięcie, aby otworzyć pliki",
     "stickySidebar": "Przyklejony pasek boczny",
-    "darkMode": "Tryb ciemny"
+    "darkMode": "Tryb ciemny",
+    "defaultViewMode": "Domyślny tryb wyświetlania",
+    "defaultViewModeDescription": "Tryb wyświetlania domyślnego w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje preferencji wyświetlania zapisanych już lokalnie.",
+    "defaultGallerySize": "Domyślny rozmiar miniatury",
+    "defaultGallerySizeDescription": "Początkowa skala miniatur w galerii lub na liście (1–9) w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje rozmiarów już zapisanych lokalnie."
   },
   "editor": {
     "stats": {

@@ -116,10 +116,7 @@
       <div v-else>
         <p>
           {{ $t("files.duration") }}
-          <i class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))" @mouseleave="hideTooltip">
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('share.shareDurationDescription')" />
         </p>
         <div class="form-flex-group">
           <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
@@ -133,10 +130,7 @@
         </div>
         <p>
           {{ $t("prompts.optionalPassword") }}
-          <i class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.passwordDescription'))" @mouseleave="hideTooltip">
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('share.passwordDescription')" />
         </p>
         <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
           <button
@@ -194,7 +188,7 @@ import { shareApi } from "@/api";
 import { copyToClipboard } from "@/utils/clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
-import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import ShareOptionsForm from "@/components/share/ShareOptionsForm.vue";
@@ -212,6 +206,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 export default {
   name: "share",
   components: {
+    HelpTooltipIcon,
     SettingsTable,
     FileList,
     ExpandDropdown,
@@ -644,20 +639,6 @@ export default {
     },
     async copyToClipboard(text) {
       await copyToClipboard(text);
-    },
-    /**
-     * @param {MouseEvent} event
-     * @param {string} text
-     */
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
     },
     async submit() {
       if (this.hideFileExt !== "" && !this.validateExtensions(this.hideFileExt)) {

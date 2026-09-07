@@ -412,7 +412,9 @@
     "selectBannerImage": "배너 이미지 선택",
     "selectFaviconImage": "파비콘 이미지 선택",
     "deleteFailed": "공유를 삭제하지 못했습니다.",
-    "readOnlySourceNotice": "이 소스는 읽기 전용입니다. 파일을 수정하는 업로드 공유 및 권한은 비활성화됩니다."
+    "readOnlySourceNotice": "이 소스는 읽기 전용입니다. 파일을 수정하는 업로드 공유 및 권한은 비활성화됩니다.",
+    "shareDefaults": "기본값 공유",
+    "shareDefaultsDescription": "새 공유에 대한 기본 공유 옵션을 구성하고, 관리자 권한이 없는 사용자에 대해 정책을 적용합니다."
   },
   "api": {
     "createdAt": "만든 곳:",
@@ -743,7 +745,11 @@
     "enforcedByAdmin": "관리자가 사용자가 이 속성을 변경하지 못하도록 제한했습니다.",
     "singleClick": "한 번의 클릭으로 파일 열기",
     "stickySidebar": "고정 사이드바",
-    "darkMode": "다크 모드"
+    "darkMode": "다크 모드",
+    "defaultViewMode": "기본 보기 모드",
+    "defaultViewModeDescription": "새로운 브라우저나 기기에서 초기 보기 모드로 설정됩니다. 이미 로컬에 저장된 보기 환경설정은 무시되지 않습니다.",
+    "defaultGallerySize": "기본 썸네일 크기",
+    "defaultGallerySizeDescription": "새로운 브라우저나 기기에서 갤러리 또는 목록의 썸네일 초기 크기(1–9). 이미 로컬에 저장된 크기는 덮어쓰지 않습니다."
   },
   "editor": {
     "stats": {

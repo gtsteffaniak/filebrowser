@@ -412,7 +412,9 @@
     "selectBannerImage": "选择横幅图片",
     "selectFaviconImage": "选择图标图像",
     "deleteFailed": "删除共享失败",
-    "readOnlySourceNotice": "此源为只读。上传共享和修改文件的权限被禁用。"
+    "readOnlySourceNotice": "此源为只读。上传共享和修改文件的权限被禁用。",
+    "shareDefaults": "共享默认设置",
+    "shareDefaultsDescription": "为新共享配置默认共享选项，并对非管理员用户强制执行策略。"
   },
   "api": {
     "createdAt": "创建于",
@@ -560,7 +562,11 @@
     "enforcedByAdmin": "系统管理员已禁止用户更改此属性",
     "singleClick": "单击即可打开文件",
     "stickySidebar": "固定侧边栏",
-    "darkMode": "深色模式"
+    "darkMode": "深色模式",
+    "defaultViewMode": "默认视图模式",
+    "defaultViewModeDescription": "在新浏览器或设备上的初始视图模式。不会覆盖已保存在本地的视图偏好设置。",
+    "defaultGallerySize": "默认缩略图大小",
+    "defaultGallerySizeDescription": "在新浏览器或设备上显示的图库或列表缩略图初始缩放比例（1–9）。不会覆盖已保存在本地中的尺寸设置。"
   },
   "general": {
     "name": "名称",

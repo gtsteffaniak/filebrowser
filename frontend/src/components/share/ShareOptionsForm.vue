@@ -7,13 +7,7 @@
       >
         <p>
           {{ $t("share.shareType") }}
-          <i
-            class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareTypeDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('share.shareTypeDescription')" />
         </p>
         <ExpandDropdown
           :model-value="modelValue.shareType"
@@ -112,13 +106,7 @@
         >
           <p>
             {{ shareThemeLabel() }}
-            <i
-              class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.shareThemeDescription')" />
           </p>
           <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
             <ExpandDropdown
@@ -143,13 +131,7 @@
           >
             <p>
               {{ $t("share.defaultViewMode") }}
-              <i
-                class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))"
-                @mouseleave="hideTooltip"
-              >
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('share.defaultViewModeDescription')" />
             </p>
             <ExpandDropdown
               :model-value="modelValue.viewMode"
@@ -292,13 +274,7 @@
         >
           <p>
             {{ $t("share.enforceDarkLightMode") }}
-            <i
-              class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.enforceDarkLightModeDescription')" />
           </p>
           <ExpandDropdown
             :model-value="modelValue.enforceDarkLightMode"
@@ -365,13 +341,7 @@
         >
           <p>
             {{ $t("profileSettings.hideFileExt") }}
-            <i
-              class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('profileSettings.hideFileExtDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('profileSettings.hideFileExtDescription')" />
           </p>
           <input
             class="input"
@@ -485,13 +455,7 @@
         >
           <p>
             {{ $t("prompts.downloadsLimit") }}
-            <i
-              class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.downloadsLimitDescription')" />
           </p>
           <input
             class="input"
@@ -513,13 +477,7 @@
         >
           <p>
             {{ $t("prompts.maxBandwidth") }}
-            <i
-              class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.maxBandwidthDescription')" />
           </p>
           <input
             class="input"
@@ -577,13 +535,7 @@
       >
         <p>
           {{ $t("prompts.shareThemeColor") }}
-          <i
-            class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareThemeColorDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('share.shareThemeColorDescription')" />
         </p>
         <input
           class="input"
@@ -605,13 +557,7 @@
       >
         <p>
           {{ shareTitleLabel() }}
-          <i
-            class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('share.shareTitleDescription')" />
         </p>
         <input
           class="input"
@@ -633,13 +579,7 @@
       >
         <p>
           {{ $t("prompts.shareDescription") }}
-          <i
-            class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareDescriptionHelp'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('share.shareDescriptionHelp')" />
         </p>
         <textarea
           class="input"
@@ -660,13 +600,7 @@
       >
         <p>
           {{ $t("prompts.shareBanner") }}
-          <i
-            class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareBannerDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('share.shareBannerDescription')" />
         </p>
         <div class="file-picker-input-group">
           <input
@@ -697,13 +631,7 @@
       >
         <p>
           {{ $t("prompts.shareFavicon") }}
-          <i
-            class="material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareFaviconDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
+          <HelpTooltipIcon :text="$t('share.shareFaviconDescription')" />
         </p>
         <div class="file-picker-input-group">
           <input
@@ -732,9 +660,10 @@
 </template>
 
 <script>
-import { getters, mutations } from "@/store";
+import { getters } from "@/store";
 import { globalVars } from "@/utils/constants";
 import { bytesFromCustomAmount } from "@/utils/quotaUnits";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -753,6 +682,7 @@ const READ_ONLY_RESTRICTED_FIELDS = new Set([
 export default {
   name: "ShareOptionsForm",
   components: {
+    HelpTooltipIcon,
     ToggleSwitch,
     SettingsItem,
     ExpandDropdown,
@@ -902,20 +832,6 @@ export default {
     },
     shareTitleLabel() {
       return this.$t("general.shareTitle");
-    },
-    /**
-     * @param {MouseEvent} event
-     * @param {string} text
-     */
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
     },
     validateExtensions(value) {
       const normalized = String(value || "").trim();

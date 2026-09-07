@@ -1,5 +1,6 @@
 import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
+import { globalVars } from "@/utils/constants";
 import type { StoreState } from "./types";
 
 export const state: StoreState = reactive({
@@ -82,7 +83,7 @@ export const state: StoreState = reactive({
     newFileTemplate: [], // custom filenames that will be used as template for new files
     scopes: [],
     permissions: {}, // Default to an empty object for permissions
-    darkMode: true, // Default to false, assuming this is a boolean
+    darkMode: globalVars.darkMode === true,
     disableSettings: false,
     debugOffice: false, // Debug mode for OnlyOffice integration
     preferEditorForMarkdown: false,

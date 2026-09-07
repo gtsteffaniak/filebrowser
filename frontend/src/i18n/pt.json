@@ -412,7 +412,9 @@
     "selectBannerImage": "Selecionar imagem de banner",
     "selectFaviconImage": "Selecionar a imagem do favicon",
     "deleteFailed": "Falha ao eliminar a partilha",
-    "readOnlySourceNotice": "Esta fonte é apenas de leitura. As partilhas de carregamento e as permissões que modificam ficheiros estão desactivadas."
+    "readOnlySourceNotice": "Esta fonte é apenas de leitura. As partilhas de carregamento e as permissões que modificam ficheiros estão desactivadas.",
+    "shareDefaults": "Partilhar definições predefinidas",
+    "shareDefaultsDescription": "Configurar as opções predefinidas para novas partilhas e aplicar políticas aos utilizadores que não sejam administradores."
   },
   "api": {
     "createdAt": "Criado em:",
@@ -560,7 +562,11 @@
     "enforcedByAdmin": "O seu administrador impediu que os utilizadores alterem esta propriedade",
     "singleClick": "Basta um clique para abrir ficheiros",
     "stickySidebar": "Barra lateral fixa",
-    "darkMode": "Modo escuro"
+    "darkMode": "Modo escuro",
+    "defaultViewMode": "Modo de visualização predefinido",
+    "defaultViewModeDescription": "Modo de visualização inicial em novos navegadores ou dispositivos. Não substitui as preferências de visualização já guardadas localmente.",
+    "defaultGallerySize": "Tamanho padrão da miniatura",
+    "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já guardados localmente."
   },
   "general": {
     "name": "Nome",

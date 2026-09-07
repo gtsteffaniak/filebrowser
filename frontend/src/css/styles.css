@@ -429,7 +429,7 @@ button.flat-right.flat-left,
 /* ExpandDropdown integration with adjacent inputs/buttons */
 .expand-dropdown.form-compact {
   width: auto;
-  min-width: 0;
+  min-width: max-content;
   flex: 0 1 auto;
 }
 
@@ -503,6 +503,8 @@ button.flat-right.flat-left,
     display: flex;
     flex-direction: row;
     align-items: stretch;
+    margin-bottom: 1em;
+    margin-top: -0.5em;
 }
 
 .form-flex-group>.form-compact {

@@ -412,7 +412,9 @@
     "selectBannerImage": "バナー画像を選択",
     "selectFaviconImage": "ファビコン画像を選択",
     "deleteFailed": "共有の削除に失敗しました",
-    "readOnlySourceNotice": "このソースは読み取り専用です。アップロード共有およびファイルを変更するパーミッションは無効です。"
+    "readOnlySourceNotice": "このソースは読み取り専用です。アップロード共有およびファイルを変更するパーミッションは無効です。",
+    "shareDefaults": "デフォルト設定を共有する",
+    "shareDefaultsDescription": "新しい共有に対するデフォルトの共有オプションを設定し、管理者以外のユーザーに対してポリシーを適用します。"
   },
   "api": {
     "createdAt": "で作成された：",
@@ -743,7 +745,11 @@
     "enforcedByAdmin": "管理者が、ユーザーによるこのプロパティの変更を禁止しています",
     "singleClick": "ワンクリックでファイルを開く",
     "stickySidebar": "固定サイドバー",
-    "darkMode": "ダークモード"
+    "darkMode": "ダークモード",
+    "defaultViewMode": "デフォルトの表示モード",
+    "defaultViewModeDescription": "新しいブラウザやデバイスでの初期表示モードです。ローカルにすでに保存されている表示設定を上書きすることはありません。",
+    "defaultGallerySize": "デフォルトのサムネイルサイズ",
+    "defaultGallerySizeDescription": "新しいブラウザやデバイスでのギャラリーまたはリストのサムネイルの初期スケール（1～9）。ローカルにすでに保存されているサイズを上書きすることはありません。"
   },
   "editor": {
     "stats": {
