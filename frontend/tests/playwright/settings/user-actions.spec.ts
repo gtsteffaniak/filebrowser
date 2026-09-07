@@ -1,113 +1,51 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { expect, test } from "../test-setup";
 import {
-    accountPermissionCheckbox,
-    startUserEditLoadWaiters,
-    waitForUserEditReady,
+    SETTINGS_TEST_SOURCE,
+    confirmActorPasswordPrompt,
+    expandUserEditSourceScope,
+    openUserEdit,
+    userEditSourcePermissionCheckbox,
+    userEditSourcePermissionToggle,
+    userRowInSettingsUsersTable,
 } from "./user-edit-helpers";
-
-
-/** Users tab uses SettingsTable (no `tr.item`); scoped to `.settings-table` body rows only. */
-function userRowInSettingsUsersTable(page: Page, usernameText: string): Locator {
-    return page.locator("table.settings-table tbody tr").filter({ hasText: usernameText });
-}
-
-/** Edit opener: `role="button"` div with `$t('general.edit')` (typically "Edit"). */
-function editUserTrigger(row: Locator): Locator {
-    return row.getByRole("button", { name: /Edit/i });
-}
-
-/** Primary source in settings Playwright docker config (`_docker/src/settings/backend/config.yaml`). */
-const SETTINGS_TEST_SOURCE = "playwright + files";
-
-/** Scope block for one source in the user edit modal (per-source permissions live here). */
-function userEditScopeBlock(modal: Locator, sourceName: string): Locator {
-    const escaped = sourceName.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-    return modal.locator(
-        `.scope-block:has([aria-label="user-edit-scope-path-${escaped}"])`,
-    );
-}
-
-async function expandUserEditSourceScope(modal: Locator, sourceName: string) {
-    const block = userEditScopeBlock(modal, sourceName);
-    await block.locator(".settings-group-title").click();
-    await expect(block.locator(".source-file-permissions")).toBeVisible();
-}
-
-function userEditSourcePermissionCheckbox(
-    modal: Locator,
-    sourceName: string,
-    permissionLabel: string,
-): Locator {
-    return userEditScopeBlock(modal, sourceName)
-        .locator(".source-file-permissions .toggle-container", { hasText: permissionLabel })
-        .locator('input[type="checkbox"]');
-}
-
-function userEditSourcePermissionToggle(
-    modal: Locator,
-    sourceName: string,
-    permissionLabel: string,
-): Locator {
-    return userEditScopeBlock(modal, sourceName)
-        .locator(".source-file-permissions .toggle-container", { hasText: permissionLabel })
-        .locator("label.switch");
-}
-
-/**
- * User POST/PUT/DELETE for sensitive actions return 401 until X-Password is supplied; the UI opens password-prompt on top.
- * Password must match tests/playwright/global-setup.ts (same as two factor auth check).
- */
-async function confirmActorPasswordPrompt(page: Page) {
-    const passwordModal = page.locator(
-        'div[aria-label="password-prompt"]:not(.prompt-behind)'
-    );
-    await expect(passwordModal).toBeVisible();
-    await passwordModal.locator("input").fill("admin");
-    await passwordModal.locator('button[aria-label="Confirm"]').click();
-    await expect(passwordModal).not.toBeVisible();
-}
 
 test("create, check settings, and delete user (retry-safe name)", async ({
     page,
     checkForErrors,
 }, testInfo) => {
-    // Unique username per run/retry so retries don't conflict with leftover users (same idea as proxy/preview.spec.ts).
-    const username = `testuser2-${testInfo.retry + 1}`;
-    await page.goto('/settings')
-    await expect(page).toHaveTitle("Graham's Filebrowser - Settings")
-    await page.locator('#users-sidebar').click();
-    await page.locator('button[aria-label="New user"]').click()
-    await page.locator('#username').fill(username)
-    await page.locator('input[aria-label="Password1"]').fill('testpassword')
-    await page.locator('input[aria-label="Password2"]').fill('testpass')
-    // check that the invalid-field class is added properly
-    await expect(page.locator('input[aria-label="Password2"]')).toHaveClass(
-        'input form-form form-invalid'
-    )
-    await page.locator('input[aria-label="Password2"]').fill('testpassword')
+    test.setTimeout(30000);
 
-    // usersApi.create tries POST without X-Password first; server returns 401, then password-prompt + retry (201).
+    const username = `testuser2-${testInfo.retry + 1}`;
+    await page.goto("/settings");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
+    await page.locator("#users-sidebar").click();
+    await page.locator('button[aria-label="New user"]').click();
+    await page.locator("#username").fill(username);
+    await page.locator('input[aria-label="Password1"]').fill("testpassword");
+    await page.locator('input[aria-label="Password2"]').fill("testpass");
+    await expect(page.locator('input[aria-label="Password2"]')).toHaveClass(
+        "input form-form form-invalid",
+    );
+    await page.locator('input[aria-label="Password2"]').fill("testpassword");
+
     const createResponse = page.waitForResponse(
         (resp) =>
-            resp.url().includes('/api/users') &&
-            resp.request().method() === 'POST' &&
-            resp.status() === 201
+            resp.url().includes("/api/users") &&
+            resp.request().method() === "POST" &&
+            resp.status() === 201,
     );
     await page.locator('button[aria-label="Save"]').click();
     await confirmActorPasswordPrompt(page);
     await createResponse;
 
-    // We should be back on the settings page
     await expect(userRowInSettingsUsersTable(page, username)).toBeVisible();
 
-    // Now, click the edit button for the new user
-    const userRow = userRowInSettingsUsersTable(page, username);
-    const modal = page.locator('div[aria-label="user-edit-prompt"]');
-    const editWaiters = startUserEditLoadWaiters(page, username);
-    await editUserTrigger(userRow).click();
-    await expect(modal).toBeVisible();
-    await waitForUserEditReady(modal, editWaiters);
+    const modal = await openUserEdit(
+        page,
+        userRowInSettingsUsersTable(page, username),
+        { username },
+    );
 
     const settingsToToggle = [
         "Administrator",
@@ -118,126 +56,117 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     ];
 
     for (const settingName of settingsToToggle) {
-        await accountPermissionCheckbox(modal, settingName).switch.click();
+        const toggleContainer = modal.locator(".toggle-container", { hasText: settingName });
+        await toggleContainer.locator("label.switch").click();
     }
 
-    // Save the updated settings (admin actor password required for sensitive user fields)
     await modal.locator('button[aria-label="Save"]').click();
     await confirmActorPasswordPrompt(page);
     await expect(modal).not.toBeVisible();
 
-    // Re-open the modal to check the settings
-    const verifyWaiters = startUserEditLoadWaiters(page, username);
-    await editUserTrigger(userRow).click();
-    await expect(modal).toBeVisible();
-    await waitForUserEditReady(modal, verifyWaiters);
+    await openUserEdit(page, userRowInSettingsUsersTable(page, username), { username });
 
     for (const settingName of settingsToToggle) {
-        await expect(accountPermissionCheckbox(modal, settingName).input).toBeChecked();
+        const checkbox = modal.locator(
+            `.toggle-container:has-text("${settingName}") input[type="checkbox"]`,
+        );
+        await expect(checkbox).toBeChecked();
     }
 
-    // Delete the user
     await modal.locator('button[aria-label="Delete User"]').click();
     const genericModal = page.locator('div[aria-label="generic-prompt"]');
     await expect(genericModal).toBeVisible();
     await genericModal.locator('button[aria-label="Delete"]').click();
     await confirmActorPasswordPrompt(page);
 
-    // After deletion, we should be back on the settings page.
     await expect(userRowInSettingsUsersTable(page, username)).not.toBeVisible();
-    // usersApi.create/update/remove try without X-Password first; server returns 401, then the UI retries (201/204/200).
     checkForErrors(0, 3);
-})
+});
 
 test("two factor auth check", async ({ page, checkForErrors }) => {
-    // go to settings
+    test.setTimeout(30000);
+
     await page.goto("/settings");
     await expect(page).toHaveURL(/\/settings/);
-    await page.locator('#users-sidebar').click();
-    // click the edit button for testuser
-    const userRow = userRowInSettingsUsersTable(page, "admin");
-    await editUserTrigger(userRow).click();
-    await expect(page.locator('div[aria-label="user-edit-prompt"]')).toBeVisible();
+    await page.locator("#users-sidebar").click();
 
-    const modal = page.locator('div[aria-label="user-edit-prompt"]');
+    const modal = await openUserEdit(
+        page,
+        userRowInSettingsUsersTable(page, "admin"),
+        { username: "admin" },
+    );
 
-    // Toggle the two factor authentication switch
-    const twoFactorCheckbox = modal.locator('.toggle-container:has-text("Two-Factor Authentication") input[type="checkbox"]');
-    const twoFactorToggle = modal.locator('.toggle-container:has-text("Two-Factor Authentication") label.switch');
-    // Toggle by clicking the label (checkbox is hidden).
+    const twoFactorCheckbox = modal.locator(
+        '.toggle-container:has-text("Two-Factor Authentication") input[type="checkbox"]',
+    );
+    const twoFactorToggle = modal.locator(
+        '.toggle-container:has-text("Two-Factor Authentication") label.switch',
+    );
     await twoFactorToggle.click();
-    // Verify it changed state
     await expect(twoFactorCheckbox).toBeChecked();
     await modal.locator('button[aria-label="Generate Code"]').click();
 
     const passwordModal = page.locator(
-        'div[aria-label="password-prompt"]:not(.prompt-behind)'
+        'div[aria-label="password-prompt"]:not(.prompt-behind)',
     );
-    // Must match the admin password used in tests/playwright/global-setup.ts (not testuser passwords).
-    await passwordModal.locator('input').fill('admin');
+    await passwordModal.locator("input").fill("admin");
     await passwordModal.locator('button[aria-label="Confirm"]').click();
 
     const totpModal = page.locator('div[aria-label="totp-prompt"]');
-    // check for the otp url
     await expect(totpModal.locator('p[aria-label="otp-url"]')).toBeVisible();
-
-    // check that the otp-url is not empty
     const otpUrl = await totpModal.locator('p[aria-label="otp-url"]').textContent();
     expect(otpUrl).not.toBe("");
     checkForErrors();
 });
 
 test.describe("User Settings Persistence", () => {
+    test.describe.configure({ timeout: 30000 });
+
     const username = "testuser1";
     test.beforeEach(async ({ page }) => {
         await page.goto("/settings");
-        await page.locator('#users-sidebar').click();
+        await page.locator("#users-sidebar").click();
     });
 
     async function checkTogglePersistence(page: Page, settingName: string) {
         const userRow = userRowInSettingsUsersTable(page, username);
-        const modal = page.locator('div[aria-label="user-edit-prompt"]');
-
-        // --- Open modal and read initial toggle state ---
         await expect(userRow).toBeVisible({ timeout: 5000 });
-        const openWaiters = startUserEditLoadWaiters(page, username);
-        await editUserTrigger(userRow).click();
-        await expect(modal).toBeVisible();
-        await waitForUserEditReady(modal, openWaiters);
 
-        const checkbox = accountPermissionCheckbox(modal, settingName).input;
+        const modal = await openUserEdit(page, userRow, { username });
+        const checkbox = modal.locator(
+            `.toggle-container:has-text("${settingName}") input[type="checkbox"]`,
+        );
         const initialChecked = await checkbox.isChecked();
 
-        // --- Toggle to opposite state and save ---
-        await accountPermissionCheckbox(modal, settingName).switch.click();
+        const toggleSwitch = modal
+            .locator(".toggle-container", { hasText: settingName })
+            .locator("label.switch");
+        await toggleSwitch.click();
         await expect(checkbox).toBeChecked({ checked: !initialChecked });
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
-        // --- Re-open and check persisted state ---
-        const verifyWaiters = startUserEditLoadWaiters(page, username);
-        await editUserTrigger(userRow).click();
-        await expect(modal).toBeVisible();
-        await waitForUserEditReady(modal, verifyWaiters);
-        const checkboxToggled = accountPermissionCheckbox(modal, settingName).input;
+        await openUserEdit(page, userRow, { username });
+        const checkboxToggled = modal.locator(
+            `.toggle-container:has-text("${settingName}") input[type="checkbox"]`,
+        );
         await expect(checkboxToggled).toBeChecked({ checked: !initialChecked });
 
-        // --- Toggle back to initial state and save ---
-        await accountPermissionCheckbox(modal, settingName).switch.click();
+        const toggleSwitchBack = modal
+            .locator(".toggle-container", { hasText: settingName })
+            .locator("label.switch");
+        await toggleSwitchBack.click();
         await expect(checkboxToggled).toBeChecked({ checked: initialChecked });
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
-        // --- Re-open and check state is restored ---
-        const restoreWaiters = startUserEditLoadWaiters(page, username);
-        await editUserTrigger(userRow).click();
-        await expect(modal).toBeVisible();
-        await waitForUserEditReady(modal, restoreWaiters);
-        const checkboxRestored = accountPermissionCheckbox(modal, settingName).input;
+        await openUserEdit(page, userRow, { username });
+        const checkboxRestored = modal.locator(
+            `.toggle-container:has-text("${settingName}") input[type="checkbox"]`,
+        );
         await expect(checkboxRestored).toBeChecked({ checked: initialChecked });
-
         await modal.locator('button[aria-label="Cancel"]').click();
     }
 
@@ -251,12 +180,7 @@ test.describe("User Settings Persistence", () => {
 
     test('should persist per-source "Edit files" setting', async ({ page }) => {
         const userRow = userRowInSettingsUsersTable(page, username);
-        const modal = page.locator('div[aria-label="user-edit-prompt"]');
-
-        const openWaiters = startUserEditLoadWaiters(page, username);
-        await editUserTrigger(userRow).click();
-        await expect(modal).toBeVisible();
-        await waitForUserEditReady(modal, openWaiters);
+        const modal = await openUserEdit(page, userRow, { username });
         await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
 
         const editFilesToggle = userEditSourcePermissionToggle(
@@ -278,10 +202,7 @@ test.describe("User Settings Persistence", () => {
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
-        const verifyWaiters = startUserEditLoadWaiters(page, username);
-        await editUserTrigger(userRow).click();
-        await expect(modal).toBeVisible();
-        await waitForUserEditReady(modal, verifyWaiters);
+        await openUserEdit(page, userRow, { username });
         await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
         await expect(editFilesCheckbox).toBeChecked({ checked: !wasChecked });
 
@@ -305,16 +226,10 @@ test.describe("User Settings Persistence", () => {
 
     test('should persist "allowed login method" setting', async ({ page, checkForErrors }) => {
         const userRow = userRowInSettingsUsersTable(page, username);
-        const modal = page.locator('div[aria-label="user-edit-prompt"]');
-        const openWaiters = startUserEditLoadWaiters(page, username);
-        await editUserTrigger(userRow).click();
-        await expect(modal).toBeVisible();
-        await waitForUserEditReady(modal, openWaiters);
-
-        const loginMethodSelector = modal.locator(
-            "#loginMethod .expand-dropdown-trigger-label"
-        );
-        await expect(loginMethodSelector).toHaveText("Password");
+        const modal = await openUserEdit(page, userRow, { username });
+        await expect(
+            modal.locator("#loginMethod .expand-dropdown-trigger-label"),
+        ).toHaveText("Password");
         checkForErrors();
     });
 });
