@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{{ if .htmlVars.defaultDarkMode }}dark-mode{{ end }}">
 
 <head>
   <meta charset="utf-8">
@@ -49,9 +49,9 @@
   <link rel="canonical" href="https://github.com/quantumx-apps">
   <link rel="canonical" href="https://filebrowserquantum.com">
 
-  <!-- Injected variables come from backend server -->
+  <!-- Injected variables come from backend server (JSON block is not subject to script-src CSP) -->
+  <script id="app-config" type="application/json">{{ .globalVars }}</script>
   <script nonce="{{ .cspNonce }}">
-    window.globalVars = {{ .globalVars }};
     window.__pwaDeferredPrompt = null;
     window.addEventListener("beforeinstallprompt", function (event) {
       event.preventDefault();
@@ -74,11 +74,8 @@
     }
     /* paint safe areas + iOS overscroll with app background (notched PWAs) */
     html {
-      background-color: {{ .htmlVars.lightBackground }};
+      background-color: var(--background);
       min-height: calc(100% + env(safe-area-inset-top, 0px));
-    }
-    html:has(.dark-mode) {
-      background-color: {{ .htmlVars.darkBackground }};
     }
     .dark-mode {
       --background: {{ .htmlVars.darkBackground }};

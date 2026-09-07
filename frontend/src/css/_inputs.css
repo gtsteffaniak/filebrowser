@@ -89,6 +89,10 @@ input.sizeInput:disabled {
   color: var(--textPrimary);
 }
 
+.sizeInputWrapper:focus-within {
+  border-color: var(--primaryColor);
+}
+
 .sizeInputWrapper .sizeInput {
   text-align: center;
   border: none;

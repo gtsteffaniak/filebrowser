@@ -239,7 +239,7 @@ export default {
 
 <style scoped>
 #status-bar {
-  background-color: rgb(37 49 55 / 5%) !important;
+  background-color: color-mix(in srgb, var(--alt-background) 15%, transparent);
   height: 2.5em;
   display: flex;
   align-items: center;
@@ -313,9 +313,6 @@ input[type="range"] {
 @supports (backdrop-filter: none) {
   #status-bar {
     backdrop-filter: blur(16px) invert(0.1);
-  }
-  #status-bar.dark-mode-header {
-    background-color: rgb(37 49 55 / 33%) !important;
   }
 }
 

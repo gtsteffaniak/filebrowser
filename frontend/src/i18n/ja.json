@@ -743,7 +743,11 @@
     "enforcedByAdmin": "管理者が、ユーザーによるこのプロパティの変更を禁止しています",
     "singleClick": "ワンクリックでファイルを開く",
     "stickySidebar": "固定サイドバー",
-    "darkMode": "ダークモード"
+    "darkMode": "ダークモード",
+    "defaultViewMode": "デフォルトの表示モード",
+    "defaultViewModeDescription": "新しいブラウザやデバイスでの初期表示モードです。ローカルにすでに保存されている表示設定を上書きすることはありません。",
+    "defaultGallerySize": "デフォルトのサムネイルサイズ",
+    "defaultGallerySizeDescription": "新しいブラウザやデバイスでのギャラリーまたはリストのサムネイルの初期スケール（1～9）。ローカルにすでに保存されているサイズを上書きすることはありません。"
   },
   "editor": {
     "stats": {

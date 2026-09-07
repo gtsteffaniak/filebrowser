@@ -743,7 +743,11 @@
     "enforcedByAdmin": "관리자가 사용자가 이 속성을 변경하지 못하도록 제한했습니다.",
     "singleClick": "한 번의 클릭으로 파일 열기",
     "stickySidebar": "고정 사이드바",
-    "darkMode": "다크 모드"
+    "darkMode": "다크 모드",
+    "defaultViewMode": "기본 보기 모드",
+    "defaultViewModeDescription": "새로운 브라우저나 기기에서 초기 보기 모드로 설정됩니다. 이미 로컬에 저장된 보기 환경설정은 무시되지 않습니다.",
+    "defaultGallerySize": "기본 썸네일 크기",
+    "defaultGallerySizeDescription": "새로운 브라우저나 기기에서 갤러리 또는 목록의 썸네일 초기 크기(1–9). 이미 로컬에 저장된 크기는 덮어쓰지 않습니다."
   },
   "editor": {
     "stats": {

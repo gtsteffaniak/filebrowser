@@ -712,6 +712,8 @@ export const mutations = {
         "debugOffice",
         "disableUpdateNotifications",
         "newFileTemplate",
+        "viewMode",
+        "gallerySize",
       ];
       const updatedProperties = Object.keys(value).filter(
         (key) =>

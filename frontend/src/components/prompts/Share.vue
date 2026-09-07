@@ -117,10 +117,7 @@
         <div v-if="!showMoreExpanded">
           <p>
             {{ $t("files.duration") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.shareDurationDescription')" />
           </p>
           <div class="form-flex-group">
             <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
@@ -134,10 +131,7 @@
           </div>
           <p>
             {{ $t("prompts.optionalPassword") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.passwordDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.passwordDescription')" />
           </p>
           <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
             <button
@@ -152,10 +146,7 @@
           <input v-else class="input" type="password" autocomplete="new-password" v-model.trim="password" />
           <p>
             {{ $t("share.shareType") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareTypeDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.shareTypeDescription')" />
           </p>
           <ExpandDropdown
             v-model="shareType"
@@ -187,10 +178,7 @@
           <div class="settings-items">
             <p>
               {{ shareThemeLabel() }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('share.shareThemeDescription')" />
             </p>
             <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
               <ExpandDropdown
@@ -202,10 +190,7 @@
             <div v-if="shareType === 'normal'">
               <p>
                 {{ $t("share.defaultViewMode") }}
-                <i class="material-symbols-outlined tooltip-info-icon"
-                  @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))" @mouseleave="hideTooltip">
-                  help
-                </i>
+                <HelpTooltipIcon :text="$t('share.defaultViewModeDescription')" />
               </p>
               <ExpandDropdown
                 v-model="viewMode"
@@ -238,11 +223,7 @@
               :disabled="sourceReadOnly" />
             <p>
               {{ $t("share.enforceDarkLightMode") }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))"
-                @mouseleave="hideTooltip">
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('share.enforceDarkLightModeDescription')" />
             </p>
             <ExpandDropdown
               v-model="enforceDarkLightMode"
@@ -259,11 +240,7 @@
             <div>
               <p>
                 {{ $t("profileSettings.hideFileExt") }}
-                <i class="material-symbols-outlined tooltip-info-icon"
-                  @mouseenter="showTooltip($event, $t('profileSettings.hideFileExtDescription'))"
-                  @mouseleave="hideTooltip">
-                  help
-                </i>
+                <HelpTooltipIcon :text="$t('profileSettings.hideFileExtDescription')" />
               </p>
             <input class="input"
               :class="{ 'form-invalid': !validateExtensions(hideFileExt) }"
@@ -289,18 +266,12 @@
           <div v-if="shareType === 'normal'">
             <p>
               {{ $t("prompts.downloadsLimit") }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('share.downloadsLimitDescription')" />
             </p>
             <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
             <p>
               {{ $t("prompts.maxBandwidth") }}
-              <i class="material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('share.maxBandwidthDescription')" />
             </p>
             <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
           </div>
@@ -333,37 +304,25 @@
 
           <p>
             {{ $t("prompts.shareThemeColor") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareThemeColorDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.shareThemeColorDescription')" />
           </p>
           <input class="input" type="text" v-model.trim="themeColor" />
 
           <p>
             {{ shareTitleLabel() }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.shareTitleDescription')" />
           </p>
           <input class="input" type="text" v-model.trim="title" />
 
           <p>
             {{ $t("prompts.shareDescription") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareDescriptionHelp'))" @mouseleave="hideTooltip">
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.shareDescriptionHelp')" />
           </p>
           <textarea class="input" v-model.trim="description"></textarea>
 
           <p>
             {{ $t("prompts.shareBanner") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareBannerDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.shareBannerDescription')" />
           </p>
           <div class="file-picker-input-group">
             <input class="input file-picker-input" type="text" v-model.trim="banner" />
@@ -374,10 +333,7 @@
 
           <p>
             {{ $t("prompts.shareFavicon") }}
-            <i class="material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.shareFaviconDescription'))" @mouseleave="hideTooltip">
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('share.shareFaviconDescription')" />
           </p>
           <div class="file-picker-input-group">
             <input class="input file-picker-input" type="text" v-model.trim="favicon" />
@@ -420,6 +376,7 @@ import { shareApi } from "@/api";
 import { copyToClipboard } from "@/utils/clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -440,6 +397,7 @@ import {
 export default {
   name: "share",
   components: {
+    HelpTooltipIcon,
     ToggleSwitch,
     SettingsItem,
     SettingsTable,
@@ -837,20 +795,6 @@ export default {
     },
     async copyToClipboard(text) {
       await copyToClipboard(text);
-    },
-    /**
-     * @param {MouseEvent} event
-     * @param {string} text
-     */
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
     },
     async submit() {
       if (this.hideFileExt !== "" && !this.validateExtensions(this.hideFileExt)) {

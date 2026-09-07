@@ -3,6 +3,7 @@
     <ExpandDropdown
       :model-value="viewMode"
       :options="viewModeOptions"
+      :disabled="disabled"
       :aria-label="$t('buttons.normalView')"
       @update:model-value="$emit('update:viewMode', $event)"
     />
@@ -17,7 +18,16 @@ export default {
   components: {
     ExpandDropdown,
   },
-  props: ["viewMode"],
+  props: {
+    viewMode: {
+      type: String,
+      default: "normal",
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
   emits: ["update:viewMode"],
   computed: {
     viewModeOptions() {

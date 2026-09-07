@@ -568,7 +568,11 @@
     "enforcedByAdmin": "L'amministratore ha impedito agli utenti di modificare questa proprietà",
     "singleClick": "Basta un clic per aprire i file",
     "stickySidebar": "Barra laterale fissa",
-    "darkMode": "Modalità scura"
+    "darkMode": "Modalità scura",
+    "defaultViewMode": "Modalità di visualizzazione predefinita",
+    "defaultViewModeDescription": "Modalità di visualizzazione iniziale su nuovi browser o dispositivi. Non sovrascrive le preferenze di visualizzazione già salvate localmente.",
+    "defaultGallerySize": "Dimensione predefinita delle miniature",
+    "defaultGallerySizeDescription": "Scala iniziale delle miniature della galleria o dell'elenco (1–9) sui nuovi browser o dispositivi. Non sovrascrive le dimensioni già salvate localmente."
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

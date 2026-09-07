@@ -204,7 +204,7 @@ export default {
   transition: 0.4s ease;
   top: 4em;
   padding-bottom: 4em;
-  background-color: rgb(37 49 55 / 5%) !important;
+  background-color: color-mix(in srgb, var(--alt-background) 20%, transparent);
   will-change: left;
   backface-visibility: hidden;
 }
@@ -214,9 +214,6 @@ export default {
   #sidebar {
     backdrop-filter: blur(8px) invert(0.1);
     isolation: isolate;
-  }
-  #sidebar.dark-mode {
-    background-color: rgb(37 49 55 / 33%) !important;
   }
   #sidebar:not(.active) {
     backdrop-filter: blur(0) invert(0);

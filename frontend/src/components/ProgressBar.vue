@@ -19,20 +19,13 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
       v-if="textPosition === 'inside'"
     >
       {{ displayed_text }}
-      <i
-        v-if="helpText && status === 'error'"
-        class="material-symbols-outlined tooltip-info-icon"
-        @mouseenter="showTooltip"
-        @mouseleave="hideTooltip"
-      >
-        help
-      </i>
+      <HelpTooltipIcon v-if="helpText && status === 'error'" :text="helpText" />
     </div>
   </div>
 </template>
 
 <script>
-import { mutations } from "@/store";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 // We're leaving this untouched as you can read in the beginning
@@ -46,6 +39,7 @@ const isNumber = (n) => {
 
 export default {
   name: "progress-bar",
+  components: { HelpTooltipIcon },
   props: {
     val: {
       default: 0,
@@ -315,20 +309,6 @@ export default {
       )
         style.paddingTop = `${this.text_padding}px`;
       return style;
-    },
-  },
-  methods: {
-    showTooltip(event) {
-      if (this.helpText) {
-        mutations.showTooltip({
-          content: this.helpText,
-          x: event.clientX,
-          y: event.clientY,
-        });
-      }
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
     },
   },
 };

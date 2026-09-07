@@ -2,14 +2,7 @@
   <div class="toggle-container" :class="{ disabled }">
     <div class="toggle-name-container">
       <span class="toggle-name">{{ name }}</span>
-      <i
-        v-if="description"
-        class="material-symbols-outlined tooltip-info-icon"
-        @mouseenter="showTooltip"
-        @mouseleave="hideTooltip"
-      >
-        help
-      </i>
+      <HelpTooltipIcon v-if="description" :text="description" />
     </div>
     <button
       type="button"
@@ -24,10 +17,11 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 
 export default {
   name: "SettingsButton",
+  components: { HelpTooltipIcon },
   props: {
     name: {
       type: String,
@@ -47,20 +41,6 @@ export default {
     },
   },
   emits: ["click"],
-  methods: {
-    showTooltip(event) {
-      if (this.description) {
-        mutations.showTooltip({
-          content: this.description,
-          x: event.clientX,
-          y: event.clientY,
-        });
-      }
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
-    },
-  },
 };
 </script>
 

@@ -743,7 +743,11 @@
     "enforcedByAdmin": "Votre administrateur a désactivé la possibilité pour les utilisateurs de modifier cette propriété.",
     "singleClick": "Un simple clic pour ouvrir les fichiers",
     "stickySidebar": "Barre latérale fixe",
-    "darkMode": "Mode sombre"
+    "darkMode": "Mode sombre",
+    "defaultViewMode": "Mode d'affichage par défaut",
+    "defaultViewModeDescription": "Mode d'affichage par défaut sur les nouveaux navigateurs ou appareils. Ne remplace pas les préférences d'affichage déjà enregistrées localement.",
+    "defaultGallerySize": "Taille par défaut des vignettes",
+    "defaultGallerySizeDescription": "Échelle initiale des vignettes de la galerie ou de la liste (1 à 9) sur les nouveaux navigateurs ou appareils. Ne remplace pas les tailles déjà enregistrées localement."
   },
   "editor": {
     "stats": {
