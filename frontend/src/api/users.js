@@ -17,10 +17,12 @@ export async function getAllUsers() {
   }
 }
 
-// GET /public/api/users?username= (single user by login name)
-export async function get(username) {
+// GET /api/users?username= (single user by login name; use public: true for public routes)
+export async function get(username, options = {}) {
   try {
-    const apiPath = getPublicApiPath('users', { username })
+    const apiPath = options.public === true
+      ? getPublicApiPath('users', { username })
+      : getApiPath('users', { username })
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user: ${username}`)

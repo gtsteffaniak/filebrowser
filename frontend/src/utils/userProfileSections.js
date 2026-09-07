@@ -174,3 +174,60 @@ export function applySectionsToFlatUser(user, sections) {
     user.fileLoading = { ...(user.fileLoading || {}), ...s.fileLoading };
   }
 }
+
+/** Maps flat PATCH field names to nested enforced user-default paths. */
+const FLAT_PROFILE_FIELD_ENFORCED_PATHS = {
+  locale: ["ui", "locale"],
+  dateFormat: ["listing", "dateFormat"],
+  themeColor: ["ui", "themeColor"],
+  customTheme: ["ui", "customTheme"],
+  quickDownload: ["listing", "quickDownload"],
+  stickySidebar: ["sidebar", "sticky"],
+  singleClick: ["listing", "singleClick"],
+  darkMode: ["ui", "darkMode"],
+  showHidden: ["listing", "showHidden"],
+  showToolsInSidebar: ["sidebar", "showTools"],
+  deleteAfterArchive: ["listing", "deleteAfterArchive"],
+  deleteWithoutConfirming: ["listing", "deleteWithoutConfirming"],
+  preferEditorForMarkdown: ["fileViewer", "preferEditorForMarkdown"],
+  disablePreviewExt: ["preview", "disablePreviewExt"],
+  disableViewingExt: ["fileViewer", "disableViewingExt"],
+  disableOnlyOfficeExt: ["fileViewer", "disableOnlyOfficeExt"],
+  hideFileExt: ["listing", "hideFileExt"],
+  disableQuickToggles: ["sidebar", "disableQuickToggles"],
+  disableSearchOptions: ["search", "disableOptions"],
+  hideSidebarFileActions: ["sidebar", "hideFileActions"],
+  showCopyPath: ["listing", "showCopyPath"],
+  hideFilesInTree: ["sidebar", "hideFiles"],
+  editorQuickSave: ["fileViewer", "editorQuickSave"],
+  showSelectMultiple: ["listing", "showSelectMultiple"],
+  debugOffice: ["fileViewer", "debugOffice"],
+  viewMode: ["listing", "viewMode"],
+  gallerySize: ["listing", "gallerySize"],
+};
+
+function enforcedFlagAt(enforced, section, field) {
+  if (!enforced || !section) {
+    return false;
+  }
+  const sectionData = enforced[section];
+  if (!sectionData || typeof sectionData !== "object") {
+    return false;
+  }
+  return !!sectionData[field];
+}
+
+/** True when global user-default enforcement locks a flat profile PATCH field. */
+export function isFlatProfileFieldEnforced(enforced, flatField) {
+  if (!enforced || !flatField) {
+    return false;
+  }
+  if (flatField === "preview" || flatField === "fileLoading") {
+    return false;
+  }
+  const path = FLAT_PROFILE_FIELD_ENFORCED_PATHS[flatField];
+  if (!path) {
+    return false;
+  }
+  return enforcedFlagAt(enforced, path[0], path[1]);
+}

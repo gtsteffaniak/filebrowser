@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file. For commit 
  - fixed tooltip not showing up for some circumstances on mobile, improved consistency.
  - a few styling fixes for inconsistencies (#2908)
 
+ **New Features**:
+ - Admins can set default view mode and thumbnail size for existing users from the user edit prompt. These act as fallbacks on new browsers or devices and do not override locally saved view preferences ([#2884](https://github.com/gtsteffaniak/filebrowser/issues/2884)).
+ - Admins can edit all profile preference defaults for existing users from the user management panel (listing, preview, sidebar, theme, and related options), matching what was previously available only for new users and global user defaults.
 
 ## v2.0.4
 
