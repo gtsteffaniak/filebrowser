@@ -8,12 +8,19 @@
         <UserProfilePreferences
           v-model="profileSections"
           :enforced="enforcedPreferences"
-          show-extension-inputs
+          mode="basic"
           show-thumbnail-master
           @change="onPreferenceChange"
           @theme-color="onThemeColor"
           @locale-change="onLocaleChange"
         />
+        <div class="settings-items profile-advanced-entry">
+          <SettingsButton
+            class="item"
+            :name="$t('buttons.showMore')"
+            @click="openAdvancedOptionsPrompt"
+          />
+        </div>
       </div>
     </form>
     <br />
@@ -24,6 +31,7 @@
 import { notify } from "@/notify";
 import { mutations, state, getters } from "@/store";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,
@@ -39,6 +47,7 @@ export default {
   name: "settings",
   components: {
     UserProfilePreferences,
+    SettingsButton,
   },
   data() {
     return {
@@ -62,6 +71,14 @@ export default {
     },
     enforcedPreferences() {
       return state.enforcedUserDefaults || {};
+    },
+  },
+  watch: {
+    user: {
+      deep: true,
+      handler(newUser) {
+        this.localuser = cloneUser(newUser);
+      },
     },
   },
   mounted() {
@@ -88,6 +105,14 @@ export default {
     },
     onLocaleChange() {
       void this.updateSettings();
+    },
+    openAdvancedOptionsPrompt() {
+      mutations.showPrompt({
+        name: "profile-advanced",
+        props: {
+          title: this.$t("general.profileSettings"),
+        },
+      });
     },
     async updateSettings(event) {
       if (typeof event?.preventDefault === "function") {
@@ -127,5 +152,8 @@ export default {
 }
 .settings-group {
   padding-top: 0.5em;
+}
+.profile-advanced-entry {
+  margin-top: 1rem;
 }
 </style>

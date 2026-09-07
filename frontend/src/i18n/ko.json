@@ -685,7 +685,6 @@
     "showQuickDownloadDescription": "각 파일 항목에 빠르게 액세스할 수 있는 다운로드 아이콘을 표시하여 클릭하여 즉시 다운로드할 수 있습니다.",
     "disableUpdateNotifications": "알림 업데이트 표시 비활성화하기",
     "disableUpdateNotificationsDescription": "사이드바에서 관리자 사용자에게 표시되는 업데이트 알림 배너를 비활성화합니다.",
-    "disableHideSidebar": "파일을 미리 보거나 편집할 때 사이드바를 열어 두기",
     "disableHideSidebarDescription": "활성화하면 파일을 미리 보거나 편집할 때 사이드바가 자동으로 숨겨지지 않습니다.",
     "autoplayMedia": "보기 시 미디어 파일 자동 재생",
     "autoplayMediaDescription": "미디어 파일을 볼 때 자동 재생. 이 기능은 파일이 미디어 파일인 경우에만 작동합니다.",
@@ -697,8 +696,6 @@
     "hideSidebarFileActions": "사이드바의 파일 작업 숨기기 버튼",
     "deleteWithoutConfirming": "확인 메시지 없이 파일 삭제",
     "deleteWithoutConfirmingDescription": "확인 메시지 없이 파일을 삭제합니다. 이 기능은 파일이 미디어 파일인 경우에만 작동합니다.",
-    "editorQuickSave": "편집기의 빠른 저장 버튼",
-    "editorQuickSaveDescription": "텍스트 편집기에는 항상 저장 아이콘이 표시되며 다른 작업은 숨겨집니다.",
     "previewOfficeDescription": "목록 보기에서 오피스 파일 형식의 썸네일 표시",
     "disableThumbnailPreviews": "특정 파일 확장자에 대한 썸네일 비활성화하기",
     "disableThumbnailPreviewsDescription": "썸네일 미리 보기를 비활성화할 파일 확장자 목록(예: '.txt .html')을 공백으로 구분하여 표시합니다.",
@@ -747,7 +744,10 @@
     "defaultViewMode": "기본 보기 모드",
     "defaultViewModeDescription": "새로운 브라우저나 기기에서 초기 보기 모드로 설정됩니다. 이미 로컬에 저장된 보기 환경설정은 무시되지 않습니다.",
     "defaultGallerySize": "기본 썸네일 크기",
-    "defaultGallerySizeDescription": "새로운 브라우저나 기기에서 갤러리 또는 목록의 썸네일 초기 크기(1–9). 이미 로컬에 저장된 크기는 덮어쓰지 않습니다."
+    "defaultGallerySizeDescription": "새로운 브라우저나 기기에서 갤러리 또는 목록의 썸네일 초기 크기(1–9). 이미 로컬에 저장된 크기는 덮어쓰지 않습니다.",
+    "disableHideSidebar": "사이드바 항상 표시",
+    "editorQuickSave": "편집기에 빠른 저장 버튼 표시",
+    "editorQuickSaveDescription": "텍스트 편집기에는 저장 아이콘만 표시되고, 다른 모든 작업은 숨겨집니다."
   },
   "editor": {
     "stats": {

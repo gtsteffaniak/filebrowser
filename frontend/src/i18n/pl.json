@@ -685,7 +685,6 @@
     "showQuickDownloadDescription": "Pokaż ikonę pobierania, aby uzyskać szybki dostęp do każdego elementu pliku, który można kliknąć w celu natychmiastowego pobrania.",
     "disableUpdateNotifications": "Wyłącz wyświetlanie aktualizacji powiadomień",
     "disableUpdateNotificationsDescription": "Wyłącz baner powiadomień o aktualizacjach wyświetlany użytkownikom adminów na pasku bocznym.",
-    "disableHideSidebar": "Zachowaj otwarty pasek boczny podczas podglądu lub edycji plików",
     "disableHideSidebarDescription": "Po włączeniu tej opcji pasek boczny nie będzie ukrywany automatycznie podczas podglądu lub edycji plików.",
     "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych podczas przeglądania",
     "autoplayMediaDescription": "Automatyczne odtwarzanie plików multimedialnych podczas wyświetlania. Działa to tylko wtedy, gdy plik jest plikiem multimedialnym.",
@@ -697,8 +696,6 @@
     "hideSidebarFileActions": "Ukryj przycisk akcji na pasku bocznym",
     "deleteWithoutConfirming": "Usuwanie plików bez monitu o potwierdzenie",
     "deleteWithoutConfirmingDescription": "Usuwanie plików bez monitu o potwierdzenie. Będzie to działać tylko wtedy, gdy plik jest plikiem multimedialnym.",
-    "editorQuickSave": "Przycisk szybkiego zapisu w edytorze",
-    "editorQuickSaveDescription": "Edytor tekstu będzie zawsze pokazywał ikonę zapisu, ukrywając wszelkie inne akcje",
     "previewOfficeDescription": "Wyświetlanie miniatur dla typów plików biurowych w widoku listy",
     "disableThumbnailPreviews": "Wyłącz miniatury dla niektórych rozszerzeń plików",
     "disableThumbnailPreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu miniatur (np. \".txt .html\").",
@@ -747,7 +744,10 @@
     "defaultViewMode": "Domyślny tryb wyświetlania",
     "defaultViewModeDescription": "Tryb wyświetlania domyślnego w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje preferencji wyświetlania zapisanych już lokalnie.",
     "defaultGallerySize": "Domyślny rozmiar miniatury",
-    "defaultGallerySizeDescription": "Początkowa skala miniatur w galerii lub na liście (1–9) w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje rozmiarów już zapisanych lokalnie."
+    "defaultGallerySizeDescription": "Początkowa skala miniatur w galerii lub na liście (1–9) w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje rozmiarów już zapisanych lokalnie.",
+    "disableHideSidebar": "Zawsze wyświetlaj pasek boczny",
+    "editorQuickSave": "Pokaż przycisk szybkiego zapisywania w edytorze",
+    "editorQuickSaveDescription": "Edytor tekstu wyświetli jedynie ikonę zapisywania, ukrywając wszystkie inne opcje"
   },
   "editor": {
     "stats": {

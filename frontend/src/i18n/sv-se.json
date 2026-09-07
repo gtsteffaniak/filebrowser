@@ -502,7 +502,6 @@
     "showQuickDownloadDescription": "Visa nedladdningsikon för snabb åtkomst på varje filobjekt som kan klickas för att ladda ner direkt.",
     "disableUpdateNotifications": "Avaktivera visning av uppdaterade meddelanden",
     "disableUpdateNotificationsDescription": "Inaktivera bannern för uppdateringsmeddelanden som visas för administratörsanvändare i sidofältet.",
-    "disableHideSidebar": "Håll sidofältet öppet när du förhandsgranskar eller redigerar filer",
     "disableHideSidebarDescription": "När den är aktiverad döljs inte sidofältet automatiskt när du förhandsgranskar eller redigerar filer.",
     "autoplayMedia": "Autoplay av mediefiler vid visning",
     "autoplayMediaDescription": "Spela upp mediefiler automatiskt vid visning. Detta fungerar bara om filen är en mediefil.",
@@ -514,8 +513,6 @@
     "hideSidebarFileActions": "Dölj knappen för filåtgärder i sidofältet",
     "deleteWithoutConfirming": "Radera filer utan bekräftelseprompt",
     "deleteWithoutConfirmingDescription": "Ta bort filer utan bekräftelseprompt. Detta fungerar bara om filen är en mediefil.",
-    "editorQuickSave": "Snabbsparaknapp i redigeraren",
-    "editorQuickSaveDescription": "Textredigeraren kommer alltid att visa sparikonen och dölja alla andra åtgärder",
     "previewOfficeDescription": "Visa miniatyrbilder för Office-filtyper i listningsvyn",
     "disableThumbnailPreviews": "Inaktivera miniatyrbilder för vissa filtillägg",
     "disableThumbnailPreviewsDescription": "En mellanslagsseparerad lista över filändelser för vilka förhandsgranskning av miniatyrbilder ska inaktiveras (t.ex. '.txt .html').",
@@ -564,7 +561,10 @@
     "defaultViewMode": "Standardvisningsläge",
     "defaultViewModeDescription": "Standardvisningsläge i nya webbläsare eller på nya enheter. Åsidosätter inte visningsinställningar som redan sparats lokalt.",
     "defaultGallerySize": "Standardstorlek på miniatyrbilder",
-    "defaultGallerySizeDescription": "Initial skala för miniatyrbilder i gallerier eller listor (1–9) i nya webbläsare eller på nya enheter. Åsidosätter inte storlekar som redan sparats lokalt."
+    "defaultGallerySizeDescription": "Initial skala för miniatyrbilder i gallerier eller listor (1–9) i nya webbläsare eller på nya enheter. Åsidosätter inte storlekar som redan sparats lokalt.",
+    "disableHideSidebar": "Visa alltid sidofältet",
+    "editorQuickSave": "Visa knappen för snabbsparning i redigeraren",
+    "editorQuickSaveDescription": "Textredigeraren visar endast spara-ikonen och döljer alla andra åtgärder"
   },
   "general": {
     "name": "Namn",

@@ -471,7 +471,6 @@
     "showQuickDownloadDescription": "在每個可下載的檔案項目上顯示下載圖示，按一下即可立即下載。",
     "disableUpdateNotifications": "停用更新通知",
     "disableUpdateNotificationsDescription": "停用只顯示給管理員的側邊欄更新通知橫幅。",
-    "disableHideSidebar": "預覽或編輯檔案時保持側邊欄開啟",
     "disableHideSidebarDescription": "啟用後，預覽或編輯檔案時，側邊欄不會自動隱藏。",
     "autoplayMedia": "檢視時自動播放媒體檔案",
     "autoplayMediaDescription": "檢視時自動播放媒體檔案。只有當檔案是媒體檔案時，此功能才會生效。",
@@ -483,8 +482,6 @@
     "hideSidebarFileActions": "隱藏側邊欄中的檔案動作按鈕",
     "deleteWithoutConfirming": "刪除檔案無須確認提示",
     "deleteWithoutConfirmingDescription": "刪除檔案時不顯示確認提示。只有當檔案是媒體檔案時，此功能才會生效。",
-    "editorQuickSave": "編輯器中的快速儲存按鈕",
-    "editorQuickSaveDescription": "文字編輯器會固定顯示儲存圖示，並隱藏其他動作。",
     "previewOfficeDescription": "在清單檢視中顯示 Office 檔案類型的縮圖",
     "disableThumbnailPreviews": "停用某些檔案副檔名的縮圖",
     "disableThumbnailPreviewsDescription": "以空格分隔的檔案副檔名清單，以停用縮圖預覽（例如：'.txt .html'）。",
@@ -533,7 +530,10 @@
     "defaultViewMode": "預設檢視模式",
     "defaultViewModeDescription": "在新瀏覽器或裝置上的初始檢視模式。不會覆寫已儲存於本機的檢視偏好設定。",
     "defaultGallerySize": "預設縮圖大小",
-    "defaultGallerySizeDescription": "在新瀏覽器或裝置上顯示的初始圖庫或清單縮圖比例（1–9）。此設定不會覆寫已儲存於本地的尺寸。"
+    "defaultGallerySizeDescription": "在新瀏覽器或裝置上顯示的初始圖庫或清單縮圖比例（1–9）。此設定不會覆寫已儲存於本地的尺寸。",
+    "disableHideSidebar": "始終顯示側邊欄",
+    "editorQuickSave": "在編輯器中顯示「快速儲存」按鈕",
+    "editorQuickSaveDescription": "文字編輯器將僅顯示儲存圖示，並隱藏其他所有操作"
   },
   "otp": {
     "name": "雙因素驗證",

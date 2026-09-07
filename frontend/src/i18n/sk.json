@@ -685,7 +685,6 @@
     "showQuickDownloadDescription": "Zobrazenie ikony na stiahnutie pre rýchly prístup ku každej položke súboru, na ktorú možno kliknúť a okamžite ju stiahnuť.",
     "disableUpdateNotifications": "Zakázať zobrazovanie aktualizácie oznámení",
     "disableUpdateNotificationsDescription": "Zakázanie bannera s oznámením o aktualizácii, ktorý sa zobrazuje používateľom administrátora na bočnom paneli.",
-    "disableHideSidebar": "Ponechanie bočného panela otvoreného pri náhľade alebo úprave súborov",
     "disableHideSidebarDescription": "Ak je táto funkcia povolená, bočný panel sa pri náhľade alebo úprave súborov automaticky neskrýva.",
     "autoplayMedia": "Automatické prehrávanie mediálnych súborov pri prezeraní",
     "autoplayMediaDescription": "Automatické prehrávanie mediálnych súborov pri prezeraní. Toto bude fungovať len vtedy, ak je súbor mediálnym súborom.",
@@ -697,8 +696,6 @@
     "hideSidebarFileActions": "Skrytie tlačidla akcií so súbormi v bočnom paneli",
     "deleteWithoutConfirming": "Odstránenie súborov bez výzvy na potvrdenie",
     "deleteWithoutConfirmingDescription": "Odstránenie súborov bez výzvy na potvrdenie. Toto bude fungovať len vtedy, ak je súbor mediálnym súborom.",
-    "editorQuickSave": "Tlačidlo rýchleho uloženia v editore",
-    "editorQuickSaveDescription": "V textovom editore sa vždy zobrazí ikona uloženia a všetky ostatné akcie sa skryjú.",
     "previewOfficeDescription": "Zobrazenie miniatúr pre typy kancelárskych súborov v zobrazení zoznamu",
     "disableThumbnailPreviews": "Zakázanie miniatúr pre určité prípony súborov",
     "disableThumbnailPreviewsDescription": "Zoznam prípon súborov oddelených medzerou, pre ktoré sa majú vypnúť náhľady miniatúr (napr. \".txt .html\").",
@@ -747,7 +744,10 @@
     "defaultViewMode": "Predvolený režim zobrazenia",
     "defaultViewModeDescription": "Režim počiatočného zobrazenia v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje nastavenia zobrazenia, ktoré sú už uložené lokálne.",
     "defaultGallerySize": "Predvolená veľkosť náhľadu",
-    "defaultGallerySizeDescription": "Počiatočné zväčšenie miniatúr v galérii alebo zozname (1–9) v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje veľkosti, ktoré sú už uložené lokálne."
+    "defaultGallerySizeDescription": "Počiatočné zväčšenie miniatúr v galérii alebo zozname (1–9) v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje veľkosti, ktoré sú už uložené lokálne.",
+    "disableHideSidebar": "Vždy zobraziť bočný panel",
+    "editorQuickSave": "Zobraziť tlačidlo rýchleho uloženia v editore",
+    "editorQuickSaveDescription": "Textový editor zobrazí iba ikonu uloženia a všetky ostatné akcie skryje"
   },
   "editor": {
     "stats": {

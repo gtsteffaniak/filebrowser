@@ -685,7 +685,6 @@
     "showQuickDownloadDescription": "הצג סמל הורדה לגישה מהירה על כל פריט קובץ שניתן ללחוץ עליו כדי להוריד באופן מיידי.",
     "disableUpdateNotifications": "השבת הצגת עדכוני התראות",
     "disableUpdateNotificationsDescription": "השבת את כרזת הודעת העדכון המופיעה למשתמשים מנהלים בסרגל הצד.",
-    "disableHideSidebar": "השאר את סרגל הצד פתוח בעת תצוגה מקדימה או עריכת קבצים",
     "disableHideSidebarDescription": "כאשר אפשרות זו מופעלת, סרגל הצד לא יוסתר אוטומטית בעת תצוגה מקדימה או עריכת קבצים.",
     "autoplayMedia": "הפעל קבצי מדיה באופן אוטומטי בעת הצפייה",
     "autoplayMediaDescription": "הפעל קבצי מדיה באופן אוטומטי בעת הצפייה. אפשרות זו תפעל רק אם הקובץ הוא קובץ מדיה.",
@@ -697,8 +696,6 @@
     "hideSidebarFileActions": "הסתר את כפתור פעולות הקובץ בסרגל הצד",
     "deleteWithoutConfirming": "מחיקת קבצים ללא בקשת אישור",
     "deleteWithoutConfirmingDescription": "מחק קבצים ללא בקשת אישור. אפשרות זו תפעל רק אם הקובץ הוא קובץ מדיה.",
-    "editorQuickSave": "כפתור שמירה מהירה בעורך",
-    "editorQuickSaveDescription": "עורך הטקסט יציג תמיד את סמל השמירה, ויסתיר כל פעולה אחרת.",
     "previewOfficeDescription": "הצג תמונות ממוזערות עבור סוגי קבצי Office בתצוגת הרשימה",
     "disableThumbnailPreviews": "השבת תמונות ממוזערות עבור סיומות קבצים מסוימות",
     "disableThumbnailPreviewsDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית תצוגה מקדימה של תמונות ממוזערות (לדוגמה, '.txt .html').",
@@ -747,7 +744,10 @@
     "defaultViewMode": "מצב תצוגה ברירת מחדל",
     "defaultViewModeDescription": "מצב תצוגה ראשוני בדפדפנים או במכשירים חדשים. אינו מבטל את הגדרות התצוגה שכבר נשמרו באופן מקומי.",
     "defaultGallerySize": "גודל תמונה ממוזערת ברירת מחדל",
-    "defaultGallerySizeDescription": "גודל התמונות הממוזערות הראשוני בגלריה או ברשימה (1–9) בדפדפנים או במכשירים חדשים. הגדרה זו אינה מבטלת את הגדלים שכבר נשמרו באופן מקומי."
+    "defaultGallerySizeDescription": "גודל התמונות הממוזערות הראשוני בגלריה או ברשימה (1–9) בדפדפנים או במכשירים חדשים. הגדרה זו אינה מבטלת את הגדלים שכבר נשמרו באופן מקומי.",
+    "disableHideSidebar": "הצג תמיד את סרגל הצד",
+    "editorQuickSave": "הצג את כפתור השמירה המהירה בעורך",
+    "editorQuickSaveDescription": "עורך הטקסט יציג רק את סמל השמירה, ויסתיר את כל הפעולות האחרות"
   },
   "editor": {
     "stats": {

@@ -1,5 +1,98 @@
 <template>
-  <div class="user-profile-preferences">
+  <div v-if="mode === 'basic'" class="settings-items user-profile-preferences-basic">
+    <ProfilePreferenceToggle
+      field="showHidden"
+      section="listing"
+      :name="$t('profileSettings.showHiddenFiles')"
+      :description="$t('profileSettings.showHiddenFilesDescription')"
+    />
+    <ToggleSwitch
+      v-if="showThumbnailMaster"
+      class="item"
+      :enforceable="enforceable"
+      :enforced="enforcedFlag('preview', 'image')"
+      v-model="showThumbnailsForPreviews"
+      @change="onThumbnailMasterChange"
+      @update:enforced="(v) => emitEnforced('preview', 'image', v)"
+      :disabled="valueDisabled('preview', 'image')"
+      :enforcement-disabled="enforcementDisabled('preview', 'image')"
+      :enforcement-locked="isEnforcementLocked('preview', 'image')"
+      :value-tooltip="configLockTooltip('preview', 'image')"
+      :name="$t('profileSettings.showThumbnails')"
+      :description="$t('profileSettings.showThumbnailsDescription')"
+    />
+    <ProfilePreferenceToggle
+      field="disableHideOnPreview"
+      section="sidebar"
+      :name="$t('profileSettings.disableHideSidebar')"
+      :description="$t('profileSettings.disableHideSidebarDescription')"
+    />
+    <ProfilePreferenceToggle
+      field="editorQuickSave"
+      section="fileViewer"
+      :name="$t('profileSettings.editorQuickSave')"
+      :description="$t('profileSettings.editorQuickSaveDescription')"
+    />
+    <ToggleSwitch
+      class="item"
+      :enforceable="enforceable"
+      :enforced="enforcedFlag('ui', 'darkMode')"
+      v-model="darkMode"
+      @change="() => emitSectionChange('ui', 'darkMode')"
+      @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
+      :disabled="fieldDisabled('ui', 'darkMode')"
+      :enforcement-locked="isEnforcementLocked('ui', 'darkMode')"
+      :name="$t('profileSettings.darkMode')"
+      :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
+    />
+    <div
+      class="preference-field-block"
+      :class="{ 'preference-field-block--enforceable': enforceable }"
+    >
+      <h4>{{ $t("settings.themeColor") }}</h4>
+      <div
+        @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'themeColor')"
+        @mouseleave="hideTooltip"
+      >
+        <ButtonGroup
+          :buttons="colorChoices"
+          @button-clicked="setColor"
+          :initialActive="themeColorValue"
+          :is-disabled="fieldDisabled('ui', 'themeColor')"
+        />
+      </div>
+      <ProfileEnforceSwitch
+        :visible="enforceable"
+        :enforced="enforcedFlag('ui', 'themeColor')"
+        :disabled="disabled"
+        @update:enforced="(v) => emitEnforced('ui', 'themeColor', v)"
+      />
+    </div>
+    <div
+      class="preference-field-block"
+      :class="{ 'preference-field-block--enforceable': enforceable }"
+    >
+      <h4>{{ $t("general.language") }}</h4>
+      <div
+        class="form-flex-group"
+        @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'locale')"
+        @mouseleave="hideTooltip"
+      >
+        <Languages
+          :locale="localeValue"
+          :disabled="fieldDisabled('ui', 'locale')"
+          @update:locale="onLocaleChange"
+        />
+      </div>
+      <ProfileEnforceSwitch
+        :visible="enforceable"
+        :enforced="enforcedFlag('ui', 'locale')"
+        :disabled="disabled"
+        @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
+      />
+    </div>
+  </div>
+  <div v-else class="user-profile-preferences">
     <SettingsItem
       aria-label="listingOptions"
       :title="$t('settings.listingOptions')"
@@ -684,6 +777,12 @@ export default {
     defaultExpandedSection: {
       type: String,
       default: "listingOptions",
+    },
+    /** `basic` shows a flat list of common options; `full` shows all categorized settings. */
+    mode: {
+      type: String,
+      default: "full",
+      validator: (value) => value === "basic" || value === "full",
     },
   },
   emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],

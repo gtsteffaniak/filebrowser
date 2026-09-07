@@ -685,7 +685,6 @@
     "showQuickDownloadDescription": "Anında indirmek için tıklanabilecek her dosya öğesinde hızlı erişim için indirme simgesini gösterin.",
     "disableUpdateNotifications": "Bildirim güncellemesini göstermeyi devre dışı bırak",
     "disableUpdateNotificationsDescription": "Kenar çubuğunda yönetici kullanıcılar için gösterilen güncelleme bildirim başlığını devre dışı bırakın.",
-    "disableHideSidebar": "Dosyaları önizlerken veya düzenlerken kenar çubuğunu açık tut",
     "disableHideSidebarDescription": "Etkinleştirildiğinde, dosyaları önizlerken veya düzenlerken kenar çubuğu otomatik olarak gizlenmez.",
     "autoplayMedia": "Medya dosyalarını görüntülerken otomatik oynat",
     "autoplayMediaDescription": "Medya dosyalarını görüntülerken otomatik oynat. Bu yalnızca dosya bir medya dosyasıysa çalışacaktır.",
@@ -697,8 +696,6 @@
     "hideSidebarFileActions": "Kenar çubuğundaki dosya eylemleri düğmesini gizle",
     "deleteWithoutConfirming": "Dosyaları onay istemi olmadan sil",
     "deleteWithoutConfirmingDescription": "Dosyaları onay istemi olmadan silin. Bu yalnızca dosya bir medya dosyasıysa çalışacaktır.",
-    "editorQuickSave": "Düzenleyicide hızlı kaydetme düğmesi",
-    "editorQuickSaveDescription": "Metin düzenleyici her zaman kaydet simgesini gösterecek ve diğer eylemleri gizleyecektir",
     "previewOfficeDescription": "Liste görünümünde ofis dosya türleri için küçük resimleri göster",
     "disableThumbnailPreviews": "Belirli dosya uzantıları için küçük resimleri devre dışı bırak",
     "disableThumbnailPreviewsDescription": "Küçük resim önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış listesi (örn. '.txt .html').",
@@ -747,7 +744,10 @@
     "defaultViewMode": "Varsayılan görüntüleme modu",
     "defaultViewModeDescription": "Yeni tarayıcılarda veya cihazlarda ilk görüntüleme modu. Yerel olarak önceden kaydedilmiş görüntüleme tercihlerini geçersiz kılmaz.",
     "defaultGallerySize": "Varsayılan küçük resim boyutu",
-    "defaultGallerySizeDescription": "Yeni tarayıcılarda veya cihazlarda galerinin veya listenin başlangıçtaki küçük resim ölçeği (1–9). Yerel olarak önceden kaydedilmiş boyutları geçersiz kılmaz."
+    "defaultGallerySizeDescription": "Yeni tarayıcılarda veya cihazlarda galerinin veya listenin başlangıçtaki küçük resim ölçeği (1–9). Yerel olarak önceden kaydedilmiş boyutları geçersiz kılmaz.",
+    "disableHideSidebar": "Kenar çubuğunu her zaman göster",
+    "editorQuickSave": "Düzenleyicide hızlı kaydetme düğmesini göster",
+    "editorQuickSaveDescription": "Metin düzenleyicisi yalnızca kaydetme simgesini gösterecek, diğer tüm işlemleri gizleyecektir"
   },
   "editor": {
     "stats": {

@@ -681,8 +681,6 @@
     "autoplayMedia": "Reproducción automática de archivos multimedia",
     "autoplayMediaDescription": "Reproduce automaticamente los archivos multimedia al abrirlos",
     "sidebarOptions": "Opciones del panel lateral",
-    "editorQuickSave": "Botón de guardado rápido en el editor",
-    "editorQuickSaveDescription": "El editor de texto mostrará siempre el icono de guardar, ocultando cualquier otra acción",
     "previewOfficeDescription": "Mostrar miniaturas para los archivos de Office",
     "disableThumbnailPreviews": "Desactivar miniaturas para las siguientes extensiones:",
     "disableThumbnailPreviewsDescription": "Una lista (separada por espacios) de extensiones de archivo para desactivar la vista previa en las miniaturas (por ejemplo, '.txt .html').",
@@ -700,7 +698,6 @@
     "showQuickDownloadDescription": "Mostrar icono de descarga rápida en cada archivo",
     "disableUpdateNotifications": "Desactivar las notificaciones de actualización",
     "disableUpdateNotificationsDescription": "Desactivar el banner de notificación de actualización que aparece para los usuarios administradores en el panel lateral.",
-    "disableHideSidebar": "Mantener el panel lateral abierto al visualizar o editar archivos",
     "disableHideSidebarDescription": "Si está activado, el panel lateral no se ocultará automáticamente al visualizar o editar archivos.",
     "disableQuickToggles": "Desactivar ajustes rápidos",
     "disableQuickTogglesDescription": "Desactiva los ajustes rápidos que aparecen en el panel lateral. (cambiar tema, visibilidad del panel y modo de un solo click)",
@@ -747,7 +744,10 @@
     "defaultViewMode": "Modo de visualización predeterminado",
     "defaultViewModeDescription": "Modo de visualización inicial en navegadores o dispositivos nuevos. No anula las preferencias de visualización ya guardadas localmente.",
     "defaultGallerySize": "Tamaño predeterminado de las miniaturas",
-    "defaultGallerySizeDescription": "Escala inicial de las miniaturas de la galería o la lista (1–9) en navegadores o dispositivos nuevos. No anula los tamaños ya guardados localmente."
+    "defaultGallerySizeDescription": "Escala inicial de las miniaturas de la galería o la lista (1–9) en navegadores o dispositivos nuevos. No anula los tamaños ya guardados localmente.",
+    "disableHideSidebar": "Mostrar siempre la barra lateral",
+    "editorQuickSave": "Mostrar el botón de guardado rápido en el editor",
+    "editorQuickSaveDescription": "El editor de texto solo mostrará el icono de guardar, ocultando cualquier otra acción."
   },
   "editor": {
     "stats": {
