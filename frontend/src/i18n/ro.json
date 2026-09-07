@@ -745,7 +745,11 @@
     "enforcedByAdmin": "Administratorul a blocat utilizatorilor posibilitatea de a modifica această proprietate",
     "singleClick": "Deschideți fișierele cu un singur clic",
     "stickySidebar": "Bară laterală fixă",
-    "darkMode": "Modul întunecat"
+    "darkMode": "Modul întunecat",
+    "defaultViewMode": "Modul de vizualizare implicit",
+    "defaultViewModeDescription": "Modul de afișare inițial pe browserele sau dispozitivele noi. Nu înlocuiește preferințele de afișare salvate deja local.",
+    "defaultGallerySize": "Dimensiunea implicită a miniaturilor",
+    "defaultGallerySizeDescription": "Scala inițială a miniaturilor din galerie sau listă (1–9) pe browserele sau dispozitivele noi. Nu înlocuiește dimensiunile deja salvate local."
   },
   "editor": {
     "stats": {

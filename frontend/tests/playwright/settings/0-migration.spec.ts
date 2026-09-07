@@ -5,6 +5,11 @@ import {
     sortAccessRules,
     type AccessRuleExpectation,
 } from "./access-behavior-fixture";
+import {
+    expandUserEditSourceScope,
+    openUserEdit,
+    userEditScopeBlock,
+} from "./user-edit-helpers";
 
 /**
  * Snapshot of the settings Playwright docker fixture after BoltDB → SQLite migration.
@@ -280,25 +285,8 @@ function shareRowInSettingsSharesTable(page: Page, hash: string): Locator {
     });
 }
 
-function editUserTrigger(row: Locator): Locator {
-    return row.getByRole("button", { name: "Edit" });
-}
-
-function userEditScopeBlock(modal: Locator, sourceName: string): Locator {
-    const escaped = sourceName.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-    return modal.locator(
-        `.scope-block:has([aria-label="user-edit-scope-path-${escaped}"])`,
-    );
-}
-
 function scopePathButton(modal: Locator, sourceName: string): Locator {
     return userEditScopeBlock(modal, sourceName).locator(".scope-path-display");
-}
-
-async function expandUserEditSourceScope(modal: Locator, sourceName: string) {
-    const block = userEditScopeBlock(modal, sourceName);
-    await block.locator(".settings-group-title").click();
-    await expect(block.locator(".source-file-permissions")).toBeVisible();
 }
 
 function globalPermissionCheckbox(modal: Locator, label: string): Locator {
@@ -445,6 +433,8 @@ test.describe("Migration fixture verification", () => {
         page,
         checkForErrors,
     }) => {
+        test.setTimeout(60000);
+
         await openSettingsSection(page, "users-sidebar");
         const rows = page.locator("table.settings-table tbody tr");
         await expect(rows).toHaveCount(EXPECTED_USERS.length);
@@ -454,15 +444,11 @@ test.describe("Migration fixture verification", () => {
         }
 
         for (const expected of EXPECTED_USER_DETAILS) {
-            const userLoad = page.waitForResponse(
-                (response) =>
-                    response.url().includes(`/public/api/users?username=${expected.username}`) &&
-                    response.ok(),
+            const modal = await openUserEdit(
+                page,
+                userRowInSettingsUsersTable(page, expected.username),
+                { username: expected.username },
             );
-            await editUserTrigger(userRowInSettingsUsersTable(page, expected.username)).click();
-            const modal = page.locator('div[aria-label="user-edit-prompt"]');
-            await expect(modal).toBeVisible();
-            await userLoad;
 
             await expectCheckboxState(
                 globalPermissionCheckbox(modal, "Administrator"),

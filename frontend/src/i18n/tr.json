@@ -745,7 +745,11 @@
     "enforcedByAdmin": "Yöneticiniz, kullanıcıların bu özelliği değiştirmesini engellemiştir",
     "singleClick": "Dosyaları tek tıklamayla aç",
     "stickySidebar": "Sabit kenar çubuğu",
-    "darkMode": "Koyu mod"
+    "darkMode": "Koyu mod",
+    "defaultViewMode": "Varsayılan görüntüleme modu",
+    "defaultViewModeDescription": "Yeni tarayıcılarda veya cihazlarda ilk görüntüleme modu. Yerel olarak önceden kaydedilmiş görüntüleme tercihlerini geçersiz kılmaz.",
+    "defaultGallerySize": "Varsayılan küçük resim boyutu",
+    "defaultGallerySizeDescription": "Yeni tarayıcılarda veya cihazlarda galerinin veya listenin başlangıçtaki küçük resim ölçeği (1–9). Yerel olarak önceden kaydedilmiş boyutları geçersiz kılmaz."
   },
   "editor": {
     "stats": {

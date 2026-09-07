@@ -65,20 +65,20 @@
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.smallerThan") }}</p>
                     <input
-                      class="sizeInput"
+                      class="sizeInput input"
                       v-model="smallerThan"
                       type="number"
                       min="0"
                       placeholder="MB"
                     />
                     <p>{{ $t("search.largerThan") }}</p>
-                    <input class="sizeInput" v-model="largerThan" type="number" placeholder="MB" />
+                    <input class="sizeInput input" v-model="largerThan" type="number" placeholder="MB" />
                   </div>
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.olderThanDate") }}</p>
-                    <input class="sizeInput" v-model="modifiedOlderThan" type="date" />
+                    <input class="sizeInput input" v-model="modifiedOlderThan" type="date" />
                     <p>{{ $t("search.newerThanDate") }}</p>
-                    <input class="sizeInput" v-model="modifiedNewerThan" type="date" />
+                    <input class="sizeInput input" v-model="modifiedNewerThan" type="date" />
                   </div>
                 </div>
                 <div class="settings-items">
@@ -110,10 +110,7 @@
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
-          <i class="material-symbols-outlined tooltip-info-icon" @mouseenter="showHelpTooltip"
-            @mouseleave="hideTooltip">
-            help
-          </i>
+          <HelpTooltipIcon :text="searchHelpText" />
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
@@ -146,6 +143,7 @@
 
 <script>
 import { resourcesApi, toolsApi } from "@/api";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Icon from "@/components/files/Icon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -158,6 +156,7 @@ import { globalVars } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import { shouldIgnoreOutsideTap } from "@/utils/tooltipHelp.js";
 
 const boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -171,6 +170,7 @@ const boxes = {
 
 export default {
   components: {
+    HelpTooltipIcon,
     Icon,
     ToggleSwitch,
     SettingsItem,
@@ -351,6 +351,12 @@ export default {
     },
     isEmpty() {
       return this.results.length === 0;
+    },
+    searchHelpText() {
+      return [
+        this.$t("search.helpText1", { minSearchLength: globalVars.minSearchLength }),
+        this.$t("search.helpText2"),
+      ].join("\n\n");
     },
     text() {
       if (this.ongoing > 0) {
@@ -580,21 +586,14 @@ export default {
         this.noneMessage = this.$t("search.noResults");
       }
     },
-    showHelpTooltip(event) {
-      const helpText = [
-        this.$t("search.helpText1", { minSearchLength: globalVars.minSearchLength }),
-        this.$t("search.helpText2"),
-      ].join("\n\n");
-      mutations.showTooltip({
-        content: helpText,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
-    },
-    clearContext() {
+    clearContext(event) {
+      const target = event?.target;
+      if (target instanceof Element && target.closest(".tooltip-info-icon, .floating-tooltip")) {
+        return;
+      }
+      if (shouldIgnoreOutsideTap()) {
+        return;
+      }
       mutations.closeHovers();
     },
     getThumbnailUrl(s) {
@@ -907,7 +906,7 @@ export default {
   border-top-right-radius: 0px;
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
-  background-color: lightgray;
+  background-color: var(--surfacePrimary);
   max-height: 80vh;
   overflow: hidden;
   display: flex;
@@ -973,7 +972,7 @@ export default {
   border: 0;
   background-color: transparent;
   padding: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--divider);
   font-size: 0.95em;
 }
 
@@ -983,7 +982,7 @@ export default {
 }
 
 #search.active .search-input-container input {
-  color: inherit;
+  color: var(--textPrimary);
 }
 
 #search .search-input-container input::placeholder {
@@ -1107,11 +1106,11 @@ body.rtl #search #result ul>* {
 }
 
 #search .search-input-container input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--divider) 50%, transparent);
 }
 
 #search.active .search-input-container input::placeholder {
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--textSecondary);
 }
 
 #search.dark-mode .search-input-container {
@@ -1269,6 +1268,7 @@ body.rtl #search .boxes h3 {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(6px);
     height: 4em;
+    background: var(--surfacePrimary)
   }
 
   #search.active>div {

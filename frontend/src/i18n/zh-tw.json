@@ -529,7 +529,11 @@
     "enforcedByAdmin": "您的系統管理員已禁止使用者變更此屬性",
     "singleClick": "單擊即可開啟檔案",
     "stickySidebar": "固定側邊欄",
-    "darkMode": "深色模式"
+    "darkMode": "深色模式",
+    "defaultViewMode": "預設檢視模式",
+    "defaultViewModeDescription": "在新瀏覽器或裝置上的初始檢視模式。不會覆寫已儲存於本機的檢視偏好設定。",
+    "defaultGallerySize": "預設縮圖大小",
+    "defaultGallerySizeDescription": "在新瀏覽器或裝置上顯示的初始圖庫或清單縮圖比例（1–9）。此設定不會覆寫已儲存於本地的尺寸。"
   },
   "otp": {
     "name": "雙因素驗證",

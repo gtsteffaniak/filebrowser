@@ -745,7 +745,11 @@
     "enforcedByAdmin": "Ihr Administrator hat verhindert, dass Benutzer diese Eigenschaft ändern können.",
     "singleClick": "Dateien mit einem Klick öffnen",
     "stickySidebar": "Feste Seitenleiste",
-    "darkMode": "Dunkler Modus"
+    "darkMode": "Dunkler Modus",
+    "defaultViewMode": "Standard-Anzeigemodus",
+    "defaultViewModeDescription": "Standardansichtsmodus in neuen Browsern oder auf neuen Geräten. Überschreibt keine bereits lokal gespeicherten Anzeigeeinstellungen.",
+    "defaultGallerySize": "Standardgröße der Miniaturansicht",
+    "defaultGallerySizeDescription": "Anfängliche Skalierung der Miniaturansichten in Galerien oder Listen (1–9) bei neuen Browsern oder Geräten. Überschreibt keine bereits lokal gespeicherten Größen."
   },
   "editor": {
     "stats": {

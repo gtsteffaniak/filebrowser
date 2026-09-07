@@ -570,7 +570,11 @@
     "enforcedByAdmin": "Uw beheerder heeft ervoor gezorgd dat gebruikers deze eigenschap niet kunnen wijzigen",
     "singleClick": "Bestanden openen met één muisklik",
     "stickySidebar": "Vaste zijbalk",
-    "darkMode": "Donkere modus"
+    "darkMode": "Donkere modus",
+    "defaultViewMode": "Standaardweergavemodus",
+    "defaultViewModeDescription": "Standaardweergavemodus in nieuwe browsers of op nieuwe apparaten. Dit overschrijft geen weergavevoorkeuren die al lokaal zijn opgeslagen.",
+    "defaultGallerySize": "Standaardgrootte van miniatuurafbeeldingen",
+    "defaultGallerySizeDescription": "Standaardschaal (1–9) voor miniaturen in galerijen of lijsten in nieuwe browsers of op nieuwe apparaten. Dit overschrijft geen afmetingen die al lokaal zijn opgeslagen."
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",

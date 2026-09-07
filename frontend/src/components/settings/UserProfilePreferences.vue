@@ -62,6 +62,62 @@
           :name="$t('profileSettings.deleteAfterArchive')"
           :description="$t('profileSettings.deleteAfterArchiveDescription')"
         />
+        <div
+          class="preference-field-block"
+          :class="{ 'preference-field-block--enforceable': enforceable }"
+        >
+          <div class="centered-with-tooltip">
+            <h3>{{ $t("profileSettings.defaultViewMode") }}</h3>
+            <HelpTooltipIcon :text="$t('profileSettings.defaultViewModeDescription')" />
+          </div>
+          <div
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
+            @mouseleave="hideTooltip"
+          >
+            <ViewMode
+              :view-mode="listingViewMode"
+              :disabled="fieldDisabled('listing', 'viewMode')"
+              @update:view-mode="onListingViewModeChange"
+            />
+          </div>
+          <ProfileEnforceSwitch
+            :visible="enforceable"
+            :enforced="enforcedFlag('listing', 'viewMode')"
+            :disabled="disabled"
+            @update:enforced="(v) => emitEnforced('listing', 'viewMode', v)"
+          />
+        </div>
+        <div
+          class="preference-field-block"
+          :class="{ 'preference-field-block--enforceable': enforceable }"
+        >
+          <div class="centered-with-tooltip">
+            <h3>{{ $t("profileSettings.defaultGallerySize") }}</h3>
+            <HelpTooltipIcon :text="$t('profileSettings.defaultGallerySizeDescription')" />
+          </div>
+          <div
+            class="gallery-size-field"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'gallerySize')"
+            @mouseleave="hideTooltip"
+          >
+            <span class="size-label">{{ $t("general.size") }}</span>
+            <input
+              v-model.number="listingGallerySize"
+              type="range"
+              min="1"
+              max="9"
+              :disabled="fieldDisabled('listing', 'gallerySize')"
+              @change="() => emitSectionChange('listing', 'gallerySize')"
+            />
+            <span class="size-value">{{ listingGallerySize }}</span>
+          </div>
+          <ProfileEnforceSwitch
+            :visible="enforceable"
+            :enforced="enforcedFlag('listing', 'gallerySize')"
+            :disabled="disabled"
+            @update:enforced="(v) => emitEnforced('listing', 'gallerySize', v)"
+          />
+        </div>
       </div>
       <div
         class="preference-field-block"
@@ -92,13 +148,7 @@
         >
           <div class="centered-with-tooltip">
             <h3>{{ $t("profileSettings.hideFileExt") }}</h3>
-            <i
-              class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showFieldHelp($event, 'listing', 'hideFileExt', $t('profileSettings.hideFileExtDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('profileSettings.hideFileExtDescription')" />
           </div>
           <div
             class="form-flex-group"
@@ -215,13 +265,7 @@
           >
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
-              <i
-                class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showFieldHelp($event, 'preview', 'disablePreviewExt', $t('profileSettings.disableThumbnailPreviewsDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+              <HelpTooltipIcon :text="$t('profileSettings.disableThumbnailPreviewsDescription')" />
           </div>
           <div
             class="form-flex-group"
@@ -368,13 +412,7 @@
         >
           <div class="centered-with-tooltip">
             <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
-            <i
-              class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showFieldHelp($event, 'fileViewer', 'disableViewingExt', $t('profileSettings.disableViewingFilesDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
+            <HelpTooltipIcon :text="$t('profileSettings.disableViewingFilesDescription')" />
           </div>
           <div
             class="form-flex-group"
@@ -412,13 +450,7 @@
           >
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
-              <i
-                class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showFieldHelp($event, 'fileViewer', 'disableOnlyOfficeExt', $t('profileSettings.disableOfficeEditorDescription'))"
-                @mouseleave="hideTooltip"
-              >
-                help
-              </i>
+              <HelpTooltipIcon :text="$t('profileSettings.disableOfficeEditorDescription')" />
             </div>
             <div
               class="form-flex-group"
@@ -580,8 +612,13 @@
 <script>
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants.js";
-import { state, mutations, getters } from "@/store";
+import {
+  hideInteractiveTooltip,
+  showHoverTooltip,
+} from "@/utils/tooltipHelp.js";
+import { state, getters, mutations } from "@/store";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProfilePreferenceToggle from "@/components/settings/ProfilePreferenceToggle.vue";
 import ProfileEnforceSwitch from "@/components/settings/ProfileEnforceSwitch.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -590,10 +627,12 @@ import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
+import ViewMode from "@/components/settings/ViewMode.vue";
 
 export default {
   name: "UserProfilePreferences",
   components: {
+    HelpTooltipIcon,
     ToggleSwitch,
     SettingsItem,
     Languages,
@@ -602,6 +641,7 @@ export default {
     ProfilePreferenceToggle,
     ProfileEnforceSwitch,
     SettingsButton,
+    ViewMode,
   },
   provide() {
     return { profilePrefs: this };
@@ -635,11 +675,21 @@ export default {
       type: Boolean,
       default: false,
     },
+    /** When true, enforced policy disables fields even for admin actors (e.g. admin user edit). */
+    respectEnforcedPolicy: {
+      type: Boolean,
+      default: false,
+    },
+    /** Which settings group is expanded initially; null collapses all. */
+    defaultExpandedSection: {
+      type: String,
+      default: "listingOptions",
+    },
   },
   emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
   data() {
     return {
-      expandedSection: "listingOptions",
+      expandedSection: null,
       formDisablePreviews: "",
       formDisabledViewing: "",
       formDisableOfficeViewing: "",
@@ -753,6 +803,19 @@ export default {
         this.sections = next;
       },
     },
+    listingViewMode() {
+      return this.sections.listing?.viewMode || "normal";
+    },
+    listingGallerySize: {
+      get() {
+        const size = this.sections.listing?.gallerySize;
+        return typeof size === "number" ? size : 3;
+      },
+      set(value) {
+        const nextSize = Math.min(9, Math.max(1, Number(value) || 3));
+        this.setSectionBool("listing", "gallerySize", nextSize);
+      },
+    },
   },
   watch: {
     modelValue: {
@@ -761,6 +824,9 @@ export default {
         this.syncExtensionFormsFromSections();
       },
     },
+  },
+  created() {
+    this.expandedSection = this.defaultExpandedSection || null;
   },
   mounted() {
     this.syncExtensionFormsFromSections();
@@ -801,7 +867,7 @@ export default {
       return this.configLockedPaths.includes(this.configLockedPath(section, field));
     },
     fieldLocked(section, field) {
-      if (getters.isAdmin()) {
+      if (getters.isAdmin() && !this.respectEnforcedPolicy) {
         return false;
       }
       if (this.isConfigLocked(section, field)) {
@@ -837,10 +903,16 @@ export default {
       return "";
     },
     isEnforcementLocked(section, field) {
-      if (getters.isAdmin() || this.enforceable) {
+      if (this.enforceable) {
         return false;
       }
       if (this.isConfigLocked(section, field)) {
+        return false;
+      }
+      if (this.respectEnforcedPolicy && this.enforcedFlag(section, field)) {
+        return true;
+      }
+      if (getters.isAdmin()) {
         return false;
       }
       return this.enforcedFlag(section, field);
@@ -849,10 +921,7 @@ export default {
       if (!this.fieldDisabled(section, field) || !this.isEnforcementLocked(section, field)) {
         return;
       }
-      this.showTooltip(event, this.$t("profileSettings.enforcedByAdmin"));
-    },
-    showFieldHelp(event, section, field, description) {
-      this.showTooltip(event, this.helpText(section, field, description));
+      showHoverTooltip(this.$t("profileSettings.enforcedByAdmin"), event);
     },
     sectionBool(section, field) {
       if (section === "account" && field.includes(".")) {
@@ -943,15 +1012,12 @@ export default {
       this.$emit("locale-change", locale);
       this.emitSectionChange("ui", "locale");
     },
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
+    onListingViewModeChange(viewMode) {
+      this.setSectionBool("listing", "viewMode", viewMode);
+      this.emitSectionChange("listing", "viewMode");
     },
     hideTooltip() {
-      mutations.hideTooltip();
+      hideInteractiveTooltip();
     },
     validateExtensions(value) {
       const normalized = String(value ?? "").trim();
@@ -1048,5 +1114,17 @@ export default {
   padding: 0.35em;
   border-radius: var(--borderRadius);
   margin-bottom: 0.5em;
+}
+.gallery-size-field {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+}
+.gallery-size-field input[type="range"] {
+  flex: 1 1 auto;
+}
+.gallery-size-field .size-value {
+  min-width: 1.25em;
+  text-align: center;
 }
 </style>

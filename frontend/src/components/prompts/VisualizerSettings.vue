@@ -3,11 +3,7 @@
     <div class="setting-row item">
       <div class="setting-label">
         <label for="vis-bar-count">{{ $t("player.visualizer.barCount") }}</label>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('player.visualizer.barCountDescription'))"
-          @mouseleave="hideTooltip"
-        >help</i>
+        <HelpTooltipIcon :text="$t('player.visualizer.barCountDescription')" />
       </div>
       <div class="setting-control">
         <input
@@ -24,11 +20,7 @@
     <div class="setting-row item">
       <div class="setting-label">
         <label id="vis-fft-size-label">{{ $t("player.visualizer.fftSize") }}</label>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('player.visualizer.fftSizeDescription'))"
-          @mouseleave="hideTooltip"
-        >help</i>
+        <HelpTooltipIcon :text="$t('player.visualizer.fftSizeDescription')" />
       </div>
       <div class="setting-control">
         <ExpandDropdown
@@ -41,11 +33,7 @@
     <div class="setting-row item">
       <div class="setting-label">
         <label id="vis-min-freq-label">{{ $t("player.visualizer.minFrequency") }}</label>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('player.visualizer.minFrequencyDescription'))"
-          @mouseleave="hideTooltip"
-        >help</i>
+        <HelpTooltipIcon :text="$t('player.visualizer.minFrequencyDescription')" />
       </div>
       <div class="setting-control">
         <ExpandDropdown
@@ -58,11 +46,7 @@
     <div class="setting-row item">
       <div class="setting-label">
         <label id="vis-max-freq-label">{{ $t("player.visualizer.maxFrequency") }}</label>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('player.visualizer.maxFrequencyDescription'))"
-          @mouseleave="hideTooltip"
-        >help</i>
+        <HelpTooltipIcon :text="$t('player.visualizer.maxFrequencyDescription')" />
       </div>
       <div class="setting-control">
         <ExpandDropdown
@@ -75,11 +59,7 @@
     <div class="setting-row slider-setting item">
       <div class="setting-label">
         <label for="vis-smoothing">{{ $t("player.visualizer.smoothing") }}</label>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('player.visualizer.smoothingDescription'))"
-          @mouseleave="hideTooltip"
-        >help</i>
+        <HelpTooltipIcon :text="$t('player.visualizer.smoothingDescription')" />
       </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-smoothing" type="range" min="0" max="1" step="0.01" v-model.number="smoothing" />
@@ -89,11 +69,7 @@
     <div class="setting-row slider-setting item">
       <div class="setting-label">
         <label for="vis-min-db">{{ $t("player.visualizer.minDecibels") }}</label>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('player.visualizer.minDecibelsDescription'))"
-          @mouseleave="hideTooltip"
-        >help</i>
+        <HelpTooltipIcon :text="$t('player.visualizer.minDecibelsDescription')" />
       </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-min-db" type="range" min="-120" max="-60" step="1" v-model.number="minDecibels" />
@@ -103,11 +79,7 @@
     <div class="setting-row slider-setting item">
       <div class="setting-label">
         <label for="vis-max-db">{{ $t("player.visualizer.maxDecibels") }}</label>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('player.visualizer.maxDecibelsDescription'))"
-          @mouseleave="hideTooltip"
-        >help</i>
+        <HelpTooltipIcon :text="$t('player.visualizer.maxDecibelsDescription')" />
       </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-max-db" type="range" min="-40" max="20" step="1" v-model.number="maxDecibels" />
@@ -148,6 +120,7 @@
 </template>
 
 <script>
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { mutations } from "@/store";
 import { visualizerConfig, saveVisualizerConfig, resetVisualizerConfig } from "@/utils/visualizerConfig.js";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -159,7 +132,7 @@ function freqOptions(values) {
 
 export default {
   name: "VisualizerSettings",
-  components: { ExpandDropdown, ToggleSwitch },
+  components: { HelpTooltipIcon, ExpandDropdown, ToggleSwitch },
   data() {
     return {
       fftSizeOptions: [1024, 2048, 4096, 8192, 16384, 32768].map((value) => ({ value, label: `${value}` })),
@@ -214,16 +187,6 @@ export default {
     },
     resetVisualizerConfig() {
       resetVisualizerConfig();
-    },
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
     },
   },
 };

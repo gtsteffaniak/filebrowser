@@ -421,7 +421,7 @@ func setupSources(generate bool) {
 			if source.Config.Disabled {
 				continue
 			}
-			realPath, err := filepath.Abs(source.Path)
+			realPath, err := AbsPath(source.Path)
 			if err != nil {
 				logger.Fatalf("error getting real path for source %v: %v", source.Path, err)
 			}
@@ -993,7 +993,7 @@ func SetDefaults(generate bool) Settings {
 // validateCustomImage validates a custom image file path and returns the absolute path or error
 func validateCustomImage(configPath, imageName string, allowedFormats []string) (absolutePath string, err error) {
 	// Get absolute path
-	absolutePath, err = filepath.Abs(configPath)
+	absolutePath, err = AbsPath(configPath)
 	if err != nil {
 		return "", fmt.Errorf("could not resolve path: %w", err)
 	}

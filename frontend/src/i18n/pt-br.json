@@ -745,7 +745,11 @@
     "enforcedByAdmin": "O administrador impediu que os usuários alterem essa propriedade",
     "singleClick": "Basta um clique para abrir os arquivos",
     "stickySidebar": "Barra lateral fixa",
-    "darkMode": "Modo escuro"
+    "darkMode": "Modo escuro",
+    "defaultViewMode": "Modo de visualização padrão",
+    "defaultViewModeDescription": "Modo de visualização inicial em novos navegadores ou dispositivos. Não substitui as preferências de visualização já salvas localmente.",
+    "defaultGallerySize": "Tamanho padrão da miniatura",
+    "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já salvos localmente."
   },
   "editor": {
     "stats": {

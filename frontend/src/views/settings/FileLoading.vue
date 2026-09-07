@@ -7,10 +7,7 @@
       <div class="settings-number-input item">
         <div class="no-padding">
           <label for="maxConcurrentUpload">{{ $t("fileLoading.maxConcurrentUpload") }}</label>
-          <i class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('fileLoading.maxConcurrentUploadHelp'))" @mouseleave="hideTooltip">
-            help <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          </i>
+          <HelpTooltipIcon :text="$t('fileLoading.maxConcurrentUploadHelp')" />
         </div>
         <div>
           <input v-model.number="localuser.fileLoading.maxConcurrentUpload" type="range" min="1" max="10"
@@ -21,10 +18,7 @@
       <div class="settings-number-input item">
         <div class="no-padding">
           <label for="uploadChunkSizeMb">{{ $t("fileLoading.uploadChunkSizeMb") }}</label>
-          <i class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('fileLoading.uploadChunkSizeMbHelp'))" @mouseleave="hideTooltip">
-            help <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          </i>
+          <HelpTooltipIcon :text="$t('fileLoading.uploadChunkSizeMbHelp')" />
         </div>
         <div class="no-padding">
           <input class="sizeInput input" v-model.number="localuser.fileLoading.uploadChunkSizeMb" type="number" min="0"
@@ -34,10 +28,7 @@
       <div class="settings-number-input item">
         <div class="no-padding">
           <label for="downloadChunkSizeMb">{{ $t("fileLoading.downloadChunkSizeMb") }}</label>
-          <i class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('fileLoading.downloadChunkSizeMbHelp'))" @mouseleave="hideTooltip">
-            help <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          </i>
+          <HelpTooltipIcon :text="$t('fileLoading.downloadChunkSizeMbHelp')" />
         </div>
         <div class="no-padding">
           <input class="sizeInput input" v-model.number="localuser.fileLoading.downloadChunkSizeMb" type="number" min="0"
@@ -62,12 +53,14 @@
 
 <script>
 import { notify } from "@/notify";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { state, mutations } from "@/store";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "fileLoading",
   components: {
+    HelpTooltipIcon,
     ToggleSwitch,
   },
 
@@ -94,16 +87,6 @@ export default {
     }
   },
   methods: {
-    showTooltip(event, text) {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip() {
-      mutations.hideTooltip();
-    },
     async updateSettings(event) {
       if (event !== undefined) {
         event.preventDefault();
@@ -146,5 +129,9 @@ export default {
 
 .item {
   padding: 1em;
+}
+
+.card-actions {
+  margin-top: 1em;
 }
 </style>
