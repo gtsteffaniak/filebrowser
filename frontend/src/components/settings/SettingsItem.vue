@@ -1,6 +1,6 @@
 <template>
     <div class="settings-group">
-        <div class="settings-group-title button" :class="{ 'unclickable': !collapsable }"
+        <div v-if="!hidden" class="settings-group-title button" :class="{ 'unclickable': !collapsable }"
             @click="collapsable ? toggleCollapse() : null">
             <h3>{{ title }}</h3>
             <i v-if="collapsable" class="material-symbols-outlined collapse-icon" :class="{ 'rotated': !actuallyCollapsed }">
@@ -25,6 +25,10 @@ export default {
       required: true
     },
     collapsable: {
+      type: Boolean,
+      default: false
+    },
+    hidden: {
       type: Boolean,
       default: false
     },

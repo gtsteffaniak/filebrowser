@@ -94,9 +94,11 @@
   </div>
   <div v-else class="user-profile-preferences">
     <SettingsItem
+      v-if="sectionVisible('listingOptions')"
       aria-label="listingOptions"
       :title="$t('settings.listingOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('listingOptions')"
       @toggle="onSectionToggle('listingOptions')"
@@ -159,18 +161,15 @@
           class="preference-field-block"
           :class="{ 'preference-field-block--enforceable': enforceable }"
         >
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.defaultViewMode") }}</h3>
-            <HelpTooltipIcon :text="$t('profileSettings.defaultViewModeDescription')" />
-          </div>
-          <div
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
-            @mouseleave="hideTooltip"
-          >
-            <ViewMode
-              :view-mode="listingViewMode"
-              :disabled="fieldDisabled('listing', 'viewMode')"
-              @update:view-mode="onListingViewModeChange"
+          <div class="settings-items">
+            <SettingsButton
+              class="item"
+              :name="$t('profileSettings.defaultViewMode')"
+              :description="$t('profileSettings.defaultViewModeDescription')"
+              :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
+              @click="openDefaultViewPref"
+              @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
+              @mouseleave="hideTooltip"
             />
           </div>
           <ProfileEnforceSwitch
@@ -179,31 +178,6 @@
             :disabled="disabled"
             @update:enforced="(v) => emitEnforced('listing', 'viewMode', v)"
           />
-        </div>
-        <div
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
-        >
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.defaultGallerySize") }}</h3>
-            <HelpTooltipIcon :text="$t('profileSettings.defaultGallerySizeDescription')" />
-          </div>
-          <div
-            class="gallery-size-field"
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'gallerySize')"
-            @mouseleave="hideTooltip"
-          >
-            <span class="size-label">{{ $t("general.size") }}</span>
-            <input
-              v-model.number="listingGallerySize"
-              type="range"
-              min="1"
-              max="9"
-              :disabled="fieldDisabled('listing', 'gallerySize')"
-              @change="() => emitSectionChange('listing', 'gallerySize')"
-            />
-            <span class="size-value">{{ listingGallerySize }}</span>
-          </div>
           <ProfileEnforceSwitch
             :visible="enforceable"
             :enforced="enforcedFlag('listing', 'gallerySize')"
@@ -276,9 +250,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('thumbnailOptions')"
       aria-label="thumbnailOptions"
       :title="$t('profileSettings.thumbnailOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('thumbnailOptions')"
       @toggle="onSectionToggle('thumbnailOptions')"
@@ -394,9 +370,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('sidebarOptions')"
       aria-label="sidebarOptions"
       :title="$t('profileSettings.sidebarOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('sidebarOptions')"
       @toggle="onSectionToggle('sidebarOptions')"
@@ -447,9 +425,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('searchOptions')"
       aria-label="searchOptions"
       :title="$t('settings.searchOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('searchOptions')"
       @toggle="onSectionToggle('searchOptions')"
@@ -465,9 +445,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('fileViewerOptions')"
       aria-label="fileViewerOptions"
       :title="$t('profileSettings.fileViewerOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('fileViewerOptions')"
       @toggle="onSectionToggle('fileViewerOptions')"
@@ -605,9 +587,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('themeLanguage')"
       aria-label="themeLanguage"
       :title="$t('profileSettings.themeAndLanguage')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('themeLanguage')"
       @toggle="onSectionToggle('themeLanguage')"
@@ -720,7 +704,6 @@ import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
-import ViewMode from "@/components/settings/ViewMode.vue";
 
 export default {
   name: "UserProfilePreferences",
@@ -734,7 +717,6 @@ export default {
     ProfilePreferenceToggle,
     ProfileEnforceSwitch,
     SettingsButton,
-    ViewMode,
   },
   provide() {
     return { profilePrefs: this };
@@ -783,6 +765,10 @@ export default {
       type: String,
       default: "full",
       validator: (value) => value === "basic" || value === "full",
+    },
+    sectionKey: {
+      type: String,
+      default: null,
     },
   },
   emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
@@ -905,15 +891,9 @@ export default {
     listingViewMode() {
       return this.sections.listing?.viewMode || "normal";
     },
-    listingGallerySize: {
-      get() {
-        const size = this.sections.listing?.gallerySize;
-        return typeof size === "number" ? size : 3;
-      },
-      set(value) {
-        const nextSize = Math.min(9, Math.max(1, Number(value) || 3));
-        this.setSectionBool("listing", "gallerySize", nextSize);
-      },
+    listingGallerySize() {
+      const size = this.sections.listing?.gallerySize;
+      return typeof size === "number" ? size : 3;
     },
   },
   watch: {
@@ -937,8 +917,17 @@ export default {
       this.formDisabledViewing = this.sections.fileViewer?.disableViewingExt || "";
       this.formDisableOfficeViewing = this.sections.fileViewer?.disableOnlyOfficeExt || "";
     },
-    sectionForceCollapsed(sectionKey) {
-      return this.expandedSection !== sectionKey;
+    sectionForceCollapsed(key) {
+      if (this.sectionKey) {
+        return key !== this.sectionKey;
+      }
+      return this.expandedSection !== key;
+    },
+    sectionVisible(key) {
+      if (!this.sectionKey) {
+        return true;
+      }
+      return this.sectionKey === key;
     },
     onSectionToggle(sectionKey) {
       this.expandedSection =
@@ -1111,9 +1100,35 @@ export default {
       this.$emit("locale-change", locale);
       this.emitSectionChange("ui", "locale");
     },
-    onListingViewModeChange(viewMode) {
-      this.setSectionBool("listing", "viewMode", viewMode);
-      this.emitSectionChange("listing", "viewMode");
+    openDefaultViewPref() {
+      const viewModeDisabled = this.fieldDisabled('listing', 'viewMode');
+      const gallerySizeDisabled = this.fieldDisabled('listing', 'gallerySize');
+      if (viewModeDisabled && gallerySizeDisabled) return;
+      mutations.showPrompt({
+        name: "default-view-prefs",
+        props: {
+          viewMode: this.listingViewMode,
+          gallerySize: this.listingGallerySize,
+          viewModeDisabled,
+          gallerySizeDisabled,
+        },
+        confirm: ({ viewMode, gallerySize }) => {
+          const nextListing = { ...(this.sections.listing || {}) };
+          if (!viewModeDisabled) {
+            nextListing.viewMode = viewMode;
+          }
+          if (!gallerySizeDisabled) {
+            nextListing.gallerySize = gallerySize;
+          }
+          this.sections = { ...this.sections, listing: nextListing };
+          if (!viewModeDisabled) {
+            this.emitSectionChange("listing", "viewMode");
+          }
+          if (!gallerySizeDisabled) {
+            this.emitSectionChange("listing", "gallerySize");
+          }
+        },
+      });
     },
     hideTooltip() {
       hideInteractiveTooltip();
@@ -1213,17 +1228,5 @@ export default {
   padding: 0.35em;
   border-radius: var(--borderRadius);
   margin-bottom: 0.5em;
-}
-.gallery-size-field {
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-}
-.gallery-size-field input[type="range"] {
-  flex: 1 1 auto;
-}
-.gallery-size-field .size-value {
-  min-width: 1.25em;
-  text-align: center;
 }
 </style>
