@@ -412,7 +412,9 @@
     "selectBannerImage": "Seleccionar imagen de banner",
     "selectFaviconImage": "Seleccionar imagen de favicon",
     "deleteFailed": "Error al borrar recurso compartido",
-    "readOnlySourceNotice": "Esta fuente es de sólo lectura. Los recursos compartidos de carga y los permisos que modifican archivos están desactivados."
+    "readOnlySourceNotice": "Esta fuente es de sólo lectura. Los recursos compartidos de carga y los permisos que modifican archivos están desactivados.",
+    "shareDefaults": "Configuración predeterminada para compartir",
+    "shareDefaultsDescription": "Configurar las opciones predeterminadas para los nuevos recursos compartidos y aplicar las políticas a los usuarios que no sean administradores."
   },
   "api": {
     "createdAt": "Creado en:",
@@ -465,6 +467,8 @@
     "passwordRequiredForGeneration": "Su contraseña es necesaria para generar un código autenticador."
   },
   "general": {
+    "import": "Importar",
+    "export": "Exportar",
     "name": "Nombre",
     "path": "Ruta:",
     "user": "Usuario",
@@ -743,7 +747,11 @@
     "enforcedByAdmin": "El administrador ha desactivado la posibilidad de que los usuarios modifiquen esta propiedad.",
     "singleClick": "Abre los archivos con un solo clic",
     "stickySidebar": "Barra lateral fija",
-    "darkMode": "Modo oscuro"
+    "darkMode": "Modo oscuro",
+    "defaultViewMode": "Modo de visualización predeterminado",
+    "defaultViewModeDescription": "Modo de visualización inicial en navegadores o dispositivos nuevos. No anula las preferencias de visualización ya guardadas localmente.",
+    "defaultGallerySize": "Tamaño predeterminado de las miniaturas",
+    "defaultGallerySizeDescription": "Escala inicial de las miniaturas de la galería o la lista (1–9) en navegadores o dispositivos nuevos. No anula los tamaños ya guardados localmente."
   },
   "editor": {
     "stats": {

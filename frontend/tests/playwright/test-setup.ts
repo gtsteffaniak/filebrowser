@@ -1,7 +1,20 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Locator, Page, Response } from "@playwright/test";
 import { test as base, expect } from "@playwright/test";
 
 const PLAYWRIGHT_RETRY_INTERVALS = [500, 1000, 1500, 2000];
+
+/** Match a single settings API path (not e.g. /api/settings/sources for /api/settings/source). */
+export function isExactSettingsApiResponse(
+  response: Response,
+  resource: string,
+  method = "GET",
+): boolean {
+  if (response.request().method() !== method || !response.ok()) {
+    return false;
+  }
+  const path = new URL(response.url()).pathname;
+  return path === `/api/${resource}` || path.endsWith(`/api/${resource}`);
+}
 
 async function dismissSharePrompt(page: Page, sharePrompt: Locator): Promise<void> {
   if (!(await sharePrompt.isVisible())) {
@@ -28,6 +41,35 @@ async function dismissSharePrompt(page: Page, sharePrompt: Locator): Promise<voi
 /** Closes the share dialog when it is still open after creating or viewing a share. */
 export async function closeSharePromptIfOpen(page: Page): Promise<void> {
   await dismissSharePrompt(page, page.locator("div[aria-label='share-prompt']"));
+}
+
+/** Show a disabled toggle row's config-lock tooltip and assert its text. */
+export async function expectLockTooltipOnRowHover(
+  page: Page,
+  row: Locator,
+  text: string,
+): Promise<void> {
+  const hoverTarget = row.locator(".toggle-row--value");
+  const lockTooltip = page.locator(".floating-tooltip");
+  await hoverTarget.scrollIntoViewIfNeeded();
+
+  const box = await hoverTarget.boundingBox();
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  }
+  await hoverTarget.hover({ force: true });
+  await hoverTarget.dispatchEvent("mouseenter");
+
+  await expect(async () => {
+    await hoverTarget.dispatchEvent("mouseenter");
+    if (!(await lockTooltip.isVisible())) {
+      throw new Error("lock tooltip not visible");
+    }
+    const tooltipText = (await lockTooltip.textContent())?.trim();
+    if (tooltipText !== text) {
+      throw new Error(`expected tooltip "${text}", got "${tooltipText ?? ""}"`);
+    }
+  }).toPass({ timeout: 4000, intervals: [100, 250, 500] });
 }
 
 /** Closes the file-actions / listing context menu if it is still open. */
@@ -285,14 +327,12 @@ export async function createShareAndGetHash(
   return shareHash;
 }
 
-export type PlaywrightTheme = "light" | "dark";
-
-export type PlaywrightTestOptions = {
-  theme: PlaywrightTheme;
+export type PlaywrightFixtureOptions = {
+  theme: 'light' | 'dark';
 };
 
 export const test = base.extend<
-  PlaywrightTestOptions & {
+  PlaywrightFixtureOptions & {
     checkForErrors: (expectedConsoleErrors?: number, expectedApiErrors?: number) => void;
     openContextMenu: () => Promise<void>;
     checkForNotification: (message: string | RegExp) => Promise<import('@playwright/test').Locator>;
@@ -307,7 +347,7 @@ export const test = base.extend<
       await openContextMenuHelper(page);
     });
   },
-  theme: ["dark", { option: true }],
+  theme: ['dark', { option: true }],
   checkForNotification: async ({ page }, use) => {
     await use(async (message: string | RegExp) => {
       return await checkForNotification(page, message);

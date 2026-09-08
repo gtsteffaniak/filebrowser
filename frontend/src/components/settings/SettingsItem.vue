@@ -120,6 +120,7 @@ export default {
     background: var(--alt-background) !important;
     color: var(--textPrimary) !important;
     padding: 0.5em;
+    margin-top: 0.75em;
 }
 
 .settings-group-title h3 {

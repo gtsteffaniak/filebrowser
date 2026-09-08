@@ -215,7 +215,9 @@
     "selectBannerImage": "Výběr obrázku banneru",
     "selectFaviconImage": "Výběr obrázku favicon",
     "deleteFailed": "Nepodařilo se odstranit sdílenou složku",
-    "readOnlySourceNotice": "Tento zdroj je určen pouze pro čtení. Sdílení nahrávání a oprávnění, která upravují soubory, jsou zakázána."
+    "readOnlySourceNotice": "Tento zdroj je určen pouze pro čtení. Sdílení nahrávání a oprávnění, která upravují soubory, jsou zakázána.",
+    "shareDefaults": "Sdílet výchozí nastavení",
+    "shareDefaultsDescription": "Nakonfigurujte výchozí nastavení sdílených složek pro nové sdílené složky a vynuťte dodržování zásad u uživatelů bez oprávnění správce."
   },
   "prompts": {
     "noTemplate": "Vaše šablona je prázdná!",
@@ -397,7 +399,11 @@
     "enforcedByAdmin": "Váš správce zakázal uživatelům měnit tuto vlastnost",
     "singleClick": "Otevření souborů jedním kliknutím",
     "stickySidebar": "Lepivý postranní panel",
-    "darkMode": "Tmavý režim"
+    "darkMode": "Tmavý režim",
+    "defaultViewMode": "Výchozí režim zobrazení",
+    "defaultViewModeDescription": "Výchozí režim zobrazení v nových prohlížečích nebo na nových zařízeních. Nepřepíše nastavení zobrazení, která jsou již uložena lokálně.",
+    "defaultGallerySize": "Výchozí velikost miniatury",
+    "defaultGallerySizeDescription": "Výchozí měřítko miniatur v galerii nebo seznamu (1–9) v nových prohlížečích nebo na nových zařízeních. Nepřepíše velikosti, které jsou již uloženy lokálně."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -563,6 +569,8 @@
     "orange": "oranžová"
   },
   "general": {
+    "import": "Importovat",
+    "export": "Exportovat",
     "name": "Název",
     "path": "Cesta",
     "user": "Uživatel",

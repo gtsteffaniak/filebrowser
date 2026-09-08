@@ -412,7 +412,9 @@
     "selectBannerImage": "Välj bannerbild",
     "selectFaviconImage": "Välj favicon-bild",
     "deleteFailed": "Misslyckades med att ta bort delning",
-    "readOnlySourceNotice": "Denna källa är skrivskyddad. Uppladdningsandelar och behörigheter som ändrar filer är inaktiverade."
+    "readOnlySourceNotice": "Denna källa är skrivskyddad. Uppladdningsandelar och behörigheter som ändrar filer är inaktiverade.",
+    "shareDefaults": "Dela standardinställningar",
+    "shareDefaultsDescription": "Konfigurera standardinställningar för nya delade resurser och tillämpa policyer för användare som inte är administratörer."
   },
   "api": {
     "createdAt": "Skapad på:",
@@ -560,9 +562,15 @@
     "enforcedByAdmin": "Din administratör har spärrat användarnas möjlighet att ändra den här egenskapen",
     "singleClick": "Öppna filer med ett enda klick",
     "stickySidebar": "Fast sidomeny",
-    "darkMode": "Mörkt läge"
+    "darkMode": "Mörkt läge",
+    "defaultViewMode": "Standardvisningsläge",
+    "defaultViewModeDescription": "Standardvisningsläge i nya webbläsare eller på nya enheter. Åsidosätter inte visningsinställningar som redan sparats lokalt.",
+    "defaultGallerySize": "Standardstorlek på miniatyrbilder",
+    "defaultGallerySizeDescription": "Initial skala för miniatyrbilder i gallerier eller listor (1–9) i nya webbläsare eller på nya enheter. Åsidosätter inte storlekar som redan sparats lokalt."
   },
   "general": {
+    "import": "Importera",
+    "export": "Exportera",
     "name": "Namn",
     "path": "Väg",
     "user": "Användare",

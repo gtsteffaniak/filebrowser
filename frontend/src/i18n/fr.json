@@ -412,7 +412,9 @@
     "selectBannerImage": "Sélectionner l'image de la bannière",
     "selectFaviconImage": "Sélectionner l'image du favicon",
     "deleteFailed": "Échec de la suppression du partage",
-    "readOnlySourceNotice": "Cette source est en lecture seule. Les partages de téléchargement et les autorisations qui modifient les fichiers sont désactivés."
+    "readOnlySourceNotice": "Cette source est en lecture seule. Les partages de téléchargement et les autorisations qui modifient les fichiers sont désactivés.",
+    "shareDefaults": "Paramètres par défaut de partage",
+    "shareDefaultsDescription": "Configurer les options de partage par défaut pour les nouveaux partages et appliquer les règles aux utilisateurs non administrateurs."
   },
   "api": {
     "createdAt": "Créée le :",
@@ -465,6 +467,8 @@
     "passwordRequiredForGeneration": "Votre mot de passe est nécessaire pour générer un code d'authentification."
   },
   "general": {
+    "import": "Importer",
+    "export": "Exporter",
     "name": "Nom",
     "path": "Chemin",
     "user": "Utilisateur",
@@ -743,7 +747,11 @@
     "enforcedByAdmin": "Votre administrateur a désactivé la possibilité pour les utilisateurs de modifier cette propriété.",
     "singleClick": "Un simple clic pour ouvrir les fichiers",
     "stickySidebar": "Barre latérale fixe",
-    "darkMode": "Mode sombre"
+    "darkMode": "Mode sombre",
+    "defaultViewMode": "Mode d'affichage par défaut",
+    "defaultViewModeDescription": "Mode d'affichage par défaut sur les nouveaux navigateurs ou appareils. Ne remplace pas les préférences d'affichage déjà enregistrées localement.",
+    "defaultGallerySize": "Taille par défaut des vignettes",
+    "defaultGallerySizeDescription": "Échelle initiale des vignettes de la galerie ou de la liste (1 à 9) sur les nouveaux navigateurs ou appareils. Ne remplace pas les tailles déjà enregistrées localement."
   },
   "editor": {
     "stats": {

@@ -1,7 +1,18 @@
 import i18n from '@/i18n';
 import { getIconClass } from './material-symbols';
 
-const globalVars = window.globalVars;
+function readAppConfig() {
+  const el = document.getElementById('app-config');
+  if (el?.textContent) {
+    return JSON.parse(el.textContent);
+  }
+  return window.globalVars;
+}
+
+const globalVars = readAppConfig();
+if (typeof window !== 'undefined') {
+  window.globalVars = globalVars;
+}
 const origin = window.location.origin;
 
 const settings = [

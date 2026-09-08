@@ -9,6 +9,8 @@
     "noCreateOptions": "Non sono disponibili opzioni di creazione"
   },
   "general": {
+    "import": "Importa",
+    "export": "Esporta",
     "divider": "Divisore{suffix}",
     "office": "Office{suffix}",
     "format": "Formato{suffix}",
@@ -386,7 +388,9 @@
     "shareInfoDescription": "Mostra le informazioni della condivisione (titolo, descrizione, banner, QR) in un popup.",
     "downloadDescription": "Permette di scaricare l'intero contenuto della condivisione come file compresso.",
     "deleteFailed": "Eliminazione condivisione fallita",
-    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate."
+    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate.",
+    "shareDefaults": "Impostazioni predefinite di condivisione",
+    "shareDefaultsDescription": "Configurare le opzioni predefinite per le nuove condivisioni e applicare le politiche agli utenti non amministratori."
   },
   "prompts": {
     "noTemplate": "Il tuo modello è vuoto!",
@@ -568,7 +572,11 @@
     "enforcedByAdmin": "L'amministratore ha impedito agli utenti di modificare questa proprietà",
     "singleClick": "Basta un clic per aprire i file",
     "stickySidebar": "Barra laterale fissa",
-    "darkMode": "Modalità scura"
+    "darkMode": "Modalità scura",
+    "defaultViewMode": "Modalità di visualizzazione predefinita",
+    "defaultViewModeDescription": "Modalità di visualizzazione iniziale su nuovi browser o dispositivi. Non sovrascrive le preferenze di visualizzazione già salvate localmente.",
+    "defaultGallerySize": "Dimensione predefinita delle miniature",
+    "defaultGallerySizeDescription": "Scala iniziale delle miniature della galleria o dell'elenco (1–9) sui nuovi browser o dispositivi. Non sovrascrive le dimensioni già salvate localmente."
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

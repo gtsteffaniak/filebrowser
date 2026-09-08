@@ -60,13 +60,22 @@
                   <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                   <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
                 </svg>
-                <i v-else class="material-symbols warning-icon"
-                  @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))" @mouseleave="hideTooltip">
-                  warning
-                </i>
+                <HelpTooltipIcon
+                  v-else
+                  icon="warning"
+                  icon-style="symbols"
+                  icon-class="warning-icon"
+                  :text="$t('sidebar.sourceNotAccessible')"
+                />
                 <span>{{ link.name }}</span>
                 <i v-if="hasUsageInfo(link)" class="no-select material-symbols-outlined tooltip-info-icon"
-                  @click="onSourceInfoClick($event, sourceInfo[link.sourceName] || {})"
+                  :class="{ 'tooltip-info-icon--pressed': pressedSourceInfo === link.sourceName }"
+                  role="button"
+                  tabindex="0"
+                  @touchstart.stop="onSourceInfoTouchStart(link.sourceName)"
+                  @touchend.stop="onSourceInfoTouchEnd($event, sourceInfo[link.sourceName] || {})"
+                  @touchcancel.stop="onSourceInfoTouchCancel"
+                  @click.stop="onSourceInfoClick($event, sourceInfo[link.sourceName] || {})"
                   @mouseenter="onSourceInfoMouseEnter($event, sourceInfo[link.sourceName] || {})"
                   @mouseleave="onSourceInfoMouseLeave">
                   info
@@ -132,15 +141,24 @@
                 <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
               </svg>
-              <i v-else class="material-symbols warning-icon"
-                @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))" @mouseleave="hideTooltip">
-                warning
-              </i>
+              <HelpTooltipIcon
+                v-else
+                icon="warning"
+                icon-style="symbols"
+                icon-class="warning-icon"
+                :text="$t('sidebar.sourceNotAccessible')"
+              />
               <!-- Source name -->
               <span>{{ activeSourceLink.name }}</span>
               <i v-if="hasUsageInfo(activeSourceLink)"
                  class="no-select material-symbols-outlined tooltip-info-icon"
-                 @click="onSourceInfoClick($event, activeSourceInfo)"
+                 :class="{ 'tooltip-info-icon--pressed': pressedSourceInfo === activeSource }"
+                 role="button"
+                 tabindex="0"
+                 @touchstart.stop="onSourceInfoTouchStart(activeSource)"
+                 @touchend.stop="onSourceInfoTouchEnd($event, activeSourceInfo)"
+                 @touchcancel.stop="onSourceInfoTouchCancel"
+                 @click.stop="onSourceInfoClick($event, activeSourceInfo)"
                  @mouseenter="onSourceInfoMouseEnter($event, activeSourceInfo)"
                  @mouseleave="onSourceInfoMouseLeave">
                 info
@@ -186,7 +204,16 @@
 </template>
 
 <script>
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { state, getters, mutations } from "@/store";
+import {
+  hideInteractiveTooltip,
+  onComponentTooltipClick,
+  onComponentTooltipTouchEnd,
+  showHoverComponentTooltip,
+  showHoverTooltip,
+  useTapForTooltip,
+} from "@/utils/tooltipHelp.js";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { goToItem } from "@/utils/url";
 import { getIconClass } from "@/utils/material-symbols";
@@ -200,6 +227,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 export default {
   name: "SidebarLinks",
   components: {
+    HelpTooltipIcon,
     ProgressBar,
     ShareInfo,
     FileTree,
@@ -207,12 +235,12 @@ export default {
   },
   data() {
     return {
-      sourceTooltipDismissHandler: null,
+      pressedSourceInfo: null,
     };
   },
   computed: {
     useTapForSourceTooltip() {
-      return getters.isMobile();
+      return useTapForTooltip();
     },
     editShareText() {
       return this.$t("general.shareManagement");
@@ -327,7 +355,7 @@ export default {
     },
   },
   beforeUnmount() {
-    this.unregisterSourceTooltipDismiss();
+    hideInteractiveTooltip(true);
   },
   methods: {
     isSourceCategory(category) {
@@ -571,95 +599,55 @@ export default {
     },
     showTooltip(event, text) {
       if (text) {
-        mutations.showTooltip({
-          content: text,
-          x: event.clientX,
-          y: event.clientY,
-        });
+        showHoverTooltip(text, event);
       }
     },
     hideTooltip() {
-      this.unregisterSourceTooltipDismiss();
-      mutations.hideTooltip();
-    },
-    isSourceTooltipVisible(info) {
-      if (!state.tooltip.show || state.tooltip.component !== IndexInfo) {
-        return false;
-      }
-      const shown = state.tooltip.componentProps?.info;
-      if (!shown || !info) {
-        return false;
-      }
-      return shown.name === info.name;
+      hideInteractiveTooltip();
     },
     onSourceInfoClick(event, info) {
-      if (!this.useTapForSourceTooltip) {
-        return;
+      onComponentTooltipClick(this.sourceInfoTooltipOptions(event, info));
+    },
+    onSourceInfoTouchStart(sourceName) {
+      if (useTapForTooltip()) {
+        this.pressedSourceInfo = sourceName;
       }
-      this.toggleSourceTooltip(event, info);
+    },
+    onSourceInfoTouchEnd(event, info) {
+      this.pressedSourceInfo = null;
+      onComponentTooltipTouchEnd(this.sourceInfoTooltipOptions(event, info));
+    },
+    onSourceInfoTouchCancel() {
+      this.pressedSourceInfo = null;
+    },
+    sourceInfoTooltipOptions(event, info) {
+      return {
+        event,
+        component: IndexInfo,
+        componentProps: { info },
+        pointerEvents: this.useTapForSourceTooltip,
+        propsMatcher: (props) => props.info?.name === info?.name,
+      };
     },
     onSourceInfoMouseEnter(event, info) {
-      if (this.useTapForSourceTooltip) {
-        return;
-      }
-      this.showSourceTooltip(event, info);
+      this.showSourceHoverTooltip(event, info);
     },
     onSourceInfoMouseLeave() {
+      this.pressedSourceInfo = null;
       if (this.useTapForSourceTooltip) {
         return;
       }
       this.hideTooltip();
     },
-    toggleSourceTooltip(event, info) {
-      if (this.isSourceTooltipVisible(info)) {
-        this.hideTooltip();
-        return;
-      }
-      this.showSourceTooltip(event, info);
-    },
-    showSourceTooltip(event, info) {
+    showSourceHoverTooltip(event, info) {
       if (!info?.name) {
         return;
       }
-      mutations.showTooltip({
+      showHoverComponentTooltip({
         component: IndexInfo,
         componentProps: { info },
-        x: event.clientX,
-        y: event.clientY,
-        pointerEvents: this.useTapForSourceTooltip,
+        event,
       });
-      if (this.useTapForSourceTooltip) {
-        this.registerSourceTooltipDismiss();
-      }
-    },
-    registerSourceTooltipDismiss() {
-      this.unregisterSourceTooltipDismiss();
-      this.sourceTooltipDismissHandler = (e) => {
-        const target = e.target;
-        if (target instanceof Element && (
-          target.closest(".tooltip-info-icon") ||
-          target.closest(".floating-tooltip")
-        )) {
-          return;
-        }
-        this.hideTooltip();
-      };
-      // Defer so the same tap does not immediately dismiss the tooltip.
-      requestAnimationFrame(() => {
-        if (!this.sourceTooltipDismissHandler) {
-          return;
-        }
-        document.addEventListener("click", this.sourceTooltipDismissHandler, true);
-        document.addEventListener("touchstart", this.sourceTooltipDismissHandler, true);
-      });
-    },
-    unregisterSourceTooltipDismiss() {
-      if (!this.sourceTooltipDismissHandler) {
-        return;
-      }
-      document.removeEventListener("click", this.sourceTooltipDismissHandler, true);
-      document.removeEventListener("touchstart", this.sourceTooltipDismissHandler, true);
-      this.sourceTooltipDismissHandler = null;
     },
     async showEditShareHover() {
       if (!this.canEdit) {

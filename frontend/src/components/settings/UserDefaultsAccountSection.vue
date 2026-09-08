@@ -8,8 +8,8 @@
         v-model="account.lockPassword"
         @change="$emit('account-change', 'lockPassword')"
         @update:enforced="(v) => emitEnforced('lockPassword', v)"
-        :disabled="isFieldLocked('lockPassword')"
-        :value-tooltip="configLockTooltipForField('lockPassword')"
+        :disabled="isFieldDisabled('lockPassword')"
+        :value-tooltip="fieldDisabledTooltip('lockPassword')"
         :name="$t('settings.lockPassword')"
       />
       <ToggleSwitch
@@ -19,8 +19,8 @@
         v-model="account.disableSettings"
         @change="$emit('account-change', 'disableSettings')"
         @update:enforced="(v) => emitEnforced('disableSettings', v)"
-        :disabled="isFieldLocked('disableSettings')"
-        :value-tooltip="configLockTooltipForField('disableSettings')"
+        :disabled="isFieldDisabled('disableSettings')"
+        :value-tooltip="fieldDisabledTooltip('disableSettings')"
         :name="$t('settings.disableUserSettings')"
       />
       <ToggleSwitch
@@ -30,8 +30,8 @@
         v-model="account.disableUpdateNotifications"
         @change="$emit('account-change', 'disableUpdateNotifications')"
         @update:enforced="(v) => emitEnforced('disableUpdateNotifications', v)"
-        :disabled="isFieldLocked('disableUpdateNotifications')"
-        :value-tooltip="configLockTooltipForField('disableUpdateNotifications')"
+        :disabled="isFieldDisabled('disableUpdateNotifications')"
+        :value-tooltip="fieldDisabledTooltip('disableUpdateNotifications')"
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')"
       />
@@ -46,8 +46,8 @@
         v-model="account.permissions.admin"
         @change="$emit('account-change', 'permissions.admin')"
         @update:enforced="(v) => emitEnforcedPermission('admin', v)"
-        :disabled="isPermissionLocked('admin')"
-        :value-tooltip="configLockTooltipForPermission('admin')"
+        :disabled="isPermissionDisabled('admin')"
+        :value-tooltip="permissionDisabledTooltip('admin')"
         :name="$t('settings.permissions.admin')"
       />
       <ToggleSwitch
@@ -57,8 +57,8 @@
         v-model="account.permissions.share"
         @change="$emit('account-change', 'permissions.share')"
         @update:enforced="(v) => emitEnforcedPermission('share', v)"
-        :disabled="isPermissionLocked('share')"
-        :value-tooltip="configLockTooltipForPermission('share')"
+        :disabled="isPermissionDisabled('share')"
+        :value-tooltip="permissionDisabledTooltip('share')"
         :name="$t('general.shareFiles')"
       />
       <ToggleSwitch
@@ -68,8 +68,8 @@
         v-model="account.permissions.api"
         @change="$emit('account-change', 'permissions.api')"
         @update:enforced="(v) => emitEnforcedPermission('api', v)"
-        :disabled="isPermissionLocked('api')"
-        :value-tooltip="configLockTooltipForPermission('api')"
+        :disabled="isPermissionDisabled('api')"
+        :value-tooltip="permissionDisabledTooltip('api')"
         :name="$t('settings.permissions.api')"
       />
       <ToggleSwitch
@@ -79,8 +79,8 @@
         v-model="account.permissions.realtime"
         @change="$emit('account-change', 'permissions.realtime')"
         @update:enforced="(v) => emitEnforcedPermission('realtime', v)"
-        :disabled="isPermissionLocked('realtime')"
-        :value-tooltip="configLockTooltipForPermission('realtime')"
+        :disabled="isPermissionDisabled('realtime')"
+        :value-tooltip="permissionDisabledTooltip('realtime')"
         :name="$t('settings.permissions.realtime')"
       />
     </div>
@@ -90,6 +90,7 @@
 <script>
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { getObjectProperty } from "@/utils/object.js";
 
 export default {
   name: "UserDefaultsAccountSection",
@@ -122,6 +123,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    respectEnforcedPolicy: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ["account-change", "enforced-change", "enforced-permission-change"],
   methods: {
@@ -130,6 +135,30 @@ export default {
     },
     isPermissionLocked(field) {
       return this.configLockedPaths.includes(`account.permissions.${field}`);
+    },
+    isFieldDisabled(field) {
+      if (this.isFieldLocked(field)) {
+        return true;
+      }
+      return this.respectEnforcedPolicy && !!getObjectProperty(this.enforced, field);
+    },
+    isPermissionDisabled(field) {
+      if (this.isPermissionLocked(field)) {
+        return true;
+      }
+      return this.respectEnforcedPolicy && !!getObjectProperty(this.enforcedPermissions, field);
+    },
+    fieldDisabledTooltip(field) {
+      if (this.respectEnforcedPolicy && getObjectProperty(this.enforced, field)) {
+        return this.$t("profileSettings.enforcedByAdmin");
+      }
+      return this.configLockTooltipForField(field);
+    },
+    permissionDisabledTooltip(field) {
+      if (this.respectEnforcedPolicy && getObjectProperty(this.enforcedPermissions, field)) {
+        return this.$t("profileSettings.enforcedByAdmin");
+      }
+      return this.configLockTooltipForPermission(field);
     },
     configLockTooltipForField(field) {
       if (this.isFieldLocked(field)) {

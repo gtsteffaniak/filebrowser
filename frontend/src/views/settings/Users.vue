@@ -188,6 +188,10 @@ export default {
 </script>
 
 <style scoped>
+.card-content.full :deep(.settings-table-wrapper) {
+  margin-top: 0.75rem;
+}
+
 .clickable {
   cursor: pointer;
 }

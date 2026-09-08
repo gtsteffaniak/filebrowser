@@ -9,6 +9,8 @@
     "noCreateOptions": "No create options are available"
   },
   "general": {
+    "import": "Import",
+    "export": "Export",
     "to": "to{suffix}",
     "and": "and{suffix}",
     "or": "or{suffix}",
@@ -390,6 +392,8 @@
     "disableLoginOption": "Hide login option",
     "disableLoginOptionDescription": "Hide the login button in the sidebar for anonymous users. When enabled, anonymous users won't see the option to log in.",
     "customizeSidebarLinksButton": "Customize Links",
+    "shareDefaults": "Share defaults",
+    "shareDefaultsDescription": "Configure default share options for new shares and enforce policies for non-admin users.",
     "browseFiles": "Browse files",
     "selectBannerImage": "Select banner image",
     "selectFaviconImage": "Select favicon image",
@@ -522,6 +526,10 @@
     "preferEditorForMarkdownDescription": "When enabled, open markdown files in the editor first instead of the Markdown Viewer.",
     "deleteAfterArchive": "Delete source files after creation/extraction of archives",
     "deleteAfterArchiveDescription": "When enabled, will delete the source files after successful creation/extraction of archives",
+    "defaultViewMode": "Default view mode",
+    "defaultViewModeDescription": "Initial view mode on new browsers or devices. Does not override view preferences already saved locally.",
+    "defaultGallerySize": "Default thumbnail size",
+    "defaultGallerySizeDescription": "Initial gallery or list thumbnail scale (1–9) on new browsers or devices. Does not override sizes already saved locally.",
     "hideFilesInTree": "Hide files in tree navigation",
     "hideFilesInTreeDescription": "When enabled, only folders are shown in the sidebar Tree Navigation.",
     "previewFolderDescription": "Show thumbnail previews for folders with first child item as cover -- or multiple items if motion preview is enabled.",
