@@ -16,7 +16,19 @@ if (typeof window !== 'undefined') {
 const origin = window.location.origin;
 
 const settings = [
-  { id: 'profile', component: 'ProfileSettings', icon: 'person' },
+  {
+    id: 'profile',
+    component: 'ProfileSettings',
+    icon: 'person',
+    sections: [
+      { id: 'listingOptions', label: 'settings.listingOptions', icon: 'view_list' },
+      { id: 'thumbnailOptions', label: 'profileSettings.thumbnailOptions', icon: 'image' },
+      { id: 'sidebarOptions', label: 'profileSettings.sidebarOptions', icon: 'dock_to_right' },
+      { id: 'searchOptions', label: 'settings.searchOptions', icon: 'search' },
+      { id: 'fileViewerOptions', label: 'profileSettings.fileViewerOptions', icon: 'play_circle' },
+      { id: 'themeLanguage', label: 'profileSettings.themeAndLanguage', icon: 'palette' },
+    ],
+  },
   { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading', icon: 'cloud_download' },
   { id: 'notifications', label: 'notifications.title', component: 'NotificationsSettings', icon: 'notifications' },
   { id: 'shares', component: 'SharesSettings', permissions: { share: true }, icon: 'share' },

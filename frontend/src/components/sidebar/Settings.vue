@@ -1,20 +1,56 @@
 <template>
-  <div v-if="isMobile" class="card item clickable settings-card" @click="closeSettings">
+  <button v-if="isMobile" type="button" class="card item clickable settings-card" @click="closeSettings">
     <span class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       {{ $t("general.exit") }}
     </span>
-  </div>
-  <div v-for="setting in settings" :key="`${setting.id}-sidebar`" :id="`${setting.id}-sidebar`" class="card item clickable settings-card"
-    @click="setView(`${setting.id}-main`)" :class="{
-      hidden: !shouldShow(setting),
-      'active-settings': active(`${setting.id}-main`),
-    }">
-    <span v-if="shouldShow(setting)" class="settings-item-content">
-      <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
-      {{ settingLabel(setting) }}
-    </span>
-  </div>
+  </button>
+  <template v-for="setting in settings" :key="`${setting.id}-sidebar`">
+    <div v-if="setting.id === 'profile'" class="card item settings-card-collapsible" :class="{ hidden: !shouldShow(setting) }">
+      <button
+        type="button"
+        class="settings-card-collapsible-header settings-card clickable"
+        :class="{ 'active-settings': profileActive }"
+        :aria-expanded="sectionExpanded"
+        @click="expandSection"
+      >
+        <span class="settings-item-content">
+          <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
+          {{ settingLabel(setting) }}
+        </span>
+        <i class="material-symbols-outlined settings-card-collapsible-chevron" :class="{ rotated: sectionExpanded }">
+          keyboard_arrow_down
+        </i>
+      </button>
+      <div class="settings-card-sub-item" :class="{ 'settings-card-collapsible--expanded': sectionExpanded }">
+        <div class="settings-card-sub-item-inner">
+          <button
+            v-for="section in profileSections"
+            :key="section.id"
+            type="button"
+            class="settings-card-collapsible-sub-item settings-card clickable"
+            :class="{ 'active-settings': active(`profile-${section.id}`) }"
+            @click="setView(`profile-${section.id}`)"
+          >
+            <span class="settings-item-content">
+              <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
+              {{ $t(section.label) }}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <button v-else :id="`${setting.id}-sidebar`" type="button" class="card item clickable settings-card"
+      @click="setView(`${setting.id}-main`)" :class="{
+        hidden: !shouldShow(setting),
+        'active-settings': active(`${setting.id}-main`),
+      }">
+      <span v-if="shouldShow(setting)" class="settings-item-content">
+        <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
+        {{ settingLabel(setting) }}
+      </span>
+    </button>
+  </template>
 </template>
 
 <script>
@@ -28,13 +64,37 @@ export default {
   data() {
     return {
       settings, // Initialize the settings array in data
+      sectionExpanded: false,
     };
   },
   computed: {
     currentHash: () => getters.currentHash(),
     isMobile: () => getters.isMobile(),
+    isProfileSectionActive() {
+      const hash = state.activeSettingsView || "";
+      return hash.startsWith("profile-");
+    },
+    profileActive() {
+      return this.isProfileSectionActive;
+    },
+    profileSections() {
+      return this.settings.find((setting) => setting.id === 'profile')?.sections || [];
+    },
+  },
+  watch: {
+    isProfileSectionActive: {
+      immediate: true,
+      handler(val) {
+        if (val) {
+          this.sectionExpanded = true;
+        }
+      },
+    },
   },
   methods: {
+    expandSection() {
+      this.sectionExpanded = !this.sectionExpanded;
+    },
     closeSettings() {
       router.go(-1);
     },
@@ -47,11 +107,7 @@ export default {
     setView(view) {
       mutations.closeHovers();
       mutations.closeTopPrompt();
-      if (state.route.path !== "/settings") {
-        void router.push({ path: "/settings", hash: `#${view}` }, () => {});
-      } else {
-        mutations.setActiveSettingsView(view);
-      }
+      void router.push({ path: "/settings", hash: `#${view}` }, () => {});
     },
     settingLabel(setting) {
       switch (setting.id) {
@@ -94,5 +150,50 @@ export default {
 
 .settings-icon {
   font-size: 1.2em;
+}
+
+.settings-card-collapsible {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.settings-card-collapsible-chevron {
+  margin-left: auto;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-card-collapsible-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.settings-card-sub-item {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-card-collapsible--expanded {
+  grid-template-rows: 1fr;
+}
+
+.settings-card-sub-item-inner {
+  overflow: hidden;
+}
+
+.settings-card-collapsible--expanded .settings-card-sub-item-inner {
+  border-top: 1px solid var(--divider);
+}
+
+.settings-card-collapsible-header,
+.settings-card-collapsible-sub-item,
+.settings-card-collapsible .active-settings {
+  margin: 0;
+  border-radius: 0;
+}
+
+.settings-card-collapsible-sub-item {
+  padding: 0.6em 1em 0.6em 2.25em;
 }
 </style>

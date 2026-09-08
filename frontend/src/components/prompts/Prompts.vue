@@ -125,7 +125,6 @@ import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
 import UserDefaults from "./UserDefaults.vue";
-import ProfileAdvanced from "./ProfileAdvanced.vue";
 import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
@@ -176,7 +175,6 @@ export default {
     AnalyticsDiagnostic,
     ConfigViewer,
     UserDefaults,
-    ProfileAdvanced,
     SidebarLinkDefaults,
     Quota,
     NewFileTemplate,
@@ -295,7 +293,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "profile-advanced" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "sidebarlinks";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "sidebarlinks";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -371,8 +369,6 @@ export default {
           return this.$t("settings.configViewer");
         case "user-defaults":
           return this.$t("settings.userDefaults");
-        case "profile-advanced":
-          return this.$t("general.profileSettings");
         case "sidebar-link-defaults":
           return this.$t("sidebar.sidebarLinkDefaults");
         case "upload":

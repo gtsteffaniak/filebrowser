@@ -2,8 +2,8 @@
   <div class="card headline-card">
     <div v-if="isDataLoaded && shouldShowLogin" class="card-wrapper user-card" :class="{ 'extra-padding': !disableQuickToggles }">
       <div v-if="settingsAllowed" class="inner-card user-card__profile">
-        <a href="/settings#profile-main" class="person-button action button"
-          @click.prevent="navigateTo('/settings', '#profile-main')"
+        <a href="/settings#profile-listingOptions" class="person-button action button"
+          @click.prevent="navigateTo('/settings', '#profile-listingOptions')"
           @mouseenter="showTooltip($event, $t('index.settingsHover'))" @mouseleave="hideTooltip">
           <i class="material-symbols person-button__icon">person</i>
           <span class="person-button__name">{{ user.username }}</span>

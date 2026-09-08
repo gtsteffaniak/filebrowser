@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ profileSettingsLabel() }}</h2>
+    <h2>{{ activeSectionLabel }}</h2>
   </div>
   <div class="card-content">
     <form>
@@ -8,19 +8,13 @@
         <UserProfilePreferences
           v-model="profileSections"
           :enforced="enforcedPreferences"
-          mode="basic"
+          :section-key="activeSectionKey"
+          show-extension-inputs
           show-thumbnail-master
           @change="onPreferenceChange"
           @theme-color="onThemeColor"
           @locale-change="onLocaleChange"
         />
-        <div class="settings-items profile-advanced-entry">
-          <SettingsButton
-            class="item"
-            :name="$t('buttons.showMore')"
-            @click="openAdvancedOptionsPrompt"
-          />
-        </div>
       </div>
     </form>
     <br />
@@ -31,7 +25,7 @@
 import { notify } from "@/notify";
 import { mutations, state, getters } from "@/store";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
-import SettingsButton from "@/components/settings/SettingsButton.vue";
+import { settings } from "@/utils/constants";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,
@@ -47,7 +41,6 @@ export default {
   name: "settings",
   components: {
     UserProfilePreferences,
-    SettingsButton,
   },
   data() {
     return {
@@ -58,8 +51,18 @@ export default {
     user() {
       return state.user;
     },
-    active() {
-      return state.activeSettingsView === "profile-main";
+    activeSectionKey() {
+      const hash = state.activeSettingsView || "";
+      const key = hash.startsWith("profile-") ? hash.slice("profile-".length) : "";
+      const isKnownSection = this.profileSectionDefs.some((s) => s.id === key);
+      return isKnownSection ? key : "listingOptions";
+    },
+    activeSectionLabel() {
+      const def = this.profileSectionDefs.find((s) => s.id === this.activeSectionKey);
+      return def ? this.$t(def.label) : this.profileSettingsLabel();
+    },
+    profileSectionDefs() {
+      return settings.find((setting) => setting.id === 'profile')?.sections || [];
     },
     profileSections: {
       get() {
@@ -106,14 +109,6 @@ export default {
     onLocaleChange() {
       void this.updateSettings();
     },
-    openAdvancedOptionsPrompt() {
-      mutations.showPrompt({
-        name: "profile-advanced",
-        props: {
-          title: this.$t("general.profileSettings"),
-        },
-      });
-    },
     async updateSettings(event) {
       if (typeof event?.preventDefault === "function") {
         event.preventDefault();
@@ -152,8 +147,5 @@ export default {
 }
 .settings-group {
   padding-top: 0.5em;
-}
-.profile-advanced-entry {
-  margin-top: 1rem;
 }
 </style>

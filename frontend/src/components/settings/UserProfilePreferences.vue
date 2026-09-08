@@ -94,9 +94,11 @@
   </div>
   <div v-else class="user-profile-preferences">
     <SettingsItem
+      v-if="sectionVisible('listingOptions')"
       aria-label="listingOptions"
       :title="$t('settings.listingOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('listingOptions')"
       @toggle="onSectionToggle('listingOptions')"
@@ -276,9 +278,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('thumbnailOptions')"
       aria-label="thumbnailOptions"
       :title="$t('profileSettings.thumbnailOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('thumbnailOptions')"
       @toggle="onSectionToggle('thumbnailOptions')"
@@ -394,9 +398,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('sidebarOptions')"
       aria-label="sidebarOptions"
       :title="$t('profileSettings.sidebarOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('sidebarOptions')"
       @toggle="onSectionToggle('sidebarOptions')"
@@ -447,9 +453,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('searchOptions')"
       aria-label="searchOptions"
       :title="$t('settings.searchOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('searchOptions')"
       @toggle="onSectionToggle('searchOptions')"
@@ -465,9 +473,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('fileViewerOptions')"
       aria-label="fileViewerOptions"
       :title="$t('profileSettings.fileViewerOptions')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('fileViewerOptions')"
       @toggle="onSectionToggle('fileViewerOptions')"
@@ -605,9 +615,11 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('themeLanguage')"
       aria-label="themeLanguage"
       :title="$t('profileSettings.themeAndLanguage')"
-      :collapsable="true"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
       :start-collapsed="true"
       :force-collapsed="sectionForceCollapsed('themeLanguage')"
       @toggle="onSectionToggle('themeLanguage')"
@@ -784,6 +796,10 @@ export default {
       default: "full",
       validator: (value) => value === "basic" || value === "full",
     },
+    sectionKey: {
+      type: String,
+      default: null,
+    },
   },
   emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
   data() {
@@ -937,8 +953,17 @@ export default {
       this.formDisabledViewing = this.sections.fileViewer?.disableViewingExt || "";
       this.formDisableOfficeViewing = this.sections.fileViewer?.disableOnlyOfficeExt || "";
     },
-    sectionForceCollapsed(sectionKey) {
-      return this.expandedSection !== sectionKey;
+    sectionForceCollapsed(key) {
+      if (this.sectionKey) {
+        return key !== this.sectionKey;
+      }
+      return this.expandedSection !== key;
+    },
+    sectionVisible(key) {
+      if (!this.sectionKey) {
+        return true;
+      }
+      return this.sectionKey === key;
     },
     onSectionToggle(sectionKey) {
       this.expandedSection =
