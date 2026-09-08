@@ -161,18 +161,15 @@
           class="preference-field-block"
           :class="{ 'preference-field-block--enforceable': enforceable }"
         >
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.defaultViewMode") }}</h3>
-            <HelpTooltipIcon :text="$t('profileSettings.defaultViewModeDescription')" />
-          </div>
-          <div
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
-            @mouseleave="hideTooltip"
-          >
-            <ViewMode
-              :view-mode="listingViewMode"
-              :disabled="fieldDisabled('listing', 'viewMode')"
-              @update:view-mode="onListingViewModeChange"
+          <div class="settings-items">
+            <SettingsButton
+              class="item"
+              :name="$t('profileSettings.defaultViewMode')"
+              :description="$t('profileSettings.defaultViewModeDescription')"
+              :disabled="fieldDisabled('listing', 'viewMode') || fieldDisabled('listing', 'gallerySize')"
+              @click="openDefaultViewPref"
+              @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
+              @mouseleave="hideTooltip"
             />
           </div>
           <ProfileEnforceSwitch
@@ -180,37 +177,6 @@
             :enforced="enforcedFlag('listing', 'viewMode')"
             :disabled="disabled"
             @update:enforced="(v) => emitEnforced('listing', 'viewMode', v)"
-          />
-        </div>
-        <div
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
-        >
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.defaultGallerySize") }}</h3>
-            <HelpTooltipIcon :text="$t('profileSettings.defaultGallerySizeDescription')" />
-          </div>
-          <div
-            class="gallery-size-field"
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'gallerySize')"
-            @mouseleave="hideTooltip"
-          >
-            <span class="size-label">{{ $t("general.size") }}</span>
-            <input
-              v-model.number="listingGallerySize"
-              type="range"
-              min="1"
-              max="9"
-              :disabled="fieldDisabled('listing', 'gallerySize')"
-              @change="() => emitSectionChange('listing', 'gallerySize')"
-            />
-            <span class="size-value">{{ listingGallerySize }}</span>
-          </div>
-          <ProfileEnforceSwitch
-            :visible="enforceable"
-            :enforced="enforcedFlag('listing', 'gallerySize')"
-            :disabled="disabled"
-            @update:enforced="(v) => emitEnforced('listing', 'gallerySize', v)"
           />
         </div>
       </div>
@@ -732,7 +698,6 @@ import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
-import ViewMode from "@/components/settings/ViewMode.vue";
 
 export default {
   name: "UserProfilePreferences",
@@ -746,7 +711,6 @@ export default {
     ProfilePreferenceToggle,
     ProfileEnforceSwitch,
     SettingsButton,
-    ViewMode,
   },
   provide() {
     return { profilePrefs: this };
@@ -921,15 +885,9 @@ export default {
     listingViewMode() {
       return this.sections.listing?.viewMode || "normal";
     },
-    listingGallerySize: {
-      get() {
-        const size = this.sections.listing?.gallerySize;
-        return typeof size === "number" ? size : 3;
-      },
-      set(value) {
-        const nextSize = Math.min(9, Math.max(1, Number(value) || 3));
-        this.setSectionBool("listing", "gallerySize", nextSize);
-      },
+    listingGallerySize() {
+      const size = this.sections.listing?.gallerySize;
+      return typeof size === "number" ? size : 3;
     },
   },
   watch: {
@@ -1136,9 +1094,24 @@ export default {
       this.$emit("locale-change", locale);
       this.emitSectionChange("ui", "locale");
     },
-    onListingViewModeChange(viewMode) {
-      this.setSectionBool("listing", "viewMode", viewMode);
-      this.emitSectionChange("listing", "viewMode");
+    openDefaultViewPref() {
+      if (this.fieldDisabled('listing', 'viewMode')) return;
+      mutations.showPrompt({
+        name: "default-view-prefs",
+        props: {
+          viewMode: this.listingViewMode,
+          gallerySize: this.listingGallerySize,
+        },
+        confirm: ({ viewMode, gallerySize }) => {
+          const next = {
+            ...this.sections,
+            listing: { ...(this.sections.listing || {}), viewMode, gallerySize },
+          };
+          this.sections = next;
+          this.emitSectionChange("listing", "viewMode");
+          this.emitSectionChange("listing", "gallerySize");
+        },
+      });
     },
     hideTooltip() {
       hideInteractiveTooltip();
@@ -1238,17 +1211,5 @@ export default {
   padding: 0.35em;
   border-radius: var(--borderRadius);
   margin-bottom: 0.5em;
-}
-.gallery-size-field {
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-}
-.gallery-size-field input[type="range"] {
-  flex: 1 1 auto;
-}
-.gallery-size-field .size-value {
-  min-width: 1.25em;
-  text-align: center;
 }
 </style>

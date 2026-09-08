@@ -151,6 +151,22 @@ export default {
 .settings-icon {
   font-size: 1.2em;
 }
+</style>
+
+<style scoped>
+button.settings-card {
+  appearance: none;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
 
 .settings-card-collapsible {
   display: flex;
