@@ -43,6 +43,7 @@
     "requestTimedOut": "הבקשה פקעה. בדוק את הגדרות הרשת או את הגדרות ה-proxy ההפוך."
   },
   "files": {
+    "folderDescription": "תיאור",
     "lastModified": "שונה לאחרונה",
     "multipleSelectionEnabled": "בחירה מרובה מופעלת",
     "sortByLastModified": "מיין לפי השינוי האחרון",

@@ -43,6 +43,7 @@
     "requestTimedOut": "De tijdlimiet voor het verzoek is verstreken. Controleer je netwerk- of reverse-proxy-instellingen."
   },
   "files": {
+    "folderDescription": "Beschrijving",
     "lastModified": "Laatst bewerkt",
     "multipleSelectionEnabled": "Meerdere items selecteren ingeschakeld",
     "sortByLastModified": "Sorteren op laatst bewerkt",

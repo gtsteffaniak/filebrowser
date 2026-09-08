@@ -35,6 +35,13 @@ vi.mock('@/utils/constants', () => {
 import { adjustedData } from './utils.js';
 
 describe('adjustedData', () => {
+  it('preserves plain-text folder annotations when preparing listing items', () => {
+    const text = 'Upload queue <img src=x onerror=alert(1)>';
+    const result = adjustedData({ type: 'directory', path: '/', source: 'Renamed source',
+      folders: [{ name: 'out', type: 'directory', folderDescription: text }, { name: 'other', type: 'directory' }], files: [] });
+    expect(result.items[0]).toMatchObject({ path: '/out/', source: 'Renamed source', folderDescription: text });
+    expect(result.items[1].folderDescription).toBeUndefined();
+  });
   it('should append the URL and process directory data correctly', () => {
     const input = {
       type: "directory",

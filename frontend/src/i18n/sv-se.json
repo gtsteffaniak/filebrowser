@@ -43,6 +43,7 @@
     "requestTimedOut": "Begäran gick ut. Kontrollera dina nätverksinställningar eller inställningarna för omvänd proxy."
   },
   "files": {
+    "folderDescription": "Beskrivning",
     "lastModified": "Senast ändrad",
     "multipleSelectionEnabled": "Flerval är på",
     "sortByLastModified": "Sortera på senast ändrad",

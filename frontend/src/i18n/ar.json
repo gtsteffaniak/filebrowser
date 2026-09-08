@@ -43,6 +43,7 @@
     "requestTimedOut": "انتهت مهلة الطلب. يرجى التحقق من إعدادات الشبكة أو إعدادات الوكيل العكسي."
   },
   "files": {
+    "folderDescription": "الوصف",
     "lastModified": "آخر تعديل",
     "multipleSelectionEnabled": "التحديد المتعدد مفعل",
     "sortByLastModified": "الترتيب بآخر تعديل",

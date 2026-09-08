@@ -172,6 +172,10 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to get content, requires download permission")
 	}
 	if fileInfo.Type == "directory" {
+		// Annotate only children returned by the normal resource access check.
+		if idx := indexing.GetIndex(fileInfo.Source); idx != nil {
+			fileInfo.SetFolderDescriptions(idx.Config.FolderDescriptions)
+		}
 		AttachViewTokensForDirectory(d, source, fileInfo)
 		return RenderJSON(w, r, fileInfo)
 	}

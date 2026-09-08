@@ -207,6 +207,7 @@
     "requestTimedOut": "De tijdlimiet voor het verzoek is verstreken. Controleer je netwerk- of reverse-proxy-instellingen."
   },
   "files": {
+    "folderDescription": "Beschrijving",
     "lastModified": "Laatst gewijzigd{suffix}",
     "duration": "Duur{suffix}",
     "lonely": "Hier is niets te zien...",

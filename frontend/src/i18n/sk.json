@@ -43,6 +43,7 @@
     "requestTimedOut": "Došlo k časovému limitu požiadavky. Skontrolujte nastavenia siete alebo reverzného proxy."
   },
   "files": {
+    "folderDescription": "Popis",
     "lastModified": "Posledná zmena",
     "multipleSelectionEnabled": "Zapnutý viacnásobný výber",
     "sortByLastModified": "Zoradiť podľa dátumu",

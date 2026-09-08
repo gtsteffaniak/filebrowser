@@ -13,6 +13,8 @@
       <i v-if="nameSorted" class="material-symbols">{{ nameIcon }}</i>
     </p>
 
+    <p v-if="isListMode && !isMobile" class="folder-description">{{ $t("files.folderDescription") }}</p>
+
     <p
       :class="{ active: sizeSorted }"
       class="size"
@@ -68,6 +70,9 @@ export default {
     },
   },
   computed: {
+    isListMode() {
+      return ["list", "compact"].includes(getters.viewMode());
+    },
     isMobile() {
       return state.isMobile;
     },
@@ -160,6 +165,27 @@ export default {
   justify-content: space-between;
 }
 
+.listing-item-header:has(.folder-description) {
+  display: grid;
+  grid-template-columns: 2.5em minmax(0, 1fr) 40% 12% 18%;
+}
+.listing-item-header:has(.folder-description) .name {
+  grid-column: span 2;
+}
+.listing-item-header:has(.folder-description) p {
+  width: auto;
+  min-width: 0;
+}
+.listing-item-header:has(.folder-description):has(.duration) {
+  grid-template-columns: 2.5em minmax(0, 1fr) 30% 12% 18% 10%;
+}
+.listing-item-header:has(.folder-description):has(.placeholder) {
+  padding-inline-end: 2.85em;
+}
+.listing-item-header:has(.folder-description) .placeholder {
+  display: none;
+}
+
 .dark-mode {
   border-color: var(--divider) !important;
   background: var(--surfacePrimary) !important;
@@ -185,6 +211,10 @@ span {
 
 .name {
   flex: 1;
+}
+
+.folder-description {
+  cursor: default;
 }
 
 .desktop-view .size,

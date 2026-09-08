@@ -24,17 +24,17 @@ type Settings struct {
 }
 
 type Http struct {
-	Socket              string   `json:"socket"`           // socket to listen on - eg. /var/run/filebrowser.sock
-	TLSKey              string   `json:"tlsKey"`           // path to TLS key
-	TLSCert             string   `json:"tlsCert"`          // path to TLS cert
-	Port                int      `json:"port"`             // port to listen on
-	ListenAddress       string   `json:"listen"`           // address to listen on (default: 0.0.0.0)
-	BaseURL             string   `json:"baseURL"`          // base URL for the server, the subpath that the server is running on.
-	ExternalUrl         string   `json:"externalUrl"`      // used by share links if set (eg. http://mydomain.com)
-	InternalUrl         string   `json:"internalUrl"`      // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	DisableWebDAV       bool `json:"disableWebDAV"`       // disable webdav support (default: false)
-	TrustProxyHeaders   bool `json:"trustProxyHeaders"`   // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
-	DisableRateLimit    bool `json:"disableRateLimit"`    // turns off built-in auth route rate limiting and failed-login lockout (default false).
+	Socket            string `json:"socket"`            // socket to listen on - eg. /var/run/filebrowser.sock
+	TLSKey            string `json:"tlsKey"`            // path to TLS key
+	TLSCert           string `json:"tlsCert"`           // path to TLS cert
+	Port              int    `json:"port"`              // port to listen on
+	ListenAddress     string `json:"listen"`            // address to listen on (default: 0.0.0.0)
+	BaseURL           string `json:"baseURL"`           // base URL for the server, the subpath that the server is running on.
+	ExternalUrl       string `json:"externalUrl"`       // used by share links if set (eg. http://mydomain.com)
+	InternalUrl       string `json:"internalUrl"`       // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	DisableWebDAV     bool   `json:"disableWebDAV"`     // disable webdav support (default: false)
+	TrustProxyHeaders bool   `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
+	DisableRateLimit  bool   `json:"disableRateLimit"`  // turns off built-in auth route rate limiting and failed-login lockout (default false).
 }
 
 type Environment struct {
@@ -46,17 +46,17 @@ type Environment struct {
 	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
 	// ConfigSourceDefaultPermissions maps permission flags explicitly set in config defaultPermissions (e.g. view -> true).
 	ConfigSourceDefaultPermissions map[string]bool `json:"-"`
-	MuPdfAvailable                   bool     `json:"-"` // used internally if compiled with mupdf support
-	EmbeddedFs                       bool     `json:"-"` // used internally if compiled with embedded fs support
-	FFmpegPath                       string   `json:"-"`
-	FFprobePath                      string   `json:"-"`
-	FFmpegAvailable                  bool     `json:"-"`
-	LoginIconPath                    string   `json:"-"` // resolved login icon path (filesystem or embedded)
-	LoginIconIsCustom                bool     `json:"-"` // true if login icon is from custom filesystem path
-	LoginIconEmbeddedPath            string   `json:"-"` // embedded asset path for default icon
-	FaviconPath                      string   `json:"-"` // resolved favicon path (filesystem or embedded)
-	FaviconIsCustom                  bool     `json:"-"` // true if favicon is from custom filesystem path
-	FaviconEmbeddedPath              string   `json:"-"` // embedded asset path for default favicon
+	MuPdfAvailable                 bool            `json:"-"` // used internally if compiled with mupdf support
+	EmbeddedFs                     bool            `json:"-"` // used internally if compiled with embedded fs support
+	FFmpegPath                     string          `json:"-"`
+	FFprobePath                    string          `json:"-"`
+	FFmpegAvailable                bool            `json:"-"`
+	LoginIconPath                  string          `json:"-"` // resolved login icon path (filesystem or embedded)
+	LoginIconIsCustom              bool            `json:"-"` // true if login icon is from custom filesystem path
+	LoginIconEmbeddedPath          string          `json:"-"` // embedded asset path for default icon
+	FaviconPath                    string          `json:"-"` // resolved favicon path (filesystem or embedded)
+	FaviconIsCustom                bool            `json:"-"` // true if favicon is from custom filesystem path
+	FaviconEmbeddedPath            string          `json:"-"` // embedded asset path for default favicon
 }
 
 type Server struct {
@@ -241,6 +241,8 @@ type SourceConfig struct {
 	DefaultPermissionsFromConfig map[string]bool `json:"-"`
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedRules ResolvedRulesConfig `json:"-"`
+
+	FolderDescriptions map[string]string `json:"folderDescriptions,omitempty"` // Plain-text descriptions keyed by exact source-relative directory path.
 }
 
 type ConditionalRule struct {

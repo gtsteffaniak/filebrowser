@@ -43,6 +43,7 @@
     "requestTimedOut": "A solicitação atingiu o tempo limite. Verifique as configurações da sua rede ou do proxy reverso."
   },
   "files": {
+    "folderDescription": "Descrição",
     "lastModified": "Última modificação",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última modificação",

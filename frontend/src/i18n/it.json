@@ -207,6 +207,7 @@
     "requestTimedOut": "La richiesta ha superato il limite di tempo. Controlla le impostazioni di rete o del proxy inverso."
   },
   "files": {
+    "folderDescription": "Descrizione",
     "lastModified": "Ultima modifica{suffix}",
     "duration": "Durata{suffix}",
     "lonely": "Nulla da mostrare qui...",

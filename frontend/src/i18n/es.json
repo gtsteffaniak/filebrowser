@@ -43,6 +43,7 @@
     "requestTimedOut": "La solicitud ha superado el tiempo de espera. Comprueba la configuración de tu red o del proxy inverso."
   },
   "files": {
+    "folderDescription": "Descripción",
     "lastModified": "Última modificación",
     "multipleSelectionEnabled": "Selección múltiple activada",
     "sortByLastModified": "Ordenar por fecha de modificación",

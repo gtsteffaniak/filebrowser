@@ -43,6 +43,7 @@
     "requestTimedOut": "A kérés időtúllépése történt. Ellenőrizze a hálózati vagy a fordított proxy beállításait."
   },
   "files": {
+    "folderDescription": "Leírás",
     "lastModified": "Utoljára módosítva",
     "multipleSelectionEnabled": "Többszörös kijelölés aktiválva",
     "sortByLastModified": "Rendezés utolsó módosítás szerint",

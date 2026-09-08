@@ -207,6 +207,7 @@
     "requestTimedOut": "The request timed out. Check your network or reverse proxy settings."
   },
   "files": {
+    "folderDescription": "Description",
     "lastModified": "Last modified{suffix}",
     "duration": "Duration{suffix}",
     "lonely": "Nothing to show here...",

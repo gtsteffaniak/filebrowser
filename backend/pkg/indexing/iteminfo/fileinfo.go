@@ -1,6 +1,7 @@
 package iteminfo
 
 import (
+	"path"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -14,14 +15,16 @@ type ItemInfo struct {
 	Hidden     bool      `json:"hidden"`             // whether the file is hidden
 	HasPreview bool      `json:"hasPreview"`         // whether the file has a thumbnail preview
 	IsShared   bool      `json:"isShared,omitempty"` // whether the file or folder is shared
+
+	FolderDescription string `json:"folderDescription,omitempty"`
 }
 
 // ExtendedItemInfo extends ItemInfo with optional metadata that's only populated on-demand
 // This avoids adding memory overhead to indexed items
 type ExtendedItemInfo struct {
 	ItemInfo
-	Metadata    *MediaMetadata `json:"metadata,omitempty"`  // optional media metadata (audio/video only)
-	ViewToken   string         `json:"viewToken,omitempty"` // opaque token for inline viewing via /resources/view or /media/stream
+	Metadata  *MediaMetadata `json:"metadata,omitempty"`  // optional media metadata (audio/video only)
+	ViewToken string         `json:"viewToken,omitempty"` // opaque token for inline viewing via /resources/view or /media/stream
 }
 
 // FileInfo describes a file.
@@ -43,19 +46,19 @@ type Lyric struct {
 
 // MediaMetadata contains metadata extracted from audio and video files
 type MediaMetadata struct {
-	Title     string  `json:"title,omitempty"`     // track/video title
-	Artist    string  `json:"artist,omitempty"`    // track artist
-	Album     string  `json:"album,omitempty"`     // album name
-	Year      int     `json:"year,omitempty"`      // release year
-	Genre     string  `json:"genre,omitempty"`     // music/video genre
-	Track     int     `json:"track,omitempty"`     // track number
-	Duration  int     `json:"duration,omitempty"`  // duration in seconds
-	VideoCodec string `json:"videoCodec,omitempty"` // video codec name (e.g. h264)
-	AudioCodec string `json:"audioCodec,omitempty"` // audio codec name (e.g. aac)
-	Container  string `json:"container,omitempty"`  // container/format name (e.g. mov,mp4,m4a,3gp,3g2,mj2)
-	AlbumArt  []byte  `json:"albumArt,omitempty"`  // album art image data (automatically base64-encoded in JSON)
-	Lyrics    []Lyric `json:"lyrics,omitempty"`    // lyrics (from embedded tags or .lrc files)
-	HasLyrics bool    `json:"hasLyrics,omitempty"` // checks if lyrics are available without parse them
+	Title      string  `json:"title,omitempty"`      // track/video title
+	Artist     string  `json:"artist,omitempty"`     // track artist
+	Album      string  `json:"album,omitempty"`      // album name
+	Year       int     `json:"year,omitempty"`       // release year
+	Genre      string  `json:"genre,omitempty"`      // music/video genre
+	Track      int     `json:"track,omitempty"`      // track number
+	Duration   int     `json:"duration,omitempty"`   // duration in seconds
+	VideoCodec string  `json:"videoCodec,omitempty"` // video codec name (e.g. h264)
+	AudioCodec string  `json:"audioCodec,omitempty"` // audio codec name (e.g. aac)
+	Container  string  `json:"container,omitempty"`  // container/format name (e.g. mov,mp4,m4a,3gp,3g2,mj2)
+	AlbumArt   []byte  `json:"albumArt,omitempty"`   // album art image data (automatically base64-encoded in JSON)
+	Lyrics     []Lyric `json:"lyrics,omitempty"`     // lyrics (from embedded tags or .lrc files)
+	HasLyrics  bool    `json:"hasLyrics,omitempty"`  // checks if lyrics are available without parse them
 }
 
 // for efficiency, a response will be a pointer to the data
@@ -73,4 +76,13 @@ type ExtendedFileInfo struct {
 	RealPath     string                `json:"-"`
 	PinnedItems  []string              `json:"pinnedItems,omitempty"` // pinned item names in this directory listing
 	ViewToken    string                `json:"viewToken,omitempty"`   // opaque token for inline viewing via /resources/view or /media/stream
+}
+
+// SetFolderDescriptions annotates only the visible folders in this response.
+// Keys are exact, source-relative directory paths and do not follow display names.
+func (info *FileInfo) SetFolderDescriptions(descriptions map[string]string) {
+	for i := range info.Folders {
+		folder := &info.Folders[i]
+		folder.FolderDescription = descriptions[path.Join("/", info.Path, folder.Name)]
+	}
 }

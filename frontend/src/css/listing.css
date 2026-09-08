@@ -543,3 +543,32 @@ body.rtl .listing-items {
   white-space: nowrap;
   max-width: 100%;
 }
+
+/* Keep the annotation header and rows on the same column grid. */
+.listing-items .listing-item:has(.folder-description) {
+  display: grid;
+  grid-template-columns: 2.5em minmax(0, 1fr) 40% 12% 18%;
+  padding-inline: .85em;
+  box-sizing: border-box;
+}
+.listing-items .listing-item:has(.folder-description) .text {
+  display: contents !important;
+}
+.listing-items .listing-item:has(.folder-description) .text > p {
+  width: auto;
+  min-width: 0;
+  padding-inline: 0;
+}
+.listing-items .listing-item .folder-description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--textSecondary);
+  font-size: 0.9em;
+}
+.listing-items .listing-item:has(.folder-description):has(.duration) {
+  grid-template-columns: 2.5em minmax(0, 1fr) 30% 12% 18% 10%;
+}
+.listing-items .listing-item:has(.folder-description):has(.download-icon) {
+  padding-inline-end: 2.85em;
+}

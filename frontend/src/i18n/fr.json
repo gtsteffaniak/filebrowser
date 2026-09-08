@@ -43,6 +43,7 @@
     "requestTimedOut": "La requête a dépassé le délai d'attente. Vérifiez votre connexion réseau ou les paramètres de votre proxy inverse."
   },
   "files": {
+    "folderDescription": "Description",
     "lastModified": "Dernière modification",
     "multipleSelectionEnabled": "Sélection multiple activée",
     "sortByLastModified": "Trier par date de dernière modification",

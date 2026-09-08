@@ -43,6 +43,7 @@
     "requestTimedOut": "S-a depășit timpul de așteptare pentru cerere. Verificați setările rețelei sau ale proxy-ului invers."
   },
   "files": {
+    "folderDescription": "Descriere",
     "lastModified": "Ultima modificare",
     "multipleSelectionEnabled": "Selecție multiplă activată",
     "sortByLastModified": "Ordonează dup ultima modificare",

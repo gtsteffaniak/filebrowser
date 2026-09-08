@@ -10,6 +10,9 @@ server:
       name: "exclude"
       config:
         defaultEnabled: true
+        folderDescriptions:
+          /myfolder: Project working files
+          /folder#hash: '<img src=x onerror=alert(1)> & plain text'
         defaultPermissions:
           view: true
           download: true

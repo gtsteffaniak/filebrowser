@@ -65,6 +65,7 @@
       <p v-else class="name">
         <span>{{ displayName }}</span>
       </p>
+      <p v-if="isListMode && !isMobile" class="folder-description" :title="folderDescription">{{ folderDescription }}</p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
@@ -144,6 +145,7 @@
       <p v-else class="name">
         <span>{{ displayName }}</span>
       </p>
+      <p v-if="isListMode && !isMobile" class="folder-description" :title="folderDescription">{{ folderDescription }}</p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
@@ -190,6 +192,7 @@ export default {
   },
   props: {
     name: String,
+    folderDescription: String,
     isDir: Boolean,
     source: String,
     type: String,
@@ -246,6 +249,9 @@ export default {
     },
   },
   computed: {
+    isMobile() {
+      return state.isMobile;
+    },
     displayName() {
       // If displayFullPath is true, show the full path, otherwise just the name
       return this.displayFullPath ? this.path : this.name;

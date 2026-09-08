@@ -43,6 +43,7 @@
     "requestTimedOut": "リクエストがタイムアウトしました。ネットワークまたはリバースプロキシの設定を確認してください。"
   },
   "files": {
+    "folderDescription": "説明",
     "lastModified": "最終変更",
     "multipleSelectionEnabled": "複数選択有効",
     "sortByLastModified": "最終変更日付によるソート",

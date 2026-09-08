@@ -43,6 +43,7 @@
     "requestTimedOut": "Истекло время ожидания запроса. Проверьте настройки сети или обратного прокси-сервера."
   },
   "files": {
+    "folderDescription": "Описание",
     "lastModified": "Последнее изменение",
     "multipleSelectionEnabled": "Мультивыбор включен",
     "sortByLastModified": "Сортировка по дате изменения",

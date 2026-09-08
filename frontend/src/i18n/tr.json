@@ -43,6 +43,7 @@
     "requestTimedOut": "İstek zaman aşımına uğradı. Ağ ayarlarınızı veya ters proxy ayarlarınızı kontrol edin."
   },
   "files": {
+    "folderDescription": "Açıklama",
     "lastModified": "Son değiştirilme{suffix}",
     "multipleSelectionEnabled": "Çoklu seçim etkin",
     "sortByLastModified": "Güncelleme tarihine göre sırala",

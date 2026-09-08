@@ -43,6 +43,7 @@
     "requestTimedOut": "請求已超時。請檢查您的網路或反向代理設定。"
   },
   "files": {
+    "folderDescription": "說明",
     "lastModified": "最後修改{suffix}",
     "multipleSelectionEnabled": "多選模式已開啟",
     "sortByLastModified": "按最後修改時間排序",
