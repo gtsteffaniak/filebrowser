@@ -125,8 +125,11 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("PATCH /settings/user-defaults", withTimeout(time5s, withAdminHelper(settingsUserDefaultsPatchHandler)))
 	api.HandleFunc("GET /settings/sidebar-link-defaults", withTimeout(time5s, withUserHelper(settingsSidebarLinkDefaultsGetHandler)))
 	api.HandleFunc("PATCH /settings/sidebar-link-defaults", withTimeout(time5s, withAdminHelper(settingsSidebarLinkDefaultsPatchHandler)))
+	api.HandleFunc("GET /settings/share-defaults", withTimeout(time5s, withUserHelper(settingsShareDefaultsGetHandler)))
+	api.HandleFunc("PATCH /settings/share-defaults", withTimeout(time5s, withAdminHelper(settingsShareDefaultsPatchHandler)))
 	publicApi.HandleFunc("GET /settings/sidebar-link-defaults", withTimeout(time5s, withUserHelper(settingsSidebarLinkDefaultsGetHandler)))
 	publicApi.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
+	publicApi.HandleFunc("GET /settings/share-defaults", withTimeout(time5s, withUserHelper(settingsShareDefaultsGetHandler)))
 
 	// ========================================
 	// Quota Routes - /api/quotas/

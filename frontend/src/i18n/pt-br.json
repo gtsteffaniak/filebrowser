@@ -412,7 +412,9 @@
     "selectBannerImage": "Selecione a imagem do banner",
     "selectFaviconImage": "Selecione a imagem do favicon",
     "deleteFailed": "Falha ao excluir o compartilhamento",
-    "readOnlySourceNotice": "Essa fonte é somente leitura. Os compartilhamentos de upload e as permissões que modificam arquivos estão desativados."
+    "readOnlySourceNotice": "Essa fonte é somente leitura. Os compartilhamentos de upload e as permissões que modificam arquivos estão desativados.",
+    "shareDefaults": "Compartilhar configurações padrão",
+    "shareDefaultsDescription": "Configure as opções padrão para novos compartilhamentos e aplique políticas para usuários que não sejam administradores."
   },
   "api": {
     "createdAt": "Criado em:",

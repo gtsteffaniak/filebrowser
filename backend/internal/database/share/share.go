@@ -102,6 +102,19 @@ type SharePostBody struct {
 	Path     string  `json:"path,omitempty"`
 }
 
+// EditableFromShare returns the client-editable subset of a persisted share.
+// ShareExpiryInput is omitted because expiration is stored in ShareColumns.Expire;
+// callers merging partial updates must preserve Expire when expires/unit are absent.
+func EditableFromShare(s *Share) ShareEditable {
+	if s == nil {
+		return ShareEditable{}
+	}
+	return ShareEditable{
+		FrontendShareInfo: s.FrontendShareInfo,
+		ShareLimits:       s.ShareLimits,
+	}
+}
+
 // ApplyPostBodyUpdate copies client-editable fields onto link.
 // Caller must preserve path, sourcePath, pinnedItems, version, download counters, and secrets.
 func ApplyPostBodyUpdate(link *Share, req *SharePostBody, expire int64) {

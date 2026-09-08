@@ -231,6 +231,40 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     disableSettings: false                # disable the user from viewing the settings page
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
+shareDefaults:                            # optional defaults for new shares; managed in the UI
+  shareTheme: ""
+  disableAnonymous: false
+  disableThumbnails: false
+  keepAfterExpiration: false
+  themeColor: ""
+  title: ""
+  description: ""
+  favicon: ""
+  quickDownload: false
+  hideNavButtons: false
+  disableSidebar: false
+  disableShareCard: false
+  enforceDarkLightMode: ""
+  viewMode: ""
+  enableOnlyOffice: false
+  shareType: ""
+  allowDelete: false
+  allowCreate: false
+  allowModify: false
+  disableFileViewer: false
+  disableDownload: false
+  allowReplacements: false
+  sidebarLinks:
+  showHidden: false
+  disableLoginOption: false
+  maxBandwidth: 0
+  allowedUsernames:
+  perUserDownloadLimit: false
+  extractEmbeddedSubtitles: false
+  downloadsLimit: 0
+  quotaLimitBytes: 0
+  hideFileExt: ""
+  banner: ""
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

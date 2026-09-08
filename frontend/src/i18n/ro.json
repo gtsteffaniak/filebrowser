@@ -412,7 +412,9 @@
     "selectBannerImage": "Selectați imaginea bannerului",
     "selectFaviconImage": "Selectați imaginea favicon",
     "deleteFailed": "Eșec la ștergerea partajului",
-    "readOnlySourceNotice": "Această sursă este numai pentru citire. Acțiunile de încărcare și permisiunile care modifică fișiere sunt dezactivate."
+    "readOnlySourceNotice": "Această sursă este numai pentru citire. Acțiunile de încărcare și permisiunile care modifică fișiere sunt dezactivate.",
+    "shareDefaults": "Setări implicite pentru partajare",
+    "shareDefaultsDescription": "Configurați opțiunile implicite pentru partajările noi și aplicați politicile pentru utilizatorii care nu sunt administratori."
   },
   "api": {
     "createdAt": "Creat la:",

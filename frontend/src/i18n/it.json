@@ -388,7 +388,9 @@
     "shareInfoDescription": "Mostra le informazioni della condivisione (titolo, descrizione, banner, QR) in un popup.",
     "downloadDescription": "Permette di scaricare l'intero contenuto della condivisione come file compresso.",
     "deleteFailed": "Eliminazione condivisione fallita",
-    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate."
+    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate.",
+    "shareDefaults": "Impostazioni predefinite di condivisione",
+    "shareDefaultsDescription": "Configurare le opzioni predefinite per le nuove condivisioni e applicare le politiche agli utenti non amministratori."
   },
   "prompts": {
     "noTemplate": "Il tuo modello è vuoto!",

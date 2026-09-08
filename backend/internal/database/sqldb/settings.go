@@ -27,18 +27,34 @@ func (s *SQLStore) GetSetting(key string) ([]byte, error) {
 
 // SaveSetting inserts or updates a setting
 func (s *SQLStore) SaveSetting(key string, value interface{}) error {
+	query := `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`
+	if err := s.saveSettingQuery(s.db.Exec, query, key, value); err != nil {
+		return fmt.Errorf("failed to save setting: %w", err)
+	}
+	return nil
+}
+
+type settingExec func(query string, args ...interface{}) (sql.Result, error)
+
+func (s *SQLStore) saveSettingQuery(exec settingExec, query, key string, value interface{}) error {
 	valueJSON, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("failed to marshal setting value: %w", err)
 	}
-	
-	query := `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`
-	_, err = s.db.Exec(query, key, valueJSON)
-	if err != nil {
-		return fmt.Errorf("failed to save setting: %w", err)
+	if _, err := exec(query, key, valueJSON); err != nil {
+		return err
 	}
-	
 	return nil
+}
+
+func (s *SQLStore) saveSettingInTx(tx *sql.Tx, key string, value interface{}) error {
+	query := `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`
+	return s.saveSettingQuery(tx.Exec, query, key, value)
+}
+
+// SaveSettingTx inserts or updates a setting within an existing transaction.
+func (s *SQLStore) SaveSettingTx(tx *sql.Tx, key string, value interface{}) error {
+	return s.saveSettingInTx(tx, key, value)
 }
 
 // DeleteSetting deletes a setting by key
