@@ -259,26 +259,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	var expire int64
 
-	if req.Expires != "" {
-		var num int
-		num, err = strconv.Atoi(req.Expires)
+	if req.Hash == "" && req.Expires != "" {
+		expire, err = shareExpireFromRequest(req.Expires, req.Unit)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
-		var add time.Duration
-		switch req.Unit {
-		case "seconds":
-			add = time.Second * time.Duration(num)
-		case "minutes":
-			add = time.Minute * time.Duration(num)
-		case "days":
-			add = time.Hour * 24 * time.Duration(num)
-		default:
-			add = time.Hour * time.Duration(num)
-		}
-
-		expire = time.Now().Add(add).Unix()
 	}
 
 	hash, status, err2 := sharePasswordFromRequest(req.Password)
@@ -315,6 +300,14 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusBadRequest, mergeErr
 		}
 		req.ShareEditable = mergedEditable
+		if req.Expires != "" {
+			expire, err = shareExpireFromRequest(req.Expires, req.Unit)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		} else {
+			expire = beforeShare.Expire
+		}
 		if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, false); policyErr != nil {
 			return status, policyErr
 		}
@@ -906,6 +899,27 @@ func sharePasswordFromRequest(password *string) ([]byte, int, error) {
 		return nil, 0, nil
 	}
 	return getSharePasswordHash(*password)
+}
+
+func shareExpireFromRequest(expires, unit string) (int64, error) {
+	num, err := strconv.Atoi(expires)
+	if err != nil {
+		return 0, err
+	}
+
+	var add time.Duration
+	switch unit {
+	case "seconds":
+		add = time.Second * time.Duration(num)
+	case "minutes":
+		add = time.Minute * time.Duration(num)
+	case "days":
+		add = time.Hour * 24 * time.Duration(num)
+	default:
+		add = time.Hour * time.Duration(num)
+	}
+
+	return time.Now().Add(add).Unix(), nil
 }
 
 // applySharePasswordUpdate sets or preserves password credentials on share update.

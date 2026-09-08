@@ -18,6 +18,9 @@ var (
 	shareDefaultsMu              sync.RWMutex
 	shareDefaultsDefault         settings.ShareDefaults
 	shareDefaultsEnforcedDefault settings.ShareDefaultsEnforcement
+
+	// errInjectShareDefaultsEnforcedSave is test-only; simulates enforced save failure inside a transaction.
+	errInjectShareDefaultsEnforcedSave error
 )
 
 // InitShareDefaultsSettings loads persisted share defaults from SQLite and seeds from config when missing.
@@ -111,7 +114,6 @@ func IsShareDefaultsPersistenceError(err error) bool {
 
 func patchShareDefaultsLocked(valuesPatch, enforcedPatch []byte) error {
 	shareDefaultsMu.Lock()
-	prevValues := shareDefaultsDefault
 
 	newValues := shareDefaultsDefault
 	newEnforced := shareDefaultsEnforcedDefault
@@ -133,17 +135,20 @@ func patchShareDefaultsLocked(valuesPatch, enforcedPatch []byte) error {
 		newEnforced = merged
 	}
 
-	if len(valuesPatch) > 0 {
+	saveValues := len(valuesPatch) > 0
+	saveEnforced := len(enforcedPatch) > 0
+	if saveValues && saveEnforced {
+		if saveErr := saveShareDefaultsCombined(newValues, newEnforced); saveErr != nil {
+			shareDefaultsMu.Unlock()
+			return saveErr
+		}
+	} else if saveValues {
 		if saveErr := sqlDb.SaveSetting(shareDefaultsDefaultSettingKey, newValues); saveErr != nil {
 			shareDefaultsMu.Unlock()
 			return fmt.Errorf("save share defaults: %w", saveErr)
 		}
-	}
-	if len(enforcedPatch) > 0 {
+	} else if saveEnforced {
 		if saveErr := sqlDb.SaveSetting(shareDefaultsEnforcedDefaultKey, newEnforced); saveErr != nil {
-			if len(valuesPatch) > 0 {
-				_ = sqlDb.SaveSetting(shareDefaultsDefaultSettingKey, prevValues)
-			}
 			shareDefaultsMu.Unlock()
 			return fmt.Errorf("save enforced share defaults: %w", saveErr)
 		}
@@ -155,5 +160,28 @@ func patchShareDefaultsLocked(valuesPatch, enforcedPatch []byte) error {
 		settings.Config.ShareDefaults = newValues
 	}
 	shareDefaultsMu.Unlock()
+	return nil
+}
+
+func saveShareDefaultsCombined(newValues settings.ShareDefaults, newEnforced settings.ShareDefaultsEnforcement) error {
+	tx, err := sqlDb.BeginTx()
+	if err != nil {
+		return fmt.Errorf("save share defaults: %w", err)
+	}
+	if err := sqlDb.SaveSettingTx(tx, shareDefaultsDefaultSettingKey, newValues); err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("save share defaults: %w", err)
+	}
+	if errInjectShareDefaultsEnforcedSave != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("save enforced share defaults: %w", errInjectShareDefaultsEnforcedSave)
+	}
+	if err := sqlDb.SaveSettingTx(tx, shareDefaultsEnforcedDefaultKey, newEnforced); err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("save enforced share defaults: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("save share defaults: %w", err)
+	}
 	return nil
 }

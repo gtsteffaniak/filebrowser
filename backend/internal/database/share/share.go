@@ -103,6 +103,8 @@ type SharePostBody struct {
 }
 
 // EditableFromShare returns the client-editable subset of a persisted share.
+// ShareExpiryInput is omitted because expiration is stored in ShareColumns.Expire;
+// callers merging partial updates must preserve Expire when expires/unit are absent.
 func EditableFromShare(s *Share) ShareEditable {
 	if s == nil {
 		return ShareEditable{}
