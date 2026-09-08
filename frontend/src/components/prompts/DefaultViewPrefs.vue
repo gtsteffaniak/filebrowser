@@ -9,6 +9,7 @@
         v-model="localViewMode"
         :options="viewModeOptions"
         :aria-label="$t('profileSettings.defaultViewMode')"
+        :disabled="viewModeDisabled"
       />
     </div>
     <div class="setting-row slider-row item">
@@ -17,7 +18,14 @@
         <HelpTooltipIcon :text="$t('profileSettings.defaultGallerySizeDescription')" />
       </div>
       <div class="setting-row">
-        <input id="default-gallery-size" type="range" min="1" max="9" v-model.number="localGallerySize" />
+        <input
+          id="default-gallery-size"
+          type="range"
+          min="1"
+          max="9"
+          v-model.number="localGallerySize"
+          :disabled="gallerySizeDisabled"
+        />
         <span class="range-value">{{ localGallerySize }}</span>
       </div>
     </div>
@@ -63,6 +71,14 @@ export default {
     gallerySize: {
       type: Number,
       default: 3,
+    },
+    viewModeDisabled: {
+      type: Boolean,
+      default: false,
+    },
+    gallerySizeDisabled: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

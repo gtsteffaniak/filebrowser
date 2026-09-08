@@ -166,7 +166,7 @@
               class="item"
               :name="$t('profileSettings.defaultViewMode')"
               :description="$t('profileSettings.defaultViewModeDescription')"
-              :disabled="fieldDisabled('listing', 'viewMode') || fieldDisabled('listing', 'gallerySize')"
+              :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
               @click="openDefaultViewPref"
               @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
               @mouseleave="hideTooltip"
@@ -177,6 +177,12 @@
             :enforced="enforcedFlag('listing', 'viewMode')"
             :disabled="disabled"
             @update:enforced="(v) => emitEnforced('listing', 'viewMode', v)"
+          />
+          <ProfileEnforceSwitch
+            :visible="enforceable"
+            :enforced="enforcedFlag('listing', 'gallerySize')"
+            :disabled="disabled"
+            @update:enforced="(v) => emitEnforced('listing', 'gallerySize', v)"
           />
         </div>
       </div>
@@ -1095,21 +1101,32 @@ export default {
       this.emitSectionChange("ui", "locale");
     },
     openDefaultViewPref() {
-      if (this.fieldDisabled('listing', 'viewMode')) return;
+      const viewModeDisabled = this.fieldDisabled('listing', 'viewMode');
+      const gallerySizeDisabled = this.fieldDisabled('listing', 'gallerySize');
+      if (viewModeDisabled && gallerySizeDisabled) return;
       mutations.showPrompt({
         name: "default-view-prefs",
         props: {
           viewMode: this.listingViewMode,
           gallerySize: this.listingGallerySize,
+          viewModeDisabled,
+          gallerySizeDisabled,
         },
         confirm: ({ viewMode, gallerySize }) => {
-          const next = {
-            ...this.sections,
-            listing: { ...(this.sections.listing || {}), viewMode, gallerySize },
-          };
-          this.sections = next;
-          this.emitSectionChange("listing", "viewMode");
-          this.emitSectionChange("listing", "gallerySize");
+          const nextListing = { ...(this.sections.listing || {}) };
+          if (!viewModeDisabled) {
+            nextListing.viewMode = viewMode;
+          }
+          if (!gallerySizeDisabled) {
+            nextListing.gallerySize = gallerySize;
+          }
+          this.sections = { ...this.sections, listing: nextListing };
+          if (!viewModeDisabled) {
+            this.emitSectionChange("listing", "viewMode");
+          }
+          if (!gallerySizeDisabled) {
+            this.emitSectionChange("listing", "gallerySize");
+          }
         },
       });
     },
