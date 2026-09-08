@@ -1,14 +1,14 @@
 <template>
-  <button v-if="isMobile" type="button" class="card item clickable settings-card" @click="closeSettings">
+  <div v-if="isMobile" role="button" class="card item clickable settings-card" @click="closeSettings">
     <span class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       {{ $t("general.exit") }}
     </span>
-  </button>
+  </div>
   <template v-for="setting in settings" :key="`${setting.id}-sidebar`">
     <div v-if="setting.id === 'profile'" class="card item settings-card-collapsible" :class="{ hidden: !shouldShow(setting) }">
-      <button
-        type="button"
+      <div
+        role="button"
         class="settings-card-collapsible-header settings-card clickable"
         :class="{ 'active-settings': profileActive }"
         :aria-expanded="sectionExpanded"
@@ -21,13 +21,13 @@
         <i class="material-symbols-outlined settings-card-collapsible-chevron" :class="{ rotated: sectionExpanded }">
           keyboard_arrow_down
         </i>
-      </button>
+      </div>
       <div class="settings-card-sub-item" :class="{ 'settings-card-collapsible--expanded': sectionExpanded }">
         <div class="settings-card-sub-item-inner">
-          <button
+          <div
             v-for="section in profileSections"
             :key="section.id"
-            type="button"
+            role="button"
             class="settings-card-collapsible-sub-item settings-card clickable"
             :class="{ 'active-settings': active(`profile-${section.id}`) }"
             @click="setView(`profile-${section.id}`)"
@@ -36,12 +36,13 @@
               <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
               {{ $t(section.label) }}
             </span>
-          </button>
+          </div>
         </div>
       </div>
     </div>
-    <button v-else :id="`${setting.id}-sidebar`" type="button" class="card item clickable settings-card"
-      @click="setView(`${setting.id}-main`)" :class="{
+    <div v-else :id="`${setting.id}-sidebar`" role="button" class="card item clickable settings-card"
+      @click="setView(`${setting.id}-main`)"
+      :class="{
         hidden: !shouldShow(setting),
         'active-settings': active(`${setting.id}-main`),
       }">
@@ -49,7 +50,7 @@
         <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
         {{ settingLabel(setting) }}
       </span>
-    </button>
+    </div>
   </template>
 </template>
 
@@ -154,20 +155,6 @@ export default {
 </style>
 
 <style scoped>
-button.settings-card {
-  appearance: none;
-  display: flex;
-  box-sizing: border-box;
-  width: 100%;
-  margin: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
 .settings-card-collapsible {
   display: flex;
   flex-direction: column;
