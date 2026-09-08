@@ -1,8 +1,10 @@
 <template>
   <div class="card-content view-defaults settings-items">
-    <p>{{ $t('profileSettings.defaultViewModeDescription') }}</p>
     <div class="setting-row item">
-      <label id="default-view-mode-label">{{ $t('profileSettings.defaultViewMode') }}</label>
+      <div class="label">
+        <label id="default-view-mode-label">{{ $t('profileSettings.defaultViewMode') }}</label>
+        <HelpTooltipIcon :text="$t('profileSettings.defaultViewModeDescription')" />
+      </div>
       <ExpandDropdown
         v-model="localViewMode"
         :options="viewModeOptions"
@@ -10,7 +12,10 @@
       />
     </div>
     <div class="setting-row slider-row item">
-      <label for="default-gallery-size">{{ $t('general.size') }}</label>
+      <div class="label">
+        <label for="default-gallery-size">{{ $t('profileSettings.defaultGallerySize') }}</label>
+        <HelpTooltipIcon :text="$t('profileSettings.defaultGallerySizeDescription')" />
+      </div>
       <div class="setting-row">
         <input id="default-gallery-size" type="range" min="1" max="9" v-model.number="localGallerySize" />
         <span class="range-value">{{ localGallerySize }}</span>
@@ -42,11 +47,13 @@
 <script>
 import { getters, mutations } from "@/store";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 
 export default {
   name: "default-view-prefs",
   components: {
     ExpandDropdown,
+    HelpTooltipIcon,
   },
   props: {
     viewMode: {
@@ -109,6 +116,12 @@ export default {
 
 .setting-row .expand-dropdown {
   max-width: 13em;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
 }
 
 .slider-row.item {
