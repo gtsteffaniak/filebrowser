@@ -423,6 +423,8 @@ export default {
           return this.$t("general.details");
         case "new-file-template":
           return this.$t("prompts.newFileTemplate")
+        case "default-view-prefs":
+          return this.$t("profileSettings.defaultViewMode");
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types
