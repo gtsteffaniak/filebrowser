@@ -104,12 +104,13 @@ export default {
     },
   },
   watch: {
+    isProfileSectionActive(val) {
+      if (!val) this.sectionExpanded = false;
+    },
     isProfileSubSectionActive: {
       immediate: true,
       handler(val) {
-        if (val) {
-          this.sectionExpanded = true;
-        }
+        if (val) this.sectionExpanded = true;
       },
     },
     showAdvancedProfile(val) {

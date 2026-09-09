@@ -119,12 +119,14 @@
     </div>
     <div class="preference-field-block">
       <h4>{{ $t("profileSettings.accountOptions") }}</h4>
-      <ProfilePreferenceToggle
-        field="showAdvancedProfile"
-        section="account"
-        :name="$t('profileSettings.showAdvancedProfile')"
-        :description="$t('profileSettings.showAdvancedProfileDescription')"
-      />
+      <div class="settings-items">
+        <ProfilePreferenceToggle
+          field="showAdvancedProfile"
+          section="account"
+          :name="$t('profileSettings.showAdvancedProfile')"
+          :description="$t('profileSettings.showAdvancedProfileDescription')"
+        />
+      </div>
     </div>
   </div>
   <template v-else>
