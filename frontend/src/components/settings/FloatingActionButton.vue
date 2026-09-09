@@ -3,11 +3,11 @@
     v-if="showZone"
     ref="zoneEl"
     class="fab-zone"
-    :class="`fab-zone--${position}`"
+    :class="[`fab-zone--${position}`, { 'fab-zone--interactive': interactiveZone }]"
     :style="zoneStyle"
-    @pointerenter="onZoneEnter"
-    @pointerleave="onZoneLeave"
-    @touchstart.passive="onZoneTouch"
+    @pointerenter="handleZoneEnter"
+    @pointerleave="handleZoneLeave"
+    @touchstart.passive="handleZoneTouch"
   ></div>
 
   <Transition name="fab-fade">
@@ -22,7 +22,7 @@
         {
           'dark-mode': darkMode,
           'fab-button--extended': extended,
-          'fab-button--slide-in-visible': slideInVisible,
+          'fab-button--slide-in-visible': topCenterVisible,
         },
       ]"
       :style="buttonStyle"
@@ -138,6 +138,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    /** Enable direct pointer events on the hover zone (needed over iframes e.g. OnlyOffice). */
+    interactiveZone: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -169,6 +174,9 @@ export default {
     },
     showButton(): boolean {
       return !this.autoHide || this.isRevealed || this.isZoneActive;
+    },
+    topCenterVisible(): boolean {
+      return !this.slideIn || this.slideInVisible;
     },
     normalizedEdgeOffset(): Record<string, string> {
       if (!this.edgeOffset) return {};
@@ -291,7 +299,8 @@ export default {
       this.resetButtonTimer();
       this.$emit("click", event);
     },
-    onZoneEnter() {
+    handleZoneEnter() {
+      if (!this.interactiveZone) return;
       this.pointerInsideZone = true;
       if (this.sharedState) {
         this.sharedState.zoneActive = true;
@@ -300,7 +309,8 @@ export default {
       }
       this.resetButtonTimer();
     },
-    onZoneLeave() {
+    handleZoneLeave() {
+      if (!this.interactiveZone) return;
       this.pointerInsideZone = false;
       if (this.sharedState) {
         this.sharedState.zoneActive = false;
@@ -308,7 +318,8 @@ export default {
         this.buttonZone = false;
       }
     },
-    onZoneTouch() {
+    handleZoneTouch() {
+      if (!this.interactiveZone) return;
       this.resetButtonTimer();
     },
   },
@@ -317,9 +328,14 @@ export default {
 
 <style scoped>
 .fab-zone {
+  pointer-events: none;
+  z-index: 1000;
+  background: transparent;
+}
+
+.fab-zone--interactive {
   pointer-events: auto;
   z-index: 10000;
-  background: transparent;
 }
 
 .fab-zone--top-right {
@@ -540,5 +556,12 @@ export default {
 .fab-fade-enter-from,
 .fab-fade-leave-to {
   opacity: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab-fade-enter-active,
+  .fab-fade-leave-active {
+    transition: opacity 0.01ms !important;
+  }
 }
 </style>

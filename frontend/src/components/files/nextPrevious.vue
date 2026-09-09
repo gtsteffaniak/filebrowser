@@ -1153,4 +1153,11 @@ export default {
 .nav-fade-leave-to.nav-button.nav-close {
   transform: translateX(-50%) scale(0.9) !important;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-fade-enter-active,
+  .nav-fade-leave-active {
+    transition: opacity 0.01ms, transform 0.01ms !important;
+  }
+}
 </style>

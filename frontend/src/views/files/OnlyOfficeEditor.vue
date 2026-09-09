@@ -9,6 +9,7 @@
     icon="close"
     position="top-center"
     :slide-in="floatIn"
+    interactive-zone
     :label="$t('general.close', { suffix: '' })"
     @click="close"
   />
