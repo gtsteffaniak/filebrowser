@@ -952,6 +952,9 @@ type quotaCounterFlusher struct {
 }
 
 func startQuotaFlusher(cfg settings.QuotasConfig) {
+	StopQuotaFlusher()
+	quotaFlusher = nil
+
 	interval := cfg.FlushIntervalSeconds
 	if interval <= 0 {
 		interval = 10

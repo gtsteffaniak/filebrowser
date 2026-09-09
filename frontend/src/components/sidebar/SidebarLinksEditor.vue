@@ -401,7 +401,7 @@
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
 import { shareApi } from "@/api";
-import { tools } from "@/utils/constants";
+import { availableTools } from "@/utils/toolAccess";
 import { getIconClass } from "@/utils/material-symbols";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -430,6 +430,14 @@ export default {
     },
     shareData: {
       type: Object,
+      default: null,
+    },
+    initialSidebarLinks: {
+      type: Array,
+      default: null,
+    },
+    initialShowToolsInSidebar: {
+      type: Boolean,
       default: null,
     },
     description: {
@@ -470,8 +478,8 @@ export default {
         sourcePath: "",
       },
       availableTools: [
-        { name: 'tools.title', path: '/tools', icon: 'build' }, // Main tools page
-        ...tools() // Individual tools
+        { id: 'tools-hub', name: 'tools.title', path: '/tools', icon: 'build' },
+        ...availableTools(),
       ],
       availableShares: [],
       editingIndex: null,
@@ -671,6 +679,8 @@ export default {
     // Initialize with existing sidebar links based on context
     if (this.context === 'share' && this.shareData?.sidebarLinks) {
       this.links = [...this.shareData.sidebarLinks];
+    } else if (Array.isArray(this.initialSidebarLinks)) {
+      this.links = [...this.initialSidebarLinks];
     } else if (this.context === 'user' && state.user?.sidebarLinks && state.user?.sidebarLinks.length > 0) {
       this.links = [...state.user.sidebarLinks];
     } else if (this.context === 'user') {
@@ -679,7 +689,9 @@ export default {
     }
 
     if (this.context === 'user') {
-      if (typeof state.user?.showToolsInSidebar === 'boolean') {
+      if (typeof this.initialShowToolsInSidebar === 'boolean') {
+        this.showToolsInSidebar = this.initialShowToolsInSidebar;
+      } else if (typeof state.user?.showToolsInSidebar === 'boolean') {
         this.showToolsInSidebar = state.user?.showToolsInSidebar;
       } else {
         this.showToolsInSidebar = true;

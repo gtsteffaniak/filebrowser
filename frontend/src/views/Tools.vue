@@ -28,6 +28,13 @@
     <!-- Dynamically render the selected tool component -->
     <component v-else-if="currentTool" :is="currentTool.component" :key="$route.params.toolName" />
 
+    <!-- Show error if tool access denied -->
+    <div v-else-if="toolAccessDenied" class="tool-access-denied">
+      <errors :errorCode="403" />
+      <p class="access-denied-message">{{ $t('tools.accessDenied') }}</p>
+      <router-link to="/tools" class="button button--flat">{{ $t('general.back') }}</router-link>
+    </div>
+
     <!-- Show error if tool not found -->
     <div v-else class="tool-not-found">
       <i class="material-symbols-outlined">error</i>
@@ -39,12 +46,15 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { tools } from "@/utils/constants";
+import { tools as allTools } from "@/utils/constants";
 import { getters } from "@/store";
+import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
+import Errors from "@/views/Errors.vue";
 
 export default {
   name: "Tools",
   components: {
+    Errors,
     SizeViewer: createAsyncComponent(() => import('@/views/tools/SizeViewer.vue')),
     DuplicateFinder: createAsyncComponent(() => import('@/views/tools/DuplicateFinder.vue')),
     MaterialIconPicker: createAsyncComponent(() => import('@/views/tools/MaterialIconPicker.vue')),
@@ -54,7 +64,7 @@ export default {
   },
   computed: {
     tools() {
-      return tools();
+      return availableTools();
     },
     toolName() {
       return this.$route.params.toolName;
@@ -64,6 +74,17 @@ export default {
     },
     currentTool() {
       return getters.currentTool();
+    },
+    knownToolPath() {
+      const path = this.$route.path;
+      return allTools().some((tool) => tool.path === path);
+    },
+    toolAccessDenied() {
+      if (!this.toolName || !this.knownToolPath) {
+        return false;
+      }
+      const toolId = toolIdFromPath(this.$route.path);
+      return toolId ? !hasToolAccess(toolId) : false;
     },
     isAdvancedSearchTool() {
       return this.$route.path === "/tools/advancedSearch";
@@ -101,7 +122,8 @@ export default {
   padding: 0.5em;
 }
 
-.tool-not-found {
+.tool-not-found,
+.tool-access-denied {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -120,6 +142,10 @@ export default {
 .tool-not-found h2 {
   margin: 0.5em 0;
   color: var(--textPrimary);
+}
+
+.access-denied-message {
+  margin: 0.5em 0 1em;
 }
 
 .tools-wrapper--advanced-search {

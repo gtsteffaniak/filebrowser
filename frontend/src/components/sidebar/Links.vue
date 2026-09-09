@@ -220,6 +220,7 @@ import { getIconClass } from "@/utils/material-symbols";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
+import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
 import { resourcesApi } from "@/api";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
@@ -441,7 +442,14 @@ export default {
         }
         return false;
       }
-      // Tools and custom links are always accessible
+      // Tools and custom links: tools require access; hub requires any tool access
+      if (link.category === "tool") {
+        if (link.target === "/tools") {
+          return availableTools().length > 0;
+        }
+        const toolId = toolIdFromPath(link.target);
+        return toolId ? hasToolAccess(toolId) : false;
+      }
       return true;
     },
     isLinkActive(link) {

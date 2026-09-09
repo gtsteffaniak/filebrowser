@@ -126,6 +126,10 @@ import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
 import UserDefaults from "./UserDefaults.vue";
 import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
+import ToolAccessDefaults from "./ToolAccessDefaults.vue";
+import UserEditTools from "./UserEditTools.vue";
+import UserEditPreferences from "./UserEditPreferences.vue";
+import UserEditSidebarLinks from "./UserEditSidebarLinks.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
 import { state, getters, mutations } from "@/store";
@@ -176,6 +180,10 @@ export default {
     ConfigViewer,
     UserDefaults,
     SidebarLinkDefaults,
+    ToolAccessDefaults,
+    UserEditTools,
+    UserEditPreferences,
+    UserEditSidebarLinks,
     Quota,
     NewFileTemplate,
   },
@@ -293,7 +301,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "sidebarlinks";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "tool-access-defaults" || prompt?.name === "sidebarlinks" || prompt?.name === "user-edit-preferences" || prompt?.name === "user-edit-tools" || prompt?.name === "user-edit-sidebar-links";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -371,6 +379,14 @@ export default {
           return this.$t("settings.userDefaults");
         case "sidebar-link-defaults":
           return this.$t("sidebar.sidebarLinkDefaults");
+        case "tool-access-defaults":
+          return this.$t("tools.toolAccessDefaults");
+        case "user-edit-preferences":
+          return this.$t("settings.userEditPreferences");
+        case "user-edit-tools":
+          return this.$t("settings.userEditTools");
+        case "user-edit-sidebar-links":
+          return this.$t("settings.userEditSidebarLinks");
         case "upload":
           return this.$t("general.upload");
         case "createapi":

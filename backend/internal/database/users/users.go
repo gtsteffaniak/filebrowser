@@ -165,6 +165,7 @@ type FrontendUser struct {
 	LoginMethod       LoginMethod                      `json:"loginMethod"`
 	OtpEnabled        bool                             `json:"otpEnabled"`
 	ShowFirstLogin       bool             `json:"showFirstLogin"`
+	EffectiveToolAccess  map[string]bool  `json:"effectiveToolAccess,omitempty"`
 	Perm                 Permissions      `json:"perm,omitzero"`
 }
 
@@ -248,6 +249,7 @@ type NonAdminEditable struct {
 	ShowToolsInSidebar         bool                 `json:"showToolsInSidebar"`         // when false, sidebar hides links with category "tool" (default: true)
 	DebugOffice                bool                 `json:"debugOffice"`                // debug onlyoffice editor
 	SidebarLinks               []SidebarLink        `json:"sidebarLinks"`               // customizable sidebar links
+	ToolAccess                 ToolAccessMap        `json:"toolAccess,omitempty"`       // per-tool access overrides
 	HideFilesInTree            bool                 `json:"hideFilesInTree"`            // hide files in the sidebar tree navigation, when true, will show only directories.
 	DeleteAfterArchive         bool                 `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
 	PreferEditorForMarkdown    bool                 `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer

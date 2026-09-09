@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 )
 
@@ -226,6 +227,8 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 
 	applySidebarLinkDefaults(user)
 
+	applyToolAccessDefaults(user)
+
 	if links, changed := usersidebar.PrepareSidebarLinksForPersist(user.SidebarLinks, user.BackendScopes); changed {
 		user.SidebarLinks = links
 	}
@@ -353,6 +356,12 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		}
 	}
 
+	if FieldListIncludes(fields, "toolAccess") {
+		if enforcedErr := toolaccess.ValidateEnforcedToolAccess(existingUser, EffectiveToolAccessDefaults()); enforcedErr != nil {
+			return enforcedErr
+		}
+	}
+
 	return commitUserUpdate(existingUser, storedSnapshot, sourceDefaults, sourceEnforced)
 }
 
@@ -373,6 +382,9 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 		return err
 	}
 	if err := usersidebar.ValidateEnforcedSidebarLinks(existingUser.SidebarLinks, existingUser.BackendScopes, EffectiveSidebarLinkDefaults(), existingUser.Permissions.Admin); err != nil {
+		return err
+	}
+	if err := toolaccess.ValidateEnforcedToolAccess(existingUser, EffectiveToolAccessDefaults()); err != nil {
 		return err
 	}
 

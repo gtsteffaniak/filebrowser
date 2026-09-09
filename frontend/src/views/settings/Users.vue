@@ -27,6 +27,12 @@
         :description="$t('sidebar.sidebarLinkDefaultsDescription')"
         @click="openSidebarLinkDefaultsPrompt"
       />
+      <SettingsButton
+        class="item"
+        :name="$t('tools.toolAccessDefaults')"
+        :description="$t('tools.toolAccessDefaultsDescription')"
+        @click="openToolAccessDefaultsPrompt"
+      />
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
     <settings-table
@@ -180,6 +186,14 @@ export default {
         name: "sidebar-link-defaults",
         props: {
           title: this.$t("sidebar.sidebarLinkDefaults"),
+        },
+      });
+    },
+    openToolAccessDefaultsPrompt() {
+      mutations.showPrompt({
+        name: "tool-access-defaults",
+        props: {
+          title: this.$t("tools.toolAccessDefaults"),
         },
       });
     },

@@ -202,6 +202,8 @@ export interface UserObject {
   newFileTemplate?: string[];
   themeColor?: string;
   sidebarLinks?: SidebarLink[];
+  toolAccess?: Record<string, boolean>;
+  effectiveToolAccess?: Record<string, boolean>;
   profile: {
     username: string;
     email: string;
@@ -281,6 +283,13 @@ export interface StoreState {
       link?: SidebarLink;
     }>;
     sources?: string[];
+  };
+  toolAccessDefaultsPolicy: {
+    items?: Array<{
+      toolId?: string;
+      enabled?: boolean;
+      enforced?: boolean;
+    }>;
   };
   usages: unknown;
   editor: {

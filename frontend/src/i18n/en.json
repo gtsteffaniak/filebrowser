@@ -604,6 +604,10 @@
     "configViewerOpen": "View configuration",
     "configViewerDescription": "Open a read-only view of the current server configuration.",
     "userDefaults": "User defaults",
+    "userEditPreferences": "User preferences",
+    "userEditTools": "Tool access",
+    "userEditToolsDescription": "Configure which tools this user can access",
+    "userEditSidebarLinks": "Sidebar links",
     "userDefaultsDescription": "Configure default settings applied to new users and enforced policy for all users.",
     "editAsYaml": "Edit as YAML",
     "userDefaultFieldLockedFromConfig": "This default is set in the config file and cannot be changed here.",
@@ -946,6 +950,10 @@
   "tools": {
     "title": "Tools",
     "description": "Utilities and analysis tools for your files",
+    "toolAccessDefaults": "Tool access defaults",
+    "toolAccessDefaultsDescription": "Configure which tools new users can access by default",
+    "toolAccessDefaultsHelp": "Enable tools for new users and optionally enforce access so non-admins cannot change it.",
+    "accessDenied": "You do not have access to this tool.",
     "sizeAnalyzer": {
       "name": "File Size Analyzer",
       "description": "Visualize large files and folders with an interactive treemap"

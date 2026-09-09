@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -126,6 +127,9 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("GET /settings/sidebar-link-defaults", withTimeout(time5s, withUserHelper(settingsSidebarLinkDefaultsGetHandler)))
 	api.HandleFunc("PATCH /settings/sidebar-link-defaults", withTimeout(time5s, withAdminHelper(settingsSidebarLinkDefaultsPatchHandler)))
 	publicApi.HandleFunc("GET /settings/sidebar-link-defaults", withTimeout(time5s, withUserHelper(settingsSidebarLinkDefaultsGetHandler)))
+	api.HandleFunc("GET /settings/tool-access-defaults", withTimeout(time5s, withUserHelper(settingsToolAccessDefaultsGetHandler)))
+	api.HandleFunc("PATCH /settings/tool-access-defaults", withTimeout(time5s, withAdminHelper(settingsToolAccessDefaultsPatchHandler)))
+	publicApi.HandleFunc("GET /settings/tool-access-defaults", withTimeout(time5s, withUserHelper(settingsToolAccessDefaultsGetHandler)))
 	publicApi.HandleFunc("GET /settings/user-defaults", withTimeout(time5s, withUserHelper(settingsUserDefaultsGetHandler)))
 
 	// ========================================
@@ -139,13 +143,13 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// ========================================
 	// Tools Routes - /api/tools/
 	// ========================================
-	api.HandleFunc("GET /tools/search", withUser(searchHandler))
-	api.HandleFunc("GET /tools/duplicate-finder", withUser(duplicatesHandler))
-	api.HandleFunc("GET /tools/file-watcher", withUser(fileWatchHandler))
-	api.HandleFunc("GET /tools/file-watcher/sse", withUser(fileWatchSSEHandler))
-	api.HandleFunc("GET /tools/activity", withUser(ListHandler))
-	api.HandleFunc("GET /tools/activity/grouped", withUser(GroupedHandler))
-	api.HandleFunc("GET /tools/activity/export", withUser(ExportHandler))
+	api.HandleFunc("GET /tools/search", withUser(withSearchToolAccess(searchHandler)))
+	api.HandleFunc("GET /tools/duplicate-finder", withUser(withToolAccess(users.ToolDuplicateFinder)(duplicatesHandler)))
+	api.HandleFunc("GET /tools/file-watcher", withUser(withToolAccess(users.ToolFileWatcher)(fileWatchHandler)))
+	api.HandleFunc("GET /tools/file-watcher/sse", withUser(withToolAccess(users.ToolFileWatcher)(fileWatchSSEHandler)))
+	api.HandleFunc("GET /tools/activity", withUser(withToolAccess(users.ToolActivityViewer)(ListHandler)))
+	api.HandleFunc("GET /tools/activity/grouped", withUser(withToolAccess(users.ToolActivityViewer)(GroupedHandler)))
+	api.HandleFunc("GET /tools/activity/export", withUser(withToolAccess(users.ToolActivityViewer)(ExportHandler)))
 
 	// ========================================
 	// Media Routes - /api/media/ (with public routes)

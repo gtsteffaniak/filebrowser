@@ -15,6 +15,9 @@ import (
 )
 
 var (
+	// Serializes Open/Close so tests and startup cannot interleave lifecycle or sqlDb swaps.
+	stateLifecycleMu sync.Mutex
+
 	// Separate mutexes for each resource type for better concurrency
 	usersMux  sync.RWMutex
 	sharesMux sync.RWMutex
@@ -41,23 +44,15 @@ func Initialize(dbPath string) (bool, error) {
 }
 
 func initialize(dbPath string) (bool, error) {
-	// Lock all mutexes during initialization
-	usersMux.Lock()
-	sharesMux.Lock()
-	indexMux.Lock()
-	defer usersMux.Unlock()
-	defer sharesMux.Unlock()
-	defer indexMux.Unlock()
-
 	if !settings.Env.IsCLIMode {
 		logger.Info("Initializing state management system...")
 	}
-	var existingDb bool
-	var err error
-	sqlDb, existingDb, err = sqldb.NewSQLStore(dbPath)
+
+	store, existingDb, err := sqldb.NewSQLStore(dbPath)
 	if err != nil {
 		return false, fmt.Errorf("failed to initialize SQL database: %w", err)
 	}
+	sqlDb = store
 
 	if err = InitUserDefaultsSettings(); err != nil {
 		return existingDb, fmt.Errorf("failed to initialize user defaults settings: %w", err)
@@ -71,6 +66,10 @@ func initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to initialize sidebar link defaults: %w", err)
 	}
 
+	if err = InitToolAccessDefaults(); err != nil {
+		return existingDb, fmt.Errorf("failed to initialize tool access defaults: %w", err)
+	}
+
 	var userCount int
 	if countErr := sqlDb.DB().QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount); countErr != nil {
 		return existingDb, fmt.Errorf("failed to count users: %w", countErr)
@@ -81,39 +80,34 @@ func initialize(dbPath string) (bool, error) {
 		}
 	}
 
-	// Initialize caches
-	sharesByHash = make(map[string]*share.Share)
-	sharesByPath = make(map[string][]string)
-	indexInfoByPath = make(map[string]*dbindex.IndexInfo)
-
 	logger.Debugf("Loading shares and index data into memory...")
 
 	users.SetUsernameToID(UserIDForUsername)
 
-	// Load shares
+	newSharesByHash := make(map[string]*share.Share)
+	newSharesByPath := make(map[string][]string)
 	sharesList, err := sqlDb.ListAllShares()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load shares: %w", err)
 	}
 	for _, link := range sharesList {
-		sharesByHash[link.Hash] = link
+		newSharesByHash[link.Hash] = link
 		pathKey := makePathKey(link.SourcePath, link.Path)
-		sharesByPath[pathKey] = append(sharesByPath[pathKey], link.Hash)
+		newSharesByPath[pathKey] = append(newSharesByPath[pathKey], link.Hash)
 	}
 	logger.Debugf("Loaded %d shares", len(sharesList))
 
-	// Load index info
+	newIndexInfoByPath := make(map[string]*dbindex.IndexInfo)
 	allIndexInfo, err := sqlDb.ListAllIndexInfo()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load index info: %w", err)
 	}
 	for _, info := range allIndexInfo {
-		indexInfoByPath[info.Path] = info
+		newIndexInfoByPath[info.Path] = info
 	}
 	logger.Debugf("Loaded %d index info entries", len(allIndexInfo))
 
-	// Initialize access rules cache
-	accessDb = &access.Storage{
+	newAccessDb := &access.Storage{
 		AllRules:      make(access.SourceRuleMap),
 		Groups:        make(access.GroupMap),
 		RevokedTokens: make(map[string]struct{}),
@@ -124,31 +118,42 @@ func initialize(dbPath string) (bool, error) {
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load access rules: %w", err)
 	}
-	accessDb.AllRules = allRules
+	newAccessDb.AllRules = allRules
 	logger.Debugf("Loaded access rules for %d sources", len(allRules))
 
 	allGroups, err := sqlDb.GetAllGroups()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load groups: %w", err)
 	}
-	accessDb.Groups = allGroups
+	newAccessDb.Groups = allGroups
 	logger.Debugf("Loaded %d groups", len(allGroups))
 
 	revokedTokens, err := sqlDb.GetAllRevokedTokens()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load revoked tokens: %w", err)
 	}
-	accessDb.RevokedTokens = revokedTokens
+	newAccessDb.RevokedTokens = revokedTokens
 	logger.Debugf("Loaded %d revoked tokens", len(revokedTokens))
 
 	hashedTokens, err := sqlDb.GetAllHashedTokens()
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load hashed tokens: %w", err)
 	}
-	accessDb.HashedTokens = hashedTokens
+	newAccessDb.HashedTokens = hashedTokens
 	logger.Debugf("Loaded %d hashed tokens", len(hashedTokens))
 
-	accessDb.SetSQLStore(sqlDb)
+	newAccessDb.SetSQLStore(sqlDb)
+
+	usersMux.Lock()
+	sharesMux.Lock()
+	indexMux.Lock()
+	sharesByHash = newSharesByHash
+	sharesByPath = newSharesByPath
+	indexInfoByPath = newIndexInfoByPath
+	accessDb = newAccessDb
+	usersMux.Unlock()
+	sharesMux.Unlock()
+	indexMux.Unlock()
 
 	err = auth.InitializeEncryption()
 	if err != nil {
@@ -172,6 +177,9 @@ func initialize(dbPath string) (bool, error) {
 
 // Close closes the underlying SQL database
 func Close() error {
+	stateLifecycleMu.Lock()
+	defer stateLifecycleMu.Unlock()
+
 	usersMux.Lock()
 	sharesMux.Lock()
 	indexMux.Lock()
@@ -183,10 +191,15 @@ func Close() error {
 	clearUserRecordCache()
 	StopActivityRecorder()
 	StopQuotaFlusher()
+	quotaFlusher = nil
+
+	var err error
 	if sqlDb != nil {
-		return sqlDb.Close()
+		err = sqlDb.Close()
+		sqlDb = nil
 	}
-	return nil
+	defaultStore = nil
+	return err
 }
 
 func makePathKey(source, path string) string {
