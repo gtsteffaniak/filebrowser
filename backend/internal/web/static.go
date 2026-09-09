@@ -56,7 +56,7 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	w.Header().Set("Transfer-Encoding", "identity")
 	if t.devMode {
 		var buf strings.Builder
-		if err := templates.ExecuteTemplate(&buf, name, data); err != nil {
+		if err = templates.ExecuteTemplate(&buf, name, data); err != nil {
 			return err
 		}
 		_, err = w.Write(injectViteDevHTML(buf.String()))
