@@ -8,7 +8,7 @@ const { storeMock } = vi.hoisted(() => ({
       isLoggedIn: vi.fn(() => true),
       isShare: vi.fn(() => false),
     },
-    mutations: { setCurrentUser: vi.fn(), setSession: vi.fn(), syncEnforcedUserDefaults: vi.fn(), syncSidebarLinkDefaultsPolicy: vi.fn() },
+    mutations: { setCurrentUser: vi.fn(), setSession: vi.fn(), syncEnforcedUserDefaults: vi.fn(), syncSidebarLinkDefaultsPolicy: vi.fn(), syncShareDefaultsPolicy: vi.fn() },
   },
 }));
 

@@ -412,7 +412,9 @@
     "selectBannerImage": "選擇橫幅圖片",
     "selectFaviconImage": "選擇 Favicon 圖片",
     "deleteFailed": "刪除分享失敗",
-    "readOnlySourceNotice": "此來源為唯讀。上傳共用和修改檔案的權限已停用。"
+    "readOnlySourceNotice": "此來源為唯讀。上傳共用和修改檔案的權限已停用。",
+    "shareDefaults": "分享預設值",
+    "shareDefaultsDescription": "為新建立的共用資料夾設定預設共用選項，並對非管理員使用者強制執行相關政策。"
   },
   "api": {
     "createdAt": "建立於：",
@@ -567,6 +569,8 @@
     "orange": "橘色"
   },
   "general": {
+    "import": "匯入",
+    "export": "匯出",
     "name": "名稱{suffix}",
     "path": "路徑{suffix}",
     "user": "使用者{suffix}",

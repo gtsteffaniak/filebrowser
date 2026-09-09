@@ -412,7 +412,9 @@
     "selectBannerImage": "Banner kép kiválasztása",
     "selectFaviconImage": "Favicon kép kiválasztása",
     "deleteFailed": "Nem sikerült törölni a megosztást",
-    "readOnlySourceNotice": "Ez a forrás csak olvasható. A feltöltési megosztások és a fájlokat módosító engedélyek letiltva vannak."
+    "readOnlySourceNotice": "Ez a forrás csak olvasható. A feltöltési megosztások és a fájlokat módosító engedélyek letiltva vannak.",
+    "shareDefaults": "Alapértelmezett beállítások megosztása",
+    "shareDefaultsDescription": "Az új megosztások alapértelmezett beállításainak konfigurálása, valamint a nem rendszergazdai felhasználókra vonatkozó szabályok érvényesítése."
   },
   "api": {
     "createdAt": "Létrehozva:",
@@ -465,6 +467,8 @@
     "passwordRequiredForGeneration": "A hitelesítési kód generálásához a jelszóra van szükség."
   },
   "general": {
+    "import": "Importálás",
+    "export": "Exportálás",
     "name": "Név",
     "path": "Útvonal",
     "user": "Felhasználó",

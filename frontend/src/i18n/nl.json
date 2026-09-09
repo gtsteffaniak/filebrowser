@@ -9,6 +9,8 @@
     "noCreateOptions": "Er zijn geen opties beschikbaar"
   },
   "general": {
+    "import": "Importeren",
+    "export": "Exporteren",
     "divider": "Scheiding{suffix}",
     "office": "Office{suffix}",
     "format": "Formaat{suffix}",
@@ -386,7 +388,9 @@
     "shareInfoDescription": "Deze koppeling toont de informatie van de gedeelde map, inclusief titel, beschrijving, banner en QR-code in een popup.",
     "downloadDescription": "Met deze koppeling kunt u de volledige inhoud van de gedeelde map downloaden als een gecomprimeerd bestand.",
     "deleteFailed": "Share niet verwijderd",
-    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld.",
+    "shareDefaults": "Standaardinstellingen delen",
+    "shareDefaultsDescription": "Stel de standaardopties voor nieuwe gedeelde mappen in en zorg ervoor dat het beleid voor gebruikers zonder beheerdersrechten wordt nageleefd."
   },
   "prompts": {
     "noTemplate": "Uw sjabloon is leeg!",

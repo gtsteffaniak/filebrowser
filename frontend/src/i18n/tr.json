@@ -412,7 +412,9 @@
     "selectBannerImage": "Afiş görselini seç",
     "selectFaviconImage": "Favicon görselini seç",
     "deleteFailed": "Paylaşım silinemedi",
-    "readOnlySourceNotice": "Bu kaynak salt okunurdur. Yükleme paylaşımları ve dosyaları değiştiren izinler devre dışı bırakılmıştır."
+    "readOnlySourceNotice": "Bu kaynak salt okunurdur. Yükleme paylaşımları ve dosyaları değiştiren izinler devre dışı bırakılmıştır.",
+    "shareDefaults": "Varsayılan ayarları paylaş",
+    "shareDefaultsDescription": "Yeni paylaşımlar için varsayılan paylaşım seçeneklerini yapılandırın ve yönetici olmayan kullanıcılar için ilkeleri uygulayın."
   },
   "api": {
     "createdAt": "Oluşturuldu:",
@@ -465,6 +467,8 @@
     "passwordRequiredForGeneration": "Kimlik doğrulayıcı kodu oluşturmak için parolanız gereklidir."
   },
   "general": {
+    "import": "İçe Aktar",
+    "export": "Dışa Aktar",
     "name": "İsim{suffix}",
     "path": "Yol{suffix}",
     "user": "Kullanıcı{suffix}",

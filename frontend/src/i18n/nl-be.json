@@ -412,7 +412,9 @@
     "selectBannerImage": "Selecteer bannerafbeelding",
     "selectFaviconImage": "Selecteer favicon afbeelding",
     "deleteFailed": "Share niet verwijderd",
-    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld."
+    "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld.",
+    "shareDefaults": "Standaardinstellingen delen",
+    "shareDefaultsDescription": "Stel de standaardopties voor nieuwe gedeelde mappen in en pas het beleid toe voor gebruikers zonder beheerdersrechten."
   },
   "api": {
     "createdAt": "Gemaakt op:",
@@ -567,6 +569,8 @@
     "editorQuickSaveDescription": "De teksteditor toont alleen het pictogram voor opslaan; alle andere acties worden verborgen"
   },
   "general": {
+    "import": "Importeren",
+    "export": "Exporteren",
     "name": "Naam",
     "path": "Pad",
     "user": "Gebruiker",
