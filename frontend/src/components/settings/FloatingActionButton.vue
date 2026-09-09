@@ -5,35 +5,40 @@
     class="fab-zone"
     :class="`fab-zone--${position}`"
     :style="zoneStyle"
+    @pointerenter="onZoneEnter"
+    @pointerleave="onZoneLeave"
+    @touchstart.passive="onZoneTouch"
   ></div>
 
-  <button
-    type="button"
-    v-if="showButton"
-    class="fab-button floating"
-    :class="[
-      `fab-button--${position}`,
-      `fab-button--${effectiveSize}`,
-      `fab-button--${variant}`,
-      {
-        'dark-mode': darkMode,
-        'fab-button--extended': extended,
-        'fab-button--slide-in-visible': slideInVisible,
-      },
-    ]"
-    :style="buttonStyle"
-    :disabled="disabled"
-    @click="handleClick"
-    @touchstart="resetButtonTimer"
-    @pointerenter="setZoneActive(true, $event)"
-    @pointerleave="setZoneActive(false, $event)"
-    :aria-label="label"
-    :title="label"
-  >
-    <i :class="iconOutlined ? 'material-symbols-outlined' : 'material-symbols'">{{ icon }}</i>
-    <span v-if="extended && label" class="fab-label">{{ label }}</span>
-    <span v-if="badge" class="fab-badge">{{ badge }}</span>
-  </button>
+  <Transition name="fab-fade">
+    <button
+      v-if="!autoHide || showButton"
+      type="button"
+      class="fab-button floating"
+      :class="[
+        `fab-button--${position}`,
+        `fab-button--${effectiveSize}`,
+        `fab-button--${variant}`,
+        {
+          'dark-mode': darkMode,
+          'fab-button--extended': extended,
+          'fab-button--slide-in-visible': slideInVisible,
+        },
+      ]"
+      :style="buttonStyle"
+      :disabled="disabled"
+      @click="handleClick"
+      @touchstart="resetButtonTimer"
+      @pointerenter="setZoneActive(true, $event)"
+      @pointerleave="setZoneActive(false, $event)"
+      :aria-label="label"
+      :title="label"
+    >
+      <i :class="iconOutlined ? 'material-symbols-outlined' : 'material-symbols'">{{ icon }}</i>
+      <span v-if="extended && label" class="fab-label">{{ label }}</span>
+      <span v-if="badge" class="fab-badge">{{ badge }}</span>
+    </button>
+  </Transition>
 </template>
 
 <script lang="ts">
@@ -286,14 +291,34 @@ export default {
       this.resetButtonTimer();
       this.$emit("click", event);
     },
+    onZoneEnter() {
+      this.pointerInsideZone = true;
+      if (this.sharedState) {
+        this.sharedState.zoneActive = true;
+      } else {
+        this.buttonZone = true;
+      }
+      this.resetButtonTimer();
+    },
+    onZoneLeave() {
+      this.pointerInsideZone = false;
+      if (this.sharedState) {
+        this.sharedState.zoneActive = false;
+      } else {
+        this.buttonZone = false;
+      }
+    },
+    onZoneTouch() {
+      this.resetButtonTimer();
+    },
   },
 };
 </script>
 
 <style scoped>
 .fab-zone {
-  pointer-events: none;
-  z-index: 1000;
+  pointer-events: auto;
+  z-index: 10000;
   background: transparent;
 }
 
@@ -335,16 +360,16 @@ export default {
   transition:
     background-color var(--fab-transition),
     color var(--fab-transition),
-    transform var(--fab-transition),
+    transform var(--fab-fade-transition),
     box-shadow var(--fab-transition),
-    opacity var(--fab-transition);
+    opacity var(--fab-fade-transition);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: var(--fab-shadow);
   outline: none;
-  z-index: 9998;
-  animation: fab-button-show 200ms cubic-bezier(0.2, 0, 0, 1);
+  z-index: 10001;
+  opacity: 1;
 }
 
 .fab-button.dark-mode:not(.fab-button--primary) {
@@ -434,22 +459,22 @@ export default {
   transform: translate(-50%, -5em);
   animation: none;
   transition:
-    transform 0.4s ease,
+    transform var(--fab-fade-transition),
     background-color var(--fab-transition),
     color var(--fab-transition),
     box-shadow var(--fab-transition);
 }
 
 .fab-button--top-center.fab-button--slide-in-visible {
-  transform: translate(-50%, 2.75em);
+  transform: translate(-50%, 1em);
 }
 
 .fab-button--top-center.fab-button--neutral:hover:not(:disabled) {
-  transform: translate(-50%, calc(2.75em - 2px)) scale(1.05);
+  transform: translate(-50%, calc(1em - 2px)) scale(1.05);
 }
 
 .fab-button--top-center.fab-button--primary:hover:not(:disabled) {
-  transform: translate(-50%, calc(2.75em - 2px)) scale(1.05);
+  transform: translate(-50%, calc(1em - 2px)) scale(1.05);
 }
 
 .fab-button--bottom-right {
@@ -487,25 +512,29 @@ export default {
     0 0 8px rgba(0, 0, 0, 0.3);
 }
 
-@keyframes fab-button-show {
-  0% {
-    opacity: 0;
-    transform: translateY(-2px) scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(-2px) scale(1);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .fab-button {
-    animation: none;
-    transition: background-color var(--fab-transition), color var(--fab-transition), box-shadow var(--fab-transition);
+    transition: background-color var(--fab-transition), color var(--fab-transition), box-shadow var(--fab-transition), opacity 0.01ms;
+  }
+
+  .fab-button--top-center {
+    transition: background-color var(--fab-transition), color var(--fab-transition), box-shadow var(--fab-transition), opacity 0.01ms, transform 0.01ms;
   }
 
   .fab-button--top-center.fab-button--slide-in-visible {
-    transform: translate(-50%, 2.75em);
+    transform: translate(-50%, 1em);
   }
+}
+</style>
+
+<style>
+.fab-fade-enter-active,
+.fab-fade-leave-active {
+  transition: opacity 0.4s ease !important;
+}
+
+.fab-fade-enter-from,
+.fab-fade-leave-to {
+  opacity: 0 !important;
 }
 </style>

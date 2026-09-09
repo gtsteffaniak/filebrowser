@@ -9,7 +9,6 @@
     icon="close"
     position="top-center"
     :slide-in="floatIn"
-    :auto-hide="false"
     :label="$t('general.close', { suffix: '' })"
     @click="close"
   />
