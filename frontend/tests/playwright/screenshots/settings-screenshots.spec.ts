@@ -1,5 +1,5 @@
 //import { Page } from "@playwright/test";
-import { enableAdvancedProfileSettings, test } from "../test-setup";
+import { openAdvancedProfileSettings, test } from "../test-setup";
 
 const jpgQuality = 85;
 
@@ -17,49 +17,33 @@ test("setup theme", async ({ page, theme }) => {
 
 // run npx playwright test --ui to run these tests locally in ui mode
 test("profile settings", async ({ page, theme }) => {
-  await page.goto("/files/settings/");
-  await enableAdvancedProfileSettings(page);
-  const listingOptionsDiv = page.locator('div[aria-label="listingOptions"]');
-  await listingOptionsDiv.click(); // collapse the listing options section
-
+  await openAdvancedProfileSettings(page, "listingOptions");
   await page.waitForTimeout(300);
   await page.screenshot({ path: `./generated/settings/profile-listing-options-${theme}.jpg`, quality: jpgQuality });
   if (theme === 'light') {
     return;
   }
-  await listingOptionsDiv.click(); // open the listing options section
-  await page.waitForTimeout(300);
   await page.screenshot({ path: `./generated/settings/profile-settings-container-${theme}.jpg`, quality: jpgQuality });
-  await listingOptionsDiv.click();
 
-  const thumbnailDiv = page.locator('div[aria-label="thumbnailOptions"]');
-  await thumbnailDiv.click();
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `./generated/settings/profile-thumbnail-options-${theme}.jpg`, quality: jpgQuality });
-  
-  const sidebarDiv = page.locator('div[aria-label="sidebarOptions"]');
-  await sidebarDiv.click();
-  await sidebarDiv.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `./generated/settings/profile-sidebar-options-${theme}.jpg`, quality: jpgQuality });
-  
-  const searchDiv = page.locator('div[aria-label="searchOptions"]');
-  await searchDiv.click();
-  await searchDiv.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `./generated/settings/profile-search-options-${theme}.jpg`, quality: jpgQuality });
-  
-  const fileViewerDiv = page.locator('div[aria-label="fileViewerOptions"]');
-  await fileViewerDiv.click();
-  await fileViewerDiv.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `./generated/settings/profile-file-viewer-options-${theme}.jpg`, quality: jpgQuality });
-  
-  const themeLanguageDiv = page.locator('div[aria-label="themeLanguage"]');
-  await themeLanguageDiv.click();
-  await themeLanguageDiv.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `./generated/settings/profile-theme-language-options-${theme}.jpg`, quality: jpgQuality });
+  const sections = [
+    { id: "thumbnailOptions", file: "profile-thumbnail-options" },
+    { id: "sidebarOptions", file: "profile-sidebar-options" },
+    { id: "searchOptions", file: "profile-search-options" },
+    { id: "fileViewerOptions", file: "profile-file-viewer-options" },
+    { id: "themeLanguage", file: "profile-theme-language-options" },
+  ];
+
+  for (const section of sections) {
+    await openAdvancedProfileSettings(page, section.id);
+    await page.locator(`div[aria-label="${section.id}"]`).evaluate((el) => {
+      el.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: `./generated/settings/${section.file}-${theme}.jpg`,
+      quality: jpgQuality,
+    });
+  }
 });
 
 // run npx playwright test --ui to run these tests locally in ui mode
