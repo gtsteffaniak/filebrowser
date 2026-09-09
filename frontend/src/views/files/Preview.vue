@@ -108,11 +108,19 @@ export default {
     permissions() {
       return getters.sourcePermissions();
     },
-    showImage() {
-      if (state.req.type === "image/heic" || state.req.type === "image/heif") {
-        return this.isHeicAndViewable;
-      }
-      if (isRawImageMimeType(state.req.type)) {
+showImage() {
+  console.log("HEIC DEBUG:", {
+    type: state.req.type,
+    name: state.req.name,
+    enableHeicConversion: globalVars.enableHeicConversion,
+    isSafari: state.isSafari,
+    isHeicAndViewable: this.isHeicAndViewable,
+  });
+
+  if (state.req.type === "image/heic" || state.req.type === "image/heif") {
+    return this.isHeicAndViewable;
+  }
+  if (isRawImageMimeType(state.req.type)) {
         return true;
       }
       return this.previewType === 'image' || this.pdfConvertable;
