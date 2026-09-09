@@ -107,15 +107,17 @@ export default {
     isProfileSectionActive(val) {
       if (!val) this.sectionExpanded = false;
     },
-    isProfileSubSectionActive: {
-      immediate: true,
-      handler(val) {
-        if (val) this.sectionExpanded = true;
-      },
+    isProfileSubSectionActive(val) {
+      if (val) this.sectionExpanded = true;
     },
     showAdvancedProfile(val) {
-      this.sectionExpanded = val;
+      if (val) this.sectionExpanded = true;
     },
+  },
+  mounted() {
+    if (this.isProfileSubSectionActive || this.showAdvancedProfile) {
+      requestAnimationFrame(() => { this.sectionExpanded = true; });
+    }
   },
   methods: {
     expandSection() {
