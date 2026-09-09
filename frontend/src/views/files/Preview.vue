@@ -27,7 +27,7 @@
           :req="req"
           :listing="listing"
           :autoPlayEnabled="autoPlay"
-          @play="autoPlay = true"
+          @play="playbackStarted = true"
           :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
@@ -103,6 +103,8 @@ export default {
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
       listingKey: null,
+      /** User pressed play; enables autoplay for queue navigation even when autoplayMedia pref is off. */
+      playbackStarted: false,
     };
   },
   computed: {
@@ -119,7 +121,7 @@ export default {
       return this.previewType === 'image' || this.pdfConvertable;
     },
     autoPlay() {
-      return getters.previewPerms().autoplayMedia;
+      return getters.previewPerms().autoplayMedia || this.playbackStarted;
     },
     isMobileSafari() {
       const userAgent = window.navigator.userAgent;

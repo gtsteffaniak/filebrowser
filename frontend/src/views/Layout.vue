@@ -16,7 +16,7 @@
       <shelf />
       <router-view />
     </Scrollbar>
-    <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
+    <prompts></prompts>
   </div>
   <Search v-if="showSearch" />
   <Notifications />

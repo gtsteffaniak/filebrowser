@@ -38,7 +38,7 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 				return string(a), err
 			},
 		})
-		templates, err = templates.ParseFS(assetFs, "public/index.html")
+		templates, err = templates.ParseFS(assetFs, indexTemplatePath())
 		if err != nil {
 			return fmt.Errorf("error reloading template: %w", err)
 		}
@@ -54,7 +54,14 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("X-Accel-Expires", "0")
 	w.Header().Set("Transfer-Encoding", "identity")
-	// Execute the template with the provided data
+	if t.devMode {
+		var buf strings.Builder
+		if err := templates.ExecuteTemplate(&buf, name, data); err != nil {
+			return err
+		}
+		_, err = w.Write(injectViteDevHTML(buf.String()))
+		return err
+	}
 	return templates.ExecuteTemplate(w, name, data)
 }
 
@@ -213,6 +220,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	pwaIcon256 := staticURL + "/icons/pwa-icon-256.png"
 	pwaIcon512 := staticURL + "/icons/pwa-icon-512.png"
 
+	// Dev CSS loads fonts from /fonts/; production CSS uses ../fonts/ under staticURL.
+	fontURL := staticURL + "/fonts"
+	if settings.Env.IsDevMode {
+		fontURL = "/fonts"
+	}
+
 	manifestURL := staticURL + "/site.webmanifest"
 	if shareHash != "" {
 		pwaStartURL := settings.Config.Http.BaseURL + "public/share/" + shareHash + "/"
@@ -235,6 +248,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"lightBackground":    settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":     settings.Config.Frontend.Styling.DarkBackground,
 		"staticURL":          staticURL,
+		"fontURL":            fontURL,
 		"baseURL":            settings.Config.Http.BaseURL,
 		"favicon":            favicon,
 		"loginIcon":          loginIcon,
@@ -250,6 +264,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"pwaIcon256":         pwaIcon256,
 		"pwaIcon512":         pwaIcon512,
 		"manifestURL":        manifestURL,
+		"devMode":            settings.Env.IsDevMode,
 	}
 
 	data["globalVars"] = map[string]interface{}{
@@ -365,6 +380,29 @@ func manifestHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(manifest); err != nil {
 		http.Error(w, "Failed to serve manifest", http.StatusInternalServerError)
+	}
+}
+
+// rootFontHandler serves /fonts/* for Vite dev CSS that references absolute font URLs.
+func rootFontHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+
+	assetPath := strings.TrimPrefix(r.URL.Path, "/fonts/")
+	if assetPath == "" || strings.Contains(assetPath, "..") {
+		http.NotFound(w, r)
+		return
+	}
+
+	fileContents, err := fs.ReadFile(assetFs, "fonts/"+assetPath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	setContentType(w, assetPath)
+	if _, err = w.Write(fileContents); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
