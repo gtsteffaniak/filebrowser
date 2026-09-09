@@ -195,6 +195,12 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	publicPath := settings.Config.Http.BaseURL + "public"
 	webDavPath := settings.Config.Http.BaseURL + "dav"
 
+	// Vite dev server proxy (same-origin HMR; must register before SPA catch-all)
+	if settings.Env.IsDevMode {
+		router.Handle("/__vite/", viteProxyHandler())
+		router.Handle("GET /fonts/", http.HandlerFunc(rootFontHandler))
+	}
+
 	// Mount primary API and public routes
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))

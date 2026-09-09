@@ -25,7 +25,9 @@ esac
 
 if [[ "$USE_MUPDF" -eq 1 ]]; then
 	export CGO_ENABLED=1
-	go run ./scripts/setup-gofitz-cgo
+	if [[ ! -f internal/preview/gofitzinclude/mupdf/fitz.h ]]; then
+		go run ./scripts/setup-gofitz-cgo
+	fi
 	go build -o "$OUT" --tags=mupdf --ldflags="$LDFLAGS" .
 else
 	export CGO_ENABLED=0

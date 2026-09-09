@@ -9,15 +9,18 @@
 
   <link rel="icon" type="image/png" sizes="256x256" href="{{ .htmlVars.favicon }}">
 
-  <!-- Preload critical fonts for optimal performance -->
-  <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/roboto-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/roboto-medium-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/roboto-bold-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/material-symbols-core-filled.woff2" as="font" type="font/woff2" crossorigin>
+  {{- if not .htmlVars.devMode }}
+  <!-- Preload critical fonts for production first paint (skipped in dev: CSS loads async via Vite) -->
+  <link rel="preload" href="{{ .htmlVars.fontURL }}/roboto-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ .htmlVars.fontURL }}/roboto-medium-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ .htmlVars.fontURL }}/roboto-bold-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ .htmlVars.fontURL }}/material-symbols-core-filled.woff2" as="font" type="font/woff2" crossorigin>
+  {{- end }}
 
   <!-- Add to home screen for Android and modern mobile browsers -->
   <link rel="manifest" href="{{ .htmlVars.manifestURL }}" crossorigin="use-credentials">
   <meta name="theme-color" content="{{ .htmlVars.color }}">
+  <meta name="mobile-web-app-capable" content="yes">
 
   <!-- Add to home screen for Safari on iOS/iPadOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">

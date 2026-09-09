@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
-	"os"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -93,7 +92,7 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	if settings.Env.EmbeddedFs {
 		embeddedYaml, readErr = fs.ReadFile(assetFs, "embed/config.generated.yaml")
 	} else {
-		embeddedYaml, readErr = os.ReadFile("internal/web/dist/config.generated.yaml")
+		embeddedYaml, readErr = fs.ReadFile(assetFs, "config.generated.yaml")
 		if readErr != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error reading generated YAML: %v", readErr)
 		}

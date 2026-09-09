@@ -27,7 +27,7 @@
           :req="req"
           :listing="listing"
           :autoPlayEnabled="autoPlay"
-          @play="autoPlay = true"
+          @play="playbackStarted = true"
           :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
@@ -76,6 +76,7 @@ import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { parseLyrics } from "@/utils/lyrics";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
 import {
   hasActiveSession as hasActivePipSession,
   pendingInlineResumeFor,
@@ -103,6 +104,8 @@ export default {
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
       listingKey: null,
+      /** User pressed play; enables autoplay for queue navigation even when autoplayMedia pref is off. */
+      playbackStarted: false,
     };
   },
   computed: {
@@ -119,7 +122,11 @@ export default {
       return this.previewType === 'image' || this.pdfConvertable;
     },
     autoPlay() {
-      return getters.previewPerms().autoplayMedia;
+      return shouldAutoPlayPreview(
+        getters.previewPerms().autoplayMedia,
+        this.playbackStarted,
+        getters.isPreviewPlaybackQueueNavMode(),
+      );
     },
     isMobileSafari() {
       const userAgent = window.navigator.userAgent;
@@ -310,6 +317,9 @@ export default {
     async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
+      }
+      if (!getters.isPreviewPlaybackQueueNavMode()) {
+        this.playbackStarted = false;
       }
       this.isDeleted = false;
       const currentDirectoryPath = removeLastDir(state.req.path) || '/';

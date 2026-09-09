@@ -8,26 +8,6 @@ import { compression } from "vite-plugin-compression2";
 const isDevBuild = process.env.DEV_BUILD === "true";
 const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
 
-const plugins = [
-  vue(),
-  VueI18nPlugin({
-    runtimeOnly: false,
-    include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
-  }),
-  // Only compress in production builds
-  !isDevBuild && compression({
-    include: /\.(js|woff2|woff)(\?|$)/i,
-    deleteOriginalAssets: true,
-  }),
-  // Disable checker in watch mode to prevent task failures
-  !isDevBuild && checker({
-    typescript: false, // Disable redundant check
-    vueTsc: {
-      tsconfigPath: "./tsconfig.json",
-    },
-  }),
-].filter(Boolean);
-
 const resolve = {
   alias: {
     "@": path.resolve(__dirname, "src"),
@@ -35,7 +15,62 @@ const resolve = {
 };
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ command }) => {
+  const isServe = command === "serve";
+
+  const plugins = [
+    vue(),
+    VueI18nPlugin({
+      runtimeOnly: false,
+      include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
+    }),
+    // Only compress in production builds
+    !isDevBuild && !isServe && compression({
+      include: /\.(js|woff2|woff)(\?|$)/i,
+      deleteOriginalAssets: true,
+    }),
+    // Disable checker in watch mode to prevent task failures
+    !isDevBuild && !isServe && checker({
+      typescript: false, // Disable redundant check
+      vueTsc: {
+        tsconfigPath: "./tsconfig.json",
+      },
+    }),
+  ].filter(Boolean);
+
+  if (isServe) {
+    const devOrigin = process.env.VITE_DEV_ORIGIN || "http://localhost:8080";
+    const devPort = Number.parseInt(process.env.VITE_DEV_PORT || "5173", 10);
+
+    return {
+      plugins,
+      resolve,
+      base: "/__vite/",
+      publicDir: path.resolve(__dirname, "public"),
+      server: {
+        host: "127.0.0.1",
+        port: devPort,
+        strictPort: true,
+        origin: devOrigin,
+        // base already is /__vite/; do not set hmr.path or it becomes /__vite/__vite/
+        hmr: {
+          clientPort: Number.parseInt(process.env.VITE_DEV_CLIENT_PORT || "8080", 10),
+        },
+      },
+      define: {
+        __VUE_I18N_LEGACY_API__: JSON.stringify(false),
+        __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
+      },
+      test: {
+        globals: true,
+        include: ["src/**/*.test.js"],
+        exclude: ["src/**/*.vue"],
+        environment: "jsdom",
+        setupFiles: "tests/mocks/setup.js",
+      },
+    };
+  }
+
   return {
     plugins,
     resolve,
