@@ -76,6 +76,7 @@ import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { parseLyrics } from "@/utils/lyrics";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
 import {
   hasActiveSession as hasActivePipSession,
   pendingInlineResumeFor,
@@ -121,7 +122,11 @@ export default {
       return this.previewType === 'image' || this.pdfConvertable;
     },
     autoPlay() {
-      return getters.previewPerms().autoplayMedia || this.playbackStarted;
+      return shouldAutoPlayPreview(
+        getters.previewPerms().autoplayMedia,
+        this.playbackStarted,
+        getters.isPreviewPlaybackQueueNavMode(),
+      );
     },
     isMobileSafari() {
       const userAgent = window.navigator.userAgent;
@@ -312,6 +317,9 @@ export default {
     async loadPreviewForReq() {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
+      }
+      if (!getters.isPreviewPlaybackQueueNavMode()) {
+        this.playbackStarted = false;
       }
       this.isDeleted = false;
       const currentDirectoryPath = removeLastDir(state.req.path) || '/';

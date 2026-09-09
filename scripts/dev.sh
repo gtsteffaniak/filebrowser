@@ -52,7 +52,7 @@ wait_for_vite() {
 			echo "Vite dev server exited before becoming ready." >&2
 			return 1
 		fi
-		sleep 0.5
+		sleep 1
 		elapsed=$((elapsed + 1))
 	done
 	echo "Timed out waiting for Vite at ${READY_URL}" >&2
@@ -81,6 +81,7 @@ echo "Vite is ready. Starting Air..."
 
 (
 	cd "$ROOT/backend"
+	export FILEBROWSER_DEVMODE=true
 	exec go tool air
 ) &
 AIR_PID=$!

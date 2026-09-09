@@ -15,9 +15,15 @@ func viteProxyHandler() http.Handler {
 	if err != nil {
 		panic(err)
 	}
-	proxy := httputil.NewSingleHostReverseProxy(target)
-	proxy.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, err error) {
-		http.Error(w, "Vite dev server is not running. Start local development with: make dev\n\n"+err.Error(), http.StatusBadGateway)
+	proxy := &httputil.ReverseProxy{
+		Rewrite: func(pr *httputil.ProxyRequest) {
+			pr.SetURL(target)
+			pr.Out.Header.Del("Cookie")
+			pr.Out.Header.Del("Authorization")
+		},
+		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
+			http.Error(w, "Vite dev server is not running. Start local development with: make dev\n\n"+err.Error(), http.StatusBadGateway)
+		},
 	}
 	return proxy
 }

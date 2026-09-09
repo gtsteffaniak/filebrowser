@@ -34,6 +34,36 @@ func TestViteProxyHandler_ProxiesToUpstream(t *testing.T) {
 	}
 }
 
+func TestViteProxyHandler_DoesNotForwardCredentials(t *testing.T) {
+	var gotCookie, gotAuth string
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotCookie = r.Header.Get("Cookie")
+		gotAuth = r.Header.Get("Authorization")
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(upstream.Close)
+
+	prev := viteDevUpstream
+	viteDevUpstream = upstream.URL
+	t.Cleanup(func() { viteDevUpstream = prev })
+
+	req := httptest.NewRequest(http.MethodGet, "/__vite/@vite/client", nil)
+	req.Header.Set("Cookie", "session=secret")
+	req.Header.Set("Authorization", "Bearer token")
+	rec := httptest.NewRecorder()
+	viteProxyHandler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if gotCookie != "" {
+		t.Fatalf("Cookie forwarded to Vite upstream: %s", gotCookie)
+	}
+	if gotAuth != "" {
+		t.Fatalf("Authorization forwarded to Vite upstream: %s", gotAuth)
+	}
+}
+
 func TestViteProxyHandler_UpstreamUnavailable(t *testing.T) {
 	prev := viteDevUpstream
 	viteDevUpstream = "http://127.0.0.1:1"
