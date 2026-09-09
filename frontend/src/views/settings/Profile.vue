@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ profileSettingsLabel() }}</h2>
+    <h2>{{ pageTitle }}</h2>
   </div>
   <div class="card-content">
     <form>
@@ -8,7 +8,9 @@
         <UserProfilePreferences
           v-model="profileSections"
           :enforced="enforcedPreferences"
-          show-extension-inputs
+          :mode="preferencesMode"
+          :section-key="sectionKeyProp"
+          :show-extension-inputs="showAdvancedProfile"
           show-thumbnail-master
           @change="onPreferenceChange"
           @theme-color="onThemeColor"
@@ -24,6 +26,7 @@
 import { notify } from "@/notify";
 import { mutations, state, getters } from "@/store";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
+import { settings } from "@/utils/constants";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,
@@ -49,8 +52,38 @@ export default {
     user() {
       return state.user;
     },
-    active() {
-      return state.activeSettingsView === "profile-main";
+    showAdvancedProfile() {
+      return !!this.localuser.showAdvancedProfile;
+    },
+    basicSettings() {
+      const activeView = state.activeSettingsView || "";
+      if (activeView === "profile-main") return true;
+      return activeView.startsWith("profile-") && !this.showAdvancedProfile;
+    },
+    preferencesMode() {
+      return this.basicSettings ? "basic" : "full";
+    },
+    sectionKeyProp() {
+      return this.basicSettings ? "" : this.activeSectionKey;
+    },
+    pageTitle() {
+      if (this.basicSettings) {
+        return this.profileSettingsLabel();
+      }
+      return this.activeSectionLabel;
+    },
+    activeSectionKey() {
+      const hash = state.activeSettingsView || "";
+      const key = hash.startsWith("profile-") ? hash.slice("profile-".length) : "";
+      const isKnownSection = this.profileSectionDefs.some((s) => s.id === key);
+      return isKnownSection ? key : "listingOptions";
+    },
+    activeSectionLabel() {
+      const def = this.profileSectionDefs.find((s) => s.id === this.activeSectionKey);
+      return def ? this.$t(def.label) : this.profileSettingsLabel();
+    },
+    profileSectionDefs() {
+      return settings.find((setting) => setting.id === 'profile')?.sections || [];
     },
     profileSections: {
       get() {
@@ -62,6 +95,14 @@ export default {
     },
     enforcedPreferences() {
       return state.enforcedUserDefaults || {};
+    },
+  },
+  watch: {
+    user: {
+      deep: true,
+      handler(newUser) {
+        this.localuser = cloneUser(newUser);
+      },
     },
   },
   mounted() {

@@ -42,6 +42,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"lockPassword":               "account.lockPassword",
 	"disableSettings":            "account.disableSettings",
 	"disableUpdateNotifications": "account.disableUpdateNotifications",
+	"showAdvancedProfile":        "account.showAdvancedProfile",
 }
 
 var previewJSONSubfields = map[string]string{

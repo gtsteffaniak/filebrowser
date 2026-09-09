@@ -26,7 +26,7 @@
   /* app top bar height, including the top safe-area inset */
   --header-height: calc(4em + var(--safe-area-top));
   --borderRadius: 1em;
-  --borderWidth: 1.5px;
+  --borderWidth: 2px;
   --surfaceElevationShadow:
     0 1px 2px hsl(0deg 0% 0% / 0.07),
     0 2px 4px hsl(0deg 0% 0% / 0.06),

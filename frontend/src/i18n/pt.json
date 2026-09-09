@@ -504,7 +504,6 @@
     "showQuickDownloadDescription": "Mostrar o ícone de transferência para acesso rápido em cada item de ficheiro que pode ser clicado para transferir instantaneamente.",
     "disableUpdateNotifications": "Desativar a apresentação da notificação de atualização",
     "disableUpdateNotificationsDescription": "Desativar a faixa de notificação de atualização que aparece para os utilizadores administrativos na barra lateral.",
-    "disableHideSidebar": "Manter a barra lateral aberta durante a pré-visualização ou edição de ficheiros",
     "disableHideSidebarDescription": "Quando activada, a barra lateral não se esconde automaticamente durante a pré-visualização ou edição de ficheiros.",
     "autoplayMedia": "Reprodução automática de ficheiros multimédia durante a visualização",
     "autoplayMediaDescription": "Reprodução automática de ficheiros multimédia durante a visualização. Isto só funcionará se o ficheiro for um ficheiro multimédia.",
@@ -516,8 +515,6 @@
     "hideSidebarFileActions": "Ocultar o botão de acções de ficheiros na barra lateral",
     "deleteWithoutConfirming": "Eliminar ficheiros sem pedido de confirmação",
     "deleteWithoutConfirmingDescription": "Eliminar ficheiros sem aviso de confirmação. Isto só funciona se o ficheiro for um ficheiro multimédia.",
-    "editorQuickSave": "Botão de gravação rápida no editor",
-    "editorQuickSaveDescription": "O editor de texto mostrará sempre o ícone de guardar, ocultando quaisquer outras acções",
     "previewOfficeDescription": "Mostrar miniaturas para tipos de ficheiros de escritório na vista de listagem",
     "disableThumbnailPreviews": "Desativar miniaturas para determinadas extensões de ficheiros",
     "disableThumbnailPreviewsDescription": "Uma lista de extensões de ficheiros, separada por espaços, para desativar as pré-visualizações de miniaturas (por exemplo, '.txt .html').",
@@ -566,7 +563,13 @@
     "defaultViewMode": "Modo de visualização predefinido",
     "defaultViewModeDescription": "Modo de visualização inicial em novos navegadores ou dispositivos. Não substitui as preferências de visualização já guardadas localmente.",
     "defaultGallerySize": "Tamanho padrão da miniatura",
-    "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já guardados localmente."
+    "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já guardados localmente.",
+    "disableHideSidebar": "Mostrar sempre a barra lateral",
+    "editorQuickSave": "Mostrar o botão de gravação rápida no editor",
+    "editorQuickSaveDescription": "O editor de texto irá mostrar apenas o ícone de guardar, ocultando quaisquer outras ações",
+    "showAdvancedProfile": "Mostrar definições avançadas do perfil",
+    "showAdvancedProfileDescription": "Mostrar as definições do perfil por categorias na barra lateral, em vez da visualização simplificada do perfil.",
+    "accountOptions": "Opções da conta"
   },
   "general": {
     "import": "Importar",

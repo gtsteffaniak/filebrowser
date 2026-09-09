@@ -231,6 +231,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     disableSettings: false                # disable the user from viewing the settings page
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
+    showAdvancedProfile: false            # show advanced profile settings in the user profile page
 shareDefaults:                            # optional defaults for new shares; managed in the UI
   shareTheme: ""
   disableAnonymous: false

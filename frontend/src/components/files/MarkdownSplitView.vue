@@ -16,7 +16,7 @@
       </Scrollbar>
     </div>
   </template>
-  <FloatingButton
+  <FloatingActionButton
     v-if="showSplitViewToggle"
     icon="vertical_split"
     :label="splitViewActionLabel"
@@ -30,7 +30,7 @@ import type { Ace } from "ace-builds";
 import { state, getters, mutations } from "@/store";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import Scrollbar from "@/components/files/Scrollbar.vue";
-import FloatingButton from "@/components/FloatingButton.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 
 const MD_SPLIT_PERCENT_KEY = "mdSplitPercent";
@@ -45,7 +45,7 @@ export default {
   name: "markdownSplitView",
   components: {
     Scrollbar,
-    FloatingButton,
+    FloatingActionButton,
     MarkdownViewer: createAsyncComponent(() => import("@/views/files/MarkdownViewer.vue")),
   },
   props: {

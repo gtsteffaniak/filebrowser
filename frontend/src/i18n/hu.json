@@ -689,7 +689,6 @@
     "showQuickDownloadDescription": "Letöltés ikon megjelenítése a gyors hozzáférés érdekében minden egyes fájlelemen, amelyre kattintva azonnal letölthető.",
     "disableUpdateNotifications": "Értesítési frissítés megjelenítése letiltása",
     "disableUpdateNotificationsDescription": "Az admin felhasználók számára az oldalsávon megjelenő frissítési értesítő banner kikapcsolása.",
-    "disableHideSidebar": "Az oldalsáv nyitva tartása fájlok előnézeténél vagy szerkesztésénél",
     "disableHideSidebarDescription": "Ha engedélyezve van, az oldalsáv nem rejtőzik el automatikusan a fájlok előnézeténél vagy szerkesztésénél.",
     "autoplayMedia": "Médiafájlok automatikus lejátszása megtekintéskor",
     "autoplayMediaDescription": "Médiafájlok automatikus lejátszása megtekintéskor. Ez csak akkor működik, ha a fájl médiafájl.",
@@ -701,8 +700,6 @@
     "hideSidebarFileActions": "Fájlműveletek gomb elrejtése az oldalsávban",
     "deleteWithoutConfirming": "Fájlok törlése megerősítés nélkül",
     "deleteWithoutConfirmingDescription": "Fájlok törlése megerősítő kérés nélkül. Ez csak akkor működik, ha a fájl médiafájl.",
-    "editorQuickSave": "Gyors mentés gomb a szerkesztőben",
-    "editorQuickSaveDescription": "A szövegszerkesztő mindig a mentés ikonját fogja mutatni, elrejtve minden más műveletet.",
     "previewOfficeDescription": "Az irodai fájltípusok miniatűrjeinek megjelenítése a listázási nézetben",
     "disableThumbnailPreviews": "Bizonyos fájlkiterjesztésekhez tartozó miniatűrök letiltása",
     "disableThumbnailPreviewsDescription": "Azoknak a fájlkiterjesztéseknek a szóközzel elválasztott listája, amelyeknél a miniatűr előnézetet le kell tiltani (pl. '.txt .html').",
@@ -751,7 +748,13 @@
     "defaultViewMode": "Alapértelmezett megjelenítési mód",
     "defaultViewModeDescription": "Alapértelmezett megjelenítési mód új böngészőkön vagy eszközökön. Nem írja felül a már helyileg elmentett megjelenítési beállításokat.",
     "defaultGallerySize": "Alapértelmezett miniatűrméret",
-    "defaultGallerySizeDescription": "A galéria vagy lista miniatűrjeinek kezdeti mérete (1–9) új böngészőkön vagy eszközökön. A már helyileg elmentett méreteket nem írja felül."
+    "defaultGallerySizeDescription": "A galéria vagy lista miniatűrjeinek kezdeti mérete (1–9) új böngészőkön vagy eszközökön. A már helyileg elmentett méreteket nem írja felül.",
+    "disableHideSidebar": "Az oldalsávot mindig mutasd”",
+    "editorQuickSave": "A gyorsmentés gomb megjelenítése a szerkesztőben",
+    "editorQuickSaveDescription": "A szövegszerkesztő csak a mentés gombot jeleníti meg, az összes többi műveletet elrejti",
+    "showAdvancedProfile": "A profil speciális beállításainak megjelenítése",
+    "showAdvancedProfileDescription": "Az egyszerűsített profilnézet helyett az oldalsávban jelenítse meg a kategóriák szerint csoportosított profilbeállításokat.",
+    "accountOptions": "Fiókbeállítások"
   },
   "editor": {
     "stats": {

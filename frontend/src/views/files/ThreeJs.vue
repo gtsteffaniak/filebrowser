@@ -13,7 +13,7 @@
         <p>{{ error }}</p>
       </div>
     </div>
-    <FloatingButton
+    <FloatingActionButton
       v-if="!isThumbnail"
       icon="settings"
       position="bottom-left"
@@ -64,7 +64,7 @@ import { XYZLoader } from 'three/addons/loaders/XYZLoader.js';
 import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
 import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import FloatingButton from "@/components/FloatingButton.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
 import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken";
@@ -98,7 +98,7 @@ const LOADERS = {
 
 export default {
   name: "threeJsViewer",
-  components: { LoadingSpinner, FloatingButton },
+  components: { LoadingSpinner, FloatingActionButton },
   props: {
     fbdata: { type: Object, required: true },
     isThumbnail: { type: Boolean, default: false },

@@ -79,6 +79,7 @@ type UserDefaultsAccountEnforcement struct {
 	LockPassword               bool                                  `json:"lockPassword,omitempty"`
 	DisableSettings            bool                                  `json:"disableSettings,omitempty"`
 	DisableUpdateNotifications bool                                  `json:"disableUpdateNotifications,omitempty"`
+	ShowAdvancedProfile        bool                                  `json:"showAdvancedProfile,omitempty"`
 	Permissions                UserDefaultsAccountPermissionsEnforcement `json:"permissions,omitempty"`
 }
 

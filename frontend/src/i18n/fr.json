@@ -689,7 +689,6 @@
     "showQuickDownloadDescription": "Afficher l'icône de téléchargement pour un accès rapide à chaque élément de fichier sur lequel on peut cliquer pour le télécharger instantanément.",
     "disableUpdateNotifications": "Désactiver l'affichage des notifications de mise à jour",
     "disableUpdateNotificationsDescription": "Désactiver la bannière de notification de mise à jour qui s'affiche dans la barre latérale pour les administrateurs.",
-    "disableHideSidebar": "Garder la barre latérale ouverte lors de la prévisualisation ou de la modification de fichiers",
     "disableHideSidebarDescription": "Si cette option est activée, la barre latérale ne se masquera pas automatiquement lors de la prévisualisation ou de la modification des fichiers.",
     "autoplayMedia": "Lecture automatique des fichiers multimédias lors de la visualisation",
     "autoplayMediaDescription": "Lecture automatique des fichiers multimédias lors de l'affichage. Cela ne fonctionnera que si le fichier est un fichier multimédia.",
@@ -701,8 +700,6 @@
     "hideSidebarFileActions": "Cacher le bouton d'action sur les fichiers dans la barre latérale",
     "deleteWithoutConfirming": "Supprimer des fichiers sans demande de confirmation",
     "deleteWithoutConfirmingDescription": "Supprimer des fichiers sans demande de confirmation. Cela ne fonctionne que si le fichier est un fichier multimédia.",
-    "editorQuickSave": "Bouton d'enregistrement rapide dans l'éditeur",
-    "editorQuickSaveDescription": "L'éditeur de texte affichera toujours l'icône de sauvegarde, masquant toute autre action.",
     "previewOfficeDescription": "Afficher des vignettes pour les types de fichiers bureautiques dans la vue de la liste",
     "disableThumbnailPreviews": "Désactiver les vignettes pour certaines extensions de fichiers",
     "disableThumbnailPreviewsDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus de vignettes doivent être désactivés (par exemple, '.txt .html').",
@@ -751,7 +748,13 @@
     "defaultViewMode": "Mode d'affichage par défaut",
     "defaultViewModeDescription": "Mode d'affichage par défaut sur les nouveaux navigateurs ou appareils. Ne remplace pas les préférences d'affichage déjà enregistrées localement.",
     "defaultGallerySize": "Taille par défaut des vignettes",
-    "defaultGallerySizeDescription": "Échelle initiale des vignettes de la galerie ou de la liste (1 à 9) sur les nouveaux navigateurs ou appareils. Ne remplace pas les tailles déjà enregistrées localement."
+    "defaultGallerySizeDescription": "Échelle initiale des vignettes de la galerie ou de la liste (1 à 9) sur les nouveaux navigateurs ou appareils. Ne remplace pas les tailles déjà enregistrées localement.",
+    "disableHideSidebar": "Toujours afficher la barre latérale",
+    "editorQuickSave": "Afficher le bouton « Enregistrement rapide » dans l'éditeur",
+    "editorQuickSaveDescription": "L'éditeur de texte n'affichera que l'icône d'enregistrement, en masquant toutes les autres actions",
+    "showAdvancedProfile": "Afficher les paramètres avancés du profil",
+    "showAdvancedProfileDescription": "Afficher les paramètres de profil classés par catégorie dans la barre latérale, au lieu de l'affichage simplifié du profil.",
+    "accountOptions": "Options du compte"
   },
   "editor": {
     "stats": {

@@ -1,12 +1,145 @@
 <template>
-  <div class="user-profile-preferences">
+  <div v-if="mode === 'basic'" class="settings-items user-profile-preferences-basic">
+    <ProfilePreferenceToggle
+      field="showHidden"
+      section="listing"
+      :name="$t('profileSettings.showHiddenFiles')"
+      :description="$t('profileSettings.showHiddenFilesDescription')"
+    />
+    <ToggleSwitch
+      v-if="showThumbnailMaster"
+      class="item"
+      :enforceable="enforceable"
+      :enforced="enforcedFlag('preview', 'image')"
+      v-model="showThumbnailsForPreviews"
+      @change="onThumbnailMasterChange"
+      @update:enforced="(v) => emitEnforced('preview', 'image', v)"
+      :disabled="valueDisabled('preview', 'image')"
+      :enforcement-disabled="enforcementDisabled('preview', 'image')"
+      :enforcement-locked="isEnforcementLocked('preview', 'image')"
+      :value-tooltip="configLockTooltip('preview', 'image')"
+      :name="$t('profileSettings.showThumbnails')"
+      :description="$t('profileSettings.showThumbnailsDescription')"
+    />
+    <ProfilePreferenceToggle
+      field="disableHideOnPreview"
+      section="sidebar"
+      :name="$t('profileSettings.disableHideSidebar')"
+      :description="$t('profileSettings.disableHideSidebarDescription')"
+    />
+    <ProfilePreferenceToggle
+      field="editorQuickSave"
+      section="fileViewer"
+      :name="$t('profileSettings.editorQuickSave')"
+      :description="$t('profileSettings.editorQuickSaveDescription')"
+    />
+    <ToggleSwitch
+      class="item"
+      :enforceable="enforceable"
+      :enforced="enforcedFlag('ui', 'darkMode')"
+      v-model="darkMode"
+      @change="() => emitSectionChange('ui', 'darkMode')"
+      @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
+      :disabled="fieldDisabled('ui', 'darkMode')"
+      :enforcement-locked="isEnforcementLocked('ui', 'darkMode')"
+      :name="$t('profileSettings.darkMode')"
+      :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
+    />
+    <div
+      class="preference-field-block"
+      :class="{ 'preference-field-block--enforceable': enforceable }"
+    >
+      <h4>{{ $t("settings.themeColor") }}</h4>
+      <div
+        @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'themeColor')"
+        @mouseleave="hideTooltip"
+      >
+        <ButtonGroup
+          :buttons="colorChoices"
+          @button-clicked="setColor"
+          :initialActive="themeColorValue"
+          :is-disabled="fieldDisabled('ui', 'themeColor')"
+        />
+      </div>
+      <ProfileEnforceSwitch
+        :visible="enforceable"
+        :enforced="enforcedFlag('ui', 'themeColor')"
+        :disabled="disabled"
+        @update:enforced="(v) => emitEnforced('ui', 'themeColor', v)"
+      />
+    </div>
+    <div
+      v-if="Object.keys(availableThemes).length > 0"
+      class="preference-field-block"
+      :class="{ 'preference-field-block--enforceable': enforceable }"
+    >
+      <h4>{{ $t("profileSettings.customTheme") }}</h4>
+      <div
+        class="form-flex-group"
+        @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'customTheme')"
+        @mouseleave="hideTooltip"
+      >
+        <ExpandDropdown
+          v-model="selectedTheme"
+          :options="themeOptions"
+          :aria-label="$t('general.theme')"
+          :disabled="fieldDisabled('ui', 'customTheme')"
+          @update:model-value="onThemeChange"
+        />
+      </div>
+      <ProfileEnforceSwitch
+        :visible="enforceable"
+        :enforced="enforcedFlag('ui', 'customTheme')"
+        :disabled="disabled"
+        @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
+      />
+    </div>
+    <div
+      class="preference-field-block"
+      :class="{ 'preference-field-block--enforceable': enforceable }"
+    >
+      <h4>{{ $t("general.language") }}</h4>
+      <div
+        class="form-flex-group"
+        @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'locale')"
+        @mouseleave="hideTooltip"
+      >
+        <Languages
+          :locale="localeValue"
+          :disabled="fieldDisabled('ui', 'locale')"
+          @update:locale="onLocaleChange"
+        />
+      </div>
+      <ProfileEnforceSwitch
+        :visible="enforceable"
+        :enforced="enforcedFlag('ui', 'locale')"
+        :disabled="disabled"
+        @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
+      />
+    </div>
+    <div class="preference-field-block">
+      <h4>{{ $t("profileSettings.accountOptions") }}</h4>
+      <div class="settings-items">
+        <ProfilePreferenceToggle
+          field="showAdvancedProfile"
+          section="account"
+          :name="$t('profileSettings.showAdvancedProfile')"
+          :description="$t('profileSettings.showAdvancedProfileDescription')"
+        />
+      </div>
+    </div>
+  </div>
+  <template v-else>
+  <SettingsAccordion v-model="expandedSection" class="user-profile-preferences">
     <SettingsItem
+      v-if="sectionVisible('listingOptions')"
       aria-label="listingOptions"
+      name="listingOptions"
+      :accordion="!sectionKey"
       :title="$t('settings.listingOptions')"
-      :collapsable="true"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('listingOptions')"
-      @toggle="onSectionToggle('listingOptions')"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
+      :start-collapsed="sectionStartsCollapsed('listingOptions')"
     >
       <div class="settings-items">
         <ProfilePreferenceToggle
@@ -66,18 +199,15 @@
           class="preference-field-block"
           :class="{ 'preference-field-block--enforceable': enforceable }"
         >
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.defaultViewMode") }}</h3>
-            <HelpTooltipIcon :text="$t('profileSettings.defaultViewModeDescription')" />
-          </div>
-          <div
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
-            @mouseleave="hideTooltip"
-          >
-            <ViewMode
-              :view-mode="listingViewMode"
-              :disabled="fieldDisabled('listing', 'viewMode')"
-              @update:view-mode="onListingViewModeChange"
+          <div class="settings-items">
+            <SettingsButton
+              class="item"
+              :name="$t('profileSettings.defaultViewMode')"
+              :description="$t('profileSettings.defaultViewModeDescription')"
+              :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
+              @click="openDefaultViewPref"
+              @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
+              @mouseleave="hideTooltip"
             />
           </div>
           <ProfileEnforceSwitch
@@ -86,31 +216,6 @@
             :disabled="disabled"
             @update:enforced="(v) => emitEnforced('listing', 'viewMode', v)"
           />
-        </div>
-        <div
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
-        >
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.defaultGallerySize") }}</h3>
-            <HelpTooltipIcon :text="$t('profileSettings.defaultGallerySizeDescription')" />
-          </div>
-          <div
-            class="gallery-size-field"
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'gallerySize')"
-            @mouseleave="hideTooltip"
-          >
-            <span class="size-label">{{ $t("general.size") }}</span>
-            <input
-              v-model.number="listingGallerySize"
-              type="range"
-              min="1"
-              max="9"
-              :disabled="fieldDisabled('listing', 'gallerySize')"
-              @change="() => emitSectionChange('listing', 'gallerySize')"
-            />
-            <span class="size-value">{{ listingGallerySize }}</span>
-          </div>
           <ProfileEnforceSwitch
             :visible="enforceable"
             :enforced="enforcedFlag('listing', 'gallerySize')"
@@ -183,12 +288,14 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('thumbnailOptions')"
       aria-label="thumbnailOptions"
+      name="thumbnailOptions"
+      :accordion="!sectionKey"
       :title="$t('profileSettings.thumbnailOptions')"
-      :collapsable="true"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('thumbnailOptions')"
-      @toggle="onSectionToggle('thumbnailOptions')"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
+      :start-collapsed="sectionStartsCollapsed('thumbnailOptions')"
     >
       <div class="settings-items">
         <ToggleSwitch
@@ -301,12 +408,14 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('sidebarOptions')"
       aria-label="sidebarOptions"
+      name="sidebarOptions"
+      :accordion="!sectionKey"
       :title="$t('profileSettings.sidebarOptions')"
-      :collapsable="true"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('sidebarOptions')"
-      @toggle="onSectionToggle('sidebarOptions')"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
+      :start-collapsed="sectionStartsCollapsed('sidebarOptions')"
     >
       <div class="settings-items">
         <ProfilePreferenceToggle
@@ -354,12 +463,14 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('searchOptions')"
       aria-label="searchOptions"
+      name="searchOptions"
+      :accordion="!sectionKey"
       :title="$t('settings.searchOptions')"
-      :collapsable="true"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('searchOptions')"
-      @toggle="onSectionToggle('searchOptions')"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
+      :start-collapsed="sectionStartsCollapsed('searchOptions')"
     >
       <div class="settings-items">
         <ProfilePreferenceToggle
@@ -372,12 +483,14 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('fileViewerOptions')"
       aria-label="fileViewerOptions"
+      name="fileViewerOptions"
+      :accordion="!sectionKey"
       :title="$t('profileSettings.fileViewerOptions')"
-      :collapsable="true"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('fileViewerOptions')"
-      @toggle="onSectionToggle('fileViewerOptions')"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
+      :start-collapsed="sectionStartsCollapsed('fileViewerOptions')"
     >
       <div class="settings-items">
         <ToggleSwitch
@@ -512,12 +625,14 @@
     </SettingsItem>
 
     <SettingsItem
+      v-if="sectionVisible('themeLanguage')"
       aria-label="themeLanguage"
+      name="themeLanguage"
+      :accordion="!sectionKey"
       :title="$t('profileSettings.themeAndLanguage')"
-      :collapsable="true"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('themeLanguage')"
-      @toggle="onSectionToggle('themeLanguage')"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
+      :start-collapsed="sectionStartsCollapsed('themeLanguage')"
     >
       <div class="settings-items">
         <ToggleSwitch
@@ -606,7 +721,8 @@
         </div>
       </div>
     </SettingsItem>
-  </div>
+  </SettingsAccordion>
+  </template>
 </template>
 
 <script>
@@ -623,11 +739,11 @@ import ProfilePreferenceToggle from "@/components/settings/ProfilePreferenceTogg
 import ProfileEnforceSwitch from "@/components/settings/ProfileEnforceSwitch.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import SettingsAccordion from "@/components/settings/SettingsAccordion.vue";
 import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
-import ViewMode from "@/components/settings/ViewMode.vue";
 
 export default {
   name: "UserProfilePreferences",
@@ -635,13 +751,13 @@ export default {
     HelpTooltipIcon,
     ToggleSwitch,
     SettingsItem,
+    SettingsAccordion,
     Languages,
     ExpandDropdown,
     ButtonGroup,
     ProfilePreferenceToggle,
     ProfileEnforceSwitch,
     SettingsButton,
-    ViewMode,
   },
   provide() {
     return { profilePrefs: this };
@@ -684,6 +800,16 @@ export default {
     defaultExpandedSection: {
       type: String,
       default: "listingOptions",
+    },
+    /** `basic` shows a flat list of common options; `full` shows all categorized settings. */
+    mode: {
+      type: String,
+      default: "full",
+      validator: (value) => value === "basic" || value === "full",
+    },
+    sectionKey: {
+      type: String,
+      default: null,
     },
   },
   emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
@@ -806,15 +932,9 @@ export default {
     listingViewMode() {
       return this.sections.listing?.viewMode || "normal";
     },
-    listingGallerySize: {
-      get() {
-        const size = this.sections.listing?.gallerySize;
-        return typeof size === "number" ? size : 3;
-      },
-      set(value) {
-        const nextSize = Math.min(9, Math.max(1, Number(value) || 3));
-        this.setSectionBool("listing", "gallerySize", nextSize);
-      },
+    listingGallerySize() {
+      const size = this.sections.listing?.gallerySize;
+      return typeof size === "number" ? size : 3;
     },
   },
   watch: {
@@ -838,12 +958,17 @@ export default {
       this.formDisabledViewing = this.sections.fileViewer?.disableViewingExt || "";
       this.formDisableOfficeViewing = this.sections.fileViewer?.disableOnlyOfficeExt || "";
     },
-    sectionForceCollapsed(sectionKey) {
-      return this.expandedSection !== sectionKey;
+    sectionStartsCollapsed(key) {
+      if (this.sectionKey) {
+        return this.sectionKey !== key;
+      }
+      return true;
     },
-    onSectionToggle(sectionKey) {
-      this.expandedSection =
-        this.expandedSection === sectionKey ? null : sectionKey;
+    sectionVisible(key) {
+      if (!this.sectionKey) {
+        return true;
+      }
+      return this.sectionKey === key;
     },
     enforcedFlag(section, field) {
       if (section === "account" && field.includes(".")) {
@@ -1012,9 +1137,35 @@ export default {
       this.$emit("locale-change", locale);
       this.emitSectionChange("ui", "locale");
     },
-    onListingViewModeChange(viewMode) {
-      this.setSectionBool("listing", "viewMode", viewMode);
-      this.emitSectionChange("listing", "viewMode");
+    openDefaultViewPref() {
+      const viewModeDisabled = this.fieldDisabled('listing', 'viewMode');
+      const gallerySizeDisabled = this.fieldDisabled('listing', 'gallerySize');
+      if (viewModeDisabled && gallerySizeDisabled) return;
+      mutations.showPrompt({
+        name: "default-view-prefs",
+        props: {
+          viewMode: this.listingViewMode,
+          gallerySize: this.listingGallerySize,
+          viewModeDisabled,
+          gallerySizeDisabled,
+        },
+        confirm: ({ viewMode, gallerySize }) => {
+          const nextListing = { ...(this.sections.listing || {}) };
+          if (!viewModeDisabled) {
+            nextListing.viewMode = viewMode;
+          }
+          if (!gallerySizeDisabled) {
+            nextListing.gallerySize = gallerySize;
+          }
+          this.sections = { ...this.sections, listing: nextListing };
+          if (!viewModeDisabled) {
+            this.emitSectionChange("listing", "viewMode");
+          }
+          if (!gallerySizeDisabled) {
+            this.emitSectionChange("listing", "gallerySize");
+          }
+        },
+      });
     },
     hideTooltip() {
       hideInteractiveTooltip();
@@ -1114,17 +1265,5 @@ export default {
   padding: 0.35em;
   border-radius: var(--borderRadius);
   margin-bottom: 0.5em;
-}
-.gallery-size-field {
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-}
-.gallery-size-field input[type="range"] {
-  flex: 1 1 auto;
-}
-.gallery-size-field .size-value {
-  min-width: 1.25em;
-  text-align: center;
 }
 </style>

@@ -689,7 +689,6 @@
     "showQuickDownloadDescription": "Mostrar o ícone de download para acesso rápido em cada item de arquivo que pode ser clicado para fazer o download instantaneamente.",
     "disableUpdateNotifications": "Desativar a exibição da notificação de atualização",
     "disableUpdateNotificationsDescription": "Desative o banner de notificação de atualização que aparece para os usuários administradores na barra lateral.",
-    "disableHideSidebar": "Mantenha a barra lateral aberta ao visualizar ou editar arquivos",
     "disableHideSidebarDescription": "Quando ativada, a barra lateral não será ocultada automaticamente ao visualizar ou editar arquivos.",
     "autoplayMedia": "Reprodução automática de arquivos de mídia durante a visualização",
     "autoplayMediaDescription": "Reprodução automática de arquivos de mídia durante a visualização. Isso só funcionará se o arquivo for um arquivo de mídia.",
@@ -701,8 +700,6 @@
     "hideSidebarFileActions": "Ocultar o botão de ações de arquivo na barra lateral",
     "deleteWithoutConfirming": "Excluir arquivos sem prompt de confirmação",
     "deleteWithoutConfirmingDescription": "Excluir arquivos sem prompt de confirmação. Isso só funcionará se o arquivo for um arquivo de mídia.",
-    "editorQuickSave": "Botão de salvamento rápido no editor",
-    "editorQuickSaveDescription": "O editor de texto sempre mostrará o ícone de salvar, ocultando quaisquer outras ações",
     "previewOfficeDescription": "Mostrar miniaturas de tipos de arquivos de escritório na exibição de listagem",
     "disableThumbnailPreviews": "Desativar miniaturas para determinadas extensões de arquivo",
     "disableThumbnailPreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações de miniaturas (por exemplo, '.txt .html').",
@@ -751,7 +748,13 @@
     "defaultViewMode": "Modo de visualização padrão",
     "defaultViewModeDescription": "Modo de visualização inicial em novos navegadores ou dispositivos. Não substitui as preferências de visualização já salvas localmente.",
     "defaultGallerySize": "Tamanho padrão da miniatura",
-    "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já salvos localmente."
+    "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já salvos localmente.",
+    "disableHideSidebar": "Sempre exibir a barra lateral",
+    "editorQuickSave": "Mostrar o botão de salvamento rápido no editor",
+    "editorQuickSaveDescription": "O editor de texto exibirá apenas o ícone de salvar, ocultando todas as outras ações",
+    "showAdvancedProfile": "Mostrar configurações avançadas do perfil",
+    "showAdvancedProfileDescription": "Mostrar as configurações do perfil categorizadas na barra lateral, em vez da visualização simplificada do perfil.",
+    "accountOptions": "Opções da conta"
   },
   "editor": {
     "stats": {

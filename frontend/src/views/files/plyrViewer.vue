@@ -8,7 +8,7 @@
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
     >
       <!-- Desktop panel button, will auto‑hide only when panel is closed -->
-      <FloatingButton
+      <FloatingActionButton
         v-if="previewType === 'audio' && !isMobile"
         :icon="showDesktopPanel ? 'close' : 'queue_music'"
         :badge="!showDesktopPanel ? queueCount : null"
@@ -168,7 +168,7 @@
     </div>
 
     <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
-    <FloatingButton
+    <FloatingActionButton
       v-if="showQueueButton"
       icon="queue_music"
       :badge="queueCount"
@@ -178,7 +178,7 @@
     />
 
     <!-- Lyrics button (left side) – only on mobile when lyrics exist -->
-    <FloatingButton
+    <FloatingActionButton
       v-if="isMobile && lyrics.length"
       icon="lyrics"
       position="top-left"
@@ -189,7 +189,7 @@
     />
 
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
-    <FloatingButton
+    <FloatingActionButton
       v-if="isMobile && previewType === 'audio' && showMobileLyrics && lyrics.length && syncedLyrics"
       icon="lock"
       :icon-outlined="mobileLyricsScrollLocked"
@@ -267,7 +267,7 @@ import {
   takeSessionSnapshot,
 } from '@/plyr/pipSession.js';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
-import FloatingButton from '@/components/FloatingButton.vue';
+import FloatingActionButton from '@/components/settings/FloatingActionButton.vue';
 import {
   parsePlaybackTimeFromQuery,
   playbackQueryChanged,
@@ -291,7 +291,7 @@ export default {
   components: {
     AudioPanel,
     LoadingSpinner,
-    FloatingButton,
+    FloatingActionButton,
   },
   props: {
     previewType: {

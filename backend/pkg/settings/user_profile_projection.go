@@ -68,6 +68,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 			LockPassword:               u.LockPassword,
 			DisableSettings:            u.DisableSettings,
 			DisableUpdateNotifications: u.DisableUpdateNotifications,
+			ShowAdvancedProfile:        u.ShowAdvancedProfile,
 			Permissions: UserDefaultsAccountPermissions{
 				Api:      u.Permissions.Api,
 				Admin:    u.Permissions.Admin,
@@ -86,6 +87,7 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.DisableSettings = p.Account.DisableSettings
 	u.LockPassword = p.Account.LockPassword
 	u.DisableUpdateNotifications = p.Account.DisableUpdateNotifications
+	u.ShowAdvancedProfile = p.Account.ShowAdvancedProfile
 	u.Permissions.Api = p.Account.Permissions.Api
 	u.Permissions.Admin = p.Account.Permissions.Admin
 	u.Permissions.Share = p.Account.Permissions.Share

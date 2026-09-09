@@ -6593,6 +6593,10 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsAccountPermissions"
+                },
+                "showAdvancedProfile": {
+                    "description": "show advanced profile settings in the user profile page",
+                    "type": "boolean"
                 }
             }
         },
@@ -7559,6 +7563,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.FrontendScope"
                     }
                 },
+                "showAdvancedProfile": {
+                    "type": "boolean"
+                },
                 "showCopyPath": {
                     "description": "show copy path action in the context menu",
                     "type": "boolean"
@@ -7985,6 +7992,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/users.FrontendScope"
                     }
+                },
+                "showAdvancedProfile": {
+                    "type": "boolean"
                 },
                 "showCopyPath": {
                     "description": "show copy path action in the context menu",
