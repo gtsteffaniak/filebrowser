@@ -111,7 +111,7 @@ export default {
       if (val) this.sectionExpanded = true;
     },
     showAdvancedProfile(val) {
-      if (val) this.sectionExpanded = true;
+      this.sectionExpanded = val;
     },
   },
   mounted() {
