@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.1.0
 
+ **Security**:
+ - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
+
  **New Features**:
  - Added Storage Quotas
    - configurable by folder, source, user, and share.
@@ -33,10 +36,6 @@ All notable changes to this project will be documented in this file. For commit 
  - improved video thumbnail generation speed and efficiency.
  - Added icons based on extension to the upload prompt and new file/folder/rename prompts (#2881).
  - Profile settings show minimal options by default with prompt for advanced options. Full advanced profile settings can be shown by default by enabling `account.showAdvancedSettings`
-
-
- **Security**:
- - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
 
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
