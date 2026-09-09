@@ -220,7 +220,7 @@ import { notify } from "@/notify";
 import { validateLogin } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
-import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
+import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 import {
   GB,
   bytesFromCustomAmount,
@@ -954,7 +954,7 @@ export default {
         }
         if (
           JSON.stringify(getObjectProperty(current.profile, field))
-          !== JSON.stringify(getObjectProperty(orig.profile, field))
+            !== JSON.stringify(getObjectProperty(orig.profile, field))
         ) {
           fields.push(field);
         }
