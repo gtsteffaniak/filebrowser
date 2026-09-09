@@ -533,6 +533,10 @@ export default {
   transition: opacity 0.4s ease !important;
 }
 
+.fab-fade-leave-active {
+  pointer-events: none !important;
+}
+
 .fab-fade-enter-from,
 .fab-fade-leave-to {
   opacity: 0 !important;

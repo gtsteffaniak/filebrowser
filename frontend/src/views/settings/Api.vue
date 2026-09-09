@@ -13,7 +13,7 @@
     <h2>{{ $t("api.title") }}</h2>
   </div>
 
-  <div class="card-content full">
+  <div class="card-content full has-fab-bottom-right">
     <div class="settings-items">
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>

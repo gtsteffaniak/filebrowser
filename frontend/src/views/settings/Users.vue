@@ -14,7 +14,7 @@
     <h2>{{ $t("general.users") }}</h2>
   </div>
 
-  <div class="card-content full">
+  <div class="card-content full has-fab-bottom-right">
     <div v-if="isAdmin" class="settings-items user-defaults-entry">
       <SettingsButton
         class="item"
