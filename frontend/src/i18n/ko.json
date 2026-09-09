@@ -412,7 +412,9 @@
     "selectBannerImage": "배너 이미지 선택",
     "selectFaviconImage": "파비콘 이미지 선택",
     "deleteFailed": "공유를 삭제하지 못했습니다.",
-    "readOnlySourceNotice": "이 소스는 읽기 전용입니다. 파일을 수정하는 업로드 공유 및 권한은 비활성화됩니다."
+    "readOnlySourceNotice": "이 소스는 읽기 전용입니다. 파일을 수정하는 업로드 공유 및 권한은 비활성화됩니다.",
+    "shareDefaults": "기본값 공유",
+    "shareDefaultsDescription": "새 공유에 대한 기본 공유 옵션을 구성하고, 관리자 권한이 없는 사용자에 대해 정책을 적용합니다."
   },
   "api": {
     "createdAt": "만든 곳:",

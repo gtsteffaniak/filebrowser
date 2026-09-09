@@ -70,6 +70,10 @@ func initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to initialize tool access defaults: %w", err)
 	}
 
+	if err = InitShareDefaultsSettings(); err != nil {
+		return existingDb, fmt.Errorf("failed to initialize share defaults settings: %w", err)
+	}
+
 	var userCount int
 	if countErr := sqlDb.DB().QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount); countErr != nil {
 		return existingDb, fmt.Errorf("failed to count users: %w", countErr)

@@ -34,6 +34,7 @@ export const state: StoreState = reactive({
   enforcedUserDefaults: {},
   sidebarLinkDefaultsPolicy: { items: [] },
   toolAccessDefaultsPolicy: { items: [] },
+  shareDefaultsPolicy: { values: {}, enforced: {} },
   usages: {},
   editor: {
     instance: null,

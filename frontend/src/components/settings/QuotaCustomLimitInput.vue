@@ -6,6 +6,7 @@
       min="1"
       :value="amount"
       :aria-label="ariaLabel"
+      :disabled="disabled"
       @input="onAmountInput"
     />
     <ExpandDropdown
@@ -13,6 +14,7 @@
       class="flat-left form-compact form-dropdown"
       :options="unitOptions"
       :aria-label="ariaLabel"
+      :disabled="disabled"
       @update:model-value="onUnitChange"
     />
   </div>
@@ -28,6 +30,7 @@ export default {
     amount: { type: Number, default: 1 },
     unit: { type: String, default: "gb" },
     ariaLabel: { type: String, default: "" },
+    disabled: { type: Boolean, default: false },
   },
   emits: ["update:amount", "update:unit"],
   computed: {

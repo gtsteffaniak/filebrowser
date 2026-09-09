@@ -1,7 +1,12 @@
 import { setActiveViewGrantScope } from "@/api/viewToken.js";
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
-import { getEnforcedUserDefaults, getSidebarLinkDefaultsPolicy, getToolAccessDefaultsPolicy } from "@/api/settings";
+import {
+  getEnforcedUserDefaults,
+  getShareDefaultsPolicy,
+  getSidebarLinkDefaultsPolicy,
+  getToolAccessDefaultsPolicy,
+} from "@/api/settings";
 import { detectLocale, setLocale } from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
@@ -446,6 +451,7 @@ export const mutations = {
         state.user = value;
         state.enforcedUserDefaults = {};
         state.sidebarLinkDefaultsPolicy = { items: [] };
+        state.shareDefaultsPolicy = { values: {}, enforced: {} };
         emitStateChanged();
         return;
       }
@@ -582,6 +588,27 @@ export const mutations = {
       };
     } catch {
       state.toolAccessDefaultsPolicy = { items: [] };
+    }
+    emitStateChanged();
+  },
+  syncShareDefaultsPolicy: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.shareDefaultsPolicy = { values: {}, enforced: {} };
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await getShareDefaultsPolicy();
+      state.shareDefaultsPolicy = {
+        values: data?.values || {},
+        enforced: data?.enforced || {},
+      };
+    } catch {
+      state.shareDefaultsPolicy = { values: {}, enforced: {} };
     }
     emitStateChanged();
   },

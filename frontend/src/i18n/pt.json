@@ -412,7 +412,9 @@
     "selectBannerImage": "Selecionar imagem de banner",
     "selectFaviconImage": "Selecionar a imagem do favicon",
     "deleteFailed": "Falha ao eliminar a partilha",
-    "readOnlySourceNotice": "Esta fonte é apenas de leitura. As partilhas de carregamento e as permissões que modificam ficheiros estão desactivadas."
+    "readOnlySourceNotice": "Esta fonte é apenas de leitura. As partilhas de carregamento e as permissões que modificam ficheiros estão desactivadas.",
+    "shareDefaults": "Partilhar definições predefinidas",
+    "shareDefaultsDescription": "Configurar as opções predefinidas para novas partilhas e aplicar políticas aos utilizadores que não sejam administradores."
   },
   "api": {
     "createdAt": "Criado em:",

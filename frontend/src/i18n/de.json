@@ -412,7 +412,9 @@
     "selectBannerImage": "Bannerbild auswählen",
     "selectFaviconImage": "Favicon-Bild auswählen",
     "deleteFailed": "Freigabe konnte nicht gelöscht werden",
-    "readOnlySourceNotice": "Diese Quelle ist schreibgeschützt. Upload-Freigaben und Berechtigungen, die Dateien ändern, sind deaktiviert."
+    "readOnlySourceNotice": "Diese Quelle ist schreibgeschützt. Upload-Freigaben und Berechtigungen, die Dateien ändern, sind deaktiviert.",
+    "shareDefaults": "Standardwerte für Freigaben",
+    "shareDefaultsDescription": "Konfigurieren Sie die Standardfreigabeoptionen für neue Freigaben und setzen Sie Richtlinien für Benutzer ohne Administratorrechte durch."
   },
   "api": {
     "createdAt": "Erstellt am:",

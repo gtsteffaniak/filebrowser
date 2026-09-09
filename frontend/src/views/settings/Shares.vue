@@ -5,7 +5,16 @@
   </div>
 
   <div class="card-content full">
-    <div class="settings-items">
+    <div v-if="isAdmin" class="settings-items share-defaults-entry">
+      <SettingsButton
+        class="item"
+        :name="$t('share.shareDefaults')"
+        :description="$t('share.shareDefaultsDescription')"
+        @click="openShareDefaultsPrompt"
+      />
+      <ActivityViewerButton class="item" :href="activityViewerHref" />
+    </div>
+    <div v-else class="settings-items">
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
     <settings-table
@@ -90,9 +99,10 @@
 <script>
 import { notify } from "@/notify";
 import { shareApi } from "@/api";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { fromNow } from '@/utils/moment';
@@ -104,6 +114,7 @@ export default {
   components: {
     Errors,
     SettingsTable,
+    SettingsButton,
     ActivityViewerButton,
   },
   data: () => ({
@@ -176,8 +187,19 @@ export default {
     activityViewerHref() {
       return activityViewerPresets.shares();
     },
+    isAdmin() {
+      return getters.isAdmin();
+    },
   },
   methods: {
+    openShareDefaultsPrompt() {
+      mutations.showPrompt({
+        name: "share-defaults",
+        props: {
+          title: this.$t("share.shareDefaults"),
+        },
+      });
+    },
     shareManagementLabel() {
       return this.$t("general.shareManagement");
     },

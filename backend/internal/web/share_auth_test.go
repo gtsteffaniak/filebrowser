@@ -90,14 +90,20 @@ func setupShareAuthTestUsers(t *testing.T) (owner, attacker, admin *users.User) 
 
 func createVictimShare(t *testing.T, ownerID uint64) {
 	t.Helper()
+	createVictimShareWithExpire(t, ownerID, 0)
+}
+
+func createVictimShareWithExpire(t *testing.T, ownerID uint64, expire int64) {
+	t.Helper()
 	victim := &share.Share{
 		ShareSettings: share.ShareSettings{
 			FrontendShareInfo: share.FrontendShareInfo{ShareType: "normal"},
 			ShareLimits:       share.ShareLimits{SourceName: "srv"},
 		},
 		ShareColumns: share.ShareColumns{
-			Hash: victimShareHash,
-			Path: "/",
+			Hash:   victimShareHash,
+			Path:   "/",
+			Expire: expire,
 		},
 		SourcePath: "/srv",
 		UserID:     ownerID,
@@ -161,6 +167,25 @@ func TestSharePostUpdate_AllowsOwner(t *testing.T) {
 	}
 	if got.UserID != owner.ID {
 		t.Fatalf("UserID changed to %d, want owner %d", got.UserID, owner.ID)
+	}
+}
+
+func TestSharePostUpdate_preservesExpireOnPartialUpdate(t *testing.T) {
+	owner, _, _ := setupShareAuthTestUsers(t)
+	const wantExpire int64 = 1893456000
+	createVictimShareWithExpire(t, owner.ID, wantExpire)
+
+	status, err := postShareUpdate(t, owner, victimShareHash, true)
+	if status != http.StatusOK {
+		t.Fatalf("expected 200, got status=%d err=%v", status, err)
+	}
+
+	got, err := state.GetShare(victimShareHash)
+	if err != nil {
+		t.Fatalf("GetShare: %v", err)
+	}
+	if got.Expire != wantExpire {
+		t.Fatalf("Expire=%d want %d after partial update omitting expires", got.Expire, wantExpire)
 	}
 }
 

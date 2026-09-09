@@ -125,6 +125,7 @@ import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
 import UserDefaults from "./UserDefaults.vue";
+import ShareDefaults from "./ShareDefaults.vue";
 import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
 import ToolAccessDefaults from "./ToolAccessDefaults.vue";
 import UserEditTools from "./UserEditTools.vue";
@@ -181,6 +182,7 @@ export default {
     UserDefaults,
     SidebarLinkDefaults,
     ToolAccessDefaults,
+    ShareDefaults,
     UserEditTools,
     UserEditPreferences,
     UserEditSidebarLinks,
@@ -301,7 +303,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "tool-access-defaults" || prompt?.name === "sidebarlinks" || prompt?.name === "user-edit-preferences" || prompt?.name === "user-edit-tools" || prompt?.name === "user-edit-sidebar-links";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "tool-access-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarLinks" || prompt?.name === "sidebarlinks" || prompt?.name === "user-edit-preferences" || prompt?.name === "user-edit-tools" || prompt?.name === "user-edit-sidebar-links";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -381,6 +383,8 @@ export default {
           return this.$t("sidebar.sidebarLinkDefaults");
         case "tool-access-defaults":
           return this.$t("tools.toolAccessDefaults");
+        case "share-defaults":
+          return this.$t("share.shareDefaults");
         case "user-edit-preferences":
           return this.$t("settings.userEditPreferences");
         case "user-edit-tools":
@@ -393,6 +397,7 @@ export default {
           return this.$t("api.createTitle");
         case "actionapi":
           return this.$t("api.title");
+        case "sidebarLinks":
         case "sidebarlinks":
           return this.$t("sidebar.customizeLinks");
         case "password":
