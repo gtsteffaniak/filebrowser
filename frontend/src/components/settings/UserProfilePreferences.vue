@@ -719,26 +719,6 @@
         </div>
       </div>
     </SettingsItem>
-
-    <SettingsItem
-      v-if="sectionVisible('accountOptions')"
-      aria-label="accountOptions"
-      name="accountOptions"
-      :accordion="!sectionKey"
-      :title="$t('profileSettings.accountOptions')"
-      :collapsable="!sectionKey"
-      :hidden="!!sectionKey"
-      :start-collapsed="sectionStartsCollapsed('accountOptions')"
-    >
-      <div class="settings-items">
-        <ProfilePreferenceToggle
-          field="showAdvancedProfile"
-          section="account"
-          :name="$t('profileSettings.showAdvancedProfile')"
-          :description="$t('profileSettings.showAdvancedProfileDescription')"
-        />
-      </div>
-    </SettingsItem>
   </SettingsAccordion>
   </template>
 </template>

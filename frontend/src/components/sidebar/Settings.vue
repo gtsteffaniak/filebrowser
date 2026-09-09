@@ -7,7 +7,7 @@
   </div>
   <template v-for="setting in settings" :key="`${setting.id}-sidebar`">
     <div
-      v-if="setting.id === 'profile' && showAdvancedProfile"
+      v-if="setting.id === 'profile'"
       class="card item settings-card-collapsible"
       :class="{ hidden: !shouldShow(setting) }"
     >
@@ -15,14 +15,20 @@
         role="button"
         class="settings-card-collapsible-header settings-card clickable"
         :class="{ 'active-settings': profileActive }"
-        :aria-expanded="sectionExpanded"
-        @click="expandSection"
+        @click="setView('profile-main')"
       >
         <span class="settings-item-content">
           <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
           {{ settingLabel(setting) }}
         </span>
-        <i class="material-symbols-outlined settings-card-collapsible-chevron" :class="{ rotated: sectionExpanded }">
+        <i
+          v-if="showAdvancedProfile"
+          role="button"
+          class="material-symbols-outlined settings-card-collapsible-chevron"
+          :class="{ rotated: sectionExpanded }"
+          :aria-expanded="sectionExpanded"
+          @click.stop="expandSection"
+        >
           keyboard_arrow_down
         </i>
       </div>
@@ -86,6 +92,10 @@ export default {
     profileActive() {
       return this.isProfileSectionActive;
     },
+    isProfileSubSectionActive() {
+      const hash = state.activeSettingsView || "";
+      return hash.startsWith("profile-") && hash !== "profile-main";
+    },
     profileSections() {
       return this.settings.find((setting) => setting.id === 'profile')?.sections || [];
     },
@@ -94,13 +104,16 @@ export default {
     },
   },
   watch: {
-    isProfileSectionActive: {
+    isProfileSubSectionActive: {
       immediate: true,
       handler(val) {
         if (val) {
           this.sectionExpanded = true;
         }
       },
+    },
+    showAdvancedProfile(val) {
+      this.sectionExpanded = val;
     },
   },
   methods: {

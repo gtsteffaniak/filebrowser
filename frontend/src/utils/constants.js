@@ -27,7 +27,6 @@ const settings = [
       { id: 'searchOptions', label: 'settings.searchOptions', icon: 'search' },
       { id: 'fileViewerOptions', label: 'profileSettings.fileViewerOptions', icon: 'play_circle' },
       { id: 'themeLanguage', label: 'profileSettings.themeAndLanguage', icon: 'palette' },
-      { id: 'accountOptions', label: 'profileSettings.accountOptions', icon: 'manage_accounts' },
     ],
   },
   { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading', icon: 'cloud_download' },

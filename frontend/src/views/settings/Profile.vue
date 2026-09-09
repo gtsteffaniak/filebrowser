@@ -25,7 +25,6 @@
 <script>
 import { notify } from "@/notify";
 import { mutations, state, getters } from "@/store";
-import { router } from "@/router";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import { settings } from "@/utils/constants";
 import {
@@ -56,14 +55,17 @@ export default {
     showAdvancedProfile() {
       return !!this.localuser.showAdvancedProfile;
     },
+    basicSettings() {
+      return (state.activeSettingsView || "") === "profile-main";
+    },
     preferencesMode() {
-      return this.showAdvancedProfile ? "full" : "basic";
+      return this.basicSettings ? "basic" : "full";
     },
     sectionKeyProp() {
-      return this.showAdvancedProfile ? this.activeSectionKey : null;
+      return this.basicSettings ? "" : this.activeSectionKey;
     },
     pageTitle() {
-      if (!this.showAdvancedProfile) {
+      if (this.basicSettings) {
         return this.profileSettingsLabel();
       }
       return this.activeSectionLabel;
@@ -120,16 +122,7 @@ export default {
         document.documentElement.style.setProperty("--primaryColor", color);
       }
     },
-    async onPreferenceChange({ section, field } = {}) {
-      if (section === "account" && field === "showAdvancedProfile") {
-        await this.updateSettings();
-        if (this.localuser.showAdvancedProfile) {
-          void router.push({ path: "/settings", hash: "#profile-accountOptions" }, () => {});
-        } else {
-          mutations.setActiveSettingsView("profile-main");
-        }
-        return;
-      }
+    onPreferenceChange() {
       void this.updateSettings();
     },
     onLocaleChange() {
