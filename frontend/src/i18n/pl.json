@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "Początkowa skala miniatur w galerii lub na liście (1–9) w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje rozmiarów już zapisanych lokalnie.",
     "disableHideSidebar": "Zawsze wyświetlaj pasek boczny",
     "editorQuickSave": "Pokaż przycisk szybkiego zapisywania w edytorze",
-    "editorQuickSaveDescription": "Edytor tekstu wyświetli jedynie ikonę zapisywania, ukrywając wszystkie inne opcje"
+    "editorQuickSaveDescription": "Edytor tekstu wyświetli jedynie ikonę zapisywania, ukrywając wszystkie inne opcje",
+    "showAdvancedProfile": "Pokaż zaawansowane ustawienia profilu",
+    "showAdvancedProfileDescription": "Wyświetlaj ustawienia profilu pogrupowane według kategorii na pasku bocznym zamiast uproszczonego widoku profilu."
   },
   "editor": {
     "stats": {

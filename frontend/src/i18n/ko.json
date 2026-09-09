@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "새로운 브라우저나 기기에서 갤러리 또는 목록의 썸네일 초기 크기(1–9). 이미 로컬에 저장된 크기는 덮어쓰지 않습니다.",
     "disableHideSidebar": "사이드바 항상 표시",
     "editorQuickSave": "편집기에 빠른 저장 버튼 표시",
-    "editorQuickSaveDescription": "텍스트 편집기에는 저장 아이콘만 표시되고, 다른 모든 작업은 숨겨집니다."
+    "editorQuickSaveDescription": "텍스트 편집기에는 저장 아이콘만 표시되고, 다른 모든 작업은 숨겨집니다.",
+    "showAdvancedProfile": "고급 프로필 설정 표시",
+    "showAdvancedProfileDescription": "간소화된 프로필 보기 대신 사이드바에 분류별 프로필 설정을 표시합니다."
   },
   "editor": {
     "stats": {

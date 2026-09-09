@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "A galéria vagy lista miniatűrjeinek kezdeti mérete (1–9) új böngészőkön vagy eszközökön. A már helyileg elmentett méreteket nem írja felül.",
     "disableHideSidebar": "Az oldalsávot mindig mutasd”",
     "editorQuickSave": "A gyorsmentés gomb megjelenítése a szerkesztőben",
-    "editorQuickSaveDescription": "A szövegszerkesztő csak a mentés gombot jeleníti meg, az összes többi műveletet elrejti"
+    "editorQuickSaveDescription": "A szövegszerkesztő csak a mentés gombot jeleníti meg, az összes többi műveletet elrejti",
+    "showAdvancedProfile": "A profil speciális beállításainak megjelenítése",
+    "showAdvancedProfileDescription": "Az egyszerűsített profilnézet helyett az oldalsávban jelenítse meg a kategóriák szerint csoportosított profilbeállításokat."
   },
   "editor": {
     "stats": {

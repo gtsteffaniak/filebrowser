@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "新しいブラウザやデバイスでのギャラリーまたはリストのサムネイルの初期スケール（1～9）。ローカルにすでに保存されているサイズを上書きすることはありません。",
     "disableHideSidebar": "サイドバーを常に表示する",
     "editorQuickSave": "エディタにクイックセーブボタンを表示する",
-    "editorQuickSaveDescription": "テキストエディタには保存アイコンのみが表示され、その他の操作は非表示になります"
+    "editorQuickSaveDescription": "テキストエディタには保存アイコンのみが表示され、その他の操作は非表示になります",
+    "showAdvancedProfile": "詳細なプロフィール設定を表示する",
+    "showAdvancedProfileDescription": "簡易プロフィール表示の代わりに、サイドバーに分類されたプロフィール設定を表示します。"
   },
   "editor": {
     "stats": {

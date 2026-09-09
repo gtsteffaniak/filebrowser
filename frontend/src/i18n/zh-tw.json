@@ -535,7 +535,9 @@
     "defaultGallerySizeDescription": "在新瀏覽器或裝置上顯示的初始圖庫或清單縮圖比例（1–9）。此設定不會覆寫已儲存於本地的尺寸。",
     "disableHideSidebar": "始終顯示側邊欄",
     "editorQuickSave": "在編輯器中顯示「快速儲存」按鈕",
-    "editorQuickSaveDescription": "文字編輯器將僅顯示儲存圖示，並隱藏其他所有操作"
+    "editorQuickSaveDescription": "文字編輯器將僅顯示儲存圖示，並隱藏其他所有操作",
+    "showAdvancedProfile": "顯示進階個人資料設定",
+    "showAdvancedProfileDescription": "在側邊欄中顯示分類後的個人資料設定，而非簡化版個人資料檢視。"
   },
   "otp": {
     "name": "雙因素驗證",

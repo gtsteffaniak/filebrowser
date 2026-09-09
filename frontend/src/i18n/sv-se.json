@@ -566,7 +566,9 @@
     "defaultGallerySizeDescription": "Initial skala för miniatyrbilder i gallerier eller listor (1–9) i nya webbläsare eller på nya enheter. Åsidosätter inte storlekar som redan sparats lokalt.",
     "disableHideSidebar": "Visa alltid sidofältet",
     "editorQuickSave": "Visa knappen för snabbsparning i redigeraren",
-    "editorQuickSaveDescription": "Textredigeraren visar endast spara-ikonen och döljer alla andra åtgärder"
+    "editorQuickSaveDescription": "Textredigeraren visar endast spara-ikonen och döljer alla andra åtgärder",
+    "showAdvancedProfile": "Visa avancerade profilinställningar",
+    "showAdvancedProfileDescription": "Visa de kategoriserade profilinställningarna i sidofältet istället för den förenklade profilvyn."
   },
   "general": {
     "import": "Importera",

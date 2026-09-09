@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "Počiatočné zväčšenie miniatúr v galérii alebo zozname (1–9) v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje veľkosti, ktoré sú už uložené lokálne.",
     "disableHideSidebar": "Vždy zobraziť bočný panel",
     "editorQuickSave": "Zobraziť tlačidlo rýchleho uloženia v editore",
-    "editorQuickSaveDescription": "Textový editor zobrazí iba ikonu uloženia a všetky ostatné akcie skryje"
+    "editorQuickSaveDescription": "Textový editor zobrazí iba ikonu uloženia a všetky ostatné akcie skryje",
+    "showAdvancedProfile": "Zobraziť pokročilé nastavenia profilu",
+    "showAdvancedProfileDescription": "Zobraziť nastavenia profilu podľa kategórií v bočnom paneli namiesto zjednodušeného zobrazenia profilu."
   },
   "editor": {
     "stats": {

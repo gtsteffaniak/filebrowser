@@ -566,7 +566,9 @@
     "defaultGallerySizeDescription": "在新浏览器或设备上显示的图库或列表缩略图初始缩放比例（1–9）。不会覆盖已保存在本地中的尺寸设置。",
     "disableHideSidebar": "始终显示侧边栏",
     "editorQuickSave": "在编辑器中显示“快速保存”按钮",
-    "editorQuickSaveDescription": "文本编辑器只会显示“保存”图标，隐藏其他所有操作"
+    "editorQuickSaveDescription": "文本编辑器只会显示“保存”图标，隐藏其他所有操作",
+    "showAdvancedProfile": "显示高级个人资料设置",
+    "showAdvancedProfileDescription": "在侧边栏中显示分类后的个人资料设置，而不是简化版个人资料视图。"
   },
   "general": {
     "import": "导入",

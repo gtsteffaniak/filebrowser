@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já salvos localmente.",
     "disableHideSidebar": "Sempre exibir a barra lateral",
     "editorQuickSave": "Mostrar o botão de salvamento rápido no editor",
-    "editorQuickSaveDescription": "O editor de texto exibirá apenas o ícone de salvar, ocultando todas as outras ações"
+    "editorQuickSaveDescription": "O editor de texto exibirá apenas o ícone de salvar, ocultando todas as outras ações",
+    "showAdvancedProfile": "Mostrar configurações avançadas do perfil",
+    "showAdvancedProfileDescription": "Mostrar as configurações do perfil categorizadas na barra lateral, em vez da visualização simplificada do perfil."
   },
   "editor": {
     "stats": {

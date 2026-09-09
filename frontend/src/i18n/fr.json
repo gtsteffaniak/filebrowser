@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "Échelle initiale des vignettes de la galerie ou de la liste (1 à 9) sur les nouveaux navigateurs ou appareils. Ne remplace pas les tailles déjà enregistrées localement.",
     "disableHideSidebar": "Toujours afficher la barre latérale",
     "editorQuickSave": "Afficher le bouton « Enregistrement rapide » dans l'éditeur",
-    "editorQuickSaveDescription": "L'éditeur de texte n'affichera que l'icône d'enregistrement, en masquant toutes les autres actions"
+    "editorQuickSaveDescription": "L'éditeur de texte n'affichera que l'icône d'enregistrement, en masquant toutes les autres actions",
+    "showAdvancedProfile": "Afficher les paramètres avancés du profil",
+    "showAdvancedProfileDescription": "Afficher les paramètres de profil classés par catégorie dans la barre latérale, au lieu de l'affichage simplifié du profil."
   },
   "editor": {
     "stats": {

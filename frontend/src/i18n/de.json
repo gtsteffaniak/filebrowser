@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "Anfängliche Skalierung der Miniaturansichten in Galerien oder Listen (1–9) bei neuen Browsern oder Geräten. Überschreibt keine bereits lokal gespeicherten Größen.",
     "disableHideSidebar": "Seitenleiste immer anzeigen",
     "editorQuickSave": "Schaltfläche „Schnellspeichern“ im Editor anzeigen",
-    "editorQuickSaveDescription": "Der Texteditor zeigt nur das Speichersymbol an und blendet alle anderen Funktionen aus."
+    "editorQuickSaveDescription": "Der Texteditor zeigt nur das Speichersymbol an und blendet alle anderen Funktionen aus.",
+    "showAdvancedProfile": "Erweiterte Profileinstellungen anzeigen",
+    "showAdvancedProfileDescription": "Zeige die nach Kategorien geordneten Profileinstellungen in der Seitenleiste anstelle der vereinfachten Profilansicht an."
   },
   "editor": {
     "stats": {

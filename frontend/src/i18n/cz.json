@@ -403,7 +403,9 @@
     "defaultGallerySizeDescription": "Výchozí měřítko miniatur v galerii nebo seznamu (1–9) v nových prohlížečích nebo na nových zařízeních. Nepřepíše velikosti, které jsou již uloženy lokálně.",
     "disableHideSidebar": "Vždy zobrazovat postranní panel",
     "editorQuickSave": "Zobrazit tlačítko pro rychlé uložení v editoru",
-    "editorQuickSaveDescription": "Textový editor zobrazí pouze ikonu pro uložení a skryje všechny ostatní akce"
+    "editorQuickSaveDescription": "Textový editor zobrazí pouze ikonu pro uložení a skryje všechny ostatní akce",
+    "showAdvancedProfile": "Zobrazit pokročilá nastavení profilu",
+    "showAdvancedProfileDescription": "Zobrazit nastavení profilu rozdělená do kategorií v postranním panelu namísto zjednodušeného zobrazení profilu."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

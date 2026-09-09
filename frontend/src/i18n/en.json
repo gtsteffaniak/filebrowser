@@ -556,7 +556,6 @@
     "disableUpdateNotificationsDescription": "Disable the update notification banner that shows up for admin users on the sidebar.",
     "showAdvancedProfile": "Show advanced profile settings",
     "showAdvancedProfileDescription": "Show categorized profile settings in the sidebar instead of the simplified profile view.",
-    "advancedOptionsIntro": "Enable advanced profile settings under Account to access all profile options organized by category in the settings sidebar.",
     "disableHideSidebar": "Always show sidebar",
     "disableHideSidebarDescription": "When enabled, the sidebar will not hide automatically when previewing or editing files.",
     "autoplayMedia": "Autoplay media files when viewing",

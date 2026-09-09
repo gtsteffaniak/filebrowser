@@ -751,7 +751,9 @@
     "defaultGallerySizeDescription": "Scala inițială a miniaturilor din galerie sau listă (1–9) pe browserele sau dispozitivele noi. Nu înlocuiește dimensiunile deja salvate local.",
     "disableHideSidebar": "Afișează întotdeauna bara laterală",
     "editorQuickSave": "Afișează butonul de salvare rapidă în editor",
-    "editorQuickSaveDescription": "Editorul de text va afișa doar pictograma de salvare, ascunzând orice alte acțiuni"
+    "editorQuickSaveDescription": "Editorul de text va afișa doar pictograma de salvare, ascunzând orice alte acțiuni",
+    "showAdvancedProfile": "Afișează setările avansate ale profilului",
+    "showAdvancedProfileDescription": "Afișează setările de profil clasificate în bara laterală, în locul vizualizării simplificate a profilului."
   },
   "editor": {
     "stats": {
