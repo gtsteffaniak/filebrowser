@@ -56,7 +56,9 @@ export default {
       return !!this.localuser.showAdvancedProfile;
     },
     basicSettings() {
-      return (state.activeSettingsView || "") === "profile-main";
+      const hash = state.activeSettingsView || "";
+      if (hash === "profile-main") return true;
+      return hash.startsWith("profile-") && !this.showAdvancedProfile;
     },
     preferencesMode() {
       return this.basicSettings ? "basic" : "full";
