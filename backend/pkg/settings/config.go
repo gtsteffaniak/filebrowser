@@ -975,6 +975,7 @@ func SetDefaults(generate bool) Settings {
 				DisableSettings:            false,
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
+				ShowAdvancedProfile:        false,
 			},
 		},
 	}

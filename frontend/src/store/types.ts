@@ -195,6 +195,7 @@ export interface UserObject {
   permissions: Permissions;
   darkMode: boolean;
   disableSettings: boolean;
+  showAdvancedProfile?: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;

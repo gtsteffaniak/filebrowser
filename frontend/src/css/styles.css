@@ -503,8 +503,6 @@ button.flat-right.flat-left,
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    margin-bottom: 1em;
-    margin-top: -0.5em;
 }
 
 .form-flex-group>.form-compact {

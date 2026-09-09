@@ -83,19 +83,39 @@ function scanVueAndTemplates(icons) {
     'g',
   );
   const iconProp = new RegExp(`\\bicon="(${ICON_NAME})"`, 'g');
-  const ternaryIcons = new RegExp(
-    `\\?\\s*["'](${ICON_NAME})["']\\s*:\\s*["'](${ICON_NAME})["']`,
-    'g',
-  );
+  const ternaryIconPatterns = [
+    // :icon="cond ? 'foo' : 'bar'"
+    new RegExp(
+      `:icon=["'][^"']*\\?\\s*["'](${ICON_NAME})["']\\s*:\\s*["'](${ICON_NAME})["']`,
+      'g',
+    ),
+    // <i class="material-symbols">{{ cond ? 'foo' : 'bar' }}</i>
+    new RegExp(
+      `material-symbols[^>]*>\\s*\\{\\{[^}]*\\?\\s*["'](${ICON_NAME})["']\\s*:\\s*["'](${ICON_NAME})["']`,
+      'g',
+    ),
+    // this.skipFeedbackIcon = cond ? 'foo' : 'bar'
+    new RegExp(
+      `skipFeedbackIcon\\s*=\\s*[^;]*\\?\\s*["'](${ICON_NAME})["']\\s*:\\s*["'](${ICON_NAME})["']`,
+      'g',
+    ),
+    // iconName(), thumbIcon(), etc.
+    new RegExp(
+      `\\b\\w*Icon\\w*\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\?\\s*["'](${ICON_NAME})["']\\s*:\\s*["'](${ICON_NAME})["']`,
+      'g',
+    ),
+  ];
 
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf8');
     for (const match of content.matchAll(materialTag)) addIcon(icons, match[1]);
     for (const match of content.matchAll(materialInHtml)) addIcon(icons, match[1]);
     for (const match of content.matchAll(iconProp)) addIcon(icons, match[1]);
-    for (const match of content.matchAll(ternaryIcons)) {
-      addIcon(icons, match[1]);
-      addIcon(icons, match[2]);
+    for (const pattern of ternaryIconPatterns) {
+      for (const match of content.matchAll(pattern)) {
+        addIcon(icons, match[1]);
+        addIcon(icons, match[2]);
+      }
     }
   }
 }
