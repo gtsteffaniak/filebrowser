@@ -35,6 +35,27 @@
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')"
       />
+      <div
+        v-if="enforceable || account.maxConcurrentTranscodes !== undefined"
+        class="settings-number-input item"
+      >
+        <div class="no-padding">
+          <label :for="maxConcurrentTranscodesInputId">{{ $t('settings.maxConcurrentTranscodes') }}</label>
+          <HelpTooltipIcon :text="$t('settings.maxConcurrentTranscodesHelp')" />
+        </div>
+        <div class="no-padding">
+          <input
+            :id="maxConcurrentTranscodesInputId"
+            class="sizeInput input"
+            type="number"
+            min="1"
+            step="1"
+            v-model.number="account.maxConcurrentTranscodes"
+            @change="$emit('account-change', 'maxConcurrentTranscodes')"
+            :disabled="isFieldDisabled('maxConcurrentTranscodes')"
+          />
+        </div>
+      </div>
     </div>
     <div class="settings-items">
       <h3>{{ $t("general.permissions") }}</h3>
@@ -90,6 +111,7 @@
 <script>
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
 
 export default {
@@ -97,6 +119,7 @@ export default {
   components: {
     SettingsItem,
     ToggleSwitch,
+    HelpTooltipIcon,
   },
   props: {
     startCollapsed: {
@@ -129,6 +152,11 @@ export default {
     },
   },
   emits: ["account-change", "enforced-change", "enforced-permission-change"],
+  computed: {
+    maxConcurrentTranscodesInputId() {
+      return `maxConcurrentTranscodes-${this._uid}`;
+    },
+  },
   methods: {
     isFieldLocked(field) {
       return this.configLockedPaths.includes(`account.${field}`);
@@ -181,3 +209,23 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.settings-number-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1em;
+}
+
+.settings-number-input div {
+  display: flex;
+  padding: 0.5em;
+  align-items: center;
+}
+
+.settings-number-input .no-padding {
+  padding: 0;
+}
+</style>

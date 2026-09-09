@@ -137,11 +137,21 @@ type OnlyOffice struct {
 }
 
 type Media struct {
-	FfmpegPath               string        `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	Convert                  FfmpegConvert `json:"convert"`                  // config for ffmpeg conversion settings
-	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
-	HardwareAcceleration     bool          `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
+	FfmpegPath               string          `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	Convert                  FfmpegConvert   `json:"convert"`                  // config for ffmpeg conversion settings
+	Debug                    bool            `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	ExtractEmbeddedSubtitles bool            `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
+	HardwareAcceleration     bool            `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
+	Transcode                MediaTranscode  `json:"transcode"`                // HLS transcoding for media playback
+}
+
+// MediaTranscode configures authenticated HLS transcoding (disabled by default).
+type MediaTranscode struct {
+	Enabled         bool `json:"enabled"`         // enable HLS transcoding for authenticated playback (default: false)
+	MaxConcurrent   int  `json:"maxConcurrent"`   // global concurrent transcode sessions (default: 2)
+	MaxResolution   int  `json:"maxResolution"`   // maximum output height in pixels (default: 1080)
+	CacheMaxSizeMB  int  `json:"cacheMaxSizeMB"`  // disk cache size limit in MB; 0 = unlimited (default: 10240)
+	CacheRetentionH int  `json:"cacheRetentionH"` // completed cache retention in hours (default: 24)
 }
 
 type FfmpegConvert struct {
@@ -414,6 +424,7 @@ type UserDefaultsAccount struct {
 	DisableSettings            bool                           `json:"disableSettings"`            // disable the user from viewing the settings page
 	LoginMethod                string                         `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                           `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
+	MaxConcurrentTranscodes    int                            `json:"maxConcurrentTranscodes"`    // per-user concurrent transcode sessions (default: 1)
 }
 
 // UserDefaults is a type that holds the default values for some fields on User.

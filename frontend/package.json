@@ -32,6 +32,7 @@
     "dompurify": "^3.2.4",
     "epubjs": "^0.3.93",
     "highlight.js": "^11.11.1",
+    "hls.js": "^1.7.2",
     "js-yaml": "^4.3.0",
     "katex": "^0.17.0",
     "mammoth": "^1.9.1",

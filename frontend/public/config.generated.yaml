@@ -231,6 +231,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     disableSettings: false                # disable the user from viewing the settings page
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
+    maxConcurrentTranscodes: 1            # per-user concurrent transcode sessions (default: 1)
 shareDefaults:                            # optional defaults for new shares; managed in the UI
   shareTheme: ""
   disableAnonymous: false
@@ -299,6 +300,12 @@ integrations:
     debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
     extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
     hardwareAcceleration: false           # enable hardware acceleration for ffmpeg if available
+    transcode:                            # HLS transcoding for media playback
+      enabled: false                      # enable HLS transcoding for authenticated playback (default: false)
+      maxConcurrent: 2                    # global concurrent transcode sessions (default: 2)
+      maxResolution: 1080                 # maximum output height in pixels (default: 1080)
+      cacheMaxSizeMB: 10240               # disk cache size limit in MB; 0 = unlimited (default: 10240)
+      cacheRetentionH: 24                 # completed cache retention in hours (default: 24)
 http:
   socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key

@@ -368,8 +368,29 @@ func setupMedia(generate bool) {
 		Config.Integrations.Media.Convert.VideoPreview[k] = v
 	}
 
+	setupMediaTranscode()
+
 	if !generate && !isGoTest() {
 		setupFFmpegIntegration()
+	}
+}
+
+func setupMediaTranscode() {
+	t := &Config.Integrations.Media.Transcode
+	if t.MaxConcurrent <= 0 {
+		t.MaxConcurrent = 2
+	}
+	if t.MaxResolution <= 0 {
+		t.MaxResolution = 1080
+	}
+	if t.CacheMaxSizeMB < 0 {
+		t.CacheMaxSizeMB = 0
+	}
+	if t.CacheMaxSizeMB == 0 && !t.Enabled {
+		t.CacheMaxSizeMB = 10240
+	}
+	if t.CacheRetentionH <= 0 {
+		t.CacheRetentionH = 24
 	}
 }
 
@@ -383,12 +404,16 @@ func setupFFmpegIntegration() {
 		n = 4
 	}
 	maxDecode := (n + 1) / 2
+	maxEncode := Config.Integrations.Media.Transcode.MaxConcurrent
+	if maxEncode < 1 {
+		maxEncode = 2
+	}
 	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
 		FFmpegPath: Config.Integrations.Media.FfmpegPath,
 		Concurrency: goffmpeg.Concurrency{
 			MaxProbe:  16,
 			MaxDecode: maxDecode,
-			MaxEncode: 2,
+			MaxEncode: maxEncode,
 		},
 		CacheDir:             Config.Server.CacheDir,
 		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
@@ -975,6 +1000,7 @@ func SetDefaults(generate bool) Settings {
 				DisableSettings:            false,
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
+				MaxConcurrentTranscodes:    1,
 			},
 		},
 	}
@@ -986,6 +1012,13 @@ func SetDefaults(generate bool) Settings {
 	s.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]*bool)
 	for _, t := range AllVideoPreviewTypes {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
+	}
+	s.Integrations.Media.Transcode = MediaTranscode{
+		Enabled:         false,
+		MaxConcurrent:   2,
+		MaxResolution:   1080,
+		CacheMaxSizeMB:  10240,
+		CacheRetentionH: 24,
 	}
 	return s
 }
@@ -1061,6 +1094,53 @@ func PWAIconsCacheDir() string {
 // Where transient archives for multi-request (Range) downloads are stored to support chunked downloads.
 func DownloadCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "downloads")
+}
+
+// TranscodeCacheDir is where HLS transcode output is cached on disk.
+func TranscodeCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "transcoding")
+}
+
+// TranscodeEnabled reports whether authenticated HLS transcoding is enabled.
+func TranscodeEnabled() bool {
+	return Config.Integrations.Media.Transcode.Enabled && Env.FFmpegAvailable
+}
+
+// TranscodeMaxConcurrent returns the global transcode session limit.
+func TranscodeMaxConcurrent() int {
+	n := Config.Integrations.Media.Transcode.MaxConcurrent
+	if n < 1 {
+		return 2
+	}
+	return n
+}
+
+// TranscodeMaxResolution returns the configured maximum output height.
+func TranscodeMaxResolution() int {
+	n := Config.Integrations.Media.Transcode.MaxResolution
+	if n < 1 {
+		return 1080
+	}
+	return n
+}
+
+// TranscodeCacheMaxSizeBytes returns the configured disk cache limit in bytes.
+// Zero means unlimited.
+func TranscodeCacheMaxSizeBytes() int64 {
+	mb := Config.Integrations.Media.Transcode.CacheMaxSizeMB
+	if mb <= 0 {
+		return 0
+	}
+	return int64(mb) * 1024 * 1024
+}
+
+// TranscodeCacheRetention returns how long inactive cache generations are kept.
+func TranscodeCacheRetention() time.Duration {
+	h := Config.Integrations.Media.Transcode.CacheRetentionH
+	if h <= 0 {
+		return 24 * time.Hour
+	}
+	return time.Duration(h) * time.Hour
 }
 
 // PrepareDownloadSpoolDir creates the download spool directory and removes any leftover dl-archive-*

@@ -13,12 +13,12 @@
         @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
 
       <!-- Media: load full metadata + album art from media API before mounting plyr so the correct view/art is stable. -->
-      <div v-else-if="previewType === 'audio' || previewType === 'video'" class="av-preview-wrap">
+      <div v-else-if="previewType === 'audio' || (previewType === 'video' && showVideoPlayer)" class="av-preview-wrap">
         <div v-if="avMetadataLoading" class="av-preview-loading">
           <LoadingSpinner size="medium" />
         </div>
         <plyrViewer v-else
-          :key="req.path"
+          :key="plyrViewerKey"
           ref="plyrViewer"
           :previewType="previewType"
           :raw="raw"
@@ -27,12 +27,51 @@
           :req="req"
           :listing="listing"
           :autoPlayEnabled="autoPlay"
+          :startTranscode="transcodePlaybackActive"
+          :sharedTranscodePlayback="transcodePlaybackController"
           @play="autoPlay = true"
+          @needs-transcode="handleVideoTranscodeOffer"
           :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
           @close-preview="exitPreviewFromImageGesture"
         />
+      </div>
+
+      <div v-else-if="previewType === 'video' && videoTranscodeOffer" class="info">
+        <div class="title">
+          <i class="material-symbols">feedback</i>
+          {{ transcodeOfferTitle }}
+        </div>
+        <p v-if="showTranscodeOfferDetail" class="transcode-offer-message">{{ transcodeOfferMessage }}</p>
+        <ul v-if="showTranscodeSessionList" class="transcode-session-list">
+          <li v-for="sess in videoTranscodeOffer.sessions" :key="sess.id">
+            {{ sess.fileName || sess.path }}
+            <span v-if="sess.source" class="transcode-session-source">{{ `(${sess.source})` }}</span>
+          </li>
+        </ul>
+        <div class="preview-buttons">
+          <button
+            v-if="videoTranscodeOffer.mode === 'offer'"
+            type="button"
+            class="button button--flat"
+            @click="startVideoTranscode"
+          >
+            <div>
+              <i class="material-symbols">sync</i>{{ $t("general.transcode") }}
+            </div>
+          </button>
+          <a target="_blank" :href="downloadUrl" class="button button--flat" v-if="permissions.download">
+            <div>
+              <i class="material-symbols">file_download</i>{{ $t("general.download") }}
+            </div>
+          </a>
+          <a target="_blank" :href="openFileUrl" class="button button--flat" v-if="permissions.download && req.type !== 'directory'">
+            <div>
+              <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
+            </div>
+          </a>
+        </div>
       </div>
 
       <div v-else-if="isPdf" class="pdf-wrapper">
@@ -76,10 +115,19 @@ import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
 import { parseLyrics } from "@/utils/lyrics";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { getTranscodeSessions } from "@/api/transcode.js";
+import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative.js";
+import {
+  buildPlaybackQueryPatch,
+  parsePlaybackTimeFromQuery,
+  parseTranscodeModeFromQuery,
+  playbackQueryChanged,
+} from "@/utils/playbackQuery.js";
 import {
   hasActiveSession as hasActivePipSession,
   pendingInlineResumeFor,
 } from "@/plyr/pipSession.js";
+import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
 
 export default {
   name: "preview",
@@ -103,6 +151,10 @@ export default {
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
       listingKey: null,
+      videoTranscodeOffer: null,
+      transcodePlaybackActive: false,
+      transcodePlaybackController: null,
+      lastVideoPreviewPath: null,
     };
   },
   computed: {
@@ -266,6 +318,46 @@ export default {
     disableFileViewer() {
       return state.shareInfo.disableFileViewer;
     },
+    showVideoPlayer() {
+      return !this.videoTranscodeOffer;
+    },
+    plyrViewerKey() {
+      return `${state.req.path}-${this.transcodePlaybackActive ? 'transcode' : 'native'}`;
+    },
+    transcodeOfferMessage() {
+      if (!this.videoTranscodeOffer) {
+        return '';
+      }
+      switch (this.videoTranscodeOffer.mode) {
+        case 'user_limit':
+          return this.$t('player.transcodeUserLimitReached');
+        case 'system_limit':
+          return this.$t('player.transcodeSystemLimitReached', {
+            limit: this.videoTranscodeOffer.systemLimit,
+          });
+        default:
+          return this.$t('player.transcodeUnsupportedFormat');
+      }
+    },
+    transcodeOfferTitle() {
+      if (!this.videoTranscodeOffer) {
+        return '';
+      }
+      if (this.videoTranscodeOffer.mode === 'offer') {
+        return this.$t('player.transcodeUnsupportedFormat');
+      }
+      return this.$t('files.noPreview');
+    },
+    showTranscodeOfferDetail() {
+      return this.videoTranscodeOffer?.mode !== 'offer';
+    },
+    showTranscodeSessionList() {
+      const mode = this.videoTranscodeOffer?.mode;
+      if (!mode || mode === 'offer') {
+        return false;
+      }
+      return (this.videoTranscodeOffer.sessions?.length > 0);
+    },
   },
   watch: {
     req: {
@@ -281,6 +373,7 @@ export default {
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
     this.$refs.plyrViewer?.destroyPlyr?.();
+    this.disposeTranscodePlaybackController();
     // Clear navigation state when leaving preview
     mutations.clearNavigation();
   },
@@ -312,13 +405,19 @@ export default {
         return;
       }
       this.isDeleted = false;
+      const path = state.req.path;
+      if (this.previewType === 'video' && this.lastVideoPreviewPath !== path) {
+        this.disposeTranscodePlaybackController();
+        this.videoTranscodeOffer = null;
+        this.transcodePlaybackActive = false;
+        this.lastVideoPreviewPath = path;
+      }
       const currentDirectoryPath = removeLastDir(state.req.path) || '/';
       const currentListingKey = this.listingContextKey(currentDirectoryPath);
       if (this.listingKey !== currentListingKey) {
         this.listing = null;
       }
 
-      const path = state.req.path;
       if (
         state.req.type !== "directory"
         && !getters.fileViewingDisabled(state.req.name)
@@ -367,6 +466,7 @@ export default {
             if (state.req.path !== path) {
               return;
             }
+            await this.checkProactiveVideoTranscodeOffer(path);
           } finally {
             if (state.req.path === path) {
               this.avMetadataLoading = false;
@@ -687,6 +787,121 @@ export default {
       const parentPath = removeLastDir(state.route.path);
       this.$router.push({ path: parentPath });
     },
+    clearTranscodeFromUrl() {
+      const hasTranscode = parseTranscodeModeFromQuery(this.$route?.query);
+      const hasTime = parsePlaybackTimeFromQuery(this.$route?.query) !== null;
+      if (!hasTranscode && !hasTime) {
+        return;
+      }
+      const nextQuery = buildPlaybackQueryPatch(this.$route.query, {
+        transcodeMode: null,
+        time: null,
+      });
+      if (!playbackQueryChanged(this.$route.query, nextQuery)) {
+        return;
+      }
+      this.$router.replace({
+        path: this.$route.path,
+        query: nextQuery,
+        hash: this.$route.hash,
+      });
+    },
+    /** Offer transcode UI before mounting plyr when metadata indicates native playback will fail. */
+    async checkProactiveVideoTranscodeOffer(expectedPath) {
+      if (state.req.path !== expectedPath) {
+        return;
+      }
+      if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
+        return;
+      }
+      if (this.transcodePlaybackActive || parseTranscodeModeFromQuery(this.$route?.query)) {
+        return;
+      }
+      const meta = state.req.metadata || {};
+      if (!needsTranscodeFirst({
+        videoCodec: meta.videoCodec,
+        audioCodec: meta.audioCodec,
+        mimeType: state.req.type,
+        fileName: state.req.name,
+      })) {
+        return;
+      }
+      try {
+        const status = await getTranscodeSessions();
+        if (state.req.path !== expectedPath) {
+          return;
+        }
+        this.handleVideoTranscodeOffer(this.normalizeTranscodeSessionStatus(status));
+      } catch (err) {
+        console.warn('Failed to check transcode for unsupported format:', err);
+      }
+    },
+    disposeTranscodePlaybackController({ stopSession = true } = {}) {
+      if (!this.transcodePlaybackController) {
+        return;
+      }
+      this.transcodePlaybackController.dispose({ stopSession });
+      this.transcodePlaybackController = null;
+    },
+    /** plyrViewer failed native playback or detected an unsupported container. */
+    handleVideoTranscodeOffer(status) {
+      if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
+        return;
+      }
+      this.disposeTranscodePlaybackController({ stopSession: true });
+      status = this.normalizeTranscodeSessionStatus(status);
+      let mode = 'offer';
+      if (!status.canStart) {
+        if (status.blockReason === 'user_limit') {
+          mode = 'user_limit';
+        } else if (status.blockReason === 'global_limit') {
+          mode = 'system_limit';
+        }
+      }
+      this.transcodePlaybackActive = false;
+      this.videoTranscodeOffer = {
+        mode,
+        sessions: status.sessions || [],
+        systemLimit: status.globalLimit,
+        userLimit: status.userLimit,
+      };
+      if (mode === 'offer') {
+        this.clearTranscodeFromUrl();
+      }
+    },
+    normalizeTranscodeSessionStatus(status) {
+      if (!status || status.canStart || status.blockReason !== 'user_limit') {
+        return status;
+      }
+      const sameFileActive = (status.sessions || []).some(
+        (session) => session.source === state.req.source && session.path === state.req.path,
+      );
+      if (!sameFileActive) {
+        return status;
+      }
+      return { ...status, canStart: true, blockReason: '' };
+    },
+    async startVideoTranscode() {
+      if (this.transcodePlaybackActive) {
+        this.videoTranscodeOffer = null;
+        return;
+      }
+      try {
+        let status = await getTranscodeSessions();
+        status = this.normalizeTranscodeSessionStatus(status);
+        if (!status.canStart) {
+          this.handleVideoTranscodeOffer(status);
+          return;
+        }
+        if (!this.transcodePlaybackController || this.transcodePlaybackController.disposed) {
+          this.transcodePlaybackController = new TranscodePlaybackController();
+        }
+        this.videoTranscodeOffer = null;
+        this.transcodePlaybackActive = true;
+      } catch (err) {
+        console.error('Failed to verify transcode availability:', err);
+      }
+    },
   },
 };
 </script>
@@ -790,6 +1005,26 @@ export default {
   justify-content: center;
   width: 100%;
   min-height: 12rem;
+}
+
+.transcode-offer-message {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.transcode-session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  text-align: center;
+}
+
+.transcode-session-list li {
+  margin: 0.25rem 0;
+}
+
+.transcode-session-source {
+  opacity: 0.7;
 }
 
 </style>

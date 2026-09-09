@@ -274,6 +274,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"passwordAvailable":      settings.Config.Auth.Methods.PasswordAuth.Enabled,
 		"ldapAvailable":          settings.Config.Auth.Methods.LdapAuth.Enabled,
 		"mediaAvailable":         settings.MediaEnabled(),
+		"transcodeEnabled":       settings.TranscodeEnabled(),
 		"muPdfAvailable":         settings.Env.MuPdfAvailable,
 		"updateAvailable":        utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":      disableNavButtons,

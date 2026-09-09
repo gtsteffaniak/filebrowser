@@ -68,6 +68,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 			LockPassword:               u.LockPassword,
 			DisableSettings:            u.DisableSettings,
 			DisableUpdateNotifications: u.DisableUpdateNotifications,
+			MaxConcurrentTranscodes:    u.MaxConcurrentTranscodes,
 			Permissions: UserDefaultsAccountPermissions{
 				Api:      u.Permissions.Api,
 				Admin:    u.Permissions.Admin,
@@ -86,6 +87,9 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.DisableSettings = p.Account.DisableSettings
 	u.LockPassword = p.Account.LockPassword
 	u.DisableUpdateNotifications = p.Account.DisableUpdateNotifications
+	if p.Account.MaxConcurrentTranscodes > 0 {
+		u.MaxConcurrentTranscodes = p.Account.MaxConcurrentTranscodes
+	}
 	u.Permissions.Api = p.Account.Permissions.Api
 	u.Permissions.Admin = p.Account.Permissions.Admin
 	u.Permissions.Share = p.Account.Permissions.Share

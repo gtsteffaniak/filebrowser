@@ -253,6 +253,7 @@ type NonAdminEditable struct {
 	PreferEditorForMarkdown    bool                 `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer
 	PromptRightCloseButton     bool                 `json:"promptRightCloseButton"`     // show the prompts close button on the right
 	ShowFirstLogin             bool                 `json:"showFirstLogin"`
+	MaxConcurrentTranscodes    int                  `json:"maxConcurrentTranscodes"` // admin-set concurrent transcode session limit (default from userDefaults)
 	PasskeyCredentials         []WebAuthnCredential `json:"passkeyCredentials,omitempty"`
 }
 

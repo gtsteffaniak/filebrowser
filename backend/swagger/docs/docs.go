@@ -5991,6 +5991,39 @@ const docTemplate = `{
                 "hardwareAcceleration": {
                     "description": "enable hardware acceleration for ffmpeg if available",
                     "type": "boolean"
+                },
+                "transcode": {
+                    "description": "HLS transcoding for media playback",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.MediaTranscode"
+                        }
+                    ]
+                }
+            }
+        },
+        "settings.MediaTranscode": {
+            "type": "object",
+            "properties": {
+                "cacheMaxSizeMB": {
+                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
+                    "type": "integer"
+                },
+                "cacheRetentionH": {
+                    "description": "completed cache retention in hours (default: 24)",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "enable HLS transcoding for authenticated playback (default: false)",
+                    "type": "boolean"
+                },
+                "maxConcurrent": {
+                    "description": "global concurrent transcode sessions (default: 2)",
+                    "type": "integer"
+                },
+                "maxResolution": {
+                    "description": "maximum output height in pixels (default: 1080)",
+                    "type": "integer"
                 }
             }
         },
@@ -6590,6 +6623,10 @@ const docTemplate = `{
                 "loginMethod": {
                     "description": "login method to use: eg. password, proxy, oidc",
                     "type": "string"
+                },
+                "maxConcurrentTranscodes": {
+                    "description": "per-user concurrent transcode sessions (default: 1)",
+                    "type": "integer"
                 },
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsAccountPermissions"
@@ -7508,6 +7545,10 @@ const docTemplate = `{
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
                 },
+                "maxConcurrentTranscodes": {
+                    "description": "admin-set concurrent transcode session limit (default from userDefaults)",
+                    "type": "integer"
+                },
                 "newFileTemplate": {
                     "description": "list of custom filenames that will be used as template for new files",
                     "type": "array",
@@ -7931,6 +7972,10 @@ const docTemplate = `{
                 },
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
+                },
+                "maxConcurrentTranscodes": {
+                    "description": "admin-set concurrent transcode session limit (default from userDefaults)",
+                    "type": "integer"
                 },
                 "newFileTemplate": {
                     "description": "list of custom filenames that will be used as template for new files",

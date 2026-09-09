@@ -76,9 +76,10 @@ type UserDefaultsFileLoadingEnforcement struct {
 }
 
 type UserDefaultsAccountEnforcement struct {
-	LockPassword               bool                                  `json:"lockPassword,omitempty"`
-	DisableSettings            bool                                  `json:"disableSettings,omitempty"`
-	DisableUpdateNotifications bool                                  `json:"disableUpdateNotifications,omitempty"`
+	LockPassword               bool                                    `json:"lockPassword,omitempty"`
+	DisableSettings            bool                                    `json:"disableSettings,omitempty"`
+	DisableUpdateNotifications bool                                    `json:"disableUpdateNotifications,omitempty"`
+	MaxConcurrentTranscodes    bool                                    `json:"maxConcurrentTranscodes,omitempty"`
 	Permissions                UserDefaultsAccountPermissionsEnforcement `json:"permissions,omitempty"`
 }
 
