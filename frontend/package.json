@@ -10,6 +10,7 @@
   "scripts": {
     "build": "rm -rf ../backend/internal/web/embed/* && vite build && cp -r ../backend/internal/web/dist/* ../backend/internal/web/embed",
     "build:docker": "vite build",
+    "dev": "vite",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
     "lint": "eslint --ext .js,.vue,.ts src/",

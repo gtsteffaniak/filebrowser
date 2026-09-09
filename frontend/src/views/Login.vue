@@ -186,7 +186,7 @@
       </svg>
     </div>
   </div>
-  <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
+  <prompts></prompts>
 </template>
 
 <script>

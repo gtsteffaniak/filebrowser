@@ -950,6 +950,10 @@ func GenerateYaml() {
 		os.Exit(1)
 	}
 
+	existing, readErr := os.ReadFile(output)
+	if readErr == nil && string(existing) == yamlContent {
+		return
+	}
 	if err := os.WriteFile(output, []byte(yamlContent), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "error writing YAML: %v\n", err)
 		os.Exit(1)

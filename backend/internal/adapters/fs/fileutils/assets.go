@@ -21,11 +21,13 @@ func (d dirFS) Open(name string) (fs.File, error) {
 
 // InitAssetFS initializes the asset filesystem for the application
 // This should be called once during startup before http or preview services start
-func InitAssetFS(embeddedAssets fs.FS, useEmbedded bool) {
+func InitAssetFS(embeddedAssets fs.FS, useEmbedded bool, devMode bool) {
 	if useEmbedded {
 		assetFs = embeddedAssets
+	} else if devMode {
+		// Dev mode: serve frontend source assets (templates, fonts, icons)
+		assetFs = dirFS{Dir: http.Dir("../frontend/public")}
 	} else {
-		// Dev mode: Serve files from internal/web/dist directory
 		assetFs = dirFS{Dir: http.Dir("internal/web/dist")}
 	}
 }
