@@ -463,6 +463,20 @@ export function setupErrorTracking(page: Page) {
   };
 }
 
+/** Opens settings and lands on the profile page. */
+export async function openProfileSettings(page: Page): Promise<void> {
+  await page.locator('i[aria-label="settings"]').click();
+  await expect(page).toHaveTitle(/Settings/);
+}
+
+/** Opens the advanced profile options prompt from the simplified profile view. */
+export async function openProfileAdvancedPrompt(page: Page): Promise<Locator> {
+  await page.getByRole("button", { name: "Show Advanced Options" }).click();
+  const prompt = page.locator('[aria-label="profile-advanced-prompt"]');
+  await expect(prompt).toBeVisible();
+  return prompt;
+}
+
 /**
  * Helper function to check for a notification or toast with the given message
  * @param page - Playwright page object

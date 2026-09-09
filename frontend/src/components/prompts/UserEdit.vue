@@ -98,13 +98,13 @@
           :default-placeholder-if-empty="noSourcesPlaceholder"
           :aria-label="$t('settings.scopes')"
         />
-        <div class="scope-blocks">
+        <SettingsAccordion v-model="expandedSourceName" class="scope-blocks">
           <div class="scope-block" v-for="source in selectedSources" :key="source.name">
             <SettingsItem
+              accordion
+              :name="source.name"
               :title="sourceBlockTitle(source)"
               :collapsable="true"
-              :force-collapsed="expandedSourceName !== source.name"
-              @toggle="onSourceExpandToggle(source.name)"
             >
               <div class="scope-path-row">
                 <label class="scope-path-label">{{ $t("settings.scopePath") }}</label>
@@ -150,7 +150,7 @@
               </div>
             </SettingsItem>
           </div>
-        </div>
+        </SettingsAccordion>
       </div>
 
       <div v-if="stateUser.permissions.admin">
@@ -210,6 +210,7 @@ import { usersApi, settingsApi, authApi } from "@/api";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import SettingsAccordion from "@/components/settings/SettingsAccordion.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
@@ -270,6 +271,7 @@ export default {
     ExpandDropdown,
     SourceFilePermissions,
     SettingsItem,
+    SettingsAccordion,
     ToggleSwitch,
     QuotaCustomLimitInput,
     UserDefaultsAccountSection,
@@ -317,6 +319,7 @@ export default {
         lockPassword: false,
         disableSettings: false,
         disableUpdateNotifications: false,
+        showAdvancedProfile: false,
         permissions: {
           admin: false,
           share: false,
@@ -645,12 +648,6 @@ export default {
       }
       return scope.permissions;
     },
-    toggleSourceExpanded(sourceName) {
-      this.expandedSourceName = this.expandedSourceName === sourceName ? null : sourceName;
-    },
-    onSourceExpandToggle(sourceName) {
-      this.toggleSourceExpanded(sourceName);
-    },
     sourceBlockTitle(source) {
       return source?.name || "";
     },
@@ -895,6 +892,7 @@ export default {
         lockPassword: !!this.user.lockPassword,
         disableSettings: !!this.user.disableSettings,
         disableUpdateNotifications: !!this.user.disableUpdateNotifications,
+        showAdvancedProfile: !!this.user.showAdvancedProfile,
         permissions: {
           admin: !!permissions.admin,
           share: !!permissions.share,
@@ -932,6 +930,12 @@ export default {
       ) {
         fields.push("disableUpdateNotifications");
       }
+      if (
+        current.showAdvancedProfile !== orig.showAdvancedProfile
+        && !this.enforcedAccount.showAdvancedProfile
+      ) {
+        fields.push("showAdvancedProfile");
+      }
       if (JSON.stringify(current.permissions) !== JSON.stringify(orig.permissions)) {
         const permissionFields = ["admin", "share", "api", "realtime"];
         for (const perm of permissionFields) {
@@ -962,6 +966,7 @@ export default {
       this.editAccount.lockPassword = !!this.user.lockPassword;
       this.editAccount.disableSettings = !!this.user.disableSettings;
       this.editAccount.disableUpdateNotifications = !!this.user.disableUpdateNotifications;
+      this.editAccount.showAdvancedProfile = !!this.user.showAdvancedProfile;
       this.editAccount.permissions = {
         admin: !!p.admin,
         share: !!p.share,
@@ -973,6 +978,7 @@ export default {
       this.user.lockPassword = this.editAccount.lockPassword;
       this.user.disableSettings = this.editAccount.disableSettings;
       this.user.disableUpdateNotifications = this.editAccount.disableUpdateNotifications;
+      this.user.showAdvancedProfile = this.editAccount.showAdvancedProfile;
       if (!this.user.permissions) {
         this.user.permissions = this.defaultPermissions();
       }

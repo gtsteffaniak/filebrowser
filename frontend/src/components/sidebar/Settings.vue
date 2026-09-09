@@ -6,7 +6,11 @@
     </span>
   </div>
   <template v-for="setting in settings" :key="`${setting.id}-sidebar`">
-    <div v-if="setting.id === 'profile'" class="card item settings-card-collapsible" :class="{ hidden: !shouldShow(setting) }">
+    <div
+      v-if="setting.id === 'profile' && showAdvancedProfile"
+      class="card item settings-card-collapsible"
+      :class="{ hidden: !shouldShow(setting) }"
+    >
       <div
         role="button"
         class="settings-card-collapsible-header settings-card clickable"
@@ -30,7 +34,7 @@
             role="button"
             class="settings-card-collapsible-sub-item settings-card clickable"
             :class="{ 'active-settings': active(`profile-${section.id}`) }"
-            @click="setView(`profile-${section.id}`)"
+            @click.stop="setView(`profile-${section.id}`)"
           >
             <span class="settings-item-content">
               <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
@@ -40,7 +44,11 @@
         </div>
       </div>
     </div>
-    <div v-else :id="`${setting.id}-sidebar`" role="button" class="card item clickable settings-card"
+    <div
+      v-else
+      :id="`${setting.id}-sidebar`"
+      role="button"
+      class="card item clickable settings-card"
       @click="setView(`${setting.id}-main`)"
       :class="{
         hidden: !shouldShow(setting),
@@ -80,6 +88,9 @@ export default {
     },
     profileSections() {
       return this.settings.find((setting) => setting.id === 'profile')?.sections || [];
+    },
+    showAdvancedProfile() {
+      return !!state.user?.showAdvancedProfile;
     },
   },
   watch: {

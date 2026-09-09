@@ -736,6 +736,7 @@ export const mutations = {
         "newFileTemplate",
         "viewMode",
         "gallerySize",
+        "showAdvancedProfile",
       ];
       const updatedProperties = Object.keys(value).filter(
         (key) =>

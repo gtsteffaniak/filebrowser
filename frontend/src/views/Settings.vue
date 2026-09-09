@@ -129,6 +129,7 @@ export default {
         );
         const validProfileSection =
           hash.startsWith('profile-') &&
+          !!state.user?.showAdvancedProfile &&
           this.profileSections.some((section) => `profile-${section.id}` === hash) &&
           this.settings.some((setting) => setting.id === 'profile' && this.shouldShow(setting));
         if (validSetting || validProfileSection) {

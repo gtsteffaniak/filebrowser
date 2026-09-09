@@ -89,11 +89,11 @@ type MinimalAuthToken struct {
 }
 
 type Permissions struct {
-	Api      bool `json:"api"`      // allow api access
-	Admin    bool `json:"admin"`    // allow admin access
+	Api      bool `json:"api"`                // allow api access
+	Admin    bool `json:"admin"`              // allow admin access
 	Modify   bool `json:"modify,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	Share    bool `json:"share"`    // allow sharing files
-	Realtime bool `json:"realtime"` // allow realtime updates
+	Share    bool `json:"share"`              // allow sharing files
+	Realtime bool `json:"realtime"`           // allow realtime updates
 	Delete   bool `json:"delete,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
 	Create   bool `json:"create,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
 	Download bool `json:"download,omitempty"` // deprecated: legacy user migration only; not used for API tokens
@@ -102,12 +102,12 @@ type Permissions struct {
 
 // SourceFilePermissions holds per-source file operation permissions (v4+).
 type SourceFilePermissions struct {
-	View        bool `json:"view"`
-	Download    bool `json:"download"`
-	Modify      bool `json:"modify"`
-	Delete      bool `json:"delete"`
-	Create      bool `json:"create"`
-	Configured  bool `json:"configured,omitempty"` // true when explicitly set (allows intentional deny-all)
+	View       bool `json:"view"`
+	Download   bool `json:"download"`
+	Modify     bool `json:"modify"`
+	Delete     bool `json:"delete"`
+	Create     bool `json:"create"`
+	Configured bool `json:"configured,omitempty"` // true when explicitly set (allows intentional deny-all)
 }
 
 // MarkSourceFilePermissionsConfigured marks permissions as explicitly set (including deny-all).
@@ -160,12 +160,12 @@ type FrontendUser struct {
 	Username          string                           `json:"username"`
 	FrontendScopes    []FrontendScope                  `json:"scopes"`
 	LockPassword      bool                             `json:"lockPassword"`
-	Permissions       Permissions                      `json:"permissions"` // global: admin, api, share, realtime
+	Permissions       Permissions                      `json:"permissions"`                 // global: admin, api, share, realtime
 	SourcePermissions map[string]SourceFilePermissions `json:"sourcePermissions,omitempty"` // deprecated: use scopes[].permissions
 	LoginMethod       LoginMethod                      `json:"loginMethod"`
 	OtpEnabled        bool                             `json:"otpEnabled"`
-	ShowFirstLogin       bool             `json:"showFirstLogin"`
-	Perm                 Permissions      `json:"perm,omitzero"`
+	ShowFirstLogin    bool                             `json:"showFirstLogin"`
+	Perm              Permissions                      `json:"perm,omitzero"`
 }
 
 // PinnedItems maps source filesystem path -> index directory path -> pinned item names.
@@ -196,22 +196,22 @@ type User struct {
 
 type ScopeQuota struct {
 	ID         string `json:"id"`
-	LimitBytes int64  `json:"limitBytes"` // 0 = unlimited
+	LimitBytes int64  `json:"limitBytes"`      // 0 = unlimited
 	Meter      string `json:"meter,omitempty"` // index_scope (indexed size) | accounted (tracked usage)
 }
 
 type FrontendScope struct {
-	Name        string                `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
-	Scope       string                `json:"scope"` // index path within that source
+	Name        string                 `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
+	Scope       string                 `json:"scope"` // index path within that source
 	Permissions *SourceFilePermissions `json:"permissions,omitempty"`
-	Quota       *ScopeQuota           `json:"quota,omitempty"`
+	Quota       *ScopeQuota            `json:"quota,omitempty"`
 }
 
 type BackendScope struct {
-	Path        string               `json:"path"`  // real path for the source
-	Scope       string               `json:"scope"` // index path within that source
+	Path        string                `json:"path"`  // real path for the source
+	Scope       string                `json:"scope"` // index path within that source
 	Permissions SourceFilePermissions `json:"permissions,omitempty"`
-	Quota       *ScopeQuota          `json:"quota,omitempty"`
+	Quota       *ScopeQuota           `json:"quota,omitempty"`
 }
 
 // json tags must match variable name with smaller case first letter
@@ -225,10 +225,10 @@ type NonAdminEditable struct {
 	StickySidebar              bool                 `json:"stickySidebar"` // keep sidebar open when navigating
 	DarkMode                   bool                 `json:"darkMode"`      // should dark mode be enabled
 	Password                   string               `json:"password,omitempty"`
-	Locale                     string               `json:"locale"`      // language to use: eg. de, en, or fr
-	ViewMode                   string               `json:"viewMode"`    // view mode to use: eg. normal, list, grid, or compact
+	Locale                     string               `json:"locale"`          // language to use: eg. de, en, or fr
+	ViewMode                   string               `json:"viewMode"`        // view mode to use: eg. normal, list, grid, or compact
 	NewFileTemplate            []string             `json:"newFileTemplate"` // list of custom filenames that will be used as template for new files
-	SingleClick                bool                 `json:"singleClick"` // open directory on single click, also enables middle click to open in new tab
+	SingleClick                bool                 `json:"singleClick"`     // open directory on single click, also enables middle click to open in new tab
 	Sorting                    Sorting              `json:"sorting"`
 	ShowHidden                 bool                 `json:"showHidden"`                 // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
 	HideFileExt                string               `json:"hideFileExt"`                // space separated list of file extensions to hide in UI and API
@@ -254,6 +254,7 @@ type NonAdminEditable struct {
 	PromptRightCloseButton     bool                 `json:"promptRightCloseButton"`     // show the prompts close button on the right
 	ShowFirstLogin             bool                 `json:"showFirstLogin"`
 	PasskeyCredentials         []WebAuthnCredential `json:"passkeyCredentials,omitempty"`
+	ShowAdvancedProfile        bool                 `json:"showAdvancedProfile"`
 }
 
 type FileLoading struct {

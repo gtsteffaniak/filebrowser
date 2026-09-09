@@ -69,6 +69,32 @@
       />
     </div>
     <div
+      v-if="Object.keys(availableThemes).length > 0"
+      class="preference-field-block"
+      :class="{ 'preference-field-block--enforceable': enforceable }"
+    >
+      <h4>{{ $t("profileSettings.customTheme") }}</h4>
+      <div
+        class="form-flex-group"
+        @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'customTheme')"
+        @mouseleave="hideTooltip"
+      >
+        <ExpandDropdown
+          v-model="selectedTheme"
+          :options="themeOptions"
+          :aria-label="$t('general.theme')"
+          :disabled="fieldDisabled('ui', 'customTheme')"
+          @update:model-value="onThemeChange"
+        />
+      </div>
+      <ProfileEnforceSwitch
+        :visible="enforceable"
+        :enforced="enforcedFlag('ui', 'customTheme')"
+        :disabled="disabled"
+        @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
+      />
+    </div>
+    <div
       class="preference-field-block"
       :class="{ 'preference-field-block--enforceable': enforceable }"
     >
@@ -92,16 +118,16 @@
       />
     </div>
   </div>
-  <div v-else class="user-profile-preferences">
+  <SettingsAccordion v-else v-model="expandedSection" class="user-profile-preferences">
     <SettingsItem
       v-if="sectionVisible('listingOptions')"
       aria-label="listingOptions"
+      name="listingOptions"
+      :accordion="!sectionKey"
       :title="$t('settings.listingOptions')"
       :collapsable="!sectionKey"
       :hidden="!!sectionKey"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('listingOptions')"
-      @toggle="onSectionToggle('listingOptions')"
+      :start-collapsed="sectionStartsCollapsed('listingOptions')"
     >
       <div class="settings-items">
         <ProfilePreferenceToggle
@@ -252,12 +278,12 @@
     <SettingsItem
       v-if="sectionVisible('thumbnailOptions')"
       aria-label="thumbnailOptions"
+      name="thumbnailOptions"
+      :accordion="!sectionKey"
       :title="$t('profileSettings.thumbnailOptions')"
       :collapsable="!sectionKey"
       :hidden="!!sectionKey"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('thumbnailOptions')"
-      @toggle="onSectionToggle('thumbnailOptions')"
+      :start-collapsed="sectionStartsCollapsed('thumbnailOptions')"
     >
       <div class="settings-items">
         <ToggleSwitch
@@ -372,12 +398,12 @@
     <SettingsItem
       v-if="sectionVisible('sidebarOptions')"
       aria-label="sidebarOptions"
+      name="sidebarOptions"
+      :accordion="!sectionKey"
       :title="$t('profileSettings.sidebarOptions')"
       :collapsable="!sectionKey"
       :hidden="!!sectionKey"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('sidebarOptions')"
-      @toggle="onSectionToggle('sidebarOptions')"
+      :start-collapsed="sectionStartsCollapsed('sidebarOptions')"
     >
       <div class="settings-items">
         <ProfilePreferenceToggle
@@ -427,12 +453,12 @@
     <SettingsItem
       v-if="sectionVisible('searchOptions')"
       aria-label="searchOptions"
+      name="searchOptions"
+      :accordion="!sectionKey"
       :title="$t('settings.searchOptions')"
       :collapsable="!sectionKey"
       :hidden="!!sectionKey"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('searchOptions')"
-      @toggle="onSectionToggle('searchOptions')"
+      :start-collapsed="sectionStartsCollapsed('searchOptions')"
     >
       <div class="settings-items">
         <ProfilePreferenceToggle
@@ -447,12 +473,12 @@
     <SettingsItem
       v-if="sectionVisible('fileViewerOptions')"
       aria-label="fileViewerOptions"
+      name="fileViewerOptions"
+      :accordion="!sectionKey"
       :title="$t('profileSettings.fileViewerOptions')"
       :collapsable="!sectionKey"
       :hidden="!!sectionKey"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('fileViewerOptions')"
-      @toggle="onSectionToggle('fileViewerOptions')"
+      :start-collapsed="sectionStartsCollapsed('fileViewerOptions')"
     >
       <div class="settings-items">
         <ToggleSwitch
@@ -589,12 +615,12 @@
     <SettingsItem
       v-if="sectionVisible('themeLanguage')"
       aria-label="themeLanguage"
+      name="themeLanguage"
+      :accordion="!sectionKey"
       :title="$t('profileSettings.themeAndLanguage')"
       :collapsable="!sectionKey"
       :hidden="!!sectionKey"
-      :start-collapsed="true"
-      :force-collapsed="sectionForceCollapsed('themeLanguage')"
-      @toggle="onSectionToggle('themeLanguage')"
+      :start-collapsed="sectionStartsCollapsed('themeLanguage')"
     >
       <div class="settings-items">
         <ToggleSwitch
@@ -683,7 +709,27 @@
         </div>
       </div>
     </SettingsItem>
-  </div>
+
+    <SettingsItem
+      v-if="sectionVisible('accountOptions')"
+      aria-label="accountOptions"
+      name="accountOptions"
+      :accordion="!sectionKey"
+      :title="$t('settings.accountDefaults')"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
+      :start-collapsed="sectionStartsCollapsed('accountOptions')"
+    >
+      <div class="settings-items">
+        <ProfilePreferenceToggle
+          field="showAdvancedProfile"
+          section="account"
+          :name="$t('profileSettings.showAdvancedProfile')"
+          :description="$t('profileSettings.showAdvancedProfileDescription')"
+        />
+      </div>
+    </SettingsItem>
+  </SettingsAccordion>
 </template>
 
 <script>
@@ -700,6 +746,7 @@ import ProfilePreferenceToggle from "@/components/settings/ProfilePreferenceTogg
 import ProfileEnforceSwitch from "@/components/settings/ProfileEnforceSwitch.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import SettingsAccordion from "@/components/settings/SettingsAccordion.vue";
 import Languages from "@/components/settings/Languages.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
@@ -711,6 +758,7 @@ export default {
     HelpTooltipIcon,
     ToggleSwitch,
     SettingsItem,
+    SettingsAccordion,
     Languages,
     ExpandDropdown,
     ButtonGroup,
@@ -769,6 +817,10 @@ export default {
     sectionKey: {
       type: String,
       default: null,
+    },
+    showAccountSection: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
@@ -917,21 +969,20 @@ export default {
       this.formDisabledViewing = this.sections.fileViewer?.disableViewingExt || "";
       this.formDisableOfficeViewing = this.sections.fileViewer?.disableOnlyOfficeExt || "";
     },
-    sectionForceCollapsed(key) {
+    sectionStartsCollapsed(key) {
       if (this.sectionKey) {
-        return key !== this.sectionKey;
+        return this.sectionKey !== key;
       }
-      return this.expandedSection !== key;
+      return true;
     },
     sectionVisible(key) {
+      if (key === "accountOptions") {
+        return this.showAccountSection && (!this.sectionKey || this.sectionKey === key);
+      }
       if (!this.sectionKey) {
         return true;
       }
       return this.sectionKey === key;
-    },
-    onSectionToggle(sectionKey) {
-      this.expandedSection =
-        this.expandedSection === sectionKey ? null : sectionKey;
     },
     enforcedFlag(section, field) {
       if (section === "account" && field.includes(".")) {

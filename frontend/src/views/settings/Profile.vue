@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ activeSectionLabel }}</h2>
+    <h2>{{ pageTitle }}</h2>
   </div>
   <div class="card-content">
     <form>
@@ -8,13 +8,21 @@
         <UserProfilePreferences
           v-model="profileSections"
           :enforced="enforcedPreferences"
-          :section-key="activeSectionKey"
-          show-extension-inputs
+          :mode="preferencesMode"
+          :section-key="sectionKeyProp"
+          :show-extension-inputs="showAdvancedProfile"
           show-thumbnail-master
           @change="onPreferenceChange"
           @theme-color="onThemeColor"
           @locale-change="onLocaleChange"
         />
+        <div class="settings-items profile-advanced-entry">
+          <SettingsButton
+            class="item"
+            :name="$t('buttons.showMore')"
+            @click="openAdvancedOptionsPrompt"
+          />
+        </div>
       </div>
     </form>
     <br />
@@ -25,6 +33,7 @@
 import { notify } from "@/notify";
 import { mutations, state, getters } from "@/store";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 import { settings } from "@/utils/constants";
 import {
   sectionsFromFlatUser,
@@ -41,6 +50,7 @@ export default {
   name: "settings",
   components: {
     UserProfilePreferences,
+    SettingsButton,
   },
   data() {
     return {
@@ -50,6 +60,21 @@ export default {
   computed: {
     user() {
       return state.user;
+    },
+    showAdvancedProfile() {
+      return !!this.localuser.showAdvancedProfile;
+    },
+    preferencesMode() {
+      return this.showAdvancedProfile ? "full" : "basic";
+    },
+    sectionKeyProp() {
+      return this.showAdvancedProfile ? this.activeSectionKey : null;
+    },
+    pageTitle() {
+      if (!this.showAdvancedProfile) {
+        return this.profileSettingsLabel();
+      }
+      return this.activeSectionLabel;
     },
     activeSectionKey() {
       const hash = state.activeSettingsView || "";
@@ -109,6 +134,14 @@ export default {
     onLocaleChange() {
       void this.updateSettings();
     },
+    openAdvancedOptionsPrompt() {
+      mutations.showPrompt({
+        name: "profile-advanced",
+        props: {
+          title: this.$t("general.profileSettings"),
+        },
+      });
+    },
     async updateSettings(event) {
       if (typeof event?.preventDefault === "function") {
         event.preventDefault();
@@ -147,5 +180,8 @@ export default {
 }
 .settings-group {
   padding-top: 0.5em;
+}
+.profile-advanced-entry {
+  margin-top: 1rem;
 }
 </style>
