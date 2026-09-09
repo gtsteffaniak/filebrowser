@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,24 +13,42 @@ jobs:
   test_playwright:
     name: Test Playwright
     runs-on: ubuntu-24.04-arm
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.0.0
-      - uses: actions/setup-node@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version-file: frontend/.nvmrc
-      - working-directory: frontend
+
+      - name: Build frontend
+        working-directory: frontend
         run: npm i && npm run build
-      - uses: actions/setup-go@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version: 'stable'
-      - working-directory: backend
+
+      - name: Build ARM64 binary
+        working-directory: backend
         run: go build -o filebrowser .
-      - name: Build
+
+      - name: Upload ARM64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: filebrowser-arm64-heic
+          path: backend/filebrowser
+
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
