@@ -689,7 +689,6 @@
     "showQuickDownloadDescription": "各ファイルアイテムにクイックアクセス用のダウンロードアイコンを表示し、クリックすると即座にダウンロードできます。",
     "disableUpdateNotifications": "アップデート通知を表示しない",
     "disableUpdateNotificationsDescription": "サイドバーの管理者ユーザーに表示される更新通知バナーを無効にします。",
-    "disableHideSidebar": "ファイルのプレビューや編集時にサイドバーを開いたままにする",
     "disableHideSidebarDescription": "有効にすると、ファイルのプレビューや編集時にサイドバーが自動的に非表示になりません。",
     "autoplayMedia": "メディアファイル閲覧時の自動再生",
     "autoplayMediaDescription": "閲覧時にメディアファイルを自動再生します。これは、ファイルがメディアファイルの場合にのみ機能します。",
@@ -701,8 +700,6 @@
     "hideSidebarFileActions": "サイドバーのファイル操作ボタンを隠す",
     "deleteWithoutConfirming": "確認プロンプトなしでファイルを削除する",
     "deleteWithoutConfirmingDescription": "確認プロンプトなしでファイルを削除します。注意して使用してください。",
-    "editorQuickSave": "エディタのクイック保存ボタン",
-    "editorQuickSaveDescription": "テキストエディタは常に保存アイコンを表示し、他の操作は非表示になります。",
     "previewOfficeDescription": "一覧表示でオフィスファイルのサムネイルを表示します",
     "disableThumbnailPreviews": "特定のファイル拡張子のサムネイルを無効にする",
     "disableThumbnailPreviewsDescription": "サムネイルプレビューを無効にするファイル拡張子をスペースで区切ったリスト（例：'.txt .html'）",
@@ -751,7 +748,13 @@
     "defaultViewMode": "デフォルトの表示モード",
     "defaultViewModeDescription": "新しいブラウザやデバイスでの初期表示モードです。ローカルにすでに保存されている表示設定を上書きすることはありません。",
     "defaultGallerySize": "デフォルトのサムネイルサイズ",
-    "defaultGallerySizeDescription": "新しいブラウザやデバイスでのギャラリーまたはリストのサムネイルの初期スケール（1～9）。ローカルにすでに保存されているサイズを上書きすることはありません。"
+    "defaultGallerySizeDescription": "新しいブラウザやデバイスでのギャラリーまたはリストのサムネイルの初期スケール（1～9）。ローカルにすでに保存されているサイズを上書きすることはありません。",
+    "disableHideSidebar": "サイドバーを常に表示する",
+    "editorQuickSave": "エディタにクイックセーブボタンを表示する",
+    "editorQuickSaveDescription": "テキストエディタには保存アイコンのみが表示され、その他の操作は非表示になります",
+    "showAdvancedProfile": "詳細なプロフィール設定を表示する",
+    "showAdvancedProfileDescription": "簡易プロフィール表示の代わりに、サイドバーに分類されたプロフィール設定を表示します。",
+    "accountOptions": "アカウント設定"
   },
   "editor": {
     "stats": {

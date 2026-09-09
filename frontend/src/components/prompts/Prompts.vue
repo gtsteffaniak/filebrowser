@@ -133,6 +133,7 @@ import UserEditPreferences from "./UserEditPreferences.vue";
 import UserEditSidebarLinks from "./UserEditSidebarLinks.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
+import DefaultViewPrefs from "./DefaultViewPrefs.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -188,6 +189,7 @@ export default {
     UserEditSidebarLinks,
     Quota,
     NewFileTemplate,
+    DefaultViewPrefs,
   },
   data() {
     return {
@@ -442,6 +444,8 @@ export default {
           return this.$t("general.details");
         case "new-file-template":
           return this.$t("prompts.newFileTemplate")
+        case "default-view-prefs":
+          return this.$t("profileSettings.defaultViewMode");
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types

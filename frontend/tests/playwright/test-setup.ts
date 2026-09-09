@@ -463,6 +463,32 @@ export function setupErrorTracking(page: Page) {
   };
 }
 
+/** Opens settings and lands on the profile page. */
+export async function openProfileSettings(page: Page): Promise<void> {
+  await page.locator('i[aria-label="settings"]').click();
+  await expect(page).toHaveTitle(/Settings/);
+}
+
+/** Opens advanced profile settings, enabling them first when needed. */
+export async function openAdvancedProfileSettings(
+  page: Page,
+  section = "listingOptions",
+): Promise<void> {
+  await page.goto(`/files/settings/#profile-${section}`);
+  const sectionLocator = page.locator(`div[aria-label="${section}"]`);
+  if (await sectionLocator.isVisible().catch(() => false)) {
+    return;
+  }
+
+  const toggle = page
+    .locator(".toggle-name", { hasText: /Show advanced profile settings/i })
+    .locator("xpath=ancestor::div[contains(@class, 'toggle-row')]//input[@type='checkbox']");
+  await toggle.click();
+  await expect(page).toHaveURL(/#profile-accountOptions/);
+  await page.goto(`/files/settings/#profile-${section}`);
+  await expect(sectionLocator).toBeVisible();
+}
+
 /**
  * Helper function to check for a notification or toast with the given message
  * @param page - Playwright page object

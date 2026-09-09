@@ -525,7 +525,6 @@
     "popupPreviewDescription": "Mostra una finestra in sovrapposizione quando si passa sopra elementi con miniature.",
     "disableUpdateNotifications": "Disabilita notifiche di aggiornamento",
     "disableUpdateNotificationsDescription": "Nasconde il banner degli aggiornamenti disponibile agli amministratori.",
-    "disableHideSidebar": "Mantieni barra laterale aperta durante modifica/anteprima",
     "disableHideSidebarDescription": "Impedisce alla barra laterale di nascondersi automaticamente.",
     "autoplayMedia": "Riproduzione automatica media",
     "autoplayMediaDescription": "Avvia automaticamente i file audio/video all'apertura.",
@@ -538,8 +537,6 @@
     "hideSidebarFileActions": "Nascondi azioni file nella barra laterale",
     "deleteWithoutConfirming": "Elimina file senza conferma",
     "deleteWithoutConfirmingDescription": "Elimina i file istantaneamente (usare con cautela).",
-    "editorQuickSave": "Pulsante salvataggio rapido nell'editor",
-    "editorQuickSaveDescription": "L'editor mostrerà sempre l'icona di salvataggio, nascondendo altre azioni.",
     "previewOfficeDescription": "Mostra miniature per i file office nell'elenco.",
     "disableThumbnailPreviews": "Disabilita miniature per estensioni specifiche",
     "disableThumbnailPreviewsDescription": "Lista di estensioni separate da spazio (es. '.txt .html').",
@@ -576,7 +573,13 @@
     "defaultViewMode": "Modalità di visualizzazione predefinita",
     "defaultViewModeDescription": "Modalità di visualizzazione iniziale su nuovi browser o dispositivi. Non sovrascrive le preferenze di visualizzazione già salvate localmente.",
     "defaultGallerySize": "Dimensione predefinita delle miniature",
-    "defaultGallerySizeDescription": "Scala iniziale delle miniature della galleria o dell'elenco (1–9) sui nuovi browser o dispositivi. Non sovrascrive le dimensioni già salvate localmente."
+    "defaultGallerySizeDescription": "Scala iniziale delle miniature della galleria o dell'elenco (1–9) sui nuovi browser o dispositivi. Non sovrascrive le dimensioni già salvate localmente.",
+    "disableHideSidebar": "Mostra sempre la barra laterale",
+    "editorQuickSave": "Mostra il pulsante \"Salva rapidamente\" nell'editor",
+    "editorQuickSaveDescription": "L'editor di testo mostrerà solo l'icona di salvataggio, nascondendo tutte le altre azioni",
+    "showAdvancedProfile": "Mostra le impostazioni avanzate del profilo",
+    "showAdvancedProfileDescription": "Mostra le impostazioni del profilo suddivise per categorie nella barra laterale, anziché la visualizzazione semplificata del profilo.",
+    "accountOptions": "Opzioni dell'account"
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

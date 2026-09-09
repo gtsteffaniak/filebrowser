@@ -1,4 +1,4 @@
-import { checkForNotification, expect, selectExpandDropdownOption, test } from '../test-setup'
+import { checkForNotification, expect, openProfileSettings, selectExpandDropdownOption, test } from '../test-setup'
 import type { Page } from '@playwright/test';
 
 async function openSystemAdminSettings(page: Page) {
@@ -20,9 +20,7 @@ test("adjusting theme colors", async({ page, checkForErrors }) => {
 
   // Verify the page title
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('i[aria-label="settings"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-  await page.locator('div[aria-label="themeLanguage"]').click();
+  await openProfileSettings(page);
   await page.locator('button', { hasText: 'violet' }).click();
   await checkForNotification(page, 'Settings updated!');
   const newPrimaryColor = await page.evaluate(() => {
@@ -36,9 +34,7 @@ test("adjusting theme colors", async({ page, checkForErrors }) => {
 test("choose custom theme", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('i[aria-label="settings"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-  await page.locator('div[aria-label="themeLanguage"]').click();
+  await openProfileSettings(page);
   // a custom no-rounded.css theme file added to docker that should exist and be selectable
   await selectExpandDropdownOption(page, 'Theme', /^no-rounded/);
   await checkForNotification(page, 'Settings updated!');

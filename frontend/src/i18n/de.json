@@ -689,7 +689,6 @@
     "showQuickDownloadDescription": "Zeigen Sie ein Download-Symbol für den schnellen Zugriff auf jedes Dateielement an, das zum sofortigen Herunterladen angeklickt werden kann.",
     "disableUpdateNotifications": "Deaktivieren der Anzeige von Aktualisierungsmeldungen",
     "disableUpdateNotificationsDescription": "Deaktivieren Sie das Banner für Update-Benachrichtigungen, das für Admin-Benutzer in der Seitenleiste angezeigt wird.",
-    "disableHideSidebar": "Seitenleiste bei der Vorschau oder Bearbeitung von Dateien geöffnet lassen",
     "disableHideSidebarDescription": "Wenn diese Option aktiviert ist, wird die Seitenleiste nicht automatisch ausgeblendet, wenn Dateien in der Vorschau angezeigt oder bearbeitet werden.",
     "autoplayMedia": "Autoplay von Mediendateien bei der Anzeige",
     "autoplayMediaDescription": "Autoplay von Mediendateien bei der Anzeige. Dies funktioniert nur, wenn die Datei eine Mediendatei ist.",
@@ -701,8 +700,6 @@
     "hideSidebarFileActions": "Schaltfläche \"Dateiaktionen\" in der Seitenleiste ausblenden",
     "deleteWithoutConfirming": "Dateien ohne Rückfrage löschen",
     "deleteWithoutConfirmingDescription": "Dateien ohne Sicherheitsabfrage löschen. Dies funktioniert nur, wenn die Datei eine Mediendatei ist.",
-    "editorQuickSave": "Schaltfläche zum schnellen Speichern im Editor",
-    "editorQuickSaveDescription": "Der Texteditor zeigt immer das Speichersymbol an und blendet alle anderen Aktionen aus",
     "previewOfficeDescription": "Miniaturansichten für Office-Dateitypen in der Listenansicht anzeigen",
     "disableThumbnailPreviews": "Miniaturansichten für bestimmte Dateierweiterungen deaktivieren",
     "disableThumbnailPreviewsDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Miniaturvorschau deaktiviert werden soll (z. B. '.txt .html').",
@@ -751,7 +748,13 @@
     "defaultViewMode": "Standard-Anzeigemodus",
     "defaultViewModeDescription": "Standardansichtsmodus in neuen Browsern oder auf neuen Geräten. Überschreibt keine bereits lokal gespeicherten Anzeigeeinstellungen.",
     "defaultGallerySize": "Standardgröße der Miniaturansicht",
-    "defaultGallerySizeDescription": "Anfängliche Skalierung der Miniaturansichten in Galerien oder Listen (1–9) bei neuen Browsern oder Geräten. Überschreibt keine bereits lokal gespeicherten Größen."
+    "defaultGallerySizeDescription": "Anfängliche Skalierung der Miniaturansichten in Galerien oder Listen (1–9) bei neuen Browsern oder Geräten. Überschreibt keine bereits lokal gespeicherten Größen.",
+    "disableHideSidebar": "Seitenleiste immer anzeigen",
+    "editorQuickSave": "Schaltfläche „Schnellspeichern“ im Editor anzeigen",
+    "editorQuickSaveDescription": "Der Texteditor zeigt nur das Speichersymbol an und blendet alle anderen Funktionen aus.",
+    "showAdvancedProfile": "Erweiterte Profileinstellungen anzeigen",
+    "showAdvancedProfileDescription": "Zeige die nach Kategorien geordneten Profileinstellungen in der Seitenleiste anstelle der vereinfachten Profilansicht an.",
+    "accountOptions": "Kontooptionen"
   },
   "editor": {
     "stats": {

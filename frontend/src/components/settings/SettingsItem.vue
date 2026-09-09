@@ -1,6 +1,6 @@
 <template>
     <div class="settings-group">
-        <div class="settings-group-title button" :class="{ 'unclickable': !collapsable }"
+        <div v-if="!hidden" class="settings-group-title button" :class="{ 'unclickable': !collapsable }"
             @click="collapsable ? toggleCollapse() : null">
             <h3>{{ title }}</h3>
             <i v-if="collapsable" class="material-symbols-outlined collapse-icon" :class="{ 'rotated': !actuallyCollapsed }">
@@ -17,8 +17,16 @@
 </template>
 
 <script>
+import { SETTINGS_ACCORDION_KEY } from "./settingsAccordion.js";
+
 export default {
   name: 'SettingsItem',
+  inject: {
+    settingsAccordion: {
+      from: SETTINGS_ACCORDION_KEY,
+      default: null,
+    },
+  },
   props: {
     title: {
       type: String,
@@ -28,44 +36,58 @@ export default {
       type: Boolean,
       default: false
     },
+    hidden: {
+      type: Boolean,
+      default: false
+    },
     startCollapsed: {
       type: Boolean,
       default: false
     },
-    forceCollapsed: {
+    /** When true, only one section in a parent SettingsAccordion may be open at a time. */
+    accordion: {
       type: Boolean,
-      default: null
-    }
+      default: false,
+    },
+    /** Section id within a SettingsAccordion; required when accordion is true. */
+    name: {
+      type: String,
+      default: null,
+    },
   },
+  emits: ['toggle'],
   data() {
     return {
       isCollapsed: this.startCollapsed
     }
   },
   computed: {
+    inAccordion() {
+      return this.accordion && this.settingsAccordion && this.name;
+    },
     actuallyCollapsed() {
-      // If forceCollapsed is explicitly set, use that, otherwise use internal state
-      return this.forceCollapsed !== null ? this.forceCollapsed : this.isCollapsed;
+      if (this.inAccordion) {
+        return this.settingsAccordion.expanded() !== this.name;
+      }
+      return this.isCollapsed;
     }
   },
   watch: {
-    forceCollapsed(newVal) {
-      if (newVal !== null) {
+    startCollapsed(newVal) {
+      if (!this.inAccordion) {
         this.isCollapsed = newVal;
       }
-    }
+    },
   },
   methods: {
     toggleCollapse() {
-      if (this.forceCollapsed !== null) {
-        // Emit event for parent to handle accordion logic
-        this.$emit('toggle', this.title);
-      } else {
-        // Handle internally as before
-        this.isCollapsed = !this.isCollapsed;
-        // Emit the new state so parent can react
-        this.$emit('toggle', !this.isCollapsed);
+      if (this.inAccordion) {
+        this.settingsAccordion.toggle(this.name);
+        this.$emit('toggle', this.name);
+        return;
       }
+      this.isCollapsed = !this.isCollapsed;
+      this.$emit('toggle', !this.isCollapsed);
     },
     /**
      * @param {Element} el

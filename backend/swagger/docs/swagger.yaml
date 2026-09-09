@@ -1106,6 +1106,9 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/settings.UserDefaultsAccountPermissions'
+      showAdvancedProfile:
+        description: show advanced profile settings in the user profile page
+        type: boolean
     type: object
   settings.UserDefaultsAccountPermissions:
     properties:
@@ -1785,6 +1788,8 @@ definitions:
         items:
           $ref: '#/definitions/users.FrontendScope'
         type: array
+      showAdvancedProfile:
+        type: boolean
       showCopyPath:
         description: show copy path action in the context menu
         type: boolean
@@ -2111,6 +2116,8 @@ definitions:
         items:
           $ref: '#/definitions/users.FrontendScope'
         type: array
+      showAdvancedProfile:
+        type: boolean
       showCopyPath:
         description: show copy path action in the context menu
         type: boolean

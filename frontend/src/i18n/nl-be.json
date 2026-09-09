@@ -504,7 +504,6 @@
     "showQuickDownloadDescription": "Toon een downloadpictogram voor snelle toegang tot elk bestandsitem waarop kan worden geklikt om het meteen te downloaden.",
     "disableUpdateNotifications": "Het tonen van meldingen update uitschakelen",
     "disableUpdateNotificationsDescription": "Schakel de banner met updatemeldingen uit die wordt weergegeven voor beheerders in de zijbalk.",
-    "disableHideSidebar": "Houd de zijbalk open bij het bekijken of bewerken van bestanden",
     "disableHideSidebarDescription": "Als deze optie is ingeschakeld, wordt de zijbalk niet automatisch verborgen bij het bekijken of bewerken van bestanden.",
     "autoplayMedia": "Mediabestanden automatisch afspelen bij het bekijken",
     "autoplayMediaDescription": "Mediabestanden automatisch afspelen bij het bekijken. Dit werkt alleen als het bestand een mediabestand is.",
@@ -516,8 +515,6 @@
     "hideSidebarFileActions": "Verberg de knop Bestandsacties in de zijbalk",
     "deleteWithoutConfirming": "Bestanden verwijderen zonder bevestigingsprompt",
     "deleteWithoutConfirmingDescription": "Bestanden verwijderen zonder bevestigingsprompt. Dit werkt alleen als het bestand een mediabestand is.",
-    "editorQuickSave": "Snel opslaan in editor",
-    "editorQuickSaveDescription": "De teksteditor toont altijd het pictogram voor opslaan en verbergt alle andere acties",
     "previewOfficeDescription": "Toon miniaturen voor kantoorbestandstypen in de listingweergave",
     "disableThumbnailPreviews": "Miniaturen uitschakelen voor bepaalde bestandsextensies",
     "disableThumbnailPreviewsDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor miniatuurafbeeldingen uitgeschakeld moeten worden (bijvoorbeeld '.txt .html').",
@@ -566,7 +563,13 @@
     "defaultViewMode": "Standaardweergavemodus",
     "defaultViewModeDescription": "Standaardweergavemodus in nieuwe browsers of op nieuwe apparaten. Hiermee worden de lokaal opgeslagen weergavevoorkeuren niet overschreven.",
     "defaultGallerySize": "Standaardgrootte van miniatuurafbeeldingen",
-    "defaultGallerySizeDescription": "Standaardschaal (1–9) voor miniatuurafbeeldingen in galerijen of lijsten in nieuwe browsers of op nieuwe apparaten. Dit overschrijft geen afmetingen die al lokaal zijn opgeslagen."
+    "defaultGallerySizeDescription": "Standaardschaal (1–9) voor miniatuurafbeeldingen in galerijen of lijsten in nieuwe browsers of op nieuwe apparaten. Dit overschrijft geen afmetingen die al lokaal zijn opgeslagen.",
+    "disableHideSidebar": "Zijbalk altijd weergeven",
+    "editorQuickSave": "Knop voor snel opslaan weergeven in de editor",
+    "editorQuickSaveDescription": "De teksteditor toont alleen het pictogram voor opslaan; alle andere acties worden verborgen",
+    "showAdvancedProfile": "Geavanceerde profielinstellingen weergeven",
+    "showAdvancedProfileDescription": "Toon de profielinstellingen per categorie in de zijbalk in plaats van de vereenvoudigde profielweergave.",
+    "accountOptions": "Accountinstellingen"
   },
   "general": {
     "import": "Importeren",

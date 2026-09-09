@@ -85,6 +85,7 @@ export function sectionsFromFlatUser(user) {
       lockPassword: !!u.lockPassword,
       disableSettings: !!u.disableSettings,
       disableUpdateNotifications: !!u.disableUpdateNotifications,
+      showAdvancedProfile: !!u.showAdvancedProfile,
       loginMethod: u.loginMethod || "",
       permissions: { ...(u.permissions || {}) },
     },
@@ -170,6 +171,9 @@ export function applySectionsToFlatUser(user, sections) {
   if (account.disableUpdateNotifications !== undefined) {
     user.disableUpdateNotifications = !!account.disableUpdateNotifications;
   }
+  if (account.showAdvancedProfile !== undefined) {
+    user.showAdvancedProfile = !!account.showAdvancedProfile;
+  }
   if (account.loginMethod) {
     user.loginMethod = account.loginMethod;
   }
@@ -210,6 +214,10 @@ const FLAT_PROFILE_FIELD_ENFORCED_PATHS = {
   debugOffice: ["fileViewer", "debugOffice"],
   viewMode: ["listing", "viewMode"],
   gallerySize: ["listing", "gallerySize"],
+  showAdvancedProfile: ["account", "showAdvancedProfile"],
+  lockPassword: ["account", "lockPassword"],
+  disableSettings: ["account", "disableSettings"],
+  disableUpdateNotifications: ["account", "disableUpdateNotifications"],
 };
 
 function enforcedFlagAt(enforced, section, field) {
