@@ -19,14 +19,11 @@ All notable changes to this project will be documented in this file. For commit 
  - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
  - Added setting to configure the placement of the prompts close button in profile settings (#2853).
  - Added "New file templates". You can now add and configure pre-defined filenames + extension for the creation of new files in the context menu on profile settings! (#2881) (#1239).
- - sidebar link defaults and enforcements available in user management
- - sidebar links can be bulk edited as yaml (#1963)
-
-
-# TODO
-#- share defaults and enforcements
-#- tool defaults and enforcement
-#- Add more groups support, deprecated source.config.defaultEnabled and make source enablement prefer group-based
+ - sidebar links can be bulk edited as yaml (#1963) (settings > user management)
+ - admins can customize more defaults:
+   - share creation defaults and enforcements (#1692) (#2434) (#2279) (#2812) (settings > share management)
+   - sidebar link defaults and enforcements (#2561) (settings > user management)
+   - tool defaults and enforcement (settings > user management)
 
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
@@ -35,6 +32,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
  - improved video thumbnail generation speed and efficiency.
  - Added icons based on extension to the upload prompt and new file/folder/rename prompts (#2881).
+ - Profile settings show minimal options by default with prompt for advanced options. Full advanced profile settings can be shown by default by enabling `account.showAdvancedSettings`
+
 
  **Security**:
  - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
