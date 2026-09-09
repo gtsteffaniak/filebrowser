@@ -360,6 +360,7 @@ export default {
         disableSettings: false,
         disableUpdateNotifications: false,
         showAdvancedProfile: false,
+        maxConcurrentTranscodes: 1,
         permissions: {
           admin: false,
           share: false,
@@ -1096,6 +1097,9 @@ export default {
       this.editAccount.disableSettings = !!this.user.disableSettings;
       this.editAccount.disableUpdateNotifications = !!this.user.disableUpdateNotifications;
       this.editAccount.showAdvancedProfile = !!this.user.showAdvancedProfile;
+      this.editAccount.maxConcurrentTranscodes = this.user.maxConcurrentTranscodes > 0
+        ? this.user.maxConcurrentTranscodes
+        : 1;
       this.editAccount.permissions = {
         admin: !!p.admin,
         share: !!p.share,
@@ -1109,6 +1113,7 @@ export default {
       this.user.disableSettings = this.editAccount.disableSettings;
       this.user.disableUpdateNotifications = this.editAccount.disableUpdateNotifications;
       this.user.showAdvancedProfile = this.editAccount.showAdvancedProfile;
+      this.user.maxConcurrentTranscodes = Math.max(1, Number(this.editAccount.maxConcurrentTranscodes) || 1);
       if (!this.user.permissions) {
         this.user.permissions = this.defaultPermissions();
       }

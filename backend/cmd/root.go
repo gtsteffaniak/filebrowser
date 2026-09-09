@@ -180,6 +180,13 @@ func StartFilebrowser() {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
 	<-shutdownComplete
+	if runtimeApp != nil && runtimeApp.Transcoding != nil {
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		if err := runtimeApp.Transcoding.Close(shutdownCtx); err != nil {
+			logger.Warningf("transcode shutdown: %v", err)
+		}
+		shutdownCancel()
+	}
 	if err := fileutils.ClearDirectoryContents(settings.DownloadCacheDir()); err != nil {
 		logger.Warningf("failed to clear download spool on shutdown: %v", err)
 	}
@@ -221,9 +228,10 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 	icons.InitializePWAManifest()
 
 	web.StartHttp(ctx, web.Deps{
-		Store: a.Store,
-		Files: a.Files,
-		Auth:  a.Auth,
+		Store:       a.Store,
+		Files:       a.Files,
+		Auth:        a.Auth,
+		Transcoding: a.Transcoding,
 	}, shutdownComplete)
 	return nil
 }

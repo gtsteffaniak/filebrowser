@@ -104,3 +104,5 @@ exclude (
 	github.com/alecthomas/go-check-sumtype v0.5.0
 	github.com/gtsteffaniak/go-ffmpeg v1.1.0
 )
+
+replace github.com/gtsteffaniak/go-ffmpeg => ../../go-ffmpeg
