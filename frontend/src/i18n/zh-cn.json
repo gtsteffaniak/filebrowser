@@ -568,7 +568,8 @@
     "editorQuickSave": "在编辑器中显示“快速保存”按钮",
     "editorQuickSaveDescription": "文本编辑器只会显示“保存”图标，隐藏其他所有操作",
     "showAdvancedProfile": "显示高级个人资料设置",
-    "showAdvancedProfileDescription": "在侧边栏中显示分类后的个人资料设置，而不是简化版个人资料视图。"
+    "showAdvancedProfileDescription": "在侧边栏中显示分类后的个人资料设置，而不是简化版个人资料视图。",
+    "accountOptions": "账户选项"
   },
   "general": {
     "import": "导入",

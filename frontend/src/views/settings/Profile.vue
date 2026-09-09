@@ -16,13 +16,6 @@
           @theme-color="onThemeColor"
           @locale-change="onLocaleChange"
         />
-        <div class="settings-items profile-advanced-entry">
-          <SettingsButton
-            class="item"
-            :name="$t('buttons.showMore')"
-            @click="openAdvancedOptionsPrompt"
-          />
-        </div>
       </div>
     </form>
     <br />
@@ -32,8 +25,8 @@
 <script>
 import { notify } from "@/notify";
 import { mutations, state, getters } from "@/store";
+import { router } from "@/router";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
-import SettingsButton from "@/components/settings/SettingsButton.vue";
 import { settings } from "@/utils/constants";
 import {
   sectionsFromFlatUser,
@@ -50,7 +43,6 @@ export default {
   name: "settings",
   components: {
     UserProfilePreferences,
-    SettingsButton,
   },
   data() {
     return {
@@ -128,19 +120,20 @@ export default {
         document.documentElement.style.setProperty("--primaryColor", color);
       }
     },
-    onPreferenceChange() {
+    async onPreferenceChange({ section, field } = {}) {
+      if (section === "account" && field === "showAdvancedProfile") {
+        await this.updateSettings();
+        if (this.localuser.showAdvancedProfile) {
+          void router.push({ path: "/settings", hash: "#profile-accountOptions" }, () => {});
+        } else {
+          mutations.setActiveSettingsView("profile-main");
+        }
+        return;
+      }
       void this.updateSettings();
     },
     onLocaleChange() {
       void this.updateSettings();
-    },
-    openAdvancedOptionsPrompt() {
-      mutations.showPrompt({
-        name: "profile-advanced",
-        props: {
-          title: this.$t("general.profileSettings"),
-        },
-      });
     },
     async updateSettings(event) {
       if (typeof event?.preventDefault === "function") {
@@ -180,8 +173,5 @@ export default {
 }
 .settings-group {
   padding-top: 0.5em;
-}
-.profile-advanced-entry {
-  margin-top: 1rem;
 }
 </style>

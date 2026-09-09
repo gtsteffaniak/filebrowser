@@ -753,7 +753,8 @@
     "editorQuickSave": "Düzenleyicide hızlı kaydetme düğmesini göster",
     "editorQuickSaveDescription": "Metin düzenleyicisi yalnızca kaydetme simgesini gösterecek, diğer tüm işlemleri gizleyecektir",
     "showAdvancedProfile": "Gelişmiş profil ayarlarını göster",
-    "showAdvancedProfileDescription": "Basitleştirilmiş profil görünümü yerine, kenar çubuğunda kategorilere ayrılmış profil ayarlarını göster."
+    "showAdvancedProfileDescription": "Basitleştirilmiş profil görünümü yerine, kenar çubuğunda kategorilere ayrılmış profil ayarlarını göster.",
+    "accountOptions": "Hesap seçenekleri"
   },
   "editor": {
     "stats": {

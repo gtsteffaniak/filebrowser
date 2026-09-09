@@ -753,7 +753,8 @@
     "editorQuickSave": "Pokaż przycisk szybkiego zapisywania w edytorze",
     "editorQuickSaveDescription": "Edytor tekstu wyświetli jedynie ikonę zapisywania, ukrywając wszystkie inne opcje",
     "showAdvancedProfile": "Pokaż zaawansowane ustawienia profilu",
-    "showAdvancedProfileDescription": "Wyświetlaj ustawienia profilu pogrupowane według kategorii na pasku bocznym zamiast uproszczonego widoku profilu."
+    "showAdvancedProfileDescription": "Wyświetlaj ustawienia profilu pogrupowane według kategorii na pasku bocznym zamiast uproszczonego widoku profilu.",
+    "accountOptions": "Opcje konta"
   },
   "editor": {
     "stats": {

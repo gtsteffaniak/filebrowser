@@ -578,7 +578,8 @@
     "editorQuickSave": "Mostra il pulsante \"Salva rapidamente\" nell'editor",
     "editorQuickSaveDescription": "L'editor di testo mostrerà solo l'icona di salvataggio, nascondendo tutte le altre azioni",
     "showAdvancedProfile": "Mostra le impostazioni avanzate del profilo",
-    "showAdvancedProfileDescription": "Mostra le impostazioni del profilo suddivise per categorie nella barra laterale, anziché la visualizzazione semplificata del profilo."
+    "showAdvancedProfileDescription": "Mostra le impostazioni del profilo suddivise per categorie nella barra laterale, anziché la visualizzazione semplificata del profilo.",
+    "accountOptions": "Opzioni dell'account"
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",

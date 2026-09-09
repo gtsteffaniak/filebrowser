@@ -537,7 +537,8 @@
     "editorQuickSave": "在編輯器中顯示「快速儲存」按鈕",
     "editorQuickSaveDescription": "文字編輯器將僅顯示儲存圖示，並隱藏其他所有操作",
     "showAdvancedProfile": "顯示進階個人資料設定",
-    "showAdvancedProfileDescription": "在側邊欄中顯示分類後的個人資料設定，而非簡化版個人資料檢視。"
+    "showAdvancedProfileDescription": "在側邊欄中顯示分類後的個人資料設定，而非簡化版個人資料檢視。",
+    "accountOptions": "帳戶選項"
   },
   "otp": {
     "name": "雙因素驗證",

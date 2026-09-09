@@ -578,7 +578,8 @@
     "editorQuickSave": "Knop voor snel opslaan weergeven in de editor",
     "editorQuickSaveDescription": "De teksteditor toont alleen het opslagpictogram; alle andere acties worden verborgen",
     "showAdvancedProfile": "Geavanceerde profielinstellingen weergeven",
-    "showAdvancedProfileDescription": "Toon de profielinstellingen per categorie in de zijbalk in plaats van de vereenvoudigde profielweergave."
+    "showAdvancedProfileDescription": "Toon de profielinstellingen per categorie in de zijbalk in plaats van de vereenvoudigde profielweergave.",
+    "accountOptions": "Accountopties"
   },
   "settings": {
     "systemAdmin": "Systeem & Beheer",

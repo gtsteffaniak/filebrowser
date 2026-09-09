@@ -753,7 +753,8 @@
     "editorQuickSave": "エディタにクイックセーブボタンを表示する",
     "editorQuickSaveDescription": "テキストエディタには保存アイコンのみが表示され、その他の操作は非表示になります",
     "showAdvancedProfile": "詳細なプロフィール設定を表示する",
-    "showAdvancedProfileDescription": "簡易プロフィール表示の代わりに、サイドバーに分類されたプロフィール設定を表示します。"
+    "showAdvancedProfileDescription": "簡易プロフィール表示の代わりに、サイドバーに分類されたプロフィール設定を表示します。",
+    "accountOptions": "アカウント設定"
   },
   "editor": {
     "stats": {

@@ -753,7 +753,8 @@
     "editorQuickSave": "Mostrar o botão de salvamento rápido no editor",
     "editorQuickSaveDescription": "O editor de texto exibirá apenas o ícone de salvar, ocultando todas as outras ações",
     "showAdvancedProfile": "Mostrar configurações avançadas do perfil",
-    "showAdvancedProfileDescription": "Mostrar as configurações do perfil categorizadas na barra lateral, em vez da visualização simplificada do perfil."
+    "showAdvancedProfileDescription": "Mostrar as configurações do perfil categorizadas na barra lateral, em vez da visualização simplificada do perfil.",
+    "accountOptions": "Opções da conta"
   },
   "editor": {
     "stats": {

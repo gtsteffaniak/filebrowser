@@ -568,7 +568,8 @@
     "editorQuickSave": "Mostrar o botão de gravação rápida no editor",
     "editorQuickSaveDescription": "O editor de texto irá mostrar apenas o ícone de guardar, ocultando quaisquer outras ações",
     "showAdvancedProfile": "Mostrar definições avançadas do perfil",
-    "showAdvancedProfileDescription": "Mostrar as definições do perfil por categorias na barra lateral, em vez da visualização simplificada do perfil."
+    "showAdvancedProfileDescription": "Mostrar as definições do perfil por categorias na barra lateral, em vez da visualização simplificada do perfil.",
+    "accountOptions": "Opções da conta"
   },
   "general": {
     "import": "Importar",

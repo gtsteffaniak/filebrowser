@@ -469,12 +469,11 @@ export async function openProfileSettings(page: Page): Promise<void> {
   await expect(page).toHaveTitle(/Settings/);
 }
 
-/** Opens the advanced profile options prompt from the simplified profile view. */
-export async function openProfileAdvancedPrompt(page: Page): Promise<Locator> {
-  await page.getByRole("button", { name: "Show Advanced Options" }).click();
-  const prompt = page.locator('[aria-label="profile-advanced-prompt"]');
-  await expect(prompt).toBeVisible();
-  return prompt;
+/** Enables advanced profile settings from the simplified profile view. */
+export async function enableAdvancedProfileSettings(page: Page): Promise<void> {
+  const toggle = page.getByRole("switch", { name: /Show advanced profile settings/i });
+  await toggle.click();
+  await expect(page).toHaveURL(/#profile-accountOptions/);
 }
 
 /**

@@ -745,7 +745,8 @@
     "editorQuickSave": "إظهار زر الحفظ السريع في المحرر",
     "editorQuickSaveDescription": "سيعرض محرر النصوص رمز الحفظ فقط، مع إخفاء أي إجراءات أخرى",
     "showAdvancedProfile": "إظهار إعدادات الملف الشخصي المتقدمة",
-    "showAdvancedProfileDescription": "اعرض إعدادات الملف الشخصي المصنفة في الشريط الجانبي بدلاً من عرض الملف الشخصي المبسط."
+    "showAdvancedProfileDescription": "اعرض إعدادات الملف الشخصي المصنفة في الشريط الجانبي بدلاً من عرض الملف الشخصي المبسط.",
+    "accountOptions": "خيارات الحساب"
   },
   "colors": {
     "red": "أحمر",

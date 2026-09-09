@@ -130,7 +130,6 @@ import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
 import DefaultViewPrefs from "./DefaultViewPrefs.vue";
-import ProfileAdvanced from "./ProfileAdvanced.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -183,7 +182,6 @@ export default {
     Quota,
     NewFileTemplate,
     DefaultViewPrefs,
-    ProfileAdvanced,
   },
   data() {
     return {

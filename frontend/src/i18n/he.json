@@ -753,7 +753,8 @@
     "editorQuickSave": "הצג את כפתור השמירה המהירה בעורך",
     "editorQuickSaveDescription": "עורך הטקסט יציג רק את סמל השמירה, ויסתיר את כל הפעולות האחרות",
     "showAdvancedProfile": "הצג הגדרות פרופיל מתקדמות",
-    "showAdvancedProfileDescription": "הצג את הגדרות הפרופיל המסווגות בסרגל הצד במקום תצוגת הפרופיל הפשוטה."
+    "showAdvancedProfileDescription": "הצג את הגדרות הפרופיל המסווגות בסרגל הצד במקום תצוגת הפרופיל הפשוטה.",
+    "accountOptions": "אפשרויות חשבון"
   },
   "editor": {
     "stats": {

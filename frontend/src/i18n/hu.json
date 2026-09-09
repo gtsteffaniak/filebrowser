@@ -753,7 +753,8 @@
     "editorQuickSave": "A gyorsmentés gomb megjelenítése a szerkesztőben",
     "editorQuickSaveDescription": "A szövegszerkesztő csak a mentés gombot jeleníti meg, az összes többi műveletet elrejti",
     "showAdvancedProfile": "A profil speciális beállításainak megjelenítése",
-    "showAdvancedProfileDescription": "Az egyszerűsített profilnézet helyett az oldalsávban jelenítse meg a kategóriák szerint csoportosított profilbeállításokat."
+    "showAdvancedProfileDescription": "Az egyszerűsített profilnézet helyett az oldalsávban jelenítse meg a kategóriák szerint csoportosított profilbeállításokat.",
+    "accountOptions": "Fiókbeállítások"
   },
   "editor": {
     "stats": {

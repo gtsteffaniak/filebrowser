@@ -753,7 +753,8 @@
     "editorQuickSave": "Schaltfläche „Schnellspeichern“ im Editor anzeigen",
     "editorQuickSaveDescription": "Der Texteditor zeigt nur das Speichersymbol an und blendet alle anderen Funktionen aus.",
     "showAdvancedProfile": "Erweiterte Profileinstellungen anzeigen",
-    "showAdvancedProfileDescription": "Zeige die nach Kategorien geordneten Profileinstellungen in der Seitenleiste anstelle der vereinfachten Profilansicht an."
+    "showAdvancedProfileDescription": "Zeige die nach Kategorien geordneten Profileinstellungen in der Seitenleiste anstelle der vereinfachten Profilansicht an.",
+    "accountOptions": "Kontooptionen"
   },
   "editor": {
     "stats": {

@@ -117,8 +117,18 @@
         @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
       />
     </div>
+    <div class="preference-field-block">
+      <h4>{{ $t("profileSettings.accountOptions") }}</h4>
+      <ProfilePreferenceToggle
+        field="showAdvancedProfile"
+        section="account"
+        :name="$t('profileSettings.showAdvancedProfile')"
+        :description="$t('profileSettings.showAdvancedProfileDescription')"
+      />
+    </div>
   </div>
-  <SettingsAccordion v-else v-model="expandedSection" class="user-profile-preferences">
+  <template v-else>
+  <SettingsAccordion v-model="expandedSection" class="user-profile-preferences">
     <SettingsItem
       v-if="sectionVisible('listingOptions')"
       aria-label="listingOptions"
@@ -715,7 +725,7 @@
       aria-label="accountOptions"
       name="accountOptions"
       :accordion="!sectionKey"
-      :title="$t('settings.accountDefaults')"
+      :title="$t('profileSettings.accountOptions')"
       :collapsable="!sectionKey"
       :hidden="!!sectionKey"
       :start-collapsed="sectionStartsCollapsed('accountOptions')"
@@ -730,6 +740,7 @@
       </div>
     </SettingsItem>
   </SettingsAccordion>
+  </template>
 </template>
 
 <script>
@@ -817,10 +828,6 @@ export default {
     sectionKey: {
       type: String,
       default: null,
-    },
-    showAccountSection: {
-      type: Boolean,
-      default: false,
     },
   },
   emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
@@ -976,9 +983,6 @@ export default {
       return true;
     },
     sectionVisible(key) {
-      if (key === "accountOptions") {
-        return this.showAccountSection && (!this.sectionKey || this.sectionKey === key);
-      }
       if (!this.sectionKey) {
         return true;
       }

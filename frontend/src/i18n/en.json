@@ -554,6 +554,7 @@
     "popupPreviewDescription": "An overlay pop-up window will show over the UI when hovering over items with thumbnails",
     "disableUpdateNotifications": "Disable showing notification update",
     "disableUpdateNotificationsDescription": "Disable the update notification banner that shows up for admin users on the sidebar.",
+    "accountOptions": "Account options",
     "showAdvancedProfile": "Show advanced profile settings",
     "showAdvancedProfileDescription": "Show categorized profile settings in the sidebar instead of the simplified profile view.",
     "disableHideSidebar": "Always show sidebar",

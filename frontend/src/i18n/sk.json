@@ -753,7 +753,8 @@
     "editorQuickSave": "Zobraziť tlačidlo rýchleho uloženia v editore",
     "editorQuickSaveDescription": "Textový editor zobrazí iba ikonu uloženia a všetky ostatné akcie skryje",
     "showAdvancedProfile": "Zobraziť pokročilé nastavenia profilu",
-    "showAdvancedProfileDescription": "Zobraziť nastavenia profilu podľa kategórií v bočnom paneli namiesto zjednodušeného zobrazenia profilu."
+    "showAdvancedProfileDescription": "Zobraziť nastavenia profilu podľa kategórií v bočnom paneli namiesto zjednodušeného zobrazenia profilu.",
+    "accountOptions": "Možnosti účtu"
   },
   "editor": {
     "stats": {

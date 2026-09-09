@@ -753,7 +753,8 @@
     "editorQuickSave": "Afișează butonul de salvare rapidă în editor",
     "editorQuickSaveDescription": "Editorul de text va afișa doar pictograma de salvare, ascunzând orice alte acțiuni",
     "showAdvancedProfile": "Afișează setările avansate ale profilului",
-    "showAdvancedProfileDescription": "Afișează setările de profil clasificate în bara laterală, în locul vizualizării simplificate a profilului."
+    "showAdvancedProfileDescription": "Afișează setările de profil clasificate în bara laterală, în locul vizualizării simplificate a profilului.",
+    "accountOptions": "Opțiuni de cont"
   },
   "editor": {
     "stats": {

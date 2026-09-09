@@ -568,7 +568,8 @@
     "editorQuickSave": "Visa knappen för snabbsparning i redigeraren",
     "editorQuickSaveDescription": "Textredigeraren visar endast spara-ikonen och döljer alla andra åtgärder",
     "showAdvancedProfile": "Visa avancerade profilinställningar",
-    "showAdvancedProfileDescription": "Visa de kategoriserade profilinställningarna i sidofältet istället för den förenklade profilvyn."
+    "showAdvancedProfileDescription": "Visa de kategoriserade profilinställningarna i sidofältet istället för den förenklade profilvyn.",
+    "accountOptions": "Kontoalternativ"
   },
   "general": {
     "import": "Importera",

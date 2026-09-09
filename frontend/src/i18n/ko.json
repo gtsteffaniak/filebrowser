@@ -753,7 +753,8 @@
     "editorQuickSave": "편집기에 빠른 저장 버튼 표시",
     "editorQuickSaveDescription": "텍스트 편집기에는 저장 아이콘만 표시되고, 다른 모든 작업은 숨겨집니다.",
     "showAdvancedProfile": "고급 프로필 설정 표시",
-    "showAdvancedProfileDescription": "간소화된 프로필 보기 대신 사이드바에 분류별 프로필 설정을 표시합니다."
+    "showAdvancedProfileDescription": "간소화된 프로필 보기 대신 사이드바에 분류별 프로필 설정을 표시합니다.",
+    "accountOptions": "계정 설정"
   },
   "editor": {
     "stats": {
