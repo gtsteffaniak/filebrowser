@@ -2,7 +2,6 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-
 ## v2.1.0
 
  **New Features**:

@@ -412,7 +412,9 @@
     "selectBannerImage": "选择横幅图片",
     "selectFaviconImage": "选择图标图像",
     "deleteFailed": "删除共享失败",
-    "readOnlySourceNotice": "此源为只读。上传共享和修改文件的权限被禁用。"
+    "readOnlySourceNotice": "此源为只读。上传共享和修改文件的权限被禁用。",
+    "shareDefaults": "共享默认设置",
+    "shareDefaultsDescription": "为新共享配置默认共享选项，并对非管理员用户强制执行策略。"
   },
   "api": {
     "createdAt": "创建于",

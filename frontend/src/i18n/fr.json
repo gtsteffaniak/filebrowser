@@ -412,7 +412,9 @@
     "selectBannerImage": "Sélectionner l'image de la bannière",
     "selectFaviconImage": "Sélectionner l'image du favicon",
     "deleteFailed": "Échec de la suppression du partage",
-    "readOnlySourceNotice": "Cette source est en lecture seule. Les partages de téléchargement et les autorisations qui modifient les fichiers sont désactivés."
+    "readOnlySourceNotice": "Cette source est en lecture seule. Les partages de téléchargement et les autorisations qui modifient les fichiers sont désactivés.",
+    "shareDefaults": "Paramètres par défaut de partage",
+    "shareDefaultsDescription": "Configurer les options de partage par défaut pour les nouveaux partages et appliquer les règles aux utilisateurs non administrateurs."
   },
   "api": {
     "createdAt": "Créée le :",
