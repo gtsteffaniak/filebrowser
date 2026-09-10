@@ -21,6 +21,12 @@ export default {
   components: {
     Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   data() {
     return {
       previewContent: "",

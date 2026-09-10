@@ -28,6 +28,12 @@ import { getters } from "@/store";
 
 export default {
   name: "closeWithActiveUploads",
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   computed: {
     currentPrompt() {
       return getters.currentPrompt();

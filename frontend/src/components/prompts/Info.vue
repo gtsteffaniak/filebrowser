@@ -166,6 +166,10 @@ export default {
     QuotaFolderBar,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     item: {
       type: Object,
       required: true,

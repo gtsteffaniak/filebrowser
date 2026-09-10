@@ -34,6 +34,7 @@ export default {
   name: "QuotaFolderBar",
   components: { ProgressBar },
   props: {
+    promptId: { type: [String, Number], default: null },
     source: { type: String, required: true },
     path: { type: String, required: true },
     enabled: { type: Boolean, default: false },

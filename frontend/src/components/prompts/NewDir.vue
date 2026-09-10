@@ -47,6 +47,10 @@ export default {
     LoadingSpinner,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     redirect: {
       type: Boolean,
       default: true,

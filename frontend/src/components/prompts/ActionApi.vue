@@ -81,6 +81,10 @@ import { copyToClipboard } from "@/utils/clipboard";
 export default {
   name: "ActionApi",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     name: {
       type: String,
       required: true,

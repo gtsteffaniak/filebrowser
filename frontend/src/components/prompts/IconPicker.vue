@@ -103,6 +103,10 @@ import { mutations } from "@/store";
 export default {
   name: "IconPicker",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     onSelect: {
       type: Function,
       required: true,

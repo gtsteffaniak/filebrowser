@@ -88,6 +88,10 @@ export default {
     ExpandDropdown,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     permissions: {
       type: Object,
       required: true,

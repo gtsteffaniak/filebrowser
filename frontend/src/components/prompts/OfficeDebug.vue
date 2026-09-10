@@ -69,6 +69,10 @@ const wikiLink = "https://filebrowserquantum.com/en/docs/integrations/office/tro
 export default {
   name: "officeDebug",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     onlyOfficeUrl: {
       type: String,
       required: true,

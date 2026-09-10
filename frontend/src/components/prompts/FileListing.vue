@@ -14,6 +14,10 @@ export default {
   name: "file-list",
   components: { FileList },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     fileList: {
       type: Array,
       required: false
