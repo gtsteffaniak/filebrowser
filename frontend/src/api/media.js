@@ -22,7 +22,7 @@ export async function getSubtitleContent(source, path, subtitleName, embedded = 
       })
       const sharePassword = localStorage.getItem(`sharepass:${hash}`) || ''
       res = await fetchURL(apiPath, {
-        headers: { 'X-SHARE-PASSWORD': sharePassword },
+        headers: { 'X-SHARE-PASSWORD': encodeURIComponent(sharePassword) },
       })
     } else {
       const apiPath = getApiPath('media/subtitles', {
@@ -59,7 +59,7 @@ export async function getLyricsPublic(path, hash, password = "") {
     };
     const apiPath = getPublicApiPath("media/lyrics", params);
     const response = await fetch(apiPath, {
-        headers: { "X-SHARE-PASSWORD": password || "" },
+        headers: { "X-SHARE-PASSWORD": encodeURIComponent(password || "") },
     });
     if (!response.ok) {
         const error = new Error(response.statusText);
@@ -99,7 +99,7 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
   };
   const apiPath = getPublicApiPath("media/metadata", params);
   const response = await fetch(apiPath, {
-    headers: { "X-SHARE-PASSWORD": password || "" },
+    headers: { "X-SHARE-PASSWORD": encodeURIComponent(password || "") },
   });
   if (!response.ok) {
     const error = new Error(response.statusText);

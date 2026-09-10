@@ -1131,7 +1131,7 @@ function sharePublicAuthHeaders(hash) {
   if (!password) {
     return {};
   }
-  return { "X-SHARE-PASSWORD": password };
+  return { "X-SHARE-PASSWORD": encodeURIComponent(password) };
 }
 
 // Fetch public share data
@@ -1155,7 +1155,7 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
   const sharePassword = password || getSharePasswordFromStorage(hash);
   const response = await fetch(apiPath, {
     credentials: "same-origin",
-    headers: sharePassword ? { "X-SHARE-PASSWORD": sharePassword } : {},
+    headers: sharePassword ? { "X-SHARE-PASSWORD": encodeURIComponent(sharePassword) } : {},
   });
 
   if (!response.ok) {

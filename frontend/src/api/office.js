@@ -15,7 +15,7 @@ export async function getConfig(req) {
     if (req.hash) {
       const sharePassword = localStorage.getItem(`sharepass:${req.hash}`)
       if (sharePassword) {
-        headers['X-SHARE-PASSWORD'] = sharePassword
+        headers['X-SHARE-PASSWORD'] = encodeURIComponent(sharePassword)
       }
     }
     

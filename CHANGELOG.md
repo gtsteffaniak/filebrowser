@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bugfixes**:
  - Fix disk-usage overstatement on virtiofs bind mounts (#2894) (#2894)
+ - Support non-ASCII share passwords (#2933)
 
 ## v2.0.5
 
