@@ -95,6 +95,7 @@ export default {
   align-items: center;
   justify-content: center;
   height: unset !important;
+  padding-bottom: 2.5em;
 }
 
 .tool-content {

@@ -83,7 +83,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Authenticate the share request if needed
 		var status int
 		if link.Hash != "" {
-			status, err = AuthenticateShareRequest(r, link)
+			status, err = AuthenticateShareRequest(w, r, link)
 			if err != nil || status != http.StatusOK {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
@@ -149,7 +149,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return ErrToStatus(err), fmt.Errorf("error fetching share from server")
 		}
-		file.Token = link.Token
 		file.Source = link.Hash
 		file.Hash = link.Hash
 		if !link.EnableOnlyOffice || link.DisableFileViewer || reachedDownloadsLimit {

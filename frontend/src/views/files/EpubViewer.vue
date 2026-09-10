@@ -99,7 +99,6 @@ export default defineComponent({
             {
               path: state.shareInfo.subPath,
               hash: state.shareInfo.hash,
-              token: state.shareInfo.token,
             },
             false,
             state.req.type || state.req.name,

@@ -9,43 +9,40 @@ import (
 func TestApplySharePasswordUpdatePreservesWhenOmitted(t *testing.T) {
 	link := &share.Share{
 		PasswordHash: "hashed",
-		Token:        "tok",
 	}
 
-	if err := applySharePasswordUpdate(link, nil, "", ""); err != nil {
+	if err := applySharePasswordUpdate(link, nil, ""); err != nil {
 		t.Fatal(err)
 	}
-	if link.PasswordHash != "hashed" || link.Token != "tok" {
-		t.Fatalf("expected preserved secrets, got hash=%q token=%q", link.PasswordHash, link.Token)
+	if link.PasswordHash != "hashed" {
+		t.Fatalf("expected preserved password hash, got hash=%q", link.PasswordHash)
 	}
 }
 
 func TestApplySharePasswordUpdateClearsWhenEmpty(t *testing.T) {
 	link := &share.Share{
 		PasswordHash: "hashed",
-		Token:        "tok",
 	}
 	empty := ""
 
-	if err := applySharePasswordUpdate(link, &empty, "", ""); err != nil {
+	if err := applySharePasswordUpdate(link, &empty, ""); err != nil {
 		t.Fatal(err)
 	}
-	if link.PasswordHash != "" || link.Token != "" {
-		t.Fatalf("expected cleared secrets, got hash=%q token=%q", link.PasswordHash, link.Token)
+	if link.PasswordHash != "" {
+		t.Fatalf("expected cleared password hash, got hash=%q", link.PasswordHash)
 	}
 }
 
 func TestApplySharePasswordUpdateReplacesWhenProvided(t *testing.T) {
 	link := &share.Share{
 		PasswordHash: "old",
-		Token:        "oldtok",
 	}
 	next := "new-password"
 
-	if err := applySharePasswordUpdate(link, &next, "newhash", "newtok"); err != nil {
+	if err := applySharePasswordUpdate(link, &next, "newhash"); err != nil {
 		t.Fatal(err)
 	}
-	if link.PasswordHash != "newhash" || link.Token != "newtok" {
-		t.Fatalf("expected replaced secrets, got hash=%q token=%q", link.PasswordHash, link.Token)
+	if link.PasswordHash != "newhash" {
+		t.Fatalf("expected replaced password hash, got hash=%q", link.PasswordHash)
 	}
 }

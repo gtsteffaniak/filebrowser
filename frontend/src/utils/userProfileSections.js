@@ -2,7 +2,7 @@
  * Maps flat runtime user objects ↔ nested user-defaults / profile sections (matches backend ProfileFromUser).
  */
 
-import { getObjectProperty } from "./object.js";
+import { getNestedProperty, getObjectProperty } from "@/utils/object.js";
 
 function boolPtr(val, defaultValue = true) {
   if (val === undefined || val === null) {
@@ -224,11 +224,7 @@ function enforcedFlagAt(enforced, section, field) {
   if (!enforced || !section) {
     return false;
   }
-  const sectionData = getObjectProperty(enforced, section);
-  if (!sectionData || typeof sectionData !== "object") {
-    return false;
-  }
-  return !!getObjectProperty(sectionData, field);
+  return !!getNestedProperty(enforced, section, field);
 }
 
 /** True when global user-default enforcement locks a flat profile PATCH field. */
@@ -240,7 +236,7 @@ export function isFlatProfileFieldEnforced(enforced, flatField) {
     return false;
   }
   const path = getObjectProperty(FLAT_PROFILE_FIELD_ENFORCED_PATHS, flatField);
-  if (!path) {
+  if (!Array.isArray(path)) {
     return false;
   }
   return enforcedFlagAt(enforced, path[0], path[1]);

@@ -25,6 +25,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 import { invalidateDirMetadataCache } from "@/utils/metadataCache.js";
+import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
 
 function directoryListingHasMediaChildren(req) {
   return (
@@ -43,7 +44,7 @@ async function fetchShareItemWithParent(sharePassword) {
     false
   );
   file.hash = state.shareInfo.hash;
-  mutations.setShareData({ token: file.token, passwordValid: true });
+  mutations.setShareData({ passwordValid: true });
 
   if (file.type === "directory") {
     return file;
@@ -76,7 +77,6 @@ async function fetchShareItemWithParent(sharePassword) {
   const results = await Promise.all(promises);
   file = results[0];
   file.hash = state.shareInfo.hash;
-  mutations.setShareData({ token: results[0].token });
   if (shouldFetchParent && results[1]?.items) {
     file.parentDirItems = results[1].items;
   }
@@ -424,6 +424,9 @@ export default {
           mutations.replaceRequest(file);
           document.title = `${globalVars.name} - ${this.$t("general.share")} - ${file.name}`;
           await this.patchMediaMetadataIfNeeded(file);
+          if (this.$route.query.download === "true") {
+            this.promptShareDownload(file);
+          }
         }
 
         // === FILES-SPECIFIC INITIALIZATION ===
@@ -541,6 +544,26 @@ export default {
           initialPassword: this.sharePassword,
         },
       });
+    },
+    resolveShareDownloadPath(file) {
+      const subPath = state.shareInfo?.subPath;
+      if (subPath && subPath !== "/") {
+        return subPath;
+      }
+      if (file?.path && file.path !== "/") {
+        return file.path;
+      }
+      return "/";
+    },
+    promptShareDownload(file) {
+      const downloadPath = this.resolveShareDownloadPath(file);
+      openShareDownloadPrompt([{
+        path: downloadPath,
+        name: file?.name,
+        type: file?.type,
+        size: file?.size,
+        isDir: file?.type === "directory",
+      }]);
     },
     keyEvent(event) {
       // F1!

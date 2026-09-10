@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
+ - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
 
  **New Features**:
  - Added Storage Quotas
@@ -41,6 +42,22 @@ All notable changes to this project will be documented in this file. For commit 
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
  - Added some missing styles in the markdown viewer (#2714)
  - Recaptcha not working (#1925) (#2861)
+ - Fix disk-usage overstatement on virtiofs bind mounts (#2894)
+ - Support non-ASCII share passwords (#2933)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938)
+ - Preserve deleted sidebar links across restarts (#2935)
+ - scope padding to listing view (#2934)
+
+## v2.0.6
+
+ **Security**:
+ - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
+
+ **Bugfixes**:
+ - Fix disk-usage overstatement on virtiofs bind mounts (#2894) (#2894)
+ - Support non-ASCII share passwords (#2933)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938)
+ - Preserve deleted sidebar links across restarts (#2935)
 
 ## v2.0.5
 
@@ -58,6 +75,7 @@ All notable changes to this project will be documented in this file. For commit 
  - tilde paths for sources were not properly expanded. (eg "~" for home)
  - fixed tooltip not showing up for some circumstances on mobile, improved consistency.
  - a few styling fixes for inconsistencies (#2908)
+ - Disk-usage widget no longer reports PB/TB-scale garbage on Docker Desktop for Mac (virtiofs) bind mounts; space is computed from the filesystem fragment size (`f_frsize`) instead of the optimal-transfer block size (`f_bsize`) on Linux ([#2894](https://github.com/gtsteffaniak/filebrowser/issues/2894)).
 
 ## v2.0.4
 

@@ -39,7 +39,6 @@ func createSchema(db *sql.DB) error {
 		expire INTEGER NOT NULL DEFAULT 0,
 		downloads INTEGER NOT NULL DEFAULT 0,
 		password_hash TEXT,
-		token TEXT,
 		user_downloads TEXT,
 		share_settings TEXT NOT NULL,
 		version INTEGER NOT NULL DEFAULT 0

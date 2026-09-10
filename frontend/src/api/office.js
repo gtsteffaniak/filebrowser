@@ -1,5 +1,4 @@
 import { notify } from '@/notify'
-import { state } from '@/store'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { fetchURL } from './utils'
 
@@ -10,7 +9,6 @@ export async function getConfig(req) {
       path: req.path,
       ...(req.hash && { hash: req.hash }),
       ...(req.source && { source: req.source }),
-      ...(req.hash && state.shareInfo?.token && { token: state.shareInfo.token }),
     }
 
     const headers = {}

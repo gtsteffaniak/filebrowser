@@ -375,7 +375,6 @@ export default {
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
           },
           false,
           typeHint,

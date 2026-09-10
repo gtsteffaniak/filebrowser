@@ -3,7 +3,7 @@
     <div v-if="showWrongCredentials" class="form-invalid">
       {{ $t("login.wrongCredentials") }}
     </div>
-    <div v-if="infoText">
+    <div v-if="infoText" class="password-info">
       <p>{{ infoText }}</p>
     </div>
     <div class="form-flex-group">
@@ -85,6 +85,15 @@ export default {
 </script>
 
 <style scoped>
+.password-info {
+  margin-bottom: 1em;
+}
+
+.password-info p {
+  margin: 0;
+  color: var(--textPrimary);
+}
+
 .wrong__password {
   color: #ff4757;
   text-align: center;

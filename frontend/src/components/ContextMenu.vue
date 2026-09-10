@@ -1021,7 +1021,6 @@ export default {
         ? resourcesApi.getOpenFileURL(source, path, {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
           })
         : resourcesApi.getOpenFileURL(source, path);
       window.open(openUrl, "_blank");
