@@ -83,7 +83,7 @@ func requestPageFullURL(r *http.Request) string {
 }
 
 // ShareURLFromRequest builds a public share or direct-download URL from the request and server config.
-func ShareURLFromRequest(r *http.Request, hash string, isDirectDownload bool, token string) string {
+func ShareURLFromRequest(r *http.Request, hash string, isDirectDownload bool, hasPassword bool) string {
 	host, scheme := shareURLParams(r)
-	return share.PublicShareURL(host, scheme, hash, isDirectDownload, token)
+	return share.PublicShareURL(host, scheme, hash, isDirectDownload, hasPassword)
 }

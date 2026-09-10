@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.6
+
+ **Security**:
+ - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
+
 ## v2.0.5
 
  **New Features**:

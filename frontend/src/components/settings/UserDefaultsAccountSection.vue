@@ -90,6 +90,7 @@
 <script>
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { getObjectProperty } from "@/utils/object.js";
 
 export default {
   name: "UserDefaultsAccountSection",
@@ -139,22 +140,22 @@ export default {
       if (this.isFieldLocked(field)) {
         return true;
       }
-      return this.respectEnforcedPolicy && !!this.enforced[field];
+      return this.respectEnforcedPolicy && !!getObjectProperty(this.enforced, field);
     },
     isPermissionDisabled(field) {
       if (this.isPermissionLocked(field)) {
         return true;
       }
-      return this.respectEnforcedPolicy && !!this.enforcedPermissions[field];
+      return this.respectEnforcedPolicy && !!getObjectProperty(this.enforcedPermissions, field);
     },
     fieldDisabledTooltip(field) {
-      if (this.respectEnforcedPolicy && this.enforced[field]) {
+      if (this.respectEnforcedPolicy && getObjectProperty(this.enforced, field)) {
         return this.$t("profileSettings.enforcedByAdmin");
       }
       return this.configLockTooltipForField(field);
     },
     permissionDisabledTooltip(field) {
-      if (this.respectEnforcedPolicy && this.enforcedPermissions[field]) {
+      if (this.respectEnforcedPolicy && getObjectProperty(this.enforcedPermissions, field)) {
         return this.$t("profileSettings.enforcedByAdmin");
       }
       return this.configLockTooltipForPermission(field);

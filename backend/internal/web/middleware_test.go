@@ -363,7 +363,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
 		},
 		{
-			name: "Private share, valid password when token exists",
+			name: "Private share, valid password",
 			share: &share.Share{
 				ShareSettings: share.ShareSettings{
 					ShareLimits: share.ShareLimits{SourceName: "srv"},
@@ -372,7 +372,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
-				Token:        "some_random_token",
 			},
 			extraHeaders: map[string]string{
 				"X-SHARE-PASSWORD": "password",
@@ -389,12 +388,11 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
-				Token:        "123",
 			},
 			expectedStatusCode: http.StatusUnauthorized,
 		},
 		{
-			name: "Private share, valid token",
+			name: "Private share, download token rejected on listing route",
 			share: &share.Share{
 				ShareSettings: share.ShareSettings{
 					ShareLimits: share.ShareLimits{SourceName: "srv"},
@@ -403,10 +401,9 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
-				Token:        "123",
 			},
-			token:              "123",
-			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
+			token:              "download-token-placeholder",
+			expectedStatusCode: http.StatusUnauthorized,
 		},
 		{
 			name: "Private share, invalid password",
@@ -418,7 +415,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				SourcePath:   "/srv",
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
-				Token:        "123",
 			},
 			extraHeaders: map[string]string{
 				"X-SHARE-PASSWORD": "wrong-password",
@@ -429,19 +425,23 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Save the share in the state
 			if err := state.CreateShare(tc.share); err != nil {
 				t.Fatal("failed to save share:", err)
 			}
 
-			// Create a response recorder to capture handler output
 			recorder := httptest.NewRecorder()
-
-			// Wrap the handler with authentication middleware
 			handler := withHashFile(publicGetResourceHandler)
 
-			// Prepare the request with query parameters and optional headers
-			req := newTestRequest(t, tc.share.Hash, tc.token, tc.password, tc.extraHeaders)
+			token := tc.token
+			if tc.name == "Private share, download token rejected on listing route" {
+				minted, _, err := mintShareDownloadAccessToken(tc.share.Hash, time.Hour, 0)
+				if err != nil {
+					t.Fatalf("mintShareDownloadAccessToken: %v", err)
+				}
+				token = minted
+			}
+
+			req := newTestRequest(t, tc.share.Hash, token, tc.password, tc.extraHeaders)
 
 			// Serve the request
 			handler(recorder, req)

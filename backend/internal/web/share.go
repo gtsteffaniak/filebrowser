@@ -1,9 +1,7 @@
 package web
 
 import (
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -260,19 +258,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return status, err2
 	}
 	stringHash := ""
-	var token string
 	if len(hash) > 0 {
-		payloadBuffer := make([]byte, 24)
-		if _, err = rand.Read(payloadBuffer); err != nil {
-			return http.StatusInternalServerError, err
-		}
-		payload := base64.URLEncoding.EncodeToString(payloadBuffer)
-
-		mac := hmac.New(sha256.New, []byte(settings.Config.Auth.Key))
-		mac.Write([]byte(payload))
-		signature := base64.URLEncoding.EncodeToString(mac.Sum(nil))
-
-		token = payload + "." + signature
 		stringHash = string(hash)
 	}
 	if req.Hash != "" {
@@ -295,7 +281,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			shouldResetCounts := link.DownloadsLimit != req.DownloadsLimit ||
 				link.PerUserDownloadLimit != req.PerUserDownloadLimit
 
-			if err = applySharePasswordUpdate(link, req.Password, stringHash, token); err != nil {
+			if err = applySharePasswordUpdate(link, req.Password, stringHash); err != nil {
 				return err
 			}
 
@@ -392,7 +378,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		SourcePath:   source.Path,
 		UserID:       d.User.ID,
 		PasswordHash: stringHash,
-		Token:        token,
 		Version:      1,
 	}
 	s.DownloadURL = ""
@@ -421,174 +406,107 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	return RenderJSON(w, r, prepared)
 }
 
-// DirectDownloadResponse represents the response for direct download endpoint
+// DirectDownloadResponse represents the response for direct download endpoint.
 type DirectDownloadResponse struct {
-	Status      string `json:"status"`
-	Hash        string `json:"hash"`
-	DownloadURL string `json:"url"`
-	ShareURL    string `json:"shareUrl"`
+	Hash      string `json:"hash"`
+	Token     string `json:"token"`
+	ExpiresAt int64  `json:"expiresAt"`
+	URL       string `json:"url"`
 }
 
-// shareDirectDownloadHandler creates a direct download link for files only.
-// @Summary Create direct download link
-// @Description Creates a direct download link for a specific file with configurable duration, download count, and speed limits. If a share already exists with matching parameters, the existing share will be reused.
+// parseShareDownloadTokenParams reads duration, unit, and optional use-count from the direct-download API query.
+func parseShareDownloadTokenParams(r *http.Request) (time.Duration, int, error) {
+	durationStr := r.URL.Query().Get("duration")
+	if durationStr == "" {
+		durationStr = "60"
+	}
+	durationNum, err := strconv.Atoi(durationStr)
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid duration: %v", err)
+	}
+
+	unit := r.URL.Query().Get("unit")
+	if unit == "" {
+		unit = "minutes"
+	}
+	ttl, err := parseShareDownloadAccessDuration(durationNum, unit)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	maxUses := 0
+	if countStr := r.URL.Query().Get("count"); countStr != "" {
+		maxUses, err = strconv.Atoi(countStr)
+		if err != nil || maxUses <= 0 {
+			return 0, 0, fmt.Errorf("invalid count: %v", err)
+		}
+	}
+	return ttl, maxUses, nil
+}
+
+// mintShareDownloadTokenResponse builds the JSON payload for GET /api/share/direct.
+func mintShareDownloadTokenResponse(r *http.Request, hash string, ttl time.Duration, maxUses int) (DirectDownloadResponse, error) {
+	token, expiresAt, err := mintShareDownloadAccessToken(hash, ttl, maxUses)
+	if err != nil {
+		return DirectDownloadResponse{}, err
+	}
+	host, scheme := shareURLParams(r)
+	return DirectDownloadResponse{
+		Hash:      hash,
+		Token:     token,
+		ExpiresAt: expiresAt,
+		URL:       directDownloadURL(host, scheme, hash, token),
+	}, nil
+}
+
+// shareDirectDownloadHandler mints a download-only ephemeral token for a password-protected share.
+// @Summary Get direct download link
+// @Description Mints a download-only ephemeral token for an existing password-protected share. Requires the share owner or an admin plus a valid X-SHARE-PASSWORD header. API-only; not used by the FileBrowser UI. Default duration is 60 minutes. Maximum token lifetime is 24 hours regardless of unit.
 // @Tags Shares
 // @Accept json
 // @Produce json
-// @Param path query string true "File path to create download link for"
-// @Param source query string true "Source name for the file"
-// @Param duration query string false "Duration in minutes for link validity (default: 60)"
-// @Param count query string false "Maximum number of downloads allowed (default: unlimited)"
-// @Param speed query string false "Download speed limit in kbps (default: unlimited)"
-// @Success 201 {object} DirectDownloadResponse "Direct download link created"
-// @Failure 400 {object} map[string]string "Bad request - invalid parameters or path is not a file"
-// @Failure 403 {object} map[string]string "Forbidden - access denied"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Param hash query string true "Share hash"
+// @Param duration query string false "Duration value (default: 60)"
+// @Param unit query string false "Duration unit: minutes or hours (default: minutes)"
+// @Param count query string false "Maximum number of downloads allowed with this token (default: unlimited within TTL)"
+// @Param X-SHARE-PASSWORD header string true "Share password"
+// @Success 200 {object} DirectDownloadResponse "Ephemeral download link"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Invalid or missing share password"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Share not found"
 // @Router /api/share/direct [get]
 func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	// Extract query parameters
-	path := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
-	duration := r.URL.Query().Get("duration")
-	downloadCountStr := r.URL.Query().Get("count")
-	downloadSpeedStr := r.URL.Query().Get("speed")
-
-	// Validate required parameters
-	if path == "" || source == "" {
-		return http.StatusBadRequest, fmt.Errorf("path and source are required")
+	hash := r.URL.Query().Get("hash")
+	if hash == "" {
+		return http.StatusBadRequest, fmt.Errorf("hash is required")
 	}
 
-	cleanPath, err := utils.SanitizePath(path)
+	link, err := state.GetShare(hash)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path: %w", err)
+		return http.StatusNotFound, fmt.Errorf("share not found")
 	}
-	path = cleanPath
-
-	// Validate source exists
-	sourceInfo, ok := settings.Config.Server.NameToSource[source]
-	if !ok {
-		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", source)
+	if !link.HasPassword() {
+		return http.StatusBadRequest, fmt.Errorf("share is not password protected")
+	}
+	if !link.UserCanEdit(d.User) {
+		return http.StatusForbidden, fmt.Errorf("you are not allowed to mint tokens for this share")
 	}
 
-	// Get user scope for this source
-	userscope, err := d.User.GetScopeForSourceName(source)
+	status, err := AuthenticateShareRequest(w, r, link)
+	if err != nil || status != http.StatusOK {
+		return http.StatusUnauthorized, fmt.Errorf("invalid share password")
+	}
+
+	ttl, maxUses, err := parseShareDownloadTokenParams(r)
 	if err != nil {
-		return http.StatusForbidden, err
+		return http.StatusBadRequest, err
 	}
 
-	// Validate the path exists and is a file (not a folder)
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", source)
-	}
-
-	metadata, exists := idx.GetReducedMetadata(path, false)
-	if !exists {
-		return http.StatusBadRequest, fmt.Errorf("path is either not a file or not found: %s", path)
-	}
-
-	// Check if it's a file (not a directory)
-	if metadata.Type == "directory" {
-		return http.StatusBadRequest, fmt.Errorf("path must be a file, not a directory: %s", path)
-	}
-
-	// Set default duration to 60 minutes if not provided
-	if duration == "" {
-		duration = "60"
-	}
-
-	// Parse download count
-	var downloadCount int
-	if downloadCountStr != "" {
-		downloadCount, err = strconv.Atoi(downloadCountStr)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid downloadCount: %v", err)
-		}
-	}
-
-	// Parse download speed (in bytes per second)
-	var downloadSpeed int
-	if downloadSpeedStr != "" {
-		downloadSpeed, err = strconv.Atoi(downloadSpeedStr)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid downloadSpeed: %v", err)
-		}
-	}
-
-	// Calculate expiration time
-	durationNum, err := strconv.Atoi(duration)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid duration: %v", err)
-	}
-	expire := time.Now().Add(time.Minute * time.Duration(durationNum)).Unix()
-
-	// Generate secure hash for the share
-	secureHash, err := generateShortUUID()
+	response, err := mintShareDownloadTokenResponse(r, hash, ttl, maxUses)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
-	// Create the scope path (file: no trailing slash; matches share cache normalization)
-	scopePath := utils.JoinPathAsUnix(userscope, path)
-
-	// Check if an existing share already matches these parameters
-	existingShares, err := state.GetSharesInScope(scopePath, sourceInfo.Path, d.User.ID)
-	if err == nil && len(existingShares) > 0 {
-		for _, existing := range existingShares {
-			if existing.DownloadsLimit == downloadCount &&
-				existing.MaxBandwidth == downloadSpeed &&
-				existing.QuickDownload &&
-				(existing.Expire == 0 || existing.Expire >= expire) { // Existing expires later or never
-
-				response := DirectDownloadResponse{
-					Status:      "201",
-					Hash:        existing.Hash,
-					DownloadURL: ShareURLFromRequest(r, existing.Hash, true, existing.Token),
-					ShareURL:    ShareURLFromRequest(r, existing.Hash, false, existing.Token),
-				}
-				return RenderJSON(w, r, response)
-			}
-		}
-	}
-
-	// No matching existing share found, create a new one
-	shareLink := &share.Share{
-		ShareSettings: share.ShareSettings{
-			FrontendShareInfo: share.FrontendShareInfo{
-				QuickDownload: true,
-			},
-			ShareLimits: share.ShareLimits{
-				MaxBandwidth:   downloadSpeed,
-				DownloadsLimit: downloadCount,
-				SourceName:     sourceInfo.Name,
-			},
-		},
-		ShareColumns: share.ShareColumns{
-			Hash:   secureHash,
-			Path:   scopePath,
-			Expire: expire,
-		},
-		SourcePath: idx.Path,
-		UserID:     d.User.ID,
-		Version:    1,
-	}
-
-	if err = state.CreateShare(shareLink); err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	snap, err := state.GetShare(secureHash)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	response := DirectDownloadResponse{
-		Status:      "200",
-		Hash:        secureHash,
-		DownloadURL: ShareURLFromRequest(r, secureHash, true, snap.Token),
-		ShareURL:    ShareURLFromRequest(r, secureHash, false, snap.Token),
-	}
-
-	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareCreate, secureHash, snap.SourceName, snap.Path, nil)
 	return RenderJSON(w, r, response)
 }
 
@@ -677,7 +595,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}
 	frontendShareInfo := shareInfo.FrontendShareInfo
-	frontendShareInfo.ShareURL = ShareURLFromRequest(r, hash, false, "")
+	frontendShareInfo.ShareURL = ShareURLFromRequest(r, hash, false, shareInfo.HasPassword())
 	frontendShareInfo.BannerUrl = shareInfo.BannerURL()
 	frontendShareInfo.FaviconUrl = shareInfo.FaviconURL()
 	filtered := make([]users.SidebarLink, 0, len(frontendShareInfo.SidebarLinks))
@@ -822,17 +740,15 @@ func sharePasswordFromRequest(password *string) ([]byte, int, error) {
 
 // applySharePasswordUpdate sets or preserves password credentials on share update.
 // Nil password omits the field (keep existing); empty string clears; non-empty replaces.
-func applySharePasswordUpdate(link *share.Share, password *string, hashedPassword, token string) error {
+func applySharePasswordUpdate(link *share.Share, password *string, hashedPassword string) error {
 	if password == nil {
 		return nil
 	}
 	if *password == "" {
 		link.PasswordHash = ""
-		link.Token = ""
 		return nil
 	}
 	link.PasswordHash = hashedPassword
-	link.Token = token
 	return nil
 }
 

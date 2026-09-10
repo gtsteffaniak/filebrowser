@@ -3077,7 +3077,7 @@
         },
         "/api/share/direct": {
             "get": {
-                "description": "Creates a direct download link for a specific file with configurable duration, download count, and speed limits. If a share already exists with matching parameters, the existing share will be reused.",
+                "description": "Mints a download-only ephemeral token for an existing password-protected share. Requires the share owner or an admin plus a valid X-SHARE-PASSWORD header. API-only; not used by the FileBrowser UI. Default duration is 60 minutes. Maximum token lifetime is 24 hours regardless of unit.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3087,50 +3087,59 @@
                 "tags": [
                     "Shares"
                 ],
-                "summary": "Create direct download link",
+                "summary": "Get direct download link",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File path to create download link for",
-                        "name": "path",
+                        "description": "Share hash",
+                        "name": "hash",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Source name for the file",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Duration in minutes for link validity (default: 60)",
+                        "description": "Duration value (default: 60)",
                         "name": "duration",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Maximum number of downloads allowed (default: unlimited)",
+                        "description": "Duration unit: minutes or hours (default: minutes)",
+                        "name": "unit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Maximum number of downloads allowed with this token (default: unlimited within TTL)",
                         "name": "count",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Download speed limit in kbps (default: unlimited)",
-                        "name": "speed",
-                        "in": "query"
+                        "description": "Share password",
+                        "name": "X-SHARE-PASSWORD",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Direct download link created",
+                    "200": {
+                        "description": "Ephemeral download link",
                         "schema": {
                             "$ref": "#/definitions/web.DirectDownloadResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request - invalid parameters or path is not a file",
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing share password",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3139,7 +3148,7 @@
                         }
                     },
                     "403": {
-                        "description": "Forbidden - access denied",
+                        "description": "Forbidden",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3147,8 +3156,8 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Internal server error",
+                    "404": {
+                        "description": "Share not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -6819,9 +6828,6 @@
                 "title": {
                     "type": "string"
                 },
-                "token": {
-                    "type": "string"
-                },
                 "userDownloads": {
                     "type": "object",
                     "additionalProperties": {
@@ -8003,13 +8009,13 @@
         "web.DirectDownloadResponse": {
             "type": "object",
             "properties": {
+                "expiresAt": {
+                    "type": "integer"
+                },
                 "hash": {
                     "type": "string"
                 },
-                "shareUrl": {
-                    "type": "string"
-                },
-                "status": {
+                "token": {
                     "type": "string"
                 },
                 "url": {

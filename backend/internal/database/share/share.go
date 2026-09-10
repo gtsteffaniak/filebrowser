@@ -112,7 +112,6 @@ type Share struct {
 	ShareColumns
 	PasswordHash  string         `json:"password_hash,omitempty"`
 	UserID        uint64         `json:"userID,omitempty"`
-	Token         string         `json:"token,omitempty"`
 	UserDownloads map[string]int `json:"userDownloads,omitempty"`
 	Version       int            `json:"version,omitempty"`
 	SourcePath    string         `json:"sourcePath,omitempty"`
