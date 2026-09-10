@@ -761,7 +761,7 @@ export default {
             mutations.setEditorDirty(dirty);
           }
         }
-      }, 185);
+      }, 150);
     },
     applyFontSize() {
       if (this.editor) {
