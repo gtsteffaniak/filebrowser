@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. For commit 
  - tilde paths for sources were not properly expanded. (eg "~" for home)
  - fixed tooltip not showing up for some circumstances on mobile, improved consistency.
  - a few styling fixes for inconsistencies (#2908)
+ - Disk-usage widget no longer reports PB/TB-scale garbage on Docker Desktop for Mac (virtiofs) bind mounts; space is computed from the filesystem fragment size (`f_frsize`) instead of the optimal-transfer block size (`f_bsize`) on Linux ([#2894](https://github.com/gtsteffaniak/filebrowser/issues/2894)).
 
 ## v2.0.4
 
