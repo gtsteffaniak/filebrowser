@@ -1142,8 +1142,9 @@ export default {
 
 /* mark (highlight) tags */
 #markedown-viewer .markdown-content mark {
-  background-color: var(--primaryColor);
+  background-color: var(--mark-color, var(--primaryColor));
   color: var(--textPrimary);
+  color: contrast-color(var(--mark-color, var(--primaryColor)));
   border-radius: 2px;
   padding: 0 0.2em;
 }

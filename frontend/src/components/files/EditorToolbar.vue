@@ -465,7 +465,7 @@ export default {
       this.wrapSelection(`<font color="${color}">`, "</font>", this.$t("editor.md.text"));
     },
     applyHighlightColor(color: string) {
-      const style = color ? ` style="background-color: ${color}"` : "";
+      const style = color ? ` style="background-color: ${color}; --mark-color: ${color}"` : "";
       this.wrapSelection(`<mark${style}>`, "</mark>", this.$t("editor.md.highlight"));
     },
     selectedColor(btn: ToolbarButton): string {
