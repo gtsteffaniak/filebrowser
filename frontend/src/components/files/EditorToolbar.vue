@@ -251,7 +251,7 @@ export default {
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
         { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
       ];
-      const isJson = state.req.type === "application/json"
+      const isJson = state.req?.type === "application/json"
       if (isJson && getters.sourcePermissions().modify) {
         alwaysAvailable.push({
           id: "formatJSON",
