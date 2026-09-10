@@ -82,7 +82,11 @@ func saveToolAccessDefaultsDocument(doc toolaccess.ToolAccessDefaultsDocument) e
 func EffectiveToolAccessDefaults() toolaccess.ToolAccessDefaultsDocument {
 	toolAccessDefaultsMu.RLock()
 	defer toolAccessDefaultsMu.RUnlock()
-	return toolAccessDefaults
+	doc := toolAccessDefaults
+	if doc.Items != nil {
+		doc.Items = append([]toolaccess.ToolAccessDefaultItem(nil), doc.Items...)
+	}
+	return doc
 }
 
 // GetToolAccessDefaults returns the admin API response for GET /api/settings/tool-access-defaults.

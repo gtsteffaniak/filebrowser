@@ -452,6 +452,7 @@ export const mutations = {
         state.enforcedUserDefaults = {};
         state.sidebarLinkDefaultsPolicy = { items: [] };
         state.shareDefaultsPolicy = { values: {}, enforced: {} };
+        state.toolAccessDefaultsPolicy = { items: [] };
         emitStateChanged();
         return;
       }

@@ -195,7 +195,6 @@ func Close() error {
 	clearUserRecordCache()
 	StopActivityRecorder()
 	StopQuotaFlusher()
-	quotaFlusher = nil
 
 	var err error
 	if sqlDb != nil {

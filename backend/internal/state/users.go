@@ -384,6 +384,7 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 	if err := usersidebar.ValidateEnforcedSidebarLinks(existingUser.SidebarLinks, existingUser.BackendScopes, EffectiveSidebarLinkDefaults(), existingUser.Permissions.Admin); err != nil {
 		return err
 	}
+	toolaccess.MergeEnforcedToolAccess(existingUser, EffectiveToolAccessDefaults())
 	if err := toolaccess.ValidateEnforcedToolAccess(existingUser, EffectiveToolAccessDefaults()); err != nil {
 		return err
 	}

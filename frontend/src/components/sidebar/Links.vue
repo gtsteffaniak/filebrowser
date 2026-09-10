@@ -444,10 +444,11 @@ export default {
       }
       // Tools and custom links: tools require access; hub requires any tool access
       if (link.category === "tool") {
-        if (link.target === "/tools") {
+        const targetPath = String(link.target || "").split(/[?#]/)[0];
+        if (targetPath === "/tools") {
           return availableTools().length > 0;
         }
-        const toolId = toolIdFromPath(link.target);
+        const toolId = toolIdFromPath(targetPath);
         return toolId ? hasToolAccess(toolId) : false;
       }
       return true;

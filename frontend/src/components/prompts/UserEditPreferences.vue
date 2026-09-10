@@ -34,6 +34,7 @@ import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccoun
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import {
   getUserEditSession,
+  subscribeUserEditSession,
   updateUserEditSession,
   cloneUserEditSessionValue,
 } from "@/utils/userEditSession";
@@ -48,10 +49,25 @@ export default {
     UserDefaultsAccountSection,
     UserProfilePreferences,
   },
+  data() {
+    return {
+      session: null,
+      sessionUnsubscribe: null,
+    };
+  },
+  mounted() {
+    this.session = getUserEditSession();
+    this.sessionUnsubscribe = subscribeUserEditSession((session) => {
+      this.session = session;
+    });
+  },
+  beforeUnmount() {
+    if (this.sessionUnsubscribe) {
+      this.sessionUnsubscribe();
+      this.sessionUnsubscribe = null;
+    }
+  },
   computed: {
-    session() {
-      return getUserEditSession();
-    },
     profileSections: {
       get() {
         return sectionsFromFlatUser(this.session?.profileUser || {});

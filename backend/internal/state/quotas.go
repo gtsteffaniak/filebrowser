@@ -15,13 +15,14 @@ import (
 )
 
 var (
-	quotasMux            sync.RWMutex
-	folderQuotasByID     map[string]*quota.FolderQuota
-	folderQuotasBySource map[string][]string // source path -> quota ids
-	quotaCounters        map[string]*quotaCounterMem
+	quotasMux             sync.RWMutex
+	quotaFlusherMu        sync.Mutex
+	folderQuotasByID      map[string]*quota.FolderQuota
+	folderQuotasBySource  map[string][]string // source path -> quota ids
+	quotaCounters         map[string]*quotaCounterMem
 	reservationsBySession map[string][]quotaReservation
-	pendingIndexDelta    map[string]int64 // quota_id -> bytes not yet in index
-	quotaFlusher         *quotaCounterFlusher
+	pendingIndexDelta     map[string]int64 // quota_id -> bytes not yet in index
+	quotaFlusher          *quotaCounterFlusher
 )
 
 type quotaCounterMem struct {
@@ -81,9 +82,7 @@ func InitQuotas(cfg settings.Database) error {
 	startQuotaFlusher(cfg.Quotas)
 
 	for _, id := range staleReservedIDs {
-		if quotaFlusher != nil {
-			quotaFlusher.markDirty(id)
-		}
+		markQuotaCounterDirty(id)
 	}
 
 	return nil
@@ -109,8 +108,29 @@ func containsString(ss []string, s string) bool {
 
 // StopQuotaFlusher flushes dirty counters and stops the background loop.
 func StopQuotaFlusher() {
+	quotaFlusherMu.Lock()
+	stopQuotaFlusherLocked()
+	quotaFlusher = nil
+	quotaFlusherMu.Unlock()
+}
+
+func stopQuotaFlusherLocked() {
 	if quotaFlusher != nil {
 		quotaFlusher.Stop()
+	}
+}
+
+func quotaFlusherSnapshot() *quotaCounterFlusher {
+	quotaFlusherMu.Lock()
+	f := quotaFlusher
+	quotaFlusherMu.Unlock()
+	return f
+}
+
+func markQuotaCounterDirty(quotaID string) {
+	f := quotaFlusherSnapshot()
+	if f != nil {
+		f.markDirty(quotaID)
 	}
 }
 
@@ -310,9 +330,7 @@ func RebuildShareQuotaUsage(hash, sourceName, indexPath string) error {
 	c.UsedBytes = size
 	c.ReservedBytes = 0
 	c.Dirty = true
-	if quotaFlusher != nil {
-		quotaFlusher.markDirty(id)
-	}
+	markQuotaCounterDirty(id)
 	signalQuotaFlush()
 	return nil
 }
@@ -605,9 +623,7 @@ func CommitQuota(sessionID string, deltaBytes int64) error {
 			}
 			c.UsedBytes += commitBytes
 			c.Dirty = true
-			if quotaFlusher != nil {
-				quotaFlusher.markDirty(r.QuotaID)
-			}
+			markQuotaCounterDirty(r.QuotaID)
 		} else {
 			pendingIndexDelta[r.QuotaID] += commitBytes
 		}
@@ -732,9 +748,7 @@ func applyCounterDeltaLocked(quotaID string, delta int64) error {
 		c.UsedBytes = 0
 	}
 	c.Dirty = true
-	if quotaFlusher != nil {
-		quotaFlusher.markDirty(quotaID)
-	}
+	markQuotaCounterDirty(quotaID)
 	return nil
 }
 
@@ -952,9 +966,6 @@ type quotaCounterFlusher struct {
 }
 
 func startQuotaFlusher(cfg settings.QuotasConfig) {
-	StopQuotaFlusher()
-	quotaFlusher = nil
-
 	interval := cfg.FlushIntervalSeconds
 	if interval <= 0 {
 		interval = 10
@@ -963,6 +974,9 @@ func startQuotaFlusher(cfg settings.QuotasConfig) {
 	if maxBuf <= 0 {
 		maxBuf = 500
 	}
+
+	quotaFlusherMu.Lock()
+	stopQuotaFlusherLocked()
 	quotaFlusher = &quotaCounterFlusher{
 		dirtyIDs:      make(map[string]struct{}),
 		flushCh:       make(chan struct{}, 1),
@@ -971,19 +985,23 @@ func startQuotaFlusher(cfg settings.QuotasConfig) {
 		flushInterval: time.Duration(interval) * time.Second,
 		maxBuffers:    maxBuf,
 	}
-	go quotaFlusher.loop()
+	flusher := quotaFlusher
+	quotaFlusherMu.Unlock()
+
+	go flusher.loop()
 }
 
 func signalQuotaFlush() {
-	if quotaFlusher == nil {
+	flusher := quotaFlusherSnapshot()
+	if flusher == nil {
 		return
 	}
-	quotaFlusher.mu.Lock()
-	count := len(quotaFlusher.dirtyIDs)
-	quotaFlusher.mu.Unlock()
-	if count >= quotaFlusher.maxBuffers {
+	flusher.mu.Lock()
+	count := len(flusher.dirtyIDs)
+	flusher.mu.Unlock()
+	if count >= flusher.maxBuffers {
 		select {
-		case quotaFlusher.flushCh <- struct{}{}:
+		case flusher.flushCh <- struct{}{}:
 		default:
 		}
 	}
@@ -1062,8 +1080,8 @@ func (f *quotaCounterFlusher) flush() {
 		if mem := quotaCounters[c.QuotaID]; mem != nil {
 			if mem.UsedBytes == c.UsedBytes && mem.ReservedBytes == c.ReservedBytes {
 				mem.Dirty = false
-			} else if quotaFlusher != nil {
-				quotaFlusher.markDirty(c.QuotaID)
+			} else {
+				markQuotaCounterDirty(c.QuotaID)
 			}
 		}
 	}
