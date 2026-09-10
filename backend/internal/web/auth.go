@@ -364,31 +364,6 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	return 0, nil
 }
 
-func shareAllowsViewGrantBypass(r *http.Request) bool {
-	if r == nil {
-		return false
-	}
-	path := r.URL.Path
-	return strings.Contains(path, "/resources/view") ||
-		strings.Contains(path, "/media/stream") ||
-		strings.Contains(path, "/resources/preview")
-}
-
-func authenticateShareViewGrant(r *http.Request, shareHash string) bool {
-	viewToken := strings.TrimSpace(r.URL.Query().Get("viewToken"))
-	if viewToken == "" {
-		return false
-	}
-	grant, ok := utils.ViewGrantsCache.Get(viewToken)
-	if !ok || grant.Source != shareHash {
-		return false
-	}
-	if time.Now().Unix() > grant.ExpiresAt {
-		return false
-	}
-	return shareAllowsViewGrantBypass(r)
-}
-
 func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 	if l.PasswordHash == "" {
 		return 200, nil
@@ -400,19 +375,15 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 
 	tokenParam := r.URL.Query().Get("token")
 	if tokenParam != "" {
-		if share.ValidateDownloadAccessToken(tokenParam, l.Hash) {
-			if share.RequestAllowsDownloadToken(r) {
-				share.ConsumeDownloadAccessToken(tokenParam)
+		if validateShareDownloadAccessToken(tokenParam, l.Hash) {
+			if shareRequestAllowsDownloadToken(r) {
+				consumeShareDownloadAccessToken(tokenParam)
 				return 200, nil
 			}
 			logger.Debugf("share auth failed: hash=%s reason=download_token_on_non_download_route", l.Hash)
 			return http.StatusUnauthorized, nil
 		}
 		logger.Debugf("share auth failed: hash=%s reason=invalid_token", l.Hash)
-	}
-
-	if authenticateShareViewGrant(r, l.Hash) {
-		return 200, nil
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")
@@ -441,13 +412,13 @@ func validateShareUISessionCookie(r *http.Request, shareHash string) bool {
 	if err != nil || cookie.Value == "" {
 		return false
 	}
-	return share.ValidateShareUISessionToken(cookie.Value, shareHash)
+	return validateShareUISessionToken(cookie.Value, shareHash)
 }
 
 // SetShareUISessionCookie stores a short-lived session after successful X-SHARE-PASSWORD auth.
 // Enables native browser streaming downloads without putting tokens in download URLs.
 func SetShareUISessionCookie(w http.ResponseWriter, r *http.Request, shareHash string) error {
-	token, expiresAt, err := share.MintShareUISessionToken(shareHash, maxShareUISessionTTL)
+	token, expiresAt, err := mintShareUISessionToken(shareHash, maxShareUISessionTTL)
 	if err != nil {
 		return err
 	}

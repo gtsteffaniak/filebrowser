@@ -16,7 +16,6 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -304,7 +303,7 @@ func shareTokenForOnlyOffice(d *Context) string {
 	if d.Share.Hash == "" || d.Share.PasswordHash == "" {
 		return ""
 	}
-	token, _, err := share.MintDownloadAccessToken(d.Share.Hash, 2*time.Hour, 0)
+	token, _, err := mintShareDownloadAccessToken(d.Share.Hash, 2*time.Hour, 0)
 	if err != nil {
 		logger.Errorf("failed to mint OnlyOffice share download token: hash=%s error=%v", d.Share.Hash, err)
 		return ""

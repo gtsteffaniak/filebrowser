@@ -428,7 +428,7 @@ func parseShareDownloadTokenParams(r *http.Request) (time.Duration, int, error) 
 	if unit == "" {
 		unit = "minutes"
 	}
-	ttl, err := share.ParseAccessDuration(durationNum, unit)
+	ttl, err := parseShareDownloadAccessDuration(durationNum, unit)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -444,7 +444,7 @@ func parseShareDownloadTokenParams(r *http.Request) (time.Duration, int, error) 
 }
 
 func mintShareDownloadTokenResponse(r *http.Request, hash string, ttl time.Duration, maxUses int) (DirectDownloadResponse, error) {
-	token, expiresAt, err := share.MintDownloadAccessToken(hash, ttl, maxUses)
+	token, expiresAt, err := mintShareDownloadAccessToken(hash, ttl, maxUses)
 	if err != nil {
 		return DirectDownloadResponse{}, err
 	}
@@ -453,7 +453,7 @@ func mintShareDownloadTokenResponse(r *http.Request, hash string, ttl time.Durat
 		Hash:      hash,
 		Token:     token,
 		ExpiresAt: expiresAt,
-		URL:       share.DirectDownloadURL(host, scheme, hash, token),
+		URL:       directDownloadURL(host, scheme, hash, token),
 	}, nil
 }
 

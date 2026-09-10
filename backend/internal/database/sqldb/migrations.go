@@ -6,7 +6,7 @@ import (
 )
 
 // currentSchemaVersion is the SQLite schema marker for this codebase.
-const currentSchemaVersion = 2
+const currentSchemaVersion = 1
 
 // Schema creates all tables for the SQLite database
 func createSchema(db *sql.DB) error {
@@ -181,10 +181,6 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 		switch v {
 		case 1:
 			// Canonical schema is createSchema + Bolt import; no step migrations.
-		case 2:
-			if err := dropSharesTokenColumn(db); err != nil {
-				return fmt.Errorf("migration v2: %w", err)
-			}
 		default:
 			return fmt.Errorf("unknown schema version: %d", v)
 		}
@@ -196,20 +192,5 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 		return fmt.Errorf("failed to update schema version: %w", err)
 	}
 
-	return nil
-}
-
-func dropSharesTokenColumn(db *sql.DB) error {
-	var count int
-	err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('shares') WHERE name = 'token'`).Scan(&count)
-	if err != nil {
-		return fmt.Errorf("failed to inspect shares schema: %w", err)
-	}
-	if count == 0 {
-		return nil
-	}
-	if _, err := db.Exec(`ALTER TABLE shares DROP COLUMN token`); err != nil {
-		return fmt.Errorf("failed to drop shares.token column: %w", err)
-	}
 	return nil
 }

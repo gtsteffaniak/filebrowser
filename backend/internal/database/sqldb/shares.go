@@ -135,7 +135,7 @@ func (s *SQLStore) GetSharesBySourcePathUser(source, path string, userID uint64)
 // GetPermanentShare retrieves a permanent share (expire = 0) for source, path, and owner.
 func (s *SQLStore) GetPermanentShare(source, path string, userID uint64) (*share.Share, error) {
 	query := `SELECT hash, user_id, source, path, expire, downloads,
-			  password_hash, token, user_downloads, share_settings, version
+			  password_hash, user_downloads, share_settings, version
 			  FROM shares WHERE source = ? AND path = ? AND user_id = ? AND expire = 0
 			  LIMIT 1`
 

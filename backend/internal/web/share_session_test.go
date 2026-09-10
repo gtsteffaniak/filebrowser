@@ -44,7 +44,7 @@ func TestAuthenticateShareRequestUISessionCookie(t *testing.T) {
 		t.Fatalf("expected cookie auth to succeed, status=%d err=%v", status, err)
 	}
 
-	token, _, err := share.MintShareUISessionToken("other_share", time.Hour)
+	token, _, err := mintShareUISessionToken("other_share", time.Hour)
 	if err != nil {
 		t.Fatalf("MintShareUISessionToken: %v", err)
 	}

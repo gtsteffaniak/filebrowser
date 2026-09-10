@@ -434,9 +434,9 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 			token := tc.token
 			if tc.name == "Private share, download token rejected on listing route" {
-				minted, _, err := share.MintDownloadAccessToken(tc.share.Hash, time.Hour, 0)
+				minted, _, err := mintShareDownloadAccessToken(tc.share.Hash, time.Hour, 0)
 				if err != nil {
-					t.Fatalf("MintDownloadAccessToken: %v", err)
+					t.Fatalf("mintShareDownloadAccessToken: %v", err)
 				}
 				token = minted
 			}

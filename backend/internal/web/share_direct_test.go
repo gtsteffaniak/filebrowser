@@ -1,127 +1,105 @@
 package web
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
-	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-const directShareHash = "direct_share_hash_test"
+func TestMintAndValidateShareDownloadAccessToken(t *testing.T) {
+	origKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "test-auth-key"
+	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
 
-func createPasswordProtectedShare(t *testing.T, ownerID uint64, hash string) {
-	t.Helper()
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte("secret"), bcrypt.DefaultCost)
+	token, expiresAt, err := mintShareDownloadAccessToken("share123", time.Hour, 0)
 	if err != nil {
-		t.Fatalf("bcrypt: %v", err)
+		t.Fatalf("mintShareDownloadAccessToken: %v", err)
 	}
-	link := &share.Share{
-		ShareSettings: share.ShareSettings{
-			FrontendShareInfo: share.FrontendShareInfo{ShareType: "normal"},
-			ShareLimits:       share.ShareLimits{SourceName: "srv"},
-		},
-		ShareColumns: share.ShareColumns{
-			Hash: hash,
-			Path: "/",
-		},
-		PasswordHash: string(passwordHash),
-		SourcePath: "/srv",
-		UserID:     ownerID,
-		Version:    1,
+	if token == "" || expiresAt <= time.Now().Unix() {
+		t.Fatalf("unexpected token response: token=%q expiresAt=%d", token, expiresAt)
 	}
-	if err := state.CreateShare(link); err != nil {
-		t.Fatalf("CreateShare: %v", err)
+	if !validateShareDownloadAccessToken(token, "share123") {
+		t.Fatal("expected valid token for matching hash")
+	}
+	if validateShareDownloadAccessToken(token, "other-hash") {
+		t.Fatal("expected invalid token for different hash")
 	}
 }
 
-func TestShareDirectDownloadHandler_OwnerMintsToken(t *testing.T) {
-	owner, attacker, admin := setupShareAuthTestUsers(t)
-	createPasswordProtectedShare(t, owner.ID, directShareHash)
+func TestShareDownloadTokenRejectedOnListingRoute(t *testing.T) {
+	origKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "test-auth-key"
+	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
 
-	req := httptest.NewRequest(http.MethodGet, "/api/share/direct?hash="+directShareHash, nil)
-	req.Header.Set("X-SHARE-PASSWORD", "secret")
-	rec := httptest.NewRecorder()
-	status, err := shareDirectDownloadHandler(rec, req, &Context{User: owner})
-	if status != http.StatusOK {
-		t.Fatalf("expected 200, got status=%d err=%v", status, err)
+	token, _, err := mintShareDownloadAccessToken("share123", time.Hour, 0)
+	if err != nil {
+		t.Fatalf("mintShareDownloadAccessToken: %v", err)
 	}
-
-	var resp DirectDownloadResponse
-	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
-	if resp.Hash != directShareHash || resp.Token == "" || resp.URL == "" || resp.ExpiresAt == 0 {
-		t.Fatalf("unexpected response: %+v", resp)
-	}
-	if resp.ExpiresAt <= time.Now().Unix() {
-		t.Fatalf("expiresAt should be in the future: %d", resp.ExpiresAt)
+	if !validateShareDownloadAccessToken(token, "share123") {
+		t.Fatal("expected valid token")
 	}
 
-	reqAttacker := httptest.NewRequest(http.MethodGet, "/api/share/direct?hash="+directShareHash, nil)
-	reqAttacker.Header.Set("X-SHARE-PASSWORD", "secret")
-	recAttacker := httptest.NewRecorder()
-	status, err = shareDirectDownloadHandler(recAttacker, reqAttacker, &Context{User: attacker})
-	if status != http.StatusForbidden {
-		t.Fatalf("expected 403 for non-owner, got status=%d err=%v", status, err)
+	req := httptest.NewRequest(http.MethodGet, "/public/api/resources?hash=share123&token="+token, nil)
+	if shareRequestAllowsDownloadToken(req) {
+		t.Fatal("listing route should not allow download token auth")
 	}
 
-	reqAdmin := httptest.NewRequest(http.MethodGet, "/api/share/direct?hash="+directShareHash, nil)
-	reqAdmin.Header.Set("X-SHARE-PASSWORD", "secret")
-	recAdmin := httptest.NewRecorder()
-	status, err = shareDirectDownloadHandler(recAdmin, reqAdmin, &Context{User: admin})
-	if status != http.StatusOK {
-		t.Fatalf("expected 200 for admin, got status=%d err=%v", status, err)
+	downloadReq := httptest.NewRequest(http.MethodGet, "/public/api/resources/download?hash=share123&token="+token, nil)
+	if !shareRequestAllowsDownloadToken(downloadReq) {
+		t.Fatal("download route should allow download token auth")
 	}
 }
 
-func TestShareDirectDownloadHandler_RequiresSharePassword(t *testing.T) {
-	owner, _, _ := setupShareAuthTestUsers(t)
-	createPasswordProtectedShare(t, owner.ID, directShareHash+"pw")
+func TestShareDownloadAccessTokenUseCount(t *testing.T) {
+	origKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "test-auth-key"
+	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
 
-	req := httptest.NewRequest(http.MethodGet, "/api/share/direct?hash="+directShareHash+"pw", nil)
-	rec := httptest.NewRecorder()
-	status, err := shareDirectDownloadHandler(rec, req, &Context{User: owner})
-	if status != http.StatusUnauthorized {
-		t.Fatalf("expected 401 without password header, got status=%d err=%v", status, err)
+	token, _, err := mintShareDownloadAccessToken("share123", time.Hour, 1)
+	if err != nil {
+		t.Fatalf("mintShareDownloadAccessToken: %v", err)
 	}
-
-	reqWrong := httptest.NewRequest(http.MethodGet, "/api/share/direct?hash="+directShareHash+"pw", nil)
-	reqWrong.Header.Set("X-SHARE-PASSWORD", "wrong")
-	recWrong := httptest.NewRecorder()
-	status, err = shareDirectDownloadHandler(recWrong, reqWrong, &Context{User: owner})
-	if status != http.StatusUnauthorized {
-		t.Fatalf("expected 401 for wrong password, got status=%d err=%v", status, err)
+	if !validateShareDownloadAccessToken(token, "share123") {
+		t.Fatal("expected valid token before consume")
+	}
+	consumeShareDownloadAccessToken(token)
+	if validateShareDownloadAccessToken(token, "share123") {
+		t.Fatal("expected token to be invalid after single use")
 	}
 }
 
-func TestShareDirectDownloadHandler_RejectsOver24Hours(t *testing.T) {
-	owner, _, _ := setupShareAuthTestUsers(t)
-	createPasswordProtectedShare(t, owner.ID, directShareHash+"24")
+func TestMintAndValidateShareUISessionToken(t *testing.T) {
+	origKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "test-auth-key"
+	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
 
-	req := httptest.NewRequest(http.MethodGet, "/api/share/direct?hash="+directShareHash+"24&duration=25&unit=hours", nil)
-	req.Header.Set("X-SHARE-PASSWORD", "secret")
-	rec := httptest.NewRecorder()
-	status, err := shareDirectDownloadHandler(rec, req, &Context{User: owner})
-	if status != http.StatusBadRequest {
-		t.Fatalf("expected 400, got status=%d err=%v", status, err)
+	token, expiresAt, err := mintShareUISessionToken("share123", time.Hour)
+	if err != nil {
+		t.Fatalf("mintShareUISessionToken: %v", err)
+	}
+	if token == "" || expiresAt <= time.Now().Unix() {
+		t.Fatalf("unexpected token response: token=%q expiresAt=%d", token, expiresAt)
+	}
+	if !validateShareUISessionToken(token, "share123") {
+		t.Fatal("expected valid UI session token for matching hash")
+	}
+	if validateShareUISessionToken(token, "other-hash") {
+		t.Fatal("expected invalid UI session token for different hash")
 	}
 }
 
-func TestShareDirectDownloadHandler_RequiresPasswordProtectedShare(t *testing.T) {
-	owner, _, _ := setupShareAuthTestUsers(t)
-	createVictimShare(t, owner.ID)
-
-	req := httptest.NewRequest(http.MethodGet, "/api/share/direct?hash="+victimShareHash, nil)
-	req.Header.Set("X-SHARE-PASSWORD", "secret")
-	rec := httptest.NewRecorder()
-	status, err := shareDirectDownloadHandler(rec, req, &Context{User: owner})
-	if status != http.StatusBadRequest {
-		t.Fatalf("expected 400 for non-password share, got status=%d err=%v", status, err)
+func TestParseShareDownloadAccessDurationMax24Hours(t *testing.T) {
+	if _, err := parseShareDownloadAccessDuration(25, "hours"); err == nil {
+		t.Fatal("expected error for duration over 24 hours")
+	}
+	ttl, err := parseShareDownloadAccessDuration(2, "hours")
+	if err != nil {
+		t.Fatalf("parseShareDownloadAccessDuration: %v", err)
+	}
+	if ttl != 2*time.Hour {
+		t.Fatalf("ttl = %v, want 2h", ttl)
 	}
 }

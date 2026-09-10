@@ -92,17 +92,3 @@ func PublicShareURL(host, scheme, hash string, isDirectDownload bool, hasPasswor
 	}
 	return fmt.Sprintf("%s://%s%spublic/share/%s", scheme, host, settings.Config.Http.BaseURL, hash)
 }
-
-// DirectDownloadURL builds a public download URL with an ephemeral token.
-func DirectDownloadURL(host, scheme, hash, token string) string {
-	tokenParam := ""
-	if token != "" {
-		tokenParam = fmt.Sprintf("&token=%s", token)
-	}
-	if settings.Config.Http.ExternalUrl != "" {
-		return fmt.Sprintf("%s%spublic/api/resources/download?hash=%s%s",
-			settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, hash, tokenParam)
-	}
-	return fmt.Sprintf("%s://%s%spublic/api/resources/download?hash=%s%s",
-		scheme, host, settings.Config.Http.BaseURL, hash, tokenParam)
-}
