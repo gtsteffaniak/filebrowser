@@ -204,11 +204,10 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 		case 1:
 			// Canonical schema is createSchema + Bolt import; no step migrations.
 		case 2:
-<<<<<<< HEAD
 			if err := migrateV2(db); err != nil {
-=======
+				return err
+			}
 			if err := normalizeLegacyShareTokens(db); err != nil {
->>>>>>> dev/v2.0.6
 				return err
 			}
 		default:
