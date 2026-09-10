@@ -64,6 +64,10 @@ export default {
     HelpTooltipIcon,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     viewMode: {
       type: String,
       default: "normal",

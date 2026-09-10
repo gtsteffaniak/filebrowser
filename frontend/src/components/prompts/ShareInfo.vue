@@ -44,6 +44,12 @@ export default {
   components: {
     QrcodeVue,
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   computed: {
     showShareInfo() {
       if (state.shareInfo?.shareType !== 'normal') {

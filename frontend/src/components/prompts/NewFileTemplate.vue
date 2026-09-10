@@ -96,6 +96,10 @@ import { createDragReorder } from "@/utils/dragAndDropReorder.js";
 export default {
   name: "new-file-template",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     items: {
       type: Array,
       default: () => [],

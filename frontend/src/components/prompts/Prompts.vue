@@ -311,7 +311,10 @@ export default {
       const rawProps = { ...(prompt.props || {}) };
       // Title is prompt chrome only (Prompts.vue header); must not fall through as a native tooltip.
       delete rawProps.title;
-      const baseProps = { ...rawProps };
+      const baseProps = {
+        ...rawProps,
+        promptId: prompt.id,
+      };
       if (prompt.name === "move" || prompt.name === "copy") {
         return {
           ...baseProps,

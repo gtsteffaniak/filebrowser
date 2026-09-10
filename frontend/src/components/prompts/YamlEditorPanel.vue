@@ -30,6 +30,10 @@ export default {
     Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     modelValue: {
       type: String,
       required: true,

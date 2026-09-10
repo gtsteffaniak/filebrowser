@@ -41,6 +41,12 @@ export default {
       return getters.currentPrompt();
     },
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   created() {
     // Listen for ESC key to treat it as "Keep Editing"
     this.escKeyHandler = (event) => {

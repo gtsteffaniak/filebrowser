@@ -37,6 +37,12 @@ export default {
     ToggleSwitch,
     Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   data() {
     return {
       showFull: false,

@@ -97,6 +97,10 @@ export default {
   name: "move-copy",
   components: { FileList, LoadingSpinner, PathPickerButton },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     operation: {
       type: String,
       required: true,

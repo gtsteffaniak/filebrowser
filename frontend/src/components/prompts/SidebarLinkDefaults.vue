@@ -26,6 +26,12 @@ export default {
   components: {
     SidebarLinksEditor,
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   data() {
     return {
       loading: true,

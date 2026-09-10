@@ -67,6 +67,12 @@ export default {
     UserProfilePreferences,
     UserDefaultsAccountSection,
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   data() {
     return {
       loading: true,
