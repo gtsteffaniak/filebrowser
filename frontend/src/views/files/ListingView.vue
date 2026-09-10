@@ -1452,6 +1452,7 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding-right: 0.5em;
 }
 
 .add-padding {
