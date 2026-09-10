@@ -7478,6 +7478,12 @@ const docTemplate = `{
                     "description": "show quick save button in editor",
                     "type": "boolean"
                 },
+                "effectiveToolAccess": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "fileLoading": {
                     "description": "upload and download settings",
                     "allOf": [
@@ -7613,6 +7619,14 @@ const docTemplate = `{
                 "themeColor": {
                     "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
+                },
+                "toolAccess": {
+                    "description": "per-tool access overrides",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.ToolAccessMap"
+                        }
+                    ]
                 },
                 "username": {
                     "type": "string"
@@ -7814,6 +7828,12 @@ const docTemplate = `{
                 }
             }
         },
+        "users.ToolAccessMap": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "boolean"
+            }
+        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -7901,6 +7921,12 @@ const docTemplate = `{
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
+                },
+                "effectiveToolAccess": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
                 },
                 "fileLoading": {
                     "description": "upload and download settings",
@@ -8049,6 +8075,14 @@ const docTemplate = `{
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
                     }
+                },
+                "toolAccess": {
+                    "description": "per-tool access overrides",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.ToolAccessMap"
+                        }
+                    ]
                 },
                 "totpNonce": {
                     "type": "string"

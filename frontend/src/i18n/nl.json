@@ -629,7 +629,11 @@
     "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
     "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd.",
     "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn.",
-    "editAsYaml": "Bewerken als YAML"
+    "editAsYaml": "Bewerken als YAML",
+    "userEditPreferences": "Gebruikersinstellingen",
+    "userEditTools": "Toegang tot gereedschap",
+    "userEditToolsDescription": "Stel in tot welke tools deze gebruiker toegang heeft",
+    "userEditSidebarLinks": "Links in de zijbalk"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",
@@ -1023,7 +1027,11 @@
       "scopeAccess": "Toegangsactiviteit",
       "eventAccessCreate": "Toegang aanmaken",
       "eventAccessDelete": "Toegang verwijderen"
-    }
+    },
+    "toolAccessDefaults": "Standaardinstellingen voor toegang tot gereedschappen",
+    "toolAccessDefaultsDescription": "Stel in tot welke tools nieuwe gebruikers standaard toegang hebben",
+    "toolAccessDefaultsHelp": "Schakel de tools in voor nieuwe gebruikers en stel eventueel toegangsbeperkingen in, zodat niet-beheerders deze instellingen niet kunnen wijzigen.",
+    "accessDenied": "Je hebt geen toegang tot deze tool."
   },
   "notifications": {
     "title": "Meldingen",

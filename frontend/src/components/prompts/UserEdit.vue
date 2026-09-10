@@ -164,28 +164,26 @@
         />
       </div>
 
-      <UserDefaultsAccountSection
-        v-if="stateUser.permissions.admin && loaded"
-        :enforceable="false"
-        :start-collapsed="false"
-        :account="editAccount"
-        :enforced="enforcedAccount"
-        :enforced-permissions="enforcedAccountPermissions"
-        respect-enforced-policy
-        @account-change="onEditAccountChange"
-      />
-
-      <UserProfilePreferences
-        v-if="stateUser.permissions.admin && loaded"
-        :key="profileLoadKey"
-        v-model="profileSections"
-        :enforced="enforcedPreferences"
-        :default-expanded-section="null"
-        respect-enforced-policy
-        show-extension-inputs
-        :show-thumbnail-master="false"
-        @change="onPreferenceChange"
-      />
+      <div v-if="stateUser.permissions.admin && loaded" class="settings-items user-edit-hub">
+        <SettingsButton
+          class="item"
+          :name="$t('settings.userEditPreferences')"
+          :description="$t('settings.userDefaultsDescription')"
+          @click="openPreferencesPrompt"
+        />
+        <SettingsButton
+          class="item"
+          :name="$t('settings.userEditTools')"
+          :description="$t('settings.userEditToolsDescription')"
+          @click="openToolsPrompt"
+        />
+        <SettingsButton
+          class="item"
+          :name="$t('settings.userEditSidebarLinks')"
+          :description="$t('sidebar.customizeLinksDescription')"
+          @click="openSidebarLinksPrompt"
+        />
+      </div>
     </div>
   </div>
 
@@ -213,8 +211,7 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsAccordion from "@/components/settings/SettingsAccordion.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
-import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
-import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 import { validateLogin } from "@/utils/auth";
@@ -231,6 +228,13 @@ import {
   applySectionsToFlatUser,
   isFlatProfileFieldEnforced,
 } from "@/utils/userProfileSections.js";
+import {
+  createUserEditSession,
+  destroyUserEditSession,
+  getUserEditSession,
+  subscribeUserEditSession,
+  updateUserEditSession,
+} from "@/utils/userEditSession.js";
 
 /** Flat user fields editable via admin user edit (matches profile PATCH surface). */
 const PROFILE_SNAPSHOT_FIELDS = [
@@ -274,8 +278,7 @@ export default {
     SettingsAccordion,
     ToggleSwitch,
     QuotaCustomLimitInput,
-    UserDefaultsAccountSection,
-    UserProfilePreferences,
+    SettingsButton,
     Errors,
   },
   props: {
@@ -315,6 +318,7 @@ export default {
       pendingScopeSourceName: null,
       addingPasskey: false,
       sourceFilePermissionDefaults: null,
+      sessionUnsubscribe: null,
       editAccount: {
         lockPassword: false,
         disableSettings: false,
@@ -341,6 +345,11 @@ export default {
   beforeUnmount() {
     eventBus.off("pathSelected", this.onPathSelectedFromPicker);
     eventBus.off("pathPickerCancelled", this.onPathPickerCancelled);
+    if (this.sessionUnsubscribe) {
+      this.sessionUnsubscribe();
+      this.sessionUnsubscribe = null;
+    }
+    destroyUserEditSession();
   },
   computed: {
     actor() {
@@ -838,7 +847,65 @@ export default {
       if (!this.isNew) {
         this.originalSnapshot = JSON.parse(JSON.stringify(this.buildEditableSnapshot()));
       }
+      this.syncSessionState();
+      this.sessionUnsubscribe = subscribeUserEditSession((session) => {
+        this.applySessionState(session);
+      });
       this.loaded = true;
+    },
+    syncSessionState() {
+      if (!this.stateUser.permissions.admin) {
+        return;
+      }
+      const payload = {
+        targetUsername: this.targetUsername,
+        user: this.user,
+        profileUser: this.profileUser,
+        selectedSources: this.selectedSources,
+        originalSnapshot: this.originalSnapshot,
+      };
+      if (!getUserEditSession()) {
+        createUserEditSession(payload);
+      } else {
+        updateUserEditSession(payload);
+      }
+    },
+    applySessionState(session) {
+      if (!session || !this.loaded) {
+        return;
+      }
+      if (session.user) {
+        this.user = { ...this.user, ...session.user };
+        this.syncEditAccountForm();
+      }
+      if (session.profileUser) {
+        this.profileUser = JSON.parse(JSON.stringify(session.profileUser));
+        this.profileLoadKey += 1;
+      }
+      if (session.selectedSources) {
+        this.selectedSources = JSON.parse(JSON.stringify(session.selectedSources));
+      }
+    },
+    openPreferencesPrompt() {
+      this.syncSessionState();
+      mutations.showPrompt({
+        name: "user-edit-preferences",
+        props: { title: this.$t("settings.userEditPreferences") },
+      });
+    },
+    openToolsPrompt() {
+      this.syncSessionState();
+      mutations.showPrompt({
+        name: "user-edit-tools",
+        props: { title: this.$t("settings.userEditTools") },
+      });
+    },
+    openSidebarLinksPrompt() {
+      this.syncSessionState();
+      mutations.showPrompt({
+        name: "user-edit-sidebar-links",
+        props: { title: this.$t("settings.userEditSidebarLinks") },
+      });
     },
     buildScopesPayload() {
       return this.selectedSources.map((source) => {
@@ -899,6 +966,10 @@ export default {
           api: !!permissions.api,
           realtime: !!permissions.realtime,
         },
+        toolAccess: this.user.toolAccess ? { ...this.user.toolAccess } : {},
+        sidebarLinks: Array.isArray(this.user.sidebarLinks)
+          ? JSON.parse(JSON.stringify(this.user.sidebarLinks))
+          : [],
         profile: this.buildProfileSnapshot(this.profileUser),
       };
     },
@@ -947,6 +1018,12 @@ export default {
             break;
           }
         }
+      }
+      if (JSON.stringify(current.toolAccess) !== JSON.stringify(orig.toolAccess)) {
+        fields.push("toolAccess");
+      }
+      if (JSON.stringify(current.sidebarLinks) !== JSON.stringify(orig.sidebarLinks)) {
+        fields.push("sidebarLinks");
       }
       for (const field of PROFILE_SNAPSHOT_FIELDS) {
         if (isFlatProfileFieldEnforced(this.enforcedPreferences, field)) {
@@ -1025,6 +1102,10 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
+        const session = getUserEditSession();
+        if (session) {
+          this.applySessionState(session);
+        }
         this.applyEditAccountToUser();
         this.applyProfileUserToFormUser();
         // Profile sections carry a stale account snapshot; restore admin-edited account fields.
@@ -1243,6 +1324,10 @@ export default {
 </script>
 
 <style scoped>
+.user-edit-hub {
+  margin-top: 1rem;
+}
+
 label + .form-flex-group {
   margin-top: 0.35em;
 }

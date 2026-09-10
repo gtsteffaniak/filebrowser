@@ -299,7 +299,11 @@
     "disableUserSettings": "تعطيل صفحة إعدادات المستخدم",
     "userDefaultFieldLockedFromConfig": "يتم تعيين هذا الإعداد الافتراضي في ملف التكوين ولا يمكن تغييره هنا.",
     "sourceAccessDefaultsHelp": "يتم تطبيق أذونات الملفات الافتراضية على المصادر والمستخدمين الجدد. ويؤدي خيار «Enforce» إلى تقييد القيمة لجميع المستخدمين غير الإداريين.",
-    "editAsYaml": "تحرير بتنسيق YAML"
+    "editAsYaml": "تحرير بتنسيق YAML",
+    "userEditPreferences": "تفضيلات المستخدم",
+    "userEditTools": "الوصول إلى الأدوات",
+    "userEditToolsDescription": "تحديد الأدوات التي يمكن لهذا المستخدم الوصول إليها",
+    "userEditSidebarLinks": "روابط الشريط الجانبي"
   },
   "sidebar": {
     "updateIsAvailable": "يتوفر تحديث!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "الوصول إلى النشاط",
       "eventAccessCreate": "الوصول إلى \"إنشاء\"",
       "eventAccessDelete": "الوصول والحذف"
-    }
+    },
+    "toolAccessDefaults": "الإعدادات الافتراضية للوصول إلى الأدوات",
+    "toolAccessDefaultsDescription": "تحديد الأدوات التي يمكن للمستخدمين الجدد الوصول إليها بشكل افتراضي",
+    "toolAccessDefaultsHelp": "قم بتمكين الأدوات للمستخدمين الجدد، ويمكنك أيضًا فرض قيود على الوصول بحيث لا يتمكن المستخدمون غير الإداريين من تغييرها.",
+    "accessDenied": "لا يحق لك استخدام هذه الأداة."
   },
   "messages": {
     "pathNotFound": "المسار غير موجود على نظام الملفات",

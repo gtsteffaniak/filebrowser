@@ -299,7 +299,11 @@
     "disableUserSettings": "사용자 설정 페이지 비활성화",
     "userDefaultFieldLockedFromConfig": "이 기본값은 설정 파일에서 지정되며, 여기서는 변경할 수 없습니다.",
     "sourceAccessDefaultsHelp": "소스 및 신규 사용자에게 기본 파일 권한이 적용됩니다. ‘enforce’는 관리자 권한이 없는 모든 사용자에 대해 해당 값을 강제 적용합니다.",
-    "editAsYaml": "YAML로 편집"
+    "editAsYaml": "YAML로 편집",
+    "userEditPreferences": "사용자 설정",
+    "userEditTools": "도구 이용",
+    "userEditToolsDescription": "이 사용자가 어떤 도구에 접근할 수 있는지 설정하기",
+    "userEditSidebarLinks": "사이드바 링크"
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "액세스 활동",
       "eventAccessCreate": "액세스 생성",
       "eventAccessDelete": "액세스 삭제"
-    }
+    },
+    "toolAccessDefaults": "도구 액세스 기본 설정",
+    "toolAccessDefaultsDescription": "새 사용자가 기본적으로 사용할 수 있는 도구를 설정합니다.",
+    "toolAccessDefaultsHelp": "신규 사용자를 위한 도구를 활성화하고, 필요에 따라 비관리자가 이를 변경할 수 없도록 접근 권한을 강제 적용합니다.",
+    "accessDenied": "이 도구를 사용할 수 없습니다."
   },
   "messages": {
     "pathNotFound": "파일 시스템에 경로가 없습니다.",

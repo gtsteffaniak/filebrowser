@@ -7467,6 +7467,12 @@
                     "description": "show quick save button in editor",
                     "type": "boolean"
                 },
+                "effectiveToolAccess": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "fileLoading": {
                     "description": "upload and download settings",
                     "allOf": [
@@ -7602,6 +7608,14 @@
                 "themeColor": {
                     "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
+                },
+                "toolAccess": {
+                    "description": "per-tool access overrides",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.ToolAccessMap"
+                        }
+                    ]
                 },
                 "username": {
                     "type": "string"
@@ -7803,6 +7817,12 @@
                 }
             }
         },
+        "users.ToolAccessMap": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "boolean"
+            }
+        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -7890,6 +7910,12 @@
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
+                },
+                "effectiveToolAccess": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
                 },
                 "fileLoading": {
                     "description": "upload and download settings",
@@ -8038,6 +8064,14 @@
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
                     }
+                },
+                "toolAccess": {
+                    "description": "per-tool access overrides",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.ToolAccessMap"
+                        }
+                    ]
                 },
                 "totpNonce": {
                     "type": "string"

@@ -2,7 +2,7 @@
  * Maps flat runtime user objects ↔ nested user-defaults / profile sections (matches backend ProfileFromUser).
  */
 
-import { getObjectProperty } from "./object.js";
+import { getObjectProperty } from "@/utils/object.js";
 
 function boolPtr(val, defaultValue = true) {
   if (val === undefined || val === null) {

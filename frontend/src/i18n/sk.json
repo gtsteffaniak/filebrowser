@@ -299,7 +299,11 @@
     "disableUserSettings": "Deaktivovať stránku nastavení používateľa",
     "userDefaultFieldLockedFromConfig": "Toto predvolené nastavenie je definované v konfiguračnom súbore a tu ho nie je možné zmeniť.",
     "sourceAccessDefaultsHelp": "Na zdrojové súbory a nových používateľov sa uplatňujú predvolené oprávnenia súborov. Nastavenie „Enforce“ uzamkne túto hodnotu pre všetkých používateľov, ktorí nie sú správcami.",
-    "editAsYaml": "Upraviť ako YAML"
+    "editAsYaml": "Upraviť ako YAML",
+    "userEditPreferences": "Nastavenia používateľa",
+    "userEditTools": "Prístup k nástrojom",
+    "userEditToolsDescription": "Nastavte, ku ktorým nástrojom má tento používateľ prístup",
+    "userEditSidebarLinks": "Odkazy v bočnom paneli"
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Aktivita prístupu",
       "eventAccessCreate": "Prístup k vytváraniu",
       "eventAccessDelete": "Prístup, vymazať"
-    }
+    },
+    "toolAccessDefaults": "Predvolené nastavenia prístupu k nástrojom",
+    "toolAccessDefaultsDescription": "Nastavte, ku ktorým nástrojom budú mať noví používatelia štandardne prístup",
+    "toolAccessDefaultsHelp": "Aktivujte nástroje pre nových používateľov a podľa potreby nastavte obmedzenie prístupu tak, aby používatelia bez administrátorských oprávnení nemohli tieto nastavenia meniť.",
+    "accessDenied": "K tomuto nástroju nemáte prístup."
   },
   "messages": {
     "pathNotFound": "Cesta neexistuje v súborovom systéme",

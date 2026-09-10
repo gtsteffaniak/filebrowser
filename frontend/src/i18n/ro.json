@@ -299,7 +299,11 @@
     "disableUserSettings": "Dezactivare pagină setări utilizator",
     "userDefaultFieldLockedFromConfig": "Această setare implicită este definită în fișierul de configurare și nu poate fi modificată aici.",
     "sourceAccessDefaultsHelp": "Permisiunile implicite aplicate fișierelor sursă și utilizatorilor noi. Opțiunea „Enforce” blochează o valoare pentru toți utilizatorii care nu sunt administratori.",
-    "editAsYaml": "Editează ca YAML"
+    "editAsYaml": "Editează ca YAML",
+    "userEditPreferences": "Preferințele utilizatorului",
+    "userEditTools": "Acces la instrumente",
+    "userEditToolsDescription": "Configurați instrumentele la care are acces acest utilizator",
+    "userEditSidebarLinks": "Linkuri din bara laterală"
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Activitatea de acces",
       "eventAccessCreate": "Accesare și creare",
       "eventAccessDelete": "Accesare Ștergere"
-    }
+    },
+    "toolAccessDefaults": "Setările implicite privind accesul la instrumente",
+    "toolAccessDefaultsDescription": "Configurați instrumentele la care noii utilizatori au acces în mod implicit",
+    "toolAccessDefaultsHelp": "Activați instrumentele pentru utilizatorii noi și, opțional, impuneți restricții de acces, astfel încât utilizatorii care nu sunt administratori să nu poată modifica setările.",
+    "accessDenied": "Nu aveți acces la acest instrument."
   },
   "messages": {
     "pathNotFound": "Calea nu există pe sistemul de fișiere",

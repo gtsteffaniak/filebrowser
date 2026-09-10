@@ -299,7 +299,11 @@
     "disableUserSettings": "Desativar a página de configurações do usuário",
     "userDefaultFieldLockedFromConfig": "Essa configuração padrão é definida no arquivo de configuração e não pode ser alterada aqui.",
     "sourceAccessDefaultsHelp": "Permissões padrão de arquivo aplicadas a fontes e novos usuários. A opção “Enforçar” define um valor fixo para todos os usuários que não sejam administradores.",
-    "editAsYaml": "Editar como YAML"
+    "editAsYaml": "Editar como YAML",
+    "userEditPreferences": "Preferências do usuário",
+    "userEditTools": "Acesso às ferramentas",
+    "userEditToolsDescription": "Configure quais ferramentas esse usuário pode acessar",
+    "userEditSidebarLinks": "Links da barra lateral"
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Atividade de acesso",
       "eventAccessCreate": "Acessar criar",
       "eventAccessDelete": "Acessar/Excluir"
-    }
+    },
+    "toolAccessDefaults": "Configurações padrão de acesso às ferramentas",
+    "toolAccessDefaultsDescription": "Configure quais ferramentas os novos usuários podem acessar por padrão",
+    "toolAccessDefaultsHelp": "Habilite as ferramentas para novos usuários e, opcionalmente, imponha restrições de acesso para que usuários sem privilégios de administrador não possam alterá-las.",
+    "accessDenied": "Você não tem acesso a esta ferramenta."
   },
   "messages": {
     "pathNotFound": "O caminho não existe no sistema de arquivos",

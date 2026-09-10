@@ -299,7 +299,11 @@
     "disableUserSettings": "Wyłącz stronę ustawień użytkownika",
     "userDefaultFieldLockedFromConfig": "To domyślne ustawienie jest określone w pliku konfiguracyjnym i nie można go tutaj zmienić.",
     "sourceAccessDefaultsHelp": "Domyślne uprawnienia do plików stosowane w przypadku plików źródłowych i nowych użytkowników. Opcja „Wymuś” ustala stałą wartość dla wszystkich użytkowników niebędących administratorami.",
-    "editAsYaml": "Edytuj jako YAML"
+    "editAsYaml": "Edytuj jako YAML",
+    "userEditPreferences": "Preferencje użytkownika",
+    "userEditTools": "Dostęp do narzędzi",
+    "userEditToolsDescription": "Skonfiguruj, do których narzędzi ten użytkownik ma dostęp",
+    "userEditSidebarLinks": "Linki w pasku bocznym"
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Działania związane z dostępem",
       "eventAccessCreate": "Dostęp do tworzenia",
       "eventAccessDelete": "Dostęp – usunięcie"
-    }
+    },
+    "toolAccessDefaults": "Domyślne ustawienia dostępu do narzędzi",
+    "toolAccessDefaultsDescription": "Skonfiguruj, do których narzędzi nowi użytkownicy będą mieli domyślny dostęp",
+    "toolAccessDefaultsHelp": "Włącz narzędzia dla nowych użytkowników i, opcjonalnie, zastosuj ograniczenia dostępu, aby użytkownicy niebędący administratorami nie mogli ich zmieniać.",
+    "accessDenied": "Nie masz dostępu do tego narzędzia."
   },
   "messages": {
     "pathNotFound": "Ścieżka nie istnieje w systemie plików",

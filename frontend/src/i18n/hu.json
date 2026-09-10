@@ -299,7 +299,11 @@
     "disableUserSettings": "A felhasználói beállítások oldal letiltása",
     "userDefaultFieldLockedFromConfig": "Ez az alapértelmezett beállítás a konfigurációs fájlban van megadva, és itt nem módosítható.",
     "sourceAccessDefaultsHelp": "A forrásfájlokra és az új felhasználókra alkalmazott alapértelmezett fájlhozzáférési jogosultságok. Az „Enforce” beállítás egy értéket rögzít minden nem rendszergazda felhasználó számára.",
-    "editAsYaml": "Szerkesztés YAML formátumban"
+    "editAsYaml": "Szerkesztés YAML formátumban",
+    "userEditPreferences": "Felhasználói beállítások",
+    "userEditTools": "Eszközök elérése",
+    "userEditToolsDescription": "Állítsa be, hogy a felhasználó mely eszközökhöz férhessen hozzá",
+    "userEditSidebarLinks": "Oldalsávon található linkek"
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Hozzáférési tevékenység",
       "eventAccessCreate": "Hozzáférés létrehozása",
       "eventAccessDelete": "Hozzáférés törlés"
-    }
+    },
+    "toolAccessDefaults": "Az eszközökhöz való hozzáférés alapértelmezett beállításai",
+    "toolAccessDefaultsDescription": "Állítsa be, hogy az új felhasználók alapértelmezés szerint mely eszközökhöz férhessenek hozzá",
+    "toolAccessDefaultsHelp": "Engedélyezze az eszközöket az új felhasználók számára, és opcionálisan korlátozza a hozzáférést úgy, hogy a nem rendszergazdák ne tudják módosítani.",
+    "accessDenied": "Nincs hozzáférése ehhez az eszközhöz."
   },
   "messages": {
     "pathNotFound": "Az elérési útvonal nem létezik a fájlrendszerben",

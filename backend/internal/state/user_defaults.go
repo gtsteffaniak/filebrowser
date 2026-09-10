@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -272,10 +273,11 @@ func EffectiveUserDefaults() settings.UserDefaults {
 	return userDefaultsDefault
 }
 
-// ApplyUserDefaults applies persisted defaults to a user, including sidebar link defaults.
+// ApplyUserDefaults applies persisted defaults to a user, including sidebar link and tool access defaults.
 func ApplyUserDefaults(u *users.User) {
 	applyUserSettingsDefaults(u)
 	applySidebarLinkDefaults(u)
+	applyToolAccessDefaults(u)
 }
 
 func applyUserSettingsDefaults(u *users.User) {
@@ -301,4 +303,13 @@ func applySidebarLinkDefaults(u *users.User) {
 			u.SidebarLinks = normalized
 		}
 	}
+}
+
+func applyToolAccessDefaults(u *users.User) {
+	if u == nil || u.Username == "anonymous" {
+		return
+	}
+	doc := EffectiveToolAccessDefaults()
+	toolaccess.MergeDefaultToolAccess(u, doc)
+	toolaccess.MergeEnforcedToolAccess(u, doc)
 }

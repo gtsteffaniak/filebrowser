@@ -299,7 +299,11 @@
     "disableUserSettings": "Seite „Benutzereinstellungen“ deaktivieren",
     "userDefaultFieldLockedFromConfig": "Diese Standardeinstellung wird in der Konfigurationsdatei festgelegt und kann hier nicht geändert werden.",
     "sourceAccessDefaultsHelp": "Standard-Dateiberechtigungen für Quellen und neue Benutzer. Mit „Enforce“ wird ein Wert für alle Benutzer ohne Administratorrechte festgelegt.",
-    "editAsYaml": "Als YAML bearbeiten"
+    "editAsYaml": "Als YAML bearbeiten",
+    "userEditPreferences": "Benutzereinstellungen",
+    "userEditTools": "Zugriff auf Werkzeuge",
+    "userEditToolsDescription": "Legen Sie fest, auf welche Tools dieser Benutzer zugreifen darf",
+    "userEditSidebarLinks": "Links in der Seitenleiste"
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Zugriffsaktivität",
       "eventAccessCreate": "Zugriff erstellen",
       "eventAccessDelete": "Zugriff löschen"
-    }
+    },
+    "toolAccessDefaults": "Standard-Zugriffseinstellungen für Werkzeuge",
+    "toolAccessDefaultsDescription": "Legen Sie fest, auf welche Tools neue Benutzer standardmäßig zugreifen können",
+    "toolAccessDefaultsHelp": "Aktivieren Sie die Tools für neue Benutzer und legen Sie optional fest, dass Nicht-Administratoren diese nicht ändern können.",
+    "accessDenied": "Sie haben keinen Zugriff auf dieses Tool."
   },
   "messages": {
     "pathNotFound": "Pfad existiert nicht im Dateisystem",
