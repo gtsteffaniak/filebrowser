@@ -17,7 +17,6 @@ import (
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/shareauth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -429,7 +428,7 @@ func parseShareDownloadTokenParams(r *http.Request) (time.Duration, int, error) 
 	if unit == "" {
 		unit = "minutes"
 	}
-	ttl, err := shareauth.ParseAccessDuration(durationNum, unit)
+	ttl, err := share.ParseAccessDuration(durationNum, unit)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -445,7 +444,7 @@ func parseShareDownloadTokenParams(r *http.Request) (time.Duration, int, error) 
 }
 
 func mintShareDownloadTokenResponse(r *http.Request, hash string, ttl time.Duration, maxUses int) (DirectDownloadResponse, error) {
-	token, expiresAt, err := shareauth.MintDownloadAccessToken(hash, ttl, maxUses)
+	token, expiresAt, err := share.MintDownloadAccessToken(hash, ttl, maxUses)
 	if err != nil {
 		return DirectDownloadResponse{}, err
 	}
@@ -454,7 +453,7 @@ func mintShareDownloadTokenResponse(r *http.Request, hash string, ttl time.Durat
 		Hash:      hash,
 		Token:     token,
 		ExpiresAt: expiresAt,
-		URL:       shareauth.DirectDownloadURL(host, scheme, hash, token),
+		URL:       share.DirectDownloadURL(host, scheme, hash, token),
 	}, nil
 }
 

@@ -1,4 +1,4 @@
-package shareauth
+package share
 
 import (
 	"net/http"
@@ -43,12 +43,12 @@ func TestDownloadTokenRejectedOnListingRoute(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/public/api/resources?hash=share123&token="+token, nil)
-	if ShareRouteAllowsDownloadToken(req) {
+	if RequestAllowsDownloadToken(req) {
 		t.Fatal("listing route should not allow download token auth")
 	}
 
 	downloadReq := httptest.NewRequest(http.MethodGet, "/public/api/resources/download?hash=share123&token="+token, nil)
-	if !ShareRouteAllowsDownloadToken(downloadReq) {
+	if !RequestAllowsDownloadToken(downloadReq) {
 		t.Fatal("download route should allow download token auth")
 	}
 }

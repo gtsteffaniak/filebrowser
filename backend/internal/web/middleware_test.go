@@ -14,7 +14,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	_ "github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb" // Import to register SQL driver
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/shareauth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -435,7 +434,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 			token := tc.token
 			if tc.name == "Private share, download token rejected on listing route" {
-				minted, _, err := shareauth.MintDownloadAccessToken(tc.share.Hash, time.Hour, 0)
+				minted, _, err := share.MintDownloadAccessToken(tc.share.Hash, time.Hour, 0)
 				if err != nil {
 					t.Fatalf("MintDownloadAccessToken: %v", err)
 				}

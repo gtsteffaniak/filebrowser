@@ -18,7 +18,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/shareauth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -401,9 +400,9 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 
 	tokenParam := r.URL.Query().Get("token")
 	if tokenParam != "" {
-		if shareauth.ValidateDownloadAccessToken(tokenParam, l.Hash) {
-			if shareauth.ShareRouteAllowsDownloadToken(r) {
-				shareauth.ConsumeDownloadAccessToken(tokenParam)
+		if share.ValidateDownloadAccessToken(tokenParam, l.Hash) {
+			if share.RequestAllowsDownloadToken(r) {
+				share.ConsumeDownloadAccessToken(tokenParam)
 				return 200, nil
 			}
 			logger.Debugf("share auth failed: hash=%s reason=download_token_on_non_download_route", l.Hash)
@@ -442,13 +441,13 @@ func validateShareUISessionCookie(r *http.Request, shareHash string) bool {
 	if err != nil || cookie.Value == "" {
 		return false
 	}
-	return shareauth.ValidateShareUISessionToken(cookie.Value, shareHash)
+	return share.ValidateShareUISessionToken(cookie.Value, shareHash)
 }
 
 // SetShareUISessionCookie stores a short-lived session after successful X-SHARE-PASSWORD auth.
 // Enables native browser streaming downloads without putting tokens in download URLs.
 func SetShareUISessionCookie(w http.ResponseWriter, r *http.Request, shareHash string) error {
-	token, expiresAt, err := shareauth.MintShareUISessionToken(shareHash, maxShareUISessionTTL)
+	token, expiresAt, err := share.MintShareUISessionToken(shareHash, maxShareUISessionTTL)
 	if err != nil {
 		return err
 	}

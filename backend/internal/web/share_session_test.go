@@ -9,7 +9,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/shareauth"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -45,7 +44,7 @@ func TestAuthenticateShareRequestUISessionCookie(t *testing.T) {
 		t.Fatalf("expected cookie auth to succeed, status=%d err=%v", status, err)
 	}
 
-	token, _, err := shareauth.MintShareUISessionToken("other_share", time.Hour)
+	token, _, err := share.MintShareUISessionToken("other_share", time.Hour)
 	if err != nil {
 		t.Fatalf("MintShareUISessionToken: %v", err)
 	}
