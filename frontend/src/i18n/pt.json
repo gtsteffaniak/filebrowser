@@ -299,7 +299,11 @@
     "disableUserSettings": "Desativar a página de definições do utilizador",
     "userDefaultFieldLockedFromConfig": "Esta configuração por predefinição é definida no ficheiro de configuração e não pode ser alterada aqui.",
     "sourceAccessDefaultsHelp": "Permissões de ficheiro predefinidas aplicadas a fontes e a novos utilizadores. A opção «Enforce» bloqueia um valor para todos os utilizadores que não sejam administradores.",
-    "editAsYaml": "Editar como YAML"
+    "editAsYaml": "Editar como YAML",
+    "userEditPreferences": "Preferências do utilizador",
+    "userEditTools": "Acesso às ferramentas",
+    "userEditToolsDescription": "Configurar as ferramentas a que este utilizador tem acesso",
+    "userEditSidebarLinks": "Links da barra lateral"
   },
   "sidebar": {
     "updateIsAvailable": "Está disponível uma atualização!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Atividade de acesso",
       "eventAccessCreate": "Aceder à criação",
       "eventAccessDelete": "Aceder/eliminar"
-    }
+    },
+    "toolAccessDefaults": "Definições predefinidas de acesso às ferramentas",
+    "toolAccessDefaultsDescription": "Configurar quais as ferramentas a que os novos utilizadores têm acesso por predefinição",
+    "toolAccessDefaultsHelp": "Ative as ferramentas para novos utilizadores e, opcionalmente, implemente restrições de acesso para que os utilizadores que não sejam administradores não possam alterá-las.",
+    "accessDenied": "Não tem acesso a esta ferramenta."
   },
   "messages": {
     "pathNotFound": "O caminho não existe no sistema de ficheiros",

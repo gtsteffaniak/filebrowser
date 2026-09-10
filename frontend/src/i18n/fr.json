@@ -299,7 +299,11 @@
     "disableUserSettings": "Désactiver la page des paramètres utilisateur",
     "userDefaultFieldLockedFromConfig": "Cette valeur par défaut est définie dans le fichier de configuration et ne peut pas être modifiée ici.",
     "sourceAccessDefaultsHelp": "Droits d'accès par défaut appliqués aux fichiers sources et aux nouveaux utilisateurs. L'option « Enforce » impose une valeur fixe à tous les utilisateurs non administrateurs.",
-    "editAsYaml": "Modifier au format YAML"
+    "editAsYaml": "Modifier au format YAML",
+    "userEditPreferences": "Préférences de l'utilisateur",
+    "userEditTools": "Accès aux outils",
+    "userEditToolsDescription": "Définir les outils auxquels cet utilisateur a accès",
+    "userEditSidebarLinks": "Liens de la barre latérale"
   },
   "sidebar": {
     "updateIsAvailable": "Une mise à jour est disponible !",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Activité d'accès",
       "eventAccessCreate": "Accéder à la création",
       "eventAccessDelete": "Accès/Supprimer"
-    }
+    },
+    "toolAccessDefaults": "Paramètres par défaut d'accès aux outils",
+    "toolAccessDefaultsDescription": "Configurer les outils auxquels les nouveaux utilisateurs ont accès par défaut",
+    "toolAccessDefaultsHelp": "Activer les outils pour les nouveaux utilisateurs et, si nécessaire, restreindre l'accès afin que les utilisateurs non administrateurs ne puissent pas les modifier.",
+    "accessDenied": "Vous n'avez pas accès à cet outil."
   },
   "messages": {
     "pathNotFound": "Le chemin n'existe pas dans le système de fichiers",

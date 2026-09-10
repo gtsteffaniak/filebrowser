@@ -299,7 +299,11 @@
     "disableUserSettings": "השבת את דף הגדרות המשתמש",
     "userDefaultFieldLockedFromConfig": "הגדרה ברירת המחדל הזו נקבעת בקובץ התצורה ואינה ניתנת לשינוי כאן.",
     "sourceAccessDefaultsHelp": "הרשאות הקובץ המוגדרות כברירת מחדל מוחלות על מקורות ועל משתמשים חדשים. האפשרות \"אכוף\" נועלת ערך זה עבור כל המשתמשים שאינם מנהלים.",
-    "editAsYaml": "ערוך כ-YAML"
+    "editAsYaml": "ערוך כ-YAML",
+    "userEditPreferences": "העדפות המשתמש",
+    "userEditTools": "גישה לכלים",
+    "userEditToolsDescription": "הגדר לאילו כלים המשתמש הזה יכול לגשת",
+    "userEditSidebarLinks": "קישורים בסרגל הצדדי"
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "פעילות גישה",
       "eventAccessCreate": "גישה ליצירה",
       "eventAccessDelete": "גישה ומחיקה"
-    }
+    },
+    "toolAccessDefaults": "הגדרות ברירת מחדל לגישה לכלים",
+    "toolAccessDefaultsDescription": "הגדר לאילו כלים יוכלו משתמשים חדשים לגשת כברירת מחדל",
+    "toolAccessDefaultsHelp": "הפעל כלים עבור משתמשים חדשים, ובאופן אופציונלי אכוף את הגישה כך שמשתמשים שאינם מנהלים לא יוכלו לשנות אותה.",
+    "accessDenied": "אין לך גישה לכלי זה."
   },
   "messages": {
     "pathNotFound": "הנתיב אינו קיים במערכת הקבצים",

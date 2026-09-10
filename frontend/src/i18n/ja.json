@@ -299,7 +299,11 @@
     "disableUserSettings": "ユーザー設定ページを無効にする",
     "userDefaultFieldLockedFromConfig": "このデフォルト設定は設定ファイルで指定されており、ここでは変更できません。",
     "sourceAccessDefaultsHelp": "ソースおよび新規ユーザーにデフォルトのファイル権限が適用されます。「強制」を選択すると、管理者以外のすべてのユーザーに対して値が固定されます。",
-    "editAsYaml": "YAMLとして編集"
+    "editAsYaml": "YAMLとして編集",
+    "userEditPreferences": "ユーザー設定",
+    "userEditTools": "ツールへのアクセス",
+    "userEditToolsDescription": "このユーザーがアクセスできるツールを設定する",
+    "userEditSidebarLinks": "サイドバーのリンク"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "アクセス状況",
       "eventAccessCreate": "アクセス 作成",
       "eventAccessDelete": "アクセス 削除"
-    }
+    },
+    "toolAccessDefaults": "ツールのアクセス権のデフォルト設定",
+    "toolAccessDefaultsDescription": "新規ユーザーがデフォルトで利用できるツールを設定する",
+    "toolAccessDefaultsHelp": "新規ユーザー向けにツールを有効にし、必要に応じて、管理者以外のユーザーが設定を変更できないようアクセスを制限します。",
+    "accessDenied": "このツールをご利用いただけません。"
   },
   "messages": {
     "pathNotFound": "パスがファイルシステムに存在しない",

@@ -629,7 +629,11 @@
     "disableUserSettings": "Disattiva la pagina delle impostazioni utente",
     "userDefaultFieldLockedFromConfig": "Questa impostazione predefinita è configurata nel file di configurazione e non può essere modificata in questa sede.",
     "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori.",
-    "editAsYaml": "Modifica come YAML"
+    "editAsYaml": "Modifica come YAML",
+    "userEditPreferences": "Preferenze utente",
+    "userEditTools": "Accesso agli strumenti",
+    "userEditToolsDescription": "Configurare a quali strumenti questo utente può accedere",
+    "userEditSidebarLinks": "Link nella barra laterale"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",
@@ -1023,7 +1027,11 @@
       "scopeAccess": "Attività di accesso",
       "eventAccessCreate": "Accedi - Crea",
       "eventAccessDelete": "Accedi - Elimina"
-    }
+    },
+    "toolAccessDefaults": "Impostazioni predefinite per l'accesso agli strumenti",
+    "toolAccessDefaultsDescription": "Configurare a quali strumenti i nuovi utenti possono accedere per impostazione predefinita",
+    "toolAccessDefaultsHelp": "Abilita gli strumenti per i nuovi utenti e, se lo desideri, rendi l'accesso obbligatorio in modo che gli utenti non amministratori non possano modificarlo.",
+    "accessDenied": "Non hai accesso a questo strumento."
   },
   "notifications": {
     "title": "Notifiche",

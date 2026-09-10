@@ -299,7 +299,11 @@
     "disableUserSettings": "Inaktivera sidan för användarinställningar",
     "userDefaultFieldLockedFromConfig": "Denna standardinställning anges i konfigurationsfilen och kan inte ändras här.",
     "sourceAccessDefaultsHelp": "Standardfilbehörigheter som tillämpas på källor och nya användare. Med ”Enforce” låses ett värde fast för alla användare som inte är administratörer.",
-    "editAsYaml": "Redigera som YAML"
+    "editAsYaml": "Redigera som YAML",
+    "userEditPreferences": "Användarinställningar",
+    "userEditTools": "Åtkomst till verktyg",
+    "userEditToolsDescription": "Ställ in vilka verktyg denna användare har åtkomst till",
+    "userEditSidebarLinks": "Länkar i sidomenyn"
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Åtkomstaktivitet",
       "eventAccessCreate": "Öppna skapa",
       "eventAccessDelete": "Åtkomst radera"
-    }
+    },
+    "toolAccessDefaults": "Standardinställningar för verktygsåtkomst",
+    "toolAccessDefaultsDescription": "Ställ in vilka verktyg nya användare ska ha tillgång till som standard",
+    "toolAccessDefaultsHelp": "Aktivera verktyg för nya användare och, om så önskas, begränsa åtkomsten så att icke-administratörer inte kan ändra inställningarna.",
+    "accessDenied": "Du har inte åtkomst till det här verktyget."
   },
   "messages": {
     "pathNotFound": "Sökvägen finns inte i filsystemet",

@@ -299,7 +299,11 @@
     "disableUserSettings": "Kullanıcı ayarları sayfasını devre dışı bırak",
     "userDefaultFieldLockedFromConfig": "Bu varsayılan ayar, yapılandırma dosyasında belirlenmiştir ve buradan değiştirilemez.",
     "sourceAccessDefaultsHelp": "Kaynaklara ve yeni kullanıcılara uygulanan varsayılan dosya izinleri. \"Uygula\" seçeneği, yönetici olmayan tüm kullanıcılar için bir değeri kilitler.",
-    "editAsYaml": "YAML olarak düzenle"
+    "editAsYaml": "YAML olarak düzenle",
+    "userEditPreferences": "Kullanıcı tercihleri",
+    "userEditTools": "Araçlara erişim",
+    "userEditToolsDescription": "Bu kullanıcının hangi araçlara erişebileceğini ayarlayın",
+    "userEditSidebarLinks": "Kenar çubuğu bağlantıları"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Erişim etkinliği",
       "eventAccessCreate": "Erişim oluştur",
       "eventAccessDelete": "Erişim silme"
-    }
+    },
+    "toolAccessDefaults": "Araç erişim varsayılan ayarları",
+    "toolAccessDefaultsDescription": "Yeni kullanıcıların varsayılan olarak hangi araçlara erişebileceğini ayarlayın",
+    "toolAccessDefaultsHelp": "Yeni kullanıcılar için araçları etkinleştirin ve isteğe bağlı olarak, yönetici olmayan kullanıcıların bu ayarı değiştirememesi için erişimi kısıtlayın.",
+    "accessDenied": "Bu araca erişiminiz yoktur."
   },
   "messages": {
     "pathNotFound": "Yol dosya sisteminde mevcut değil",

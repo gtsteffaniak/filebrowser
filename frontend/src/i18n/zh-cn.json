@@ -299,7 +299,11 @@
     "disableUserSettings": "禁用“用户设置”页面",
     "userDefaultFieldLockedFromConfig": "此默认设置在配置文件中设定，无法在此处进行修改。",
     "sourceAccessDefaultsHelp": "对源文件和新用户应用默认文件权限。强制对所有非管理员用户锁定该值。",
-    "editAsYaml": "以 YAML 格式编辑"
+    "editAsYaml": "以 YAML 格式编辑",
+    "userEditPreferences": "用户偏好设置",
+    "userEditTools": "工具访问",
+    "userEditToolsDescription": "配置该用户可以访问的工具",
+    "userEditSidebarLinks": "侧边栏链接"
   },
   "sidebar": {
     "updateIsAvailable": "有了最新进展！",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "访问活动",
       "eventAccessCreate": "访问 创建",
       "eventAccessDelete": "访问 删除"
-    }
+    },
+    "toolAccessDefaults": "工具访问默认设置",
+    "toolAccessDefaultsDescription": "配置新用户默认可以访问的工具",
+    "toolAccessDefaultsHelp": "为新用户启用工具，并可选择强制执行访问控制，以确保非管理员无法更改该设置。",
+    "accessDenied": "您无权使用此工具。"
   },
   "messages": {
     "pathNotFound": "文件系统中不存在路径",

@@ -456,7 +456,11 @@
     "disableUserSettings": "Zakázat stránku uživatelských nastavení",
     "userDefaultFieldLockedFromConfig": "Toto výchozí nastavení je definováno v konfiguračním souboru a zde jej nelze změnit.",
     "sourceAccessDefaultsHelp": "Výchozí oprávnění k souborům se vztahují na zdrojové soubory a nové uživatele. Nastavení „Vynutit“ určuje pevnou hodnotu pro všechny uživatele, kteří nejsou správci.",
-    "editAsYaml": "Upravit jako YAML"
+    "editAsYaml": "Upravit jako YAML",
+    "userEditPreferences": "Nastavení uživatele",
+    "userEditTools": "Přístup k nástrojům",
+    "userEditToolsDescription": "Nastavte, ke kterým nástrojům má tento uživatel přístup",
+    "userEditSidebarLinks": "Odkazy v postranním panelu"
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",
@@ -1014,7 +1018,11 @@
       "scopeAccess": "Aktivita přístupu",
       "eventAccessCreate": "Vytvořit přístup",
       "eventAccessDelete": "Přístup, smazat"
-    }
+    },
+    "toolAccessDefaults": "Výchozí nastavení přístupu k nástrojům",
+    "toolAccessDefaultsDescription": "Nastavte, ke kterým nástrojům budou mít noví uživatelé ve výchozím nastavení přístup",
+    "toolAccessDefaultsHelp": "Povolte nástroje pro nové uživatele a případně vynuťte omezení přístupu tak, aby je uživatelé bez oprávnění správce nemohli měnit.",
+    "accessDenied": "K tomuto nástroji nemáte přístup."
   },
   "messages": {
     "pathNotFound": "Cesta v souborovém systému neexistuje",
