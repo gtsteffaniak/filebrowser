@@ -1,11 +1,32 @@
 package fileutils
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 )
+
+type copyFileRangeRejectingWriter struct {
+	bytes.Buffer
+	readFromCalls int
+}
+
+func (w *copyFileRangeRejectingWriter) ReadFrom(r io.Reader) (int64, error) {
+	w.readFromCalls++
+	buf := make([]byte, 4)
+	n, err := r.Read(buf)
+	if n > 0 {
+		_, _ = w.Write(buf[:n])
+	}
+	if err != nil {
+		return int64(n), err
+	}
+	return int64(n), syscall.EBADF
+}
 
 func TestUnixModeToFileMode_setgid(t *testing.T) {
 	m := unixModeToFileMode(0o2770)
@@ -115,5 +136,21 @@ func TestCopyFilePreservesModTime(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestCopyFileContentsFallsBackAfterCopyFileRangeBadFileDescriptor(t *testing.T) {
+	const content = "complete file contents"
+	src := struct{ io.Reader }{bytes.NewBufferString(content)}
+	dst := &copyFileRangeRejectingWriter{}
+
+	if err := copyFileContents(dst, src); err != nil {
+		t.Fatal(err)
+	}
+	if got := dst.String(); got != content {
+		t.Fatalf("copied contents = %q, want %q", got, content)
+	}
+	if dst.readFromCalls != 1 {
+		t.Fatalf("ReadFrom calls = %d, want 1", dst.readFromCalls)
 	}
 }
