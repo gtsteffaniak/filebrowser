@@ -450,7 +450,7 @@ export default {
       const range = editor.getSelectionRange();
       const selectedText = editor.getSelectedText();
       const trailingNewline = selectedText.match(/\r?\n$/)?.[0] || "";
-      const text = (selectedText ? selectedText.slice(0, selectedText.length - trailingNewline.length) : "") || placeholder;
+      const text = selectedText ? selectedText.slice(0, selectedText.length - trailingNewline.length) : placeholder;
       const start = { row: range.start.row, column: range.start.column };
       if (selectedText) {
         editor.session.replace(range, `${before}${text}${after}${trailingNewline}`);
