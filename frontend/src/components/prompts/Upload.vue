@@ -201,11 +201,9 @@ export default {
     ButtonGroup,
   },
   props: {
-    props: {
-      promptId: {
-        type: [String, Number],
-        default: null,
-      },
+    promptId: {
+      type: [String, Number],
+      default: null,
     },
     initialItems: {
       type: Object,
