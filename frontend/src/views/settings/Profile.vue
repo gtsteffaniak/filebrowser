@@ -39,7 +39,7 @@ function cloneUser(user) {
 }
 
 export default {
-  name: "settings",
+  name: "profileSettings",
   components: {
     UserProfilePreferences,
   },

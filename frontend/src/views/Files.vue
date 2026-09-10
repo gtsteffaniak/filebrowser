@@ -247,7 +247,7 @@ export default {
       }
       // Re-select the item we are returning to -- replaces the previous glow effect.
       const targetIndex = state.req?.items?.findIndex((item) => item.name === targetName);
-      if (targetIndex !== -1) {
+      if (typeof targetIndex === 'number' && targetIndex !== -1) {
         mutations.addSelected(targetIndex);
       }
       const element = document.getElementById(scrollToId);

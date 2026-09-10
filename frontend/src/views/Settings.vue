@@ -1,11 +1,9 @@
 <template>
   <div class="dashboard">
     <div v-if="isRootSettings && !userPage" class="settings-views">
-      <component
-        v-if="activeSetting"
-        :is="activeSetting.component"
-        :id="`${activeSetting.id}-main`"
-      />
+      <div v-if="activeSetting" :id="`${activeSetting.id}-main`">
+        <component :is="activeSetting.component" />
+      </div>
     </div>
     <div v-else class="settings-views">
       <div class="active">

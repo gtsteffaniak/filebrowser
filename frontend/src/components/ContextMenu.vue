@@ -29,7 +29,7 @@
           </div>
         </div>
         <hr class="divider">
-        <p v-if="newFileTemplates.length === 0" class="context-menu-empty-message">
+        <p v-if="newFileTemplates.length === 0 && isLoggedIn" class="context-menu-empty-message">
           {{ $t('prompts.noTemplate') }}
         </p>
         <action
@@ -268,6 +268,7 @@ function isArchivePath(pathOrName) {
 
 export default {
   name: "ContextMenu",
+  inheritAttrs: false,
   components: {
     Action,
   },
@@ -312,9 +313,9 @@ export default {
       if (typeof state.selected[0] === 'number') {
         return state.selected
           .map(index => state.req.items.at(index))
-          .filter(item => item !== null);
+          .filter(item => item != null);
       }
-      return state.selected;
+      return state.selected.filter(item => item != null);
     },
     selectedCount() {
       return this.providedItems.length;
@@ -391,6 +392,9 @@ export default {
     },
     isShare() {
       return getters.isShare();
+    },
+    isLoggedIn() {
+      return getters.isLoggedIn();
     },
     showInfo() {
       if (this.showLimitedOptions) return this.selectedCount === 1;

@@ -69,7 +69,7 @@ export default defineConfig(
         varsIgnorePattern: "^_",
         caughtErrors: "none",
       }],
-      "eqeqeq": ["warn", "always"],
+      "eqeqeq": ["warn", "always", { "null": "ignore" }],
       "no-var": "error",
       "prefer-const": "warn",
       "no-unused-expressions": ["error", { allowShortCircuit: true, allowTernary: true }],
