@@ -327,6 +327,8 @@
     "keepAfterExpirationDescription": "The share will not be deleted after it expires. This is useful if you want to extend a share's expiration or edit it further after it expires.",
     "shareDurationDescription": "Duration before the share expires. Leave blank for a permanent share.",
     "passwordDescription": "Optional password required to access this share, including authenticated users.",
+    "passwordPrompt": "Enter the password to access this share.",
+    "passwordPromptDownload": "Enter the password to start the download.",
     "shareThemeColorDescription": "CSS color value applied to the share's theme (e.g., red, #0ea5e9, rgb(14,165,233)).",
     "shareTitleDescription": "Custom page title shown on the share page. If this share is installed as a PWA, the app name is limited to 30 characters.",
     "shareDescriptionHelp": "Short description shown on the share page (may be used in meta tags).",

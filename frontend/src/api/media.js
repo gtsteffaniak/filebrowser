@@ -19,7 +19,6 @@ export async function getSubtitleContent(source, path, subtitleName, embedded = 
       const apiPath = getPublicApiPath('media/subtitles', {
         hash,
         ...baseParams,
-        ...(state.shareInfo.token && { token: state.shareInfo.token }),
       })
       const sharePassword = localStorage.getItem(`sharepass:${hash}`) || ''
       res = await fetchURL(apiPath, {
@@ -57,7 +56,6 @@ export async function getLyricsPublic(path, hash, password = "") {
     const params = {
         path,
         hash,
-        ...(state.shareInfo.token && { token: state.shareInfo.token }),
     };
     const apiPath = getPublicApiPath("media/lyrics", params);
     const response = await fetch(apiPath, {
@@ -98,7 +96,6 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
     path,
     hash,
     ...(albumArt ? { albumArt: "true" } : {}),
-    ...(state.shareInfo.token && { token: state.shareInfo.token }),
   };
   const apiPath = getPublicApiPath("media/metadata", params);
   const response = await fetch(apiPath, {
@@ -179,7 +176,6 @@ export function getStreamURLPublic(share, files, viewToken) {
   const params = {
     file: fileArray,
     hash: share.hash,
-    token: share.token,
     viewToken: viewToken,
     sessionId: state.sessionId,
   }

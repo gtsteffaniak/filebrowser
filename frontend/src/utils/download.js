@@ -93,3 +93,30 @@ async function startDownload(config, files, hash = "", options = {}) {
     notify.showError(`Error downloading: ${e.message || e}`);
   }
 }
+
+/** Show the download format prompt and start the in-app download when confirmed. */
+export function showShareDownloadPrompt(items) {
+  if (items.length === 0) {
+    notify.showError("No files selected");
+    return;
+  }
+  if (typeof items[0] === "number") {
+    items = items.map((i) => state.req.items.at(i));
+  }
+
+  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0;
+  const isMultiItemArchive =
+    items.length > 1 || (items.length === 1 && items[0].isDir);
+  const willUseChunkedArchive =
+    downloadChunkSizeMb > 0 && isMultiItemArchive;
+
+  mutations.showPrompt({
+    name: "download",
+    confirm: (format) => {
+      mutations.closeTopPrompt();
+      void startDownload(format, items, state.shareInfo?.hash || "", {
+        silentChunkedError: willUseChunkedArchive,
+      });
+    },
+  });
+}

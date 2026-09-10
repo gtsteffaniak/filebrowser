@@ -16,6 +16,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/shareauth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -298,13 +299,17 @@ func joinOnlyOfficeAPIURL(baseURL, apiPath string) string {
 	return base + "/" + path
 }
 
-// shareTokenForOnlyOffice returns the share download token for OnlyOffice server URLs.
-// Only password-protected shares have a token; callers must already have passed share auth.
+// shareTokenForOnlyOffice mints a short-lived download token for OnlyOffice server URLs.
 func shareTokenForOnlyOffice(d *Context) string {
-	if d.Share.Hash == "" || d.Share.PasswordHash == "" || d.Share.Token == "" {
+	if d.Share.Hash == "" || d.Share.PasswordHash == "" {
 		return ""
 	}
-	return d.Share.Token
+	token, _, err := shareauth.MintDownloadAccessToken(d.Share.Hash, 2*time.Hour, 0)
+	if err != nil {
+		logger.Errorf("failed to mint OnlyOffice share download token: hash=%s error=%v", d.Share.Hash, err)
+		return ""
+	}
+	return token
 }
 
 // buildOnlyOfficeViewURL constructs the view URL that OnlyOffice server uses to fetch the document.

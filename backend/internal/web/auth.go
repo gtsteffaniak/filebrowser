@@ -1,9 +1,6 @@
 package web
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	libError "errors"
 	"fmt"
@@ -21,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/shareauth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -367,40 +365,55 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	return 0, nil
 }
 
+func shareAllowsViewGrantBypass(r *http.Request) bool {
+	if r == nil {
+		return false
+	}
+	path := r.URL.Path
+	return strings.Contains(path, "/resources/view") ||
+		strings.Contains(path, "/media/stream") ||
+		strings.Contains(path, "/resources/preview")
+}
+
+func authenticateShareViewGrant(r *http.Request, shareHash string) bool {
+	viewToken := strings.TrimSpace(r.URL.Query().Get("viewToken"))
+	if viewToken == "" {
+		return false
+	}
+	grant, ok := utils.ViewGrantsCache.Get(viewToken)
+	if !ok || grant.Source != shareHash {
+		return false
+	}
+	if time.Now().Unix() > grant.ExpiresAt {
+		return false
+	}
+	return shareAllowsViewGrantBypass(r)
+}
+
 func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 	if l.PasswordHash == "" {
 		return 200, nil
 	}
 
+	if validateShareUISessionCookie(r, l.Hash) {
+		return 200, nil
+	}
+
 	tokenParam := r.URL.Query().Get("token")
 	if tokenParam != "" {
-		// Verify the token signature if it's in the new signed format
-		if strings.Contains(tokenParam, ".") {
-			parts := strings.Split(tokenParam, ".")
-			if len(parts) == 2 {
-				payload := parts[0]
-				signature := parts[1]
-
-				// Verify HMAC signature
-				mac := hmac.New(sha256.New, []byte(settings.Config.Auth.Key))
-				mac.Write([]byte(payload))
-				expectedSignature := base64.URLEncoding.EncodeToString(mac.Sum(nil))
-
-				// Use constant-time comparison to prevent timing attacks
-				if hmac.Equal([]byte(signature), []byte(expectedSignature)) {
-					// Token signature is valid, now check if it matches stored token
-					if tokenParam == l.Token {
-						return 200, nil
-					}
-				}
-			}
-		} else {
-			// Legacy token format (plain base64) - direct comparison
-			if tokenParam == l.Token {
+		if shareauth.ValidateDownloadAccessToken(tokenParam, l.Hash) {
+			if shareauth.ShareRouteAllowsDownloadToken(r) {
+				shareauth.ConsumeDownloadAccessToken(tokenParam)
 				return 200, nil
 			}
+			logger.Debugf("share auth failed: hash=%s reason=download_token_on_non_download_route", l.Hash)
+			return http.StatusUnauthorized, nil
 		}
 		logger.Debugf("share auth failed: hash=%s reason=invalid_token", l.Hash)
+	}
+
+	if authenticateShareViewGrant(r, l.Hash) {
+		return 200, nil
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")
@@ -419,6 +432,50 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 }
 
 const sessionCookieName = "filebrowser_quantum_jwt"
+const shareUISessionCookieName = "filebrowser_share_session"
+
+func validateShareUISessionCookie(r *http.Request, shareHash string) bool {
+	if r == nil || shareHash == "" {
+		return false
+	}
+	cookie, err := r.Cookie(shareUISessionCookieName)
+	if err != nil || cookie.Value == "" {
+		return false
+	}
+	return shareauth.ValidateShareUISessionToken(cookie.Value, shareHash)
+}
+
+// SetShareUISessionCookie stores a short-lived session after successful X-SHARE-PASSWORD auth.
+// Enables native browser streaming downloads without putting tokens in download URLs.
+func SetShareUISessionCookie(w http.ResponseWriter, r *http.Request, shareHash string) error {
+	token, expiresAt, err := shareauth.MintShareUISessionToken(shareHash, maxShareUISessionTTL)
+	if err != nil {
+		return err
+	}
+	expiresTime := time.Unix(expiresAt, 0)
+	http.SetCookie(w, shareUISessionCookie(r, token, expiresTime))
+	return nil
+}
+
+const maxShareUISessionTTL = 24 * time.Hour
+
+func shareUISessionCookie(r *http.Request, token string, expiresTime time.Time) *http.Cookie {
+	maxAge := int(time.Until(expiresTime).Seconds())
+	if maxAge < 0 {
+		maxAge = 0
+	}
+	return &http.Cookie{
+		Name:     shareUISessionCookieName,
+		Value:    token,
+		Domain:   sessionCookieDomain(r),
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		HttpOnly: true,
+		Secure:   requestScheme(r) == "https",
+		Expires:  expiresTime,
+		MaxAge:   maxAge,
+	}
+}
 
 // sessionCookie builds the JWT cookie. HttpOnly prevents srcdoc XSS from reading
 // document.cookie; Secure is set when the request is HTTPS (including via proxy).

@@ -87,6 +87,11 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			if err != nil || status != http.StatusOK {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
+			if link.PasswordHash != "" && strings.TrimSpace(r.Header.Get("X-SHARE-PASSWORD")) != "" {
+				if cookieErr := SetShareUISessionCookie(w, r, link.Hash); cookieErr != nil {
+					logger.Debugf("share session cookie: hash=%s err=%v", link.Hash, cookieErr)
+				}
+			}
 		}
 		source, ok := settings.Config.Server.SourceMap[link.SourcePath]
 		if !ok {
@@ -149,7 +154,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return ErrToStatus(err), fmt.Errorf("error fetching share from server")
 		}
-		file.Token = link.Token
 		file.Source = link.Hash
 		file.Hash = link.Hash
 		if !link.EnableOnlyOffice || link.DisableFileViewer || reachedDownloadsLimit {

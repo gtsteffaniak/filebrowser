@@ -10,7 +10,6 @@ export async function getConfig(req) {
       path: req.path,
       ...(req.hash && { hash: req.hash }),
       ...(req.source && { source: req.source }),
-      ...(req.hash && state.shareInfo?.token && { token: state.shareInfo.token }),
     }
 
     const headers = {}
