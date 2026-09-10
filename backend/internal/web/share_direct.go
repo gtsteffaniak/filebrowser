@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -19,6 +20,9 @@ const (
 	maxShareAccessTTL          = 24 * time.Hour
 )
 
+// shareDownloadGrantMu serializes use-count decrements for limited download tokens.
+var shareDownloadGrantMu sync.Mutex
+
 type shareAccessClaims struct {
 	Hash  string `json:"h"`
 	Exp   int64  `json:"exp"`
@@ -26,6 +30,7 @@ type shareAccessClaims struct {
 	ID    string `json:"id,omitempty"`
 }
 
+// parseShareAccessDuration converts API duration parameters into a time.Duration.
 func parseShareAccessDuration(duration int, unit string) (time.Duration, error) {
 	if duration <= 0 {
 		return 0, fmt.Errorf("duration must be positive")
@@ -40,6 +45,7 @@ func parseShareAccessDuration(duration int, unit string) (time.Duration, error) 
 	}
 }
 
+// parseShareDownloadAccessDuration validates share direct-download TTL capped at 24 hours.
 func parseShareDownloadAccessDuration(duration int, unit string) (time.Duration, error) {
 	ttl, err := parseShareAccessDuration(duration, unit)
 	if err != nil {
@@ -51,10 +57,12 @@ func parseShareDownloadAccessDuration(duration int, unit string) (time.Duration,
 	return ttl, nil
 }
 
+// shareAccessAuthKey returns the HMAC signing key for share access tokens.
 func shareAccessAuthKey() []byte {
 	return []byte(settings.Config.Auth.Key)
 }
 
+// mintSignedShareAccessToken signs share access claims as a base64url.payload.signature token.
 func mintSignedShareAccessToken(claims shareAccessClaims) (token string, expiresAt int64, err error) {
 	payload, err := json.Marshal(claims)
 	if err != nil {
@@ -63,6 +71,7 @@ func mintSignedShareAccessToken(claims shareAccessClaims) (token string, expires
 	return utils.SignHMACSHA256Base64URL(shareAccessAuthKey(), payload), claims.Exp, nil
 }
 
+// verifySignedShareAccessToken parses and verifies a signed share access token payload.
 func verifySignedShareAccessToken(tokenParam string) (*shareAccessClaims, bool) {
 	payload, ok := utils.VerifyHMACSHA256Base64URL(shareAccessAuthKey(), tokenParam)
 	if !ok {
@@ -75,6 +84,7 @@ func verifySignedShareAccessToken(tokenParam string) (*shareAccessClaims, bool) 
 	return &claims, true
 }
 
+// mintShareDownloadAccessToken creates a signed, download-scoped ephemeral token for a share.
 func mintShareDownloadAccessToken(shareHash string, ttl time.Duration, maxUses int) (token string, expiresAt int64, err error) {
 	if shareHash == "" {
 		return "", 0, fmt.Errorf("share hash is required")
@@ -115,6 +125,7 @@ func mintShareDownloadAccessToken(shareHash string, ttl time.Duration, maxUses i
 	return token, expiresAt, nil
 }
 
+// mintShareUISessionToken creates a signed cookie-scoped token for UI share access after password entry.
 func mintShareUISessionToken(shareHash string, ttl time.Duration) (token string, expiresAt int64, err error) {
 	if shareHash == "" {
 		return "", 0, fmt.Errorf("share hash is required")
@@ -131,6 +142,7 @@ func mintShareUISessionToken(shareHash string, ttl time.Duration) (token string,
 	})
 }
 
+// validateShareUISessionToken checks a UI session token for the given share hash.
 func validateShareUISessionToken(tokenParam, shareHash string) bool {
 	claims, ok := verifySignedShareAccessToken(tokenParam)
 	if !ok || claims == nil {
@@ -142,6 +154,7 @@ func validateShareUISessionToken(tokenParam, shareHash string) bool {
 	return time.Now().Unix() <= claims.Exp
 }
 
+// validateShareDownloadAccessToken checks a download token without consuming a limited use.
 func validateShareDownloadAccessToken(tokenParam, shareHash string) bool {
 	claims, ok := verifySignedShareAccessToken(tokenParam)
 	if !ok || claims == nil {
@@ -157,29 +170,45 @@ func validateShareDownloadAccessToken(tokenParam, shareHash string) bool {
 		return true
 	}
 	grant, ok := utils.ShareAccessGrantsCache.Get(claims.ID)
-	if !ok || grant.RemainingUses == 0 {
+	if !ok || grant.RemainingUses <= 0 {
 		return false
 	}
 	return true
 }
 
-func consumeShareDownloadAccessToken(tokenParam string) {
+// authorizeShareDownloadAccessToken validates a download token and atomically consumes one use when limited.
+func authorizeShareDownloadAccessToken(tokenParam, shareHash string) bool {
 	claims, ok := verifySignedShareAccessToken(tokenParam)
-	if !ok || claims == nil || claims.ID == "" {
-		return
+	if !ok || claims == nil {
+		return false
 	}
+	if claims.Scope != shareAccessScopeDownload || claims.Hash != shareHash {
+		return false
+	}
+	if time.Now().Unix() > claims.Exp {
+		return false
+	}
+	if claims.ID == "" {
+		return true
+	}
+
+	shareDownloadGrantMu.Lock()
+	defer shareDownloadGrantMu.Unlock()
+
 	grant, ok := utils.ShareAccessGrantsCache.Get(claims.ID)
 	if !ok || grant.RemainingUses <= 0 {
-		return
+		return false
 	}
 	grant.RemainingUses--
 	if grant.RemainingUses <= 0 {
 		utils.ShareAccessGrantsCache.Delete(claims.ID)
-		return
+	} else {
+		utils.ShareAccessGrantsCache.Set(claims.ID, grant)
 	}
-	utils.ShareAccessGrantsCache.Set(claims.ID, grant)
+	return true
 }
 
+// shareRouteAllowsDownloadToken reports whether an ephemeral download token may authorize this path.
 func shareRouteAllowsDownloadToken(path string) bool {
 	return strings.Contains(path, "/resources/download") ||
 		strings.Contains(path, "/resources/view") ||
@@ -187,6 +216,7 @@ func shareRouteAllowsDownloadToken(path string) bool {
 		strings.Contains(path, "/raw")
 }
 
+// shareRequestAllowsDownloadToken reports whether an ephemeral download token may authorize this request.
 func shareRequestAllowsDownloadToken(r *http.Request) bool {
 	if r == nil {
 		return false
@@ -194,6 +224,7 @@ func shareRequestAllowsDownloadToken(r *http.Request) bool {
 	return shareRouteAllowsDownloadToken(r.URL.Path)
 }
 
+// directDownloadURL builds a public download URL with an ephemeral token query parameter.
 func directDownloadURL(host, scheme, hash, token string) string {
 	tokenParam := ""
 	if token != "" {

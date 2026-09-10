@@ -38,9 +38,6 @@ func TestShareDownloadTokenRejectedOnListingRoute(t *testing.T) {
 	if err != nil {
 		t.Fatalf("mintShareDownloadAccessToken: %v", err)
 	}
-	if !validateShareDownloadAccessToken(token, "share123") {
-		t.Fatal("expected valid token")
-	}
 
 	req := httptest.NewRequest(http.MethodGet, "/public/api/resources?hash=share123&token="+token, nil)
 	if shareRequestAllowsDownloadToken(req) {
@@ -53,7 +50,7 @@ func TestShareDownloadTokenRejectedOnListingRoute(t *testing.T) {
 	}
 }
 
-func TestShareDownloadAccessTokenUseCount(t *testing.T) {
+func TestAuthorizeShareDownloadAccessTokenUseCount(t *testing.T) {
 	origKey := settings.Config.Auth.Key
 	settings.Config.Auth.Key = "test-auth-key"
 	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
@@ -62,11 +59,10 @@ func TestShareDownloadAccessTokenUseCount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("mintShareDownloadAccessToken: %v", err)
 	}
-	if !validateShareDownloadAccessToken(token, "share123") {
-		t.Fatal("expected valid token before consume")
+	if !authorizeShareDownloadAccessToken(token, "share123") {
+		t.Fatal("expected first authorization to succeed")
 	}
-	consumeShareDownloadAccessToken(token)
-	if validateShareDownloadAccessToken(token, "share123") {
+	if authorizeShareDownloadAccessToken(token, "share123") {
 		t.Fatal("expected token to be invalid after single use")
 	}
 }
@@ -88,6 +84,34 @@ func TestMintAndValidateShareUISessionToken(t *testing.T) {
 	}
 	if validateShareUISessionToken(token, "other-hash") {
 		t.Fatal("expected invalid UI session token for different hash")
+	}
+}
+
+func TestAuthorizeShareDownloadAccessTokenConcurrentSingleUse(t *testing.T) {
+	origKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "test-auth-key"
+	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
+
+	token, _, mintErr := mintShareDownloadAccessToken("share123", time.Hour, 1)
+	if mintErr != nil {
+		t.Fatalf("mintShareDownloadAccessToken: %v", mintErr)
+	}
+
+	allowed := make(chan bool, 2)
+	for i := 0; i < 2; i++ {
+		go func() {
+			allowed <- authorizeShareDownloadAccessToken(token, "share123")
+		}()
+	}
+
+	successes := 0
+	for i := 0; i < 2; i++ {
+		if <-allowed {
+			successes++
+		}
+	}
+	if successes != 1 {
+		t.Fatalf("expected exactly one concurrent authorization, got %d", successes)
 	}
 }
 

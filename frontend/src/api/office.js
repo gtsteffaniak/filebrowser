@@ -1,5 +1,4 @@
 import { notify } from '@/notify'
-import { state } from '@/store'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { fetchURL } from './utils'
 

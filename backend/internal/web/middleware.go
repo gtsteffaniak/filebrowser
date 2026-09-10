@@ -83,14 +83,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Authenticate the share request if needed
 		var status int
 		if link.Hash != "" {
-			status, err = AuthenticateShareRequest(r, link)
+			status, err = AuthenticateShareRequest(w, r, link)
 			if err != nil || status != http.StatusOK {
 				return status, fmt.Errorf("could not authenticate share request")
-			}
-			if link.PasswordHash != "" && strings.TrimSpace(r.Header.Get("X-SHARE-PASSWORD")) != "" {
-				if cookieErr := SetShareUISessionCookie(w, r, link.Hash); cookieErr != nil {
-					logger.Debugf("share session cookie: hash=%s err=%v", link.Hash, cookieErr)
-				}
 			}
 		}
 		source, ok := settings.Config.Server.SourceMap[link.SourcePath]

@@ -25,7 +25,6 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 import { invalidateDirMetadataCache } from "@/utils/metadataCache.js";
-import { notify } from "@/notify";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
 
 function directoryListingHasMediaChildren(req) {
@@ -532,7 +531,6 @@ export default {
       localStorage.removeItem(`sharepass:${hash}`);
     },
     showPasswordPrompt() {
-      const wantsDownload = this.$route.query.download === "true";
       mutations.showPrompt({
         name: "password",
         pinned: true,
@@ -544,12 +542,6 @@ export default {
           },
           showWrongCredentials: this.attemptedPasswordLogin,
           initialPassword: this.sharePassword,
-          infoText: wantsDownload
-            ? this.$t("share.passwordPromptDownload")
-            : this.$t("share.passwordPrompt"),
-          submitLabel: wantsDownload
-            ? this.$t("general.download")
-            : this.$t("general.submit"),
         },
       });
     },

@@ -414,6 +414,7 @@ type DirectDownloadResponse struct {
 	URL       string `json:"url"`
 }
 
+// parseShareDownloadTokenParams reads duration, unit, and optional use-count from the direct-download API query.
 func parseShareDownloadTokenParams(r *http.Request) (time.Duration, int, error) {
 	durationStr := r.URL.Query().Get("duration")
 	if durationStr == "" {
@@ -443,6 +444,7 @@ func parseShareDownloadTokenParams(r *http.Request) (time.Duration, int, error) 
 	return ttl, maxUses, nil
 }
 
+// mintShareDownloadTokenResponse builds the JSON payload for GET /api/share/direct.
 func mintShareDownloadTokenResponse(r *http.Request, hash string, ttl time.Duration, maxUses int) (DirectDownloadResponse, error) {
 	token, expiresAt, err := mintShareDownloadAccessToken(hash, ttl, maxUses)
 	if err != nil {
@@ -491,7 +493,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Conte
 		return http.StatusForbidden, fmt.Errorf("you are not allowed to mint tokens for this share")
 	}
 
-	status, err := AuthenticateShareRequest(r, link)
+	status, err := AuthenticateShareRequest(w, r, link)
 	if err != nil || status != http.StatusOK {
 		return http.StatusUnauthorized, fmt.Errorf("invalid share password")
 	}

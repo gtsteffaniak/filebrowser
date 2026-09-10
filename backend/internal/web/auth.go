@@ -364,26 +364,23 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	return 0, nil
 }
 
-func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
+// AuthenticateShareRequest validates access to a password-protected share.
+// UI sessions are minted only after successful X-SHARE-PASSWORD auth, never from download tokens.
+func AuthenticateShareRequest(w http.ResponseWriter, r *http.Request, l share.Share) (int, error) {
 	if l.PasswordHash == "" {
-		return 200, nil
+		return http.StatusOK, nil
 	}
 
 	if validateShareUISessionCookie(r, l.Hash) {
-		return 200, nil
+		return http.StatusOK, nil
 	}
 
 	tokenParam := r.URL.Query().Get("token")
 	if tokenParam != "" {
-		if validateShareDownloadAccessToken(tokenParam, l.Hash) {
-			if shareRequestAllowsDownloadToken(r) {
-				consumeShareDownloadAccessToken(tokenParam)
-				return 200, nil
-			}
-			logger.Debugf("share auth failed: hash=%s reason=download_token_on_non_download_route", l.Hash)
-			return http.StatusUnauthorized, nil
+		if shareRequestAllowsDownloadToken(r) && authorizeShareDownloadAccessToken(tokenParam, l.Hash) {
+			return http.StatusOK, nil
 		}
-		logger.Debugf("share auth failed: hash=%s reason=invalid_token", l.Hash)
+		logger.Debugf("share auth failed: hash=%s reason=invalid_or_disallowed_token", l.Hash)
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")
@@ -396,14 +393,20 @@ func AuthenticateShareRequest(r *http.Request, l share.Share) (int, error) {
 			logger.Debugf("share auth failed: hash=%s reason=wrong_password", l.Hash)
 			return http.StatusUnauthorized, nil
 		}
-		return 401, err
+		return http.StatusUnauthorized, err
 	}
-	return 200, nil
+	if w != nil {
+		if cookieErr := SetShareUISessionCookie(w, r, l.Hash); cookieErr != nil {
+			logger.Debugf("share session cookie: hash=%s err=%v", l.Hash, cookieErr)
+		}
+	}
+	return http.StatusOK, nil
 }
 
 const sessionCookieName = "filebrowser_quantum_jwt"
 const shareUISessionCookieName = "filebrowser_share_session"
 
+// validateShareUISessionCookie checks the HttpOnly share UI session cookie for a hash.
 func validateShareUISessionCookie(r *http.Request, shareHash string) bool {
 	if r == nil || shareHash == "" {
 		return false
@@ -429,6 +432,16 @@ func SetShareUISessionCookie(w http.ResponseWriter, r *http.Request, shareHash s
 
 const maxShareUISessionTTL = 24 * time.Hour
 
+// shareUISessionCookiePath scopes the share session cookie to the configured HTTP base URL path.
+func shareUISessionCookiePath() string {
+	base := settings.Config.Http.BaseURL
+	if base == "" {
+		return "/"
+	}
+	return base
+}
+
+// shareUISessionCookie builds the HttpOnly share UI session cookie for a validated password entry.
 func shareUISessionCookie(r *http.Request, token string, expiresTime time.Time) *http.Cookie {
 	maxAge := int(time.Until(expiresTime).Seconds())
 	if maxAge < 0 {
@@ -437,8 +450,7 @@ func shareUISessionCookie(r *http.Request, token string, expiresTime time.Time) 
 	return &http.Cookie{
 		Name:     shareUISessionCookieName,
 		Value:    token,
-		Domain:   sessionCookieDomain(r),
-		Path:     "/",
+		Path:     shareUISessionCookiePath(),
 		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 		Secure:   requestScheme(r) == "https",
