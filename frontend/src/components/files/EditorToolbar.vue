@@ -251,7 +251,7 @@ export default {
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
         { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
       ];
-      const isJson = state.req.type === "application/json"
+      const isJson = state.req?.type === "application/json"
       if (isJson && getters.sourcePermissions().modify) {
         alwaysAvailable.push({
           id: "formatJSON",
@@ -449,10 +449,11 @@ export default {
       if (!editor) return;
       const range = editor.getSelectionRange();
       const selectedText = editor.getSelectedText();
-      const text = selectedText || placeholder;
+      const trailingNewline = selectedText.match(/\r?\n$/)?.[0] || "";
+      const text = selectedText ? selectedText.slice(0, selectedText.length - trailingNewline.length) : placeholder;
       const start = { row: range.start.row, column: range.start.column };
       if (selectedText) {
-        editor.session.replace(range, `${before}${text}${after}`);
+        editor.session.replace(range, `${before}${text}${after}${trailingNewline}`);
       } else {
         editor.session.insert(start, `${before}${text}${after}`);
       }
@@ -465,7 +466,7 @@ export default {
       this.wrapSelection(`<font color="${color}">`, "</font>", this.$t("editor.md.text"));
     },
     applyHighlightColor(color: string) {
-      const style = color ? ` style="background-color: ${color}"` : "";
+      const style = color ? ` style="background-color: ${color}; --mark-color: ${color}"` : "";
       this.wrapSelection(`<mark${style}>`, "</mark>", this.$t("editor.md.highlight"));
     },
     selectedColor(btn: ToolbarButton): string {

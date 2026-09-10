@@ -502,12 +502,7 @@ export default {
         editorInstance.on('change', () => {
           if (this.editor !== editorInstance) return;
           if (this.suppressDirtyTracking) return;
-          const dirty = editorInstance.getValue() !== this.savedContent;
-          if (this.isDirty !== dirty) {
-            this.isDirty = dirty;
-            mutations.setEditorDirty(dirty);
-          }
-          this.scheduleStatsUpdate();
+          this.scheduleStatsUpdate(editorInstance);
           (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.handleEditorChange();
         });
 
@@ -752,14 +747,21 @@ export default {
         mutations.setEditorStats({ lines, words: null, chars: null });
       }
     },
-    scheduleStatsUpdate() {
+    scheduleStatsUpdate(editorInstance?: Ace.Editor) {
       if (this.statsUpdateTimer) {
         clearTimeout(this.statsUpdateTimer);
       }
       this.statsUpdateTimer = setTimeout(() => {
         this.statsUpdateTimer = null;
         this.updateEditorStats();
-      }, 185);
+        if (editorInstance && this.editor === editorInstance) {
+          const dirty = editorInstance.getValue() !== this.savedContent;
+          if (this.isDirty !== dirty) {
+            this.isDirty = dirty;
+            mutations.setEditorDirty(dirty);
+          }
+        }
+      }, 150);
     },
     applyFontSize() {
       if (this.editor) {
