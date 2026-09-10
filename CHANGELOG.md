@@ -47,6 +47,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Fall back to buffered copies when FUSE rejects fast paths (#2938)
  - Preserve deleted sidebar links across restarts (#2935)
  - scope padding to listing view (#2934)
+ 
 
 ## v2.0.6
 
