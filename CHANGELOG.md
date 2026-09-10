@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
  **Security**:
  - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
 
+ **Bugfixes**:
+ - Fix disk-usage overstatement on virtiofs bind mounts (#2894) (#2894)
+
 ## v2.0.5
 
  **New Features**:
