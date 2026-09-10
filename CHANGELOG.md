@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. For commit 
  **Bugfixes**:
  - Fix disk-usage overstatement on virtiofs bind mounts (#2894) (#2894)
  - Support non-ASCII share passwords (#2933)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938)
+ - Preserve deleted sidebar links across restarts (#2935)
 
 ## v2.0.5
 
