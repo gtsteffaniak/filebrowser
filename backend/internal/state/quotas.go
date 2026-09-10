@@ -108,16 +108,18 @@ func containsString(ss []string, s string) bool {
 
 // StopQuotaFlusher flushes dirty counters and stops the background loop.
 func StopQuotaFlusher() {
-	quotaFlusherMu.Lock()
-	stopQuotaFlusherLocked()
-	quotaFlusher = nil
-	quotaFlusherMu.Unlock()
+	flusher := detachQuotaFlusher()
+	if flusher != nil {
+		flusher.Stop()
+	}
 }
 
-func stopQuotaFlusherLocked() {
-	if quotaFlusher != nil {
-		quotaFlusher.Stop()
-	}
+func detachQuotaFlusher() *quotaCounterFlusher {
+	quotaFlusherMu.Lock()
+	flusher := quotaFlusher
+	quotaFlusher = nil
+	quotaFlusherMu.Unlock()
+	return flusher
 }
 
 func quotaFlusherSnapshot() *quotaCounterFlusher {
@@ -976,7 +978,7 @@ func startQuotaFlusher(cfg settings.QuotasConfig) {
 	}
 
 	quotaFlusherMu.Lock()
-	stopQuotaFlusherLocked()
+	oldFlusher := quotaFlusher
 	quotaFlusher = &quotaCounterFlusher{
 		dirtyIDs:      make(map[string]struct{}),
 		flushCh:       make(chan struct{}, 1),
@@ -988,6 +990,9 @@ func startQuotaFlusher(cfg settings.QuotasConfig) {
 	flusher := quotaFlusher
 	quotaFlusherMu.Unlock()
 
+	if oldFlusher != nil {
+		oldFlusher.Stop()
+	}
 	go flusher.loop()
 }
 

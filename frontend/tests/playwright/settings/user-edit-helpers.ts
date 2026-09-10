@@ -15,6 +15,18 @@ export function userEditModal(page: Page): Locator {
   return page.locator('div[aria-label="user-edit-prompt"]');
 }
 
+export function userEditPreferencesModal(page: Page): Locator {
+  return page.locator('div[aria-label="user-edit-preferences-prompt"]');
+}
+
+export function globalPermissionCheckbox(modal: Locator, label: string): Locator {
+  return modal.locator(".toggle-container", { hasText: label }).locator('input[type="checkbox"]');
+}
+
+export function globalPermissionToggle(modal: Locator, label: string): Locator {
+  return modal.locator(".toggle-container", { hasText: label }).locator("label.switch");
+}
+
 /** Primary source in settings Playwright docker config (`_docker/src/settings/backend/config.yaml`). */
 export const SETTINGS_TEST_SOURCE = "playwright + files";
 
@@ -64,10 +76,28 @@ function isPublicUserGet(response: import("@playwright/test").Response, username
 export async function waitForUserEditReady(modal: Locator): Promise<void> {
   await expect(modal.getByRole("button", { name: "Save" })).toBeVisible();
   await expect(modal.getByRole("button", { name: "Cancel" })).toBeVisible();
-  await expect(
-    modal.locator('.toggle-container', { hasText: "Administrator" }),
-  ).toBeVisible({ timeout: 10000 });
   await expect(modal.locator("#loginMethod")).toBeVisible({ timeout: 10000 });
+  await expect(modal.getByRole("button", { name: "User preferences" })).toBeVisible({
+    timeout: 10000,
+  });
+}
+
+/** Open the nested user preferences editor from the main user edit prompt. */
+export async function openUserEditPreferences(page: Page, editModal: Locator): Promise<Locator> {
+  await editModal.getByRole("button", { name: "User preferences" }).click();
+  const prefsModal = userEditPreferencesModal(page);
+  await expect(prefsModal).toBeVisible();
+  await expect(globalPermissionCheckbox(prefsModal, "Administrator")).toBeVisible({
+    timeout: 10000,
+  });
+  return prefsModal;
+}
+
+/** Close the nested user preferences editor and return to the main user edit prompt. */
+export async function closeUserEditPreferences(page: Page): Promise<void> {
+  const prefsModal = userEditPreferencesModal(page);
+  await prefsModal.getByRole("button", { name: "Close" }).click();
+  await expect(prefsModal).not.toBeVisible();
 }
 
 /**
@@ -91,7 +121,7 @@ export async function openUserEdit(
   if (userResponse) {
     await Promise.race([
       userResponse,
-      modal.locator('.toggle-container', { hasText: "Administrator" }).waitFor({
+      modal.getByRole("button", { name: "User preferences" }).waitFor({
         state: "visible",
         timeout: 10000,
       }),

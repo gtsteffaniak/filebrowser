@@ -5,6 +5,22 @@ import (
 	"testing"
 )
 
+func assertBoolMapEntries(t *testing.T, name string, got, want map[string]bool) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Fatalf("%s length = %d, want %d (got=%v want=%v)", name, len(got), len(want), got, want)
+	}
+	for key, wantVal := range want {
+		gotVal, ok := got[key]
+		if !ok {
+			t.Fatalf("%s missing key %q", name, key)
+		}
+		if gotVal != wantVal {
+			t.Fatalf("%s[%q] = %v, want %v", name, key, gotVal, wantVal)
+		}
+	}
+}
+
 func TestFrontendUserEffectiveToolAccessJSON(t *testing.T) {
 	t.Parallel()
 
@@ -23,16 +39,20 @@ func TestFrontendUserEffectiveToolAccessJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(encoded, &payload); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := payload["effectiveToolAccess"]; !ok {
+		t.Fatalf("expected effectiveToolAccess key in JSON, got keys: %v", mapKeys(payload))
+	}
+
 	var decoded FrontendUser
 	if err := json.Unmarshal(encoded, &decoded); err != nil {
 		t.Fatal(err)
 	}
 
-	for toolID, granted := range u.EffectiveToolAccess {
-		if decoded.EffectiveToolAccess[toolID] != granted {
-			t.Fatalf("effectiveToolAccess[%q] = %v, want %v", toolID, decoded.EffectiveToolAccess[toolID], granted)
-		}
-	}
+	assertBoolMapEntries(t, "effectiveToolAccess", decoded.EffectiveToolAccess, u.EffectiveToolAccess)
 }
 
 func TestToolAccessMapRoundTripValidIDs(t *testing.T) {
@@ -52,14 +72,29 @@ func TestToolAccessMapRoundTripValidIDs(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	var payload map[string]bool
+	if err := json.Unmarshal(encoded, &payload); err != nil {
+		t.Fatal(err)
+	}
+	if len(payload) != len(original) {
+		t.Fatalf("toolAccess JSON length = %d, want %d", len(payload), len(original))
+	}
+
 	var decoded ToolAccessMap
 	if err := json.Unmarshal(encoded, &decoded); err != nil {
 		t.Fatal(err)
 	}
 
-	for id, granted := range original {
-		if decoded[id] != granted {
-			t.Fatalf("toolAccess[%q] = %v, want %v", id, decoded[id], granted)
+	if len(decoded) != len(original) {
+		t.Fatalf("toolAccess length = %d, want %d", len(decoded), len(original))
+	}
+	for id, want := range original {
+		got, ok := decoded[id]
+		if !ok {
+			t.Fatalf("toolAccess missing key %q", id)
+		}
+		if got != want {
+			t.Fatalf("toolAccess[%q] = %v, want %v", id, got, want)
 		}
 	}
 }
@@ -77,13 +112,14 @@ func TestToolAccessMapRejectsUnknownToolID(t *testing.T) {
 func TestUserToolAccessJSONRoundTrip(t *testing.T) {
 	t.Parallel()
 
+	wantToolAccess := ToolAccessMap{
+		ToolSizeViewer:  true,
+		ToolFileWatcher: false,
+	}
 	u := User{
 		FrontendUser: FrontendUser{
-			Username: "bob",
-			ToolAccess: ToolAccessMap{
-				ToolSizeViewer:  true,
-				ToolFileWatcher: false,
-			},
+			Username:   "bob",
+			ToolAccess: wantToolAccess,
 		},
 	}
 
@@ -92,15 +128,37 @@ func TestUserToolAccessJSONRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(encoded, &payload); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := payload["toolAccess"]; !ok {
+		t.Fatalf("expected toolAccess key in JSON, got keys: %v", mapKeys(payload))
+	}
+
 	var decoded User
 	if err := json.Unmarshal(encoded, &decoded); err != nil {
 		t.Fatal(err)
 	}
 
-	if !decoded.ToolAccess[ToolSizeViewer] {
-		t.Fatal("expected sizeViewer to remain enabled")
+	if len(decoded.ToolAccess) != len(wantToolAccess) {
+		t.Fatalf("toolAccess length = %d, want %d", len(decoded.ToolAccess), len(wantToolAccess))
 	}
-	if decoded.ToolAccess[ToolFileWatcher] {
-		t.Fatal("expected fileWatcher to remain disabled")
+	for id, want := range wantToolAccess {
+		got, ok := decoded.ToolAccess[id]
+		if !ok {
+			t.Fatalf("toolAccess missing key %q", id)
+		}
+		if got != want {
+			t.Fatalf("toolAccess[%q] = %v, want %v", id, got, want)
+		}
 	}
+}
+
+func mapKeys(m map[string]json.RawMessage) []string {
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	return keys
 }
