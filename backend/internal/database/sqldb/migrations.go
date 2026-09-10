@@ -6,7 +6,7 @@ import (
 )
 
 // currentSchemaVersion is the SQLite schema marker for this codebase.
-const currentSchemaVersion = 1
+const currentSchemaVersion = 2
 
 // Schema creates all tables for the SQLite database
 func createSchema(db *sql.DB) error {
@@ -181,6 +181,10 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 		switch v {
 		case 1:
 			// Canonical schema is createSchema + Bolt import; no step migrations.
+		case 2:
+			if err := normalizeLegacyShareTokens(db); err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("unknown schema version: %d", v)
 		}
