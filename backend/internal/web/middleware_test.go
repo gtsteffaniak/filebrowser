@@ -353,6 +353,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 	setupTestEnv(t)
 
 	const passwordBcrypt = "$2y$10$TFAmdCbyd/mEZDe5fUeZJu.MaJQXRTwdqb/IQV.eTn6dWrF58gCSe" // bcrypt hashed password
+	const accentedPasswordBcrypt = "$2b$04$JaVUkztbmWKgV8GsSvRorettpNHrc0BvYV3/oARpepfoanKbqt5zi"
 
 	// Create and save a dummy user (shares reference owner by UserID)
 	dummyUser := &users.User{
@@ -455,6 +456,22 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				"X-SHARE-PASSWORD": "wrong-password",
 			},
 			expectedStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name: "Private share, valid encoded non-ASCII password",
+			share: &share.Share{
+				ShareSettings: share.ShareSettings{
+					ShareLimits: share.ShareLimits{SourceName: "srv"},
+				},
+				ShareColumns: share.ShareColumns{Hash: "accented_password_hash", Path: "/"},
+				SourcePath:   "/srv",
+				UserID:       1,
+				PasswordHash: accentedPasswordBcrypt,
+			},
+			extraHeaders: map[string]string{
+				"X-SHARE-PASSWORD": "pass%C3%A9",
+			},
+			expectedStatusCode: http.StatusOK,
 		},
 	}
 
