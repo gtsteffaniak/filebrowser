@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -27,7 +27,8 @@ func validateUserInfo(newDB bool) {
 		changedFields := make([]string, 0, 8)
 		changePass := false
 
-		if updateUserScopes(user) {
+		scopesChanged := updateUserScopes(user)
+		if scopesChanged {
 			changedFields = append(changedFields, "backendScopes")
 		}
 		if updatePermissions(user) {
@@ -45,7 +46,7 @@ func validateUserInfo(newDB bool) {
 		if updateShowFirstLogin(user) {
 			changedFields = append(changedFields, "showFirstLogin")
 		}
-		if updateSidebarLinks(user) {
+		if updateSidebarLinks(user, scopesChanged) {
 			changedFields = append(changedFields, "sidebarLinks")
 		}
 		if updateTokens(user) {
@@ -232,28 +233,17 @@ func updatePreviewSettings(user *users.User) bool {
 	return false
 }
 
-// updateSidebarLinks normalizes sidebar links and ensures scoped sources have sidebar entries.
-func updateSidebarLinks(user *users.User) bool {
-	needsEnsure := usersidebar.NeedsSidebarLinksFromScopes(user.SidebarLinks, user.BackendScopes)
-	validBefore := usersidebar.ValidSourceSidebarLinkCount(user.SidebarLinks)
-
-	links, changed := usersidebar.PrepareSidebarLinksForPersist(user.SidebarLinks, user.BackendScopes)
+// updateSidebarLinks normalizes saved links and adds defaults for new or changed scopes.
+func updateSidebarLinks(user *users.User, scopesChanged bool) bool {
+	links, changed := usersidebar.NormalizeSidebarLinks(user.SidebarLinks)
+	if scopesChanged || user.SidebarLinks == nil {
+		links, changed = usersidebar.PrepareSidebarLinksForPersist(user.SidebarLinks, user.BackendScopes)
+	}
 	if !changed {
 		return false
 	}
 
 	user.SidebarLinks = links
-
-	if needsEnsure {
-		if validBefore == 0 && len(user.SidebarLinks) > 0 {
-			logger.Infof("User %s has stale source sidebar links, merging missing links from scopes", user.Username)
-		} else if validBefore == 0 {
-			logger.Infof("User %s has no source sidebar links, building from scopes", user.Username)
-		} else {
-			logger.Infof("User %s is missing sidebar links for some scoped sources, merging from scopes", user.Username)
-		}
-	}
-
 	return true
 }
 

@@ -33,7 +33,7 @@ func TestUpdateSidebarLinks_dedupesDuplicateMigratedLinks(t *testing.T) {
 		},
 	}
 
-	if !updateSidebarLinks(user) {
+	if !updateSidebarLinks(user, false) {
 		t.Fatal("expected updateSidebarLinks to return true")
 	}
 
@@ -63,7 +63,7 @@ func TestUpdateSidebarLinks_buildsFromScopesWhenNoSourceLinks(t *testing.T) {
 		},
 	}
 
-	if !updateSidebarLinks(user) {
+	if !updateSidebarLinks(user, false) {
 		t.Fatal("expected updateSidebarLinks to return true")
 	}
 
@@ -75,5 +75,39 @@ func TestUpdateSidebarLinks_buildsFromScopesWhenNoSourceLinks(t *testing.T) {
 	}
 	if count != 3 {
 		t.Fatalf("got %d source links, want 3: %v", count, user.SidebarLinks)
+	}
+}
+
+func TestUpdateSidebarLinks_keepsDeletedSourceLinkAbsent(t *testing.T) {
+	settings.Initialize(settingsMigrationConfigPath(t))
+	alignSettingsSourcesForMigrationFixture(t)
+
+	user := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "admin",
+			NonAdminEditable: users.NonAdminEditable{
+				SidebarLinks: []users.SidebarLink{
+					{Name: "playwright + files", Category: "source", SourceName: fixturePlaywrightSource, Target: "/"},
+					{Name: "docker", Category: "source", SourceName: fixtureDockerSource, Target: "/"},
+				},
+			},
+		},
+		BackendScopes: []users.BackendScope{
+			{Path: fixturePlaywrightSource, Scope: "/"},
+			{Path: fixtureDockerSource, Scope: "/"},
+			{Path: fixtureAccessSource, Scope: "/"},
+		},
+	}
+
+	if !updateSidebarLinks(user, false) {
+		t.Fatal("expected default source names to be blanked on normalize")
+	}
+	if len(user.SidebarLinks) != 2 {
+		t.Fatalf("got %d sidebar links, want 2: %v", len(user.SidebarLinks), user.SidebarLinks)
+	}
+	for _, link := range user.SidebarLinks {
+		if link.Name != "" {
+			t.Fatalf("expected blank default name, got %#v", link)
+		}
 	}
 }

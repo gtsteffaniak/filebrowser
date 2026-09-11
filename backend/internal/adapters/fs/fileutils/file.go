@@ -1,10 +1,12 @@
 package fileutils
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path"
 	"path/filepath"
+	"syscall"
 
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -126,8 +128,7 @@ func copySingleFile(source, dest string) error {
 	defer dst.Close()
 
 	// Copy the contents of the file.
-	_, err = io.Copy(dst, src)
-	if err != nil {
+	if err = copyFileContents(dst, src); err != nil {
 		return err
 	}
 
@@ -144,6 +145,18 @@ func copySingleFile(source, dest string) error {
 		logger.Debugf("Could not preserve modification time for %s: %v", dest, err)
 	}
 	return nil
+}
+
+func copyFileContents(dst io.Writer, src io.Reader) error {
+	_, err := io.Copy(dst, src)
+	if !errors.Is(err, syscall.EBADF) {
+		return err
+	}
+
+	// Some FUSE filesystems reject copy_file_range. Hide the optional fast-path
+	// methods so io.Copy retries from the current offsets with buffered I/O.
+	_, err = io.Copy(struct{ io.Writer }{dst}, struct{ io.Reader }{src})
+	return err
 }
 
 // copyDirectory handles copying directories recursively.

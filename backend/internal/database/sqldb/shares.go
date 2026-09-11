@@ -40,9 +40,7 @@ func scanShareUserID(s string, dest *uint64) error {
 
 // GetShareByHash retrieves a share by hash
 func (s *SQLStore) GetShareByHash(hash string) (*share.Share, error) {
-	query := `SELECT hash, user_id, source, path, expire, downloads, 
-			  password_hash, token, user_downloads, share_settings, version 
-			  FROM shares WHERE hash = ?`
+	query := `SELECT ` + shareSelectColumns + ` FROM shares WHERE hash = ?`
 
 	var link share.Share
 	var userIDStr string
@@ -56,7 +54,6 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Share, error) {
 		&link.Expire,
 		&link.Downloads,
 		&link.PasswordHash,
-		&link.Token,
 		&userDownloadsJSON,
 		&shareSettingsJSON,
 		&link.Version,
@@ -87,9 +84,7 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Share, error) {
 // GetSharesByUserID retrieves all non-expired shares for an owner user id.
 func (s *SQLStore) GetSharesByUserID(userID uint64) ([]*share.Share, error) {
 	now := time.Now().Unix()
-	query := `SELECT hash, user_id, source, path, expire, downloads, 
-			  password_hash, token, user_downloads, share_settings, version 
-			  FROM shares WHERE user_id = ? AND (expire = 0 OR expire > ?) 
+	query := `SELECT ` + shareSelectColumns + ` FROM shares WHERE user_id = ? AND (expire = 0 OR expire > ?) 
 			  ORDER BY path`
 
 	rows, err := s.db.Query(query, shareUserIDDB(userID), now)
@@ -103,9 +98,7 @@ func (s *SQLStore) GetSharesByUserID(userID uint64) ([]*share.Share, error) {
 
 // GetSharesBySourcePath retrieves shares for a specific source and path
 func (s *SQLStore) GetSharesBySourcePath(source, path string) ([]*share.Share, error) {
-	query := `SELECT hash, user_id, source, path, expire, downloads, 
-			  password_hash, token, user_downloads, share_settings, version 
-			  FROM shares WHERE source = ? AND path = ? ORDER BY hash`
+	query := `SELECT ` + shareSelectColumns + ` FROM shares WHERE source = ? AND path = ? ORDER BY hash`
 
 	rows, err := s.db.Query(query, source, path)
 	if err != nil {
@@ -119,9 +112,7 @@ func (s *SQLStore) GetSharesBySourcePath(source, path string) ([]*share.Share, e
 // GetSharesBySourcePathUser retrieves shares for a specific source, path, and owner user id.
 func (s *SQLStore) GetSharesBySourcePathUser(source, path string, userID uint64) ([]*share.Share, error) {
 	now := time.Now().Unix()
-	query := `SELECT hash, user_id, source, path, expire, downloads, 
-			  password_hash, token, user_downloads, share_settings, version 
-			  FROM shares WHERE source = ? AND path = ? AND user_id = ? 
+	query := `SELECT ` + shareSelectColumns + ` FROM shares WHERE source = ? AND path = ? AND user_id = ? 
 			  AND (expire = 0 OR expire > ?) ORDER BY hash`
 
 	rows, err := s.db.Query(query, source, path, shareUserIDDB(userID), now)
@@ -135,9 +126,7 @@ func (s *SQLStore) GetSharesBySourcePathUser(source, path string, userID uint64)
 
 // GetPermanentShare retrieves a permanent share (expire = 0) for source, path, and owner.
 func (s *SQLStore) GetPermanentShare(source, path string, userID uint64) (*share.Share, error) {
-	query := `SELECT hash, user_id, source, path, expire, downloads,
-			  password_hash, token, user_downloads, share_settings, version
-			  FROM shares WHERE source = ? AND path = ? AND user_id = ? AND expire = 0
+	query := `SELECT ` + shareSelectColumns + ` FROM shares WHERE source = ? AND path = ? AND user_id = ? AND expire = 0
 			  LIMIT 1`
 
 	var link share.Share
@@ -152,7 +141,6 @@ func (s *SQLStore) GetPermanentShare(source, path string, userID uint64) (*share
 		&link.Expire,
 		&link.Downloads,
 		&link.PasswordHash,
-		&link.Token,
 		&userDownloadsJSON,
 		&shareSettingsJSON,
 		&link.Version,
@@ -183,9 +171,7 @@ func (s *SQLStore) GetPermanentShare(source, path string, userID uint64) (*share
 // ListAllShares retrieves all non-expired shares
 func (s *SQLStore) ListAllShares() ([]*share.Share, error) {
 	now := time.Now().Unix()
-	query := `SELECT hash, user_id, source, path, expire, downloads, 
-			  password_hash, token, user_downloads, share_settings, version 
-			  FROM shares WHERE expire = 0 OR expire > ? ORDER BY path`
+	query := `SELECT ` + shareSelectColumns + ` FROM shares WHERE expire = 0 OR expire > ? ORDER BY path`
 
 	rows, err := s.db.Query(query, now)
 	if err != nil {
@@ -207,24 +193,59 @@ func (s *SQLStore) SaveShare(link *share.Share) error {
 		return fmt.Errorf("failed to marshal share settings: %w", err)
 	}
 
-	query := `INSERT OR REPLACE INTO shares 
+	hasLegacyToken, err := s.sharesHasLegacyTokenColumn()
+	if err != nil {
+		return fmt.Errorf("failed to inspect shares schema: %w", err)
+	}
+
+	legacyToken := ""
+	if hasLegacyToken {
+		legacyToken, err = s.legacyShareToken(link.Hash)
+		if err != nil {
+			return err
+		}
+	}
+
+	var query string
+	var args []any
+	if hasLegacyToken {
+		query = `INSERT OR REPLACE INTO shares 
 			  (hash, user_id, source, path, expire, downloads, password_hash, 
 			   token, user_downloads, share_settings, version) 
 			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		args = []any{
+			link.Hash,
+			shareUserIDDB(link.UserID),
+			link.SourcePath,
+			link.Path,
+			link.Expire,
+			link.Downloads,
+			link.PasswordHash,
+			legacyToken,
+			userDownloadsJSON,
+			shareSettingsJSON,
+			link.Version,
+		}
+	} else {
+		query = `INSERT OR REPLACE INTO shares 
+			  (hash, user_id, source, path, expire, downloads, password_hash, 
+			   user_downloads, share_settings, version) 
+			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		args = []any{
+			link.Hash,
+			shareUserIDDB(link.UserID),
+			link.SourcePath,
+			link.Path,
+			link.Expire,
+			link.Downloads,
+			link.PasswordHash,
+			userDownloadsJSON,
+			shareSettingsJSON,
+			link.Version,
+		}
+	}
 
-	_, err = s.db.Exec(query,
-		link.Hash,
-		shareUserIDDB(link.UserID),
-		link.SourcePath,
-		link.Path,
-		link.Expire,
-		link.Downloads,
-		link.PasswordHash,
-		link.Token,
-		userDownloadsJSON,
-		shareSettingsJSON,
-		link.Version,
-	)
+	_, err = s.db.Exec(query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to save share: %w", err)
 	}
@@ -299,7 +320,6 @@ func (s *SQLStore) scanShares(rows *sql.Rows) ([]*share.Share, error) {
 			&link.Expire,
 			&link.Downloads,
 			&link.PasswordHash,
-			&link.Token,
 			&userDownloadsJSON,
 			&shareSettingsJSON,
 			&link.Version,

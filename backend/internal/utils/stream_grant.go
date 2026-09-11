@@ -6,3 +6,8 @@ type ViewGrant struct {
 	Source    string
 	ExpiresAt int64
 }
+
+// ShareAccessGrant tracks remaining uses for count-limited share download tokens.
+type ShareAccessGrant struct {
+	RemainingUses int
+}

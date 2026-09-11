@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.6
+
+ **Security**:
+ - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
+
+ **Notes**:
+ - renaming sources updates sidebar links (#2878)
+ - disabling/deleting a user source removes that source from sidebar links (#2942)
+
+ **Bugfixes**:
+ - Fix disk-usage overstatement on virtiofs bind mounts (#2894) (#2894)
+ - Support non-ASCII share passwords (#2933)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938) (#2924)
+ - Preserve deleted sidebar links across restarts (#2935)
+
 ## v2.0.5
 
  **New Features**:

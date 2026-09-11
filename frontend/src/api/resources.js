@@ -99,7 +99,6 @@ export async function signalUploadPause(source, path, shareHash) {
     const apiPath = getPublicApiPath('resources/pause', {
       hash: shareHash,
       path: path,
-      ...sharePublicAuthQuery(shareHash),
     })
     await fetchURL(apiPath, { method: 'POST', headers: sharePublicAuthHeaders(shareHash) })
     return
@@ -242,7 +241,6 @@ export async function download(format, files, shareHash = "") {
     algo: format,
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && source && { source: source }),
-    ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId,
   }
 
@@ -262,6 +260,17 @@ export async function download(format, files, shareHash = "") {
   setTimeout(() => {
     document.body.removeChild(link)
   }, 100)
+}
+
+function shareDownloadFetchInit(method = "GET", extraHeaders = {}) {
+  return {
+    method,
+    credentials: "same-origin",
+    headers: {
+      ...sharePublicAuthHeaders(state.shareInfo?.hash || ""),
+      ...extraHeaders,
+    },
+  };
 }
 
 /** Best-effort text from a failed download response (consumes body). */
@@ -295,7 +304,7 @@ function appendArchiveTokenToUrl(url, token) {
 /** @returns {Promise<{ size: number, token: string | null }>} */
 async function resolveDownloadContentLength(url) {
   let token = null
-  let res = await fetch(url, { method: 'HEAD', credentials: 'same-origin' })
+  let res = await fetch(url, shareDownloadFetchInit('HEAD'))
   if (res.ok) {
     token = res.headers.get('X-Archive-Token')
     const cl = res.headers.get('Content-Length')
@@ -306,11 +315,7 @@ async function resolveDownloadContentLength(url) {
       }
     }
   }
-  res = await fetch(url, {
-    method: 'GET',
-    headers: { Range: 'bytes=0-0' },
-    credentials: 'same-origin',
-  })
+  res = await fetch(url, shareDownloadFetchInit('GET', { Range: 'bytes=0-0' }))
   const cancelBody = () => {
     if (res.body && typeof res.body.cancel === 'function') {
       res.body.cancel().catch(() => {})
@@ -395,10 +400,7 @@ async function chunkedRangeDownloadToBlob(
     const rangeHeader = `bytes=${offset}-${end}`
 
     const response = await fetch(baseUrl, {
-      headers: {
-        Range: rangeHeader,
-      },
-      credentials: 'same-origin',
+      ...shareDownloadFetchInit('GET', { Range: rangeHeader }),
       signal: abortController.signal,
     })
 
@@ -610,7 +612,6 @@ async function downloadChunked(file, shareHash = "") {
     file: file.path,
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && file.source && { source: file.source }),
-    ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId
   }
 
@@ -983,7 +984,6 @@ export function getRawViewURLPublic(share, files, viewToken) {
   const params = {
     file: fileArray,
     hash: share.hash,
-    token: share.token,
     viewToken: viewToken,
     sessionId: state.sessionId,
   }
@@ -1126,19 +1126,12 @@ function getSharePasswordFromStorage(hash) {
   return localStorage.getItem(`sharepass:${hash}`) || "";
 }
 
-function sharePublicAuthQuery(hash) {
-  if (state.shareInfo?.hash === hash && state.shareInfo.token) {
-    return { token: state.shareInfo.token };
-  }
-  return {};
-}
-
 function sharePublicAuthHeaders(hash) {
   const password = getSharePasswordFromStorage(hash);
   if (!password) {
     return {};
   }
-  return { "X-SHARE-PASSWORD": password };
+  return { "X-SHARE-PASSWORD": encodeURIComponent(password) };
 }
 
 // Fetch public share data
@@ -1157,13 +1150,12 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
     ...(skipExtendedAttrs && { skipExtendedAttrs: 'true' }),
     ...(content && { content: 'true' }),
     ...(metadata && { metadata: 'true' }),
-    ...(state.shareInfo.token && { token: state.shareInfo.token })
   }
   const apiPath = getPublicApiPath("resources", params);
+  const sharePassword = password || getSharePasswordFromStorage(hash);
   const response = await fetch(apiPath, {
-    headers: {
-      "X-SHARE-PASSWORD": password || "",
-    },
+    credentials: "same-origin",
+    headers: sharePassword ? { "X-SHARE-PASSWORD": encodeURIComponent(sharePassword) } : {},
   });
 
   if (!response.ok) {
@@ -1195,7 +1187,6 @@ export async function getItemsPublic(hash, path, only = "") {
       path: path,
       hash: hash,
       ...(only && { only: only }),
-      ...sharePublicAuthQuery(hash),
     })
     const response = await fetch(apiPath, { headers: sharePublicAuthHeaders(hash) })
     const data = await response.json()
@@ -1208,16 +1199,15 @@ export async function getItemsPublic(hash, path, only = "") {
 
 // Generate a download URL
 /**
- * @param {{ path: string; hash: string; token: string; inline?: boolean }} share
+ * @param {{ path: string; hash: string; inline?: boolean }} share
  * @param {string[]} files - Array of file paths (will be converted to repeated 'file' parameters)
  * @returns {string}
  */
 export function getDownloadURLPublic(share, files, inline=false) {
   const fileArray = Array.isArray(files) ? files : [files]
   const params = {
-    file: fileArray, // Array will be converted to repeated 'file' params by getPublicApiPath
+    file: fileArray,
     hash: share.hash,
-    token: share.token,
     ...(inline && { inline: 'true' })
   }
   const apiPath = getPublicApiPath("resources/download", params)
@@ -1230,14 +1220,14 @@ export function getDownloadURLPublic(share, files, inline=false) {
  * @param {string} size - The size parameter (small, large, original). Omit for default (small).
  * @returns {string}
  */
-export function getPreviewURLPublic(path, size) {
+export function getPreviewURLPublic(path, size, viewToken = state.req?.viewToken) {
   try {
     const params = {
       path: path,
       hash: state.shareInfo.hash,
       inline: 'true',
       ...(size && size !== 'small' && { size: size }),
-      ...(state.shareInfo.token && { token: state.shareInfo.token })
+      ...(viewToken && { viewToken }),
     }
     const apiPath = getPublicApiPath('resources/preview', params)
     return window.origin + apiPath
@@ -1266,7 +1256,6 @@ export function postPublic(
       hash: hash,
       override: overwrite,
       ...(isDir && { isDir: 'true' }),
-      ...sharePublicAuthQuery(hash),
     });
 
     const request = new XMLHttpRequest();
@@ -1356,7 +1345,6 @@ async function resourceActionPublic(hash, path, method, content, token = "") {
       path,
       hash: hash,
       ...(token && { token }),
-      ...sharePublicAuthQuery(hash),
     })
     const response = await fetch(apiPath, {
       method,
@@ -1400,7 +1388,6 @@ export async function bulkDeletePublic(items) {
 
   const params = {
     hash: hash,
-    ...sharePublicAuthQuery(hash),
     sessionId: state.sessionId
   }
   const apiPath = getPublicApiPath("resources/bulk", params)
@@ -1471,7 +1458,7 @@ export async function moveCopyPublic(
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        ...(state.shareInfo.token && { 'X-Auth-Token': state.shareInfo.token })
+        ...sharePublicAuthHeaders(hash),
       },
       body: JSON.stringify(requestBody),
     })

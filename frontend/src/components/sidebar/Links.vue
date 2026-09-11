@@ -218,7 +218,7 @@ import { getIconClass } from "@/utils/material-symbols";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
-import { resourcesApi } from "@/api";
+import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -513,33 +513,13 @@ export default {
       mutations.closeTopPrompt();
     },
     goToDownload() {
-      // Check if we're in a directory with multiple items
-      const hasMultipleItems = state.req.items && state.req.items.length > 1;
-      if (hasMultipleItems) {
-        // Show format selector for directories with multiple items
-        mutations.showPrompt({
-          name: "download",
-          confirm: (format) => {
-            mutations.closeTopPrompt();
-            const downloadLink = resourcesApi.getDownloadURLPublic({
-              path: "/",
-              hash: state.shareInfo.hash,
-              token: state.shareInfo.token,
-              inline: false,
-            }, [state.req.path]);
-            window.open(`${downloadLink}&format=${format}`, "_blank");
-          },
-        });
-      } else {
-        // Direct download for single files or directories
-        const downloadLink = resourcesApi.getDownloadURLPublic({
-          path: "/",
-          hash: state.shareInfo.hash,
-          token: state.shareInfo.token,
-          inline: false,
-        }, [state.req.path]);
-        window.open(downloadLink, "_blank");
-      }
+      showShareDownloadPrompt([{
+        path: state.req?.path || "/",
+        name: state.req?.name,
+        type: state.req?.type,
+        size: state.req?.size,
+        isDir: state.req?.type === "directory",
+      }]);
     },
     navigateTo(path, hash) {
       mutations.setPreviousHistoryItem({

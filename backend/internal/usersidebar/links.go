@@ -28,6 +28,9 @@ func FrontendLinks(links []users.SidebarLink, showToolsInSidebar bool) []users.S
 				}
 			}
 			link.SourceName = source.Name
+			if link.Name == "" {
+				link.Name = source.Name
+			}
 		} else if link.Category == "tool" && link.Target == "/tools" {
 			hasTools = true
 		}

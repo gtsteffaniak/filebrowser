@@ -190,7 +190,7 @@ import { notify } from "@/notify";
 import { validateLogin } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
-import { setObjectProperty } from '@/utils/object.js';
+import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,
@@ -751,9 +751,9 @@ export default {
         .sort((a, b) => a.name.localeCompare(b.name));
     },
     buildProfileSnapshot(user) {
-      const snapshot = {};
+      let snapshot = {};
       for (const field of PROFILE_SNAPSHOT_FIELDS) {
-        snapshot[field] = user?.[field];
+        snapshot = setObjectProperty(snapshot, field, getObjectProperty(user, field));
       }
       if (snapshot.preview && typeof snapshot.preview === "object") {
         snapshot.preview = { ...snapshot.preview };
@@ -814,8 +814,8 @@ export default {
         const permissionFields = ["admin", "share", "api", "realtime"];
         for (const perm of permissionFields) {
           if (
-            current.permissions[perm] !== orig.permissions[perm]
-            && !this.enforcedAccountPermissions[perm]
+            getObjectProperty(current.permissions, perm) !== getObjectProperty(orig.permissions, perm)
+            && !getObjectProperty(this.enforcedAccountPermissions, perm)
           ) {
             fields.push("permissions");
             break;
@@ -826,7 +826,7 @@ export default {
         if (isFlatProfileFieldEnforced(this.enforcedPreferences, field)) {
           continue;
         }
-        if (JSON.stringify(current.profile?.[field]) !== JSON.stringify(orig.profile?.[field])) {
+        if (JSON.stringify(getObjectProperty(current.profile, field)) !== JSON.stringify(getObjectProperty(orig.profile, field))) {
           fields.push(field);
         }
       }

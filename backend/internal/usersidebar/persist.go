@@ -4,13 +4,18 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
-// PrepareSidebarLinksForPersist normalizes sidebar links and adds missing scoped source entries.
-// Inaccessible sources are not pruned; callers rely on the UI to gray out stale links.
+// PrepareSidebarLinksForPersist normalizes sidebar links, prunes links for revoked scopes,
+// and adds missing scoped source entries. Sources absent from config are dropped by NormalizeSidebarLinks.
 func PrepareSidebarLinksForPersist(links []users.SidebarLink, scopes []users.BackendScope) ([]users.SidebarLink, bool) {
 	updated := false
 
 	if normalized, changed := NormalizeSidebarLinks(links); changed {
 		links = normalized
+		updated = true
+	}
+
+	if pruned, changed := PruneSidebarLinksForScopes(links, scopes); changed {
+		links = pruned
 		updated = true
 	}
 
