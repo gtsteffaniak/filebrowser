@@ -140,12 +140,7 @@ func ApplyUserDefaultsFrom(u *users.User, d UserDefaults) {
 	u.BackendScopes = MergeDefaultEnabledBackendScopes(u.BackendScopes)
 	if len(u.SidebarLinks) == 0 && len(u.BackendScopes) > 0 {
 		scope := u.BackendScopes[0]
-		name := scope.Path
-		if src := Config.Server.SourceMap[scope.Path]; src != nil && src.Name != "" {
-			name = src.Name
-		}
 		u.SidebarLinks = append(u.SidebarLinks, users.SidebarLink{
-			Name:       name,
 			Category:   "source",
 			Target:     "/",
 			Icon:       "",

@@ -99,10 +99,15 @@ func TestUpdateSidebarLinks_keepsDeletedSourceLinkAbsent(t *testing.T) {
 		},
 	}
 
-	if updateSidebarLinks(user, false) {
-		t.Fatal("expected saved sidebar links to remain unchanged")
+	if !updateSidebarLinks(user, false) {
+		t.Fatal("expected default source names to be blanked on normalize")
 	}
 	if len(user.SidebarLinks) != 2 {
 		t.Fatalf("got %d sidebar links, want 2: %v", len(user.SidebarLinks), user.SidebarLinks)
+	}
+	for _, link := range user.SidebarLinks {
+		if link.Name != "" {
+			t.Fatalf("expected blank default name, got %#v", link)
+		}
 	}
 }

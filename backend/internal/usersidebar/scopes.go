@@ -26,7 +26,6 @@ func EnsureSidebarLinksFromScopes(links []users.SidebarLink, scopes []users.Back
 			continue
 		}
 		out = append(out, users.SidebarLink{
-			Name:       source.Name,
 			Category:   string(users.SidebarLinkSource),
 			Target:     "/",
 			SourceName: source.Path,
