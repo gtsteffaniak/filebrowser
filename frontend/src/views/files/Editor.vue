@@ -852,6 +852,7 @@ export default {
     -moz-user-select: text !important;
     -ms-user-select: text !important;
     user-select: text !important;
+    z-index: 1 !important;
 }
 
 /* make sure the text selection is detected*/
