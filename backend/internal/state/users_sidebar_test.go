@@ -94,7 +94,7 @@ func TestUpdateUserScopesAddsMissingSidebarLink(t *testing.T) {
 	}
 }
 
-func TestUpdateUserScopesKeepsStaleSidebarLinks(t *testing.T) {
+func TestUpdateUserScopesPrunesSidebarLinks(t *testing.T) {
 	initSidebarLinkTestDB(t)
 
 	u := &users.User{
@@ -127,8 +127,8 @@ func TestUpdateUserScopesKeepsStaleSidebarLinks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if count := countSourceSidebarLinks(loaded.SidebarLinks); count != 2 {
-		t.Fatalf("expected stale include link kept, got %d links: %#v", count, loaded.SidebarLinks)
+	if count := countSourceSidebarLinks(loaded.SidebarLinks); count != 1 {
+		t.Fatalf("expected revoked include link pruned, got %d links: %#v", count, loaded.SidebarLinks)
 	}
 }
 

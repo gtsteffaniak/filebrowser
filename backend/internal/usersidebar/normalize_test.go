@@ -69,9 +69,9 @@ func TestNormalizeSidebarLinks_dedupesLinuxAndDockerPaths(t *testing.T) {
 		t.Fatalf("len(out) = %d, want 3", len(out))
 	}
 	want := []users.SidebarLink{
-		{Name: "playwright + files", Category: "source", SourceName: "../frontend/tests/playwright-files", Target: "/"},
-		{Name: "docker", Category: "source", SourceName: ".", Target: "/"},
-		{Name: "access", Category: "source", SourceName: "/tests/playwright-files", Target: "/"},
+		{Category: "source", SourceName: "../frontend/tests/playwright-files", Target: "/"},
+		{Category: "source", SourceName: ".", Target: "/"},
+		{Category: "source", SourceName: "/tests/playwright-files", Target: "/"},
 	}
 	if !reflect.DeepEqual(out, want) {
 		t.Fatalf("got %#v, want %#v", out, want)
@@ -95,8 +95,24 @@ func TestNormalizeSidebarLinks_nameFallbackRemapsStalePath(t *testing.T) {
 	if out[0].SourceName != "../frontend/tests/playwright-files" {
 		t.Fatalf("SourceName = %q", out[0].SourceName)
 	}
-	if out[0].Name != "playwright + files" {
-		t.Fatalf("Name = %q", out[0].Name)
+	if out[0].Name != "" {
+		t.Fatalf("Name = %q, want blanked default name", out[0].Name)
+	}
+}
+
+func TestNormalizeSidebarLinks_blanksDefaultSourceName(t *testing.T) {
+	testSourceConfig(t)
+
+	in := []users.SidebarLink{
+		{Name: "docker", Category: "source", SourceName: ".", Target: "/"},
+	}
+
+	out, changed := NormalizeSidebarLinks(in)
+	if !changed {
+		t.Fatal("expected changed=true")
+	}
+	if out[0].Name != "" {
+		t.Fatalf("Name = %q, want blanked when matching source display name", out[0].Name)
 	}
 }
 
@@ -110,18 +126,20 @@ func TestNormalizeSidebarLinks_idempotentOnCanonicalLinks(t *testing.T) {
 	}
 
 	out, changed := NormalizeSidebarLinks(in)
-	if changed {
-		t.Fatal("expected changed=false for canonical links")
+	if !changed {
+		t.Fatal("expected changed=true when blanking default names")
 	}
-	if !reflect.DeepEqual(out, in) {
-		t.Fatalf("got %#v, want %#v", out, in)
+	for _, link := range out {
+		if link.Name != "" {
+			t.Fatalf("expected blank default name, got %#v", link)
+		}
 	}
 
 	out2, changed2 := NormalizeSidebarLinks(out)
 	if changed2 {
 		t.Fatal("expected second pass unchanged")
 	}
-	if !reflect.DeepEqual(out2, in) {
+	if !reflect.DeepEqual(out2, out) {
 		t.Fatalf("second pass got %#v", out2)
 	}
 }
@@ -141,8 +159,8 @@ func TestNormalizeSidebarLinks_dropsUnresolvableSourceLink(t *testing.T) {
 	if len(out) != 1 {
 		t.Fatalf("len(out) = %d, want 1", len(out))
 	}
-	if out[0].Name != "docker" {
-		t.Fatalf("remaining link = %#v", out[0])
+	if out[0].Name != "" {
+		t.Fatalf("remaining link should have blanked default name: %#v", out[0])
 	}
 }
 
@@ -175,11 +193,14 @@ func TestNormalizeSidebarLinks_preservesMultipleFolderShortcutsOnSameSource(t *t
 	}
 
 	out, changed := NormalizeSidebarLinks(in)
-	if changed {
-		t.Fatal("expected canonical folder shortcuts unchanged")
+	if !changed {
+		t.Fatal("expected changed=true when blanking default root source name")
 	}
 	if len(out) != 4 {
 		t.Fatalf("len(out) = %d, want 4", len(out))
+	}
+	if out[0].Name != "" {
+		t.Fatalf("root source link should have blank default name: %#v", out[0])
 	}
 	if out[1].Name != "Photos" || out[1].Icon != "photo" || out[1].Target != "/photos" {
 		t.Fatalf("photos link = %#v", out[1])
@@ -204,8 +225,8 @@ func TestNormalizeSidebarLinks_dedupesSameSourceAndTarget(t *testing.T) {
 	if len(out) != 1 {
 		t.Fatalf("len(out) = %d, want 1", len(out))
 	}
-	if out[0].Name != "docker" {
-		t.Fatalf("first link wins: %#v", out[0])
+	if out[0].Name != "" {
+		t.Fatalf("first link wins with blanked default name: %#v", out[0])
 	}
 }
 

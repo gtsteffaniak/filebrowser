@@ -28,12 +28,12 @@ func TestPrepareSidebarLinksForPersist_addsScopedSourcesAndPreservesFolders(t *t
 	if out[1].Name != "Photos" || out[1].Icon != "photo" {
 		t.Fatalf("folder shortcut lost: %#v", out[1])
 	}
-	if out[2].Name != "playwright + files" {
-		t.Fatalf("added scope link = %#v", out[2])
+	if out[2].Name != "" {
+		t.Fatalf("added scope link should have empty default name, got %#v", out[2])
 	}
 }
 
-func TestPrepareSidebarLinksForPersist_keepsLinksWhenScopeRemoved(t *testing.T) {
+func TestPrepareSidebarLinksForPersist_prunesLinksWhenScopeRemoved(t *testing.T) {
 	testSourceConfig(t)
 
 	links := []users.SidebarLink{
@@ -46,10 +46,10 @@ func TestPrepareSidebarLinksForPersist_keepsLinksWhenScopeRemoved(t *testing.T) 
 	}
 
 	out, changed := PrepareSidebarLinksForPersist(links, scopes)
-	if changed {
-		t.Fatal("expected changed=false when only pruning is not performed")
+	if !changed {
+		t.Fatal("expected changed=true when revoked scope link is pruned")
 	}
-	if len(out) != 3 {
-		t.Fatalf("len(out) = %d, want 3 (stale scope link kept)", len(out))
+	if len(out) != 2 {
+		t.Fatalf("len(out) = %d, want 2 (revoked scope link removed)", len(out))
 	}
 }
