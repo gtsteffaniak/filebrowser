@@ -797,7 +797,11 @@
       "customScrollbar": "사용자 지정 스크롤바",
       "customScrollbarDescription": "브라우저 기본 스크롤바를 Ace 내장 스크롤바로 교체합니다",
       "wrapContent": "편집기에서 긴 줄 줄 바꿈",
-      "wrapContentDescription": "편집기 콘텐츠를 줄 바꿈하여 매우 긴 줄이 항상 표시되도록 합니다"
+      "wrapContentDescription": "편집기 콘텐츠를 줄 바꿈하여 매우 긴 줄이 항상 표시되도록 합니다",
+      "autocompletion": "자동 완성",
+      "autocompletionDescription": "수동으로 'ctrl + space'를 눌러 자동 완성을 활성화합니다",
+      "liveAutocompletion": "실시간 자동 완성",
+      "liveAutocompletionDescription": "이것이 활성화되면 입력할 때 떠 있는 자동 완성 상자가 자동으로 나타납니다"
     },
     "uninitialized": "편집기 초기화에 실패했습니다. 다시 로드해주세요.",
     "saveAbortedMessage": "저장 작업이 중단되었습니다. 애플리케이션의 활성 파일({activeFile})이 저장하려는 파일({tryingToSave})과 일치하지 않습니다.",

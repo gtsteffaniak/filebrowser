@@ -29,6 +29,7 @@ import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
 import "ace-builds/src-noconflict/ext-searchbox";
+import "ace-builds/src-min-noconflict/ext-language_tools";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
 import "ace-builds/src-min-noconflict/mode-yaml";
@@ -187,6 +188,8 @@ export default {
         showLineNumbers: editorConfig.showLineNumbers,
         relativeLineNumbers: editorConfig.relativeLineNumbers,
         customScrollbar: editorConfig.customScrollbar,
+        enableAutocompletion: editorConfig.enableAutocompletion,
+        enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
       };
     },
   },
@@ -481,6 +484,9 @@ export default {
           readOnly: this.editorReadOnly,
           wrap: !!editorConfig.wrapEditorContent,
           enableMobileMenu: false,
+          enableBasicAutocompletion: editorConfig.enableAutocompletion,
+          enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
+          enableSnippets: editorConfig.enableAutocompletion,
           useWorker: true,
           cursorStyle: "smooth",
           highlightGutterLine: true,
@@ -785,6 +791,9 @@ export default {
       this.editor.setOption('showLineNumbers', cfg.showLineNumbers);
       this.editor.setOption('relativeLineNumbers', cfg.relativeLineNumbers);
       this.editor.setOption('customScrollbar', cfg.customScrollbar);
+      this.editor.setOption('enableBasicAutocompletion', cfg.enableAutocompletion);
+      this.editor.setOption('enableLiveAutocompletion', cfg.enableAutocompletion && cfg.enableLiveAutocompletion);
+      this.editor.setOption('enableSnippets', cfg.enableAutocompletion);
       if (wasRelative && !cfg.relativeLineNumbers && cfg.showLineNumbers) {
         const gutterLayer = (this.editor.renderer as unknown as AceRendererInternal).$gutterLayer;
         if (gutterLayer?.$renderer) {
@@ -879,13 +888,12 @@ export default {
   border-right: 1px solid color-mix(in srgb, var(--primaryColor) 75%, transparent) !important;
 }
 
-/* Lightened Tomorrow Night Bright Theme, was too dark */
-.ace-tomorrow-night-bright {
+.ace_editor.ace_dark {
   background-color: #151515 !important; /* original of the theme is #000000 */
 }
 
-.ace-tomorrow-night-bright .ace_marker-layer .ace_active-line {
-  background: #232323;
+.ace_editor.ace_dark .ace_marker-layer .ace_active-line {
+  background: color-mix(in srgb, var(--surfaceSecondary) 35%, transparent);
 }
 
 #editor-root.split-active .ace_scrollbar {
@@ -895,4 +903,66 @@ export default {
 #editor-root.split-active .ace_scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.ace_editor .ace_search {
+  color: var(--textPrimary);
+  border-color: var(--divider);
+}
+
+.ace_editor.ace_dark .ace_search {
+  background-color: #1a1a1a;
+}
+
+.ace_editor .ace_search_field {
+  color: var(--textPrimary);
+  border: 1px solid var(--divider);
+}
+
+.ace_editor.ace_dark .ace_search_field {
+  background-color: #151515;
+}
+
+.ace_editor .ace_search .ace_button,
+.ace_editor .ace_search .ace_searchbtn,
+.ace_editor .ace_search .ace_replacebtn {
+  border-color: var(--divider);
+  color: var(--textPrimary);
+}
+
+.ace_editor.ace_dark .ace_search .ace_button,
+.ace_editor.ace_dark .ace_search .ace_searchbtn,
+.ace_editor.ace_dark .ace_search .ace_replacebtn {
+  background-color: #232323;
+}
+
+.ace_editor .ace_search .ace_button:hover,
+.ace_editor .ace_search .ace_searchbtn:hover {
+  background-color: var(--surfaceSecondary);
+}
+
+.ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {
+  background-color: color-mix(in srgb, var(--primaryColor) 16%, transparent) !important;
+}
+
+.ace_editor.ace_autocomplete .ace_marker-layer .ace_line-hover,
+.ace_editor.ace_autocomplete .ace_marker-layer .ace_line {
+  border-color: color-mix(in srgb, var(--primaryColor) 30%, transparent) !important;
+  background: color-mix(in srgb, var(--primaryColor) 15%, transparent) !important;
+}
+
+.ace_editor.ace_autocomplete .ace_completion-highlight {
+  color: var(--primaryColor) !important;
+}
+
+.ace_editor .ace_tooltip,
+.ace_editor .ace_doc-tooltip {
+  color: var(--secondaryText);
+  border: 1px solid color-mix(in srgb, var(--divider) 45%, transparent);
+}
+
+.ace_editor.ace_dark .ace_tooltip,
+.ace_editor.ace_dark .ace_doc-tooltip {
+  background-color: #1a1a1a;
+}
+
 </style>

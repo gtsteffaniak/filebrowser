@@ -797,7 +797,11 @@
       "customScrollbar": "Barra de desplazamiento personalizada",
       "customScrollbarDescription": "Reemplazar la barra de desplazamiento nativa del navegador por la integrada de Ace",
       "wrapContent": "Ajustar líneas largas en el editor",
-      "wrapContentDescription": "Ajusta el contenido del editor para mantener siempre visibles las líneas muy largas"
+      "wrapContentDescription": "Ajusta el contenido del editor para mantener siempre visibles las líneas muy largas",
+      "enableAutocompletion": "Autocompletado",
+      "enableAutocompletionDescription": "Habilita el autocompletado presionando manualmente las teclas 'ctrl + espacio'",
+      "enableLiveAutocompletion": "Autocompletado en vivo",
+      "enableLiveAutocompletionDescription": "Cuando lo activas, aparecerá un cuadro flotante automaticamente mientras escribes"
     },
     "uninitialized": "Error al inicializar el editor. Por favor, recargue.",
     "saveAbortedMessage": "Operación de guardado cancelada. El archivo activo de la aplicación ({activeFile}) no coincide con el archivo que intenta guardar ({tryingToSave}).",

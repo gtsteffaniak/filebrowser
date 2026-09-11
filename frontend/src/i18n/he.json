@@ -797,7 +797,11 @@
       "customScrollbar": "סרגל גלילה מותאם אישית",
       "customScrollbarDescription": "החלף את סרגל הגלילה המקורי של הדפדפן בזה המובנה של Ace",
       "wrapContent": "גלישת שורות ארוכות בעורך",
-      "wrapContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות"
+      "wrapContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות",
+      "autocompletion": "השלמה אוטומטית",
+      "autocompletionDescription": "מאפשר השלמה אוטומטית על ידי לחיצה ידנית על 'ctrl + space'",
+      "liveAutocompletion": "השלמה אוטומטית חיה",
+      "liveAutocompletionDescription": "כאשר זה מופעל, תיבת ההשלמה האוטומטית הצפה תופיע אוטומטית תוך כדי הקלדה"
     },
     "uninitialized": "אתחול העורך נכשל. אנא טען מחדש.",
     "saveAbortedMessage": "פעולת השמירה בוטלה. הקובץ הפעיל של האפליקציה ({activeFile}) אינו תואם לקובץ שאתה מנסה לשמור ({tryingToSave}).",

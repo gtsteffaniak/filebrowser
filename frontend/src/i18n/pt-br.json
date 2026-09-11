@@ -797,7 +797,11 @@
       "customScrollbar": "Barra de rolagem personalizada",
       "customScrollbarDescription": "Substituir a barra de rolagem nativa do navegador pela integrada do Ace",
       "wrapContent": "Quebrar linhas longas no editor",
-      "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis"
+      "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
+      "autocompletion": "Preenchimento automático",
+      "autocompletionDescription": "Ativa o preenchimento automático pressionando manualmente 'ctrl + space'",
+      "liveAutocompletion": "Preenchimento automático ao vivo",
+      "liveAutocompletionDescription": "Quando isto está ativado, a caixa flutuante de preenchimento automático aparecerá automaticamente enquanto você digita"
     },
     "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",
     "saveAbortedMessage": "Operação de salvamento cancelada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
