@@ -848,10 +848,6 @@ export default {
 .ace_editor {
   font-size: 14px;
   line-height: 1.4;
-  -webkit-user-select: text !important;
-  -moz-user-select: text !important;
-  -ms-user-select: text !important;
-  user-select: text !important;
   z-index: 1 !important;
   --ace-dark-bg: #151515;
   --ace-popup-bg: #1a1a1a;

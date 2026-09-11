@@ -794,7 +794,7 @@ export default {
 #markedown-viewer .markdown-content-container {
   background-color: var(--surfacePrimary);
   border-radius: 1em;
-  padding: 2em;
+  padding: 1.2em;
   margin: 0 auto;
   box-shadow: var(--surfaceElevationShadow);
 }

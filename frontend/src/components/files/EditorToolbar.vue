@@ -599,6 +599,7 @@ export default {
       this.focusEditor();
     },
     openEditorSettings() {
+      this.editor?.blur();
       mutations.showPrompt({
         name: "EditorSettings",
       });
@@ -754,6 +755,7 @@ export default {
           this.menuPosition = { top: rect.bottom + 4, left: rect.left + rect.width / 2, right: 0 };
         }
       }
+      if (name === "extra") this.editor?.blur();
       this.openMenu = name;
     },
     closeMenu() {
