@@ -84,6 +84,10 @@ export default {
     LoadingSpinner,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     items: {
       type: Array,
       default: null, // If not provided, will compute from state

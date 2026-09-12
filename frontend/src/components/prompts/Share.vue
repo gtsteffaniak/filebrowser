@@ -215,6 +215,10 @@ export default {
     //ViewMode,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     editing: {
       type: Boolean,
       default: false,

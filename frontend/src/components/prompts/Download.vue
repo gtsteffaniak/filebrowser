@@ -95,6 +95,12 @@ export default {
   components: {
     ProgressBar,
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   data: () => ({
     formats: {
       zip: "zip",

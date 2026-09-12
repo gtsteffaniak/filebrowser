@@ -80,6 +80,9 @@ interface EditorSettingField {
 export default {
   name: "EditorSettings",
   components: { ExpandDropdown, ToggleSwitch },
+  props: {
+    promptId: { type: [String, Number], default: null },
+  },
   computed: {
     config() {
       return editorConfig;
