@@ -792,7 +792,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container {
-  background-color: var(--surfacePrimary);
+  background-color: color-mix(in srgb, var(--surfacePrimary) 75%, transparent);
   border-radius: 1em;
   padding: 1.2em;
   margin: 0 auto;
@@ -1107,7 +1107,7 @@ export default {
 
 #markedown-viewer .markdown-content th,
 #markedown-viewer .markdown-content td {
-  border: 2px solid var(--background);
+  border: 1px solid var(--divider);
   padding: 6px 13px;
   word-break: normal;
   overflow-wrap: normal;
@@ -1115,12 +1115,12 @@ export default {
 
 #markedown-viewer .markdown-content th {
   font-weight: 600;
-  background-color: color-mix(in srgb, var(--background) 80%, transparent);
+  background-color: var(--background);
   color: var(--textPrimary);
 }
 
 #markedown-viewer .markdown-content tbody tr:nth-child(even) {
-  background-color: color-mix(in srgb, var(--background) 60%, transparent);
+  background-color: var(--background);
 }
 
 /* Blockquotes */
