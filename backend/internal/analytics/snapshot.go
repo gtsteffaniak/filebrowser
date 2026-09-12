@@ -53,6 +53,7 @@ type systemPayload struct {
 	MemoryRSSMB   int    `json:"memory_rss_mb"`
 	MemoryTotalMB int    `json:"memory_total_mb"`
 	Runtime       string `json:"runtime"`
+	HostPlatform  string `json:"host_platform,omitempty"`
 }
 
 type countsPayload struct {
@@ -167,6 +168,8 @@ func collectPayload(versionLabel string) (snapshotPayload, error) {
 		commitSHA = ""
 	}
 
+	runtimeEnv := detectRuntime()
+
 	return snapshotPayload{
 		App: appPayload{
 			Version:   versionLabel,
@@ -178,7 +181,8 @@ func collectPayload(versionLabel string) (snapshotPayload, error) {
 			CPUCores:      runtime.NumCPU(),
 			MemoryRSSMB:   memoryRSSMB(),
 			MemoryTotalMB: systemTotalMemoryMB(),
-			Runtime:       detectRuntime(),
+			Runtime:       runtimeEnv,
+			HostPlatform:  detectHostPlatform(runtimeEnv),
 		},
 		Counts: countsPayload{
 			SourcesEnabled:   sourceCounts.enabled,
