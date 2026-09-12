@@ -964,9 +964,6 @@ export default {
 #markedown-viewer .markdown-content-container .code-content a {
   color: var(--primaryColor);
   font-weight: 500;
-}
-
-#markedown-viewer .markdown-content-container .code-content a:hover {
   text-decoration: underline;
 }
 
@@ -1088,9 +1085,6 @@ export default {
 /* Links */
 #markedown-viewer .markdown-content a {
   color: var(--primaryColor);
-}
-
-#markedown-viewer .markdown-content a:hover {
   text-decoration: underline;
 }
 
