@@ -84,7 +84,7 @@ function loadHighlightCss(variant: "light" | "dark"): Promise<string> {
 
 const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
 
-const marked = new Marked({ gfm: true, breaks: true });
+const marked = new Marked({ gfm: true });
 marked.use({
   extensions: [{
     name: "blockKatexInterrupt",
@@ -1004,8 +1004,9 @@ export default {
 }
 
 #markedown-viewer .markdown-content p {
-  line-height: 1.65;
-  margin: 0.8em 0;
+  line-height: 1.5;
+  margin-bottom: 0.85em;
+  margin-top: 0;
   text-wrap: pretty;
 }
 
@@ -1018,7 +1019,8 @@ export default {
 #markedown-viewer .markdown-content ul,
 #markedown-viewer .markdown-content ol {
   padding-left: 2em; /* base indent for first lvl */
-  margin: 0.1em 0;
+  margin-top: 0.1em;
+  margin-bottom: 0.85em;
 }
 
 #markedown-viewer .markdown-content ul ul,
@@ -1031,8 +1033,8 @@ export default {
 /* line height for list items and any paragraphs inside the nested lvls */
 #markedown-viewer .markdown-content li,
 #markedown-viewer .markdown-content li p {
-  line-height: 1.65;
-  margin-top: 0;
+  line-height: 1.5;
+  margin-top: 0.25em;
   margin-bottom: 0;
 }
 
