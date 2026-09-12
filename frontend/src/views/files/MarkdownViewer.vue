@@ -1153,4 +1153,9 @@ export default {
   padding: 0 0.2em;
 }
 
+#markedown-viewer .markdown-content math[display="block"] {
+  margin-top: 0.85em;
+  margin-bottom: 0.85em;
+}
+
 </style>
