@@ -1016,11 +1016,14 @@ export default {
   margin: 1.5em 0;
 }
 
-#markedown-viewer .markdown-content ul,
-#markedown-viewer .markdown-content ol {
+#markedown-viewer .markdown-content ul {
   padding-left: 2em; /* base indent for first lvl */
-  margin-top: 0.1em;
-  margin-bottom: 0.85em;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#markedown-viewer .markdown-content ol {
+  padding-bottom: 0.85em;
 }
 
 #markedown-viewer .markdown-content ul ul,
@@ -1093,22 +1096,27 @@ export default {
 
 /* Tables */
 #markedown-viewer .markdown-content table {
+  border-spacing: 0;
   border-collapse: collapse;
-  width: 100%;
-  margin: 1em 0;
-  overflow-x: auto;
   display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  margin: 1em 0;
 }
 
 #markedown-viewer .markdown-content th,
 #markedown-viewer .markdown-content td {
   border: 2px solid var(--background);
-  padding: 0.4em 0.8em;
+  padding: 6px 13px;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 #markedown-viewer .markdown-content th {
   font-weight: 600;
   background-color: color-mix(in srgb, var(--background) 80%, transparent);
+  color: var(--textPrimary);
 }
 
 #markedown-viewer .markdown-content tbody tr:nth-child(even) {
