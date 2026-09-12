@@ -83,7 +83,8 @@ class UploadManager {
     this.pendingItems = null; // Store pending items during conflict resolution
     this.probedDirs = new Set(); // Track directories that were probed/created during conflict check
     this.progressTimeouts = new Map(); // Track progress timeouts per upload ID
-    this.PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without progress = pause
+    this.lastUploadActivityTime = null;
+    this.PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without upload activity = pause
   }
 
   setOnConflict(handler) {
@@ -389,6 +390,7 @@ class UploadManager {
         upload.xhr = promise.xhr;
         await promise;
 
+        this.recordUploadActivity(upload);
         // Clear timeout on successful completion
         this.clearProgressTimeout(upload.id);
         upload.status = "completed";
@@ -466,8 +468,8 @@ class UploadManager {
         // Only increment chunkOffset after successful chunk upload.
         // This ensures that if we pause/error mid-chunk, we'll retry that chunk on resume.
         upload.chunkOffset += chunk.size;
-        // Update last progress time after successful chunk upload
-        upload.lastProgressTime = Date.now();
+        // A completed chunk is activity even when no progress event was emitted.
+        this.recordUploadActivity(upload);
       } catch (err) {
         this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err);
@@ -559,27 +561,44 @@ class UploadManager {
     }
   }
 
-  startProgressTimeout(upload) {
+  recordUploadActivity(upload) {
+    upload.lastProgressTime = Date.now();
+    this.lastUploadActivityTime = upload.lastProgressTime;
+  }
+
+  startProgressTimeout(upload, delay = this.PROGRESS_TIMEOUT_MS) {
     // Clear any existing timeout
     this.clearProgressTimeout(upload.id);
 
-    // Set new timeout to pause if no progress for 10 seconds
+    // Requests can wait for bandwidth or a browser connection while siblings upload.
     const timeoutId = setTimeout(() => {
+      this.progressTimeouts.delete(upload.id);
       if (upload.status === "uploading") {
+        const lastActivity = Math.max(
+          upload.lastProgressTime ?? 0,
+          this.lastUploadActivityTime ?? 0
+        );
+        const idleTime = Date.now() - lastActivity;
+        if (idleTime < this.PROGRESS_TIMEOUT_MS) {
+          this.startProgressTimeout(upload, this.PROGRESS_TIMEOUT_MS - idleTime);
+          return;
+        }
         console.log(`Upload ${upload.id} stalled - no progress for ${this.PROGRESS_TIMEOUT_MS}ms, pausing`);
         upload.connectionIssue = true;
         void this.pause(upload.id);
         upload.errorDetails = "Connection stalled - upload paused. Click resume to retry.";
       }
-      this.progressTimeouts.delete(upload.id);
-    }, this.PROGRESS_TIMEOUT_MS);
+    }, delay);
 
     this.progressTimeouts.set(upload.id, timeoutId);
   }
 
   updateProgress(upload, progress) {
+    if (upload.status !== "uploading" || !this.findById(upload.id)) {
+      return;
+    }
     upload.progress = progress;
-    upload.lastProgressTime = Date.now();
+    this.recordUploadActivity(upload);
     upload.connectionIssue = false; // Clear connection issue on successful progress
     // Reset the timeout whenever we get progress
     this.startProgressTimeout(upload);
