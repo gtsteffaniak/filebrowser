@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.7
+
+ **Bugfixes**:
+ - avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
+
 ## v2.0.6
 
  **Security**:
