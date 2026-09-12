@@ -434,7 +434,6 @@ export default {
       const editor = this.editor;
       if (!editor) return;
       editor.execCommand("selectall");
-      this.focusEditor();
     },
     selectedLineRange() {
       const range = this.editor.getSelectionRange();
@@ -641,6 +640,7 @@ export default {
           end: editor.session.doc.createAnchor(range.end.row, range.end.column),
         },
       };
+      this.editor?.blur();
       mutations.showPrompt({
         name: "pathPicker",
         pinned: true,
@@ -687,7 +687,6 @@ export default {
       const insertionEnd = editor.session.replace(range, text);
       editor.moveCursorTo(insertionEnd.row, insertionEnd.column);
       editor.clearSelection();
-      this.focusEditor();
     },
     onPathPickerCancelled(data: { selectionContextId?: string }) {
       if (!this.pendingSelection || !data || data.selectionContextId !== this.pendingSelection.contextId) {
