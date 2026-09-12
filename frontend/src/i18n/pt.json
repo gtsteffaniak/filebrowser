@@ -797,7 +797,11 @@
       "customScrollbar": "Barra de deslocamento personalizada",
       "customScrollbarDescription": "Substituir a barra de deslocamento nativa do navegador pela integrada do Ace",
       "wrapContent": "Quebrar linhas longas no editor",
-      "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis"
+      "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
+      "autocompletion": "Preenchimento automático",
+      "autocompletionDescription": "Ativa o preenchimento automático pressionando manualmente 'ctrl + space'",
+      "liveAutocompletion": "Preenchimento automático em tempo real",
+      "liveAutocompletionDescription": "Quando isto está ativado, a caixa flutuante de preenchimento automático aparecerá automaticamente enquanto escreve"
     },
     "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",
     "saveAbortedMessage": "Operação de gravação cancelada. O ficheiro ativo da aplicação ({activeFile}) não corresponde ao ficheiro que está a tentar gravar ({tryingToSave}).",

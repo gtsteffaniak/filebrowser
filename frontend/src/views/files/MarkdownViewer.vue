@@ -84,7 +84,7 @@ function loadHighlightCss(variant: "light" | "dark"): Promise<string> {
 
 const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAGS: ["semantics", "annotation"] };
 
-const marked = new Marked({ gfm: true, breaks: true });
+const marked = new Marked({ gfm: true });
 marked.use({
   extensions: [{
     name: "blockKatexInterrupt",
@@ -792,9 +792,9 @@ export default {
 }
 
 #markedown-viewer .markdown-content-container {
-  background-color: var(--surfacePrimary);
+  background-color: color-mix(in srgb, var(--surfacePrimary) 75%, transparent);
   border-radius: 1em;
-  padding: 2em;
+  padding: 1.2em;
   margin: 0 auto;
   box-shadow: var(--surfaceElevationShadow);
 }
@@ -964,9 +964,6 @@ export default {
 #markedown-viewer .markdown-content-container .code-content a {
   color: var(--primaryColor);
   font-weight: 500;
-}
-
-#markedown-viewer .markdown-content-container .code-content a:hover {
   text-decoration: underline;
 }
 
@@ -1004,8 +1001,9 @@ export default {
 }
 
 #markedown-viewer .markdown-content p {
-  line-height: 1.65;
-  margin: 0.8em 0;
+  line-height: 1.5;
+  margin-bottom: 0.85em;
+  margin-top: 0;
   text-wrap: pretty;
 }
 
@@ -1015,10 +1013,14 @@ export default {
   margin: 1.5em 0;
 }
 
-#markedown-viewer .markdown-content ul,
-#markedown-viewer .markdown-content ol {
+#markedown-viewer .markdown-content ul {
   padding-left: 2em; /* base indent for first lvl */
-  margin: 0.1em 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#markedown-viewer .markdown-content ol {
+  padding-bottom: 0.85em;
 }
 
 #markedown-viewer .markdown-content ul ul,
@@ -1031,8 +1033,8 @@ export default {
 /* line height for list items and any paragraphs inside the nested lvls */
 #markedown-viewer .markdown-content li,
 #markedown-viewer .markdown-content li p {
-  line-height: 1.65;
-  margin-top: 0;
+  line-height: 1.5;
+  margin-top: 0.25em;
   margin-bottom: 0;
 }
 
@@ -1083,34 +1085,36 @@ export default {
 /* Links */
 #markedown-viewer .markdown-content a {
   color: var(--primaryColor);
-}
-
-#markedown-viewer .markdown-content a:hover {
   text-decoration: underline;
 }
 
 /* Tables */
 #markedown-viewer .markdown-content table {
+  border-spacing: 0;
   border-collapse: collapse;
-  width: 100%;
-  margin: 1em 0;
-  overflow-x: auto;
   display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  margin: 1em 0;
 }
 
 #markedown-viewer .markdown-content th,
 #markedown-viewer .markdown-content td {
-  border: 2px solid var(--background);
-  padding: 0.4em 0.8em;
+  border: 1px solid var(--divider);
+  padding: 6px 13px;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 #markedown-viewer .markdown-content th {
   font-weight: 600;
-  background-color: color-mix(in srgb, var(--background) 80%, transparent);
+  background-color: var(--background);
+  color: var(--textPrimary);
 }
 
 #markedown-viewer .markdown-content tbody tr:nth-child(even) {
-  background-color: color-mix(in srgb, var(--background) 60%, transparent);
+  background-color: var(--background);
 }
 
 /* Blockquotes */
@@ -1147,6 +1151,11 @@ export default {
   color: contrast-color(var(--mark-color, var(--primaryColor)));
   border-radius: 2px;
   padding: 0 0.2em;
+}
+
+#markedown-viewer .markdown-content math[display="block"] {
+  margin-top: 0.85em;
+  margin-bottom: 0.85em;
 }
 
 </style>

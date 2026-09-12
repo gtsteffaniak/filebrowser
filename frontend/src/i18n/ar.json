@@ -797,7 +797,11 @@
       "customScrollbar": "شريط تمرير مخصص",
       "customScrollbarDescription": "استبدال شريط التمرير الأصلي للمتصفح بشريط التمرير المدمج في Ace",
       "wrapContent": "التفاف الأسطر الطويلة في المحرر",
-      "wrapContentDescription": "يلتف محتوى المحرر للحفاظ على رؤية الأسطر الطويلة جدًا دائمًا"
+      "wrapContentDescription": "يلتف محتوى المحرر للحفاظ على رؤية الأسطر الطويلة جدًا دائمًا",
+      "autocompletion": "الإكمال التلقائي",
+      "autocompletionDescription": "يتيح الإكمال التلقائي بالضغط يدويًا على 'ctrl + space'",
+      "liveAutocompletion": "الإكمال التلقائي المباشر",
+      "liveAutocompletionDescription": "عند تمكين هذا، سيظهر مربع الإكمال التلقائي العائم تلقائيًا أثناء الكتابة"
     },
     "uninitialized": "فشل تهيئة المحرر. يرجى إعادة التحميل.",
     "saveAbortedMessage": "تم إلغاء عملية الحفظ. الملف النشط للتطبيق ({activeFile}) لا يتطابق مع الملف الذي تحاول حفظه ({tryingToSave}).",

@@ -837,7 +837,11 @@
       "customScrollbar": "Custom scrollbar",
       "customScrollbarDescription": "Swap the native browser scrollbar by the ace built-in one",
       "wrapContent": "Wrap long lines in the editor",
-      "wrapContentDescription": "Wraps the editor content to keep very long lines always visible"
+      "wrapContentDescription": "Wraps the editor content to keep very long lines always visible",
+      "autocompletion": "Autocompletion",
+      "autocompletionDescription": "Enables autocompletion by manually pressing 'ctrl + space'",
+      "liveAutocompletion": "Live autocompletion",
+      "liveAutocompletionDescription": "When this is enabled, the floating autocompletion box will appear automatically as you type"
     },
     "uninitialized": "Failed to initialize the editor. Please reload.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",

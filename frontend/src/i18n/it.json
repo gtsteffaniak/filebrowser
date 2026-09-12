@@ -806,7 +806,11 @@
       "customScrollbar": "Barra di scorrimento personalizzata",
       "customScrollbarDescription": "Sostituisce la barra di scorrimento nativa del browser con quella integrata di Ace",
       "wrapContent": "A capo delle righe lunghe nell'editor",
-      "wrapContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe"
+      "wrapContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe",
+      "autocompletion": "Completamento automatico",
+      "autocompletionDescription": "Abilita il completamento automatico premendo manualmente 'ctrl + space'",
+      "liveAutocompletion": "Completamento automatico live",
+      "liveAutocompletionDescription": "Quando è abilitato, la casella di completamento automatico flottante apparirà automaticamente mentre digiti"
     },
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",
     "saveAbortedMessage": "Operazione di salvataggio annullata. Il file attivo dell'applicazione ({activeFile}) non corrisponde al file che si sta tentando di salvare ({tryingToSave}).",

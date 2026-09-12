@@ -797,7 +797,11 @@
       "customScrollbar": "Barre de défilement personnalisée",
       "customScrollbarDescription": "Remplacer la barre de défilement native du navigateur par celle intégrée à Ace",
       "wrapContent": "Couper les longues lignes dans l'éditeur",
-      "wrapContentDescription": "Coupe le contenu de l'éditeur pour que les très longues lignes restent toujours visibles"
+      "wrapContentDescription": "Coupe le contenu de l'éditeur pour que les très longues lignes restent toujours visibles",
+      "autocompletion": "Autocomplétion",
+      "autocompletionDescription": "Active l'autocomplétion en appuyant manuellement sur 'ctrl + space'",
+      "liveAutocompletion": "Autocomplétion en direct",
+      "liveAutocompletionDescription": "Lorsque cette option est activée, la boîte d'autocomplétion flottante apparaîtra automatiquement au fur et à mesure que vous tapez"
     },
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
     "saveAbortedMessage": "Opération de sauvegarde annulée. Le fichier actif de l'application ({activeFile}) ne correspond pas au fichier que vous essayez de sauvegarder ({tryingToSave}).",

@@ -797,7 +797,11 @@
       "customScrollbar": "カスタムスクロールバー",
       "customScrollbarDescription": "ブラウザのネイティブスクロールバーを Ace 組み込みのものに置き換えます",
       "wrapContent": "エディタで長い行を折り返す",
-      "wrapContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします"
+      "wrapContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします",
+      "autocompletion": "自動補完",
+      "autocompletionDescription": "手動で「ctrl + space」を押して自動補完を有効にします",
+      "liveAutocompletion": "ライブ自動補完",
+      "liveAutocompletionDescription": "これが有効な場合、入力中にフローティング自動補完ボックスが自動的に表示されます"
     },
     "uninitialized": "エディターの初期化に失敗しました。再読み込みしてください。",
     "saveAbortedMessage": "保存操作が中止されました。アプリケーションのアクティブファイル ({activeFile}) が保存しようとしているファイル ({tryingToSave}) と一致しません。",

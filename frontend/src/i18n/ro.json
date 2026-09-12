@@ -797,7 +797,11 @@
       "customScrollbar": "Bară de derulare personalizată",
       "customScrollbarDescription": "Înlocuiește bara de derulare nativă a browser-ului cu cea integrată a lui Ace",
       "wrapContent": "Împărțirea liniilor lungi în editor",
-      "wrapContentDescription": "Împarte conținutul editorului pentru a menține liniile foarte lungi întotdeauna vizibile"
+      "wrapContentDescription": "Împarte conținutul editorului pentru a menține liniile foarte lungi întotdeauna vizibile",
+      "autocompletion": "Completare automată",
+      "autocompletionDescription": "Activează completarea automată prin apăsarea manuală a 'ctrl + space'",
+      "liveAutocompletion": "Completare automată live",
+      "liveAutocompletionDescription": "Când este activat, caseta flotantă de completare automată va apărea automat în timp ce tastați"
     },
     "uninitialized": "Nu s-a putut inițializa editorul. Vă rugăm să reîncărcați.",
     "saveAbortedMessage": "Operațiunea de salvare a fost anulată. Fișierul activ al aplicației ({activeFile}) nu corespunde fișierului pe care încercați să îl salvați ({tryingToSave}).",
