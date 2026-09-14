@@ -37,6 +37,10 @@ export default {
       type: Boolean,
       default: true,
     },
+    targetLabel: {
+      type: String,
+      default: "",
+    },
   },
   emits: ["update:enforced"],
   data() {
@@ -47,6 +51,9 @@ export default {
   },
   computed: {
     enforcedLabelText() {
+      if (this.targetLabel) {
+        return `${this.$t("general.enforce")}: ${this.targetLabel}`;
+      }
       return this.$t("general.enforce");
     },
   },
@@ -67,7 +74,7 @@ export default {
   box-sizing: border-box;
   min-height: 3.25em;
   padding: 0.5em 1em;
-  margin-top: 0.35em;
+  margin-top: 0;
   transition: background-color 0.15s ease;
 }
 
