@@ -65,6 +65,10 @@ export default {
     Errors,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     currentHash: {
       type: String,
       default: "",

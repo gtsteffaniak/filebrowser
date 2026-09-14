@@ -154,6 +154,10 @@ export default {
   name: "archive",
   components: { LoadingSpinner, FileList, ToggleSwitch, ExpandDropdown },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     items: {
       type: Array,
       required: true,

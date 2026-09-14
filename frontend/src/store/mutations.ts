@@ -292,7 +292,7 @@ export const mutations = {
     }
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
-    window.history.replaceState(null, "", `#${value}`);
+    window.history.replaceState(history.state, "", `#${value}`);
     const container = document.getElementById("main");
     const element = document.getElementById(value);
     if (container && element) {

@@ -55,6 +55,12 @@ export default {
   components: {
     ShareOptionsForm,
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   data() {
     return {
       loading: true,

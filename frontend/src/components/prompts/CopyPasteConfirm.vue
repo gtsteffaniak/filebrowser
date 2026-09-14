@@ -50,6 +50,10 @@ import { notifyMoveCopyFailure } from "@/utils/appNotifications";
 export default {
   name: "copy-paste-confirm",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     operation: {
       type: String,
       required: true,
