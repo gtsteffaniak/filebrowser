@@ -43,6 +43,9 @@ func TestQuotaFlusherConcurrentFlushAndStop(t *testing.T) {
 
 	holdQuotas := make(chan struct{})
 	releaseQuotas := make(chan struct{})
+	var releaseOnce sync.Once
+	release := func() { releaseOnce.Do(func() { close(releaseQuotas) }) }
+	defer release()
 	go func() {
 		quotasMux.Lock()
 		close(holdQuotas)
@@ -67,8 +70,18 @@ func TestQuotaFlusherConcurrentFlushAndStop(t *testing.T) {
 			signalQuotaFlush()
 		}()
 	}
-	wg.Wait()
-	close(releaseQuotas)
+	writersDone := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(writersDone)
+	}()
+	select {
+	case <-writersDone:
+	case <-time.After(2 * time.Second):
+		release()
+		t.Fatal("quota writers blocked on quotasMux while the flusher was stopping")
+	}
+	release()
 
 	select {
 	case <-stopDone:
@@ -104,6 +117,9 @@ func TestQuotaFlusherReplacementWhileQuotasLocked(t *testing.T) {
 
 	holdQuotas := make(chan struct{})
 	releaseQuotas := make(chan struct{})
+	var releaseOnce sync.Once
+	release := func() { releaseOnce.Do(func() { close(releaseQuotas) }) }
+	defer release()
 	go func() {
 		quotasMux.Lock()
 		close(holdQuotas)
@@ -130,8 +146,18 @@ func TestQuotaFlusherReplacementWhileQuotasLocked(t *testing.T) {
 			markQuotaCounterDirty("test-quota")
 		}()
 	}
-	wg.Wait()
-	close(releaseQuotas)
+	writersDone := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(writersDone)
+	}()
+	select {
+	case <-writersDone:
+	case <-time.After(2 * time.Second):
+		release()
+		t.Fatal("quota writers blocked on quotasMux while replacing the flusher")
+	}
+	release()
 
 	select {
 	case <-replaceDone:

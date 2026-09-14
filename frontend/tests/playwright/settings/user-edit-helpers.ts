@@ -19,12 +19,30 @@ export function userEditPreferencesModal(page: Page): Locator {
   return page.locator('div[aria-label="user-edit-preferences-prompt"]');
 }
 
+function globalPermissionContainer(modal: Locator, label: string): Locator {
+  return modal.locator(".toggle-container", { hasText: label });
+}
+
 export function globalPermissionCheckbox(modal: Locator, label: string): Locator {
-  return modal.locator(".toggle-container", { hasText: label }).locator('input[type="checkbox"]');
+  return globalPermissionContainer(modal, label)
+    .locator(".toggle-row--value input[type='checkbox']");
 }
 
 export function globalPermissionToggle(modal: Locator, label: string): Locator {
-  return modal.locator(".toggle-container", { hasText: label }).locator("label.switch");
+  return globalPermissionContainer(modal, label).locator("label.switch");
+}
+
+/** Account defaults may start collapsed; expand before interacting with global permissions. */
+export async function expandUserEditAccountDefaults(prefsModal: Locator): Promise<void> {
+  const adminToggle = globalPermissionToggle(prefsModal, "Administrator");
+  if (await adminToggle.isVisible().catch(() => false)) {
+    return;
+  }
+  const accountSection = prefsModal
+    .locator(".settings-group")
+    .filter({ has: prefsModal.getByRole("heading", { name: "Account defaults" }) });
+  await accountSection.locator(".settings-group-title").click();
+  await expect(adminToggle).toBeVisible({ timeout: 10000 });
 }
 
 /** Primary source in settings Playwright docker config (`_docker/src/settings/backend/config.yaml`). */
@@ -87,7 +105,8 @@ export async function openUserEditPreferences(page: Page, editModal: Locator): P
   await editModal.getByRole("button", { name: "User preferences" }).click();
   const prefsModal = userEditPreferencesModal(page);
   await expect(prefsModal).toBeVisible();
-  await expect(globalPermissionCheckbox(prefsModal, "Administrator")).toBeVisible({
+  await expandUserEditAccountDefaults(prefsModal);
+  await expect(globalPermissionToggle(prefsModal, "Administrator")).toBeVisible({
     timeout: 10000,
   });
   return prefsModal;
