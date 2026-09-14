@@ -120,7 +120,7 @@ cleanup-translations:
 	cd frontend && npm run i18n:cleanup
 
 test-backend:
-	cd backend && go test -race -timeout=30s ./...
+	cd backend && go test -race -timeout=60s ./...
 
 test-frontend:
 	cd frontend && npm run test

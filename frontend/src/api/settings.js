@@ -92,6 +92,23 @@ export async function patchSidebarLinkDefaults(doc) {
   });
 }
 
+/** Tool access defaults policy for the current user (enforcement UI). */
+export function getToolAccessDefaultsPolicy() {
+  return fetchJSON(getPublicApiPath("settings/tool-access-defaults"));
+}
+
+export function getToolAccessDefaults() {
+  return fetchJSON(getApiPath("settings/tool-access-defaults"));
+}
+
+export async function patchToolAccessDefaults(doc) {
+  return fetchJSON(getApiPath("settings/tool-access-defaults"), {
+    method: "PATCH",
+    body: JSON.stringify(doc),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 export function getSourceSettings() {
   return fetchJSON(getApiPath("settings/source"));
 }

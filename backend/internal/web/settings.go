@@ -10,6 +10,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -321,6 +322,30 @@ func settingsSidebarLinkDefaultsPatchHandler(w http.ResponseWriter, r *http.Requ
 		return http.StatusInternalServerError, fmt.Errorf("failed to update sidebar link defaults")
 	}
 	return RenderJSON(w, r, state.GetSidebarLinkDefaults())
+}
+
+func settingsToolAccessDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	return RenderJSON(w, r, state.GetToolAccessDefaultsForUser())
+}
+
+func settingsToolAccessDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("read tool access defaults patch: %w", err)
+	}
+	defer r.Body.Close()
+	if len(body) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty tool access defaults patch body")
+	}
+	var doc toolaccess.ToolAccessDefaultsDocument
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid tool access defaults JSON: %w", err)
+	}
+	if err := state.PatchToolAccessDefaults(doc); err != nil {
+		logger.Errorf("failed to patch tool access defaults: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to update tool access defaults")
+	}
+	return RenderJSON(w, r, state.GetToolAccessDefaults())
 }
 
 type shareDefaultsResponse struct {

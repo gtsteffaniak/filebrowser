@@ -1,7 +1,12 @@
 import { setActiveViewGrantScope } from "@/api/viewToken.js";
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
-import { getEnforcedUserDefaults, getShareDefaultsPolicy, getSidebarLinkDefaultsPolicy } from "@/api/settings";
+import {
+  getEnforcedUserDefaults,
+  getShareDefaultsPolicy,
+  getSidebarLinkDefaultsPolicy,
+  getToolAccessDefaultsPolicy,
+} from "@/api/settings";
 import { detectLocale, setLocale } from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
@@ -447,6 +452,7 @@ export const mutations = {
         state.enforcedUserDefaults = {};
         state.sidebarLinkDefaultsPolicy = { items: [] };
         state.shareDefaultsPolicy = { values: {}, enforced: {} };
+        state.toolAccessDefaultsPolicy = { items: [] };
         emitStateChanged();
         return;
       }
@@ -556,6 +562,33 @@ export const mutations = {
       };
     } catch {
       state.sidebarLinkDefaultsPolicy = { items: [] };
+    }
+    emitStateChanged();
+  },
+  applyToolAccessDefaultsPolicy: (items) => {
+    state.toolAccessDefaultsPolicy = {
+      items: Array.isArray(items) ? items : [],
+    };
+    emitStateChanged();
+  },
+  syncToolAccessDefaultsPolicy: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      getters.isAdmin() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.toolAccessDefaultsPolicy = { items: [] };
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await getToolAccessDefaultsPolicy();
+      state.toolAccessDefaultsPolicy = {
+        items: Array.isArray(data?.items) ? data.items : [],
+      };
+    } catch {
+      state.toolAccessDefaultsPolicy = { items: [] };
     }
     emitStateChanged();
   },

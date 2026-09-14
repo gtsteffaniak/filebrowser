@@ -2,9 +2,13 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "../test-setup";
 import {
     SETTINGS_TEST_SOURCE,
+    closeUserEditPreferences,
     confirmActorPasswordPrompt,
     expandUserEditSourceScope,
+    globalPermissionCheckbox,
+    globalPermissionToggle,
     openUserEdit,
+    openUserEditPreferences,
     userEditSourcePermissionCheckbox,
     userEditSourcePermissionToggle,
     userRowInSettingsUsersTable,
@@ -46,6 +50,7 @@ test("create, check settings, and delete user (retry-safe name)", async ({
         userRowInSettingsUsersTable(page, username),
         { username },
     );
+    const prefsModal = await openUserEditPreferences(page, modal);
 
     const settingsToToggle = [
         "Administrator",
@@ -56,22 +61,21 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     ];
 
     for (const settingName of settingsToToggle) {
-        const toggleContainer = modal.locator(".toggle-container", { hasText: settingName });
-        await toggleContainer.locator("label.switch").click();
+        await globalPermissionToggle(prefsModal, settingName).click();
     }
 
+    await closeUserEditPreferences(page);
     await modal.locator('button[aria-label="Save"]').click();
     await confirmActorPasswordPrompt(page);
     await expect(modal).not.toBeVisible();
 
     await openUserEdit(page, userRowInSettingsUsersTable(page, username), { username });
+    const prefsModalAgain = await openUserEditPreferences(page, modal);
 
     for (const settingName of settingsToToggle) {
-        const checkbox = modal.locator(
-            `.toggle-container:has-text("${settingName}") input[type="checkbox"]`,
-        );
-        await expect(checkbox).toBeChecked();
+        await expect(globalPermissionCheckbox(prefsModalAgain, settingName)).toBeChecked();
     }
+    await closeUserEditPreferences(page);
 
     await modal.locator('button[aria-label="Delete User"]').click();
     const genericModal = page.locator('div[aria-label="generic-prompt"]');
@@ -133,40 +137,34 @@ test.describe("User Settings Persistence", () => {
         await expect(userRow).toBeVisible({ timeout: 5000 });
 
         const modal = await openUserEdit(page, userRow, { username });
-        const checkbox = modal.locator(
-            `.toggle-container:has-text("${settingName}") input[type="checkbox"]`,
-        );
+        const prefsModal = await openUserEditPreferences(page, modal);
+        const checkbox = globalPermissionCheckbox(prefsModal, settingName);
         const initialChecked = await checkbox.isChecked();
 
-        const toggleSwitch = modal
-            .locator(".toggle-container", { hasText: settingName })
-            .locator("label.switch");
-        await toggleSwitch.click();
+        await globalPermissionToggle(prefsModal, settingName).click();
         await expect(checkbox).toBeChecked({ checked: !initialChecked });
+        await closeUserEditPreferences(page);
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
         await openUserEdit(page, userRow, { username });
-        const checkboxToggled = modal.locator(
-            `.toggle-container:has-text("${settingName}") input[type="checkbox"]`,
-        );
+        const prefsModalToggled = await openUserEditPreferences(page, modal);
+        const checkboxToggled = globalPermissionCheckbox(prefsModalToggled, settingName);
         await expect(checkboxToggled).toBeChecked({ checked: !initialChecked });
 
-        const toggleSwitchBack = modal
-            .locator(".toggle-container", { hasText: settingName })
-            .locator("label.switch");
-        await toggleSwitchBack.click();
+        await globalPermissionToggle(prefsModalToggled, settingName).click();
         await expect(checkboxToggled).toBeChecked({ checked: initialChecked });
+        await closeUserEditPreferences(page);
         await modal.locator('button[aria-label="Save"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
         await openUserEdit(page, userRow, { username });
-        const checkboxRestored = modal.locator(
-            `.toggle-container:has-text("${settingName}") input[type="checkbox"]`,
-        );
+        const prefsModalRestored = await openUserEditPreferences(page, modal);
+        const checkboxRestored = globalPermissionCheckbox(prefsModalRestored, settingName);
         await expect(checkboxRestored).toBeChecked({ checked: initialChecked });
+        await closeUserEditPreferences(page);
         await modal.locator('button[aria-label="Cancel"]').click();
     }
 

@@ -1722,6 +1722,10 @@ definitions:
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
+      effectiveToolAccess:
+        additionalProperties:
+          type: boolean
+        type: object
       fileLoading:
         allOf:
         - $ref: '#/definitions/users.FileLoading'
@@ -1823,6 +1827,10 @@ definitions:
         description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
           etc'
         type: string
+      toolAccess:
+        allOf:
+        - $ref: '#/definitions/users.ToolAccessMap'
+        description: per-tool access overrides
       username:
         type: string
       viewMode:
@@ -1967,6 +1975,10 @@ definitions:
       view:
         type: boolean
     type: object
+  users.ToolAccessMap:
+    additionalProperties:
+      type: boolean
+    type: object
   users.User:
     properties:
       apiKeys:
@@ -2034,6 +2046,10 @@ definitions:
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
+      effectiveToolAccess:
+        additionalProperties:
+          type: boolean
+        type: object
       fileLoading:
         allOf:
         - $ref: '#/definitions/users.FileLoading'
@@ -2143,6 +2159,10 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
         type: object
+      toolAccess:
+        allOf:
+        - $ref: '#/definitions/users.ToolAccessMap'
+        description: per-tool access overrides
       totpNonce:
         type: string
       totpSecret:

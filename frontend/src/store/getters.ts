@@ -3,6 +3,7 @@ import { mutations } from './mutations';
 import { state } from './state';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
+import { hasToolAccess, toolIdFromPath } from '@/utils/toolAccess';
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
@@ -622,9 +623,14 @@ export const getters = {
     if (getters.currentView() !== "tools") {
       return null;
     }
-    // Match by path instead of route name
     const tool = tools().find(t => t.path === state.route.path);
-    // Return null when at /tools (list view) to avoid circular component rendering
+    if (!tool) {
+      return null;
+    }
+    const toolId = tool.id || toolIdFromPath(tool.path);
+    if (toolId && !hasToolAccess(toolId)) {
+      return null;
+    }
     return tool;
   },
   isEditorOrMarkdownView: () => {
