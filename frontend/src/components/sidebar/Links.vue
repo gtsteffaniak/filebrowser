@@ -221,7 +221,6 @@ import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
 import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
-import { resourcesApi } from "@/api";
 import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';

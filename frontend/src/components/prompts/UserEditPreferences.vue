@@ -53,12 +53,26 @@ export default {
     return {
       session: null,
       sessionUnsubscribe: null,
+      editAccount: {
+        lockPassword: false,
+        disableSettings: false,
+        disableUpdateNotifications: false,
+        showAdvancedProfile: false,
+        permissions: {
+          admin: false,
+          share: false,
+          api: false,
+          realtime: false,
+        },
+      },
     };
   },
   mounted() {
     this.session = getUserEditSession();
+    this.syncEditAccountForm();
     this.sessionUnsubscribe = subscribeUserEditSession((session) => {
       this.session = session;
+      this.syncEditAccountForm();
     });
   },
   beforeUnmount() {
@@ -87,38 +101,52 @@ export default {
     enforcedAccountPermissions() {
       return this.enforcedAccount.permissions || {};
     },
-    editAccount() {
-      const user = this.session?.user || {};
-      const permissions = user.permissions || {};
-      return {
-        lockPassword: !!user.lockPassword,
-        disableSettings: !!user.disableSettings,
-        disableUpdateNotifications: !!user.disableUpdateNotifications,
-        permissions: {
-          admin: !!permissions.admin,
-          share: !!permissions.share,
-          api: !!permissions.api,
-          realtime: !!permissions.realtime,
-        },
-      };
-    },
   },
   methods: {
-    onEditAccountChange(account) {
+    syncEditAccountForm() {
+      const user = this.session?.user || {};
+      const permissions = user.permissions || {};
+      this.editAccount.lockPassword = !!user.lockPassword;
+      this.editAccount.disableSettings = !!user.disableSettings;
+      this.editAccount.disableUpdateNotifications = !!user.disableUpdateNotifications;
+      this.editAccount.showAdvancedProfile = !!user.showAdvancedProfile;
+      this.editAccount.permissions = {
+        admin: !!permissions.admin,
+        share: !!permissions.share,
+        api: !!permissions.api,
+        realtime: !!permissions.realtime,
+      };
+    },
+    persistAccountEdits() {
       if (!this.session?.user) {
         return;
       }
       const user = {
         ...this.session.user,
-        lockPassword: account.lockPassword,
-        disableSettings: account.disableSettings,
-        disableUpdateNotifications: account.disableUpdateNotifications,
+        lockPassword: this.editAccount.lockPassword,
+        disableSettings: this.editAccount.disableSettings,
+        disableUpdateNotifications: this.editAccount.disableUpdateNotifications,
+        showAdvancedProfile: this.editAccount.showAdvancedProfile,
         permissions: {
           ...(this.session.user.permissions || {}),
-          ...account.permissions,
+          ...this.editAccount.permissions,
         },
       };
-      updateUserEditSession({ user });
+      const profileUser = cloneUserEditSessionValue(this.session.profileUser || {});
+      const sections = sectionsFromFlatUser(profileUser);
+      sections.account = {
+        ...(sections.account || {}),
+        lockPassword: this.editAccount.lockPassword,
+        disableSettings: this.editAccount.disableSettings,
+        disableUpdateNotifications: this.editAccount.disableUpdateNotifications,
+        showAdvancedProfile: this.editAccount.showAdvancedProfile,
+        permissions: { ...this.editAccount.permissions },
+      };
+      applySectionsToFlatUser(profileUser, sections);
+      updateUserEditSession({ user, profileUser });
+    },
+    onEditAccountChange() {
+      this.persistAccountEdits();
     },
     onPreferenceChange() {
       // profileSections setter persists changes

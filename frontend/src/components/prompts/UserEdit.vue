@@ -1104,7 +1104,26 @@ export default {
       try {
         const session = getUserEditSession();
         if (session) {
+          const newUserCredentials = this.isNew
+            ? {
+                username: this.user.username,
+                password: this.user.password,
+                passwordRef: this.passwordRef,
+              }
+            : null;
           this.applySessionState(session);
+          if (newUserCredentials) {
+            this.user.username = newUserCredentials.username;
+            if (newUserCredentials.password) {
+              this.user.password = newUserCredentials.password;
+            }
+            if (newUserCredentials.passwordRef) {
+              this.passwordRef = newUserCredentials.passwordRef;
+            }
+          }
+        }
+        if (this.isNew && this.canUpdatePassword) {
+          this.user.password = this.passwordRef;
         }
         this.applyEditAccountToUser();
         this.applyProfileUserToFormUser();
