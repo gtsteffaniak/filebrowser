@@ -333,7 +333,6 @@
     "pickIcon": "Výber ikony",
     "pickIconDescription": "Vyhľadajte a vyberte ikonu z knižnice Material Icons",
     "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu",
-    "switchMode": "Prepnúť režim bočného panela",
     "showIndexedUsageDescription": "Zobrazenie lišty používania vypočítanej z indexovaných súborov v zdroji.",
     "showDiskUsageDescription": "Zobrazenie lišty využitia z veľkosti disku/oddielu podľa hlásenia operačného systému. Táto veľkosť bude pravdepodobne väčšia a zahŕňa aj súbory, ktoré nie sú indexované.",
     "usageTextDisplay": "Ktorý text použitia sa má zobraziť?",

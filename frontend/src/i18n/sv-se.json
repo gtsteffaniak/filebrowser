@@ -333,7 +333,6 @@
     "pickIcon": "Välj en ikon",
     "pickIconDescription": "Sök och välj en ikon från Material Icons-biblioteket",
     "linkIconPlaceholder": "Ange eventuellt ett namn på materialikonen",
-    "switchMode": "Växla sidofältsläge",
     "showIndexedUsageDescription": "Visa användningsfältet beräknat från indexerade filer i källan.",
     "showDiskUsageDescription": "Visa användningsstapel från disk-/partitionsstorlek som rapporteras av operativsystemet. Denna storlek är sannolikt större och inkluderar filer som inte är indexerade.",
     "usageTextDisplay": "Vilken användningstext ska visas?",

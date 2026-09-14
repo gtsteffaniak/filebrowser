@@ -333,7 +333,6 @@
     "pickIcon": "Bir Simge Seçin",
     "pickIconDescription": "Material Icons kitaplığından bir simge arayın ve seçin",
     "linkIconPlaceholder": "İsteğe bağlı olarak bir Material simge adı belirtin",
-    "switchMode": "Kenar çubuğu modunu değiştir",
     "showIndexedUsageDescription": "Kaynaktaki dizinlenmiş dosyalardan hesaplanan kullanım çubuğunu görüntüleyin.",
     "showDiskUsageDescription": "İşletim sistemi tarafından bildirilen disk/bölüm boyutundan kullanım çubuğunu görüntüleyin. Bu boyut büyük olasılıkla daha büyük olacaktır ve dizine eklenmemiş dosyaları da içerir.",
     "usageTextDisplay": "Hangi kullanım metni görüntülenmelidir?",

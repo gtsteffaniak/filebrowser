@@ -333,7 +333,6 @@
     "pickIcon": "選擇圖示",
     "pickIconDescription": "從 Material Icons 圖示庫搜尋並選擇圖示",
     "linkIconPlaceholder": "可選填 Material Icon 名稱",
-    "switchMode": "切換側邊欄模式",
     "showIndexedUsageDescription": "顯示從來源中的索引檔案計算出的使用量列。",
     "showDiskUsageDescription": "根據作業系統報告的磁碟/磁碟分割大小顯示使用量列。此大小可能較大，並包括未編制索引的檔案。",
     "usageTextDisplay": "要顯示哪一種使用量文字？",

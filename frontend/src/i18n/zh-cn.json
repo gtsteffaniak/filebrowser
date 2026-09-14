@@ -333,7 +333,6 @@
     "pickIcon": "选择图标",
     "pickIconDescription": "从材质图标库中搜索并选择图标",
     "linkIconPlaceholder": "可选择指定材料图标名称",
-    "switchMode": "切换侧边栏模式",
     "showIndexedUsageDescription": "显示根据源文件中的索引文件计算出的用量条。",
     "showDiskUsageDescription": "根据操作系统报告的磁盘/分区大小显示用量条。该大小可能更大，包括未编入索引的文件。",
     "usageTextDisplay": "应显示哪些使用文本？",

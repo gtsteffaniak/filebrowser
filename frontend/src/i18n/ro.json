@@ -333,7 +333,6 @@
     "pickIcon": "Alegeți o pictogramă",
     "pickIconDescription": "Căutați și selectați o pictogramă din biblioteca Material Icons",
     "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material",
-    "switchMode": "Schimbă modul barei laterale",
     "showIndexedUsageDescription": "Afișează bara de utilizare calculată din fișierele indexate din sursă.",
     "showDiskUsageDescription": "Afișează bara de utilizare din dimensiunea discului/partiției raportată de sistemul de operare. Această dimensiune va fi probabil mai mare și include fișiere care nu sunt indexate.",
     "usageTextDisplay": "Ce text de utilizare ar trebui să fie afișat?",

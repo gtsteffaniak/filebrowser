@@ -333,7 +333,6 @@
     "pickIcon": "Escolha um ícone",
     "pickIconDescription": "Pesquise e selecione um ícone na biblioteca de ícones de materiais",
     "linkIconPlaceholder": "Opcionalmente, especifique um nome de ícone de material",
-    "switchMode": "Mudar modo da barra lateral",
     "showIndexedUsageDescription": "Exibir barra de uso calculada a partir de arquivos indexados na origem.",
     "showDiskUsageDescription": "Exibe a barra de uso do tamanho do disco/partição conforme relatado pelo sistema operacional. Esse tamanho provavelmente será maior e inclui arquivos não indexados.",
     "usageTextDisplay": "Qual texto de uso deve ser exibido?",

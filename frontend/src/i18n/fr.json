@@ -333,7 +333,6 @@
     "pickIcon": "Choisir une icône",
     "pickIconDescription": "Rechercher et sélectionner une icône dans la bibliothèque des icônes matérielles",
     "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau",
-    "switchMode": "Changer le mode de la barre latérale",
     "showIndexedUsageDescription": "Affiche la barre d'utilisation calculée à partir des fichiers indexés dans la source.",
     "showDiskUsageDescription": "Affichage de la barre d'utilisation à partir de la taille du disque/de la partition telle qu'elle est indiquée par le système d'exploitation. Cette taille est probablement plus importante et inclut les fichiers non indexés.",
     "usageTextDisplay": "Quel texte d'utilisation doit être affiché ?",

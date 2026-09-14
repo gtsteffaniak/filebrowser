@@ -333,7 +333,6 @@
     "pickIcon": "Válasszon egy ikont",
     "pickIconDescription": "Keressen és válasszon ki egy ikont az Anyagi ikonok könyvtárból.",
     "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét",
-    "switchMode": "Oldalsáv mód váltása",
     "showIndexedUsageDescription": "A forrásban lévő indexelt fájlokból számított használati sáv megjelenítése.",
     "showDiskUsageDescription": "A lemez/partíció méretéből származó, az operációs rendszer által jelentett használati sáv megjelenítése. Ez a méret valószínűleg nagyobb lesz, és tartalmazza az indexeletlen fájlokat is.",
     "usageTextDisplay": "Milyen használati szöveget kell megjeleníteni?",

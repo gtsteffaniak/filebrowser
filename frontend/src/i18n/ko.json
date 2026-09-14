@@ -333,7 +333,6 @@
     "pickIcon": "아이콘 선택",
     "pickIconDescription": "머티리얼 아이콘 라이브러리에서 아이콘을 검색하고 선택합니다.",
     "linkIconPlaceholder": "선택적으로 머티리얼 아이콘 이름을 지정합니다.",
-    "switchMode": "사이드바 모드 전환",
     "showIndexedUsageDescription": "소스의 인덱싱된 파일에서 계산된 사용량 표시줄을 표시합니다.",
     "showDiskUsageDescription": "OS에서 보고한 디스크/파티션 크기에서 사용량 막대를 표시합니다. 이 크기는 더 클 수 있으며 인덱싱되지 않은 파일도 포함됩니다.",
     "usageTextDisplay": "어떤 사용법 텍스트를 표시해야 하나요?",

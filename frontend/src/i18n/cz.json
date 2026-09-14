@@ -490,7 +490,6 @@
     "pickIcon": "Výběr ikony",
     "pickIconDescription": "Vyhledejte a vyberte ikonu z knihovny Material Icons.",
     "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu",
-    "switchMode": "Přepnout režim postranního panelu",
     "showIndexedUsageDescription": "Zobrazení sloupce využití vypočítaného z indexovaných souborů ve zdroji.",
     "showDiskUsageDescription": "Zobrazení sloupce využití z velikosti disku/oddílu podle hlášení operačního systému. Tato velikost bude pravděpodobně větší a zahrnuje i soubory, které nejsou indexovány.",
     "usageTextDisplay": "Který text použití se má zobrazit?",

@@ -706,8 +706,7 @@
     "sidebarLinkDefaultsDescription": "Configure default and enforced sidebar links for all users.",
     "sidebarLinkDefaultsHelp": "These are the default links that will be added for all new users. If you enforce a link, it will be added for all users and cannot be removed by non-admins.",
     "sidebarLinkDefaultSourceHelp": "Applies only when the user has access to this source.",
-    "sidebarLinkDefaultsYamlInvalid": "Invalid YAML. Check the format and try again.",
-    "switchMode": "Switch sidebar mode"
+    "sidebarLinkDefaultsYamlInvalid": "Invalid YAML. Check the format and try again."
   },
   "api": {
     "title": "API Tokens",

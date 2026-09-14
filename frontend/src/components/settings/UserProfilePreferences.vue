@@ -199,7 +199,7 @@
             value-row
             :name="$t('profileSettings.defaultViewMode')"
             :description="$t('profileSettings.defaultViewModeDescription')"
-            :disabled="fieldDisabled('listing', 'viewMode')"
+            :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
             @click="openDefaultViewPref"
             @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
             @mouseleave="hideTooltip"

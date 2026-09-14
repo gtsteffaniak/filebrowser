@@ -853,7 +853,7 @@ export default {
   margin-top: 1px;
   margin-bottom: 1px;
   flex: 1 1 auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   min-height: 0;
   overscroll-behavior: contain;

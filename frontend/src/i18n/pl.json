@@ -333,7 +333,6 @@
     "pickIcon": "Wybierz ikonę",
     "pickIconDescription": "Wyszukaj i wybierz ikonę z biblioteki Material Icons",
     "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału",
-    "switchMode": "Przełącz tryb panelu bocznego",
     "showIndexedUsageDescription": "Wyświetla pasek użycia obliczony na podstawie zindeksowanych plików w źródle.",
     "showDiskUsageDescription": "Wyświetla pasek użycia na podstawie rozmiaru dysku/partycji zgłoszonego przez system operacyjny. Rozmiar ten będzie prawdopodobnie większy i obejmuje pliki niezindeksowane.",
     "usageTextDisplay": "Jaki tekst użytkowania powinien być wyświetlany?",

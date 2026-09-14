@@ -333,7 +333,6 @@
     "pickIcon": "Escolher um ícone",
     "pickIconDescription": "Procurar e selecionar um ícone na biblioteca de ícones de materiais",
     "linkIconPlaceholder": "Especificar opcionalmente um nome de ícone de material",
-    "switchMode": "Mudar modo da barra lateral",
     "showIndexedUsageDescription": "Apresenta a barra de utilização calculada a partir dos ficheiros indexados na fonte.",
     "showDiskUsageDescription": "Apresenta a barra de utilização a partir do tamanho do disco/partição, conforme indicado pelo SO. Este tamanho será provavelmente maior e inclui ficheiros não indexados.",
     "usageTextDisplay": "Que texto de utilização deve ser apresentado?",
