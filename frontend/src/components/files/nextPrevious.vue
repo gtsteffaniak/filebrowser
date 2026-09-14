@@ -17,79 +17,81 @@
   ></div>
 
   <!-- Previous button -->
-  <Transition name="nav-fade">
-    <button
-      v-if="enabled && hasPrevious && showNav"
-      type="button"
-      @click.prevent="handlePrevClick"
-      @mousedown="startDrag($event, 'previous')"
-      @touchstart="handleTouchStart($event, 'previous')"
-      @touchmove="handleButtonTouchMove"
-      @touchend.prevent="handleTouchEnd"
-      @mouseover="setHoverNav(true)"
-      @mouseleave="setHoverNav(false)"
-      class="nav-button nav-previous"
-      :class="{
-        disabled: !hasPrevious,
-        dragging: dragState.type === 'previous',
-        active: (dragState.atFullExtent && dragState.type === 'previous') || (gestureHint === 'previous' && gestureHintCommitReady),
-        'dark-mode': isDarkMode,
-        'media-mode': isMediaQueueMode,
-        'sidebar-resizing': isSidebarResizing,
-      }"
-      :style="previousButtonStyle"
-      :aria-label="$t('general.previous')"
-      :title="$t('general.previous')"
-    >
-      <i class="material-symbols">
-        {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </i>
-    </button>
-  </Transition>
+  <button
+    v-if="enabled && hasPrevious"
+    ref="prevButton"
+    type="button"
+    :tabindex="showNav ? 0 : -1"
+    @click.prevent="handlePrevClick"
+    @mousedown="startDrag($event, 'previous')"
+    @touchstart="handleTouchStart($event, 'previous')"
+    @touchmove="handleButtonTouchMove"
+    @touchend.prevent="handleTouchEnd"
+    @mouseover="setHoverNav(true)"
+    @mouseleave="setHoverNav(false)"
+    class="nav-button nav-previous"
+    :class="{
+      disabled: !hasPrevious,
+      dragging: dragState.type === 'previous',
+      active: (dragState.atFullExtent && dragState.type === 'previous') || (gestureHint === 'previous' && gestureHintCommitReady),
+      'dark-mode': isDarkMode,
+      'media-mode': isMediaQueueMode,
+      'sidebar-resizing': isSidebarResizing,
+      'nav-button--hidden': !showNav,
+    }"
+    :style="previousButtonStyle"
+    :aria-label="$t('general.previous')"
+    :title="$t('general.previous')"
+  >
+    <i class="material-symbols">
+      {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+    </i>
+  </button>
 
   <!-- Next button -->
-  <Transition name="nav-fade">
-    <button
-      v-if="enabled && hasNext && showNav"
-      type="button"
-      @click.prevent="handleNextClick"
-      @mousedown="startDrag($event, 'next')"
-      @touchstart="handleTouchStart($event, 'next')"
-      @touchmove="handleButtonTouchMove"
-      @touchend.prevent="handleTouchEnd"
-      @mouseover="setHoverNav(true)"
-      @mouseleave="setHoverNav(false)"
-      class="nav-button nav-next"
-      :class="{ dragging: dragState.type === 'next', active: (dragState.atFullExtent && dragState.type === 'next') || (gestureHint === 'next' && gestureHintCommitReady), 'dark-mode': isDarkMode, 'media-mode': isMediaQueueMode}"
-      :style="nextButtonStyle"
-      :aria-label="$t('general.next')"
-      :title="$t('general.next')"
-    >
-      <i class="material-symbols">
-        {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </i>
-    </button>
-  </Transition>
+  <button
+    v-if="enabled && hasNext"
+    ref="nextButton"
+    type="button"
+    :tabindex="showNav ? 0 : -1"
+    @click.prevent="handleNextClick"
+    @mousedown="startDrag($event, 'next')"
+    @touchstart="handleTouchStart($event, 'next')"
+    @touchmove="handleButtonTouchMove"
+    @touchend.prevent="handleTouchEnd"
+    @mouseover="setHoverNav(true)"
+    @mouseleave="setHoverNav(false)"
+    class="nav-button nav-next"
+    :class="{ dragging: dragState.type === 'next', active: (dragState.atFullExtent && dragState.type === 'next') || (gestureHint === 'next' && gestureHintCommitReady), 'dark-mode': isDarkMode, 'media-mode': isMediaQueueMode, 'nav-button--hidden': !showNav }"
+    :style="nextButtonStyle"
+    :aria-label="$t('general.next')"
+    :title="$t('general.next')"
+  >
+    <i class="material-symbols">
+      {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+    </i>
+  </button>
 
   <!-- Close preview (same control as swipe-down / back) -->
-  <Transition name="nav-fade">
-    <button
-      v-if="enabled && showPreviewCloseButton && showCloseNavChrome"
-      type="button"
-      @click.prevent="handleClosePreviewClick"
-      class="nav-button nav-close"
-      :class="{
-        active: gestureHint === 'close' && gestureHintCommitReady,
-        'dark-mode': isDarkMode,
-        'media-mode': isMediaQueueMode,
-        'gesture-flash': gestureHintFlashClose,
-        'sidebar-resizing': isSidebarResizing,
-      }"
-      :style="closeButtonStyle"
-    >
-      <i class="material-symbols">close</i>
-    </button>
-  </Transition>
+  <button
+    v-if="enabled && showPreviewCloseButton"
+    ref="closeButton"
+    type="button"
+    :tabindex="showCloseNavChrome ? 0 : -1"
+    @click.prevent="handleClosePreviewClick"
+    class="nav-button nav-close"
+    :class="{
+      active: gestureHint === 'close' && gestureHintCommitReady,
+      'dark-mode': isDarkMode,
+      'media-mode': isMediaQueueMode,
+      'gesture-flash': gestureHintFlashClose,
+      'sidebar-resizing': isSidebarResizing,
+      'nav-button--hidden': !showCloseNavChrome,
+    }"
+    :style="closeButtonStyle"
+  >
+    <i class="material-symbols">close</i>
+  </button>
 
   <!-- Prefetch links for better performance -->
   <link v-if="previousRaw" rel="prefetch" :href="previousRaw" />
@@ -1101,6 +1103,15 @@ export default {
   transition: none !important; /* Disable transitions during drag */
 }
 
+.nav-button--hidden {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.9);
+}
+
+.nav-button--hidden.nav-close {
+  transform: translateX(-50%) scale(0.9);
+}
+
 .nav-button i.material-symbols {
   font-size: var(--fab-icon-size);
   line-height: 1;
@@ -1131,33 +1142,10 @@ export default {
     right: 8px;
   }
 }
-</style>
-
-<style>
-.nav-fade-enter-active,
-.nav-fade-leave-active {
-  transition: opacity 0.4s ease, transform 0.4s ease !important;
-}
-
-.nav-fade-enter-from,
-.nav-fade-leave-to {
-  opacity: 0 !important;
-}
-
-.nav-fade-enter-from.nav-button,
-.nav-fade-leave-to.nav-button {
-  transform: translateY(-50%) scale(0.9) !important;
-}
-
-.nav-fade-enter-from.nav-button.nav-close,
-.nav-fade-leave-to.nav-button.nav-close {
-  transform: translateX(-50%) scale(0.9) !important;
-}
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-fade-enter-active,
-  .nav-fade-leave-active {
-    transition: opacity 0.01ms, transform 0.01ms !important;
+  .nav-button {
+    transition: background-color var(--fab-transition), box-shadow var(--fab-transition), opacity 0.01ms, transform 0.01ms, left 0.2s ease;
   }
 }
 </style>

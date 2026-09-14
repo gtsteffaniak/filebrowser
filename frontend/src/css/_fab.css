@@ -1,6 +1,6 @@
 :root {
   --fab-size: 50px;
-  --fab-size-small: 35px;
+  --fab-size-small: 36px;
   --fab-icon-size: 24px;
   --fab-edge-offset: 16px;
   --fab-edge-offset-media: 20px;
@@ -15,6 +15,5 @@
 
 /* Reserve space so a persistent bottom-right FAB does not cover table actions */
 .has-fab-bottom-right {
-  padding-bottom: var(--fab-safe-inset);
-  padding-right: var(--fab-safe-inset);
+  margin-bottom: var(--fab-safe-inset);
 }
