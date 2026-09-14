@@ -7,13 +7,13 @@
       <i :class="{ 'disabled': !isLoggedIn }"
         aria-label="Navigate Home"
         @click="goHome()" class="material-symbols action">home</i>
-      <ButtonGroup
-        :key="sidebarModeGroupKey"
-        class="sidebar-mode-group"
-        :buttons="sidebarModeButtons"
-        :initial-active="mode"
-        @button-clicked="onSidebarModeSelect"
-        @remove-button-clicked="onSidebarModeReselect"
+      <ButtonToggle
+        class="sidebar-mode-toggle"
+        :model-value="mode === 'navigation'"
+        :on-label="$t('general.navigation')"
+        :off-label="$t('general.links')"
+        :aria-label="$t('sidebar.switchMode')"
+        @update:model-value="onSidebarModeToggle"
       />
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
@@ -229,7 +229,7 @@ import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import ButtonGroup from "@/components/ButtonGroup.vue";
+import ButtonToggle from "@/components/settings/ButtonToggle.vue";
 export default {
   name: "SidebarLinks",
   components: {
@@ -238,12 +238,11 @@ export default {
     ShareInfo,
     FileTree,
     ExpandDropdown,
-    ButtonGroup,
+    ButtonToggle,
   },
   data() {
     return {
       pressedSourceInfo: null,
-      sidebarModeGroupKey: 0,
     };
   },
   computed: {
@@ -319,12 +318,6 @@ export default {
     },
     mode() {
       return getters.sidebarMode();
-    },
-    sidebarModeButtons() {
-      return [
-        { label: this.$t("general.links"), value: "links" },
-        { label: this.$t("general.navigation"), value: "navigation" },
-      ];
     },
     // Build a map from source name to its custom link (if any)
     sourceLinkMap() {
@@ -681,12 +674,8 @@ export default {
         console.error("Failed to open edit share dialog:", err);
       }
     },
-    onSidebarModeSelect(value) {
-      mutations.setSidebarMode(value);
-    },
-    onSidebarModeReselect(value) {
-      mutations.setSidebarMode(value || this.mode);
-      this.sidebarModeGroupKey += 1;
+    onSidebarModeToggle(isNavigation) {
+      mutations.setSidebarMode(isNavigation ? "navigation" : "links");
     },
     navigateToSource(sourceName) {
       if (!sourceName || sourceName === this.activeSource) {
@@ -725,16 +714,15 @@ export default {
   background: var(--surfaceSecondary);
 }
 
-.sidebar-links-header :deep(.sidebar-mode-group) {
+.sidebar-links-header :deep(.sidebar-mode-toggle) {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
   min-width: 0;
-  margin: 0 0.35em;
-}
-
-.sidebar-links-header :deep(.sidebar-mode-group button) {
-  height: 2.25em;
-  padding: 0 0.5em;
-  font-size: 0.9em;
+  max-width: 100%;
+  margin: 0 0.25em;
 }
 
 .sidebar-links-content {
