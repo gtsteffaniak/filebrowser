@@ -163,6 +163,7 @@ function rewriteHtmlBlockForMd(html: string, filePath: string, source: string): 
 
 export default {
   name: "markdownViewer",
+  inheritAttrs: false,
   components: {
     FloatingActionButton,
   },
