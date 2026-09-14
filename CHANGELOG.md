@@ -14,10 +14,13 @@ All notable changes to this project will be documented in this file. For commit 
    - Administrators can create, edit, view, and delete folder quotas through the interface.
    - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
  - Enhancements to the editor (#2714):
-   - Added a button to open a resizable split view with live editing for markdown files.
+   - Added a floating button to open a resizable split view with live editing for markdown files, the scrolling is synced in both sides and scrolling in single-view modes (the viewer and editor in non-split) now also tries to sync with each other so you don't lose context.
    - Added a toolbar: This toolbar is present on all the files, markdown files will have a richer toolbar with more actions.
-   - Added editor config in UI, to configure some things like word wrap, keybinds, etc. The config prompt is accessible via the toolbar in the three-dots menu.
+     - JSON has a button to toggle between formatted and minified (#2854) (#2566)
+   - Added editor config in UI, that prompt is accessible via the toolbar in the three-dots menu, there you can configure things like:
+     - Word wrap, keybinds, autocompletion, scrollbar, etc.
    - The markdown viewer now supports rendering LaTeX Math and Chemistry formulas.
+   - Improved and fixed some styles that weren't following the app light/dark theme (#2949).
  - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
  - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
  - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
