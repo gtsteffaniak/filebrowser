@@ -7,9 +7,13 @@
   </div>
   <FloatingActionButton
     icon="close"
+    icon-size="1em"
+    size="small"
     position="top-center"
     :slide-in="floatIn"
+    :offset="{ top: '6px' }"
     interactive-zone
+    :auto-hide="false"
     :label="$t('general.close', { suffix: '' })"
     @click="close"
   />

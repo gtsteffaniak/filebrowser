@@ -10,35 +10,33 @@
     @touchstart.passive="handleZoneTouch"
   ></div>
 
-  <Transition name="fab-fade">
-    <button
-      v-if="!autoHide || showButton"
-      type="button"
-      class="fab-button floating"
-      :class="[
-        `fab-button--${position}`,
-        `fab-button--${effectiveSize}`,
-        `fab-button--${variant}`,
-        {
-          'dark-mode': darkMode,
-          'fab-button--extended': extended,
-          'fab-button--slide-in-visible': topCenterVisible,
-        },
-      ]"
-      :style="buttonStyle"
-      :disabled="disabled"
-      @click="handleClick"
-      @touchstart="resetButtonTimer"
-      @pointerenter="setZoneActive(true, $event)"
-      @pointerleave="setZoneActive(false, $event)"
-      :aria-label="label"
-      :title="label"
-    >
-      <i :class="iconOutlined ? 'material-symbols-outlined' : 'material-symbols'">{{ icon }}</i>
-      <span v-if="extended && label" class="fab-label">{{ label }}</span>
-      <span v-if="badge" class="fab-badge">{{ badge }}</span>
-    </button>
-  </Transition>
+  <button
+    type="button"
+    class="fab-button floating"
+    :class="[
+      `fab-button--${position}`,
+      `fab-button--${effectiveSize}`,
+      `fab-button--${variant}`,
+      {
+        'dark-mode': darkMode,
+        'fab-button--extended': extended,
+        'fab-button--slide-in-visible': topCenterVisible,
+        'fab-button--hidden': autoHide && !showButton,
+      },
+    ]"
+    :style="buttonStyle"
+    :disabled="disabled"
+    @click="handleClick"
+    @touchstart="resetButtonTimer"
+    @pointerenter="setZoneActive(true, $event)"
+    @pointerleave="setZoneActive(false, $event)"
+    :aria-label="label"
+    :title="label"
+  >
+    <i :class="iconOutlined ? 'material-symbols-outlined' : 'material-symbols'" :style="iconStyle">{{ icon }}</i>
+    <span v-if="extended && label" class="fab-label">{{ label }}</span>
+    <span v-if="badge" class="fab-badge">{{ badge }}</span>
+  </button>
 </template>
 
 <script lang="ts">
@@ -69,6 +67,10 @@ export default {
     iconOutlined: {
       type: Boolean,
       default: false,
+    },
+    iconSize: {
+      type: [Number, String],
+      default: null,
     },
     extended: {
       type: Boolean,
@@ -160,6 +162,11 @@ export default {
     effectiveSize(): string {
       return this.extended ? "normal" : this.size;
     },
+    iconStyle(): Record<string, string> {
+      if (!this.iconSize) return {};
+      const size = typeof this.iconSize === "number" ? `${this.iconSize}px` : this.iconSize;
+      return { fontSize: size };
+    },
     sharedState() {
       return this.group ? getGroupState(this.group) : null;
     },
@@ -223,6 +230,21 @@ export default {
     slideIn(visible: boolean) {
       if (visible) {
         this.slideInVisible = true;
+      }
+    },
+    autoHide(enabled: boolean) {
+      if (enabled) {
+        if (this.sharedState) {
+          this.sharedState.visible = true;
+        } else {
+          this.buttonVisible = true;
+        }
+        window.addEventListener("pointermove", this.handleGlobalPointerMove, { passive: true });
+        window.addEventListener("touchstart", this.handleGlobalTouchStart, { passive: true });
+        this.resetButtonTimer();
+      } else if (this.buttonTimer) {
+        clearTimeout(this.buttonTimer);
+        this.buttonTimer = null;
       }
     },
   },
@@ -438,6 +460,10 @@ export default {
   pointer-events: none;
 }
 
+.fab-button--hidden {
+  opacity: 0;
+}
+
 .fab-button--extended {
   width: auto;
   min-width: var(--fab-size);
@@ -539,29 +565,6 @@ export default {
 
   .fab-button--top-center.fab-button--slide-in-visible {
     transform: translate(-50%, 1em);
-  }
-}
-</style>
-
-<style>
-.fab-fade-enter-active,
-.fab-fade-leave-active {
-  transition: opacity 0.4s ease !important;
-}
-
-.fab-fade-leave-active {
-  pointer-events: none !important;
-}
-
-.fab-fade-enter-from,
-.fab-fade-leave-to {
-  opacity: 0 !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fab-fade-enter-active,
-  .fab-fade-leave-active {
-    transition: opacity 0.01ms !important;
   }
 }
 </style>
