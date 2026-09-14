@@ -68,6 +68,7 @@ export default {
   name: "Quota",
   components: { ToggleSwitch, ExpandDropdown, QuotaFolderBar, ActivityViewerButton, QuotaCustomLimitInput },
   props: {
+    promptId: { type: [String, Number], default: null },
     item: { type: Object, required: true },
     source: { type: String, required: true },
     path: { type: String, default: "" },

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
+ - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
 
  **New Features**:
  - Added Storage Quotas
@@ -13,10 +14,14 @@ All notable changes to this project will be documented in this file. For commit 
    - Administrators can create, edit, view, and delete folder quotas through the interface.
    - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
  - Enhancements to the editor (#2714):
-   - Added a button to open a resizable split view with live editing for markdown files.
-   - Added a toolbar: This toolbar is present on all the files, markdown files will have a richer toolbar with more actions.
-   - Added editor config in UI, to configure some things like word wrap, keybinds, etc. The config prompt is accessible via the toolbar in the three-dots menu.
+   - Added a floating button to open a resizable split view with live editing for markdown files, the scrolling is synced in both sides and scrolling in single-view modes (the viewer and editor in non-split) now also tries to sync with each other so you don't lose context easily.
+   - Added a toolbar: This toolbar is present on all the files.
+     - JSON files have a button to toggle between formatted and minified versions (#2854) (#2566).
+     - Markdown files have a richer toolbar with lots of quick actions, for example you can now browse, navigate and insert images more easily from your current source.
+   - Added a prompt to configure some editor settings in UI, that prompt is accessible via the toolbar in the three-dots menu, there you can configure things like:
+     - Word wrap, keybinds, autocompletion, scrollbar, etc.
    - The markdown viewer now supports rendering LaTeX Math and Chemistry formulas.
+   - Improved and fixed some styles that weren't following the app light/dark theme (#2949).
  - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
  - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
  - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
@@ -41,6 +46,23 @@ All notable changes to this project will be documented in this file. For commit 
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
  - Added some missing styles in the markdown viewer (#2714)
  - Recaptcha not working (#1925) (#2861)
+ - Fix disk-usage overstatement on virtiofs bind mounts (#2894)
+ - Support non-ASCII share passwords (#2933)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938)
+ - Preserve deleted sidebar links across restarts (#2935)
+ - scope padding to listing view (#2934)
+ 
+
+## v2.0.6
+
+ **Security**:
+ - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
+
+ **Bugfixes**:
+ - Fix disk-usage overstatement on virtiofs bind mounts (#2894) (#2894)
+ - Support non-ASCII share passwords (#2933)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938)
+ - Preserve deleted sidebar links across restarts (#2935)
 
 ## v2.0.5
 
@@ -58,6 +80,7 @@ All notable changes to this project will be documented in this file. For commit 
  - tilde paths for sources were not properly expanded. (eg "~" for home)
  - fixed tooltip not showing up for some circumstances on mobile, improved consistency.
  - a few styling fixes for inconsistencies (#2908)
+ - Disk-usage widget no longer reports PB/TB-scale garbage on Docker Desktop for Mac (virtiofs) bind mounts; space is computed from the filesystem fragment size (`f_frsize`) instead of the optimal-transfer block size (`f_bsize`) on Linux ([#2894](https://github.com/gtsteffaniak/filebrowser/issues/2894)).
 
 ## v2.0.4
 

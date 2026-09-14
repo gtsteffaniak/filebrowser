@@ -5,8 +5,7 @@ import (
 	"fmt"
 )
 
-// currentSchemaVersion is the SQLite schema marker for this codebase (version 2).
-// BoltDB has no schema_version; importing via cmd/migrate builds this SQLite shape directly.
+// currentSchemaVersion is the SQLite schema marker for this codebase.
 const currentSchemaVersion = 2
 
 // Schema creates all tables for the SQLite database
@@ -39,7 +38,6 @@ func createSchema(db *sql.DB) error {
 		expire INTEGER NOT NULL DEFAULT 0,
 		downloads INTEGER NOT NULL DEFAULT 0,
 		password_hash TEXT,
-		token TEXT,
 		user_downloads TEXT,
 		share_settings TEXT NOT NULL,
 		version INTEGER NOT NULL DEFAULT 0
@@ -207,6 +205,9 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 			// Canonical schema is createSchema + Bolt import; no step migrations.
 		case 2:
 			if err := migrateV2(db); err != nil {
+				return err
+			}
+			if err := normalizeLegacyShareTokens(db); err != nil {
 				return err
 			}
 		default:

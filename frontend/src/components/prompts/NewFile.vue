@@ -66,6 +66,10 @@ export default {
     LoadingSpinner,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     base: {
       type: [String, Object, null],
       default: null,

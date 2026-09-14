@@ -21,6 +21,10 @@
 export default {
   name: "generic-prompt",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     title: {
       type: String,
       required: true,

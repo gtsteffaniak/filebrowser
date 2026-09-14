@@ -133,6 +133,10 @@ export default {
   name: "unarchive",
   components: { FileList, LoadingSpinner, ToggleSwitch },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     item: {
       type: Object,
       required: true,

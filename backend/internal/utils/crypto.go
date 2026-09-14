@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -54,6 +56,37 @@ func SetInvalidPasswordHash() error {
 func HashSHA256(data string) string {
 	bytes := sha256.Sum256([]byte(data))
 	return hex.EncodeToString(bytes[:])
+}
+
+// SignHMACSHA256Base64URL returns base64url(payload).base64url(hmac-sha256 signature).
+func SignHMACSHA256Base64URL(key, payload []byte) string {
+	payloadB64 := base64.RawURLEncoding.EncodeToString(payload)
+	mac := hmac.New(sha256.New, key)
+	mac.Write([]byte(payloadB64))
+	signature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	return payloadB64 + "." + signature
+}
+
+// VerifyHMACSHA256Base64URL validates token form and returns the decoded payload.
+func VerifyHMACSHA256Base64URL(key []byte, token string) ([]byte, bool) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 2 {
+		return nil, false
+	}
+	payloadB64, signature := parts[0], parts[1]
+
+	mac := hmac.New(sha256.New, key)
+	mac.Write([]byte(payloadB64))
+	expectedSignature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	if !hmac.Equal([]byte(signature), []byte(expectedSignature)) {
+		return nil, false
+	}
+
+	payload, err := base64.RawURLEncoding.DecodeString(payloadB64)
+	if err != nil {
+		return nil, false
+	}
+	return payload, true
 }
 
 // RandomUint64ID returns a non-zero cryptographically random uint64 (e.g. new user rows after migration).

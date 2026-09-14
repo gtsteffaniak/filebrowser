@@ -297,7 +297,7 @@ export const mutations = {
     }
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
-    window.history.replaceState(null, "", `#${value}`);
+    window.history.replaceState(history.state, "", `#${value}`);
     const container = document.getElementById("main");
     const element = document.getElementById(value);
     if (container && element) {
@@ -1136,7 +1136,6 @@ export const mutations = {
         {
           path: item.path,
           hash: state.shareInfo.hash,
-          token: state.shareInfo.token,
         },
         false,
         typeHint,
@@ -1306,9 +1305,6 @@ export const mutations = {
   },
   setShareInfo: (shareInfo) => {
     const merged = { ...state.shareInfo, ...shareInfo };
-    if (shareInfo.token === undefined && state.shareInfo.token) {
-      merged.token = state.shareInfo.token;
-    }
     if (shareInfo.passwordValid === undefined && state.shareInfo.passwordValid !== undefined) {
       merged.passwordValid = state.shareInfo.passwordValid;
     }

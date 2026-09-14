@@ -191,7 +191,6 @@ export default {
             {
               path: state.shareInfo.subPath,
               hash: state.shareInfo.hash,
-              token: state.shareInfo.token,
             },
             false,
             typeHint,
@@ -205,7 +204,7 @@ export default {
       if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
           const previewPath = removeTrailingSlash(state.req.path);
-          return resourcesApi.getPreviewURLPublic(previewPath, "original");
+          return resourcesApi.getPreviewURLPublic(previewPath, "original", state.req.viewToken);
         }
         return (
           `${resourcesApi.getPreviewURL(
@@ -223,7 +222,6 @@ export default {
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
           },
           false,
           typeHint,
@@ -240,7 +238,6 @@ export default {
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
           },
           [state.req.path],
         );
@@ -255,7 +252,6 @@ export default {
           {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
-            token: state.shareInfo.token,
           },
         );
       }
@@ -605,7 +601,6 @@ export default {
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
-                token: state.shareInfo?.token,
               },
               false,
               typeHint,

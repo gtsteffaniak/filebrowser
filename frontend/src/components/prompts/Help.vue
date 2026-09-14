@@ -185,6 +185,12 @@ import { mutations } from "@/store"; // Import the mutations
 
 export default {
   name: "help",
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   computed: {
     closeTopPrompt() {
       return mutations.closeTopPrompt();

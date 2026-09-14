@@ -3,7 +3,6 @@ package share
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -62,31 +61,34 @@ func prepForFrontendOne(link *Share, viewer *users.User, r *http.Request, public
 	}
 	out.SingleFileShare = snap.IsSingleFileShare()
 	if r != nil && publicHost != "" {
-		out.DownloadURL = PublicShareURL(publicHost, publicScheme, out.Hash, true, snap.Token)
-		out.ShareURL = PublicShareURL(publicHost, publicScheme, out.Hash, false, snap.Token)
+		out.DownloadURL = PublicShareURL(publicHost, publicScheme, out.Hash, true, out.HasPassword)
+		out.ShareURL = PublicShareURL(publicHost, publicScheme, out.Hash, false, out.HasPassword)
 	}
 	return &out
 }
 
 // PublicShareURL builds share/download URLs using pre-resolved host and scheme (see web/proxy.go).
-func PublicShareURL(host, scheme, hash string, isDirectDownload bool, token string) string {
-	tokenParam := ""
-	if token != "" && isDirectDownload {
-		tokenParam = fmt.Sprintf("&token=%s", url.QueryEscape(token))
+func PublicShareURL(host, scheme, hash string, isDirectDownload bool, hasPassword bool) string {
+	if isDirectDownload && hasPassword {
+		if settings.Config.Http.ExternalUrl != "" {
+			return fmt.Sprintf("%s%spublic/share/%s?download=true",
+				settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, hash)
+		}
+		return fmt.Sprintf("%s://%s%spublic/share/%s?download=true", scheme, host, settings.Config.Http.BaseURL, hash)
 	}
 
 	if settings.Config.Http.ExternalUrl != "" {
 		if isDirectDownload {
-			return fmt.Sprintf("%s%spublic/api/resources/download?hash=%s%s",
-				settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, hash, tokenParam)
+			return fmt.Sprintf("%s%spublic/api/resources/download?hash=%s",
+				settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, hash)
 		}
 		return fmt.Sprintf("%s%spublic/share/%s",
 			settings.Config.Http.ExternalUrl, settings.Config.Http.BaseURL, hash)
 	}
 
 	if isDirectDownload {
-		return fmt.Sprintf("%s://%s%spublic/api/resources/download?hash=%s%s",
-			scheme, host, settings.Config.Http.BaseURL, hash, tokenParam)
+		return fmt.Sprintf("%s://%s%spublic/api/resources/download?hash=%s",
+			scheme, host, settings.Config.Http.BaseURL, hash)
 	}
 	return fmt.Sprintf("%s://%s%spublic/share/%s", scheme, host, settings.Config.Http.BaseURL, hash)
 }

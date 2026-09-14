@@ -29,6 +29,10 @@ export default {
   name: "path-picker",
   components: { FileList },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     currentPath: {
       type: String,
       default: "/",

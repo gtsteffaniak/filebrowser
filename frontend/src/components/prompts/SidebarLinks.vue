@@ -21,6 +21,10 @@ export default {
     SidebarLinksEditor,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     context: {
       type: String,
       default: "user",

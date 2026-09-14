@@ -79,7 +79,7 @@ func TestMigrationGraham_gainsAccessAfterScopeMerge(t *testing.T) {
 
 	updateUserScopes(graham)
 	updateSourcePermissions(graham)
-	updateSidebarLinks(graham)
+	updateSidebarLinks(graham, true)
 
 	foundScope := false
 	for _, scope := range graham.BackendScopes {

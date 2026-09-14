@@ -132,6 +132,7 @@ export default {
     ActivityViewerButton,
   },
   props: {
+    promptId: { type: [String, Number], default: null },
     sourceName: { type: String, required: true },
     path: { type: String, required: true, default: "/" }
   },

@@ -251,7 +251,7 @@ export default {
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
         { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
       ];
-      const isJson = state.req.type === "application/json"
+      const isJson = state.req?.type === "application/json"
       if (isJson && getters.sourcePermissions().modify) {
         alwaysAvailable.push({
           id: "formatJSON",
@@ -434,7 +434,6 @@ export default {
       const editor = this.editor;
       if (!editor) return;
       editor.execCommand("selectall");
-      this.focusEditor();
     },
     selectedLineRange() {
       const range = this.editor.getSelectionRange();
@@ -449,10 +448,11 @@ export default {
       if (!editor) return;
       const range = editor.getSelectionRange();
       const selectedText = editor.getSelectedText();
-      const text = selectedText || placeholder;
+      const trailingNewline = selectedText.match(/\r?\n$/)?.[0] || "";
+      const text = selectedText ? selectedText.slice(0, selectedText.length - trailingNewline.length) : placeholder;
       const start = { row: range.start.row, column: range.start.column };
       if (selectedText) {
-        editor.session.replace(range, `${before}${text}${after}`);
+        editor.session.replace(range, `${before}${text}${after}${trailingNewline}`);
       } else {
         editor.session.insert(start, `${before}${text}${after}`);
       }
@@ -465,7 +465,7 @@ export default {
       this.wrapSelection(`<font color="${color}">`, "</font>", this.$t("editor.md.text"));
     },
     applyHighlightColor(color: string) {
-      const style = color ? ` style="background-color: ${color}"` : "";
+      const style = color ? ` style="background-color: ${color}; --mark-color: ${color}"` : "";
       this.wrapSelection(`<mark${style}>`, "</mark>", this.$t("editor.md.highlight"));
     },
     selectedColor(btn: ToolbarButton): string {
@@ -640,6 +640,7 @@ export default {
           end: editor.session.doc.createAnchor(range.end.row, range.end.column),
         },
       };
+      this.editor?.blur();
       mutations.showPrompt({
         name: "pathPicker",
         pinned: true,
@@ -686,7 +687,6 @@ export default {
       const insertionEnd = editor.session.replace(range, text);
       editor.moveCursorTo(insertionEnd.row, insertionEnd.column);
       editor.clearSelection();
-      this.focusEditor();
     },
     onPathPickerCancelled(data: { selectionContextId?: string }) {
       if (!this.pendingSelection || !data || data.selectionContextId !== this.pendingSelection.contextId) {
@@ -753,6 +753,7 @@ export default {
           this.menuPosition = { top: rect.bottom + 4, left: rect.left + rect.width / 2, right: 0 };
         }
       }
+      this.editor?.blur();
       this.openMenu = name;
     },
     closeMenu() {
