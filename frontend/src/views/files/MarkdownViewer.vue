@@ -1001,7 +1001,7 @@ export default {
 }
 
 #markedown-viewer .markdown-content p {
-  line-height: 1.5;
+  line-height: 1.45;
   margin-bottom: 0.85em;
   margin-top: 0;
   text-wrap: pretty;
@@ -1015,6 +1015,7 @@ export default {
 
 #markedown-viewer .markdown-content ul {
   padding-left: 2em; /* base indent for first lvl */
+  padding-bottom: 0.85em;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1028,6 +1029,7 @@ export default {
 #markedown-viewer .markdown-content ol ul,
 #markedown-viewer .markdown-content ol ol {
   padding-left: 2em; /* indent for nested lvls */
+  padding-bottom: 0;
 }
 
 /* line height for list items and any paragraphs inside the nested lvls */
