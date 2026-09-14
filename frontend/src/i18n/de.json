@@ -797,7 +797,11 @@
       "customScrollbar": "Benutzerdefinierte Bildlaufleiste",
       "customScrollbarDescription": "Die native Browser-Bildlaufleiste durch die integrierte Ace-Bildlaufleiste ersetzen",
       "wrapContent": "Lange Zeilen im Editor umbrechen",
-      "wrapContentDescription": "Umbrüche den Editor-Inhalt, damit sehr lange Zeilen immer sichtbar bleiben"
+      "wrapContentDescription": "Umbrüche den Editor-Inhalt, damit sehr lange Zeilen immer sichtbar bleiben",
+      "autocompletion": "Autovervollständigung",
+      "autocompletionDescription": "Aktiviert die Autovervollständigung durch manuelles Drücken von 'Strg + Leertaste'",
+      "liveAutocompletion": "Live-Autovervollständigung",
+      "liveAutocompletionDescription": "Wenn dies aktiviert ist, erscheint das schwebende Autovervollständigungsfeld automatisch während der Eingabe"
     },
     "uninitialized": "Editor konnte nicht initialisiert werden. Bitte neu laden.",
     "saveAbortedMessage": "Speichervorgang abgebrochen. Die aktive Datei ({activeFile}) stimmt nicht mit der zu speichernden Datei ({tryingToSave}) überein.",

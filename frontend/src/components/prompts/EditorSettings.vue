@@ -128,7 +128,7 @@ export default {
       ];
     },
     toggles(): EditorSettingField[] {
-      return [
+      const items: (EditorSettingField | false)[] = [
         { key: "wrapEditorContent", label: this.$t("editor.settings.wrapContent"), desc: this.$t("editor.settings.wrapContentDescription") },
         { key: "showIndentGuides", label: this.$t("editor.settings.showIndentGuides"), desc: this.$t("editor.settings.showIndentGuidesDescription") },
         { key: "showGutter", label: this.$t("editor.settings.showGutter"), desc: this.$t("editor.settings.showGutterDescription") },
@@ -136,7 +136,14 @@ export default {
         { key: "showLineNumbers", label: this.$t("editor.settings.showLineNumbers"), desc: this.$t("editor.settings.showLineNumbersDescription") },
         { key: "relativeLineNumbers", label: this.$t("editor.settings.relativeLineNumbers"), desc: this.$t("editor.settings.relativeLineNumbersDescription") },
         { key: "customScrollbar", label: this.$t("editor.settings.customScrollbar"), desc: this.$t("editor.settings.customScrollbarDescription") },
+        { key: "enableAutocompletion", label: this.$t("editor.settings.autocompletion"), desc: this.$t("editor.settings.autocompletionDescription") },
+        this.config.enableAutocompletion && {
+          key: "enableLiveAutocompletion",
+          label: this.$t("editor.settings.liveAutocompletion"),
+          desc: this.$t("editor.settings.liveAutocompletionDescription"),
+        },
       ];
+      return items.filter((item): item is EditorSettingField => item !== false);
     },
   },
   methods: {

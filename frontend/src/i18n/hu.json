@@ -797,7 +797,11 @@
       "customScrollbar": "Egyéni görgetősáv",
       "customScrollbarDescription": "A böngésző natív görgetősávjának cseréje az Ace beépítettjére",
       "wrapContent": "Hosszú sorok tördelése a szerkesztőben",
-      "wrapContentDescription": "Tördeli a szerkesztő tartalmát, hogy a nagyon hosszú sorok mindig láthatóak maradjanak"
+      "wrapContentDescription": "Tördeli a szerkesztő tartalmát, hogy a nagyon hosszú sorok mindig láthatóak maradjanak",
+      "autocompletion": "Automatikus kiegészítés",
+      "autocompletionDescription": "Engedélyezi az automatikus kiegészítést a 'ctrl + space' manuális megnyomásával",
+      "liveAutocompletion": "Élő automatikus kiegészítés",
+      "liveAutocompletionDescription": "Ha ez engedélyezve van, a lebegő automatikus kiegészítő doboz automatikusan megjelenik gépelés közben"
     },
     "uninitialized": "A szerkesztő inicializálása nem sikerült. Kérjük, töltse újra.",
     "saveAbortedMessage": "A mentési művelet megszakadt. Az alkalmazás aktív fájlja ({activeFile}) nem egyezik a menteni kívánt fájllal ({tryingToSave}).",

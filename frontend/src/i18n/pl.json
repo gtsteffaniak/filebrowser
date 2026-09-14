@@ -797,7 +797,11 @@
       "customScrollbar": "Niestandardowy pasek przewijania",
       "customScrollbarDescription": "Zamień natywny pasek przewijania przeglądarki na wbudowany pasek Ace",
       "wrapContent": "Zawijanie długich wierszy w edytorze",
-      "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne"
+      "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
+      "autocompletion": "Autouzupełnianie",
+      "autocompletionDescription": "Włącza autouzupełnianie poprzez ręczne naciśnięcie 'ctrl + space'",
+      "liveAutocompletion": "Autouzupełnianie na żywo",
+      "liveAutocompletionDescription": "Gdy jest włączone, pływające pole autouzupełniania pojawi się automatycznie podczas pisania"
     },
     "uninitialized": "Nie udało się zainicjować edytora. Proszę przeładować.",
     "saveAbortedMessage": "Operacja zapisu została przerwana. Aktywny plik aplikacji ({activeFile}) nie pasuje do pliku, który próbujesz zapisać ({tryingToSave}).",

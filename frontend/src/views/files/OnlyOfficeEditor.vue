@@ -27,6 +27,7 @@ import FloatingActionButton from "@/components/settings/FloatingActionButton.vue
 
 export default {
   name: "onlyOfficeEditor",
+  inheritAttrs: false,
   components: {
     DocumentEditor,
     FloatingActionButton,

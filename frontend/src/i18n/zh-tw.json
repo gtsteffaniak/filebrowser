@@ -799,7 +799,11 @@
       "customScrollbar": "自訂捲動條",
       "customScrollbarDescription": "將原生瀏覽器的捲動列替換為 Ace 內建的捲動列",
       "wrapContent": "在編輯器中讓長行自動換行",
-      "wrapContentDescription": "將編輯器內容進行換行處理，以確保非常長的行始終可見"
+      "wrapContentDescription": "將編輯器內容進行換行處理，以確保非常長的行始終可見",
+      "autocompletion": "自動補全",
+      "autocompletionDescription": "透過手動按下 'ctrl + space' 啟用自動補全",
+      "liveAutocompletion": "即時自動補全",
+      "liveAutocompletionDescription": "啟用後，浮動自動補全方塊將在您輸入時自動出現"
     },
     "splitView": "分屏視圖",
     "exitSplitView": "退出分屏檢視",

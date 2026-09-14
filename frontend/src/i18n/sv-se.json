@@ -797,7 +797,11 @@
       "customScrollbar": "Anpassad rullningslist",
       "customScrollbarDescription": "Byt ut webbläsarens inbyggda rullningslist mot Ace:s inbyggda",
       "wrapContent": "Bryt långa rader i redigeraren",
-      "wrapContentDescription": "Bryter redigerarens innehåll så att mycket långa rader alltid är synliga"
+      "wrapContentDescription": "Bryter redigerarens innehåll så att mycket långa rader alltid är synliga",
+      "autocompletion": "Autokomplettering",
+      "autocompletionDescription": "Aktiverar autokomplettering genom att manuellt trycka på 'ctrl + space'",
+      "liveAutocompletion": "Live-autokomplettering",
+      "liveAutocompletionDescription": "När detta är aktiverat visas den flytande autokompletteringsrutan automatiskt medan du skriver"
     },
     "uninitialized": "Kunde inte initiera redigeraren. Ladda om.",
     "saveAbortedMessage": "Sparåtgärd avbruten. Applikationens aktiva fil ({activeFile}) matchar inte filen du försöker spara ({tryingToSave}).",

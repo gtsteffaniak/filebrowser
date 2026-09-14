@@ -14,6 +14,8 @@ export interface EditorConfig {
   showLineNumbers: boolean;
   relativeLineNumbers: boolean;
   customScrollbar: boolean;
+  enableAutocompletion: boolean;
+  enableLiveAutocompletion: boolean;
 }
 
 const DEFAULTS: EditorConfig = {
@@ -27,6 +29,8 @@ const DEFAULTS: EditorConfig = {
   showLineNumbers: true,
   relativeLineNumbers: false,
   customScrollbar: false,
+  enableAutocompletion: true,
+  enableLiveAutocompletion: false,
 };
 
 function load(): EditorConfig {

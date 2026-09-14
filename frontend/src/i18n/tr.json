@@ -797,7 +797,11 @@
       "customScrollbar": "Özel kaydırma çubuğu",
       "customScrollbarDescription": "Tarayıcının yerel kaydırma çubuğunu Ace'in yerleşik olanıyla değiştir",
       "wrapContent": "Düzenleyicide uzun satırları kaydır",
-      "wrapContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar"
+      "wrapContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar",
+      "autocompletion": "Otomatik tamamlama",
+      "autocompletionDescription": "Manuel olarak 'ctrl + space' tuşlarına basarak otomatik tamamlamayı etkinleştirir",
+      "liveAutocompletion": "Canlı otomatik tamamlama",
+      "liveAutocompletionDescription": "Bu etkinleştirildiğinde, yazarken yüzen otomatik tamamlama kutusu otomatik olarak görünecektir"
     },
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
     "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın aktif dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",

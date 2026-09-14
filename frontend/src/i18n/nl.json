@@ -806,7 +806,11 @@
       "customScrollbar": "Aangepaste schuifbalk",
       "customScrollbarDescription": "Vervang de native browser-schuifbalk door de ingebouwde van Ace",
       "wrapContent": "Lange regels in de editor laten doorlopen",
-      "wrapContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven"
+      "wrapContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven",
+      "autocompletion": "Automatische aanvulling",
+      "autocompletionDescription": "Schakelt automatische aanvulling in door handmatig op 'ctrl + space' te drukken",
+      "liveAutocompletion": "Live automatische aanvulling",
+      "liveAutocompletionDescription": "Wanneer dit is ingeschakeld, verschijnt het zwevende automatische aanvullingsvak automatisch tijdens het typen"
     },
     "uninitialized": "Kan editor niet initialiseren. Herlaad de pagina.",
     "saveAbortedMessage": "Opslagactie geannuleerd. Het actieve bestand van de applicatie ({activeFile}) komt niet overeen met het bestand dat u probeert op te slaan ({tryingToSave}).",

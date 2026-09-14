@@ -797,7 +797,11 @@
       "customScrollbar": "自定义滚动条",
       "customScrollbarDescription": "将浏览器的原生滚动条替换为 Ace 内置滚动条",
       "wrapContent": "在编辑器中换行长行",
-      "wrapContentDescription": "换行编辑器内容，使很长的行始终保持可见"
+      "wrapContentDescription": "换行编辑器内容，使很长的行始终保持可见",
+      "autocompletion": "自动补全",
+      "autocompletionDescription": "通过手动按 'ctrl + space' 启用自动补全",
+      "liveAutocompletion": "实时自动补全",
+      "liveAutocompletionDescription": "启用后，浮动自动补全框将在您输入时自动出现"
     },
     "uninitialized": "初始化编辑器失败。请重新加载。",
     "saveAbortedMessage": "保存操作已中止。应用程序的活动文件 ({activeFile}) 与您尝试保存的文件 ({tryingToSave}) 不匹配。",

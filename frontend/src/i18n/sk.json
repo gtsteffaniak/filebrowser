@@ -797,7 +797,11 @@
       "customScrollbar": "Vlastný posuvník",
       "customScrollbarDescription": "Nahradí natívny posuvník prehliadača vstavaným posuvníkom Ace",
       "wrapContent": "Zalamovať dlhé riadky v editore",
-      "wrapContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné"
+      "wrapContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné",
+      "autocompletion": "Automatické dopĺňanie",
+      "autocompletionDescription": "Povolí automatické dopĺňanie manuálnym stlačením 'ctrl + space'",
+      "liveAutocompletion": "Živé automatické dopĺňanie",
+      "liveAutocompletionDescription": "Keď je táto možnosť povolená, plávajúce pole automatického dopĺňania sa zobrazí automaticky počas písania"
     },
     "uninitialized": "Nepodarilo sa inicializovať editor. Obnovte stránku.",
     "saveAbortedMessage": "Ukladanie bolo prerušené. Aktívny súbor aplikácie ({activeFile}) sa nezhoduje so súborom, ktorý sa pokúšate uložiť ({tryingToSave}).",
