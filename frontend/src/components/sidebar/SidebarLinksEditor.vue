@@ -1516,7 +1516,7 @@ export default {
 
 .yaml-editor-container {
   flex: 1 1 auto;
-  min-height: 40vh;
+  min-height: 85%;
   display: flex;
   flex-direction: column;
 }
