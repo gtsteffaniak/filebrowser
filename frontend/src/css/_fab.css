@@ -13,8 +13,7 @@
   --fab-safe-inset: calc(var(--fab-size) + 2rem);
 }
 
-/* Reserve space so a persistent bottom-right FAB does not cover table actions */
+/* Reserve space so a persistent bottom-right FAB does not cover the last table rows */
 .has-fab-bottom-right {
   padding-bottom: var(--fab-safe-inset);
-  padding-right: var(--fab-safe-inset);
 }

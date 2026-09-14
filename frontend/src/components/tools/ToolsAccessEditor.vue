@@ -3,45 +3,39 @@
     <p v-if="description">{{ description }}</p>
     <div class="settings-items tools-access-list">
       <div v-for="entry in displayEntries" :key="entry.toolId" class="tool-access-item">
-        <div class="tool-access-header">
-          <i class="material-symbols tool-access-icon">{{ entry.icon }}</i>
-          <div class="tool-access-text">
-            <span class="tool-access-name">{{ entry.name }}</span>
-            <span v-if="entry.description" class="tool-access-description">{{ entry.description }}</span>
-          </div>
-        </div>
+        <i class="material-symbols tool-access-icon" aria-hidden="true">{{ entry.icon }}</i>
         <ToggleSwitch
-          class="item"
+          class="item tool-access-toggle"
           :enforceable="isDefaultsMode"
           :model-value="entry.enabled"
           :enforced="entry.enforced"
           :disabled="disabled || entry.toggleDisabled"
           :value-tooltip="entry.toggleTooltip"
           :name="entry.name"
-          :description="entry.toggleDescription"
+          :description="entry.description || entry.toggleDescription"
           @update:model-value="(value) => onEnabledChange(entry.toolId, value)"
           @update:enforced="(value) => onEnforcedChange(entry.toolId, value)"
         />
       </div>
     </div>
-    <div v-if="showPromptActions" class="card-actions">
-      <button
-        type="button"
-        class="button button--flat button--grey"
-        :disabled="disabled"
-        @click="$emit('cancel')"
-      >
-        {{ $t("general.cancel") }}
-      </button>
-      <button
-        type="button"
-        class="button button--flat"
-        :disabled="disabled"
-        @click="$emit('save')"
-      >
-        {{ $t("general.save") }}
-      </button>
-    </div>
+  </div>
+  <div v-if="showPromptActions" class="card-actions">
+    <button
+      type="button"
+      class="button button--flat"
+      :disabled="disabled"
+      @click="$emit('cancel')"
+    >
+      {{ $t("general.cancel") }}
+    </button>
+    <button
+      type="button"
+      class="button button--flat button--blue"
+      :disabled="disabled"
+      @click="$emit('save')"
+    >
+      {{ $t("general.save") }}
+    </button>
   </div>
 </template>
 
@@ -84,18 +78,26 @@ export default {
       type: Boolean,
       default: false,
     },
+    promptShell: {
+      type: Boolean,
+      default: null,
+    },
   },
   emits: ["update:modelValue", "update:userToolAccess", "save", "cancel"],
   computed: {
     isDefaultsMode() {
       return this.mode === "defaults";
     },
+    usesPromptShell() {
+      if (this.promptShell !== null) {
+        return this.promptShell;
+      }
+      return this.embedded;
+    },
     rootClass() {
       const classes = ["tools-access-editor"];
-      if (this.embedded) {
+      if (this.usesPromptShell) {
         classes.push("card-content", "prompt-panel");
-      } else {
-        classes.push("card-content");
       }
       return classes;
     },
@@ -196,9 +198,6 @@ export default {
 .tools-access-editor {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
   gap: 0.75rem;
 }
 
@@ -206,44 +205,38 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
 }
 
 .tool-access-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35em;
+  padding-left: 0.75em;
+  border-radius: var(--borderRadius);
+  transition: background-color 0.15s ease;
 }
 
-.tool-access-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+.tools-access-list > .tool-access-item:hover {
+  background-color: var(--surfaceSecondary);
+}
+
+.tool-access-item:hover :deep(.toggle-container--enforceable),
+.tool-access-item:hover :deep(.toggle-container--enforceable:hover) {
+  background-color: transparent;
 }
 
 .tool-access-icon {
+  flex-shrink: 0;
   color: var(--primaryColor);
 }
 
-.tool-access-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+.tool-access-toggle {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.tool-access-name {
-  font-weight: 500;
-}
-
-.tool-access-description {
-  font-size: 0.9em;
-  color: var(--textSecondary);
-}
-
-.tools-access-editor .card-actions {
-  flex-shrink: 0;
-  margin-top: auto;
+.tool-access-toggle :deep(.toggle-container--enforceable) {
+  padding: 0;
 }
 </style>

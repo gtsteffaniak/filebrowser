@@ -845,14 +845,18 @@ export default {
 }
 
 .floating-window > :deep(.card-content) {
+  position: relative;
+  z-index: 1;
   padding: 0.5em;
   padding-top: 3.5em;
   padding-bottom: 3.5em;
   margin-top: 1px;
   margin-bottom: 1px;
-  flex-grow: 1;
-  overflow: auto;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   min-height: 0;
+  overscroll-behavior: contain;
 }
 
 /* No buttons variant - removes bottom padding */
@@ -873,6 +877,7 @@ export default {
 
 .floating-window > :deep(.card-actions) {
   position: absolute;
+  z-index: 10;
   bottom: 0;
   left: 0;
   right: 0;

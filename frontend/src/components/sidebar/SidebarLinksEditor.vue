@@ -110,9 +110,15 @@
       <div v-else>
         <h3>{{ editingIndex !== null ? $t('sidebar.editLink') : $t('sidebar.addNewLink') }}</h3>
 
-        <div v-if="isDefaultsMode" class="settings-items">
+        <div v-if="isDefaultsMode" class="sidebar-link-default-edit-row">
+          <div v-if="newLink.category === 'divider'" class="link-icon">
+            <i class="material-symbols">horizontal_rule</i>
+          </div>
+          <div v-else class="link-icon">
+            <i :class="getIconClass(newLink.icon)">{{ newLink.icon || "link" }}</i>
+          </div>
           <ToggleSwitch
-            class="item"
+            class="item sidebar-link-default-toggle"
             enforceable
             :model-value="editMeta.enabled"
             :enforced="editMeta.enforced"
@@ -385,6 +391,15 @@
     <template v-else-if="showPromptActions">
       <button
         type="button"
+        class="button button--flat"
+        :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')"
+        @click="$emit('cancel')"
+      >
+        {{ $t("general.cancel") }}
+      </button>
+      <button
+        type="button"
         aria-label="Save Links"
         class="button button--flat button--blue"
         :disabled="disabled"
@@ -460,8 +475,12 @@ export default {
       type: Boolean,
       default: false,
     },
+    promptShell: {
+      type: Boolean,
+      default: null,
+    },
   },
-  emits: ["update:modelValue", "change", "save"],
+  emits: ["update:modelValue", "change", "save", "cancel", "sub-flow-change"],
   beforeUnmount() {
     this.dragReorder.cancel();
   },
@@ -649,11 +668,18 @@ export default {
       const target = this.newLink.target || "/";
       return `${this.getCategoryLabel(this.newLink.category)} · ${target}`;
     },
+    usesPromptShell() {
+      if (this.promptShell !== null) {
+        return this.promptShell;
+      }
+      return this.embedded;
+    },
+    inSubFlow() {
+      return this.yamlMode || this.isSelectingPath || this.showAddForm;
+    },
     rootClass() {
       const classes = ["sidebar-links-content"];
-      if (this.yamlMode) {
-        classes.unshift("card-content", "prompt-panel");
-      } else {
+      if (this.usesPromptShell) {
         classes.unshift("card-content");
       }
       return classes.join(" ");
@@ -669,6 +695,14 @@ export default {
         return true;
       }
       return this.showPromptActions;
+    },
+  },
+  watch: {
+    inSubFlow: {
+      handler(value) {
+        this.$emit("sub-flow-change", value);
+      },
+      immediate: true,
     },
   },
   async mounted() {
@@ -1282,12 +1316,19 @@ export default {
 <style scoped>
 
 .settings-items {
-  margin-top: 0.5em;
+  margin-top: 0;
   margin-bottom: 0.5em;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .padding-top {
   margin-top: 0.5em;
+}
+
+.links-list {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .links-list h3,
@@ -1315,6 +1356,8 @@ export default {
   flex-direction: column;
   padding-bottom: 0.5em;
   gap: 0.5em;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Link item styles */
@@ -1322,8 +1365,16 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5em;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: var(--surfaceSecondary);
-  transition: opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.link-item.input:hover {
+  border-color: var(--surfaceSecondary);
 }
 
 .link-item.dragging {
@@ -1350,8 +1401,16 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.25em;
-  flex-grow: 1;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.link-name,
+.link-category {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .link-name {
@@ -1367,6 +1426,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.5em;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .add-link-button {
@@ -1378,9 +1439,13 @@ export default {
 }
 
 .sidebar-links-body {
-  padding: 0 6px;
-  margin: 0 -6px;
-  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .add-link-form {
@@ -1408,17 +1473,45 @@ export default {
   flex: 1;
 }
 
-.sidebar-links-content.prompt-panel {
+.sidebar-links-content {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sidebar-links-content > p {
+  width: 100%;
+  margin: 0 0 0.5em;
+  box-sizing: border-box;
+}
+
+.sidebar-links-content .settings-items :deep(.item),
+.sidebar-links-content .settings-items :deep(.toggle-container) {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.sidebar-link-default-edit-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.75em;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-link-default-toggle {
   flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .sidebar-links-editor-header {
   flex: 0 0 auto;
+  min-width: 0;
+}
+
+.sidebar-links-content .settings-items {
+  min-width: 0;
+  align-self: stretch;
 }
 
 .yaml-editor-container {

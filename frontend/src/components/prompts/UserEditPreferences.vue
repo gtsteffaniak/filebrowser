@@ -1,5 +1,5 @@
 <template>
-  <div class="card-content prompt-panel user-edit-preferences-prompt">
+  <div class="card-content user-edit-preferences-prompt">
     <UserDefaultsAccountSection
       v-if="session"
       :enforceable="false"
@@ -20,11 +20,17 @@
       :show-thumbnail-master="false"
       @change="onPreferenceChange"
     />
-    <div class="card-actions">
-      <button type="button" class="button button--flat" @click="closeTopPrompt">
-        {{ $t("general.close") }}
-      </button>
-    </div>
+  </div>
+  <div class="card-actions">
+    <button
+      type="button"
+      class="button button--flat"
+      :aria-label="$t('general.close')"
+      :title="$t('general.close')"
+      @click="closeTopPrompt"
+    >
+      {{ $t("general.close") }}
+    </button>
   </div>
 </template>
 
@@ -157,9 +163,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.user-edit-preferences-prompt .card-actions {
-  margin-top: 1rem;
-}
-</style>
