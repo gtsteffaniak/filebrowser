@@ -15,6 +15,5 @@
 
 /* Reserve space so a persistent bottom-right FAB does not cover table actions */
 .has-fab-bottom-right {
-  padding-bottom: var(--fab-safe-inset);
-  padding-right: var(--fab-safe-inset);
+  margin-bottom: var(--fab-safe-inset);
 }
