@@ -115,7 +115,8 @@ export async function openUserEditPreferences(page: Page, editModal: Locator): P
 /** Close the nested user preferences editor and return to the main user edit prompt. */
 export async function closeUserEditPreferences(page: Page): Promise<void> {
   const prefsModal = userEditPreferencesModal(page);
-  await prefsModal.getByRole("button", { name: "Close" }).click();
+  // Nested prompts also render a `.prompt-close` control; use the panel footer action.
+  await prefsModal.locator(".card-actions").getByRole("button", { name: "Close" }).click();
   await expect(prefsModal).not.toBeVisible();
 }
 
