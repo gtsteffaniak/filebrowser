@@ -19,7 +19,9 @@
   <!-- Previous button -->
   <button
     v-if="enabled && hasPrevious"
+    ref="prevButton"
     type="button"
+    :tabindex="showNav ? 0 : -1"
     @click.prevent="handlePrevClick"
     @mousedown="startDrag($event, 'previous')"
     @touchstart="handleTouchStart($event, 'previous')"
@@ -49,7 +51,9 @@
   <!-- Next button -->
   <button
     v-if="enabled && hasNext"
+    ref="nextButton"
     type="button"
+    :tabindex="showNav ? 0 : -1"
     @click.prevent="handleNextClick"
     @mousedown="startDrag($event, 'next')"
     @touchstart="handleTouchStart($event, 'next')"
@@ -71,7 +75,9 @@
   <!-- Close preview (same control as swipe-down / back) -->
   <button
     v-if="enabled && showPreviewCloseButton"
+    ref="closeButton"
     type="button"
+    :tabindex="showCloseNavChrome ? 0 : -1"
     @click.prevent="handleClosePreviewClick"
     class="nav-button nav-close"
     :class="{

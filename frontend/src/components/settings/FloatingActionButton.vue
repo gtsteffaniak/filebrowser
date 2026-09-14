@@ -11,6 +11,7 @@
   ></div>
 
   <button
+    ref="fabButton"
     type="button"
     class="fab-button floating"
     :class="[
@@ -26,6 +27,7 @@
     ]"
     :style="buttonStyle"
     :disabled="disabled"
+    :tabindex="autoHide && !showButton ? -1 : 0"
     @click="handleClick"
     @touchstart="resetButtonTimer"
     @pointerenter="setZoneActive(true, $event)"
