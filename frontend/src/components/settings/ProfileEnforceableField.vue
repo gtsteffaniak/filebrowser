@@ -3,15 +3,18 @@
     class="profile-enforceable-field"
     :class="enforceable ? 'toggle-container toggle-container--enforceable item' : 'preference-field-block'"
   >
-    <div
-      class="profile-enforceable-field__value"
-      :class="{ 'toggle-row toggle-row--value border-radius': enforceable }"
-    >
-      <slot />
-    </div>
     <template v-if="enforceable">
+      <div
+        class="toggle-row toggle-row--value border-radius"
+        :class="{ 'profile-enforceable-field__value--stacked': stacked }"
+      >
+        <slot />
+      </div>
       <slot name="enforce" />
     </template>
+    <div v-else class="profile-enforceable-field__value">
+      <slot />
+    </div>
   </div>
 </template>
 
@@ -22,6 +25,11 @@ export default {
     enforceable: {
       type: Boolean,
       default: false,
+    },
+    /** Multi-line value block (heading + control). False for SettingsButton value rows. */
+    stacked: {
+      type: Boolean,
+      default: true,
     },
   },
 };
@@ -34,31 +42,19 @@ export default {
 }
 
 .profile-enforceable-field.toggle-container--enforceable {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.35em;
-  padding: 0.35em;
-  border-radius: var(--borderRadius);
-  transition: background-color 0.15s ease;
   font-size: 1rem;
 }
 
-.profile-enforceable-field.toggle-container--enforceable:hover {
-  background-color: var(--surfaceSecondary);
-}
-
-.profile-enforceable-field.toggle-container--enforceable .profile-enforceable-field__value {
-  display: flex;
+.profile-enforceable-field.toggle-container--enforceable :deep(.toggle-row--value.profile-enforceable-field__value--stacked) {
   flex-direction: column;
-  gap: 0.5em;
-  min-height: 3.25em;
-  padding: 0.5em 1em;
+  align-items: stretch;
   justify-content: center;
+  gap: 0.5em;
 }
 
-.profile-enforceable-field.toggle-container--enforceable .toggle-row {
-  box-sizing: border-box;
+.profile-enforceable-field.toggle-container--enforceable :deep(.toggle-row--value:not(.profile-enforceable-field__value--stacked) > *) {
+  width: 100%;
+  min-width: 0;
 }
 
 .profile-enforceable-field.toggle-container--enforceable:hover :deep(.profile-enforce-row),

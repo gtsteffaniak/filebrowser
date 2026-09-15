@@ -1,0 +1,27 @@
+/* Shared settings list rows (profile, prompts, Settings view). */
+.settings-items > .item {
+  padding: 1em;
+  border-radius: 1em;
+}
+
+.settings-items > .item:hover {
+  background-color: var(--surfaceSecondary);
+}
+
+/* Enforceable preference groups (ToggleSwitch, ProfileEnforceableField). */
+.settings-items > .item.toggle-container--enforceable {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.settings-items > .item.toggle-container--enforceable .toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 3.25em;
+  padding: 0;
+}

@@ -194,7 +194,10 @@
           :name="$t('profileSettings.deleteAfterArchive')"
           :description="$t('profileSettings.deleteAfterArchiveDescription')"
         />
-        <ProfileEnforceableField :enforceable="enforceable">
+        <ProfileEnforceableField
+          :enforceable="enforceable"
+          :stacked="false"
+        >
           <SettingsButton
             value-row
             :name="$t('profileSettings.defaultViewMode')"
@@ -213,7 +216,10 @@
             />
           </template>
         </ProfileEnforceableField>
-        <ProfileEnforceableField :enforceable="enforceable">
+        <ProfileEnforceableField
+          :enforceable="enforceable"
+          :stacked="false"
+        >
           <SettingsButton
             value-row
             :name="$t('prompts.newFileTemplate')"

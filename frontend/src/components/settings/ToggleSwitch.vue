@@ -218,20 +218,8 @@ export default {
 .toggle-container--enforceable {
   flex-direction: column;
   align-items: stretch;
-  gap: 0.35em;
-  padding: 0.35em;
-  border-radius: var(--borderRadius);
-  transition: background-color 0.15s ease;
-}
-
-.toggle-container--enforceable:hover {
-  background-color: var(--surfaceSecondary);
-}
-
-.toggle-container--enforceable .toggle-row {
-  box-sizing: border-box;
-  min-height: 3.25em;
-  padding: 0.5em 1em;
+  gap: 0;
+  padding: 0;
 }
 
 .toggle-row {

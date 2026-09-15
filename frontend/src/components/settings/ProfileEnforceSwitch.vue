@@ -67,19 +67,7 @@ export default {
 
 <style scoped>
 .profile-enforce-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 3.25em;
-  padding: 0.5em 1em;
   margin-top: 0;
-  transition: background-color 0.15s ease;
-}
-
-.profile-enforce-row:hover {
-  background-color: var(--surfaceSecondary);
 }
 
 .profile-enforce-row.disabled {
