@@ -198,15 +198,17 @@
           :enforceable="enforceable"
           :stacked="false"
         >
-          <SettingsButton
-            value-row
-            :name="$t('profileSettings.defaultViewMode')"
-            :description="$t('profileSettings.defaultViewModeDescription')"
-            :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
-            @click="openDefaultViewPref"
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
-            @mouseleave="hideTooltip"
-          />
+          <div class="settings-items">
+            <SettingsButton
+              value-row
+              :name="$t('profileSettings.defaultViewMode')"
+              :description="$t('profileSettings.defaultViewModeDescription')"
+              :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
+              @click="openDefaultViewPref"
+              @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
+              @mouseleave="hideTooltip"
+            />
+          </div>
           <template #enforce>
             <ProfileEnforceSwitch
               :visible="enforceable"
@@ -220,15 +222,17 @@
           :enforceable="enforceable"
           :stacked="false"
         >
-          <SettingsButton
-            value-row
-            :name="$t('prompts.newFileTemplate')"
-            :description="$t('prompts.newFileTemplateMessage')"
-            :disabled="fieldDisabled('listing', 'newFileTemplate')"
-            @click="openNewFileTemplateEditor"
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'newFileTemplate')"
-            @mouseleave="hideTooltip"
-          />
+          <div class="settings-items">
+            <SettingsButton
+              value-row
+              :name="$t('prompts.newFileTemplate')"
+              :description="$t('prompts.newFileTemplateMessage')"
+              :disabled="fieldDisabled('listing', 'newFileTemplate')"
+              @click="openNewFileTemplateEditor"
+              @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'newFileTemplate')"
+              @mouseleave="hideTooltip"
+            />
+          </div>
           <template #enforce>
             <ProfileEnforceSwitch
               :visible="enforceable"
@@ -581,7 +585,7 @@
             />
       </template>
     </ProfileEnforceableField>
-          <div class="settings-items">
+          <div class="settings-items file-viewer-debug-office">
             <ProfilePreferenceToggle
               field="debugOffice"
               section="fileViewer"
@@ -590,7 +594,7 @@
             />
           </div>
         </div>
-        <div v-else class="settings-items">
+        <div v-else class="settings-items file-viewer-debug-office">
           <ProfilePreferenceToggle
             field="debugOffice"
             section="fileViewer"
@@ -600,7 +604,7 @@
         </div>
       </template>
       <template v-else>
-        <div class="settings-items">
+        <div class="settings-items file-viewer-debug-office">
           <ProfilePreferenceToggle
             field="debugOffice"
             section="fileViewer"
@@ -1248,5 +1252,9 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.file-viewer-debug-office {
+  margin-top: 0.5em;
 }
 </style>

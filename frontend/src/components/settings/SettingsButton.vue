@@ -1,6 +1,6 @@
 <template>
   <div
-    class="settings-button"
+    class="settings-button item"
     :class="[
       valueRow ? 'settings-button--value-row' : 'toggle-container',
       { disabled },
