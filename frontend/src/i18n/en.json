@@ -670,6 +670,7 @@
     "dividerNamePlaceholder": "Divider text (leave blank to show a line)",
     "updateIsAvailable": "An update is available!",
     "fileActions": "File actions",
+    "switchMode": "Toggle between links and navigation tree",
     "customizeLinks": "Customize Sidebar Links",
     "customizeLinksDescription": "Customize the links shown in your sidebar. Drag and drop to reorder.",
     "customizeShareLinksDescription": "Customize the links shown in the sidebar for this share. Drag and drop to reorder.",

@@ -345,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Tüm kullanıcılar için varsayılan ve zorunlu kenar çubuğu bağlantılarını yapılandırın.",
     "sidebarLinkDefaultsHelp": "Bunlar, tüm yeni kullanıcılar için eklenecek varsayılan bağlantılardır. Bir bağlantıyı zorunlu kılarsanız, bu bağlantı tüm kullanıcılar için eklenecek ve yönetici olmayan kullanıcılar tarafından kaldırılamayacaktır.",
     "sidebarLinkDefaultSourceHelp": "Bu, yalnızca kullanıcının bu kaynağa erişimi olması durumunda geçerlidir.",
-    "sidebarLinkDefaultsYamlInvalid": "YAML geçersiz. Biçimi kontrol edin ve tekrar deneyin."
+    "sidebarLinkDefaultsYamlInvalid": "YAML geçersiz. Biçimi kontrol edin ve tekrar deneyin.",
+    "switchMode": "Bağlantılar ile gezinme ağacı arasında geçiş yap"
   },
   "share": {
     "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",

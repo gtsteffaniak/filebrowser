@@ -345,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "为所有用户配置默认和强制显示的侧边栏链接。",
     "sidebarLinkDefaultsHelp": "这些是将为所有新用户添加的默认链接。如果您强制启用某个链接，该链接将添加给所有用户，且非管理员无法将其删除。",
     "sidebarLinkDefaultSourceHelp": "仅当用户有权访问此来源时才适用。",
-    "sidebarLinkDefaultsYamlInvalid": "YAML 格式无效。请检查格式后重试。"
+    "sidebarLinkDefaultsYamlInvalid": "YAML 格式无效。请检查格式后重试。",
+    "switchMode": "在链接和导航树之间切换"
   },
   "share": {
     "notice": "注意：创建共享后，它将更多地向公众开放，并有不同的访问规则。如果未对共享进行安全配置，任何人都可以访问它。",

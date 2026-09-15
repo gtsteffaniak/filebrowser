@@ -502,7 +502,8 @@
     "sidebarLinkDefaultsDescription": "Nastavte výchozí a povinné odkazy v postranním panelu pro všechny uživatele.",
     "sidebarLinkDefaultsHelp": "Toto jsou výchozí odkazy, které budou přidány všem novým uživatelům. Pokud nastavíte odkaz jako povinný, bude přidán všem uživatelům a uživatelé bez oprávnění správce jej nebudou moci odstranit.",
     "sidebarLinkDefaultSourceHelp": "Platí pouze v případě, že má uživatel přístup k tomuto zdroji.",
-    "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Zkontrolujte formát a zkuste to znovu."
+    "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Zkontrolujte formát a zkuste to znovu.",
+    "switchMode": "Přepínat mezi odkazy a navigačním stromem"
   },
   "api": {
     "createdAt": "Vytvořeno:",

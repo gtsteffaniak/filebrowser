@@ -675,7 +675,8 @@
     "sidebarLinkDefaultsDescription": "Configurare i collegamenti predefiniti e obbligatori nella barra laterale per tutti gli utenti.",
     "sidebarLinkDefaultsHelp": "Questi sono i link predefiniti che verranno aggiunti per tutti i nuovi utenti. Se si imposta un link come obbligatorio, questo verrà aggiunto per tutti gli utenti e non potrà essere rimosso dagli utenti che non sono amministratori.",
     "sidebarLinkDefaultSourceHelp": "Si applica solo se l'utente ha accesso a questa fonte.",
-    "sidebarLinkDefaultsYamlInvalid": "YAML non valido. Controlla il formato e riprova."
+    "sidebarLinkDefaultsYamlInvalid": "YAML non valido. Controlla il formato e riprova.",
+    "switchMode": "Passa dai link all'albero di navigazione e viceversa"
   },
   "api": {
     "title": "Token API",

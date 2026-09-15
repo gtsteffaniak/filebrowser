@@ -345,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Konfigurieren Sie die Standard- und obligatorischen Links in der Seitenleiste für alle Benutzer.",
     "sidebarLinkDefaultsHelp": "Dies sind die Standard-Links, die für alle neuen Benutzer hinzugefügt werden. Wenn Sie einen Link als obligatorisch festlegen, wird er für alle Benutzer hinzugefügt und kann von Benutzern ohne Administratorrechte nicht entfernt werden.",
     "sidebarLinkDefaultSourceHelp": "Gilt nur, wenn der Benutzer Zugriff auf diese Quelle hat.",
-    "sidebarLinkDefaultsYamlInvalid": "Ungültiges YAML. Überprüfen Sie das Format und versuchen Sie es erneut."
+    "sidebarLinkDefaultsYamlInvalid": "Ungültiges YAML. Überprüfen Sie das Format und versuchen Sie es erneut.",
+    "switchMode": "Zwischen Links und Navigationsbaum umschalten"
   },
   "share": {
     "notice": "Hinweis: Wenn eine Freigabe erstellt wird, ist sie der Öffentlichkeit stärker ausgesetzt und unterliegt anderen Zugriffsregeln. Wenn Ihre Freigabe nicht sicher konfiguriert ist, kann jeder auf sie zugreifen.",

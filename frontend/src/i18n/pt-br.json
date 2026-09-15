@@ -345,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Configure os links padrão e obrigatórios da barra lateral para todos os usuários.",
     "sidebarLinkDefaultsHelp": "Esses são os links padrão que serão adicionados para todos os novos usuários. Se você tornar um link obrigatório, ele será adicionado para todos os usuários e não poderá ser removido por usuários que não sejam administradores.",
     "sidebarLinkDefaultSourceHelp": "Aplica-se apenas quando o usuário tem acesso a essa fonte.",
-    "sidebarLinkDefaultsYamlInvalid": "YAML inválido. Verifique o formato e tente novamente."
+    "sidebarLinkDefaultsYamlInvalid": "YAML inválido. Verifique o formato e tente novamente.",
+    "switchMode": "Alternar entre os links e a árvore de navegação"
   },
   "share": {
     "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",

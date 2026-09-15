@@ -7,14 +7,22 @@
       <i :class="{ 'disabled': !isLoggedIn }"
         aria-label="Navigate Home"
         @click="goHome()" class="material-symbols action">home</i>
-      <ButtonToggle
-        class="sidebar-mode-toggle"
-        :model-value="mode === 'navigation'"
-        :on-label="$t('general.navigation')"
-        :off-label="$t('general.links')"
-        :aria-label="$t('sidebar.switchMode')"
-        @update:model-value="onSidebarModeToggle"
-      />
+      <span
+        class="sidebar-mode-toggle-wrap item"
+        @mouseenter="showTooltip($event, $t('sidebar.switchMode'))"
+        @mouseleave="hideTooltip"
+      >
+        <ToggleSwitch
+          class="sidebar-mode-toggle"
+          variant="neutral"
+          :model-value="mode === 'navigation'"
+          off-icon="link"
+          on-icon="account_tree"
+          :name="$t('general.links')"
+          :aria-label="$t('sidebar.switchMode')"
+          @update:model-value="onSidebarModeToggle"
+        />
+      </span>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
         @click="showEditShareHover" class="material-symbols action">edit</i>
@@ -229,7 +237,7 @@ import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import ButtonToggle from "@/components/settings/ButtonToggle.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 export default {
   name: "SidebarLinks",
   components: {
@@ -238,7 +246,7 @@ export default {
     ShareInfo,
     FileTree,
     ExpandDropdown,
-    ButtonToggle,
+    ToggleSwitch,
   },
   data() {
     return {
@@ -714,7 +722,7 @@ export default {
   background: var(--surfaceSecondary);
 }
 
-.sidebar-links-header :deep(.sidebar-mode-toggle) {
+.sidebar-links-header .sidebar-mode-toggle-wrap {
   flex: 1;
   display: flex;
   align-items: center;
@@ -723,6 +731,14 @@ export default {
   min-width: 0;
   max-width: 100%;
   margin: 0 0.25em;
+}
+
+.sidebar-links-header :deep(.sidebar-mode-toggle) {
+  width: auto;
+}
+
+.sidebar-links-header :deep(.sidebar-mode-toggle .toggle-row--icon-mode) {
+  width: auto;
 }
 
 .sidebar-links-content {

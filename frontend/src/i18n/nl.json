@@ -675,7 +675,8 @@
     "sidebarLinkDefaultsDescription": "Stel de standaard- en verplichte links in de zijbalk in voor alle gebruikers.",
     "sidebarLinkDefaultsHelp": "Dit zijn de standaardlinks die voor alle nieuwe gebruikers worden toegevoegd. Als je een link verplicht stelt, wordt deze voor alle gebruikers toegevoegd en kan deze niet worden verwijderd door gebruikers die geen beheerder zijn.",
     "sidebarLinkDefaultSourceHelp": "Dit geldt alleen als de gebruiker toegang heeft tot deze bron.",
-    "sidebarLinkDefaultsYamlInvalid": "Ongeldige YAML. Controleer de opmaak en probeer het opnieuw."
+    "sidebarLinkDefaultsYamlInvalid": "Ongeldige YAML. Controleer de opmaak en probeer het opnieuw.",
+    "switchMode": "Schakelen tussen links en navigatiestructuur"
   },
   "api": {
     "title": "API-sleutels",

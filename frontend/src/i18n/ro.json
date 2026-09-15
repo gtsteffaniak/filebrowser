@@ -345,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Configurați linkurile implicite și obligatorii din bara laterală pentru toți utilizatorii.",
     "sidebarLinkDefaultsHelp": "Acestea sunt linkurile implicite care vor fi adăugate pentru toți utilizatorii noi. Dacă impui un link, acesta va fi adăugat pentru toți utilizatorii și nu poate fi eliminat de către utilizatorii care nu sunt administratori.",
     "sidebarLinkDefaultSourceHelp": "Se aplică numai în cazul în care utilizatorul are acces la această sursă.",
-    "sidebarLinkDefaultsYamlInvalid": "YAML nevalid. Verificați formatul și încercați din nou."
+    "sidebarLinkDefaultsYamlInvalid": "YAML nevalid. Verificați formatul și încercați din nou.",
+    "switchMode": "Comutare între linkuri și arborele de navigare"
   },
   "share": {
     "notice": "Notă: atunci când este creată o partajare, aceasta devine mai expusă publicului și are reguli diferite de acces. Dacă partajul dvs. nu este configurat în siguranță, acesta poate fi accesat de oricine.",

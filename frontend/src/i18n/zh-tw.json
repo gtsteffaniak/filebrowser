@@ -345,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "為所有使用者設定預設及強制顯示的側邊欄連結。",
     "sidebarLinkDefaultsHelp": "這些是將為所有新使用者預設新增的連結。若您強制啟用某個連結，該連結將會新增至所有使用者的帳戶中，且非管理員無法移除。",
     "sidebarLinkDefaultSourceHelp": "僅當使用者具有此來源的存取權限時，才適用此規定。",
-    "sidebarLinkDefaultsYamlInvalid": "YAML 格式無效。請檢查格式並重新嘗試。"
+    "sidebarLinkDefaultsYamlInvalid": "YAML 格式無效。請檢查格式並重新嘗試。",
+    "switchMode": "在連結與導覽樹之間切換"
   },
   "share": {
     "notice": "注意：建立分享後，內容會更容易對外公開，且存取規則也不同。如果未妥善設定安全性，任何人都可能存取。",

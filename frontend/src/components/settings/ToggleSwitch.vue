@@ -3,28 +3,67 @@
     class="toggle-container"
     :class="{
       'toggle-container--enforceable': enforceable,
+      'toggle-container--neutral': variant === 'neutral',
     }"
   >
     <div
       class="toggle-row toggle-row--value"
-      :class="{ 'toggle-row--disabled': disabled, 'border-radius': enforceable }"
+      :class="{
+        'toggle-row--disabled': disabled,
+        'border-radius': enforceable,
+        'toggle-row--icon-mode': iconMode,
+      }"
       @mouseenter="showValueRowTooltipIfNeeded"
       @mouseleave="hideTooltip"
     >
-      <div class="toggle-name-container">
-        <span class="toggle-name">{{ name }}</span>
-        <HelpTooltipIcon v-if="description" :text="description" />
-      </div>
-      <label class="switch">
-        <input
-          type="checkbox"
-          :checked="modelValue"
-          @change="updateValue"
-          :aria-label="ariaLabel"
-          :disabled="disabled"
-        />
-        <span class="slider round"></span>
-      </label>
+      <template v-if="iconMode">
+        <div class="toggle-icon-cluster">
+          <label class="switch switch--icon-mode">
+            <input
+              type="checkbox"
+              :checked="modelValue"
+              @change="updateValue"
+              :aria-label="effectiveAriaLabel"
+              :disabled="disabled"
+            />
+            <span class="slider round">
+              <span class="slider-icons" aria-hidden="true">
+                <i
+                  class="slider-icon slider-icon--slot"
+                  :class="[
+                    iconClass,
+                    { 'slider-icon--active': modelValue },
+                  ]"
+                >{{ onIcon }}</i>
+                <i
+                  class="slider-icon slider-icon--slot"
+                  :class="[
+                    iconClass,
+                    { 'slider-icon--active': !modelValue },
+                  ]"
+                >{{ offIcon }}</i>
+              </span>
+              <span class="slider-knob" aria-hidden="true"></span>
+            </span>
+          </label>
+        </div>
+      </template>
+      <template v-else>
+        <div class="toggle-name-container">
+          <span class="toggle-name">{{ name }}</span>
+          <HelpTooltipIcon v-if="description" :text="description" />
+        </div>
+        <label class="switch">
+          <input
+            type="checkbox"
+            :checked="modelValue"
+            @change="updateValue"
+            :aria-label="effectiveAriaLabel"
+            :disabled="disabled"
+          />
+          <span class="slider round"></span>
+        </label>
+      </template>
     </div>
     <div
       v-if="enforceable"
@@ -104,6 +143,23 @@ export default {
       type: String,
       default: "",
     },
+    variant: {
+      type: String,
+      default: "primary",
+      validator: (v) => ["primary", "neutral"].includes(v),
+    },
+    offIcon: {
+      type: String,
+      default: "",
+    },
+    onIcon: {
+      type: String,
+      default: "",
+    },
+    iconOutlined: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     enforcedIdCounter += 1;
@@ -112,6 +168,15 @@ export default {
     };
   },
   computed: {
+    iconMode() {
+      return Boolean(this.offIcon && this.onIcon);
+    },
+    iconClass() {
+      return this.iconOutlined ? "material-symbols-outlined" : "material-symbols";
+    },
+    effectiveAriaLabel() {
+      return this.ariaLabel || this.name;
+    },
     enforcedLabelText() {
       return this.$t("general.enforce");
     },
@@ -176,6 +241,16 @@ export default {
   width: 100%;
 }
 
+.toggle-row--icon-mode {
+  justify-content: center;
+}
+
+.toggle-icon-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .toggle-row--enforced .enforced-label {
   flex: 0 1 auto;
   min-width: 0;
@@ -204,10 +279,74 @@ export default {
   height: 34px;
 }
 
+.switch--icon-mode {
+  width: 4em;
+  height: 34px;
+  padding-right: 0;
+  flex-shrink: 0;
+}
+
+.switch--icon-mode .slider:before {
+  content: none;
+  display: none;
+}
+
+.switch--icon-mode .slider {
+  overflow: hidden;
+}
+
+.switch--icon-mode .slider-icons {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 0 0.42em;
+  pointer-events: none;
+}
+
+.switch--icon-mode .slider-icon--slot {
+  flex: 1;
+  font-size: 1.15rem;
+  line-height: 1;
+  text-align: center;
+  color: var(--textSecondary);
+  opacity: 0.55;
+  user-select: none;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.switch--icon-mode .slider-icon--active {
+  color: var(--textPrimary);
+  opacity: 1;
+}
+
+/* Same circular thumb as the default switch (26×26px). */
+.switch--icon-mode .slider-knob {
+  position: absolute;
+  bottom: 4px;
+  left: 6px;
+  box-sizing: border-box;
+  width: 26px;
+  height: 26px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.4s;
+  z-index: 2;
+  transform: translateX(0);
+}
+
+.switch--icon-mode input:checked + .slider .slider-knob {
+  transform: translateX(26px);
+}
+
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
+  outline: none;
 }
 
 .slider {
@@ -236,12 +375,34 @@ input:checked + .slider {
   background-color: var(--primaryColor);
 }
 
-input:focus + .slider {
-  box-shadow: 0 0 1px var(--primaryColor);
+input:focus-visible + .slider {
+  box-shadow: 0 0 0 2px var(--primaryColor);
 }
 
 input:checked + .slider:before {
   transform: translateX(26px);
+}
+
+.toggle-container--neutral .slider {
+  background-color: var(--surfaceSecondary);
+}
+
+.toggle-container--neutral input:checked + .slider {
+  background-color: var(--surfaceSecondary);
+}
+
+.toggle-container--neutral input:focus-visible + .slider {
+  box-shadow: 0 0 0 2px var(--textSecondary);
+}
+
+.switch--icon-mode input:focus + .slider,
+.switch--icon-mode input:focus-visible + .slider {
+  box-shadow: none;
+}
+
+.toggle-container--neutral .slider:before,
+.toggle-container--neutral .slider-knob {
+  background-color: var(--surfacePrimary);
 }
 
 .slider.round {
@@ -271,6 +432,10 @@ input:checked + .slider:before {
 }
 
 .toggle-row--disabled input:disabled:checked + .slider {
+  background-color: #999;
+}
+
+.toggle-container--neutral .toggle-row--disabled input:disabled:checked + .slider {
   background-color: #999;
 }
 </style>
