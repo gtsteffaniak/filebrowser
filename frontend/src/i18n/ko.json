@@ -333,7 +333,6 @@
     "pickIcon": "아이콘 선택",
     "pickIconDescription": "머티리얼 아이콘 라이브러리에서 아이콘을 검색하고 선택합니다.",
     "linkIconPlaceholder": "선택적으로 머티리얼 아이콘 이름을 지정합니다.",
-    "switchMode": "사이드바 모드 전환",
     "showIndexedUsageDescription": "소스의 인덱싱된 파일에서 계산된 사용량 표시줄을 표시합니다.",
     "showDiskUsageDescription": "OS에서 보고한 디스크/파티션 크기에서 사용량 막대를 표시합니다. 이 크기는 더 클 수 있으며 인덱싱되지 않은 파일도 포함됩니다.",
     "usageTextDisplay": "어떤 사용법 텍스트를 표시해야 하나요?",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "모든 사용자에 대해 기본 및 필수 사이드바 링크를 설정합니다.",
     "sidebarLinkDefaultsHelp": "다음은 모든 신규 사용자에게 추가되는 기본 링크입니다. 특정 링크를 필수로 설정하면 모든 사용자에게 추가되며, 관리자가 아닌 사용자는 이를 삭제할 수 없습니다.",
     "sidebarLinkDefaultSourceHelp": "사용자가 이 소스에 대한 액세스 권한이 있는 경우에만 적용됩니다.",
-    "sidebarLinkDefaultsYamlInvalid": "YAML 형식이 잘못되었습니다. 형식을 확인한 후 다시 시도해 주세요."
+    "sidebarLinkDefaultsYamlInvalid": "YAML 형식이 잘못되었습니다. 형식을 확인한 후 다시 시도해 주세요.",
+    "switchMode": "링크와 탐색 트리 간 전환"
   },
   "share": {
     "notice": "참고: 공유가 생성되면 공개에 더 많이 노출되고 액세스 규칙이 달라집니다. 공유를 안전하게 구성하지 않으면 누구나 액세스할 수 있습니다.",

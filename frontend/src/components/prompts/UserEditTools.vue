@@ -1,14 +1,31 @@
 <template>
-  <ToolsAccessEditor
-    embedded
-    mode="user"
-    :model-value="policyItems"
-    :user-tool-access="toolAccess"
-    :show-prompt-actions="true"
-    @update:user-tool-access="onToolAccessChange"
-    @save="save"
-    @cancel="closeTopPrompt"
-  />
+  <div class="card-content">
+    <ToolsAccessEditor
+      embedded
+      :prompt-shell="false"
+      mode="user"
+      :model-value="policyItems"
+      :user-tool-access="toolAccess"
+      :show-prompt-actions="false"
+      @update:user-tool-access="onToolAccessChange"
+    />
+  </div>
+  <div class="card-actions">
+    <button
+      type="button"
+      class="button button--flat"
+      @click="closeTopPrompt"
+    >
+      {{ $t("general.cancel") }}
+    </button>
+    <button
+      type="button"
+      class="button button--flat button--blue"
+      @click="save"
+    >
+      {{ $t("general.save") }}
+    </button>
+  </div>
 </template>
 
 <script>

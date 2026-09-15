@@ -333,7 +333,6 @@
     "pickIcon": "Výber ikony",
     "pickIconDescription": "Vyhľadajte a vyberte ikonu z knižnice Material Icons",
     "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu",
-    "switchMode": "Prepnúť režim bočného panela",
     "showIndexedUsageDescription": "Zobrazenie lišty používania vypočítanej z indexovaných súborov v zdroji.",
     "showDiskUsageDescription": "Zobrazenie lišty využitia z veľkosti disku/oddielu podľa hlásenia operačného systému. Táto veľkosť bude pravdepodobne väčšia a zahŕňa aj súbory, ktoré nie sú indexované.",
     "usageTextDisplay": "Ktorý text použitia sa má zobraziť?",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Nastavte predvolené a povinné odkazy v bočnom paneli pre všetkých používateľov.",
     "sidebarLinkDefaultsHelp": "Toto sú predvolené odkazy, ktoré sa pridajú všetkým novým používateľom. Ak nastavíte odkaz ako povinný, pridá sa všetkým používateľom a používatelia bez správcovských oprávnení ho nebudú môcť odstrániť.",
     "sidebarLinkDefaultSourceHelp": "Platí len v prípade, že má používateľ prístup k tomuto zdroju.",
-    "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Skontrolujte formát a skúste to znova."
+    "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Skontrolujte formát a skúste to znova.",
+    "switchMode": "Prepínanie medzi odkazmi a navigačným stromom"
   },
   "share": {
     "notice": "Poznámka: po vytvorení zdieľanej zložky sa táto stáva verejne prístupnou a platia pre ňu iné pravidlá prístupu. Ak vaša zdieľaná zložka nie je bezpečne nakonfigurovaná, môže k nej mať prístup ktokoľvek.",

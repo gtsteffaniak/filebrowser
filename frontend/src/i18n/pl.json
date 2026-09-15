@@ -333,7 +333,6 @@
     "pickIcon": "Wybierz ikonę",
     "pickIconDescription": "Wyszukaj i wybierz ikonę z biblioteki Material Icons",
     "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału",
-    "switchMode": "Przełącz tryb panelu bocznego",
     "showIndexedUsageDescription": "Wyświetla pasek użycia obliczony na podstawie zindeksowanych plików w źródle.",
     "showDiskUsageDescription": "Wyświetla pasek użycia na podstawie rozmiaru dysku/partycji zgłoszonego przez system operacyjny. Rozmiar ten będzie prawdopodobnie większy i obejmuje pliki niezindeksowane.",
     "usageTextDisplay": "Jaki tekst użytkowania powinien być wyświetlany?",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Skonfiguruj domyślne i obowiązkowe linki w pasku bocznym dla wszystkich użytkowników.",
     "sidebarLinkDefaultsHelp": "Są to domyślne linki, które zostaną dodane dla wszystkich nowych użytkowników. Jeśli ustawisz link jako obowiązkowy, zostanie on dodany dla wszystkich użytkowników i nie będzie można go usunąć, jeśli nie jest się administratorem.",
     "sidebarLinkDefaultSourceHelp": "Ma zastosowanie wyłącznie wtedy, gdy użytkownik ma dostęp do tego źródła.",
-    "sidebarLinkDefaultsYamlInvalid": "Nieprawidłowy plik YAML. Sprawdź format i spróbuj ponownie."
+    "sidebarLinkDefaultsYamlInvalid": "Nieprawidłowy plik YAML. Sprawdź format i spróbuj ponownie.",
+    "switchMode": "Przełączanie między linkami a drzewem nawigacyjnym"
   },
   "share": {
     "notice": "Uwaga: po utworzeniu folderu udostępnionego staje się on bardziej dostępny publicznie i ma inne zasady dostępu. Jeśli udział nie jest bezpiecznie skonfigurowany, może być dostępny dla każdego.",

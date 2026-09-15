@@ -7,10 +7,22 @@
       <i :class="{ 'disabled': !isLoggedIn }"
         aria-label="Navigate Home"
         @click="goHome()" class="material-symbols action">home</i>
-      <!-- Mode button (is the title) -->
-      <button type="button" @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
-        {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
-      </button>
+      <span
+        class="sidebar-mode-toggle-wrap item"
+        @mouseenter="showTooltip($event, $t('sidebar.switchMode'))"
+        @mouseleave="hideTooltip"
+      >
+        <ToggleSwitch
+          class="sidebar-mode-toggle"
+          variant="neutral"
+          :model-value="mode === 'navigation'"
+          off-icon="format_list_bulleted"
+          on-icon="link"
+          :name="$t('general.links')"
+          :aria-label="$t('sidebar.switchMode')"
+          @update:model-value="onSidebarModeToggle"
+        />
+      </span>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
         @click="showEditShareHover" class="material-symbols action">edit</i>
@@ -225,6 +237,7 @@ import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 export default {
   name: "SidebarLinks",
   components: {
@@ -233,6 +246,7 @@ export default {
     ShareInfo,
     FileTree,
     ExpandDropdown,
+    ToggleSwitch,
   },
   data() {
     return {
@@ -668,9 +682,8 @@ export default {
         console.error("Failed to open edit share dialog:", err);
       }
     },
-    cycleMode() {
-      const newMode = state.sidebar.mode === 'links' ? 'navigation' : 'links';
-      mutations.setSidebarMode(newMode);
+    onSidebarModeToggle(isNavigation) {
+      mutations.setSidebarMode(isNavigation ? "navigation" : "links");
     },
     navigateToSource(sourceName) {
       if (!sourceName || sourceName === this.activeSource) {
@@ -709,20 +722,23 @@ export default {
   background: var(--surfaceSecondary);
 }
 
-.sidebar-links-header .mode-toggle {
-  background: none;
-  border: none;
-  font-weight: 500;
-  color: var(--textPrimary);
-  font-size: 1em;
-  padding: 0.25em 0.5em;
-  border-radius: 0.5em;
-  transition: background 0.2s;
+.sidebar-links-header .sidebar-mode-toggle-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 0.25em;
 }
 
-.sidebar-links-header .mode-toggle:hover {
-  background: var(--surfaceSecondary);
-  cursor: pointer;
+.sidebar-links-header :deep(.sidebar-mode-toggle) {
+  width: auto;
+}
+
+.sidebar-links-header :deep(.sidebar-mode-toggle .toggle-row--icon-mode) {
+  width: auto;
 }
 
 .sidebar-links-content {

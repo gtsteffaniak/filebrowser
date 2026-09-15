@@ -333,7 +333,6 @@
     "pickIcon": "Välj en ikon",
     "pickIconDescription": "Sök och välj en ikon från Material Icons-biblioteket",
     "linkIconPlaceholder": "Ange eventuellt ett namn på materialikonen",
-    "switchMode": "Växla sidofältsläge",
     "showIndexedUsageDescription": "Visa användningsfältet beräknat från indexerade filer i källan.",
     "showDiskUsageDescription": "Visa användningsstapel från disk-/partitionsstorlek som rapporteras av operativsystemet. Denna storlek är sannolikt större och inkluderar filer som inte är indexerade.",
     "usageTextDisplay": "Vilken användningstext ska visas?",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Konfigurera standardlänkar och obligatoriska länkar i sidomenyn för alla användare.",
     "sidebarLinkDefaultsHelp": "Detta är de standardlänkar som läggs till för alla nya användare. Om du gör en länk obligatorisk kommer den att läggas till för alla användare och kan inte tas bort av användare som inte är administratörer.",
     "sidebarLinkDefaultSourceHelp": "Gäller endast om användaren har tillgång till denna källa.",
-    "sidebarLinkDefaultsYamlInvalid": "Ogiltig YAML. Kontrollera formatet och försök igen."
+    "sidebarLinkDefaultsYamlInvalid": "Ogiltig YAML. Kontrollera formatet och försök igen.",
+    "switchMode": "Växla mellan länkar och navigeringsträdet"
   },
   "share": {
     "notice": "Observera: När en andel skapas blir den mer exponerad för allmänheten och har andra regler för åtkomst. Om din andel inte är säkert konfigurerad kan vem som helst komma åt den.",

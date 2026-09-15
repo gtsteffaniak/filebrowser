@@ -86,6 +86,9 @@ echo "Vite is ready. Starting Air..."
 ) &
 AIR_PID=$!
 
-wait -n "$VITE_PID" "$AIR_PID"
+# wait -n needs Bash 4.3+ (macOS /bin/bash is 3.2)
+while kill -0 "$VITE_PID" 2>/dev/null && kill -0 "$AIR_PID" 2>/dev/null; do
+	sleep 1
+done
 echo "A dev process exited; stopping the other..." >&2
 exit 1

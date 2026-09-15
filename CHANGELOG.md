@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file. For commit 
  - improved video thumbnail generation speed and efficiency.
  - Added icons based on extension to the upload prompt and new file/folder/rename prompts (#2881).
  - Profile settings show minimal options by default with prompt for advanced options. Full advanced profile settings can be shown by default by enabling `account.showAdvancedSettings`
+ - sidebar links/navigation is button group toggle for clearer visibility
 
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)

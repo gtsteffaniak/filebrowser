@@ -333,7 +333,6 @@
     "pickIcon": "Válasszon egy ikont",
     "pickIconDescription": "Keressen és válasszon ki egy ikont az Anyagi ikonok könyvtárból.",
     "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét",
-    "switchMode": "Oldalsáv mód váltása",
     "showIndexedUsageDescription": "A forrásban lévő indexelt fájlokból számított használati sáv megjelenítése.",
     "showDiskUsageDescription": "A lemez/partíció méretéből származó, az operációs rendszer által jelentett használati sáv megjelenítése. Ez a méret valószínűleg nagyobb lesz, és tartalmazza az indexeletlen fájlokat is.",
     "usageTextDisplay": "Milyen használati szöveget kell megjeleníteni?",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Az összes felhasználó számára állítsa be az alapértelmezett és kötelező oldalsáv-linkeket.",
     "sidebarLinkDefaultsHelp": "Ezek azok az alapértelmezett linkek, amelyek minden új felhasználóhoz hozzáadódnak. Ha egy linket kötelezővé teszel, az minden felhasználóhoz hozzáadódik, és a rendszergazdák kivételével senki sem tudja eltávolítani.",
     "sidebarLinkDefaultSourceHelp": "Ez csak akkor érvényes, ha a felhasználónak hozzáférése van ehhez a forráshoz.",
-    "sidebarLinkDefaultsYamlInvalid": "Érvénytelen YAML. Ellenőrizze a formátumot, majd próbálja meg újra."
+    "sidebarLinkDefaultsYamlInvalid": "Érvénytelen YAML. Ellenőrizze a formátumot, majd próbálja meg újra.",
+    "switchMode": "Váltás a linkek és a navigációs fa között"
   },
   "share": {
     "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",

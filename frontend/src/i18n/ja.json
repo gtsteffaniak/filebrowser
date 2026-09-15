@@ -333,7 +333,6 @@
     "pickIcon": "アイコンを選ぶ",
     "pickIconDescription": "マテリアル・アイコン・ライブラリからアイコンを検索して選択します。",
     "linkIconPlaceholder": "オプションで素材アイコン名を指定",
-    "switchMode": "サイドバーモードの切り替え",
     "showIndexedUsageDescription": "ソース内のインデックス化されたファイルから計算された使用量バーを表示します。",
     "showDiskUsageDescription": "OSが報告したディスク/パーティションサイズから使用量バーを表示します。このサイズは、インデックス化されていないファイルを含むため、より大きくなる可能性があります。",
     "usageTextDisplay": "どのテキストを表示するべきか？",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "すべてのユーザーに対して、デフォルトおよび必須のサイドバーリンクを設定します。",
     "sidebarLinkDefaultsHelp": "これらは、すべての新規ユーザーに対して追加されるデフォルトのリンクです。リンクを必須設定にすると、すべてのユーザーに追加され、管理者以外のユーザーは削除できなくなります。",
     "sidebarLinkDefaultSourceHelp": "ユーザーがこの情報源にアクセスできる場合にのみ適用されます。",
-    "sidebarLinkDefaultsYamlInvalid": "YAMLが不正です。形式を確認して、もう一度試してください。"
+    "sidebarLinkDefaultsYamlInvalid": "YAMLが不正です。形式を確認して、もう一度試してください。",
+    "switchMode": "リンクとナビゲーションツリーを切り替える"
   },
   "share": {
     "notice": "注意：共有が作成されると、公開されるようになり、アクセスに関するルールが異なります。共有が安全に設定されていない場合、誰でもアクセスできる可能性があります。",

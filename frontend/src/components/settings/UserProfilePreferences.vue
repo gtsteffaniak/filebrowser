@@ -45,10 +45,7 @@
       :name="$t('profileSettings.darkMode')"
       :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
     />
-    <div
-      class="preference-field-block"
-      :class="{ 'preference-field-block--enforceable': enforceable }"
-    >
+    <ProfileEnforceableField      :enforceable="enforceable">
       <h4>{{ $t("settings.themeColor") }}</h4>
       <div
         @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'themeColor')"
@@ -61,17 +58,18 @@
           :is-disabled="fieldDisabled('ui', 'themeColor')"
         />
       </div>
-      <ProfileEnforceSwitch
+      <template #enforce>
+<ProfileEnforceSwitch
         :visible="enforceable"
         :enforced="enforcedFlag('ui', 'themeColor')"
         :disabled="disabled"
         @update:enforced="(v) => emitEnforced('ui', 'themeColor', v)"
       />
-    </div>
-    <div
+      </template>
+    </ProfileEnforceableField>
+    <ProfileEnforceableField
       v-if="Object.keys(availableThemes).length > 0"
-      class="preference-field-block"
-      :class="{ 'preference-field-block--enforceable': enforceable }"
+      :enforceable="enforceable"
     >
       <h4>{{ $t("profileSettings.customTheme") }}</h4>
       <div
@@ -87,17 +85,16 @@
           @update:model-value="onThemeChange"
         />
       </div>
-      <ProfileEnforceSwitch
+      <template #enforce>
+<ProfileEnforceSwitch
         :visible="enforceable"
         :enforced="enforcedFlag('ui', 'customTheme')"
         :disabled="disabled"
         @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
       />
-    </div>
-    <div
-      class="preference-field-block"
-      :class="{ 'preference-field-block--enforceable': enforceable }"
-    >
+      </template>
+    </ProfileEnforceableField>
+    <ProfileEnforceableField      :enforceable="enforceable">
       <h4>{{ $t("general.language") }}</h4>
       <div
         class="form-flex-group"
@@ -110,13 +107,15 @@
           @update:locale="onLocaleChange"
         />
       </div>
-      <ProfileEnforceSwitch
+      <template #enforce>
+<ProfileEnforceSwitch
         :visible="enforceable"
         :enforced="enforcedFlag('ui', 'locale')"
         :disabled="disabled"
         @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
       />
-    </div>
+      </template>
+    </ProfileEnforceableField>
     <div class="preference-field-block">
       <h4>{{ $t("profileSettings.accountOptions") }}</h4>
       <div class="settings-items">
@@ -195,13 +194,13 @@
           :name="$t('profileSettings.deleteAfterArchive')"
           :description="$t('profileSettings.deleteAfterArchiveDescription')"
         />
-        <div
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
+        <ProfileEnforceableField
+          :enforceable="enforceable"
+          :stacked="false"
         >
           <div class="settings-items">
             <SettingsButton
-              class="item"
+              value-row
               :name="$t('profileSettings.defaultViewMode')"
               :description="$t('profileSettings.defaultViewModeDescription')"
               :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
@@ -210,47 +209,40 @@
               @mouseleave="hideTooltip"
             />
           </div>
-          <ProfileEnforceSwitch
-            :visible="enforceable"
-            :enforced="enforcedFlag('listing', 'viewMode')"
-            :disabled="disabled"
-            @update:enforced="(v) => emitEnforced('listing', 'viewMode', v)"
-          />
-          <ProfileEnforceSwitch
-            :visible="enforceable"
-            :enforced="enforcedFlag('listing', 'gallerySize')"
-            :disabled="disabled"
-            @update:enforced="(v) => emitEnforced('listing', 'gallerySize', v)"
-          />
-        </div>
-      </div>
-      <div
-        class="preference-field-block"
-        :class="{ 'preference-field-block--enforceable': enforceable }"
-      >
-        <div class="settings-items">
-          <SettingsButton
-            class="item"
-            :name="$t('prompts.newFileTemplate')"
-            :description="$t('prompts.newFileTemplateMessage')"
-            :disabled="fieldDisabled('listing', 'newFileTemplate')"
-            @click="openNewFileTemplateEditor"
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'newFileTemplate')"
-            @mouseleave="hideTooltip"
-          />
-        </div>
-        <ProfileEnforceSwitch
-          :visible="enforceable"
-          :enforced="enforcedFlag('listing', 'newFileTemplate')"
-          :disabled="disabled"
-          @update:enforced="(v) => emitEnforced('listing', 'newFileTemplate', v)"
-        />
-      </div>
-      <template v-if="showExtensionInputs">
-        <div
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
+          <template #enforce>
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('listing', 'viewMode')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('listing', 'viewMode', v)"
+            />
+          </template>
+        </ProfileEnforceableField>
+        <ProfileEnforceableField
+          :enforceable="enforceable"
+          :stacked="false"
         >
+          <div class="settings-items">
+            <SettingsButton
+              value-row
+              :name="$t('prompts.newFileTemplate')"
+              :description="$t('prompts.newFileTemplateMessage')"
+              :disabled="fieldDisabled('listing', 'newFileTemplate')"
+              @click="openNewFileTemplateEditor"
+              @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'newFileTemplate')"
+              @mouseleave="hideTooltip"
+            />
+          </div>
+          <template #enforce>
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('listing', 'newFileTemplate')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('listing', 'newFileTemplate', v)"
+            />
+          </template>
+        </ProfileEnforceableField>
+        <ProfileEnforceableField v-if="showExtensionInputs" :enforceable="enforceable">
           <div class="centered-with-tooltip">
             <h3>{{ $t("profileSettings.hideFileExt") }}</h3>
             <HelpTooltipIcon :text="$t('profileSettings.hideFileExtDescription')" />
@@ -277,14 +269,16 @@
               {{ $t("general.save") }}
             </button>
           </div>
-          <ProfileEnforceSwitch
-            :visible="enforceable"
-            :enforced="enforcedFlag('listing', 'hideFileExt')"
-            :disabled="disabled"
-            @update:enforced="(v) => emitEnforced('listing', 'hideFileExt', v)"
-          />
-        </div>
-      </template>
+          <template #enforce>
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('listing', 'hideFileExt')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('listing', 'hideFileExt', v)"
+            />
+          </template>
+        </ProfileEnforceableField>
+      </div>
     </SettingsItem>
 
     <SettingsItem
@@ -366,10 +360,7 @@
           />
         </template>
         <template v-if="showExtensionInputs && (!showThumbnailMaster || showThumbnailsForPreviews)">
-          <div
-            class="preference-field-block"
-            :class="{ 'preference-field-block--enforceable': enforceable }"
-          >
+          <ProfileEnforceableField            :enforceable="enforceable">
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
               <HelpTooltipIcon :text="$t('profileSettings.disableThumbnailPreviewsDescription')" />
@@ -396,13 +387,15 @@
                 {{ $t("general.save") }}
               </button>
             </div>
-            <ProfileEnforceSwitch
+            <template #enforce>
+<ProfileEnforceSwitch
               :visible="enforceable"
               :enforced="enforcedFlag('preview', 'disablePreviewExt')"
               :disabled="disabled"
               @update:enforced="(v) => emitEnforced('preview', 'disablePreviewExt', v)"
             />
-          </div>
+      </template>
+    </ProfileEnforceableField>
         </template>
       </div>
     </SettingsItem>
@@ -519,10 +512,7 @@
         />
       </div>
       <template v-if="showExtensionInputs">
-        <div
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
-        >
+        <ProfileEnforceableField          :enforceable="enforceable">
           <div class="centered-with-tooltip">
             <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
             <HelpTooltipIcon :text="$t('profileSettings.disableViewingFilesDescription')" />
@@ -549,18 +539,17 @@
               {{ $t("general.save") }}
             </button>
           </div>
-          <ProfileEnforceSwitch
+          <template #enforce>
+<ProfileEnforceSwitch
             :visible="enforceable"
             :enforced="enforcedFlag('fileViewer', 'disableViewingExt')"
             :disabled="disabled"
             @update:enforced="(v) => emitEnforced('fileViewer', 'disableViewingExt', v)"
           />
-        </div>
+      </template>
+    </ProfileEnforceableField>
         <div v-if="onlyOfficeAvailable">
-          <div
-            class="preference-field-block"
-            :class="{ 'preference-field-block--enforceable': enforceable }"
-          >
+          <ProfileEnforceableField            :enforceable="enforceable">
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
               <HelpTooltipIcon :text="$t('profileSettings.disableOfficeEditorDescription')" />
@@ -587,14 +576,16 @@
                 {{ $t("general.save") }}
               </button>
             </div>
-            <ProfileEnforceSwitch
+            <template #enforce>
+<ProfileEnforceSwitch
               :visible="enforceable"
               :enforced="enforcedFlag('fileViewer', 'disableOnlyOfficeExt')"
               :disabled="disabled"
               @update:enforced="(v) => emitEnforced('fileViewer', 'disableOnlyOfficeExt', v)"
             />
-          </div>
-          <div class="settings-items">
+      </template>
+    </ProfileEnforceableField>
+          <div class="settings-items file-viewer-debug-office">
             <ProfilePreferenceToggle
               field="debugOffice"
               section="fileViewer"
@@ -603,7 +594,7 @@
             />
           </div>
         </div>
-        <div v-else class="settings-items">
+        <div v-else class="settings-items file-viewer-debug-office">
           <ProfilePreferenceToggle
             field="debugOffice"
             section="fileViewer"
@@ -613,7 +604,7 @@
         </div>
       </template>
       <template v-else>
-        <div class="settings-items">
+        <div class="settings-items file-viewer-debug-office">
           <ProfilePreferenceToggle
             field="debugOffice"
             section="fileViewer"
@@ -647,10 +638,7 @@
           :name="$t('profileSettings.darkMode')"
           :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
         />
-        <div
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
-        >
+        <ProfileEnforceableField          :enforceable="enforceable">
           <h4>{{ $t("settings.themeColor") }}</h4>
           <div
             @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'themeColor')"
@@ -663,17 +651,18 @@
               :is-disabled="fieldDisabled('ui', 'themeColor')"
             />
           </div>
-          <ProfileEnforceSwitch
+          <template #enforce>
+<ProfileEnforceSwitch
             :visible="enforceable"
             :enforced="enforcedFlag('ui', 'themeColor')"
             :disabled="disabled"
             @update:enforced="(v) => emitEnforced('ui', 'themeColor', v)"
           />
-        </div>
-        <div
+      </template>
+    </ProfileEnforceableField>
+        <ProfileEnforceableField
           v-if="Object.keys(availableThemes).length > 0"
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
+          :enforceable="enforceable"
         >
           <h4>{{ $t("profileSettings.customTheme") }}</h4>
           <div
@@ -689,17 +678,16 @@
               @update:model-value="onThemeChange"
             />
           </div>
-          <ProfileEnforceSwitch
+          <template #enforce>
+<ProfileEnforceSwitch
             :visible="enforceable"
             :enforced="enforcedFlag('ui', 'customTheme')"
             :disabled="disabled"
             @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
           />
-        </div>
-        <div
-          class="preference-field-block"
-          :class="{ 'preference-field-block--enforceable': enforceable }"
-        >
+      </template>
+    </ProfileEnforceableField>
+        <ProfileEnforceableField          :enforceable="enforceable">
           <h4>{{ $t("general.language") }}</h4>
           <div
             class="form-flex-group"
@@ -712,13 +700,15 @@
               @update:locale="onLocaleChange"
             />
           </div>
-          <ProfileEnforceSwitch
+          <template #enforce>
+<ProfileEnforceSwitch
             :visible="enforceable"
             :enforced="enforcedFlag('ui', 'locale')"
             :disabled="disabled"
             @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
           />
-        </div>
+      </template>
+    </ProfileEnforceableField>
       </div>
     </SettingsItem>
   </SettingsAccordion>
@@ -737,6 +727,7 @@ import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProfilePreferenceToggle from "@/components/settings/ProfilePreferenceToggle.vue";
 import ProfileEnforceSwitch from "@/components/settings/ProfileEnforceSwitch.vue";
+import ProfileEnforceableField from "@/components/settings/ProfileEnforceableField.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsAccordion from "@/components/settings/SettingsAccordion.vue";
@@ -757,6 +748,7 @@ export default {
     ButtonGroup,
     ProfilePreferenceToggle,
     ProfileEnforceSwitch,
+    ProfileEnforceableField,
     SettingsButton,
   },
   provide() {
@@ -1261,9 +1253,8 @@ export default {
   justify-content: center;
   align-items: center;
 }
-.preference-field-block--enforceable {
-  padding: 0.35em;
-  border-radius: var(--borderRadius);
-  margin-bottom: 0.5em;
+
+.file-viewer-debug-office {
+  margin-top: 0.5em;
 }
 </style>

@@ -333,7 +333,6 @@
     "pickIcon": "Kies een pictogram",
     "pickIconDescription": "Zoek en selecteer een pictogram uit de bibliotheek met materiaalpictogrammen",
     "linkIconPlaceholder": "Geef optioneel een materiaalpictogramnaam op",
-    "switchMode": "Zijbalkmodus wijzigen",
     "showIndexedUsageDescription": "Gebruiksbalk weergeven die is berekend op basis van geïndexeerde bestanden in de bron.",
     "showDiskUsageDescription": "Geef de verbruiksbalk weer van de grootte van de schijf/partitie zoals gerapporteerd door het besturingssysteem. Deze grootte zal waarschijnlijk groter zijn en omvat bestanden die niet geïndexeerd zijn.",
     "usageTextDisplay": "Welke gebruikstekst moet worden weergegeven?",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Stel de standaard- en verplichte links in de zijbalk in voor alle gebruikers.",
     "sidebarLinkDefaultsHelp": "Dit zijn de standaardlinks die voor alle nieuwe gebruikers worden toegevoegd. Als je een link verplicht stelt, wordt deze voor alle gebruikers toegevoegd en kan deze niet worden verwijderd door gebruikers die geen beheerder zijn.",
     "sidebarLinkDefaultSourceHelp": "Dit geldt alleen als de gebruiker toegang heeft tot deze bron.",
-    "sidebarLinkDefaultsYamlInvalid": "Ongeldige YAML. Controleer de opmaak en probeer het opnieuw."
+    "sidebarLinkDefaultsYamlInvalid": "Ongeldige YAML. Controleer de opmaak en probeer het opnieuw.",
+    "switchMode": "Schakelen tussen links en navigatiestructuur"
   },
   "share": {
     "notice": "Opmerking: wanneer een share wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als je share niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
