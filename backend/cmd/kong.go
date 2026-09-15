@@ -25,6 +25,8 @@ type versionCmd struct{}
 
 type setupCmd struct{}
 
+type initCmd struct{}
+
 type SetCmd struct {
 	User  string     `short:"u" help:"Deprecated: comma-separated username,password. Use 'user set' instead."`
 	Admin bool       `short:"a" help:"Create user as admin (used with -u)"`
@@ -116,6 +118,7 @@ type cliRoot struct {
 	Run     runCmd     `cmd:"" default:"1" hidden:"" help:"Start the FileBrowser server"`
 	Version versionCmd `cmd:"" name:"version" help:"Print version information"`
 	Setup   setupCmd   `cmd:"" name:"setup" help:"Interactive configuration setup"`
+	Init    initCmd    `cmd:"" name:"init" hidden:"" help:"Initialize the database or migrate from a legacy database"`
 	Set     SetCmd     `cmd:"" name:"set" help:"Set configuration values (deprecated: use 'user set' for users)"`
 	User    UserCmd    `cmd:"" name:"user" help:"User management"`
 }
@@ -131,6 +134,10 @@ func (versionCmd) Run() error {
 
 func (setupCmd) Run(globals *Globals) error {
 	return createConfig(globals.Config, globals.NoInput)
+}
+
+func (initCmd) Run() error {
+	return nil
 }
 
 func (s *SetCmd) Run(ctx *kong.Context) error {
@@ -215,7 +222,7 @@ func runCLI() (keepGoing bool, dbExists bool) {
 	case cmd == "version" || cmd == "setup":
 		parser.FatalIfErrorf(ctx.Run(&rootCLI))
 		return false, false
-	case cmd == "set rule" || cmd == "set" || strings.HasPrefix(cmd, "user set") || strings.HasPrefix(cmd, "user promote"):
+	case cmd == "init" || cmd == "set rule" || cmd == "set" || strings.HasPrefix(cmd, "user set") || strings.HasPrefix(cmd, "user promote"):
 		requireExistingConfig(configPath)
 		dbExists = initializeDatabase(configPath, true)
 		parser.FatalIfErrorf(ctx.Run(&rootCLI))
