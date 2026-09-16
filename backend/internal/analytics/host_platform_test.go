@@ -3,6 +3,7 @@ package analytics
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -64,30 +65,6 @@ ID_LIKE=debian`,
 				t.Fatalf("classifyOSRelease() = %q, want %q", got, tt.want)
 			}
 		})
-	}
-}
-
-func TestNormalizeHostPlatform(t *testing.T) {
-	tests := map[string]string{
-		"":                "",
-		"  unraid  ":      hostPlatformUnraid,
-		"TrueNAS":         hostPlatformTrueNAS,
-		"macOS":           hostPlatformMacOS,
-		"generic_linux":   hostPlatformGenericLinux,
-		"custom-platform": "custom-platform",
-	}
-
-	for input, want := range tests {
-		if got := normalizeHostPlatform(input); got != want {
-			t.Fatalf("normalizeHostPlatform(%q) = %q, want %q", input, got, want)
-		}
-	}
-}
-
-func TestDetectHostPlatformEnvOverride(t *testing.T) {
-	t.Setenv(hostPlatformEnv, "unraid")
-	if got := detectHostPlatform("docker"); got != hostPlatformUnraid {
-		t.Fatalf("detectHostPlatform() = %q, want %q", got, hostPlatformUnraid)
 	}
 }
 
@@ -185,4 +162,46 @@ func TestClassifyFreeBSDVersion(t *testing.T) {
 			t.Fatalf("classifyFreeBSDVersion(%q) = %q, want %q", input, got, want)
 		}
 	}
+}
+
+func TestDeploymentRuntimeFrom(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("deployment runtime integration requires GOOS linux")
+	}
+
+	t.Run("platform beats docker", func(t *testing.T) {
+		root := t.TempDir()
+		hostMount := filepath.Join(root, "host")
+		writeFixtureFile(t, filepath.Join(hostMount, "etc", "unraid-version"), "6.12.0")
+		withHostDetectionRoots(t, []string{hostMount}, "")
+		if got := deploymentRuntimeFrom("docker"); got != hostPlatformUnraid {
+			t.Fatalf("deploymentRuntimeFrom() = %q, want %q", got, hostPlatformUnraid)
+		}
+	})
+
+	t.Run("docker without host visibility", func(t *testing.T) {
+		emptyHost := filepath.Join(t.TempDir(), "host")
+		withHostDetectionRoots(t, []string{emptyHost}, "")
+		if got := deploymentRuntimeFrom("docker"); got != deploymentRuntimeDocker {
+			t.Fatalf("deploymentRuntimeFrom() = %q, want %q", got, deploymentRuntimeDocker)
+		}
+	})
+
+	t.Run("kubernetes", func(t *testing.T) {
+		withHostDetectionRoots(t, []string{filepath.Join(t.TempDir(), "host")}, "")
+		if got := deploymentRuntimeFrom("kubernetes"); got != deploymentRuntimeKubernetes {
+			t.Fatalf("deploymentRuntimeFrom() = %q, want %q", got, deploymentRuntimeKubernetes)
+		}
+	})
+
+	t.Run("native linux", func(t *testing.T) {
+		root := t.TempDir()
+		nativeRoot := filepath.Join(root, "native")
+		writeFixtureFile(t, filepath.Join(nativeRoot, "etc", "os-release"), `NAME="Ubuntu"
+ID=ubuntu`)
+		withHostDetectionRoots(t, []string{filepath.Join(root, "unused-host")}, nativeRoot)
+		if got := deploymentRuntimeFrom("native"); got != deploymentRuntimeLinux {
+			t.Fatalf("deploymentRuntimeFrom() = %q, want %q", got, deploymentRuntimeLinux)
+		}
+	})
 }

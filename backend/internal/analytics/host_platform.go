@@ -19,8 +19,6 @@ const (
 	hostPlatformMacOS        = "macos"
 )
 
-var hostPlatformEnv = "FILEBROWSER_HOST_PLATFORM"
-
 // Roots where a Docker image may mount the host filesystem.
 var hostRootPrefixes = []string{"/host", "/rootfs", "/mnt/host", ""}
 
@@ -28,10 +26,6 @@ var hostRootPrefixes = []string{"/host", "/rootfs", "/mnt/host", ""}
 var nativeHostRootPrefix = ""
 
 func detectHostPlatform(containerRuntime string) string {
-	if platform := normalizeHostPlatform(os.Getenv(hostPlatformEnv)); platform != "" {
-		return platform
-	}
-
 	switch runtime.GOOS {
 	case "windows":
 		return hostPlatformWindows
@@ -200,20 +194,52 @@ func classifyOSRelease(content string) string {
 	}
 }
 
-func normalizeHostPlatform(raw string) string {
-	value := strings.ToLower(strings.TrimSpace(raw))
-	switch value {
-	case "":
-		return ""
-	case "mac", "macos", "darwin", "osx":
-		return hostPlatformMacOS
-	case "win", "windows":
-		return hostPlatformWindows
-	case "linux", "generic-linux", "generic_linux":
-		return hostPlatformGenericLinux
-	case hostPlatformUnknown, hostPlatformUnraid, hostPlatformTrueNAS, hostPlatformSynology, hostPlatformProxmox:
-		return value
+const (
+	deploymentRuntimeKubernetes = "kubernetes"
+	deploymentRuntimeDocker       = "docker"
+	deploymentRuntimeLinux        = "linux"
+	deploymentRuntimeWindows      = "windows"
+	deploymentRuntimeMacOS        = "macos"
+	deploymentRuntimeUnknown      = "unknown"
+)
+
+// detectDeploymentRuntime reports how the instance is deployed: detected NAS/hypervisor
+// product when possible, otherwise kubernetes, docker, or native OS (linux, windows, macos).
+func detectDeploymentRuntime() string {
+	return deploymentRuntimeFrom(detectRuntime())
+}
+
+func deploymentRuntimeFrom(containerRuntime string) string {
+	platform := detectHostPlatform(containerRuntime)
+	if isProductDeploymentRuntime(platform) {
+		return platform
+	}
+
+	switch containerRuntime {
+	case "kubernetes":
+		return deploymentRuntimeKubernetes
+	case "docker":
+		return deploymentRuntimeDocker
+	}
+
+	switch runtime.GOOS {
+	case "windows":
+		return deploymentRuntimeWindows
+	case "darwin":
+		return deploymentRuntimeMacOS
+	case "linux":
+		return deploymentRuntimeLinux
 	default:
-		return value
+		return deploymentRuntimeUnknown
+	}
+}
+
+func isProductDeploymentRuntime(platform string) bool {
+	switch platform {
+	case hostPlatformUnraid, hostPlatformTrueNAS, hostPlatformSynology, hostPlatformProxmox,
+		hostPlatformWindows, hostPlatformMacOS:
+		return true
+	default:
+		return false
 	}
 }
