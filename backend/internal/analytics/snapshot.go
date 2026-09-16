@@ -52,7 +52,9 @@ type systemPayload struct {
 	CPUCores      int    `json:"cpu_cores"`
 	MemoryRSSMB   int    `json:"memory_rss_mb"`
 	MemoryTotalMB int    `json:"memory_total_mb"`
-	Runtime       string `json:"runtime"`
+	// Runtime is deployment context: unraid, synology, truenas, proxmox, kubernetes,
+	// docker, linux, windows, macos, or unknown.
+	Runtime string `json:"runtime"`
 }
 
 type countsPayload struct {
@@ -178,7 +180,7 @@ func collectPayload(versionLabel string) (snapshotPayload, error) {
 			CPUCores:      runtime.NumCPU(),
 			MemoryRSSMB:   memoryRSSMB(),
 			MemoryTotalMB: systemTotalMemoryMB(),
-			Runtime:       detectRuntime(),
+			Runtime: detectDeploymentRuntime(),
 		},
 		Counts: countsPayload{
 			SourcesEnabled:   sourceCounts.enabled,
