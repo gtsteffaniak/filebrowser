@@ -209,7 +209,6 @@ export default {
       width: window.innerWidth,
       lastSelected: {},
       contextTimeout: null,
-      ctrKeyPressed: false,
       clipboard: { items: [] },
       internalClipboardTimestamp: 0,
       isRectangleSelecting: false,
@@ -490,7 +489,6 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("resize", this.windowsResize);
     window.addEventListener("click", this.clickClear);
-    window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
     window.addEventListener('paste', this.handlePaste);
     document.addEventListener('mousemove', this.updateRectangleSelection, { passive: true });
@@ -541,7 +539,6 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("resize", this.windowsResize);
     window.removeEventListener("click", this.clickClear);
-    window.removeEventListener("keyup", this.clearCtrKey);
     window.removeEventListener("dragover", this.preventDefault);
     window.removeEventListener('paste', this.handlePaste);
     document.removeEventListener('mousemove', this.updateRectangleSelection);
@@ -766,13 +763,6 @@ export default {
         }
       }, 50);
     },
-    clearCtrKey(event) {
-      const { ctrlKey, metaKey } = event;
-      const modifierKeys = ctrlKey || metaKey;
-      if (!modifierKeys) {
-        this.ctrKeyPressed = false;
-      }
-    },
     keyEvent(event) {
       const { key, ctrlKey, metaKey, altKey, which } = event;
       const isArrowKey = key === 'ArrowUp' ||
@@ -810,7 +800,6 @@ export default {
       }
 
       if (modifierKeys) {
-        this.ctrKeyPressed = true;
         const charKey = String.fromCharCode(which).toLowerCase();
 
         switch (charKey) {
@@ -1230,8 +1219,8 @@ export default {
         return;
       }
 
-      // if control or shift is pressed, do not clear the selection
-      if (this.ctrKeyPressed || event.shiftKey) {
+      // if control, meta, or shift is pressed, do not clear the selection
+      if (event.ctrlKey || event.metaKey || event.shiftKey) {
         return;
       }
 
