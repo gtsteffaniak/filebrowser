@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.7
 
+ **Notes**:
+ - popup preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly. 
+
  **Bugfixes**:
+ - preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
  - avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
 
 ## v2.0.6
