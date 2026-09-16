@@ -25,7 +25,9 @@ type versionCmd struct{}
 
 type setupCmd struct{}
 
-type initCmd struct{}
+type initCmd struct{
+	MigrateFrom string `name:"migrateFrom" help:"Override server.database.migrateFrom in the config file"`
+}
 
 type SetCmd struct {
 	User  string     `short:"u" help:"Deprecated: comma-separated username,password. Use 'user set' instead."`
@@ -217,14 +219,14 @@ func runCLI() (keepGoing bool, dbExists bool) {
 	switch {
 	case cmd == "" || cmd == "run":
 		requireExistingConfig(configPath)
-		dbExists = initializeDatabase(configPath, false)
+		dbExists = initializeDatabase(configPath, false, "")
 		return true, dbExists
 	case cmd == "version" || cmd == "setup":
 		parser.FatalIfErrorf(ctx.Run(&rootCLI))
 		return false, false
 	case cmd == "init" || cmd == "set rule" || cmd == "set" || strings.HasPrefix(cmd, "user set") || strings.HasPrefix(cmd, "user promote"):
 		requireExistingConfig(configPath)
-		dbExists = initializeDatabase(configPath, true)
+		dbExists = initializeDatabase(configPath, true, rootCLI.Init.MigrateFrom)
 		parser.FatalIfErrorf(ctx.Run(&rootCLI))
 		return false, dbExists
 	default:
