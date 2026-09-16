@@ -1,14 +1,13 @@
 <template>
-  <div class="card-content prompt-panel">
-    <SidebarLinksEditor
-      embedded
-      mode="user"
-      :initial-sidebar-links="sidebarLinks"
-      :initial-show-tools-in-sidebar="showToolsInSidebar"
-      :show-prompt-actions="true"
-      @save="saveLinks"
-    />
-  </div>
+  <SidebarLinksEditor
+    embedded
+    mode="user"
+    :initial-sidebar-links="sidebarLinks"
+    :initial-show-tools-in-sidebar="showToolsInSidebar"
+    :show-prompt-actions="true"
+    @save="saveLinks"
+    @cancel="closeTopPrompt"
+  />
 </template>
 
 <script>
@@ -42,6 +41,9 @@ export default {
     void mutations.syncSidebarLinkDefaultsPolicy();
   },
   methods: {
+    closeTopPrompt() {
+      mutations.closeTopPrompt();
+    },
     saveLinks({ links, showToolsInSidebar }) {
       if (!this.session?.user) {
         return;

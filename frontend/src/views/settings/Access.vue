@@ -346,13 +346,33 @@ export default {
 };
 </script>
 <style scoped>
-.form-flex-group {
-  margin-bottom: 1em;
+.card-title .form-flex-group {
+  width: 100%;
+  margin-bottom: 0;
 }
+
+.card-content.full {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .card-content.full :deep(.settings-group) {
+  width: 100%;
+  max-width: 100%;
   margin-bottom: 0.75rem;
   margin-top: 0.5em;
 }
+
+.card-content.full :deep(.settings-table-wrapper) {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 0.75rem;
+  align-self: stretch;
+}
+
 .loading-hint {
   opacity: 0.7;
 }

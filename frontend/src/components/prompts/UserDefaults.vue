@@ -1,10 +1,9 @@
 <template>
-  <div class="card-content no-buttons prompt-panel user-defaults-prompt">
-    <div class="user-defaults-scroll">
-      <div v-if="loading" class="loading-hint">{{ $t("general.loading") }}</div>
+  <div class="card-content no-buttons user-defaults-prompt">
+    <div v-if="loading" class="loading-hint">{{ $t("general.loading") }}</div>
 
-      <template v-else>
-        <UserProfilePreferences
+    <template v-else>
+      <UserProfilePreferences
           v-model="preferenceSections"
           enforceable
           :enforced="enforced"
@@ -23,8 +22,7 @@
           @enforced-change="(field, value) => patchEnforcedFlag('account', field, value)"
           @enforced-permission-change="(field, value) => patchEnforcedFlag('account', `permissions.${field}`, value)"
         />
-      </template>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -279,21 +277,6 @@ export default {
 </script>
 
 <style scoped>
-.user-defaults-prompt {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.user-defaults-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
 .loading-hint {
   opacity: 0.7;
 }

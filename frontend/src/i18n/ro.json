@@ -333,7 +333,6 @@
     "pickIcon": "Alegeți o pictogramă",
     "pickIconDescription": "Căutați și selectați o pictogramă din biblioteca Material Icons",
     "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material",
-    "switchMode": "Schimbă modul barei laterale",
     "showIndexedUsageDescription": "Afișează bara de utilizare calculată din fișierele indexate din sursă.",
     "showDiskUsageDescription": "Afișează bara de utilizare din dimensiunea discului/partiției raportată de sistemul de operare. Această dimensiune va fi probabil mai mare și include fișiere care nu sunt indexate.",
     "usageTextDisplay": "Ce text de utilizare ar trebui să fie afișat?",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Configurați linkurile implicite și obligatorii din bara laterală pentru toți utilizatorii.",
     "sidebarLinkDefaultsHelp": "Acestea sunt linkurile implicite care vor fi adăugate pentru toți utilizatorii noi. Dacă impui un link, acesta va fi adăugat pentru toți utilizatorii și nu poate fi eliminat de către utilizatorii care nu sunt administratori.",
     "sidebarLinkDefaultSourceHelp": "Se aplică numai în cazul în care utilizatorul are acces la această sursă.",
-    "sidebarLinkDefaultsYamlInvalid": "YAML nevalid. Verificați formatul și încercați din nou."
+    "sidebarLinkDefaultsYamlInvalid": "YAML nevalid. Verificați formatul și încercați din nou.",
+    "switchMode": "Comutare între linkuri și arborele de navigare"
   },
   "share": {
     "notice": "Notă: atunci când este creată o partajare, aceasta devine mai expusă publicului și are reguli diferite de acces. Dacă partajul dvs. nu este configurat în siguranță, acesta poate fi accesat de oricine.",

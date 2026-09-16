@@ -1,20 +1,40 @@
 <template>
-  <div v-if="loading" class="card-content prompt-panel">
+  <div v-if="loading" class="card-content">
     <div class="loading-hint">{{ $t("general.loading") }}</div>
   </div>
 
-  <ToolsAccessEditor
-    v-else
-    embedded
-    mode="defaults"
-    :model-value="items"
-    :description="$t('tools.toolAccessDefaultsHelp')"
-    :disabled="!canPatch()"
-    :show-prompt-actions="true"
-    @update:model-value="onItemsUpdate"
-    @save="save"
-    @cancel="closeTopPrompt"
-  />
+  <template v-else>
+    <div class="card-content">
+      <ToolsAccessEditor
+        embedded
+        :prompt-shell="false"
+        mode="defaults"
+        :model-value="items"
+        :description="$t('tools.toolAccessDefaultsHelp')"
+        :disabled="!canPatch()"
+        :show-prompt-actions="false"
+        @update:model-value="onItemsUpdate"
+      />
+    </div>
+    <div class="card-actions">
+      <button
+        type="button"
+        class="button button--flat"
+        :disabled="!canPatch()"
+        @click="closeTopPrompt"
+      >
+        {{ $t("general.cancel") }}
+      </button>
+      <button
+        type="button"
+        class="button button--flat button--blue"
+        :disabled="!canPatch()"
+        @click="save"
+      >
+        {{ $t("general.save") }}
+      </button>
+    </div>
+  </template>
 </template>
 
 <script>

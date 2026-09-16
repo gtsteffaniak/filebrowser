@@ -179,12 +179,4 @@ export default {
   opacity: 1;
 }
 
-.settings-items > .item {
-  padding: 1em;
-  border-radius: 1em;
-}
-
-.settings-items > .item:hover {
-  background-color: var(--surfaceSecondary);
-}
 </style>

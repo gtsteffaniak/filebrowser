@@ -333,7 +333,6 @@
     "pickIcon": "Elije un icono",
     "pickIconDescription": "Aquí puedes explorar los iconos más populares de la biblioteca \"Material Icons\"",
     "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste",
-    "switchMode": "Cambiar modo del panel lateral",
     "showIndexedUsageDescription": "Muestra la barra de uso a partir de los archivos indexados en la fuente.",
     "showDiskUsageDescription": "Muestra la barra de uso a partir del tamaño del disco/partición indicado por el sistema operativo. Es probable que este tamaño sea mayor e incluya archivos no indexados.",
     "usageTextDisplay": "¿Qué texto de uso debe mostrarse?",
@@ -346,7 +345,8 @@
     "sidebarLinkDefaultsDescription": "Configura los enlaces predeterminados y obligatorios de la barra lateral para todos los usuarios.",
     "sidebarLinkDefaultsHelp": "Estos son los enlaces predeterminados que se añadirán para todos los nuevos usuarios. Si se establece un enlace como obligatorio, se añadirá para todos los usuarios y los usuarios que no sean administradores no podrán eliminarlo.",
     "sidebarLinkDefaultSourceHelp": "Solo se aplica cuando el usuario tiene acceso a esta fuente.",
-    "sidebarLinkDefaultsYamlInvalid": "YAML no válido. Comprueba el formato e inténtalo de nuevo."
+    "sidebarLinkDefaultsYamlInvalid": "YAML no válido. Comprueba el formato e inténtalo de nuevo.",
+    "switchMode": "Alternar entre los enlaces y el árbol de navegación"
   },
   "share": {
     "notice": "Cuando se crea un recurso compartido, este quedará más expuesto al público y tendrá diferentes reglas de acceso. Si no está configurado de forma forma segura, cualquiera podrá acceder a él.",

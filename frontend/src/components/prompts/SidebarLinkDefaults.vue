@@ -1,18 +1,39 @@
 <template>
-  <div v-if="loading" class="card-content prompt-panel">
+  <div v-if="loading" class="card-content">
     <div class="loading-hint">{{ $t("general.loading") }}</div>
   </div>
 
-  <SidebarLinksEditor
-    v-else
-    embedded
-    mode="defaults"
-    :model-value="items"
-    :description="$t('sidebar.sidebarLinkDefaultsHelp')"
-    :disabled="!canPatch()"
-    @update:model-value="onItemsUpdate"
-    @save="save"
-  />
+  <template v-else>
+    <SidebarLinksEditor
+      embedded
+      mode="defaults"
+      :model-value="items"
+      :description="$t('sidebar.sidebarLinkDefaultsHelp')"
+      :disabled="!canPatch()"
+      :show-prompt-actions="false"
+      @update:model-value="onItemsUpdate"
+      @sub-flow-change="linksInSubFlow = $event"
+      @save="save"
+    />
+    <div v-if="!linksInSubFlow" class="card-actions">
+      <button
+        type="button"
+        class="button button--flat"
+        :disabled="!canPatch()"
+        @click="closeTopPrompt"
+      >
+        {{ $t("general.cancel") }}
+      </button>
+      <button
+        type="button"
+        class="button button--flat button--blue"
+        :disabled="!canPatch()"
+        @click="save"
+      >
+        {{ $t("general.save") }}
+      </button>
+    </div>
+  </template>
 </template>
 
 <script>
@@ -38,6 +59,7 @@ export default {
       saving: false,
       hydrating: false,
       items: [],
+      linksInSubFlow: false,
     };
   },
   mounted() {
@@ -46,6 +68,9 @@ export default {
   methods: {
     canPatch() {
       return !this.loading && !this.saving && !this.hydrating;
+    },
+    closeTopPrompt() {
+      mutations.closeTopPrompt();
     },
     applyItems(data) {
       this.hydrating = true;
