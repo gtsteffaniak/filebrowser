@@ -24,6 +24,9 @@ var hostPlatformEnv = "FILEBROWSER_HOST_PLATFORM"
 // Roots where a Docker image may mount the host filesystem.
 var hostRootPrefixes = []string{"/host", "/rootfs", "/mnt/host", ""}
 
+// nativeHostRootPrefix is the scan root for non-container host detection. Tests may override.
+var nativeHostRootPrefix = ""
+
 func detectHostPlatform(containerRuntime string) string {
 	if platform := normalizeHostPlatform(os.Getenv(hostPlatformEnv)); platform != "" {
 		return platform
@@ -36,21 +39,31 @@ func detectHostPlatform(containerRuntime string) string {
 		return hostPlatformMacOS
 	case "linux":
 		return detectLinuxHostPlatform(containerRuntime)
+	case "freebsd":
+		return detectFreeBSDHostPlatform(containerRuntime)
 	default:
 		return hostPlatformUnknown
 	}
 }
 
-func detectLinuxHostPlatform(containerRuntime string) string {
+func hostScanPrefixes(containerRuntime string) ([]string, bool) {
 	inContainer := containerRuntime == "docker" || containerRuntime == "kubernetes"
+	if !inContainer {
+		return []string{nativeHostRootPrefix}, false
+	}
+	return hostRootPrefixes, true
+}
 
-	for _, prefix := range hostRootPrefixes {
+func detectLinuxHostPlatform(containerRuntime string) string {
+	prefixes, inContainer := hostScanPrefixes(containerRuntime)
+
+	for _, prefix := range prefixes {
 		if platform := detectLinuxMarkers(prefix); platform != "" {
 			return platform
 		}
 	}
 
-	for _, prefix := range hostRootPrefixes {
+	for _, prefix := range prefixes {
 		if platform := classifyOSRelease(readOSRelease(prefix)); platform != "" {
 			if platform != hostPlatformGenericLinux || !inContainer || prefix != "" {
 				return platform
@@ -62,11 +75,42 @@ func detectLinuxHostPlatform(containerRuntime string) string {
 		return hostPlatformUnknown
 	}
 
-	if classifyOSRelease(readOSRelease("")) == hostPlatformGenericLinux {
+	if classifyOSRelease(readOSRelease(nativeHostRootPrefix)) == hostPlatformGenericLinux {
 		return hostPlatformGenericLinux
 	}
 
 	return hostPlatformUnknown
+}
+
+func detectFreeBSDHostPlatform(containerRuntime string) string {
+	prefixes, inContainer := hostScanPrefixes(containerRuntime)
+
+	for _, prefix := range prefixes {
+		if platform := classifyOSRelease(readOSRelease(prefix)); platform != "" {
+			if platform != hostPlatformGenericLinux {
+				return platform
+			}
+		}
+		if platform := classifyFreeBSDVersion(readFile(hostPath(prefix, "etc/version"))); platform != "" {
+			return platform
+		}
+	}
+
+	if inContainer {
+		return hostPlatformUnknown
+	}
+
+	return hostPlatformUnknown
+}
+
+func classifyFreeBSDVersion(content string) string {
+	lower := strings.ToLower(strings.TrimSpace(content))
+	switch {
+	case strings.Contains(lower, "truenas"), strings.Contains(lower, "freenas"):
+		return hostPlatformTrueNAS
+	default:
+		return ""
+	}
 }
 
 func detectLinuxMarkers(rootPrefix string) string {
