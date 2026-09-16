@@ -308,7 +308,7 @@ func mapSystemOS(goos string) string {
 
 func mapSystemArch(goarch string) string {
 	switch goarch {
-	case "amd64", "arm64", "386", "arm":
+	case "amd64", "arm64", "386", "arm", "riscv64":
 		return goarch
 	default:
 		return "other"
