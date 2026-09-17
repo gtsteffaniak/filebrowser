@@ -180,7 +180,7 @@ func collectPayload(versionLabel string) (snapshotPayload, error) {
 			CPUCores:      runtime.NumCPU(),
 			MemoryRSSMB:   memoryRSSMB(),
 			MemoryTotalMB: systemTotalMemoryMB(),
-			Runtime: detectDeploymentRuntime(),
+			Runtime:       detectDeploymentRuntime(),
 		},
 		Counts: countsPayload{
 			SourcesEnabled:   sourceCounts.enabled,
@@ -310,7 +310,7 @@ func mapSystemOS(goos string) string {
 
 func mapSystemArch(goarch string) string {
 	switch goarch {
-	case "amd64", "arm64", "386", "arm":
+	case "amd64", "arm64", "386", "arm", "riscv64":
 		return goarch
 	default:
 		return "other"

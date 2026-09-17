@@ -40,6 +40,14 @@ func TestParseVersionCommand(t *testing.T) {
 	assert.Equal(t, "version", ctx.Command())
 }
 
+func TestParseInitCommand(t *testing.T) {
+	cli := freshCLI()
+	parser := newCLIParser(t, &cli)
+	ctx, err := parser.Parse([]string{"init"})
+	require.NoError(t, err)
+	assert.Equal(t, "init", ctx.Command())
+}
+
 func TestParseGlobalConfigFlag(t *testing.T) {
 	cli := freshCLI()
 	parser := newCLIParser(t, &cli)

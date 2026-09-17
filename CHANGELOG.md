@@ -4,8 +4,13 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.7
 
+
+ **New Features**:
+ - Add cli init CLI command (#2957)
+
  **Notes**:
  - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly. 
+ - Added risc-v to official releases
 
  **Bugfixes**:
  - Preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)

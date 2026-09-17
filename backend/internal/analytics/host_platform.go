@@ -196,11 +196,11 @@ func classifyOSRelease(content string) string {
 
 const (
 	deploymentRuntimeKubernetes = "kubernetes"
-	deploymentRuntimeDocker       = "docker"
-	deploymentRuntimeLinux        = "linux"
-	deploymentRuntimeWindows      = "windows"
-	deploymentRuntimeMacOS        = "macos"
-	deploymentRuntimeUnknown      = "unknown"
+	deploymentRuntimeDocker     = "docker"
+	deploymentRuntimeLinux      = "linux"
+	deploymentRuntimeWindows    = "windows"
+	deploymentRuntimeMacOS      = "macos"
+	deploymentRuntimeUnknown    = "unknown"
 )
 
 // detectDeploymentRuntime reports how the instance is deployed: detected NAS/hypervisor
