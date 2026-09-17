@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Added risc-v to official releases
 
  **Bugfixes**:
+ - Hide the Replace option on upload/create conflict prompts when the user lacks modify permission (or when a public share disallows replacements), so create-only users are not offered an action that the server rejects (#2837)
  - Preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
  - Avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
  - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)

@@ -6,6 +6,7 @@
     <button
       type="button"
       class="button button--flat button--blue"
+      :id="canReplace ? undefined : 'focus-prompt'"
       @click="(event) => currentPrompt.confirm(event, 'rename')"
       :aria-label="$t('general.rename')"
       :title="$t('general.rename')"
@@ -13,6 +14,7 @@
       {{ $t("general.rename") }}
     </button>
     <button
+      v-if="canReplace"
       type="button"
       id="focus-prompt"
       class="button button--flat button--red"
@@ -26,17 +28,23 @@
 </template>
 
 <script>
-import { getters } from "@/store"; // Import your custom store
+import { getters, state } from "@/store";
 
 export default {
   name: "replace-rename",
   computed: {
     currentPrompt() {
-      return getters.currentPrompt(); // Access the getter directly from the store
+      return getters.currentPrompt();
     },
     isSameFile() {
-      // Check if the current prompt has props indicating same file
       return this.currentPrompt.props?.isSameFile === true;
+    },
+    canReplace() {
+      const canModify = !!getters.sourcePermissions().modify;
+      if (getters.isShare()) {
+        return canModify && !!state.shareInfo?.allowReplacements;
+      }
+      return canModify;
     },
   },
   methods: {},

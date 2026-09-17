@@ -62,6 +62,7 @@ export interface ShareInfoObject {
   disableFileViewer?: boolean;
   allowModify?: boolean;
   allowCreate?: boolean;
+  allowReplacements?: boolean;
   allowDelete?: boolean;
   disableDownload?: boolean;
   showHidden?: boolean;
