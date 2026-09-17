@@ -173,6 +173,7 @@ export function onTooltipHelpTouchEnd(event, content) {
   if (!useTapForTooltip()) {
     return;
   }
+  event.preventDefault();
   event.stopPropagation();
   startTapCooldown();
   unregisterTooltipDismiss();
@@ -180,6 +181,7 @@ export function onTooltipHelpTouchEnd(event, content) {
 }
 
 export function onTooltipHelpClick(event, content) {
+  event.preventDefault();
   event.stopPropagation();
   if (useTapForTooltip()) {
     return;
@@ -244,6 +246,7 @@ export function onComponentTooltipTouchEnd(options) {
     return;
   }
   const { event } = options;
+  event.preventDefault();
   event.stopPropagation();
   startTapCooldown();
   unregisterTooltipDismiss();
@@ -252,6 +255,7 @@ export function onComponentTooltipTouchEnd(options) {
 
 export function onComponentTooltipClick(options) {
   const { event } = options;
+  event.preventDefault();
   event.stopPropagation();
   if (useTapForTooltip()) {
     return;
