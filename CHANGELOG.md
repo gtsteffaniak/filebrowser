@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.7
+
+
+ **New Features**:
+ - Add cli init CLI command (#2957)
+
+ **Notes**:
+ - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly. 
+ - Added risc-v to official releases
+
+ **Bugfixes**:
+ - Hide the Replace option on upload/create conflict prompts when the user lacks modify permission (or when a public share disallows replacements), so create-only users are not offered an action that the server rejects (#2837)
+ - Preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
+ - Avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
+ - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)
+ - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
+
 ## v2.0.6
 
  **Security**:

@@ -62,6 +62,7 @@ export interface ShareInfoObject {
   disableFileViewer?: boolean;
   allowModify?: boolean;
   allowCreate?: boolean;
+  allowReplacements?: boolean;
   allowDelete?: boolean;
   disableDownload?: boolean;
   showHidden?: boolean;
@@ -111,6 +112,7 @@ export interface SourceInfo {
   total: number;
   usedAlt: number;
   usedPercentage: number;
+  usageScopeMismatch?: boolean;
   status: string;
   name: string;
   files: number;
@@ -129,6 +131,7 @@ export interface SourceInfoUpdate {
   used?: number;
   total?: number;
   usedAlt?: number;
+  usageScopeMismatch?: boolean;
   status?: string;
   name?: string;
   numFiles?: number;
