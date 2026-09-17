@@ -27,6 +27,7 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
 <script>
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { cappedUsagePercent } from "@/utils/progressDisplay.js";
 
 // We're leaving this untouched as you can read in the beginning
 const isNumber = (n) => {
@@ -134,8 +135,9 @@ export default {
       
       if (!isNumber(displayVal)) return displayVal;
 
-      const percentage =
-        this.max > 0 ? Math.round((displayVal / this.max) * 100) : 0;
+      // Cap % like the bar fill so nested-mount indexed size > partition total
+      // does not show absurd values (e.g. 1294%); keep byte sizes honest.
+      const percentage = cappedUsagePercent(displayVal, this.max);
 
       if (this.unit === "bytes" && isNumber(displayVal)) {
         const valFormatted = getHumanReadableFilesize(displayVal);

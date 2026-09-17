@@ -9,12 +9,14 @@ All notable changes to this project will be documented in this file. For commit 
  - Add cli init CLI command (#2957)
 
  **Notes**:
- - popup preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly. 
- - added risc-v to official releases
+ - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly. 
+ - Added risc-v to official releases
 
  **Bugfixes**:
- - preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
- - avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
+ - Preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
+ - Avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
+ - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)
+ - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
 
 ## v2.0.6
 
