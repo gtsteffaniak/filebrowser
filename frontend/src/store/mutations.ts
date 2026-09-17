@@ -147,7 +147,9 @@ export const mutations = {
             used,
             usedAlt: source.usedAlt || 0,
             total,
-            usedPercentage: total > 0 ? Math.round((used / total) * 100) : 0,
+            usedPercentage: total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0,
+            usageScopeMismatch:
+              source.usageScopeMismatch === true || (total > 0 && used > total),
             status: source.status || "unknown",
             name: source.name || k,
             files: source.numFiles || 0,
@@ -212,6 +214,7 @@ export const mutations = {
         total: merge ? prev.total : 0,
         usedAlt: merge ? prev.usedAlt : 0,
         usedPercentage: merge ? prev.usedPercentage : 0,
+        usageScopeMismatch: merge ? prev.usageScopeMismatch : false,
         status: merge ? prev.status : "unknown",
         name: merge ? prev.name : source.name,
         files: merge ? prev.files : 0,
