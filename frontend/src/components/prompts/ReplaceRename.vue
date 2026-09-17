@@ -39,12 +39,12 @@ export default {
     isSameFile() {
       return this.currentPrompt.props?.isSameFile === true;
     },
-    /** Upload/create overrides need modify; public shares use allowReplacements. */
     canReplace() {
+      const canModify = !!getters.sourcePermissions().modify;
       if (getters.isShare()) {
-        return !!state.shareInfo?.allowReplacements;
+        return canModify && !!state.shareInfo?.allowReplacements;
       }
-      return !!getters.sourcePermissions().modify;
+      return canModify;
     },
   },
   methods: {},
