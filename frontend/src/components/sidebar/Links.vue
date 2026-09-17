@@ -81,11 +81,7 @@
                   info
                 </i>
               </div>
-              <div
-                v-if="hasUsageInfo(link) && link.category !== 'source-minimal'"
-                class="usage-info"
-                :title="getUsageMismatchTitle(link, sourceInfo[link.sourceName] || {})"
-              >
+              <div v-if="hasUsageInfo(link) && link.category !== 'source-minimal'" class="usage-info">
                 <!-- For source-hybrid, show single bar with background value for disk usage -->
                 <ProgressBar 
                   v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
@@ -94,7 +90,7 @@
                   :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
                   :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
                   :max="sourceInfo[link.sourceName]?.total || 1" 
-                  :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
+                  :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
                 <!-- For other source types, show single bar -->
@@ -103,7 +99,7 @@
                   :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                   :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
                   :max="sourceInfo[link.sourceName]?.total || 1" 
-                  :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
+                  :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
               </div>
@@ -167,25 +163,21 @@
                 info
               </i>
             </div>
-            <div
-              v-if="hasUsageInfo(activeSourceLink)"
-              class="usage-info"
-              :title="getUsageMismatchTitle(activeSourceLink, activeSourceInfo)"
-            >
+            <div v-if="hasUsageInfo(activeSourceLink)" class="usage-info">
               <ProgressBar 
                 v-if="activeSourceLink.category === 'source-hybrid' || activeSourceLink.category === 'source-hybrid-2'"
                 :val="(activeSourceInfo).used || 0"
                 :val-background="(activeSourceInfo).usedAlt || 0"
                 :val-text="activeSourceLink.category === 'source-hybrid-2' ? ((activeSourceInfo).usedAlt || 0) : null"
                 :max="(activeSourceInfo).total || 1" 
-                :status="getProgressBarStatus(activeSourceInfo)"
+                :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
               <ProgressBar 
                 v-else
                 :val="getProgressBarValue(activeSourceLink, activeSourceInfo)" 
                 :max="(activeSourceInfo).total || 1" 
-                :status="getProgressBarStatus(activeSourceInfo)"
+                :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
             </div>
@@ -467,21 +459,14 @@ export default {
       // Direct access to reactive computed property ensures Vue tracks changes
       return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
     },
-    getProgressBarStatus(sourceInfo) {
+    getProgressBarStatus(link, sourceInfo) {
       if (sourceInfo.status === 'indexing' && sourceInfo.complexity === 0) {
         return 'indexing';
       }
-      return 'default';
-    },
-    /**
-     * Indexed used can exceed partition total when the source root contains nested
-     * mount points. Hint only for indexed/hybrid categories (not source-alt).
-     */
-    getUsageMismatchTitle(link, sourceInfo) {
-      if (!link || !this.hasUsageScopeMismatch(link, sourceInfo)) {
-        return undefined;
+      if (this.hasUsageScopeMismatch(link, sourceInfo)) {
+        return 'conflict';
       }
-      return 'Indexed size exceeds the partition size reported at the source root (often nested mounts). Mount large volumes as separate sources, or show usage as reported by disk/partition for free-space accuracy.';
+      return 'default';
     },
     hasUsageScopeMismatch(link, sourceInfo) {
       if (!link || !sourceInfo) return false;
