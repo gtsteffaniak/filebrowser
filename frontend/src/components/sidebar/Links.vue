@@ -81,7 +81,11 @@
                   info
                 </i>
               </div>
-              <div v-if="hasUsageInfo(link) && link.category !== 'source-minimal'" class="usage-info">
+              <div
+                v-if="hasUsageInfo(link) && link.category !== 'source-minimal'"
+                class="usage-info"
+                :title="getUsageMismatchTitle(link, sourceInfo[link.sourceName] || {})"
+              >
                 <!-- For source-hybrid, show single bar with background value for disk usage -->
                 <ProgressBar 
                   v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
@@ -163,7 +167,11 @@
                 info
               </i>
             </div>
-            <div v-if="hasUsageInfo(activeSourceLink)" class="usage-info">
+            <div
+              v-if="hasUsageInfo(activeSourceLink)"
+              class="usage-info"
+              :title="getUsageMismatchTitle(activeSourceLink, activeSourceInfo)"
+            >
               <ProgressBar 
                 v-if="activeSourceLink.category === 'source-hybrid' || activeSourceLink.category === 'source-hybrid-2'"
                 :val="(activeSourceInfo).used || 0"
@@ -464,6 +472,29 @@ export default {
         return 'indexing';
       }
       return 'default';
+    },
+    /**
+     * Indexed used can exceed partition total when the source root contains nested
+     * mount points. Hint only for indexed/hybrid categories (not source-alt).
+     */
+    getUsageMismatchTitle(link, sourceInfo) {
+      if (!link || !this.hasUsageScopeMismatch(link, sourceInfo)) {
+        return undefined;
+      }
+      return 'Indexed size exceeds the partition size reported at the source root (often nested mounts). Mount large volumes as separate sources, or show usage as reported by disk/partition for free-space accuracy.';
+    },
+    hasUsageScopeMismatch(link, sourceInfo) {
+      if (!link || !sourceInfo) return false;
+      const cat = link.category;
+      if (cat !== 'source' && cat !== 'source-hybrid' && cat !== 'source-hybrid-2') {
+        return false;
+      }
+      if (sourceInfo.usageScopeMismatch) {
+        return true;
+      }
+      const used = Number(sourceInfo.used) || 0;
+      const total = Number(sourceInfo.total) || 0;
+      return total > 0 && used > total;
     },
     getProgressBarValue(link, sourceInfo) {
       // Called with (link, sourceInfo) from both modes
