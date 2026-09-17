@@ -9,6 +9,8 @@ import (
 // NormalizeSidebarLinks canonicalizes persisted sidebar links for storage.
 // Source links are resolved via ResolveSourceKey on SourceName, with Name as fallback.
 // SourceName is set to the canonical backend path; custom Name, Icon, and Category are preserved.
+// Empty Name means "use live source display name"; names matching the current source display name
+// are blanked so renames propagate without overwriting custom labels.
 // Unresolvable source links are dropped. Source links are deduped by canonical path plus target
 // (first occurrence wins), so multiple folder shortcuts on one source are kept. Non-source links
 // pass through; duplicate Tools links are deduped.
@@ -36,8 +38,8 @@ func NormalizeSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, bool
 			normalized := link
 			normalized.Category = users.NormalizeSidebarLinkCategory(normalized.Category)
 			normalized.SourceName = source.Path
-			if strings.TrimSpace(normalized.Name) == "" {
-				normalized.Name = source.Name
+			if strings.TrimSpace(normalized.Name) == source.Name {
+				normalized.Name = ""
 			}
 			normalized.Target = normalizeSidebarTarget(normalized.Target)
 

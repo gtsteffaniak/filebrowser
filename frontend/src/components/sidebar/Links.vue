@@ -102,7 +102,7 @@
                   :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
                   :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
                   :max="sourceInfo[link.sourceName]?.total || 1" 
-                  :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
+                  :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
                 <!-- For other source types, show single bar -->
@@ -112,7 +112,7 @@
                   :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
                   :val-background="getProgressBarReserved(sourceInfo[link.sourceName] || {})"
                   :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})" 
-                  :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
+                  :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
               </div>
@@ -183,7 +183,7 @@
                 :val-background="(activeSourceInfo).usedAlt || 0"
                 :val-text="activeSourceLink.category === 'source-hybrid-2' ? ((activeSourceInfo).usedAlt || 0) : null"
                 :max="(activeSourceInfo).total || 1" 
-                :status="getProgressBarStatus(activeSourceInfo)"
+                :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
               <ProgressBar 
@@ -191,7 +191,7 @@
                 :val="getProgressBarValue(activeSourceLink, activeSourceInfo)" 
                 :val-background="getProgressBarReserved(activeSourceInfo)"
                 :max="getProgressBarMax(activeSourceLink, activeSourceInfo)" 
-                :status="getProgressBarStatus(activeSourceInfo)"
+                :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
             </div>
@@ -483,11 +483,27 @@ export default {
       // Direct access to reactive computed property ensures Vue tracks changes
       return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
     },
-    getProgressBarStatus(sourceInfo) {
+    getProgressBarStatus(link, sourceInfo) {
       if (sourceInfo.status === 'indexing' && sourceInfo.complexity === 0) {
         return 'indexing';
       }
+      if (this.hasUsageScopeMismatch(link, sourceInfo)) {
+        return 'conflict';
+      }
       return 'default';
+    },
+    hasUsageScopeMismatch(link, sourceInfo) {
+      if (!link || !sourceInfo) return false;
+      const cat = link.category;
+      if (cat !== 'source' && cat !== 'source-hybrid' && cat !== 'source-hybrid-2') {
+        return false;
+      }
+      if (sourceInfo.usageScopeMismatch) {
+        return true;
+      }
+      const used = Number(sourceInfo.used) || 0;
+      const total = Number(sourceInfo.total) || 0;
+      return total > 0 && used > total;
     },
     getProgressBarValue(link, sourceInfo) {
       if (sourceInfo.scopeQuota?.limitBytes > 0) {

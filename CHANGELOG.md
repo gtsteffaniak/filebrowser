@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file. For commit 
    - share creation defaults and enforcements (#1692) (#2434) (#2279) (#2812) (settings > share management)
    - sidebar link defaults and enforcements (#2561) (settings > user management)
    - tool defaults and enforcement (settings > user management)
+ - Add cli init CLI command (#2957)
 
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
@@ -42,6 +43,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Added icons based on extension to the upload prompt and new file/folder/rename prompts (#2881).
  - Profile settings show minimal options by default with prompt for advanced options. Full advanced profile settings can be shown by default by enabling `account.showAdvancedSettings`
  - sidebar links/navigation is button group toggle for clearer visibility
+ - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly.
+ - Added risc-v to official releases
 
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
@@ -52,17 +55,42 @@ All notable changes to this project will be documented in this file. For commit 
  - Fall back to buffered copies when FUSE rejects fast paths (#2938)
  - Preserve deleted sidebar links across restarts (#2935)
  - scope padding to listing view (#2934)
- 
+ - Hide the Replace option on upload/create conflict prompts when the user lacks modify permission (or when a public share disallows replacements), so create-only users are not offered an action that the server rejects (#2837)
+ - Preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
+ - Avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
+ - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)
+ - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
+
+## v2.0.7
+
+
+ **New Features**:
+ - Add cli init CLI command (#2957)
+
+ **Notes**:
+ - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly. 
+ - Added risc-v to official releases
+
+ **Bugfixes**:
+ - Hide the Replace option on upload/create conflict prompts when the user lacks modify permission (or when a public share disallows replacements), so create-only users are not offered an action that the server rejects (#2837)
+ - Preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
+ - Avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
+ - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)
+ - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
 
 ## v2.0.6
 
  **Security**:
  - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
 
+ **Notes**:
+ - renaming sources updates sidebar links (#2878)
+ - disabling/deleting a user source removes that source from sidebar links (#2942)
+
  **Bugfixes**:
  - Fix disk-usage overstatement on virtiofs bind mounts (#2894) (#2894)
  - Support non-ASCII share passwords (#2933)
- - Fall back to buffered copies when FUSE rejects fast paths (#2938)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938) (#2924)
  - Preserve deleted sidebar links across restarts (#2935)
 
 ## v2.0.5

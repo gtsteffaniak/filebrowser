@@ -21,6 +21,9 @@ func prepareFrontendLink(link users.SidebarLink) (users.SidebarLink, bool) {
 		}
 	}
 	link.SourceName = source.Name
+	if link.Name == "" {
+		link.Name = source.Name
+	}
 	return link, true
 }
 

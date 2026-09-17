@@ -67,8 +67,8 @@ func TestEnsureSidebarLinksFromScopes_addsMissingScopedSources(t *testing.T) {
 	if len(out) != 3 {
 		t.Fatalf("len(out) = %d, want 3", len(out))
 	}
-	if out[2].Name != "playwright + files" {
-		t.Fatalf("added link = %#v", out[2])
+	if out[2].Name != "" {
+		t.Fatalf("added link should have empty default name, got %#v", out[2])
 	}
 	if out[1].Category != string(users.SidebarLinkCustom) {
 		t.Fatalf("custom link lost: %#v", out[1])

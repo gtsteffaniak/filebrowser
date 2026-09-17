@@ -39,6 +39,8 @@ import { getObjectProperty } from '@/utils/object.js';
 import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
 
+const POPUP_PREVIEW_HOVER_DELAY_MS = 200;
+
 export default {
   name: "Icon",
   components: {
@@ -103,6 +105,7 @@ export default {
       classes: "",
       svgPath: "",
       previewTimeouts: [],
+      popupHoverTimeoutId: null,
       previewAbortController: null,
       preloadAbortControllers: [],
       imageBlobUrl: null,
@@ -266,7 +269,14 @@ export default {
       // When 3D preview fails, fall back to material icon
       this.threeJsError = true;
     },
+    clearPopupHoverTimeout() {
+      if (this.popupHoverTimeoutId !== null) {
+        clearTimeout(this.popupHoverTimeoutId);
+        this.popupHoverTimeoutId = null;
+      }
+    },
     cancelPreloadRequests() {
+      this.clearPopupHoverTimeout();
       this.previewTimeouts.forEach(clearTimeout);
       this.previewTimeouts = [];
       for (const controller of this.preloadAbortControllers) {
@@ -336,6 +346,13 @@ export default {
       if (!getters.previewPerms().popup || !this.path) {
         return;
       }
+      this.clearPopupHoverTimeout();
+      this.popupHoverTimeoutId = setTimeout(() => {
+        this.popupHoverTimeoutId = null;
+        this.showPopupPreview();
+      }, POPUP_PREVIEW_HOVER_DELAY_MS);
+    },
+    showPopupPreview() {
       const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
       const modified = this.modified || state.req.modified;
 
@@ -416,6 +433,7 @@ export default {
       updateThumbnail();
     },
     handleMouseLeave() {
+      this.clearPopupHoverTimeout();
       this.cancelPreloadRequests();
       mutations.setPreviewSource("");
       // Clear popup preview source info when mouse leaves
