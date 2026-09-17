@@ -15,10 +15,10 @@ import (
 // filesystems mounted at or under root (deduped by major:minor from mountinfo).
 // Falls back to a single-path probe when mountinfo cannot be read.
 func GetAggregatedPartitionUsage(root string) (total, used uint64, err error) {
-	root = filepath.Clean(root)
 	if root == "" {
 		return 0, 0, fmt.Errorf("empty path")
 	}
+	root = filepath.Clean(root)
 
 	paths, parseErr := distinctMountPathsUnder(root)
 	if parseErr != nil || len(paths) == 0 {

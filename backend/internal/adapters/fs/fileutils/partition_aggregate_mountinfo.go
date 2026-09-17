@@ -1,9 +1,10 @@
+//go:build linux
+
 package fileutils
 
 import (
 	"bufio"
-	"os"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -17,7 +18,7 @@ type mountEntry struct {
 // contributes capacity for root: the FS that owns root, plus nested mounts under
 // root. Deduped by major:minor from mountinfo.
 func distinctMountPathsFromMountinfo(mountinfo string, root string) ([]string, error) {
-	root = filepath.Clean(root)
+	root = path.Clean(root)
 	entries, err := parseAllMounts(mountinfo)
 	if err != nil {
 		return nil, err
@@ -29,7 +30,7 @@ func distinctMountPathsFromMountinfo(mountinfo string, root string) ([]string, e
 	for i := range entries {
 		e := &entries[i]
 		mp := e.mountpoint
-		if mp == root || strings.HasPrefix(root, mp+string(os.PathSeparator)) || mp == string(os.PathSeparator) {
+		if mp == root || strings.HasPrefix(root, mp+"/") || mp == "/" {
 			if covering == nil || len(mp) > len(covering.mountpoint) {
 				covering = e
 			}
@@ -41,7 +42,7 @@ func distinctMountPathsFromMountinfo(mountinfo string, root string) ([]string, e
 
 	for _, e := range entries {
 		mp := e.mountpoint
-		if mp != root && !strings.HasPrefix(mp, root+string(os.PathSeparator)) {
+		if mp != root && !strings.HasPrefix(mp, root+"/") {
 			continue
 		}
 		if _, ok := seen[e.deviceID]; ok {
@@ -51,7 +52,12 @@ func distinctMountPathsFromMountinfo(mountinfo string, root string) ([]string, e
 	}
 
 	out := make([]string, 0, len(seen))
+	uniq := make(map[string]struct{}, len(seen))
 	for _, p := range seen {
+		if _, ok := uniq[p]; ok {
+			continue
+		}
+		uniq[p] = struct{}{}
 		out = append(out, p)
 	}
 	return out, nil
@@ -67,7 +73,7 @@ func parseAllMounts(mountinfo string) ([]mountEntry, error) {
 		if !ok {
 			continue
 		}
-		entry.mountpoint = filepath.Clean(entry.mountpoint)
+		entry.mountpoint = path.Clean(entry.mountpoint)
 		out = append(out, entry)
 	}
 	return out, scanner.Err()

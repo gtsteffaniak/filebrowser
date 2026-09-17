@@ -1,3 +1,5 @@
+//go:build linux
+
 package fileutils
 
 import (
@@ -20,6 +22,29 @@ func TestDistinctMountPathsNestedDisk(t *testing.T) {
 	want := []string{"/srv", "/srv/data"}
 	if len(paths) != len(want) {
 		t.Fatalf("paths = %v, want %v", paths, want)
+	}
+	for i := range want {
+		if paths[i] != want[i] {
+			t.Fatalf("paths = %v, want %v", paths, want)
+		}
+	}
+}
+
+func TestDistinctMountPathsOvermountSamePathDeduped(t *testing.T) {
+	mountinfo := "" +
+		"22 1 8:1 / / rw - ext4 /dev/sda1 rw\n" +
+		"40 22 8:2 / /srv rw - ext4 /dev/sda2 rw\n" +
+		"45 40 8:16 / /srv/data rw - btrfs /dev/sdb1 rw\n" +
+		"46 45 0:47 / /srv/data rw - tmpfs tmpfs rw\n"
+
+	paths, err := distinctMountPathsFromMountinfo(mountinfo, "/srv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sort.Strings(paths)
+	want := []string{"/srv", "/srv/data"}
+	if len(paths) != len(want) {
+		t.Fatalf("paths = %v, want %v (no duplicate probe paths)", paths, want)
 	}
 	for i := range want {
 		if paths[i] != want[i] {
