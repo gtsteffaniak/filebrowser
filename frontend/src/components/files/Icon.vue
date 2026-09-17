@@ -270,7 +270,7 @@ export default {
       this.threeJsError = true;
     },
     clearPopupHoverTimeout() {
-      if (this.popupHoverTimeoutId != null) {
+      if (this.popupHoverTimeoutId !== null) {
         clearTimeout(this.popupHoverTimeoutId);
         this.popupHoverTimeoutId = null;
       }

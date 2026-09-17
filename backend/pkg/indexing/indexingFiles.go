@@ -89,6 +89,9 @@ type Stats struct {
 	UsedAsIndexed   uint64    `json:"used"`
 	UsedDisk        uint64    `json:"usedAlt"`
 	DiskTotal       uint64    `json:"total"`
+	// UsageScopeMismatch is true when indexed used exceeds partition total at the
+	// source root (e.g. nested mounts under the source path). Display-only signal.
+	UsageScopeMismatch bool `json:"usageScopeMismatch,omitempty"`
 }
 
 // reduced index is json exposed to the client
