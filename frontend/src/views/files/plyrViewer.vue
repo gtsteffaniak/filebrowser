@@ -936,8 +936,8 @@ export default {
     updateMediaSessionNavHandlers() {
       if (!('mediaSession' in navigator) || !this.ownsMediaSession()) return;
       const { queue, currentIndex, loop } = state.playbackQueue;
-      const hasPrevious = !!getNextItem(queue, currentIndex, loop, -1);
-      const hasNext = !!getNextItem(queue, currentIndex, loop, 1);
+      const hasPrevious = queue.length > 1 && !!getNextItem(queue, currentIndex, loop, -1);
+      const hasNext = queue.length > 1 && !!getNextItem(queue, currentIndex, loop, 1);
       try {
         navigator.mediaSession.setActionHandler(
           'previoustrack',
@@ -1456,6 +1456,7 @@ export default {
       this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
       this.pipHandoffApplying = false;
       await this.reconcilePipSessionOnMount();
+      if (this.plyrTeardownDone || !this.mediaElement) return;
       this.player = new Plyr(this.mediaElement, this.plyrOptions);
       if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
         this.nativePlayerPlay = this.player.play.bind(this.player);
