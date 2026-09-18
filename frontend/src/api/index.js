@@ -19,12 +19,14 @@ import * as settingsApi from "./settings";
 import * as shareApi from "./share";
 import * as toolsApi from "./tools";
 import * as usersApi from "./users";
+import * as quotasApi from "./quotas";
 
 export {
     accessApi,
     authApi,
     mediaApi,
     officeApi,
+    quotasApi,
     resourcesApi,
     settingsApi,
     shareApi,

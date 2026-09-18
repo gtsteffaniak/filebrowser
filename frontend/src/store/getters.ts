@@ -3,6 +3,7 @@ import { mutations } from './mutations';
 import { state } from './state';
 import { url } from '@/utils';
 import { globalVars, previewViews, tools } from '@/utils/constants';
+import { hasToolAccess, toolIdFromPath } from '@/utils/toolAccess';
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/mimetype';
 import { fromNow } from '@/utils/moment';
@@ -110,6 +111,10 @@ export const getters = {
   },
   sorting: () => {
     return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
+  },
+  /** Sort config for destination picker dialogs (copy/move/archive), independent of the main listing sort. */
+  pickerSorting: () => {
+    return state.pickerSorting || { by: "name", asc: true };
   },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   /** Audio/video preview uses folder listing nav links unless a multi-item playback queue is active. */
@@ -370,12 +375,17 @@ export const getters = {
       if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;
         const preferEditor = state.user.preferEditorForMarkdown;
+        const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
+        const canEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowModify);
+        if (isMarkdown && state.editor.markdownSplitView && !state.isMobile && canEdit) {
+          return 'editor';
+        }
         switch (hash) {
-          case '#edit': return 'editor';
+          case '#edit': return canEdit ? 'editor' : 'markdownViewer';
           case '#preview': return 'markdownViewer';
         }
-        if (state.req.type === 'text/markdown' && preferEditor) return 'editor';
+        if (isMarkdown && preferEditor && canEdit) return 'editor';
         return 'markdownViewer';
       }
 
@@ -544,6 +554,7 @@ export const getters = {
       disableQuickToggles: false,
       disableSearchOptions: false,
       deleteWithoutConfirming: false,
+      promptRightCloseButton: false,
       deleteAfterArchive: true,
       stickySidebar: true,
       hideFilesInTree: false,
@@ -612,13 +623,36 @@ export const getters = {
     if (getters.currentView() !== "tools") {
       return null;
     }
-    // Match by path instead of route name
     const tool = tools().find(t => t.path === state.route.path);
-    // Return null when at /tools (list view) to avoid circular component rendering
+    if (!tool) {
+      return null;
+    }
+    const toolId = tool.id || toolIdFromPath(tool.path);
+    if (toolId && !hasToolAccess(toolId)) {
+      return null;
+    }
     return tool;
   },
   isEditorOrMarkdownView: () => {
-    return getters.currentView() === 'editor' || getters.currentView() === 'markdownViewer';
+    const view = getters.currentView();
+    if (view === 'markdownViewer') {
+      return !isHtmlMimeType(state.req?.type);
+    }
+    return view === 'editor';
+  },
+  canSplitView: () => {
+    if (state.isMobile) return false;
+    if (!state.req || !('content' in state.req)) return false;
+    const canEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowModify);
+    if (!canEdit) return false;
+    return state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
+  },
+  isSplitViewActive: () => {
+    return state.editor.markdownSplitView && getters.canSplitView();
+  },
+  showSplitViewToggle: () => {
+    return getters.canSplitView() && getters.isEditorOrMarkdownView() &&
+      (getters.isSplitViewActive() || getters.sourcePermissions().modify);
   },
   showStatusBar: () => {
     if (getters.isShare() && state.shareInfo.shareType === "upload") {

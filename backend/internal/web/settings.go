@@ -2,17 +2,36 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
-	"os"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+const maxSettingsPatchBodySize = 1 << 20 // 1 MiB
+
+func readSettingsPatchBody(w http.ResponseWriter, r *http.Request) ([]byte, error) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxSettingsPatchBodySize)
+	patchJSON, err := io.ReadAll(r.Body)
+	if err != nil {
+		var maxErr *http.MaxBytesError
+		if errors.As(err, &maxErr) {
+			return nil, fmt.Errorf("request body too large")
+		}
+		return nil, err
+	}
+	defer r.Body.Close()
+	return patchJSON, nil
+}
 
 // settingsGetHandler retrieves the current system settings.
 // @Summary Get system settings
@@ -73,7 +92,7 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	if settings.Env.EmbeddedFs {
 		embeddedYaml, readErr = fs.ReadFile(assetFs, "embed/config.generated.yaml")
 	} else {
-		embeddedYaml, readErr = os.ReadFile("internal/web/dist/config.generated.yaml")
+		embeddedYaml, readErr = fs.ReadFile(assetFs, "config.generated.yaml")
 		if readErr != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error reading generated YAML: %v", readErr)
 		}
@@ -104,7 +123,11 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 
 func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	sources := d.User.GetSourceNames()
-	reducedIndexes := map[string]indexing.ReducedIndex{}
+	type sourceInfoResponse struct {
+		indexing.ReducedIndex
+		ScopeQuota *scopeQuotaResponse `json:"scopeQuota,omitempty"`
+	}
+	reducedIndexes := map[string]sourceInfoResponse{}
 	for _, source := range sources {
 		reducedIndex, err := indexing.GetIndexInfo(source, false)
 		if err != nil {
@@ -115,7 +138,12 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		if !showScannerInfo {
 			reducedIndex.Scanners = nil
 		}
-		reducedIndexes[source] = reducedIndex
+		entry := sourceInfoResponse{ReducedIndex: reducedIndex}
+		if snap, ok := quota.ScopeQuotaForSource(d.User, source); ok {
+			resp := scopeQuotaToResponse(snap)
+			entry.ScopeQuota = &resp
+		}
+		reducedIndexes[source] = entry
 	}
 	return RenderJSON(w, r, reducedIndexes)
 }
@@ -270,4 +298,137 @@ func settingsSourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Conte
 		}
 	}
 	return RenderJSON(w, r, state.GetSourceSettings())
+}
+
+func settingsSidebarLinkDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	return RenderJSON(w, r, state.GetSidebarLinkDefaultsForUser(d.User))
+}
+
+func settingsSidebarLinkDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("read sidebar link defaults patch: %w", err)
+	}
+	defer r.Body.Close()
+	if len(body) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty sidebar link defaults patch body")
+	}
+	var doc usersidebar.SidebarLinkDefaultsDocument
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid sidebar link defaults JSON: %w", err)
+	}
+	if err := state.PatchSidebarLinkDefaults(doc); err != nil {
+		logger.Errorf("failed to patch sidebar link defaults: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to update sidebar link defaults")
+	}
+	return RenderJSON(w, r, state.GetSidebarLinkDefaults())
+}
+
+func settingsToolAccessDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	return RenderJSON(w, r, state.GetToolAccessDefaultsForUser())
+}
+
+func settingsToolAccessDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("read tool access defaults patch: %w", err)
+	}
+	defer r.Body.Close()
+	if len(body) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty tool access defaults patch body")
+	}
+	var doc toolaccess.ToolAccessDefaultsDocument
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid tool access defaults JSON: %w", err)
+	}
+	if err := state.PatchToolAccessDefaults(doc); err != nil {
+		logger.Errorf("failed to patch tool access defaults: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to update tool access defaults")
+	}
+	return RenderJSON(w, r, state.GetToolAccessDefaults())
+}
+
+type shareDefaultsResponse struct {
+	Values   *settings.ShareDefaults            `json:"values,omitempty"`
+	Enforced settings.ShareDefaultsEnforcement `json:"enforced"`
+}
+
+func settingsShareDefaultsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	enforced := state.GetEnforcedShareDefaults()
+	if !d.User.Permissions.Admin {
+		values := state.GetShareDefaults()
+		return RenderJSON(w, r, shareDefaultsResponse{
+			Values:   &values,
+			Enforced: enforced,
+		})
+	}
+	values := state.GetShareDefaults()
+	return RenderJSON(w, r, shareDefaultsResponse{
+		Values:   &values,
+		Enforced: enforced,
+	})
+}
+
+func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	patchJSON, err := readSettingsPatchBody(w, r)
+	if err != nil {
+		if err.Error() == "request body too large" {
+			return http.StatusRequestEntityTooLarge, err
+		}
+		return http.StatusBadRequest, fmt.Errorf("read share defaults patch: %w", err)
+	}
+	if len(patchJSON) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty share defaults patch body")
+	}
+
+	var top map[string]json.RawMessage
+	if err = json.Unmarshal(patchJSON, &top); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid share defaults patch JSON: %w", err)
+	}
+	var enforcedPatch []byte
+	if raw, ok := top["enforced"]; ok {
+		enforcedPatch = raw
+		delete(top, "enforced")
+	}
+	valuesPatch, err := json.Marshal(top)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("marshal share defaults values patch: %w", err)
+	}
+
+	hasValues := len(valuesPatch) > 2
+	hasEnforced := len(enforcedPatch) > 0
+	if !hasValues && !hasEnforced {
+		return http.StatusBadRequest, fmt.Errorf("empty share defaults patch body")
+	}
+
+	if hasValues && hasEnforced {
+		if err := state.PatchShareDefaultsCombined(valuesPatch, enforcedPatch); err != nil {
+			if state.IsShareDefaultsPersistenceError(err) {
+				logger.Errorf("failed to patch share defaults: %v", err)
+				return http.StatusInternalServerError, fmt.Errorf("failed to update share defaults")
+			}
+			return http.StatusBadRequest, err
+		}
+		return settingsShareDefaultsGetHandler(w, r, d)
+	}
+
+	if hasValues {
+		if err := state.PatchShareDefaults(valuesPatch); err != nil {
+			if state.IsShareDefaultsPersistenceError(err) {
+				logger.Errorf("failed to patch share defaults: %v", err)
+				return http.StatusInternalServerError, fmt.Errorf("failed to update share defaults")
+			}
+			return http.StatusBadRequest, err
+		}
+	}
+	if hasEnforced {
+		if err := state.PatchShareDefaultsEnforced(enforcedPatch); err != nil {
+			if state.IsShareDefaultsPersistenceError(err) {
+				logger.Errorf("failed to patch enforced share defaults: %v", err)
+				return http.StatusInternalServerError, fmt.Errorf("failed to update enforced share defaults")
+			}
+			return http.StatusBadRequest, err
+		}
+	}
+	return settingsShareDefaultsGetHandler(w, r, d)
 }

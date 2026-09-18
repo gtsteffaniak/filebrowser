@@ -1311,7 +1311,7 @@ const docTemplate = `{
         },
         "/api/media/lyrics": {
             "get": {
-                "description": "Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.",
+                "description": "Returns raw lyrics text and its format (lrc, elrc, srt, vtt, embedded) from a sidecar file or embedded tags.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1340,7 +1340,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lyrics array",
+                        "description": "Raw lyrics text and format",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -3872,7 +3872,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lyrics array",
+                        "description": "Raw lyrics text and format",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -5393,18 +5393,6 @@ const docTemplate = `{
                 }
             }
         },
-        "iteminfo.Lyric": {
-            "type": "object",
-            "properties": {
-                "text": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "description": "milliseconds",
-                    "type": "integer"
-                }
-            }
-        },
         "iteminfo.MediaMetadata": {
             "type": "object",
             "properties": {
@@ -5442,13 +5430,6 @@ const docTemplate = `{
                 "hasLyrics": {
                     "description": "checks if lyrics are available without parse them",
                     "type": "boolean"
-                },
-                "lyrics": {
-                    "description": "lyrics (from embedded tags or .lrc files)",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/iteminfo.Lyric"
-                    }
                 },
                 "title": {
                     "description": "track/video title",
@@ -5493,11 +5474,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminPassword": {
-                    "description": "secret: the password of the admin user. If not set, the default is \"admin\".",
+                    "description": "deprecated: use auth.methods.password.adminPassword. secret: password-auth admin password.",
                     "type": "string"
                 },
                 "adminUsername": {
-                    "description": "secret: the username of the admin user. If not set, the default is \"admin\".",
+                    "description": "deprecated: use auth.methods.password.adminUsername. secret: password-auth admin username.",
                     "type": "string"
                 },
                 "key": {
@@ -5609,6 +5590,14 @@ const docTemplate = `{
                 "path": {
                     "description": "path to SQLite database file",
                     "type": "string"
+                },
+                "quotas": {
+                    "description": "quota counter batch flush configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.QuotasConfig"
+                        }
+                    ]
                 }
             }
         },
@@ -6126,6 +6115,14 @@ const docTemplate = `{
         "settings.PasswordAuthConfig": {
             "type": "object",
             "properties": {
+                "adminPassword": {
+                    "description": "secret: password for admin auto-assigned admin account. If set, reset on startup.",
+                    "type": "string"
+                },
+                "adminUsername": {
+                    "description": "secret: admin username auto-assigned. If not set, the default is \"admin\".",
+                    "type": "string"
+                },
                 "enabled": {
                     "type": "boolean"
                 },
@@ -6138,7 +6135,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "recaptcha": {
-                    "description": "recaptcha config, only used if signup is enabled",
+                    "description": "recaptcha config. If configured will show up the checkbox verification in the login page",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.Recaptcha"
@@ -6195,6 +6192,19 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.QuotasConfig": {
+            "type": "object",
+            "properties": {
+                "flushIntervalSeconds": {
+                    "description": "default 10",
+                    "type": "integer"
+                },
+                "flushMaxBuffers": {
+                    "description": "default 500",
+                    "type": "integer"
+                }
+            }
+        },
         "settings.Recaptcha": {
             "type": "object",
             "required": [
@@ -6204,12 +6214,15 @@ const docTemplate = `{
             ],
             "properties": {
                 "host": {
+                    "description": "google recaptcha host, for example: https://www.google.com/recaptcha/api.js",
                     "type": "string"
                 },
                 "key": {
+                    "description": "v2 site key",
                     "type": "string"
                 },
                 "secret": {
+                    "description": "v2 secret key",
                     "type": "string"
                 }
             }
@@ -6312,6 +6325,14 @@ const docTemplate = `{
                 "server": {
                     "$ref": "#/definitions/settings.Server"
                 },
+                "shareDefaults": {
+                    "description": "optional defaults for new shares; managed in the UI",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.ShareDefaults"
+                        }
+                    ]
+                },
                 "userDefaults": {
                     "description": "optional signup/CLI defaults; per-user values are managed in the UI",
                     "allOf": [
@@ -6319,6 +6340,116 @@ const docTemplate = `{
                             "$ref": "#/definitions/settings.UserDefaults"
                         }
                     ]
+                }
+            }
+        },
+        "settings.ShareDefaults": {
+            "type": "object",
+            "properties": {
+                "allowCreate": {
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "type": "boolean"
+                },
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "banner": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "disableDownload": {
+                    "type": "boolean"
+                },
+                "disableFileViewer": {
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "type": "boolean"
+                },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
+                    "type": "boolean"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "type": "string"
+                },
+                "extractEmbeddedSubtitles": {
+                    "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
+                },
+                "hideFileExt": {
+                    "type": "string"
+                },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
+                "maxBandwidth": {
+                    "type": "integer"
+                },
+                "perUserDownloadLimit": {
+                    "type": "boolean"
+                },
+                "quickDownload": {
+                    "type": "boolean"
+                },
+                "quotaLimitBytes": {
+                    "type": "integer"
+                },
+                "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
+                },
+                "sidebarLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "viewMode": {
+                    "type": "string"
                 }
             }
         },
@@ -6471,6 +6602,10 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsAccountPermissions"
+                },
+                "showAdvancedProfile": {
+                    "description": "show advanced profile settings in the user profile page",
+                    "type": "boolean"
                 }
             }
         },
@@ -6546,6 +6681,17 @@ const docTemplate = `{
                 "hideFileExt": {
                     "description": "space separated list of file extensions to hide in UI",
                     "type": "string"
+                },
+                "newFileTemplate": {
+                    "description": "list of custom filenames that will be used as template for new files",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "promptRightCloseButton": {
+                    "description": "show the prompts close button on the right",
+                    "type": "boolean"
                 },
                 "quickDownload": {
                     "description": "show icon to download in one click",
@@ -6802,6 +6948,9 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
+                "quotaLimitBytes": {
+                    "type": "integer"
+                },
                 "shareTheme": {
                     "type": "string"
                 },
@@ -6973,6 +7122,18 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
+                "quotaAvailableBytes": {
+                    "type": "integer"
+                },
+                "quotaLimitBytes": {
+                    "type": "integer"
+                },
+                "quotaReservedBytes": {
+                    "type": "integer"
+                },
+                "quotaUsedBytes": {
+                    "type": "integer"
+                },
                 "shareTheme": {
                     "type": "string"
                 },
@@ -7129,6 +7290,9 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
+                "quotaLimitBytes": {
+                    "type": "integer"
+                },
                 "shareTheme": {
                     "type": "string"
                 },
@@ -7213,6 +7377,9 @@ const docTemplate = `{
                 "permissions": {
                     "$ref": "#/definitions/users.SourceFilePermissions"
                 },
+                "quota": {
+                    "$ref": "#/definitions/users.ScopeQuota"
+                },
                 "scope": {
                     "description": "index path within that source",
                     "type": "string"
@@ -7245,6 +7412,9 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.SourceFilePermissions"
+                },
+                "quota": {
+                    "$ref": "#/definitions/users.ScopeQuota"
                 },
                 "scope": {
                     "description": "index path within that source",
@@ -7314,6 +7484,12 @@ const docTemplate = `{
                     "description": "show quick save button in editor",
                     "type": "boolean"
                 },
+                "effectiveToolAccess": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "fileLoading": {
                     "description": "upload and download settings",
                     "allOf": [
@@ -7348,6 +7524,13 @@ const docTemplate = `{
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
                 },
+                "newFileTemplate": {
+                    "description": "list of custom filenames that will be used as template for new files",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "otpEnabled": {
                     "type": "boolean"
                 },
@@ -7378,6 +7561,10 @@ const docTemplate = `{
                 "preview": {
                     "$ref": "#/definitions/users.Preview"
                 },
+                "promptRightCloseButton": {
+                    "description": "show the prompts close button on the right",
+                    "type": "boolean"
+                },
                 "quickDownload": {
                     "description": "show icon to download in one click",
                     "type": "boolean"
@@ -7387,6 +7574,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/users.FrontendScope"
                     }
+                },
+                "showAdvancedProfile": {
+                    "type": "boolean"
                 },
                 "showCopyPath": {
                     "description": "show copy path action in the context menu",
@@ -7435,6 +7625,14 @@ const docTemplate = `{
                 "themeColor": {
                     "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
+                },
+                "toolAccess": {
+                    "description": "per-tool access overrides",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.ToolAccessMap"
+                        }
+                    ]
                 },
                 "username": {
                     "type": "string"
@@ -7560,6 +7758,22 @@ const docTemplate = `{
                 }
             }
         },
+        "users.ScopeQuota": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "limitBytes": {
+                    "description": "0 = unlimited",
+                    "type": "integer"
+                },
+                "meter": {
+                    "description": "index_scope (indexed size) | accounted (tracked usage)",
+                    "type": "string"
+                }
+            }
+        },
         "users.SidebarLink": {
             "type": "object",
             "properties": {
@@ -7620,6 +7834,12 @@ const docTemplate = `{
                 }
             }
         },
+        "users.ToolAccessMap": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "boolean"
+            }
+        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -7658,6 +7878,12 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
+                },
+                "declinedDefaultSources": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "deleteAfterArchive": {
                     "description": "delete source files after successful creation/extraction of archives",
@@ -7702,6 +7928,12 @@ const docTemplate = `{
                     "description": "show quick save button in editor",
                     "type": "boolean"
                 },
+                "effectiveToolAccess": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "fileLoading": {
                     "description": "upload and download settings",
                     "allOf": [
@@ -7739,6 +7971,13 @@ const docTemplate = `{
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
                 },
+                "newFileTemplate": {
+                    "description": "list of custom filenames that will be used as template for new files",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "otpEnabled": {
                     "type": "boolean"
                 },
@@ -7772,6 +8011,10 @@ const docTemplate = `{
                 "preview": {
                     "$ref": "#/definitions/users.Preview"
                 },
+                "promptRightCloseButton": {
+                    "description": "show the prompts close button on the right",
+                    "type": "boolean"
+                },
                 "quickDownload": {
                     "description": "show icon to download in one click",
                     "type": "boolean"
@@ -7781,6 +8024,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/users.FrontendScope"
                     }
+                },
+                "showAdvancedProfile": {
+                    "type": "boolean"
                 },
                 "showCopyPath": {
                     "description": "show copy path action in the context menu",
@@ -7835,6 +8081,14 @@ const docTemplate = `{
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
                     }
+                },
+                "toolAccess": {
+                    "description": "per-tool access overrides",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.ToolAccessMap"
+                        }
+                    ]
                 },
                 "totpNonce": {
                     "type": "string"

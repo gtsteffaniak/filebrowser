@@ -43,6 +43,7 @@
     "requestTimedOut": "הבקשה פקעה. בדוק את הגדרות הרשת או את הגדרות ה-proxy ההפוך."
   },
   "files": {
+    "emptyFile": "קובץ ריק",
     "lastModified": "שונה לאחרונה",
     "multipleSelectionEnabled": "בחירה מרובה מופעלת",
     "sortByLastModified": "מיין לפי השינוי האחרון",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "פרטי התחברות שגויים",
     "failedLogin": "נכשל בכניסה",
     "invalidCredentials": "פרטי הזדהות לא חוקיים",
-    "passkeyLogin": "השתמש במפתח גישה"
+    "passkeyLogin": "השתמש במפתח גישה",
+    "recaptchaRequired": "נדרש אתגר Recaptcha"
   },
   "prompts": {
+    "noTemplate": "התבנית שלך ריקה!",
+    "newFileTemplate": "תבנית קובץ חדש",
+    "newFileTemplateMessage": "הוסף שמות קבצים חדשים כאן, הם ישמשו כתבנית ליצירת קבצים חדשים בתפריט ההקשר!",
+    "newFileTemplatePlaceholder": "הזן שם קובץ עם סיומת",
     "deleteMessageSingle": "האם אתה בטוח שברצונך למחוק את הקובץ או התקייה?",
     "deleteTitle": "מחק קבצים",
     "displayName": "שם:",
@@ -207,7 +212,6 @@
     "selectPath": "בחר נתיב",
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
-    "moveFailed": "העברה נכשלה",
     "operationFailed": "הפעולה נכשלה",
     "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו",
     "renameFailed": "לא ניתן לשנות את שם הפריט",
@@ -294,7 +298,12 @@
     "accountDefaults": "הגדרות ברירת מחדל של החשבון",
     "disableUserSettings": "השבת את דף הגדרות המשתמש",
     "userDefaultFieldLockedFromConfig": "הגדרה ברירת המחדל הזו נקבעת בקובץ התצורה ואינה ניתנת לשינוי כאן.",
-    "sourceAccessDefaultsHelp": "הרשאות הקובץ המוגדרות כברירת מחדל מוחלות על מקורות ועל משתמשים חדשים. האפשרות \"אכוף\" נועלת ערך זה עבור כל המשתמשים שאינם מנהלים."
+    "sourceAccessDefaultsHelp": "הרשאות הקובץ המוגדרות כברירת מחדל מוחלות על מקורות ועל משתמשים חדשים. האפשרות \"אכוף\" נועלת ערך זה עבור כל המשתמשים שאינם מנהלים.",
+    "editAsYaml": "ערוך כ-YAML",
+    "userEditPreferences": "העדפות המשתמש",
+    "userEditTools": "גישה לכלים",
+    "userEditToolsDescription": "הגדר לאילו כלים המשתמש הזה יכול לגשת",
+    "userEditSidebarLinks": "קישורים בסרגל הצדדי"
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",
@@ -315,10 +324,7 @@
     "linkUrl": "כתובת URL של הקישור",
     "linkUrlPlaceholder": "הזן כתובת URL או נתיב (לדוגמה, /files/path או https://example.com)",
     "linkIcon": "סמל קישור",
-    "linksUpdatedSuccess": "קישורי הסרגל הצדדי עודכנו בהצלחה!",
-    "linksUpdateFailed": "לא הצלחנו לעדכן את הקישורים בסרגל הצדדי",
     "sourceNotAccessible": "מקור זה אינו נגיש לך עוד",
-    "noLinksYet": "עדיין לא הוגדרו קישורים. הוסף את הקישור הראשון שלך למטה.",
     "customizeShareLinksDescription": "התאם אישית את הקישורים המוצגים בסרגל הצדדי עבור שיתוף זה. גרור ושחרר כדי לשנות את הסדר.",
     "editLink": "ערוך קישור",
     "selectShare": "בחר שיתוף",
@@ -327,7 +333,6 @@
     "pickIcon": "בחר סמל",
     "pickIconDescription": "חפש ובחר סמל מספריית Material Icons.",
     "linkIconPlaceholder": "אפשר לציין שם סמל חומר",
-    "switchMode": "החלף מצב סרגל צד",
     "showIndexedUsageDescription": "הצג את סרגל השימוש המחושב מקבצים באינדקס במקור.",
     "showDiskUsageDescription": "הצג את סרגל השימוש בגודל הדיסק/מחיצה כפי שדווח על ידי מערכת ההפעלה. גודל זה צפוי להיות גדול יותר וכולל קבצים שלא הוכנסו לאינדקס.",
     "usageTextDisplay": "איזה טקסט שימוש יש להציג?",
@@ -335,7 +340,13 @@
     "usageTextDisk": "שימוש כפי שדווח על ידי דיסק/מחיצה",
     "dividerNamePlaceholder": "טקסט מפריד (השאר ריק כדי להציג קו)",
     "showIndexedUsage": "הצג את השימוש כפי שמופיע באינדקס",
-    "showDiskUsage": "הצג את השימוש כפי שדווח על ידי הדיסק/המחיצה"
+    "showDiskUsage": "הצג את השימוש כפי שדווח על ידי הדיסק/המחיצה",
+    "sidebarLinkDefaults": "הגדרות ברירת מחדל לקישורים בסרגל הצדדי",
+    "sidebarLinkDefaultsDescription": "הגדר קישורים ברירת מחדל וקישורים מחייבים בסרגל הצדדי עבור כל המשתמשים.",
+    "sidebarLinkDefaultsHelp": "אלה הם הקישורים המוגדרים כברירת מחדל שייתווספו לכל המשתמשים החדשים. אם תגדיר קישור כמחויב, הוא יתווסף לכל המשתמשים ולא ניתן יהיה להסיר אותו על ידי משתמשים שאינם מנהלים.",
+    "sidebarLinkDefaultSourceHelp": "חל רק כאשר למשתמש יש גישה למקור זה.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML לא תקין. בדוק את הפורמט ונסה שוב.",
+    "switchMode": "החלפה בין קישורים לעץ הניווט"
   },
   "share": {
     "notice": "הערה: כאשר נוצר שיתוף, הוא הופך לחשוף יותר לציבור וחל עליו כללים שונים לגבי גישה. אם השיתוף שלך אינו מוגדר בצורה מאובטחת, כל אחד יכול לגשת אליו.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "בחר תמונת באנר",
     "selectFaviconImage": "בחר תמונת סמל מועדף",
     "deleteFailed": "לא ניתן למחוק את השיתוף",
-    "readOnlySourceNotice": "מקור זה מוגדר לקריאה בלבד. העלאת קבצים והרשאות המשנות קבצים אינן זמינות."
+    "readOnlySourceNotice": "מקור זה מוגדר לקריאה בלבד. העלאת קבצים והרשאות המשנות קבצים אינן זמינות.",
+    "shareDefaults": "הגדרות ברירת מחדל לשיתוף",
+    "shareDefaultsDescription": "הגדר אפשרויות שיתוף ברירת מחדל עבור שיתופים חדשים ואכוף מדיניות עבור משתמשים שאינם מנהלים."
   },
   "api": {
     "createdAt": "נוצר ב:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "יש להזין את הסיסמה שלך כדי ליצור קוד אימות."
   },
   "general": {
+    "import": "ייבוא",
+    "export": "ייצוא",
     "name": "שם",
     "path": "נתיב",
     "user": "משתמש",
@@ -509,6 +524,8 @@
     "verify": "אמת{suffix}",
     "close": "סגור{suffix}",
     "copy": "העתק{suffix}",
+    "paste": "הדבק",
+    "cut": "גזור",
     "create": "צור{suffix}",
     "delete": "מחק{suffix}",
     "download": "הורדה{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "הצגת קבצים ורשימת קבצים",
     "source": "{prefix}מקור{suffix}",
     "sources": "{prefix}מקורות{suffix}",
-    "enforce": "לאכוף{suffix}"
+    "enforce": "לאכוף{suffix}",
+    "limit": "גבול{suffix}",
+    "remove": "הסר{suffix}",
+    "saved": "נשמר{suffix}",
+    "removed": "הוסר{suffix}",
+    "back": "חזרה{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -629,7 +651,9 @@
     "defaultBehavior": "פעולה ברירת מחדל{suffix}",
     "deletedCascade": "כללי הגישה נמחקו מהנתיב ומכל הנתיבים המשניים!",
     "cascadeDelete": "מחיקה רקורסיבית",
-    "cascadeDeleteDescription": "כאשר אפשרות זו מופעלת, מחיקת כלל גישה תסיר אותו גם מכל הספריות המשנה. כך תוכל להסיר משתמש או קבוצה לחלוטין מכל עץ הספריות."
+    "cascadeDeleteDescription": "כאשר אפשרות זו מופעלת, מחיקת כלל גישה תסיר אותו גם מכל הספריות המשנה. כך תוכל להסיר משתמש או קבוצה לחלוטין מכל עץ הספריות.",
+    "hasRules": "כללי הגישה הוגדרו",
+    "manageDescription": "כללי הגישה הפתוחה לנתיב זה."
   },
   "fileLoading": {
     "title": "העלאות והורדות",
@@ -652,6 +676,8 @@
     "orange": "כתום"
   },
   "profileSettings": {
+    "promptRightCloseButton": "הצגת כפתור סגירת ההנחיות בצד ימין",
+    "promptRightCloseButtonDescription": "הצגת כפתור הסגירה של ההנחיות בצד ימין במקום בצד שמאל",
     "hideFileExt": "הסתר קבצים מסוימים (לפי סיומת)",
     "hideFileExtDescription": "רשימה של סיומות קבצים מופרדות ברווחים. סיומות שהוזנו בשדה זה יוסתרו מכל ממשק המשתמש (חזותית, כמו ברשימה או בעץ הקבצים) — הן עדיין נגישות.",
     "preferEditorForMarkdown": "העדף עורך תחילה עבור קבצי Markdown",
@@ -667,7 +693,6 @@
     "showQuickDownloadDescription": "הצג סמל הורדה לגישה מהירה על כל פריט קובץ שניתן ללחוץ עליו כדי להוריד באופן מיידי.",
     "disableUpdateNotifications": "השבת הצגת עדכוני התראות",
     "disableUpdateNotificationsDescription": "השבת את כרזת הודעת העדכון המופיעה למשתמשים מנהלים בסרגל הצד.",
-    "disableHideSidebar": "השאר את סרגל הצד פתוח בעת תצוגה מקדימה או עריכת קבצים",
     "disableHideSidebarDescription": "כאשר אפשרות זו מופעלת, סרגל הצד לא יוסתר אוטומטית בעת תצוגה מקדימה או עריכת קבצים.",
     "autoplayMedia": "הפעל קבצי מדיה באופן אוטומטי בעת הצפייה",
     "autoplayMediaDescription": "הפעל קבצי מדיה באופן אוטומטי בעת הצפייה. אפשרות זו תפעל רק אם הקובץ הוא קובץ מדיה.",
@@ -679,8 +704,6 @@
     "hideSidebarFileActions": "הסתר את כפתור פעולות הקובץ בסרגל הצד",
     "deleteWithoutConfirming": "מחיקת קבצים ללא בקשת אישור",
     "deleteWithoutConfirmingDescription": "מחק קבצים ללא בקשת אישור. אפשרות זו תפעל רק אם הקובץ הוא קובץ מדיה.",
-    "editorQuickSave": "כפתור שמירה מהירה בעורך",
-    "editorQuickSaveDescription": "עורך הטקסט יציג תמיד את סמל השמירה, ויסתיר כל פעולה אחרת.",
     "previewOfficeDescription": "הצג תמונות ממוזערות עבור סוגי קבצי Office בתצוגת הרשימה",
     "disableThumbnailPreviews": "השבת תמונות ממוזערות עבור סיומות קבצים מסוימות",
     "disableThumbnailPreviewsDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית תצוגה מקדימה של תמונות ממוזערות (לדוגמה, '.txt .html').",
@@ -729,15 +752,101 @@
     "defaultViewMode": "מצב תצוגה ברירת מחדל",
     "defaultViewModeDescription": "מצב תצוגה ראשוני בדפדפנים או במכשירים חדשים. אינו מבטל את הגדרות התצוגה שכבר נשמרו באופן מקומי.",
     "defaultGallerySize": "גודל תמונה ממוזערת ברירת מחדל",
-    "defaultGallerySizeDescription": "גודל התמונות הממוזערות הראשוני בגלריה או ברשימה (1–9) בדפדפנים או במכשירים חדשים. הגדרה זו אינה מבטלת את הגדלים שכבר נשמרו באופן מקומי."
+    "defaultGallerySizeDescription": "גודל התמונות הממוזערות הראשוני בגלריה או ברשימה (1–9) בדפדפנים או במכשירים חדשים. הגדרה זו אינה מבטלת את הגדלים שכבר נשמרו באופן מקומי.",
+    "disableHideSidebar": "הצג תמיד את סרגל הצד",
+    "editorQuickSave": "הצג את כפתור השמירה המהירה בעורך",
+    "editorQuickSaveDescription": "עורך הטקסט יציג רק את סמל השמירה, ויסתיר את כל הפעולות האחרות",
+    "showAdvancedProfile": "הצג הגדרות פרופיל מתקדמות",
+    "showAdvancedProfileDescription": "הצג את הגדרות הפרופיל המסווגות בסרגל הצד במקום תצוגת הפרופיל הפשוטה.",
+    "accountOptions": "אפשרויות חשבון"
   },
   "editor": {
-    "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",
-    "saveAbortedMessage": "פעולת השמירה בוטלה. הקובץ הפעיל של היישום ({activeFile}) אינו תואם לקובץ שאתה מנסה לשמור ({tryingToSave}).",
-    "fileSaved": "הקובץ נשמר!",
-    "lines": "{count} שורות",
-    "words": "{count} מילים",
-    "chars": "{count} תווים"
+    "stats": {
+      "lines": "{count} שורות",
+      "words": "{count} מילים",
+      "chars": "{count} תווים"
+    },
+    "settings": {
+      "title": "הגדרות עורך",
+      "keybinding": {
+        "label": "קיצורי מקלדת",
+        "description": "הגדר את קיצורי המקלדת המועדפים עליך!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "גלישה יתרה",
+        "description": "כמה העורך יכול לגלול מעבר לסוף התוכן",
+        "none": "ללא",
+        "half": "חצי",
+        "full": "מלא"
+      },
+      "tabSize": {
+        "label": "גודל Tab",
+        "description": "כמה רווחים מקש 'TAB' צריך לעשות כברירת מחדל"
+      },
+      "showIndentGuides": "הצג מדריכי הזחה",
+      "showIndentGuidesDescription": "הצג מדריכי הזחה, זה נותן לך כיוון טוב יותר בעת עריכת קוד מקונן",
+      "showGutter": "הצג שוליים",
+      "showGutterDescription": "המיכל שבו נמצאים מספרי השורות בצד שמאל",
+      "fixedGutterWidth": "רוחב שוליים קבוע",
+      "fixedGutterWidthDescription": "כאשר כבוי, מגדיל את גודל השוליים בהדרגה תוך כדי גלילה בהתאם למספר השורות בקובץ",
+      "showLineNumbers": "הצג מספרי שורות",
+      "showLineNumbersDescription": "הצג מספרי שורות בשוליים בצד שמאל, זה לא מסתיר את השוליים עצמם",
+      "relativeLineNumbers": "מספרי שורות יחסיים",
+      "relativeLineNumbersDescription": "הצג מספרי שורות יחסית למיקום הנוכחי של הסמן",
+      "customScrollbar": "סרגל גלילה מותאם אישית",
+      "customScrollbarDescription": "החלף את סרגל הגלילה המקורי של הדפדפן בזה המובנה של Ace",
+      "wrapContent": "גלישת שורות ארוכות בעורך",
+      "wrapContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות",
+      "autocompletion": "השלמה אוטומטית",
+      "autocompletionDescription": "מאפשר השלמה אוטומטית על ידי לחיצה ידנית על 'ctrl + space'",
+      "liveAutocompletion": "השלמה אוטומטית חיה",
+      "liveAutocompletionDescription": "כאשר זה מופעל, תיבת ההשלמה האוטומטית הצפה תופיע אוטומטית תוך כדי הקלדה"
+    },
+    "uninitialized": "אתחול העורך נכשל. אנא טען מחדש.",
+    "saveAbortedMessage": "פעולת השמירה בוטלה. הקובץ הפעיל של האפליקציה ({activeFile}) אינו תואם לקובץ שאתה מנסה לשמור ({tryingToSave}).",
+    "splitView": "תצוגה מפוצלת",
+    "exitSplitView": "יציאה מתצוגה מפוצלת",
+    "md": {
+      "clipboardActions": "פעולות לוח",
+      "bold": "מודגש",
+      "italic": "נטוי",
+      "strikethrough": "קו חוצה",
+      "heading": "כותרת",
+      "quote": "ציטוט",
+      "inlineCode": "קוד מוטבע",
+      "codeBlock": "גוש קוד",
+      "bulletList": "רשימת תבליטים",
+      "numberedList": "רשימה ממוספרת",
+      "taskList": "רשימת משימות",
+      "horizontalRule": "קו אופקי",
+      "undo": "ביטול",
+      "redo": "חזור",
+      "moreOptions": "אפשרויות נוספות",
+      "inlineMath": "מתמטיקה מוטבעת",
+      "displayMath": "מתמטיקה מוצגת",
+      "highlight": "הדגשה",
+      "superscript": "כתב עילי",
+      "subscript": "כתב תחתי",
+      "text": "טקסט",
+      "cell": "תא",
+      "column": "עמודה",
+      "align": "יישור",
+      "alignRight": "יישור לימין",
+      "alignLeft": "יישור לשמאל",
+      "alignCenter": "יישור למרכז",
+      "justify": "יישור דו-צדדי",
+      "fontColor": "צבע גופן"
+    },
+    "json": {
+      "formatJSON": "פורמט JSON",
+      "formatJSONSuccess": "הפורמט JSON הומר בהצלחה",
+      "invalidJSON": "JSON לא תקין: {message}"
+    }
   },
   "player": {
     "loop": "לולאה",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "עיין בספריית הסמלים המלאה"
     },
     "toolNotFound": "הכלי לא נמצא",
-    "backToTools": "חזרה לכלים",
     "fileWatcher": {
       "name": "צופה קבצים",
       "description": "צפה בקבצים ועקוב אחריהם בזמן אמת עם ניטור חביון",
@@ -914,7 +1022,11 @@
       "scopeAccess": "פעילות גישה",
       "eventAccessCreate": "גישה ליצירה",
       "eventAccessDelete": "גישה ומחיקה"
-    }
+    },
+    "toolAccessDefaults": "הגדרות ברירת מחדל לגישה לכלים",
+    "toolAccessDefaultsDescription": "הגדר לאילו כלים יוכלו משתמשים חדשים לגשת כברירת מחדל",
+    "toolAccessDefaultsHelp": "הפעל כלים עבור משתמשים חדשים, ובאופן אופציונלי אכוף את הגישה כך שמשתמשים שאינם מנהלים לא יוכלו לשנות אותה.",
+    "accessDenied": "אין לך גישה לכלי זה."
   },
   "messages": {
     "pathNotFound": "הנתיב אינו קיים במערכת הקבצים",
@@ -1016,5 +1128,25 @@
     "days": "ימים{suffix}",
     "months": "חודשים{suffix}",
     "timeUnit": "יחידת זמן"
+  },
+  "quotas": {
+    "title": "מכסת אחסון",
+    "openDescription": "פתח את תיבת הדו-שיח של מכסת האחסון עבור תיקייה זו.",
+    "folderDescription": "הגבל את שטח האחסון של תיקייה זו.",
+    "shareLimit": "הגבל את נפח האחסון בשיתוף זה",
+    "shareLimitDescription": "סופר את מספר ההעלאות דרך קישור זה. נכלל גם במכסת המקור של הבעלים.",
+    "scopeLimit": "מגבלת האחסון עבור מקור זה",
+    "scopeLimitDescription": "מגבלת האחסון עבור המשימה של המשתמש הזה במקור זה.",
+    "indexingDisabledMeterHint": "האינדקס של מקור זה מושבת. ניתן לעקוב רק אחר השימוש בו.",
+    "meterIndexHint": "משתמש בגודל הכולל של הקבצים המאינדקסים בתיקייה זו. כולל שינויים שבוצעו מחוץ ל-FileBrowser בעת עדכון האינדקס.",
+    "meterAccountedHint": "סופר רק פעולות העלאה, שמירה ומחיקה שבוצעו באמצעות FileBrowser.",
+    "meterIndexScope": "גודל ממופה",
+    "meterAccounted": "מעקב אחר השימוש",
+    "usageCounting": "ספירת השימוש לפי",
+    "usageSyncPending": "השימוש עדיין מתסנכרן עם האינדקס.",
+    "accountedFallback": "הנתונים הממוינים לפי אינדקס עדיין אינם מוכנים; עד שהאינדקס יהיה זמין, נעשה שימוש בנתוני השימוש המעקב.",
+    "errors": {
+      "exceeded": "חריגה ממכסת האחסון"
+    }
   }
 }

@@ -12,160 +12,200 @@
       :style="centered ? {} : { top: `${posY}px`, left: `${posX}px` }"
       class="no-select floating-window"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
-      :key="showCreate ? 'create-mode' : 'normal-mode'"
+      :key="showNewFileTemplate ? 'template-mode' : (showCreate ? 'create-mode' : 'normal-mode')"
     >
-      <div
-        v-if="showCreateToggle"
-        class="context-menu-header"
-      >
+      <template v-if="showNewFileTemplate">
+        <div class="context-menu-header">
+          <div
+            class="action button clickable context-menu-create-toggle"
+            aria-label="Back"
+            role="button"
+            tabindex="0"
+            @click="closeNewFilePicker"
+            @keydown.enter.prevent="closeNewFilePicker"
+            @keydown.space.prevent="closeNewFilePicker"
+          >
+            <i class="material-symbols">arrow_back</i>
+          </div>
+        </div>
+        <hr class="divider">
+        <p v-if="newFileTemplates.length === 0 && isLoggedIn" class="context-menu-empty-message">
+          {{ $t('prompts.noTemplate') }}
+        </p>
+        <action
+          v-for="(item, index) in newFileTemplateItems"
+          :key="`${index}-${item.name}`"
+          :icon="item.icon"
+          :custom-icon-class="item.iconClass"
+          :label="item.name"
+          @action="createFromTemplate(item.name)"
+        />
+        <action
+          icon="insert_drive_file"
+          :label="$t('files.emptyFile')"
+          @action="createEmptyFile"
+        />
+      </template>
+      <template v-else>
         <div
           v-if="showCreateToggle"
-          class="action button clickable context-menu-create-toggle"
-          aria-label="Create Actions Toggle"
-          :class="{ 'context-menu-create-toggle--disabled': createToggleDisabled }"
-          role="button"
-          :aria-disabled="createToggleDisabled ? 'true' : 'false'"
-          :tabindex="createToggleDisabled ? -1 : 0"
-          @click="onCreateToggleClick"
-          @keydown.enter.prevent="onCreateToggleClick"
-          @keydown.space.prevent="onCreateToggleClick"
-          @mouseenter="onCreateToggleMouseEnter"
-          @mouseleave="hideTooltip"
+          class="context-menu-header"
         >
-          <i v-if="!showCreate" class="material-symbols">add</i>
-          <i v-else class="material-symbols">arrow_back</i>
+          <div
+            v-if="showCreateToggle"
+            class="action button clickable context-menu-create-toggle"
+            aria-label="Create Actions Toggle"
+            :class="{ 'context-menu-create-toggle--disabled': createToggleDisabled }"
+            role="button"
+            :aria-disabled="createToggleDisabled ? 'true' : 'false'"
+            :tabindex="createToggleDisabled ? -1 : 0"
+            @click="onCreateToggleClick"
+            @keydown.enter.prevent="onCreateToggleClick"
+            @keydown.space.prevent="onCreateToggleClick"
+            @mouseenter="onCreateToggleMouseEnter"
+            @mouseleave="hideTooltip"
+          >
+            <i v-if="!showCreate" class="material-symbols">add</i>
+            <i v-else class="material-symbols">arrow_back</i>
+          </div>
+          <div
+            v-if="selectedCount > 0"
+            @mouseleave="hideTooltip"
+            @mouseenter="showTooltip($event, $t('buttons.selectedCount'))"
+            class="button selected-count-header"
+            :class="{ 'selected-count-header--circle': selectedCount <= 99 }"
+          >
+            <span>{{ selectedCount }}</span>
+          </div>
         </div>
-        <div
-          v-if="selectedCount > 0"
-          @mouseleave="hideTooltip"
-          @mouseenter="showTooltip($event, $t('buttons.selectedCount'))"
-          class="button selected-count-header"
-          :class="{ 'selected-count-header--circle': selectedCount <= 99 }"
-        >
-          <span>{{ selectedCount }}</span>
-        </div>
-      </div>
-      <hr v-if="showDivider" class="divider">
-      <action
-        v-if="showCreateFileActions"
-        icon="create_new_folder"
-        :label="$t('files.newFolder')"
-        @action="showNewDirPrompt"
-      />
-      <action
-        v-if="showCreateFileActions"
-        icon="note_add"
-        :label="$t('files.newFile')"
-        @action="showPrompt('newFile')"
-      />
-      <action
-        v-if="showCreateFileActions"
-        icon="file_upload"
-        :label="$t('general.upload')"
-        @action="showUploadPrompt"
-      />
-      <action
-        v-if="showArchive"
-        icon="archive"
-        :label="$t('prompts.archive')"
-        @action="showArchivePrompt"
-      />
-      <action
-        v-if="showInfo"
-        icon="info"
-        :label="$t('general.info')"
-        @action="showInfoPrompt"
-      />
-      <action
-        v-if="showDownload"
-        icon="file_download"
-        :label="$t('general.download')"
-        @action="startDownload"
-      />
-      <action
-        v-if="showSendToApp"
-        icon="ios_share"
-        :label="$t('buttons.sendToApp')"
-        @action="sendToApp"
-      />
-      <action
-        v-if="showUnarchive"
-        icon="unarchive"
-        :label="$t('prompts.unarchive')"
-        @action="showUnarchivePrompt"
-      />
-      <action
-        v-if="showShareAction"
-        icon="share"
-        :label="$t('general.share')"
-        @action="showSharePrompt"
-      />
-      <action
-        v-if="showPinAction"
-        icon="push_pin"
-        :label="pinActionLabel"
-        @action="togglePin"
-      />
-      <action
-        v-if="showRename"
-        icon="edit"
-        :label="$t('general.rename')"
-        @action="showRenamePrompt"
-      />
-      <action
-        v-if="showCopy"
-        icon="file_copy"
-        :label="$t('buttons.copyFile')"
-        @action="showCopyPrompt"
-      />
-      <action
-        v-if="showCopyPath"
-        icon="copy_all"
-        :label="$t('buttons.copyPath')"
-        @action="copyPathToClipboard"
-      />
-      <action
-        v-if="showOpenParentFolder"
-        icon="folder"
-        :label="$t('buttons.openParentFolder')"
-        @action="openParentFolder"
-      />
-      <action
-        v-if="showGoToItem"
-        icon="folder"
-        :label="$t('buttons.goToItem')"
-        @action="goToItem"
-      />
-      <action
-        v-if="showMove"
-        icon="forward"
-        :label="$t('buttons.moveFile')"
-        @action="showMovePrompt"
-      />
-      <action
-        v-if="showSelectAll"
-        icon="select_all"
-        :label="$t('buttons.selectAll')"
-        @action="selectAllItems"
-      />
-      <action
-        v-if="showDelete"
-        icon="delete"
-        :label="$t('general.delete')"
-        @action="showDeletePrompt"
-      />
-      <action
-        v-if="showAccess"
-        icon="lock"
-        :label="$t('access.rules')"
-        @action="showAccessPrompt"
-      />
-      <action
-        v-if="showSelectMultiple"
-        icon="check_circle"
-        :label="$t('buttons.selectMultiple')"
-        @action="toggleMultipleSelection"
-      />
+        <hr v-if="showDivider" class="divider">
+        <action
+          v-if="showCreateFileActions"
+          icon="create_new_folder"
+          :label="$t('files.newFolder')"
+          @action="showNewDirPrompt"
+        />
+        <action
+          v-if="showCreateFileActions"
+          icon="note_add"
+          :label="$t('files.newFile')"
+          @action="onNewFileClick"
+        />
+        <action
+          v-if="showCreateFileActions"
+          icon="file_upload"
+          :label="$t('general.upload')"
+          @action="showUploadPrompt"
+        />
+        <action
+          v-if="showQuotaAction"
+          icon="storage"
+          :label="quotaActionLabel"
+          @action="showQuotaPrompt"
+        />
+        <action
+          v-if="showAccess"
+          icon="lock"
+          :label="$t('access.rules')"
+          @action="showAccessPrompt"
+        />
+        <action
+          v-if="showArchive"
+          icon="archive"
+          :label="$t('prompts.archive')"
+          @action="showArchivePrompt"
+        />
+        <action
+          v-if="showInfo"
+          icon="info"
+          :label="$t('general.info')"
+          @action="showInfoPrompt"
+        />
+        <action
+          v-if="showDownload"
+          icon="file_download"
+          :label="$t('general.download')"
+          @action="startDownload"
+        />
+        <action
+          v-if="showSendToApp"
+          icon="ios_share"
+          :label="$t('buttons.sendToApp')"
+          @action="sendToApp"
+        />
+        <action
+          v-if="showUnarchive"
+          icon="unarchive"
+          :label="$t('prompts.unarchive')"
+          @action="showUnarchivePrompt"
+        />
+        <action
+          v-if="showShareAction"
+          icon="share"
+          :label="$t('general.share')"
+          @action="showSharePrompt"
+        />
+        <action
+          v-if="showPinAction"
+          icon="push_pin"
+          :label="pinActionLabel"
+          @action="togglePin"
+        />
+        <action
+          v-if="showRename"
+          icon="edit"
+          :label="$t('general.rename')"
+          @action="showRenamePrompt"
+        />
+        <action
+          v-if="showCopy"
+          icon="file_copy"
+          :label="$t('buttons.copyFile')"
+          @action="showCopyPrompt"
+        />
+        <action
+          v-if="showCopyPath"
+          icon="copy_all"
+          :label="$t('buttons.copyPath')"
+          @action="copyPathToClipboard"
+        />
+        <action
+          v-if="showOpenParentFolder"
+          icon="folder"
+          :label="$t('buttons.openParentFolder')"
+          @action="openParentFolder"
+        />
+        <action
+          v-if="showGoToItem"
+          icon="folder"
+          :label="$t('buttons.goToItem')"
+          @action="goToItem"
+        />
+        <action
+          v-if="showMove"
+          icon="forward"
+          :label="$t('buttons.moveFile')"
+          @action="showMovePrompt"
+        />
+        <action
+          v-if="showSelectAll"
+          icon="select_all"
+          :label="$t('buttons.selectAll')"
+          @action="selectAllItems"
+        />
+        <action
+          v-if="showDelete"
+          icon="delete"
+          :label="$t('general.delete')"
+          @action="showDeletePrompt"
+        />
+        <action
+          v-if="showSelectMultiple"
+          icon="check_circle"
+          :label="$t('buttons.selectMultiple')"
+          @action="toggleMultipleSelection"
+        />
+      </template>
     </div>
   </transition>
   <transition
@@ -193,8 +233,8 @@
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
       <action v-if="showSendToAppInPreview" icon="ios_share" :label="$t('buttons.sendToApp')" @action="sendToAppFromPreview" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
-      <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
-      <action v-if="markdownPreview" icon="visibility" :label="$t('general.preview')" @action="switchToMarkdown" />
+      <action v-if="showEditButton" icon="edit" :label="$t('general.edit')" @action="goToEdit" />
+      <action v-if="showPreviewButton" icon="visibility" :label="$t('general.preview')" @action="goToPreview" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
     </div>
@@ -216,8 +256,9 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
-import { isRichTextPreviewMimeType } from "@/utils/mimetype";
+import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype";
 import { isMediaRequest } from "@/utils/mediaFile";
+import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -227,6 +268,7 @@ function isArchivePath(pathOrName) {
 
 export default {
   name: "ContextMenu",
+  inheritAttrs: false,
   components: {
     Action,
   },
@@ -235,6 +277,7 @@ export default {
       posX: 0,
       posY: 0,
       showCreate: false,
+      showNewFileTemplate: false,
       isAnimating: false,
       createStateInitialized: false,
     };
@@ -270,9 +313,9 @@ export default {
       if (typeof state.selected[0] === 'number') {
         return state.selected
           .map(index => state.req.items.at(index))
-          .filter(item => item !== null);
+          .filter(item => item != null);
       }
-      return state.selected;
+      return state.selected.filter(item => item != null);
     },
     selectedCount() {
       return this.providedItems.length;
@@ -288,6 +331,19 @@ export default {
     },
     showGoToItem() {
       return this.showLimitedOptions && this.selectedCount === 1;
+    },
+    newFileTemplates() {
+      return Array.isArray(state.user?.newFileTemplate) ? state.user.newFileTemplate : [];
+    },
+    newFileTemplateItems() {
+      return this.newFileTemplates.map((template) => {
+        const typeInfo = getTypeInfoFromExt(template);
+        return {
+          name: template,
+          icon: typeInfo.materialSymbol,
+          iconClass: typeInfo.classes,
+        };
+      });
     },
     permissions() {
       const global = getters.globalPermissions();
@@ -336,6 +392,9 @@ export default {
     },
     isShare() {
       return getters.isShare();
+    },
+    isLoggedIn() {
+      return getters.isLoggedIn();
     },
     showInfo() {
       if (this.showLimitedOptions) return this.selectedCount === 1;
@@ -450,7 +509,13 @@ export default {
       return false
     },
     hasOverflowItems() {
-      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload || this.showUnarchiveInOverflow;
+      return this.showDelete
+        || this.showSave
+        || this.showGoToRaw
+        || this.hasDownload
+        || this.showUnarchiveInOverflow
+        || this.showEditButton
+        || this.showPreviewButton;
     },
     showUnarchiveInOverflow() {
       if (!this.permissions.create || getters.isShare()) return false;
@@ -466,10 +531,6 @@ export default {
       }
       const cv = getters.currentView();
       return cv === "preview" || cv === "markdownViewer" || cv === "editor";
-    },
-    showEdit() {
-      const cv = getters.currentView();
-      return cv === "markdownViewer" && this.permissions.modify;
     },
     showDelete() {
       if (this.showLimitedOptions) return false;
@@ -489,8 +550,19 @@ export default {
     isPreview() {
       return getters.isPreviewView();
     },
+    showEditButton() {
+      if (getters.isSplitViewActive()) return false;
+      if (getters.currentView() === "editor") return false;
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo?.allowModify);
+      return isRichTextPreviewMimeType(state.req.type) && allowEdit;
+    },
+    showPreviewButton() {
+      if (getters.isSplitViewActive()) return false;
+      if (getters.currentView() !== "editor") return false;
+      return isRichTextPreviewMimeType(state.req.type);
+    },
     showSave() {
-      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowModify);
       return getters.currentView() === "editor" && allowEdit;
     },
     showOverflow() {
@@ -505,6 +577,22 @@ export default {
         return false;
       }
       return getters.isAdmin() && this.showCreate;
+    },
+    showQuotaAction() {
+      if (this.showLimitedOptions) return false;
+      if (getters.isShare()) return false;
+      if (!getters.isAdmin()) return false;
+      if (!this.showCreate) return false;
+      if (this.isSearchActive) return false;
+      if (this.selectedCount > 1) return false;
+      if (this.selectedCount === 1) {
+        return this.isFolderItem(this.firstSelected);
+      }
+      // Create menu with no selection: quota on the current folder
+      return true;
+    },
+    quotaActionLabel() {
+      return this.$t("quotas.title");
     },
     showShare() {
       if (getters.isShare()) {
@@ -539,10 +627,6 @@ export default {
     currentPrompt() {
       return getters.currentPrompt();
     },
-    markdownPreview() {
-      if (getters.currentView() !== 'editor') return false;
-      return isRichTextPreviewMimeType(state.req.type);
-    },
   },
   watch: {
     hasOverflowItems: {
@@ -566,6 +650,7 @@ export default {
         } else {
           // Reset the flag when menu is hidden so it reinitializes next time
           this.createStateInitialized = false;
+          this.showNewFileTemplate = false;
         }
       },
       immediate: true
@@ -627,64 +712,67 @@ export default {
         },
       });
     },
+    showQuotaPrompt() {
+      mutations.closeHovers();
+      const item = this.firstSelected;
+      const target = item || state.req;
+      const sourceName = target?.source || state.req.source;
+      const path = target?.path || state.req.path;
+      mutations.showPrompt({
+        name: "Quota",
+        props: {
+          item: target,
+          source: sourceName,
+          path,
+        },
+      });
+    },
+    isFolderItem(item) {
+      if (!item) return false;
+      return item.isDir || item.type === "directory";
+    },
     // Animation methods
     beforeEnter(el) {
       this.isAnimating = true;
-      el.style.height = '0';
-      el.style.opacity = '0';
+      expandBeforeEnter(el);
     },
     enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      // Force reflow
-      void el.offsetHeight;
-      // Calculate the height after ensuring all content is rendered
+      const BUFFER = 8;
       this.$nextTick(() => {
-        // Temporarily set to auto to get true height, then measure
-        el.style.height = 'auto';
-        el.style.visibility = 'hidden';
-        void el.offsetHeight; // Force reflow
-        const fullHeight = el.scrollHeight;
-        const fullWidth = el.scrollWidth;
-
-        // Adjust position now that we have dimensions
-        const BUFFER = 8;
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        let newX = this.posX;
-        let newY = this.posY;
-
-        if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
-        if (newX < BUFFER) newX = BUFFER;
-        if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
-        if (newY < BUFFER) newY = BUFFER;
-
-        this.posX = newX;
-        this.posY = newY;
-
-        // Reset to 0 for animation
-        el.style.height = '0';
-        el.style.visibility = 'visible';
-        el.style.transition = 'height 0.3s, opacity 0.3s';
-        void el.offsetHeight; // Force reflow
-        // Animate to full height
-        el.style.height = `${fullHeight}px`;
-        el.style.opacity = '1';
-        setTimeout(() => {
+        expandEnter(el, () => {
           this.isAnimating = false;
           done();
-        }, 300);
+        }, 300, {
+          onMeasured: (fullHeight, fullWidth) => {
+            const screenWidth = window.visualViewport?.width || window.innerWidth;
+            const screenHeight = window.visualViewport?.height || window.innerHeight;
+            let newX = this.posX;
+            let newY = this.posY;
+            if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
+            if (newX < BUFFER) newX = BUFFER;
+            if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
+            if (newY < BUFFER) newY = BUFFER;
+            this.posX = newX;
+            this.posY = newY;
+          },
+          getMaxHeight: () => {
+            const viewportHeight = window.visualViewport?.height || window.innerHeight;
+            if (this.showOverflow) {
+              return Math.max(
+                0,
+                viewportHeight - el.getBoundingClientRect().top - BUFFER,
+              );
+            }
+            return this.centered
+              ? viewportHeight - BUFFER * 2
+              : viewportHeight - this.posY - BUFFER;
+          },
+        });
       });
     },
     leave(el, done) {
       this.isAnimating = true;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
-      setTimeout(() => {
+      expandLeave(el, () => {
         this.isAnimating = false;
         done();
       }, 300);
@@ -735,12 +823,48 @@ export default {
       this.posY = contextProps.posY;
     },
     initializeCreateState() {
+      this.showNewFileTemplate = false;
       if (this.createOnly) {
         this.showCreate = true;
         return;
       }
       // Right-click / prompt: start in normal mode; user opens create via + or sidebar (createOnly).
       this.showCreate = false;
+    },
+    closeNewFilePicker() {
+      this.showNewFileTemplate = false;
+    },
+    templateBase() {
+      const selectedItem = this.firstSelected;
+      if (selectedItem?.isDir) {
+        return {
+          path: selectedItem.path,
+          source: selectedItem.source,
+        };
+      }
+      return null;
+    },
+    onNewFileClick() {
+      this.showNewFileTemplate = true;
+    },
+    createFromTemplate(template) {
+      mutations.closeHovers();
+      mutations.showPrompt({
+        name: "newFile",
+        props: {
+          base: this.templateBase(),
+          initialName: template,
+        },
+      });
+    },
+    createEmptyFile() {
+      mutations.closeHovers();
+      mutations.showPrompt({
+        name: "newFile",
+        props: {
+          base: this.templateBase(),
+        },
+      });
     },
     toggleMultipleSelection() {
       mutations.setMultiple(true);
@@ -918,27 +1042,31 @@ export default {
         },
       });
     },
-    async edit() {
-      this.$router.replace({ hash: '#edit' });
+    goToEdit() {
+      mutations.closeHovers();
+      void this.$router.replace({ hash: "#edit" });
     },
-    async switchToMarkdown() {
-      this.$router.replace({ hash: '#preview' });
+    goToPreview() {
+      mutations.closeHovers();
+      void this.$router.replace({ hash: "#preview" });
     },
     async save() {
       const button = "save";
       buttons.loading("save");
       try {
         // Call the editor save handler directly and await completion
-        if (state.editorSaveHandler) {
-          await state.editorSaveHandler();
+        if (state.editor.saveHandler) {
+          await state.editor.saveHandler();
+          buttons.success(button);
         } else {
-          throw new Error("Editor save handler not found");
+          const errorMsg = "No editor save handler registered";
+          notify.showError(errorMsg);
+          throw new Error(errorMsg);
         }
-        buttons.success(button);
-        notify.showSuccessToast(this.$t("editor.fileSaved"));
-      } catch (_e) {
-        // Don't show error notification here - API layer already showed it
+      } catch (e) {
         buttons.done(button);
+        mutations.closeHovers();
+        throw e;
       }
       mutations.closeHovers();
     },
@@ -986,6 +1114,7 @@ export default {
   justify-content: center;
   border-radius: 1em;
   padding: 0.5em;
+  overscroll-behavior: contain;
 }
 
 #context-menu.centered {
@@ -1021,10 +1150,24 @@ export default {
   cursor: not-allowed;
 }
 
+.context-menu-empty-message {
+  padding: 0.5em 1em;
+  margin: 0;
+  font-size: 0.85em;
+  color: var(--textSecondary);
+  text-align: center;
+}
+
 #context-menu .action {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  flex-shrink: 0;
+}
+
+#context-menu > .context-menu-header,
+#context-menu > hr.divider {
+  flex-shrink: 0;
 }
 
 #context-menu > div,
@@ -1041,6 +1184,10 @@ export default {
 
 #context-menu .action span {
   display: none;
+}
+
+#context-menu .action:hover :deep(.material-symbols-outlined) {
+  font-variation-settings: 'FILL' 1;
 }
 
 /* Animation styles */

@@ -44,6 +44,10 @@
 export default {
   name: "threeJSControls",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     backgroundColor: {
       type: String,
       required: true,

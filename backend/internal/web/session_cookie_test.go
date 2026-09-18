@@ -55,7 +55,7 @@ func TestSpaContentSecurityPolicy_BlocksUntrustedScripts(t *testing.T) {
 	t.Cleanup(func() { settings.Config.Integrations.OnlyOffice = prev })
 
 	csp := spaContentSecurityPolicy("testnonce")
-	if csp != "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com" {
+	if csp != "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com; worker-src blob:" {
 		t.Fatalf("unexpected CSP: %s", csp)
 	}
 	if strings.Contains(csp, "'unsafe-inline'") {
@@ -78,12 +78,12 @@ func TestSpaContentSecurityPolicy_IncludesOnlyOfficeOrigins(t *testing.T) {
 		{
 			name: "url only",
 			oo:   settings.OnlyOffice{Url: "http://localhost:9052"},
-			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com http://localhost:9052",
+			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com http://localhost:9052; worker-src blob:",
 		},
 		{
 			name: "internal url only",
 			oo:   settings.OnlyOffice{InternalUrl: "http://onlyoffice-internal:80"},
-			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com http://onlyoffice-internal:80",
+			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com http://onlyoffice-internal:80; worker-src blob:",
 		},
 		{
 			name: "both urls",
@@ -91,7 +91,7 @@ func TestSpaContentSecurityPolicy_IncludesOnlyOfficeOrigins(t *testing.T) {
 				Url:         "https://office.example.com",
 				InternalUrl: "http://onlyoffice-internal",
 			},
-			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com https://office.example.com http://onlyoffice-internal",
+			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com https://office.example.com http://onlyoffice-internal; worker-src blob:",
 		},
 		{
 			name: "duplicate origins",
@@ -99,7 +99,7 @@ func TestSpaContentSecurityPolicy_IncludesOnlyOfficeOrigins(t *testing.T) {
 				Url:         "http://localhost:9052",
 				InternalUrl: "http://localhost:9052",
 			},
-			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com http://localhost:9052",
+			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com http://localhost:9052; worker-src blob:",
 		},
 		{
 			name: "invalid urls ignored",
@@ -107,7 +107,7 @@ func TestSpaContentSecurityPolicy_IncludesOnlyOfficeOrigins(t *testing.T) {
 				Url:         "not-a-url",
 				InternalUrl: "://bad",
 			},
-			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com",
+			want: "script-src 'self' 'nonce-testnonce' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com; worker-src blob:",
 		},
 	}
 

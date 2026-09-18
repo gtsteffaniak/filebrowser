@@ -191,14 +191,6 @@ definitions:
         description: type of the file, either "directory" or a file mimetype
         type: string
     type: object
-  iteminfo.Lyric:
-    properties:
-      text:
-        type: string
-      timestamp:
-        description: milliseconds
-        type: integer
-    type: object
   iteminfo.MediaMetadata:
     properties:
       album:
@@ -227,11 +219,6 @@ definitions:
       hasLyrics:
         description: checks if lyrics are available without parse them
         type: boolean
-      lyrics:
-        description: lyrics (from embedded tags or .lrc files)
-        items:
-          $ref: '#/definitions/iteminfo.Lyric'
-        type: array
       title:
         description: track/video title
         type: string
@@ -263,12 +250,12 @@ definitions:
   settings.Auth:
     properties:
       adminPassword:
-        description: 'secret: the password of the admin user. If not set, the default
-          is "admin".'
+        description: 'deprecated: use auth.methods.password.adminPassword. secret:
+          password-auth admin password.'
         type: string
       adminUsername:
-        description: 'secret: the username of the admin user. If not set, the default
-          is "admin".'
+        description: 'deprecated: use auth.methods.password.adminUsername. secret:
+          password-auth admin username.'
         type: string
       key:
         description: 'secret: the key used to sign the JWT tokens. If not set, a random
@@ -359,6 +346,10 @@ definitions:
       path:
         description: path to SQLite database file
         type: string
+      quotas:
+        allOf:
+        - $ref: '#/definitions/settings.QuotasConfig'
+        description: quota counter batch flush configuration
     type: object
   settings.ExternalLink:
     properties:
@@ -759,6 +750,14 @@ definitions:
     type: object
   settings.PasswordAuthConfig:
     properties:
+      adminPassword:
+        description: 'secret: password for admin auto-assigned admin account. If set,
+          reset on startup.'
+        type: string
+      adminUsername:
+        description: 'secret: admin username auto-assigned. If not set, the default
+          is "admin".'
+        type: string
       enabled:
         type: boolean
       enforcedOtp:
@@ -771,7 +770,8 @@ definitions:
       recaptcha:
         allOf:
         - $ref: '#/definitions/settings.Recaptcha'
-        description: recaptcha config, only used if signup is enabled
+        description: recaptcha config. If configured will show up the checkbox verification
+          in the login page
       signup:
         description: allow signups on login page if enabled -- not secure.
         type: boolean
@@ -813,13 +813,25 @@ definitions:
           "phone"
         type: string
     type: object
+  settings.QuotasConfig:
+    properties:
+      flushIntervalSeconds:
+        description: default 10
+        type: integer
+      flushMaxBuffers:
+        description: default 500
+        type: integer
+    type: object
   settings.Recaptcha:
     properties:
       host:
+        description: 'google recaptcha host, for example: https://www.google.com/recaptcha/api.js'
         type: string
       key:
+        description: v2 site key
         type: string
       secret:
+        description: v2 secret key
         type: string
     required:
     - host
@@ -896,11 +908,88 @@ definitions:
         $ref: '#/definitions/settings.Integrations'
       server:
         $ref: '#/definitions/settings.Server'
+      shareDefaults:
+        allOf:
+        - $ref: '#/definitions/settings.ShareDefaults'
+        description: optional defaults for new shares; managed in the UI
       userDefaults:
         allOf:
         - $ref: '#/definitions/settings.UserDefaults'
         description: optional signup/CLI defaults; per-user values are managed in
           the UI
+    type: object
+  settings.ShareDefaults:
+    properties:
+      allowCreate:
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        type: boolean
+      allowReplacements:
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        type: boolean
+      disableFileViewer:
+        type: boolean
+      disableLoginOption:
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        type: string
+      extractEmbeddedSubtitles:
+        type: boolean
+      favicon:
+        type: string
+      hideFileExt:
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      quotaLimitBytes:
+        type: integer
+      shareTheme:
+        type: string
+      shareType:
+        type: string
+      showHidden:
+        type: boolean
+      sidebarLinks:
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      themeColor:
+        type: string
+      title:
+        type: string
+      viewMode:
+        type: string
     type: object
   settings.Source:
     properties:
@@ -1017,6 +1106,9 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/settings.UserDefaultsAccountPermissions'
+      showAdvancedProfile:
+        description: show advanced profile settings in the user profile page
+        type: boolean
     type: object
   settings.UserDefaultsAccountPermissions:
     properties:
@@ -1073,6 +1165,15 @@ definitions:
       hideFileExt:
         description: space separated list of file extensions to hide in UI
         type: string
+      newFileTemplate:
+        description: list of custom filenames that will be used as template for new
+          files
+        items:
+          type: string
+        type: array
+      promptRightCloseButton:
+        description: show the prompts close button on the right
+        type: boolean
       quickDownload:
         description: show icon to download in one click
         type: boolean
@@ -1255,6 +1356,8 @@ definitions:
         $ref: '#/definitions/share.PinnedItems'
       quickDownload:
         type: boolean
+      quotaLimitBytes:
+        type: integer
       shareTheme:
         type: string
       shareType:
@@ -1370,6 +1473,14 @@ definitions:
         type: boolean
       quickDownload:
         type: boolean
+      quotaAvailableBytes:
+        type: integer
+      quotaLimitBytes:
+        type: integer
+      quotaReservedBytes:
+        type: integer
+      quotaUsedBytes:
+        type: integer
       shareTheme:
         type: string
       shareType:
@@ -1475,6 +1586,8 @@ definitions:
         type: boolean
       quickDownload:
         type: boolean
+      quotaLimitBytes:
+        type: integer
       shareTheme:
         type: string
       shareType:
@@ -1532,6 +1645,8 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/users.SourceFilePermissions'
+      quota:
+        $ref: '#/definitions/users.ScopeQuota'
       scope:
         description: index path within that source
         type: string
@@ -1554,6 +1669,8 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/users.SourceFilePermissions'
+      quota:
+        $ref: '#/definitions/users.ScopeQuota'
       scope:
         description: index path within that source
         type: string
@@ -1605,6 +1722,10 @@ definitions:
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
+      effectiveToolAccess:
+        additionalProperties:
+          type: boolean
+        type: object
       fileLoading:
         allOf:
         - $ref: '#/definitions/users.FileLoading'
@@ -1629,6 +1750,12 @@ definitions:
         type: boolean
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
+      newFileTemplate:
+        description: list of custom filenames that will be used as template for new
+          files
+        items:
+          type: string
+        type: array
       otpEnabled:
         type: boolean
       passkeyCredentials:
@@ -1649,6 +1776,9 @@ definitions:
         type: boolean
       preview:
         $ref: '#/definitions/users.Preview'
+      promptRightCloseButton:
+        description: show the prompts close button on the right
+        type: boolean
       quickDownload:
         description: show icon to download in one click
         type: boolean
@@ -1656,6 +1786,8 @@ definitions:
         items:
           $ref: '#/definitions/users.FrontendScope'
         type: array
+      showAdvancedProfile:
+        type: boolean
       showCopyPath:
         description: show copy path action in the context menu
         type: boolean
@@ -1695,6 +1827,10 @@ definitions:
         description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
           etc'
         type: string
+      toolAccess:
+        allOf:
+        - $ref: '#/definitions/users.ToolAccessMap'
+        description: per-tool access overrides
       username:
         type: string
       viewMode:
@@ -1786,6 +1922,17 @@ definitions:
         description: show thumbnail preview image for video files
         type: boolean
     type: object
+  users.ScopeQuota:
+    properties:
+      id:
+        type: string
+      limitBytes:
+        description: 0 = unlimited
+        type: integer
+      meter:
+        description: index_scope (indexed size) | accounted (tracked usage)
+        type: string
+    type: object
   users.SidebarLink:
     properties:
       category:
@@ -1828,6 +1975,10 @@ definitions:
       view:
         type: boolean
     type: object
+  users.ToolAccessMap:
+    additionalProperties:
+      type: boolean
+    type: object
   users.User:
     properties:
       apiKeys:
@@ -1859,6 +2010,10 @@ definitions:
       debugOffice:
         description: debug onlyoffice editor
         type: boolean
+      declinedDefaultSources:
+        items:
+          type: string
+        type: array
       deleteAfterArchive:
         description: delete source files after successful creation/extraction of archives
         type: boolean
@@ -1891,6 +2046,10 @@ definitions:
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
+      effectiveToolAccess:
+        additionalProperties:
+          type: boolean
+        type: object
       fileLoading:
         allOf:
         - $ref: '#/definitions/users.FileLoading'
@@ -1917,6 +2076,12 @@ definitions:
         type: boolean
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
+      newFileTemplate:
+        description: list of custom filenames that will be used as template for new
+          files
+        items:
+          type: string
+        type: array
       otpEnabled:
         type: boolean
       passkeyCredentials:
@@ -1939,6 +2104,9 @@ definitions:
         type: boolean
       preview:
         $ref: '#/definitions/users.Preview'
+      promptRightCloseButton:
+        description: show the prompts close button on the right
+        type: boolean
       quickDownload:
         description: show icon to download in one click
         type: boolean
@@ -1946,6 +2114,8 @@ definitions:
         items:
           $ref: '#/definitions/users.FrontendScope'
         type: array
+      showAdvancedProfile:
+        type: boolean
       showCopyPath:
         description: show copy path action in the context menu
         type: boolean
@@ -1989,6 +2159,10 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
         type: object
+      toolAccess:
+        allOf:
+        - $ref: '#/definitions/users.ToolAccessMap'
+        description: per-tool access overrides
       totpNonce:
         type: string
       totpSecret:
@@ -3197,8 +3371,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns parsed lyrics with optional timestamps from embedded tags
-        or sidecar .lrc files.
+      description: Returns raw lyrics text and its format (lrc, elrc, srt, vtt, embedded)
+        from a sidecar file or embedded tags.
       parameters:
       - description: Path to the directory or file
         in: query
@@ -3214,7 +3388,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Lyrics array
+          description: Raw lyrics text and format
           schema:
             additionalProperties: true
             type: object
@@ -4986,7 +5160,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Lyrics array
+          description: Raw lyrics text and format
           schema:
             additionalProperties: true
             type: object

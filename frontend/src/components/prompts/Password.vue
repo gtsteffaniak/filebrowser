@@ -38,6 +38,10 @@ import { mutations } from "@/store";
 export default {
   name: "password",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     submitCallback: {
       type: Function,
       required: true,

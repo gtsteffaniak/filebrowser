@@ -48,7 +48,7 @@ export async function getLyrics(source, path) {
     });
     const res = await fetchURL(apiPath);
     const data = await res.json();
-    return data.lyrics || [];
+    return { lyrics: data.lyrics || "", format: data.format || "" };
 }
 
 // GET /public/api/media/lyrics
@@ -71,7 +71,7 @@ export async function getLyricsPublic(path, hash, password = "") {
         throw error;
     }
     const data = await response.json();
-    return data.lyrics || [];
+    return { lyrics: data.lyrics || "", format: data.format || "" };
 }
 
 // GET /api/media/metadata — directory or file with metadata; optional albumArt for embedded cover extraction.

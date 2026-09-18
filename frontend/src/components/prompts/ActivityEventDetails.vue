@@ -39,6 +39,10 @@ export default {
     SettingsTable,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     row: {
       type: Object,
       required: true,

@@ -43,6 +43,7 @@
     "requestTimedOut": "İstek zaman aşımına uğradı. Ağ ayarlarınızı veya ters proxy ayarlarınızı kontrol edin."
   },
   "files": {
+    "emptyFile": "Boş dosya",
     "lastModified": "Son değiştirilme{suffix}",
     "multipleSelectionEnabled": "Çoklu seçim etkin",
     "sortByLastModified": "Güncelleme tarihine göre sırala",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "Yanlış hesap bilgileri",
     "failedLogin": "Giriş yapılamadı",
     "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı",
-    "passkeyLogin": "Geçiş Anahtarını Kullan"
+    "passkeyLogin": "Geçiş Anahtarını Kullan",
+    "recaptchaRequired": "Recaptcha doğrulaması gerekli"
   },
   "prompts": {
+    "noTemplate": "Şablonunuz boş!",
+    "newFileTemplate": "Yeni dosya şablonu",
+    "newFileTemplateMessage": "Buraya yeni dosya adları ekleyin, bunlar bağlam menüsünde yeni dosya oluşturmak için şablon olarak kullanılacaktır!",
+    "newFileTemplatePlaceholder": "Uzantılı bir dosya adı girin",
     "deleteMessageSingle": "Bu dosyayı/klasörü silmek istediğinizden emin misiniz?",
     "deleteTitle": "Dosyaları sil",
     "displayName": "Görünen Ad:",
@@ -207,7 +212,6 @@
     "selectPath": "Yol Seçin",
     "renameSuccess": "Öğe başarıyla yeniden adlandırıldı!",
     "newFileSuccess": "Dosya başarıyla oluşturuldu!",
-    "moveFailed": "Taşıma başarısız",
     "operationFailed": "İşlem başarısız oldu",
     "partialSuccess": "Bazı işlemler başarısız oldu: {succeeded} başarılı, {failed} başarısız",
     "renameFailed": "Öğenin adı değiştirilemedi",
@@ -294,7 +298,12 @@
     "accountDefaults": "Hesap varsayılan ayarları",
     "disableUserSettings": "Kullanıcı ayarları sayfasını devre dışı bırak",
     "userDefaultFieldLockedFromConfig": "Bu varsayılan ayar, yapılandırma dosyasında belirlenmiştir ve buradan değiştirilemez.",
-    "sourceAccessDefaultsHelp": "Kaynaklara ve yeni kullanıcılara uygulanan varsayılan dosya izinleri. \"Uygula\" seçeneği, yönetici olmayan tüm kullanıcılar için bir değeri kilitler."
+    "sourceAccessDefaultsHelp": "Kaynaklara ve yeni kullanıcılara uygulanan varsayılan dosya izinleri. \"Uygula\" seçeneği, yönetici olmayan tüm kullanıcılar için bir değeri kilitler.",
+    "editAsYaml": "YAML olarak düzenle",
+    "userEditPreferences": "Kullanıcı tercihleri",
+    "userEditTools": "Araçlara erişim",
+    "userEditToolsDescription": "Bu kullanıcının hangi araçlara erişebileceğini ayarlayın",
+    "userEditSidebarLinks": "Kenar çubuğu bağlantıları"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
@@ -315,10 +324,7 @@
     "linkUrl": "Bağlantı URL'si",
     "linkUrlPlaceholder": "URL veya yol girin (örn. /files/path veya https://example.com)",
     "linkIcon": "Bağlantı Simgesi",
-    "linksUpdatedSuccess": "Kenar çubuğu bağlantıları başarıyla güncellendi!",
-    "linksUpdateFailed": "Kenar çubuğu bağlantıları güncellenemedi",
     "sourceNotAccessible": "Bu kaynak artık sizin için erişilebilir değil",
-    "noLinksYet": "Henüz yapılandırılmış bağlantı yok. İlk bağlantınızı aşağıya ekleyin.",
     "customizeShareLinksDescription": "Bu paylaşım için kenar çubuğunda gösterilen bağlantıları özelleştirin. Yeniden sıralamak için sürükleyip bırakın.",
     "editLink": "Bağlantıyı Düzenle",
     "selectShare": "Paylaşım Seç",
@@ -327,7 +333,6 @@
     "pickIcon": "Bir Simge Seçin",
     "pickIconDescription": "Material Icons kitaplığından bir simge arayın ve seçin",
     "linkIconPlaceholder": "İsteğe bağlı olarak bir Material simge adı belirtin",
-    "switchMode": "Kenar çubuğu modunu değiştir",
     "showIndexedUsageDescription": "Kaynaktaki dizinlenmiş dosyalardan hesaplanan kullanım çubuğunu görüntüleyin.",
     "showDiskUsageDescription": "İşletim sistemi tarafından bildirilen disk/bölüm boyutundan kullanım çubuğunu görüntüleyin. Bu boyut büyük olasılıkla daha büyük olacaktır ve dizine eklenmemiş dosyaları da içerir.",
     "usageTextDisplay": "Hangi kullanım metni görüntülenmelidir?",
@@ -335,7 +340,13 @@
     "usageTextDisk": "disk/bölüm tarafından bildirilen kullanım",
     "dividerNamePlaceholder": "Ayırıcı metin (bir çizgi göstermek için boş bırakın)",
     "showIndexedUsage": "Kullanımı dizinlenmiş haliyle göster",
-    "showDiskUsage": "Disk/bölüm tarafından bildirilen kullanım miktarını göster"
+    "showDiskUsage": "Disk/bölüm tarafından bildirilen kullanım miktarını göster",
+    "sidebarLinkDefaults": "Kenar çubuğu bağlantılarının varsayılan ayarları",
+    "sidebarLinkDefaultsDescription": "Tüm kullanıcılar için varsayılan ve zorunlu kenar çubuğu bağlantılarını yapılandırın.",
+    "sidebarLinkDefaultsHelp": "Bunlar, tüm yeni kullanıcılar için eklenecek varsayılan bağlantılardır. Bir bağlantıyı zorunlu kılarsanız, bu bağlantı tüm kullanıcılar için eklenecek ve yönetici olmayan kullanıcılar tarafından kaldırılamayacaktır.",
+    "sidebarLinkDefaultSourceHelp": "Bu, yalnızca kullanıcının bu kaynağa erişimi olması durumunda geçerlidir.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML geçersiz. Biçimi kontrol edin ve tekrar deneyin.",
+    "switchMode": "Bağlantılar ile gezinme ağacı arasında geçiş yap"
   },
   "share": {
     "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "Afiş görselini seç",
     "selectFaviconImage": "Favicon görselini seç",
     "deleteFailed": "Paylaşım silinemedi",
-    "readOnlySourceNotice": "Bu kaynak salt okunurdur. Yükleme paylaşımları ve dosyaları değiştiren izinler devre dışı bırakılmıştır."
+    "readOnlySourceNotice": "Bu kaynak salt okunurdur. Yükleme paylaşımları ve dosyaları değiştiren izinler devre dışı bırakılmıştır.",
+    "shareDefaults": "Varsayılan ayarları paylaş",
+    "shareDefaultsDescription": "Yeni paylaşımlar için varsayılan paylaşım seçeneklerini yapılandırın ve yönetici olmayan kullanıcılar için ilkeleri uygulayın."
   },
   "api": {
     "createdAt": "Oluşturuldu:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "Kimlik doğrulayıcı kodu oluşturmak için parolanız gereklidir."
   },
   "general": {
+    "import": "İçe Aktar",
+    "export": "Dışa Aktar",
     "name": "İsim{suffix}",
     "path": "Yol{suffix}",
     "user": "Kullanıcı{suffix}",
@@ -509,6 +524,8 @@
     "verify": "Doğrula{suffix}",
     "close": "Kapat{suffix}",
     "copy": "Kopyala{suffix}",
+    "paste": "Yapıştır",
+    "cut": "Kes",
     "create": "Oluştur{suffix}",
     "delete": "Sil{suffix}",
     "download": "İndir{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "Dosyaları görüntüleme ve listeleme",
     "source": "{prefix}Kaynak{suffix}",
     "sources": "{prefix}Kaynaklar{suffix}",
-    "enforce": "Uygula{suffix}"
+    "enforce": "Uygula{suffix}",
+    "limit": "Sınır{suffix}",
+    "remove": "Kaldır{suffix}",
+    "saved": "Kaydedildi{suffix}",
+    "removed": "Kaldırıldı{suffix}",
+    "back": "Geri{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -629,7 +651,9 @@
     "defaultBehavior": "Varsayılan eylem{suffix}",
     "deletedCascade": "Erişim kuralları yoldan ve tüm alt yollardan silindi!",
     "cascadeDelete": "Yinelemeli Silme",
-    "cascadeDeleteDescription": "Etkinleştirildiğinde, bir erişim kuralı silindiğinde tüm alt dizinlerden de kaldırılır. Bu, bir kullanıcıyı veya grubu tüm dizin ağacından tamamen kaldırmanıza olanak tanır."
+    "cascadeDeleteDescription": "Etkinleştirildiğinde, bir erişim kuralı silindiğinde tüm alt dizinlerden de kaldırılır. Bu, bir kullanıcıyı veya grubu tüm dizin ağacından tamamen kaldırmanıza olanak tanır.",
+    "hasRules": "Erişim kuralları yapılandırıldı",
+    "manageDescription": "Bu yol için açık erişim kuralları."
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",
@@ -652,6 +676,8 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Bildirim kapatma düğmesini sağda göster",
+    "promptRightCloseButtonDescription": "Bildirimlerin kapatma düğmesini sol yerine sağ tarafta göster",
     "hideFileExt": "Belirli dosyaları gizle (uzantıya göre)",
     "hideFileExtDescription": "Boşlukla ayrılmış dosya uzantıları listesi. Bu alana girilen uzantılar tüm kullanıcı arayüzünden (görsel olarak, liste veya Dosya Ağacı gibi) gizlenecektir — Hâlâ erişilebilir durumdadırlar.",
     "preferEditorForMarkdown": "Markdown dosyaları için önce düzenleyiciyi tercih et",
@@ -667,7 +693,6 @@
     "showQuickDownloadDescription": "Anında indirmek için tıklanabilecek her dosya öğesinde hızlı erişim için indirme simgesini gösterin.",
     "disableUpdateNotifications": "Bildirim güncellemesini göstermeyi devre dışı bırak",
     "disableUpdateNotificationsDescription": "Kenar çubuğunda yönetici kullanıcılar için gösterilen güncelleme bildirim başlığını devre dışı bırakın.",
-    "disableHideSidebar": "Dosyaları önizlerken veya düzenlerken kenar çubuğunu açık tut",
     "disableHideSidebarDescription": "Etkinleştirildiğinde, dosyaları önizlerken veya düzenlerken kenar çubuğu otomatik olarak gizlenmez.",
     "autoplayMedia": "Medya dosyalarını görüntülerken otomatik oynat",
     "autoplayMediaDescription": "Medya dosyalarını görüntülerken otomatik oynat. Bu yalnızca dosya bir medya dosyasıysa çalışacaktır.",
@@ -679,8 +704,6 @@
     "hideSidebarFileActions": "Kenar çubuğundaki dosya eylemleri düğmesini gizle",
     "deleteWithoutConfirming": "Dosyaları onay istemi olmadan sil",
     "deleteWithoutConfirmingDescription": "Dosyaları onay istemi olmadan silin. Bu yalnızca dosya bir medya dosyasıysa çalışacaktır.",
-    "editorQuickSave": "Düzenleyicide hızlı kaydetme düğmesi",
-    "editorQuickSaveDescription": "Metin düzenleyici her zaman kaydet simgesini gösterecek ve diğer eylemleri gizleyecektir",
     "previewOfficeDescription": "Liste görünümünde ofis dosya türleri için küçük resimleri göster",
     "disableThumbnailPreviews": "Belirli dosya uzantıları için küçük resimleri devre dışı bırak",
     "disableThumbnailPreviewsDescription": "Küçük resim önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış listesi (örn. '.txt .html').",
@@ -729,15 +752,101 @@
     "defaultViewMode": "Varsayılan görüntüleme modu",
     "defaultViewModeDescription": "Yeni tarayıcılarda veya cihazlarda ilk görüntüleme modu. Yerel olarak önceden kaydedilmiş görüntüleme tercihlerini geçersiz kılmaz.",
     "defaultGallerySize": "Varsayılan küçük resim boyutu",
-    "defaultGallerySizeDescription": "Yeni tarayıcılarda veya cihazlarda galerinin veya listenin başlangıçtaki küçük resim ölçeği (1–9). Yerel olarak önceden kaydedilmiş boyutları geçersiz kılmaz."
+    "defaultGallerySizeDescription": "Yeni tarayıcılarda veya cihazlarda galerinin veya listenin başlangıçtaki küçük resim ölçeği (1–9). Yerel olarak önceden kaydedilmiş boyutları geçersiz kılmaz.",
+    "disableHideSidebar": "Kenar çubuğunu her zaman göster",
+    "editorQuickSave": "Düzenleyicide hızlı kaydetme düğmesini göster",
+    "editorQuickSaveDescription": "Metin düzenleyicisi yalnızca kaydetme simgesini gösterecek, diğer tüm işlemleri gizleyecektir",
+    "showAdvancedProfile": "Gelişmiş profil ayarlarını göster",
+    "showAdvancedProfileDescription": "Basitleştirilmiş profil görünümü yerine, kenar çubuğunda kategorilere ayrılmış profil ayarlarını göster.",
+    "accountOptions": "Hesap seçenekleri"
   },
   "editor": {
+    "stats": {
+      "lines": "{count} satır",
+      "words": "{count} kelime",
+      "chars": "{count} karakter"
+    },
+    "settings": {
+      "title": "Düzenleyici Ayarları",
+      "keybinding": {
+        "label": "Klavye Kısayolları",
+        "description": "Tercih ettiğiniz klavye kısayollarını ayarlayın!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Aşırı Kaydırma",
+        "description": "Düzenleyicinin içeriğin sonunu ne kadar geçebileceği",
+        "none": "Hiçbiri",
+        "half": "Yarım",
+        "full": "Tam"
+      },
+      "tabSize": {
+        "label": "Sekme Boyutu",
+        "description": "'TAB' tuşunun varsayılan olarak kaç boşluk yapması gerektiği"
+      },
+      "showIndentGuides": "Girinti Kılavuzlarını Göster",
+      "showIndentGuidesDescription": "Girinti kılavuzlarını gösterir, iç içe kod düzenlerken daha iyi yönlendirme sağlar",
+      "showGutter": "Kenar Boşluğunu Göster",
+      "showGutterDescription": "Satır numaralarının solda bulunduğu kap",
+      "fixedGutterWidth": "Sabit Kenar Boşluğu Genişliği",
+      "fixedGutterWidthDescription": "Kapalıyken, dosyadaki satır sayısına bağlı olarak kaydırma sırasında kenar boşluğu boyutunu kademeli olarak artırır",
+      "showLineNumbers": "Satır Numaralarını Göster",
+      "showLineNumbersDescription": "Soldaki kenar boşluğunda satır numaralarını gösterir, kenar boşluğunun kendisini gizlemez",
+      "relativeLineNumbers": "Göreceli Satır Numaraları",
+      "relativeLineNumbersDescription": "Satır numaralarını imlecin geçerli konumuna göre gösterir",
+      "customScrollbar": "Özel kaydırma çubuğu",
+      "customScrollbarDescription": "Tarayıcının yerel kaydırma çubuğunu Ace'in yerleşik olanıyla değiştir",
+      "wrapContent": "Düzenleyicide uzun satırları kaydır",
+      "wrapContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar",
+      "autocompletion": "Otomatik tamamlama",
+      "autocompletionDescription": "Manuel olarak 'ctrl + space' tuşlarına basarak otomatik tamamlamayı etkinleştirir",
+      "liveAutocompletion": "Canlı otomatik tamamlama",
+      "liveAutocompletionDescription": "Bu etkinleştirildiğinde, yazarken yüzen otomatik tamamlama kutusu otomatik olarak görünecektir"
+    },
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
-    "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın etkin dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",
-    "fileSaved": "Dosya kaydedildi!",
-    "lines": "{count} satır",
-    "words": "{count} kelime",
-    "chars": "{count} karakter"
+    "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın aktif dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",
+    "splitView": "Bölünmüş görünüm",
+    "exitSplitView": "Bölünmüş görünümden çık",
+    "md": {
+      "clipboardActions": "Pano işlemleri",
+      "bold": "Kalın",
+      "italic": "İtalik",
+      "strikethrough": "Üstü çizili",
+      "heading": "Başlık",
+      "quote": "Alıntı",
+      "inlineCode": "Satır içi kod",
+      "codeBlock": "Kod bloğu",
+      "bulletList": "Madde işaretli liste",
+      "numberedList": "Numaralı liste",
+      "taskList": "Görev listesi",
+      "horizontalRule": "Yatay çizgi",
+      "undo": "Geri al",
+      "redo": "Yinele",
+      "moreOptions": "Daha fazla seçenek",
+      "inlineMath": "Satır içi matematik",
+      "displayMath": "Blok matematik",
+      "highlight": "Vurgula",
+      "superscript": "Üst simge",
+      "subscript": "Alt simge",
+      "text": "Metin",
+      "cell": "Hücre",
+      "column": "Sütun",
+      "align": "Hizalama",
+      "alignRight": "Sağa hizala",
+      "alignLeft": "Sola hizala",
+      "alignCenter": "Ortala",
+      "justify": "İki yana yasla",
+      "fontColor": "Yazı tipi rengi"
+    },
+    "json": {
+      "formatJSON": "JSON biçimi",
+      "formatJSONSuccess": "JSON biçimlendirme başarıyla tamamlandı",
+      "invalidJSON": "Geçersiz JSON: {message}"
+    }
   },
   "player": {
     "loop": "Döngü",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "Simge kitaplığının tamamına göz atın"
     },
     "toolNotFound": "Araç bulunamadı",
-    "backToTools": "Araçlara Geri Dön",
     "fileWatcher": {
       "name": "Dosya İzleyici",
       "description": "Gecikme izleme ile dosyaları gerçek zamanlı olarak izleyin ve takip edin",
@@ -914,7 +1022,11 @@
       "scopeAccess": "Erişim etkinliği",
       "eventAccessCreate": "Erişim oluştur",
       "eventAccessDelete": "Erişim silme"
-    }
+    },
+    "toolAccessDefaults": "Araç erişim varsayılan ayarları",
+    "toolAccessDefaultsDescription": "Yeni kullanıcıların varsayılan olarak hangi araçlara erişebileceğini ayarlayın",
+    "toolAccessDefaultsHelp": "Yeni kullanıcılar için araçları etkinleştirin ve isteğe bağlı olarak, yönetici olmayan kullanıcıların bu ayarı değiştirememesi için erişimi kısıtlayın.",
+    "accessDenied": "Bu araca erişiminiz yoktur."
   },
   "messages": {
     "pathNotFound": "Yol dosya sisteminde mevcut değil",
@@ -1016,5 +1128,25 @@
     "days": "{prefix}Gün{suffix}",
     "months": "{prefix}Ay{suffix}",
     "timeUnit": "Zaman birimi"
+  },
+  "quotas": {
+    "title": "Depolama kotası",
+    "openDescription": "Bu klasörün depolama kotası iletişim kutusunu açın.",
+    "folderDescription": "Bu klasörün depolama alanını sınırlayın.",
+    "shareLimit": "Bu paylaşım yoluyla depolama alanını sınırlayın",
+    "shareLimitDescription": "Bu bağlantı üzerinden yapılan yüklemeleri sayar. Ayrıca, hesabın sahiplerinin kaynak kotasına da dahil edilir.",
+    "scopeLimit": "Bu kaynak için depolama sınırı",
+    "scopeLimitDescription": "Bu kaynağındaki bu kullanıcının ödevi için karakter sınırı.",
+    "indexingDisabledMeterHint": "Bu kaynakta indeksleme devre dışı bırakılmıştır. Yalnızca kullanım takibi mevcuttur.",
+    "meterIndexHint": "Bu klasördeki dizinlenmiş dosyaların toplam boyutunu kullanır. Dizin güncellendiğinde FileBrowser dışında yapılan değişiklikleri de içerir.",
+    "meterAccountedHint": "Yalnızca FileBrowser aracılığıyla gerçekleştirilen yükleme, kaydetme ve silme işlemlerini sayar.",
+    "meterIndexScope": "Dizinlenmiş boyut",
+    "meterAccounted": "Kullanım takibi",
+    "usageCounting": "Kullanımı şuna göre say",
+    "usageSyncPending": "Kullanım verileri hâlâ dizinle senkronize ediliyor.",
+    "accountedFallback": "Dizinlenmiş boyut henüz hazır değil; dizin kullanıma sunulana kadar izlenen kullanım verileri kullanılıyor.",
+    "errors": {
+      "exceeded": "Depolama kotası aşıldı"
+    }
   }
 }

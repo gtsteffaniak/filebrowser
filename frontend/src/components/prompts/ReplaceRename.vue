@@ -32,6 +32,12 @@ import { getters, state } from "@/store";
 
 export default {
   name: "replace-rename",
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   computed: {
     currentPrompt() {
       return getters.currentPrompt();

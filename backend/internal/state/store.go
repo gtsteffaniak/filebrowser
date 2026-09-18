@@ -22,9 +22,24 @@ func Default() *Store {
 
 // Open loads all persisted data and returns the store handle for dependency injection.
 func Open(dbPath string) (*Store, bool, error) {
+	stateLifecycleMu.Lock()
+	defer stateLifecycleMu.Unlock()
+
 	existingDb, err := initialize(dbPath)
 	if err != nil {
 		return nil, existingDb, err
+	}
+	if sidebarLinkDefaultsNeedResync {
+		if err := ResyncSidebarLinkDefaultsForAllUsers(); err != nil {
+			return nil, existingDb, err
+		}
+		sidebarLinkDefaultsNeedResync = false
+	}
+	if toolAccessDefaultsNeedResync {
+		if err := ResyncToolAccessDefaultsForAllUsers(); err != nil {
+			return nil, existingDb, err
+		}
+		toolAccessDefaultsNeedResync = false
 	}
 	defaultStore = &Store{}
 	return defaultStore, existingDb, nil

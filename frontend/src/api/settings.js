@@ -67,10 +67,44 @@ export function getEnforcedUserDefaults() {
   return fetchJSON(getPublicApiPath("settings/user-defaults"));
 }
 
+/** Sidebar link defaults policy for the current user (enforcement UI). */
+export function getSidebarLinkDefaultsPolicy() {
+  return fetchJSON(getPublicApiPath("settings/sidebar-link-defaults"));
+}
+
 export async function patchUserDefaults(partial) {
   await fetchURL(getApiPath("settings/user-defaults"), {
     method: "PATCH",
     body: JSON.stringify(partial),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+export function getSidebarLinkDefaults() {
+  return fetchJSON(getApiPath("settings/sidebar-link-defaults"));
+}
+
+export async function patchSidebarLinkDefaults(doc) {
+  return fetchJSON(getApiPath("settings/sidebar-link-defaults"), {
+    method: "PATCH",
+    body: JSON.stringify(doc),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+/** Tool access defaults policy for the current user (enforcement UI). */
+export function getToolAccessDefaultsPolicy() {
+  return fetchJSON(getPublicApiPath("settings/tool-access-defaults"));
+}
+
+export function getToolAccessDefaults() {
+  return fetchJSON(getApiPath("settings/tool-access-defaults"));
+}
+
+export async function patchToolAccessDefaults(doc) {
+  return fetchJSON(getApiPath("settings/tool-access-defaults"), {
+    method: "PATCH",
+    body: JSON.stringify(doc),
     headers: { "Content-Type": "application/json" },
   });
 }
@@ -83,5 +117,22 @@ export async function patchSourceSettings(partial) {
   return fetchJSON(getApiPath("settings/source"), {
     method: "PATCH",
     body: JSON.stringify(partial),
+  });
+}
+
+export function getShareDefaults() {
+  return fetchJSON(getApiPath("settings/share-defaults"));
+}
+
+/** Share defaults and enforcement policy (works on public routes behind proxy basic auth). */
+export function getShareDefaultsPolicy() {
+  return fetchJSON(getPublicApiPath("settings/share-defaults"));
+}
+
+export async function patchShareDefaults(partial) {
+  await fetchURL(getApiPath("settings/share-defaults"), {
+    method: "PATCH",
+    body: JSON.stringify(partial),
+    headers: { "Content-Type": "application/json" },
   });
 }

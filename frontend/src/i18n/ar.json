@@ -43,6 +43,7 @@
     "requestTimedOut": "انتهت مهلة الطلب. يرجى التحقق من إعدادات الشبكة أو إعدادات الوكيل العكسي."
   },
   "files": {
+    "emptyFile": "ملف فارغ",
     "lastModified": "آخر تعديل",
     "multipleSelectionEnabled": "التحديد المتعدد مفعل",
     "sortByLastModified": "الترتيب بآخر تعديل",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "بيانات دخول خاطئة",
     "failedLogin": "فشل في تسجيل الدخول",
     "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة",
-    "passkeyLogin": "استخدام مفتاح المرور"
+    "passkeyLogin": "استخدام مفتاح المرور",
+    "recaptchaRequired": "تحدي Recaptcha مطلوب"
   },
   "prompts": {
+    "noTemplate": "قالبك فارغ!",
+    "newFileTemplate": "قالب الملف الجديد",
+    "newFileTemplateMessage": "أضف أسماء ملفات جديدة هنا، سيتم استخدامها كقالب لإنشاء ملفات جديدة في قائمة السياق!",
+    "newFileTemplatePlaceholder": "أدخل اسم ملف مع امتداد",
     "deleteMessageSingle": "هل تريد بالتأكيد حذف هذا الملف/المجلد؟",
     "deleteTitle": "حذف الملفات",
     "displayName": "الإسم:",
@@ -207,7 +212,6 @@
     "selectPath": "تحديد المسار",
     "renameSuccess": "تمت إعادة تسمية العنصر بنجاح!",
     "newFileSuccess": "تم إنشاء الملف بنجاح!",
-    "moveFailed": "فشلت عملية النقل",
     "operationFailed": "فشلت العملية",
     "partialSuccess": "فشلت بعض العمليات: {succeeded} نجحت ، {failed} فشلت ",
     "renameFailed": "فشل في إعادة تسمية العنصر",
@@ -294,7 +298,12 @@
     "accountDefaults": "التخلف عن سداد الالتزامات المتعلقة بالحساب",
     "disableUserSettings": "تعطيل صفحة إعدادات المستخدم",
     "userDefaultFieldLockedFromConfig": "يتم تعيين هذا الإعداد الافتراضي في ملف التكوين ولا يمكن تغييره هنا.",
-    "sourceAccessDefaultsHelp": "يتم تطبيق أذونات الملفات الافتراضية على المصادر والمستخدمين الجدد. ويؤدي خيار «Enforce» إلى تقييد القيمة لجميع المستخدمين غير الإداريين."
+    "sourceAccessDefaultsHelp": "يتم تطبيق أذونات الملفات الافتراضية على المصادر والمستخدمين الجدد. ويؤدي خيار «Enforce» إلى تقييد القيمة لجميع المستخدمين غير الإداريين.",
+    "editAsYaml": "تحرير بتنسيق YAML",
+    "userEditPreferences": "تفضيلات المستخدم",
+    "userEditTools": "الوصول إلى الأدوات",
+    "userEditToolsDescription": "تحديد الأدوات التي يمكن لهذا المستخدم الوصول إليها",
+    "userEditSidebarLinks": "روابط الشريط الجانبي"
   },
   "sidebar": {
     "updateIsAvailable": "يتوفر تحديث!",
@@ -315,10 +324,7 @@
     "linkUrl": "رابط الرابط URL",
     "linkUrlPlaceholder": "أدخل عنوان URL أو المسار (على سبيل المثال، /ملفات/مسار أو https://example.com)",
     "linkIcon": "أيقونة الرابط",
-    "linksUpdatedSuccess": "تم تحديث روابط الشريط الجانبي بنجاح!",
-    "linksUpdateFailed": "فشل في تحديث روابط الشريط الجانبي",
     "sourceNotAccessible": "لم يعد هذا المصدر متاحاً لك",
-    "noLinksYet": "لم يتم تكوين أي روابط حتى الآن. أضف الرابط الأول أدناه.",
     "customizeShareLinksDescription": "قم بتخصيص الروابط المعروضة في الشريط الجانبي لهذه المشاركة. السحب والإفلات لإعادة الترتيب.",
     "editLink": "تحرير الرابط",
     "selectShare": "حدد المشاركة",
@@ -327,7 +333,6 @@
     "pickIcon": "اختر أيقونة",
     "pickIconDescription": "بحث وتحديد أيقونة من مكتبة الأيقونات المادية",
     "linkIconPlaceholder": "تحديد اسم رمز المادة اختياريًا",
-    "switchMode": "تبديل وضع الشريط الجانبي",
     "showIndexedUsageDescription": "عرض شريط الاستخدام المحسوب من الملفات المفهرسة في المصدر.",
     "showDiskUsageDescription": "عرض شريط الاستخدام من حجم القرص/القسم كما أبلغ عنه نظام التشغيل. من المرجح أن يكون هذا الحجم أكبر ويتضمن ملفات غير مفهرسة.",
     "usageTextDisplay": "ما هو نص الاستخدام الذي يجب عرضه؟",
@@ -335,7 +340,13 @@
     "usageTextDisk": "الاستخدام كما تم الإبلاغ عنه بواسطة القرص/القسم",
     "dividerNamePlaceholder": "نص المقسم (اتركه فارغًا لإظهار سطر)",
     "showIndexedUsage": "عرض الاستخدام حسب الفهرس",
-    "showDiskUsage": "عرض الاستخدام وفقًا لما أورده القرص/القسم"
+    "showDiskUsage": "عرض الاستخدام وفقًا لما أورده القرص/القسم",
+    "sidebarLinkDefaults": "الإعدادات الافتراضية لروابط الشريط الجانبي",
+    "sidebarLinkDefaultsDescription": "تكوين روابط الشريط الجانبي الافتراضية والإلزامية لجميع المستخدمين.",
+    "sidebarLinkDefaultsHelp": "هذه هي الروابط الافتراضية التي ستُضاف لجميع المستخدمين الجدد. إذا قمت بتفعيل رابط ما، فسيتم إضافته لجميع المستخدمين ولن يتمكن المستخدمون غير الإداريين من إزالته.",
+    "sidebarLinkDefaultSourceHelp": "ينطبق هذا فقط عندما يكون لدى المستخدم حق الوصول إلى هذا المصدر.",
+    "sidebarLinkDefaultsYamlInvalid": "صيغة YAML غير صالحة. تحقق من التنسيق وحاول مرة أخرى.",
+    "switchMode": "التبديل بين الروابط وشجرة التنقل"
   },
   "share": {
     "notice": "ملاحظة: عندما يتم إنشاء مشاركة، تصبح أكثر انكشافًا للجمهور ولها قواعد مختلفة للوصول إليها. إذا لم يتم تهيئة مشاركتك بشكل آمن، فيمكن لأي شخص الوصول إليها.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "تحديد صورة الشعار",
     "selectFaviconImage": "تحديد الصورة المفضلة",
     "deleteFailed": "فشل في حذف المشاركة",
-    "readOnlySourceNotice": "هذا المصدر للقراءة فقط. يتم تعطيل تحميل المشاركات والأذونات التي تعدل الملفات."
+    "readOnlySourceNotice": "هذا المصدر للقراءة فقط. يتم تعطيل تحميل المشاركات والأذونات التي تعدل الملفات.",
+    "shareDefaults": "إعدادات المشاركة الافتراضية",
+    "shareDefaultsDescription": "تكوين خيارات المشاركة الافتراضية للمشاركات الجديدة وفرض السياسات على المستخدمين غير الإداريين."
   },
   "api": {
     "createdAt": "تم الإنشاء في:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "كلمة المرور الخاصة بك مطلوبة لإنشاء رمز المصادقة."
   },
   "general": {
+    "import": "استيراد",
+    "export": "تصدير",
     "name": "الاسم",
     "path": "المسار",
     "user": "المستخدم",
@@ -509,6 +524,8 @@
     "verify": "تحقق{suffix}",
     "close": "إغلاق{suffix}",
     "copy": "نسخ{suffix}",
+    "paste": "لصق",
+    "cut": "قص",
     "create": "إنشاء{suffix}",
     "delete": "حذف{suffix}",
     "download": "تنزيل{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "عرض الملفات وإدراجها في قائمة",
     "source": "{prefix}المصدر{suffix}",
     "sources": "{prefix}المصادر{suffix}",
-    "enforce": "تطبيق{suffix}"
+    "enforce": "تطبيق{suffix}",
+    "limit": "الحد الأقصى{suffix}",
+    "remove": "إزالة{suffix}",
+    "saved": "تم الحفظ{suffix}",
+    "removed": "تم حذفه{suffix}",
+    "back": "العودة{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -629,7 +651,9 @@
     "defaultBehavior": "الإجراء الافتراضي{suffix}",
     "deletedCascade": "تم حذف قواعد الوصول من المسار وجميع المسارات الفرعية!",
     "cascadeDelete": "الحذف التكراري",
-    "cascadeDeleteDescription": "عند التمكين، سيؤدي حذف قاعدة وصول إلى إزالتها أيضًا من جميع الدلائل الفرعية. يتيح لك ذلك إزالة مستخدم أو مجموعة بالكامل من شجرة الدليل بأكملها."
+    "cascadeDeleteDescription": "عند التمكين، سيؤدي حذف قاعدة وصول إلى إزالتها أيضًا من جميع الدلائل الفرعية. يتيح لك ذلك إزالة مستخدم أو مجموعة بالكامل من شجرة الدليل بأكملها.",
+    "hasRules": "تم تكوين قواعد الوصول",
+    "manageDescription": "قواعد الوصول المفتوح لهذا المسار."
   },
   "fileLoading": {
     "title": "التحميلات والتنزيلات",
@@ -644,6 +668,8 @@
     "downloadChunkSizeMbHelp": "حجم القطع للتحميلات المقطعة. سيتم تنزيل الملفات الأكبر من هذا الحجم على شكل أجزاء لمنع حدوث مشكلات في المهلة (على سبيل المثال، أخطاء Cloudflare 524). يؤدي الإعداد إلى 0 إلى تعطيل التنزيلات المقطعة."
   },
   "profileSettings": {
+    "promptRightCloseButton": "إظهار زر الإغلاق في النوافذ المنبثقة على اليمين",
+    "promptRightCloseButtonDescription": "إظهار زر الإغلاق في النوافذ المنبثقة على الجانب الأيمن بدلاً من الجانب الأيسر",
     "hideFileExt": "إخفاء ملفات معينة (حسب الامتداد)",
     "hideFileExtDescription": "قائمة بامتدادات الملفات مفصولة بمسافات. الامتدادات المدخلة في هذا الحقل سيتم إخفاؤها من جميع واجهات المستخدم (بصريًا، مثل القائمة أو شجرة الملفات) — تظل قابلة للوصول.",
     "preferEditorForMarkdown": "تفضيل المحرر أولاً لملفات Markdown",
@@ -659,7 +685,6 @@
     "showQuickDownloadDescription": "إظهار أيقونة التنزيل للوصول السريع إلى كل عنصر ملف يمكن النقر عليها لتنزيله على الفور.",
     "disableUpdateNotifications": "تعطيل إظهار تحديث الإشعارات",
     "disableUpdateNotificationsDescription": "قم بتعطيل شعار تنبيه التحديث الذي يظهر للمستخدمين الإداريين على الشريط الجانبي.",
-    "disableHideSidebar": "إبقاء الشريط الجانبي مفتوحاً عند معاينة الملفات أو تحريرها",
     "disableHideSidebarDescription": "عند التمكين، لن يختفي الشريط الجانبي تلقائيًا عند معاينة الملفات أو تحريرها.",
     "autoplayMedia": "التشغيل التلقائي لملفات الوسائط عند العرض",
     "autoplayMediaDescription": "التشغيل التلقائي لملفات الوسائط عند العرض. لن يعمل هذا إلا إذا كان الملف ملف وسائط.",
@@ -671,8 +696,6 @@
     "hideSidebarFileActions": "إخفاء زر إجراءات الملف في الشريط الجانبي",
     "deleteWithoutConfirming": "حذف الملفات بدون مطالبة التأكيد",
     "deleteWithoutConfirmingDescription": "حذف الملفات دون مطالبة التأكيد. لن يعمل هذا إلا إذا كان الملف ملف وسائط.",
-    "editorQuickSave": "زر الحفظ السريع في المحرر",
-    "editorQuickSaveDescription": "سيعرض محرر النصوص دائمًا أيقونة الحفظ، مع إخفاء أي إجراءات أخرى",
     "previewOfficeDescription": "إظهار الصور المصغرة لأنواع الملفات المكتبية في عرض القائمة",
     "disableThumbnailPreviews": "تعطيل الصور المصغرة لملحقات ملفات معينة",
     "disableThumbnailPreviewsDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل معاينات الصور المصغرة لها (على سبيل المثال، \".txt .html\").",
@@ -721,7 +744,13 @@
     "defaultViewMode": "وضع العرض الافتراضي",
     "defaultViewModeDescription": "وضع العرض الافتراضي في المتصفحات أو الأجهزة الجديدة. لا يلغي تفضيلات العرض التي تم حفظها مسبقًا محليًّا.",
     "defaultGallerySize": "الحجم الافتراضي للصورة المصغرة",
-    "defaultGallerySizeDescription": "مقياس الصور المصغرة الأولي للمعرض أو القائمة (1–9) في المتصفحات أو الأجهزة الجديدة. لا يلغي الأحجام المحفوظة مسبقًا محليًّا."
+    "defaultGallerySizeDescription": "مقياس الصور المصغرة الأولي للمعرض أو القائمة (1–9) في المتصفحات أو الأجهزة الجديدة. لا يلغي الأحجام المحفوظة مسبقًا محليًّا.",
+    "disableHideSidebar": "إظهار الشريط الجانبي دائمًا",
+    "editorQuickSave": "إظهار زر الحفظ السريع في المحرر",
+    "editorQuickSaveDescription": "سيعرض محرر النصوص رمز الحفظ فقط، مع إخفاء أي إجراءات أخرى",
+    "showAdvancedProfile": "إظهار إعدادات الملف الشخصي المتقدمة",
+    "showAdvancedProfileDescription": "اعرض إعدادات الملف الشخصي المصنفة في الشريط الجانبي بدلاً من عرض الملف الشخصي المبسط.",
+    "accountOptions": "خيارات الحساب"
   },
   "colors": {
     "red": "أحمر",
@@ -732,12 +761,92 @@
     "orange": "برتقالي"
   },
   "editor": {
-    "uninitialized": "فشل في تهيئة المحرر. يرجى إعادة التحميل.",
-    "saveAbortedMessage": "تم إجهاض عملية الحفظ. الملف النشط للتطبيق ({activeFile}) لا يتطابق مع الملف الذي تحاول حفظه ({tryingToSave}).",
-    "fileSaved": "تم حفظ الملف!",
-    "lines": "{count} سطور",
-    "words": "{count} كلمات",
-    "chars": "{count} أحرف"
+    "stats": {
+      "lines": "{count} سطور",
+      "words": "{count} كلمات",
+      "chars": "{count} أحرف"
+    },
+    "settings": {
+      "title": "إعدادات المحرر",
+      "keybinding": {
+        "label": "اختصارات لوحة المفاتيح",
+        "description": "قم بتعيين اختصارات لوحة المفاتيح المفضلة لديك!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "التمرير الزائد",
+        "description": "مقدار التمرير الزائد الذي يمكن للمحرر التمرير بعد نهاية المحتوى",
+        "none": "لا شيء",
+        "half": "نصف",
+        "full": "كامل"
+      },
+      "tabSize": {
+        "label": "حجم علامة التبويب",
+        "description": "عدد المسافات التي يجب أن يقوم بها مفتاح 'TAB' افتراضيًا"
+      },
+      "showIndentGuides": "إظهار أدلة المسافة البادئة",
+      "showIndentGuidesDescription": "إظهار أدلة المسافة البادئة، مما يمنحك توجيهًا أفضل عند تحرير الكود المتداخل",
+      "showGutter": "إظهار الهامش",
+      "showGutterDescription": "الحاوية التي توجد بها أرقام الأسطر على اليسار",
+      "fixedGutterWidth": "عرض هامش ثابت",
+      "fixedGutterWidthDescription": "عند إيقاف التشغيل، يزيد حجم الهامش تدريجيًا أثناء التمرير اعتمادًا على عدد الأسطر في الملف",
+      "showLineNumbers": "إظهار أرقام الأسطر",
+      "showLineNumbersDescription": "إظهار أرقام الأسطر في الهامش على اليسار، لا يخفي الهامش نفسه",
+      "relativeLineNumbers": "أرقام أسطر نسبية",
+      "relativeLineNumbersDescription": "إظهار أرقام الأسطر بالنسبة للموضع الحالي للمؤشر",
+      "customScrollbar": "شريط تمرير مخصص",
+      "customScrollbarDescription": "استبدال شريط التمرير الأصلي للمتصفح بشريط التمرير المدمج في Ace",
+      "wrapContent": "التفاف الأسطر الطويلة في المحرر",
+      "wrapContentDescription": "يلتف محتوى المحرر للحفاظ على رؤية الأسطر الطويلة جدًا دائمًا",
+      "autocompletion": "الإكمال التلقائي",
+      "autocompletionDescription": "يتيح الإكمال التلقائي بالضغط يدويًا على 'ctrl + space'",
+      "liveAutocompletion": "الإكمال التلقائي المباشر",
+      "liveAutocompletionDescription": "عند تمكين هذا، سيظهر مربع الإكمال التلقائي العائم تلقائيًا أثناء الكتابة"
+    },
+    "uninitialized": "فشل تهيئة المحرر. يرجى إعادة التحميل.",
+    "saveAbortedMessage": "تم إلغاء عملية الحفظ. الملف النشط للتطبيق ({activeFile}) لا يتطابق مع الملف الذي تحاول حفظه ({tryingToSave}).",
+    "splitView": "عرض منقسم",
+    "exitSplitView": "الخروج من العرض المنقسم",
+    "md": {
+      "clipboardActions": "إجراءات الحافظة",
+      "bold": "غامق",
+      "italic": "مائل",
+      "strikethrough": "يتوسطه خط",
+      "heading": "عنوان",
+      "quote": "اقتباس",
+      "inlineCode": "كود مضمن",
+      "codeBlock": "كتلة كود",
+      "bulletList": "قائمة نقطية",
+      "numberedList": "قائمة مرقمة",
+      "taskList": "قائمة مهام",
+      "horizontalRule": "فاصل أفقي",
+      "undo": "تراجع",
+      "redo": "إعادة",
+      "moreOptions": "خيارات إضافية",
+      "inlineMath": "رياضيات مضمنة",
+      "displayMath": "رياضيات منفصلة",
+      "highlight": "تظليل",
+      "superscript": "مرتفع",
+      "subscript": "منخفض",
+      "text": "نص",
+      "cell": "خلية",
+      "column": "عمود",
+      "align": "محاذاة",
+      "alignRight": "محاذاة إلى اليمين",
+      "alignLeft": "محاذاة إلى اليسار",
+      "alignCenter": "محاذاة إلى المنتصف",
+      "justify": "ضبط",
+      "fontColor": "لون الخط"
+    },
+    "json": {
+      "formatJSON": "تنسيق JSON",
+      "formatJSONSuccess": "تم تنسيق JSON بنجاح",
+      "invalidJSON": "JSON غير صالح: {message}"
+    }
   },
   "player": {
     "loop": "تكرار",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "تصفح مكتبة الأيقونات الكاملة"
     },
     "toolNotFound": "الأداة غير موجودة",
-    "backToTools": "العودة إلى الأدوات",
     "fileWatcher": {
       "name": "مراقب الملفات",
       "description": "مشاهدة وتعقب الملفات في الوقت الفعلي مع مراقبة زمن الاستجابة",
@@ -914,7 +1022,11 @@
       "scopeAccess": "الوصول إلى النشاط",
       "eventAccessCreate": "الوصول إلى \"إنشاء\"",
       "eventAccessDelete": "الوصول والحذف"
-    }
+    },
+    "toolAccessDefaults": "الإعدادات الافتراضية للوصول إلى الأدوات",
+    "toolAccessDefaultsDescription": "تحديد الأدوات التي يمكن للمستخدمين الجدد الوصول إليها بشكل افتراضي",
+    "toolAccessDefaultsHelp": "قم بتمكين الأدوات للمستخدمين الجدد، ويمكنك أيضًا فرض قيود على الوصول بحيث لا يتمكن المستخدمون غير الإداريين من تغييرها.",
+    "accessDenied": "لا يحق لك استخدام هذه الأداة."
   },
   "messages": {
     "pathNotFound": "المسار غير موجود على نظام الملفات",
@@ -1016,5 +1128,25 @@
     "days": "الأيام{suffix}",
     "months": "الأشهر{suffix}",
     "timeUnit": "وحدة الزمن"
+  },
+  "quotas": {
+    "title": "حصة التخزين",
+    "openDescription": "افتح مربع حوار حصة التخزين لهذا المجلد.",
+    "folderDescription": "تحديد سعة التخزين لهذا المجلد.",
+    "shareLimit": "تحديد سعة التخزين عبر هذا الرابط",
+    "shareLimitDescription": "يُحسب عدد عمليات التحميل عبر هذا الرابط. كما يُحتسب من حصة المالك الأصلية.",
+    "scopeLimit": "حد السعة التخزينية لهذا المصدر",
+    "scopeLimitDescription": "السعة القصوى لتخزين المهام الخاصة بهذا المستخدم على هذا المصدر.",
+    "indexingDisabledMeterHint": "تم تعطيل ميزة الفهرسة في هذا المصدر. ولا يتوفر سوى ميزة تتبع الاستخدام.",
+    "meterIndexHint": "يستخدم الحجم الإجمالي للملفات المفهرسة في هذا المجلد. ويشمل التغييرات التي تم إجراؤها خارج FileBrowser عند تحديث الفهرس.",
+    "meterAccountedHint": "يُحسب فقط عمليات التحميل والحفظ والحذف التي تتم عبر FileBrowser.",
+    "meterIndexScope": "الحجم المفهرس",
+    "meterAccounted": "تتبع الاستخدام",
+    "usageCounting": "حساب عدد مرات الاستخدام حسب",
+    "usageSyncPending": "لا يزال الاستخدام قيد المزامنة مع الفهرس.",
+    "accountedFallback": "الحجم المفهرس ليس جاهزًا بعد؛ يتم استخدام الاستخدام المُتتبع حتى يتوفر الفهرس.",
+    "errors": {
+      "exceeded": "تم تجاوز حصة التخزين"
+    }
   }
 }

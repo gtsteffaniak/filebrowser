@@ -38,6 +38,7 @@ import { getters, mutations, state } from "@/store";
 import { url } from "@/utils";
 import { getObjectProperty } from '@/utils/object.js';
 import { goToItemNotificationButton } from "@/utils/notificationActions";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications";
 
 export default {
   name: "breadcrumbs",
@@ -292,9 +293,9 @@ export default {
           });
           mutations.closeTopPrompt();
           mutations.setReload(true);
-        } catch (_e) {
+        } catch (error) {
           mutations.closeTopPrompt();
-          notify.showError(this.$t("prompts.moveFailed"));
+          notifyMoveCopyFailure(error);
         }
       };
 
@@ -312,8 +313,11 @@ export default {
         });
         return;
       }
-      // If no conflicts, proceed with move
-      await moveAction(false, false);
+      try {
+        await moveAction(false, false);
+      } catch (error) {
+        notifyMoveCopyFailure(error);
+      }
     },
   },
 };

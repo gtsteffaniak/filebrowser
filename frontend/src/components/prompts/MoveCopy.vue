@@ -20,6 +20,7 @@
       <file-list
         ref="fileList"
         :hide-path-chrome="!isShareContext"
+        :sortable="true"
         @update:selected="updateDestination"
       >
       </file-list>
@@ -84,6 +85,8 @@ import { notify } from "@/notify";
 import {
   notifyMoveCopyComplete,
   notifyOperationError,
+  notifyMoveCopyFailure,
+  extractMoveCopyErrorMessage,
 } from "@/utils/appNotifications";
 import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -94,6 +97,10 @@ export default {
   name: "move-copy",
   components: { FileList, LoadingSpinner, PathPickerButton },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     operation: {
       type: String,
       required: true,
@@ -363,8 +370,10 @@ export default {
         const hasSuccesses = result?.succeeded && result.succeeded.length > 0;
 
         if (hasFailures && !hasSuccesses) {
-          // All operations failed - show error but DON'T close prompt
-          const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
+          const errorMessage = extractMoveCopyErrorMessage(
+            { failed: result.failed },
+            this.$t("prompts.operationFailed"),
+          );
           notify.showError(errorMessage);
           notifyOperationError(errorMessage);
           return;
@@ -444,28 +453,7 @@ export default {
           }
         }
       } catch (error) {
-        // Handle errors thrown by the API (e.g., 500 errors)
-        // DON'T close the prompt on error - let user try again or cancel manually
-
-        // Try to extract error message from the error response
-        let errorMessage = null;
-
-        // Check if error has a response body with failed items
-        if (error?.failed && error.failed.length > 0 && error.failed[0]?.message) {
-          errorMessage = error.failed[0].message;
-        } else if (error?.message) {
-          errorMessage = error.message;
-        } else if (typeof error === 'string') {
-          errorMessage = error;
-        }
-
-        // Only use fallback if we couldn't extract a message
-        if (!errorMessage) {
-          errorMessage = this.$t("prompts.operationFailed");
-        }
-
-        notify.showError(errorMessage);
-        notifyOperationError(errorMessage);
+        notifyMoveCopyFailure(error, this.$t("prompts.operationFailed"));
       } finally {
         this.isLoading = false; // Hide loading spinner
       }

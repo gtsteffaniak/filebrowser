@@ -100,6 +100,13 @@ func SyncUserGroups(username string, newGroups []string) error {
 	return accessDb.SyncUserGroups(username, newGroups)
 }
 
+// SetAccessSQLStoreForTest replaces the SQL persister used by access control (tests only).
+func SetAccessSQLStoreForTest(store access.SQLPersister) {
+	if accessDb != nil {
+		accessDb.SetSQLStore(store)
+	}
+}
+
 func UpdateRulePath(sourcePath string, oldPath, newPath utils.IndexPath) error {
 	return accessDb.UpdateRulePath(sourcePath, oldPath, newPath)
 }

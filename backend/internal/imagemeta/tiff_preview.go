@@ -18,6 +18,7 @@ const (
 	tiffTypeASCII             = 2
 	tiffTypeShort             = 3
 	tiffTypeLong              = 4
+	tiffTypeIFD               = 13
 	tiffTypeUndefined         = 7
 	maxTIFFIFDsVisited        = 128
 	maxTIFFIFDQueueLen        = 128
@@ -205,19 +206,23 @@ func tiffTagUint32s(data []byte, order binary.ByteOrder, typ uint16, count uint3
 	if count > maxTIFFSubIFDsPerEntry {
 		count = maxTIFFSubIFDsPerEntry
 	}
+	elemSize := tiffTagByteSize(typ)
+	if elemSize <= 0 {
+		return nil
+	}
 	var raw []byte
 	switch {
 	case typ == tiffTypeLong && count == 1:
 		var b [4]byte
 		order.PutUint32(b[:], valueOffset)
 		raw = b[:]
-	case tiffTagByteSize(typ)*int(count) <= 4:
+	case elemSize*int(count) <= 4:
 		var b [4]byte
 		order.PutUint32(b[:], valueOffset)
-		raw = b[:count*uint32(tiffTagByteSize(typ))]
+		raw = b[:count*uint32(elemSize)]
 	default:
 		off := int(valueOffset)
-		n := int(count) * tiffTagByteSize(typ)
+		n := int(count) * elemSize
 		if off < 0 || off+n > len(data) {
 			return nil
 		}
@@ -225,11 +230,18 @@ func tiffTagUint32s(data []byte, order binary.ByteOrder, typ uint16, count uint3
 	}
 	out := make([]uint32, 0, count)
 	for i := 0; i < int(count); i++ {
-		pos := i * 4
-		if pos+4 > len(raw) {
+		pos := i * elemSize
+		if pos+elemSize > len(raw) {
 			break
 		}
-		out = append(out, order.Uint32(raw[pos:pos+4]))
+		switch typ {
+		case tiffTypeShort:
+			out = append(out, uint32(order.Uint16(raw[pos:pos+2])))
+		case tiffTypeLong, tiffTypeIFD:
+			out = append(out, order.Uint32(raw[pos:pos+4]))
+		default:
+			return nil
+		}
 	}
 	return out
 }
@@ -240,9 +252,9 @@ func tiffTagByteSize(typ uint16) int {
 		return 1
 	case tiffTypeShort:
 		return 2
-	case tiffTypeLong:
+	case tiffTypeLong, tiffTypeIFD:
 		return 4
 	default:
-		return 1
+		return 0
 	}
 }

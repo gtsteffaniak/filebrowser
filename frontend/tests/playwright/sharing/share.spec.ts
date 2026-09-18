@@ -64,6 +64,7 @@ test("share file creation actions", async ({ page, checkForErrors, openContextMe
   await page.waitForTimeout(1000);
   await openContextMenu();
   await page.locator('button[aria-label="New file"]').click();
+  await page.locator('button[aria-label="Empty file"]').click();
   await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });
   await page.locator('input[aria-label="FileName Field"]').fill('dfsaf.txt');
   await page.locator('button[aria-label="Create"]').click();

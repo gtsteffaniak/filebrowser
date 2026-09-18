@@ -62,6 +62,10 @@ export default {
     },
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     redirect: {
       type: String,
       default: "",

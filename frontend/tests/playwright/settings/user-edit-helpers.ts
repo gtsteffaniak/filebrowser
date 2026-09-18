@@ -15,6 +15,36 @@ export function userEditModal(page: Page): Locator {
   return page.locator('div[aria-label="user-edit-prompt"]');
 }
 
+export function userEditPreferencesModal(page: Page): Locator {
+  return page.locator('div[aria-label="user-edit-preferences-prompt"]');
+}
+
+function globalPermissionContainer(modal: Locator, label: string): Locator {
+  return modal.locator(".toggle-container", { hasText: label });
+}
+
+export function globalPermissionCheckbox(modal: Locator, label: string): Locator {
+  return globalPermissionContainer(modal, label)
+    .locator(".toggle-row--value input[type='checkbox']");
+}
+
+export function globalPermissionToggle(modal: Locator, label: string): Locator {
+  return globalPermissionContainer(modal, label).locator("label.switch");
+}
+
+/** Account defaults may start collapsed; expand before interacting with global permissions. */
+export async function expandUserEditAccountDefaults(prefsModal: Locator): Promise<void> {
+  const adminToggle = globalPermissionToggle(prefsModal, "Administrator");
+  if (await adminToggle.isVisible().catch(() => false)) {
+    return;
+  }
+  const accountSection = prefsModal
+    .locator(".settings-group")
+    .filter({ has: prefsModal.getByRole("heading", { name: "Account defaults" }) });
+  await accountSection.locator(".settings-group-title").click();
+  await expect(adminToggle).toBeVisible({ timeout: 10000 });
+}
+
 /** Primary source in settings Playwright docker config (`_docker/src/settings/backend/config.yaml`). */
 export const SETTINGS_TEST_SOURCE = "playwright + files";
 
@@ -64,10 +94,30 @@ function isPublicUserGet(response: import("@playwright/test").Response, username
 export async function waitForUserEditReady(modal: Locator): Promise<void> {
   await expect(modal.getByRole("button", { name: "Save" })).toBeVisible();
   await expect(modal.getByRole("button", { name: "Cancel" })).toBeVisible();
-  await expect(
-    modal.locator('.toggle-container', { hasText: "Administrator" }),
-  ).toBeVisible({ timeout: 10000 });
   await expect(modal.locator("#loginMethod")).toBeVisible({ timeout: 10000 });
+  await expect(modal.getByRole("button", { name: "User preferences" })).toBeVisible({
+    timeout: 10000,
+  });
+}
+
+/** Open the nested user preferences editor from the main user edit prompt. */
+export async function openUserEditPreferences(page: Page, editModal: Locator): Promise<Locator> {
+  await editModal.getByRole("button", { name: "User preferences" }).click();
+  const prefsModal = userEditPreferencesModal(page);
+  await expect(prefsModal).toBeVisible();
+  await expandUserEditAccountDefaults(prefsModal);
+  await expect(globalPermissionToggle(prefsModal, "Administrator")).toBeVisible({
+    timeout: 10000,
+  });
+  return prefsModal;
+}
+
+/** Close the nested user preferences editor and return to the main user edit prompt. */
+export async function closeUserEditPreferences(page: Page): Promise<void> {
+  const prefsModal = userEditPreferencesModal(page);
+  // Nested prompts also render a `.prompt-close` control; use the panel footer action.
+  await prefsModal.locator(".card-actions").getByRole("button", { name: "Close" }).click();
+  await expect(prefsModal).not.toBeVisible();
 }
 
 /**
@@ -91,7 +141,7 @@ export async function openUserEdit(
   if (userResponse) {
     await Promise.race([
       userResponse,
-      modal.locator('.toggle-container', { hasText: "Administrator" }).waitFor({
+      modal.getByRole("button", { name: "User preferences" }).waitFor({
         state: "visible",
         timeout: 10000,
       }),
