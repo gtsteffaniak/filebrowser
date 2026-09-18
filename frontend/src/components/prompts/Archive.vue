@@ -11,6 +11,7 @@
           :browse-path="currentPath"
           :show-folders="true"
           :show-files="false"
+          :sortable="true"
           @update:selected="updateDestination"
         />
       </template>
@@ -153,6 +154,10 @@ export default {
   name: "archive",
   components: { LoadingSpinner, FileList, ToggleSwitch, ExpandDropdown },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     items: {
       type: Array,
       required: true,

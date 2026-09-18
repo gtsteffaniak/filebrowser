@@ -23,6 +23,7 @@ type UserDefaultsSidebarEnforcement struct {
 
 type UserDefaultsListingEnforcement struct {
 	DeleteWithoutConfirming bool `json:"deleteWithoutConfirming,omitempty"`
+	PromptRightCloseButton  bool `json:"promptRightCloseButton,omitempty"`
 	DateFormat              bool `json:"dateFormat,omitempty"`
 	ShowHidden              bool `json:"showHidden,omitempty"`
 	QuickDownload           bool `json:"quickDownload,omitempty"`
@@ -33,6 +34,7 @@ type UserDefaultsListingEnforcement struct {
 	DeleteAfterArchive      bool `json:"deleteAfterArchive,omitempty"`
 	ViewMode                bool `json:"viewMode,omitempty"`
 	GallerySize             bool `json:"gallerySize,omitempty"`
+	NewFileTemplate         bool `json:"newFileTemplate,omitempty"`
 }
 
 type UserDefaultsPreviewEnforcement struct {
@@ -77,6 +79,7 @@ type UserDefaultsAccountEnforcement struct {
 	LockPassword               bool                                  `json:"lockPassword,omitempty"`
 	DisableSettings            bool                                  `json:"disableSettings,omitempty"`
 	DisableUpdateNotifications bool                                  `json:"disableUpdateNotifications,omitempty"`
+	ShowAdvancedProfile        bool                                  `json:"showAdvancedProfile,omitempty"`
 	Permissions                UserDefaultsAccountPermissionsEnforcement `json:"permissions,omitempty"`
 }
 

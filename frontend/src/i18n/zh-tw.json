@@ -43,6 +43,7 @@
     "requestTimedOut": "請求已超時。請檢查您的網路或反向代理設定。"
   },
   "files": {
+    "emptyFile": "空檔案",
     "lastModified": "最後修改{suffix}",
     "multipleSelectionEnabled": "多選模式已開啟",
     "sortByLastModified": "按最後修改時間排序",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "帳號或密碼錯誤",
     "failedLogin": "登入失敗",
     "invalidCredentials": "提供的認證資料無效",
-    "passkeyLogin": "使用通行密鑰"
+    "passkeyLogin": "使用通行密鑰",
+    "recaptchaRequired": "需要 Recaptcha 驗證"
   },
   "prompts": {
+    "noTemplate": "您的模板為空！",
+    "newFileTemplate": "新建檔案模板",
+    "newFileTemplateMessage": "在此處添加新檔案名稱，它們將用作上下文選單中新建檔案的模板！",
+    "newFileTemplatePlaceholder": "輸入帶副檔名的檔案名稱",
     "deleteMessageSingle": "確定要刪除此檔案或資料夾嗎？",
     "deleteTitle": "刪除檔案",
     "displayName": "名稱：",
@@ -207,7 +212,6 @@
     "selectPath": "選擇路徑",
     "renameSuccess": "項目已成功重新命名！",
     "newFileSuccess": "檔案已成功建立！",
-    "moveFailed": "移動失敗",
     "operationFailed": "操作失敗",
     "partialSuccess": "部分作業失敗：成功 {succeeded} 項，失敗 {failed} 項",
     "renameFailed": "重新命名項目失敗",
@@ -294,7 +298,12 @@
     "accountDefaults": "帳戶預設值",
     "disableUserSettings": "停用使用者設定頁面",
     "userDefaultFieldLockedFromConfig": "此預設值是在設定檔中設定的，無法在此處進行變更。",
-    "sourceAccessDefaultsHelp": "套用預設檔案權限至原始檔及新使用者。強制鎖定所有非管理員使用者的權限值。"
+    "sourceAccessDefaultsHelp": "套用預設檔案權限至原始檔及新使用者。強制鎖定所有非管理員使用者的權限值。",
+    "editAsYaml": "以 YAML 格式編輯",
+    "userEditPreferences": "使用者偏好設定",
+    "userEditTools": "工具存取",
+    "userEditToolsDescription": "設定此使用者可存取哪些工具",
+    "userEditSidebarLinks": "側邊欄連結"
   },
   "sidebar": {
     "updateIsAvailable": "有可用的更新！",
@@ -315,10 +324,7 @@
     "linkUrl": "連結網址",
     "linkUrlPlaceholder": "輸入 URL 或路徑 (例如 /files/path 或 https://example.com)",
     "linkIcon": "連結圖示",
-    "linksUpdatedSuccess": "側邊欄連結更新成功！",
-    "linksUpdateFailed": "更新側邊欄連結失敗",
     "sourceNotAccessible": "您無法再存取此來源",
-    "noLinksYet": "尚未設定任何連結。請在下方新增第一個連結。",
     "customizeShareLinksDescription": "自訂此分享側邊欄顯示的連結。可拖放重新排序。",
     "editLink": "編輯連結",
     "selectShare": "選擇分享",
@@ -327,7 +333,6 @@
     "pickIcon": "選擇圖示",
     "pickIconDescription": "從 Material Icons 圖示庫搜尋並選擇圖示",
     "linkIconPlaceholder": "可選填 Material Icon 名稱",
-    "switchMode": "切換側邊欄模式",
     "showIndexedUsageDescription": "顯示從來源中的索引檔案計算出的使用量列。",
     "showDiskUsageDescription": "根據作業系統報告的磁碟/磁碟分割大小顯示使用量列。此大小可能較大，並包括未編制索引的檔案。",
     "usageTextDisplay": "要顯示哪一種使用量文字？",
@@ -335,7 +340,13 @@
     "usageTextDisk": "依磁碟/磁碟分割回報的使用量",
     "dividerNamePlaceholder": "分隔線文字（留空則只顯示一條線）",
     "showIndexedUsage": "顯示索引中的用法",
-    "showDiskUsage": "顯示根據磁碟／分割區所報告的使用情況"
+    "showDiskUsage": "顯示根據磁碟／分割區所報告的使用情況",
+    "sidebarLinkDefaults": "側邊欄連結的預設值",
+    "sidebarLinkDefaultsDescription": "為所有使用者設定預設及強制顯示的側邊欄連結。",
+    "sidebarLinkDefaultsHelp": "這些是將為所有新使用者預設新增的連結。若您強制啟用某個連結，該連結將會新增至所有使用者的帳戶中，且非管理員無法移除。",
+    "sidebarLinkDefaultSourceHelp": "僅當使用者具有此來源的存取權限時，才適用此規定。",
+    "sidebarLinkDefaultsYamlInvalid": "YAML 格式無效。請檢查格式並重新嘗試。",
+    "switchMode": "在連結與導覽樹之間切換"
   },
   "share": {
     "notice": "注意：建立分享後，內容會更容易對外公開，且存取規則也不同。如果未妥善設定安全性，任何人都可能存取。",
@@ -405,7 +416,9 @@
     "selectBannerImage": "選擇橫幅圖片",
     "selectFaviconImage": "選擇 Favicon 圖片",
     "deleteFailed": "刪除分享失敗",
-    "readOnlySourceNotice": "此來源為唯讀。上傳共用和修改檔案的權限已停用。"
+    "readOnlySourceNotice": "此來源為唯讀。上傳共用和修改檔案的權限已停用。",
+    "shareDefaults": "分享預設值",
+    "shareDefaultsDescription": "為新建立的共用資料夾設定預設共用選項，並對非管理員使用者強制執行相關政策。"
   },
   "api": {
     "createdAt": "建立於：",
@@ -447,6 +460,8 @@
     "unavailable": "無法使用"
   },
   "profileSettings": {
+    "promptRightCloseButton": "在右側顯示提示框關閉按鈕",
+    "promptRightCloseButtonDescription": "在右側而不是左側顯示提示框的關閉按鈕",
     "hideFileExt": "隱藏特定檔案（按副檔名）",
     "hideFileExtDescription": "空格分隔的副檔名列表。在此欄位中輸入的副檔名將從所有使用者介面中隱藏（視覺上，如清單或檔案樹）——它們仍然可存取。",
     "preferEditorForMarkdown": "優先使用編輯器開啟 Markdown 檔案",
@@ -462,7 +477,6 @@
     "showQuickDownloadDescription": "在每個可下載的檔案項目上顯示下載圖示，按一下即可立即下載。",
     "disableUpdateNotifications": "停用更新通知",
     "disableUpdateNotificationsDescription": "停用只顯示給管理員的側邊欄更新通知橫幅。",
-    "disableHideSidebar": "預覽或編輯檔案時保持側邊欄開啟",
     "disableHideSidebarDescription": "啟用後，預覽或編輯檔案時，側邊欄不會自動隱藏。",
     "autoplayMedia": "檢視時自動播放媒體檔案",
     "autoplayMediaDescription": "檢視時自動播放媒體檔案。只有當檔案是媒體檔案時，此功能才會生效。",
@@ -474,8 +488,6 @@
     "hideSidebarFileActions": "隱藏側邊欄中的檔案動作按鈕",
     "deleteWithoutConfirming": "刪除檔案無須確認提示",
     "deleteWithoutConfirmingDescription": "刪除檔案時不顯示確認提示。只有當檔案是媒體檔案時，此功能才會生效。",
-    "editorQuickSave": "編輯器中的快速儲存按鈕",
-    "editorQuickSaveDescription": "文字編輯器會固定顯示儲存圖示，並隱藏其他動作。",
     "previewOfficeDescription": "在清單檢視中顯示 Office 檔案類型的縮圖",
     "disableThumbnailPreviews": "停用某些檔案副檔名的縮圖",
     "disableThumbnailPreviewsDescription": "以空格分隔的檔案副檔名清單，以停用縮圖預覽（例如：'.txt .html'）。",
@@ -524,7 +536,13 @@
     "defaultViewMode": "預設檢視模式",
     "defaultViewModeDescription": "在新瀏覽器或裝置上的初始檢視模式。不會覆寫已儲存於本機的檢視偏好設定。",
     "defaultGallerySize": "預設縮圖大小",
-    "defaultGallerySizeDescription": "在新瀏覽器或裝置上顯示的初始圖庫或清單縮圖比例（1–9）。此設定不會覆寫已儲存於本地的尺寸。"
+    "defaultGallerySizeDescription": "在新瀏覽器或裝置上顯示的初始圖庫或清單縮圖比例（1–9）。此設定不會覆寫已儲存於本地的尺寸。",
+    "disableHideSidebar": "始終顯示側邊欄",
+    "editorQuickSave": "在編輯器中顯示「快速儲存」按鈕",
+    "editorQuickSaveDescription": "文字編輯器將僅顯示儲存圖示，並隱藏其他所有操作",
+    "showAdvancedProfile": "顯示進階個人資料設定",
+    "showAdvancedProfileDescription": "在側邊欄中顯示分類後的個人資料設定，而非簡化版個人資料檢視。",
+    "accountOptions": "帳戶選項"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -558,6 +576,8 @@
     "orange": "橘色"
   },
   "general": {
+    "import": "匯入",
+    "export": "匯出",
     "name": "名稱{suffix}",
     "path": "路徑{suffix}",
     "user": "使用者{suffix}",
@@ -710,7 +730,14 @@
     "viewFiles": "檢視及列出檔案",
     "source": "{prefix}來源{suffix}",
     "sources": "{prefix}資料來源{suffix}",
-    "enforce": "執行{suffix}"
+    "enforce": "執行{suffix}",
+    "paste": "貼上",
+    "cut": "剪下",
+    "limit": "上限{suffix}",
+    "remove": "移除{suffix}",
+    "saved": "已儲存{suffix}",
+    "removed": "已移除{suffix}",
+    "back": "返回{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -729,15 +756,97 @@
     "defaultBehavior": "預設動作{suffix}",
     "deletedCascade": "已從此路徑及所有子路徑刪除存取規則！",
     "cascadeDelete": "遞迴刪除",
-    "cascadeDeleteDescription": "啟用時，刪除存取規則也會從所有子目錄中移除該規則。這可讓您從整個目錄樹中完全移除使用者或群組。"
+    "cascadeDeleteDescription": "啟用時，刪除存取規則也會從所有子目錄中移除該規則。這可讓您從整個目錄樹中完全移除使用者或群組。",
+    "hasRules": "已設定存取規則",
+    "manageDescription": "此路徑的開放存取規則。"
   },
   "editor": {
     "uninitialized": "編輯器初始化失敗。請重新載入。",
     "saveAbortedMessage": "儲存作業已中止。應用程式目前的作用中檔案 ({activeFile}) 與要儲存的檔案 ({tryingToSave}) 不一致。",
-    "fileSaved": "檔案已儲存！",
-    "lines": "{count} 行",
-    "words": "{count} 詞",
-    "chars": "{count} 字元"
+    "stats": {
+      "lines": "{count} 行",
+      "words": "{count} 詞語",
+      "chars": "{count} 字元"
+    },
+    "settings": {
+      "title": "編輯器設定",
+      "keybinding": {
+        "label": "鍵盤快捷鍵",
+        "description": "設定您偏好的鍵盤快捷鍵！",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "超凡",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "過度捲動",
+        "description": "編輯器可以向下捲動到內容結尾之後多少位置",
+        "none": "無",
+        "half": "一半",
+        "full": "完整"
+      },
+      "tabSize": {
+        "label": "制表符大小",
+        "description": "「TAB」鍵預設應跳轉幾個空格"
+      },
+      "showIndentGuides": "顯示縮排引導線",
+      "showIndentGuidesDescription": "顯示縮排引導線，這能讓您在編輯嵌套程式碼時更容易掌握方向",
+      "showGutter": "顯示排水槽",
+      "showGutterDescription": "左側顯示行號的容器",
+      "fixedGutterWidth": "固定型排水槽寬度",
+      "fixedGutterWidthDescription": "當此功能關閉時，系統會根據檔案的行數，在捲動時逐步增加行間距",
+      "showLineNumbers": "顯示行號",
+      "showLineNumbersDescription": "在左側邊距處顯示行號，但不會隱藏邊距本身",
+      "relativeLineNumbers": "相對行號",
+      "relativeLineNumbersDescription": "顯示以游標當前位置為基準的行號",
+      "customScrollbar": "自訂捲動條",
+      "customScrollbarDescription": "將原生瀏覽器的捲動列替換為 Ace 內建的捲動列",
+      "wrapContent": "在編輯器中讓長行自動換行",
+      "wrapContentDescription": "將編輯器內容進行換行處理，以確保非常長的行始終可見",
+      "autocompletion": "自動補全",
+      "autocompletionDescription": "透過手動按下 'ctrl + space' 啟用自動補全",
+      "liveAutocompletion": "即時自動補全",
+      "liveAutocompletionDescription": "啟用後，浮動自動補全方塊將在您輸入時自動出現"
+    },
+    "splitView": "分屏視圖",
+    "exitSplitView": "退出分屏檢視",
+    "md": {
+      "clipboardActions": "剪貼簿動作",
+      "bold": "粗體",
+      "italic": "斜體",
+      "strikethrough": "刪除線",
+      "heading": "標題",
+      "quote": "引言",
+      "inlineCode": "內嵌程式碼",
+      "codeBlock": "程式碼區塊",
+      "bulletList": "項目符號清單",
+      "numberedList": "編號清單",
+      "taskList": "任務清單",
+      "horizontalRule": "水平線",
+      "undo": "撤銷",
+      "redo": "重做",
+      "moreOptions": "更多選項",
+      "inlineMath": "行內數學公式",
+      "displayMath": "數學顯示",
+      "highlight": "重點標示",
+      "superscript": "上標",
+      "subscript": "下標",
+      "text": "文字",
+      "cell": "Cell",
+      "column": "專欄",
+      "align": "對齊",
+      "alignRight": "右對齊",
+      "alignLeft": "左對齊",
+      "alignCenter": "居中對齊",
+      "justify": "對齊",
+      "fontColor": "字體顏色"
+    },
+    "json": {
+      "formatJSON": "JSON 格式",
+      "formatJSONSuccess": "JSON 格式化成功",
+      "invalidJSON": "無效的 JSON：{message}"
+    }
   },
   "player": {
     "loop": "循環",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "瀏覽完整圖示庫"
     },
     "toolNotFound": "找不到工具",
-    "backToTools": "回到工具",
     "fileWatcher": {
       "name": "檔案監看器",
       "description": "即時監看並追蹤檔案內容，同時監測延遲",
@@ -914,7 +1022,11 @@
       "scopeAccess": "存取活動",
       "eventAccessCreate": "存取 建立",
       "eventAccessDelete": "存取 刪除"
-    }
+    },
+    "toolAccessDefaults": "工具存取預設值",
+    "toolAccessDefaultsDescription": "設定新使用者預設可存取的工具",
+    "toolAccessDefaultsHelp": "為新使用者啟用工具，並可選擇強制實施存取控制，以確保非管理員無法變更設定。",
+    "accessDenied": "您無權使用此工具。"
   },
   "messages": {
     "pathNotFound": "檔案系統中找不到此路徑",
@@ -1016,5 +1128,25 @@
     "days": "天數{suffix}",
     "months": "月份{suffix}",
     "timeUnit": "時間單位"
+  },
+  "quotas": {
+    "title": "儲存配額",
+    "openDescription": "開啟此資料夾的儲存配額對話方塊。",
+    "folderDescription": "限制此資料夾的儲存空間。",
+    "shareLimit": "透過此共用資料夾限制儲存空間",
+    "shareLimitDescription": "會統計透過此連結的上傳次數。此項亦會計入擁有者的原始資料配額。",
+    "scopeLimit": "此來源的儲存上限",
+    "scopeLimitDescription": "此使用者針對此來源之作業的字元上限。",
+    "indexingDisabledMeterHint": "此來源已停用索引功能。僅提供使用追蹤資料。",
+    "meterIndexHint": "使用此資料夾中已建立索引檔案的總大小。包含索引更新時，在 FileBrowser 外部所做的變更。",
+    "meterAccountedHint": "僅統計透過 FileBrowser 執行的上傳、儲存及刪除操作。",
+    "meterIndexScope": "索引大小",
+    "meterAccounted": "追蹤使用情況",
+    "usageCounting": "按以下方式統計使用次數",
+    "usageSyncPending": "使用情況仍在與索引同步中。",
+    "accountedFallback": "索引大小尚未準備就緒；在索引可用之前，將使用追蹤的使用量。",
+    "errors": {
+      "exceeded": "儲存空間已超過配額"
+    }
   }
 }

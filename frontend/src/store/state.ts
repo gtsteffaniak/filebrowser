@@ -32,16 +32,26 @@ export const state: StoreState = reactive({
   showSidebar: false,
   displayPreferences: {},
   enforcedUserDefaults: {},
+  sidebarLinkDefaultsPolicy: { items: [] },
+  toolAccessDefaultsPolicy: { items: [] },
+  shareDefaultsPolicy: { values: {}, enforced: {} },
   usages: {},
-  editor: null,
-  editorDirty: false,
-  editorSaveHandler: null, // Function to save editor content
-  editorStats: {
-    lines: 0,
-    words: 0,
-    chars: 0,
+  editor: {
+    instance: null,
+    dirty: false,
+    saveHandler: null,
+    jsonFormatted: false,
+    stats: {
+      lines: 0,
+      words: 0,
+      chars: 0,
+    },
+    fontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
+    markdownSplitView: loadMarkdownSplitView(),
+    scrollRatio: 0,
+    scrollSource: null,
+    scrollPath: "", // if the path differs to always start at the top of the file
   },
-  editorFontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering
@@ -70,6 +80,8 @@ export const state: StoreState = reactive({
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
+    promptRightCloseButton: false, // to show the prompts close button on the right
+    newFileTemplate: [], // custom filenames that will be used as template for new files
     scopes: [],
     permissions: {}, // Default to an empty object for permissions
     darkMode: globalVars.darkMode === true,
@@ -106,6 +118,7 @@ export const state: StoreState = reactive({
   },
   previewRaw: "",
   oldReq: {},
+  pickerSorting: loadPickerSorting(),
   clipboard: {
     key: "",
     items: [],
@@ -198,6 +211,10 @@ function loadNotificationHistory() {
   }
 }
 
+function loadMarkdownSplitView() {
+  return sessionStorage.getItem("markdownSplitView") === "true";
+}
+
 /**
  * Load sidebar width from localStorage or use default size
  * @returns {number}
@@ -222,6 +239,35 @@ function eventTheme() {
   return disableEventThemes === "true"
 }
 
+function normalizePlaybackMode(mode: unknown): 'single' | 'sequential' | 'shuffle' {
+  if (mode === 'sequential' || mode === 'shuffle' || mode === 'single') {
+    return mode;
+  }
+  return 'single';
+}
+
+/**
+ * Loads the destination picker sort preference from localStorage.
+ * @returns {{ by: string, asc: boolean } | null} The saved sort config, or null if unset/invalid
+ */
+function loadPickerSorting() {
+  try {
+    const stored = localStorage.getItem("pickerSorting");
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    if (
+      parsed &&
+      ["name", "size", "modified"].includes(parsed.by) &&
+      typeof parsed.asc === "boolean"
+    ) {
+      return { by: parsed.by, asc: parsed.asc };
+    }
+  } catch (error) {
+    console.error('Failed to load picker sorting:', error);
+  }
+  return null;
+}
+
 /**
  * Loads playback queue from localStorage.
  * @returns {Object} The playback queue state
@@ -231,20 +277,22 @@ function eventTheme() {
  *   @property {boolean} isPlaying     - False on load
  *   @property {string} loop           - 'off' | 'all' | 'single'
  */
-function loadPlaybackQueue() {
+function loadPlaybackQueue(): StoreState['playbackQueue'] {
+  const fallback: StoreState['playbackQueue'] = { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
   try {
     const storedQueue = sessionStorage.getItem('playbackQueue');
-    if (!storedQueue) return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
+    if (!storedQueue) return fallback;
     const playback = JSON.parse(storedQueue);
     if (Array.isArray(playback.queue) && typeof playback.currentIndex === 'number' && typeof playback.mode === 'string') {
+      const loop = playback.loop === 'all' || playback.loop === 'single' ? playback.loop : 'off';
       return {
         queue: playback.queue,
         currentIndex: playback.currentIndex,
-        mode: playback.mode,
+        mode: normalizePlaybackMode(playback.mode),
         isPlaying: false,
-        loop: playback.loop || 'off',
+        loop,
       };
     }
   } catch (_) { /* ignore */ }
-  return { queue: [], currentIndex: -1, mode: 'single', isPlaying: false, loop: 'off' };
+  return fallback;
 }

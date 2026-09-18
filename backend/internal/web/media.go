@@ -227,15 +227,15 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	return RenderJSON(w, r, fileInfo)
 }
 
-// lyricsHandler returns synced/unsynced lyrics (with or without timestamps) for an audio file (embedded or from .lrc files).
+// lyricsHandler returns raw lyrics text for an audio file with its format.
 // @Summary Get lyrics for an audio file
-// @Description Returns parsed lyrics with optional timestamps from embedded tags or sidecar .lrc files.
+// @Description Returns raw lyrics text and its format (lrc, elrc, srt, vtt, embedded) from a sidecar file or embedded tags.
 // @Tags Media
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the directory or file"
 // @Param source query string true "Source name"
-// @Success 200 {object} map[string]interface{} "Lyrics array"
+// @Success 200 {object} map[string]interface{} "Raw lyrics text and format"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Not found"
 // @Router /api/media/lyrics [get]
@@ -271,11 +271,11 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		return http.StatusNotFound, fmt.Errorf("file is not an audio file")
 	}
 
-	lyrics, err := files.ExtractLyrics(fileInfo.RealPath)
+	lyrics, format, err := files.ExtractLyrics(fileInfo.RealPath)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to extract lyrics: %v", err)
 	}
-	return RenderJSON(w, r, map[string]any{"lyrics": lyrics})
+	return RenderJSON(w, r, map[string]any{"lyrics": lyrics, "format": format})
 }
 
 // publicLyricsHandler is the share-link variant of lyricsHandler.
@@ -284,7 +284,7 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 // @Produce json
 // @Param hash query string true "Share hash"
 // @Param path query string false "Path within the share"
-// @Success 200 {object} map[string]interface{} "Lyrics array"
+// @Success 200 {object} map[string]interface{} "Raw lyrics text and format"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Not found"
 // @Router /public/api/media/lyrics [get]
@@ -312,11 +312,11 @@ func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusNotFound, fmt.Errorf("file is not an audio file")
 	}
 
-	lyrics, err := files.ExtractLyrics(fileInfo.RealPath)
+	lyrics, format, err := files.ExtractLyrics(fileInfo.RealPath)
 	if err != nil {
 		return http.StatusInternalServerError, errors.New("failed to extract lyrics")
 	}
-	return RenderJSON(w, r, map[string]any{"lyrics": lyrics})
+	return RenderJSON(w, r, map[string]any{"lyrics": lyrics, "format": format})
 }
 
 // publicSubtitlesHandler is the share-link variant of subtitlesHandler.

@@ -29,19 +29,21 @@
       </div>
       <div v-else-if="activeTab === 'lyrics'" class="tab-lyrics">
         <!-- Lock button -->
-        <button
+        <FloatingActionButton
           v-if="lyrics.length && syncedLyrics"
-          type="button"
-          class="lyrics-lock-btn"
+          icon="lock"
+          :icon-outlined="lyricsScrollLocked"
+          size="small"
+          position-mode="absolute"
+          :edge-offset="{ top: '0.5em', right: '0.5em' }"
+          :auto-hide="false"
           @click="lyricsScrollLocked = !lyricsScrollLocked"
-          :title="lyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
-        >
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          <i :class="lyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ lyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
-        </button>
+          :label="lyricsLockToggleLabel"
+        />
         <!-- Scrollable area -->
         <div class="lyrics-scrollable" ref="lyricsScrollable">
           <div v-if="lyrics.length" class="lyrics-list">
+            <p v-if="lyricsMeta" class="lyrics-meta-header" aria-hidden="true">{{ lyricsMeta }}</p>
             <p
               v-for="(line, index) in lyrics"
               :key="index"
@@ -54,7 +56,15 @@
               :tabindex="syncedLyrics ? 0 : undefined"
               :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
             >
-              {{ line.text }}
+              <template v-if="index === activeLyricIndex && line.words && line.words.length">
+                <span
+                  v-for="(word, w) in line.words"
+                  :key="w"
+                  class="lyric-word"
+                  :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
+                >{{ word.text }}&nbsp;</span>
+              </template>
+              <template v-else>{{ line.text }}</template>
             </p>
           </div>
           <div v-else class="no-lyrics">
@@ -64,15 +74,15 @@
         </div>
       </div>
       <div v-else-if="activeTab === 'visualizer'" class="tab-visualizer">
-        <button
-          type="button"
-          class="lyrics-lock-btn"
+        <FloatingActionButton
+          icon="tune"
+          size="small"
+          position-mode="absolute"
+          :edge-offset="{ top: '0.5em', right: '0.5em' }"
+          :auto-hide="false"
           @click="showVisualizerSettings"
-          :title="$t('player.visualizer.settings')"
-          :aria-label="$t('player.visualizer.settings')"
-        >
-          <i class="material-symbols">tune</i>
-        </button>
+          :label="visualizerSettingsLabel"
+        />
         <canvas ref="visualizerCanvas" class="visualizer-canvas"></canvas>
       </div>
     </div>
@@ -81,6 +91,7 @@
 
 <script>
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { getters, mutations, state } from "@/store";
 import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
@@ -108,10 +119,12 @@ const FREQ_LABELS = [
 
 export default {
   name: "AudioPanel",
-  components: { PlaybackQueue },
+  components: { PlaybackQueue, FloatingActionButton },
   props: {
     lyrics: { type: Array, default: () => [] },
+    lyricsMeta: { type: String, default: '' },
     activeLyricIndex: { type: Number, default: -1 },
+    activeWordIndex: { type: Number, default: -1 },
     player: { type: Object, default: null },
     audioContext: { type: Object, default: null },
     audioSource: { type: Object, default: null }, // MediaElementAudioSourceNode, see https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode
@@ -166,6 +179,12 @@ export default {
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
+    },
+    lyricsLockToggleLabel() {
+      return this.lyricsScrollLocked ? this.$t('player.unlockLyrics') : this.$t('player.lockLyrics');
+    },
+    visualizerSettingsLabel() {
+      return this.$t('player.visualizer.settings');
     },
     // tabs in the panel
     indicatorStyle() {
@@ -870,11 +889,25 @@ export default {
   color: var(--textPrimary);
 }
 
+.lyrics-meta-header {
+  padding: 0 0 0.6em;
+  margin: 0;
+  opacity: 0.55;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: default;
+  user-select: none;
+}
+
 .lyric-line {
   padding: 0.5em 0;
   opacity: 0.6;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
+  transform: scale(1);
+  transform-origin: center;
   font-size: 1.15rem;
 }
 
@@ -887,6 +920,28 @@ export default {
   font-weight: bold;
   color: var(--primaryColor);
   font-size: 1.35rem;
+  animation: lyric-line-in 0.3s ease;
+}
+
+@keyframes lyric-line-in {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.lyric-word {
+  display: inline-block;
+  opacity: 0.4;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.lyric-word.sung {
+  opacity: 1;
+}
+
+.lyric-word.current {
+  opacity: 1;
+  transform: scale(1.06);
 }
 
 .no-lyrics {
@@ -906,30 +961,6 @@ export default {
 
 .lyric-line.no-seek {
   cursor: default;
-}
-
-.audio-side-panel .lyrics-lock-btn {
-  position: absolute;
-  top: 0.5em;
-  right: 0.5em;
-  z-index: 10;
-  background: var(--background);
-  border: 1px solid var(--divider);
-  border-radius: 50%;
-  width: 2em;
-  height: 2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--textSecondary);
-  transition: 0.2s;
-}
-
-.audio-side-panel .lyrics-lock-btn:hover {
-  background: var(--primaryColor);
-  color: white;
-  border-color: var(--primaryColor);
 }
 
 .tab-btn:hover:not(.active) {

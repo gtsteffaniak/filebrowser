@@ -12,6 +12,7 @@
           :browse-source="itemSource"
           :show-folders="true"
           :show-files="false"
+          :sortable="true"
           @update:selected="updateDestination"
         />
       </template>
@@ -132,6 +133,10 @@ export default {
   name: "unarchive",
   components: { FileList, LoadingSpinner, ToggleSwitch },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     item: {
       type: Object,
       required: true,

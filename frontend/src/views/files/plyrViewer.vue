@@ -8,23 +8,15 @@
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
     >
       <!-- Desktop panel button, will auto‑hide only when panel is closed -->
-      <button
-        type="button"
-        v-if="showButtons && previewType === 'audio' && !isMobile"
+      <FloatingActionButton
+        v-if="previewType === 'audio' && !isMobile"
+        :icon="showDesktopPanel ? 'close' : 'queue_music'"
+        :badge="!showDesktopPanel ? queueCount : null"
+        :auto-hide="!showDesktopPanel"
+        :offset="{ zIndex: 9999 }"
         @click="showDesktopPanel = !showDesktopPanel"
-        @touchstart="resetButtonTimer"
-        @mouseenter="buttonZoneRight = true"
-        @mouseleave="buttonZoneRight = false"
-        class="queue-button floating panel-toggle-fab"
-        :class="{
-          'dark-mode': darkMode,
-        }"
-        :aria-label="showDesktopPanel ? $t('player.closePanel') : $t('player.openPanel')"
-        :title="showDesktopPanel ? $t('player.closePanel') : $t('player.openPanel')"
-      >
-        <i class="material-symbols">{{ showDesktopPanel ? 'close' : 'queue_music' }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <span v-if="!showDesktopPanel && queueCount > 0" class="queue-count">{{ queueCount }}</span>
-      </button>
+        :label="desktopPanelToggleLabel"
+      />
 
       <!-- Two‑column layout -->
         <div class="audio-player-content" :class="{ 'panel-open': !isMobile && showDesktopPanel }" >
@@ -70,7 +62,9 @@
           <AudioPanel
             v-if="!isMobile && showDesktopPanel"
             :lyrics="lyrics"
+            :lyrics-meta="lyricsMeta"
             :active-lyric-index="activeLyricIndex"
+            :active-word-index="activeWordIndex"
             :player="player"
             :audio-context="audioContext"
             :audio-source="audioSource"
@@ -85,6 +79,7 @@
       <div v-if="isMobile && showMobileLyrics && lyrics.length" class="lyrics-mobile">
         <!-- Scrollable area -->
         <div class="lyrics-mobile-scrollable" ref="lyricsMobileScrollable">
+          <p v-if="lyricsMeta" class="lyrics-meta-header" aria-hidden="true">{{ lyricsMeta }}</p>
           <p
             v-for="(line, i) in lyrics"
             :key="i"
@@ -95,7 +90,15 @@
             role="button"
             :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
           >
-            {{ line.text }}
+            <template v-if="i === activeLyricIndex && line.words && line.words.length">
+              <span
+                v-for="(word, w) in line.words"
+                :key="w"
+                class="lyric-word"
+                :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
+              >{{ word.text }}&nbsp;</span>
+            </template>
+            <template v-else>{{ line.text }}</template>
           </p>
         </div>
       </div>
@@ -165,79 +168,38 @@
     </div>
 
     <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
-    <div
-      v-if="showRightZone"
-      class="floating-zone floating-zone--right"
-      @mousemove="resetButtonTimer"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-    ></div>
-
-    <!-- Left detection zone – only on mobile audio when lyrics exist -->
-    <div
-      v-if="isMobile && previewType === 'audio' && lyrics.length"
-      class="floating-zone floating-zone--left"
-      @mousemove="resetButtonTimer"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneLeft = true"
-      @mouseleave="buttonZoneLeft = false"
-    ></div>
-
-    <!-- Queue button – visible on videos, in audio on mobile -->
-    <button
-      type="button"
-      v-if="showButtons && showQueueButton"
-      class="queue-button floating"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+    <FloatingActionButton
+      v-if="showQueueButton"
+      icon="queue_music"
+      :badge="queueCount"
+      group="plyr-controls"
       @click="showQueuePrompt"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-      :aria-label="$t('player.QueueButtonHint')"
-      :title="$t('player.QueueButtonHint')"
-    >
-      <i class="material-symbols">queue_music</i>
-      <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
-    </button>
+      :label="queueButtonLabel"
+    />
 
     <!-- Lyrics button (left side) – only on mobile when lyrics exist -->
-    <button
-      type="button"
-      v-if="showButtons && isMobile && lyrics.length"
-      class="queue-button floating lyrics-fab-left"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+    <FloatingActionButton
+      v-if="isMobile && lyrics.length"
+      icon="lyrics"
+      position="top-left"
+      zone-height="8.5em"
+      group="plyr-controls"
       @click="showMobileLyrics = !showMobileLyrics"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneLeft = true"
-      @mouseleave="buttonZoneLeft = false"
-      :aria-label="$t('player.toggleLyrics')"
-      :title="$t('player.toggleLyrics')"
-    >
-      <i class="material-symbols">lyrics</i>
-    </button>
+      :label="lyricsToggleLabel"
+    />
 
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
-    <button
-      type="button"
+    <FloatingActionButton
       v-if="isMobile && previewType === 'audio' && showMobileLyrics && lyrics.length && syncedLyrics"
-      class="queue-button floating lyrics-lock-fab"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+      icon="lock"
+      :icon-outlined="mobileLyricsScrollLocked"
+      position="bottom-right"
+      size="small"
+      :offset="{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }"
+      :auto-hide="false"
       @click="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-      :title="mobileLyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
-    >
-      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-      <i :class="mobileLyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ mobileLyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
-    </button>
+      :label="mobileLyricsLockToggleLabel"
+    />
 
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
@@ -305,6 +267,7 @@ import {
   takeSessionSnapshot,
 } from '@/plyr/pipSession.js';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import FloatingActionButton from '@/components/settings/FloatingActionButton.vue';
 import {
   parsePlaybackTimeFromQuery,
   playbackQueryChanged,
@@ -328,6 +291,7 @@ export default {
   components: {
     AudioPanel,
     LoadingSpinner,
+    FloatingActionButton,
   },
   props: {
     previewType: {
@@ -375,7 +339,9 @@ export default {
 
       // Lyrics
       activeLyricIndex: -1,
+      activeWordIndex: -1,
       doubleTapSeekCleanup: null,
+      rewindForwardFeedback: null,
       mobileLyricsScrollLocked: false,
 
       // Audio Visualizer
@@ -389,12 +355,6 @@ export default {
       lastAppliedMode: null,
       showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
       showMobileLyrics: false,
-
-      // Buttons visibility
-      buttonVisible: false,
-      buttonTimer: null,
-      buttonZoneLeft: false,
-      buttonZoneRight: false,
       isFullscreen: false,
 
       // Gestures
@@ -405,10 +365,8 @@ export default {
       skipFeedbackTimer: null,
       skipNextTap: false,
       skipNextTapTimer: null, // Timer for clearing skipNextTap
-      pendingPlayPauseTapTimer: null,
       edgeTapLastTime: 0,
       edgeTapLastZone: null,
-      edgeSeekAt: 0,
       ignoreClickUntil: 0,
 
       hasStartedPlayback: false,
@@ -509,6 +467,12 @@ export default {
         this.$nextTick(() => this.scrollMobileLyrics());
       }
     },
+    lyrics(newLyrics, oldLyrics) {
+      if (newLyrics !== oldLyrics) {
+        this.activeLyricIndex = -1;
+        this.activeWordIndex = -1;
+      }
+    },
     mobileLyricsScrollLocked(val) {
       if (!val && this.showMobileLyrics && this.lyrics.length) {
         this.$nextTick(() => this.scrollMobileLyrics());
@@ -522,6 +486,11 @@ export default {
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
       this.togglePlayPause();
+      }
+    },
+    isPlaying(isPlaying) {
+      if (this.previewType === 'video') {
+        this.overlaidHintApi?.syncPlayback(isPlaying);
       }
     },
     'req.path'() {
@@ -621,23 +590,17 @@ export default {
     formattedArtist() {
       return formatArtist(this.metadata?.artist);
     },
-    showButtons() {
-      if (this.previewType === 'audio' && !this.isMobile && this.showDesktopPanel) {
-        return true;
-      }
-      if (this.isMobile) {
-        return this.buttonVisible;
-      }
-      return this.buttonVisible || this.buttonZoneLeft || this.buttonZoneRight;
+    desktopPanelToggleLabel() {
+      return this.showDesktopPanel ? this.$t('player.closePanel') : this.$t('player.openPanel');
     },
-    showRightZone() {
-      // show zone only when panel is closed
-      if (this.previewType === 'audio' && !this.isMobile) {
-        return !this.showDesktopPanel;
-      }
-      if (this.previewType === 'video') return true;
-      if (this.isMobile && this.previewType === 'audio') return true;
-      return false;
+    queueButtonLabel() {
+      return this.$t('player.QueueButtonHint');
+    },
+    lyricsToggleLabel() {
+      return this.$t('player.toggleLyrics');
+    },
+    mobileLyricsLockToggleLabel() {
+      return this.mobileLyricsScrollLocked ? this.$t('player.unlockLyrics') : this.$t('player.lockLyrics');
     },
     showQueueButton() {
       if (this.previewType === 'video') {
@@ -658,6 +621,9 @@ export default {
     },
     shouldTogglePlayPause() {
       return state.playbackQueue.shouldTogglePlayPause || false;
+    },
+    isPlaying() {
+      return state.playbackQueue.isPlaying || false;
     },
     playbackQueue() {
       return state.playbackQueue.queue;
@@ -729,6 +695,13 @@ export default {
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
+    },
+    // "Title - Artist" shown above the lyrics from the [ti:] [ar:] tags on lyrics (if present)
+    lyricsMeta() {
+      const lyricsTitle = this.lyrics?.lrcMeta?.title;
+      const lyricsArtist = this.lyrics?.lrcMeta?.artist;
+      if (lyricsTitle && lyricsArtist) return `${lyricsTitle} - ${lyricsArtist}`;
+      return lyricsTitle || lyricsArtist || '';
     },
     scrubPreviewEnabled() {
       return (
@@ -866,7 +839,6 @@ export default {
       this.loadAudioMetadata();
     }
     document.addEventListener('keydown', this.handleKeydown);
-    this.resetButtonTimer(); // Show buttons initially
     this.pagehideHandler = (event) => {
       if (event.persisted) return;
       this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
@@ -876,7 +848,6 @@ export default {
   beforeUnmount() {
     // Cleanup timeouts
     [this.toastTimeout,
-    this.buttonTimer,
     this.skipFeedbackTimer,
     this.videoDismissCloseTimer,
     this.videoDismissHintTimer,
@@ -891,20 +862,6 @@ export default {
     window.removeEventListener('pagehide', this.pagehideHandler);
   },
   methods: {
-    resetButtonTimer() {
-      this.buttonVisible = true;
-      if (this.buttonTimer) clearTimeout(this.buttonTimer);
-      this.buttonTimer = setTimeout(() => {
-        if (this.isMobile) {
-          this.buttonVisible = false;
-        } else {
-          if (!this.buttonZoneLeft && !this.buttonZoneRight) {
-            this.buttonVisible = false;
-          }
-        }
-        this.buttonTimer = null;
-      }, 3000);
-    },
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
     subtitleTrackLabel(sub) {
       const ext = getSubtitleFormatExtension(sub?.name || '');
@@ -1083,6 +1040,7 @@ export default {
         }
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
+        this.clearRewindForwardFeedback();
         this.cleanupAudioVisualizer();
         this.clearMediaSession();
         this.cleanupAlbumArt();
@@ -1318,8 +1276,11 @@ export default {
       if (!this.lyrics.length || !this.syncedLyrics) return;
       const currentMs = this.player.currentTime * 1000;
       let idx = this.activeLyricIndex;
-      if (idx > 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
-        idx = 0;
+      if (idx > this.lyrics.length - 1) {
+        idx = -1;
+      }
+      if (idx >= 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
+        idx = -1;
       }
       while (
         idx + 1 < this.lyrics.length &&
@@ -1328,11 +1289,40 @@ export default {
         idx++;
       }
       let first = idx;
-      while (first > 0 && this.lyrics.at(first - 1).timestamp === this.lyrics.at(idx).timestamp) {
+      while (
+        first > 0 &&
+        this.lyrics.at(first - 1)?.timestamp === this.lyrics.at(idx)?.timestamp
+      ) {
         first--;
       }
       if (first !== this.activeLyricIndex) {
         this.activeLyricIndex = first;
+        this.activeWordIndex = -1;
+      }
+      this.syncActiveWord(currentMs);
+    },
+    // Update active word within the active lyric line (for elrc)
+    syncActiveWord(currentMs) {
+      const words = this.activeLyricIndex >= 0 ? this.lyrics.at(this.activeLyricIndex)?.words : null;
+      if (!words?.length) {
+        this.activeWordIndex = -1;
+        return;
+      }
+      let idx = this.activeWordIndex;
+      if (idx > words.length - 1) {
+        idx = -1;
+      }
+      if (idx < 0 || words.at(idx)?.timestamp > currentMs) {
+        idx = 0;
+      }
+      while (idx + 1 < words.length && words.at(idx + 1).timestamp <= currentMs) {
+        idx++;
+      }
+      if (words.at(idx)?.timestamp > currentMs) {
+        idx = -1;
+      }
+      if (idx !== this.activeWordIndex) {
+        this.activeWordIndex = idx;
       }
     },
     scrollMobileLyrics() {
@@ -1978,16 +1968,10 @@ export default {
         ended: this.handleMediaEnd,
         play: () => {
           this.hasStartedPlayback = true;
-          if (this.previewType === 'video') {
-            this.overlaidHintApi?.onPlaybackToggle(true);
-          }
           mutations.setPlaybackState(true);
           this.updateMediaSessionPlaybackState();
         },
         pause: () => {
-          if (this.previewType === 'video' && this.hasStartedPlayback && !this.player?.ended) {
-            this.overlaidHintApi?.onPlaybackToggle(false);
-          }
           mutations.setPlaybackState(false);
           this.updateMediaSessionPlaybackState();
         },
@@ -2019,6 +2003,7 @@ export default {
       if (this.previewType === 'video' || this.previewType === 'audio') {
         this.setupDoubleTapSeek();
         this.setupVideoSwipeGestures();
+        this.setupRewindForwardFeedback();
       }
       if (this.previewType === 'video') {
         this.setupOverlaidHintController();
@@ -2049,7 +2034,7 @@ export default {
         '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
         '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
         '.audio-side-panel .tab-btn, ' +
-        '.audio-side-panel .lyrics-lock-btn, ' +
+        '.audio-side-panel .fab-button, ' +
         '.audio-side-panel .lyric-line, ' +
         '.audio-side-panel input[type="radio"], ' +
         '.audio-side-panel label[for^="tab-"], ' +
@@ -2066,6 +2051,32 @@ export default {
         this.doubleTapSeekCleanup = null;
       }
     },
+    setupRewindForwardFeedback() {
+      this.clearRewindForwardFeedback();
+      const container = this.player?.elements?.container;
+      if (!container) {
+        return;
+      }
+      const rewind = container.querySelector('[data-plyr="rewind"]');
+      const forward = container.querySelector('[data-plyr="fast-forward"]');
+      if (!rewind && !forward) {
+        return;
+      }
+      const onRewind = () => this.flashSkipFeedback(true);
+      const onForward = () => this.flashSkipFeedback(false);
+      rewind?.addEventListener('click', onRewind);
+      forward?.addEventListener('click', onForward);
+      this.rewindForwardFeedback = () => {
+        rewind?.removeEventListener('click', onRewind);
+        forward?.removeEventListener('click', onForward);
+      };
+    },
+    clearRewindForwardFeedback() {
+      if (typeof this.rewindForwardFeedback === 'function') {
+        this.rewindForwardFeedback();
+      }
+      this.rewindForwardFeedback = null;
+    },
     setupOverlaidHintController() {
       this.teardownOverlaidHintController();
       if (!this.player) {
@@ -2075,6 +2086,7 @@ export default {
         player: this.player,
         hasStartedPlayback: () => this.hasStartedPlayback,
         baseUrl: globalVars.baseURL,
+        isPlaying: this.isPlaying,
       });
       this.overlaidHintApi = api;
       this.overlaidHintCleanup = api.cleanup;
@@ -2086,14 +2098,7 @@ export default {
       this.overlaidHintCleanup = null;
       this.overlaidHintApi = null;
     },
-    clearPendingPlayPauseTap() {
-      if (this.pendingPlayPauseTapTimer) {
-        clearTimeout(this.pendingPlayPauseTapTimer);
-        this.pendingPlayPauseTapTimer = null;
-      }
-    },
     clearEdgeTapGestureState() {
-      this.clearPendingPlayPauseTap();
       this.edgeTapLastTime = 0;
       this.edgeTapLastZone = null;
     },
@@ -2105,7 +2110,7 @@ export default {
       const surface = this.getPlyrGestureSurface();
       if (!surface || !this.player) return;
 
-      const DOUBLE_MS = 320;
+      const EDGE_CLICK_MS = 200;
 
       const peekNavChromeForEdgeTap = (clientX, zone) => {
         if (this.previewType !== 'video' || !state.navigation.enabled) {
@@ -2125,9 +2130,21 @@ export default {
         const rect = surface.getBoundingClientRect();
         return zoneFromClientX(clientX, rect);
       };
+      const OVERLAID_BUTTON_TOUCH_PADDING = 8;
+      const isOverlaidButtonHit = (clientX, clientY) => {
+        const btn = this.player?.elements?.container?.querySelector('.plyr__control--overlaid');
+        if (!btn) return false;
+        const r = btn.getBoundingClientRect();
+        if (!r.width || !r.height) return false;
+        const cx = r.left + (r.width / 2);
+        const cy = r.top + (r.height / 2);
+        const radius = (Math.min(r.width, r.height) / 2) + OVERLAID_BUTTON_TOUCH_PADDING;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+        return (dx * dx) + (dy * dy) <= radius * radius;
+      };
 
       const applySeek = (rewind) => {
-        this.edgeSeekAt = Date.now();
         this.clearEdgeTapGestureState();
         this.clearLongPressTimer();
         this.longPressPending = false;
@@ -2148,22 +2165,9 @@ export default {
           this.player.play();
         }
       };
-
-      const scheduleEdgePlayPause = () => {
-        this.clearPendingPlayPauseTap();
-        this.pendingPlayPauseTapTimer = setTimeout(() => {
-          this.pendingPlayPauseTapTimer = null;
-          this.edgeTapLastTime = 0;
-          this.edgeTapLastZone = null;
-          if (!this.skipNextTap && this.previewType === 'video') {
-            togglePlayPause();
-          }
-        }, DOUBLE_MS);
-      };
-
       const handleEdgeZoneTap = (zone, event) => {
         const now = Date.now();
-        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < DOUBLE_MS) {
+        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < 300) {
           applySeek(zone === 'left');
           if (event) {
             event.preventDefault();
@@ -2173,7 +2177,6 @@ export default {
         }
         this.edgeTapLastTime = now;
         this.edgeTapLastZone = zone;
-        scheduleEdgePlayPause();
         if (event) {
           event.preventDefault();
           event.stopPropagation();
@@ -2206,17 +2209,28 @@ export default {
           this.clearEdgeTapGestureState();
           return;
         }
-        const zone = zoneFromSurfaceX(t.clientX);
-        if (zone === 'center') {
+        if (isOverlaidButtonHit(t.clientX, t.clientY)) {
           handleCenterTap(event);
           this.ignoreClickUntil = Date.now() + 500;
           return;
         }
-        handleEdgeZoneTap(zone, event);
-        peekNavChromeForEdgeTap(t.clientX, zone);
+        const zone = zoneFromSurfaceX(t.clientX);
+        if (zone === 'left' || zone === 'right') {
+          handleEdgeZoneTap(zone, event);
+          peekNavChromeForEdgeTap(t.clientX, zone);
+          this.ignoreClickUntil = Date.now() + 500;
+          return;
+        }
+        this.clearEdgeTapGestureState();
         this.ignoreClickUntil = Date.now() + 500;
       };
-
+      let edgeClickToggleTimer = null;
+      const clearEdgeClickToggleTimer = () => {
+        if (edgeClickToggleTimer) {
+          clearTimeout(edgeClickToggleTimer);
+          edgeClickToggleTimer = null;
+        }
+      };
       const onClick = (event) => {
         if (Date.now() < this.ignoreClickUntil) {
           event.preventDefault();
@@ -2227,27 +2241,39 @@ export default {
           return;
         }
         if (this.skipNextTap) return;
+        this.clearEdgeTapGestureState();
         const zone = zoneFromSurfaceX(event.clientX);
-        if (zone === 'center') {
-          handleCenterTap(event);
-          return;
+        if (zone === 'left' || zone === 'right') {
+          if (event.detail >= 2) {
+            clearEdgeClickToggleTimer();
+          } else {
+            clearEdgeClickToggleTimer();
+            edgeClickToggleTimer = setTimeout(() => {
+              edgeClickToggleTimer = null;
+              if (this.previewType === 'video') {
+                togglePlayPause();
+              }
+            }, EDGE_CLICK_MS);
+          }
+          peekNavChromeForEdgeTap(event.clientX, zone);
+        } else if (this.previewType === 'video') {
+          togglePlayPause();
         }
-        handleEdgeZoneTap(zone, event);
-        peekNavChromeForEdgeTap(event.clientX, zone);
+
+        event.preventDefault();
+        event.stopPropagation();
       };
 
       const onDblClick = (event) => {
+        if (Date.now() < this.ignoreClickUntil) {
+          return;
+        }
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
         const zone = zoneFromSurfaceX(event.clientX);
         if (zone === 'left' || zone === 'right') {
-          this.clearEdgeTapGestureState();
-          if (Date.now() - this.edgeSeekAt < 400) {
-            event.preventDefault();
-            event.stopPropagation();
-            return;
-          }
+          clearEdgeClickToggleTimer();
           applySeek(zone === 'left');
           event.preventDefault();
           event.stopPropagation();
@@ -2262,6 +2288,7 @@ export default {
         surface.removeEventListener('touchend', onTouchEnd);
         surface.removeEventListener('click', onClick);
         surface.removeEventListener('dblclick', onDblClick);
+        clearEdgeClickToggleTimer();
         this.clearEdgeTapGestureState();
       };
     },
@@ -2841,6 +2868,7 @@ export default {
       }
     },
     handleMediaEnd() {
+      mutations.setPlaybackState(false);
       const queue = state.playbackQueue.queue;
       const currentIndex = state.playbackQueue.currentIndex;
       const loop = state.playbackQueue.loop;
@@ -3730,7 +3758,9 @@ export default {
 .lyric-line {
   padding: 0.2em 0;
   opacity: 0.5;
-  transition: opacity 0.2s, font-weight 0.2s, font-size 0.2s;
+  transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
+  transform: scale(1);
+  transform-origin: center;
   word-break: break-word;
   cursor: pointer;
   font-size: 1.15rem;
@@ -3745,6 +3775,27 @@ export default {
   font-weight: bold;
   color: var(--primaryColor);
   font-size: 1.35rem;
+  animation: lyric-line-in 0.3s ease;
+}
+
+@keyframes lyric-line-in {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.lyric-word {
+  display: inline-block;
+  opacity: 0.4;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.lyric-word.sung {
+  opacity: 1;
+}
+
+.lyric-word.current {
+  transform: scale(1.06);
 }
 
 .lyrics-mobile {
@@ -3766,6 +3817,17 @@ export default {
 
 .lyrics-mobile-scrollable .lyric-line:first-child {
   padding-top: 0;
+}
+
+.lyrics-meta-header {
+  padding: 0.2em 0 0.6em;
+  margin: 0;
+  opacity: 0.55;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  user-select: none;
 }
 
 /* Hide scrollbars in lyrics */
@@ -3916,142 +3978,6 @@ export default {
     height: min(100px, 30vh);
     margin: 0;
     flex-shrink: 0;
-  }
-}
-
-/*******************
-*** QUEUE BUTTON ***
-*******************/
-
-/* Queue detection zone for top-right corner */
-.floating-zone {
-  position: fixed;
-  top: 4em; /* below header */
-  width: 5em;
-  height: 5em;
-  pointer-events: auto;
-  z-index: 1000;
-  background: transparent;
-}
-
-.floating-zone--right {
-  right: 0;
-}
-
-.floating-zone--left {
-  left: 0;
-  height: 8.5em;
-}
-
-.queue-button {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  border: none;
-  border-radius: 50%;
-  background: var(--background);
-  color: var(--textPrimary);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  outline: none;
-  z-index: 9998; /* Make sure it's below prompts but above other content */
-}
-
-/* Desktop panel toggle button */
-.panel-toggle-fab {
-  top: 80px;
-  right: 20px;
-  position: fixed;
-  z-index: 9999;
-}
-
-/* Lyrics floating button */
-.lyrics-fab-left {
-  top: 80px;
-  left: 20px;
-  right: auto;
-}
-
-/* Mobile lyrics scroll-lock FAB – bottom-right above Plyr bar */
-.lyrics-lock-fab {
-  width: 36px;
-  height: 36px;
-  top: auto;
-  left: auto;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
-  right: calc(env(safe-area-inset-right, 0px) + 20px);
-}
-
-.lyrics-lock-fab .material-symbols,
-.lyrics-lock-fab .material-symbols-outlined {
-  font-size: 18px;
-}
-
-.queue-button.dark-mode {
-  background: var(--surfacePrimary);
-}
-
-.queue-button:hover {
-  background: var(--primaryColor);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(var(--primaryColor-rgb), 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
-  color: white;
-}
-
-.queue-button i.material-symbols,
-.queue-button i.material-symbols-outlined {
-  font-size: 24px;
-  transition: transform 0.2s ease;
-}
-
-.queue-button:hover i.material-symbols {
-  transform: scale(1.1);
-}
-
-.queue-button:hover i.material-symbols-outlined {
-  transform: scale(1.1);
-}
-
-.queue-count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--accentColor);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  text-shadow: 
-    0 0 3px rgba(0, 0, 0, 0.9),
-    0 0 5px rgba(0, 0, 0, 0.7),
-    0 0 8px rgba(0, 0, 0, 0.5),
-    0 0 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Smooth show animation for better UX */
-.queue-button:not(.hidden) {
-  animation: queue-button-show 0.4s ease-out;
-}
-
-@keyframes queue-button-show {
-  0% {
-    opacity: 0;
-    transform: translateY(-2px) scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(-2px) scale(1);
   }
 }
 

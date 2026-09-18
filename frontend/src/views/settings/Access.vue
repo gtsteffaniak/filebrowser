@@ -1,11 +1,13 @@
 <template>
-  <button
-    type="button"
-    class="button floating-action-button"
+  <FloatingActionButton
+    icon="add"
+    variant="primary"
+    position="bottom-right"
+    :edge-offset="{ bottom: '1rem', right: '1rem' }"
+    :auto-hide="false"
+    :label="$t('general.new')"
     @click="addAccess"
-  >
-   {{ $t("general.new") }}
-  </button>
+  />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("access.accessManagement") }}</h2>
@@ -19,7 +21,7 @@
       />
     </div>
   </div>
-  <div class="card-content full">
+  <div class="card-content full has-fab-bottom-right">
     <div class="settings-items">
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
@@ -80,6 +82,7 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { notify } from "@/notify";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
@@ -92,6 +95,7 @@ export default {
     SourceFilePermissions,
     ExpandDropdown,
     ActivityViewerButton,
+    FloatingActionButton,
   },
   data: () => ({
     rules: {},
@@ -342,13 +346,33 @@ export default {
 };
 </script>
 <style scoped>
-.form-flex-group {
-  margin-bottom: 1em;
+.card-title .form-flex-group {
+  width: 100%;
+  margin-bottom: 0;
 }
+
+.card-content.full {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .card-content.full :deep(.settings-group) {
+  width: 100%;
+  max-width: 100%;
   margin-bottom: 0.75rem;
   margin-top: 0.5em;
 }
+
+.card-content.full :deep(.settings-table-wrapper) {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 0.75rem;
+  align-self: stretch;
+}
+
 .loading-hint {
   opacity: 0.7;
 }

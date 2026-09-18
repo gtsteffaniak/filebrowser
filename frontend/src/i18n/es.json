@@ -43,6 +43,7 @@
     "requestTimedOut": "La solicitud ha superado el tiempo de espera. Comprueba la configuración de tu red o del proxy inverso."
   },
   "files": {
+    "emptyFile": "Archivo vacío",
     "lastModified": "Última modificación",
     "multipleSelectionEnabled": "Selección múltiple activada",
     "sortByLastModified": "Ordenar por fecha de modificación",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "Nombre de usuario y/o contraseña incorrectos",
     "failedLogin": "Error al iniciar sesión",
     "invalidCredentials": "Credenciales no válidas",
-    "passkeyLogin": "Usar clave de acceso"
+    "passkeyLogin": "Usar clave de acceso",
+    "recaptchaRequired": "Se requiere verificación de recaptcha"
   },
   "prompts": {
+    "noTemplate": "¡Tu plantilla está vacía!",
+    "newFileTemplate": "Plantilla para nuevos archivos",
+    "newFileTemplateMessage": "¡Añade nuevos nombres de archivo aquí, se usarán como plantilla para crear nuevos archivos en el menú contextual!",
+    "newFileTemplatePlaceholder": "Introduce un nombre de archivo con extensión",
     "deleteMessageSingle": "¿Estás seguro que quieres borrar este archivo?",
     "deleteTitle": "Borrar archivos",
     "displayName": "Nombre:",
@@ -207,7 +212,6 @@
     "selectPath": "Seleccionar ruta",
     "renameSuccess": "El cambio de nombre se ha realizado correctamente",
     "newFileSuccess": "¡Archivo creado con éxito!",
-    "moveFailed": "Error al mover",
     "operationFailed": "Operación fallida",
     "partialSuccess": "Algunas acciones fallaron: {succeeded} se completaron, y {failed} fallaron",
     "renameFailed": "Error al cambiar de nombre",
@@ -294,7 +298,12 @@
     "accountDefaults": "Configuración predeterminada de la cuenta",
     "disableUserSettings": "Desactivar la página de configuración del usuario",
     "userDefaultFieldLockedFromConfig": "Este valor por defecto se establece en el archivo de configuración y no se puede modificar aquí.",
-    "sourceAccessDefaultsHelp": "Permisos predeterminados de los archivos aplicados a las fuentes y a los nuevos usuarios. La opción «Aplicar» fija un valor para todos los usuarios que no sean administradores."
+    "sourceAccessDefaultsHelp": "Permisos predeterminados de los archivos aplicados a las fuentes y a los nuevos usuarios. La opción «Aplicar» fija un valor para todos los usuarios que no sean administradores.",
+    "editAsYaml": "Editar como YAML",
+    "userEditPreferences": "Preferencias del usuario",
+    "userEditTools": "Acceso a las herramientas",
+    "userEditToolsDescription": "Configurar a qué herramientas puede acceder este usuario",
+    "userEditSidebarLinks": "Enlaces de la barra lateral"
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",
@@ -315,10 +324,7 @@
     "linkUrl": "Enlace",
     "linkUrlPlaceholder": "Introduzca una ruta o URL (ej: /archivos/ruta o https://example.com)",
     "linkIcon": "Icono del acceso directo:",
-    "linksUpdatedSuccess": "¡Se actualizaron los accesos directos!",
-    "linksUpdateFailed": "Hubo un error al actualizar los accesos directos",
     "sourceNotAccessible": "No se pudo acceder a la fuente",
-    "noLinksYet": "Aún no configuraste ningún acceso directo, ¡Añade uno!",
     "customizeShareLinksDescription": "Aquí puedes personalizar los accesos directos del panel lateral para este recurso compartido, necesitas crear el recurso primero.",
     "editLink": "Editar acceso directo",
     "selectShare": "Seleccionar recurso compartido",
@@ -327,7 +333,6 @@
     "pickIcon": "Elije un icono",
     "pickIconDescription": "Aquí puedes explorar los iconos más populares de la biblioteca \"Material Icons\"",
     "linkIconPlaceholder": "Opcionalmente, puedes elegir un Material Icon que más te guste",
-    "switchMode": "Cambiar modo del panel lateral",
     "showIndexedUsageDescription": "Muestra la barra de uso a partir de los archivos indexados en la fuente.",
     "showDiskUsageDescription": "Muestra la barra de uso a partir del tamaño del disco/partición indicado por el sistema operativo. Es probable que este tamaño sea mayor e incluya archivos no indexados.",
     "usageTextDisplay": "¿Qué texto de uso debe mostrarse?",
@@ -335,7 +340,13 @@
     "usageTextDisk": "uso por disco/partición",
     "showIndexedUsage": "Mostrar uso indexado",
     "showDiskUsage": "Mostrar uso del disco/partición",
-    "dividerNamePlaceholder": "Separador visual (déjalo en blanco para mostrar una línea)"
+    "dividerNamePlaceholder": "Separador visual (déjalo en blanco para mostrar una línea)",
+    "sidebarLinkDefaults": "Valores predeterminados de los enlaces de la barra lateral",
+    "sidebarLinkDefaultsDescription": "Configura los enlaces predeterminados y obligatorios de la barra lateral para todos los usuarios.",
+    "sidebarLinkDefaultsHelp": "Estos son los enlaces predeterminados que se añadirán para todos los nuevos usuarios. Si se establece un enlace como obligatorio, se añadirá para todos los usuarios y los usuarios que no sean administradores no podrán eliminarlo.",
+    "sidebarLinkDefaultSourceHelp": "Solo se aplica cuando el usuario tiene acceso a esta fuente.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML no válido. Comprueba el formato e inténtalo de nuevo.",
+    "switchMode": "Alternar entre los enlaces y el árbol de navegación"
   },
   "share": {
     "notice": "Cuando se crea un recurso compartido, este quedará más expuesto al público y tendrá diferentes reglas de acceso. Si no está configurado de forma forma segura, cualquiera podrá acceder a él.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "Seleccionar imagen de banner",
     "selectFaviconImage": "Seleccionar imagen de favicon",
     "deleteFailed": "Error al borrar recurso compartido",
-    "readOnlySourceNotice": "Esta fuente es de sólo lectura. Los recursos compartidos de carga y los permisos que modifican archivos están desactivados."
+    "readOnlySourceNotice": "Esta fuente es de sólo lectura. Los recursos compartidos de carga y los permisos que modifican archivos están desactivados.",
+    "shareDefaults": "Configuración predeterminada para compartir",
+    "shareDefaultsDescription": "Configurar las opciones predeterminadas para los nuevos recursos compartidos y aplicar las políticas a los usuarios que no sean administradores."
   },
   "api": {
     "createdAt": "Creado en:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "Su contraseña es necesaria para generar un código autenticador."
   },
   "general": {
+    "import": "Importar",
+    "export": "Exportar",
     "name": "Nombre",
     "path": "Ruta:",
     "user": "Usuario",
@@ -509,6 +524,8 @@
     "verify": "Verificar{suffix}",
     "close": "Cerrar{suffix}",
     "copy": "Copiar{suffix}",
+    "paste": "Pegar",
+    "cut": "Cortar",
     "create": "Crear{suffix}",
     "delete": "Borrar{suffix}",
     "download": "Descargar{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "Ver y enumerar archivos",
     "source": "{prefix}Fuente{suffix}",
     "sources": "{prefix}Fuentes{suffix}",
-    "enforce": "Aplicar{suffix}"
+    "enforce": "Aplicar{suffix}",
+    "limit": "Límite{suffix}",
+    "remove": "Eliminar{suffix}",
+    "saved": "Guardado{suffix}",
+    "removed": "Eliminado{suffix}",
+    "back": "Atrás{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -629,7 +651,9 @@
     "defaultBehavior": "Regla por defecto {suffix}",
     "deletedCascade": "Reglas de acceso eliminadas",
     "cascadeDelete": "Eliminación en cascada",
-    "cascadeDeleteDescription": "Si eliminas una regla de acceso con esta opción, también la eliminará para todo el contenido (archivos y carpetas), lo cual nos permite eliminar por completo un usuario o grupo de todo el árbol de directorios"
+    "cascadeDeleteDescription": "Si eliminas una regla de acceso con esta opción, también la eliminará para todo el contenido (archivos y carpetas), lo cual nos permite eliminar por completo un usuario o grupo de todo el árbol de directorios",
+    "hasRules": "Normas de acceso configuradas",
+    "manageDescription": "Normas de libre acceso para esta ruta."
   },
   "fileLoading": {
     "title": "Subida y Descarga",
@@ -652,6 +676,8 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Mostrar botón de cerrar en el lado derecho de las ventanas",
+    "promptRightCloseButtonDescription": "Mostrar el botón de cerrar en el lado derecho de las ventanas en vez del lado izquierdo",
     "hideFileExt": "Ocultar ciertos archivos (por extensión)",
     "hideFileExtDescription": "Una lista de extensiones de archivo separadas por espacios. Las extensiones que agreges aquí se ocultarán de toda la interfaz (visualmente, como en la lista o en la navegación de árbol) — Los archivos siguen siendo accesibles.",
     "preferEditorForMarkdown": "Preferir editor para archivos Markdown",
@@ -663,8 +689,6 @@
     "autoplayMedia": "Reproducción automática de archivos multimedia",
     "autoplayMediaDescription": "Reproduce automaticamente los archivos multimedia al abrirlos",
     "sidebarOptions": "Opciones del panel lateral",
-    "editorQuickSave": "Botón de guardado rápido en el editor",
-    "editorQuickSaveDescription": "El editor de texto mostrará siempre el icono de guardar, ocultando cualquier otra acción",
     "previewOfficeDescription": "Mostrar miniaturas para los archivos de Office",
     "disableThumbnailPreviews": "Desactivar miniaturas para las siguientes extensiones:",
     "disableThumbnailPreviewsDescription": "Una lista (separada por espacios) de extensiones de archivo para desactivar la vista previa en las miniaturas (por ejemplo, '.txt .html').",
@@ -682,7 +706,6 @@
     "showQuickDownloadDescription": "Mostrar icono de descarga rápida en cada archivo",
     "disableUpdateNotifications": "Desactivar las notificaciones de actualización",
     "disableUpdateNotificationsDescription": "Desactivar el banner de notificación de actualización que aparece para los usuarios administradores en el panel lateral.",
-    "disableHideSidebar": "Mantener el panel lateral abierto al visualizar o editar archivos",
     "disableHideSidebarDescription": "Si está activado, el panel lateral no se ocultará automáticamente al visualizar o editar archivos.",
     "disableQuickToggles": "Desactivar ajustes rápidos",
     "disableQuickTogglesDescription": "Desactiva los ajustes rápidos que aparecen en el panel lateral. (cambiar tema, visibilidad del panel y modo de un solo click)",
@@ -729,15 +752,101 @@
     "defaultViewMode": "Modo de visualización predeterminado",
     "defaultViewModeDescription": "Modo de visualización inicial en navegadores o dispositivos nuevos. No anula las preferencias de visualización ya guardadas localmente.",
     "defaultGallerySize": "Tamaño predeterminado de las miniaturas",
-    "defaultGallerySizeDescription": "Escala inicial de las miniaturas de la galería o la lista (1–9) en navegadores o dispositivos nuevos. No anula los tamaños ya guardados localmente."
+    "defaultGallerySizeDescription": "Escala inicial de las miniaturas de la galería o la lista (1–9) en navegadores o dispositivos nuevos. No anula los tamaños ya guardados localmente.",
+    "disableHideSidebar": "Mostrar siempre la barra lateral",
+    "editorQuickSave": "Mostrar el botón de guardado rápido en el editor",
+    "editorQuickSaveDescription": "El editor de texto solo mostrará el icono de guardar, ocultando cualquier otra acción.",
+    "showAdvancedProfile": "Mostrar opciones avanzadas del perfil",
+    "showAdvancedProfileDescription": "Mostrar la configuración del perfil por categorías en la barra lateral, en lugar de la vista simplificada del perfil.",
+    "accountOptions": "Opciones de la cuenta"
   },
   "editor": {
-    "uninitialized": "No se pudo iniciar el editor",
-    "saveAbortedMessage": "No se ha podido guardar el archivo. El nombre del archivo \"{activeFile}\" no coincide con el que estas intentando guardar ({tryingToSave}).",
-    "fileSaved": "!Se guardo el archivo correctamente!",
-    "lines": "{count} líneas",
-    "words": "{count} palabras",
-    "chars": "{count} caracteres"
+    "stats": {
+      "lines": "{count} líneas",
+      "words": "{count} palabras",
+      "chars": "{count} caracteres"
+    },
+    "settings": {
+      "title": "Configuración del editor",
+      "keybinding": {
+        "label": "Atajos de teclado",
+        "description": "¡Establece tus atajos de teclado preferidos!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Desplazamiento más del limite",
+        "description": "Cuánto puede desplazarse el editor más allá del final del contenido",
+        "none": "Ninguno",
+        "half": "Mitad",
+        "full": "Completo"
+      },
+      "tabSize": {
+        "label": "Tamaño de tabulación",
+        "description": "Cuántos espacios debe insertar la tecla 'TAB' por defecto"
+      },
+      "showIndentGuides": "Mostrar guías de sangría",
+      "showIndentGuidesDescription": "Muestra guías de sangría, lo que te da una mejor orientación al editar código anidado",
+      "showGutter": "Mostrar margen",
+      "showGutterDescription": "El contenedor donde se encuentran los números de línea a la izquierda",
+      "fixedGutterWidth": "Ancho de margen fijo",
+      "fixedGutterWidthDescription": "Cuando está desactivado, aumenta el tamaño del margen gradualmente al desplazarse según el número de líneas del archivo",
+      "showLineNumbers": "Mostrar números de línea",
+      "showLineNumbersDescription": "Muestra números de línea en el margen izquierdo, no oculta el margen en sí",
+      "relativeLineNumbers": "Números de línea relativos",
+      "relativeLineNumbersDescription": "Muestra números de línea relativos a la posición actual del cursor",
+      "customScrollbar": "Barra de desplazamiento personalizada",
+      "customScrollbarDescription": "Reemplazar la barra de desplazamiento nativa del navegador por la integrada de Ace",
+      "wrapContent": "Ajustar líneas largas en el editor",
+      "wrapContentDescription": "Ajusta el contenido del editor para mantener siempre visibles las líneas muy largas",
+      "autocompletion": "Autocompletado",
+      "autocompletionDescription": "Habilita el autocompletado presionando manualmente las teclas 'ctrl + espacio'",
+      "liveAutocompletion": "Autocompletado automático",
+      "liveAutocompletionDescription": "Cuando lo activas, aparecerá un cuadro flotante automaticamente mientras escribes"
+    },
+    "uninitialized": "Error al inicializar el editor. Por favor, recargue.",
+    "saveAbortedMessage": "Operación de guardado cancelada. El archivo activo de la aplicación ({activeFile}) no coincide con el archivo que intenta guardar ({tryingToSave}).",
+    "splitView": "Vista dividida",
+    "exitSplitView": "Salir de la vista dividida",
+    "md": {
+      "clipboardActions": "Acciones del portapapeles",
+      "bold": "Negrita",
+      "italic": "Cursiva",
+      "strikethrough": "Tachado",
+      "heading": "Encabezado",
+      "quote": "Cita",
+      "inlineCode": "Código",
+      "codeBlock": "Bloque de código",
+      "bulletList": "Lista con viñetas",
+      "numberedList": "Lista numerada",
+      "taskList": "Lista de tareas",
+      "horizontalRule": "Línea horizontal",
+      "undo": "Deshacer",
+      "redo": "Rehacer",
+      "moreOptions": "Más opciones",
+      "inlineMath": "Matemáticas en línea",
+      "displayMath": "Matemáticas en bloque",
+      "highlight": "Resaltar",
+      "superscript": "Superíndice",
+      "subscript": "Subíndice",
+      "text": "Texto",
+      "cell": "Celda",
+      "column": "Columna",
+      "align": "Alinear",
+      "alignRight": "Alinear a la derecha",
+      "alignLeft": "Alinear a la izquierda",
+      "alignCenter": "Alinear al centro",
+      "justify": "Justificar",
+      "fontColor": "Color de fuente"
+    },
+    "json": {
+      "formatJSON": "Formato JSON",
+      "formatJSONSuccess": "El formato JSON se ha generado correctamente",
+      "invalidJSON": "JSON no válido: {message}"
+    }
   },
   "player": {
     "loop": "Bucle",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "Mira la la colección completa aqui"
     },
     "toolNotFound": "No se encontró la herramienta",
-    "backToTools": "Volver a Herramientas",
     "fileWatcher": {
       "name": "Visor en tiempo real",
       "description": "Visualiza el contenido de archivos en tiempo real",
@@ -914,7 +1022,11 @@
       "scopeAccess": "Actividad de acceso",
       "eventAccessCreate": "Acceder a «Crear»",
       "eventAccessDelete": "Acceder a «Eliminar»"
-    }
+    },
+    "toolAccessDefaults": "Configuración predeterminada del acceso a las herramientas",
+    "toolAccessDefaultsDescription": "Configura a qué herramientas pueden acceder los nuevos usuarios de forma predeterminada",
+    "toolAccessDefaultsHelp": "Activa las herramientas para los nuevos usuarios y, si lo deseas, restringe el acceso para que los usuarios que no sean administradores no puedan modificarlas.",
+    "accessDenied": "No tienes acceso a esta herramienta."
   },
   "messages": {
     "pathNotFound": "La ruta no se encuentra en el sistema de archivos",
@@ -1016,5 +1128,25 @@
     "days": "{prefix}Días{suffix}",
     "months": "{prefix}Meses{suffix}",
     "timeUnit": "Unidad de tiempo"
+  },
+  "quotas": {
+    "title": "Cuota de almacenamiento",
+    "openDescription": "Abre el cuadro de diálogo de cuota de almacenamiento de esta carpeta.",
+    "folderDescription": "Limitar el espacio de almacenamiento de esta carpeta.",
+    "shareLimit": "Limitar el almacenamiento en esta unidad compartida",
+    "shareLimitDescription": "Cuenta las subidas realizadas a través de este enlace. También se descuenta de la cuota de origen del propietario.",
+    "scopeLimit": "Límite de almacenamiento para esta fuente",
+    "scopeLimitDescription": "Límite de almacenamiento para la tarea de este usuario en esta fuente.",
+    "indexingDisabledMeterHint": "La indexación está desactivada en esta fuente. Solo está disponible el seguimiento del uso.",
+    "meterIndexHint": "Utiliza el tamaño total de los archivos indexados en esta carpeta. Incluye los cambios realizados fuera de FileBrowser cuando se actualiza el índice.",
+    "meterAccountedHint": "Solo cuenta las subidas, guardados y eliminaciones realizadas a través de FileBrowser.",
+    "meterIndexScope": "Tamaño indexado",
+    "meterAccounted": "Uso registrado",
+    "usageCounting": "Contar el uso por",
+    "usageSyncPending": "El uso aún se está sincronizando con el índice.",
+    "accountedFallback": "El tamaño indexado aún no está listo; se utilizará el uso registrado hasta que el índice esté disponible.",
+    "errors": {
+      "exceeded": "Se ha superado el límite de almacenamiento"
+    }
   }
 }

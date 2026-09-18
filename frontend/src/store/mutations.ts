@@ -1,7 +1,12 @@
 import { setActiveViewGrantScope } from "@/api/viewToken.js";
 import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api";
-import { getEnforcedUserDefaults } from "@/api/settings";
+import {
+  getEnforcedUserDefaults,
+  getShareDefaultsPolicy,
+  getSidebarLinkDefaultsPolicy,
+  getToolAccessDefaultsPolicy,
+} from "@/api/settings";
 import { detectLocale, setLocale } from "@/i18n";
 import { notify } from "@/notify";
 import { url } from "@/utils";
@@ -48,25 +53,52 @@ export const mutations = {
     emitStateChanged();
   },
   setEditorDirty: (value) => {
-    if (value === state.editorDirty) {
+    if (value === state.editor.dirty) {
       return;
     }
-    state.editorDirty = value;
+    state.editor.dirty = value;
     emitStateChanged();
   },
   setEditorSaveHandler: (handler) => {
-    state.editorSaveHandler = handler;
+    state.editor.saveHandler = handler;
+    emitStateChanged();
+  },
+  setEditorJsonFormatted: (value) => {
+    if (value === state.editor.jsonFormatted) return;
+    state.editor.jsonFormatted = value;
     emitStateChanged();
   },
   setEditorStats: (stats) => {
-    if (JSON.stringify(state.editorStats) === JSON.stringify(stats)) return;
-    state.editorStats = stats;
+    if (JSON.stringify(state.editor.stats) === JSON.stringify(stats)) return;
+    state.editor.stats = stats;
     emitStateChanged();
   },
   setEditorFontSize: (size) => {
-    if (state.editorFontSize === size) return;
-    state.editorFontSize = size;
+    if (state.editor.fontSize === size) return;
+    state.editor.fontSize = size;
     localStorage.setItem('editorFontSize', size);
+    emitStateChanged();
+  },
+  setMarkdownSplitView: (value) => {
+    if (value === state.editor.markdownSplitView) return;
+    state.editor.markdownSplitView = value;
+    sessionStorage.setItem("markdownSplitView", value ? "true" : "false");
+    emitStateChanged();
+  },
+  toggleSplitView: () => {
+    mutations.setMarkdownSplitView(!state.editor.markdownSplitView);
+  },
+  setEditorScrollRatio: (ratio, source) => {
+    state.editor.scrollRatio = ratio;
+    state.editor.scrollSource = source;
+    emitStateChanged();
+  },
+  // Called by both Editor and MarkdownViewer on mounts
+  resetEditorScrollRatio: (path) => {
+    if (state.editor.scrollPath === path) return;
+    state.editor.scrollPath = path;
+    state.editor.scrollRatio = 0;
+    state.editor.scrollSource = null;
     emitStateChanged();
   },
   setDeletedItem: (value) => {
@@ -161,6 +193,7 @@ export const mutations = {
             scanners: source.scanners || [],
             readOnly: source.readOnly || false,
             private: source.private || false,
+            indexingDisabled: source.indexingDisabled || false,
           };
           info = setObjectProperty(info, k, updated) as Record<string, SourceInfo>;
           if (updated.total > 0 || updated.used > 0 || updated.usedAlt > 0) hasAny = true;
@@ -226,6 +259,7 @@ export const mutations = {
         scanners: merge && prev.scanners ? [...prev.scanners] : [],
         readOnly: merge ? prev.readOnly : false,
         private: merge ? prev.private : false,
+        indexingDisabled: merge ? prev.indexingDisabled : false,
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace
@@ -266,7 +300,7 @@ export const mutations = {
     }
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
-    window.history.replaceState(null, "", `#${value}`);
+    window.history.replaceState(history.state, "", `#${value}`);
     const container = document.getElementById("main");
     const element = document.getElementById(value);
     if (container && element) {
@@ -329,7 +363,7 @@ export const mutations = {
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  closeTopPrompt: (id) => {
+  closeTopPrompt: (id?: number) => {
     if (id === undefined) {
       // close topmost prompt
       if (state.prompts.length === 0) return;
@@ -419,6 +453,9 @@ export const mutations = {
       if (!value) {
         state.user = value;
         state.enforcedUserDefaults = {};
+        state.sidebarLinkDefaultsPolicy = { items: [] };
+        state.shareDefaultsPolicy = { values: {}, enforced: {} };
+        state.toolAccessDefaultsPolicy = { items: [] };
         emitStateChanged();
         return;
       }
@@ -506,6 +543,76 @@ export const mutations = {
       state.enforcedUserDefaults = data.enforced || {};
     } catch {
       state.enforcedUserDefaults = {};
+    }
+    emitStateChanged();
+  },
+  syncSidebarLinkDefaultsPolicy: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      getters.isAdmin() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.sidebarLinkDefaultsPolicy = { items: [] };
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await getSidebarLinkDefaultsPolicy();
+      state.sidebarLinkDefaultsPolicy = {
+        items: Array.isArray(data?.items) ? data.items : [],
+        sources: Array.isArray(data?.sources) ? data.sources : [],
+      };
+    } catch {
+      state.sidebarLinkDefaultsPolicy = { items: [] };
+    }
+    emitStateChanged();
+  },
+  applyToolAccessDefaultsPolicy: (items) => {
+    state.toolAccessDefaultsPolicy = {
+      items: Array.isArray(items) ? items : [],
+    };
+    emitStateChanged();
+  },
+  syncToolAccessDefaultsPolicy: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      getters.isAdmin() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.toolAccessDefaultsPolicy = { items: [] };
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await getToolAccessDefaultsPolicy();
+      state.toolAccessDefaultsPolicy = {
+        items: Array.isArray(data?.items) ? data.items : [],
+      };
+    } catch {
+      state.toolAccessDefaultsPolicy = { items: [] };
+    }
+    emitStateChanged();
+  },
+  syncShareDefaultsPolicy: async () => {
+    if (
+      !getters.isLoggedIn() ||
+      getters.isShare() ||
+      state.user?.username === "anonymous"
+    ) {
+      state.shareDefaultsPolicy = { values: {}, enforced: {} };
+      emitStateChanged();
+      return;
+    }
+    try {
+      const data = await getShareDefaultsPolicy();
+      state.shareDefaultsPolicy = {
+        values: data?.values || {},
+        enforced: data?.enforced || {},
+      };
+    } catch {
+      state.shareDefaultsPolicy = { values: {}, enforced: {} };
     }
     emitStateChanged();
   },
@@ -647,6 +754,7 @@ export const mutations = {
         "fileLoading",
         "deleteAfterArchive",
         "deleteWithoutConfirming",
+        "promptRightCloseButton",
         "preferEditorForMarkdown",
         "disablePreviewExt",
         "disableViewingExt",
@@ -661,8 +769,10 @@ export const mutations = {
         "showSelectMultiple",
         "debugOffice",
         "disableUpdateNotifications",
+        "newFileTemplate",
         "viewMode",
         "gallerySize",
+        "showAdvancedProfile",
       ];
       const updatedProperties = Object.keys(value).filter(
         (key) =>
@@ -770,6 +880,13 @@ export const mutations = {
     state.req = next;
     emitStateChanged();
   },
+  setRequestContent: (content) => {
+    if (!state.req || state.req.content === content) {
+      return;
+    }
+    state.req = { ...state.req, content };
+    emitStateChanged();
+  },
   setRequestViewToken: (viewToken) => {
     if (!state.req || !viewToken || state.req.viewToken === viewToken) {
       return;
@@ -799,6 +916,16 @@ export const mutations = {
     state.user.sorting.by = field;
     state.user.sorting.asc = asc;
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
+    emitStateChanged();
+  },
+  updatePickerSortConfig: ({ field, asc }) => {
+    state.pickerSorting = { by: field, asc };
+    try {
+      localStorage.setItem("pickerSorting", JSON.stringify(state.pickerSorting));
+    } catch (error) {
+      // localStorage can throw in private mode; log but don't block sorting
+      console.error('Failed to save picker sorting:', error);
+    }
     emitStateChanged();
   },
   updateListingItems: () => {
@@ -992,18 +1119,13 @@ export const mutations = {
 
     // Auto-show navigation when it's first set up (timer tracked so new opens clear it)
     if (state.navigation.enabled && (state.navigation.previousLink || state.navigation.nextLink)) {
-      const isImage = getTypeInfo(currentItem.type).simpleType === 'image';
-      if (isImage) {
-        mutations.showNavigationChromePersistent();
-      } else {
-        mutations.setNavigationShow(true);
-        const hideTimer = setTimeout(() => {
-          if (!state.navigation.hoverNav) {
-            mutations.setNavigationShow(false);
-          }
-        }, 3000);
-        mutations.setNavigationTimeout(hideTimer);
-      }
+      mutations.setNavigationShow(true);
+      const hideTimer = setTimeout(() => {
+        if (!state.navigation.hoverNav) {
+          mutations.setNavigationShow(false);
+        }
+      }, 3000);
+      mutations.setNavigationTimeout(hideTimer);
     }
   },
   getPrefetchUrl: (item) => {
@@ -1064,10 +1186,6 @@ export const mutations = {
       return;
     }
     if (!side && !hasPrevious && !hasNext) {
-      return;
-    }
-    if (getters.previewType() === 'image') {
-      mutations.showNavigationChromePersistent();
       return;
     }
     mutations.setNavigationShow(true);
@@ -1155,7 +1273,9 @@ export const mutations = {
   setPlaybackQueue: (playback) => {
     state.playbackQueue.queue = playback.queue || [];
     state.playbackQueue.currentIndex = playback.currentIndex ?? -1;
-    state.playbackQueue.mode = playback.mode || 'single';
+    state.playbackQueue.mode = playback.mode === 'sequential' || playback.mode === 'shuffle' || playback.mode === 'single'
+      ? playback.mode
+      : 'single';
     state.playbackQueue.loop = playback.loop || 'off';
     try {
       sessionStorage.setItem('playbackQueue', JSON.stringify({

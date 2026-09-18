@@ -44,6 +44,18 @@ func TestResolveScopeEventTypes(t *testing.T) {
 			t.Fatalf("access default missing %q in %v", et, got)
 		}
 	}
+	got, err = ResolveScopeEventTypes("quotas", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != len(QuotaEventTypes) {
+		t.Fatalf("quotas default: got %d types, want %d", len(got), len(QuotaEventTypes))
+	}
+	for _, et := range QuotaEventTypes {
+		if !containsEventType(got, et) {
+			t.Fatalf("quotas default missing %q in %v", et, got)
+		}
+	}
 }
 
 func containsEventType(list []EventType, target EventType) bool {

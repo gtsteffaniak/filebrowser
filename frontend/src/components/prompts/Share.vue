@@ -114,209 +114,46 @@
         </settings-table>
       </div>
       <div v-else>
-        <div v-if="!showMoreExpanded">
-          <p>
-            {{ $t("files.duration") }}
-            <HelpTooltipIcon :text="$t('share.shareDurationDescription')" />
-          </p>
-          <div class="form-flex-group">
-            <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
-              @keyup.enter="submit" v-model.trim="time" />
-            <ExpandDropdown
-              v-model="unit"
-              class="flat-left form-compact form-dropdown"
-              :options="timeUnitOptions"
-              :aria-label="timeUnitLabel()"
-            />
-          </div>
-          <p>
-            {{ $t("prompts.optionalPassword") }}
-            <HelpTooltipIcon :text="$t('share.passwordDescription')" />
-          </p>
-          <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
-            <button
-              type="button"
-              class="button button--flat button--blue"
-              @click="isChangingPassword = true" style="width: 100%;"
-            >
-              <i class="material-symbols">lock_reset</i>
-              {{ $t("general.change") }}
-            </button>
-          </div>
-          <input v-else class="input" type="password" autocomplete="new-password" v-model.trim="password" />
-          <p>
-            {{ $t("share.shareType") }}
-            <HelpTooltipIcon :text="$t('share.shareTypeDescription')" />
-          </p>
+        <p>
+          {{ $t("files.duration") }}
+          <HelpTooltipIcon :text="$t('share.shareDurationDescription')" />
+        </p>
+        <div class="form-flex-group">
+          <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0"
+            @keyup.enter="submit" v-model.trim="time" />
           <ExpandDropdown
-            v-model="shareType"
-            :options="shareTypeOptions"
-            :aria-label="$t('share.shareType')"
+            v-model="unit"
+            class="flat-left form-compact form-dropdown"
+            :options="timeUnitOptions"
+            :aria-label="timeUnitLabel()"
           />
+        </div>
+        <p>
+          {{ $t("prompts.optionalPassword") }}
+          <HelpTooltipIcon :text="$t('share.passwordDescription')" />
+        </p>
+        <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
           <button
             type="button"
-            @click="openSidebarLinksCustomization"
-            class="button button--flat customize-sidebar-links-button"
+            class="button button--flat button--blue"
+            @click="isChangingPassword = true" style="width: 100%;"
           >
-            <i class="material-symbols">link</i>
-            {{ $t('share.customizeSidebarLinksButton') }}
+            <i class="material-symbols">lock_reset</i>
+            {{ $t("general.change") }}
           </button>
-          <div class="settings-items" style="margin-top: 0.5em;">
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify"
-              :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')"
-              aria-label="allow editing files toggle" :disabled="sourceReadOnly" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate"
-              :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')"
-              aria-label="allow creating and uploading files and folders toggle" :disabled="sourceReadOnly" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete"
-              :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')"
-              aria-label="allow deleting files toggle" :disabled="sourceReadOnly" />
-          </div>
         </div>
-        <SettingsItem :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')" :collapsable="true"
-          :start-collapsed="!showMoreExpanded" @toggle="showMoreExpanded = $event">
-          <div class="settings-items">
-            <p>
-              {{ shareThemeLabel() }}
-              <HelpTooltipIcon :text="$t('share.shareThemeDescription')" />
-            </p>
-            <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-              <ExpandDropdown
-                v-model="shareTheme"
-                :options="shareThemeOptions"
-                :aria-label="shareThemeLabel()"
-              />
-            </div>
-            <div v-if="shareType === 'normal'">
-              <p>
-                {{ $t("share.defaultViewMode") }}
-                <HelpTooltipIcon :text="$t('share.defaultViewModeDescription')" />
-              </p>
-              <ExpandDropdown
-                v-model="viewMode"
-                :options="viewModeOptions"
-                :aria-label="$t('share.defaultViewMode')"
-              />
-            </div>
-            <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements"
-              :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')"
-              :disabled="sourceReadOnly" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload"
-              :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')"
-              aria-label="disable downloading files toggle" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer"
-              :name="$t('share.disableFileViewer')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="quickDownload"
-              :name="$t('profileSettings.showQuickDownload')"
-              :description="$t('profileSettings.showQuickDownloadDescription')" />
-            <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')"
-              :description="$t('share.disableAnonymousDescription')" />
-            <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')"
-              :description="$t('share.enableAllowedUsernamesDescription')" />
-
-            <div v-if="enableAllowedUsernames" class="item">
-              <input class="input" type="text" v-model.trim="allowedUsernames"
-                :placeholder="$t('share.allowedUsernamesPlaceholder')" />
-            </div>
-            <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice"
-              :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')"
-              :disabled="sourceReadOnly" />
-            <p>
-              {{ $t("share.enforceDarkLightMode") }}
-              <HelpTooltipIcon :text="$t('share.enforceDarkLightModeDescription')" />
-            </p>
-            <ExpandDropdown
-              v-model="enforceDarkLightMode"
-              :options="enforceDarkLightModeOptions"
-              :aria-label="$t('share.enforceDarkLightMode')"
-            />
-            <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')"
-              :description="$t('share.keepAfterExpirationDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails"
-              :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="showHidden"
-              :name="$t('profileSettings.showHiddenFiles')"
-              :description="$t('profileSettings.showHiddenFilesDescription')" />
-            <div>
-              <p>
-                {{ $t("profileSettings.hideFileExt") }}
-                <HelpTooltipIcon :text="$t('profileSettings.hideFileExtDescription')" />
-              </p>
-            <input class="input"
-              :class="{ 'form-invalid': !validateExtensions(hideFileExt) }"
-              type="text"
-              :placeholder="$t('profileSettings.disableFileExtensions')"
-              v-model.trim="hideFileExt" />
-            </div>
-            <ToggleSwitch v-if="shareType !== 'upload'" class="item" v-model="disableNavButtons"
-              :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
-            <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
-              :description="$t('share.disableShareCardDescription')" />
-            <ToggleSwitch class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')"
-              :description="$t('share.disableSidebarDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit"
-              :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles"
-              :name="$t('share.extractEmbeddedSubtitles')"
-              :description="$t('share.extractEmbeddedSubtitlesDescription')" />
-            <ToggleSwitch class="item" v-model="disableLoginOption" :name="$t('share.disableLoginOption')"
-              :description="$t('share.disableLoginOptionDescription')" />
-          </div>
-
-          <div v-if="shareType === 'normal'">
-            <p>
-              {{ $t("prompts.downloadsLimit") }}
-              <HelpTooltipIcon :text="$t('share.downloadsLimitDescription')" />
-            </p>
-            <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-            <p>
-              {{ $t("prompts.maxBandwidth") }}
-              <HelpTooltipIcon :text="$t('share.maxBandwidthDescription')" />
-            </p>
-            <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-          </div>
-
-
-          <p>
-            {{ $t("prompts.shareThemeColor") }}
-            <HelpTooltipIcon :text="$t('share.shareThemeColorDescription')" />
-          </p>
-          <input class="input" type="text" v-model.trim="themeColor" />
-
-          <p>
-            {{ shareTitleLabel() }}
-            <HelpTooltipIcon :text="$t('share.shareTitleDescription')" />
-          </p>
-          <input class="input" type="text" v-model.trim="title" />
-
-          <p>
-            {{ $t("prompts.shareDescription") }}
-            <HelpTooltipIcon :text="$t('share.shareDescriptionHelp')" />
-          </p>
-          <textarea class="input" v-model.trim="description"></textarea>
-
-          <p>
-            {{ $t("prompts.shareBanner") }}
-            <HelpTooltipIcon :text="$t('share.shareBannerDescription')" />
-          </p>
-          <div class="file-picker-input-group">
-            <input class="input file-picker-input" type="text" v-model.trim="banner" />
-            <div class="file-picker-button clickable" @click="openBannerPicker" :title="$t('share.browseFiles')">
-              <i class="material-symbols">folder_open</i>
-            </div>
-          </div>
-
-          <p>
-            {{ $t("prompts.shareFavicon") }}
-            <HelpTooltipIcon :text="$t('share.shareFaviconDescription')" />
-          </p>
-          <div class="file-picker-input-group">
-            <input class="input file-picker-input" type="text" v-model.trim="favicon" />
-            <div class="file-picker-button clickable" @click="openFaviconPicker" :title="$t('share.browseFiles')">
-              <i class="material-symbols">folder_open</i>
-            </div>
-          </div>
-        </SettingsItem>
+        <input v-else class="input" type="password" autocomplete="new-password" v-model.trim="password" />
+        <ShareOptionsForm
+          v-model="shareForm"
+          :enforced="shareEnforced"
+          :read-only-source="sourceReadOnly"
+          :show-quota-usage="showShareQuotaUsage"
+          :quota-used-bytes="quotaUsedBytes"
+          :quota-reserved-bytes="quotaReservedBytes"
+          @customize-sidebar-links="openSidebarLinksCustomization"
+          @pick-banner="openBannerPicker"
+          @pick-favicon="openFaviconPicker"
+        />
       </div>
     </div>
   </div>
@@ -352,30 +189,36 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
-import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import SettingsItem from "@/components/settings/SettingsItem.vue";
 import SettingsTable from "@/components/settings/Table.vue";
-import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import ShareOptionsForm from "@/components/share/ShareOptionsForm.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import FileList from "../files/FileList.vue";
-import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
+import {
+  bytesFromCustomAmount,
+  customAmountFromBytes,
+} from "@/utils/quotaUnits";
+import { applyShareDefaultsToForm } from "@/utils/shareDefaultsForm";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 
 export default {
   name: "share",
   components: {
     HelpTooltipIcon,
-    ToggleSwitch,
-    SettingsItem,
     SettingsTable,
     FileList,
     ExpandDropdown,
     ActivityViewerButton,
+    ShareOptionsForm,
     //ViewMode,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     editing: {
       type: Boolean,
       default: false,
@@ -435,6 +278,11 @@ export default {
       extractEmbeddedSubtitles: false,
       disableLoginOption: false,
       sidebarLinks: [],
+      quotaEnabled: false,
+      quotaCustomAmount: 10,
+      quotaCustomUnit: "gb",
+      quotaUsedBytes: 0,
+      quotaReservedBytes: 0,
       /** @type {Share | null} */
       editingLink: null,
       isEditingPath: false,
@@ -446,7 +294,6 @@ export default {
       /** Set while a pathPicker for banner/favicon is open; cleared on select/cancel. */
       pendingBannerFaviconContextId: null,
       filePickerField: null, // 'banner' or 'favicon'
-      showMoreExpanded: false,
       /** True while fetching existing shares for the path (create flow); table uses its placeholder spinner. */
       linksLoading: true,
       //viewMode: "normal",
@@ -458,8 +305,95 @@ export default {
     }
   },
   computed: {
-    createAllowed() {
-      return this.allowCreate;
+    quotaLimitBytes() {
+      if (!this.quotaEnabled) return 0;
+      return bytesFromCustomAmount(this.quotaCustomAmount, this.quotaCustomUnit);
+    },
+    shareEnforced() {
+      return state.shareDefaultsPolicy?.enforced || {};
+    },
+    showShareQuotaUsage() {
+      return (this.isEditMode || !!this.editingLink) && this.quotaLimitBytes > 0;
+    },
+    shareForm: {
+      get() {
+        return {
+          shareType: this.shareType,
+          allowModify: this.allowModify,
+          allowCreate: this.allowCreate,
+          allowDelete: this.allowDelete,
+          allowReplacements: this.allowReplacements,
+          shareTheme: this.shareTheme,
+          viewMode: this.viewMode,
+          disableDownload: this.disableDownload,
+          disableFileViewer: this.disableFileViewer,
+          quickDownload: this.quickDownload,
+          disableAnonymous: this.disableAnonymous,
+          enableAllowedUsernames: this.enableAllowedUsernames,
+          allowedUsernames: this.allowedUsernames,
+          enableOnlyOffice: this.enableOnlyOffice,
+          enforceDarkLightMode: this.enforceDarkLightMode,
+          keepAfterExpiration: this.keepAfterExpiration,
+          disableThumbnails: this.disableThumbnails,
+          showHidden: this.showHidden,
+          hideFileExt: this.hideFileExt,
+          hideNavButtons: this.disableNavButtons,
+          disableShareCard: this.disableShareCard,
+          disableSidebar: this.disableSidebar,
+          perUserDownloadLimit: this.perUserDownloadLimit,
+          extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
+          disableLoginOption: this.disableLoginOption,
+          downloadsLimit: this.downloadsLimit,
+          maxBandwidth: this.maxBandwidth,
+          quotaEnabled: this.quotaEnabled,
+          quotaCustomAmount: this.quotaCustomAmount,
+          quotaCustomUnit: this.quotaCustomUnit,
+          themeColor: this.themeColor,
+          title: this.title,
+          description: this.description,
+          banner: this.banner,
+          favicon: this.favicon,
+          sidebarLinks: this.sidebarLinks,
+        };
+      },
+      set(form) {
+        this.shareType = form.shareType;
+        this.allowModify = form.allowModify;
+        this.allowCreate = form.allowCreate;
+        this.allowDelete = form.allowDelete;
+        this.allowReplacements = form.allowReplacements;
+        this.shareTheme = form.shareTheme;
+        this.viewMode = form.viewMode;
+        this.disableDownload = form.disableDownload;
+        this.disableFileViewer = form.disableFileViewer;
+        this.quickDownload = form.quickDownload;
+        this.disableAnonymous = form.disableAnonymous;
+        this.enableAllowedUsernames = form.enableAllowedUsernames;
+        this.allowedUsernames = form.allowedUsernames;
+        this.enableOnlyOffice = form.enableOnlyOffice;
+        this.enforceDarkLightMode = form.enforceDarkLightMode;
+        this.keepAfterExpiration = form.keepAfterExpiration;
+        this.disableThumbnails = form.disableThumbnails;
+        this.showHidden = form.showHidden;
+        this.hideFileExt = form.hideFileExt;
+        this.disableNavButtons = form.hideNavButtons;
+        this.disableShareCard = form.disableShareCard;
+        this.disableSidebar = form.disableSidebar;
+        this.perUserDownloadLimit = form.perUserDownloadLimit;
+        this.extractEmbeddedSubtitles = form.extractEmbeddedSubtitles;
+        this.disableLoginOption = form.disableLoginOption;
+        this.downloadsLimit = form.downloadsLimit;
+        this.maxBandwidth = form.maxBandwidth;
+        this.quotaEnabled = form.quotaEnabled;
+        this.quotaCustomAmount = form.quotaCustomAmount;
+        this.quotaCustomUnit = form.quotaCustomUnit;
+        this.themeColor = form.themeColor;
+        this.title = form.title;
+        this.description = form.description;
+        this.banner = form.banner;
+        this.favicon = form.favicon;
+        this.sidebarLinks = form.sidebarLinks;
+      },
     },
     displayPath() {
       // When editing, use the link's path; otherwise use the item's path
@@ -485,49 +419,11 @@ export default {
       const info = state.sources.info?.[this.displaySource];
       return info?.readOnly === true;
     },
-    onlyOfficeAvailable() {
-      return globalVars.onlyOfficeUrl !== "";
-    },
-    availableThemes() {
-      return globalVars.userSelectableThemes || {};
-    },
     timeUnitOptions() {
       return [
         { value: "minutes", label: this.$t("time.minutes") },
         { value: "hours", label: this.$t("time.hours") },
         { value: "days", label: this.$t("time.days") },
-      ];
-    },
-    shareTypeOptions() {
-      return [
-        { value: "normal", label: this.$t("share.normalShare") },
-        {
-          value: "upload",
-          label: this.$t("share.uploadShare"),
-          disabled: this.sourceReadOnly,
-        },
-      ];
-    },
-    shareThemeOptions() {
-      return Object.entries(this.availableThemes).map(([key, theme]) => ({
-        value: key,
-        label: String(key) === "default"
-          ? this.$t("profileSettings.defaultThemeDescription")
-          : `${key} - ${theme.description}`,
-      }));
-    },
-    viewModeOptions() {
-      return [
-        { value: "normal", label: this.$t("buttons.normalView") },
-        { value: "list", label: this.$t("buttons.listView") },
-        { value: "gallery", label: this.$t("buttons.galleryView") },
-      ];
-    },
-    enforceDarkLightModeOptions() {
-      return [
-        { value: "default", label: this.$t("share.default") },
-        { value: "dark", label: this.$t("share.dark") },
-        { value: "light", label: this.$t("share.light") },
       ];
     },
     req() {
@@ -663,6 +559,7 @@ export default {
           this.shareType = this.link.shareType || "normal";
           this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
           this.disableLoginOption = this.link.disableLoginOption || false;
+          this.applyQuotaFromLink(this.link);
           this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
           //this.viewMode = this.link.viewMode || "normal";
           if (this.sourceReadOnly) {
@@ -710,14 +607,26 @@ export default {
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);
   },
   methods: {
+    applyQuotaFromLink(link) {
+      const limit = link?.quotaLimitBytes || 0;
+      this.quotaEnabled = limit > 0;
+      this.quotaUsedBytes = link?.quotaUsedBytes || 0;
+      this.quotaReservedBytes = link?.quotaReservedBytes || 0;
+      if (limit > 0) {
+        const { amount, unit } = customAmountFromBytes(limit);
+        this.quotaCustomAmount = amount;
+        this.quotaCustomUnit = unit;
+      }
+    },
+    resetQuotaForm() {
+      this.quotaEnabled = false;
+      this.quotaCustomAmount = 1;
+      this.quotaCustomUnit = "gb";
+      this.quotaUsedBytes = 0;
+      this.quotaReservedBytes = 0;
+    },
     shareManagementLabel() {
       return this.$t("general.shareManagement");
-    },
-    shareThemeLabel() {
-      return this.$t("general.shareTheme");
-    },
-    shareTitleLabel() {
-      return this.$t("general.shareTitle");
     },
     timeUnitLabel() {
       return this.$t("time.timeUnit");
@@ -765,6 +674,7 @@ export default {
           allowReplacements: this.allowReplacements,
           maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth, 10) : 0,
           downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit, 10) : 0,
+          quotaLimitBytes: this.quotaLimitBytes,
           perUserDownloadLimit: this.perUserDownloadLimit,
           shareTheme: this.shareTheme,
           disableFileViewer: this.disableFileViewer,
@@ -898,6 +808,7 @@ export default {
       this.shareType = link.shareType || "normal";
       this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
       this.disableLoginOption = link.disableLoginOption || false;
+      this.applyQuotaFromLink(link);
       this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
       // Store the link being edited
       this.editingLink = link;
@@ -951,37 +862,79 @@ export default {
         // Clear editing link when switching to create new share
         this.editingLink = null;
         this.isChangingPassword = false;
+        this.resetQuotaForm();
         // Set default sidebar links for new shares
         this.setDefaultSidebarLinks();
         this.populateDefaults();
       }
     },
     setDefaultSidebarLinks() {
-      // Only set defaults if creating a new share (not editing) and no links are configured
-      if (!this.isEditMode && !this.editingLink && this.sidebarLinks.length === 0) {
-        this.sidebarLinks = [
-          {
-            name: "Share QR Code and Info",
-            category: "shareInfo",
-            target: "#",
-            icon: "qr_code"
-          }
-        ];
-
-        // Only add Download link for normal shares, not upload shares
-        if (this.shareType !== 'upload') {
-          this.sidebarLinks.push({
-            name: "Download",
-            category: "download",
-            target: "#",
-            icon: "download"
-          });
-        }
-      }
+      this.applyShareDefaultsFromPolicy();
     },
     populateDefaults() {
-      this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
-      this.description = this.$t("share.descriptionDefault");
+      this.applyShareDefaultsFromPolicy();
+    },
+    applyShareDefaultsFromPolicy() {
+      if (this.isEditMode || this.editingLink) {
+        return;
+      }
+      const values = state.shareDefaultsPolicy?.values;
+      const titleDefault = this.$t("share.titleDefault", { title: this.item.name || "share" });
+      const descriptionDefault = this.$t("share.descriptionDefault");
+      if (!values || Object.keys(values).length === 0) {
+        this.title = titleDefault;
+        this.description = descriptionDefault;
+        if (this.sidebarLinks.length === 0) {
+          const form = {};
+          applyShareDefaultsToForm(form, {}, { titleDefault, descriptionDefault });
+          this.sidebarLinks = form.sidebarLinks;
+        }
+        return;
+      }
+      const form = {};
+      applyShareDefaultsToForm(form, values, { titleDefault, descriptionDefault });
+      this.shareTheme = form.shareTheme;
+      this.disableAnonymous = form.disableAnonymous;
+      this.disableDownload = form.disableDownload;
+      this.allowModify = form.allowModify;
+      this.allowDelete = form.allowDelete;
+      this.allowCreate = form.allowCreate;
+      this.allowReplacements = form.allowReplacements;
+      this.downloadsLimit = form.downloadsLimit;
+      this.perUserDownloadLimit = form.perUserDownloadLimit;
+      this.maxBandwidth = form.maxBandwidth;
+      this.shareType = form.shareType;
+      this.disableFileViewer = form.disableFileViewer;
+      this.disableThumbnails = form.disableThumbnails;
+      this.showHidden = form.showHidden;
+      this.hideFileExt = form.hideFileExt;
+      this.enableAllowedUsernames = form.enableAllowedUsernames;
+      this.allowedUsernames = form.allowedUsernames;
+      this.keepAfterExpiration = form.keepAfterExpiration;
+      this.themeColor = form.themeColor;
+      this.banner = form.banner;
+      this.favicon = form.favicon;
+      this.quickDownload = form.quickDownload;
+      this.disableNavButtons = form.hideNavButtons;
+      this.disableShareCard = form.disableShareCard;
+      this.disableSidebar = form.disableSidebar;
+      this.enforceDarkLightMode = form.enforceDarkLightMode;
+      this.viewMode = form.viewMode;
+      this.enableOnlyOffice = form.enableOnlyOffice;
+      this.extractEmbeddedSubtitles = form.extractEmbeddedSubtitles;
+      this.disableLoginOption = form.disableLoginOption;
+      this.quotaEnabled = form.quotaEnabled;
+      this.quotaCustomAmount = form.quotaCustomAmount;
+      this.quotaCustomUnit = form.quotaCustomUnit;
+      this.title = form.title;
+      this.description = form.description;
+      this.sidebarLinks = form.sidebarLinks;
+      const policyDescription = form.description;
+      if (policyDescription) {
+        this.$nextTick(() => {
+          this.description = policyDescription;
+        });
+      }
     },
     /**
      * @param {{path: string, source: string}} pathOrData
@@ -1201,6 +1154,14 @@ export default {
   font-size: 0.9em;
   color: var(--textSecondary, #666);
   margin-top: 0.25em;
+}
+
+.quota-share-fields {
+  margin: 0.5em 0 1em 0;
+}
+
+.quota-custom-row {
+  margin-top: 0.5rem;
 }
 
 select.input option:disabled {

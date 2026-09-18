@@ -67,6 +67,9 @@ server:
       retentionDays: 30                   # purge activity rows older than this many days (default 30)
       flushIntervalSeconds: 10            # buffer flush interval in seconds (default 10)
       maxBufferSize: 10000                # max in-memory buffer before immediate flush (default 10000)
+    quotas:                               # quota counter batch flush configuration
+      flushIntervalSeconds: 10            # default 10
+      flushMaxBuffers: 500                # default 500
 auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:
@@ -82,12 +85,14 @@ auth:
     noauth: false                         # if set to true, overrides all other auth methods and disables authentication
     password:                             #  validate:omitempty
       enabled: true
+      adminUsername: "admin"              # secret: admin username auto-assigned. If not set, the default is "admin".
+      adminPassword: "admin"              # secret: password for admin auto-assigned admin account. If set, reset on startup.
       minLength: 5                        # minimum pasword length required, default is 5.  validate:omitempty
       signup: false                       # allow signups on login page if enabled -- not secure.  validate:omitempty
-      recaptcha:                          # recaptcha config, only used if signup is enabled  validate:omitempty
-        host: ""                          #  validate:required
-        key: ""                           #  validate:required
-        secret: ""                        #  validate:required
+      recaptcha:                          # recaptcha config. If configured will show up the checkbox verification in the login page  validate:omitempty
+        host: ""                          # google recaptcha host, for example: https://www.google.com/recaptcha/api.js  validate:required
+        key: ""                           # v2 site key  validate:required
+        secret: ""                        # v2 secret key  validate:required
       enforcedOtp: false                  # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
       enabled: false                      # whether to enable this authentication method.
@@ -132,8 +137,6 @@ auth:
       rpOrigins:                          # allowed origins; if empty, auto-derived from base URL
       loginButtonText: ""                 # custom text for the passkey login button
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
-  adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".
-  adminPassword: "admin"                  # secret: the password of the admin user. If not set, the default is "admin".
   totpSecret: ""                          # secret: secret used to encrypt TOTP secrets
 frontend:
   name: "FileBrowser Quantum"             # display name, PWA installation name is capped at 30 characters
@@ -175,6 +178,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     showTools: true                       # show sidebar links with category "tool"; default is true
   listing:
     deleteWithoutConfirming: false        # delete files without confirmation
+    promptRightCloseButton: false         # show the prompts close button on the right
     dateFormat: false                     # when false, the date is relative, when true, the date is an exact timestamp
     showHidden: false                     # show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
     quickDownload: false                  # show icon to download in one click
@@ -185,6 +189,8 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     deleteAfterArchive: true              # delete source files after successful creation/extraction of archives
     viewMode: "normal"                    # view mode to use: eg. normal, list, grid, or compact
     gallerySize: 3                        # 0-9 - the size of the gallery thumbnails
+    newFileTemplate:                      # list of custom filenames that will be used as template for new files
+      - ""
   preview:
     image: true                           # show thumbnails for image files
     video: true                           # show thumbnails for video files
@@ -225,6 +231,41 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     disableSettings: false                # disable the user from viewing the settings page
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
+    showAdvancedProfile: false            # show advanced profile settings in the user profile page
+shareDefaults:                            # optional defaults for new shares; managed in the UI
+  shareTheme: ""
+  disableAnonymous: false
+  disableThumbnails: false
+  keepAfterExpiration: false
+  themeColor: ""
+  title: ""
+  description: ""
+  favicon: ""
+  quickDownload: false
+  hideNavButtons: false
+  disableSidebar: false
+  disableShareCard: false
+  enforceDarkLightMode: ""
+  viewMode: ""
+  enableOnlyOffice: false
+  shareType: ""
+  allowDelete: false
+  allowCreate: false
+  allowModify: false
+  disableFileViewer: false
+  disableDownload: false
+  allowReplacements: false
+  sidebarLinks:
+  showHidden: false
+  disableLoginOption: false
+  maxBandwidth: 0
+  allowedUsernames:
+  perUserDownloadLimit: false
+  extractEmbeddedSubtitles: false
+  downloadsLimit: 0
+  quotaLimitBytes: 0
+  hideFileExt: ""
+  banner: ""
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

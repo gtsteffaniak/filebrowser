@@ -43,6 +43,7 @@
     "requestTimedOut": "Wystąpił limit czasu żądania. Sprawdź ustawienia sieci lub serwera proxy odwrotnego."
   },
   "files": {
+    "emptyFile": "Pusty plik",
     "lastModified": "Ostatnio modyfikowane",
     "multipleSelectionEnabled": "Zaznaczenie wielu włączone",
     "sortByLastModified": "Sortuj wg. daty modyfikacji",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "Błędne dane logowania",
     "failedLogin": "Logowanie nie powiodło się",
     "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające",
-    "passkeyLogin": "Użyj klucza dostępu"
+    "passkeyLogin": "Użyj klucza dostępu",
+    "recaptchaRequired": "Wymagane jest sprawdzenie Recaptcha"
   },
   "prompts": {
+    "noTemplate": "Twój szablon jest pusty!",
+    "newFileTemplate": "Szablon nowego pliku",
+    "newFileTemplateMessage": "Dodaj tutaj nowe nazwy plików, będą one używane jako szablon do tworzenia nowych plików w menu kontekstowym!",
+    "newFileTemplatePlaceholder": "Wprowadź nazwę pliku z rozszerzeniem",
     "deleteMessageSingle": "Czy jesteś pewien, że chcesz usunąć ten plik/folder?",
     "deleteTitle": "Usuń pliki",
     "displayName": "Wyświetlana Nazwa:",
@@ -207,7 +212,6 @@
     "selectPath": "Wybierz ścieżkę",
     "renameSuccess": "Nazwa elementu została zmieniona pomyślnie!",
     "newFileSuccess": "Plik został utworzony pomyślnie!",
-    "moveFailed": "Przenoszenie nie powiodło się",
     "operationFailed": "Operacja nie powiodła się",
     "partialSuccess": "Niektóre operacje nie powiodły się: {succeeded} powiodło się, {failed} nie powiodło się",
     "renameFailed": "Nie udało się zmienić nazwy elementu",
@@ -294,7 +298,12 @@
     "accountDefaults": "Ustawienia domyślne konta",
     "disableUserSettings": "Wyłącz stronę ustawień użytkownika",
     "userDefaultFieldLockedFromConfig": "To domyślne ustawienie jest określone w pliku konfiguracyjnym i nie można go tutaj zmienić.",
-    "sourceAccessDefaultsHelp": "Domyślne uprawnienia do plików stosowane w przypadku plików źródłowych i nowych użytkowników. Opcja „Wymuś” ustala stałą wartość dla wszystkich użytkowników niebędących administratorami."
+    "sourceAccessDefaultsHelp": "Domyślne uprawnienia do plików stosowane w przypadku plików źródłowych i nowych użytkowników. Opcja „Wymuś” ustala stałą wartość dla wszystkich użytkowników niebędących administratorami.",
+    "editAsYaml": "Edytuj jako YAML",
+    "userEditPreferences": "Preferencje użytkownika",
+    "userEditTools": "Dostęp do narzędzi",
+    "userEditToolsDescription": "Skonfiguruj, do których narzędzi ten użytkownik ma dostęp",
+    "userEditSidebarLinks": "Linki w pasku bocznym"
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",
@@ -315,10 +324,7 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Wprowadź adres URL lub ścieżkę (np. /files/path lub https://example.com).",
     "linkIcon": "Ikona łącza",
-    "linksUpdatedSuccess": "Linki na pasku bocznym zostały pomyślnie zaktualizowane!",
-    "linksUpdateFailed": "Nie udało się zaktualizować linków paska bocznego",
     "sourceNotAccessible": "To źródło nie jest już dostępne",
-    "noLinksYet": "Nie skonfigurowano jeszcze żadnych linków. Dodaj swój pierwszy link poniżej.",
     "customizeShareLinksDescription": "Dostosuj łącza wyświetlane na pasku bocznym dla tego udziału. Przeciągnij i upuść, aby zmienić kolejność.",
     "editLink": "Edytuj łącze",
     "selectShare": "Wybierz udział",
@@ -327,7 +333,6 @@
     "pickIcon": "Wybierz ikonę",
     "pickIconDescription": "Wyszukaj i wybierz ikonę z biblioteki Material Icons",
     "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału",
-    "switchMode": "Przełącz tryb panelu bocznego",
     "showIndexedUsageDescription": "Wyświetla pasek użycia obliczony na podstawie zindeksowanych plików w źródle.",
     "showDiskUsageDescription": "Wyświetla pasek użycia na podstawie rozmiaru dysku/partycji zgłoszonego przez system operacyjny. Rozmiar ten będzie prawdopodobnie większy i obejmuje pliki niezindeksowane.",
     "usageTextDisplay": "Jaki tekst użytkowania powinien być wyświetlany?",
@@ -335,7 +340,13 @@
     "usageTextDisk": "użycie zgłoszone przez dysk/partycję",
     "dividerNamePlaceholder": "Tekst podziału (pozostaw pusty, aby wyświetlić linię)",
     "showIndexedUsage": "Pokaż zastosowania zgodnie z indeksem",
-    "showDiskUsage": "Pokaż wykorzystanie według dysku/partycji"
+    "showDiskUsage": "Pokaż wykorzystanie według dysku/partycji",
+    "sidebarLinkDefaults": "Domyślne ustawienia linków w pasku bocznym",
+    "sidebarLinkDefaultsDescription": "Skonfiguruj domyślne i obowiązkowe linki w pasku bocznym dla wszystkich użytkowników.",
+    "sidebarLinkDefaultsHelp": "Są to domyślne linki, które zostaną dodane dla wszystkich nowych użytkowników. Jeśli ustawisz link jako obowiązkowy, zostanie on dodany dla wszystkich użytkowników i nie będzie można go usunąć, jeśli nie jest się administratorem.",
+    "sidebarLinkDefaultSourceHelp": "Ma zastosowanie wyłącznie wtedy, gdy użytkownik ma dostęp do tego źródła.",
+    "sidebarLinkDefaultsYamlInvalid": "Nieprawidłowy plik YAML. Sprawdź format i spróbuj ponownie.",
+    "switchMode": "Przełączanie między linkami a drzewem nawigacyjnym"
   },
   "share": {
     "notice": "Uwaga: po utworzeniu folderu udostępnionego staje się on bardziej dostępny publicznie i ma inne zasady dostępu. Jeśli udział nie jest bezpiecznie skonfigurowany, może być dostępny dla każdego.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "Wybierz obraz banera",
     "selectFaviconImage": "Wybierz obraz favicon",
     "deleteFailed": "Nie udało się usunąć udziału",
-    "readOnlySourceNotice": "To źródło jest tylko do odczytu. Udziały przesyłania i uprawnienia modyfikujące pliki są wyłączone."
+    "readOnlySourceNotice": "To źródło jest tylko do odczytu. Udziały przesyłania i uprawnienia modyfikujące pliki są wyłączone.",
+    "shareDefaults": "Ustawienia domyślne udostępniania",
+    "shareDefaultsDescription": "Skonfiguruj domyślne opcje udostępniania dla nowych zasobów oraz egzekwuj zasady dotyczące użytkowników niebędących administratorami."
   },
   "api": {
     "createdAt": "Utworzono w:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "Hasło jest wymagane do wygenerowania kodu uwierzytelniającego."
   },
   "general": {
+    "import": "Importuj",
+    "export": "Eksportuj",
     "name": "Nazwa",
     "path": "Ścieżka",
     "user": "Użytkownik",
@@ -509,6 +524,8 @@
     "verify": "Weryfikacja{suffix}",
     "close": "Zamknij{suffix}",
     "copy": "Kopia{suffix}",
+    "paste": "Wklej",
+    "cut": "Wytnij",
     "create": "Utwórz{suffix}",
     "delete": "Usuń{suffix}",
     "download": "Pobierz{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "Wyświetlanie i wyświetlanie listy plików",
     "source": "{prefix}Źródło{suffix}",
     "sources": "{prefix}Źródła{suffix}",
-    "enforce": "Egzekwować{suffix}"
+    "enforce": "Egzekwować{suffix}",
+    "limit": "Limit{suffix}",
+    "remove": "Usuń{suffix}",
+    "saved": "Zapisano{suffix}",
+    "removed": "Usunięto{suffix}",
+    "back": "Powrót{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -629,7 +651,9 @@
     "defaultBehavior": "Działanie domyślne{suffix}",
     "deletedCascade": "Reguły dostępu usunięte ze ścieżki i wszystkich podścieżek!",
     "cascadeDelete": "Usuwanie rekursywne",
-    "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów."
+    "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów.",
+    "hasRules": "Skonfigurowane reguły dostępu",
+    "manageDescription": "Zasady otwartego dostępu dla tej ścieżki."
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",
@@ -652,6 +676,8 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Pokaż przycisk zamykania okien dialogowych po prawej stronie",
+    "promptRightCloseButtonDescription": "Pokaż przycisk zamykania okien dialogowych po prawej stronie zamiast po lewej",
     "hideFileExt": "Ukryj wybrane pliki (według rozszerzenia)",
     "hideFileExtDescription": "Lista rozszerzeń plików oddzielonych spacjami. Rozszerzenia wprowadzone w tym polu zostaną ukryte w całym interfejsie użytkownika (wizualnie, np. na liście lub w drzewie plików) — Nadal pozostają dostępne.",
     "preferEditorForMarkdown": "Preferuj edytor dla plików Markdown",
@@ -667,7 +693,6 @@
     "showQuickDownloadDescription": "Pokaż ikonę pobierania, aby uzyskać szybki dostęp do każdego elementu pliku, który można kliknąć w celu natychmiastowego pobrania.",
     "disableUpdateNotifications": "Wyłącz wyświetlanie aktualizacji powiadomień",
     "disableUpdateNotificationsDescription": "Wyłącz baner powiadomień o aktualizacjach wyświetlany użytkownikom adminów na pasku bocznym.",
-    "disableHideSidebar": "Zachowaj otwarty pasek boczny podczas podglądu lub edycji plików",
     "disableHideSidebarDescription": "Po włączeniu tej opcji pasek boczny nie będzie ukrywany automatycznie podczas podglądu lub edycji plików.",
     "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych podczas przeglądania",
     "autoplayMediaDescription": "Automatyczne odtwarzanie plików multimedialnych podczas wyświetlania. Działa to tylko wtedy, gdy plik jest plikiem multimedialnym.",
@@ -679,8 +704,6 @@
     "hideSidebarFileActions": "Ukryj przycisk akcji na pasku bocznym",
     "deleteWithoutConfirming": "Usuwanie plików bez monitu o potwierdzenie",
     "deleteWithoutConfirmingDescription": "Usuwanie plików bez monitu o potwierdzenie. Będzie to działać tylko wtedy, gdy plik jest plikiem multimedialnym.",
-    "editorQuickSave": "Przycisk szybkiego zapisu w edytorze",
-    "editorQuickSaveDescription": "Edytor tekstu będzie zawsze pokazywał ikonę zapisu, ukrywając wszelkie inne akcje",
     "previewOfficeDescription": "Wyświetlanie miniatur dla typów plików biurowych w widoku listy",
     "disableThumbnailPreviews": "Wyłącz miniatury dla niektórych rozszerzeń plików",
     "disableThumbnailPreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu miniatur (np. \".txt .html\").",
@@ -729,15 +752,101 @@
     "defaultViewMode": "Domyślny tryb wyświetlania",
     "defaultViewModeDescription": "Tryb wyświetlania domyślnego w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje preferencji wyświetlania zapisanych już lokalnie.",
     "defaultGallerySize": "Domyślny rozmiar miniatury",
-    "defaultGallerySizeDescription": "Początkowa skala miniatur w galerii lub na liście (1–9) w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje rozmiarów już zapisanych lokalnie."
+    "defaultGallerySizeDescription": "Początkowa skala miniatur w galerii lub na liście (1–9) w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje rozmiarów już zapisanych lokalnie.",
+    "disableHideSidebar": "Zawsze wyświetlaj pasek boczny",
+    "editorQuickSave": "Pokaż przycisk szybkiego zapisywania w edytorze",
+    "editorQuickSaveDescription": "Edytor tekstu wyświetli jedynie ikonę zapisywania, ukrywając wszystkie inne opcje",
+    "showAdvancedProfile": "Pokaż zaawansowane ustawienia profilu",
+    "showAdvancedProfileDescription": "Wyświetlaj ustawienia profilu pogrupowane według kategorii na pasku bocznym zamiast uproszczonego widoku profilu.",
+    "accountOptions": "Opcje konta"
   },
   "editor": {
-    "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",
-    "saveAbortedMessage": "Operacja zapisywania została przerwana. Aktywny plik aplikacji ({activeFile}) nie jest zgodny z plikiem, który próbujesz zapisać ({tryingToSave}).",
-    "fileSaved": "Plik zapisany!",
-    "lines": "{count} wierszy",
-    "words": "{count} słów",
-    "chars": "{count} znaków"
+    "stats": {
+      "lines": "{count} wierszy",
+      "words": "{count} słów",
+      "chars": "{count} znaków"
+    },
+    "settings": {
+      "title": "Ustawienia edytora",
+      "keybinding": {
+        "label": "Skróty klawiszowe",
+        "description": "Ustaw swoje preferowane skróty klawiszowe!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Przewijanie",
+        "description": "Jak bardzo edytor może przewijać poza koniec zawartości",
+        "none": "Brak",
+        "half": "Połowa",
+        "full": "Pełne"
+      },
+      "tabSize": {
+        "label": "Rozmiar tabulacji",
+        "description": "Ile spacji powinien domyślnie wstawiać klawisz 'TAB'"
+      },
+      "showIndentGuides": "Pokaż prowadnice wcięć",
+      "showIndentGuidesDescription": "Pokazuje prowadnice wcięć, co ułatwia orientację podczas edycji zagnieżdżonego kodu",
+      "showGutter": "Pokaż margines",
+      "showGutterDescription": "Kontener, w którym po lewej stronie znajdują się numery wierszy",
+      "fixedGutterWidth": "Stała szerokość marginesu",
+      "fixedGutterWidthDescription": "Gdy wyłączone, zwiększa rozmiar marginesu stopniowo podczas przewijania w zależności od liczby wierszy w pliku",
+      "showLineNumbers": "Pokaż numery wierszy",
+      "showLineNumbersDescription": "Pokazuje numery wierszy w lewym marginesie, nie ukrywa samego marginesu",
+      "relativeLineNumbers": "Względne numery wierszy",
+      "relativeLineNumbersDescription": "Pokazuje numery wierszy względem bieżącej pozycji kursora",
+      "customScrollbar": "Niestandardowy pasek przewijania",
+      "customScrollbarDescription": "Zamień natywny pasek przewijania przeglądarki na wbudowany pasek Ace",
+      "wrapContent": "Zawijanie długich wierszy w edytorze",
+      "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
+      "autocompletion": "Autouzupełnianie",
+      "autocompletionDescription": "Włącza autouzupełnianie poprzez ręczne naciśnięcie 'ctrl + space'",
+      "liveAutocompletion": "Autouzupełnianie na żywo",
+      "liveAutocompletionDescription": "Gdy jest włączone, pływające pole autouzupełniania pojawi się automatycznie podczas pisania"
+    },
+    "uninitialized": "Nie udało się zainicjować edytora. Proszę przeładować.",
+    "saveAbortedMessage": "Operacja zapisu została przerwana. Aktywny plik aplikacji ({activeFile}) nie pasuje do pliku, który próbujesz zapisać ({tryingToSave}).",
+    "splitView": "Widok podzielony",
+    "exitSplitView": "Zakończ widok podzielony",
+    "md": {
+      "clipboardActions": "Akcje schowka",
+      "bold": "Pogrubienie",
+      "italic": "Kursywa",
+      "strikethrough": "Przekreślenie",
+      "heading": "Nagłówek",
+      "quote": "Cytat",
+      "inlineCode": "Kod w linii",
+      "codeBlock": "Blok kodu",
+      "bulletList": "Lista wypunktowana",
+      "numberedList": "Lista numerowana",
+      "taskList": "Lista zadań",
+      "horizontalRule": "Linia pozioma",
+      "undo": "Cofnij",
+      "redo": "Ponów",
+      "moreOptions": "Więcej opcji",
+      "inlineMath": "Matematyka w linii",
+      "displayMath": "Matematyka w bloku",
+      "highlight": "Podświetlenie",
+      "superscript": "Indeks górny",
+      "subscript": "Indeks dolny",
+      "text": "Tekst",
+      "cell": "Komórka",
+      "column": "Kolumna",
+      "align": "Wyrównanie",
+      "alignRight": "Wyrównaj do prawej",
+      "alignLeft": "Wyrównaj do lewej",
+      "alignCenter": "Wyśrodkuj",
+      "justify": "Wyjustuj",
+      "fontColor": "Kolor czcionki"
+    },
+    "json": {
+      "formatJSON": "Format JSON",
+      "formatJSONSuccess": "Formatowanie JSON przebiegło pomyślnie",
+      "invalidJSON": "Nieprawidłowy plik JSON: {message}"
+    }
   },
   "player": {
     "loop": "Pętla",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "Przeglądaj pełną bibliotekę ikon"
     },
     "toolNotFound": "Nie znaleziono narzędzia",
-    "backToTools": "Powrót do Narzędzi",
     "fileWatcher": {
       "name": "File Watcher",
       "description": "Monitorowanie opóźnień i plików w czasie rzeczywistym",
@@ -914,7 +1022,11 @@
       "scopeAccess": "Działania związane z dostępem",
       "eventAccessCreate": "Dostęp do tworzenia",
       "eventAccessDelete": "Dostęp – usunięcie"
-    }
+    },
+    "toolAccessDefaults": "Domyślne ustawienia dostępu do narzędzi",
+    "toolAccessDefaultsDescription": "Skonfiguruj, do których narzędzi nowi użytkownicy będą mieli domyślny dostęp",
+    "toolAccessDefaultsHelp": "Włącz narzędzia dla nowych użytkowników i, opcjonalnie, zastosuj ograniczenia dostępu, aby użytkownicy niebędący administratorami nie mogli ich zmieniać.",
+    "accessDenied": "Nie masz dostępu do tego narzędzia."
   },
   "messages": {
     "pathNotFound": "Ścieżka nie istnieje w systemie plików",
@@ -1016,5 +1128,25 @@
     "days": "Dni{suffix}",
     "months": "Miesiące{suffix}",
     "timeUnit": "Jednostka czasu"
+  },
+  "quotas": {
+    "title": "Limit przestrzeni dyskowej",
+    "openDescription": "Otwórz okno dialogowe limitu miejsca dla tego folderu.",
+    "folderDescription": "Ogranicz pojemność tego folderu.",
+    "shareLimit": "Ogranicz przestrzeń dyskową w tym folderze współdzielonym",
+    "shareLimitDescription": "Zlicza przesłania za pośrednictwem tego linku. Wpływa to również na limit przesyłania właściciela.",
+    "scopeLimit": "Limit przestrzeni dyskowej dla tego źródła",
+    "scopeLimitDescription": "Limit przechowywania danych dla zadania tego użytkownika w tym źródle.",
+    "indexingDisabledMeterHint": "W tym źródle indeksowanie jest wyłączone. Dostępne są jedynie dane dotyczące śledzenia wykorzystania.",
+    "meterIndexHint": "Wykorzystuje łączny rozmiar zindeksowanych plików w tym folderze. Uwzględnia zmiany wprowadzone poza programem FileBrowser podczas aktualizacji indeksu.",
+    "meterAccountedHint": "Uwzględnia wyłącznie operacje przesyłania, zapisywania i usuwania wykonywane za pośrednictwem programu FileBrowser.",
+    "meterIndexScope": "Rozmiar indeksowany",
+    "meterAccounted": "Śledzenie wykorzystania",
+    "usageCounting": "Zliczanie wykorzystania według",
+    "usageSyncPending": "Dane o wykorzystaniu są nadal synchronizowane z indeksem.",
+    "accountedFallback": "Rozmiar indeksowany nie jest jeszcze gotowy; do czasu udostępnienia indeksu wykorzystywane są dane dotyczące użytkowania.",
+    "errors": {
+      "exceeded": "Przekroczono limit przestrzeni dyskowej"
+    }
   }
 }

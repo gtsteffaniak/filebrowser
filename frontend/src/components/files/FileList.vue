@@ -23,8 +23,14 @@
       <LoadingSpinner size="small" mode="placeholder" />
     </div>
 
+    <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
+    <ListingHeader
+      v-if="sortable && !loading"
+      use-picker-sorting
+    />
+
     <!-- File List -->
-    <div v-else class="listing-items list">
+    <div v-if="!loading" class="listing-items list">
       <ListingItem
         v-for="(item, index) in items"
         :key="item.path"
@@ -57,6 +63,7 @@
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { resourcesApi } from "@/api";
+import ListingHeader from "@/components/files/ListingHeader.vue";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -65,6 +72,7 @@ import { sortedItems } from "@/utils/sort.js";
 export default {
   name: "file-list",
   components: {
+    ListingHeader,
     ListingItem,
     LoadingSpinner,
     ExpandDropdown,
@@ -116,6 +124,11 @@ export default {
       type: Boolean,
       default: false, // If true, only files (not folders) can be selected
     },
+    /** When true, show a clickable Name/Size/Modified header that sorts the listing (uses pickerSorting). */
+    sortable: {
+      type: Boolean,
+      default: false,
+    },
   },
   data: function () {
     const initialSource = this.browseSource || state.req.source;
@@ -146,6 +159,16 @@ export default {
     };
   },
   computed: {
+    /** Sorting config used by sortEntries; follows the picker sort when sortable. */
+    pickerSort() {
+      return this.sortable ? getters.pickerSorting() : getters.sorting();
+    },
+    isDarkMode() {
+      return getters.isDarkMode();
+    },
+    isMobile() {
+      return state.isMobile;
+    },
     sourcePath() {
       return { source: this.source, path: this.path };
     },
@@ -189,6 +212,12 @@ export default {
     currentSource(newSource) {
       if (newSource && newSource !== this.source) {
         this.resetToSource(newSource);
+      }
+    },
+    // Re-sort local items when the picker header changes the sort config
+    pickerSort() {
+      if (this.sortable) {
+        this.resortItems();
       }
     },
   },
@@ -329,16 +358,13 @@ export default {
             source: item.source || req.source,
             type: item.type,
             pinned: !!item.pinned,
+            size: item.size,
+            modified: item.modified,
+            metadata: item.metadata,
             originalItem: item,
           });
         }
-        const sorting = getters.sorting();
-        const dirs = entries.filter((item) => item.type === "directory");
-        const files = entries.filter((item) => item.type !== "directory");
-        this.items = [
-          ...sortedItems(dirs, sorting.by, sorting.asc),
-          ...sortedItems(files, sorting.by, sorting.asc),
-        ];
+        this.items = this.sortEntries(entries);
       }
 
       if (this.path !== "/" && this.showFolders) {
@@ -349,6 +375,21 @@ export default {
           type: "directory",
         });
       }
+    },
+    sortEntries(entries) {
+      const sorting = this.pickerSort;
+      const dirs = entries.filter((item) => item.type === "directory");
+      const files = entries.filter((item) => item.type !== "directory");
+      return [
+        ...sortedItems(dirs, sorting.by, sorting.asc),
+        ...sortedItems(files, sorting.by, sorting.asc),
+      ];
+    },
+    resortItems() {
+      const parentEntry = this.items.find((item) => item.name === "..");
+      const rest = this.items.filter((item) => item.name !== "..");
+      const sorted = this.sortEntries(rest);
+      this.items = parentEntry ? [parentEntry, ...sorted] : sorted;
     },
     next: function (event) {
       // Retrieves the URL of the directory the user

@@ -5,9 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -19,6 +19,19 @@ func uploadTempPath(realPath, sessionID string) string {
 	hasher.Write([]byte{0})
 	hasher.Write([]byte(sessionID))
 	return fmt.Sprintf("%s.%s.uploading.tmp", realPath, hex.EncodeToString(hasher.Sum(nil)))
+}
+
+// parsePutTotalSize returns the declared body size for PUT / in-place writes.
+// Uses X-File-Total-Size when set, otherwise Content-Length when positive.
+func parsePutTotalSize(r *http.Request) (total int64, ok bool, err error) {
+	total, ok, err = parseUploadTotalSize(r)
+	if err != nil || ok {
+		return total, ok, err
+	}
+	if r.ContentLength > 0 {
+		return r.ContentLength, true, nil
+	}
+	return 0, false, nil
 }
 
 // parseUploadTotalSize reads optional X-File-Total-Size.
@@ -99,12 +112,27 @@ func isContentUpload(r *http.Request) bool {
 	return err == nil && ok
 }
 
-func drainRequestBody(r *http.Request) {
-	if r.Body == nil {
-		return
+// rollbackChunkForResume truncates a partial chunk write back to offset and syncs.
+// It returns false when rollback cannot be confirmed, in which case tempFilePath is removed.
+func rollbackChunkForResume(outFile *os.File, tempFilePath string, offset int64) bool {
+	if truncErr := outFile.Truncate(offset); truncErr != nil {
+		_ = os.Remove(tempFilePath)
+		return false
 	}
-	_, _ = io.Copy(io.Discard, r.Body)
-	_ = r.Body.Close()
+	if syncErr := outFile.Sync(); syncErr != nil {
+		_ = os.Remove(tempFilePath)
+		return false
+	}
+	return true
+}
+
+// abortConflictingUpload closes an upload body without draining it and marks the
+// response connection for closure so the server can return immediately.
+func abortConflictingUpload(w http.ResponseWriter, r *http.Request) {
+	if r.Body != nil {
+		_ = r.Body.Close()
+	}
+	w.Header().Set("Connection", "close")
 }
 
 type chunkUploadResponse struct {

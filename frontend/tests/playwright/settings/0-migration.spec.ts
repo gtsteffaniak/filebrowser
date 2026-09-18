@@ -6,8 +6,11 @@ import {
     type AccessRuleExpectation,
 } from "./access-behavior-fixture";
 import {
+    closeUserEditPreferences,
     expandUserEditSourceScope,
+    globalPermissionCheckbox,
     openUserEdit,
+    openUserEditPreferences,
     userEditScopeBlock,
 } from "./user-edit-helpers";
 
@@ -289,10 +292,6 @@ function scopePathButton(modal: Locator, sourceName: string): Locator {
     return userEditScopeBlock(modal, sourceName).locator(".scope-path-display");
 }
 
-function globalPermissionCheckbox(modal: Locator, label: string): Locator {
-    return modal.locator(".toggle-container", { hasText: label }).locator('input[type="checkbox"]');
-}
-
 function sourcePermissionCheckbox(
     modal: Locator,
     sourceName: string,
@@ -449,27 +448,29 @@ test.describe("Migration fixture verification", () => {
                 userRowInSettingsUsersTable(page, expected.username),
                 { username: expected.username },
             );
+            const prefsModal = await openUserEditPreferences(page, modal);
 
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Administrator"),
+                globalPermissionCheckbox(prefsModal, "Administrator"),
                 expected.global.administrator,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Share files"),
+                globalPermissionCheckbox(prefsModal, "Share files"),
                 expected.global.shareFiles,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Create and manage long-live API tokens"),
+                globalPermissionCheckbox(prefsModal, "Create and manage long-live API tokens"),
                 expected.global.apiTokens,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Enable real-time connections and updates"),
+                globalPermissionCheckbox(prefsModal, "Enable real-time connections and updates"),
                 expected.global.realtime,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Prevent the user from changing the password"),
+                globalPermissionCheckbox(prefsModal, "Prevent the user from changing the password"),
                 expected.global.lockPassword,
             );
+            await closeUserEditPreferences(page);
 
             await expect(modal.locator("#loginMethod .expand-dropdown-trigger-label")).toHaveText(
                 expected.loginMethod,

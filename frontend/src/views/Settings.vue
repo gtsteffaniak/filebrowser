@@ -1,11 +1,9 @@
 <template>
   <div class="dashboard">
     <div v-if="isRootSettings && !userPage" class="settings-views">
-      <component
-        v-if="activeSetting"
-        :is="activeSetting.component"
-        :id="`${activeSetting.id}-main`"
-      />
+      <div v-if="activeSetting" :id="`${activeSetting.id}-main`">
+        <component :is="activeSetting.component" />
+      </div>
     </div>
     <div v-else class="settings-views">
       <div class="active">
@@ -84,6 +82,9 @@ export default {
       }
       return active;
     },
+    profileSections() {
+      return this.settings.find((setting) => setting.id === 'profile')?.sections || [];
+    },
   },
   watch: {
     // Watch for route hash changes
@@ -124,8 +125,12 @@ export default {
         const validSetting = this.settings.find(
           (setting) => `${setting.id}-main` === hash && this.shouldShow(setting)
         );
-        
-        if (validSetting) {
+        const validProfileSection =
+          hash.startsWith('profile-') &&
+          !!state.user?.showAdvancedProfile &&
+          this.profileSections.some((section) => `profile-${section.id}` === hash) &&
+          this.settings.some((setting) => setting.id === 'profile' && this.shouldShow(setting));
+        if (validSetting || validProfileSection) {
           // Set the active settings view to the hash value
           mutations.setActiveSettingsView(hash);
           return;
@@ -173,16 +178,5 @@ export default {
   border: var(--borderWidth) solid var(--divider);
   opacity: 1;
 }
-
-.settings-items > .item {
-  padding: 1em;
-  border-radius: 1em;
-}
-
-.settings-items > .item:hover {
-  background-color: var(--surfaceSecondary);
-}
-
-
 
 </style>

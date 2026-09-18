@@ -66,6 +66,15 @@ export interface ShareInfoObject {
   allowDelete?: boolean;
   disableDownload?: boolean;
   showHidden?: boolean;
+  quotaLimitBytes?: number;
+  quotaUsedBytes?: number;
+  quotaAvailableBytes?: number;
+  /** Applicable folder storage quotas for this share root (from share/info). */
+  folderQuotas?: Array<{
+    limitBytes: number;
+    usedBytes?: number;
+    reservedBytes?: number;
+  }>;
 }
 
 export interface Permissions {
@@ -124,6 +133,7 @@ export interface SourceInfo {
   scanners: unknown[];
   readOnly: boolean;
   private: boolean;
+  indexingDisabled?: boolean;
 }
 
 /** Raw shape of a single source entry as sent by /api/settings/sources or SSE updates. */
@@ -143,6 +153,7 @@ export interface SourceInfoUpdate {
   scanners?: unknown[];
   readOnly?: boolean;
   private?: boolean;
+  indexingDisabled?: boolean;
 }
 
 export interface SourceFilePermissions {
@@ -187,12 +198,16 @@ export interface UserObject {
   permissions: Permissions;
   darkMode: boolean;
   disableSettings: boolean;
+  showAdvancedProfile?: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
   hideFileExt?: string;
+  newFileTemplate?: string[];
   themeColor?: string;
   sidebarLinks?: SidebarLink[];
+  toolAccess?: Record<string, boolean>;
+  effectiveToolAccess?: Record<string, boolean>;
   profile: {
     username: string;
     email: string;
@@ -262,12 +277,45 @@ export interface StoreState {
   enforcedUserDefaults: {
     listing?: {
       viewMode?: string;
+      newFileTemplate?: boolean;
     };
   };
+  sidebarLinkDefaultsPolicy: {
+    items?: Array<{
+      enabled?: boolean;
+      enforced?: boolean;
+      link?: SidebarLink;
+    }>;
+    sources?: string[];
+  };
+  toolAccessDefaultsPolicy: {
+    items?: Array<{
+      toolId?: string;
+      enabled?: boolean;
+      enforced?: boolean;
+    }>;
+  };
+  shareDefaultsPolicy: {
+    values?: Record<string, unknown>;
+    enforced?: Record<string, boolean>;
+  };
   usages: unknown;
-  editor: unknown;
-  editorDirty: boolean;
-  editorSaveHandler: unknown;
+  editor: {
+    instance: unknown;
+    dirty: boolean;
+    saveHandler: (() => Promise<void>) | null;
+    jsonFormatted: boolean;
+    stats: {
+      lines: number | null;
+      words: number | null;
+      chars: number | null;
+    };
+    fontSize: number;
+    markdownSplitView: boolean;
+    scrollRatio: number;
+    scrollSource: 'editor' | 'viewer' | null;
+    scrollPath: string;
+  };
   realtimeActive: boolean | undefined;
   realtimeDownCount: number;
   popupPreviewSourceInfo: {
@@ -307,6 +355,11 @@ export interface StoreState {
   };
   previewRaw: string;
   oldReq: unknown;
+  /** Sort config for destination picker dialogs (copy/move/archive). Independent of the main listing sort. */
+  pickerSorting: {
+    by: string;
+    asc: boolean;
+  } | null;
   clipboard: {
     key: string;
     items: unknown[];
@@ -363,7 +416,7 @@ export interface StoreState {
   playbackQueue: {
     queue: unknown[];
     currentIndex: number;
-    mode: 'sequential' | 'shuffle';
+    mode: 'single' | 'sequential' | 'shuffle';
     isPlaying: boolean;
     loop: 'off' | 'all' | 'single';
     shouldTogglePlayPause?: boolean;
@@ -376,10 +429,4 @@ export interface StoreState {
     minWidth: number;
     maxWidth: number;
   };
-  editorStats: {
-    lines: number | null;
-    words: number | null;
-    chars: number | null;
-  };
-  editorFontSize: number;
 }

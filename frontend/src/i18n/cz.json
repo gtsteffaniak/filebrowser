@@ -43,6 +43,7 @@
     "requestTimedOut": "Došlo k vypršení časového limitu požadavku. Zkontrolujte nastavení sítě nebo reverzního proxy."
   },
   "files": {
+    "emptyFile": "Prázdný soubor",
     "lastModified": "Poslední změna",
     "multipleSelectionEnabled": "Povoleno vícenásobné označení",
     "sortByLastModified": "Řadit podle poslední změny",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,7 +144,8 @@
     "wrongCredentials": "Nesprávné přihlašovací údaje",
     "failedLogin": "Nepodařilo se přihlásit",
     "invalidCredentials": "Neplatné zadané pověření",
-    "passkeyLogin": "Použít Passkey"
+    "passkeyLogin": "Použít Passkey",
+    "recaptchaRequired": "Je vyžadováno ověření Recaptcha"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
@@ -214,9 +215,15 @@
     "selectBannerImage": "Výběr obrázku banneru",
     "selectFaviconImage": "Výběr obrázku favicon",
     "deleteFailed": "Nepodařilo se odstranit sdílenou složku",
-    "readOnlySourceNotice": "Tento zdroj je určen pouze pro čtení. Sdílení nahrávání a oprávnění, která upravují soubory, jsou zakázána."
+    "readOnlySourceNotice": "Tento zdroj je určen pouze pro čtení. Sdílení nahrávání a oprávnění, která upravují soubory, jsou zakázána.",
+    "shareDefaults": "Sdílet výchozí nastavení",
+    "shareDefaultsDescription": "Nakonfigurujte výchozí nastavení sdílených složek pro nové sdílené složky a vynuťte dodržování zásad u uživatelů bez oprávnění správce."
   },
   "prompts": {
+    "noTemplate": "Vaše šablona je prázdná!",
+    "newFileTemplate": "Šablona nového souboru",
+    "newFileTemplateMessage": "Zde přidejte nové názvy souborů, budou použity jako šablona pro vytváření nových souborů v kontextové nabídce!",
+    "newFileTemplatePlaceholder": "Zadejte název souboru s příponou",
     "deleteMessageSingle": "Opravdu chcete smazat tento soubor/složku?",
     "deleteUserMessage": "Opravdu chcete tohoto uživatele smazat?",
     "deleteTitle": "Smazat soubory",
@@ -277,7 +284,6 @@
     "selectPath": "Vybrat cestu",
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
-    "moveFailed": "Přesun se nezdařil",
     "operationFailed": "Operace se nezdařila",
     "partialSuccess": "Některé operace se nezdařily: {succeeded} uspěl, {failed} neuspěl.",
     "renameFailed": "Nepodařilo se přejmenovat položku",
@@ -318,6 +324,8 @@
     "allFileTypes": "Všechny typy souborů"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Zobrazit tlačítko zavření dialogů vpravo",
+    "promptRightCloseButtonDescription": "Zobrazit tlačítko zavření dialogů na pravé straně místo na levé",
     "hideFileExt": "Skrýt určité soubory (podle přípony)",
     "hideFileExtDescription": "Seznam přípon souborů oddělených mezerami. Přípony zadané v tomto poli budou skryty ve všech částech UI (vizuálně, např. v seznamu nebo stromu souborů) — stále jsou přístupné.",
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",
@@ -330,14 +338,12 @@
     "showHiddenFiles": "Zobrazit skryté soubory",
     "showQuickDownload": "Zobrazit ikonu rychlého stahování",
     "disableUpdateNotifications": "Zakázat upozornění na aktualizace v postranním panelu.",
-    "disableHideSidebar": "Zakázat automatické skrývání postranního panelu při náhledu nebo úpravách souborů.",
     "autoplayMedia": "Automaticky přehrávat média v náhledu",
     "deleteWithoutConfirming": "Mazat soubory bez potvrzovacího dialogu",
     "sidebarOptions": "Možnosti postranního panelu",
     "disableQuickToggles": "Zakázat rychlé přepínače",
     "disableSearchOptions": "Zakázat možnosti vyhledávání",
     "hideSidebarFileActions": "Skrýt akce se soubory v postranním panelu",
-    "editorQuickSave": "Zobrazení tlačítka rychlého uložení v editoru",
     "showHiddenFilesDescription": "Zobrazení skrytých souborů ve výpisu (např. .thumbnails, ProgramData), ale jsou stále ručně přístupné, pokud jsou nakonfigurovány k indexování.",
     "showQuickDownloadDescription": "Zobrazení ikony stahování pro rychlý přístup ke každé položce souboru, na kterou lze kliknout a okamžitě ji stáhnout.",
     "disableUpdateNotificationsDescription": "Zakázat banner s upozorněním na aktualizaci, který se zobrazuje uživatelům správce na postranním panelu.",
@@ -346,7 +352,6 @@
     "disableQuickTogglesDescription": "Zakázat rychlé přepínače, které se zobrazují na postranním panelu.",
     "disableSearchOptionsDescription": "Zakázat možnosti vyhledávání, které se zobrazují na postranním panelu.",
     "deleteWithoutConfirmingDescription": "Odstranění souborů bez výzvy k potvrzení. To bude fungovat pouze v případě, že se jedná o mediální soubor.",
-    "editorQuickSaveDescription": "V textovém editoru se vždy zobrazí ikona pro uložení a ostatní akce se skryjí.",
     "previewOfficeDescription": "Zobrazení miniatur pro typy kancelářských souborů v zobrazení výpisu",
     "disableThumbnailPreviews": "Zakázat náhledy pro určité přípony souborů",
     "disableThumbnailPreviewsDescription": "Seznam přípon souborů oddělených mezerou, pro které se mají náhledy miniatur zakázat (např. '.txt .html').",
@@ -395,7 +400,13 @@
     "defaultViewMode": "Výchozí režim zobrazení",
     "defaultViewModeDescription": "Výchozí režim zobrazení v nových prohlížečích nebo na nových zařízeních. Nepřepíše nastavení zobrazení, která jsou již uložena lokálně.",
     "defaultGallerySize": "Výchozí velikost miniatury",
-    "defaultGallerySizeDescription": "Výchozí měřítko miniatur v galerii nebo seznamu (1–9) v nových prohlížečích nebo na nových zařízeních. Nepřepíše velikosti, které jsou již uloženy lokálně."
+    "defaultGallerySizeDescription": "Výchozí měřítko miniatur v galerii nebo seznamu (1–9) v nových prohlížečích nebo na nových zařízeních. Nepřepíše velikosti, které jsou již uloženy lokálně.",
+    "disableHideSidebar": "Vždy zobrazovat postranní panel",
+    "editorQuickSave": "Zobrazit tlačítko pro rychlé uložení v editoru",
+    "editorQuickSaveDescription": "Textový editor zobrazí pouze ikonu pro uložení a skryje všechny ostatní akce",
+    "showAdvancedProfile": "Zobrazit pokročilá nastavení profilu",
+    "showAdvancedProfileDescription": "Zobrazit nastavení profilu rozdělená do kategorií v postranním panelu namísto zjednodušeného zobrazení profilu.",
+    "accountOptions": "Možnosti účtu"
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -444,7 +455,12 @@
     "accountDefaults": "Výchozí nastavení účtu",
     "disableUserSettings": "Zakázat stránku uživatelských nastavení",
     "userDefaultFieldLockedFromConfig": "Toto výchozí nastavení je definováno v konfiguračním souboru a zde jej nelze změnit.",
-    "sourceAccessDefaultsHelp": "Výchozí oprávnění k souborům se vztahují na zdrojové soubory a nové uživatele. Nastavení „Vynutit“ určuje pevnou hodnotu pro všechny uživatele, kteří nejsou správci."
+    "sourceAccessDefaultsHelp": "Výchozí oprávnění k souborům se vztahují na zdrojové soubory a nové uživatele. Nastavení „Vynutit“ určuje pevnou hodnotu pro všechny uživatele, kteří nejsou správci.",
+    "editAsYaml": "Upravit jako YAML",
+    "userEditPreferences": "Nastavení uživatele",
+    "userEditTools": "Přístup k nástrojům",
+    "userEditToolsDescription": "Nastavte, ke kterým nástrojům má tento uživatel přístup",
+    "userEditSidebarLinks": "Odkazy v postranním panelu"
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",
@@ -465,10 +481,7 @@
     "linkUrl": "Adresa URL odkazu",
     "linkUrlPlaceholder": "Zadejte adresu URL nebo cestu (např. /files/path nebo https://example.com).",
     "linkIcon": "Ikona odkazu",
-    "linksUpdatedSuccess": "Odkazy na postranním panelu úspěšně aktualizovány!",
-    "linksUpdateFailed": "Nepodařilo se aktualizovat odkazy na postranním panelu",
     "sourceNotAccessible": "Tento zdroj již není přístupný",
-    "noLinksYet": "Zatím nejsou nakonfigurovány žádné odkazy. Přidejte svůj první odkaz níže.",
     "customizeShareLinksDescription": "Přizpůsobte si odkazy zobrazené v postranním panelu pro toto sdílení. Přetažením změníte pořadí.",
     "editLink": "Upravit odkaz",
     "selectShare": "Zvolte možnost Sdílet",
@@ -477,7 +490,6 @@
     "pickIcon": "Výběr ikony",
     "pickIconDescription": "Vyhledejte a vyberte ikonu z knihovny Material Icons.",
     "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu",
-    "switchMode": "Přepnout režim postranního panelu",
     "showIndexedUsageDescription": "Zobrazení sloupce využití vypočítaného z indexovaných souborů ve zdroji.",
     "showDiskUsageDescription": "Zobrazení sloupce využití z velikosti disku/oddílu podle hlášení operačního systému. Tato velikost bude pravděpodobně větší a zahrnuje i soubory, které nejsou indexovány.",
     "usageTextDisplay": "Který text použití se má zobrazit?",
@@ -485,7 +497,13 @@
     "usageTextDisk": "využití podle hlášení disku/oddílu",
     "dividerNamePlaceholder": "Text oddělovače (pro zobrazení řádku nechte prázdný)",
     "showIndexedUsage": "Zobrazit použití podle indexu",
-    "showDiskUsage": "Zobrazit využití podle údajů o disku/oddílu"
+    "showDiskUsage": "Zobrazit využití podle údajů o disku/oddílu",
+    "sidebarLinkDefaults": "Výchozí nastavení odkazů v postranním panelu",
+    "sidebarLinkDefaultsDescription": "Nastavte výchozí a povinné odkazy v postranním panelu pro všechny uživatele.",
+    "sidebarLinkDefaultsHelp": "Toto jsou výchozí odkazy, které budou přidány všem novým uživatelům. Pokud nastavíte odkaz jako povinný, bude přidán všem uživatelům a uživatelé bez oprávnění správce jej nebudou moci odstranit.",
+    "sidebarLinkDefaultSourceHelp": "Platí pouze v případě, že má uživatel přístup k tomuto zdroji.",
+    "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Zkontrolujte formát a zkuste to znovu.",
+    "switchMode": "Přepínat mezi odkazy a navigačním stromem"
   },
   "api": {
     "createdAt": "Vytvořeno:",
@@ -558,6 +576,8 @@
     "orange": "oranžová"
   },
   "general": {
+    "import": "Importovat",
+    "export": "Exportovat",
     "name": "Název",
     "path": "Cesta",
     "user": "Uživatel",
@@ -609,6 +629,8 @@
     "verify": "Ověřit{suffix}",
     "close": "Zavřít{suffix}",
     "copy": "Kopírovat{suffix}",
+    "paste": "Vložit",
+    "cut": "Vyjmout",
     "create": "Vytvořit{suffix}",
     "delete": "Odstranit{suffix}",
     "download": "Stáhnout{suffix}",
@@ -710,7 +732,12 @@
     "viewFiles": "Zobrazení a seznam souborů",
     "source": "{prefix}Zdroj{suffix}",
     "sources": "{prefix}Zdroje{suffix}",
-    "enforce": "Vynutit{suffix}"
+    "enforce": "Vynutit{suffix}",
+    "limit": "Limit{suffix}",
+    "remove": "Odstranit{suffix}",
+    "saved": "Uloženo{suffix}",
+    "removed": "Odstraněno{suffix}",
+    "back": "Zpět{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -729,15 +756,97 @@
     "defaultBehavior": "Výchozí akce{suffix}",
     "deletedCascade": "Přístupová pravidla odstraněna z cesty a všech podcest!",
     "cascadeDelete": "Rekurzivní mazání",
-    "cascadeDeleteDescription": "Pokud je tato možnost povolena, odstraní se pravidlo přístupu také ze všech podadresářů. To umožňuje zcela odstranit uživatele nebo skupinu z celého adresářového stromu."
+    "cascadeDeleteDescription": "Pokud je tato možnost povolena, odstraní se pravidlo přístupu také ze všech podadresářů. To umožňuje zcela odstranit uživatele nebo skupinu z celého adresářového stromu.",
+    "hasRules": "Nastavená pravidla přístupu",
+    "manageDescription": "Pravidla otevřeného přístupu pro tuto trasu."
   },
   "editor": {
-    "uninitialized": "Nepodařilo se inicializovat editor. Prosím, načtěte jej znovu.",
-    "saveAbortedMessage": "Operace ukládání byla přerušena. Aktivní soubor aplikace ({activeFile}) neodpovídá souboru, který se pokoušíte uložit ({tryingToSave}).",
-    "fileSaved": "Soubor uložen!",
-    "lines": "{count} řádků",
-    "words": "{count} slov",
-    "chars": "{count} znaků"
+    "stats": {
+      "lines": "{count} řádků",
+      "words": "{count} slov",
+      "chars": "{count} znaků"
+    },
+    "settings": {
+      "title": "Nastavení editoru",
+      "keybinding": {
+        "label": "Klávesové zkratky",
+        "description": "Nastavte si preferované klávesové zkratky!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Přetečení",
+        "description": "Jak moc může editor posouvat za konec obsahu",
+        "none": "Žádné",
+        "half": "Polovina",
+        "full": "Plné"
+      },
+      "tabSize": {
+        "label": "Velikost tabulátoru",
+        "description": "Kolik mezer by měla klávesa 'TAB' ve výchozím nastavení provést"
+      },
+      "showIndentGuides": "Zobrazit vodítka odsazení",
+      "showIndentGuidesDescription": "Zobrazit vodítka odsazení, což vám usnadní orientaci při úpravě vnořeného kódu",
+      "showGutter": "Zobrazit okraj",
+      "showGutterDescription": "Kontejner, kde se vlevo nacházejí čísla řádků",
+      "fixedGutterWidth": "Pevná šířka okraje",
+      "fixedGutterWidthDescription": "Pokud je vypnuto, zvětšuje velikost okraje postupně při posouvání v závislosti na počtu řádků v souboru",
+      "showLineNumbers": "Zobrazit čísla řádků",
+      "showLineNumbersDescription": "Zobrazit čísla řádků v okraji vlevo, neskrývá samotný okraj",
+      "relativeLineNumbers": "Relativní čísla řádků",
+      "relativeLineNumbersDescription": "Zobrazit čísla řádků relativní k aktuální poloze kurzoru",
+      "customScrollbar": "Vlastní posuvník",
+      "customScrollbarDescription": "Nahradit nativní posuvník prohlížeče vestavěným posuvníkem Ace",
+      "wrapContent": "Zalamovat dlouhé řádky v editoru",
+      "wrapContentDescription": "Zalamuje obsah editoru, aby velmi dlouhé řádky zůstaly vždy viditelné",
+      "autocompletion": "Automatické doplňování",
+      "autocompletionDescription": "Povolí automatické doplňování ručním stisknutím 'ctrl + space'",
+      "liveAutocompletion": "Živé automatické doplňování",
+      "liveAutocompletionDescription": "Když je tato možnost povolena, plovoucí pole automatického doplňování se objeví automaticky při psaní"
+    },
+    "uninitialized": "Nepodařilo se inicializovat editor. Obnovte stránku.",
+    "saveAbortedMessage": "Ukládání bylo přerušeno. Aktivní soubor aplikace ({activeFile}) se neshoduje se souborem, který se pokoušíte uložit ({tryingToSave}).",
+    "splitView": "Rozdělené zobrazení",
+    "exitSplitView": "Ukončit rozdělené zobrazení",
+    "md": {
+      "clipboardActions": "Akce se schránkou",
+      "bold": "Tučné",
+      "italic": "Kurzíva",
+      "strikethrough": "Přeškrtnuté",
+      "heading": "Nadpis",
+      "quote": "Citace",
+      "inlineCode": "Řádkový kód",
+      "codeBlock": "Blok kódu",
+      "bulletList": "Odrážkový seznam",
+      "numberedList": "Číslovaný seznam",
+      "taskList": "Seznam úkolů",
+      "horizontalRule": "Vodorovná čára",
+      "undo": "Zpět",
+      "redo": "Znovu",
+      "moreOptions": "Další možnosti",
+      "inlineMath": "Řádková matematika",
+      "displayMath": "Samostatná matematika",
+      "highlight": "Zvýraznění",
+      "superscript": "Horní index",
+      "subscript": "Dolní index",
+      "text": "Text",
+      "cell": "Buňka",
+      "column": "Sloupec",
+      "align": "Zarovnání",
+      "alignRight": "Zarovnat vpravo",
+      "alignLeft": "Zarovnat vlevo",
+      "alignCenter": "Zarovnat na střed",
+      "justify": "Zarovnat do bloku",
+      "fontColor": "Barva písma"
+    },
+    "json": {
+      "formatJSON": "Formát JSON",
+      "formatJSONSuccess": "Formátování do JSON proběhlo úspěšně",
+      "invalidJSON": "Neplatný JSON: {message}"
+    }
   },
   "player": {
     "loop": "Smyčka",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "Procházet celou knihovnu ikon"
     },
     "toolNotFound": "Nástroj nebyl nalezen",
-    "backToTools": "Zpět na Nástroje",
     "fileWatcher": {
       "name": "Sledování souborů",
       "description": "Sledování souborů v reálném čase s možností sledování latence",
@@ -914,7 +1022,11 @@
       "scopeAccess": "Aktivita přístupu",
       "eventAccessCreate": "Vytvořit přístup",
       "eventAccessDelete": "Přístup, smazat"
-    }
+    },
+    "toolAccessDefaults": "Výchozí nastavení přístupu k nástrojům",
+    "toolAccessDefaultsDescription": "Nastavte, ke kterým nástrojům budou mít noví uživatelé ve výchozím nastavení přístup",
+    "toolAccessDefaultsHelp": "Povolte nástroje pro nové uživatele a případně vynuťte omezení přístupu tak, aby je uživatelé bez oprávnění správce nemohli měnit.",
+    "accessDenied": "K tomuto nástroji nemáte přístup."
   },
   "messages": {
     "pathNotFound": "Cesta v souborovém systému neexistuje",
@@ -1016,5 +1128,25 @@
     "days": "Dny{suffix}",
     "months": "Měsíce{suffix}",
     "timeUnit": "Časová jednotka"
+  },
+  "quotas": {
+    "title": "Úložný limit",
+    "openDescription": "Otevřete dialogové okno s kvótou úložiště pro tuto složku.",
+    "folderDescription": "Omezit kapacitu úložiště pro tuto složku.",
+    "shareLimit": "Omezit úložiště prostřednictvím tohoto sdíleného adresáře",
+    "shareLimitDescription": "Počítá nahrání prostřednictvím tohoto odkazu. Vztahuje se také na kvótu zdroje vlastníka.",
+    "scopeLimit": "Limit úložného prostoru pro tento zdroj",
+    "scopeLimitDescription": "Limit pro ukládání dat v rámci úkolu tohoto uživatele v tomto zdroji.",
+    "indexingDisabledMeterHint": "U tohoto zdroje je indexování deaktivováno. K dispozici je pouze sledování využití.",
+    "meterIndexHint": "Vychází z celkové velikosti indexovaných souborů v této složce. Zahrnuje změny provedené mimo aplikaci FileBrowser při aktualizaci indexu.",
+    "meterAccountedHint": "Počítá pouze nahrání, uložení a smazání provedené prostřednictvím aplikace FileBrowser.",
+    "meterIndexScope": "Indexovaná velikost",
+    "meterAccounted": "Sledování využití",
+    "usageCounting": "Počítat počet použití podle",
+    "usageSyncPending": "Údaje o využití se stále synchronizují s indexem.",
+    "accountedFallback": "Indexovaná velikost ještě není připravena; dokud nebude index k dispozici, bude se sledovat využití.",
+    "errors": {
+      "exceeded": "Překročen limit úložného prostoru"
+    }
   }
 }

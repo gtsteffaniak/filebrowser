@@ -43,6 +43,7 @@
     "requestTimedOut": "A kérés időtúllépése történt. Ellenőrizze a hálózati vagy a fordított proxy beállításait."
   },
   "files": {
+    "emptyFile": "Üres fájl",
     "lastModified": "Utoljára módosítva",
     "multipleSelectionEnabled": "Többszörös kijelölés aktiválva",
     "sortByLastModified": "Rendezés utolsó módosítás szerint",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "Hibás hitelesítő adatok",
     "failedLogin": "Sikertelen bejelentkezés",
     "invalidCredentials": "Érvénytelen hitelesítő adatok megadása",
-    "passkeyLogin": "Jelszókulcs használata"
+    "passkeyLogin": "Jelszókulcs használata",
+    "recaptchaRequired": "Recaptcha-ellenőrzés szükséges"
   },
   "prompts": {
+    "noTemplate": "A sablon üres!",
+    "newFileTemplate": "Új fájl sablon",
+    "newFileTemplateMessage": "Adjon hozzá új fájlneveket itt, ezek sablonként szolgálnak az új fájlok létrehozásához a helyi menüben!",
+    "newFileTemplatePlaceholder": "Adjon meg egy fájlnevet kiterjesztéssel",
     "deleteMessageSingle": "Biztosan törölni szeretné ezt a fájl vagy mappát?",
     "deleteTitle": "Fájlok törlése",
     "displayName": "Megjelenített név:",
@@ -207,7 +212,6 @@
     "selectPath": "Útvonal kiválasztása",
     "renameSuccess": "Az elem átnevezése sikeres volt!",
     "newFileSuccess": "A fájl sikeresen létrehozva!",
-    "moveFailed": "Áthelyezés sikertelen",
     "operationFailed": "A művelet sikertelen",
     "partialSuccess": "Néhány művelet sikertelen: {succeeded} sikeres volt, {failed} sikertelen.",
     "renameFailed": "Nem sikerült átnevezni az elemet",
@@ -294,7 +298,12 @@
     "accountDefaults": "Fiók alapbeállításai",
     "disableUserSettings": "A felhasználói beállítások oldal letiltása",
     "userDefaultFieldLockedFromConfig": "Ez az alapértelmezett beállítás a konfigurációs fájlban van megadva, és itt nem módosítható.",
-    "sourceAccessDefaultsHelp": "A forrásfájlokra és az új felhasználókra alkalmazott alapértelmezett fájlhozzáférési jogosultságok. Az „Enforce” beállítás egy értéket rögzít minden nem rendszergazda felhasználó számára."
+    "sourceAccessDefaultsHelp": "A forrásfájlokra és az új felhasználókra alkalmazott alapértelmezett fájlhozzáférési jogosultságok. Az „Enforce” beállítás egy értéket rögzít minden nem rendszergazda felhasználó számára.",
+    "editAsYaml": "Szerkesztés YAML formátumban",
+    "userEditPreferences": "Felhasználói beállítások",
+    "userEditTools": "Eszközök elérése",
+    "userEditToolsDescription": "Állítsa be, hogy a felhasználó mely eszközökhöz férhessen hozzá",
+    "userEditSidebarLinks": "Oldalsávon található linkek"
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",
@@ -315,10 +324,7 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Adja meg az URL-címet vagy elérési utat (pl. /files/path vagy https://example.com).",
     "linkIcon": "Link ikon",
-    "linksUpdatedSuccess": "Oldalsáv linkek sikeresen frissítve!",
-    "linksUpdateFailed": "Nem sikerült frissíteni az oldalsáv linkjeit",
     "sourceNotAccessible": "Ez a forrás már nem elérhető az Ön számára",
-    "noLinksYet": "Még nincsenek linkek konfigurálva. Adja hozzá az első linket alább.",
     "customizeShareLinksDescription": "Az oldalsávban megjelenő linkek testreszabása ehhez a megosztáshoz. Húzza és ejtse át a sorrend átrendezéséhez.",
     "editLink": "Link szerkesztése",
     "selectShare": "Megosztás kiválasztása",
@@ -327,7 +333,6 @@
     "pickIcon": "Válasszon egy ikont",
     "pickIconDescription": "Keressen és válasszon ki egy ikont az Anyagi ikonok könyvtárból.",
     "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét",
-    "switchMode": "Oldalsáv mód váltása",
     "showIndexedUsageDescription": "A forrásban lévő indexelt fájlokból számított használati sáv megjelenítése.",
     "showDiskUsageDescription": "A lemez/partíció méretéből származó, az operációs rendszer által jelentett használati sáv megjelenítése. Ez a méret valószínűleg nagyobb lesz, és tartalmazza az indexeletlen fájlokat is.",
     "usageTextDisplay": "Milyen használati szöveget kell megjeleníteni?",
@@ -335,7 +340,13 @@
     "usageTextDisk": "lemez/partíció által bejelentett használat",
     "dividerNamePlaceholder": "Választószöveg (üresen hagyva egy sor megjelenítéséhez)",
     "showIndexedUsage": "Az indexelt használat megjelenítése",
-    "showDiskUsage": "A lemez/partíció által jelentett felhasználás megjelenítése"
+    "showDiskUsage": "A lemez/partíció által jelentett felhasználás megjelenítése",
+    "sidebarLinkDefaults": "Az oldalsáv linkjeinek alapértelmezett beállításai",
+    "sidebarLinkDefaultsDescription": "Az összes felhasználó számára állítsa be az alapértelmezett és kötelező oldalsáv-linkeket.",
+    "sidebarLinkDefaultsHelp": "Ezek azok az alapértelmezett linkek, amelyek minden új felhasználóhoz hozzáadódnak. Ha egy linket kötelezővé teszel, az minden felhasználóhoz hozzáadódik, és a rendszergazdák kivételével senki sem tudja eltávolítani.",
+    "sidebarLinkDefaultSourceHelp": "Ez csak akkor érvényes, ha a felhasználónak hozzáférése van ehhez a forráshoz.",
+    "sidebarLinkDefaultsYamlInvalid": "Érvénytelen YAML. Ellenőrizze a formátumot, majd próbálja meg újra.",
+    "switchMode": "Váltás a linkek és a navigációs fa között"
   },
   "share": {
     "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "Banner kép kiválasztása",
     "selectFaviconImage": "Favicon kép kiválasztása",
     "deleteFailed": "Nem sikerült törölni a megosztást",
-    "readOnlySourceNotice": "Ez a forrás csak olvasható. A feltöltési megosztások és a fájlokat módosító engedélyek letiltva vannak."
+    "readOnlySourceNotice": "Ez a forrás csak olvasható. A feltöltési megosztások és a fájlokat módosító engedélyek letiltva vannak.",
+    "shareDefaults": "Alapértelmezett beállítások megosztása",
+    "shareDefaultsDescription": "Az új megosztások alapértelmezett beállításainak konfigurálása, valamint a nem rendszergazdai felhasználókra vonatkozó szabályok érvényesítése."
   },
   "api": {
     "createdAt": "Létrehozva:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "A hitelesítési kód generálásához a jelszóra van szükség."
   },
   "general": {
+    "import": "Importálás",
+    "export": "Exportálás",
     "name": "Név",
     "path": "Útvonal",
     "user": "Felhasználó",
@@ -509,6 +524,8 @@
     "verify": "Ellenőrizze a  címet.{suffix}",
     "close": "Zárja be a{suffix}",
     "copy": "Másolás{suffix}",
+    "paste": "Beillesztés",
+    "cut": "Kivágás",
     "create": "Hozzon létre{suffix}",
     "delete": "Törölje a  címet.{suffix}",
     "download": "Letöltés{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "Fájlok megtekintése és felsorolása",
     "source": "{prefix}Forrás{suffix}",
     "sources": "{prefix}Források{suffix}",
-    "enforce": "Kötelezővé tenni{suffix}"
+    "enforce": "Kötelezővé tenni{suffix}",
+    "limit": "Határ{suffix}",
+    "remove": "Eltávolítás{suffix}",
+    "saved": "Elmentve{suffix}",
+    "removed": "Eltávolítva{suffix}",
+    "back": "Vissza{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -629,7 +651,9 @@
     "defaultBehavior": "Alapértelmezett cselekvés{suffix}",
     "deletedCascade": "Hozzáférési szabályok törlése az elérési útvonalból és az összes alútvonalból!",
     "cascadeDelete": "Rekurzív törlés",
-    "cascadeDeleteDescription": "Ha engedélyezve van, egy hozzáférési szabály törlése az összes alkönyvtárból is eltávolítja azt. Ez lehetővé teszi egy felhasználó vagy csoport teljes eltávolítását a teljes könyvtárfából."
+    "cascadeDeleteDescription": "Ha engedélyezve van, egy hozzáférési szabály törlése az összes alkönyvtárból is eltávolítja azt. Ez lehetővé teszi egy felhasználó vagy csoport teljes eltávolítását a teljes könyvtárfából.",
+    "hasRules": "A hozzáférési szabályok beállítása",
+    "manageDescription": "A hozzáférésre vonatkozó szabályok ezen az útvonalon."
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",
@@ -652,6 +676,8 @@
     "orange": "narancs"
   },
   "profileSettings": {
+    "promptRightCloseButton": "A kérések bezáró gombjának megjelenítése a jobb oldalon",
+    "promptRightCloseButtonDescription": "A kérések bezáró gombjának megjelenítése a jobb oldalon a bal oldal helyett",
     "hideFileExt": "Bizonyos fájlok elrejtése (kiterjesztés alapján)",
     "hideFileExtDescription": "Szóközzel elválasztott fájlkiterjesztések listája. Az ebben a mezőben megadott kiterjesztések elrejtésre kerülnek a teljes felhasználói felületen (vizuálisan, például a listában vagy a fájlfastruktúrában) — továbbra is elérhetők maradnak.",
     "preferEditorForMarkdown": "Szerkesztő előnyben részesítése Markdown fájlokhoz",
@@ -667,7 +693,6 @@
     "showQuickDownloadDescription": "Letöltés ikon megjelenítése a gyors hozzáférés érdekében minden egyes fájlelemen, amelyre kattintva azonnal letölthető.",
     "disableUpdateNotifications": "Értesítési frissítés megjelenítése letiltása",
     "disableUpdateNotificationsDescription": "Az admin felhasználók számára az oldalsávon megjelenő frissítési értesítő banner kikapcsolása.",
-    "disableHideSidebar": "Az oldalsáv nyitva tartása fájlok előnézeténél vagy szerkesztésénél",
     "disableHideSidebarDescription": "Ha engedélyezve van, az oldalsáv nem rejtőzik el automatikusan a fájlok előnézeténél vagy szerkesztésénél.",
     "autoplayMedia": "Médiafájlok automatikus lejátszása megtekintéskor",
     "autoplayMediaDescription": "Médiafájlok automatikus lejátszása megtekintéskor. Ez csak akkor működik, ha a fájl médiafájl.",
@@ -679,8 +704,6 @@
     "hideSidebarFileActions": "Fájlműveletek gomb elrejtése az oldalsávban",
     "deleteWithoutConfirming": "Fájlok törlése megerősítés nélkül",
     "deleteWithoutConfirmingDescription": "Fájlok törlése megerősítő kérés nélkül. Ez csak akkor működik, ha a fájl médiafájl.",
-    "editorQuickSave": "Gyors mentés gomb a szerkesztőben",
-    "editorQuickSaveDescription": "A szövegszerkesztő mindig a mentés ikonját fogja mutatni, elrejtve minden más műveletet.",
     "previewOfficeDescription": "Az irodai fájltípusok miniatűrjeinek megjelenítése a listázási nézetben",
     "disableThumbnailPreviews": "Bizonyos fájlkiterjesztésekhez tartozó miniatűrök letiltása",
     "disableThumbnailPreviewsDescription": "Azoknak a fájlkiterjesztéseknek a szóközzel elválasztott listája, amelyeknél a miniatűr előnézetet le kell tiltani (pl. '.txt .html').",
@@ -729,15 +752,101 @@
     "defaultViewMode": "Alapértelmezett megjelenítési mód",
     "defaultViewModeDescription": "Alapértelmezett megjelenítési mód új böngészőkön vagy eszközökön. Nem írja felül a már helyileg elmentett megjelenítési beállításokat.",
     "defaultGallerySize": "Alapértelmezett miniatűrméret",
-    "defaultGallerySizeDescription": "A galéria vagy lista miniatűrjeinek kezdeti mérete (1–9) új böngészőkön vagy eszközökön. A már helyileg elmentett méreteket nem írja felül."
+    "defaultGallerySizeDescription": "A galéria vagy lista miniatűrjeinek kezdeti mérete (1–9) új böngészőkön vagy eszközökön. A már helyileg elmentett méreteket nem írja felül.",
+    "disableHideSidebar": "Az oldalsávot mindig mutasd”",
+    "editorQuickSave": "A gyorsmentés gomb megjelenítése a szerkesztőben",
+    "editorQuickSaveDescription": "A szövegszerkesztő csak a mentés gombot jeleníti meg, az összes többi műveletet elrejti",
+    "showAdvancedProfile": "A profil speciális beállításainak megjelenítése",
+    "showAdvancedProfileDescription": "Az egyszerűsített profilnézet helyett az oldalsávban jelenítse meg a kategóriák szerint csoportosított profilbeállításokat.",
+    "accountOptions": "Fiókbeállítások"
   },
   "editor": {
-    "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
-    "saveAbortedMessage": "A mentési művelet megszakadt. Az alkalmazás aktív fájlja ({activeFile}) nem egyezik meg a menteni kívánt fájllal ({tryingToSave}).",
-    "fileSaved": "Fájl mentve!",
-    "lines": "{count} sor",
-    "words": "{count} szó",
-    "chars": "{count} karakter"
+    "stats": {
+      "lines": "{count} sor",
+      "words": "{count} szó",
+      "chars": "{count} karakter"
+    },
+    "settings": {
+      "title": "Szerkesztő beállításai",
+      "keybinding": {
+        "label": "Billentyűkötések",
+        "description": "Állítsd be a preferált billentyűkötéseidet!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Túlcsordulás",
+        "description": "Mennyit görgethet a szerkesztő a tartalom vége után",
+        "none": "Nincs",
+        "half": "Fél",
+        "full": "Teljes"
+      },
+      "tabSize": {
+        "label": "Tab mérete",
+        "description": "Hány szóközt tegyen a 'TAB' billentyű alapértelmezettként"
+      },
+      "showIndentGuides": "Behúzási segédvonalak mutatása",
+      "showIndentGuidesDescription": "Behúzási segédvonalak mutatása, jobb tájékozódást nyújt beágyazott kód szerkesztésekor",
+      "showGutter": "Szélső sáv mutatása",
+      "showGutterDescription": "A konténer, ahol a sorszámok bal oldalon találhatók",
+      "fixedGutterWidth": "Rögzített szélső sáv szélesség",
+      "fixedGutterWidthDescription": "Ha ki van kapcsolva, fokozatosan növeli a szélső sáv méretét görgetés közben attól függően, hogy hány sora van a fájlnak",
+      "showLineNumbers": "Sorszámok mutatása",
+      "showLineNumbersDescription": "Sorszámok mutatása a bal oldali szélső sávban, nem rejti el magát a sávot",
+      "relativeLineNumbers": "Relatív sorszámok",
+      "relativeLineNumbersDescription": "Sorszámok mutatása a kurzor aktuális pozíciójához viszonyítva",
+      "customScrollbar": "Egyéni görgetősáv",
+      "customScrollbarDescription": "A böngésző natív görgetősávjának cseréje az Ace beépítettjére",
+      "wrapContent": "Hosszú sorok tördelése a szerkesztőben",
+      "wrapContentDescription": "Tördeli a szerkesztő tartalmát, hogy a nagyon hosszú sorok mindig láthatóak maradjanak",
+      "autocompletion": "Automatikus kiegészítés",
+      "autocompletionDescription": "Engedélyezi az automatikus kiegészítést a 'ctrl + space' manuális megnyomásával",
+      "liveAutocompletion": "Élő automatikus kiegészítés",
+      "liveAutocompletionDescription": "Ha ez engedélyezve van, a lebegő automatikus kiegészítő doboz automatikusan megjelenik gépelés közben"
+    },
+    "uninitialized": "A szerkesztő inicializálása nem sikerült. Kérjük, töltse újra.",
+    "saveAbortedMessage": "A mentési művelet megszakadt. Az alkalmazás aktív fájlja ({activeFile}) nem egyezik a menteni kívánt fájllal ({tryingToSave}).",
+    "splitView": "Megosztott nézet",
+    "exitSplitView": "Kilépés a megosztott nézetből",
+    "md": {
+      "clipboardActions": "Vágólap műveletek",
+      "bold": "Félkövér",
+      "italic": "Dőlt",
+      "strikethrough": "Áthúzott",
+      "heading": "Címsor",
+      "quote": "Idézet",
+      "inlineCode": "Soros kód",
+      "codeBlock": "Kódblokk",
+      "bulletList": "Felsorolás",
+      "numberedList": "Számozott lista",
+      "taskList": "Feladatlista",
+      "horizontalRule": "Vízszintes vonal",
+      "undo": "Visszavonás",
+      "redo": "Újra",
+      "moreOptions": "További lehetőségek",
+      "inlineMath": "Soros matematika",
+      "displayMath": "Külön soros matematika",
+      "highlight": "Kiemelés",
+      "superscript": "Felső index",
+      "subscript": "Alsó index",
+      "text": "Szöveg",
+      "cell": "Cella",
+      "column": "Oszlop",
+      "align": "Igazítás",
+      "alignRight": "Igazítás jobbra",
+      "alignLeft": "Igazítás balra",
+      "alignCenter": "Középre igazítás",
+      "justify": "Sorkizárt",
+      "fontColor": "Betűszín"
+    },
+    "json": {
+      "formatJSON": "JSON formázása",
+      "formatJSONSuccess": "A JSON formázása sikeresen megtörtént",
+      "invalidJSON": "Érvénytelen JSON: {message}"
+    }
   },
   "player": {
     "loop": "Ismétlés",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "Teljes ikonkönyvtár böngészése"
     },
     "toolNotFound": "Eszköz nem található",
-    "backToTools": "Vissza az Eszközökhöz",
     "fileWatcher": {
       "name": "Fájl figyelő",
       "description": "Fájlok figyelése és követése valós időben a késleltetés figyelésével",
@@ -914,7 +1022,11 @@
       "scopeAccess": "Hozzáférési tevékenység",
       "eventAccessCreate": "Hozzáférés létrehozása",
       "eventAccessDelete": "Hozzáférés törlés"
-    }
+    },
+    "toolAccessDefaults": "Az eszközökhöz való hozzáférés alapértelmezett beállításai",
+    "toolAccessDefaultsDescription": "Állítsa be, hogy az új felhasználók alapértelmezés szerint mely eszközökhöz férhessenek hozzá",
+    "toolAccessDefaultsHelp": "Engedélyezze az eszközöket az új felhasználók számára, és opcionálisan korlátozza a hozzáférést úgy, hogy a nem rendszergazdák ne tudják módosítani.",
+    "accessDenied": "Nincs hozzáférése ehhez az eszközhöz."
   },
   "messages": {
     "pathNotFound": "Az elérési útvonal nem létezik a fájlrendszerben",
@@ -1016,5 +1128,25 @@
     "days": "Napok{suffix}",
     "months": "Hónapok{suffix}",
     "timeUnit": "Időegység"
+  },
+  "quotas": {
+    "title": "Tárolási kvóta",
+    "openDescription": "Nyissa meg a mappa tárhelykvótájára vonatkozó párbeszédpanelt.",
+    "folderDescription": "A mappa tárolási kapacitásának korlátozása.",
+    "shareLimit": "A tárolási korlát beállítása ezen a megosztáson keresztül",
+    "shareLimitDescription": "Ezen a linken keresztül feltöltött fájlokat számolja. A tulajdonos forráskvótájára is vonatkozik.",
+    "scopeLimit": "A forrás tárolási korlátja",
+    "scopeLimitDescription": "A felhasználó ezen forráson végzett feladatához tartozó tárolási korlát.",
+    "indexingDisabledMeterHint": "Az indexelés ezen a forráson ki van kapcsolva. Csak a nyomon követett használat érhető el.",
+    "meterIndexHint": "A mappában található indexelt fájlok teljes méretét veszi figyelembe. Ide tartoznak azok a módosítások is, amelyeket a FileBrowser-en kívül hajtottak végre az index frissítésekor.",
+    "meterAccountedHint": "Csak a FileBrowser segítségével végrehajtott feltöltéseket, mentéseket és törléseket számolja.",
+    "meterIndexScope": "Indexált méret",
+    "meterAccounted": "Nyomon követett használat",
+    "usageCounting": "A használat számlálása",
+    "usageSyncPending": "A használati adatok még mindig szinkronizálódnak az indexszel.",
+    "accountedFallback": "Az indexelt méret még nem áll rendelkezésre; az index elérhetővé válásáig a nyomon követett felhasználási adatokat használjuk.",
+    "errors": {
+      "exceeded": "A tárhelykvóta túllépése"
+    }
   }
 }

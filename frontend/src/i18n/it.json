@@ -9,6 +9,8 @@
     "noCreateOptions": "Non sono disponibili opzioni di creazione"
   },
   "general": {
+    "import": "Importa",
+    "export": "Esporta",
     "divider": "Divisore{suffix}",
     "office": "Office{suffix}",
     "format": "Formato{suffix}",
@@ -73,6 +75,8 @@
     "verify": "Verifica{suffix}",
     "close": "Chiudi{suffix}",
     "copy": "Copia{suffix}",
+    "paste": "Incolla",
+    "cut": "Taglia",
     "create": "Crea{suffix}",
     "delete": "Elimina{suffix}",
     "download": "Scarica{suffix}",
@@ -161,7 +165,12 @@
     "viewFiles": "Visualizza ed elenca i file",
     "source": "{prefix}Fonte{suffix}",
     "sources": "{prefix}Fonti{suffix}",
-    "enforce": "Applicare{suffix}"
+    "enforce": "Applicare{suffix}",
+    "limit": "Limite{suffix}",
+    "remove": "Rimuovi{suffix}",
+    "saved": "Salvato{suffix}",
+    "removed": "Rimosso{suffix}",
+    "back": "Indietro{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -207,6 +216,7 @@
     "requestTimedOut": "La richiesta ha superato il limite di tempo. Controlla le impostazioni di rete o del proxy inverso."
   },
   "files": {
+    "emptyFile": "File vuoto",
     "lastModified": "Ultima modifica{suffix}",
     "duration": "Durata{suffix}",
     "lonely": "Nulla da mostrare qui...",
@@ -281,7 +291,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -308,7 +317,8 @@
     "wrongCredentials": "Credenziali errate",
     "failedLogin": "Accesso fallito",
     "invalidCredentials": "Credenziali fornite non valide",
-    "passkeyLogin": "Usa Passkey"
+    "passkeyLogin": "Usa Passkey",
+    "recaptchaRequired": "Richiesta verifica Recaptcha"
   },
   "share": {
     "notice": "Nota: quando viene creata una condivisione, essa diventa pubblica e segue regole di accesso diverse. Se non configurata correttamente, chiunque potrebbe accedervi.",
@@ -378,9 +388,15 @@
     "shareInfoDescription": "Mostra le informazioni della condivisione (titolo, descrizione, banner, QR) in un popup.",
     "downloadDescription": "Permette di scaricare l'intero contenuto della condivisione come file compresso.",
     "deleteFailed": "Eliminazione condivisione fallita",
-    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate."
+    "readOnlySourceNotice": "Questa sorgente è di sola lettura. Le azioni di caricamento e le autorizzazioni che modificano i file sono disabilitate.",
+    "shareDefaults": "Impostazioni predefinite di condivisione",
+    "shareDefaultsDescription": "Configurare le opzioni predefinite per le nuove condivisioni e applicare le politiche agli utenti non amministratori."
   },
   "prompts": {
+    "noTemplate": "Il tuo modello è vuoto!",
+    "newFileTemplate": "Modello nuovo file",
+    "newFileTemplateMessage": "Aggiungi qui nuovi nomi di file, verranno utilizzati come modello per la creazione di nuovi file nel menu contestuale!",
+    "newFileTemplatePlaceholder": "Inserisci un nome file con estensione",
     "operationInProgress": "Operazione in corso, attendere...",
     "quickJump": "Passa rapidamente ad altri file",
     "downloadsLimit": "Limite numero di download",
@@ -452,7 +468,6 @@
     "firstLoadBody": "È stato creato un nuovo database all'avvio. Se non è quello che ti aspettavi, controlla il percorso `server.database` nel file di configurazione. Su Docker, il percorso potrebbe essere `./data/filebrowser.sqlite` o `./filebrowser.sqlite`.",
     "halloweenTitle": "Buon Halloween!",
     "halloweenBody": "Il tema di Halloween è stato applicato. Puoi disabilitarlo o cambiarlo permanentemente nelle impostazioni del profilo.",
-    "moveFailed": "Spostamento fallito",
     "operationFailed": "Operazione fallita",
     "partialSuccess": "Alcune operazioni sono fallite: {succeeded} riuscite, {failed} fallite",
     "downloadFailed": "Il download in chunk non è riuscito: se il problema si ripete, provare a ridurre la dimensione del chunk: {message}",
@@ -482,6 +497,8 @@
     "allFileTypes": "Tutti i tipi di file"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Mostra il pulsante di chiusura dei prompt a destra",
+    "promptRightCloseButtonDescription": "Mostra il pulsante di chiusura dei prompt sul lato destro invece che sul sinistro",
     "hideFileExt": "Nascondere determinati file (per estensione)",
     "hideFileExtDescription": "Un elenco di estensioni di file separate da spazi. Le estensioni inserite in questo campo verranno nascoste da tutta l'interfaccia utente (visivamente, come nell'elenco o nell'albero dei file) — Rimangono comunque accessibili.",
     "preferEditorForMarkdown": "Preferisci editor per file Markdown",
@@ -508,7 +525,6 @@
     "popupPreviewDescription": "Mostra una finestra in sovrapposizione quando si passa sopra elementi con miniature.",
     "disableUpdateNotifications": "Disabilita notifiche di aggiornamento",
     "disableUpdateNotificationsDescription": "Nasconde il banner degli aggiornamenti disponibile agli amministratori.",
-    "disableHideSidebar": "Mantieni barra laterale aperta durante modifica/anteprima",
     "disableHideSidebarDescription": "Impedisce alla barra laterale di nascondersi automaticamente.",
     "autoplayMedia": "Riproduzione automatica media",
     "autoplayMediaDescription": "Avvia automaticamente i file audio/video all'apertura.",
@@ -521,8 +537,6 @@
     "hideSidebarFileActions": "Nascondi azioni file nella barra laterale",
     "deleteWithoutConfirming": "Elimina file senza conferma",
     "deleteWithoutConfirmingDescription": "Elimina i file istantaneamente (usare con cautela).",
-    "editorQuickSave": "Pulsante salvataggio rapido nell'editor",
-    "editorQuickSaveDescription": "L'editor mostrerà sempre l'icona di salvataggio, nascondendo altre azioni.",
     "previewOfficeDescription": "Mostra miniature per i file office nell'elenco.",
     "disableThumbnailPreviews": "Disabilita miniature per estensioni specifiche",
     "disableThumbnailPreviewsDescription": "Lista di estensioni separate da spazio (es. '.txt .html').",
@@ -559,7 +573,13 @@
     "defaultViewMode": "Modalità di visualizzazione predefinita",
     "defaultViewModeDescription": "Modalità di visualizzazione iniziale su nuovi browser o dispositivi. Non sovrascrive le preferenze di visualizzazione già salvate localmente.",
     "defaultGallerySize": "Dimensione predefinita delle miniature",
-    "defaultGallerySizeDescription": "Scala iniziale delle miniature della galleria o dell'elenco (1–9) sui nuovi browser o dispositivi. Non sovrascrive le dimensioni già salvate localmente."
+    "defaultGallerySizeDescription": "Scala iniziale delle miniature della galleria o dell'elenco (1–9) sui nuovi browser o dispositivi. Non sovrascrive le dimensioni già salvate localmente.",
+    "disableHideSidebar": "Mostra sempre la barra laterale",
+    "editorQuickSave": "Mostra il pulsante \"Salva rapidamente\" nell'editor",
+    "editorQuickSaveDescription": "L'editor di testo mostrerà solo l'icona di salvataggio, nascondendo tutte le altre azioni",
+    "showAdvancedProfile": "Mostra le impostazioni avanzate del profilo",
+    "showAdvancedProfileDescription": "Mostra le impostazioni del profilo suddivise per categorie nella barra laterale, anziché la visualizzazione semplificata del profilo.",
+    "accountOptions": "Opzioni dell'account"
   },
   "settings": {
     "systemAdmin": "Sistema e Admin",
@@ -608,7 +628,12 @@
     "accountDefaults": "Impostazioni predefinite dell'account",
     "disableUserSettings": "Disattiva la pagina delle impostazioni utente",
     "userDefaultFieldLockedFromConfig": "Questa impostazione predefinita è configurata nel file di configurazione e non può essere modificata in questa sede.",
-    "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori."
+    "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori.",
+    "editAsYaml": "Modifica come YAML",
+    "userEditPreferences": "Preferenze utente",
+    "userEditTools": "Accesso agli strumenti",
+    "userEditToolsDescription": "Configurare a quali strumenti questo utente può accedere",
+    "userEditSidebarLinks": "Link nella barra laterale"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",
@@ -643,13 +668,15 @@
     "browseIcons": "Sfoglia Icone",
     "pickIcon": "Scegli un'Icona",
     "pickIconDescription": "Cerca e seleziona un'icona dalla libreria Material Icons",
-    "linksUpdatedSuccess": "Link barra laterale aggiornati!",
-    "linksUpdateFailed": "Aggiornamento link fallito",
     "sourceNotAccessible": "Questa sorgente non è più accessibile",
-    "noLinksYet": "Nessun link configurato. Aggiungi il primo qui sotto.",
-    "switchMode": "Cambia modalità barra laterale",
     "showIndexedUsage": "Mostra l'utilizzo come indicizzato",
-    "showDiskUsage": "Mostra l'utilizzo in base ai dati riportati dal disco/dalla partizione"
+    "showDiskUsage": "Mostra l'utilizzo in base ai dati riportati dal disco/dalla partizione",
+    "sidebarLinkDefaults": "Impostazioni predefinite dei link nella barra laterale",
+    "sidebarLinkDefaultsDescription": "Configurare i collegamenti predefiniti e obbligatori nella barra laterale per tutti gli utenti.",
+    "sidebarLinkDefaultsHelp": "Questi sono i link predefiniti che verranno aggiunti per tutti i nuovi utenti. Se si imposta un link come obbligatorio, questo verrà aggiunto per tutti gli utenti e non potrà essere rimosso dagli utenti che non sono amministratori.",
+    "sidebarLinkDefaultSourceHelp": "Si applica solo se l'utente ha accesso a questa fonte.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML non valido. Controlla il formato e riprova.",
+    "switchMode": "Passa dai link all'albero di navigazione e viceversa"
   },
   "api": {
     "title": "Token API",
@@ -718,7 +745,9 @@
     "defaultBehavior": "Azione predefinita{suffix}",
     "defaultBehaviorDescription": "Cosa succede quando non esistono regole specifiche. 'Consenti' permette l'accesso, 'Nega' blocca tutto tranne gli esplicitamente autorizzati.",
     "cascadeDelete": "Eliminazione Ricorsiva",
-    "cascadeDeleteDescription": "Se abilitato, l'eliminazione di una regola rimuoverà anche quelle nelle sottodirectory."
+    "cascadeDeleteDescription": "Se abilitato, l'eliminazione di una regola rimuoverà anche quelle nelle sottodirectory.",
+    "hasRules": "Regole di accesso configurate",
+    "manageDescription": "Regole di libero accesso per questo percorso."
   },
   "fileLoading": {
     "title": "Caricamenti e Download",
@@ -741,12 +770,92 @@
     "orange": "arancione"
   },
   "editor": {
-    "uninitialized": "Inizializzazione editor fallita. Ricarica la pagina.",
-    "saveAbortedMessage": "Operazione annullata. Il file attivo ({activeFile}) non corrisponde a quello che stai salvando ({tryingToSave}).",
-    "fileSaved": "File salvato!",
-    "lines": "{count} righe",
-    "words": "{count} parole",
-    "chars": "{count} caratteri"
+    "stats": {
+      "lines": "{count} righe",
+      "words": "{count} parole",
+      "chars": "{count} caratteri"
+    },
+    "settings": {
+      "title": "Impostazioni editor",
+      "keybinding": {
+        "label": "Scorciatoie da tastiera",
+        "description": "Imposta le tue scorciatoie da tastiera preferite!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Overscroll",
+        "description": "Quanto può scorrere l'editor oltre la fine del contenuto",
+        "none": "Nessuno",
+        "half": "Metà",
+        "full": "Pieno"
+      },
+      "tabSize": {
+        "label": "Dimensione Tab",
+        "description": "Quanti spazi dovrebbe inserire il tasto 'TAB' di default"
+      },
+      "showIndentGuides": "Mostra guide di indentazione",
+      "showIndentGuidesDescription": "Mostra guide di indentazione, che ti danno un migliore orientamento durante la modifica di codice annidato",
+      "showGutter": "Mostra margine",
+      "showGutterDescription": "Il contenitore dove si trovano i numeri di riga a sinistra",
+      "fixedGutterWidth": "Larghezza margine fissa",
+      "fixedGutterWidthDescription": "Quando disattivato, aumenta gradualmente la dimensione del margine durante lo scorrimento in base al numero di righe del file",
+      "showLineNumbers": "Mostra numeri di riga",
+      "showLineNumbersDescription": "Mostra i numeri di riga nel margine a sinistra, non nasconde il margine stesso",
+      "relativeLineNumbers": "Numeri di riga relativi",
+      "relativeLineNumbersDescription": "Mostra i numeri di riga relativi alla posizione corrente del cursore",
+      "customScrollbar": "Barra di scorrimento personalizzata",
+      "customScrollbarDescription": "Sostituisce la barra di scorrimento nativa del browser con quella integrata di Ace",
+      "wrapContent": "A capo delle righe lunghe nell'editor",
+      "wrapContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe",
+      "autocompletion": "Completamento automatico",
+      "autocompletionDescription": "Abilita il completamento automatico premendo manualmente 'ctrl + space'",
+      "liveAutocompletion": "Completamento automatico live",
+      "liveAutocompletionDescription": "Quando è abilitato, la casella di completamento automatico flottante apparirà automaticamente mentre digiti"
+    },
+    "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",
+    "saveAbortedMessage": "Operazione di salvataggio annullata. Il file attivo dell'applicazione ({activeFile}) non corrisponde al file che si sta tentando di salvare ({tryingToSave}).",
+    "splitView": "Vista divisa",
+    "exitSplitView": "Esci dalla vista divisa",
+    "md": {
+      "clipboardActions": "Azioni degli appunti",
+      "bold": "Grassetto",
+      "italic": "Corsivo",
+      "strikethrough": "Barrato",
+      "heading": "Intestazione",
+      "quote": "Citazione",
+      "inlineCode": "Codice in linea",
+      "codeBlock": "Blocco di codice",
+      "bulletList": "Elenco puntato",
+      "numberedList": "Elenco numerato",
+      "taskList": "Elenco attività",
+      "horizontalRule": "Linea orizzontale",
+      "undo": "Annulla",
+      "redo": "Ripeti",
+      "moreOptions": "Altre opzioni",
+      "inlineMath": "Matematica in linea",
+      "displayMath": "Matematica a blocco",
+      "highlight": "Evidenzia",
+      "superscript": "Apice",
+      "subscript": "Pedice",
+      "text": "Testo",
+      "cell": "Cella",
+      "column": "Colonna",
+      "align": "Allinea",
+      "alignRight": "Allinea a destra",
+      "alignLeft": "Allinea a sinistra",
+      "alignCenter": "Allinea al centro",
+      "justify": "Giustifica",
+      "fontColor": "Colore del carattere"
+    },
+    "json": {
+      "formatJSON": "Formato JSON",
+      "formatJSONSuccess": "Formattazione JSON completata con successo",
+      "invalidJSON": "JSON non valido: {message}"
+    }
   },
   "player": {
     "loop": "Ripeti",
@@ -847,7 +956,6 @@
       "chooseFile": "Scegli un file"
     },
     "toolNotFound": "Strumento non trovato",
-    "backToTools": "Torna agli Strumenti",
     "advancedSearch": {
       "name": "Ricerca avanzata",
       "description": "Ricerca nell'indice con pieno controllo delle fonti, dei filtri e delle opzioni",
@@ -923,7 +1031,11 @@
       "scopeAccess": "Attività di accesso",
       "eventAccessCreate": "Accedi - Crea",
       "eventAccessDelete": "Accedi - Elimina"
-    }
+    },
+    "toolAccessDefaults": "Impostazioni predefinite per l'accesso agli strumenti",
+    "toolAccessDefaultsDescription": "Configurare a quali strumenti i nuovi utenti possono accedere per impostazione predefinita",
+    "toolAccessDefaultsHelp": "Abilita gli strumenti per i nuovi utenti e, se lo desideri, rendi l'accesso obbligatorio in modo che gli utenti non amministratori non possano modificarlo.",
+    "accessDenied": "Non hai accesso a questo strumento."
   },
   "notifications": {
     "title": "Notifiche",
@@ -1016,5 +1128,25 @@
     "days": "Giorni{suffix}",
     "months": "Mesi{suffix}",
     "timeUnit": "Unità di tempo"
+  },
+  "quotas": {
+    "title": "Quota di archiviazione",
+    "openDescription": "Apri la finestra di dialogo relativa alla quota di spazio di archiviazione per questa cartella.",
+    "folderDescription": "Limita lo spazio di archiviazione per questa cartella.",
+    "shareLimit": "Limita lo spazio di archiviazione su questa condivisione",
+    "shareLimitDescription": "Conta i caricamenti effettuati tramite questo link. Incide anche sulla quota di origine del proprietario.",
+    "scopeLimit": "Limite di archiviazione per questa fonte",
+    "scopeLimitDescription": "Spazio di archiviazione per il compito di questo utente su questa fonte.",
+    "indexingDisabledMeterHint": "L'indicizzazione è disabilitata per questa fonte. È disponibile solo il monitoraggio dell'utilizzo.",
+    "meterIndexHint": "Utilizza la dimensione totale dei file indicizzati in questa cartella. Include le modifiche apportate al di fuori di FileBrowser al momento dell'aggiornamento dell'indice.",
+    "meterAccountedHint": "Conta solo i caricamenti, i salvataggi e le eliminazioni effettuati tramite FileBrowser.",
+    "meterIndexScope": "Dimensione indicizzata",
+    "meterAccounted": "Monitoraggio dell'utilizzo",
+    "usageCounting": "Conta l'utilizzo in base a",
+    "usageSyncPending": "L'utilizzo è ancora in fase di sincronizzazione con l'indice.",
+    "accountedFallback": "La dimensione indicizzata non è ancora pronta; fino a quando l’indice non sarà disponibile, verrà utilizzato il monitoraggio dell’utilizzo.",
+    "errors": {
+      "exceeded": "Quota di archiviazione superata"
+    }
   }
 }

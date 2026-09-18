@@ -53,6 +53,7 @@ userDefaults:
     lockPassword: false
     disableSettings: false
     disableUpdateNotifications: false
+    showAdvancedProfile: false
     permissions:
       api: false
       admin: false

@@ -43,6 +43,7 @@
     "requestTimedOut": "Die Anfrage ist abgelaufen. Überprüfen Sie Ihre Netzwerk- oder Reverse-Proxy-Einstellungen."
   },
   "files": {
+    "emptyFile": "Leere Datei",
     "lastModified": "Zuletzt geändert",
     "multipleSelectionEnabled": "Mehrfachauswahl aktiviert",
     "sortByLastModified": "Nach Änderungsdatum sortieren",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "Falsche Zugangsdaten",
     "failedLogin": "Anmeldung fehlgeschlagen",
     "invalidCredentials": "Ungültige Anmeldedaten angegeben",
-    "passkeyLogin": "Passkey verwenden"
+    "passkeyLogin": "Passkey verwenden",
+    "recaptchaRequired": "Recaptcha-Überprüfung erforderlich"
   },
   "prompts": {
+    "noTemplate": "Ihre Vorlage ist leer!",
+    "newFileTemplate": "Vorlage für neue Dateien",
+    "newFileTemplateMessage": "Fügen Sie hier neue Dateinamen hinzu, diese werden als Vorlage für die Erstellung neuer Dateien im Kontextmenü verwendet!",
+    "newFileTemplatePlaceholder": "Geben Sie einen Dateinamen mit Erweiterung ein",
     "deleteMessageSingle": "Sind Sie sicher, dass Sie diesen Ordner/diese Datei löschen möchten?",
     "deleteTitle": "Dateien löschen",
     "displayName": "Anzeigename:",
@@ -207,7 +212,6 @@
     "selectPath": "Pfad auswählen",
     "renameSuccess": "Artikel erfolgreich umbenannt!",
     "newFileSuccess": "Datei erfolgreich erstellt!",
-    "moveFailed": "Verschieben fehlgeschlagen",
     "operationFailed": "Operation fehlgeschlagen",
     "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen",
     "renameFailed": "Element kann nicht umbenannt werden",
@@ -294,7 +298,12 @@
     "accountDefaults": "Standardwerte für Konten",
     "disableUserSettings": "Seite „Benutzereinstellungen“ deaktivieren",
     "userDefaultFieldLockedFromConfig": "Diese Standardeinstellung wird in der Konfigurationsdatei festgelegt und kann hier nicht geändert werden.",
-    "sourceAccessDefaultsHelp": "Standard-Dateiberechtigungen für Quellen und neue Benutzer. Mit „Enforce“ wird ein Wert für alle Benutzer ohne Administratorrechte festgelegt."
+    "sourceAccessDefaultsHelp": "Standard-Dateiberechtigungen für Quellen und neue Benutzer. Mit „Enforce“ wird ein Wert für alle Benutzer ohne Administratorrechte festgelegt.",
+    "editAsYaml": "Als YAML bearbeiten",
+    "userEditPreferences": "Benutzereinstellungen",
+    "userEditTools": "Zugriff auf Werkzeuge",
+    "userEditToolsDescription": "Legen Sie fest, auf welche Tools dieser Benutzer zugreifen darf",
+    "userEditSidebarLinks": "Links in der Seitenleiste"
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",
@@ -315,10 +324,7 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "URL oder Pfad eingeben (z. B. /files/path oder https://example.com)",
     "linkIcon": "Link-Symbol",
-    "linksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
-    "linksUpdateFailed": "Links in der Seitenleiste können nicht aktualisiert werden",
     "sourceNotAccessible": "Diese Quelle ist für Sie nicht mehr zugänglich",
-    "noLinksYet": "Noch keine Links konfiguriert. Fügen Sie unten Ihren ersten Link hinzu.",
     "customizeShareLinksDescription": "Passen Sie die in der Seitenleiste angezeigten Links für diese Freigabe an. Durch Ziehen und Ablegen können Sie die Reihenfolge ändern.",
     "editLink": "Link bearbeiten",
     "selectShare": "Aktie auswählen",
@@ -327,7 +333,6 @@
     "pickIcon": "Wählen Sie eine Ikone",
     "pickIconDescription": "Suchen und wählen Sie ein Symbol aus der Bibliothek der Materialsymbole",
     "linkIconPlaceholder": "Optional können Sie einen Materialsymbolnamen angeben",
-    "switchMode": "Seitenleistenmodus wechseln",
     "showIndexedUsageDescription": "Anzeige der Nutzungsleiste, die aus den indizierten Dateien in der Quelle berechnet wurde.",
     "showDiskUsageDescription": "Anzeige der Nutzungsleiste anhand der vom Betriebssystem gemeldeten Festplatten-/Partitionsgröße. Diese Größe wird wahrscheinlich größer sein und schließt nicht indizierte Dateien ein.",
     "usageTextDisplay": "Welcher Verwendungstext soll angezeigt werden?",
@@ -335,7 +340,13 @@
     "usageTextDisk": "Nutzung, wie von der Festplatte/Partition gemeldet",
     "dividerNamePlaceholder": "Teilertext (leer lassen, um eine Zeile anzuzeigen)",
     "showIndexedUsage": "Verwendung gemäß Index anzeigen",
-    "showDiskUsage": "Nutzung nach Festplatte/Partition anzeigen"
+    "showDiskUsage": "Nutzung nach Festplatte/Partition anzeigen",
+    "sidebarLinkDefaults": "Standardwerte für Links in der Seitenleiste",
+    "sidebarLinkDefaultsDescription": "Konfigurieren Sie die Standard- und obligatorischen Links in der Seitenleiste für alle Benutzer.",
+    "sidebarLinkDefaultsHelp": "Dies sind die Standard-Links, die für alle neuen Benutzer hinzugefügt werden. Wenn Sie einen Link als obligatorisch festlegen, wird er für alle Benutzer hinzugefügt und kann von Benutzern ohne Administratorrechte nicht entfernt werden.",
+    "sidebarLinkDefaultSourceHelp": "Gilt nur, wenn der Benutzer Zugriff auf diese Quelle hat.",
+    "sidebarLinkDefaultsYamlInvalid": "Ungültiges YAML. Überprüfen Sie das Format und versuchen Sie es erneut.",
+    "switchMode": "Zwischen Links und Navigationsbaum umschalten"
   },
   "share": {
     "notice": "Hinweis: Wenn eine Freigabe erstellt wird, ist sie der Öffentlichkeit stärker ausgesetzt und unterliegt anderen Zugriffsregeln. Wenn Ihre Freigabe nicht sicher konfiguriert ist, kann jeder auf sie zugreifen.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "Bannerbild auswählen",
     "selectFaviconImage": "Favicon-Bild auswählen",
     "deleteFailed": "Freigabe konnte nicht gelöscht werden",
-    "readOnlySourceNotice": "Diese Quelle ist schreibgeschützt. Upload-Freigaben und Berechtigungen, die Dateien ändern, sind deaktiviert."
+    "readOnlySourceNotice": "Diese Quelle ist schreibgeschützt. Upload-Freigaben und Berechtigungen, die Dateien ändern, sind deaktiviert.",
+    "shareDefaults": "Standardwerte für Freigaben",
+    "shareDefaultsDescription": "Konfigurieren Sie die Standardfreigabeoptionen für neue Freigaben und setzen Sie Richtlinien für Benutzer ohne Administratorrechte durch."
   },
   "api": {
     "createdAt": "Erstellt am:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "Ihr Passwort ist erforderlich, um einen Authentifizierungscode zu generieren."
   },
   "general": {
+    "import": "Importieren",
+    "export": "Exportieren",
     "name": "Name",
     "path": "Pfad",
     "user": "Benutzer",
@@ -509,6 +524,8 @@
     "verify": "Überprüfen Sie{suffix}",
     "close": "Schließen Sie{suffix}",
     "copy": "Kopieren{suffix}",
+    "paste": "Einfügen",
+    "cut": "Ausschneiden",
     "create": "erstellen.{suffix}",
     "delete": "Löschen{suffix}",
     "download": "Herunterladen{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "Dateien anzeigen und auflisten",
     "source": "{prefix}Quelle{suffix}",
     "sources": "{prefix}Quellen{suffix}",
-    "enforce": "Durchsetzen{suffix}"
+    "enforce": "Durchsetzen{suffix}",
+    "limit": "Grenzwert{suffix}",
+    "remove": "Entfernen{suffix}",
+    "saved": "Gespeichert{suffix}",
+    "removed": "Entfernt{suffix}",
+    "back": "Zurück{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -629,7 +651,9 @@
     "defaultBehavior": "Standard-Aktion{suffix}",
     "deletedCascade": "Zugriffsregeln aus Pfad und allen Unterpfaden gelöscht!",
     "cascadeDelete": "Rekursives Löschen",
-    "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen."
+    "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen.",
+    "hasRules": "Zugriffsregeln konfiguriert",
+    "manageDescription": "Zugangsregeln für diesen Pfad."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",
@@ -652,6 +676,8 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Schaltfläche zum Schließen von Dialogen rechts anzeigen",
+    "promptRightCloseButtonDescription": "Die Schaltfläche zum Schließen von Dialogen auf der rechten Seite anstelle der linken Seite anzeigen",
     "hideFileExt": "Bestimmte Dateien ausblenden (nach Erweiterung)",
     "hideFileExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen. Erweiterungen, die in dieses Feld eingegeben werden, werden in der gesamten Benutzeroberfläche ausgeblendet (visuell, z.B. in der Liste oder im Dateibaum) – sie bleiben jedoch zugänglich.",
     "preferEditorForMarkdown": "Editor für Markdown-Dateien bevorzugen",
@@ -667,7 +693,6 @@
     "showQuickDownloadDescription": "Zeigen Sie ein Download-Symbol für den schnellen Zugriff auf jedes Dateielement an, das zum sofortigen Herunterladen angeklickt werden kann.",
     "disableUpdateNotifications": "Deaktivieren der Anzeige von Aktualisierungsmeldungen",
     "disableUpdateNotificationsDescription": "Deaktivieren Sie das Banner für Update-Benachrichtigungen, das für Admin-Benutzer in der Seitenleiste angezeigt wird.",
-    "disableHideSidebar": "Seitenleiste bei der Vorschau oder Bearbeitung von Dateien geöffnet lassen",
     "disableHideSidebarDescription": "Wenn diese Option aktiviert ist, wird die Seitenleiste nicht automatisch ausgeblendet, wenn Dateien in der Vorschau angezeigt oder bearbeitet werden.",
     "autoplayMedia": "Autoplay von Mediendateien bei der Anzeige",
     "autoplayMediaDescription": "Autoplay von Mediendateien bei der Anzeige. Dies funktioniert nur, wenn die Datei eine Mediendatei ist.",
@@ -679,8 +704,6 @@
     "hideSidebarFileActions": "Schaltfläche \"Dateiaktionen\" in der Seitenleiste ausblenden",
     "deleteWithoutConfirming": "Dateien ohne Rückfrage löschen",
     "deleteWithoutConfirmingDescription": "Dateien ohne Sicherheitsabfrage löschen. Dies funktioniert nur, wenn die Datei eine Mediendatei ist.",
-    "editorQuickSave": "Schaltfläche zum schnellen Speichern im Editor",
-    "editorQuickSaveDescription": "Der Texteditor zeigt immer das Speichersymbol an und blendet alle anderen Aktionen aus",
     "previewOfficeDescription": "Miniaturansichten für Office-Dateitypen in der Listenansicht anzeigen",
     "disableThumbnailPreviews": "Miniaturansichten für bestimmte Dateierweiterungen deaktivieren",
     "disableThumbnailPreviewsDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Miniaturvorschau deaktiviert werden soll (z. B. '.txt .html').",
@@ -729,15 +752,101 @@
     "defaultViewMode": "Standard-Anzeigemodus",
     "defaultViewModeDescription": "Standardansichtsmodus in neuen Browsern oder auf neuen Geräten. Überschreibt keine bereits lokal gespeicherten Anzeigeeinstellungen.",
     "defaultGallerySize": "Standardgröße der Miniaturansicht",
-    "defaultGallerySizeDescription": "Anfängliche Skalierung der Miniaturansichten in Galerien oder Listen (1–9) bei neuen Browsern oder Geräten. Überschreibt keine bereits lokal gespeicherten Größen."
+    "defaultGallerySizeDescription": "Anfängliche Skalierung der Miniaturansichten in Galerien oder Listen (1–9) bei neuen Browsern oder Geräten. Überschreibt keine bereits lokal gespeicherten Größen.",
+    "disableHideSidebar": "Seitenleiste immer anzeigen",
+    "editorQuickSave": "Schaltfläche „Schnellspeichern“ im Editor anzeigen",
+    "editorQuickSaveDescription": "Der Texteditor zeigt nur das Speichersymbol an und blendet alle anderen Funktionen aus.",
+    "showAdvancedProfile": "Erweiterte Profileinstellungen anzeigen",
+    "showAdvancedProfileDescription": "Zeige die nach Kategorien geordneten Profileinstellungen in der Seitenleiste anstelle der vereinfachten Profilansicht an.",
+    "accountOptions": "Kontooptionen"
   },
   "editor": {
-    "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
-    "saveAbortedMessage": "Der Speichervorgang wurde abgebrochen. Die aktive Datei der Anwendung ({activeFile}) stimmt nicht mit der Datei überein, die Sie zu speichern versuchen ({tryingToSave}).",
-    "fileSaved": "Datei gespeichert!",
-    "lines": "{count} Zeilen",
-    "words": "{count} Wörter",
-    "chars": "{count} Zeichen"
+    "stats": {
+      "lines": "{count} Zeilen",
+      "words": "{count} Wörter",
+      "chars": "{count} Zeichen"
+    },
+    "settings": {
+      "title": "Editor-Einstellungen",
+      "keybinding": {
+        "label": "Tastaturbelegung",
+        "description": "Legen Sie Ihre bevorzugten Tastaturkürzel fest!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Überlauf",
+        "description": "Wie weit der Editor über das Ende des Inhalts hinaus scrollen kann",
+        "none": "Keine",
+        "half": "Halb",
+        "full": "Voll"
+      },
+      "tabSize": {
+        "label": "Tab-Größe",
+        "description": "Wie viele Leerzeichen die 'TAB'-Taste standardmäßig einfügen soll"
+      },
+      "showIndentGuides": "Einrückungshilfen anzeigen",
+      "showIndentGuidesDescription": "Einrückungshilfen anzeigen, die Ihnen bei der Bearbeitung von verschachteltem Code eine bessere Orientierung bieten",
+      "showGutter": "Zeilennummernbereich anzeigen",
+      "showGutterDescription": "Der Container, in dem sich die Zeilennummern links befinden",
+      "fixedGutterWidth": "Feste Breite des Zeilennummernbereichs",
+      "fixedGutterWidthDescription": "Wenn deaktiviert, wird die Größe des Zeilennummernbereichs beim Scrollen je nach Anzahl der Zeilen in der Datei schrittweise vergrößert",
+      "showLineNumbers": "Zeilennummern anzeigen",
+      "showLineNumbersDescription": "Zeilennummern im linken Bereich anzeigen, der Bereich selbst wird nicht ausgeblendet",
+      "relativeLineNumbers": "Relative Zeilennummern",
+      "relativeLineNumbersDescription": "Zeilennummern relativ zur aktuellen Cursorposition anzeigen",
+      "customScrollbar": "Benutzerdefinierte Bildlaufleiste",
+      "customScrollbarDescription": "Die native Browser-Bildlaufleiste durch die integrierte Ace-Bildlaufleiste ersetzen",
+      "wrapContent": "Lange Zeilen im Editor umbrechen",
+      "wrapContentDescription": "Umbrüche den Editor-Inhalt, damit sehr lange Zeilen immer sichtbar bleiben",
+      "autocompletion": "Autovervollständigung",
+      "autocompletionDescription": "Aktiviert die Autovervollständigung durch manuelles Drücken von 'Strg + Leertaste'",
+      "liveAutocompletion": "Live-Autovervollständigung",
+      "liveAutocompletionDescription": "Wenn dies aktiviert ist, erscheint das schwebende Autovervollständigungsfeld automatisch während der Eingabe"
+    },
+    "uninitialized": "Editor konnte nicht initialisiert werden. Bitte neu laden.",
+    "saveAbortedMessage": "Speichervorgang abgebrochen. Die aktive Datei ({activeFile}) stimmt nicht mit der zu speichernden Datei ({tryingToSave}) überein.",
+    "splitView": "Geteilte Ansicht",
+    "exitSplitView": "Geteilte Ansicht beenden",
+    "md": {
+      "clipboardActions": "Zwischenablage-Aktionen",
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "strikethrough": "Durchgestrichen",
+      "heading": "Überschrift",
+      "quote": "Zitat",
+      "inlineCode": "Inline-Code",
+      "codeBlock": "Codeblock",
+      "bulletList": "Aufzählungsliste",
+      "numberedList": "Nummerierte Liste",
+      "taskList": "Aufgabenliste",
+      "horizontalRule": "Horizontale Linie",
+      "undo": "Rückgängig",
+      "redo": "Wiederholen",
+      "moreOptions": "Weitere Optionen",
+      "inlineMath": "Inline-Mathe",
+      "displayMath": "Angezeigte Mathe",
+      "highlight": "Hervorhebung",
+      "superscript": "Hochgestellt",
+      "subscript": "Tiefgestellt",
+      "text": "Text",
+      "cell": "Zelle",
+      "column": "Spalte",
+      "align": "Ausrichtung",
+      "alignRight": "Rechtsbündig",
+      "alignLeft": "Linksbündig",
+      "alignCenter": "Zentrieren",
+      "justify": "Blocksatz",
+      "fontColor": "Schriftfarbe"
+    },
+    "json": {
+      "formatJSON": "JSON-Format",
+      "formatJSONSuccess": "JSON wurde erfolgreich formatiert",
+      "invalidJSON": "Ungültiges JSON: {message}"
+    }
   },
   "player": {
     "loop": "Wiederholung",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "Vollständige Symbolbibliothek durchsuchen"
     },
     "toolNotFound": "Werkzeug nicht gefunden",
-    "backToTools": "Zurück zu Tools",
     "fileWatcher": {
       "name": "Dateiüberwacher",
       "description": "Überwachung und Verfolgung von Dateien in Echtzeit mit Latenzüberwachung",
@@ -914,7 +1022,11 @@
       "scopeAccess": "Zugriffsaktivität",
       "eventAccessCreate": "Zugriff erstellen",
       "eventAccessDelete": "Zugriff löschen"
-    }
+    },
+    "toolAccessDefaults": "Standard-Zugriffseinstellungen für Werkzeuge",
+    "toolAccessDefaultsDescription": "Legen Sie fest, auf welche Tools neue Benutzer standardmäßig zugreifen können",
+    "toolAccessDefaultsHelp": "Aktivieren Sie die Tools für neue Benutzer und legen Sie optional fest, dass Nicht-Administratoren diese nicht ändern können.",
+    "accessDenied": "Sie haben keinen Zugriff auf dieses Tool."
   },
   "messages": {
     "pathNotFound": "Pfad existiert nicht im Dateisystem",
@@ -1016,5 +1128,25 @@
     "days": "Tage{suffix}",
     "months": "Monate{suffix}",
     "timeUnit": "Zeiteinheit"
+  },
+  "quotas": {
+    "title": "Speicherkontingent",
+    "openDescription": "Öffnen Sie das Dialogfeld „Speicherkontingent“ für diesen Ordner.",
+    "folderDescription": "Speicherplatz für diesen Ordner begrenzen.",
+    "shareLimit": "Speicherplatz über diese Freigabe begrenzen",
+    "shareLimitDescription": "Zählt Uploads über diesen Link. Wird ebenfalls auf das Quellkontingent des Eigentümers angerechnet.",
+    "scopeLimit": "Speicherbegrenzung für diese Quelle",
+    "scopeLimitDescription": "Speicherplatzbegrenzung für die Aufgabe dieses Benutzers bei dieser Quelle.",
+    "indexingDisabledMeterHint": "Die Indizierung ist für diese Quelle deaktiviert. Es stehen lediglich Nutzungsdaten zur Verfügung.",
+    "meterIndexHint": "Verwendet die Gesamtgröße der indizierten Dateien in diesem Ordner. Berücksichtigt dabei auch Änderungen, die außerhalb von FileBrowser vorgenommen wurden, wenn der Index aktualisiert wird.",
+    "meterAccountedHint": "Zählt nur Uploads, Speichervorgänge und Löschvorgänge, die über den FileBrowser durchgeführt wurden.",
+    "meterIndexScope": "Indizierte Größe",
+    "meterAccounted": "Erfasste Nutzung",
+    "usageCounting": "Nutzung nach",
+    "usageSyncPending": "Die Nutzungsdaten werden noch mit dem Index synchronisiert.",
+    "accountedFallback": "Die indizierte Größe ist noch nicht verfügbar; bis zur Verfügbarkeit des Indexes wird die erfasste Nutzung herangezogen.",
+    "errors": {
+      "exceeded": "Speicherkontingent überschritten"
+    }
   }
 }

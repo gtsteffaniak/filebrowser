@@ -16,7 +16,19 @@ if (typeof window !== 'undefined') {
 const origin = window.location.origin;
 
 const settings = [
-  { id: 'profile', component: 'ProfileSettings', icon: 'person' },
+  {
+    id: 'profile',
+    component: 'ProfileSettings',
+    icon: 'person',
+    sections: [
+      { id: 'listingOptions', label: 'settings.listingOptions', icon: 'view_list' },
+      { id: 'thumbnailOptions', label: 'profileSettings.thumbnailOptions', icon: 'image' },
+      { id: 'sidebarOptions', label: 'profileSettings.sidebarOptions', icon: 'dock_to_right' },
+      { id: 'searchOptions', label: 'settings.searchOptions', icon: 'search' },
+      { id: 'fileViewerOptions', label: 'profileSettings.fileViewerOptions', icon: 'play_circle' },
+      { id: 'themeLanguage', label: 'profileSettings.themeAndLanguage', icon: 'palette' },
+    ],
+  },
   { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading', icon: 'cloud_download' },
   { id: 'notifications', label: 'notifications.title', component: 'NotificationsSettings', icon: 'notifications' },
   { id: 'shares', component: 'SharesSettings', permissions: { share: true }, icon: 'share' },
@@ -53,6 +65,7 @@ const previewViews = [
 // This ensures the linter checks the translation keys
 const getTools = () => [
   {
+    id: "sizeViewer",
     name: i18n.global.t("tools.sizeAnalyzer.name"),
     description: i18n.global.t("tools.sizeAnalyzer.description"),
     icon: "analytics",
@@ -60,6 +73,7 @@ const getTools = () => [
     component: "SizeViewer",
   },
   {
+    id: "duplicateFinder",
     name: i18n.global.t("tools.duplicateFinder.name"),
     description: i18n.global.t("tools.duplicateFinder.description"),
     icon: "content_copy",
@@ -67,6 +81,7 @@ const getTools = () => [
     component: "DuplicateFinder",
   },
   {
+    id: "advancedSearch",
     name: i18n.global.t("tools.advancedSearch.name"),
     description: i18n.global.t("tools.advancedSearch.description"),
     icon: "manage_search",
@@ -74,6 +89,7 @@ const getTools = () => [
     component: "AdvancedSearch",
   },
   {
+    id: "materialIconPicker",
     name: i18n.global.t("tools.materialIconPicker.name"),
     description: i18n.global.t("tools.materialIconPicker.description"),
     icon: "interests",
@@ -81,6 +97,7 @@ const getTools = () => [
     component: "MaterialIconPicker",
   },
   {
+    id: "fileWatcher",
     name: i18n.global.t("tools.fileWatcher.name"),
     description: i18n.global.t("tools.fileWatcher.description"),
     icon: "visibility",
@@ -88,6 +105,7 @@ const getTools = () => [
     component: "FileWatcher",
   },
   {
+    id: "activityViewer",
     name: i18n.global.t("tools.activityViewer.name"),
     description: i18n.global.t("tools.activityViewer.description"),
     icon: "monitoring",

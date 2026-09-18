@@ -18,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -178,6 +179,34 @@ func withAdminHelper(fn handleFunc) handleFunc {
 	})
 }
 
+// withSearchToolAccess requires advancedSearch, or sizeViewer when largest=true.
+func withSearchToolAccess(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		doc := state.EffectiveToolAccessDefaults()
+		toolID := users.ToolAdvancedSearch
+		if r.URL.Query().Get("largest") == "true" {
+			toolID = users.ToolSizeViewer
+		}
+		if !toolaccess.HasToolAccess(data.User, toolID, doc) {
+			return http.StatusForbidden, nil
+		}
+		return fn(w, r, data)
+	}
+}
+
+// withToolAccess requires the user to have access to at least one of the given tools.
+func withToolAccess(toolIDs ...users.ToolID) func(handleFunc) handleFunc {
+	return func(fn handleFunc) handleFunc {
+		return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+			doc := state.EffectiveToolAccessDefaults()
+			if !toolaccess.HasAnyToolAccess(data.User, toolIDs, doc) {
+				return http.StatusForbidden, nil
+			}
+			return fn(w, r, data)
+		}
+	}
+}
+
 // extractUserFromExpiredToken attempts to extract user information from an expired token
 // This is used by withOrWithoutUserHelper to get user context even when tokens are expired
 func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.User {
@@ -210,6 +239,10 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	}
 
 	if !token.Valid {
+		return nil
+	}
+
+	if tk.NotBefore != nil && !tk.VerifyNotBefore(time.Now(), false) {
 		return nil
 	}
 
@@ -349,7 +382,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 			}
 			var tk users.AuthToken
 			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
-				if !state.IsTokenRevoked( tokenStr) {
+				if !state.IsTokenRevoked(tokenStr) {
 					userValue, err := state.UserFromAPIToken(tk, tokenStr)
 					if err == nil && userValue.Permissions.Admin {
 						u := userValue
@@ -454,7 +487,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if state.IsTokenRevoked( data.Token) {
+		if state.IsTokenRevoked(data.Token) {
 			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
 		// ExpiresAt should always be set in valid tokens created by our system
@@ -705,11 +738,12 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 
 		// Log timeout warning at 80% of timeout duration
 		warningTime := time.Duration(float64(timeout) * 0.8)
+		method, path := r.Method, r.URL.Path
 		go func() {
 			select {
 			case <-time.After(warningTime):
 				if ctx.Err() == nil {
-					logger.Api(http.StatusRequestTimeout, fmt.Sprintf("Request approaching timeout (%.1fs/%.0fs): %s %s", warningTime.Seconds(), timeout.Seconds(), r.Method, r.URL.Path))
+					logger.Api(http.StatusRequestTimeout, fmt.Sprintf("Request approaching timeout (%.1fs/%.0fs): %s %s", warningTime.Seconds(), timeout.Seconds(), method, path))
 				}
 			case <-ctx.Done():
 				// Context finished before warning time

@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,12 +18,30 @@ import (
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/sharedefaults"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+func applyShareDefaultsPolicy(u *users.User, editable *share.ShareEditable, isCreate bool) (int, error) {
+	if u == nil || u.Permissions.Admin {
+		return 0, nil
+	}
+	defaults := state.GetShareDefaults()
+	enforced := state.GetEnforcedShareDefaults()
+	if isCreate {
+		sharedefaults.ApplyDefaultsToEditable(editable, defaults)
+	}
+	sharedefaults.NormalizeUploadShareEditable(editable)
+	if err := sharedefaults.ValidateEditableNotEnforced(editable, enforced, defaults); err != nil {
+		return http.StatusForbidden, err
+	}
+	sharedefaults.ApplyEnforcedDefaults(editable, defaults, enforced)
+	return 0, nil
+}
 
 // shareListHandler returns a list of all share links.
 // @Summary List share links
@@ -214,12 +233,19 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 // @Router /api/share [post]
 func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	var req share.SharePostBody
+	var bodyBytes []byte
 	var err error
 	if r.Body != nil {
-		if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-			return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+		bodyBytes, err = io.ReadAll(r.Body)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to read body: %w", err)
 		}
 		defer r.Body.Close()
+	}
+	if len(bodyBytes) > 0 {
+		if err = json.Unmarshal(bodyBytes, &req); err != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+		}
 	}
 
 	if req.Hash != "" {
@@ -231,26 +257,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	var expire int64
 
-	if req.Expires != "" {
-		var num int
-		num, err = strconv.Atoi(req.Expires)
+	if req.Hash == "" && req.Expires != "" {
+		expire, err = shareExpireFromRequest(req.Expires, req.Unit)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
-		var add time.Duration
-		switch req.Unit {
-		case "seconds":
-			add = time.Second * time.Duration(num)
-		case "minutes":
-			add = time.Minute * time.Duration(num)
-		case "days":
-			add = time.Hour * 24 * time.Duration(num)
-		default:
-			add = time.Hour * time.Duration(num)
-		}
-
-		expire = time.Now().Add(add).Unix()
 	}
 
 	hash, status, err2 := sharePasswordFromRequest(req.Password)
@@ -270,6 +281,22 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 		}
 		updateSourceName := beforeShare.GetSourceName()
+		mergedEditable, mergeErr := sharedefaults.MergeEditableUpdate(share.EditableFromShare(&beforeShare), bodyBytes)
+		if mergeErr != nil {
+			return http.StatusBadRequest, mergeErr
+		}
+		req.ShareEditable = mergedEditable
+		if req.Expires != "" {
+			expire, err = shareExpireFromRequest(req.Expires, req.Unit)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		} else {
+			expire = beforeShare.Expire
+		}
+		if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, false); policyErr != nil {
+			return status, policyErr
+		}
 		if updateSourceName != "" {
 			ownerPerms, permErr := d.User.FilePermsForSourceName(updateSourceName)
 			if permErr != nil {
@@ -296,9 +323,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			link.SourcePath = preservedSourcePath
 			link.PinnedItems = preservedPinned
 			link.Version = preservedVersion
-			if link.ShareType == "upload" && !req.AllowCreate {
-				link.AllowCreate = true
-			}
 			if shouldResetCounts {
 				link.ResetDownloadCounts()
 			}
@@ -311,6 +335,27 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		updatedShare, err3 := state.GetShare(req.Hash)
 		if err3 != nil {
 			return http.StatusInternalServerError, err3
+		}
+		if beforeShare.QuotaLimitBytes > 0 && updatedShare.QuotaLimitBytes <= 0 {
+			if qerr := state.DeleteShareQuotaCounter(updatedShare.Hash); qerr != nil {
+				return http.StatusInternalServerError, qerr
+			}
+		} else if updatedShare.QuotaLimitBytes > 0 {
+			if qerr := state.EnsureShareQuotaCounter(updatedShare.Hash); qerr != nil {
+				return http.StatusInternalServerError, qerr
+			}
+			if beforeShare.QuotaLimitBytes <= 0 {
+				idx := indexing.GetIndex(updatedShare.GetSourceName())
+				if idx != nil {
+					indexPath := updatedShare.Path
+					if indexPath == "" {
+						indexPath = "/"
+					}
+					if rbErr := state.RebuildShareQuotaUsage(updatedShare.Hash, updatedShare.GetSourceName(), indexPath); rbErr != nil {
+						logger.Warningf("rebuild share quota usage failed: %v", rbErr)
+					}
+				}
+			}
 		}
 		changes := activity.ShareUpdateChanges(&beforeShare, &updatedShare)
 		host, scheme := shareURLParams(r)
@@ -354,8 +399,8 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	storedPath := utils.JoinPathAsUnix(userscope, cleanPath)
 
-	if req.ShareType == "upload" && !req.AllowCreate {
-		req.AllowCreate = true
+	if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, true); policyErr != nil {
+		return status, policyErr
 	}
 	ownerPerms, permErr := d.User.FilePermsForSourceName(source.Name)
 	if permErr != nil {
@@ -620,7 +665,43 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			Target:   frontendShareInfo.SourceURL,
 		})
 	}
-	return RenderJSON(w, r, frontendShareInfo)
+	resp := struct {
+		share.FrontendShareInfo
+		QuotaLimitBytes     int64                       `json:"quotaLimitBytes,omitempty"`
+		QuotaUsedBytes      int64                       `json:"quotaUsedBytes,omitempty"`
+		QuotaAvailableBytes int64                       `json:"quotaAvailableBytes,omitempty"`
+		FolderQuotas        []publicFolderQuotaSnapshot `json:"folderQuotas,omitempty"`
+	}{
+		FrontendShareInfo: frontendShareInfo,
+		QuotaLimitBytes:   shareInfo.QuotaLimitBytes,
+	}
+	if shareInfo.QuotaLimitBytes > 0 {
+		used, reserved := state.GetShareQuotaUsage(hash)
+		resp.QuotaUsedBytes = used
+		avail := shareInfo.QuotaLimitBytes - used - reserved
+		if avail < 0 {
+			avail = 0
+		}
+		resp.QuotaAvailableBytes = avail
+	}
+	if sourceInfo, ok := settings.Config.Server.SourceMap[shareInfo.SourcePath]; ok {
+		sourceName := shareInfo.GetSourceName()
+		for _, fq := range state.ApplicableFolderQuotas(sourceInfo.Path, shareInfo.Path, shareInfo.UserID) {
+			snap := state.FolderQuotaSnapshot(fq, sourceName)
+			resp.FolderQuotas = append(resp.FolderQuotas, publicFolderQuotaSnapshot{
+				LimitBytes:    snap.LimitBytes,
+				UsedBytes:     snap.UsedBytes,
+				ReservedBytes: snap.ReservedBytes,
+			})
+		}
+	}
+	return RenderJSON(w, r, resp)
+}
+
+type publicFolderQuotaSnapshot struct {
+	LimitBytes    int64 `json:"limitBytes"`
+	UsedBytes     int64 `json:"usedBytes,omitempty"`
+	ReservedBytes int64 `json:"reservedBytes,omitempty"`
 }
 
 type sharePinnedItemPatchRequest struct {
@@ -736,6 +817,27 @@ func sharePasswordFromRequest(password *string) ([]byte, int, error) {
 		return nil, 0, nil
 	}
 	return getSharePasswordHash(*password)
+}
+
+func shareExpireFromRequest(expires, unit string) (int64, error) {
+	num, err := strconv.Atoi(expires)
+	if err != nil {
+		return 0, err
+	}
+
+	var add time.Duration
+	switch unit {
+	case "seconds":
+		add = time.Second * time.Duration(num)
+	case "minutes":
+		add = time.Minute * time.Duration(num)
+	case "days":
+		add = time.Hour * 24 * time.Duration(num)
+	default:
+		add = time.Hour * time.Duration(num)
+	}
+
+	return time.Now().Add(add).Unix(), nil
 }
 
 // applySharePasswordUpdate sets or preserves password credentials on share update.

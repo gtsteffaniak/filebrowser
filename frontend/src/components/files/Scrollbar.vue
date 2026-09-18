@@ -34,12 +34,21 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { globalVars } from "@/utils/constants";
+import { isHtmlMimeType } from "@/utils/mimetype";
 
 const offsetFromBottomListing = 110;
 const offsetFromBottomFull = 75;
+const offsetFromBottomEmbedded = 12;
 
 export default {
   name: "Scrollbar",
+  props: {
+    // to bypass the currentView for the editor split-view where currentView is editor
+    forceEnabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       isDragging: false,
@@ -83,11 +92,17 @@ export default {
       return this.isFolder ? 'folder' : 'description';
     },
     showScrollbar() {
+      if (this.forceEnabled) return true;
       const view = getters.currentView();
+      if (view === 'markdownViewer' && isHtmlMimeType(state.req?.type)) return false;
       return view === 'listingView' || view === 'settings' || view === 'tools' || view === 'markdownViewer';
     },
   },
   methods: {
+    getBottomOffset() {
+      if (this.forceEnabled) return offsetFromBottomEmbedded;
+      return getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
+    },
     handleResize() {
       if (!this.isReady) return;
       // Force scroll event to re-compute thumb position
@@ -122,7 +137,9 @@ export default {
       this.scrollTimeout = setTimeout(() => {
         if (!this.isDragging && !this.isHovering) {
           this.isVisible = false;
-          mutations.updateListing({ ...state.listing, scrolling: false });
+          if (!this.forceEnabled) {
+            mutations.updateListing({ ...state.listing, scrolling: false });
+          }
         }
       }, 800);
     },
@@ -146,7 +163,7 @@ export default {
       if (scrollableHeight <= 0) return;
       const scrollRatio = scrollTop / scrollableHeight;
       const thumbHeight = thumb.clientHeight;
-      const maxThumbTop = scrollbar.clientHeight - thumbHeight - (getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull);
+      const maxThumbTop = scrollbar.clientHeight - thumbHeight - this.getBottomOffset();
       const thumbPosition = scrollRatio * maxThumbTop;
 
       // Use transform3d for better performance
@@ -162,8 +179,12 @@ export default {
         const content = this.$refs.wrapper;
         this.isVisible = true;
         this.scheduleHide();
-        mutations.setPreviewSource("");
         this.updateThumbPosition(content.scrollTop);
+        if (this.forceEnabled) {
+          this.scrollFrame = null;
+          return;
+        }
+        mutations.setPreviewSource("");
         mutations.updateListing({
           ...state.listing,
           scrolling: true,
@@ -196,7 +217,7 @@ export default {
 
       const deltaY = clientY - this.startY;
       const scrollableHeight = content.scrollHeight - content.clientHeight;
-      const offsetFromBottom = getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
+      const offsetFromBottom = this.getBottomOffset();
       const scrollbarHeight = scrollbar.clientHeight - thumb.clientHeight - offsetFromBottom;
       const scrollRatio = scrollableHeight / scrollbarHeight;
 

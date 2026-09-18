@@ -43,6 +43,7 @@
     "requestTimedOut": "A solicitação atingiu o tempo limite. Verifique as configurações da sua rede ou do proxy reverso."
   },
   "files": {
+    "emptyFile": "Arquivo vazio",
     "lastModified": "Última modificação",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última modificação",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "Ops! Dados incorretos.",
     "failedLogin": "Falha no login",
     "invalidCredentials": "Credenciais inválidas fornecidas",
-    "passkeyLogin": "Usar chave de acesso"
+    "passkeyLogin": "Usar chave de acesso",
+    "recaptchaRequired": "Desafio Recaptcha necessário"
   },
   "prompts": {
+    "noTemplate": "Seu modelo está vazio!",
+    "newFileTemplate": "Modelo de novo arquivo",
+    "newFileTemplateMessage": "Adicione novos nomes de arquivos aqui, eles serão usados como modelo para criar novos arquivos no menu de contexto!",
+    "newFileTemplatePlaceholder": "Insira um nome de arquivo com extensão",
     "deleteMessageSingle": "Deseja apagar esta pasta/arquivo?",
     "deleteTitle": "Apagar arquivos",
     "displayName": "Nome:",
@@ -207,7 +212,6 @@
     "selectPath": "Selecionar caminho",
     "renameSuccess": "Item renomeado com sucesso!",
     "newFileSuccess": "Arquivo criado com sucesso!",
-    "moveFailed": "Falha ao mover",
     "operationFailed": "Falha na operação",
     "partialSuccess": "Algumas operações falharam: {succeeded} foi bem-sucedido, {failed} falhou",
     "renameFailed": "Falha ao renomear o item",
@@ -294,7 +298,12 @@
     "accountDefaults": "Configurações padrão da conta",
     "disableUserSettings": "Desativar a página de configurações do usuário",
     "userDefaultFieldLockedFromConfig": "Essa configuração padrão é definida no arquivo de configuração e não pode ser alterada aqui.",
-    "sourceAccessDefaultsHelp": "Permissões padrão de arquivo aplicadas a fontes e novos usuários. A opção “Enforçar” define um valor fixo para todos os usuários que não sejam administradores."
+    "sourceAccessDefaultsHelp": "Permissões padrão de arquivo aplicadas a fontes e novos usuários. A opção “Enforçar” define um valor fixo para todos os usuários que não sejam administradores.",
+    "editAsYaml": "Editar como YAML",
+    "userEditPreferences": "Preferências do usuário",
+    "userEditTools": "Acesso às ferramentas",
+    "userEditToolsDescription": "Configure quais ferramentas esse usuário pode acessar",
+    "userEditSidebarLinks": "Links da barra lateral"
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
@@ -315,10 +324,7 @@
     "linkUrl": "URL do link",
     "linkUrlPlaceholder": "Insira o URL ou o caminho (por exemplo, /files/path ou https://example.com)",
     "linkIcon": "Ícone de link",
-    "linksUpdatedSuccess": "Os links da barra lateral foram atualizados com sucesso!",
-    "linksUpdateFailed": "Falha ao atualizar os links da barra lateral",
     "sourceNotAccessible": "Essa fonte não está mais acessível para você",
-    "noLinksYet": "Ainda não há links configurados. Adicione seu primeiro link abaixo.",
     "customizeShareLinksDescription": "Personalize os links mostrados na barra lateral para esse compartilhamento. Arraste e solte para reordenar.",
     "editLink": "Editar link",
     "selectShare": "Selecionar compartilhamento",
@@ -327,7 +333,6 @@
     "pickIcon": "Escolha um ícone",
     "pickIconDescription": "Pesquise e selecione um ícone na biblioteca de ícones de materiais",
     "linkIconPlaceholder": "Opcionalmente, especifique um nome de ícone de material",
-    "switchMode": "Mudar modo da barra lateral",
     "showIndexedUsageDescription": "Exibir barra de uso calculada a partir de arquivos indexados na origem.",
     "showDiskUsageDescription": "Exibe a barra de uso do tamanho do disco/partição conforme relatado pelo sistema operacional. Esse tamanho provavelmente será maior e inclui arquivos não indexados.",
     "usageTextDisplay": "Qual texto de uso deve ser exibido?",
@@ -335,7 +340,13 @@
     "usageTextDisk": "uso conforme relatado pelo disco/partição",
     "dividerNamePlaceholder": "Texto do divisor (deixe em branco para mostrar uma linha)",
     "showIndexedUsage": "Mostrar uso conforme indexado",
-    "showDiskUsage": "Mostrar o uso conforme relatado pelo disco/partição"
+    "showDiskUsage": "Mostrar o uso conforme relatado pelo disco/partição",
+    "sidebarLinkDefaults": "Configurações padrão dos links da barra lateral",
+    "sidebarLinkDefaultsDescription": "Configure os links padrão e obrigatórios da barra lateral para todos os usuários.",
+    "sidebarLinkDefaultsHelp": "Esses são os links padrão que serão adicionados para todos os novos usuários. Se você tornar um link obrigatório, ele será adicionado para todos os usuários e não poderá ser removido por usuários que não sejam administradores.",
+    "sidebarLinkDefaultSourceHelp": "Aplica-se apenas quando o usuário tem acesso a essa fonte.",
+    "sidebarLinkDefaultsYamlInvalid": "YAML inválido. Verifique o formato e tente novamente.",
+    "switchMode": "Alternar entre os links e a árvore de navegação"
   },
   "share": {
     "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "Selecione a imagem do banner",
     "selectFaviconImage": "Selecione a imagem do favicon",
     "deleteFailed": "Falha ao excluir o compartilhamento",
-    "readOnlySourceNotice": "Essa fonte é somente leitura. Os compartilhamentos de upload e as permissões que modificam arquivos estão desativados."
+    "readOnlySourceNotice": "Essa fonte é somente leitura. Os compartilhamentos de upload e as permissões que modificam arquivos estão desativados.",
+    "shareDefaults": "Compartilhar configurações padrão",
+    "shareDefaultsDescription": "Configure as opções padrão para novos compartilhamentos e aplique políticas para usuários que não sejam administradores."
   },
   "api": {
     "createdAt": "Criado em:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "Sua senha é necessária para gerar um código de autenticação."
   },
   "general": {
+    "import": "Importar",
+    "export": "Exportar",
     "name": "Nome",
     "path": "Caminho",
     "user": "Usuário",
@@ -509,6 +524,8 @@
     "verify": "Verificar{suffix}",
     "close": "Fechar{suffix}",
     "copy": "Cópia{suffix}",
+    "paste": "Colar",
+    "cut": "Cortar",
     "create": "Criar{suffix}",
     "delete": "Excluir{suffix}",
     "download": "Baixar{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "Visualizar e listar arquivos",
     "source": "{prefix}Fonte{suffix}",
     "sources": "{prefix}Fontes{suffix}",
-    "enforce": "Aplicar{suffix}"
+    "enforce": "Aplicar{suffix}",
+    "limit": "Limite{suffix}",
+    "remove": "Remover{suffix}",
+    "saved": "Salvo{suffix}",
+    "removed": "Removido{suffix}",
+    "back": "Voltar{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -629,7 +651,9 @@
     "defaultBehavior": "Ação padrão{suffix}",
     "deletedCascade": "Regras de acesso excluídas do caminho e de todos os subcaminhos!",
     "cascadeDelete": "Exclusão recursiva",
-    "cascadeDeleteDescription": "Quando ativada, a exclusão de uma regra de acesso também a removerá de todos os subdiretórios. Isso permite remover completamente um usuário ou grupo de toda a árvore de diretórios."
+    "cascadeDeleteDescription": "Quando ativada, a exclusão de uma regra de acesso também a removerá de todos os subdiretórios. Isso permite remover completamente um usuário ou grupo de toda a árvore de diretórios.",
+    "hasRules": "Regras de acesso configuradas",
+    "manageDescription": "Regras de acesso aberto para este caminho."
   },
   "fileLoading": {
     "title": "Uploads e downloads",
@@ -652,6 +676,8 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Mostrar botão de fechamento de prompts à direita",
+    "promptRightCloseButtonDescription": "Mostrar o botão de fechamento dos prompts no lado direito em vez do esquerdo",
     "hideFileExt": "Ocultar certos arquivos (por extensão)",
     "hideFileExtDescription": "Uma lista de extensões de arquivo separadas por espaços. As extensões inseridas neste campo serão ocultadas em toda a interface do usuário (visualmente, como na lista ou árvore de arquivos) — Continuam acessíveis.",
     "preferEditorForMarkdown": "Preferir editor primeiro para arquivos Markdown",
@@ -667,7 +693,6 @@
     "showQuickDownloadDescription": "Mostrar o ícone de download para acesso rápido em cada item de arquivo que pode ser clicado para fazer o download instantaneamente.",
     "disableUpdateNotifications": "Desativar a exibição da notificação de atualização",
     "disableUpdateNotificationsDescription": "Desative o banner de notificação de atualização que aparece para os usuários administradores na barra lateral.",
-    "disableHideSidebar": "Mantenha a barra lateral aberta ao visualizar ou editar arquivos",
     "disableHideSidebarDescription": "Quando ativada, a barra lateral não será ocultada automaticamente ao visualizar ou editar arquivos.",
     "autoplayMedia": "Reprodução automática de arquivos de mídia durante a visualização",
     "autoplayMediaDescription": "Reprodução automática de arquivos de mídia durante a visualização. Isso só funcionará se o arquivo for um arquivo de mídia.",
@@ -679,8 +704,6 @@
     "hideSidebarFileActions": "Ocultar o botão de ações de arquivo na barra lateral",
     "deleteWithoutConfirming": "Excluir arquivos sem prompt de confirmação",
     "deleteWithoutConfirmingDescription": "Excluir arquivos sem prompt de confirmação. Isso só funcionará se o arquivo for um arquivo de mídia.",
-    "editorQuickSave": "Botão de salvamento rápido no editor",
-    "editorQuickSaveDescription": "O editor de texto sempre mostrará o ícone de salvar, ocultando quaisquer outras ações",
     "previewOfficeDescription": "Mostrar miniaturas de tipos de arquivos de escritório na exibição de listagem",
     "disableThumbnailPreviews": "Desativar miniaturas para determinadas extensões de arquivo",
     "disableThumbnailPreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações de miniaturas (por exemplo, '.txt .html').",
@@ -729,15 +752,101 @@
     "defaultViewMode": "Modo de visualização padrão",
     "defaultViewModeDescription": "Modo de visualização inicial em novos navegadores ou dispositivos. Não substitui as preferências de visualização já salvas localmente.",
     "defaultGallerySize": "Tamanho padrão da miniatura",
-    "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já salvos localmente."
+    "defaultGallerySizeDescription": "Escala inicial das miniaturas da galeria ou da lista (1–9) em novos navegadores ou dispositivos. Não substitui os tamanhos já salvos localmente.",
+    "disableHideSidebar": "Sempre exibir a barra lateral",
+    "editorQuickSave": "Mostrar o botão de salvamento rápido no editor",
+    "editorQuickSaveDescription": "O editor de texto exibirá apenas o ícone de salvar, ocultando todas as outras ações",
+    "showAdvancedProfile": "Mostrar configurações avançadas do perfil",
+    "showAdvancedProfileDescription": "Mostrar as configurações do perfil categorizadas na barra lateral, em vez da visualização simplificada do perfil.",
+    "accountOptions": "Opções da conta"
   },
   "editor": {
-    "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
-    "saveAbortedMessage": "Operação de salvamento abortada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
-    "fileSaved": "Arquivo salvo!",
-    "lines": "{count} linhas",
-    "words": "{count} palavras",
-    "chars": "{count} caracteres"
+    "stats": {
+      "lines": "{count} linhas",
+      "words": "{count} palavras",
+      "chars": "{count} caracteres"
+    },
+    "settings": {
+      "title": "Configurações do editor",
+      "keybinding": {
+        "label": "Atalhos de teclado",
+        "description": "Defina seus atalhos de teclado preferidos!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Rolagem excessiva",
+        "description": "Quanto o editor pode rolar além do final do conteúdo",
+        "none": "Nenhum",
+        "half": "Metade",
+        "full": "Completo"
+      },
+      "tabSize": {
+        "label": "Tamanho do Tab",
+        "description": "Quantos espaços a tecla 'TAB' deve fazer por padrão"
+      },
+      "showIndentGuides": "Mostrar guias de indentação",
+      "showIndentGuidesDescription": "Mostra guias de indentação, o que lhe dá uma melhor orientação ao editar código aninhado",
+      "showGutter": "Mostrar margem",
+      "showGutterDescription": "O contêiner onde os números de linha estão à esquerda",
+      "fixedGutterWidth": "Largura de margem fixa",
+      "fixedGutterWidthDescription": "Quando desativado, aumenta o tamanho da margem gradualmente durante a rolagem, dependendo do número de linhas do arquivo",
+      "showLineNumbers": "Mostrar números de linha",
+      "showLineNumbersDescription": "Mostra números de linha na margem esquerda, não oculta a própria margem",
+      "relativeLineNumbers": "Números de linha relativos",
+      "relativeLineNumbersDescription": "Mostra números de linha relativos à posição atual do cursor",
+      "customScrollbar": "Barra de rolagem personalizada",
+      "customScrollbarDescription": "Substituir a barra de rolagem nativa do navegador pela integrada do Ace",
+      "wrapContent": "Quebrar linhas longas no editor",
+      "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
+      "autocompletion": "Preenchimento automático",
+      "autocompletionDescription": "Ativa o preenchimento automático pressionando manualmente 'ctrl + space'",
+      "liveAutocompletion": "Preenchimento automático ao vivo",
+      "liveAutocompletionDescription": "Quando isto está ativado, a caixa flutuante de preenchimento automático aparecerá automaticamente enquanto você digita"
+    },
+    "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",
+    "saveAbortedMessage": "Operação de salvamento cancelada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
+    "splitView": "Visualização dividida",
+    "exitSplitView": "Sair da visualização dividida",
+    "md": {
+      "clipboardActions": "Ações da área de transferência",
+      "bold": "Negrito",
+      "italic": "Itálico",
+      "strikethrough": "Tachado",
+      "heading": "Título",
+      "quote": "Citação",
+      "inlineCode": "Código em linha",
+      "codeBlock": "Bloco de código",
+      "bulletList": "Lista com marcadores",
+      "numberedList": "Lista numerada",
+      "taskList": "Lista de tarefas",
+      "horizontalRule": "Linha horizontal",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "moreOptions": "Mais opções",
+      "inlineMath": "Matemática em linha",
+      "displayMath": "Matemática em bloco",
+      "highlight": "Destaque",
+      "superscript": "Sobrescrito",
+      "subscript": "Subscrito",
+      "text": "Texto",
+      "cell": "Célula",
+      "column": "Coluna",
+      "align": "Alinhar",
+      "alignRight": "Alinhar à direita",
+      "alignLeft": "Alinhar à esquerda",
+      "alignCenter": "Alinhar ao centro",
+      "justify": "Justificar",
+      "fontColor": "Cor da fonte"
+    },
+    "json": {
+      "formatJSON": "Formato JSON",
+      "formatJSONSuccess": "Formatação em JSON concluída com sucesso",
+      "invalidJSON": "JSON inválido: {message}"
+    }
   },
   "player": {
     "loop": "Repetir",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "Navegue pela biblioteca completa de ícones"
     },
     "toolNotFound": "Ferramenta não encontrada",
-    "backToTools": "Voltar para Ferramentas",
     "fileWatcher": {
       "name": "Observador de arquivos",
       "description": "Assista e acompanhe arquivos em tempo real com monitoramento de latência",
@@ -914,7 +1022,11 @@
       "scopeAccess": "Atividade de acesso",
       "eventAccessCreate": "Acessar criar",
       "eventAccessDelete": "Acessar/Excluir"
-    }
+    },
+    "toolAccessDefaults": "Configurações padrão de acesso às ferramentas",
+    "toolAccessDefaultsDescription": "Configure quais ferramentas os novos usuários podem acessar por padrão",
+    "toolAccessDefaultsHelp": "Habilite as ferramentas para novos usuários e, opcionalmente, imponha restrições de acesso para que usuários sem privilégios de administrador não possam alterá-las.",
+    "accessDenied": "Você não tem acesso a esta ferramenta."
   },
   "messages": {
     "pathNotFound": "O caminho não existe no sistema de arquivos",
@@ -1016,5 +1128,25 @@
     "days": "Dias{suffix}",
     "months": "Meses{suffix}",
     "timeUnit": "Unidade de tempo"
+  },
+  "quotas": {
+    "title": "Cota de armazenamento",
+    "openDescription": "Abra a caixa de diálogo de cota de armazenamento desta pasta.",
+    "folderDescription": "Limite o espaço de armazenamento desta pasta.",
+    "shareLimit": "Limitar o espaço de armazenamento neste compartilhamento",
+    "shareLimitDescription": "Conta os uploads feitos por meio deste link. Também conta para a cota de origem do proprietário.",
+    "scopeLimit": "Limite de armazenamento para esta fonte",
+    "scopeLimitDescription": "Limite de armazenamento para a tarefa deste usuário nesta fonte.",
+    "indexingDisabledMeterHint": "A indexação está desativada nesta fonte. Apenas o uso rastreado está disponível.",
+    "meterIndexHint": "Utiliza o tamanho total dos arquivos indexados nesta pasta. Inclui as alterações feitas fora do FileBrowser quando o índice é atualizado.",
+    "meterAccountedHint": "Conta apenas os envios, salvamentos e exclusões realizados por meio do FileBrowser.",
+    "meterIndexScope": "Tamanho indexado",
+    "meterAccounted": "Uso monitorado",
+    "usageCounting": "Contar o uso por",
+    "usageSyncPending": "Os dados de uso ainda estão sendo sincronizados com o índice.",
+    "accountedFallback": "O tamanho indexado ainda não está pronto; estamos utilizando os dados de uso monitorados até que o índice esteja disponível.",
+    "errors": {
+      "exceeded": "Quota de armazenamento excedida"
+    }
   }
 }

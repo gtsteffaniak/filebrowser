@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bufio"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
@@ -143,6 +145,12 @@ func ErrToStatus(err error) int {
 	case errors.Is(err, preview.ErrUnsupportedFormat):
 		return http.StatusUnsupportedMediaType
 	default:
+		if qe, ok := quota.AsError(err); ok {
+			if qe.Code == quota.CodeLengthRequired {
+				return http.StatusBadRequest
+			}
+			return http.StatusInsufficientStorage
+		}
 		return http.StatusInternalServerError
 	}
 }
@@ -207,6 +215,14 @@ func (w *ResponseWriterWrapper) Flush() {
 	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
 		flusher.Flush()
 	}
+}
+
+// Hijack implements http.Hijacker so WebSocket upgrades (e.g. Vite HMR) work through LoggingMiddleware.
+func (w *ResponseWriterWrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacker, ok := w.ResponseWriter.(http.Hijacker); ok {
+		return hijacker.Hijack()
+	}
+	return nil, nil, fmt.Errorf("underlying ResponseWriter does not support hijacking")
 }
 
 // SetUserInResponseWriter records the authenticated username on the wrapper when present.

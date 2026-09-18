@@ -1,4 +1,4 @@
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, openProfileSettings, test } from "../test-setup";
 
 test("sidebar links", async({ page, checkForErrors }) => {
   await page.goto("/files/");
@@ -30,9 +30,7 @@ test("adjusting theme colors", async({ page, checkForErrors }) => {
 
   // Verify the page title
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('i[aria-label="settings"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-  await page.locator('div[aria-label="themeLanguage"]').click();
+  await openProfileSettings(page);
   await page.locator('button', { hasText: 'violet' }).click();
   const popup = await checkForNotification(page, 'Settings updated!');
   await expect(popup).toHaveText('Settings updated!');

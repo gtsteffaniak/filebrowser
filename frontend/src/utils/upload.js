@@ -5,7 +5,10 @@ import { getters } from "@/store/getters";
 import {
   notifyUploadComplete,
   notifyUploadError,
+  notifyOperationError,
 } from "@/utils/appNotifications";
+import { notify } from "@/notify";
+import { rejectUploadIfQuotaExceeded, isQuotaExceededError, extractQuotaErrorMessage } from "@/utils/uploadQuota";
 
 /**
  * Upload session token for isolating concurrent uploads to the same path.
@@ -85,6 +88,7 @@ class UploadManager {
     this.progressTimeouts = new Map(); // Track progress timeouts per upload ID
     this.lastUploadActivityTime = null;
     this.PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without upload activity = pause
+    this.quotaBatchAborted = false;
   }
 
   setOnConflict(handler) {
@@ -98,6 +102,12 @@ class UploadManager {
     }
     if (basePath.slice(-1) !== "/") {
       basePath += "/";
+    }
+
+    this.quotaBatchAborted = false;
+
+    if (await rejectUploadIfQuotaExceeded(basePath, items)) {
+      return;
     }
 
     // Pre-upload conflict check for top-level directories
@@ -279,17 +289,21 @@ class UploadManager {
       return;
     }
 
-    const maxConcurrent = state.user.fileLoading?.maxConcurrentUpload || 3;
-    while (
-      this.activeUploads < maxConcurrent &&
-      this.hasPending()
-    ) {
-      const upload = this.queue.find((item) => item.status === "pending");
-      if (upload) {
-        if (this.overwriteAll) {
-          upload.overwrite = true;
+    if (this.quotaBatchAborted) {
+      // Still run batch bookkeeping below; only block scheduling new uploads.
+    } else {
+      const maxConcurrent = state.user.fileLoading?.maxConcurrentUpload || 3;
+      while (
+        this.activeUploads < maxConcurrent &&
+        this.hasPending()
+      ) {
+        const upload = this.queue.find((item) => item.status === "pending");
+        if (upload) {
+          if (this.overwriteAll) {
+            upload.overwrite = true;
+          }
+          this.start(upload.id);
         }
-        this.start(upload.id);
       }
     }
 
@@ -336,11 +350,14 @@ class UploadManager {
     upload.status = "uploading";
 
     try {
+      let promise;
       if (getters.isShare()) {
-        await resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
+        promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       } else {
-        await resourcesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
+        promise = resourcesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       }
+      upload.xhrPromise = promise;
+      await promise;
 
       upload.status = "completed";
       upload.progress = 100;
@@ -718,7 +735,34 @@ class UploadManager {
     return true;
   }
 
+  handleQuotaExceededBatch(err, upload) {
+    const message = extractQuotaErrorMessage(err);
+    if (!this.quotaBatchAborted) {
+      this.quotaBatchAborted = true;
+      for (const item of this.queue) {
+        if (item.status === "uploading") {
+          this.abortUpload(item);
+        }
+        if (item.status === "pending" || item.status === "uploading") {
+          item.status = "error";
+          item.errorDetails = message;
+          item.connectionIssue = false;
+        }
+      }
+      notify.showError(message);
+      notifyOperationError(message);
+    }
+    upload.status = "error";
+    upload.connectionIssue = false;
+    upload.errorDetails = message;
+  }
+
   async handleUploadError(upload, err) {
+    if (isQuotaExceededError(err)) {
+      this.handleQuotaExceededBatch(err, upload);
+      return;
+    }
+
     // Check if the error is a 409 Conflict
     if (err?.response?.status === 409) {
       upload.status = "conflict";

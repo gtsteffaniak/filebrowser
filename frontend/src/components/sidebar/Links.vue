@@ -7,10 +7,22 @@
       <i :class="{ 'disabled': !isLoggedIn }"
         aria-label="Navigate Home"
         @click="goHome()" class="material-symbols action">home</i>
-      <!-- Mode button (is the title) -->
-      <button type="button" @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
-        {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
-      </button>
+      <span
+        class="sidebar-mode-toggle-wrap item"
+        @mouseenter="showTooltip($event, $t('sidebar.switchMode'))"
+        @mouseleave="hideTooltip"
+      >
+        <ToggleSwitch
+          class="sidebar-mode-toggle"
+          variant="neutral"
+          :model-value="mode === 'navigation'"
+          off-icon="format_list_bulleted"
+          on-icon="link"
+          :name="$t('general.links')"
+          :aria-label="$t('sidebar.switchMode')"
+          @update:model-value="onSidebarModeToggle"
+        />
+      </span>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
         @click="showEditShareHover" class="material-symbols action">edit</i>
@@ -98,7 +110,8 @@
                   v-else
                   :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                   :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
-                  :max="sourceInfo[link.sourceName]?.total || 1" 
+                  :val-background="getProgressBarReserved(sourceInfo[link.sourceName] || {})"
+                  :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})" 
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -176,7 +189,8 @@
               <ProgressBar 
                 v-else
                 :val="getProgressBarValue(activeSourceLink, activeSourceInfo)" 
-                :max="(activeSourceInfo).total || 1" 
+                :val-background="getProgressBarReserved(activeSourceInfo)"
+                :max="getProgressBarMax(activeSourceLink, activeSourceInfo)" 
                 :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
@@ -218,10 +232,12 @@ import { getIconClass } from "@/utils/material-symbols";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
+import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
 import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 export default {
   name: "SidebarLinks",
   components: {
@@ -230,6 +246,7 @@ export default {
     ShareInfo,
     FileTree,
     ExpandDropdown,
+    ToggleSwitch,
   },
   data() {
     return {
@@ -361,12 +378,11 @@ export default {
     },
     getIconClass,
     hasUsageInfo(link) {
-      // Check if usage info should be displayed for this link (source only; source-minimal hides usage)
-      // Returns true when link is accessible and has usage > 0
       if (!this.isSourceCategory(link.category) || !link.sourceName) return false;
       if (!this.hasSourceInfo || !this.isLinkAccessible(link)) return false;
       if (link.category === 'source-minimal') return false;
       const info = this.sourceInfo[link.sourceName] || {};
+      if (info.scopeQuota?.limitBytes > 0) return true;
       return (info.used || 0) > 0 || (info.usedAlt || 0) > 0;
     },
     getLinkHref(link) {
@@ -440,7 +456,15 @@ export default {
         }
         return false;
       }
-      // Tools and custom links are always accessible
+      // Tools and custom links: tools require access; hub requires any tool access
+      if (link.category === "tool") {
+        const targetPath = String(link.target || "").split(/[?#]/)[0];
+        if (targetPath === "/tools") {
+          return availableTools().length > 0;
+        }
+        const toolId = toolIdFromPath(targetPath);
+        return toolId ? hasToolAccess(toolId) : false;
+      }
       return true;
     },
     isLinkActive(link) {
@@ -482,11 +506,23 @@ export default {
       return total > 0 && used > total;
     },
     getProgressBarValue(link, sourceInfo) {
+      if (sourceInfo.scopeQuota?.limitBytes > 0) {
+        return sourceInfo.scopeQuota.usedBytes || 0;
+      }
       // Called with (link, sourceInfo) from both modes
       if (link.category === 'source-alt') {
         return sourceInfo.usedAlt || 0;
       }
       return sourceInfo.used || 0;
+    },
+    getProgressBarMax(link, sourceInfo) {
+      if (sourceInfo.scopeQuota?.limitBytes > 0) {
+        return sourceInfo.scopeQuota.limitBytes;
+      }
+      return sourceInfo.total || 1;
+    },
+    getProgressBarReserved(sourceInfo) {
+      return sourceInfo.scopeQuota?.reservedBytes || 0;
     },
     handleLinkClick(link) {
       // Handle special share actions
@@ -662,9 +698,8 @@ export default {
         console.error("Failed to open edit share dialog:", err);
       }
     },
-    cycleMode() {
-      const newMode = state.sidebar.mode === 'links' ? 'navigation' : 'links';
-      mutations.setSidebarMode(newMode);
+    onSidebarModeToggle(isNavigation) {
+      mutations.setSidebarMode(isNavigation ? "navigation" : "links");
     },
     navigateToSource(sourceName) {
       if (!sourceName || sourceName === this.activeSource) {
@@ -703,20 +738,23 @@ export default {
   background: var(--surfaceSecondary);
 }
 
-.sidebar-links-header .mode-toggle {
-  background: none;
-  border: none;
-  font-weight: 500;
-  color: var(--textPrimary);
-  font-size: 1em;
-  padding: 0.25em 0.5em;
-  border-radius: 0.5em;
-  transition: background 0.2s;
+.sidebar-links-header .sidebar-mode-toggle-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 0.25em;
 }
 
-.sidebar-links-header .mode-toggle:hover {
-  background: var(--surfaceSecondary);
-  cursor: pointer;
+.sidebar-links-header :deep(.sidebar-mode-toggle) {
+  width: auto;
+}
+
+.sidebar-links-header :deep(.sidebar-mode-toggle .toggle-row--icon-mode) {
+  width: auto;
 }
 
 .sidebar-links-content {

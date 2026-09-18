@@ -2,6 +2,65 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.0
+
+ **Security**:
+ - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
+ - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
+
+ **New Features**:
+ - Added Storage Quotas
+   - configurable by folder, source, user, and share.
+   - Administrators can create, edit, view, and delete folder quotas through the interface.
+   - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
+ - Enhancements to the editor (#2714):
+   - Added a floating button to open a resizable split view with live editing for markdown files, the scrolling is synced in both sides and scrolling in single-view modes (the viewer and editor in non-split) now also tries to sync with each other so you don't lose context easily.
+   - Added a toolbar: This toolbar is present on all the files.
+     - JSON files have a button to toggle between formatted and minified versions (#2854) (#2566).
+     - Markdown files have a richer toolbar with lots of quick actions, for example you can now browse, navigate and insert images more easily from your current source.
+   - Added a prompt to configure some editor settings in UI, that prompt is accessible via the toolbar in the three-dots menu, there you can configure things like:
+     - Word wrap, keybinds, autocompletion, scrollbar, etc.
+   - The markdown viewer now supports rendering LaTeX Math and Chemistry formulas.
+   - Improved and fixed some styles that weren't following the app light/dark theme (#2949).
+ - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
+ - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
+ - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
+ - Added setting to configure the placement of the prompts close button in profile settings (#2853).
+ - Added "New file templates". You can now add and configure pre-defined filenames + extension for the creation of new files in the context menu on profile settings! (#2881) (#1239).
+ - sidebar links can be bulk edited as yaml (#1963) (settings > user management)
+ - admins can customize more defaults:
+   - share creation defaults and enforcements (#1692) (#2434) (#2279) (#2812) (settings > share management)
+   - sidebar link defaults and enforcements (#2561) (settings > user management)
+   - tool defaults and enforcement (settings > user management)
+ - Add cli init CLI command (#2957)
+
+ **Notes**:
+ - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
+ - Enhancements to cross-source copy/move permissions and behavior.
+ - Improved resume upload behavior.
+ - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
+ - improved video thumbnail generation speed and efficiency.
+ - Added icons based on extension to the upload prompt and new file/folder/rename prompts (#2881).
+ - Profile settings show minimal options by default with prompt for advanced options. Full advanced profile settings can be shown by default by enabling `account.showAdvancedSettings`
+ - sidebar links/navigation is button group toggle for clearer visibility
+ - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly.
+ - Added risc-v to official releases
+
+ **Bug Fixes**:
+ - Undo in a fresh opened file on the editor was setting the file empty (#2714)
+ - Added some missing styles in the markdown viewer (#2714)
+ - Recaptcha not working (#1925) (#2861)
+ - Fix disk-usage overstatement on virtiofs bind mounts (#2894)
+ - Support non-ASCII share passwords (#2933)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938)
+ - Preserve deleted sidebar links across restarts (#2935)
+ - scope padding to listing view (#2934)
+ - Hide the Replace option on upload/create conflict prompts when the user lacks modify permission (or when a public share disallows replacements), so create-only users are not offered an action that the server rejects (#2837)
+ - Preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
+ - Avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
+ - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)
+ - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
+
 ## v2.0.7
 
 
@@ -89,6 +148,7 @@ All notable changes to this project will be documented in this file. For commit 
  - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
  - OnlyOffice is inaccessible on password-protected shares (#2811)
  - FFmpeg 9.0 incorrectly detected as below minimum 5.0.0 on Windows (#2820) -- thanks @yzxcj797
+ - Queue buttons not clickable in the desktop panel in audio files.
 
 ## v2.0.1
 

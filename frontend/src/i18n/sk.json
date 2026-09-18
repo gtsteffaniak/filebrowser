@@ -43,6 +43,7 @@
     "requestTimedOut": "Došlo k časovému limitu požiadavky. Skontrolujte nastavenia siete alebo reverzného proxy."
   },
   "files": {
+    "emptyFile": "Prázdny súbor",
     "lastModified": "Posledná zmena",
     "multipleSelectionEnabled": "Zapnutý viacnásobný výber",
     "sortByLastModified": "Zoradiť podľa dátumu",
@@ -117,7 +118,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -144,9 +144,14 @@
     "wrongCredentials": "Nesprávne prihlasovacie údaje",
     "failedLogin": "Nepodarilo sa prihlásiť",
     "invalidCredentials": "Zadané neplatné poverenia",
-    "passkeyLogin": "Použiť Passkey"
+    "passkeyLogin": "Použiť Passkey",
+    "recaptchaRequired": "Vyžaduje sa overenie Recaptcha"
   },
   "prompts": {
+    "noTemplate": "Vaša šablóna je prázdna!",
+    "newFileTemplate": "Šablóna nového súboru",
+    "newFileTemplateMessage": "Tu pridajte nové názvy súborov, budú sa používať ako šablóna na vytváranie nových súborov v kontextovej ponuke!",
+    "newFileTemplatePlaceholder": "Zadajte názov súboru s príponou",
     "deleteMessageSingle": "Naozaj chcete odstrániť tento súbor/priečinok?",
     "deleteTitle": "Odstránenie súborov",
     "displayName": "Zobrazený názov:",
@@ -207,7 +212,6 @@
     "selectPath": "Vyberte cestu",
     "renameSuccess": "Položka bola úspešne premenovaná!",
     "newFileSuccess": "Súbor bol úspešne vytvorený!",
-    "moveFailed": "Presun zlyhal",
     "operationFailed": "Operácia zlyhala",
     "partialSuccess": "Niektoré operácie zlyhali: {succeeded} sa podarilo, {failed} sa nepodarilo",
     "renameFailed": "Nepodarilo sa premenovať položku",
@@ -294,7 +298,12 @@
     "accountDefaults": "Predvolené nastavenia účtu",
     "disableUserSettings": "Deaktivovať stránku nastavení používateľa",
     "userDefaultFieldLockedFromConfig": "Toto predvolené nastavenie je definované v konfiguračnom súbore a tu ho nie je možné zmeniť.",
-    "sourceAccessDefaultsHelp": "Na zdrojové súbory a nových používateľov sa uplatňujú predvolené oprávnenia súborov. Nastavenie „Enforce“ uzamkne túto hodnotu pre všetkých používateľov, ktorí nie sú správcami."
+    "sourceAccessDefaultsHelp": "Na zdrojové súbory a nových používateľov sa uplatňujú predvolené oprávnenia súborov. Nastavenie „Enforce“ uzamkne túto hodnotu pre všetkých používateľov, ktorí nie sú správcami.",
+    "editAsYaml": "Upraviť ako YAML",
+    "userEditPreferences": "Nastavenia používateľa",
+    "userEditTools": "Prístup k nástrojom",
+    "userEditToolsDescription": "Nastavte, ku ktorým nástrojom má tento používateľ prístup",
+    "userEditSidebarLinks": "Odkazy v bočnom paneli"
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",
@@ -315,10 +324,7 @@
     "linkUrl": "Adresa URL prepojenia",
     "linkUrlPlaceholder": "Zadajte adresu URL alebo cestu (napr. /files/path alebo https://example.com).",
     "linkIcon": "Ikona prepojenia",
-    "linksUpdatedSuccess": "Odkazy na bočnom paneli úspešne aktualizované!",
-    "linksUpdateFailed": "Nepodarilo sa aktualizovať odkazy na bočnom paneli",
     "sourceNotAccessible": "Tento zdroj už nie je prístupný",
-    "noLinksYet": "Zatiaľ nie sú nakonfigurované žiadne odkazy. Pridajte svoj prvý odkaz nižšie.",
     "customizeShareLinksDescription": "Prispôsobte si odkazy zobrazené na bočnom paneli pre túto akciu. Ťahaním a púšťaním môžete zmeniť poradie.",
     "editLink": "Upraviť odkaz",
     "selectShare": "Vyberte položku Zdieľať",
@@ -327,7 +333,6 @@
     "pickIcon": "Výber ikony",
     "pickIconDescription": "Vyhľadajte a vyberte ikonu z knižnice Material Icons",
     "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu",
-    "switchMode": "Prepnúť režim bočného panela",
     "showIndexedUsageDescription": "Zobrazenie lišty používania vypočítanej z indexovaných súborov v zdroji.",
     "showDiskUsageDescription": "Zobrazenie lišty využitia z veľkosti disku/oddielu podľa hlásenia operačného systému. Táto veľkosť bude pravdepodobne väčšia a zahŕňa aj súbory, ktoré nie sú indexované.",
     "usageTextDisplay": "Ktorý text použitia sa má zobraziť?",
@@ -335,7 +340,13 @@
     "usageTextDisk": "využitie podľa hlásenia disku/oddielu",
     "dividerNamePlaceholder": "Text oddeľovača (nechajte prázdny, aby sa zobrazil riadok)",
     "showIndexedUsage": "Zobraziť použitie podľa indexu",
-    "showDiskUsage": "Zobraziť využitie podľa údajov z disku/partície"
+    "showDiskUsage": "Zobraziť využitie podľa údajov z disku/partície",
+    "sidebarLinkDefaults": "Predvolené nastavenia odkazov v bočnom paneli",
+    "sidebarLinkDefaultsDescription": "Nastavte predvolené a povinné odkazy v bočnom paneli pre všetkých používateľov.",
+    "sidebarLinkDefaultsHelp": "Toto sú predvolené odkazy, ktoré sa pridajú všetkým novým používateľom. Ak nastavíte odkaz ako povinný, pridá sa všetkým používateľom a používatelia bez správcovských oprávnení ho nebudú môcť odstrániť.",
+    "sidebarLinkDefaultSourceHelp": "Platí len v prípade, že má používateľ prístup k tomuto zdroju.",
+    "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Skontrolujte formát a skúste to znova.",
+    "switchMode": "Prepínanie medzi odkazmi a navigačným stromom"
   },
   "share": {
     "notice": "Poznámka: po vytvorení zdieľanej zložky sa táto stáva verejne prístupnou a platia pre ňu iné pravidlá prístupu. Ak vaša zdieľaná zložka nie je bezpečne nakonfigurovaná, môže k nej mať prístup ktokoľvek.",
@@ -405,7 +416,9 @@
     "selectBannerImage": "Vyberte obrázok bannera",
     "selectFaviconImage": "Vyberte obrázok favicon",
     "deleteFailed": "Nepodarilo sa odstrániť podiel",
-    "readOnlySourceNotice": "Tento zdroj je len na čítanie. Zdieľania nahrávania a oprávnenia, ktoré upravujú súbory, sú zakázané."
+    "readOnlySourceNotice": "Tento zdroj je len na čítanie. Zdieľania nahrávania a oprávnenia, ktoré upravujú súbory, sú zakázané.",
+    "shareDefaults": "Predvolené nastavenia zdieľania",
+    "shareDefaultsDescription": "Nakonfigurujte predvolené nastavenia zdieľania pre nové zdieľané priečinky a vynúťte dodržiavanie zásad pre používateľov, ktorí nie sú správcami."
   },
   "api": {
     "createdAt": "Vytvorené v:",
@@ -458,6 +471,8 @@
     "passwordRequiredForGeneration": "Na vygenerovanie autentifikačného kódu je potrebné vaše heslo."
   },
   "general": {
+    "import": "Importovať",
+    "export": "Exportovať",
     "name": "Názov",
     "path": "Cesta",
     "user": "Používateľ",
@@ -509,6 +524,8 @@
     "verify": "Overiť{suffix}",
     "close": "Zatvoriť{suffix}",
     "copy": "Kopírovať{suffix}",
+    "paste": "Vložiť",
+    "cut": "Vystrihnúť",
     "create": "Vytvoriť stránku{suffix}",
     "delete": "Odstrániť{suffix}",
     "download": "Stiahnite si{suffix}",
@@ -610,7 +627,12 @@
     "viewFiles": "Zobraziť a vymenovať súbory",
     "source": "{prefix}Zdroj{suffix}",
     "sources": "{prefix}Zdroje{suffix}",
-    "enforce": "Uplatniť{suffix}"
+    "enforce": "Uplatniť{suffix}",
+    "limit": "Limit{suffix}",
+    "remove": "Odstrániť{suffix}",
+    "saved": "Uložené{suffix}",
+    "removed": "Odstránené{suffix}",
+    "back": "Späť{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -629,7 +651,9 @@
     "defaultBehavior": "Predvolená akcia{suffix}",
     "deletedCascade": "Prístupové pravidlá odstránené z cesty a všetkých podcestí!",
     "cascadeDelete": "Rekurzívne vymazanie",
-    "cascadeDeleteDescription": "Ak je táto možnosť povolená, odstránením pravidla prístupu sa odstráni aj zo všetkých podadresárov. To umožňuje úplne odstrániť používateľa alebo skupinu z celého stromu adresárov."
+    "cascadeDeleteDescription": "Ak je táto možnosť povolená, odstránením pravidla prístupu sa odstráni aj zo všetkých podadresárov. To umožňuje úplne odstrániť používateľa alebo skupinu z celého stromu adresárov.",
+    "hasRules": "Nastavené pravidlá prístupu",
+    "manageDescription": "Pravidlá otvoreného prístupu pre túto trasu."
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",
@@ -652,6 +676,8 @@
     "orange": "oranžová"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Zobraziť tlačidlo zatvorenia výziev vpravo",
+    "promptRightCloseButtonDescription": "Zobraziť tlačidlo zatvorenia výziev na pravej strane namiesto ľavej",
     "hideFileExt": "Skryť určité súbory (podľa prípony)",
     "hideFileExtDescription": "Zoznam prípon súborov oddelených medzerami. Prípony zadané v tomto poli budú skryté v celom používateľskom rozhraní (vizuálne, napr. v zozname alebo strome súborov) — Stále sú prístupné.",
     "preferEditorForMarkdown": "Uprednostniť editor pre Markdown súbory",
@@ -667,7 +693,6 @@
     "showQuickDownloadDescription": "Zobrazenie ikony na stiahnutie pre rýchly prístup ku každej položke súboru, na ktorú možno kliknúť a okamžite ju stiahnuť.",
     "disableUpdateNotifications": "Zakázať zobrazovanie aktualizácie oznámení",
     "disableUpdateNotificationsDescription": "Zakázanie bannera s oznámením o aktualizácii, ktorý sa zobrazuje používateľom administrátora na bočnom paneli.",
-    "disableHideSidebar": "Ponechanie bočného panela otvoreného pri náhľade alebo úprave súborov",
     "disableHideSidebarDescription": "Ak je táto funkcia povolená, bočný panel sa pri náhľade alebo úprave súborov automaticky neskrýva.",
     "autoplayMedia": "Automatické prehrávanie mediálnych súborov pri prezeraní",
     "autoplayMediaDescription": "Automatické prehrávanie mediálnych súborov pri prezeraní. Toto bude fungovať len vtedy, ak je súbor mediálnym súborom.",
@@ -679,8 +704,6 @@
     "hideSidebarFileActions": "Skrytie tlačidla akcií so súbormi v bočnom paneli",
     "deleteWithoutConfirming": "Odstránenie súborov bez výzvy na potvrdenie",
     "deleteWithoutConfirmingDescription": "Odstránenie súborov bez výzvy na potvrdenie. Toto bude fungovať len vtedy, ak je súbor mediálnym súborom.",
-    "editorQuickSave": "Tlačidlo rýchleho uloženia v editore",
-    "editorQuickSaveDescription": "V textovom editore sa vždy zobrazí ikona uloženia a všetky ostatné akcie sa skryjú.",
     "previewOfficeDescription": "Zobrazenie miniatúr pre typy kancelárskych súborov v zobrazení zoznamu",
     "disableThumbnailPreviews": "Zakázanie miniatúr pre určité prípony súborov",
     "disableThumbnailPreviewsDescription": "Zoznam prípon súborov oddelených medzerou, pre ktoré sa majú vypnúť náhľady miniatúr (napr. \".txt .html\").",
@@ -729,15 +752,101 @@
     "defaultViewMode": "Predvolený režim zobrazenia",
     "defaultViewModeDescription": "Režim počiatočného zobrazenia v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje nastavenia zobrazenia, ktoré sú už uložené lokálne.",
     "defaultGallerySize": "Predvolená veľkosť náhľadu",
-    "defaultGallerySizeDescription": "Počiatočné zväčšenie miniatúr v galérii alebo zozname (1–9) v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje veľkosti, ktoré sú už uložené lokálne."
+    "defaultGallerySizeDescription": "Počiatočné zväčšenie miniatúr v galérii alebo zozname (1–9) v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje veľkosti, ktoré sú už uložené lokálne.",
+    "disableHideSidebar": "Vždy zobraziť bočný panel",
+    "editorQuickSave": "Zobraziť tlačidlo rýchleho uloženia v editore",
+    "editorQuickSaveDescription": "Textový editor zobrazí iba ikonu uloženia a všetky ostatné akcie skryje",
+    "showAdvancedProfile": "Zobraziť pokročilé nastavenia profilu",
+    "showAdvancedProfileDescription": "Zobraziť nastavenia profilu podľa kategórií v bočnom paneli namiesto zjednodušeného zobrazenia profilu.",
+    "accountOptions": "Možnosti účtu"
   },
   "editor": {
-    "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
-    "saveAbortedMessage": "Operácia uloženia sa prerušila. Aktívny súbor aplikácie ({activeFile}) sa nezhoduje so súborom, ktorý sa pokúšate uložiť ({tryingToSave}).",
-    "fileSaved": "Súbor uložený!",
-    "lines": "{count} riadkov",
-    "words": "{count} slov",
-    "chars": "{count} znakov"
+    "stats": {
+      "lines": "{count} riadkov",
+      "words": "{count} slov",
+      "chars": "{count} znakov"
+    },
+    "settings": {
+      "title": "Nastavenia editora",
+      "keybinding": {
+        "label": "Klávesové skratky",
+        "description": "Nastavte si preferované klávesové skratky!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Presah",
+        "description": "Ako ďaleko môže editor posúvať za koniec obsahu",
+        "none": "Žiadne",
+        "half": "Polovica",
+        "full": "Plné"
+      },
+      "tabSize": {
+        "label": "Veľkosť tabulátora",
+        "description": "Koľko medzier by mal kláves 'TAB' predvolene vložiť"
+      },
+      "showIndentGuides": "Zobraziť vodítka odsadenia",
+      "showIndentGuidesDescription": "Zobrazí vodítka odsadenia, čo vám poskytne lepšiu orientáciu pri úprave vnoreného kódu",
+      "showGutter": "Zobraziť okraj",
+      "showGutterDescription": "Kontajner, kde sa vľavo nachádzajú čísla riadkov",
+      "fixedGutterWidth": "Pevná šírka okraja",
+      "fixedGutterWidthDescription": "Keď je vypnuté, postupne zväčšuje veľkosť okraja pri posúvaní v závislosti od počtu riadkov v súbore",
+      "showLineNumbers": "Zobraziť čísla riadkov",
+      "showLineNumbersDescription": "Zobrazí čísla riadkov v ľavom okraji, neskrýva samotný okraj",
+      "relativeLineNumbers": "Relatívne čísla riadkov",
+      "relativeLineNumbersDescription": "Zobrazí čísla riadkov relatívne k aktuálnej pozícii kurzora",
+      "customScrollbar": "Vlastný posuvník",
+      "customScrollbarDescription": "Nahradí natívny posuvník prehliadača vstavaným posuvníkom Ace",
+      "wrapContent": "Zalamovať dlhé riadky v editore",
+      "wrapContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné",
+      "autocompletion": "Automatické dopĺňanie",
+      "autocompletionDescription": "Povolí automatické dopĺňanie manuálnym stlačením 'ctrl + space'",
+      "liveAutocompletion": "Živé automatické dopĺňanie",
+      "liveAutocompletionDescription": "Keď je táto možnosť povolená, plávajúce pole automatického dopĺňania sa zobrazí automaticky počas písania"
+    },
+    "uninitialized": "Nepodarilo sa inicializovať editor. Obnovte stránku.",
+    "saveAbortedMessage": "Ukladanie bolo prerušené. Aktívny súbor aplikácie ({activeFile}) sa nezhoduje so súborom, ktorý sa pokúšate uložiť ({tryingToSave}).",
+    "splitView": "Rozdelené zobrazenie",
+    "exitSplitView": "Ukončiť rozdelené zobrazenie",
+    "md": {
+      "clipboardActions": "Akcie so schránkou",
+      "bold": "Tučné",
+      "italic": "Kurzíva",
+      "strikethrough": "Preškrtnuté",
+      "heading": "Nadpis",
+      "quote": "Citácia",
+      "inlineCode": "Riadkový kód",
+      "codeBlock": "Blok kódu",
+      "bulletList": "Zoznam s odrážkami",
+      "numberedList": "Číslovaný zoznam",
+      "taskList": "Zoznam úloh",
+      "horizontalRule": "Vodorovná čiara",
+      "undo": "Späť",
+      "redo": "Znova",
+      "moreOptions": "Ďalšie možnosti",
+      "inlineMath": "Riadková matematika",
+      "displayMath": "Samostatná matematika",
+      "highlight": "Zvýraznenie",
+      "superscript": "Horný index",
+      "subscript": "Dolný index",
+      "text": "Text",
+      "cell": "Bunka",
+      "column": "Stĺpec",
+      "align": "Zarovnanie",
+      "alignRight": "Zarovnať vpravo",
+      "alignLeft": "Zarovnať vľavo",
+      "alignCenter": "Zarovnať na stred",
+      "justify": "Zarovnať do bloku",
+      "fontColor": "Farba písma"
+    },
+    "json": {
+      "formatJSON": "Formát JSON",
+      "formatJSONSuccess": "Formátovanie JSON prebehlo úspešne",
+      "invalidJSON": "Neplatný JSON: {message}"
+    }
   },
   "player": {
     "loop": "Slučka",
@@ -832,7 +941,6 @@
       "browseFullLibrary": "Prehľadávať celú knižnicu ikon"
     },
     "toolNotFound": "Nástroj nebol nájdený",
-    "backToTools": "Späť na Nástroje",
     "fileWatcher": {
       "name": "Sledovanie súborov",
       "description": "Sledovanie súborov v reálnom čase s monitorovaním latencie",
@@ -914,7 +1022,11 @@
       "scopeAccess": "Aktivita prístupu",
       "eventAccessCreate": "Prístup k vytváraniu",
       "eventAccessDelete": "Prístup, vymazať"
-    }
+    },
+    "toolAccessDefaults": "Predvolené nastavenia prístupu k nástrojom",
+    "toolAccessDefaultsDescription": "Nastavte, ku ktorým nástrojom budú mať noví používatelia štandardne prístup",
+    "toolAccessDefaultsHelp": "Aktivujte nástroje pre nových používateľov a podľa potreby nastavte obmedzenie prístupu tak, aby používatelia bez administrátorských oprávnení nemohli tieto nastavenia meniť.",
+    "accessDenied": "K tomuto nástroju nemáte prístup."
   },
   "messages": {
     "pathNotFound": "Cesta neexistuje v súborovom systéme",
@@ -1016,5 +1128,25 @@
     "days": "Dni{suffix}",
     "months": "Mesiace{suffix}",
     "timeUnit": "Časová jednotka"
+  },
+  "quotas": {
+    "title": "Kvóta úložného priestoru",
+    "openDescription": "Otvorte dialógové okno s kvótou úložného priestoru pre tento priečinok.",
+    "folderDescription": "Obmedziť priestor na ukladanie pre tento priečinok.",
+    "shareLimit": "Obmedziť úložný priestor prostredníctvom tohto zdieľaného priečinka",
+    "shareLimitDescription": "Počíta nahrania prostredníctvom tohto odkazu. Týka sa to aj kvóty majiteľa.",
+    "scopeLimit": "Limit úložného priestoru pre tento zdroj",
+    "scopeLimitDescription": "Kapacita úložiska pre úlohu tohto používateľa v tomto zdroji.",
+    "indexingDisabledMeterHint": "Indexovanie je v tomto zdroji vypnuté. K dispozícii je len sledovanie využitia.",
+    "meterIndexHint": "Využíva celkovú veľkosť indexovaných súborov v tomto priečinku. Zahrňuje aj zmeny vykonané mimo programu FileBrowser pri aktualizácii indexu.",
+    "meterAccountedHint": "Počíta sa len nahrávanie, ukladanie a mazanie vykonané prostredníctvom FileBrowseru.",
+    "meterIndexScope": "Indexovaná veľkosť",
+    "meterAccounted": "Sledovanie využitia",
+    "usageCounting": "Počítať počet použití podľa",
+    "usageSyncPending": "Údaje o využívaní sa stále synchronizujú s indexom.",
+    "accountedFallback": "Indexovaná veľkosť ešte nie je pripravená; dovtedy, kým nebude index k dispozícii, sa bude sledovať využitie.",
+    "errors": {
+      "exceeded": "Prekročený úložný limit"
+    }
   }
 }

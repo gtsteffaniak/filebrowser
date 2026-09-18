@@ -9,6 +9,8 @@
     "noCreateOptions": "No create options are available"
   },
   "general": {
+    "import": "Import",
+    "export": "Export",
     "to": "to{suffix}",
     "and": "and{suffix}",
     "or": "or{suffix}",
@@ -73,12 +75,15 @@
     "navigation": "Navigation{suffix}",
     "loading": "Loading{suffix}",
     "add": "Add{suffix}",
+    "back": "Back{suffix}",
     "stay": "Stay{suffix}",
     "cancel": "Cancel{suffix}",
     "change": "Change{suffix}",
     "verify": "Verify{suffix}",
     "close": "Close{suffix}",
     "copy": "Copy{suffix}",
+    "paste": "Paste",
+    "cut": "Cut",
     "create": "Create{suffix}",
     "delete": "Delete{suffix}",
     "download": "Download{suffix}",
@@ -129,6 +134,10 @@
     "actions": "Actions{suffix}",
     "enabled": "Enabled{suffix}",
     "disabled": "Disabled{suffix}",
+    "limit": "Limit{suffix}",
+    "remove": "Remove{suffix}",
+    "saved": "Saved{suffix}",
+    "removed": "Removed{suffix}",
     "permissions": "Permissions{suffix}",
     "management": "Management{suffix}",
     "profile": "Profile{suffix}",
@@ -207,6 +216,7 @@
     "requestTimedOut": "The request timed out. Check your network or reverse proxy settings."
   },
   "files": {
+    "emptyFile": "Empty file",
     "lastModified": "Last modified{suffix}",
     "duration": "Duration{suffix}",
     "lonely": "Nothing to show here...",
@@ -281,7 +291,6 @@
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
-    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
@@ -308,7 +317,28 @@
     "wrongCredentials": "Wrong credentials",
     "failedLogin": "Failed to login",
     "invalidCredentials": "Invalid credentials provided",
-    "passkeyLogin": "Use Passkey"
+    "passkeyLogin": "Use Passkey",
+    "recaptchaRequired": "Recaptcha challenge required"
+  },
+  "quotas": {
+    "title": "Storage quota",
+    "openDescription": "Open the storage quota dialog for this folder.",
+    "folderDescription": "Limit storage for this folder.",
+    "shareLimit": "Limit storage through this share",
+    "shareLimitDescription": "Counts uploads through this link. Also applies to the owner's source quota.",
+    "scopeLimit": "Storage limit for this source",
+    "scopeLimitDescription": "Cap storage for this user's assignment on this source.",
+    "indexingDisabledMeterHint": "Indexing is disabled on this source. Only tracked usage is available.",
+    "meterIndexHint": "Uses the total size of indexed files in this folder. Includes changes made outside FileBrowser when the index updates.",
+    "meterAccountedHint": "Counts only uploads, saves, and deletes performed through FileBrowser.",
+    "meterIndexScope": "Indexed size",
+    "meterAccounted": "Tracked usage",
+    "usageCounting": "Count usage by",
+    "usageSyncPending": "Usage is still syncing with the index.",
+    "accountedFallback": "Indexed size is not ready yet; using tracked usage until the index is available.",
+    "errors": {
+      "exceeded": "Storage quota exceeded"
+    }
   },
   "share": {
     "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
@@ -362,6 +392,8 @@
     "disableLoginOption": "Hide login option",
     "disableLoginOptionDescription": "Hide the login button in the sidebar for anonymous users. When enabled, anonymous users won't see the option to log in.",
     "customizeSidebarLinksButton": "Customize Links",
+    "shareDefaults": "Share defaults",
+    "shareDefaultsDescription": "Configure default share options for new shares and enforce policies for non-admin users.",
     "browseFiles": "Browse files",
     "selectBannerImage": "Select banner image",
     "selectFaviconImage": "Select favicon image",
@@ -381,6 +413,10 @@
     "deleteFailed": "Failed to delete share"
   },
   "prompts": {
+    "noTemplate": "Your template is empty!",
+    "newFileTemplate": "New file template",
+    "newFileTemplateMessage": "Add new filenames here, they will be used as template for new file creation in the context menu!",
+    "newFileTemplatePlaceholder": "Enter a filename with an extension",
     "operationInProgress": "Operation in progress, please wait...",
     "quickJump": "Quickly jump to other files",
     "downloadsLimit": "Number of downloads limit",
@@ -453,7 +489,6 @@
     "firstLoadBody": "A new database was created on startup. If this is not what you expected, please double check your configuration file for `server.database` path and ensure it exists. On docker, database path could be `./data/filebrowser.sqlite` or `./filebrowser.sqlite`.",
     "halloweenTitle": "Happy Halloween!",
     "halloweenBody": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme.",
-    "moveFailed": "Move failed",
     "operationFailed": "Operation failed",
     "partialSuccess": "Some operations failed: {succeeded} succeeded, {failed} failed",
     "confirmPasswordToSaveUser": "Enter your current password to save these user changes."
@@ -482,6 +517,8 @@
     "openInAdvancedSearch": "Open in Advanced Search"
   },
   "profileSettings": {
+    "promptRightCloseButton": "Show prompts close button in the right",
+    "promptRightCloseButtonDescription": "Show the close button of the prompts in the right side instead of in the left",
     "enforcedByAdmin": "Your administrator has prevented users from changing this property",
     "hideFileExt": "Hide certain files (by extension)",
     "hideFileExtDescription": "A space-separated list of file extensions. Extensions in this field will be hidden from all the UI (visually, like the listing or FileTree) -- The files still accessible.",
@@ -517,7 +554,10 @@
     "popupPreviewDescription": "An overlay pop-up window will show over the UI when hovering over items with thumbnails",
     "disableUpdateNotifications": "Disable showing notification update",
     "disableUpdateNotificationsDescription": "Disable the update notification banner that shows up for admin users on the sidebar.",
-    "disableHideSidebar": "Keep sidebar open when previewing or editing files",
+    "accountOptions": "Account options",
+    "showAdvancedProfile": "Show advanced profile settings",
+    "showAdvancedProfileDescription": "Show categorized profile settings in the sidebar instead of the simplified profile view.",
+    "disableHideSidebar": "Always show sidebar",
     "disableHideSidebarDescription": "When enabled, the sidebar will not hide automatically when previewing or editing files.",
     "autoplayMedia": "Autoplay media files when viewing",
     "autoplayMediaDescription": "Autoplay media files when viewing. This will only work if the file is a media file.",
@@ -534,8 +574,8 @@
     "showCopyPathDescription": "Show a Copy Path action in the file and folder context menu.",
     "deleteWithoutConfirming": "Delete files without confirmation prompt",
     "deleteWithoutConfirmingDescription": "Delete files without confirmation prompt. This will only work if the file is a media file.",
-    "editorQuickSave": "Quick save button in editor",
-    "editorQuickSaveDescription": "The text editor will always show the save icon, hiding any other actions",
+    "editorQuickSave": "Show quick save button in editor",
+    "editorQuickSaveDescription": "The text editor will only show the save icon, hiding any other actions",
     "previewOfficeDescription": "Show thumbnails for office file types in the listing view",
     "disableThumbnailPreviews": "Disable thumbnails for certain file extensions",
     "disableThumbnailPreviewsDescription": "A space-separated list of file extensions to disable thumbnail previews for (e.g., '.txt .html').",
@@ -569,7 +609,12 @@
     "configViewerOpen": "View configuration",
     "configViewerDescription": "Open a read-only view of the current server configuration.",
     "userDefaults": "User defaults",
+    "userEditPreferences": "User preferences",
+    "userEditTools": "Tool access",
+    "userEditToolsDescription": "Configure which tools this user can access",
+    "userEditSidebarLinks": "Sidebar links",
     "userDefaultsDescription": "Configure default settings applied to new users and enforced policy for all users.",
+    "editAsYaml": "Edit as YAML",
     "userDefaultFieldLockedFromConfig": "This default is set in the config file and cannot be changed here.",
     "accountDefaults": "Account defaults",
     "disableUserSettings": "Disable user settings page",
@@ -625,6 +670,7 @@
     "dividerNamePlaceholder": "Divider text (leave blank to show a line)",
     "updateIsAvailable": "An update is available!",
     "fileActions": "File actions",
+    "switchMode": "Toggle between links and navigation tree",
     "customizeLinks": "Customize Sidebar Links",
     "customizeLinksDescription": "Customize the links shown in your sidebar. Drag and drop to reorder.",
     "customizeShareLinksDescription": "Customize the links shown in the sidebar for this share. Drag and drop to reorder.",
@@ -656,11 +702,12 @@
     "browseIcons": "Browse Icons",
     "pickIcon": "Pick an Icon",
     "pickIconDescription": "Search and select an icon from the Material Icons library",
-    "linksUpdatedSuccess": "Sidebar links updated successfully!",
-    "linksUpdateFailed": "Failed to update sidebar links",
     "sourceNotAccessible": "This source is no longer accessible to you",
-    "noLinksYet": "No links configured yet. Add your first link below.",
-    "switchMode": "Switch sidebar mode"
+    "sidebarLinkDefaults": "Sidebar link defaults",
+    "sidebarLinkDefaultsDescription": "Configure default and enforced sidebar links for all users.",
+    "sidebarLinkDefaultsHelp": "These are the default links that will be added for all new users. If you enforce a link, it will be added for all users and cannot be removed by non-admins.",
+    "sidebarLinkDefaultSourceHelp": "Applies only when the user has access to this source.",
+    "sidebarLinkDefaultsYamlInvalid": "Invalid YAML. Check the format and try again."
   },
   "api": {
     "title": "API Tokens",
@@ -715,6 +762,8 @@
   "access": {
     "all": "Deny All",
     "rules": "Access rules",
+    "hasRules": "Access rules configured",
+    "manageDescription": "Open access rules for this path.",
     "deny": "Deny",
     "totalDenied": "Denied",
     "totalAllowed": "Allowed",
@@ -752,12 +801,92 @@
     "orange": "orange"
   },
   "editor": {
+    "stats": {
+      "lines": "{count} lines",
+      "words": "{count} words",
+      "chars": "{count} characters"
+    },
+    "settings": {
+      "title": "Editor Settings",
+      "keybinding": {
+        "label": "Keybindings",
+        "description": "Set your prefered keyboard bindings!",
+        "ace": "Ace",
+        "vim": "Vim",
+        "emacs": "Emacs",
+        "sublime": "Sublime",
+        "vscode": "VSCode"
+      },
+      "overscroll": {
+        "label": "Overscroll",
+        "description": "How much the editor can scroll past the end of the content",
+        "none": "None",
+        "half": "Half",
+        "full": "Full"
+      },
+      "tabSize": {
+        "label": "Tab Size",
+        "description": "How many spaces the 'TAB' key should do by default"
+      },
+      "showIndentGuides": "Show Indent Guides",
+      "showIndentGuidesDescription": "Show indent guides, it gives you better orientation when editing nested code",
+      "showGutter": "Show Gutter",
+      "showGutterDescription": "The container where the line numbers are at the left",
+      "fixedGutterWidth": "Fixed Gutter Width",
+      "fixedGutterWidthDescription": "When off, increases the gutter size incrementally while scrolling depeding how many lines has the file",
+      "showLineNumbers": "Show Line Numbers",
+      "showLineNumbersDescription": "Show Line Numbers in the gutter at the left, it doesn't hide the gutter itself",
+      "relativeLineNumbers": "Relative Line Numbers",
+      "relativeLineNumbersDescription": "Show line numbers relative to the current position of the cursor",
+      "customScrollbar": "Custom scrollbar",
+      "customScrollbarDescription": "Swap the native browser scrollbar by the ace built-in one",
+      "wrapContent": "Wrap long lines in the editor",
+      "wrapContentDescription": "Wraps the editor content to keep very long lines always visible",
+      "autocompletion": "Autocompletion",
+      "autocompletionDescription": "Enables autocompletion by manually pressing 'ctrl + space'",
+      "liveAutocompletion": "Live autocompletion",
+      "liveAutocompletionDescription": "When this is enabled, the floating autocompletion box will appear automatically as you type"
+    },
     "uninitialized": "Failed to initialize the editor. Please reload.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "fileSaved": "File saved!",
-    "lines": "{count} lines",
-    "words": "{count} words",
-    "chars": "{count} characters"
+    "splitView": "Split view",
+    "exitSplitView": "Exit split view",
+    "md": {
+      "clipboardActions": "Clipboard actions",
+      "bold": "Bold",
+      "italic": "Italic",
+      "strikethrough": "Strikethrough",
+      "heading": "Heading",
+      "quote": "Quote",
+      "inlineCode": "Inline code",
+      "codeBlock": "Code block",
+      "bulletList": "Bullet list",
+      "numberedList": "Numbered list",
+      "taskList": "Task list",
+      "horizontalRule": "Horizontal rule",
+      "undo": "Undo",
+      "redo": "Redo",
+      "moreOptions": "More options",
+      "inlineMath": "Inline Math",
+      "displayMath": "Display Math",
+      "highlight": "Highlight",
+      "superscript": "Superscript",
+      "subscript": "Subscript",
+      "text": "Text",
+      "cell": "Cell",
+      "column": "Column",
+      "align": "Align",
+      "alignRight": "Align right",
+      "alignLeft": "Align left",
+      "alignCenter": "Align center",
+      "justify": "Justify",
+      "fontColor": "Font color"
+    },
+    "json": {
+      "formatJSON": "Format JSON",
+      "formatJSONSuccess": "JSON formatted successfully",
+      "invalidJSON": "Invalid JSON: {message}"
+    }
   },
   "player": {
     "loop": "Loop",
@@ -830,6 +959,10 @@
   "tools": {
     "title": "Tools",
     "description": "Utilities and analysis tools for your files",
+    "toolAccessDefaults": "Tool access defaults",
+    "toolAccessDefaultsDescription": "Configure which tools new users can access by default",
+    "toolAccessDefaultsHelp": "Enable tools for new users and optionally enforce access so non-admins cannot change it.",
+    "accessDenied": "You do not have access to this tool.",
     "sizeAnalyzer": {
       "name": "File Size Analyzer",
       "description": "Visualize large files and folders with an interactive treemap"
@@ -933,8 +1066,7 @@
       "viewActivity": "View activity",
       "tableColumns": "Table columns"
     },
-    "toolNotFound": "Tool not found",
-    "backToTools": "Back to Tools"
+    "toolNotFound": "Tool not found"
   },
   "notifications": {
     "title": "Notifications",

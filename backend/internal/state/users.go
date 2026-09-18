@@ -5,11 +5,14 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 )
 
@@ -214,13 +217,17 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
-	ApplyUserDefaults(user)
+	applyUserSettingsDefaults(user)
 	defaults := EffectiveUserDefaults()
 	enforced := EffectiveEnforced()
 	settings.ApplyEnforcedDefaultsFrom(user, defaults, enforced)
 	settings.ApplyEnforcedSourcePermissionsFrom(user, GetSourceAccessDefaults(), GetEnforcedSourcePermissions())
 
 	users.SyncBackendSourcePermissionsMap(user)
+
+	applySidebarLinkDefaults(user)
+
+	applyToolAccessDefaults(user)
 
 	if links, changed := usersidebar.PrepareSidebarLinksForPersist(user.SidebarLinks, user.BackendScopes); changed {
 		user.SidebarLinks = links
@@ -344,6 +351,15 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		if changed {
 			existingUser.SidebarLinks = links
 		}
+		if enforcedErr := usersidebar.ValidateEnforcedSidebarLinks(existingUser.SidebarLinks, existingUser.BackendScopes, EffectiveSidebarLinkDefaults(), existingUser.Permissions.Admin); enforcedErr != nil {
+			return enforcedErr
+		}
+	}
+
+	if FieldListIncludes(fields, "toolAccess") {
+		if enforcedErr := toolaccess.ValidateEnforcedToolAccess(existingUser, EffectiveToolAccessDefaults()); enforcedErr != nil {
+			return enforcedErr
+		}
 	}
 
 	return commitUserUpdate(existingUser, storedSnapshot, sourceDefaults, sourceEnforced)
@@ -365,6 +381,40 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 	if err := settings.ValidateUserScopePermissionsAgainstEnforced(existingUser, sourceDefaults, sourceEnforced); err != nil {
 		return err
 	}
+	if err := usersidebar.ValidateEnforcedSidebarLinks(existingUser.SidebarLinks, existingUser.BackendScopes, EffectiveSidebarLinkDefaults(), existingUser.Permissions.Admin); err != nil {
+		return err
+	}
+	toolaccess.MergeEnforcedToolAccess(existingUser, EffectiveToolAccessDefaults())
+	if err := toolaccess.ValidateEnforcedToolAccess(existingUser, EffectiveToolAccessDefaults()); err != nil {
+		return err
+	}
+
+	for _, bs := range existingUser.BackendScopes {
+		if bs.Quota == nil || bs.Quota.LimitBytes <= 0 {
+			continue
+		}
+		meter := bs.Quota.Meter
+		if meter == "" {
+			meter = quota.MeterIndexScope
+		}
+		sourceName := ""
+		if src, ok := settings.Config.Server.SourceMap[bs.Path]; ok {
+			sourceName = src.Name
+		}
+		if sourceName != "" {
+			if err := quota.ValidateConfiguredMeter(sourceName, meter); err != nil {
+				return fmt.Errorf("scope quota: %w", err)
+			}
+		}
+	}
+
+	for _, bs := range existingUser.BackendScopes {
+		if bs.Quota != nil && bs.Quota.LimitBytes > 0 && bs.Quota.ID == "" {
+			bs.Quota.ID = uuid.New().String()
+		}
+	}
+
+	removedQuotaIDs := removedScopeQuotaIDs(storedSnapshot, existingUser)
 
 	if oldUsername != existingUser.Username {
 		if err := sqlDb.UpdateUserUsername(oldUsername, existingUser); err != nil {
@@ -378,8 +428,41 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 		return err
 	}
 
+	for _, id := range removedQuotaIDs {
+		if err := OnUserScopeQuotaRemoved(id); err != nil {
+			return err
+		}
+	}
+	for _, bs := range existingUser.BackendScopes {
+		if err := OnUserScopeQuotaChanged(bs.Quota); err != nil {
+			return err
+		}
+	}
+
 	putUserInCache(existingUser)
 	return nil
+}
+
+func removedScopeQuotaIDs(before, after *users.User) []string {
+	oldByPath := map[string]string{}
+	for _, bs := range before.BackendScopes {
+		if bs.Quota != nil && bs.Quota.LimitBytes > 0 && bs.Quota.ID != "" {
+			oldByPath[bs.Path] = bs.Quota.ID
+		}
+	}
+	newByPath := map[string]string{}
+	for _, bs := range after.BackendScopes {
+		if bs.Quota != nil && bs.Quota.LimitBytes > 0 && bs.Quota.ID != "" {
+			newByPath[bs.Path] = bs.Quota.ID
+		}
+	}
+	var removed []string
+	for path, id := range oldByPath {
+		if newByPath[path] != id {
+			removed = append(removed, id)
+		}
+	}
+	return removed
 }
 
 // fieldListPatchesBackendScopes reports whether fields include persisted scope paths (JSON tag
@@ -447,6 +530,7 @@ func applyScopesFromAPI(user *users.User) error {
 			return convErr
 		}
 		user.BackendScopes = backend
+		user.DeclinedDefaultSources = settings.ComputeDeclinedDefaultSources(user.BackendScopes)
 	} else if len(user.SourcePermissions) > 0 {
 		backendPerms, convErr := users.APISourcePermsToBackend(user.SourcePermissions)
 		if convErr != nil {
