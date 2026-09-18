@@ -354,7 +354,7 @@ export default {
       loopMenuInitialized: false,
       lastAppliedMode: null,
       showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
-      showMobileLyrics: false,
+      showMobileLyrics: sessionStorage.getItem('plyrShowMobileLyrics') === '1',
       isFullscreen: false,
 
       // Gestures
@@ -479,6 +479,7 @@ export default {
       }
     },
     showMobileLyrics(val) {
+        sessionStorage.setItem('plyrShowMobileLyrics', val ? '1' : '0');
         if (val && this.lyrics.length) {
             this.$nextTick(() => this.scrollMobileLyrics());
         }
@@ -610,6 +611,9 @@ export default {
       if (this.isMobile && this.previewType === 'audio') return true;
       return false;
     },
+    mobileLyricsActive() {
+      return this.isMobile && this.showMobileLyrics && this.lyrics.length > 0;
+    },
     displayArtSize() {
       if (this.isMobile && this.showMobileLyrics && this.lyrics.length) {
         return 5;
@@ -672,7 +676,7 @@ export default {
     videoSwipeGesturesActive() {
       return (
         (this.previewType === 'video' || this.previewType === 'audio') &&
-        !!this.player
+        !!this.player && !this.mobileLyricsActive
       );
     },
     videoNavigationGestureAllowed() {
@@ -2113,7 +2117,7 @@ export default {
       const EDGE_CLICK_MS = 200;
 
       const peekNavChromeForEdgeTap = (clientX, zone) => {
-        if (this.previewType !== 'video' || !state.navigation.enabled) {
+        if (!state.navigation.enabled) {
           return;
         }
         const moveWithSidebar = getters.isSidebarVisible() && getters.isStickySidebar();
@@ -2387,20 +2391,6 @@ export default {
         this.syncVideoNavigationGestureHintToStore();
         return;
       }
-      if (this.showMobileLyrics) {
-        // Allow horizontal navigation swipes, ignore vertical if lyrics are shown
-        const ax = Math.abs(this.videoEdgeDx);
-        const ay = Math.abs(this.videoEdgeDy);
-        if (ay > ax) {
-          this.videoDragOffsetX = 0;
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = false;
-          this.videoShowDismissHint = false;
-          this.applyVideoSwipeTransform();
-          this.syncVideoNavigationGestureHintToStore();
-          return;
-        }
-      }
 
       const kind = this.videoEdgeKind;
       if (kind === 'horizontal') {
@@ -2515,10 +2505,6 @@ export default {
           return;
         }
       } else if (kind === 'vertical-dismiss') {
-        if (this.showMobileLyrics) {
-          this.resetVideoEdgeGestureImmediate();
-          return;
-        }
         if (this.videoEdgeDy >= this.videoEdgeCommitY) {
           this.clearVideoDismissAnimTimers();
           this.videoDismissFlashActive = true;
