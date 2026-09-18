@@ -15,10 +15,14 @@ vi.mock("@/store", () => ({
   mutations: { setIsUploading: vi.fn(), setReload: vi.fn() },
 }));
 vi.mock("@/store/getters", () => ({ getters: { isShare: vi.fn(() => false) } }));
-vi.mock("@/utils/appNotifications", () => ({
-  notifyUploadComplete: vi.fn(),
-  notifyUploadError: vi.fn(),
-}));
+vi.mock("@/utils/appNotifications", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    notifyUploadComplete: vi.fn(),
+    notifyUploadError: vi.fn(),
+  };
+});
 
 import { resourcesApi } from "@/api";
 import { getters } from "@/store/getters";

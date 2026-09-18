@@ -82,7 +82,8 @@ echo "Vite is ready. Starting Air..."
 (
 	cd "$ROOT/backend"
 	export FILEBROWSER_DEVMODE=true
-	exec go tool air
+	AIR_BIN="$(cd build && go tool -n air)"
+	exec "$AIR_BIN"
 ) &
 AIR_PID=$!
 
