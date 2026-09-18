@@ -226,6 +226,7 @@ import {
   buildPlaybackQueue,
   navigatePlaybackQueue,
   getEndOfMediaAction,
+  getNextItem,
   cyclePlaybackModes,
   toggleSingleLoop,
   clearPlaybackQueue,
@@ -446,6 +447,7 @@ export default {
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
+        this.updateMediaSessionNavHandlers();
       }
     },
     loop(newVal, oldVal) {
@@ -455,7 +457,11 @@ export default {
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
+        this.updateMediaSessionNavHandlers();
       }
+    },
+    currentQueueIndex() {
+      this.updateMediaSessionNavHandlers();
     },
     showDesktopPanel(val) {
       localStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
@@ -910,16 +916,6 @@ export default {
       const actionHandlers = [
         ['play', () => this.player?.play()],
         ['pause', () => this.player?.pause()],
-        ['previoustrack', () => {
-          if (this.playbackQueue.length > 1) {
-            this.playPrevious();
-          }
-        }],
-        ['nexttrack', () => {
-          if (this.playbackQueue.length > 1) {
-            this.playNext();
-          }
-        }],
         ['seekbackward', (details) => this.player?.rewind(details.seekOffset || 10)],
         ['seekforward', (details) => this.player?.forward(details.seekOffset || 10)],
         ['seekto', (details) => {
@@ -934,7 +930,26 @@ export default {
           console.warn(`The media session action "${String(action)}" is not supported`, e);
         }
       }
+      this.updateMediaSessionNavHandlers();
       this.updateMediaSessionPlaybackState();
+    },
+    updateMediaSessionNavHandlers() {
+      if (!('mediaSession' in navigator) || !this.ownsMediaSession()) return;
+      const { queue, currentIndex, loop } = state.playbackQueue;
+      const hasPrevious = !!getNextItem(queue, currentIndex, loop, -1);
+      const hasNext = !!getNextItem(queue, currentIndex, loop, 1);
+      try {
+        navigator.mediaSession.setActionHandler(
+          'previoustrack',
+          hasPrevious ? () => this.playPrevious() : null
+        );
+      } catch (e) { /*ignore*/ }
+      try {
+        navigator.mediaSession.setActionHandler(
+          'nexttrack',
+          hasNext ? () => this.playNext() : null
+        );
+      } catch (e) { /*ignore*/ }
     },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
