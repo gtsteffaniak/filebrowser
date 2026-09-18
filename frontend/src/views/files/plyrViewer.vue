@@ -137,6 +137,7 @@
           :type="req.type"
           preload="none"
           :src="nativeVideoSrc"
+          :poster="posterUrl"
           :autoplay="videoElementAutoplay"
           @play="handlePlay"
           playsinline
@@ -714,6 +715,12 @@ export default {
         && getters.previewPerms().video
       );
     },
+    posterUrl() {
+      if (!this.scrubPreviewEnabled) return undefined;
+      return getters.isShare()
+        ? getPreviewURLPublic(this.req.path, 'large')
+        : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=large`;
+    },
     nativeVideoSrc() {
       if (this.previewType !== 'video') {
         return null;
@@ -888,13 +895,15 @@ export default {
       const fallbackUrl = fallbackIcon.includes('?')
         ? `${fallbackIcon}&t=${timestamp}`
         : `${fallbackIcon}?t=${timestamp}`;
+      // Video uses the same thumbnail as the poster; audio uses embedded album art (if any).
+      const artworkSrc = this.previewType === 'video' ? this.posterUrl : this.albumArtUrl;
       const metadata = {
         title: this.metadata?.title || this.fileName,
         artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
         album: this.metadata?.album || "",
         // In current versions of Firefox the artwork will not work, seems that doesn't like blob URLs.
         // But testing in 149.0a1 (nightly builds), it seems to work, so this something that will solve over time :)
-        artwork: [ { src: this.albumArtUrl || fallbackUrl } ]
+        artwork: [ { src: artworkSrc || fallbackUrl } ]
       };
       navigator.mediaSession.metadata = new MediaMetadata(metadata);
       // Setup handlers for the media session
