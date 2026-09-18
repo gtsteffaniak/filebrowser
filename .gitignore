@@ -58,7 +58,7 @@ yarn-error.log*
 *.sln
 *.sw*
 bin/
-build/
+/build/
 *__debug*
 backend/custom.css
 

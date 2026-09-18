@@ -21,7 +21,6 @@ vi.mock("@/utils/appNotifications", async (importOriginal) => {
     ...actual,
     notifyUploadComplete: vi.fn(),
     notifyUploadError: vi.fn(),
-    notifyOperationError: vi.fn(),
   };
 });
 

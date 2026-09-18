@@ -22,8 +22,10 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
-      - working-directory: backend
-        run: go tool golangci-lint run --path-prefix=backend
+      - name: Lint backend
+        run: |
+          GOLANGCI_LINT="$(cd backend/build && go tool -n golangci-lint)"
+          cd backend && "$GOLANGCI_LINT" run --path-prefix=backend
   format-backend:
     runs-on: ubuntu-24.04-arm
     steps:

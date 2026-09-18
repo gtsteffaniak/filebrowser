@@ -9,6 +9,10 @@ else
 endif
 
 PLAYWRIGHT_TEST ?= "settings"
+# Path to the dev-tools module, relative to backend/ (see backend/build/go.mod).
+BACKEND_BUILD := build
+# Resolves a dev-tool binary from backend/build (e.g. $(call backend_dev_tool,air)).
+backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 
 # git checkout remote branch PR
 # git fetch origin pull/####/head:pr-####
@@ -26,8 +30,8 @@ setup:
 		cp backend/config.yaml backend/test_config.yaml; \
 	fi
 	$(MAKE) setup-gofitz-cgo
-	echo "installing backend tooling..."
-	cd backend && go get tool
+	echo "installing backend dev tooling..."
+	cd backend/build && go get tool
 	cd backend/internal/web && mkdir -p embed dist && touch embed/.gitignore
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
@@ -37,7 +41,8 @@ setup-gofitz-cgo:
 	cd backend && go run ./scripts/setup-gofitz-cgo
 
 update:
-	cd backend && go get -u ./... && go get tool && go mod tidy
+	cd backend && go get -u ./... && go mod tidy
+	cd backend/build && go get -u tool && go mod tidy
 	cd frontend && npm update
 
 build: build-frontend build-backend
@@ -60,7 +65,7 @@ dev: generate-docs generate-icons setup-gofitz-cgo
 	bash ./scripts/dev.sh
 
 run: build-frontend generate-docs setup-gofitz-cgo
-	cd backend && go tool swag init --output swagger/docs
+	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
 	else \
@@ -72,7 +77,7 @@ run: build-frontend generate-docs setup-gofitz-cgo
 generate-docs:
 	@echo "NOTE: Run 'make setup' if you haven't already."
 	@echo "Generating swagger docs..."
-	cd backend && go tool swag init --output swagger/docs
+	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
 	else \
@@ -90,7 +95,7 @@ lint-frontend:
 	cd frontend && npm run lint
 
 lint-backend:
-	cd backend && go tool golangci-lint run --path-prefix=backend
+	cd backend && GOLANGCI_LINT="$$(cd $(BACKEND_BUILD) && go tool -n golangci-lint)" && "$$GOLANGCI_LINT" run --path-prefix=backend
 
 lint: lint-backend lint-frontend
 
