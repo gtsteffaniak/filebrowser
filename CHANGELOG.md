@@ -2,8 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v2.0.7
+## v2.0.8
 
+ **Notes**:
+ - Updates onlyoffice url src restriction so its same domain, allowing local and external url's to work.
+
+## v2.0.7
 
  **New Features**:
  - Add cli init CLI command (#2957)

@@ -154,9 +154,11 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("GET /office/config", withUser(onlyofficeClientConfigGetHandler))
 	api.HandleFunc("POST /office/callback", withUser(onlyofficeCallbackHandler))
 	api.HandleFunc("GET /office/callback", withUser(onlyofficeCallbackHandler))
+	api.HandleFunc("/office/ds/{path...}", withUser(onlyOfficeDocumentServerProxyHandler))
 	publicApi.HandleFunc("POST /office/callback", withHashFile(onlyofficeCallbackHandler))
 	publicApi.HandleFunc("GET /office/callback", withHashFile(onlyofficeCallbackHandler))
 	publicApi.HandleFunc("GET /office/config", withHashFile(onlyofficeClientConfigGetHandler))
+	publicApi.HandleFunc("/office/ds/{path...}", withHashFile(onlyOfficeDocumentServerProxyHandler))
 
 	// ========================================
 	// Misc Routes

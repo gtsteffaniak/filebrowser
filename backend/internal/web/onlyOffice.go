@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"path/filepath"
 	"strconv"
@@ -296,6 +297,106 @@ func joinOnlyOfficeAPIURL(baseURL, apiPath string) string {
 	base := strings.TrimRight(baseURL, "/")
 	path := strings.TrimLeft(apiPath, "/")
 	return base + "/" + path
+}
+
+const onlyOfficeDocumentServerProxyAPIPath = "api/office/ds"
+
+// onlyOfficeBrowserURLForRequest is the documentServerUrl injected into the SPA. It is always
+// same-origin with the FileBrowser shell so api.js loads with the session cookie and script-src 'self'.
+func onlyOfficeBrowserURLForRequest(r *http.Request) string {
+	if settings.Config.Integrations.OnlyOffice.Url == "" {
+		return ""
+	}
+	return strings.TrimSuffix(
+		joinOnlyOfficeAPIURL(onlyOfficeFileBrowserBaseURL(r), onlyOfficeDocumentServerProxyAPIPath),
+		"/",
+	)
+}
+
+// onlyOfficeUpstreamBaseURL is the document server origin FileBrowser reaches server-side
+// (integrations.office.internalUrl when set, otherwise integrations.office.url).
+func onlyOfficeUpstreamBaseURL() (*url.URL, error) {
+	oo := settings.Config.Integrations.OnlyOffice
+	raw := oo.Url
+	if oo.InternalUrl != "" {
+		raw = oo.InternalUrl
+	}
+	if raw == "" {
+		return nil, errors.New("onlyoffice integration is not configured")
+	}
+	if !strings.Contains(raw, "://") {
+		raw = "http://" + raw
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return nil, fmt.Errorf("parse onlyoffice upstream url: %w", err)
+	}
+	if !isAllowedOnlyOfficeScheme(parsed.Scheme) || parsed.Host == "" {
+		return nil, fmt.Errorf("invalid onlyoffice upstream url %q", raw)
+	}
+	return parsed, nil
+}
+
+func onlyOfficeProxyJoinBasePath(basePath, subpath string) string {
+	if subpath == "" {
+		if basePath == "" {
+			return "/"
+		}
+		if strings.HasPrefix(basePath, "/") {
+			return basePath
+		}
+		return "/" + basePath
+	}
+	if !strings.HasPrefix(subpath, "/") {
+		subpath = "/" + subpath
+	}
+	if basePath == "" || basePath == "/" {
+		return subpath
+	}
+	if !strings.HasPrefix(basePath, "/") {
+		basePath = "/" + basePath
+	}
+	return strings.TrimSuffix(basePath, "/") + subpath
+}
+
+// onlyOfficeDocumentServerProxyHandler reverse-proxies the OnlyOffice document server for browser
+// loads (api.js, editor iframe assets, coauthoring). Auth matches other /api/office routes.
+func onlyOfficeDocumentServerProxyHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	target, err := onlyOfficeUpstreamBaseURL()
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+
+	subpath := r.PathValue("path")
+	proxy := httputil.NewSingleHostReverseProxy(target)
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		logger.Errorf("OnlyOffice document server proxy error: %v", err)
+		http.Error(w, "document server unreachable", http.StatusBadGateway)
+	}
+	origDirector := proxy.Director
+	proxy.Director = func(outReq *http.Request) {
+		origDirector(outReq)
+		outReq.URL.Path = onlyOfficeProxyJoinBasePath(target.Path, subpath)
+		outReq.URL.RawQuery = r.URL.RawQuery
+		outReq.Host = target.Host
+		if clientIP := r.RemoteAddr; clientIP != "" {
+			prior := outReq.Header.Get("X-Forwarded-For")
+			if prior == "" {
+				outReq.Header.Set("X-Forwarded-For", clientIP)
+			} else {
+				outReq.Header.Set("X-Forwarded-For", prior+", "+clientIP)
+			}
+		}
+		if outReq.Header.Get("X-Forwarded-Host") == "" {
+			outReq.Header.Set("X-Forwarded-Host", r.Host)
+		}
+		if outReq.Header.Get("X-Forwarded-Proto") == "" {
+			outReq.Header.Set("X-Forwarded-Proto", requestScheme(r))
+		}
+	}
+
+	proxy.ServeHTTP(w, r)
+	return 0, nil
 }
 
 // shareTokenForOnlyOffice mints a short-lived download token for OnlyOffice server URLs.

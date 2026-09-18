@@ -423,6 +423,62 @@ func TestOnlyOfficeFileBrowserBaseURL(t *testing.T) {
 	}
 }
 
+func TestOnlyOfficeBrowserURLForRequest(t *testing.T) {
+	origHTTP := settings.Config.Http
+	origOO := settings.Config.Integrations.OnlyOffice
+	t.Cleanup(func() {
+		settings.Config.Http = origHTTP
+		settings.Config.Integrations.OnlyOffice = origOO
+	})
+
+	settings.Config.Http.BaseURL = "/files/"
+	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{
+		Url:         "https://files.example.com",
+		InternalUrl: "http://office.internal:9052",
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/files/", nil)
+	req.Host = "vdebian.ghome.net:9050"
+
+	got := onlyOfficeBrowserURLForRequest(req)
+	want := "http://vdebian.ghome.net:9050/files/api/office/ds"
+	if got != want {
+		t.Fatalf("onlyOfficeBrowserURLForRequest() = %q, want %q", got, want)
+	}
+}
+
+func TestOnlyOfficeUpstreamBaseURL(t *testing.T) {
+	origOO := settings.Config.Integrations.OnlyOffice
+	t.Cleanup(func() { settings.Config.Integrations.OnlyOffice = origOO })
+
+	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{
+		Url:         "https://public.example.com",
+		InternalUrl: "http://office.internal:9052",
+	}
+	u, err := onlyOfficeUpstreamBaseURL()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u.String() != "http://office.internal:9052" {
+		t.Fatalf("upstream = %q", u.String())
+	}
+}
+
+func TestOnlyOfficeProxyJoinBasePath(t *testing.T) {
+	tests := []struct {
+		base, sub, want string
+	}{
+		{"", "web-apps/x", "/web-apps/x"},
+		{"/", "web-apps/x", "/web-apps/x"},
+		{"/prefix", "web-apps/x", "/prefix/web-apps/x"},
+	}
+	for _, tt := range tests {
+		if got := onlyOfficeProxyJoinBasePath(tt.base, tt.sub); got != tt.want {
+			t.Fatalf("onlyOfficeProxyJoinBasePath(%q, %q) = %q, want %q", tt.base, tt.sub, got, tt.want)
+		}
+	}
+}
+
 func TestOnlyOfficeURLHostsMatch(t *testing.T) {
 	mustParse := func(raw string) *url.URL {
 		t.Helper()
