@@ -718,8 +718,8 @@ export default {
     posterUrl() {
       if (!this.scrubPreviewEnabled) return undefined;
       return getters.isShare()
-        ? getPreviewURLPublic(this.req.path, 'large')
-        : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=large`;
+        ? getPreviewURLPublic(this.req.path, 'original')
+        : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=original`;
     },
     nativeVideoSrc() {
       if (this.previewType !== 'video') {
