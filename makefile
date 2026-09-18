@@ -101,7 +101,7 @@ lint-frontend:
 	cd frontend && npm run lint
 
 lint-backend:
-	cd backend && $(call backend_dev_tool,golangci-lint) run --path-prefix=backend
+	cd backend && GOLANGCI_LINT="$$(cd $(BACKEND_BUILD) && go tool -n golangci-lint)" && "$$GOLANGCI_LINT" run --path-prefix=backend
 
 lint: lint-backend lint-frontend
 
