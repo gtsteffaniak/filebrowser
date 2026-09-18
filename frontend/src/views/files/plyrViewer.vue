@@ -1582,6 +1582,7 @@ export default {
         return;
       }
       this.videoStreamAttached = true;
+      this.videoLoadingCleanup?.expectPlayback?.();
       this.$nextTick(() => {
         this.$nextTick(() => {
           const el = this.mediaElement;
@@ -1633,10 +1634,8 @@ export default {
             } else {
               el.addEventListener('loadedmetadata', start, { once: true });
             }
-          } else if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-            start();
           } else {
-            el.addEventListener('canplay', start, { once: true });
+            start();
           }
         });
       });
@@ -1968,6 +1967,7 @@ export default {
     },
     setupPlyrEvents() {
       if (!this.player) return;
+      mutations.setPlaybackState(this.player.playing);
       const eventMap = {
         ended: this.handleMediaEnd,
         play: () => {
