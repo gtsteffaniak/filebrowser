@@ -25,11 +25,24 @@ export function computeIsMobileLayout() {
   if (typeof window === "undefined") {
     return false;
   }
-  const minSide = Math.min(window.innerWidth, window.innerHeight);
-  if (minSide <= MOBILE_LAYOUT_MAX_PX) {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const minSide = Math.min(width, height);
+  const maxSide = Math.max(width, height);
+
+  if (width <= MOBILE_LAYOUT_MAX_PX) {
     return true;
   }
-  if (hasCoarsePointer() && minSide <= TOUCH_MOBILE_LAYOUT_MAX_PX) {
+  // Landscape phones: short side ≤768 but width already >768 (CSS width breakpoint alone misses these).
+  if (minSide <= MOBILE_LAYOUT_MAX_PX && maxSide <= TOUCH_MOBILE_LAYOUT_MAX_PX) {
+    return true;
+  }
+  // Touch tablets in landscape (e.g. 1100×900): min side between 769 and 1024.
+  if (
+    hasCoarsePointer() &&
+    minSide > MOBILE_LAYOUT_MAX_PX &&
+    minSide <= TOUCH_MOBILE_LAYOUT_MAX_PX
+  ) {
     return true;
   }
   return false;

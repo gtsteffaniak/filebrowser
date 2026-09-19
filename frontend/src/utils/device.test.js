@@ -35,6 +35,21 @@ describe("computeIsMobileLayout", () => {
     expect(computeIsMobileLayout()).toBe(false);
   });
 
+  it("treats Playwright Desktop Firefox viewport as non-mobile", () => {
+    setViewport(1280, 720);
+    expect(computeIsMobileLayout()).toBe(false);
+  });
+
+  it("treats Playwright Desktop Firefox viewport as non-mobile with coarse pointer", () => {
+    setViewport(1280, 720);
+    vi.stubGlobal("navigator", { maxTouchPoints: 5 });
+    vi.stubGlobal("matchMedia", (query) => ({
+      matches: query.includes("coarse"),
+      media: query,
+    }));
+    expect(computeIsMobileLayout()).toBe(false);
+  });
+
   it("uses touch coarse pointer for landscape between 769 and 1024", () => {
     setViewport(1100, 900);
     vi.stubGlobal("navigator", { maxTouchPoints: 5 });
