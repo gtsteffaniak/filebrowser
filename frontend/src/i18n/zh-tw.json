@@ -58,7 +58,8 @@
     "lonely": "這裡沒有任何內容。",
     "cannotAccesDir": "無法存取資料夾",
     "newFolderMessage": "請輸入新資料夾的名稱。",
-    "newFolderSuccess": "資料夾已成功建立！"
+    "newFolderSuccess": "資料夾已成功建立！",
+    "mobilePdfPreviewHint": "您的瀏覽器無法在應用程式預覽中顯示此 PDF 檔案。"
   },
   "help": {
     "functionKeys": "功能鍵",

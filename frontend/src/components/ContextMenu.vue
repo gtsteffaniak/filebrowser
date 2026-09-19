@@ -218,7 +218,6 @@ import downloadFiles from "@/utils/download";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 import { isMediaRequest } from "@/utils/mediaFile";
-import { openFileInNewTab } from "@/utils/openFile.js";
 
 function isArchivePath(pathOrName) {
   if (!pathOrName || typeof pathOrName !== "string") return false;
@@ -895,21 +894,16 @@ export default {
         },
       });
     },
-    async goToRaw() {
+    goToRaw() {
       const source = state.req?.source || "";
       const path = state.req?.path || "";
-      const shareInfo = getters.isShare()
-        ? {
+      const openUrl = getters.isShare()
+        ? resourcesApi.getOpenFileURL(source, path, {
             path: state.shareInfo.subPath,
             hash: state.shareInfo.hash,
-          }
-        : null;
-      await openFileInNewTab({
-        source,
-        path,
-        shareInfo,
-        mimeOrName: state.req?.type || state.req?.name,
-      });
+          })
+        : resourcesApi.getOpenFileURL(source, path);
+      window.open(openUrl, "_blank");
       mutations.closeHovers();
     },
     watchFile() {

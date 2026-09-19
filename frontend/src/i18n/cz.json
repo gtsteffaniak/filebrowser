@@ -58,7 +58,8 @@
     "lonely": "Zde není nic k vidění...",
     "cannotAccesDir": "Nelze otevřít složku",
     "newFolderMessage": "Zadejte název nové složky.",
-    "newFolderSuccess": "Složka byla úspěšně vytvořena!"
+    "newFolderSuccess": "Složka byla úspěšně vytvořena!",
+    "mobilePdfPreviewHint": "Váš prohlížeč nedokáže zobrazit tento soubor PDF v náhledu aplikace."
   },
   "help": {
     "functionKeys": "Funkční Klávesy",

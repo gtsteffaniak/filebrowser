@@ -58,7 +58,8 @@
     "lonely": "אין מה להראות כאן...",
     "cannotAccesDir": "לא ניתן לגשת לתיקייה",
     "newFolderMessage": "הזן את שם התיקייה החדשה.",
-    "newFolderSuccess": "התיקייה נוצרה בהצלחה!"
+    "newFolderSuccess": "התיקייה נוצרה בהצלחה!",
+    "mobilePdfPreviewHint": "הדפדפן שלך אינו יכול להציג קובץ PDF זה בתוך תצוגה מקדימה של האפליקציה."
   },
   "help": {
     "functionKeys": "מקשי פונקציה",

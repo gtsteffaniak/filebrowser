@@ -58,7 +58,8 @@
     "lonely": "ここには何もない...。",
     "cannotAccesDir": "フォルダにアクセスできません",
     "newFolderMessage": "新しいフォルダの名前を入力してください。",
-    "newFolderSuccess": "フォルダが正常に作成されました！"
+    "newFolderSuccess": "フォルダが正常に作成されました！",
+    "mobilePdfPreviewHint": "お使いのブラウザでは、アプリプレビュー内でこのPDFを表示できません。"
   },
   "help": {
     "functionKeys": "ファンクションキー",

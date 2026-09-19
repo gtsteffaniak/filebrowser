@@ -258,10 +258,6 @@ func SetContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 		dispositionType = "inline"
 		w.Header().Set("Content-Security-Policy", "script-src 'none'")
 	}
-	setContentDispositionHeader(w, dispositionType, fileName)
-}
-
-func setContentDispositionHeader(w http.ResponseWriter, dispositionType string, fileName string) {
 	asciiFileName := toASCIIFilename(fileName)
 	encodedFileName := url.PathEscape(fileName)
 	w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename=%q; filename*=utf-8''%s", dispositionType, asciiFileName, encodedFileName))

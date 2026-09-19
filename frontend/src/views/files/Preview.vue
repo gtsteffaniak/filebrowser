@@ -56,7 +56,7 @@
           v-else
           allow="web-share"
           class="pdf"
-          :src="pdfViewUrl"
+          :src="raw"
           :title="req.name || 'PDF'"
         ></iframe>
       </div>
@@ -194,32 +194,6 @@ export default {
     },
     usePdfPreviewFallback() {
       return this.isPdf && shouldUsePdfPreviewFallback();
-    },
-    previewShareInfo() {
-      if (!getters.isShare()) {
-        return null;
-      }
-      return {
-        path: state.shareInfo.subPath,
-        hash: state.shareInfo.hash,
-      };
-    },
-    pdfViewUrl() {
-      if (!this.isPdf) {
-        return "";
-      }
-      void state.req.viewToken;
-      return (
-        resourcesApi.getOpenFileURL(
-          state.req.source,
-          state.req.path,
-          this.previewShareInfo,
-          {
-            viewToken: state.req.viewToken,
-            mimeOrName: state.req.type || state.req.name,
-          },
-        ) ?? ""
-      );
     },
     raw() {
       const viewToken = state.req.viewToken;

@@ -58,7 +58,8 @@
     "lonely": "여기에 표시할 내용이 없습니다...",
     "cannotAccesDir": "폴더에 액세스할 수 없음",
     "newFolderMessage": "새 폴더의 이름을 입력하세요.",
-    "newFolderSuccess": "폴더가 성공적으로 생성되었습니다!"
+    "newFolderSuccess": "폴더가 성공적으로 생성되었습니다!",
+    "mobilePdfPreviewHint": "사용 중인 브라우저에서는 앱 미리보기 내에서 이 PDF를 표시할 수 없습니다."
   },
   "help": {
     "functionKeys": "기능 키",

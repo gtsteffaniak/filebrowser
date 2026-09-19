@@ -58,7 +58,8 @@
     "lonely": "No hay nada aquí...",
     "cannotAccesDir": "No se puede acceder a la carpeta",
     "newFolderMessage": "Escribe el nombre de la nueva carpeta.",
-    "newFolderSuccess": "¡La carpeta se ha creado correctamente!"
+    "newFolderSuccess": "¡La carpeta se ha creado correctamente!",
+    "mobilePdfPreviewHint": "Tu navegador no puede mostrar este PDF en la vista previa de la aplicación."
   },
   "help": {
     "functionKeys": "Teclas de función",

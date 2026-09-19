@@ -58,7 +58,8 @@
     "lonely": "Hier gibt es nichts zu sehen...",
     "cannotAccesDir": "Auf den Ordner kann nicht zugegriffen werden",
     "newFolderMessage": "Geben Sie den Namen des neuen Ordners ein.",
-    "newFolderSuccess": "Ordner erfolgreich erstellt!"
+    "newFolderSuccess": "Ordner erfolgreich erstellt!",
+    "mobilePdfPreviewHint": "Ihr Browser kann diese PDF-Datei in der App-Vorschau nicht anzeigen."
   },
   "help": {
     "functionKeys": "Funktionstasten",

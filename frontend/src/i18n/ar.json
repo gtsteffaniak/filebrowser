@@ -58,7 +58,8 @@
     "lonely": "لا شيء للعرض هنا...",
     "cannotAccesDir": "يتعذر الوصول إلى المجلد",
     "newFolderMessage": "اكتب اسم المجلد الجديد.",
-    "newFolderSuccess": "تم إنشاء المجلد بنجاح!"
+    "newFolderSuccess": "تم إنشاء المجلد بنجاح!",
+    "mobilePdfPreviewHint": "لا يمكن لمتصفحك عرض ملف PDF هذا داخل معاينة التطبيق."
   },
   "help": {
     "functionKeys": "مفاتيح الوظائف",

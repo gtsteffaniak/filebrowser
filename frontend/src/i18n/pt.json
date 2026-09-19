@@ -58,7 +58,8 @@
     "lonely": "Não há nada para mostrar aqui...",
     "cannotAccesDir": "Não é possível aceder à pasta",
     "newFolderMessage": "Escreva o nome da nova pasta.",
-    "newFolderSuccess": "A pasta foi criada com sucesso!"
+    "newFolderSuccess": "A pasta foi criada com sucesso!",
+    "mobilePdfPreviewHint": "O seu navegador não consegue apresentar este PDF na pré-visualização da aplicação."
   },
   "help": {
     "functionKeys": "Teclas de Função",

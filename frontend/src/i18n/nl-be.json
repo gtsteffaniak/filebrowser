@@ -58,7 +58,8 @@
     "lonely": "Niets te zien hier...",
     "cannotAccesDir": "Kan de map niet openen",
     "newFolderMessage": "Typ de naam van de nieuwe map.",
-    "newFolderSuccess": "De map is succesvol aangemaakt!"
+    "newFolderSuccess": "De map is succesvol aangemaakt!",
+    "mobilePdfPreviewHint": "Je browser kan dit PDF-bestand niet weergeven in het app-voorbeeld."
   },
   "help": {
     "functionKeys": "Functietoetsen",

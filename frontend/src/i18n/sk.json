@@ -58,7 +58,8 @@
     "lonely": "Tu nie je čo ukázať...",
     "cannotAccesDir": "Nie je možné otvoriť priečinok",
     "newFolderMessage": "Napíšte názov nového priečinka.",
-    "newFolderSuccess": "Zložka bola úspešne vytvorená!"
+    "newFolderSuccess": "Zložka bola úspešne vytvorená!",
+    "mobilePdfPreviewHint": "Váš prehliadač nedokáže zobraziť tento súbor PDF v náhľade aplikácie."
   },
   "help": {
     "functionKeys": "Funkčné Klávesy",
