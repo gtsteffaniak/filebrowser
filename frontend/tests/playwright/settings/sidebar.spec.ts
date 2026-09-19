@@ -67,7 +67,8 @@ test("navigation mode has no source card", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
-    await page.getByLabel("Toggle between links and navigation tree").click();
+    // Icon-mode ToggleSwitch keeps the checkbox visually hidden; click the visible track.
+    await page.locator(".sidebar-mode-toggle label.switch").click();
 
     await expect(page.locator(".navigation-source-card")).toHaveCount(0);
     await expect(page.locator(".file-tree-container")).toBeVisible();

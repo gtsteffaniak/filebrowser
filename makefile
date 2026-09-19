@@ -58,11 +58,17 @@ build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'"
 	@echo "✓ Backend built successfully"
 
-# Local development: Vite HMR (frontend) + Air (backend)
-.NOTPARALLEL: dev
+# New dev target with hot-reloading for frontend and backend
 dev: generate-docs generate-icons setup-gofitz-cgo
-	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
-	bash ./scripts/dev.sh
+	@echo "Starting dev servers... Press Ctrl+C to stop."
+	pkill -f '[t]est_config.yaml' || true
+	pkill -f '[a]ir -c .air' || true
+	@cd frontend && DEV_BUILD=true npm run watch & \
+	FRONTEND_PID=$$!; \
+	cd backend && export FILEBROWSER_DEVMODE=true && $(call backend_dev_tool,air) $$([ "$(OS)" = "Windows_NT" ] && echo "-c .air.windows.toml" || echo "") & \
+	BACKEND_PID=$$!; \
+	trap 'echo "Stopping..."; kill $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; sleep 1; kill -9 $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; exit 0' INT TERM; \
+	wait $$FRONTEND_PID $$BACKEND_PID 2>/dev/null || true
 
 run: build-frontend generate-docs setup-gofitz-cgo
 	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
@@ -71,7 +77,7 @@ run: build-frontend generate-docs setup-gofitz-cgo
 	else \
 		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
 	fi
-	cd backend && CGO_ENABLED=1 go run --tags=mupdf \
+	cd backend && CGO_ENABLED=1 FILEBROWSER_DEVMODE=true go run --tags=mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'" . -c test_config.yaml
 
 generate-docs:
@@ -125,7 +131,7 @@ cleanup-translations:
 	cd frontend && npm run i18n:cleanup
 
 test-backend:
-	cd backend && go test -race -timeout=60s ./...
+	cd backend && go test -race -timeout=30s ./...
 
 test-frontend:
 	cd frontend && npm run test
