@@ -14,6 +14,51 @@ const KEEP_ALIVE_INTERVAL_MS = 60 * 1000;
 let keepAliveTimer = null;
 let renewInFlight = null;
 let sessionExpiresAt = null;
+/** In-memory session JWT mirrored from login/renew (cookie is HttpOnly). */
+let sessionJwtForPlugin = null;
+
+function isJwtShape(token) {
+  if (!token || typeof token !== "string") {
+    return false;
+  }
+  return token.split(".").length === 3;
+}
+
+function rememberSessionJwt(token) {
+  if (!isJwtShape(token)) {
+    return;
+  }
+  sessionJwtForPlugin = token;
+  setSessionExpiresAtFromToken(token);
+}
+
+/** @param {string} body Plain-text login/renew response body */
+export function rememberSessionJwtFromLoginResponse(body) {
+  rememberSessionJwt(typeof body === "string" ? body.trim() : "");
+}
+
+function getSessionJwtInMemory() {
+  return sessionJwtForPlugin;
+}
+
+/**
+ * Ensure the in-memory session JWT exists (page reload has cookie but not memory).
+ * @returns {Promise<boolean>}
+ */
+export async function ensureSessionJwtInMemory() {
+  if (getSessionJwtInMemory()) {
+    return true;
+  }
+  if (getters.isShare?.() && !getters.isLoggedIn?.()) {
+    return false;
+  }
+  try {
+    await renew();
+    return !!getSessionJwtInMemory();
+  } catch {
+    return false;
+  }
+}
 
 function decodeJwtExp(token) {
   if (!token) {
@@ -99,6 +144,7 @@ export async function validateLogin(isPublicRoute = false) {
     if (res.status !== 200) {
       throw new Error(body);
     }
+    rememberSessionJwt(body);
   }
   if (!isPublicRoute) {
     startSessionKeepAlive();
@@ -123,7 +169,7 @@ export async function renew() {
     });
     const body = await res.text();
     if (res.status === 200) {
-      setSessionExpiresAtFromToken(body);
+      rememberSessionJwt(body);
       mutations.setSession(generateRandomCode(8));
       return;
     }
@@ -198,6 +244,7 @@ export async function logout(redirectUrl) {
       }
       // Backend clears the HttpOnly session cookie.
       sessionExpiresAt = null;
+      sessionJwtForPlugin = null;
       void mutations.setCurrentUser(null);
       // No need to clear state.jwt - cookie is the source of truth
       // Add a small delay to ensure cookie deletion completes before redirect
@@ -220,6 +267,7 @@ export async function logout(redirectUrl) {
 export function sessionExpired() {
   stopSessionKeepAlive();
   sessionExpiresAt = null;
+  sessionJwtForPlugin = null;
   void mutations.setCurrentUser(null);
   // Avoid a redirect loop if we're already on the login page.
   if (window.location.pathname.endsWith("/login")) {

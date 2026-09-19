@@ -7,10 +7,15 @@ import {
   notifyDownloadError,
 } from '@/utils/appNotifications'
 import { renew } from '@/utils/auth'
-import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
+import {
+  encodePath,
+  getApiPath,
+  getPublicApiPath,
+  getParentDir,
+} from '@/utils/url.js'
 import { adjustedData, fetchURL } from './utils'
 import { rememberViewToken } from './viewToken'
-import { isMediaFile } from '@/utils/mediaFile'
+import { isMediaFile, isPdfFile } from '@/utils/mediaFile'
 import { getObjectProperty } from '@/utils/object'
 import { getStreamURL, getStreamURLPublic } from './media'
 import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
@@ -939,12 +944,29 @@ export async function checksum(source, path, algo) {
 }
 
 /**
- * URL to open a file inline in a new browser tab via the download endpoint.
- * Uses inline disposition and respects download permissions and share limits.
+ * URL to open a file inline in a new browser tab.
+ * PDFs with a viewToken use /resources/view (view grant, not download-metered).
+ * Other files use the download endpoint with inline disposition.
+ *
+ * @param {object} [options]
+ * @param {string} [options.viewToken]
+ * @param {string} [options.mimeOrName] MIME type or name for PDF detection
  */
-export function getOpenFileURL(source, path, shareInfo = null) {
+export function getOpenFileURL(source, path, shareInfo = null, options = {}) {
   if (isMediaFile(path)) {
     return null
+  }
+  const { viewToken, mimeOrName } = options
+  const typeHint = mimeOrName || path
+  if (viewToken && (isPdfFile(typeHint) || isPdfFile(path))) {
+    return getViewURL(
+      source,
+      path,
+      viewToken,
+      shareInfo,
+      false,
+      typeHint,
+    )
   }
   if (shareInfo) {
     return getDownloadURLPublic(shareInfo, [path], true)
@@ -965,7 +987,6 @@ export function getRawViewURL(source, path, viewToken) {
       source: source,
       file: path,
       viewToken: viewToken,
-      sessionId: state.sessionId,
     }
     const apiPath = getApiPath('resources/view', params)
     return window.origin + apiPath
@@ -985,7 +1006,6 @@ export function getRawViewURLPublic(share, files, viewToken) {
     file: fileArray,
     hash: share.hash,
     viewToken: viewToken,
-    sessionId: state.sessionId,
   }
   const apiPath = getPublicApiPath('resources/view', params)
   return window.origin + apiPath

@@ -197,12 +197,16 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
+    padding: 2.5em;
     font-size: 1.5em;
     color: #fff;
+    text-align: center;
 }
 
 #previewer .preview .info .title {
     margin-bottom: 1em;
+    max-width: 100%;
 }
 
 #previewer .preview .info .title i {
@@ -211,18 +215,25 @@
     font-size: 4em;
 }
 
-#previewer .preview .info a {
-    display: inline-block;
+#previewer .preview .info .preview-buttons .button--flat {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
-#previewer .preview .info a:hover {
+#previewer .preview .info .preview-buttons .button--flat:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-#previewer .preview .info a i {
+#previewer .preview .info .preview-buttons .button--flat i {
     display: block;
     margin-bottom: 4px;
     font-size: 1.3em;
+}
+
+#previewer .preview .info .preview-buttons .button--flat.preview-action--icon-only i {
+    margin-bottom: 0;
 }
 
 #previewer .pdf {

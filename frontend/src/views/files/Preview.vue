@@ -36,7 +36,29 @@
       </div>
 
       <div v-else-if="isPdf" class="pdf-wrapper">
-        <iframe allow="web-share" class="pdf" :src="raw" title="PDF"></iframe>
+        <div v-if="usePdfPreviewFallback" class="info">
+          <div class="title">
+            <i class="material-symbols">picture_as_pdf</i>
+            {{ $t("files.mobilePdfPreviewHint") }}
+          </div>
+          <div class="preview-buttons" v-if="permissions.download">
+            <a
+              target="_blank"
+              :href="downloadUrl"
+              class="button button--flat preview-action--icon-only"
+              :aria-label="$t('general.download', { suffix: '' })"
+            >
+              <i class="material-symbols">file_download</i>
+            </a>
+          </div>
+        </div>
+        <iframe
+          v-else
+          allow="web-share"
+          class="pdf"
+          :src="pdfViewUrl"
+          :title="req.name || 'PDF'"
+        ></iframe>
       </div>
 
       <div v-else class="info">
@@ -45,21 +67,18 @@
           {{ $t("files.noPreview") }}
         </div>
         <div class="preview-buttons" v-if="permissions.download">
-          <a target="_blank" :href="downloadUrl" class="button button--flat">
-            <div>
-              <i class="material-symbols">file_download</i>{{ $t("general.download") }}
-            </div>
-          </a>
-          <a target="_blank" :href="openFileUrl" class="button button--flat" v-if="req.type !== 'directory'">
-            <div>
-              <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
-            </div>
+          <a
+            target="_blank"
+            :href="downloadUrl"
+            class="button button--flat preview-action--icon-only"
+            :aria-label="$t('general.download', { suffix: '' })"
+          >
+            <i class="material-symbols">file_download</i>
           </a>
         </div>
         <div v-else>
           <p> {{ $t("files.noDownloadAccess") }} </p>
         </div>
-        <p> {{ req.name }} </p>
       </div>
     </div>
   </div>
@@ -79,6 +98,8 @@ import {
   hasActiveSession as hasActivePipSession,
   pendingInlineResumeFor,
 } from "@/plyr/pipSession.js";
+import { isPdfFile } from "@/utils/mediaFile";
+import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 
 export default {
   name: "preview",
@@ -167,7 +188,38 @@ export default {
       return getters.previewType();
     },
     isPdf() {
-      return state.req.type === 'application/pdf';
+      return (
+        isPdfFile(state.req.type) || isPdfFile(state.req.name)
+      );
+    },
+    usePdfPreviewFallback() {
+      return this.isPdf && shouldUsePdfPreviewFallback();
+    },
+    previewShareInfo() {
+      if (!getters.isShare()) {
+        return null;
+      }
+      return {
+        path: state.shareInfo.subPath,
+        hash: state.shareInfo.hash,
+      };
+    },
+    pdfViewUrl() {
+      if (!this.isPdf) {
+        return "";
+      }
+      void state.req.viewToken;
+      return (
+        resourcesApi.getOpenFileURL(
+          state.req.source,
+          state.req.path,
+          this.previewShareInfo,
+          {
+            viewToken: state.req.viewToken,
+            mimeOrName: state.req.type || state.req.name,
+          },
+        ) ?? ""
+      );
     },
     raw() {
       const viewToken = state.req.viewToken;
@@ -235,19 +287,6 @@ export default {
         );
       }
       return resourcesApi.getDownloadURL(state.req.source, state.req.path);
-    },
-    openFileUrl() {
-      if (getters.isShare()) {
-        return resourcesApi.getOpenFileURL(
-          state.req.source,
-          state.req.path,
-          {
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-          },
-        );
-      }
-      return resourcesApi.getOpenFileURL(state.req.source, state.req.path);
     },
     isTransitioning() {
       return state.navigation.isTransitioning;
@@ -756,12 +795,6 @@ export default {
 
 .pdf-wrapper .floating-btn:hover {
   background: rgba(0, 0, 0, 0.7);
-}
-
-.preview .info {
-  display: flex;
-  flex-direction: row;
-  gap: 1em;
 }
 
 .preview-buttons {

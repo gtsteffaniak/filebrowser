@@ -9,6 +9,7 @@ import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.js";
 import { updateManifestLink } from "@/utils/pwaManifest";
+import { computeIsMobileLayout } from "@/utils/device.js";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters";
 import { state } from "./state";
@@ -286,7 +287,7 @@ export const mutations = {
     emitStateChanged();
   },
   setMobile() {
-    const newValue = window.innerWidth <= 768;
+    const newValue = computeIsMobileLayout();
     if (newValue === state.isMobile) {
       return;
     }
