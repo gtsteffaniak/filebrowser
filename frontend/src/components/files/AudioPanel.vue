@@ -3,19 +3,19 @@
     <div class="panel-tabs">
       <div class="tab-container">
         <input type="radio" id="tab-queue" v-model="activeTab" value="queue" hidden />
-        <label for="tab-queue" class="tab-btn" :class="{ active: activeTab === 'queue' }">
+        <label for="tab-queue" class="tab-btn" :class="{ active: activeTab === 'queue' }" :title="$t('player.QueuePlayback')">
           <i class="material-symbols">queue_music</i>
           <span>{{ $t('player.queue') }}</span>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
           <span v-if="queueCount > 0">({{ queueCount }})</span>
         </label>
         <input type="radio" id="tab-lyrics" v-model="activeTab" value="lyrics" hidden />
-        <label for="tab-lyrics" class="tab-btn" :class="{ active: activeTab === 'lyrics' }">
+        <label for="tab-lyrics" class="tab-btn" :class="{ active: activeTab === 'lyrics' }" :title="$t('player.lyrics')">
           <i class="material-symbols">lyrics</i>
           <span>{{ $t('player.lyrics') }}</span>
         </label>
         <input type="radio" id="tab-visualizer" v-model="activeTab" value="visualizer" hidden />
-        <label for="tab-visualizer" class="tab-btn" :class="{ active: activeTab === 'visualizer' }">
+        <label for="tab-visualizer" class="tab-btn" :class="{ active: activeTab === 'visualizer' }" :title="$t('player.visualizer.title')">
           <i class="material-symbols">equalizer</i>
           <span>{{ $t('player.visualizer.title') }}</span>
         </label>
@@ -817,6 +817,19 @@ export default {
   z-index: 1;
   user-select: none;
   width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.tab-btn > i,
+.tab-btn > span + span {
+  flex-shrink: 0;
+}
+
+.tab-btn > span:first-of-type {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab-btn.active {
@@ -884,7 +897,8 @@ export default {
 }
 
 .lyrics-list {
-  padding: 1em;
+  padding-top: 1em;
+  padding-bottom: 1em;
   text-align: center;
   color: var(--textPrimary);
 }
@@ -919,7 +933,7 @@ export default {
   opacity: 1;
   font-weight: bold;
   color: var(--primaryColor);
-  font-size: 1.35rem;
+  font-size: 1.33rem;
   animation: lyric-line-in 0.3s ease;
 }
 
@@ -941,7 +955,7 @@ export default {
 
 .lyric-word.current {
   opacity: 1;
-  transform: scale(1.06);
+  transform: scale(1.05);
 }
 
 .no-lyrics {

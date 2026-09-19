@@ -105,10 +105,15 @@ export function enablePlyrVideoLoadingIndicator(player, onLoadingChange) {
     player.on(evt, fn);
   });
 
-  return () => {
+  return Object.assign(() => {
     Object.entries(handlers).forEach(([evt, fn]) => {
       player.off(evt, fn);
     });
     onLoadingChange(false);
-  };
+  }, {
+    expectPlayback: () => {
+      playbackExpected = true;
+      sync();
+    },
+  });
 }

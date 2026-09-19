@@ -1110,6 +1110,7 @@ export default {
 
 .nav-button--hidden.nav-close {
   transform: translateX(-50%) scale(0.9);
+  pointer-events: none;
 }
 
 .nav-button i.material-symbols {

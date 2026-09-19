@@ -137,6 +137,7 @@
           :type="req.type"
           preload="none"
           :src="nativeVideoSrc"
+          :poster="posterUrl"
           :autoplay="videoElementAutoplay"
           @play="handlePlay"
           playsinline
@@ -225,6 +226,7 @@ import {
   buildPlaybackQueue,
   navigatePlaybackQueue,
   getEndOfMediaAction,
+  getNextItem,
   cyclePlaybackModes,
   toggleSingleLoop,
   clearPlaybackQueue,
@@ -354,7 +356,7 @@ export default {
       loopMenuInitialized: false,
       lastAppliedMode: null,
       showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
-      showMobileLyrics: false,
+      showMobileLyrics: sessionStorage.getItem('plyrShowMobileLyrics') === '1',
       isFullscreen: false,
 
       // Gestures
@@ -445,6 +447,7 @@ export default {
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
+        this.updateMediaSessionNavHandlers();
       }
     },
     loop(newVal, oldVal) {
@@ -454,7 +457,11 @@ export default {
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
+        this.updateMediaSessionNavHandlers();
       }
+    },
+    currentQueueIndex() {
+      this.updateMediaSessionNavHandlers();
     },
     showDesktopPanel(val) {
       localStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
@@ -479,6 +486,7 @@ export default {
       }
     },
     showMobileLyrics(val) {
+        sessionStorage.setItem('plyrShowMobileLyrics', val ? '1' : '0');
         if (val && this.lyrics.length) {
             this.$nextTick(() => this.scrollMobileLyrics());
         }
@@ -610,6 +618,9 @@ export default {
       if (this.isMobile && this.previewType === 'audio') return true;
       return false;
     },
+    mobileLyricsActive() {
+      return this.isMobile && this.showMobileLyrics && this.lyrics.length > 0;
+    },
     displayArtSize() {
       if (this.isMobile && this.showMobileLyrics && this.lyrics.length) {
         return 5;
@@ -672,7 +683,7 @@ export default {
     videoSwipeGesturesActive() {
       return (
         (this.previewType === 'video' || this.previewType === 'audio') &&
-        !!this.player
+        !!this.player && !this.mobileLyricsActive
       );
     },
     videoNavigationGestureAllowed() {
@@ -709,6 +720,12 @@ export default {
         && Boolean(this.req?.hasPreview)
         && getters.previewPerms().video
       );
+    },
+    posterUrl() {
+      if (!this.scrubPreviewEnabled) return undefined;
+      return getters.isShare()
+        ? getPreviewURLPublic(this.req.path, 'original')
+        : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=original`;
     },
     nativeVideoSrc() {
       if (this.previewType !== 'video') {
@@ -884,29 +901,21 @@ export default {
       const fallbackUrl = fallbackIcon.includes('?')
         ? `${fallbackIcon}&t=${timestamp}`
         : `${fallbackIcon}?t=${timestamp}`;
+      // Video uses the same thumbnail as the poster; audio uses embedded album art (if any).
+      const artworkSrc = this.previewType === 'video' ? this.posterUrl : this.albumArtUrl;
       const metadata = {
         title: this.metadata?.title || this.fileName,
         artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
         album: this.metadata?.album || "",
         // In current versions of Firefox the artwork will not work, seems that doesn't like blob URLs.
         // But testing in 149.0a1 (nightly builds), it seems to work, so this something that will solve over time :)
-        artwork: [ { src: this.albumArtUrl || fallbackUrl } ]
+        artwork: [ { src: artworkSrc || fallbackUrl } ]
       };
       navigator.mediaSession.metadata = new MediaMetadata(metadata);
       // Setup handlers for the media session
       const actionHandlers = [
         ['play', () => this.player?.play()],
         ['pause', () => this.player?.pause()],
-        ['previoustrack', () => {
-          if (this.playbackQueue.length > 1) {
-            this.playPrevious();
-          }
-        }],
-        ['nexttrack', () => {
-          if (this.playbackQueue.length > 1) {
-            this.playNext();
-          }
-        }],
         ['seekbackward', (details) => this.player?.rewind(details.seekOffset || 10)],
         ['seekforward', (details) => this.player?.forward(details.seekOffset || 10)],
         ['seekto', (details) => {
@@ -921,7 +930,26 @@ export default {
           console.warn(`The media session action "${String(action)}" is not supported`, e);
         }
       }
+      this.updateMediaSessionNavHandlers();
       this.updateMediaSessionPlaybackState();
+    },
+    updateMediaSessionNavHandlers() {
+      if (!('mediaSession' in navigator) || !this.ownsMediaSession()) return;
+      const { queue, currentIndex, loop } = state.playbackQueue;
+      const hasPrevious = queue.length > 1 && !!getNextItem(queue, currentIndex, loop, -1);
+      const hasNext = queue.length > 1 && !!getNextItem(queue, currentIndex, loop, 1);
+      try {
+        navigator.mediaSession.setActionHandler(
+          'previoustrack',
+          hasPrevious ? () => this.playPrevious() : null
+        );
+      } catch (e) { /*ignore*/ }
+      try {
+        navigator.mediaSession.setActionHandler(
+          'nexttrack',
+          hasNext ? () => this.playNext() : null
+        );
+      } catch (e) { /*ignore*/ }
     },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
@@ -1428,6 +1456,7 @@ export default {
       this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
       this.pipHandoffApplying = false;
       await this.reconcilePipSessionOnMount();
+      if (this.plyrTeardownDone || !this.mediaElement) return;
       this.player = new Plyr(this.mediaElement, this.plyrOptions);
       if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
         this.nativePlayerPlay = this.player.play.bind(this.player);
@@ -1578,6 +1607,7 @@ export default {
         return;
       }
       this.videoStreamAttached = true;
+      this.videoLoadingCleanup?.expectPlayback?.();
       this.$nextTick(() => {
         this.$nextTick(() => {
           const el = this.mediaElement;
@@ -1629,10 +1659,8 @@ export default {
             } else {
               el.addEventListener('loadedmetadata', start, { once: true });
             }
-          } else if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-            start();
           } else {
-            el.addEventListener('canplay', start, { once: true });
+            start();
           }
         });
       });
@@ -1964,6 +1992,7 @@ export default {
     },
     setupPlyrEvents() {
       if (!this.player) return;
+      mutations.setPlaybackState(this.player.playing);
       const eventMap = {
         ended: this.handleMediaEnd,
         play: () => {
@@ -2113,7 +2142,7 @@ export default {
       const EDGE_CLICK_MS = 200;
 
       const peekNavChromeForEdgeTap = (clientX, zone) => {
-        if (this.previewType !== 'video' || !state.navigation.enabled) {
+        if (!state.navigation.enabled) {
           return;
         }
         const moveWithSidebar = getters.isSidebarVisible() && getters.isStickySidebar();
@@ -2387,20 +2416,6 @@ export default {
         this.syncVideoNavigationGestureHintToStore();
         return;
       }
-      if (this.showMobileLyrics) {
-        // Allow horizontal navigation swipes, ignore vertical if lyrics are shown
-        const ax = Math.abs(this.videoEdgeDx);
-        const ay = Math.abs(this.videoEdgeDy);
-        if (ay > ax) {
-          this.videoDragOffsetX = 0;
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = false;
-          this.videoShowDismissHint = false;
-          this.applyVideoSwipeTransform();
-          this.syncVideoNavigationGestureHintToStore();
-          return;
-        }
-      }
 
       const kind = this.videoEdgeKind;
       if (kind === 'horizontal') {
@@ -2515,10 +2530,6 @@ export default {
           return;
         }
       } else if (kind === 'vertical-dismiss') {
-        if (this.showMobileLyrics) {
-          this.resetVideoEdgeGestureImmediate();
-          return;
-        }
         if (this.videoEdgeDy >= this.videoEdgeCommitY) {
           this.clearVideoDismissAnimTimers();
           this.videoDismissFlashActive = true;
