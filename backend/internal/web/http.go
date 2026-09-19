@@ -53,6 +53,18 @@ func effectiveFilePerms(d *Context, sourceName string) (users.SourceFilePermissi
 	return share.EffectiveFilePermissions(d.User, link, sourceName)
 }
 
+// accessCheckUsername is the username used for filesystem access-rule checks.
+// Public share routes evaluate rules as the share owner, not the anonymous visitor.
+func accessCheckUsername(d *Context) string {
+	if d == nil || d.User == nil {
+		return ""
+	}
+	if d.Share.Hash != "" && d.ShareUser != nil {
+		return d.ShareUser.Username
+	}
+	return d.User.Username
+}
+
 // HttpResponse is the standard JSON error/success envelope.
 type HttpResponse struct {
 	Status  int    `json:"status,omitempty"`
