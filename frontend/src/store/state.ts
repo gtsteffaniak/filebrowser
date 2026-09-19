@@ -1,7 +1,6 @@
 import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 import { globalVars } from "@/utils/constants";
-import { computeIsMobileLayout } from "@/utils/device.js";
 import type { StoreState } from "./types";
 
 export const state: StoreState = reactive({
@@ -28,7 +27,6 @@ export const state: StoreState = reactive({
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
-  isMobile: computeIsMobileLayout(),
   isSearchActive: false,
   showSidebar: false,
   displayPreferences: {},

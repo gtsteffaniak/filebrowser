@@ -725,7 +725,7 @@ export default {
       return this.videoNavigationGestureAllowed && state.navigation.nextLink !== '';
     },
     isMobile() {
-      return state.isMobile;
+      return getters.isMobile();
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);

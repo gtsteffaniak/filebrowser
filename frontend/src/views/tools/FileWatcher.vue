@@ -135,7 +135,7 @@ export default {
       return getters.isDarkMode();
     },
     isMobile() {
-      return state.isMobile;
+      return getters.isMobile();
     },
     canStart() {
       // Can start watching if we have source, path, and not already watching

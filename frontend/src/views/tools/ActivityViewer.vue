@@ -629,7 +629,7 @@ export default {
       return this.activityScope === "shares";
     },
     isMobile() {
-      return state.isMobile;
+      return getters.isMobile();
     },
     isAdmin() {
       return getters.isAdmin();

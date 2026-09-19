@@ -143,7 +143,7 @@ export default {
   },
   computed: {
     showShareInfo() {
-      return getters.isShare() && state.isMobile && state.req.path === "/" && !state.shareInfo?.disableShareCard;
+      return getters.isShare() && getters.isMobile() && state.req.path === "/" && !state.shareInfo?.disableShareCard;
     },
     currentView() {
       return getters.currentView();

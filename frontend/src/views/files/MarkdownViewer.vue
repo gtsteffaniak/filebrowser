@@ -339,7 +339,7 @@ export default {
       return this.parseMarkdown(this.content, state.req.path, state.req.source);
     },
     spaceForStatusBar() {
-      return state.isMobile ? 3.1 : 3.5;
+      return getters.isMobile() ? 3.1 : 3.5;
     },
     htmlViewerStyle() {
       if (!this.isHtml) {

@@ -531,7 +531,7 @@ export default {
       return this.showCentered || this.isMobileDevice || !this.posX || !this.posY;
     },
     isMobileDevice() {
-      return state.isMobile;
+      return getters.isMobile();
     },
     isDarkMode() {
       return getters.isDarkMode();
