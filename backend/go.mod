@@ -13,13 +13,13 @@ require (
 	github.com/gen2brain/go-fitz v1.28.2
 	github.com/go-ldap/ldap/v3 v3.4.14
 	github.com/go-playground/validator/v10 v10.30.4
-	github.com/go-webauthn/webauthn v0.18.1
+	github.com/go-webauthn/webauthn v0.18.2
 	github.com/goccy/go-yaml v1.19.2
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gtsteffaniak/go-cache v1.1.0
-	github.com/gtsteffaniak/go-ffmpeg v1.0.0
+	github.com/gtsteffaniak/go-ffmpeg v1.2.0
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/kovidgoyal/imaging v1.8.23
 	github.com/mattn/go-sqlite3 v1.14.52
@@ -95,13 +95,9 @@ require (
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	modernc.org/libc v1.76.0 // indirect
+	modernc.org/libc v1.77.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
 
-exclude (
-	github.com/alecthomas/go-check-sumtype v0.5.0
-	github.com/gtsteffaniak/go-ffmpeg v1.1.0
-	github.com/gtsteffaniak/go-ffmpeg v1.2.0
-)
+exclude github.com/alecthomas/go-check-sumtype v0.5.0
