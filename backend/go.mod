@@ -13,7 +13,7 @@ require (
 	github.com/gen2brain/go-fitz v1.28.2
 	github.com/go-ldap/ldap/v3 v3.4.14
 	github.com/go-playground/validator/v10 v10.30.4
-	github.com/go-webauthn/webauthn v0.18.1
+	github.com/go-webauthn/webauthn v0.18.2
 	github.com/goccy/go-yaml v1.19.2
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
@@ -100,7 +100,4 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 )
 
-exclude (
-	github.com/alecthomas/go-check-sumtype v0.5.0
-	github.com/gtsteffaniak/go-ffmpeg v1.1.0
-)
+exclude github.com/alecthomas/go-check-sumtype v0.5.0

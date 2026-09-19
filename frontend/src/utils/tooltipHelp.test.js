@@ -35,6 +35,16 @@ import {
   tooltipEventCoords,
 } from "./tooltipHelp.js";
 
+function makePointerEvent(coords = {}) {
+  return {
+    clientX: 0,
+    clientY: 0,
+    preventDefault: vi.fn(),
+    stopPropagation: vi.fn(),
+    ...coords,
+  };
+}
+
 describe("tooltipHelp", () => {
   beforeEach(() => {
     storeMock.getters.isMobile.mockReturnValue(false);
@@ -106,14 +116,10 @@ describe("tooltipHelp", () => {
 
   it("shows tooltip on mobile tap and keeps it open on repeat tap", () => {
     storeMock.getters.isMobile.mockReturnValue(true);
-    const event = {
-      clientX: 5,
-      clientY: 6,
-      preventDefault: vi.fn(),
-      stopPropagation: vi.fn(),
-    };
+    const event = makePointerEvent({ clientX: 5, clientY: 6 });
 
     onTooltipHelpTouchEnd(event, "mobile help");
+    expect(event.preventDefault).toHaveBeenCalled();
     expect(event.stopPropagation).toHaveBeenCalled();
     expect(storeMock.mutations.showTooltip).toHaveBeenCalledWith({
       content: "mobile help",
@@ -135,22 +141,31 @@ describe("tooltipHelp", () => {
 
   it("ignores the synthetic click after a mobile tap", () => {
     storeMock.getters.isMobile.mockReturnValue(true);
-    const touchEvent = {
-      clientX: 8,
-      clientY: 9,
-      stopPropagation: vi.fn(),
-    };
-    const clickEvent = {
-      clientX: 8,
-      clientY: 9,
-      stopPropagation: vi.fn(),
-    };
+    const touchEvent = makePointerEvent({ clientX: 8, clientY: 9 });
+    const clickEvent = makePointerEvent({ clientX: 8, clientY: 9 });
 
     onTooltipHelpTouchEnd(touchEvent, "touch help");
     onTooltipHelpClick(clickEvent, "touch help");
 
+    expect(touchEvent.preventDefault).toHaveBeenCalled();
+    expect(clickEvent.preventDefault).toHaveBeenCalled();
     expect(storeMock.mutations.showTooltip).toHaveBeenCalledTimes(1);
     expect(shouldIgnoreOutsideTap()).toBe(true);
+  });
+
+  it("prevents default on desktop click", () => {
+    const event = makePointerEvent({ clientX: 12, clientY: 14 });
+
+    onTooltipHelpClick(event, "desktop help");
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(event.stopPropagation).toHaveBeenCalled();
+    expect(storeMock.mutations.showTooltip).toHaveBeenCalledWith({
+      content: "desktop help",
+      x: 12,
+      y: 14,
+      pointerEvents: false,
+    });
   });
 
   it("tracks visible tooltip content", () => {
@@ -189,7 +204,7 @@ describe("tooltipHelp", () => {
   it("ignores synthetic mouseleave while a tap tooltip is open", () => {
     storeMock.getters.isMobile.mockReturnValue(true);
     onTooltipHelpTouchEnd(
-      { clientX: 1, clientY: 2, stopPropagation: vi.fn() },
+      makePointerEvent({ clientX: 1, clientY: 2 }),
       "tap help",
     );
     storeMock.state.tooltip.show = true;
@@ -203,7 +218,7 @@ describe("tooltipHelp", () => {
   it("does not replace a tap tooltip with a hover tooltip on mouseenter", () => {
     storeMock.getters.isMobile.mockReturnValue(true);
     onTooltipHelpTouchEnd(
-      { clientX: 1, clientY: 2, stopPropagation: vi.fn() },
+      makePointerEvent({ clientX: 1, clientY: 2 }),
       "tap help",
     );
     storeMock.state.tooltip.show = true;
@@ -216,16 +231,8 @@ describe("tooltipHelp", () => {
 
   it("switches tap tooltip when tapping another icon", () => {
     storeMock.getters.isMobile.mockReturnValue(true);
-    const firstEvent = {
-      clientX: 5,
-      clientY: 6,
-      stopPropagation: vi.fn(),
-    };
-    const secondEvent = {
-      clientX: 20,
-      clientY: 30,
-      stopPropagation: vi.fn(),
-    };
+    const firstEvent = makePointerEvent({ clientX: 5, clientY: 6 });
+    const secondEvent = makePointerEvent({ clientX: 20, clientY: 30 });
 
     onTooltipHelpTouchEnd(firstEvent, "first help");
     storeMock.state.tooltip.show = true;
@@ -241,6 +248,8 @@ describe("tooltipHelp", () => {
     storeMock.state.tooltip.pointerEvents = true;
     onTooltipHelpMouseLeave();
 
+    expect(firstEvent.preventDefault).toHaveBeenCalled();
+    expect(secondEvent.preventDefault).toHaveBeenCalled();
     expect(storeMock.mutations.hideTooltip).not.toHaveBeenCalled();
     expect(storeMock.mutations.showTooltip).toHaveBeenCalledWith({
       content: "second help",
@@ -252,16 +261,8 @@ describe("tooltipHelp", () => {
 
   it("switches tooltip when tapping a different help icon", () => {
     storeMock.getters.isMobile.mockReturnValue(true);
-    const firstEvent = {
-      clientX: 5,
-      clientY: 6,
-      stopPropagation: vi.fn(),
-    };
-    const secondEvent = {
-      clientX: 20,
-      clientY: 30,
-      stopPropagation: vi.fn(),
-    };
+    const firstEvent = makePointerEvent({ clientX: 5, clientY: 6 });
+    const secondEvent = makePointerEvent({ clientX: 20, clientY: 30 });
 
     onTooltipHelpTouchEnd(firstEvent, "first help");
     storeMock.state.tooltip.show = true;
