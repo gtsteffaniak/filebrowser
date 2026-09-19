@@ -424,10 +424,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
-	permUser := d.User.Username
-	if d.Share.Hash != "" {
-		permUser = d.ShareUser.Username
-	}
+	permUser := accessCheckUsername(d)
 
 	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(scopedFilePath, true), permUser) {
 		logger.Debugf("user %s denied access to path %s", permUser, scopedFilePath)

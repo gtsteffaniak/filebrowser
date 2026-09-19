@@ -538,8 +538,9 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 		return fmt.Errorf("source %s is not available", source)
 	}
 
+	permUser := accessCheckUsername(d)
 	// Check access control directly for each file and silently skip if access is denied
-	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.User.Username) {
+	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(path, true), permUser) {
 		return nil // Silently skip this file/folder
 	}
 
@@ -578,7 +579,7 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 				indexRelPath := utils.JoinPathAsUnix(path, relPath)
 				indexRelPath = filepath.ToSlash(indexRelPath)
 				indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
-				if !state.AccessPermitted(idx.Path, indexPath, d.User.Username) {
+				if !state.AccessPermitted(idx.Path, indexPath, permUser) {
 					if fileInfo.IsDir() {
 						return filepath.SkipDir
 					}
@@ -1269,8 +1270,9 @@ func computeArchiveSize(source string, fileList []string, d *Context) (int64, er
 		return 0, fmt.Errorf("source %s is not available", source)
 	}
 
+	permUser := accessCheckUsername(d)
 	for _, path := range fileList {
-		if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(path, true), d.User.Username) {
+		if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(path, true), permUser) {
 			continue
 		}
 		realPath, isDir, err := idx.GetRealPath(path)

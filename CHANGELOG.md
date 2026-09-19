@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.8
+
+ **Bugfixes**:
+ - Public share folder and multi-file ZIP downloads were empty for anonymous visitors when the source used deny-by-default or path access rules; archive downloads now evaluate access as the share owner, matching single-file share downloads ([#2631](https://github.com/gtsteffaniak/filebrowser/issues/2631)).
+ - 401 on pdf download button action
+
 ## v2.0.7
 
 
