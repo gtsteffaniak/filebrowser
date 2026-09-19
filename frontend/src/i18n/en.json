@@ -216,6 +216,7 @@
     "sortBySize": "Sort by size",
     "sortByDuration": "Sort by duration",
     "noPreview": "Preview is not available for this file.",
+    "mobilePdfPreviewHint": "Your browser cannot display this PDF inside the app preview.",
     "noDownloadAccess": "Download is not available.",
     "newFile": "New file{suffix}",
     "newFolder": "New folder{suffix}",

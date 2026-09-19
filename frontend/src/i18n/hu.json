@@ -58,7 +58,8 @@
     "lonely": "Itt nincs mit mutatni...",
     "cannotAccesDir": "Nem lehet hozzáférni a mappához",
     "newFolderMessage": "Írja be az új mappa nevét.",
-    "newFolderSuccess": "A mappa létrehozása sikeresen befejeződött!"
+    "newFolderSuccess": "A mappa létrehozása sikeresen befejeződött!",
+    "mobilePdfPreviewHint": "A böngészője nem tudja megjeleníteni ezt a PDF-fájlt az alkalmazás előnézetében."
   },
   "help": {
     "functionKeys": "Funkcióbillentyűk",

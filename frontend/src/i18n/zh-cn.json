@@ -58,7 +58,8 @@
     "lonely": "这里没什么可看的...",
     "cannotAccesDir": "无法访问文件夹",
     "newFolderMessage": "请输入新文件夹的名称。",
-    "newFolderSuccess": "文件夹已成功创建！"
+    "newFolderSuccess": "文件夹已成功创建！",
+    "mobilePdfPreviewHint": "您的浏览器无法在应用预览中显示此 PDF 文件。"
   },
   "help": {
     "functionKeys": "功能键",

@@ -58,7 +58,8 @@
     "lonely": "Nimic de arătat aici...",
     "cannotAccesDir": "Nu se poate accesa folderul",
     "newFolderMessage": "Scrieți numele noului dosar.",
-    "newFolderSuccess": "Dosarul a fost creat cu succes!"
+    "newFolderSuccess": "Dosarul a fost creat cu succes!",
+    "mobilePdfPreviewHint": "Browserul dumneavoastră nu poate afișa acest fișier PDF în previzualizarea aplicației."
   },
   "help": {
     "functionKeys": "Taste Funcție",

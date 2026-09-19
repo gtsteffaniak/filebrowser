@@ -58,7 +58,8 @@
     "lonely": "Nie ma tu nic do pokazania...",
     "cannotAccesDir": "Nie można uzyskać dostępu do folderu",
     "newFolderMessage": "Wpisz nazwę nowego folderu.",
-    "newFolderSuccess": "Folder został pomyślnie utworzony!"
+    "newFolderSuccess": "Folder został pomyślnie utworzony!",
+    "mobilePdfPreviewHint": "Twoja przeglądarka nie może wyświetlić tego pliku PDF w podglądzie aplikacji."
   },
   "help": {
     "functionKeys": "Klawisze Funkcji",

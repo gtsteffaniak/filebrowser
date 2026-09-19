@@ -58,7 +58,8 @@
     "lonely": "Burada gösterecek bir şey yok.",
     "cannotAccesDir": "Klasöre erişilemiyor",
     "newFolderMessage": "Yeni klasörün adını yazın.",
-    "newFolderSuccess": "Klasör başarıyla oluşturuldu!"
+    "newFolderSuccess": "Klasör başarıyla oluşturuldu!",
+    "mobilePdfPreviewHint": "Tarayıcınız, uygulama önizlemesi içinde bu PDF dosyasını görüntüleyemiyor."
   },
   "help": {
     "functionKeys": "Fonksiyon Tuşları",

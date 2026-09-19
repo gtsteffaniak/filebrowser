@@ -58,7 +58,8 @@
     "lonely": "Inget att visa här...",
     "cannotAccesDir": "Det går inte att komma åt mappen",
     "newFolderMessage": "Skriv in namnet på den nya mappen.",
-    "newFolderSuccess": "Mappen har skapats!"
+    "newFolderSuccess": "Mappen har skapats!",
+    "mobilePdfPreviewHint": "Din webbläsare kan inte visa den här PDF-filen i appförhandsvisningen."
   },
   "help": {
     "functionKeys": "Funktionstangenter",
