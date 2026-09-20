@@ -277,6 +277,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"passkeyAvailable":       settings.Config.Auth.Methods.PasskeyAuth.Enabled,
 		"passkeyLoginButtonText": settings.Config.Auth.Methods.PasskeyAuth.LoginButtonText,
 		"disablePWAInstall":      settings.Config.Frontend.DisablePWAInstall,
+		"devMode":                settings.Env.IsDevMode,
+		"playwrightTest":         settings.Env.IsPlaywright,
 	}
 
 	cspNonce, err := utils.CSPNonce()

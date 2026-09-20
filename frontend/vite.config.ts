@@ -6,7 +6,8 @@ import checker from "vite-plugin-checker";
 import { compression } from "vite-plugin-compression2";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
-const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
+/** Build into frontend/ (user-writable); npm run build copies into backend embed + dist. */
+const frontendDist = path.resolve(__dirname, "dist");
 
 const plugins = [
   vue(),
@@ -39,13 +40,14 @@ export default defineConfig(() => {
   return {
     plugins,
     resolve,
+    cacheDir: path.resolve(__dirname, ".cache/vite"),
     base: "",
     define: {
       __VUE_I18N_LEGACY_API__: JSON.stringify(false),
       __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
     },
     build: {
-      outDir: backendWebDist,
+      outDir: frontendDist,
       emptyOutDir: true,
       // Optimize for watch mode stability
       watch: isDevBuild ? {
@@ -103,7 +105,10 @@ export default defineConfig(() => {
     },
     test: {
       globals: true,
-      include: ["src/**/*.test.js"],
+      include: [
+        "src/**/*.test.js",
+        "tests/playwright/performance/*.test.ts",
+      ],
       exclude: ["src/**/*.vue"],
       environment: "jsdom",
       setupFiles: "tests/mocks/setup.js",

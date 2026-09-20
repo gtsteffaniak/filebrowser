@@ -19,7 +19,11 @@ frontend/tsconfig.tsbuildinfo
 /backend/dist
 /frontend/dist
 /frontend/pkg
+/frontend/.cache
 /frontend/test-results
+# Playwright's default HTML report output dir (written when a config enables the
+# "html" reporter). Generated output, never committed.
+/frontend/playwright-report
 /frontend/playwright-files
 /frontend/screenshots
 /frontend/generated
@@ -27,6 +31,11 @@ frontend/.venv-icons
 frontend/.tmp-icons-*
 /frontend/tests/playwright-files/demo*
 /frontend/loginAuth.json
+/frontend/tests/playwright/performance/results.json
+# Generated perf report artifacts. NOTE: perf-baseline.json is intentionally NOT
+# ignored — it is the committed chromium baseline that CI gates against.
+/frontend/tests/playwright/performance/report.json
+/frontend/tests/playwright/performance/report.md
 /frontend/sharePrepStorage.json
 /backend/vendor
 /backend/*.cov

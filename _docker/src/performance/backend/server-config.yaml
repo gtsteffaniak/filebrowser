@@ -1,0 +1,24 @@
+http-main: &http-main
+  port: 80
+  baseURL:  "/"
+server-main: &server-main
+  logging:
+    - levels: "info|error|warning|debug"
+      apiFilter: 'disabled'
+  sources:
+    - path: "../frontend/tests/playwright-files"
+      name: "playwright + files"
+      config:
+        defaultEnabled: true
+        defaultPermissions:
+          view: true
+          download: true
+          modify: true
+          create: true
+    - path: "."
+      name: "docker"
+      config:
+        defaultEnabled: true
+        rules:
+          - folderPath: "/"
+            viewable: true

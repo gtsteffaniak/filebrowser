@@ -164,6 +164,8 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("GET /events", withUser(SSEHandler))
 	if settings.Env.IsDevMode {
 		api.HandleFunc("GET /inspect-index", inspectIndex)
+	}
+	if settings.Env.IsDevMode || settings.Env.IsPlaywright {
 		api.HandleFunc("GET /mock-data", mockData)
 	}
 

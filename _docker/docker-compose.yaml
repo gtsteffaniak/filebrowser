@@ -14,6 +14,39 @@ services:
     build:
       dockerfile: ./_docker/Dockerfile.playwright-screenshots
       context: ../
+  local-playwright-performance:
+    container_name: local-playwright-performance
+    working_dir: /app/backend
+    volumes:
+      - ../frontend/test-results/playwright-performance:/app/frontend/test-results/playwright-performance
+      - ../frontend/test-results/listing-performance-perf:/app/frontend/test-results/listing-performance-perf
+      - ../frontend/tests/playwright/performance:/out/report
+    environment:
+      PERF_RESULTS_DIR: /app/frontend/test-results/listing-performance-perf
+      PERF_REPORT_DIR: /out/report
+      PERF_GREP: ${PERF_GREP:-}
+      PERF_BROWSERS: ${PERF_BROWSERS:-}
+      # Local runs repeat each scenario and take the median to average out noise.
+      # CI overrides this to 1 for fast feedback.
+      PERF_REPEATS: ${PERF_REPEATS:-3}
+      # Set to 1 to rewrite the committed chromium baseline from this run.
+      PERF_UPDATE_BASELINE: ${PERF_UPDATE_BASELINE:-0}
+      # Local comparisons are advisory unless explicitly enforced.
+      PERF_ENFORCE_BASELINE: ${PERF_ENFORCE_BASELINE:-0}
+      PERF_IMAGE_TAG: ${PERF_IMAGE_TAG:-local}
+      PERF_IN_CONTAINER: "1"
+    entrypoint:
+      [
+        "/bin/sh",
+        "-c",
+        "./filebrowser & sleep 5 && cd ../frontend && npx playwright test -c playwright.config.ts $${PERF_GREP:+-g \"$$PERF_GREP\"}",
+      ]
+    build:
+      dockerfile: ./_docker/Dockerfile.playwright-performance
+      target: perf
+      context: ../
+      args:
+        PLAYWRIGHT_BASE_IMAGE: ${PLAYWRIGHT_BASE_IMAGE:-filebrowser-playwright-base:latest}
   nginx-proxy-auth:
     image: nginx
     container_name: nginx-proxy-auth

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Listing performance</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Mock listing performance</h1>
+      <p id="meta">Loading report.json…</p>
+      <p id="env-line" class="hint"></p>
+    </header>
+    <main id="app">
+      <p class="error" id="load-error" hidden></p>
+      <div id="content" hidden>
+        <section class="card" id="headlines-section">
+          <h2>Headline findings</h2>
+          <ul class="summary-list" id="headlines"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Summary</h2>
+          <ul class="summary-list" id="summary"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Slowest interaction — root cause &amp; contributors</h2>
+          <div id="slowest-root" class="detail-stack"></div>
+        </section>
+
+        <div class="grid grid-2">
+          <section class="card">
+            <h2>Interaction time (ms)</h2>
+            <label>
+              Browser
+              <select id="browser-interaction"></select>
+            </label>
+            <div class="chart-wrap">
+              <canvas id="chart-interaction"></canvas>
+            </div>
+          </section>
+          <section class="card">
+            <h2>DOM &amp; listeners at load</h2>
+            <label>
+              Browser
+              <select id="browser-dom"></select>
+            </label>
+            <div class="chart-wrap">
+              <canvas id="chart-dom"></canvas>
+            </div>
+          </section>
+        </div>
+
+        <section class="card">
+          <h2>Cross-browser comparison</h2>
+          <label>
+            Scale
+            <select id="compare-scale"></select>
+          </label>
+          <div class="chart-wrap">
+            <canvas id="chart-compare"></canvas>
+          </div>
+        </section>
+
+        <section class="card" id="delta-section" hidden>
+          <h2 id="delta-heading">Baseline comparison</h2>
+          <p id="delta-note" class="hint"></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Scale / scenario</th>
+                <th class="num">Baseline</th>
+                <th class="num">Current</th>
+                <th class="num">Delta</th>
+              </tr>
+            </thead>
+            <tbody id="delta-body"></tbody>
+          </table>
+        </section>
+
+        <section class="card">
+          <h2>All runs</h2>
+          <p class="hint">Click a row for full profiling, contributors, and threshold warnings.</p>
+          <label>
+            Browser
+            <select id="runs-browser-filter"></select>
+          </label>
+          <table>
+            <thead>
+              <tr>
+                <th>Browser</th>
+                <th>Scale</th>
+                <th>Scenario</th>
+                <th class="num">Time (ms)</th>
+                <th class="num">Rows</th>
+                <th class="num">Listeners</th>
+                <th class="num">IO</th>
+                <th>Thresholds</th>
+              </tr>
+            </thead>
+            <tbody id="runs-body"></tbody>
+          </table>
+          <div id="run-detail" class="run-detail" hidden></div>
+        </section>
+
+        <section class="card">
+          <h2>Analysis table</h2>
+          <label>
+            Browser
+            <select id="analysis-browser-filter"></select>
+          </label>
+          <table class="analysis-table">
+            <thead>
+              <tr>
+                <th>Browser</th>
+                <th>Scale</th>
+                <th>Scenario</th>
+                <th>Metric</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="analysis-body"></tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="dashboard.js"></script>
+</body>
+</html>

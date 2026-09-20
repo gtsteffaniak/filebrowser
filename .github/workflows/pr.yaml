@@ -88,6 +88,8 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-previews
           - name: jwt
             dockerfile: ./_docker/Dockerfile.playwright-jwt
+          - name: performance
+            dockerfile: ./_docker/Dockerfile.playwright-performance
     steps:
       - name: Checkout
         uses: actions/checkout@v4

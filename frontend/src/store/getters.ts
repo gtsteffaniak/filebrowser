@@ -675,6 +675,15 @@ export const getters = {
       create: false,
       delete: false,
     };
+    if ((globalVars.devMode || globalVars.playwrightTest) && activeSource === 'mockData') {
+      return {
+        view: true,
+        download: false,
+        modify: false,
+        create: false,
+        delete: false,
+      };
+    }
     if (!activeSource || !Array.isArray(state.user?.scopes)) {
       return denyFile;
     }

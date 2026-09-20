@@ -18,6 +18,58 @@ import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
 export { fetchPreviewImage } from '@/utils/previewRequests'
 
 const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
+const MOCK_DATA_SOURCE = 'mockData';
+const MOCK_DATA_DEFAULT_COUNT = 1000;
+const MOCK_DATA_MAX_COUNT = 100_000;
+
+function isMockDataSource(source) {
+  return !!(globalVars.devMode || globalVars.playwrightTest) && source === MOCK_DATA_SOURCE;
+}
+
+function parseMockDataCount(value, defaultCount) {
+  if (value === undefined || value === null || value === '') {
+    return defaultCount;
+  }
+  const n = parseInt(String(value), 10);
+  if (!Number.isFinite(n) || n < 0) {
+    return defaultCount;
+  }
+  return Math.min(n, MOCK_DATA_MAX_COUNT);
+}
+
+function getMockDataCounts() {
+  const query = state.route?.query ?? {};
+  return {
+    numDirs: parseMockDataCount(query.numDirs, MOCK_DATA_DEFAULT_COUNT),
+    numFiles: parseMockDataCount(query.numFiles, MOCK_DATA_DEFAULT_COUNT),
+  };
+}
+
+function normalizeMockListing(raw) {
+  const data = { ...raw };
+  data.type = 'directory';
+  data.source = MOCK_DATA_SOURCE;
+  data.path = '/';
+  data.name = MOCK_DATA_SOURCE;
+  // The backend already types folder rows as 'directory'; this stays as a
+  // defensive default so a partial/older mock payload still renders as folders.
+  if (Array.isArray(data.folders)) {
+    data.folders = data.folders.map((folder) => ({
+      ...folder,
+      type: folder.type || 'directory',
+    }));
+  }
+  return data;
+}
+
+async function fetchMockDataListing(numDirs, numFiles) {
+  const apiPath = getApiPath('mock-data', {
+    numDirs: String(numDirs),
+    numFiles: String(numFiles),
+  });
+  const res = await fetchURL(apiPath);
+  return res.json();
+}
 
 function chunkUploadApiPath(apiPath, headers) {
   if (headers["X-File-Chunk-Offset"] === undefined) {
@@ -53,6 +105,22 @@ export async function fetchFiles(source, path, content = false, metadata = false
     throw new Error('no source provided')
   }
   try {
+    if (isMockDataSource(source)) {
+      if (content || metadata) {
+        throw new Error('mockData does not support file content or metadata');
+      }
+      const normalizedPath = path === '' ? '/' : path;
+      if (normalizedPath !== '/') {
+        const err = new Error('mockData only supports the root listing');
+        err.status = 404;
+        throw err;
+      }
+      const { numDirs, numFiles } = getMockDataCounts();
+      const raw = await fetchMockDataListing(numDirs, numFiles);
+      const adjusted = adjustedData(normalizeMockListing(raw));
+      cacheViewTokenFromListing(adjusted);
+      return adjusted;
+    }
     const apiPath = getApiPath('resources', {
       path: path,
       source: source,

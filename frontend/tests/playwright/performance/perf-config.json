@@ -1,0 +1,32 @@
+{
+  "enforce": false,
+  "scales": [100, 1000, 10000],
+  "workers": 3,
+  "selectCountByScale": {
+    "100": 12,
+    "1000": 10,
+    "10000": 8
+  },
+  "scenarios": {
+    "scroll": {
+      "steps": 18,
+      "stepsAtScale10000": 12
+    },
+    "resize": {
+      "settleMs": 80,
+      "settleMsAtScale10000": 60
+    }
+  },
+  "thresholds": {
+    "loadListingMs": 600000,
+    "scrollDurationMs": 30000,
+    "resizeDurationMs": 60000,
+    "select20Ms": 120000,
+    "maxAddEventListenerCount": 500000,
+    "maxIntersectionObservers": 25000,
+    "maxCdpJsEventListeners": 500000,
+    "maxLongTaskCount": 200,
+    "maxLongTaskMs": 120000,
+    "maxFrameP95Ms": 250
+  }
+}
