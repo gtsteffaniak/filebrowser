@@ -483,15 +483,9 @@ func SetSessionCookie(w http.ResponseWriter, r *http.Request, token string, expi
 }
 
 // applyNamedApiTokenGlobalCaps intersects owner globals with stored caps for named custom API tokens.
-// Session WEB_TOKEN_* tokens keep full owner globals.
+// Session tokens never reach this function; they are resolved as IsSession and keep full owner globals.
 func applyNamedApiTokenGlobalCaps(user *users.User, tokenName string) {
-	if user == nil {
-		return
-	}
-	if strings.HasPrefix(tokenName, "WEB_TOKEN") {
-		return
-	}
-	if user.Tokens == nil {
+	if user == nil || user.Tokens == nil {
 		return
 	}
 	stored, ok := user.Tokens[tokenName]

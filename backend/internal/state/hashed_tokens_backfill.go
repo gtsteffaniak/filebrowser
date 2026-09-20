@@ -1,6 +1,8 @@
 package state
 
 import (
+	"fmt"
+
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -21,7 +23,10 @@ func BackfillHashedTokensFromUserRecords() error {
 		if user == nil || user.ID == 0 {
 			continue
 		}
-		n := backfillUserTokenHashes(user)
+		n, err := backfillUserTokenHashes(user)
+		if err != nil {
+			return fmt.Errorf("backfill hashed token for user %s: %w", user.Username, err)
+		}
 		added += n
 	}
 	if added > 0 {
@@ -43,16 +48,19 @@ func BackfillUserTokenHashesOnStore(store *sqldb.SQLStore, user *users.User) err
 		if raw == "" {
 			continue
 		}
-		if err := store.SaveHashedToken(utils.HashSHA256(raw), user.ID); err != nil {
+		if err := store.SaveHashedToken(utils.HashSHA256(raw), user.ID, false); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func backfillUserTokenHashes(user *users.User) int {
+// backfillUserTokenHashes maps each stored named API token to its owner. A
+// persistence failure is returned so initialization aborts instead of leaving a
+// mapping that silently stops working after restart.
+func backfillUserTokenHashes(user *users.User) (int, error) {
 	if accessDb == nil || user == nil || user.ID == 0 {
-		return 0
+		return 0, nil
 	}
 	added := 0
 	for _, tok := range user.Tokens {
@@ -67,10 +75,9 @@ func backfillUserTokenHashes(user *users.User) int {
 			continue
 		}
 		if err := AddApiToken(raw, user.ID); err != nil {
-			logger.Errorf("backfill hashed token for user %s: %v", user.Username, err)
-			continue
+			return added, err
 		}
 		added++
 	}
-	return added
+	return added, nil
 }

@@ -61,15 +61,25 @@ type FrontendAccessRule struct {
 // GroupMap maps group names to a set of usernames.
 type GroupMap map[string]StringSet
 
+// HashedTokenInfo describes a registered bearer token owner and type.
+type HashedTokenInfo struct {
+	UserID    uint64
+	IsSession bool
+}
+
+// sessionTokenRetireGrace is how long a rotated session token stays usable after
+// renewal. In-flight requests still carrying the previous cookie must not 401.
+const sessionTokenRetireGrace = 2 * time.Minute
+
 // Storage manages access rules and group membership.
 type Storage struct {
 	mux           sync.RWMutex
-	AllRules      SourceRuleMap       // AllRules[sourcePath][indexPath] - in-memory authoritative state
-	Groups        GroupMap            // key: group name, value: set of usernames - in-memory authoritative state
-	RevokedTokens map[string]struct{} // set of revoked token hashes - in-memory authoritative state
-	HashedTokens  map[string]uint64   // maps token hash → owner user id - in-memory authoritative state
-	Users         *users.Storage      // Reference to users storage
-	sqlStore      SQLPersister        // SQL store for persistence
+	AllRules      SourceRuleMap              // AllRules[sourcePath][indexPath] - in-memory authoritative state
+	Groups        GroupMap                   // key: group name, value: set of usernames - in-memory authoritative state
+	RevokedTokens map[string]int64           // token hash → revocation unix time (0 = immediate) - in-memory authoritative state
+	HashedTokens  map[string]HashedTokenInfo // maps token hash → owner/type - in-memory authoritative state
+	Users         *users.Storage             // Reference to users storage
+	sqlStore      SQLPersister               // SQL store for persistence
 }
 
 // SQLPersister interface for SQL persistence operations
@@ -78,8 +88,9 @@ type SQLPersister interface {
 	DeleteAccessRule(source, path string) error
 	SaveGroup(name string, members StringSet) error
 	DeleteGroup(name string) error
-	SaveRevokedToken(tokenHash string) error
-	SaveHashedToken(tokenHash string, userID uint64) error
+	SaveRevokedToken(tokenHash string, revokedAt int64) error
+	DeleteRevokedToken(tokenHash string) error
+	SaveHashedToken(tokenHash string, userID uint64, isSession bool) error
 	DeleteHashedToken(tokenHash string) error
 	DeleteHashedTokensByUserID(userID uint64) error
 }
@@ -127,8 +138,8 @@ func NewStorage(usersStore *users.Storage) *Storage {
 	var s = &Storage{
 		AllRules:      make(SourceRuleMap),
 		Groups:        make(GroupMap),
-		RevokedTokens: make(map[string]struct{}),
-		HashedTokens:  make(map[string]uint64),
+		RevokedTokens: make(map[string]int64),
+		HashedTokens:  make(map[string]HashedTokenInfo),
 		Users:         usersStore,
 	}
 	return s
@@ -1300,61 +1311,121 @@ func (s *Storage) UpdateRulePath(sourcePath string, oldPath, newPath utils.Index
 	return nil
 }
 
-// RevokeToken adds a token hash to the revoked list and persists to DB.
-func (s *Storage) RevokeToken(tokenHash string) error {
-	tokenHash = utils.HashSHA256(tokenHash)
+// RevokeToken immediately invalidates a token: the owner mapping is removed and
+// the hash is persisted as revoked with timestamp 0 (no grace window).
+func (s *Storage) RevokeToken(tokenString string) error {
+	tokenHash := utils.HashSHA256(tokenString)
 	s.mux.Lock()
-	s.RevokedTokens[tokenHash] = struct{}{}
+	s.RevokedTokens[tokenHash] = 0
 	delete(s.HashedTokens, tokenHash)
 	sqlStore := s.sqlStore
 	s.mux.Unlock()
 
 	if sqlStore != nil {
 		_ = sqlStore.DeleteHashedToken(tokenHash)
-		_ = sqlStore.SaveRevokedToken(tokenHash)
+		_ = sqlStore.SaveRevokedToken(tokenHash, 0)
 	}
 	return nil
 }
 
-// IsTokenRevoked checks if a token hash is in the revoked list (memory-only read).
-func (s *Storage) IsTokenRevoked(tokenHash string) bool {
-	s.mux.RLock()
-	defer s.mux.RUnlock()
-	tokenHash = utils.HashSHA256(tokenHash)
-	_, exists := s.RevokedTokens[tokenHash]
-	return exists
+// RetireToken schedules a rotated session token for revocation after
+// sessionTokenRetireGrace. The owner mapping is kept during the grace window so
+// in-flight requests still carrying the previous cookie stay authenticated.
+func (s *Storage) RetireToken(tokenString string) error {
+	tokenHash := utils.HashSHA256(tokenString)
+	now := time.Now()
+	s.mux.Lock()
+	s.RevokedTokens[tokenHash] = now.Unix()
+	pruned := s.pruneRevocationsNL(now)
+	sqlStore := s.sqlStore
+	s.mux.Unlock()
+
+	if sqlStore != nil {
+		_ = sqlStore.SaveRevokedToken(tokenHash, now.Unix())
+		for _, hash := range pruned {
+			_ = sqlStore.DeleteHashedToken(hash)
+			_ = sqlStore.DeleteRevokedToken(hash)
+		}
+	}
+	return nil
 }
 
-// AddApiToken maps a token string hash to an owner user id (for minimal JWTs).
+// pruneRevocationsNL drops revocation records that no longer need to be retained
+// and returns their hashes so the caller can clean up SQL. Immediate revocations
+// (timestamp 0) and retirements past the grace window no longer resolve a user
+// because their owner mapping is removed here. Caller must hold s.mux.
+func (s *Storage) pruneRevocationsNL(now time.Time) []string {
+	var pruned []string
+	for hash, revokedAt := range s.RevokedTokens {
+		if revokedAt == 0 || now.Sub(time.Unix(revokedAt, 0)) >= sessionTokenRetireGrace {
+			delete(s.RevokedTokens, hash)
+			delete(s.HashedTokens, hash)
+			pruned = append(pruned, hash)
+		}
+	}
+	return pruned
+}
+
+// IsTokenRevoked reports whether a token is revoked. Retired session tokens are
+// only considered revoked once the grace window has elapsed.
+func (s *Storage) IsTokenRevoked(tokenString string) bool {
+	tokenHash := utils.HashSHA256(tokenString)
+	s.mux.RLock()
+	revokedAt, exists := s.RevokedTokens[tokenHash]
+	s.mux.RUnlock()
+	if !exists {
+		return false
+	}
+	if revokedAt == 0 {
+		return true
+	}
+	return time.Since(time.Unix(revokedAt, 0)) >= sessionTokenRetireGrace
+}
+
+// AddApiToken maps a named API token string hash to an owner user id.
 func (s *Storage) AddApiToken(tokenString string, userID uint64) error {
+	return s.addHashedToken(tokenString, userID, false)
+}
+
+// AddSessionToken maps a session bearer token string hash to an owner user id.
+func (s *Storage) AddSessionToken(tokenString string, userID uint64) error {
+	return s.addHashedToken(tokenString, userID, true)
+}
+
+func (s *Storage) addHashedToken(tokenString string, userID uint64, isSession bool) error {
 	tokenHash := utils.HashSHA256(tokenString)
 	s.mux.Lock()
-	s.HashedTokens[tokenHash] = userID
+	s.HashedTokens[tokenHash] = HashedTokenInfo{UserID: userID, IsSession: isSession}
 	sqlStore := s.sqlStore
 	s.mux.Unlock()
 	if sqlStore != nil {
-		return sqlStore.SaveHashedToken(tokenHash, userID)
+		return sqlStore.SaveHashedToken(tokenHash, userID, isSession)
 	}
 	return nil
 }
 
 // GetUserIDFromToken retrieves the owner user id for a given token string (memory read; SQL populated at startup).
 func (s *Storage) GetUserIDFromToken(tokenString string) (uint64, bool) {
+	info, ok := s.GetHashedTokenInfo(tokenString)
+	return info.UserID, ok
+}
+
+// GetHashedTokenInfo retrieves owner/type metadata for a given token string.
+func (s *Storage) GetHashedTokenInfo(tokenString string) (HashedTokenInfo, bool) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 	tokenHash := utils.HashSHA256(tokenString)
-	uid, exists := s.HashedTokens[tokenHash]
-	return uid, exists
+	info, exists := s.HashedTokens[tokenHash]
+	return info, exists
 }
 
-// GetRevokedTokens returns a copy of all revoked token hashes.
-func (s *Storage) GetRevokedTokens() map[string]struct{} {
+// GetRevokedTokens returns a copy of the revocation map (hash → revocation unix time).
+func (s *Storage) GetRevokedTokens() map[string]int64 {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
-	// Return a copy to prevent external modification
-	result := make(map[string]struct{}, len(s.RevokedTokens))
-	for k := range s.RevokedTokens {
-		result[k] = struct{}{}
+	result := make(map[string]int64, len(s.RevokedTokens))
+	for k, v := range s.RevokedTokens {
+		result[k] = v
 	}
 	return result
 }
@@ -1372,15 +1443,15 @@ func (s *Storage) RemoveApiToken(tokenString string) error {
 	return nil
 }
 
-// RemoveHashedTokensForUser removes every minimal-JWT hash → user id mapping for that owner.
+// RemoveHashedTokensForUser removes every bearer-token hash → user id mapping for that owner.
 // Call when deleting a user so recycled usernames never resolve leftover token hashes to a new id.
 func (s *Storage) RemoveHashedTokensForUser(userID uint64) error {
 	if userID == 0 {
 		return nil
 	}
 	s.mux.Lock()
-	for hash, uid := range s.HashedTokens {
-		if uid == userID {
+	for hash, info := range s.HashedTokens {
+		if info.UserID == userID {
 			delete(s.HashedTokens, hash)
 		}
 	}

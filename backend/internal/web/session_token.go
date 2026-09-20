@@ -9,6 +9,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // mintAndRegisterSessionToken creates a minimal session JWT and registers its hash for auth lookup.
@@ -22,16 +23,29 @@ func mintAndRegisterSessionToken(user *users.User) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := state.RegisterBearerToken(tokenString, user.ID); err != nil {
+	if err := state.RegisterSessionToken(tokenString, user.ID); err != nil {
 		return "", err
 	}
 	return tokenString, nil
 }
 
+// replaceSessionToken mints and registers the replacement before retiring the
+// prior token. If minting or registration fails the current session is left
+// untouched. The prior token is retired with a grace window (not revoked
+// immediately) so requests already in flight with the old cookie stay valid.
 func replaceSessionToken(oldToken string, user *users.User) (string, error) {
-	if oldToken != "" {
-		_ = state.RevokeToken(oldToken)
-		_ = state.RemoveApiToken(oldToken)
+	newToken, err := mintAndRegisterSessionToken(user)
+	if err != nil {
+		return "", err
 	}
-	return mintAndRegisterSessionToken(user)
+	if oldToken == "" || oldToken == newToken {
+		return newToken, nil
+	}
+	if err := state.RetireSessionToken(oldToken); err != nil {
+		if cleanupErr := state.RemoveApiToken(newToken); cleanupErr != nil {
+			logger.Errorf("failed to roll back replacement session token: %v", cleanupErr)
+		}
+		return "", err
+	}
+	return newToken, nil
 }

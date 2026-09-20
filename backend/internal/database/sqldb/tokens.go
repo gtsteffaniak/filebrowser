@@ -3,13 +3,19 @@ package sqldb
 import (
 	"fmt"
 	"strconv"
-	"time"
 )
 
-// SaveRevokedToken adds a token hash to the revoked tokens table
-func (s *SQLStore) SaveRevokedToken(tokenHash string) error {
-	query := `INSERT OR IGNORE INTO revoked_tokens (token_hash, revoked_at) VALUES (?, ?)`
-	_, err := s.db.Exec(query, tokenHash, time.Now().Unix())
+// HashedTokenRecord is a persisted bearer-token hash → owner mapping.
+type HashedTokenRecord struct {
+	UserID    uint64
+	IsSession bool
+}
+
+// SaveRevokedToken persists a revocation. revokedAt is the Unix timestamp of the
+// revocation; 0 marks an immediate revocation (no grace window).
+func (s *SQLStore) SaveRevokedToken(tokenHash string, revokedAt int64) error {
+	query := `INSERT OR REPLACE INTO revoked_tokens (token_hash, revoked_at) VALUES (?, ?)`
+	_, err := s.db.Exec(query, tokenHash, revokedAt)
 	if err != nil {
 		return fmt.Errorf("failed to save revoked token: %w", err)
 	}
@@ -30,22 +36,24 @@ func (s *SQLStore) IsTokenRevoked(tokenHash string) (bool, error) {
 	return true, nil
 }
 
-// GetAllRevokedTokens retrieves all revoked token hashes
-func (s *SQLStore) GetAllRevokedTokens() (map[string]struct{}, error) {
-	query := `SELECT token_hash FROM revoked_tokens`
+// GetAllRevokedTokens retrieves all revoked token hashes mapped to their
+// revocation timestamp (0 = immediate revocation).
+func (s *SQLStore) GetAllRevokedTokens() (map[string]int64, error) {
+	query := `SELECT token_hash, revoked_at FROM revoked_tokens`
 	rows, err := s.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get revoked tokens: %w", err)
 	}
 	defer rows.Close()
 
-	revokedTokens := make(map[string]struct{})
+	revokedTokens := make(map[string]int64)
 	for rows.Next() {
 		var tokenHash string
-		if err := rows.Scan(&tokenHash); err != nil {
+		var revokedAt int64
+		if err := rows.Scan(&tokenHash, &revokedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan revoked token: %w", err)
 		}
-		revokedTokens[tokenHash] = struct{}{}
+		revokedTokens[tokenHash] = revokedAt
 	}
 
 	if err := rows.Err(); err != nil {
@@ -66,9 +74,11 @@ func (s *SQLStore) DeleteRevokedToken(tokenHash string) error {
 }
 
 // SaveHashedToken saves a token hash to owner user_id mapping (decimal text).
-func (s *SQLStore) SaveHashedToken(tokenHash string, userID uint64) error {
-	query := `INSERT OR REPLACE INTO hashed_tokens (token_hash, user_id) VALUES (?, ?)`
-	_, err := s.db.Exec(query, tokenHash, strconv.FormatUint(userID, 10))
+// isSession records that the bearer token is a FileBrowser session token rather
+// than a named API token, so auth can reject non-session tokens without caps.
+func (s *SQLStore) SaveHashedToken(tokenHash string, userID uint64, isSession bool) error {
+	query := `INSERT OR REPLACE INTO hashed_tokens (token_hash, user_id, is_session) VALUES (?, ?, ?)`
+	_, err := s.db.Exec(query, tokenHash, strconv.FormatUint(userID, 10), isSession)
 	if err != nil {
 		return fmt.Errorf("failed to save hashed token: %w", err)
 	}
@@ -89,26 +99,27 @@ func (s *SQLStore) GetUserIDByTokenHash(tokenHash string) (uint64, error) {
 	return strconv.ParseUint(idStr, 10, 64)
 }
 
-// GetAllHashedTokens retrieves all token hash → owner user_id mappings.
-func (s *SQLStore) GetAllHashedTokens() (map[string]uint64, error) {
-	query := `SELECT token_hash, user_id FROM hashed_tokens`
+// GetAllHashedTokens retrieves all token hash → owner mappings.
+func (s *SQLStore) GetAllHashedTokens() (map[string]HashedTokenRecord, error) {
+	query := `SELECT token_hash, user_id, is_session FROM hashed_tokens`
 	rows, err := s.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hashed tokens: %w", err)
 	}
 	defer rows.Close()
 
-	hashedTokens := make(map[string]uint64)
+	hashedTokens := make(map[string]HashedTokenRecord)
 	for rows.Next() {
 		var tokenHash, idStr string
-		if err := rows.Scan(&tokenHash, &idStr); err != nil {
+		var isSession bool
+		if err := rows.Scan(&tokenHash, &idStr, &isSession); err != nil {
 			return nil, fmt.Errorf("failed to scan hashed token: %w", err)
 		}
 		uid, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid user_id in hashed_tokens: %w", err)
 		}
-		hashedTokens[tokenHash] = uid
+		hashedTokens[tokenHash] = HashedTokenRecord{UserID: uid, IsSession: isSession}
 	}
 
 	if err := rows.Err(); err != nil {

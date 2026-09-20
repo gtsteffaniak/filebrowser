@@ -214,11 +214,7 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	if state.IsTokenRevoked(tokenString) {
 		return nil
 	}
-	var user *users.User
-	userValue, err := state.UserFromAPIToken(tk, tokenString)
-	if err == nil {
-		user = &userValue
-	}
+	user, err := resolveBearerTokenUser(tokenString)
 	if err != nil {
 		logger.Errorf("Failed to get user from token: %v", err)
 		return nil
@@ -229,6 +225,30 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	}
 
 	return user
+}
+
+// resolveBearerTokenUser maps a validated bearer JWT to its owner via the
+// hashed_tokens registry. Session tokens get full owner permissions; named API
+// tokens must have stored metadata, otherwise the request is rejected rather
+// than granted the owner's uncapped permissions.
+func resolveBearerTokenUser(rawToken string) (*users.User, error) {
+	ownerID, isSession, ok := state.HashedTokenOwner(rawToken)
+	if !ok {
+		return nil, fmt.Errorf("token is invalid or revoked")
+	}
+	userValue, err := state.GetUserByID(ownerID)
+	if err != nil {
+		return nil, err
+	}
+	if isSession {
+		return &userValue, nil
+	}
+	tokenName, ok := state.TokenNameForRawToken(&userValue, rawToken)
+	if !ok {
+		return nil, fmt.Errorf("token has no permission metadata")
+	}
+	applyNamedApiTokenGlobalCaps(&userValue, tokenName)
+	return &userValue, nil
 }
 
 // withOrWithoutUserHelper is a middleware that tries to authenticate a user.
@@ -345,11 +365,10 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 			keyFunc := auth.JWTSigningKeyFunc()
 			var tk users.AuthToken
 			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
-				if !state.IsTokenRevoked( tokenStr) {
-					userValue, err := state.UserFromAPIToken(tk, tokenStr)
+				if !state.IsTokenRevoked(tokenStr) {
+					userValue, err := resolveBearerTokenUser(tokenStr)
 					if err == nil && userValue.Permissions.Admin {
-						u := userValue
-						d.User = &u
+						d.User = userValue
 						return fn(w, r, d)
 					}
 				}
@@ -456,17 +475,12 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if tk.RegisteredClaims.ExpiresAt == nil {
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
-		userValue, err := state.UserFromAPIToken(tk, data.Token)
-		if err == nil {
-			data.User = &userValue
-		}
+		userValue, err := resolveBearerTokenUser(data.Token)
 		if err != nil {
 			logger.Errorf("Failed to get user from token: %v", err)
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
-		if tokenName, ok := state.TokenNameForRawToken(data.User, data.Token); ok {
-			applyNamedApiTokenGlobalCaps(data.User, tokenName)
-		}
+		data.User = userValue
 
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
 		if tk.RegisteredClaims.ExpiresAt != nil {

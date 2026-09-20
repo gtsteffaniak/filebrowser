@@ -116,8 +116,8 @@ func initialize(dbPath string) (bool, error) {
 	accessDb = &access.Storage{
 		AllRules:      make(access.SourceRuleMap),
 		Groups:        make(access.GroupMap),
-		RevokedTokens: make(map[string]struct{}),
-		HashedTokens:  make(map[string]uint64),
+		RevokedTokens: make(map[string]int64),
+		HashedTokens:  make(map[string]access.HashedTokenInfo),
 	}
 
 	allRules, err := sqlDb.GetAllAccessRules()
@@ -145,7 +145,13 @@ func initialize(dbPath string) (bool, error) {
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load hashed tokens: %w", err)
 	}
-	accessDb.HashedTokens = hashedTokens
+	accessDb.HashedTokens = make(map[string]access.HashedTokenInfo, len(hashedTokens))
+	for hash, record := range hashedTokens {
+		accessDb.HashedTokens[hash] = access.HashedTokenInfo{
+			UserID:    record.UserID,
+			IsSession: record.IsSession,
+		}
+	}
 	logger.Debugf("Loaded %d hashed tokens", len(hashedTokens))
 
 	accessDb.SetSQLStore(sqlDb)

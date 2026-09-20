@@ -463,20 +463,20 @@ func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 
 	// Migrate revoked tokens
 	for tokenHash := range storage.RevokedTokens {
-		err := sqlStore.SaveRevokedToken(tokenHash)
+		err := sqlStore.SaveRevokedToken(tokenHash, 0)
 		if err != nil {
 			return fmt.Errorf("failed to save revoked token: %w", err)
 		}
 	}
 	logger.Infof("  ✓ Migrated %d revoked tokens", len(storage.RevokedTokens))
 
-	// Migrate hashed tokens (bolt stored owner user id)
+	// Migrate hashed tokens (bolt stored owner user id); legacy rows are named API tokens.
 	for tokenHash, userID := range storage.HashedTokens {
 		if userID == 0 {
 			logger.Warningf("  skipping hashed token: invalid user id 0")
 			continue
 		}
-		err := sqlStore.SaveHashedToken(tokenHash, uint64(userID))
+		err := sqlStore.SaveHashedToken(tokenHash, uint64(userID), false)
 		if err != nil {
 			return fmt.Errorf("failed to save hashed token: %w", err)
 		}

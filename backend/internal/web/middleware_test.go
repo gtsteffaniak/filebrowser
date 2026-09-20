@@ -59,8 +59,8 @@ func testSessionToken(t *testing.T, user *users.User, duration time.Duration) st
 	if err != nil {
 		t.Fatalf("MakeSignedTokenAPI: %v", err)
 	}
-	if err := state.RegisterBearerToken(tokenString, user.ID); err != nil {
-		t.Fatalf("RegisterBearerToken: %v", err)
+	if err := state.RegisterSessionToken(tokenString, user.ID); err != nil {
+		t.Fatalf("RegisterSessionToken: %v", err)
 	}
 	return tokenString
 }

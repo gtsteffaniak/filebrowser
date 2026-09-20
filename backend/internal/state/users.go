@@ -164,17 +164,6 @@ func GetAllUsers() ([]users.User, error) {
 	return out, nil
 }
 
-// UserFromAPIToken resolves the user for a validated bearer JWT only via hashed_tokens (hash → user id).
-func UserFromAPIToken(_ users.AuthToken, rawToken string) (users.User, error) {
-	if accessDb == nil {
-		return users.User{}, errors.ErrNotExist
-	}
-	if uid, ok := accessDb.GetUserIDFromToken(rawToken); ok {
-		return GetUserByID(uid)
-	}
-	return users.User{}, errors.ErrNotExist
-}
-
 // UserForShareOwner resolves the user who owns a share link.
 func UserForShareOwner(link share.Share) (users.User, error) {
 	if link.UserID == 0 {
