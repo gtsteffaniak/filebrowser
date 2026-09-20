@@ -53,7 +53,6 @@ export default {
       canScroll: false,
       resizeObserver: null,
       mutationObserver: null,
-      scrollContentRaf: null,
     };
   },
   computed: {
@@ -94,7 +93,7 @@ export default {
       // Force scroll event to re-compute thumb position
       const content = this.$refs.wrapper;
       this.updateThumbPosition(content.scrollTop);
-      this.scheduleUpdateScrollableContent();
+      this.updateScrollableContent();
     },
     category() {
       return state.listing.category;
@@ -156,7 +155,7 @@ export default {
     },
     handleScroll() {
       if (!this.isReady) return;
-      // Overflow cannot change from scrollTop; skip scrollHeight (forced layout).
+      this.updateScrollableContent();
       if (!this.showScrollbar || !this.canScroll || this.scrollFrame) return;
       // Use requestAnimationFrame to throttle updates
       this.scrollFrame = requestAnimationFrame(() => {
@@ -226,13 +225,6 @@ export default {
         if (!isOverflowing) this.isVisible = false;
       }
     },
-    scheduleUpdateScrollableContent() {
-      if (this.scrollContentRaf !== null) return;
-      this.scrollContentRaf = requestAnimationFrame(() => {
-        this.scrollContentRaf = null;
-        this.updateScrollableContent();
-      });
-    },
   },
   mounted() {
     setTimeout(() => {
@@ -242,12 +234,16 @@ export default {
     this.$refs.wrapper.addEventListener("scroll", this.handleScroll, { passive: true });
     window.addEventListener("resize", this.handleResize);
     // Observe container size changes
-    this.resizeObserver = new ResizeObserver(() => this.scheduleUpdateScrollableContent());
+    this.resizeObserver = new ResizeObserver(() => this.updateScrollableContent());
     this.resizeObserver.observe(this.$refs.wrapper);
-    this.mutationObserver = new MutationObserver(() => this.scheduleUpdateScrollableContent());
+    // Same here, but with DOM mutations
+    this.mutationObserver = new MutationObserver(() => this.updateScrollableContent());
     this.mutationObserver.observe(this.$refs.wrapper, {
       childList: true,
       subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class'],
+      characterData: true,
     });
     this.updateScrollableContent();
   },
@@ -255,10 +251,6 @@ export default {
     // Cancel any pending animation frame
     if (this.scrollFrame) {
       cancelAnimationFrame(this.scrollFrame);
-    }
-    if (this.scrollContentRaf !== null) {
-      cancelAnimationFrame(this.scrollContentRaf);
-      this.scrollContentRaf = null;
     }
     window.removeEventListener("resize", this.handleResize);
     this.$refs.wrapper.removeEventListener("mousemove", this.handleMouseMove);

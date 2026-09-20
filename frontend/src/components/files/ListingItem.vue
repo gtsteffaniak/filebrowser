@@ -9,6 +9,7 @@
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
+      'out-of-view': !isInView && !isSelected,
     }"
     :id="getID"
     role="button"
@@ -95,6 +96,7 @@
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
+      'out-of-view': !isInView && !isSelected,
     }"
     :id="getID"
     role="button"
@@ -164,10 +166,6 @@ import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { goToItemNotificationButton } from "@/utils/notificationActions";
-import {
-  registerListingVisibilityTarget,
-  unregisterListingVisibilityTarget,
-} from "@/utils/listingVisibilityObserver";
 import Icon from "@/components/files/Icon.vue";
 
 export default {
@@ -178,6 +176,9 @@ export default {
   data() {
     return {
       isThumbnailInView: false,
+      // Assume on-screen until a preview observer says otherwise. Skipping
+      // observers on rows without previews must not mark every row out-of-view.
+      isInView: true,
       touches: 0,
       touchStartX: 0,
       touchStartY: 0,
@@ -185,7 +186,7 @@ export default {
       isSwipe: false,
       isDraggedOver: false,
       contextTimeout: null,
-      visibilityEl: null,
+      observer: null,
       localSelected: false,
     };
   },
@@ -272,6 +273,15 @@ export default {
     getID() {
       return url.base64Encode(encodeURIComponent(this.name));
     },
+    quickNav() {
+      return state.user.singleClick && !state.multiple;
+    },
+    user() {
+      return state.user;
+    },
+    selected() {
+      return state.selected;
+    },
     isClicked() {
       if (state.user.singleClick || !this.allowedView) {
         return false;
@@ -283,13 +293,30 @@ export default {
         // If parent provides isSelectedProp, use it; otherwise use local state
         return this.isSelectedProp !== null ? this.isSelectedProp : this.localSelected;
       }
-      return state.selectedIndexMap[String(this.index)] === true;
+      return state.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
       return (
         (this.readOnly === undefined && getters.sourcePermissions(this.source).modify)
         || state.shareInfo.allowCreate
       );
+    },
+    canDrop() {
+      if (!this.isDir) return false;
+      if (this.readOnly === true) return false;
+
+      for (const i of this.selected) {
+        const item = getObjectProperty(state.req.items, i);
+        if (!item) continue;
+        // Also check if we're trying to drop an item onto itself
+        if (item.path === this.path && state.req.source === this.source) {
+          return false;
+        }
+        if (item.index === this.index) {
+          return false;
+        }
+      }
+      return true;
     },
     thumbnailUrl() {
       if (!globalVars.enableThumbs) {
@@ -344,39 +371,30 @@ export default {
     },
   },
   mounted() {
+    // Note: dragend listener moved to parent ListingView for better performance
     if (!this.hasPreview) return;
+
+    this.observer = new IntersectionObserver(this.handleIntersect, {
+      root: null,
+      rootMargin: "500px",
+      threshold: 0,
+    });
+
     this.$nextTick(() => {
-      const el = this.$el;
-      if (!el || !(el instanceof Element)) return;
-      this.visibilityEl = el;
-      registerListingVisibilityTarget(el, (visible) => {
-        if (visible) this.isThumbnailInView = true;
-      });
+      if (this.$el && this.$el instanceof Element) {
+        this.observer.observe(this.$el);
+      }
     });
   },
   beforeUnmount() {
-    if (this.visibilityEl) {
-      unregisterListingVisibilityTarget(this.visibilityEl);
-      this.visibilityEl = null;
+    // Clean up observer
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
     }
+    // Note: dragend listener removed - handled by parent ListingView
   },
   methods: {
-    canDrop() {
-      if (!this.isDir) return false;
-      if (this.readOnly === true) return false;
-
-      for (const i of state.selected) {
-        const item = getObjectProperty(state.req.items, i);
-        if (!item) continue;
-        if (item.path === this.path && state.req.source === this.source) {
-          return false;
-        }
-        if (item.index === this.index) {
-          return false;
-        }
-      }
-      return true;
-    },
     /** @param {MouseEvent} event */
     downloadFile(event) {
       event.preventDefault();
@@ -463,6 +481,19 @@ export default {
           showLimitedOptions: this.showLimitedOptions,
         },
       });
+    },
+    /**
+     * @param {IntersectionObserverEntry[]} entries
+     * @param {IntersectionObserver} observer
+     */
+    handleIntersect(entries) {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        this.isThumbnailInView = true;
+        if (this.observer) {
+          this.observer.unobserve(entry.target);
+        }
+      }
     },
     /** @param {DragEvent} event */
     dragLeave(event) {
@@ -678,7 +709,7 @@ export default {
       if (event.button === 0) {
         // Left-click
         event.preventDefault();
-        if (state.user.singleClick && !state.multiple) {
+        if (this.quickNav) {
           this.open();
         }
       }
@@ -699,7 +730,7 @@ export default {
       }
 
       if (this.updateGlobalState) {
-        if (event.shiftKey && state.selected.length > 0) {
+        if (event.shiftKey && this.selected.length > 0) {
           let fi = 0;
           let la = 0;
 
@@ -716,14 +747,14 @@ export default {
           mutations.resetSelected();
 
           for (; fi <= la; fi++) {
-            if (state.selected.indexOf(fi) === -1) {
+            if (this.selected.indexOf(fi) === -1) {
               mutations.addSelected(fi);
             }
           }
           return;
         }
 
-        if (state.selectedIndexMap[String(this.index)] === true) {
+        if (this.selected.indexOf(this.index) !== -1) {
           if (event.ctrlKey || event.metaKey) {
             mutations.removeSelected(this.index);
             mutations.setLastSelectedIndex(this.index);
@@ -737,7 +768,7 @@ export default {
             return;
           }
 
-          if (state.selected.length > 1) {
+          if (this.selected.length > 1) {
             mutations.resetSelected();
             mutations.addSelected(this.index);
             mutations.setLastSelectedIndex(this.index);

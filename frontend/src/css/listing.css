@@ -1,6 +1,7 @@
 .listing-items {
   --item-selected: white;
   animation-duration: 0.25s;
+  transition: 0.25s ease;
   user-select: none;
   padding-bottom: 2.5em; /* Space for status bar - this prevents items from going behind */
 }
@@ -31,7 +32,7 @@ body.rtl .listing-items {
 .listing-item {
   display: flex;
   flex-wrap: nowrap;
-  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  transition: 0.25s ease;
   align-items: center;
   cursor: pointer;
   user-select: none;

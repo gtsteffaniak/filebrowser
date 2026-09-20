@@ -113,8 +113,6 @@ export const state: StoreState = reactive({
   loading: {}, // map of loadType -> true, see mutations.setLoading
   reload: false,
   selected: [],
-  /** O(1) membership for ListingItem; keys are String(index). */
-  selectedIndexMap: {} as Record<string, boolean>,
   lastSelectedIndex: null,
   multiple: false,
   upload: {

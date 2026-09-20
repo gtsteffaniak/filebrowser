@@ -315,7 +315,6 @@ export interface StoreState {
   loading: Record<string, unknown>;
   reload: boolean;
   selected: (number | FileListItem)[];
-  selectedIndexMap: Record<string, boolean>;
   lastSelectedIndex: number | null;
   multiple: boolean;
   upload: {
