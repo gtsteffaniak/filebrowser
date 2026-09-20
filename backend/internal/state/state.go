@@ -156,7 +156,7 @@ func initialize(dbPath string) (bool, error) {
 
 	accessDb.SetSQLStore(sqlDb)
 
-	if err := BackfillHashedTokensFromUserRecords(); err != nil {
+	if err = BackfillHashedTokensFromUserRecords(); err != nil {
 		return existingDb, fmt.Errorf("failed to backfill hashed tokens: %w", err)
 	}
 

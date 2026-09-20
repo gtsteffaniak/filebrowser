@@ -1,9 +1,41 @@
 package sqldb
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 )
+
+func execSaveRevokedToken(exec sqlExecutor, tokenHash string, revokedAt int64) error {
+	query := `INSERT OR REPLACE INTO revoked_tokens (token_hash, revoked_at) VALUES (?, ?)`
+	_, err := exec.Exec(query, tokenHash, revokedAt)
+	if err != nil {
+		return fmt.Errorf("failed to save revoked token: %w", err)
+	}
+	return nil
+}
+
+func execDeleteHashedToken(exec sqlExecutor, tokenHash string) error {
+	query := `DELETE FROM hashed_tokens WHERE token_hash = ?`
+	_, err := exec.Exec(query, tokenHash)
+	if err != nil {
+		return fmt.Errorf("failed to delete hashed token: %w", err)
+	}
+	return nil
+}
+
+func execDeleteRevokedToken(exec sqlExecutor, tokenHash string) error {
+	query := `DELETE FROM revoked_tokens WHERE token_hash = ?`
+	_, err := exec.Exec(query, tokenHash)
+	if err != nil {
+		return fmt.Errorf("failed to delete revoked token: %w", err)
+	}
+	return nil
+}
+
+type sqlExecutor interface {
+	Exec(query string, args ...any) (sql.Result, error)
+}
 
 // HashedTokenRecord is a persisted bearer-token hash → owner mapping.
 type HashedTokenRecord struct {
@@ -11,15 +43,57 @@ type HashedTokenRecord struct {
 	IsSession bool
 }
 
+// PersistImmediateTokenRevocation records an immediate revocation and removes the
+// owner mapping in one transaction (revocation row first, then hashed_tokens).
+func (s *SQLStore) PersistImmediateTokenRevocation(tokenHash string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return fmt.Errorf("begin immediate token revocation transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if err := execSaveRevokedToken(tx, tokenHash, 0); err != nil {
+		return err
+	}
+	if err := execDeleteHashedToken(tx, tokenHash); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit immediate token revocation transaction: %w", err)
+	}
+	return nil
+}
+
+// PersistTokenRetirement records a grace-window revocation and removes expired
+// revocation rows and owner mappings atomically.
+func (s *SQLStore) PersistTokenRetirement(tokenHash string, revokedAt int64, pruned []string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return fmt.Errorf("begin token retirement transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if err := execSaveRevokedToken(tx, tokenHash, revokedAt); err != nil {
+		return err
+	}
+	for _, hash := range pruned {
+		if err := execDeleteHashedToken(tx, hash); err != nil {
+			return err
+		}
+		if err := execDeleteRevokedToken(tx, hash); err != nil {
+			return err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit token retirement transaction: %w", err)
+	}
+	return nil
+}
+
 // SaveRevokedToken persists a revocation. revokedAt is the Unix timestamp of the
 // revocation; 0 marks an immediate revocation (no grace window).
 func (s *SQLStore) SaveRevokedToken(tokenHash string, revokedAt int64) error {
-	query := `INSERT OR REPLACE INTO revoked_tokens (token_hash, revoked_at) VALUES (?, ?)`
-	_, err := s.db.Exec(query, tokenHash, revokedAt)
-	if err != nil {
-		return fmt.Errorf("failed to save revoked token: %w", err)
-	}
-	return nil
+	return execSaveRevokedToken(s.db, tokenHash, revokedAt)
 }
 
 // IsTokenRevoked checks if a token hash is in the revoked tokens table
@@ -65,12 +139,7 @@ func (s *SQLStore) GetAllRevokedTokens() (map[string]int64, error) {
 
 // DeleteRevokedToken removes a token hash from the revoked tokens table
 func (s *SQLStore) DeleteRevokedToken(tokenHash string) error {
-	query := `DELETE FROM revoked_tokens WHERE token_hash = ?`
-	_, err := s.db.Exec(query, tokenHash)
-	if err != nil {
-		return fmt.Errorf("failed to delete revoked token: %w", err)
-	}
-	return nil
+	return execDeleteRevokedToken(s.db, tokenHash)
 }
 
 // SaveHashedToken saves a token hash to owner user_id mapping (decimal text).
@@ -131,12 +200,7 @@ func (s *SQLStore) GetAllHashedTokens() (map[string]HashedTokenRecord, error) {
 
 // DeleteHashedToken removes a token hash mapping
 func (s *SQLStore) DeleteHashedToken(tokenHash string) error {
-	query := `DELETE FROM hashed_tokens WHERE token_hash = ?`
-	_, err := s.db.Exec(query, tokenHash)
-	if err != nil {
-		return fmt.Errorf("failed to delete hashed token: %w", err)
-	}
-	return nil
+	return execDeleteHashedToken(s.db, tokenHash)
 }
 
 // DeleteHashedTokensByUserID removes all token hashes for an owner user id.

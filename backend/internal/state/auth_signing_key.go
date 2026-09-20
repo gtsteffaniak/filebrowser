@@ -96,7 +96,7 @@ func loadPersistedAuthSigningKey() (string, error) {
 		return "", err
 	}
 	var encoded string
-	if err := json.Unmarshal(raw, &encoded); err != nil {
+	if err = json.Unmarshal(raw, &encoded); err != nil {
 		return "", fmt.Errorf("parse auth signing key: %w", err)
 	}
 	if encoded == "" {

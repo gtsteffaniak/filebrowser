@@ -89,6 +89,8 @@ type SQLPersister interface {
 	SaveGroup(name string, members StringSet) error
 	DeleteGroup(name string) error
 	SaveRevokedToken(tokenHash string, revokedAt int64) error
+	PersistImmediateTokenRevocation(tokenHash string) error
+	PersistTokenRetirement(tokenHash string, revokedAt int64, pruned []string) error
 	DeleteRevokedToken(tokenHash string) error
 	SaveHashedToken(tokenHash string, userID uint64, isSession bool) error
 	DeleteHashedToken(tokenHash string) error
@@ -1315,15 +1317,22 @@ func (s *Storage) UpdateRulePath(sourcePath string, oldPath, newPath utils.Index
 // the hash is persisted as revoked with timestamp 0 (no grace window).
 func (s *Storage) RevokeToken(tokenString string) error {
 	tokenHash := utils.HashSHA256(tokenString)
+	var rollback tokenRevokeRollback
 	s.mux.Lock()
+	rollback.capture(s, tokenHash)
 	s.RevokedTokens[tokenHash] = 0
 	delete(s.HashedTokens, tokenHash)
 	sqlStore := s.sqlStore
 	s.mux.Unlock()
 
-	if sqlStore != nil {
-		_ = sqlStore.DeleteHashedToken(tokenHash)
-		_ = sqlStore.SaveRevokedToken(tokenHash, 0)
+	if sqlStore == nil {
+		return nil
+	}
+	if err := sqlStore.PersistImmediateTokenRevocation(tokenHash); err != nil {
+		s.mux.Lock()
+		rollback.apply(s)
+		s.mux.Unlock()
+		return err
 	}
 	return nil
 }
@@ -1334,20 +1343,102 @@ func (s *Storage) RevokeToken(tokenString string) error {
 func (s *Storage) RetireToken(tokenString string) error {
 	tokenHash := utils.HashSHA256(tokenString)
 	now := time.Now()
+	var rollback tokenRetireRollback
 	s.mux.Lock()
+	rollback.capture(s, tokenHash, now)
 	s.RevokedTokens[tokenHash] = now.Unix()
 	pruned := s.pruneRevocationsNL(now)
 	sqlStore := s.sqlStore
 	s.mux.Unlock()
 
-	if sqlStore != nil {
-		_ = sqlStore.SaveRevokedToken(tokenHash, now.Unix())
-		for _, hash := range pruned {
-			_ = sqlStore.DeleteHashedToken(hash)
-			_ = sqlStore.DeleteRevokedToken(hash)
-		}
+	if sqlStore == nil {
+		return nil
+	}
+	if err := sqlStore.PersistTokenRetirement(tokenHash, now.Unix(), pruned); err != nil {
+		s.mux.Lock()
+		rollback.apply(s)
+		s.mux.Unlock()
+		return err
 	}
 	return nil
+}
+
+type tokenRevokeRollback struct {
+	tokenHash  string
+	hadHashed  bool
+	hashed     HashedTokenInfo
+	hadRevoked bool
+	revokedAt  int64
+}
+
+func (rb *tokenRevokeRollback) capture(s *Storage, tokenHash string) {
+	rb.tokenHash = tokenHash
+	if info, ok := s.HashedTokens[tokenHash]; ok {
+		rb.hadHashed = true
+		rb.hashed = info
+	}
+	if at, ok := s.RevokedTokens[tokenHash]; ok {
+		rb.hadRevoked = true
+		rb.revokedAt = at
+	}
+}
+
+func (rb *tokenRevokeRollback) apply(s *Storage) {
+	if rb.hadHashed {
+		s.HashedTokens[rb.tokenHash] = rb.hashed
+	} else {
+		delete(s.HashedTokens, rb.tokenHash)
+	}
+	if rb.hadRevoked {
+		s.RevokedTokens[rb.tokenHash] = rb.revokedAt
+	} else {
+		delete(s.RevokedTokens, rb.tokenHash)
+	}
+}
+
+type tokenRetireRollback struct {
+	tokenHash       string
+	hadTokenRevoked bool
+	tokenRevokedAt  int64
+	prunedRevoked   map[string]int64
+	prunedHashed    map[string]HashedTokenInfo
+}
+
+func (rb *tokenRetireRollback) capture(s *Storage, tokenHash string, now time.Time) {
+	rb.tokenHash = tokenHash
+	if at, ok := s.RevokedTokens[tokenHash]; ok {
+		rb.hadTokenRevoked = true
+		rb.tokenRevokedAt = at
+	}
+	revokedAfter := maps.Clone(s.RevokedTokens)
+	revokedAfter[tokenHash] = now.Unix()
+	rb.prunedRevoked = make(map[string]int64)
+	rb.prunedHashed = make(map[string]HashedTokenInfo)
+	for hash, revokedAt := range revokedAfter {
+		if revokedAt != 0 && now.Sub(time.Unix(revokedAt, 0)) < sessionTokenRetireGrace {
+			continue
+		}
+		if at, ok := s.RevokedTokens[hash]; ok {
+			rb.prunedRevoked[hash] = at
+		}
+		if info, ok := s.HashedTokens[hash]; ok {
+			rb.prunedHashed[hash] = info
+		}
+	}
+}
+
+func (rb *tokenRetireRollback) apply(s *Storage) {
+	if rb.hadTokenRevoked {
+		s.RevokedTokens[rb.tokenHash] = rb.tokenRevokedAt
+	} else {
+		delete(s.RevokedTokens, rb.tokenHash)
+	}
+	for hash, at := range rb.prunedRevoked {
+		s.RevokedTokens[hash] = at
+	}
+	for hash, info := range rb.prunedHashed {
+		s.HashedTokens[hash] = info
+	}
 }
 
 // pruneRevocationsNL drops revocation records that no longer need to be retained

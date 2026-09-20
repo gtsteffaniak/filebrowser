@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.8
 
+ **Security**:
+ - [Critical] A forged JWT could authenticate as any known `belongsTo`. Auth signing keys are now persisted in the application database and JWT validation fails closed when no key is configured. (GHSA-8f9r-wg7w-pfw) Thanks @d3do-23 and @whoamis3c.
+
  **Bugfixes**:
  - Public share folder and multi-file ZIP downloads were empty for anonymous visitors when the source used deny-by-default or path access rules; archive downloads now evaluate access as the share owner, matching single-file share downloads ([#2631](https://github.com/gtsteffaniak/filebrowser/issues/2631)).
  - 401 on pdf download button action

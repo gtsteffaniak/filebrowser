@@ -26,7 +26,8 @@ func TestJWTSigningKeyFuncAcceptsConfiguredKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if string(key.([]byte)) != "test-key" {
-		t.Fatalf("got key %q", key)
+	keyBytes, ok := key.([]byte)
+	if !ok || string(keyBytes) != "test-key" {
+		t.Fatalf("got key %T %q", key, key)
 	}
 }

@@ -15,24 +15,24 @@ func TestMigrationAddsHashedTokenSessionColumn(t *testing.T) {
 	t.Cleanup(func() { _ = store.Close() })
 
 	// Recreate the pre-v3 hashed_tokens table without is_session.
-	if _, err := store.db.Exec(`DROP TABLE hashed_tokens`); err != nil {
+	if _, err = store.db.Exec(`DROP TABLE hashed_tokens`); err != nil {
 		t.Fatalf("drop hashed_tokens: %v", err)
 	}
-	if _, err := store.db.Exec(`CREATE TABLE hashed_tokens (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL)`); err != nil {
+	if _, err = store.db.Exec(`CREATE TABLE hashed_tokens (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL)`); err != nil {
 		t.Fatalf("create legacy hashed_tokens: %v", err)
 	}
-	if _, err := store.db.Exec(`INSERT INTO hashed_tokens (token_hash, user_id) VALUES ('legacy-hash', '7')`); err != nil {
+	if _, err = store.db.Exec(`INSERT INTO hashed_tokens (token_hash, user_id) VALUES ('legacy-hash', '7')`); err != nil {
 		t.Fatalf("insert legacy hashed token: %v", err)
 	}
-	if _, err := store.db.Exec(`UPDATE schema_version SET version = 2`); err != nil {
+	if _, err = store.db.Exec(`UPDATE schema_version SET version = 2`); err != nil {
 		t.Fatalf("set schema version: %v", err)
 	}
 
-	if err := runMigrations(store.db, 2); err != nil {
+	if err = runMigrations(store.db, 2); err != nil {
 		t.Fatalf("runMigrations: %v", err)
 	}
 
-	if err := store.SaveHashedToken("new-hash", 8, true); err != nil {
+	if err = store.SaveHashedToken("new-hash", 8, true); err != nil {
 		t.Fatalf("SaveHashedToken after migration: %v", err)
 	}
 	records, err := store.GetAllHashedTokens()

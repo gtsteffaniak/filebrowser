@@ -23,7 +23,7 @@ func createTokenAuthUser(t *testing.T, username string, perms users.Permissions)
 		t.Fatal(err)
 	}
 	stored.Permissions = perms
-	if err := state.UpdateUser(&stored, "", "permissions"); err != nil {
+	if err = state.UpdateUser(&stored, "", "permissions"); err != nil {
 		t.Fatal(err)
 	}
 	reloaded, err := state.GetUserByUsername(username)
