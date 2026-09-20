@@ -28,7 +28,7 @@ import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
 import { state } from "@/store";
 import { getters } from "@/store/getters";
-import { isSameSize, uploadManager } from "./upload";
+import { isSameSize, numberedName, uploadManager } from "./upload";
 
 function addUpload(status = "uploading", file = new Blob(["a"])) {
   uploadManager.queue.push({
@@ -179,6 +179,15 @@ describe("upload stall detection", () => {
 });
 
 
+describe("numberedName", () => {
+  it("puts the suffix before the extension", () => {
+    expect(numberedName("DSCF8750.MOV", 1)).toBe("DSCF8750_01.MOV");
+    expect(numberedName("a.b.mov", 12)).toBe("a.b_12.mov");
+    expect(numberedName("README", 2)).toBe("README_02");
+    expect(numberedName(".env", 1)).toBe(".env_01");
+  });
+});
+
 describe("isSameSize", () => {
   it("accepts the exact size and the 4 KiB block-rounded disk usage", () => {
     expect(isSameSize(2500000, 2500000)).toBe(true);
@@ -231,13 +240,58 @@ describe("skip existing files", () => {
     expect(items[0].overwriteExisting).toBeUndefined();
   });
 
-  it("replaces an existing entry that is a folder instead of skipping it", async () => {
+  it("uploads under a numbered name when the existing entry is a folder", async () => {
     resourcesApi.listDirectoryEntries.mockResolvedValue(
       new Map([["a.mov", { size: 1, type: "directory" }]])
     );
     const { items, skipped } = await uploadManager.filterExistingItems("/base/", [item("a.mov", 1)]);
     expect(skipped).toBe(0);
-    expect(items[0].overwriteExisting).toBe(true);
+    expect(items[0].relativePath).toBe("a_01.mov");
+    expect(items[0].overwriteExisting).toBeUndefined();
+  });
+
+  it("never overwrites a non-empty file of a different size: uploads it as name_01, then name_02", async () => {
+    resourcesApi.listDirectoryEntries.mockResolvedValue(
+      new Map([
+        ["clip.mov", { size: 100, type: "file" }],
+        ["clip_01.mov", { size: 100, type: "file" }],
+      ])
+    );
+    const { items, skipped, renamed } = await uploadManager.filterExistingItems("/base/", [
+      item("Cam/clip.mov", 500),
+    ]);
+    // "Cam/" listing is the mocked one above, so the numbered names are taken from it
+    expect(skipped).toBe(0);
+    expect(renamed).toBe(1);
+    expect(items[0].relativePath).toBe("Cam/clip_02.mov");
+    expect(items[0].uploadName).toBe("clip_02.mov");
+    expect(items[0].overwriteExisting).toBeUndefined();
+  });
+
+  it("skips a file when a numbered copy of it with the same size already exists", async () => {
+    resourcesApi.listDirectoryEntries.mockResolvedValue(
+      new Map([
+        ["clip.mov", { size: 100, type: "file" }],
+        ["clip_01.mov", { size: 500, type: "file" }],
+      ])
+    );
+    const { items, skipped, renamed } = await uploadManager.filterExistingItems("/base/", [
+      item("Cam/clip.mov", 500),
+    ]);
+    expect(skipped).toBe(1);
+    expect(renamed).toBe(0);
+    expect(items).toHaveLength(0);
+  });
+
+  it("gives two different items of a batch different numbered names", async () => {
+    resourcesApi.listDirectoryEntries.mockResolvedValue(
+      new Map([["clip.mov", { size: 100, type: "file" }]])
+    );
+    const { items } = await uploadManager.filterExistingItems("/base/", [
+      item("Cam/clip.mov", 500),
+      item("Cam/clip.mov", 600),
+    ]);
+    expect(items.map((i) => i.relativePath)).toEqual(["Cam/clip_01.mov", "Cam/clip_02.mov"]);
   });
 
   it("add() with skipExisting queues only the missing/incomplete files with the right overwrite flags", async () => {
@@ -264,6 +318,21 @@ describe("skip existing files", () => {
     const dirs = uploadManager.queue.filter((u) => u.type === "directory");
     expect(dirs.map((u) => [u.path, u.overwrite])).toEqual([["/base/Cam/", true]]);
     expect(notify.showSuccessToast).toHaveBeenCalledWith("prompts.uploadSkipped:1");
+  });
+
+  it("add() queues a different-size file under a numbered destination path and name", async () => {
+    resourcesApi.listDirectoryEntries.mockResolvedValue(
+      new Map([["big.mov", { size: 4096, type: "file" }]])
+    );
+    vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
+
+    await uploadManager.add("/base/", [item("Cam/big.mov", 900000)], false, true);
+
+    const [upload] = uploadManager.queue.filter((u) => u.type !== "directory");
+    expect(upload.path).toBe("/base/Cam/big_01.mov");
+    expect(upload.name).toBe("big_01.mov");
+    expect(upload.overwrite).toBe(false);
+    expect(notify.showSuccessToast).toHaveBeenCalledWith("prompts.uploadRenamed:1");
   });
 
   it("add() with skipExisting queues nothing when everything is already uploaded", async () => {

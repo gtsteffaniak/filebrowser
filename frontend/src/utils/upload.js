@@ -83,6 +83,14 @@ export function isSameSize(remoteSize, localSize) {
   );
 }
 
+// "name.ext" -> "name_01.ext" (suffix goes before the extension).
+export function numberedName(name, n) {
+  const dot = name.lastIndexOf(".");
+  const stem = dot > 0 ? name.slice(0, dot) : name;
+  const ext = dot > 0 ? name.slice(dot) : "";
+  return `${stem}_${String(n).padStart(2, "0")}${ext}`;
+}
+
 class UploadManager {
   constructor() {
     this.queue = reactive([]);
@@ -106,13 +114,13 @@ class UploadManager {
   }
 
   /**
-   * Drops items that already exist at the destination with the same size (see
-   * isSameSize), so a repeated upload of a folder only sends what is missing or
-   * incomplete. Items that exist with a different size (e.g. an empty leftover of a
-   * failed upload) are kept and flagged to replace the existing file; the server
-   * writes uploads to a temp file and moves it into place, so the old file survives
-   * until the new one is complete.
-   * @returns {Promise<{items: object[], skipped: number}>}
+   * Decides what to do with each item that already exists at the destination, so
+   * a repeated upload of a folder only sends what is missing or incomplete:
+   * - same size (see isSameSize), or a numbered copy of it with the same size: skipped
+   * - existing file is empty (leftover of a failed upload): replaced
+   * - any other size: uploaded under the next free numbered name (name_01.ext, ...)
+   *   so the existing file is never overwritten
+   * @returns {Promise<{items: object[], skipped: number, renamed: number}>}
    */
   async filterExistingItems(basePath, items) {
     const dirOf = (item) => {
@@ -136,18 +144,55 @@ class UploadManager {
     }
 
     let skipped = 0;
+    let renamed = 0;
     const remaining = [];
     for (const item of items) {
-      const existing = listings.get(dirOf(item))?.get(item.file.name);
+      const dirPath = dirOf(item);
+      const listing = listings.get(dirPath);
+      const name = item.file.name;
+      const existing = listing?.get(name);
       if (!existing) {
         remaining.push(item);
-      } else if (existing.type !== "directory" && isSameSize(existing.size, item.file.size)) {
-        skipped++;
-      } else {
-        remaining.push({ ...item, overwriteExisting: true });
+        continue;
       }
+      const isFile = existing.type !== "directory";
+      if (isFile && isSameSize(existing.size, item.file.size)) {
+        skipped++;
+        continue;
+      }
+      if (isFile && existing.size === 0) {
+        remaining.push({ ...item, overwriteExisting: true });
+        continue;
+      }
+
+      // Different content under the same name: keep it and use a numbered name.
+      let n = 1;
+      let alreadyUploaded = false;
+      while (listing.has(numberedName(name, n))) {
+        const copy = listing.get(numberedName(name, n));
+        if (copy.type !== "directory" && isSameSize(copy.size, item.file.size)) {
+          alreadyUploaded = true;
+          break;
+        }
+        n++;
+      }
+      if (alreadyUploaded) {
+        skipped++;
+        continue;
+      }
+      const newName = numberedName(name, n);
+      // Reserve the name so two items of this batch can't pick the same one.
+      listing.set(newName, { size: item.file.size, type: "file" });
+      const relativePath = item.relativePath || name;
+      const slash = relativePath.lastIndexOf("/");
+      renamed++;
+      remaining.push({
+        ...item,
+        relativePath: `${relativePath.slice(0, slash + 1)}${newName}`,
+        uploadName: newName,
+      });
     }
-    return { items: remaining, skipped };
+    return { items: remaining, skipped, renamed };
   }
 
   resolveConflict(basePath, items, resolution) {
@@ -275,6 +320,11 @@ class UploadManager {
           i18n.global.t("prompts.uploadSkipped", { count: filtered.skipped })
         );
       }
+      if (filtered.renamed > 0) {
+        notify.showSuccessToast(
+          i18n.global.t("prompts.uploadRenamed", { count: filtered.renamed })
+        );
+      }
       items = filtered.items;
       if (items.length === 0) {
         this.pendingItems = null;
@@ -342,7 +392,7 @@ class UploadManager {
         id,
         sessionId: newUploadSessionId(),
         file,
-        name: file.name,
+        name: item.uploadName || file.name,
         size: file.size,
         progress: 0,
         chunkOffset: 0,
