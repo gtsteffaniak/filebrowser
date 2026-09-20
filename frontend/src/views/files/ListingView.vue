@@ -194,6 +194,7 @@ import {
   processTypeAheadKey,
   resetTypeAheadSession,
 } from "@/utils/listingTypeAhead.js";
+import { disconnectListingVisibilityObserver } from "@/utils/listingVisibilityObserver";
 
 export default {
   name: "listingView",
@@ -230,47 +231,38 @@ export default {
       const scrollContainer = this.$refs.listingView;
       if (!scrollContainer) return;
 
-      // Select all visible listing items
-      const itemNodes = scrollContainer.querySelectorAll(".listing-item");
-
-      // Find the first item near the top of the viewport
+      // One hit-test instead of getBoundingClientRect on every row.
+      const bounds = scrollContainer.getBoundingClientRect();
+      const probeX = bounds.left + Math.min(40, Math.max(8, bounds.width / 4));
       let topItem = null;
-      let minTop = Infinity;
-      itemNodes.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        if (rect.top >= 0 && rect.top < minTop) {
-          minTop = rect.top;
-          topItem = el;
-        }
-      });
+      let section = null;
+      for (const offset of [16, 56, 96]) {
+        const hit = document.elementFromPoint(probeX, bounds.top + offset);
+        if (!hit || typeof hit.closest !== "function") continue;
+        topItem = hit.closest(".listing-item");
+        section = hit.closest(".pinned-items, .folder-items, .file-items");
+        if (topItem || section) break;
+      }
 
-      // Decide category by checking which section is above
       let letter = "A";
-      let category = "folders"; // Default category
+      let category = "folders";
 
       if (topItem) {
         letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
-      } else if (this.numPinned > 0) {
-        const pinnedHeader = this.$el.querySelector(".pinned-items h2");
-        if (pinnedHeader && pinnedHeader.getBoundingClientRect().top >= 0) {
-          category = "pinned";
-          const firstPinned = this.pinnedItems[0];
-          letter = firstPinned?.name?.[0]?.toUpperCase();
-        }
       }
 
-      if (topItem?.closest('.pinned-items')) {
+      if (section?.classList.contains("pinned-items") || topItem?.closest(".pinned-items")) {
         category = "pinned";
         const firstPinned = this.pinnedItems[0];
-        letter = firstPinned?.name?.[0]?.toUpperCase();
-      } 
-      else if (this.numFiles > 0) {
-        const fileSection = this.$el.querySelector(".file-items");
-        const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
-        category = fileTop <= 0 ? "files" : "folders";
+        letter = firstPinned?.name?.[0]?.toUpperCase() || letter;
+      } else if (section?.classList.contains("file-items") || topItem?.closest(".file-items")) {
+        category = "files";
+      } else if (this.numDirs === 0) {
+        category = "files";
       }
-      if (this.numDirs === 0 && category !== "pinned") {
-        category = "files"; // If no directories, only files
+
+      if (state.listing.letter === letter && state.listing.category === category) {
+        return;
       }
 
       mutations.updateListing({
@@ -520,6 +512,7 @@ export default {
   },
   beforeUnmount() {
     resetTypeAheadSession();
+    disconnectListingVisibilityObserver();
 
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
@@ -642,7 +635,7 @@ export default {
     },
     // Helper method to find the closest item in the given direction (up or down) from the current one.
     findClosestItem(selectedItem, direction) {
-      const listItems = Array.from(this.$el.querySelectorAll('.listing-item:not(.out-of-view)'));
+      const listItems = Array.from(this.$el.querySelectorAll(".listing-item"));
       const selectedBounds = selectedItem.getBoundingClientRect();
       const selectedMidX = (selectedBounds.left + selectedBounds.right) / 2;
 

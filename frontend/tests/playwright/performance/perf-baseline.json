@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "createdAt": "2026-09-20T14:51:29.915Z",
-  "gitSha": "ced7af9bf7b3313c398e248b8bca9568b10f595d",
-  "gitDirty": true,
+  "createdAt": "2026-09-20T17:08:55.524Z",
+  "gitSha": null,
+  "gitDirty": null,
   "environment": {
     "os": "linux",
     "platform": "linux",
@@ -10,7 +10,7 @@
     "arch": "x64",
     "cpuModel": "AMD Ryzen 9 6900HS Creator Edition",
     "cpuCount": 16,
-    "nodeVersion": "v22.22.1",
+    "nodeVersion": "v22.23.2",
     "playwrightVersion": "1.63.0",
     "browserVersion": "153.0.8010.12",
     "browser": "chromium",
@@ -29,25 +29,25 @@
       "scenario": "load",
       "metrics": {
         "scenarioMs": {
-          "value": 826,
+          "value": 817,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 807,
-          "max": 892,
-          "spreadPct": 10.29
+          "min": 675,
+          "max": 1071,
+          "spreadPct": 48.47
         },
         "domNodes": {
-          "value": 2156,
+          "value": 2154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2156,
-          "max": 2156,
+          "min": 2154,
+          "max": 2154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -62,14 +62,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 2135,
+          "value": 2134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2135,
-          "max": 2135,
+          "min": 2134,
+          "max": 2134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -84,92 +84,92 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 2149,
+          "value": 2148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2149,
-          "max": 2149,
+          "min": 2148,
+          "max": 2148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 15023128,
+          "value": 15076052,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 14972032,
-          "max": 15047368,
-          "spreadPct": 0.5
+          "min": 15051888,
+          "max": 15077256,
+          "spreadPct": 0.17
         },
         "longTaskMs": {
-          "value": 466,
+          "value": 506,
           "tolerancePct": 100,
           "noiseFloor": 500,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 424,
-          "max": 479,
-          "spreadPct": 11.8
+          "min": 335,
+          "max": 678,
+          "spreadPct": 67.79
         },
         "longTaskCount": {
-          "value": 3,
+          "value": 4,
           "tolerancePct": 100,
           "noiseFloor": 3,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 2,
-          "max": 3,
+          "min": 3,
+          "max": 5,
           "spreadPct": 50
         },
         "layoutDurationDelta": {
-          "value": 0.04,
+          "value": 69,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.03,
-          "max": 0.04,
-          "spreadPct": 25
+          "min": 44,
+          "max": 70,
+          "spreadPct": 37.68
         },
         "recalcStyleDurationDelta": {
-          "value": 0.05,
+          "value": 61,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.04,
-          "max": 0.05,
-          "spreadPct": 20
+          "min": 46,
+          "max": 73,
+          "spreadPct": 44.26
         },
         "scriptDurationDelta": {
-          "value": 0.05,
+          "value": 45,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.05,
-          "max": 0.06,
-          "spreadPct": 20
+          "min": 35,
+          "max": 66,
+          "spreadPct": 68.89
         },
         "layoutCountDelta": {
-          "value": 31,
+          "value": 40,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 31,
-          "max": 31,
-          "spreadPct": 0
+          "min": 38,
+          "max": 45,
+          "spreadPct": 17.5
         },
         "frameP95": {
           "value": 0,
@@ -233,25 +233,25 @@
       "scenario": "resize",
       "metrics": {
         "scenarioMs": {
-          "value": 331,
+          "value": 334,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 330,
-          "max": 352,
-          "spreadPct": 6.65
+          "min": 306,
+          "max": 357,
+          "spreadPct": 15.27
         },
         "domNodes": {
-          "value": 2156,
+          "value": 2154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2156,
-          "max": 2156,
+          "min": 2154,
+          "max": 2154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -266,14 +266,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 2135,
+          "value": 2134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2135,
-          "max": 2135,
+          "min": 2134,
+          "max": 2134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -288,26 +288,26 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 2149,
+          "value": 2148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2149,
-          "max": 2149,
+          "min": 2148,
+          "max": 2148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 16569692,
+          "value": 16757908,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 16531596,
-          "max": 16595664,
-          "spreadPct": 0.39
+          "min": 16717540,
+          "max": 16764552,
+          "spreadPct": 0.28
         },
         "longTaskMs": {
           "value": 0,
@@ -332,70 +332,70 @@
           "spreadPct": 0
         },
         "layoutDurationDelta": {
-          "value": 0.06,
+          "value": 68,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.05,
-          "max": 0.06,
-          "spreadPct": 16.67
+          "min": 42,
+          "max": 82,
+          "spreadPct": 58.82
         },
         "recalcStyleDurationDelta": {
-          "value": 0.03,
+          "value": 39,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.03,
-          "max": 0.04,
-          "spreadPct": 33.33
+          "min": 24,
+          "max": 50,
+          "spreadPct": 66.67
         },
         "scriptDurationDelta": {
-          "value": 0,
+          "value": 3,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0,
-          "max": 0,
-          "spreadPct": 0
+          "min": 2,
+          "max": 4,
+          "spreadPct": 66.67
         },
         "layoutCountDelta": {
-          "value": 12,
+          "value": 24,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 12,
-          "max": 12,
+          "min": 24,
+          "max": 24,
           "spreadPct": 0
         },
         "frameP95": {
-          "value": 56.3,
+          "value": 65.1,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 53,
-          "max": 66.7,
-          "spreadPct": 24.33
+          "min": 50,
+          "max": 83.7,
+          "spreadPct": 51.77
         },
         "frameP99": {
-          "value": 56.3,
+          "value": 65.1,
           "tolerancePct": 100,
           "noiseFloor": 40,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 53,
-          "max": 66.7,
-          "spreadPct": 24.33
+          "min": 50,
+          "max": 83.7,
+          "spreadPct": 51.77
         },
         "droppedFrames": {
           "value": 0,
@@ -405,19 +405,19 @@
           "toleranceClass": "health",
           "samples": 3,
           "min": 0,
-          "max": 4,
+          "max": 3,
           "spreadPct": 0
         },
         "effectiveFps": {
-          "value": 2.82,
+          "value": 5.64,
           "tolerancePct": 100,
           "noiseFloor": 2,
           "direction": "higher-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 2.62,
-          "max": 40.79,
-          "spreadPct": 1353.55
+          "min": 2.49,
+          "max": 40.02,
+          "spreadPct": 665.43
         },
         "interactionP95": {
           "value": 0,
@@ -437,25 +437,25 @@
       "scenario": "scroll",
       "metrics": {
         "scenarioMs": {
-          "value": 567,
+          "value": 454,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 558,
-          "max": 583,
-          "spreadPct": 4.41
+          "min": 393,
+          "max": 673,
+          "spreadPct": 61.67
         },
         "domNodes": {
-          "value": 2156,
+          "value": 2154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2156,
-          "max": 2156,
+          "min": 2154,
+          "max": 2154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -470,14 +470,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 2135,
+          "value": 2134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2135,
-          "max": 2135,
+          "min": 2134,
+          "max": 2134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -492,26 +492,26 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 2149,
+          "value": 2148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2149,
-          "max": 2149,
+          "min": 2148,
+          "max": 2148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 16493124,
+          "value": 16559132,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 16451596,
-          "max": 16520192,
-          "spreadPct": 0.42
+          "min": 16526304,
+          "max": 16565104,
+          "spreadPct": 0.23
         },
         "longTaskMs": {
           "value": 0,
@@ -558,15 +558,15 @@
           "spreadPct": 0
         },
         "scriptDurationDelta": {
-          "value": 0,
+          "value": 2,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0,
-          "max": 0,
-          "spreadPct": 0
+          "min": 1,
+          "max": 4,
+          "spreadPct": 150
         },
         "layoutCountDelta": {
           "value": 0,
@@ -597,9 +597,9 @@
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 16.7,
-          "max": 16.8,
-          "spreadPct": 0.6
+          "min": 16.8,
+          "max": 33.2,
+          "spreadPct": 97.62
         },
         "droppedFrames": {
           "value": 0,
@@ -609,19 +609,19 @@
           "toleranceClass": "health",
           "samples": 3,
           "min": 0,
-          "max": 0,
+          "max": 1,
           "spreadPct": 0
         },
         "effectiveFps": {
-          "value": 58.31,
+          "value": 58.18,
           "tolerancePct": 100,
           "noiseFloor": 2,
           "direction": "higher-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 57.33,
-          "max": 58.78,
-          "spreadPct": 2.49
+          "min": 56.7,
+          "max": 58.6,
+          "spreadPct": 3.27
         },
         "interactionP95": {
           "value": 0,
@@ -641,25 +641,25 @@
       "scenario": "select",
       "metrics": {
         "scenarioMs": {
-          "value": 1623,
+          "value": 1202,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 1575,
-          "max": 1631,
-          "spreadPct": 3.45
+          "min": 1024,
+          "max": 1630,
+          "spreadPct": 50.42
         },
         "domNodes": {
-          "value": 2157,
+          "value": 2155,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2157,
-          "max": 2157,
+          "min": 2155,
+          "max": 2155,
           "spreadPct": 0
         },
         "listingItems": {
@@ -674,14 +674,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 2135,
+          "value": 2134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2135,
-          "max": 2135,
+          "min": 2134,
+          "max": 2134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -696,26 +696,26 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 2149,
+          "value": 2148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2149,
-          "max": 2149,
+          "min": 2148,
+          "max": 2148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 16952696,
+          "value": 17227568,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 16907164,
-          "max": 16954048,
-          "spreadPct": 0.28
+          "min": 17223020,
+          "max": 17263688,
+          "spreadPct": 0.24
         },
         "longTaskMs": {
           "value": 0,
@@ -740,48 +740,48 @@
           "spreadPct": 0
         },
         "layoutDurationDelta": {
-          "value": 0.04,
+          "value": 25,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.03,
-          "max": 0.05,
-          "spreadPct": 50
+          "min": 23,
+          "max": 34,
+          "spreadPct": 44
         },
         "recalcStyleDurationDelta": {
-          "value": 0.08,
+          "value": 43,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.08,
-          "max": 0.09,
-          "spreadPct": 12.5
+          "min": 37,
+          "max": 54,
+          "spreadPct": 39.53
         },
         "scriptDurationDelta": {
-          "value": 0.05,
+          "value": 48,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.05,
-          "max": 0.05,
-          "spreadPct": 0
+          "min": 38,
+          "max": 63,
+          "spreadPct": 52.08
         },
         "layoutCountDelta": {
-          "value": 58,
+          "value": 72,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 56,
-          "max": 58,
-          "spreadPct": 3.45
+          "min": 66,
+          "max": 79,
+          "spreadPct": 18.06
         },
         "frameP95": {
           "value": 0,
@@ -828,15 +828,15 @@
           "spreadPct": 0
         },
         "interactionP95": {
-          "value": 192,
+          "value": 152,
           "tolerancePct": 100,
           "noiseFloor": 5,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 160,
-          "max": 248,
-          "spreadPct": 45.83
+          "min": 120,
+          "max": 208,
+          "spreadPct": 57.89
         }
       }
     },
@@ -845,25 +845,25 @@
       "scenario": "load",
       "metrics": {
         "scenarioMs": {
-          "value": 2594,
+          "value": 2486,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 2014,
-          "max": 2975,
-          "spreadPct": 37.05
+          "min": 1835,
+          "max": 2638,
+          "spreadPct": 32.3
         },
         "domNodes": {
-          "value": 20156,
+          "value": 20154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20156,
-          "max": 20156,
+          "min": 20154,
+          "max": 20154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -878,14 +878,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 20135,
+          "value": 20134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20135,
-          "max": 20135,
+          "min": 20134,
+          "max": 20134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -900,37 +900,37 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 20149,
+          "value": 20148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20149,
-          "max": 20149,
+          "min": 20148,
+          "max": 20148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 73650612,
+          "value": 73816088,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 73629228,
-          "max": 73822016,
-          "spreadPct": 0.26
+          "min": 73811680,
+          "max": 73949072,
+          "spreadPct": 0.19
         },
         "longTaskMs": {
-          "value": 2356,
+          "value": 1989,
           "tolerancePct": 100,
           "noiseFloor": 500,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 1562,
-          "max": 2356,
-          "spreadPct": 39.5
+          "min": 1380,
+          "max": 2148,
+          "spreadPct": 38.61
         },
         "longTaskCount": {
           "value": 4,
@@ -940,52 +940,52 @@
           "toleranceClass": "health",
           "samples": 3,
           "min": 4,
-          "max": 4,
-          "spreadPct": 0
-        },
-        "layoutDurationDelta": {
-          "value": 0.1,
-          "tolerancePct": 100,
-          "noiseFloor": 20,
-          "direction": "lower-is-better",
-          "toleranceClass": "health",
-          "samples": 3,
-          "min": 0.07,
-          "max": 0.11,
-          "spreadPct": 40
-        },
-        "recalcStyleDurationDelta": {
-          "value": 0.08,
-          "tolerancePct": 100,
-          "noiseFloor": 20,
-          "direction": "lower-is-better",
-          "toleranceClass": "health",
-          "samples": 3,
-          "min": 0.08,
-          "max": 0.09,
-          "spreadPct": 12.5
-        },
-        "scriptDurationDelta": {
-          "value": 0.08,
-          "tolerancePct": 100,
-          "noiseFloor": 20,
-          "direction": "lower-is-better",
-          "toleranceClass": "health",
-          "samples": 3,
-          "min": 0.08,
-          "max": 0.1,
+          "max": 5,
           "spreadPct": 25
         },
+        "layoutDurationDelta": {
+          "value": 137,
+          "tolerancePct": 100,
+          "noiseFloor": 20,
+          "direction": "lower-is-better",
+          "toleranceClass": "health",
+          "samples": 3,
+          "min": 92,
+          "max": 176,
+          "spreadPct": 61.31
+        },
+        "recalcStyleDurationDelta": {
+          "value": 98,
+          "tolerancePct": 100,
+          "noiseFloor": 20,
+          "direction": "lower-is-better",
+          "toleranceClass": "health",
+          "samples": 3,
+          "min": 70,
+          "max": 101,
+          "spreadPct": 31.63
+        },
+        "scriptDurationDelta": {
+          "value": 92,
+          "tolerancePct": 100,
+          "noiseFloor": 20,
+          "direction": "lower-is-better",
+          "toleranceClass": "health",
+          "samples": 3,
+          "min": 63,
+          "max": 121,
+          "spreadPct": 63.04
+        },
         "layoutCountDelta": {
-          "value": 32,
+          "value": 42,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 32,
-          "max": 32,
-          "spreadPct": 0
+          "min": 41,
+          "max": 43,
+          "spreadPct": 4.76
         },
         "frameP95": {
           "value": 0,
@@ -1049,25 +1049,25 @@
       "scenario": "resize",
       "metrics": {
         "scenarioMs": {
-          "value": 404,
+          "value": 589,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 403,
-          "max": 691,
-          "spreadPct": 71.29
+          "min": 478,
+          "max": 844,
+          "spreadPct": 62.14
         },
         "domNodes": {
-          "value": 20156,
+          "value": 20154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20156,
-          "max": 20156,
+          "min": 20154,
+          "max": 20154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1082,14 +1082,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 20135,
+          "value": 20134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20135,
-          "max": 20135,
+          "min": 20134,
+          "max": 20134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -1104,40 +1104,40 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 20149,
+          "value": 20148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20149,
-          "max": 20149,
+          "min": 20148,
+          "max": 20148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 81693292,
+          "value": 82990336,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 81667344,
-          "max": 81856980,
-          "spreadPct": 0.23
+          "min": 82604848,
+          "max": 83029656,
+          "spreadPct": 0.51
         },
         "longTaskMs": {
-          "value": 0,
+          "value": 241,
           "tolerancePct": 100,
           "noiseFloor": 500,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 53,
-          "max": 155,
-          "spreadPct": 141.67
+          "min": 125,
+          "max": 320,
+          "spreadPct": 80.91
         },
         "longTaskCount": {
-          "value": 0,
+          "value": 2,
           "tolerancePct": 100,
           "noiseFloor": 3,
           "direction": "lower-is-better",
@@ -1145,95 +1145,95 @@
           "samples": 3,
           "min": 1,
           "max": 2,
-          "spreadPct": 100
+          "spreadPct": 50
         },
         "layoutDurationDelta": {
-          "value": 0.09,
+          "value": 188,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.09,
-          "max": 0.16,
-          "spreadPct": 77.78
+          "min": 178,
+          "max": 279,
+          "spreadPct": 53.72
         },
         "recalcStyleDurationDelta": {
-          "value": 0.12,
+          "value": 165,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.11,
-          "max": 0.22,
-          "spreadPct": 91.67
+          "min": 143,
+          "max": 250,
+          "spreadPct": 64.85
         },
         "scriptDurationDelta": {
-          "value": 0,
+          "value": 4,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0,
-          "max": 0,
-          "spreadPct": 0
+          "min": 3,
+          "max": 6,
+          "spreadPct": 75
         },
         "layoutCountDelta": {
-          "value": 10,
+          "value": 23,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 10,
-          "max": 14,
-          "spreadPct": 40
+          "min": 21,
+          "max": 34,
+          "spreadPct": 56.52
         },
         "frameP95": {
-          "value": 124.5,
+          "value": 234.4,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 111.1,
-          "max": 185.3,
-          "spreadPct": 59.6
+          "min": 204.3,
+          "max": 239.8,
+          "spreadPct": 15.15
         },
         "frameP99": {
-          "value": 124.5,
+          "value": 234.4,
           "tolerancePct": 100,
           "noiseFloor": 40,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 111.1,
-          "max": 185.3,
-          "spreadPct": 59.6
+          "min": 204.3,
+          "max": 239.8,
+          "spreadPct": 15.15
         },
         "droppedFrames": {
-          "value": 0,
+          "value": 1,
           "tolerancePct": 100,
           "noiseFloor": 2,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
           "min": 0,
-          "max": 0,
-          "spreadPct": 0
+          "max": 1,
+          "spreadPct": 100
         },
         "effectiveFps": {
-          "value": 6.55,
+          "value": 2.17,
           "tolerancePct": 100,
           "noiseFloor": 2,
           "direction": "higher-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 3.84,
-          "max": 6.8,
-          "spreadPct": 45.19
+          "min": 1.81,
+          "max": 2.99,
+          "spreadPct": 54.38
         },
         "interactionP95": {
           "value": 0,
@@ -1253,25 +1253,25 @@
       "scenario": "scroll",
       "metrics": {
         "scenarioMs": {
-          "value": 578,
+          "value": 673,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 572,
-          "max": 1022,
-          "spreadPct": 77.85
+          "min": 588,
+          "max": 707,
+          "spreadPct": 17.68
         },
         "domNodes": {
-          "value": 20156,
+          "value": 20154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20156,
-          "max": 20156,
+          "min": 20154,
+          "max": 20154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1286,14 +1286,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 20135,
+          "value": 20134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20135,
-          "max": 20135,
+          "min": 20134,
+          "max": 20134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -1308,26 +1308,26 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 20149,
+          "value": 20148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20149,
-          "max": 20149,
+          "min": 20148,
+          "max": 20148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 81615760,
+          "value": 81775072,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 81591880,
-          "max": 81782512,
-          "spreadPct": 0.23
+          "min": 81769776,
+          "max": 81916448,
+          "spreadPct": 0.18
         },
         "longTaskMs": {
           "value": 0,
@@ -1374,14 +1374,14 @@
           "spreadPct": 0
         },
         "scriptDurationDelta": {
-          "value": 0,
+          "value": 2,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0,
-          "max": 0,
+          "min": 2,
+          "max": 2,
           "spreadPct": 0
         },
         "layoutCountDelta": {
@@ -1402,9 +1402,9 @@
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 16.7,
-          "max": 67.6,
-          "spreadPct": 302.98
+          "min": 16.8,
+          "max": 16.8,
+          "spreadPct": 0
         },
         "frameP99": {
           "value": 16.8,
@@ -1414,8 +1414,8 @@
           "toleranceClass": "health",
           "samples": 3,
           "min": 16.8,
-          "max": 67.6,
-          "spreadPct": 302.38
+          "max": 33.4,
+          "spreadPct": 98.81
         },
         "droppedFrames": {
           "value": 0,
@@ -1425,19 +1425,19 @@
           "toleranceClass": "health",
           "samples": 3,
           "min": 0,
-          "max": 0,
+          "max": 1,
           "spreadPct": 0
         },
         "effectiveFps": {
-          "value": 57.28,
+          "value": 57.43,
           "tolerancePct": 100,
           "noiseFloor": 2,
           "direction": "higher-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.92,
-          "max": 58.22,
-          "spreadPct": 100.03
+          "min": 57.16,
+          "max": 57.69,
+          "spreadPct": 0.92
         },
         "interactionP95": {
           "value": 0,
@@ -1457,25 +1457,25 @@
       "scenario": "select",
       "metrics": {
         "scenarioMs": {
-          "value": 2835,
+          "value": 2773,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 2665,
-          "max": 3511,
-          "spreadPct": 29.84
+          "min": 2138,
+          "max": 3051,
+          "spreadPct": 32.92
         },
         "domNodes": {
-          "value": 20157,
+          "value": 20155,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20157,
-          "max": 20157,
+          "min": 20155,
+          "max": 20155,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1490,14 +1490,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 20135,
+          "value": 20134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20135,
-          "max": 20135,
+          "min": 20134,
+          "max": 20134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -1512,92 +1512,92 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 20149,
+          "value": 20148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20149,
-          "max": 20149,
+          "min": 20148,
+          "max": 20148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 83690648,
+          "value": 86008292,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 83606916,
-          "max": 83904124,
-          "spreadPct": 0.36
+          "min": 85939892,
+          "max": 86302864,
+          "spreadPct": 0.42
         },
         "longTaskMs": {
-          "value": 367,
+          "value": 424,
           "tolerancePct": 100,
           "noiseFloor": 500,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0,
-          "max": 357,
-          "spreadPct": 0
+          "min": 50,
+          "max": 466,
+          "spreadPct": 98.11
         },
         "longTaskCount": {
-          "value": 6,
+          "value": 7,
           "tolerancePct": 100,
           "noiseFloor": 3,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0,
-          "max": 6,
-          "spreadPct": 0
+          "min": 1,
+          "max": 8,
+          "spreadPct": 100
         },
         "layoutDurationDelta": {
-          "value": 0.18,
+          "value": 78,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.16,
-          "max": 0.22,
-          "spreadPct": 33.33
+          "min": 57,
+          "max": 89,
+          "spreadPct": 41.03
         },
         "recalcStyleDurationDelta": {
-          "value": 0.12,
+          "value": 85,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.12,
-          "max": 0.12,
-          "spreadPct": 0
+          "min": 70,
+          "max": 87,
+          "spreadPct": 20
         },
         "scriptDurationDelta": {
-          "value": 0.1,
+          "value": 117,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.09,
-          "max": 0.12,
-          "spreadPct": 30
+          "min": 89,
+          "max": 132,
+          "spreadPct": 36.75
         },
         "layoutCountDelta": {
-          "value": 96,
+          "value": 107,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 79,
-          "max": 97,
-          "spreadPct": 18.75
+          "min": 90,
+          "max": 109,
+          "spreadPct": 17.76
         },
         "frameP95": {
           "value": 0,
@@ -1644,15 +1644,15 @@
           "spreadPct": 0
         },
         "interactionP95": {
-          "value": 128,
+          "value": 152,
           "tolerancePct": 100,
           "noiseFloor": 5,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
           "min": 120,
-          "max": 208,
-          "spreadPct": 68.75
+          "max": 160,
+          "spreadPct": 26.32
         }
       }
     },
@@ -1661,25 +1661,25 @@
       "scenario": "load",
       "metrics": {
         "scenarioMs": {
-          "value": 14500,
+          "value": 12552,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 13469,
-          "max": 18591,
-          "spreadPct": 35.32
+          "min": 10967,
+          "max": 15506,
+          "spreadPct": 36.16
         },
         "domNodes": {
-          "value": 200156,
+          "value": 200154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200156,
-          "max": 200156,
+          "min": 200154,
+          "max": 200154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1694,14 +1694,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 200135,
+          "value": 200134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200135,
-          "max": 200135,
+          "min": 200134,
+          "max": 200134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -1716,92 +1716,92 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 200149,
+          "value": 200148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200147,
-          "max": 200149,
+          "min": 200148,
+          "max": 200148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 683022656,
+          "value": 681613152,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 669491968,
-          "max": 688989884,
-          "spreadPct": 2.85
+          "min": 675074784,
+          "max": 681854308,
+          "spreadPct": 0.99
         },
         "longTaskMs": {
-          "value": 17343,
+          "value": 11594,
           "tolerancePct": 100,
           "noiseFloor": 500,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 12612,
-          "max": 17475,
-          "spreadPct": 35.77
+          "min": 10325,
+          "max": 15031,
+          "spreadPct": 40.59
         },
         "longTaskCount": {
-          "value": 10,
+          "value": 13,
           "tolerancePct": 100,
           "noiseFloor": 3,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 10,
-          "max": 12,
-          "spreadPct": 16.67
+          "min": 9,
+          "max": 20,
+          "spreadPct": 84.62
         },
         "layoutDurationDelta": {
-          "value": 0.45,
+          "value": 637,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.35,
-          "max": 0.45,
-          "spreadPct": 22.22
+          "min": 465,
+          "max": 710,
+          "spreadPct": 38.46
         },
         "recalcStyleDurationDelta": {
-          "value": 0.31,
+          "value": 259,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.29,
-          "max": 0.34,
-          "spreadPct": 16.13
+          "min": 203,
+          "max": 386,
+          "spreadPct": 70.66
         },
         "scriptDurationDelta": {
-          "value": 0.16,
+          "value": 136,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.15,
-          "max": 0.18,
-          "spreadPct": 18.75
+          "min": 120,
+          "max": 159,
+          "spreadPct": 28.68
         },
         "layoutCountDelta": {
-          "value": 26,
+          "value": 36,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 25,
-          "max": 26,
-          "spreadPct": 3.85
+          "min": 36,
+          "max": 36,
+          "spreadPct": 0
         },
         "frameP95": {
           "value": 0,
@@ -1865,25 +1865,25 @@
       "scenario": "resize",
       "metrics": {
         "scenarioMs": {
-          "value": 2796,
+          "value": 3906,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 2751,
-          "max": 2970,
-          "spreadPct": 7.83
+          "min": 3158,
+          "max": 4270,
+          "spreadPct": 28.47
         },
         "domNodes": {
-          "value": 200156,
+          "value": 200154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200156,
-          "max": 200156,
+          "min": 200154,
+          "max": 200154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1898,14 +1898,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 200135,
+          "value": 200134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200135,
-          "max": 200135,
+          "min": 200134,
+          "max": 200134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -1920,136 +1920,136 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 200147,
+          "value": 200148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200147,
-          "max": 200149,
+          "min": 200146,
+          "max": 200148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 677765724,
+          "value": 690653884,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 660797076,
-          "max": 691341728,
-          "spreadPct": 4.51
+          "min": 688279140,
+          "max": 690810704,
+          "spreadPct": 0.37
         },
         "longTaskMs": {
-          "value": 0,
+          "value": 3801,
           "tolerancePct": 100,
           "noiseFloor": 500,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 2370,
-          "max": 2508,
-          "spreadPct": 5.75
+          "min": 3046,
+          "max": 4201,
+          "spreadPct": 30.39
         },
         "longTaskCount": {
-          "value": 0,
+          "value": 12,
           "tolerancePct": 100,
           "noiseFloor": 3,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 8,
-          "max": 8,
-          "spreadPct": 0
+          "min": 12,
+          "max": 13,
+          "spreadPct": 8.33
         },
         "layoutDurationDelta": {
-          "value": 0.63,
+          "value": 1128,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.57,
-          "max": 0.65,
-          "spreadPct": 12.7
+          "min": 902,
+          "max": 1250,
+          "spreadPct": 30.85
         },
         "recalcStyleDurationDelta": {
-          "value": 1.12,
+          "value": 1398,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 1.03,
-          "max": 1.21,
-          "spreadPct": 16.07
+          "min": 1103,
+          "max": 1454,
+          "spreadPct": 25.11
         },
         "scriptDurationDelta": {
-          "value": 0,
+          "value": 3,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0,
-          "max": 0,
+          "min": 3,
+          "max": 3,
           "spreadPct": 0
         },
         "layoutCountDelta": {
-          "value": 11,
+          "value": 22,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 11,
-          "max": 11,
+          "min": 22,
+          "max": 22,
           "spreadPct": 0
         },
         "frameP95": {
-          "value": 942.1,
+          "value": 1388.5,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 876.8,
-          "max": 1015.6,
-          "spreadPct": 14.73
+          "min": 1071.5,
+          "max": 1641.2,
+          "spreadPct": 41.03
         },
         "frameP99": {
-          "value": 942.1,
+          "value": 1388.5,
           "tolerancePct": 100,
           "noiseFloor": 40,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 876.8,
-          "max": 1015.6,
-          "spreadPct": 14.73
+          "min": 1071.5,
+          "max": 1641.2,
+          "spreadPct": 41.03
         },
         "droppedFrames": {
-          "value": 2,
+          "value": 3,
           "tolerancePct": 100,
           "noiseFloor": 2,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 1,
-          "max": 2,
-          "spreadPct": 50
+          "min": 3,
+          "max": 3,
+          "spreadPct": 0
         },
         "effectiveFps": {
-          "value": 1.13,
+          "value": 1.2,
           "tolerancePct": 100,
           "noiseFloor": 2,
           "direction": "higher-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 1.1,
-          "max": 1.15,
-          "spreadPct": 4.42
+          "min": 1.09,
+          "max": 1.52,
+          "spreadPct": 35.83
         },
         "interactionP95": {
           "value": 0,
@@ -2069,25 +2069,25 @@
       "scenario": "scroll",
       "metrics": {
         "scenarioMs": {
-          "value": 3395,
+          "value": 2869,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 3104,
-          "max": 3572,
-          "spreadPct": 13.78
+          "min": 2173,
+          "max": 3663,
+          "spreadPct": 51.93
         },
         "domNodes": {
-          "value": 200156,
+          "value": 200154,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200156,
-          "max": 200156,
+          "min": 200154,
+          "max": 200154,
           "spreadPct": 0
         },
         "listingItems": {
@@ -2102,14 +2102,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 200135,
+          "value": 200134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200135,
-          "max": 200135,
+          "min": 200134,
+          "max": 200134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -2124,29 +2124,29 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 200147,
+          "value": 200148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200147,
-          "max": 200149,
+          "min": 200146,
+          "max": 200148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 677678264,
+          "value": 679965148,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 660703284,
-          "max": 691245000,
-          "spreadPct": 4.51
+          "min": 677536160,
+          "max": 680125672,
+          "spreadPct": 0.38
         },
         "longTaskMs": {
-          "value": 187,
+          "value": 0,
           "tolerancePct": 100,
           "noiseFloor": 500,
           "direction": "lower-is-better",
@@ -2157,7 +2157,7 @@
           "spreadPct": 0
         },
         "longTaskCount": {
-          "value": 3,
+          "value": 0,
           "tolerancePct": 100,
           "noiseFloor": 3,
           "direction": "lower-is-better",
@@ -2190,15 +2190,15 @@
           "spreadPct": 0
         },
         "scriptDurationDelta": {
-          "value": 0,
+          "value": 3,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0,
-          "max": 0,
-          "spreadPct": 0
+          "min": 3,
+          "max": 4,
+          "spreadPct": 33.33
         },
         "layoutCountDelta": {
           "value": 0,
@@ -2212,26 +2212,26 @@
           "spreadPct": 0
         },
         "frameP95": {
-          "value": 192.7,
+          "value": 149.1,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 172.8,
-          "max": 706,
-          "spreadPct": 276.7
+          "min": 106.3,
+          "max": 321.2,
+          "spreadPct": 144.13
         },
         "frameP99": {
-          "value": 192.7,
+          "value": 149.1,
           "tolerancePct": 100,
           "noiseFloor": 40,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 172.8,
-          "max": 706,
-          "spreadPct": 276.7
+          "min": 106.3,
+          "max": 321.2,
+          "spreadPct": 144.13
         },
         "droppedFrames": {
           "value": 2,
@@ -2245,15 +2245,15 @@
           "spreadPct": 100
         },
         "effectiveFps": {
-          "value": 3.37,
+          "value": 3.98,
           "tolerancePct": 100,
           "noiseFloor": 2,
           "direction": "higher-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 3.2,
-          "max": 3.66,
-          "spreadPct": 13.65
+          "min": 3.12,
+          "max": 5.27,
+          "spreadPct": 54.02
         },
         "interactionP95": {
           "value": 0,
@@ -2273,25 +2273,25 @@
       "scenario": "select",
       "metrics": {
         "scenarioMs": {
-          "value": 10958,
+          "value": 10578,
           "tolerancePct": 100,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "timing",
           "samples": 3,
-          "min": 10580,
-          "max": 11430,
-          "spreadPct": 7.76
+          "min": 8428,
+          "max": 11159,
+          "spreadPct": 25.82
         },
         "domNodes": {
-          "value": 200157,
+          "value": 200155,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200157,
-          "max": 200157,
+          "min": 200155,
+          "max": 200155,
           "spreadPct": 0
         },
         "listingItems": {
@@ -2306,14 +2306,14 @@
           "spreadPct": 0
         },
         "addListenerCalls": {
-          "value": 200135,
+          "value": 200134,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200135,
-          "max": 200135,
+          "min": 200134,
+          "max": 200134,
           "spreadPct": 0
         },
         "intersectionObservers": {
@@ -2328,92 +2328,92 @@
           "spreadPct": 0
         },
         "jSEventListeners": {
-          "value": 200147,
+          "value": 200148,
           "tolerancePct": 10,
           "noiseFloor": 50,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200147,
-          "max": 200149,
+          "min": 200146,
+          "max": 200148,
           "spreadPct": 0
         },
         "jSHeapUsedSize": {
-          "value": 714025492,
+          "value": 752267608,
           "tolerancePct": 100,
           "noiseFloor": 1000000,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 712350792,
-          "max": 740354424,
-          "spreadPct": 3.92
+          "min": 715646256,
+          "max": 752675232,
+          "spreadPct": 4.92
         },
         "longTaskMs": {
-          "value": 7607,
+          "value": 6966,
           "tolerancePct": 100,
           "noiseFloor": 500,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 7030,
-          "max": 7607,
-          "spreadPct": 7.67
+          "min": 5884,
+          "max": 7310,
+          "spreadPct": 20.47
         },
         "longTaskCount": {
-          "value": 41,
+          "value": 40,
           "tolerancePct": 100,
           "noiseFloor": 3,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 36,
-          "max": 41,
-          "spreadPct": 12.82
+          "min": 40,
+          "max": 47,
+          "spreadPct": 17.5
         },
         "layoutDurationDelta": {
-          "value": 0.51,
+          "value": 305,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.43,
-          "max": 0.54,
-          "spreadPct": 21.57
+          "min": 219,
+          "max": 323,
+          "spreadPct": 34.1
         },
         "recalcStyleDurationDelta": {
-          "value": 0.19,
+          "value": 151,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.17,
-          "max": 0.21,
-          "spreadPct": 21.05
+          "min": 147,
+          "max": 157,
+          "spreadPct": 6.62
         },
         "scriptDurationDelta": {
-          "value": 0.52,
+          "value": 510,
           "tolerancePct": 100,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 0.49,
-          "max": 0.6,
-          "spreadPct": 21.15
+          "min": 388,
+          "max": 538,
+          "spreadPct": 29.41
         },
         "layoutCountDelta": {
-          "value": 36,
+          "value": 40,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 35,
-          "max": 37,
-          "spreadPct": 5.56
+          "min": 39,
+          "max": 45,
+          "spreadPct": 15
         },
         "frameP95": {
           "value": 0,
@@ -2460,15 +2460,15 @@
           "spreadPct": 0
         },
         "interactionP95": {
-          "value": 424,
+          "value": 480,
           "tolerancePct": 100,
           "noiseFloor": 5,
           "direction": "lower-is-better",
           "toleranceClass": "health",
           "samples": 3,
-          "min": 416,
-          "max": 560,
-          "spreadPct": 33.96
+          "min": 336,
+          "max": 504,
+          "spreadPct": 35
         }
       }
     }

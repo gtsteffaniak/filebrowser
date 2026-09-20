@@ -1,7 +1,8 @@
 import type { FrameTimingStat } from "./perf-frames";
 import type { InteractionTiming, WebVitals } from "./perf-vitals";
-import type { CdpDelta } from "./perf-cdp";
+import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp";
 import type { LongTask, ProbeSnapshot } from "./perf-helpers";
+import { findMetric, metricsForScenario } from "./perf-metrics";
 
 /**
  * Projects a raw run result onto the flat metric keys declared in the registry.
@@ -79,7 +80,7 @@ export function scopedLongTasks(
   return tasks.filter((t) => t.startTime >= startedAt && t.startTime <= endedAt);
 }
 
-export function extractBaselineMetrics(run: RawRun): RunMetricBag {
+export function extractBaselineMetrics(run: RawRun): Record<string, number> {
   const { scenario, metrics } = run;
   const probe = metrics.probe as ProbeSnapshot | undefined;
   const dom = metrics.dom as
@@ -93,7 +94,7 @@ export function extractBaselineMetrics(run: RawRun): RunMetricBag {
   const flatCdp = cdp?.delta ?? {};
   const gauge = cdp?.gauge ?? {};
 
-  return {
+  const full: Record<string, number> = {
     scenarioMs: scenarioDuration(scenario, metrics),
     domNodes: num(dom?.documentElementCount),
     listingItems: num(dom?.listingItemCount),
@@ -103,9 +104,9 @@ export function extractBaselineMetrics(run: RawRun): RunMetricBag {
     jSHeapUsedSize: num(gauge.JSHeapUsedSize),
     longTaskMs: Math.round(scoped.reduce((s, t) => s + t.duration, 0)),
     longTaskCount: scoped.length,
-    layoutDurationDelta: round(num(flatCdp.LayoutDuration)),
-    recalcStyleDurationDelta: round(num(flatCdp.RecalcStyleDuration)),
-    scriptDurationDelta: round(num(flatCdp.ScriptDuration)),
+    layoutDurationDelta: cdpDurationSecondsToMs(num(flatCdp.LayoutDuration)),
+    recalcStyleDurationDelta: cdpDurationSecondsToMs(num(flatCdp.RecalcStyleDuration)),
+    scriptDurationDelta: cdpDurationSecondsToMs(num(flatCdp.ScriptDuration)),
     layoutCountDelta: num(flatCdp.LayoutCount),
     frameP95: round(num(frames?.p95)),
     frameP99: round(num(frames?.p99)),
@@ -113,11 +114,56 @@ export function extractBaselineMetrics(run: RawRun): RunMetricBag {
     effectiveFps: round(num(frames?.effectiveFps)),
     interactionP95: round(num(interaction?.p95)),
   };
+
+  const out: Record<string, number> = {};
+  for (const def of metricsForScenario(scenario)) {
+    if (!wasMeasured(def.key, { cdp, frames, interaction })) continue;
+    const value = full[def.key];
+    if (typeof value !== "number" || !Number.isFinite(value)) continue;
+    out[def.key] = value;
+  }
+  return out;
+}
+
+const CDP_KEYS = new Set([
+  "layoutDurationDelta",
+  "recalcStyleDurationDelta",
+  "scriptDurationDelta",
+  "layoutCountDelta",
+  "jSEventListeners",
+  "jSHeapUsedSize",
+]);
+
+const FRAME_KEYS = new Set([
+  "frameP95",
+  "frameP99",
+  "droppedFrames",
+  "effectiveFps",
+]);
+
+function wasMeasured(
+  key: string,
+  probes: {
+    cdp: CdpDelta | null | undefined;
+    frames: FrameTimingStat | undefined;
+    interaction: InteractionTiming | undefined;
+  },
+): boolean {
+  if (CDP_KEYS.has(key) && !probes.cdp) return false;
+  if (FRAME_KEYS.has(key)) {
+    const src = probes.frames?.source;
+    const windowMs = probes.frames?.windowMs ?? 0;
+    if (!src || src === "none" || windowMs <= 0) return false;
+  }
+  if (key === "interactionP95") {
+    return (probes.interaction?.samples ?? 0) > 0;
+  }
+  return findMetric(key) != null;
 }
 
 /** Metrics keyed for the report's `metrics` block on each run. */
 export function flattenRunMetrics(run: RawRun): Record<string, number> {
-  return extractBaselineMetrics(run) as unknown as Record<string, number>;
+  return extractBaselineMetrics(run);
 }
 
 function round(n: number): number {

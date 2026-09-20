@@ -174,3 +174,12 @@ export function flattenCdp(
 function round(n: number): number {
   return Math.round(n * 1000) / 1000;
 }
+
+/**
+ * CDP `Performance.getMetrics` *Duration counters are in **seconds** (fractional).
+ * Convert to integer milliseconds for reports and baseline metrics (registry unit: ms).
+ */
+export function cdpDurationSecondsToMs(seconds: number): number {
+  if (!Number.isFinite(seconds) || seconds <= 0) return 0;
+  return Math.round(seconds * 1000);
+}

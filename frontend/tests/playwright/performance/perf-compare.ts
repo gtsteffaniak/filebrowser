@@ -178,6 +178,8 @@ export function compareRun(
 
   const metrics: MetricComparison[] = [];
   for (const [key, entry] of Object.entries(baselineEntry.metrics)) {
+    const def = findMetric(key);
+    if (def && !def.scenarios.includes(scenario)) continue;
     const current = currentMetrics[key];
     if (typeof current !== "number" || !Number.isFinite(current)) {
       metrics.push({

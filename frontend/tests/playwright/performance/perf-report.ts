@@ -4,8 +4,9 @@ import {
   scenarioDuration,
   extractBaselineMetrics,
 } from "./perf-extract";
-import type { CdpDelta } from "./perf-cdp";
+import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp";
 import type { FrameTimingStat } from "./perf-frames";
+import type { TraceAnalysis, TraceFunction } from "./perf-trace";
 
 export type PerfResultFile = {
   scenario: string;
@@ -54,6 +55,107 @@ function gaugeFrom(metrics: Record<string, unknown>) {
 /** Cumulative-counter deltas across the scenario window. */
 function cdpDeltaFrom(metrics: Record<string, unknown>) {
   return cdpFrom(metrics)?.delta;
+}
+
+const TRACE_SYMBOL_SOURCES: Record<
+  string,
+  { file: string; line?: number; symbol?: string }
+> = {
+  updateScrollableContent: {
+    file: "frontend/src/components/files/Scrollbar.vue",
+    line: 219,
+    symbol: "updateScrollableContent",
+  },
+};
+
+function cdpAttributedMs(delta: Record<string, number>): {
+  scriptMs: number;
+  layoutMs: number;
+  styleMs: number;
+  totalMs: number;
+} {
+  const scriptMs = cdpDurationSecondsToMs(delta.ScriptDuration ?? 0);
+  const layoutMs = cdpDurationSecondsToMs(delta.LayoutDuration ?? 0);
+  const styleMs = cdpDurationSecondsToMs(delta.RecalcStyleDuration ?? 0);
+  return {
+    scriptMs,
+    layoutMs,
+    styleMs,
+    totalMs: scriptMs + layoutMs + styleMs,
+  };
+}
+
+function traceContributors(
+  trace: TraceAnalysis,
+  scenarioMs: number,
+): Omit<PerfContributor, "rank">[] {
+  const out: Omit<PerfContributor, "rank">[] = [];
+  const minSelfMs = Math.max(50, scenarioMs * 0.02);
+
+  for (const fn of trace.topFunctions) {
+    if (!fn.category.startsWith("app") || fn.selfMs < minSelfMs) continue;
+    if (fn.name === "(program)" || fn.name === "(idle)") continue;
+
+    const source = TRACE_SYMBOL_SOURCES[fn.name];
+    out.push({
+      factor: `Chrome trace: ${fn.name}`,
+      detail:
+        `Self time ${fn.selfMs} ms in captured trace` +
+        (fn.location ? ` (${fn.location})` : "") +
+        ".",
+      source,
+      severity: fn.selfMs > scenarioMs * 0.15 ? "high" : "medium",
+      contributionMs: Math.round(fn.selfMs),
+      evidence: {
+        traceSelfMs: fn.selfMs,
+        traceTotalMs: fn.totalMs,
+        traceLocation: fn.location,
+      },
+    });
+    if (out.length >= 3) break;
+  }
+
+  if (trace.gcMs >= 100) {
+    out.push({
+      factor: "Garbage collection (trace)",
+      detail: `${trace.gcEvents} GC event(s) totalling ${trace.gcMs} ms in the chromium trace.`,
+      severity: trace.gcMs > scenarioMs * 0.1 ? "high" : "medium",
+      contributionMs: Math.round(trace.gcMs),
+      evidence: {
+        gcEvents: trace.gcEvents,
+        gcMs: trace.gcMs,
+      },
+    });
+  }
+
+  if (trace.forcedLayoutMs >= 50) {
+    out.push({
+      factor: "Forced synchronous layout (trace)",
+      detail:
+        `${trace.forcedLayoutEvents} forced layout(s), ${trace.forcedLayoutMs} ms — possible layout thrashing.`,
+      severity: trace.forcedLayoutMs > scenarioMs * 0.1 ? "high" : "medium",
+      contributionMs: Math.round(trace.forcedLayoutMs),
+      evidence: {
+        forcedLayoutEvents: trace.forcedLayoutEvents,
+        forcedLayoutMs: trace.forcedLayoutMs,
+      },
+    });
+  }
+
+  return out;
+}
+
+function hottestAppTraceFunction(
+  trace: TraceAnalysis | undefined,
+): TraceFunction | undefined {
+  if (!trace) return undefined;
+  return trace.topFunctions.find(
+    (fn) =>
+      fn.category.startsWith("app") &&
+      fn.name !== "(program)" &&
+      fn.name !== "(idle)" &&
+      fn.selfMs > 0,
+  );
 }
 
 export type PerfContributor = {
@@ -117,7 +219,10 @@ export function buildRunProfiling(result: PerfResultFile): RunProfiling {
  * can be derived, so the report ranks by magnitude rather than severity label
  * alone. `source` points at the responsible code where the harness can prove it.
  */
-export function buildContributors(result: PerfResultFile): PerfContributor[] {
+export function buildContributors(
+  result: PerfResultFile,
+  traceAnalysis?: TraceAnalysis,
+): PerfContributor[] {
   const { scenario, metrics } = result;
   const ms = scenarioDuration(scenario, metrics);
   const dom = domFrom(metrics);
@@ -186,28 +291,32 @@ export function buildContributors(result: PerfResultFile): PerfContributor[] {
 
   // --- CDP attribution (chromium) ----------------------------------------
   if (delta) {
-    const script = delta.ScriptDuration ?? 0;
-    const layout = delta.LayoutDuration ?? 0;
-    const style = delta.RecalcStyleDuration ?? 0;
-    const attributed = script + layout + style;
-    if (attributed > 0) {
+    const { scriptMs, layoutMs, styleMs, totalMs } = cdpAttributedMs(delta);
+    if (totalMs > 0) {
+      const cdpWindowMs = cdpFrom(metrics)?.windowMs;
       out.push({
         factor: "Renderer main-thread attribution",
         detail:
-          `Script ${Math.round(script)} ms, layout ${Math.round(layout)} ms, ` +
-          `style recalc ${Math.round(style)} ms across the scenario window ` +
-          `(${delta.LayoutCount ?? 0} layouts).`,
-        severity: attributed > ms * 0.5 ? "high" : "medium",
-        contributionMs: Math.round(attributed),
+          `Script ${scriptMs} ms, layout ${layoutMs} ms, ` +
+          `style recalc ${styleMs} ms across the scenario window` +
+          (cdpWindowMs !== undefined ? ` (${cdpWindowMs} ms wall)` : "") +
+          ` (${delta.LayoutCount ?? 0} layouts).`,
+        severity: totalMs > ms * 0.5 ? "high" : "medium",
+        contributionMs: totalMs,
         evidence: {
-          scriptDurationMs: Math.round(script),
-          layoutDurationMs: Math.round(layout),
-          recalcStyleDurationMs: Math.round(style),
+          scriptDurationMs: scriptMs,
+          layoutDurationMs: layoutMs,
+          recalcStyleDurationMs: styleMs,
           layoutCount: delta.LayoutCount ?? 0,
           recalcStyleCount: delta.RecalcStyleCount ?? 0,
+          cdpWindowMs: cdpWindowMs ?? null,
         },
       });
     }
+  }
+
+  if (traceAnalysis) {
+    out.push(...traceContributors(traceAnalysis, ms));
   }
 
   // --- Frame health -------------------------------------------------------
@@ -344,13 +453,17 @@ export function buildAnalysisTable(parsed: PerfResultFile[]): AnalysisTableRow[]
   return rows;
 }
 
-export function buildRootCauseParagraph(result: PerfResultFile): string {
+export function buildRootCauseParagraph(
+  result: PerfResultFile,
+  traceAnalysis?: TraceAnalysis,
+): string {
   const { scenario, browser, scale, metrics } = result;
   const ms = scenarioDuration(scenario, metrics);
   const dom = domFrom(metrics);
   const probe = probeFrom(metrics);
   const gauge = gaugeFrom(metrics);
-  const delta = cdpDeltaFrom(metrics);
+  const cdp = cdpFrom(metrics);
+  const delta = cdp?.delta;
   const frames = framesFrom(metrics);
   const totalItems = (result.scale ?? 0) * 2;
   const listingItems = dom?.listingItemCount ?? 0;
@@ -399,25 +512,37 @@ export function buildRootCauseParagraph(result: PerfResultFile): string {
       `long tasks in scenario: ${scopedTasks.length} (${Math.round(longMs)} ms).`,
   );
 
-  if (delta) {
+  if (delta && cdp) {
+    const { scriptMs, layoutMs, styleMs } = cdpAttributedMs(delta);
     lines.push(
-      `- CDP window (${delta.windowMs} ms): script ${Math.round(delta.ScriptDuration ?? 0)} ms, ` +
-        `layout ${Math.round(delta.LayoutDuration ?? 0)} ms, style ${Math.round(delta.RecalcStyleDuration ?? 0)} ms, ` +
+      `- CDP window (${cdp.windowMs} ms): script ${scriptMs} ms, ` +
+        `layout ${layoutMs} ms, style ${styleMs} ms, ` +
         `${delta.LayoutCount ?? 0} layouts.`,
     );
   }
 
-  if (io > 0 && listingItems > 0 && Math.abs(io - listingItems) / listingItems < 0.15) {
+  const hotApp = hottestAppTraceFunction(traceAnalysis);
+  if (longMs > ms * 0.3 && scopedTasks.length > 0) {
+    lines.push(
+      `- **Likely dominant cost:** main-thread long tasks (${Math.round(longMs)} ms) during this scenario.`,
+    );
+  } else if (hotApp && hotApp.selfMs >= Math.max(50, ms * 0.05)) {
+    const hint = TRACE_SYMBOL_SOURCES[hotApp.name];
+    const where = hint
+      ? ` (${hint.file}${hint.line ? `:${hint.line}` : ""})`
+      : hotApp.location
+        ? ` (${hotApp.location})`
+        : "";
+    lines.push(
+      `- **Likely dominant cost:** \`${hotApp.name}\` — ${hotApp.selfMs} ms self in chromium trace${where}.`,
+    );
+  } else if (io > 0 && listingItems > 0 && Math.abs(io - listingItems) / listingItems < 0.15) {
     lines.push(
       `- **Likely dominant cost:** one IntersectionObserver per listing item scales linearly with row count.`,
     );
   } else if (listeners > listingItems * 5) {
     lines.push(
       `- **Likely dominant cost:** high listener registration rate relative to row count (check duplicate bindings).`,
-    );
-  } else if (longMs > ms * 0.3 && scopedTasks.length > 0) {
-    lines.push(
-      `- **Likely dominant cost:** main-thread long tasks (${Math.round(longMs)} ms) during interaction.`,
     );
   }
 

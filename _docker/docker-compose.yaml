@@ -35,6 +35,9 @@ services:
       PERF_ENFORCE_BASELINE: ${PERF_ENFORCE_BASELINE:-0}
       PERF_IMAGE_TAG: ${PERF_IMAGE_TAG:-local}
       PERF_IN_CONTAINER: "1"
+      # When PERF_UPDATE_BASELINE=1, write through the mounted report dir (host:
+      # frontend/tests/playwright/performance/perf-baseline.json).
+      PERF_BASELINE_PATH: /out/report/perf-baseline.json
     entrypoint:
       [
         "/bin/sh",

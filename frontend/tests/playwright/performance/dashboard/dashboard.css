@@ -48,7 +48,7 @@ header p {
   font-size: 0.9rem;
 }
 main {
-  max-width: 1200px;
+  max-width: 1680px;
   margin: 0 auto;
   padding: 1.5rem 2rem 3rem;
 }
@@ -56,10 +56,37 @@ main {
   display: grid;
   gap: 1.25rem;
 }
+.browser-grid,
+.scenario-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
 @media (min-width: 900px) {
   .grid-2 {
     grid-template-columns: 1fr 1fr;
   }
+}
+.scale-block {
+  margin-bottom: 1.25rem;
+}
+.scale-block:last-child {
+  margin-bottom: 0;
+}
+.scale-block h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.chart-panel h3,
+.chart-panel h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.chart-panel h3 {
+  color: var(--text);
 }
 .card {
   background: var(--panel);
@@ -76,6 +103,15 @@ main {
 .chart-wrap {
   position: relative;
   height: 280px;
+}
+.chart-wrap.compact {
+  height: 220px;
+}
+.chart-caption {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.35;
 }
 table {
   width: 100%;
@@ -221,6 +257,166 @@ tbody tr.sev-low td {
 .limit {
   color: var(--muted);
   font-size: 0.85em;
+}
+.filter-bar,
+.delta-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0 0.75rem;
+  align-items: center;
+}
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+.filter-group .lbl {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-right: 0.15rem;
+}
+.filter-bar button,
+.delta-filters button {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.filter-bar button:hover,
+.delta-filters button:hover {
+  border-color: var(--accent);
+}
+.filter-bar button.active,
+.delta-filters button.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, var(--panel));
+}
+.filter-bar button .n {
+  color: var(--muted);
+  margin-left: 0.2rem;
+}
+.delta-hist {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  height: 140px;
+  margin: 0.35rem 0 0.75rem;
+}
+.delta-hist .bar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+.delta-hist .bar .fill {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+}
+.delta-hist .bar.active .fill {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+.delta-hist .bar .cap {
+  font-size: 0.7rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.delta-hist .bar .hl {
+  font-size: 0.65rem;
+  text-align: center;
+  color: var(--muted);
+  line-height: 1.2;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+}
+.delta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 0 0.85rem;
+}
+.delta-strip button {
+  width: 11px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.delta-strip button.active {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+#delta-table th[data-sort] {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+#delta-table th[data-sort]:hover {
+  color: var(--text);
+}
+#delta-table th.sort-asc::after {
+  content: " ▲";
+  font-size: 0.7em;
+}
+#delta-table th.sort-desc::after {
+  content: " ▼";
+  font-size: 0.7em;
+}
+#delta-table tbody tr.delta-row td:first-child {
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: var(--delta-border, var(--border));
+}
+.delta-pct {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+.delta-bar {
+  width: 56px;
+  height: 8px;
+  background: color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.delta-bar i {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+.badge.reg {
+  background: var(--high);
+  color: #fff;
+}
+.badge.imp {
+  background: var(--ok);
+  color: #fff;
+}
+.badge.pass {
+  background: color-mix(in srgb, var(--muted) 20%, transparent);
+  color: var(--muted);
+}
+.badge.miss {
+  background: color-mix(in srgb, var(--med) 25%, transparent);
+  color: var(--med);
 }
 .run-detail {
   margin-top: 1rem;

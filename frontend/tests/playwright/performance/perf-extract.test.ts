@@ -107,9 +107,9 @@ describe("extractBaselineMetrics", () => {
 
   it("reads CDP deltas rather than the zeroed absolutes", () => {
     const bag = extractBaselineMetrics(run);
-    expect(bag.scriptDurationDelta).toBe(1.5);
-    expect(bag.layoutDurationDelta).toBe(0.25);
-    expect(bag.recalcStyleDurationDelta).toBe(0.1);
+    expect(bag.scriptDurationDelta).toBe(1500);
+    expect(bag.layoutDurationDelta).toBe(250);
+    expect(bag.recalcStyleDurationDelta).toBe(100);
     expect(bag.layoutCountDelta).toBe(42);
   });
 
@@ -127,13 +127,46 @@ describe("extractBaselineMetrics", () => {
     expect(bag.effectiveFps).toBe(55);
   });
 
-  it("tolerates a run with no CDP (firefox/webkit)", () => {
+  it("omits interaction p95 when Event Timing captured no samples", () => {
+    const bag = extractBaselineMetrics(run);
+    expect(bag.interactionP95).toBeUndefined();
+  });
+
+  it("keeps interaction p95 when Event Timing captured clicks", () => {
+    const bag = extractBaselineMetrics({
+      scenario: "select",
+      metrics: {
+        select20Ms: 400,
+        interaction: { samples: 12, p50: 20, p95: 48, max: 90, processingP95: 10 },
+        probe: {},
+        dom: { listingItemCount: 200, documentElementCount: 2154 },
+        cdp: {
+          delta: {},
+          gauge: { JSEventListeners: 10, JSHeapUsedSize: 1000 },
+        },
+      },
+    });
+    expect(bag.interactionP95).toBe(48);
+    expect(bag.scenarioMs).toBe(400);
+  });
+
+  it("omits CDP keys when cdp is null (firefox/webkit)", () => {
     const bag = extractBaselineMetrics({
       scenario: "load",
       metrics: { loadListingMs: 100, cdp: null, dom: {}, probe: {} },
     });
-    expect(bag.scriptDurationDelta).toBe(0);
+    expect(bag.scriptDurationDelta).toBeUndefined();
+    expect(bag.layoutDurationDelta).toBeUndefined();
     expect(Number.isFinite(bag.scenarioMs)).toBe(true);
+  });
+
+  it("omits frame metrics when no frame window ran", () => {
+    const bag = extractBaselineMetrics({
+      scenario: "load",
+      metrics: { loadListingMs: 100, cdp: null, dom: {}, probe: {} },
+    });
+    expect(bag.effectiveFps).toBeUndefined();
+    expect(bag.frameP95).toBeUndefined();
   });
 });
 

@@ -174,6 +174,7 @@ PERF_SKIP_BUILD ?=
 PERF_SKIP_PLAYWRIGHT_BASE ?=
 # Local runs repeat each scenario 3x and take the median; CI uses a single pass.
 PERF_REPEATS ?= 3
+PERF_BROWSERS ?= chromium,firefox,webkit
 
 # Full local sweep: all three browsers, for cross-browser comparison.
 # Only chromium feeds the CI baseline; the others are advisory insight.
@@ -185,9 +186,9 @@ endif
 ifndef PERF_SKIP_PLAYWRIGHT_BASE
 	$(MAKE) playwright-perf-base PLAYWRIGHT_BROWSERS="$(PERF_PLAYWRIGHT_BROWSERS)"
 endif
-	@echo "Running listing performance tests (docker, all browsers)..."
+	@echo "Running listing performance tests (docker, browsers=$(PERF_BROWSERS), repeats=$(PERF_REPEATS))..."
 	mkdir -p frontend/test-results/listing-performance-perf frontend/test-results/playwright-performance
-	cd _docker && DOCKER_BUILDKIT=1 PERF_GREP="$(PERF_GREP)" docker compose run --rm --build local-playwright-performance
+	cd _docker && DOCKER_BUILDKIT=1 PERF_GREP="$(PERF_GREP)" PERF_BROWSERS="$(PERF_BROWSERS)" PERF_REPEATS="$(PERF_REPEATS)" docker compose run --rm --build local-playwright-performance
 	@echo "--- Dashboard: make perf-dashboard  →  http://127.0.0.1:9323/dashboard/report.html ---"
 
 # Fast local smoke test: small scales, chromium only, one pass. Seconds, not minutes.

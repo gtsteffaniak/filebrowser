@@ -185,7 +185,7 @@ export const METRIC_REGISTRY: MetricDefinition[] = [
     // Advisory: measured spread reaches 219% at N=1 because frame sampling
     // depends on what the compositor happened to emit during the window.
     noiseFloor: 20,
-    scenarios: ["scroll", "resize"],
+    scenarios: [...SCENARIOS],
     gating: false,
   },
   {
@@ -197,7 +197,7 @@ export const METRIC_REGISTRY: MetricDefinition[] = [
     // p99 is the tail by definition; allow a wider absolute swing.
     // Advisory, for the same reason as frameP95.
     noiseFloor: 40,
-    scenarios: ["scroll", "resize"],
+    scenarios: [...SCENARIOS],
     gating: false,
   },
   {
@@ -207,7 +207,7 @@ export const METRIC_REGISTRY: MetricDefinition[] = [
     direction: "lower-is-better",
     toleranceClass: "health",
     noiseFloor: 2,
-    scenarios: ["scroll", "resize"],
+    scenarios: [...SCENARIOS],
     gating: false,
   },
   {
@@ -217,7 +217,7 @@ export const METRIC_REGISTRY: MetricDefinition[] = [
     direction: "higher-is-better",
     toleranceClass: "health",
     noiseFloor: 2,
-    scenarios: ["scroll", "resize"],
+    scenarios: [...SCENARIOS],
     gating: false,
   },
 
@@ -241,7 +241,7 @@ export const METRIC_REGISTRY: MetricDefinition[] = [
     direction: "lower-is-better",
     toleranceClass: "health",
     noiseFloor: 5,
-    scenarios: ["select", "scroll"],
+    scenarios: ["select"],
     gating: false,
   },
 ];

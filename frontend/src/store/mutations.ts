@@ -14,6 +14,14 @@ import { getters } from "./getters";
 import { state } from "./state";
 import type { SourceInfo, SourceInfoUpdate, UserObject } from "./types";
 
+function selectedIndexKey(value: number | string): string {
+  return String(value);
+}
+
+function clearSelectedIndexMap(): void {
+  state.selectedIndexMap = {};
+}
+
 export const mutations = {
   disableEventThemes: () => {
     if (state.disableEventThemes) {
@@ -547,16 +555,19 @@ export const mutations = {
   },
   addSelected: (value) => {
     state.selected.push(value);
+    state.selectedIndexMap[selectedIndexKey(value)] = true;
     emitStateChanged();
   },
   removeSelected: (value) => {
     const i = state.selected.indexOf(value);
     if (i === -1) return;
     state.selected.splice(i, 1);
+    delete state.selectedIndexMap[selectedIndexKey(value)];
     emitStateChanged();
   },
   resetSelected: () => {
     state.selected = [];
+    clearSelectedIndexMap();
     mutations.setMultiple(false);
     emitStateChanged();
   },
@@ -690,6 +701,7 @@ export const mutations = {
   },
   replaceRequest: (value) => {
     state.selected = [];
+    clearSelectedIndexMap();
     mutations.setMultiple(false);
     if (!value?.items) {
       state.req = value;
@@ -774,6 +786,7 @@ export const mutations = {
     // Components should check for null req before accessing
     state.req = null;
     state.selected = [];
+    clearSelectedIndexMap();
     mutations.setMultiple(false);
     emitStateChanged();
   },
@@ -830,6 +843,7 @@ export const mutations = {
   resetAll: () => {
     state.isSearchActive = false;
     state.selected = [];
+    clearSelectedIndexMap();
     mutations.setMultiple(false);
     emitStateChanged();
   },
