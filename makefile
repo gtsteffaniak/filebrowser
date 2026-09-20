@@ -21,7 +21,7 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 
 .PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
-.PHONY: check-translations sync-translations test-playwright test-playwright-performance playwright-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
+.PHONY: check-translations sync-translations test-playwright test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
 .PHONY: check-icons generate-icons sync-icons setup-gofitz-cgo
 
 setup:
@@ -148,17 +148,21 @@ test-playwright: build-frontend
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-performance .
 
-# Comma-separated Playwright engines for playwright-base (empty = npm only, no browsers)
-PLAYWRIGHT_BROWSERS ?=
-# Browsers baked into playwright-base for listing perf (cached across rebuilds)
-PERF_PLAYWRIGHT_BROWSERS ?= chromium,firefox,webkit
+# --- Listing performance (optional; does not affect test-playwright / CI playwright matrix) ---
 
+# Same image as CI (chromium only). Matches _docker/Dockerfile.playwright-base on main.
 playwright-base:
 	DOCKER_BUILDKIT=1 docker build -t filebrowser-playwright-base \
-		--build-arg PLAYWRIGHT_BROWSERS="$(PLAYWRIGHT_BROWSERS)" \
 		-f _docker/Dockerfile.playwright-base .
+
+# Optional multi-browser base for local perf-check only (not used by test-playwright / GHCR publish).
+PERF_PLAYWRIGHT_BROWSERS ?= chromium,firefox,webkit
+
+playwright-perf-base:
+	DOCKER_BUILDKIT=1 docker build -t filebrowser-playwright-perf-base \
+		--build-arg PLAYWRIGHT_BROWSERS="$(PERF_PLAYWRIGHT_BROWSERS)" \
+		-f _docker/Dockerfile.playwright-perf-base .
 
 test-playwright-performance: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
@@ -179,7 +183,7 @@ ifndef PERF_SKIP_BUILD
 endif
 	cd backend && GOOS=linux go build -o filebrowser .
 ifndef PERF_SKIP_PLAYWRIGHT_BASE
-	$(MAKE) playwright-base PLAYWRIGHT_BROWSERS="$(PERF_PLAYWRIGHT_BROWSERS)"
+	$(MAKE) playwright-perf-base PLAYWRIGHT_BROWSERS="$(PERF_PLAYWRIGHT_BROWSERS)"
 endif
 	@echo "Running listing performance tests (docker, all browsers)..."
 	mkdir -p frontend/test-results/listing-performance-perf frontend/test-results/playwright-performance

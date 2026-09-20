@@ -39,7 +39,6 @@ export default defineConfig(() => {
   return {
     plugins,
     resolve,
-    cacheDir: path.resolve(__dirname, ".cache/vite"),
     base: "",
     define: {
       __VUE_I18N_LEGACY_API__: JSON.stringify(false),
@@ -104,10 +103,7 @@ export default defineConfig(() => {
     },
     test: {
       globals: true,
-      include: [
-        "src/**/*.test.js",
-        "tests/playwright/performance/*.test.ts",
-      ],
+      include: ["src/**/*.test.js"],
       exclude: ["src/**/*.vue"],
       environment: "jsdom",
       setupFiles: "tests/mocks/setup.js",

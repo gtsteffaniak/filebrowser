@@ -11,7 +11,7 @@ COPY [ "./_docker/src/settings/backend/config.yaml", "./"]
 COPY [ "./_docker/src/settings/backend/database.db.old", "./"]
 COPY [ "./backend/reduce-rounded-corners.css", "./no-rounded.css"]
 RUN mkdir -p ./internal/web/dist
-COPY [ "./backend/internal/web/dist/", "./internal/web/dist/"]
+COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 
 ENV FILEBROWSER_PLAYWRIGHT_TEST=true
 RUN ./filebrowser user set testuser1 --password testuser1

@@ -43,7 +43,9 @@ frontend/.tmp-icons-*
 /backend/generated.yaml
 /backend/srv
 /backend/internal/web/dist
-/backend/internal/web/embed
+/backend/internal/web/embed/*
+!/backend/internal/web/embed/.gitignore
+!/backend/internal/web/embed/placeholder.txt
 /backend/debug
 
 .DS_Store

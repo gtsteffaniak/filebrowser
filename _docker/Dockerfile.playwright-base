@@ -1,13 +1,5 @@
 FROM node:22-slim
 WORKDIR /app/frontend
 
-# Pinned versions — layer cached until these change
-RUN npm i @playwright/test@1.54.1 oauth2-mock-server @types/node
-
-# Comma-separated: chromium, firefox, webkit (empty = skip). Perf: chromium,firefox,webkit
-ARG PLAYWRIGHT_BROWSERS=
-# Do not cache-mount ms-playwright here — browsers must live in the image layer at /root/.cache/ms-playwright
-RUN set -e; \
-    if [ -n "$PLAYWRIGHT_BROWSERS" ]; then \
-      npx playwright install --with-deps $(echo "$PLAYWRIGHT_BROWSERS" | tr ',' ' '); \
-    fi
+RUN npm i @playwright/test oauth2-mock-server @types/node
+RUN npx playwright install --with-deps chromium

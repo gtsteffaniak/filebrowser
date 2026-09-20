@@ -7,7 +7,7 @@ WORKDIR /app/backend/
 RUN mkdir -p ./internal/web/dist
 COPY [ "./_docker/src/oidc/backend/", "./"]
 COPY ["./backend/filebrowser", "./"]
-COPY [ "./backend/internal/web/dist/", "./internal/web/dist/"]
+COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 
 # Run tests
 WORKDIR /app/frontend

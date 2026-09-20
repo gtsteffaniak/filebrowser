@@ -46,7 +46,7 @@ services:
       target: perf
       context: ../
       args:
-        PLAYWRIGHT_BASE_IMAGE: ${PLAYWRIGHT_BASE_IMAGE:-filebrowser-playwright-base:latest}
+        PLAYWRIGHT_BASE_IMAGE: ${PLAYWRIGHT_BASE_IMAGE:-filebrowser-playwright-perf-base:latest}
   nginx-proxy-auth:
     image: nginx
     container_name: nginx-proxy-auth

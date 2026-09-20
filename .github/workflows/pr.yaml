@@ -107,8 +107,8 @@ jobs:
         run: chmod +x backend/filebrowser
       - name: Copy frontend build to backend
         run: |
-          mkdir -p backend/internal/web/dist
-          cp -r frontend/dist/* backend/internal/web/dist/
+          mkdir -p backend/internal/web/embed
+          cp -r frontend/dist/* backend/internal/web/embed
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
