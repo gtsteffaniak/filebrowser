@@ -190,6 +190,20 @@ export async function startFrameWindow(page: {
   });
 }
 
+/**
+ * Arm the frame window for the next document load.
+ *
+ * The init script runs before any application code, so load frame capture
+ * includes the Vue mount rather than starting only after `page.goto()` resolves.
+ */
+export function startFrameWindowOnNextNavigation(page: {
+  addInitScript: (fn: () => void) => Promise<unknown>;
+}): Promise<unknown> {
+  return page.addInitScript(() => {
+    (window as unknown as { __startFrameWindow?: () => void }).__startFrameWindow?.();
+  });
+}
+
 /** Stop the frame window and collect stats. */
 export async function stopFrameWindow(page: {
   evaluate: <T>(fn: () => T) => Promise<T>;

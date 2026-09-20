@@ -15,6 +15,7 @@ import {
 import { withCdpDelta, flattenCdp, type CdpDelta } from "./perf-cdp";
 import {
   startFrameWindow,
+  startFrameWindowOnNextNavigation,
   stopFrameWindow,
   type FrameTimingStat,
 } from "./perf-frames";
@@ -224,10 +225,12 @@ export async function runLoadScenario(
             (r) => r.url().includes("mock-data") && r.ok(),
             { timeout },
           );
+          // Arm frame capture before navigating so the window starts in the new
+          // document, before any application code runs. `page.goto()` can resolve
+          // after Vue has already mounted, which would drop the earliest frames
+          // from the frame metrics while loadListingMs still counted them.
+          await startFrameWindowOnNextNavigation(page);
           await page.goto(mockListingUrl(scale, seedForScale(scale)));
-          // Init scripts reset on navigation; start the frame window after goto
-          // so Vue mount is captured, not the previous about:blank document.
-          await startFrameWindow(page);
           await waitMock;
           await page
             .locator(".listing-items .listing-item")

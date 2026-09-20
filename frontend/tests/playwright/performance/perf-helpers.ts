@@ -464,6 +464,12 @@ export async function buildBaselineFromResults(
     gitDirty: boolean | null;
   },
 ): Promise<PerfBaseline> {
+  if (!opts.gitSha) {
+    throw new Error(
+      "refusing to build a baseline without a git revision; " +
+        "the artifact must identify the source state it measured",
+    );
+  }
   const chromium = results.filter((r) => r.browser === "chromium");
   const metrics: Record<string, BaselineRunEntry> = {};
 

@@ -642,7 +642,7 @@ export default {
     },
     // Helper method to find the closest item in the given direction (up or down) from the current one.
     findClosestItem(selectedItem, direction) {
-      const listItems = Array.from(this.$el.querySelectorAll('.listing-item:not(.out-of-view)'));
+      const listItems = Array.from(this.$el.querySelectorAll('.listing-item'));
       const selectedBounds = selectedItem.getBoundingClientRect();
       const selectedMidX = (selectedBounds.left + selectedBounds.right) / 2;
 

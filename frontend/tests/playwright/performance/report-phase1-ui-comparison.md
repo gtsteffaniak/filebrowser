@@ -1,5 +1,8 @@
 # Phase 1 UI vs pre-change (chromium medians, ms)
 
+Provenance: both runs pre-date git-metadata capture, so no measured revision is available; committed in `af0b59d7`.
+Environment: chromium, scales=[100, 1000, 10000].
+
 | Scale | Scenario | Before (17:08 run) | After (17:17 run) | Δ |
 |------:|----------|-------------------:|------------------:|--:|
 | 100 | load | 817 | 1274 | +56% |

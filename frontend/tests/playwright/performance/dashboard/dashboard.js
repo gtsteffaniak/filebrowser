@@ -357,8 +357,14 @@ function renderScalingCharts() {
     for (const browser of browsers) {
       const color = BROWSER_COLORS[browser] || "#888";
       const medians = scales.map((s) => medianOf(repeatSamples(browser, s, scenario)));
-      const t0 = medians.find((n) => n && n > 0) ?? medians[0];
-      const n0 = scales[0] || 1;
+      // Anchor the linear reference to the scale its value actually came from,
+      // otherwise a missing/zero first scale offsets the whole dashed line.
+      const anchorIdx = Math.max(
+        medians.findIndex((n) => typeof n === "number" && n > 0),
+        0,
+      );
+      const t0 = medians[anchorIdx];
+      const n0 = scales[anchorIdx] || 1;
 
       datasets.push({
         label: browser,
@@ -768,8 +774,12 @@ function renderDeltaTable() {
     tr.style.background = tone.bg;
     tr.style.setProperty("--delta-border", tone.border);
     const pct = m.status === "missing" || m.signedPct == null ? "—" : fmtPct(m.signedPct);
-    const width = Math.min(Math.abs(m.signedPct ?? 0), 50) / 50 * 50;
-    const left = (m.signedPct ?? 0) < 0 ? 28 - width : 28;
+    // .delta-bar is a 56px track, so each side of the center is 28px. Scale the
+    // fill to that half width; anything wider was clipped to a full half bar.
+    const barHalfPx = 28;
+    const signed = m.signedPct ?? 0;
+    const width = (Math.min(Math.abs(signed), DISPLAY_DELTA_PCT) / DISPLAY_DELTA_PCT) * barHalfPx;
+    const left = signed < 0 ? barHalfPx - width : barHalfPx;
     tr.innerHTML =
       `<td>${statusBadge(m.status)}</td>` +
       `<td>${scaleLabel(m.scale)}</td>` +

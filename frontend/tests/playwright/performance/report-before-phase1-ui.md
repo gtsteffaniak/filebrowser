@@ -1,5 +1,8 @@
 # Snapshot before Phase 1 UI (2026-09-20T17:08:55Z)
 
+Revision: not captured (the harness at this time did not record git metadata); committed in `af0b59d7`.
+Environment: chromium, scales=[100, 1000, 10000] (medians from a local perf-check).
+
 Chromium scenario medians (ms) from prior perf-check:
 
 | Scale | Load | Scroll | Resize | Select |

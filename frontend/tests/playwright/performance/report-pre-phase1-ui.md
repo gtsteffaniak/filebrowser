@@ -1,6 +1,7 @@
 # Listing performance report
 
 Generated: 2026-09-20T17:08:55.912Z
+Revision: not captured (the harness at this time did not record git metadata); committed in `af0b59d7`.
 Environment: chromium 153.0.8010.12, playwright 1.63.0, 16 CPUs, workers=6, scales=[100, 1000, 10000]
 
 ## Headline findings

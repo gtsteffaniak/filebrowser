@@ -160,6 +160,27 @@ describe("extractBaselineMetrics", () => {
     expect(Number.isFinite(bag.scenarioMs)).toBe(true);
   });
 
+  it("omits only the CDP keys whose backing field is absent", () => {
+    // A present `cdp` object must not imply every delta/gauge field was sampled;
+    // missing fields used to be coerced to a false zero.
+    const bag = extractBaselineMetrics({
+      ...run,
+      metrics: {
+        ...run.metrics,
+        cdp: {
+          delta: { ScriptDuration: 1.5 },
+          gauge: { JSHeapUsedSize: 1000 },
+        },
+      },
+    });
+    expect(bag.scriptDurationDelta).toBe(1500);
+    expect(bag.jSHeapUsedSize).toBe(1000);
+    expect(bag.layoutDurationDelta).toBeUndefined();
+    expect(bag.recalcStyleDurationDelta).toBeUndefined();
+    expect(bag.layoutCountDelta).toBeUndefined();
+    expect(bag.jSEventListeners).toBeUndefined();
+  });
+
   it("omits frame metrics when no frame window ran", () => {
     const bag = extractBaselineMetrics({
       scenario: "load",

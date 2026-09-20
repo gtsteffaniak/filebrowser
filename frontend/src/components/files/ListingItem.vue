@@ -9,7 +9,6 @@
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
-      'out-of-view': !isInView && !isSelected,
     }"
     :id="getID"
     role="button"
@@ -96,7 +95,6 @@
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
-      'out-of-view': !isInView && !isSelected,
     }"
     :id="getID"
     role="button"
@@ -176,9 +174,6 @@ export default {
   data() {
     return {
       isThumbnailInView: false,
-      // Assume on-screen until a preview observer says otherwise. Skipping
-      // observers on rows without previews must not mark every row out-of-view.
-      isInView: true,
       touches: 0,
       touchStartX: 0,
       touchStartY: 0,
@@ -853,18 +848,7 @@ export default {
   border-color: color-mix(in srgb, var(--primaryColor) 35%, transparent);
 }
 
-/* Disable transitions and hide content for out-of-view items for better performance */
-.listing-item.out-of-view {
-  transition: none !important;
-}
-
-.listing-item.out-of-view * {
-  transition: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Ensure items maintain their height even when content is hidden */
+/* Ensure items maintain their height while offscreen content is skipped */
 .listing-item > div {
   min-height: 1em; /* Forces layout calculation even with hidden content */
 }

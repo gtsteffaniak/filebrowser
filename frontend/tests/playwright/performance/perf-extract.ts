@@ -100,7 +100,7 @@ export function extractBaselineMetrics(run: RawRun): Record<string, number> {
     listingItems: num(dom?.listingItemCount),
     addListenerCalls: num(probe?.addListenerCalls),
     intersectionObservers: num(probe?.intersectionObservers),
-    jSEventListeners: num(gauge.JSEventListeners ?? metrics.jSEventListeners),
+    jSEventListeners: num(gauge.JSEventListeners),
     jSHeapUsedSize: num(gauge.JSHeapUsedSize),
     longTaskMs: Math.round(scoped.reduce((s, t) => s + t.duration, 0)),
     longTaskCount: scoped.length,
@@ -125,14 +125,26 @@ export function extractBaselineMetrics(run: RawRun): Record<string, number> {
   return out;
 }
 
-const CDP_KEYS = new Set([
-  "layoutDurationDelta",
-  "recalcStyleDurationDelta",
-  "scriptDurationDelta",
-  "layoutCountDelta",
-  "jSEventListeners",
-  "jSHeapUsedSize",
-]);
+/**
+ * Metric key → the CDP field that backs it. Each key must be checked against the
+ * field it actually reads: a present `cdp` object does not mean every delta/gauge
+ * value was sampled, and `num(undefined)` would otherwise record a false zero.
+ */
+const CDP_FIELDS: Record<string, { field: string; source: "delta" | "gauge" }> = {
+  layoutDurationDelta: { field: "LayoutDuration", source: "delta" },
+  recalcStyleDurationDelta: { field: "RecalcStyleDuration", source: "delta" },
+  scriptDurationDelta: { field: "ScriptDuration", source: "delta" },
+  layoutCountDelta: { field: "LayoutCount", source: "delta" },
+  jSEventListeners: { field: "JSEventListeners", source: "gauge" },
+  jSHeapUsedSize: { field: "JSHeapUsedSize", source: "gauge" },
+};
+
+function hasCdpField(key: string, cdp: CdpDelta): boolean {
+  const spec = CDP_FIELDS[key];
+  if (!spec) return false;
+  const map = spec.source === "delta" ? cdp.delta : cdp.gauge;
+  return typeof map?.[spec.field] === "number";
+}
 
 const FRAME_KEYS = new Set([
   "frameP95",
@@ -149,7 +161,9 @@ function wasMeasured(
     interaction: InteractionTiming | undefined;
   },
 ): boolean {
-  if (CDP_KEYS.has(key) && !probes.cdp) return false;
+  if (key in CDP_FIELDS) {
+    return !!probes.cdp && hasCdpField(key, probes.cdp);
+  }
   if (FRAME_KEYS.has(key)) {
     const src = probes.frames?.source;
     const windowMs = probes.frames?.windowMs ?? 0;

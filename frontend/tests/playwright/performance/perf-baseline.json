@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "createdAt": "2026-09-20T20:08:24.002Z",
-  "gitSha": null,
-  "gitDirty": null,
+  "gitSha": "4d9314e6795c973462de0375539bdd8e23dfd01b",
+  "gitDirty": false,
   "environment": {
     "os": "linux",
     "platform": "linux",
@@ -2374,5 +2374,5 @@
       }
     }
   },
-  "notes": "Chromium-only CI baseline. Regenerate with: make perf-baseline (PERF_UPDATE_BASELINE=1)."
+  "notes": "Chromium-only CI baseline captured on stock dev/v2.0.8 UI (4d9314e6). gitSha/gitDirty were backfilled because the original capture ran where git was unavailable; regeneration now refuses to write without a git revision. Regenerate with: make perf-baseline (PERF_UPDATE_BASELINE=1)."
 }

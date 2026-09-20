@@ -1,7 +1,9 @@
 # Listing performance report
 
 Generated: 2026-09-20T17:55:56.071Z
+Revision: not captured (the harness at this time did not record git metadata)
 Environment: chromium 153.0.8010.12, playwright 1.63.0, 16 CPUs, workers=6, scales=[100, 1000, 10000]
+Provenance: historical artifact, committed in `af0b59d7`; retained as evidence, superseded by reports that record the measured revision.
 
 ## Headline findings
 
@@ -31,6 +33,11 @@ Environment: chromium 153.0.8010.12, playwright 1.63.0, 16 CPUs, workers=6, scal
 
 Environment differences vs baseline:
 - image playwright-base-chromium != local
+
+> **Scope note:** this legacy table predates per-row scope capture. Rows are
+> aggregated across browsers/scales/scenarios and ordered by Δ%, so the metric
+> key in parentheses does not identify the failing test. Reports generated after
+> this change include Browser, Scale, and Scenario columns.
 
 | Metric | Baseline | Current | Δ% | Limit |
 | --- | ---: | ---: | ---: | ---: |
