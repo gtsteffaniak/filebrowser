@@ -146,6 +146,24 @@ export async function fetchFiles(source, path, content = false, metadata = false
   }
 }
 
+/**
+ * Lists a directory as a Map of name -> { size, type } without showing error toasts.
+ * Returns null when the directory can't be listed (e.g. it doesn't exist yet), so
+ * callers can treat every item in it as missing.
+ */
+export async function listDirectoryEntries(source, path) {
+  try {
+    const res = await fetchURL(getApiPath('resources', { path, source }))
+    const data = adjustedData(await res.json())
+    if (data.type !== 'directory') {
+      return null
+    }
+    return new Map(data.items.map((item) => [item.name, { size: item.size, type: item.type }]))
+  } catch {
+    return null
+  }
+}
+
 export async function getItems(source, path, only = "") {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
