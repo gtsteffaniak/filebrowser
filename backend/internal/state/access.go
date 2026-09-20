@@ -112,6 +112,11 @@ func AddApiToken(tokenString string, userID uint64) error {
 	return accessDb.AddApiToken(tokenString, userID)
 }
 
+// RegisterBearerToken maps a raw JWT bearer string to an owner user id (session or API token).
+func RegisterBearerToken(tokenString string, userID uint64) error {
+	return AddApiToken(tokenString, userID)
+}
+
 func RemoveApiToken(tokenString string) error {
 	return accessDb.RemoveApiToken(tokenString)
 }

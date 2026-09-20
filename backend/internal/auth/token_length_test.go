@@ -27,31 +27,24 @@ func TestMinimalSignedTokenLengthUnder256(t *testing.T) {
 	assertMinimalJWTClaims(t, tokenString)
 }
 
-func TestCustomizedTokenEmbedsPermissionsAndIsLonger(t *testing.T) {
+func TestCustomizedTokenMetadataRetainsPermissions(t *testing.T) {
 	origKey := settings.Config.Auth.Key
 	settings.Config.Auth.Key = "test-signing-key-for-length-check"
 	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
 
 	user := &users.User{ID: 42, FrontendUser: users.FrontendUser{Username: "webdavuser"}}
-	minimal, _, err := MakeSignedTokenAPI(user, "min", time.Hour*24*365, users.Permissions{}, true)
+	_, claim, err := MakeSignedTokenAPI(user, "custom", time.Hour*24*365, users.Permissions{Api: true}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	custom, _, err := MakeSignedTokenAPI(user, "custom", time.Hour*24*365, users.Permissions{Api: true}, false)
+	if !claim.Permissions.Api {
+		t.Fatalf("expected api permission in returned metadata: %+v", claim.Permissions)
+	}
+	tokenString, _, err := MakeSignedTokenAPI(user, "custom2", time.Hour*24*365, users.Permissions{Api: true}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(custom) <= len(minimal) {
-		t.Fatalf("custom token should be longer than minimal: custom=%d minimal=%d", len(custom), len(minimal))
-	}
-
-	claims := jwt.MapClaims{}
-	if _, _, err := jwt.NewParser().ParseUnverified(custom, claims); err != nil {
-		t.Fatalf("parse custom token: %v", err)
-	}
-	if _, ok := claims["Permissions"]; !ok {
-		t.Fatal("custom token payload should include Permissions claim")
-	}
+	assertMinimalJWTClaims(t, tokenString)
 }
 
 func assertMinimalJWTClaims(t *testing.T, tokenString string) {

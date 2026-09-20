@@ -67,6 +67,10 @@ func initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to initialize source access defaults: %w", err)
 	}
 
+	if err = InitAuthSigningKey(); err != nil {
+		return existingDb, fmt.Errorf("failed to initialize auth signing key: %w", err)
+	}
+
 	var userCount int
 	if countErr := sqlDb.DB().QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount); countErr != nil {
 		return existingDb, fmt.Errorf("failed to count users: %w", countErr)
@@ -145,6 +149,10 @@ func initialize(dbPath string) (bool, error) {
 	logger.Debugf("Loaded %d hashed tokens", len(hashedTokens))
 
 	accessDb.SetSQLStore(sqlDb)
+
+	if err := BackfillHashedTokensFromUserRecords(); err != nil {
+		return existingDb, fmt.Errorf("failed to backfill hashed tokens: %w", err)
+	}
 
 	err = auth.InitializeEncryption()
 	if err != nil {

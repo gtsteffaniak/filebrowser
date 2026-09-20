@@ -190,9 +190,7 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return &userValue
 	}
 
-	keyFunc := func(token *jwt.Token) (interface{}, error) {
-		return []byte(settings.Config.Auth.Key), nil
-	}
+	keyFunc := auth.JWTSigningKeyFunc()
 
 	tokenString, err := ExtractToken(r)
 	if err != nil {
@@ -344,9 +342,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 		}
 		// Check if request has a valid admin token first
 		if tokenStr, err := ExtractToken(r); err == nil && tokenStr != "" {
-			keyFunc := func(token *jwt.Token) (interface{}, error) {
-				return []byte(settings.Config.Auth.Key), nil
-			}
+			keyFunc := auth.JWTSigningKeyFunc()
 			var tk users.AuthToken
 			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
 				if !state.IsTokenRevoked( tokenStr) {
@@ -431,9 +427,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 
 		proxyUser := r.Header.Get(settings.Config.Auth.Methods.ProxyAuth.Header)
 		isProxyUser := settings.Config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
-		keyFunc := func(token *jwt.Token) (interface{}, error) {
-			return []byte(settings.Config.Auth.Key), nil
-		}
+		keyFunc := auth.JWTSigningKeyFunc()
 		if data.Token == "" {
 			var err error
 			data.Token, err = ExtractToken(r)
@@ -471,7 +465,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
 		if tokenName, ok := state.TokenNameForRawToken(data.User, data.Token); ok {
-			applyNamedApiTokenGlobalCaps(data.User, tk, tokenName)
+			applyNamedApiTokenGlobalCaps(data.User, tokenName)
 		}
 
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
@@ -519,13 +513,13 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 
 	// Generate a FileBrowser session token for JWT users if they don't have one
 	if data.Token == "" {
-		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
-		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		tokenString, err := mintAndRegisterSessionToken(user)
 		if err != nil {
 			logger.Errorf("Failed to generate token for JWT user %s: %v", username, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
 		}
 		data.Token = tokenString
+		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
 		SetSessionCookie(w, r, tokenString, time.Now().Add(expires).Add(time.Minute*30))
 	}
 
@@ -552,13 +546,13 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	}
 	// Generate a token for proxy users if they don't have one
 	if data.Token == "" {
-		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
-		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		tokenString, err := mintAndRegisterSessionToken(user)
 		if err != nil {
 			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
 		}
 		data.Token = tokenString
+		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
 		SetSessionCookie(w, r, tokenString, time.Now().Add(expires).Add(time.Minute*30))
 	}
 	// Call the handler function, passing in the context (or return OK if no handler)

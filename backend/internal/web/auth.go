@@ -20,7 +20,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -206,7 +205,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, erro
 	if d.User.HasPasskeyMFA() && d.User.TOTPSecret == "" {
 		return http.StatusForbidden, errors.ErrPasskeyMFARequired
 	}
-	status, err := printToken(w, r, d.User)
+	status, err := printToken(w, r, d.User, "")
 	if err != nil || status != 0 {
 		return status, err
 	}
@@ -338,12 +337,12 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/renew [post]
 func renewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	return printToken(w, r, d.User)
+	return printToken(w, r, d.User, d.Token)
 }
 
-func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
+func printToken(w http.ResponseWriter, r *http.Request, user *users.User, priorToken string) (int, error) {
 	expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
-	tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+	tokenString, err := replaceSessionToken(priorToken, user)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
@@ -351,8 +350,6 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 		return 401, errors.ErrUnauthorized
 	}
 
-	// Add 30 minutes buffer so expired token doesn't get automatically deleted by the browser
-	// This allows backend to identify expired sessions and provide better user feedback
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
 	SetSessionCookie(w, r, tokenString, expiresTime)
@@ -485,17 +482,24 @@ func SetSessionCookie(w http.ResponseWriter, r *http.Request, token string, expi
 	http.SetCookie(w, sessionCookie(r, token, expiresTime, 0, http.SameSiteStrictMode))
 }
 
-// applyNamedApiTokenGlobalCaps intersects owner globals with JWT global caps for named custom API tokens.
-// Session WEB_TOKEN_* tokens and minimal API tokens (no global caps in claims) keep full owner globals.
-func applyNamedApiTokenGlobalCaps(user *users.User, tk users.AuthToken, tokenName string) {
+// applyNamedApiTokenGlobalCaps intersects owner globals with stored caps for named custom API tokens.
+// Session WEB_TOKEN_* tokens keep full owner globals.
+func applyNamedApiTokenGlobalCaps(user *users.User, tokenName string) {
 	if user == nil {
 		return
 	}
 	if strings.HasPrefix(tokenName, "WEB_TOKEN") {
 		return
 	}
-	if tk.BelongsTo == 0 || !users.HasAnyGlobalPermission(tk.Permissions) {
+	if user.Tokens == nil {
 		return
 	}
-	user.Permissions = users.IntersectGlobalPermissions(user.Permissions, tk.Permissions)
+	stored, ok := user.Tokens[tokenName]
+	if !ok {
+		return
+	}
+	if !users.HasAnyGlobalPermission(stored.Permissions) {
+		return
+	}
+	user.Permissions = users.IntersectGlobalPermissions(user.Permissions, stored.Permissions)
 }

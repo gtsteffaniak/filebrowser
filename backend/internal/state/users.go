@@ -93,7 +93,7 @@ func copyPinnedItems(in users.PinnedItems) users.PinnedItems {
 	return out
 }
 
-// GetUserByID retrieves a user by stable numeric id (JWT belongsTo, admin APIs).
+// GetUserByID retrieves a user by stable numeric id (admin APIs, hashed_tokens lookup).
 func GetUserByID(id uint64) (users.User, error) {
 	if id == 0 {
 		return users.User{}, errors.ErrNotExist
@@ -164,11 +164,10 @@ func GetAllUsers() ([]users.User, error) {
 	return out, nil
 }
 
-// UserFromAPIToken resolves the user for a validated API JWT: numeric belongsTo id, or minimal tokens
-// (hash → user id). Usernames are not used so a reused login name never inherits a previous account's API access.
-func UserFromAPIToken(tk users.AuthToken, rawToken string) (users.User, error) {
-	if tk.BelongsTo != 0 {
-		return GetUserByID(tk.BelongsTo)
+// UserFromAPIToken resolves the user for a validated bearer JWT only via hashed_tokens (hash → user id).
+func UserFromAPIToken(_ users.AuthToken, rawToken string) (users.User, error) {
+	if accessDb == nil {
+		return users.User{}, errors.ErrNotExist
 	}
 	if uid, ok := accessDb.GetUserIDFromToken(rawToken); ok {
 		return GetUserByID(uid)
