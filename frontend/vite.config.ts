@@ -6,8 +6,7 @@ import checker from "vite-plugin-checker";
 import { compression } from "vite-plugin-compression2";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
-/** Build into frontend/ (user-writable); npm run build copies into backend embed + dist. */
-const frontendDist = path.resolve(__dirname, "dist");
+const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
 
 const plugins = [
   vue(),
@@ -47,7 +46,7 @@ export default defineConfig(() => {
       __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
     },
     build: {
-      outDir: frontendDist,
+      outDir: backendWebDist,
       emptyOutDir: true,
       // Optimize for watch mode stability
       watch: isDevBuild ? {
