@@ -629,7 +629,22 @@
     "defaultBehavior": "Regla por defecto {suffix}",
     "deletedCascade": "Reglas de acceso eliminadas",
     "cascadeDelete": "Eliminación en cascada",
-    "cascadeDeleteDescription": "Si eliminas una regla de acceso con esta opción, también la eliminará para todo el contenido (archivos y carpetas), lo cual nos permite eliminar por completo un usuario o grupo de todo el árbol de directorios"
+    "cascadeDeleteDescription": "Si eliminas una regla de acceso con esta opción, también la eliminará para todo el contenido (archivos y carpetas), lo cual nos permite eliminar por completo un usuario o grupo de todo el árbol de directorios",
+    "groups": "Grupos",
+    "newGroup": "Nuevo grupo",
+    "editGroup": "Editar grupo",
+    "groupName": "Nombre del grupo",
+    "userGroups": "Grupos",
+    "addGroup": "Añadir grupo",
+    "createGroupConfirm": "El grupo «{name}» no existe. ¿Crearlo?",
+    "addGroupPlaceholder": "Nombre del grupo",
+    "removeGroup": "Quitar del grupo",
+    "groupMembers": "Miembros",
+    "enterUsername": "Introduce el nombre de usuario",
+    "addMember": "Añadir miembro",
+    "unknownUser": "No hay ningún usuario llamado «{name}»",
+    "deleteGroupConfirm": "¿Eliminar el grupo «{name}»? También se quitará de todas las reglas de acceso.",
+    "groupsOidcNote": "Los miembros de los grupos sincronizados con OIDC se restablecen desde el proveedor de identidad cada vez que esos usuarios inician sesión."
   },
   "fileLoading": {
     "title": "Subida y Descarga",

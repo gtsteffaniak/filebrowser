@@ -629,7 +629,22 @@
     "defaultBehavior": "Acțiune implicită{suffix}",
     "deletedCascade": "Reguli de acces șterse din traseu și din toate subtratamentele!",
     "cascadeDelete": "Ștergere recursivă",
-    "cascadeDeleteDescription": "Atunci când este activată, ștergerea unei reguli de acces o va elimina și din toate subdirectoarele. Acest lucru vă permite să eliminați complet un utilizator sau un grup din întregul arbore de directoare."
+    "cascadeDeleteDescription": "Atunci când este activată, ștergerea unei reguli de acces o va elimina și din toate subdirectoarele. Acest lucru vă permite să eliminați complet un utilizator sau un grup din întregul arbore de directoare.",
+    "groups": "Grupuri",
+    "newGroup": "Grup nou",
+    "editGroup": "Editează grupul",
+    "groupName": "Numele grupului",
+    "userGroups": "Grupuri",
+    "addGroup": "Adaugă grup",
+    "createGroupConfirm": "Grupul „{name}” nu există. Îl creați?",
+    "addGroupPlaceholder": "Numele grupului",
+    "removeGroup": "Elimină din grup",
+    "groupMembers": "Membri",
+    "enterUsername": "Introduceți numele de utilizator",
+    "addMember": "Adaugă membru",
+    "unknownUser": "Niciun utilizator cu numele „{name}”",
+    "deleteGroupConfirm": "Ștergeți grupul „{name}”? Va fi eliminat și din toate regulile de acces.",
+    "groupsOidcNote": "Membrii grupurilor sincronizate prin OIDC sunt resetați de la furnizorul de identitate la fiecare autentificare a acestor utilizatori."
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",

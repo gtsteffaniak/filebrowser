@@ -319,6 +319,64 @@ const docTemplate = `{
             }
         },
         "/api/access/group": {
+            "put": {
+                "description": "Creates the group if missing and replaces its member list.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Create or update a group",
+                "parameters": [
+                    {
+                        "description": "Group name and full member list",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "group": {
+                                    "type": "string"
+                                },
+                                "members": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Group saved successfully"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Adds a user to a group.",
                 "consumes": [
@@ -372,7 +430,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Removes a user from a group.",
+                "description": "Removes a user from a group. When the user parameter is omitted, deletes the whole group and removes it from all access rules.",
                 "consumes": [
                     "application/json"
                 ],
@@ -382,7 +440,7 @@ const docTemplate = `{
                 "tags": [
                     "Access"
                 ],
-                "summary": "Remove a user from a group",
+                "summary": "Remove a user from a group or delete a group",
                 "parameters": [
                     {
                         "type": "string",
@@ -395,8 +453,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "User name",
                         "name": "user",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -8041,6 +8098,16 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                },
+                "members": {
+                    "description": "Members maps group name to usernames; only set when ?members=true.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             }

@@ -142,3 +142,15 @@ func UpdateAccessRulesOnMove(sourcePath string, oldPath, newPath utils.IndexPath
 	}
 	return accessDb.UpdateRules(sourcePath, oldPath, newPath)
 }
+
+func GetGroupMembers() map[string][]string {
+	return accessDb.GetGroupMembers()
+}
+
+func SetGroupMembers(group string, usernames []string) error {
+	return accessDb.SetGroupMembers(group, usernames)
+}
+
+func DeleteGroup(group string) error {
+	return accessDb.DeleteGroup(group)
+}

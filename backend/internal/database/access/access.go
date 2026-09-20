@@ -557,6 +557,54 @@ func (s *Storage) GetAllGroups() []string {
 	return groups
 }
 
+// GetGroupMembers returns every group with its sorted member usernames.
+func (s *Storage) GetGroupMembers() map[string][]string {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	result := make(map[string][]string, len(s.Groups))
+	for group, members := range s.Groups {
+		names := make([]string, 0, len(members))
+		for name := range members {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		result[group] = names
+	}
+	return result
+}
+
+// SetGroupMembers creates the group if needed and replaces its membership.
+func (s *Storage) SetGroupMembers(group string, usernames []string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	members := make(StringSet, len(usernames))
+	for _, name := range usernames {
+		if name != "" {
+			members[name] = struct{}{}
+		}
+	}
+	s.Groups[group] = members
+	s.persistGroupSQLNL(group)
+	s.clearAllCaches()
+	return nil
+}
+
+// DeleteGroup removes a group and every access rule entry that references it.
+func (s *Storage) DeleteGroup(group string) error {
+	if err := s.RemoveAllRulesForGroup(group); err != nil {
+		return err
+	}
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	if _, ok := s.Groups[group]; !ok {
+		return nil
+	}
+	delete(s.Groups, group)
+	s.persistGroupSQLNL(group)
+	s.clearAllCaches()
+	return nil
+}
+
 // GetUserGroups returns all groups for a specific user.
 func (s *Storage) GetUserGroups(username string) []string {
 	s.mux.RLock()

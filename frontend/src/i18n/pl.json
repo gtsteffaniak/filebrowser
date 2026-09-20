@@ -629,7 +629,22 @@
     "defaultBehavior": "Działanie domyślne{suffix}",
     "deletedCascade": "Reguły dostępu usunięte ze ścieżki i wszystkich podścieżek!",
     "cascadeDelete": "Usuwanie rekursywne",
-    "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów."
+    "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów.",
+    "groups": "Grupy",
+    "newGroup": "Nowa grupa",
+    "editGroup": "Edytuj grupę",
+    "groupName": "Nazwa grupy",
+    "userGroups": "Grupy",
+    "addGroup": "Dodaj grupę",
+    "createGroupConfirm": "Grupa „{name}” nie istnieje. Utworzyć ją?",
+    "addGroupPlaceholder": "Nazwa grupy",
+    "removeGroup": "Usuń z grupy",
+    "groupMembers": "Członkowie",
+    "enterUsername": "Wpisz nazwę użytkownika",
+    "addMember": "Dodaj członka",
+    "unknownUser": "Brak użytkownika o nazwie „{name}”",
+    "deleteGroupConfirm": "Usunąć grupę „{name}”? Zostanie ona również usunięta ze wszystkich reguł dostępu.",
+    "groupsOidcNote": "Członkowie grup synchronizowanych przez OIDC są resetowani z dostawcy tożsamości przy każdym logowaniu tych użytkowników."
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",

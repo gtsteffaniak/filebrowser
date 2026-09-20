@@ -629,7 +629,22 @@
     "defaultBehavior": "デフォルト動作{suffix}",
     "deletedCascade": "パスとすべてのサブパスからアクセスルールが削除されました！",
     "cascadeDelete": "再帰的削除",
-    "cascadeDeleteDescription": "有効な場合、アクセスルールを削除すると、すべてのサブディレクトリからも削除される。これにより、ディレクトリツリー全体からユーザーまたはグループを 完全に削除することができる。"
+    "cascadeDeleteDescription": "有効な場合、アクセスルールを削除すると、すべてのサブディレクトリからも削除される。これにより、ディレクトリツリー全体からユーザーまたはグループを 完全に削除することができる。",
+    "groups": "グループ",
+    "newGroup": "新規グループ",
+    "editGroup": "グループを編集",
+    "groupName": "グループ名",
+    "userGroups": "グループ",
+    "addGroup": "グループを追加",
+    "createGroupConfirm": "グループ「{name}」は存在しません。作成しますか?",
+    "addGroupPlaceholder": "グループ名",
+    "removeGroup": "グループから削除",
+    "groupMembers": "メンバー",
+    "enterUsername": "ユーザー名を入力",
+    "addMember": "メンバーを追加",
+    "unknownUser": "「{name}」というユーザーはいません",
+    "deleteGroupConfirm": "グループ「{name}」を削除しますか?すべてのアクセスルールからも削除されます。",
+    "groupsOidcNote": "OIDCで同期されたグループのメンバーは、該当ユーザーがログインするたびにIDプロバイダーから再設定されます。"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",

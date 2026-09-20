@@ -629,7 +629,22 @@
     "defaultBehavior": "Alapértelmezett cselekvés{suffix}",
     "deletedCascade": "Hozzáférési szabályok törlése az elérési útvonalból és az összes alútvonalból!",
     "cascadeDelete": "Rekurzív törlés",
-    "cascadeDeleteDescription": "Ha engedélyezve van, egy hozzáférési szabály törlése az összes alkönyvtárból is eltávolítja azt. Ez lehetővé teszi egy felhasználó vagy csoport teljes eltávolítását a teljes könyvtárfából."
+    "cascadeDeleteDescription": "Ha engedélyezve van, egy hozzáférési szabály törlése az összes alkönyvtárból is eltávolítja azt. Ez lehetővé teszi egy felhasználó vagy csoport teljes eltávolítását a teljes könyvtárfából.",
+    "groups": "Csoportok",
+    "newGroup": "Új csoport",
+    "editGroup": "Csoport szerkesztése",
+    "groupName": "Csoport neve",
+    "userGroups": "Csoportok",
+    "addGroup": "Csoport hozzáadása",
+    "createGroupConfirm": "A(z) „{name}” csoport nem létezik. Létrehozza?",
+    "addGroupPlaceholder": "Csoport neve",
+    "removeGroup": "Eltávolítás a csoportból",
+    "groupMembers": "Tagok",
+    "enterUsername": "Adja meg a felhasználónevet",
+    "addMember": "Tag hozzáadása",
+    "unknownUser": "Nincs „{name}” nevű felhasználó",
+    "deleteGroupConfirm": "Törli a(z) „{name}” csoportot? Az összes hozzáférési szabályból is el lesz távolítva.",
+    "groupsOidcNote": "Az OIDC-vel szinkronizált csoportok tagjai minden bejelentkezéskor visszaállnak az identitásszolgáltatótól."
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
@@ -16,6 +17,8 @@ import (
 
 type GroupListResponse struct {
 	Groups []string `json:"groups"`
+	// Members maps group name to usernames; only set when ?members=true.
+	Members map[string][]string `json:"members,omitempty"`
 }
 
 // parseAccessQueryPath validates and parses an index path from an API query parameter.
@@ -294,7 +297,11 @@ func groupGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 		return RenderJSON(w, r, &GroupListResponse{Groups: groups})
 	}
 	groups := state.GetAllGroups()
-	return RenderJSON(w, r, &GroupListResponse{Groups: groups})
+	resp := &GroupListResponse{Groups: groups}
+	if r.URL.Query().Get("members") == "true" {
+		resp.Members = state.GetGroupMembers()
+	}
+	return RenderJSON(w, r, resp)
 }
 
 // groupPostHandler adds a user to a group.
@@ -319,17 +326,50 @@ func groupPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return http.StatusOK, nil
+	return RenderJSON(w, r, map[string]string{"message": "user added to group"})
 }
 
-// groupDeleteHandler removes a user from a group.
-// @Summary Remove a user from a group
-// @Description Removes a user from a group.
+// groupPutHandler creates a group or replaces its membership.
+// @Summary Create or update a group
+// @Description Creates the group if missing and replaces its member list.
+// @Tags Access
+// @Accept json
+// @Produce json
+// @Param body body object{group=string,members=[]string} true "Group name and full member list"
+// @Success 200 "Group saved successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Router /api/access/group [put]
+func groupPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !d.User.Permissions.Admin {
+		return http.StatusForbidden, nil
+	}
+	var body struct {
+		Group   string   `json:"group"`
+		Members []string `json:"members"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+	}
+	defer r.Body.Close()
+	body.Group = strings.TrimSpace(body.Group)
+	if body.Group == "" {
+		return http.StatusBadRequest, fmt.Errorf("group is required")
+	}
+	if err := state.SetGroupMembers(body.Group, body.Members); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return RenderJSON(w, r, map[string]string{"message": "group saved"})
+}
+
+// groupDeleteHandler removes a user from a group, or deletes the group when no user is given.
+// @Summary Remove a user from a group or delete a group
+// @Description Removes a user from a group. When the user parameter is omitted, deletes the whole group and removes it from all access rules.
 // @Tags Access
 // @Accept json
 // @Produce json
 // @Param group query string true "Group name"
-// @Param user query string true "User name"
+// @Param user query string false "User name"
 // @Success 200 "User removed from group successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
@@ -340,11 +380,21 @@ func groupDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	}
 	group := r.URL.Query().Get("group")
 	user := r.URL.Query().Get("user")
+	if group == "" {
+		return http.StatusBadRequest, fmt.Errorf("group is required")
+	}
+	if user == "" {
+		// No user given: delete the whole group and its access rule entries.
+		if err := state.DeleteGroup(group); err != nil {
+			return http.StatusInternalServerError, err
+		}
+		return RenderJSON(w, r, map[string]string{"message": "group deleted"})
+	}
 	err := state.RemoveUserFromGroup(group, user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return http.StatusOK, nil
+	return RenderJSON(w, r, map[string]string{"message": "user removed from group"})
 }
 
 // accessPatchHandler updates an access rule's path.

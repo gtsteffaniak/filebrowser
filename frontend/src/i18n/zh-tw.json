@@ -729,7 +729,22 @@
     "defaultBehavior": "預設動作{suffix}",
     "deletedCascade": "已從此路徑及所有子路徑刪除存取規則！",
     "cascadeDelete": "遞迴刪除",
-    "cascadeDeleteDescription": "啟用時，刪除存取規則也會從所有子目錄中移除該規則。這可讓您從整個目錄樹中完全移除使用者或群組。"
+    "cascadeDeleteDescription": "啟用時，刪除存取規則也會從所有子目錄中移除該規則。這可讓您從整個目錄樹中完全移除使用者或群組。",
+    "groups": "群組",
+    "newGroup": "新增群組",
+    "editGroup": "編輯群組",
+    "groupName": "群組名稱",
+    "userGroups": "群組",
+    "addGroup": "新增群組",
+    "createGroupConfirm": "群組「{name}」不存在。是否建立?",
+    "addGroupPlaceholder": "群組名稱",
+    "removeGroup": "從群組中移除",
+    "groupMembers": "成員",
+    "enterUsername": "輸入使用者名稱",
+    "addMember": "新增成員",
+    "unknownUser": "沒有名為「{name}」的使用者",
+    "deleteGroupConfirm": "刪除群組「{name}」?它也會從所有存取規則中移除。",
+    "groupsOidcNote": "透過 OIDC 同步的群組成員會在這些使用者每次登入時從身分提供者重設。"
   },
   "editor": {
     "uninitialized": "編輯器初始化失敗。請重新載入。",

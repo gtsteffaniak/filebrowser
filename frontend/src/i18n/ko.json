@@ -629,7 +629,22 @@
     "defaultBehavior": "기본 작업{suffix}",
     "deletedCascade": "경로 및 모든 하위 경로에서 액세스 규칙이 삭제되었습니다!",
     "cascadeDelete": "재귀적 삭제",
-    "cascadeDeleteDescription": "이 기능을 활성화하면 액세스 규칙을 삭제하면 모든 하위 디렉터리에서도 해당 규칙이 제거됩니다. 이렇게 하면 전체 디렉터리 트리에서 사용자 또는 그룹을 완전히 제거할 수 있습니다."
+    "cascadeDeleteDescription": "이 기능을 활성화하면 액세스 규칙을 삭제하면 모든 하위 디렉터리에서도 해당 규칙이 제거됩니다. 이렇게 하면 전체 디렉터리 트리에서 사용자 또는 그룹을 완전히 제거할 수 있습니다.",
+    "groups": "그룹",
+    "newGroup": "새 그룹",
+    "editGroup": "그룹 편집",
+    "groupName": "그룹 이름",
+    "userGroups": "그룹",
+    "addGroup": "그룹 추가",
+    "createGroupConfirm": "그룹 \"{name}\"이(가) 없습니다. 만드시겠습니까?",
+    "addGroupPlaceholder": "그룹 이름",
+    "removeGroup": "그룹에서 제거",
+    "groupMembers": "멤버",
+    "enterUsername": "사용자 이름 입력",
+    "addMember": "멤버 추가",
+    "unknownUser": "\"{name}\" 사용자가 없습니다",
+    "deleteGroupConfirm": "그룹 \"{name}\"을(를) 삭제하시겠습니까? 모든 접근 규칙에서도 제거됩니다.",
+    "groupsOidcNote": "OIDC로 동기화된 그룹의 멤버는 해당 사용자가 로그인할 때마다 ID 공급자에서 다시 설정됩니다."
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",

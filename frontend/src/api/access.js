@@ -26,6 +26,61 @@ export async function getGroups() {
   return fetchJSON(apiPath)
 }
 /**
+ * @param {string} username
+ * @returns {Promise<{groups: string[]}>}
+ */
+export async function getUserGroups(username) {
+  const apiPath = getApiPath('access/groups', { user: username })
+  return fetchJSON(apiPath)
+}
+/**
+ * @param {string} group
+ * @param {string} username
+ * @returns {Promise<any>}
+ */
+export async function addUserToGroup(group, username) {
+  const apiPath = getApiPath('access/group', { group, user: username })
+  return fetchJSON(apiPath, { method: 'POST' })
+}
+/**
+ * @param {string} group
+ * @param {string} username
+ * @returns {Promise<any>}
+ */
+export async function removeUserFromGroup(group, username) {
+  const apiPath = getApiPath('access/group', { group, user: username })
+  return fetchJSON(apiPath, { method: 'DELETE' })
+}
+/**
+ * @returns {Promise<{groups: string[], members: Record<string, string[]>}>}
+ */
+export async function getGroupsWithMembers() {
+  const apiPath = getApiPath('access/groups', { members: 'true' })
+  return fetchJSON(apiPath)
+}
+/**
+ * Creates the group if needed and replaces its full member list.
+ * @param {string} group
+ * @param {string[]} members
+ * @returns {Promise<any>}
+ */
+export async function saveGroup(group, members) {
+  const apiPath = getApiPath('access/group', {})
+  return fetchJSON(apiPath, {
+    method: 'PUT',
+    body: JSON.stringify({ group, members }),
+  })
+}
+/**
+ * Deletes a group and removes it from every access rule.
+ * @param {string} group
+ * @returns {Promise<any>}
+ */
+export async function deleteGroup(group) {
+  const apiPath = getApiPath('access/group', { group })
+  return fetchJSON(apiPath, { method: 'DELETE' })
+}
+/**
  * @param {string} source
  * @param {string} path
  * @param {object} body

@@ -729,7 +729,22 @@
     "defaultBehavior": "Standardåtgärd{suffix}",
     "deletedCascade": "Åtkomstregler raderade från sökvägen och alla undervägar!",
     "cascadeDelete": "Rekursiv radering",
-    "cascadeDeleteDescription": "Om funktionen är aktiverad tas en åtkomstregel även bort från alla underkataloger. På så sätt kan du helt ta bort en användare eller grupp från hela katalogträdet."
+    "cascadeDeleteDescription": "Om funktionen är aktiverad tas en åtkomstregel även bort från alla underkataloger. På så sätt kan du helt ta bort en användare eller grupp från hela katalogträdet.",
+    "groups": "Grupper",
+    "newGroup": "Ny grupp",
+    "editGroup": "Redigera grupp",
+    "groupName": "Gruppnamn",
+    "userGroups": "Grupper",
+    "addGroup": "Lägg till grupp",
+    "createGroupConfirm": "Gruppen \"{name}\" finns inte. Skapa den?",
+    "addGroupPlaceholder": "Gruppnamn",
+    "removeGroup": "Ta bort från grupp",
+    "groupMembers": "Medlemmar",
+    "enterUsername": "Ange användarnamn",
+    "addMember": "Lägg till medlem",
+    "unknownUser": "Ingen användare med namnet \"{name}\"",
+    "deleteGroupConfirm": "Ta bort gruppen \"{name}\"? Den tas även bort från alla åtkomstregler.",
+    "groupsOidcNote": "Medlemmar i OIDC-synkade grupper återställs från identitetsleverantören varje gång dessa användare loggar in."
   },
   "editor": {
     "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",

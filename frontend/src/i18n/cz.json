@@ -729,7 +729,22 @@
     "defaultBehavior": "Výchozí akce{suffix}",
     "deletedCascade": "Přístupová pravidla odstraněna z cesty a všech podcest!",
     "cascadeDelete": "Rekurzivní mazání",
-    "cascadeDeleteDescription": "Pokud je tato možnost povolena, odstraní se pravidlo přístupu také ze všech podadresářů. To umožňuje zcela odstranit uživatele nebo skupinu z celého adresářového stromu."
+    "cascadeDeleteDescription": "Pokud je tato možnost povolena, odstraní se pravidlo přístupu také ze všech podadresářů. To umožňuje zcela odstranit uživatele nebo skupinu z celého adresářového stromu.",
+    "groups": "Skupiny",
+    "newGroup": "Nová skupina",
+    "editGroup": "Upravit skupinu",
+    "groupName": "Název skupiny",
+    "userGroups": "Skupiny",
+    "addGroup": "Přidat skupinu",
+    "createGroupConfirm": "Skupina „{name}“ neexistuje. Vytvořit ji?",
+    "addGroupPlaceholder": "Název skupiny",
+    "removeGroup": "Odebrat ze skupiny",
+    "groupMembers": "Členové",
+    "enterUsername": "Zadejte uživatelské jméno",
+    "addMember": "Přidat člena",
+    "unknownUser": "Žádný uživatel s názvem „{name}“",
+    "deleteGroupConfirm": "Smazat skupinu „{name}“? Bude také odebrána ze všech pravidel přístupu.",
+    "groupsOidcNote": "Členové skupin synchronizovaných přes OIDC se při každém přihlášení těchto uživatelů obnoví od poskytovatele identity."
   },
   "editor": {
     "uninitialized": "Nepodařilo se inicializovat editor. Prosím, načtěte jej znovu.",
