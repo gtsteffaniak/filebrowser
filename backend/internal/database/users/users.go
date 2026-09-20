@@ -77,7 +77,7 @@ type AuthToken struct {
 	Token       string      `json:"token,omitempty"`
 	Name        string      `json:"name,omitempty"`
 	Username    string      `json:"username,omitempty"`
-	BelongsTo   uint64      `json:"belongsTo,omitempty"` // numeric user id in JWT claims (bolt-era small ids still work)
+	BelongsTo   uint64      `json:"belongsTo,omitempty"` // legacy stored metadata only; identity is hashed_tokens lookup
 	IssuedAt    int64       `json:"issuedAt,omitempty"`
 	ExpiresAt   int64       `json:"expiresAt,omitempty"`
 	Permissions Permissions `json:"Permissions,omitempty"`

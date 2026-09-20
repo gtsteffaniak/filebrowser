@@ -190,9 +190,7 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return &userValue
 	}
 
-	keyFunc := func(token *jwt.Token) (interface{}, error) {
-		return []byte(settings.Config.Auth.Key), nil
-	}
+	keyFunc := auth.JWTSigningKeyFunc()
 
 	tokenString, err := ExtractToken(r)
 	if err != nil {
@@ -216,11 +214,7 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	if state.IsTokenRevoked(tokenString) {
 		return nil
 	}
-	var user *users.User
-	userValue, err := state.UserFromAPIToken(tk, tokenString)
-	if err == nil {
-		user = &userValue
-	}
+	user, err := resolveBearerTokenUser(tokenString)
 	if err != nil {
 		logger.Errorf("Failed to get user from token: %v", err)
 		return nil
@@ -231,6 +225,30 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	}
 
 	return user
+}
+
+// resolveBearerTokenUser maps a validated bearer JWT to its owner via the
+// hashed_tokens registry. Session tokens get full owner permissions; named API
+// tokens must have stored metadata, otherwise the request is rejected rather
+// than granted the owner's uncapped permissions.
+func resolveBearerTokenUser(rawToken string) (*users.User, error) {
+	ownerID, isSession, ok := state.HashedTokenOwner(rawToken)
+	if !ok {
+		return nil, fmt.Errorf("token is invalid or revoked")
+	}
+	userValue, err := state.GetUserByID(ownerID)
+	if err != nil {
+		return nil, err
+	}
+	if isSession {
+		return &userValue, nil
+	}
+	tokenName, ok := state.TokenNameForRawToken(&userValue, rawToken)
+	if !ok {
+		return nil, fmt.Errorf("token has no permission metadata")
+	}
+	applyNamedApiTokenGlobalCaps(&userValue, tokenName)
+	return &userValue, nil
 }
 
 // withOrWithoutUserHelper is a middleware that tries to authenticate a user.
@@ -344,16 +362,13 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 		}
 		// Check if request has a valid admin token first
 		if tokenStr, err := ExtractToken(r); err == nil && tokenStr != "" {
-			keyFunc := func(token *jwt.Token) (interface{}, error) {
-				return []byte(settings.Config.Auth.Key), nil
-			}
+			keyFunc := auth.JWTSigningKeyFunc()
 			var tk users.AuthToken
 			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
-				if !state.IsTokenRevoked( tokenStr) {
-					userValue, err := state.UserFromAPIToken(tk, tokenStr)
+				if !state.IsTokenRevoked(tokenStr) {
+					userValue, err := resolveBearerTokenUser(tokenStr)
 					if err == nil && userValue.Permissions.Admin {
-						u := userValue
-						d.User = &u
+						d.User = userValue
 						return fn(w, r, d)
 					}
 				}
@@ -431,9 +446,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 
 		proxyUser := r.Header.Get(settings.Config.Auth.Methods.ProxyAuth.Header)
 		isProxyUser := settings.Config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
-		keyFunc := func(token *jwt.Token) (interface{}, error) {
-			return []byte(settings.Config.Auth.Key), nil
-		}
+		keyFunc := auth.JWTSigningKeyFunc()
 		if data.Token == "" {
 			var err error
 			data.Token, err = ExtractToken(r)
@@ -462,17 +475,12 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if tk.RegisteredClaims.ExpiresAt == nil {
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
-		userValue, err := state.UserFromAPIToken(tk, data.Token)
-		if err == nil {
-			data.User = &userValue
-		}
+		userValue, err := resolveBearerTokenUser(data.Token)
 		if err != nil {
 			logger.Errorf("Failed to get user from token: %v", err)
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
-		if tokenName, ok := state.TokenNameForRawToken(data.User, data.Token); ok {
-			applyNamedApiTokenGlobalCaps(data.User, tk, tokenName)
-		}
+		data.User = userValue
 
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
 		if tk.RegisteredClaims.ExpiresAt != nil {
@@ -519,13 +527,13 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 
 	// Generate a FileBrowser session token for JWT users if they don't have one
 	if data.Token == "" {
-		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
-		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		tokenString, err := mintAndRegisterSessionToken(user)
 		if err != nil {
 			logger.Errorf("Failed to generate token for JWT user %s: %v", username, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
 		}
 		data.Token = tokenString
+		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
 		SetSessionCookie(w, r, tokenString, time.Now().Add(expires).Add(time.Minute*30))
 	}
 
@@ -552,13 +560,13 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	}
 	// Generate a token for proxy users if they don't have one
 	if data.Token == "" {
-		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
-		tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+		tokenString, err := mintAndRegisterSessionToken(user)
 		if err != nil {
 			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
 		}
 		data.Token = tokenString
+		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
 		SetSessionCookie(w, r, tokenString, time.Now().Add(expires).Add(time.Minute*30))
 	}
 	// Call the handler function, passing in the context (or return OK if no handler)

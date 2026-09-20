@@ -13,7 +13,6 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -383,8 +382,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	}
 
 	expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
-	// Generate a signed token for the user
-	tokenString, _, err2 := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
+	tokenString, err2 := mintAndRegisterSessionToken(user)
 	if err2 != nil {
 		// Handle potential errors during token generation
 		if strings.Contains(err2.Error(), "key already exists with same name") {
