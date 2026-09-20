@@ -1,8 +1,11 @@
-# Local listing-performance runs only. CI and test-playwright use Dockerfile.playwright-base (chromium).
+# Local listing-performance only (see docker-compose local-playwright-performance).
+# CI uses ghcr.io/gtsteffaniak/playwright-base:chromium + Dockerfile.playwright-performance.
 FROM node:22-slim
 WORKDIR /app/frontend
 
-RUN npm i @playwright/test@1.54.1 oauth2-mock-server @types/node
+COPY frontend/package-lock.json /tmp/package-lock.json
+RUN PW_VERSION=$(node -p "require('/tmp/package-lock.json').packages['node_modules/@playwright/test'].version") \
+  && npm i "@playwright/test@${PW_VERSION}"
 
 ARG PLAYWRIGHT_BROWSERS=chromium,firefox,webkit
 RUN set -e; \

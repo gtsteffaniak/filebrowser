@@ -1,5 +1,6 @@
-# CI: ghcr.io playwright-base (chromium). Local: make playwright-base + compose PLAYWRIGHT_BASE_IMAGE.
-ARG PLAYWRIGHT_BASE_IMAGE=ghcr.io/gtsteffaniak/playwright-base:latest
+# CI: same ghcr.io playwright-base:chromium + GHA cache as screenshots/previews (chromium only).
+# Local all-browser runs: make playwright-perf-base + compose PLAYWRIGHT_BASE_IMAGE.
+ARG PLAYWRIGHT_BASE_IMAGE=ghcr.io/gtsteffaniak/playwright-base:chromium
 FROM ${PLAYWRIGHT_BASE_IMAGE} AS perf
 WORKDIR /app
 

@@ -24,9 +24,9 @@ async function launchChromium() {
 
     const inContainer = process.env.CI === "true" || process.env.PERF_IN_CONTAINER === "1";
     const remedy = inContainer
-      ? "The container image is missing browsers. Rebuild the base image:\n" +
-        "  make playwright-perf-base PERF_PLAYWRIGHT_BROWSERS=chromium,firefox,webkit\n" +
-        "then re-run make perf-check."
+      ? "Playwright and browser binaries are out of sync in the perf image. Rebuild:\n" +
+        "  make test-playwright-performance\n" +
+        "or locally: make perf-check (rebuilds playwright-perf-base if needed)."
       : "Install browsers for this Playwright version:\n" +
         "  cd frontend && npx playwright install chromium\n\n" +
         "If you meant to use the containerised run instead, use:\n" +
