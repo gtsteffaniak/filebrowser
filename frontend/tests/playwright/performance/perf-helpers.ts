@@ -374,6 +374,7 @@ export function aggregateIterations(results: ParsedResult[]): ParsedResult[] {
 
   const out: ParsedResult[] = [];
   for (const list of groups.values()) {
+    list.sort((a, b) => a.iteration - b.iteration);
     if (list.length === 1) {
       out.push({ ...list[0], file: baseFileName(list[0]) });
       continue;
@@ -382,6 +383,7 @@ export function aggregateIterations(results: ParsedResult[]): ParsedResult[] {
     const merged = medianMerge(list.map((r) => r.metrics));
     // Retain per-iteration normalized values so the baseline can record spread,
     // which lets the report show how noisy each metric actually is.
+    // Sample arrays follow iteration order (repeat 1 = iteration 0).
     const samples: Record<string, number[]> = {};
     const keys = Object.keys(extractBaselineMetrics(list[0]));
     for (const key of keys) {
@@ -462,6 +464,12 @@ export async function buildBaselineFromResults(
     gitDirty: boolean | null;
   },
 ): Promise<PerfBaseline> {
+  if (!opts.gitSha) {
+    throw new Error(
+      "refusing to build a baseline without a git revision; " +
+        "the artifact must identify the source state it measured",
+    );
+  }
   const chromium = results.filter((r) => r.browser === "chromium");
   const metrics: Record<string, BaselineRunEntry> = {};
 

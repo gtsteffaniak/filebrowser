@@ -58,10 +58,9 @@ export function installFrameTiming(page: {
       active: false,
       startedAt: 0,
       samples: [] as FrameSample[],
-      paintTimes: [] as number[],
       rafTimes: [] as number[],
       longFrameMs: 0,
-      supported: { loaf: false, paint: false },
+      supported: { loaf: false },
     };
     (window as unknown as { __frameTiming: typeof state }).__frameTiming = state;
 
@@ -94,23 +93,9 @@ export function installFrameTiming(page: {
       /* not supported */
     }
 
-    // 2. Paint timings — real compositor frames.
-    try {
-      const po = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          if (!state.active) continue;
-          if (entry.startTime < state.startedAt) continue;
-          state.paintTimes.push(entry.startTime);
-        }
-      });
-      po.observe({ type: "paint", buffered: false } as PerformanceObserverInit);
-      state.supported.paint = true;
-    } catch {
-      /* not supported */
-    }
-
-    // 3. rAF timestamps, used only to derive inter-frame intervals when the
-    //    observers above yield nothing.
+    // 2. rAF timestamps. LoAF only reports *long* frames, so a smooth 60fps
+    //    scroll would otherwise look like "no frames". rAF is the interval
+    //    between animation callbacks, labelled raf-fallback.
     const rafLoop = (now: number) => {
       if (state.active) state.rafTimes.push(now);
       requestAnimationFrame(rafLoop);
@@ -122,7 +107,6 @@ export function installFrameTiming(page: {
         state.active = true;
         state.startedAt = performance.now();
         state.samples = [];
-        state.paintTimes = [];
         state.rafTimes = [];
         state.longFrameMs = 0;
       };
@@ -146,9 +130,6 @@ export function installFrameTiming(page: {
         if (state.samples.length > 0) {
           durations = state.samples.map((s) => s.duration).filter((d) => d > 0);
           source = "long-animation-frame";
-        } else if (state.paintTimes.length > 1) {
-          durations = durationFrom(state.paintTimes);
-          source = "paint";
         } else if (state.rafTimes.length > 1) {
           durations = durationFrom(state.rafTimes);
           source = "raf-fallback";
@@ -205,6 +186,20 @@ export async function startFrameWindow(page: {
   evaluate: (fn: () => void) => Promise<unknown>;
 }): Promise<void> {
   await page.evaluate(() => {
+    (window as unknown as { __startFrameWindow?: () => void }).__startFrameWindow?.();
+  });
+}
+
+/**
+ * Arm the frame window for the next document load.
+ *
+ * The init script runs before any application code, so load frame capture
+ * includes the Vue mount rather than starting only after `page.goto()` resolves.
+ */
+export function startFrameWindowOnNextNavigation(page: {
+  addInitScript: (fn: () => void) => Promise<unknown>;
+}): Promise<unknown> {
+  return page.addInitScript(() => {
     (window as unknown as { __startFrameWindow?: () => void }).__startFrameWindow?.();
   });
 }

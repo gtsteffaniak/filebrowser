@@ -3,8 +3,8 @@ http-main: &http-main
   baseURL:  "/"
 server-main: &server-main
   logging:
-    - levels: "info|error|warning|debug"
-      apiFilter: 'disabled'
+    - levels: "warning|error"
+      apiLevels: disabled
   sources:
     - path: "../frontend/tests/playwright-files"
       name: "playwright + files"

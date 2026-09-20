@@ -306,10 +306,14 @@ export function buildPerfResultsDocument(input: {
   const scales = [...new Set(parsed.map((r) => r.scale))].sort((a, b) => a - b);
   const browsers = [...new Set(parsed.map((r) => r.browser))].sort();
 
+  const traceForRun = (r: PerfResultFile) =>
+    traceAnalyses[`${r.browser}@${r.scale}:${r.scenario}`];
+
   const runs = parsed
     .map((r) => {
       const thresholds = checkResultThresholds(r.scenario, r.metrics, config);
-      const rootCause = buildRootCauseParagraph(r);
+      const trace = traceForRun(r);
+      const rootCause = buildRootCauseParagraph(r, trace);
       const iteration =
         (r as PerfResultFile & { iteration?: number }).iteration ?? 1;
       return {
@@ -325,7 +329,7 @@ export function buildPerfResultsDocument(input: {
         thresholds,
         rootCause,
         rootCauseLines: rootCause.split("\n"),
-        contributors: buildContributors(r),
+        contributors: buildContributors(r, trace),
         profiling: buildRunProfiling(r),
       };
     })
@@ -355,8 +359,8 @@ export function buildPerfResultsDocument(input: {
         scale,
         slowestScenario: slowest.scenario,
         slowestMs: durationMs(slowest.metrics, slowest.scenario),
-        rootCause: buildRootCauseParagraph(slowest),
-        contributors: buildContributors(slowest),
+        rootCause: buildRootCauseParagraph(slowest, traceForRun(slowest)),
+        contributors: buildContributors(slowest, traceForRun(slowest)),
       });
     }
   }

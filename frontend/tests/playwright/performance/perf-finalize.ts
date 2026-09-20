@@ -147,6 +147,12 @@ export async function writeFinalArtifacts(opts: {
   // ---- Baseline update (explicit opt-in) ---------------------------------
   let baselineUpdated = false;
   if (baselineUpdateRequested()) {
+    if (!git.sha) {
+      throw new Error(
+        "[perf] refusing to write a baseline without a git revision; " +
+          "run from a git checkout so the artifact records its source state",
+      );
+    }
     const baseline = await buildBaselineFromResults(aggregated, {
       scales,
       workers,
@@ -263,6 +269,8 @@ function renderMarkdownReport(doc: ReturnType<typeof buildPerfResultsDocument>):
     lines.push(
       `Revision: \`${doc.git.sha.slice(0, 12)}\`${doc.git.dirty ? " (dirty tree)" : ""}`,
     );
+  } else {
+    lines.push("Revision: not captured (git unavailable at measurement time)");
   }
   lines.push(
     `Environment: ${doc.environment.browser} ${doc.environment.browserVersion}, ` +
@@ -301,14 +309,26 @@ function renderMarkdownReport(doc: ReturnType<typeof buildPerfResultsDocument>):
         lines.push(`- ${w}`);
       }
     }
-    if (doc.comparison.regressions.length > 0) {
+    const scopedRegressions = doc.comparison.runs.flatMap((run) =>
+      run.metrics
+        .filter((metric) => metric.status === "regression")
+        .map((metric) => ({
+          scale: run.scale,
+          scenario: run.scenario,
+          metric,
+        })),
+    );
+    if (scopedRegressions.length > 0) {
       lines.push("");
-      lines.push("| Metric | Baseline | Current | Δ% | Limit |");
-      lines.push("| --- | ---: | ---: | ---: | ---: |");
-      for (const r of doc.comparison.regressions) {
+      lines.push(
+        "| Browser | Scale | Scenario | Metric | Baseline | Current | Δ% | Limit |",
+      );
+      lines.push("| --- | ---: | --- | --- | ---: | ---: | ---: | ---: |");
+      for (const { scale, scenario, metric } of scopedRegressions) {
         lines.push(
-          `| ${r.label} (${r.key}) | ${r.baseline} | ${r.current} | ` +
-            `${r.deltaPct > 0 ? "+" : ""}${r.deltaPct}% | +${r.allowedPct}% |`,
+          `| ${doc.environment.browser} | ${scale} | ${scenario} | ` +
+            `${metric.label} (${metric.key}) | ${metric.baseline} | ${metric.current} | ` +
+            `${metric.deltaPct > 0 ? "+" : ""}${metric.deltaPct}% | +${metric.allowedPct}% |`,
         );
       }
     }

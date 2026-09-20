@@ -15,6 +15,7 @@ import {
 import { withCdpDelta, flattenCdp, type CdpDelta } from "./perf-cdp";
 import {
   startFrameWindow,
+  startFrameWindowOnNextNavigation,
   stopFrameWindow,
   type FrameTimingStat,
 } from "./perf-frames";
@@ -101,6 +102,7 @@ type ScenarioPayload = {
   avgFps?: number;
   minFps?: number;
   frames?: number;
+  frameStats?: FrameTimingStat;
   windowStart: number;
   windowEnd: number;
   probe: ReturnType<typeof readProbe> extends Promise<infer T> ? T : never;
@@ -209,21 +211,48 @@ export async function runLoadScenario(
   // Chromium traces are forced on for load: it is the highest-value artifact
   // and the only scenario where the whole mount is attributable.
   const { cdp, result: traceValue } = await withCdpDelta(page, async () => {
-    const tracePath = await runWithOptionalChromeTracing(
+    return runWithOptionalChromeTracing(
       browser,
       page,
       testInfo,
       `load-${scale}`,
       async () => {
         const startedAt = Date.now();
-        await ensureListing(page, scale, options);
+        if (!options?.reuseListing) {
+          const count = expectedItemCount(scale);
+          const timeout = Math.min(600_000, 120_000 + count * 30);
+          const waitMock = page.waitForResponse(
+            (r) => r.url().includes("mock-data") && r.ok(),
+            { timeout },
+          );
+          // Arm frame capture before navigating so the window starts in the new
+          // document, before any application code runs. `page.goto()` can resolve
+          // after Vue has already mounted, which would drop the earliest frames
+          // from the frame metrics while loadListingMs still counted them.
+          await startFrameWindowOnNextNavigation(page);
+          await page.goto(mockListingUrl(scale, seedForScale(scale)));
+          await waitMock;
+          await page
+            .locator(".listing-items .listing-item")
+            .first()
+            .waitFor({ state: "visible", timeout });
+          await page.waitForFunction(
+            (expected) =>
+              document.querySelectorAll(".listing-items .listing-item").length >=
+              expected,
+            count,
+            { timeout },
+          );
+        } else {
+          await startFrameWindow(page);
+        }
         loadListingMs = Date.now() - startedAt;
       },
       { force: isChromiumProjectWrapper(testInfo) },
     );
-    return tracePath;
   });
 
+  const frames = await stopFrameWindow(page);
   const windowEnd = await pageNow(page).catch(() => 0);
   const probe = await readProbe(page);
   const dom = await readDomSnapshot(page);
@@ -243,6 +272,9 @@ export async function runLoadScenario(
       cdp,
       cdpFlat: flattenCdp(cdp),
       vitals,
+      frameStats: frames,
+      avgFps: frames.effectiveFps,
+      frames: frames.frames,
       chromeTracePath: traceValue,
     },
     iteration,
@@ -263,7 +295,6 @@ export async function runScrollScenario(
   const windowStart = await pageNow(page);
 
   await startFrameWindow(page);
-  await startEventWindow(page);
 
   let scrollDurationMs = 0;
   const { cdp, result: traceValue } = await withCdpDelta(page, async () => {
@@ -279,13 +310,7 @@ export async function runScrollScenario(
           scale >= 10000
             ? scenarios.scroll.stepsAtScale10000
             : scenarios.scroll.steps;
-        const listing = page.locator(".listing-items");
-        for (let i = 0; i < steps; i++) {
-          await listing.evaluate((el) => {
-            el.scrollTop += 800;
-          });
-          await page.waitForTimeout(8);
-        }
+        await scrollListing(page, steps);
       },
     );
     scrollDurationMs = Date.now() - startedAt;
@@ -293,7 +318,6 @@ export async function runScrollScenario(
   });
 
   const frames = await stopFrameWindow(page);
-  const interaction = await stopEventWindow(page);
   const windowEnd = await pageNow(page);
 
   const probe = await readProbe(page);
@@ -313,7 +337,6 @@ export async function runScrollScenario(
       dom,
       cdp,
       cdpFlat: flattenCdp(cdp),
-      interaction,
       // Real frame health, replacing the old rAF-interval "FPS".
       avgFps: frames.effectiveFps,
       minFps: frames.p95 > 0 ? 1000 / frames.p95 : 0,
@@ -411,6 +434,7 @@ export async function runSelectScenario(
 
   const windowStart = await pageNow(page);
   await startEventWindow(page);
+  await startFrameWindow(page);
 
   let select20Ms = 0;
   const { cdp, result: traceValue } = await withCdpDelta(page, async () => {
@@ -435,6 +459,7 @@ export async function runSelectScenario(
   });
 
   const interaction = await stopEventWindow(page);
+  const frames = await stopFrameWindow(page);
   const windowEnd = await pageNow(page);
 
   const selected = await page
@@ -460,6 +485,9 @@ export async function runSelectScenario(
       cdp,
       cdpFlat: flattenCdp(cdp),
       interaction,
+      frameStats: frames,
+      avgFps: frames.effectiveFps,
+      frames: frames.frames,
       chromeTracePath: traceValue,
     } as ScenarioPayload,
     iteration,
@@ -468,6 +496,23 @@ export async function runSelectScenario(
 
 function isChromiumProjectWrapper(testInfo: TestInfo): boolean {
   return testInfo.project.name === "chromium";
+}
+
+/**
+ * Scroll the listing through the same 800px steps as before, but read a layout
+ * property after each jump so CDP Layout/RecalcStyle counters actually move.
+ * Playwright mouse.wheel was tried first; it inflated scenario wall time ~8×
+ * (Playwright IPC) without being a better measure of listing JS.
+ */
+async function scrollListing(page: Page, steps: number): Promise<void> {
+  const listing = page.locator(".listing-items");
+  for (let i = 0; i < steps; i++) {
+    await listing.evaluate((el) => {
+      el.scrollTop += 800;
+      void (el as HTMLElement).offsetHeight;
+    });
+    await page.waitForTimeout(8);
+  }
 }
 
 async function safe<T>(
