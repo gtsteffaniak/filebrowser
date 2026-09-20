@@ -9,6 +9,8 @@
   --ok: #3d9a6a;
   --warn: #c9a227;
   --high: #e85d5d;
+  --med: #d4a84b;
+  --low: var(--muted);
 }
 @media (prefers-color-scheme: light) {
   :root {
@@ -188,6 +190,37 @@ select {
 }
 .contributors li.sev-high .factor {
   color: var(--high);
+}
+.contributors li.sev-med .factor {
+  color: var(--med);
+}
+.contributors li.sev-low .factor {
+  color: var(--low);
+}
+#headlines li.sev-high .badge.sev {
+  background: color-mix(in srgb, var(--high) 25%, var(--panel));
+  color: var(--high);
+}
+#headlines li.sev-med .badge.sev {
+  background: color-mix(in srgb, var(--med) 25%, var(--panel));
+  color: var(--med);
+}
+#headlines li.sev-low .badge.sev {
+  background: color-mix(in srgb, var(--low) 20%, var(--panel));
+  color: var(--low);
+}
+tbody tr.sev-high td {
+  border-left: 3px solid var(--high);
+}
+tbody tr.sev-med td {
+  border-left: 3px solid var(--med);
+}
+tbody tr.sev-low td {
+  border-left: 3px solid var(--border);
+}
+.limit {
+  color: var(--muted);
+  font-size: 0.85em;
 }
 .run-detail {
   margin-top: 1rem;

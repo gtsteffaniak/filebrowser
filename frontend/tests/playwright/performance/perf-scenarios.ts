@@ -1,5 +1,5 @@
 import { expect, type Browser, type Page, type TestInfo } from "@playwright/test";
-import { selectCountForScale } from "./perf-config";
+import { loadPerfConfig, selectCountForScale } from "./perf-config";
 import {
   expectedItemCount,
   installProbes,
@@ -274,7 +274,11 @@ export async function runScrollScenario(
       testInfo,
       `scroll-${scale}`,
       async () => {
-        const steps = scale >= 10000 ? 12 : 18;
+        const { scenarios } = await loadPerfConfig();
+        const steps =
+          scale >= 10000
+            ? scenarios.scroll.stepsAtScale10000
+            : scenarios.scroll.steps;
         const listing = page.locator(".listing-items");
         for (let i = 0; i < steps; i++) {
           await listing.evaluate((el) => {
@@ -348,9 +352,14 @@ export async function runResizeScenario(
       testInfo,
       `resize-${scale}`,
       async () => {
+        const { scenarios } = await loadPerfConfig();
+        const settleMs =
+          scale >= 10000
+            ? scenarios.resize.settleMsAtScale10000
+            : scenarios.resize.settleMs;
         for (const size of sizes) {
           await page.setViewportSize(size);
-          await page.waitForTimeout(scale >= 10000 ? 60 : 80);
+          await page.waitForTimeout(settleMs);
         }
       },
     );

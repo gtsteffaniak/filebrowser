@@ -39,9 +39,15 @@ function parseMockDataCount(value, defaultCount) {
 
 function getMockDataCounts() {
   const query = state.route?.query ?? {};
+  const seedRaw = query.seed;
+  const seed =
+    seedRaw === undefined || seedRaw === null || seedRaw === ''
+      ? undefined
+      : String(seedRaw);
   return {
     numDirs: parseMockDataCount(query.numDirs, MOCK_DATA_DEFAULT_COUNT),
     numFiles: parseMockDataCount(query.numFiles, MOCK_DATA_DEFAULT_COUNT),
+    seed,
   };
 }
 
@@ -62,10 +68,11 @@ function normalizeMockListing(raw) {
   return data;
 }
 
-async function fetchMockDataListing(numDirs, numFiles) {
+async function fetchMockDataListing(numDirs, numFiles, seed) {
   const apiPath = getApiPath('mock-data', {
     numDirs: String(numDirs),
     numFiles: String(numFiles),
+    seed,
   });
   const res = await fetchURL(apiPath);
   return res.json();
@@ -115,8 +122,8 @@ export async function fetchFiles(source, path, content = false, metadata = false
         err.status = 404;
         throw err;
       }
-      const { numDirs, numFiles } = getMockDataCounts();
-      const raw = await fetchMockDataListing(numDirs, numFiles);
+      const { numDirs, numFiles, seed } = getMockDataCounts();
+      const raw = await fetchMockDataListing(numDirs, numFiles, seed);
       const adjusted = adjustedData(normalizeMockListing(raw));
       cacheViewTokenFromListing(adjusted);
       return adjusted;

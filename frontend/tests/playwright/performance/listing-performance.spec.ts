@@ -23,7 +23,7 @@ type PerfSession = {
 
 async function openPerfSession(browser: Browser): Promise<PerfSession> {
   const context = await browser.newContext({
-    storageState: path.join(frontendRoot(), "loginAuth.json"),
+    storageState: path.join(frontendRoot(import.meta.url), "loginAuth.json"),
   });
   const page = await context.newPage();
   await installProbes(page);

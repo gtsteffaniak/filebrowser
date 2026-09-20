@@ -478,12 +478,12 @@ export async function buildBaselineFromResults(
         ? aggregateSamples(samples[key])
         : undefined;
       entry[key] = {
-        value,
+        value: agg ? agg.value : value,
         tolerancePct: defaultTolerance(def.toleranceClass),
         noiseFloor: def.noiseFloor,
         direction: def.direction,
         toleranceClass: def.toleranceClass,
-        samples: r.iteration > 0 ? r.iteration : 1,
+        samples: samples[key]?.length ?? (r.iteration > 0 ? r.iteration : 1),
         ...(agg
           ? { min: agg.min, max: agg.max, spreadPct: agg.spreadPct }
           : {}),

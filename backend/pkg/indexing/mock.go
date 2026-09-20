@@ -104,8 +104,24 @@ func CreateMockDataSeeded(numDirs, numFilesPerDir int, seed int64) iteminfo.File
 // The charset parameter is stripped so the values match what indexed items
 // carry: mime.TypeByExtension(".txt") returns "text/plain; charset=utf-8",
 // whereas a real indexed item has "text/plain".
+//
+// Fixed table first: mock types must not depend on host mailcap/shared-mime-info.
+var mockMimeTypes = map[string]string{
+	".txt": "text/plain",
+	".mp3": "audio/mpeg",
+	".mov": "video/quicktime",
+	".doc": "application/msword",
+	".mp4": "video/mp4",
+	".bak": "application/x-trash",
+	".zip": "application/zip",
+	".jpg": "image/jpeg",
+}
+
 func mockMimeType(name string) string {
 	ext := strings.ToLower(filepath.Ext(name))
+	if m, ok := mockMimeTypes[ext]; ok {
+		return m
+	}
 	if m := strings.Split(mime.TypeByExtension(ext), ";")[0]; m != "" {
 		return m
 	}

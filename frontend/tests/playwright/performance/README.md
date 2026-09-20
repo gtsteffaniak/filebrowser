@@ -80,9 +80,15 @@ regressions this harness exists to catch.
 make perf-baseline
 ```
 
-Run this **in the same environment CI uses**, since the baseline records worker
-count, browser version and Playwright version. A mismatch is reported in the
-report rather than silently producing a bogus regression.
+Run this **in the same environment CI uses** (the `Dockerfile.playwright-performance`
+`ci` image on `ubuntu-24.04-arm`), since the baseline records worker count,
+browser version and Playwright version. A mismatch is reported in the report
+rather than silently producing a bogus regression. After changing baseline
+aggregation logic, regenerate with `PERF_UPDATE_BASELINE=1` in that environment.
+
+The dashboard is served locally via `make perf-dashboard` (HTTP on port 9323).
+Chart.js is loaded from `node_modules` by the server — no CDN or network access
+required when using that command.
 
 ## What gets measured
 

@@ -106,23 +106,28 @@ export async function withCdpDelta<T>(
   }
 
   let session: Awaited<ReturnType<typeof newCdpSession>> | null = null;
+  let before: ReturnType<typeof splitMetrics> | null = null;
   try {
     session = await newCdpSession(page);
-    const before = splitMetrics(
+    before = splitMetrics(
       (await session.send("Performance.getMetrics")).metrics,
     );
+  } catch {
+    return { result: await fn(), cdp: null };
+  }
 
+  try {
     const startedAt = Date.now();
     const result = await fn();
     const windowMs = Date.now() - startedAt;
 
     const after = splitMetrics(
-      (await session.send("Performance.getMetrics")).metrics,
+      (await session!.send("Performance.getMetrics")).metrics,
     );
 
     const delta: CdpMetricMap = {};
     for (const key of CUMULATIVE_CDP_METRICS) {
-      const b = before.cumulative[key];
+      const b = before!.cumulative[key];
       const a = after.cumulative[key];
       if (typeof a === "number" && typeof b === "number") {
         // Counters can reset if the renderer navigated; clamp at 0 rather than
@@ -136,13 +141,11 @@ export async function withCdpDelta<T>(
       cdp: {
         delta,
         gauge: after.gauge,
-        before: before.cumulative,
+        before: before!.cumulative,
         after: after.cumulative,
         windowMs,
       },
     };
-  } catch {
-    return { result: await fn(), cdp: null };
   } finally {
     try {
       await session?.detach();

@@ -8,7 +8,5 @@ RUN PW_VERSION=$(node -p "require('/tmp/package-lock.json').packages['node_modul
   && npm i "@playwright/test@${PW_VERSION}"
 
 ARG PLAYWRIGHT_BROWSERS=chromium,firefox,webkit
-RUN set -e; \
-	for b in $(echo "$PLAYWRIGHT_BROWSERS" | tr ',' ' '); do \
-		npx playwright install --with-deps "$$b"; \
-	done
+ENV PLAYWRIGHT_BROWSERS=${PLAYWRIGHT_BROWSERS}
+RUN bash -ec 'set -euo pipefail; for b in ${PLAYWRIGHT_BROWSERS//,/ }; do npx playwright install --with-deps "$b"; done'

@@ -6,6 +6,7 @@
 *.bak
 *.log
 *.mjs
+!frontend/scripts/serve-perf-dashboard.mjs
 _old
 rice-box.go
 .idea/

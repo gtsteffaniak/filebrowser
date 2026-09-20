@@ -203,6 +203,7 @@ function collectProfileChunk(
         cpuProfile?: {
           nodes?: {
             id: number;
+            children?: number[];
             callFrame?: {
               functionName?: string;
               url?: string;
@@ -217,6 +218,7 @@ function collectProfileChunk(
   const profile = data?.cpuProfile;
   if (!profile) return;
 
+  const parentOf = new Map<number, number>();
   for (const node of profile.nodes ?? []) {
     const frame = node.callFrame;
     if (!frame) continue;
@@ -226,15 +228,19 @@ function collectProfileChunk(
         ? `${shortUrl(frame.url)}:${frame.lineNumber + 1}`
         : null;
     nodeNames.set(node.id, { name, location });
+    for (const childId of node.children ?? []) {
+      parentOf.set(childId, node.id);
+    }
   }
 
   for (const id of profile.samples ?? []) {
     // Each sample is one ~1ms tick attributed to the sampled node's self time.
     selfByNode.set(id, (selfByNode.get(id) ?? 0) + 1);
-    // Approximate total time by crediting ancestors: we walk up via the id
-    // ordering heuristic only when a parent map is available, so here we also
-    // accumulate onto the node itself.
-    totalByNode.set(id, (totalByNode.get(id) ?? 0) + 1);
+    let current: number | undefined = id;
+    while (current !== undefined) {
+      totalByNode.set(current, (totalByNode.get(current) ?? 0) + 1);
+      current = parentOf.get(current);
+    }
   }
 }
 
