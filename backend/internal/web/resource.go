@@ -1647,7 +1647,16 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	if err != nil || err2 != nil {
 		return
 	}
-	mockDir := indexing.CreateMockData(NumDirs, numFiles)
+	// Optional explicit seed; 0 means derive deterministically from the shape.
+	var seed int64
+	if s := r.URL.Query().Get("seed"); s != "" {
+		parsed, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return
+		}
+		seed = parsed
+	}
+	mockDir := indexing.CreateMockDataSeeded(NumDirs, numFiles, seed)
 	RenderJSON(w, r, mockDir) // nolint:errcheck
 }
 
