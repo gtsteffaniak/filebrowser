@@ -1,1 +1,0 @@
-Placeholder so //go:embed embed/* matches on a clean checkout. Production assets are copied here by npm run build or served from internal/web/dist at runtime.
