@@ -284,6 +284,7 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 // @Accept json
 // @Produce json
 // @Param user query string false "User name"
+// @Param members query bool false "Also return each group's member list (ignored when user is set)"
 // @Success 200 {object} GroupListResponse "Object containing a list of groups"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Router /api/access/groups [get]

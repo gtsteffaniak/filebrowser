@@ -93,8 +93,14 @@ export default {
     columns() {
       return [
         { key: "name", label: this.$t("access.groupName"), sortable: true },
-        { key: "memberCount", label: this.$t("access.groupMembers"), sortable: true },
-        { key: "members", label: "" },
+        {
+          key: "memberCount",
+          label: this.$t("access.groupMembers"),
+          sortable: true,
+          // Compare numerically; the default comparator sorts as strings ("10" < "9").
+          sortFn: (a, b) => a.memberCount - b.memberCount,
+        },
+        { key: "members", label: this.$t("general.users", { suffix: "" }) },
         { key: "actions", label: "", align: "right", narrow: true },
       ];
     },
@@ -116,7 +122,10 @@ export default {
     openPrompt(group) {
       mutations.showPrompt({
         name: "group-edit",
-        props: group ? { group, members: this.members.get(group) || [] } : {},
+        props: {
+          title: this.$t(group ? "access.editGroup" : "access.newGroup"),
+          ...(group ? { group, members: this.members.get(group) || [] } : {}),
+        },
       });
     },
     escapeHtml(text) {

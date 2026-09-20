@@ -500,6 +500,12 @@ const docTemplate = `{
                         "description": "User name",
                         "name": "user",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Also return each group's member list (ignored when user is set)",
+                        "name": "members",
+                        "in": "query"
                     }
                 ],
                 "responses": {

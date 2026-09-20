@@ -2653,6 +2653,10 @@ paths:
         in: query
         name: user
         type: string
+      - description: Also return each group's member list (ignored when user is set)
+        in: query
+        name: members
+        type: boolean
       produces:
       - application/json
       responses:

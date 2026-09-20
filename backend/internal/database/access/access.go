@@ -97,19 +97,28 @@ func (s *Storage) Flush() error {
 // persistGroupSQLNL upserts or deletes one groups row to match in-memory state.
 // Caller must hold s.mux. If the group is absent from s.Groups, it is deleted from SQL.
 func (s *Storage) persistGroupSQLNL(groupname string) {
+	if err := s.persistGroupSQLErrNL(groupname); err != nil {
+		logger.Errorf("failed to persist group %q: %v", groupname, err)
+	}
+}
+
+// persistGroupSQLErrNL is persistGroupSQLNL but returns the SQL error instead of logging it,
+// so callers can roll back the in-memory change. Caller must hold s.mux.
+func (s *Storage) persistGroupSQLErrNL(groupname string) error {
 	if s.sqlStore == nil {
-		return
+		return nil
 	}
 	members, ok := s.Groups[groupname]
 	if !ok {
 		if err := s.sqlStore.DeleteGroup(groupname); err != nil {
-			logger.Errorf("failed to delete group %q from sql: %v", groupname, err)
+			return fmt.Errorf("failed to delete group %q from sql: %w", groupname, err)
 		}
-		return
+		return nil
 	}
 	if err := s.sqlStore.SaveGroup(groupname, members); err != nil {
-		logger.Errorf("failed to save group %q: %v", groupname, err)
+		return fmt.Errorf("failed to save group %q: %w", groupname, err)
 	}
+	return nil
 }
 
 // ensureGroupExistsNL creates an empty in-memory group if missing and write-through persists it.
@@ -583,24 +592,37 @@ func (s *Storage) SetGroupMembers(group string, usernames []string) error {
 			members[name] = struct{}{}
 		}
 	}
+	previous, existed := s.Groups[group]
 	s.Groups[group] = members
-	s.persistGroupSQLNL(group)
+	if err := s.persistGroupSQLErrNL(group); err != nil {
+		// Keep memory and SQL consistent: undo the in-memory change.
+		if existed {
+			s.Groups[group] = previous
+		} else {
+			delete(s.Groups, group)
+		}
+		return err
+	}
 	s.clearAllCaches()
 	return nil
 }
 
 // DeleteGroup removes a group and every access rule entry that references it.
+// Group removal and rule cleanup happen under one lock so a concurrent rule
+// change cannot slip in between. The group is persisted first; if that fails
+// nothing has changed.
 func (s *Storage) DeleteGroup(group string) error {
-	if err := s.RemoveAllRulesForGroup(group); err != nil {
-		return err
-	}
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	if _, ok := s.Groups[group]; !ok {
-		return nil
+	previous, ok := s.Groups[group]
+	if ok {
+		delete(s.Groups, group)
+		if err := s.persistGroupSQLErrNL(group); err != nil {
+			s.Groups[group] = previous
+			return err
+		}
 	}
-	delete(s.Groups, group)
-	s.persistGroupSQLNL(group)
+	s.removeAllRulesForGroupNL(group)
 	s.clearAllCaches()
 	return nil
 }
@@ -876,6 +898,13 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	s.removeAllRulesForGroupNL(groupname)
+	return nil
+}
+
+// removeAllRulesForGroupNL removes a group from every allow and deny list.
+// Caller must hold s.mux.
+func (s *Storage) removeAllRulesForGroupNL(groupname string) {
 	changed := false
 	dirty := make(map[string]map[string]struct{})
 	touch := func(sp, ip string) {
@@ -913,7 +942,6 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 			}
 		}
 	}
-	return nil
 }
 
 // GetRulesForUser returns all rules for a specific user for a given sourcePath.
