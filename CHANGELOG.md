@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
  - `GET /api/resources` returns 400 when the `path` query parameter is missing or empty instead of 500 (#2801)
 
  **Bugfixes**:
- - Public share folder and multi-file ZIP downloads were empty for anonymous visitors when the source used deny-by-default or path access rules (#2631)
+ - Public share folder and multi-file ZIP downloads were empty for anonymous visitors when the source used deny-by-default or path access rules (#2631) (#2365)
  - 401 on pdf download button action (#2978)
  - OnlyOffice saves could no-op with HTTP 200 when JWT was enabled: callback POST bodies wrapped in `token` were ignored and JWT parsing omitted fields such as `url` required to download the updated document from the Document Server.
 
