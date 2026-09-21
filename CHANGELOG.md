@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Security**:
  - [Critical] A forged JWT could authenticate as any known `belongsTo`. Auth signing keys are now persisted in the application database and JWT validation fails closed when no key is configured. (GHSA-8f9r-wg7w-pfw) (#2987) Thanks @d3do-23 and @whoamis3c.
  - [Medium] Public upload shares with replacements disabled (`allowReplacements=false`) now reject overwrites when clients send `override=true`. (GHSA-3846-gh75-gp3m) Thanks @d3do-23
+ - [Medium] OnlyOffice document-server callbacks now verify the shared `integrations.office.secret` JWT (HS256), reject unsigned callback bodies when a secret is configured, and validate the callback document key against the active editor session when known.
 
  **New Features**:
  - add "Upload only what's missing" to the upload conflict prompt (#2985)
@@ -17,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Bugfixes**:
  - Public share folder and multi-file ZIP downloads were empty for anonymous visitors when the source used deny-by-default or path access rules (#2631)
  - 401 on pdf download button action (#2978)
+ - OnlyOffice saves could no-op with HTTP 200 when JWT was enabled: callback POST bodies wrapped in `token` were ignored and JWT parsing omitted fields such as `url` required to download the updated document from the Document Server.
 
 ## v2.0.7
 
