@@ -135,11 +135,20 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 // @Param metadata query string false "When true, run audio/video metadata extraction, subtitles, and directory media batch processing"
 // @Param checksum query string false "Optional checksum validation"
 // @Success 200 {object} iteminfo.FileInfo "Resource metadata"
+// @Failure 400 {object} map[string]string "Missing or invalid path query parameter"
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if _, ok := r.URL.Query()["path"]; !ok {
+		return http.StatusBadRequest, fmt.Errorf("path query parameter is required")
+	}
 	path := r.URL.Query().Get("path")
+	cleanPath, err := utils.SanitizePath(path)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	path = cleanPath
 	source := r.URL.Query().Get("source")
 	filePerms, err := effectiveFilePerms(d, source)
 	if err != nil {

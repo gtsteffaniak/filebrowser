@@ -1847,6 +1847,15 @@ const docTemplate = `{
                             "$ref": "#/definitions/iteminfo.FileInfo"
                         }
                     },
+                    "400": {
+                        "description": "Missing or invalid path query parameter",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Resource not found",
                         "schema": {
