@@ -1,6 +1,7 @@
 package access_test
 
 import (
+	stderrors "errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1907,5 +1908,99 @@ func TestDeleteGroup_RemovesGroupAndRules(t *testing.T) {
 	// Deleting a missing group is a no-op.
 	if err := s.DeleteGroup("acme"); err != nil {
 		t.Fatalf("DeleteGroup missing: %v", err)
+	}
+}
+
+// failingGroupDeletePersister wraps a real store but fails the transactional group delete.
+type failingGroupDeletePersister struct {
+	access.SQLPersister
+}
+
+func (failingGroupDeletePersister) DeleteGroupWithRules(string, []access.RuleUpsert, []access.RuleKey) error {
+	return stderrors.New("simulated sql failure")
+}
+
+func TestDeleteGroup_FailureLeavesGroupAndRulesIntact(t *testing.T) {
+	setupTestSources()
+	s, _, sqlStore := createTestStorageWithSQL(t)
+
+	if err := s.SetGroupMembers("acme", []string{"alice"}); err != nil {
+		t.Fatalf("SetGroupMembers: %v", err)
+	}
+	if err := s.AllowGroup("mnt/storage", idxPath("/tenant"), "acme"); err != nil {
+		t.Fatalf("AllowGroup: %v", err)
+	}
+	if err := s.DenyGroup("mnt/storage", idxPath("/private"), "acme"); err != nil {
+		t.Fatalf("DenyGroup: %v", err)
+	}
+	rulesBefore := len(s.GetRulesForGroup("mnt/storage", "acme"))
+	if rulesBefore != 2 {
+		t.Fatalf("expected 2 rules before delete, got %d", rulesBefore)
+	}
+
+	s.SetSQLStore(failingGroupDeletePersister{sqlStore})
+	if err := s.DeleteGroup("acme"); err == nil {
+		t.Fatal("expected DeleteGroup to return the SQL error")
+	}
+
+	if got := s.GetGroupMembers()["acme"]; len(got) != 1 || got[0] != "alice" {
+		t.Fatalf("group should be restored after a failed delete, got %v", got)
+	}
+	if got := len(s.GetRulesForGroup("mnt/storage", "acme")); got != rulesBefore {
+		t.Fatalf("rules should be restored after a failed delete: want %d, got %d", rulesBefore, got)
+	}
+	// SQL was never changed.
+	sqlGroups, err := sqlStore.GetAllGroups()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := sqlGroups["acme"]; !ok {
+		t.Fatal("group row should still be in SQL")
+	}
+	sqlRules, err := sqlStore.GetAllAccessRules()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sqlRules["mnt/storage"]) != 2 {
+		t.Fatalf("rule rows should still be in SQL, got %v", sqlRules["mnt/storage"])
+	}
+}
+
+func TestDeleteGroup_RemovesGroupAndRuleRowsFromSQL(t *testing.T) {
+	setupTestSources()
+	s, _, sqlStore := createTestStorageWithSQL(t)
+
+	if err := s.SetGroupMembers("acme", []string{"alice"}); err != nil {
+		t.Fatalf("SetGroupMembers: %v", err)
+	}
+	if err := s.AllowGroup("mnt/storage", idxPath("/tenant"), "acme"); err != nil {
+		t.Fatalf("AllowGroup: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", idxPath("/tenant"), "alice"); err != nil {
+		t.Fatalf("AllowUser: %v", err)
+	}
+	if err := s.DeleteGroup("acme"); err != nil {
+		t.Fatalf("DeleteGroup: %v", err)
+	}
+
+	sqlGroups, err := sqlStore.GetAllGroups()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := sqlGroups["acme"]; ok {
+		t.Fatal("group row should be gone from SQL")
+	}
+	sqlRules, err := sqlStore.GetAllAccessRules()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, rule := range sqlRules["mnt/storage"] {
+		if _, has := rule.Allow.Groups["acme"]; has {
+			t.Fatal("no stored rule should still reference the deleted group")
+		}
+	}
+	// The rule that also allowed a user must survive with only the group removed.
+	if len(sqlRules["mnt/storage"]) != 1 {
+		t.Fatalf("expected the user rule to remain, got %v", sqlRules["mnt/storage"])
 	}
 }

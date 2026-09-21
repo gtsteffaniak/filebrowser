@@ -1,6 +1,7 @@
 package access
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"path/filepath"
@@ -72,12 +73,27 @@ type Storage struct {
 	sqlStore      SQLPersister        // SQL store for persistence
 }
 
+// RuleKey identifies one access_rules row.
+type RuleKey struct {
+	Source string
+	Path   string
+}
+
+// RuleUpsert is an access_rules row to insert or replace.
+type RuleUpsert struct {
+	RuleKey
+	Rule *AccessRule
+}
+
 // SQLPersister interface for SQL persistence operations
 type SQLPersister interface {
 	SaveAccessRule(source, path string, rule *AccessRule) error
 	DeleteAccessRule(source, path string) error
 	SaveGroup(name string, members StringSet) error
 	DeleteGroup(name string) error
+	// DeleteGroupWithRules deletes the group row and applies the given rule row
+	// changes in one transaction: either all of it is stored or none of it.
+	DeleteGroupWithRules(name string, save []RuleUpsert, remove []RuleKey) error
 	SaveRevokedToken(tokenHash string) error
 	SaveHashedToken(tokenHash string, userID uint64) error
 	DeleteHashedToken(tokenHash string) error
@@ -608,23 +624,59 @@ func (s *Storage) SetGroupMembers(group string, usernames []string) error {
 }
 
 // DeleteGroup removes a group and every access rule entry that references it.
-// Group removal and rule cleanup happen under one lock so a concurrent rule
-// change cannot slip in between. The group is persisted first; if that fails
-// nothing has changed.
+// The group row and all affected rule rows are written in one SQL transaction, so a
+// failure stores nothing. On failure the in-memory groups and rules are restored and the
+// error is returned. The lock is held throughout, so no other change can interleave.
 func (s *Storage) DeleteGroup(group string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	previous, ok := s.Groups[group]
-	if ok {
-		delete(s.Groups, group)
-		if err := s.persistGroupSQLErrNL(group); err != nil {
-			s.Groups[group] = previous
-			return err
-		}
+	previousMembers, existed := s.Groups[group]
+	// Snapshot the rules so they can be restored if the transaction fails.
+	rulesSnapshot, err := json.Marshal(s.AllRules)
+	if err != nil {
+		return fmt.Errorf("failed to snapshot access rules: %w", err)
 	}
-	s.removeAllRulesForGroupNL(group)
+	delete(s.Groups, group)
+	touched := s.removeAllRulesForGroupNL(group)
+	if !existed && len(touched) == 0 {
+		return nil
+	}
+	if err := s.persistGroupDeleteNL(group, touched); err != nil {
+		if existed {
+			s.Groups[group] = previousMembers
+		}
+		restored := make(SourceRuleMap)
+		if jsonErr := json.Unmarshal(rulesSnapshot, &restored); jsonErr != nil {
+			logger.Errorf("failed to restore access rules after group delete error: %v", jsonErr)
+		} else {
+			s.AllRules = restored
+		}
+		return err
+	}
 	s.clearAllCaches()
 	return nil
+}
+
+// persistGroupDeleteNL writes a group deletion and the resulting rule row changes to SQL
+// in one transaction. Caller must hold s.mux.
+func (s *Storage) persistGroupDeleteNL(group string, touched []RuleKey) error {
+	if s.sqlStore == nil {
+		return nil
+	}
+	var save []RuleUpsert
+	var remove []RuleKey
+	for _, key := range touched {
+		var rule *AccessRule
+		if bySrc, ok := s.AllRules[key.Source]; ok {
+			rule = bySrc[key.Path]
+		}
+		if accessRuleHasPayload(rule) {
+			save = append(save, RuleUpsert{RuleKey: key, Rule: rule})
+		} else {
+			remove = append(remove, key)
+		}
+	}
+	return s.sqlStore.DeleteGroupWithRules(group, save, remove)
 }
 
 // GetUserGroups returns all groups for a specific user.
@@ -898,50 +950,45 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	s.removeAllRulesForGroupNL(groupname)
+	touched := s.removeAllRulesForGroupNL(groupname)
+	if len(touched) > 0 {
+		s.clearAllCaches()
+		for _, key := range touched {
+			s.persistRuleSQLNL(key.Source, key.Path)
+		}
+	}
 	return nil
 }
 
-// removeAllRulesForGroupNL removes a group from every allow and deny list.
-// Caller must hold s.mux.
-func (s *Storage) removeAllRulesForGroupNL(groupname string) {
-	changed := false
-	dirty := make(map[string]map[string]struct{})
-	touch := func(sp, ip string) {
-		if dirty[sp] == nil {
-			dirty[sp] = make(map[string]struct{})
-		}
-		dirty[sp][ip] = struct{}{}
-	}
+// removeAllRulesForGroupNL removes a group from every allow and deny list in memory and
+// returns the rules it touched (rules left empty are deleted). It does not persist; the
+// caller must hold s.mux and save the returned rules.
+func (s *Storage) removeAllRulesForGroupNL(groupname string) []RuleKey {
+	var touched []RuleKey
 	for sourcePath, rulesBySource := range s.AllRules {
 		for indexPath, rule := range rulesBySource {
+			touchedRule := false
 			if _, exists := rule.Allow.Groups[groupname]; exists {
 				delete(rule.Allow.Groups, groupname)
-				touch(sourcePath, indexPath)
-				changed = true
+				touchedRule = true
 			}
 			if _, exists := rule.Deny.Groups[groupname]; exists {
 				delete(rule.Deny.Groups, groupname)
-				touch(sourcePath, indexPath)
-				changed = true
+				touchedRule = true
 			}
 			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
 				delete(s.AllRules[sourcePath], indexPath)
 				if len(s.AllRules[sourcePath]) == 0 {
 					delete(s.AllRules, sourcePath)
 				}
-				touch(sourcePath, indexPath)
+				touchedRule = true
+			}
+			if touchedRule {
+				touched = append(touched, RuleKey{Source: sourcePath, Path: indexPath})
 			}
 		}
 	}
-	if changed {
-		s.clearAllCaches()
-		for sp, paths := range dirty {
-			for ip := range paths {
-				s.persistRuleSQLNL(sp, ip)
-			}
-		}
-	}
+	return touched
 }
 
 // GetRulesForUser returns all rules for a specific user for a given sourcePath.
