@@ -24,6 +24,7 @@ func TestResourceGetHandler_MissingOrEmptyPathReturns400(t *testing.T) {
 	}{
 		{"missing path", "source=srv"},
 		{"empty path", "source=srv&path="},
+		{"path traversal", "source=srv&path=../../etc/passwd"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

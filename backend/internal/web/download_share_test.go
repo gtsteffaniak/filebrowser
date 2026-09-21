@@ -267,3 +267,45 @@ func TestPublicDownload_MissingFileReturns404(t *testing.T) {
 		t.Fatalf("share error should not leak host path, got %q", msg)
 	}
 }
+
+func TestBuildAndStreamArchive_MissingPathReturns404(t *testing.T) {
+	_, sourceName, owner := setupShareArchiveDownloadTest(t)
+	d := shareArchiveContext(owner, "/shared")
+	req := httptest.NewRequest(http.MethodGet, "/?algo=zip", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := BuildAndStreamArchive(rec, req, d, sourceName, []string{"/shared/missing.txt"})
+	if err == nil {
+		t.Fatal("expected error for missing archive path")
+	}
+	if status != http.StatusNotFound {
+		t.Fatalf("expected 404, got status=%d err=%v", status, err)
+	}
+}
+
+func TestServeSingleFile_MissingScopedPathReturns404(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	d := &Context{User: &ownerUser}
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := ServeSingleFile(rec, req, d, sourceName, "/shared/missing.txt", "missing.txt", ServeSingleFileOptions{})
+	if err == nil {
+		t.Fatal("expected error for missing file")
+	}
+	if status != http.StatusNotFound {
+		t.Fatalf("expected 404, got status=%d err=%v", status, err)
+	}
+}
