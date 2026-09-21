@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  - [Medium] OnlyOffice document-server callbacks now verify the shared `integrations.office.secret` JWT (HS256), reject unsigned callback bodies when a secret is configured, and require the callback document key to match the cached editor session for the target path (fail closed on cache miss or path lookup failure).
 
  **New Features**:
- - add "Upload only what's missing" to the upload conflict prompt (#2985)
+ - add "Upload only what's missing" to the upload conflict prompt (#2985) (#2553)
 
  **Notes**:
  - Improved UI responsiveness for larger directories and firefox, marginal improvement to memory (#1773) (#2879)
