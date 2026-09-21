@@ -2004,3 +2004,48 @@ func TestDeleteGroup_RemovesGroupAndRuleRowsFromSQL(t *testing.T) {
 		t.Fatalf("expected the user rule to remain, got %v", sqlRules["mnt/storage"])
 	}
 }
+
+func TestDeleteGroup_KeepsDenyAllRule(t *testing.T) {
+	setupTestSources()
+	s, _, sqlStore := createTestStorageWithSQL(t)
+
+	// "Deny everyone except group acme": a DenyAll rule whose only allow entry is the group.
+	if err := s.SetGroupMembers("acme", []string{"alice"}); err != nil {
+		t.Fatalf("SetGroupMembers: %v", err)
+	}
+	if err := s.DenyAll("mnt/storage", idxPath("/tenant")); err != nil {
+		t.Fatalf("DenyAll: %v", err)
+	}
+	if err := s.AllowGroup("mnt/storage", idxPath("/tenant"), "acme"); err != nil {
+		t.Fatalf("AllowGroup: %v", err)
+	}
+	if !s.Permitted("mnt/storage", idxPath("/tenant"), "alice") {
+		t.Fatal("alice should be permitted through the group before it is deleted")
+	}
+
+	if err := s.DeleteGroup("acme"); err != nil {
+		t.Fatalf("DeleteGroup: %v", err)
+	}
+
+	// Deleting the group must not remove the deny-all rule and open the path to everyone.
+	if s.Permitted("mnt/storage", idxPath("/tenant"), "alice") || s.Permitted("mnt/storage", idxPath("/tenant"), "bob") {
+		t.Fatal("path must stay denied for everyone after the allowed group is deleted")
+	}
+	rules := s.GetRulesForGroup("mnt/storage", "acme")
+	if len(rules) != 0 {
+		t.Fatalf("no rule should reference the deleted group, got %v", rules)
+	}
+	sqlRules, err := sqlStore.GetAllAccessRules()
+	if err != nil {
+		t.Fatal(err)
+	}
+	stored := 0
+	for _, r := range sqlRules["mnt/storage"] {
+		if r.DenyAll {
+			stored++
+		}
+	}
+	if stored != 1 {
+		t.Fatalf("expected the deny-all rule to remain stored in SQL, found %d", stored)
+	}
+}
