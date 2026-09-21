@@ -1056,7 +1056,8 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if d.Share.ShareType != "upload" && !d.Share.AllowCreate {
 		return http.StatusForbidden, fmt.Errorf("uploading is disabled for this share")
 	}
-	if !d.Share.AllowReplacements && r.URL.Query().Get("action") == "override" {
+	q := r.URL.Query()
+	if !d.Share.AllowReplacements && (q.Get("action") == "override" || q.Get("override") == "true") {
 		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
 	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
@@ -1064,7 +1065,6 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
 	source := sourceInfo.Name
-	q := r.URL.Query()
 	q.Set("source", source)
 	q.Set("path", d.IndexPath)
 	r.URL.RawQuery = q.Encode()
