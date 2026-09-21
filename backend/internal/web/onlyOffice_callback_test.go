@@ -3,12 +3,17 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -134,4 +139,62 @@ func TestParseOnlyOfficeCallbackFromJSONPlainWhenNoSecret(t *testing.T) {
 	if callback.Key != "doc-key" || callback.Status != 2 {
 		t.Fatalf("callback = %+v", callback)
 	}
+}
+
+func TestValidateOnlyOfficeCallbackKey(t *testing.T) {
+	const realPath = "/data/docs/report.docx"
+	const cacheKey = "oo-session-key"
+	user := &users.User{FrontendUser: users.FrontendUser{Username: "alice"}}
+
+	origFunc := files.FileInfoFasterFunc
+	t.Cleanup(func() { files.FileInfoFasterFunc = origFunc })
+
+	t.Run("match", func(t *testing.T) {
+		files.FileInfoFasterFunc = func(utils.FileOptions, *users.User) (*iteminfo.ExtendedFileInfo, error) {
+			return &iteminfo.ExtendedFileInfo{RealPath: realPath}, nil
+		}
+		utils.OnlyOfficeCache.Set(realPath, cacheKey)
+		t.Cleanup(func() { utils.OnlyOfficeCache.Delete(realPath) })
+
+		err := validateOnlyOfficeCallbackKey("source", "/report.docx", user, &OnlyOfficeCallback{Key: cacheKey})
+		if err != nil {
+			t.Fatalf("validateOnlyOfficeCallbackKey() error = %v", err)
+		}
+	})
+
+	t.Run("mismatch", func(t *testing.T) {
+		files.FileInfoFasterFunc = func(utils.FileOptions, *users.User) (*iteminfo.ExtendedFileInfo, error) {
+			return &iteminfo.ExtendedFileInfo{RealPath: realPath}, nil
+		}
+		utils.OnlyOfficeCache.Set(realPath, cacheKey)
+		t.Cleanup(func() { utils.OnlyOfficeCache.Delete(realPath) })
+
+		err := validateOnlyOfficeCallbackKey("source", "/report.docx", user, &OnlyOfficeCallback{Key: "other-key"})
+		if err == nil {
+			t.Fatal("expected document key mismatch error")
+		}
+	})
+
+	t.Run("cache miss", func(t *testing.T) {
+		files.FileInfoFasterFunc = func(utils.FileOptions, *users.User) (*iteminfo.ExtendedFileInfo, error) {
+			return &iteminfo.ExtendedFileInfo{RealPath: realPath}, nil
+		}
+		utils.OnlyOfficeCache.Delete(realPath)
+
+		err := validateOnlyOfficeCallbackKey("source", "/report.docx", user, &OnlyOfficeCallback{Key: cacheKey})
+		if err == nil {
+			t.Fatal("expected error for cache miss")
+		}
+	})
+
+	t.Run("file lookup failure", func(t *testing.T) {
+		files.FileInfoFasterFunc = func(utils.FileOptions, *users.User) (*iteminfo.ExtendedFileInfo, error) {
+			return nil, fmt.Errorf("not found")
+		}
+
+		err := validateOnlyOfficeCallbackKey("source", "/report.docx", user, &OnlyOfficeCallback{Key: cacheKey})
+		if err == nil {
+			t.Fatal("expected error when file lookup fails")
+		}
+	})
 }

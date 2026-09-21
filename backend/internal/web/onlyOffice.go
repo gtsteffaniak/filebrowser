@@ -821,7 +821,8 @@ func onlyOfficeCallbackFromClaims(claims jwt.MapClaims) (*OnlyOfficeCallback, er
 	return &callback, nil
 }
 
-// validateOnlyOfficeCallbackKey ensures the callback document key matches the active editor session when known.
+// validateOnlyOfficeCallbackKey ensures the callback document key matches the active editor session.
+// Fails closed when the path cannot be resolved or no editor session key is cached for that file.
 func validateOnlyOfficeCallbackKey(source, path string, user *users.User, data *OnlyOfficeCallback) error {
 	if data.Key == "" {
 		return errors.New("missing document key in callback")
@@ -832,12 +833,15 @@ func validateOnlyOfficeCallbackKey(source, path string, user *users.User, data *
 		Expand:         false,
 		FollowSymlinks: true,
 	}, user)
-	if err != nil || fi == nil || fi.RealPath == "" {
-		return nil
+	if err != nil {
+		return fmt.Errorf("could not resolve document for callback: %w", err)
+	}
+	if fi == nil || fi.RealPath == "" {
+		return errors.New("could not resolve document path for callback")
 	}
 	expectedKey, err := GetOnlyOfficeId(fi.RealPath)
 	if err != nil {
-		return nil
+		return errors.New("unknown or expired OnlyOffice editor session for document")
 	}
 	if expectedKey != data.Key {
 		return fmt.Errorf("document key mismatch for path %s", path)
