@@ -3601,6 +3601,12 @@ paths:
           description: Resource metadata
           schema:
             $ref: '#/definitions/iteminfo.FileInfo'
+        "400":
+          description: Missing or invalid path query parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Resource not found
           schema:

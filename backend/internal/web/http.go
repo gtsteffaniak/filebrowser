@@ -142,9 +142,9 @@ func ErrToStatus(err error) int {
 		return http.StatusForbidden
 	case errors.Is(err, libErrors.ErrPathEscapesScope):
 		return http.StatusForbidden
-	case os.IsNotExist(err), err == libErrors.ErrNotExist:
+	case os.IsNotExist(err), errors.Is(err, os.ErrNotExist), err == libErrors.ErrNotExist:
 		return http.StatusNotFound
-	case os.IsExist(err), err == libErrors.ErrExist:
+	case os.IsExist(err), errors.Is(err, os.ErrExist), err == libErrors.ErrExist:
 		return http.StatusConflict
 	case errors.Is(err, libErrors.ErrPermissionDenied):
 		return http.StatusForbidden
@@ -157,6 +157,14 @@ func ErrToStatus(err error) int {
 	default:
 		return http.StatusInternalServerError
 	}
+}
+
+// realPathErrStatus maps filesystem path resolution errors to HTTP status codes for download/view/archive paths.
+func realPathErrStatus(err error) int {
+	if errors.Is(err, libErrors.ErrPathEscapesScope) {
+		return http.StatusForbidden
+	}
+	return ErrToStatus(err)
 }
 
 // RenderJSON writes a JSON response, optionally gzip-compressed.
