@@ -260,7 +260,7 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		_, isDir, err = idx.GetRealPath(firstFilePath)
 	}
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return realPathErrStatus(err), err
 	}
 
 	if len(fileList) == 1 && !isDir {

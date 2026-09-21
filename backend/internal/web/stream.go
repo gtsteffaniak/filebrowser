@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-	liberrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -447,10 +446,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 
 	realPath, _, err := idx.GetRealPathScoped(bound, scopedFilePath)
 	if err != nil {
-		if errors.Is(err, liberrors.ErrPathEscapesScope) {
-			return http.StatusForbidden, err
-		}
-		return http.StatusInternalServerError, err
+		return realPathErrStatus(err), err
 	}
 
 	isOnlyOffice := IsOnlyOfficeCompatibleFile(displayFileName) && settings.Config.Integrations.OnlyOffice.Url != ""
@@ -469,7 +465,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 			SendOnlyOfficeLogEvent(logContext, "ERROR", "download",
 				fmt.Sprintf("OnlyOffice download failed - could not open file: %s - %v", scopedFilePath, err))
 		}
-		return http.StatusInternalServerError, err
+		return realPathErrStatus(err), err
 	}
 	defer fd.Close()
 

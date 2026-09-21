@@ -755,7 +755,7 @@ func BuildAndStreamArchive(w http.ResponseWriter, r *http.Request, d *Context, s
 	}
 	realPath, _, err := idx.GetRealPath(fileList[0])
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to get real path for %s: %v", fileList[0], err)
+		return realPathErrStatus(err), err
 	}
 
 	algo := r.URL.Query().Get("algo")

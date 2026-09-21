@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Improved UI responsiveness for larger directories and firefox, marginal improvement to memory (#1773) (#2879)
+ - `/api/resources/download` and `/public/api/resources/download` now return HTTP 404 when the requested file or directory does not exist, instead of 500 (#2981)
 
  **Bugfixes**:
  - Public share folder and multi-file ZIP downloads were empty for anonymous visitors when the source used deny-by-default or path access rules (#2631)
