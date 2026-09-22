@@ -2,8 +2,27 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v2.0.7
+## v2.0.8
 
+ **Security**:
+ - [Critical] A forged JWT could authenticate as any known `belongsTo`. Auth signing keys are now persisted in the application database and JWT validation fails closed when no key is configured. (GHSA-8f9r-wg7w-pfw) (#2987) Thanks @d3do-23 and @whoamis3c.
+ - [Medium] Public upload shares with replacements disabled (`allowReplacements=false`) now reject overwrites when clients send `override=true`. (GHSA-3846-gh75-gp3m) Thanks @d3do-23
+ - [Medium] OnlyOffice document-server callbacks now verify the shared `integrations.office.secret` JWT (HS256), reject unsigned callback bodies when a secret is configured, and require the callback document key to match the cached editor session for the target path (fail closed on cache miss or path lookup failure).
+
+ **New Features**:
+ - add "Upload only what's missing" to the upload conflict prompt (#2985) (#2553)
+
+ **Notes**:
+ - Improved UI responsiveness for larger directories and firefox, marginal improvement to memory (#1773) (#2879)
+ - `/api/resources/download` and `/public/api/resources/download` now return HTTP 404 when the requested file or directory does not exist, instead of 500 (#2981)
+ - `GET /api/resources` returns 400 when the `path` query parameter is missing or empty instead of 500 (#2801)
+
+ **Bugfixes**:
+ - Public share folder and multi-file ZIP downloads were empty for anonymous visitors when the source used deny-by-default or path access rules (#2631) (#2365)
+ - 401 on pdf download button action (#2978)
+ - OnlyOffice saves could no-op with HTTP 200 when JWT was enabled: callback POST bodies wrapped in `token` were ignored and JWT parsing omitted fields such as `url` required to download the updated document from the Document Server.
+
+## v2.0.7
 
  **New Features**:
  - Add cli init CLI command (#2957)

@@ -58,7 +58,8 @@
     "lonely": "Rien à voir ici...",
     "cannotAccesDir": "Impossible d'accéder au dossier",
     "newFolderMessage": "Indiquez le nom du nouveau dossier.",
-    "newFolderSuccess": "Le dossier a été créé avec succès !"
+    "newFolderSuccess": "Le dossier a été créé avec succès !",
+    "mobilePdfPreviewHint": "Votre navigateur ne peut pas afficher ce fichier PDF dans l'aperçu de l'application."
   },
   "help": {
     "functionKeys": "Touches de Fonction",
@@ -163,6 +164,15 @@
     "dragAndDrop": "Glisser-déposer des fichiers ici",
     "completed": "Terminé",
     "conflictsDetected": "Conflits détectés",
+    "uploadMissing": "Importer uniquement ce qui manque",
+    "optionLabel": "{name} :",
+    "uploadConflictTitle": "Les fichiers existent déjà",
+    "uploadConflictMessage": "Certains de ces fichiers existent déjà dans ce dossier. Que voulez-vous faire ?",
+    "uploadMissingInfo": "Les fichiers déjà complets (même taille) ne sont pas importés à nouveau, les fichiers vides sont remplacés et les fichiers de taille différente sont enregistrés avec le suffixe _01, _02... Rien n'est supprimé.",
+    "uploadReplaceInfo": "Écrase chaque fichier existant avec ceux que vous importez.",
+    "uploadRenameInfo": "Importe le dossier sous un nouveau nom.",
+    "uploadRenamed": "{count} fichier(s) existaient déjà avec une taille différente et ont été importés avec le suffixe _01, _02... au lieu d'être remplacés",
+    "uploadSkipped": "{count} fichier(s) déjà importé(s) avec la même taille ont été ignoré(s)",
     "downloadsLimit": "Limite du nombre de téléchargements",
     "maxBandwidth": "Largeur de bande maximale de téléchargement (kbps)",
     "shareThemeColor": "Partager la couleur du thème (valeur CSS)",

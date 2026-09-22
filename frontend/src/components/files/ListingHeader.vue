@@ -69,7 +69,7 @@ export default {
   },
   computed: {
     isMobile() {
-      return state.isMobile;
+      return getters.isMobile();
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -117,7 +117,7 @@ export default {
       return "arrow_upward";
     },
     quickDownloadEnabled() {
-      if (state.isMobile) {
+      if (getters.isMobile()) {
         return false
       }
       if (getters.isShare()) {

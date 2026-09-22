@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-	liberrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -424,10 +423,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
-	permUser := d.User.Username
-	if d.Share.Hash != "" {
-		permUser = d.ShareUser.Username
-	}
+	permUser := accessCheckUsername(d)
 
 	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(scopedFilePath, true), permUser) {
 		logger.Debugf("user %s denied access to path %s", permUser, scopedFilePath)
@@ -450,10 +446,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 
 	realPath, _, err := idx.GetRealPathScoped(bound, scopedFilePath)
 	if err != nil {
-		if errors.Is(err, liberrors.ErrPathEscapesScope) {
-			return http.StatusForbidden, err
-		}
-		return http.StatusInternalServerError, err
+		return realPathErrStatus(err), err
 	}
 
 	isOnlyOffice := IsOnlyOfficeCompatibleFile(displayFileName) && settings.Config.Integrations.OnlyOffice.Url != ""
@@ -472,7 +465,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 			SendOnlyOfficeLogEvent(logContext, "ERROR", "download",
 				fmt.Sprintf("OnlyOffice download failed - could not open file: %s - %v", scopedFilePath, err))
 		}
-		return http.StatusInternalServerError, err
+		return realPathErrStatus(err), err
 	}
 	defer fd.Close()
 

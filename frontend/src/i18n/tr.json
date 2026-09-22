@@ -58,7 +58,8 @@
     "lonely": "Burada gösterecek bir şey yok.",
     "cannotAccesDir": "Klasöre erişilemiyor",
     "newFolderMessage": "Yeni klasörün adını yazın.",
-    "newFolderSuccess": "Klasör başarıyla oluşturuldu!"
+    "newFolderSuccess": "Klasör başarıyla oluşturuldu!",
+    "mobilePdfPreviewHint": "Tarayıcınız, uygulama önizlemesi içinde bu PDF dosyasını görüntüleyemiyor."
   },
   "help": {
     "functionKeys": "Fonksiyon Tuşları",
@@ -163,6 +164,15 @@
     "dragAndDrop": "Dosyaları buraya sürükleyip bırakın",
     "completed": "Tamamlandı",
     "conflictsDetected": "Çakışmalar tespit edildi",
+    "uploadMissing": "Yalnızca eksik olanları yükle",
+    "optionLabel": "{name}:",
+    "uploadConflictTitle": "Dosyalar zaten var",
+    "uploadConflictMessage": "Bu dosyalardan bazıları bu klasörde zaten var. Ne yapmak istersiniz?",
+    "uploadMissingInfo": "Zaten tamamlanmış dosyalar (aynı boyut) tekrar yüklenmez, boş dosyalar değiştirilir ve farklı boyuttaki dosyalar _01, _02... son ekiyle kaydedilir. Hiçbir şey silinmez.",
+    "uploadReplaceInfo": "Mevcut tüm dosyaların üzerine yüklediğiniz dosyaları yazar.",
+    "uploadRenameInfo": "Klasörü yeni bir adla yükler.",
+    "uploadRenamed": "{count} dosya farklı boyutta zaten vardı ve değiştirilmek yerine _01, _02... son ekiyle yüklendi",
+    "uploadSkipped": "Aynı boyutla zaten yüklenmiş {count} dosya atlandı",
     "downloadsLimit": "İndirme sayısı sınırı",
     "maxBandwidth": "Maksimum indirme bant genişliği (kbps)",
     "shareThemeColor": "Paylaşım tema rengi (CSS değeri)",

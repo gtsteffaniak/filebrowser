@@ -62,7 +62,6 @@ export function encodePath(str) {
     .join("/");
 }
 
-
 export function pathsMatch(url1, url2) {
   return removeTrailingSlash(url1) === removeTrailingSlash(url2);
 }

@@ -264,7 +264,7 @@ export default {
     performNavigation(cv) {
       if (cv === "listingView" || ( getters.isShare() && getters.multibuttonState() !== "close") || cv === "tools") {
         mutations.toggleSidebar();
-      } else if (cv === "settings" && state.isMobile) {
+      } else if (cv === "settings" && getters.isMobile()) {
         mutations.toggleSidebar();
       } else {
         mutations.closeHovers();

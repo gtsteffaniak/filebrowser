@@ -135,7 +135,7 @@ export default {
       return getters.isDarkMode();
     },
     isMobile() {
-      return state.isMobile;
+      return getters.isMobile();
     },
     canStart() {
       // Can start watching if we have source, path, and not already watching
@@ -606,8 +606,9 @@ export default {
 .config-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: nowrap;
+  min-width: 0;
   padding: 1em !important;
 }
 
@@ -619,13 +620,16 @@ export default {
 .config-row-second {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex: 1;
+  gap: 0.75rem;
+  flex: 0 0 auto;
 }
 
 .config-row-second.mobile {
   width: 100%;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .config-item {
@@ -655,7 +659,12 @@ export default {
 }
 
 .file-picker {
-  flex-grow: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.config-item.interval-select {
+  min-width: 0;
 }
 
 .config-row.mobile .file-picker {
@@ -860,7 +869,7 @@ export default {
   .config-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   .config-item.file-picker {
@@ -872,22 +881,32 @@ export default {
   }
 
   .config-row-second {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.5rem;
     width: 100%;
-  }
-
-  .config-item.interval-select,
-  .config-item.lines-input,
-  .config-item.play-button {
-    flex: 1;
-    width: auto !important;
+    align-items: center;
   }
 
   .terminal-output {
     font-size: 12px;
     min-height: 100px;
   }
+}
+
+@media (max-width: 1100px) {
+  .config-row:not(.mobile) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .config-row:not(.mobile) .config-row-second {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.5rem;
+  }
+
 }
 </style>

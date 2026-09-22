@@ -135,11 +135,20 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 // @Param metadata query string false "When true, run audio/video metadata extraction, subtitles, and directory media batch processing"
 // @Param checksum query string false "Optional checksum validation"
 // @Success 200 {object} iteminfo.FileInfo "Resource metadata"
+// @Failure 400 {object} map[string]string "Missing or invalid path query parameter"
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if _, ok := r.URL.Query()["path"]; !ok {
+		return http.StatusBadRequest, fmt.Errorf("path query parameter is required")
+	}
 	path := r.URL.Query().Get("path")
+	cleanPath, err := utils.SanitizePath(path)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	path = cleanPath
 	source := r.URL.Query().Get("source")
 	filePerms, err := effectiveFilePerms(d, source)
 	if err != nil {
@@ -1056,7 +1065,8 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if d.Share.ShareType != "upload" && !d.Share.AllowCreate {
 		return http.StatusForbidden, fmt.Errorf("uploading is disabled for this share")
 	}
-	if !d.Share.AllowReplacements && r.URL.Query().Get("action") == "override" {
+	q := r.URL.Query()
+	if !d.Share.AllowReplacements && (q.Get("action") == "override" || q.Get("override") == "true") {
 		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
 	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
@@ -1064,7 +1074,6 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
 	source := sourceInfo.Name
-	q := r.URL.Query()
 	q.Set("source", source)
 	q.Set("path", d.IndexPath)
 	r.URL.RawQuery = q.Encode()
@@ -1647,7 +1656,16 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	if err != nil || err2 != nil {
 		return
 	}
-	mockDir := indexing.CreateMockData(NumDirs, numFiles)
+	// Optional explicit seed; 0 means derive deterministically from the shape.
+	var seed int64
+	if s := r.URL.Query().Get("seed"); s != "" {
+		parsed, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return
+		}
+		seed = parsed
+	}
+	mockDir := indexing.CreateMockDataSeeded(NumDirs, numFiles, seed)
 	RenderJSON(w, r, mockDir) // nolint:errcheck
 }
 

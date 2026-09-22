@@ -50,6 +50,21 @@ func setupTestEnv(t *testing.T) {
 	mockFileInfoFaster(t) // Mock FileInfoFasterFunc for this test
 }
 
+func testSessionToken(t *testing.T, user *users.User, duration time.Duration) string {
+	t.Helper()
+	if duration == 0 {
+		duration = time.Hour * 2
+	}
+	tokenString, _, err := auth.MakeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), duration, user.Permissions, true)
+	if err != nil {
+		t.Fatalf("MakeSignedTokenAPI: %v", err)
+	}
+	if err := state.RegisterSessionToken(tokenString, user.ID); err != nil {
+		t.Fatalf("RegisterSessionToken: %v", err)
+	}
+	return tokenString
+}
+
 func mockFileInfoFaster(t *testing.T) {
 	// Backup the original function
 	originalFileInfoFaster := FileInfoFasterFunc
@@ -123,10 +138,7 @@ func TestWithAdminHelper(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			tokenString, _, err := auth.MakeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Permissions, false)
-			if err != nil {
-				t.Fatalf("Error making token for request: %v", err)
-			}
+			tokenString := testSessionToken(t, tc.user, time.Hour*2)
 
 			handler := withAdmin(mockHandler)
 
@@ -173,10 +185,7 @@ func TestPublicShare_RejectsRevokedJWT(t *testing.T) {
 	settings.Config.Auth.Key = "key"
 	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
 
-	tokenString, _, err := auth.MakeSignedTokenAPI(victim, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, victim.Permissions, false)
-	if err != nil {
-		t.Fatalf("failed to issue token: %v", err)
-	}
+	tokenString := testSessionToken(t, victim, time.Hour*2)
 
 	shareLink := &share.Share{
 		ShareSettings: share.ShareSettings{
@@ -311,10 +320,7 @@ func issueExtractUserTestToken(t *testing.T, duration time.Duration) (*users.Use
 	settings.Config.Auth.Key = "key"
 	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
 
-	tokenString, _, err := auth.MakeSignedTokenAPI(&user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), duration, user.Permissions, false)
-	if err != nil {
-		t.Fatalf("failed to issue token: %v", err)
-	}
+	tokenString := testSessionToken(t, &user, duration)
 	return &user, tokenString
 }
 

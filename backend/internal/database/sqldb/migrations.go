@@ -6,7 +6,7 @@ import (
 )
 
 // currentSchemaVersion is the SQLite schema marker for this codebase.
-const currentSchemaVersion = 2
+const currentSchemaVersion = 3
 
 // Schema creates all tables for the SQLite database
 func createSchema(db *sql.DB) error {
@@ -77,7 +77,8 @@ func createSchema(db *sql.DB) error {
 	-- Hashed tokens (minimal JWT → owner user_id)
 	CREATE TABLE IF NOT EXISTS hashed_tokens (
 		token_hash TEXT PRIMARY KEY,
-		user_id TEXT NOT NULL
+		user_id TEXT NOT NULL,
+		is_session INTEGER NOT NULL DEFAULT 0
 	);
 	CREATE INDEX IF NOT EXISTS idx_hashed_tokens_user_id ON hashed_tokens(user_id);
 
@@ -185,6 +186,10 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 			if err := normalizeLegacyShareTokens(db); err != nil {
 				return err
 			}
+		case 3:
+			if err := addHashedTokenSessionColumn(db); err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("unknown schema version: %d", v)
 		}
@@ -197,4 +202,50 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 	}
 
 	return nil
+}
+
+// addHashedTokenSessionColumn adds the is_session flag to pre-existing
+// hashed_tokens tables. Existing rows are treated as non-session (API) tokens.
+func addHashedTokenSessionColumn(db *sql.DB) error {
+	hasColumn, err := tableHasColumn(db, "hashed_tokens", "is_session")
+	if err != nil {
+		return err
+	}
+	if hasColumn {
+		return nil
+	}
+	if _, err := db.Exec(`ALTER TABLE hashed_tokens ADD COLUMN is_session INTEGER NOT NULL DEFAULT 0`); err != nil {
+		return fmt.Errorf("failed to add hashed_tokens.is_session: %w", err)
+	}
+	return nil
+}
+
+// tableHasColumn reports whether table/column exists in the current schema.
+func tableHasColumn(db *sql.DB, table, column string) (bool, error) {
+	rows, err := db.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
+	if err != nil {
+		return false, fmt.Errorf("failed to inspect table %s: %w", table, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			cid       int
+			name      string
+			ctype     string
+			notNull   int
+			dfltValue sql.NullString
+			pk        int
+		)
+		if err := rows.Scan(&cid, &name, &ctype, &notNull, &dfltValue, &pk); err != nil {
+			return false, fmt.Errorf("failed to scan table_info(%s): %w", table, err)
+		}
+		if name == column {
+			return true, nil
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return false, fmt.Errorf("error iterating table_info(%s): %w", table, err)
+	}
+	return false, nil
 }

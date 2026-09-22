@@ -222,7 +222,8 @@
     "sameFolder": "Impossibile spostare nella stessa cartella",
     "cannotAccesDir": "Impossibile accedere alla cartella",
     "newFolderMessage": "Inserisci il nome della nuova cartella.",
-    "newFolderSuccess": "La cartella è stata creata con successo!"
+    "newFolderSuccess": "La cartella è stata creata con successo!",
+    "mobilePdfPreviewHint": "Il tuo browser non è in grado di visualizzare questo PDF nell'anteprima dell'app."
   },
   "help": {
     "functionKeys": "Tasti funzione",
@@ -430,6 +431,15 @@
     "optionalPassword": "Password opzionale",
     "deleted": "Eliminato con successo!",
     "conflictsDetected": "Conflitti rilevati",
+    "uploadMissing": "Carica solo ciò che manca",
+    "optionLabel": "{name}:",
+    "uploadConflictTitle": "I file esistono già",
+    "uploadConflictMessage": "Alcuni di questi file esistono già in questa cartella. Cosa vuoi fare?",
+    "uploadMissingInfo": "I file già completi (stessa dimensione) non vengono caricati di nuovo, i file vuoti vengono sostituiti e i file con dimensione diversa vengono salvati con il suffisso _01, _02... Nulla viene eliminato.",
+    "uploadReplaceInfo": "Sovrascrive ogni file esistente con quelli che stai caricando.",
+    "uploadRenameInfo": "Carica la cartella con un nuovo nome.",
+    "uploadRenamed": "{count} file esistevano già con una dimensione diversa e sono stati caricati con il suffisso _01, _02... invece di sostituirli",
+    "uploadSkipped": "{count} file già caricati con la stessa dimensione sono stati ignorati",
     "copyPasteConfirm": "Conferma Copia/Incolla",
     "copyItemQuestion": "Copiare questo elemento nella nuova posizione?",
     "moveItemQuestion": "Spostare questo elemento nella nuova posizione?",

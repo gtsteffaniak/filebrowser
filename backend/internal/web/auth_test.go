@@ -178,10 +178,7 @@ func TestApplyNamedApiTokenGlobalCaps(t *testing.T) {
 
 	t.Run("session token unchanged", func(t *testing.T) {
 		user := *owner
-		applyNamedApiTokenGlobalCaps(&user, users.AuthToken{
-			BelongsTo:   1,
-			Permissions: users.Permissions{Admin: false},
-		}, "WEB_TOKEN_abcd")
+		applyNamedApiTokenGlobalCaps(&user, "WEB_TOKEN_abcd")
 		if !user.Permissions.Admin {
 			t.Fatal("session token should keep DB admin")
 		}
@@ -189,7 +186,10 @@ func TestApplyNamedApiTokenGlobalCaps(t *testing.T) {
 
 	t.Run("minimal api token unchanged", func(t *testing.T) {
 		user := *owner
-		applyNamedApiTokenGlobalCaps(&user, users.AuthToken{}, "my-key")
+		user.Tokens = map[string]users.AuthToken{
+			"my-key": {Name: "my-key", Permissions: users.Permissions{}},
+		}
+		applyNamedApiTokenGlobalCaps(&user, "my-key")
 		if !user.Permissions.Admin {
 			t.Fatal("minimal token should keep DB admin")
 		}
@@ -197,17 +197,20 @@ func TestApplyNamedApiTokenGlobalCaps(t *testing.T) {
 
 	t.Run("custom api token caps globals", func(t *testing.T) {
 		user := *owner
-		applyNamedApiTokenGlobalCaps(&user, users.AuthToken{
-			BelongsTo: 1,
-			Permissions: users.Permissions{
-				Admin:  false,
-				Api:    true,
-				Share:  true,
-				Modify: true,
+		user.Tokens = map[string]users.AuthToken{
+			"customized": {
+				Name: "customized",
+				Permissions: users.Permissions{
+					Admin:  false,
+					Api:    true,
+					Share:  true,
+					Modify: true,
+				},
 			},
-		}, "customized")
+		}
+		applyNamedApiTokenGlobalCaps(&user, "customized")
 		if user.Permissions.Admin {
-			t.Fatal("custom token should cap admin from JWT")
+			t.Fatal("custom token should cap admin from stored metadata")
 		}
 		if !user.Permissions.Api || !user.Permissions.Share {
 			t.Fatalf("expected api and share, got %#v", user.Permissions)

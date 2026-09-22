@@ -9,6 +9,7 @@ import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 import { defaultDarkMode } from '@/utils/theme';
+import { isMobileLayout } from '@/utils/viewport.js';
 import type { DisplayPreference, FileListItem } from './types';
 
 export const getters = {
@@ -153,7 +154,7 @@ export const getters = {
     getters.viewMode() === 'normal' ||
     getters.viewMode() === 'icons',
   currentHash: () => state.shareInfo?.hash,
-  isMobile: () => state.isMobile,
+  isMobile: () => isMobileLayout.value,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
   isDarkMode: () => {
@@ -570,12 +571,12 @@ export const getters = {
         return "back";
       }
       if (cv === "settings") {
-        if (state.isMobile) {
+        if (getters.isMobile()) {
           return "back";
         }
         return "close";
       }
-      if (state.isMobile) {
+      if (getters.isMobile()) {
         return "back";
       }
       if (cv === "listingView" || state.shareInfo?.singleFileShare) {
@@ -593,7 +594,7 @@ export const getters = {
       return "menu";
     }
     if (cv === "settings") {
-      if (state.isMobile) {
+      if (getters.isMobile()) {
         return "menu";
       }
     }
@@ -674,6 +675,15 @@ export const getters = {
       create: false,
       delete: false,
     };
+    if ((globalVars.devMode || globalVars.playwrightTest) && activeSource === 'mockData') {
+      return {
+        view: true,
+        download: false,
+        modify: false,
+        create: false,
+        delete: false,
+      };
+    }
     if (!activeSource || !Array.isArray(state.user?.scopes)) {
       return denyFile;
     }

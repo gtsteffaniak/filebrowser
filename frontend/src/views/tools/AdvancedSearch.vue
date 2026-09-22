@@ -665,7 +665,7 @@ export default {
         const iconFontSize = (3 + size * 0.5).toFixed(2);
         styles["--icon-font-size"] = `${iconFontSize}em`;
 
-        if (state.isMobile) {
+        if (getters.isMobile()) {
           const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
           const mobileHeight = 120 + size * 20;
           styles["--gallery-mobile-min-width"] = `${minWidth}px`;

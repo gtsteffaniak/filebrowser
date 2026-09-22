@@ -1,6 +1,8 @@
 package state
 
 import (
+	"fmt"
+
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -110,6 +112,36 @@ func RemoveRuleByPathKey(sourcePath, pathKey string) {
 
 func AddApiToken(tokenString string, userID uint64) error {
 	return accessDb.AddApiToken(tokenString, userID)
+}
+
+// RegisterSessionToken maps a session bearer JWT to its owner user id.
+func RegisterSessionToken(tokenString string, userID uint64) error {
+	if accessDb == nil {
+		return fmt.Errorf("access storage not available")
+	}
+	return accessDb.AddSessionToken(tokenString, userID)
+}
+
+// RetireSessionToken schedules a rotated session token for revocation after a
+// short grace window so in-flight requests carrying the old cookie still work.
+func RetireSessionToken(tokenString string) error {
+	if accessDb == nil {
+		return fmt.Errorf("access storage not available")
+	}
+	return accessDb.RetireToken(tokenString)
+}
+
+// HashedTokenOwner returns the owner id and session type for a registered bearer
+// token hash. ok is false when the hash has no mapping (unknown or already revoked).
+func HashedTokenOwner(tokenString string) (userID uint64, isSession bool, ok bool) {
+	if accessDb == nil {
+		return 0, false, false
+	}
+	info, found := accessDb.GetHashedTokenInfo(tokenString)
+	if !found {
+		return 0, false, false
+	}
+	return info.UserID, info.IsSession, true
 }
 
 func RemoveApiToken(tokenString string) error {
