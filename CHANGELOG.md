@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.9
 
+ **Notes**:
+ - Webdav always shows hidden files, ignores user preference. (#3004)
+
  **Bugfixes**:
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
  - ffmpeg unresponsive lock issue (#2996)
