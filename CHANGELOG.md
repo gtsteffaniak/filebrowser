@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.9
+
+ **Bugfixes**:
+ - Fixed intermittent blank page / blocked inline SPA script after CSP hardening: CSP nonces are now generated with unpadded URL-safe base64 (`RawURLEncoding`) instead of `StdEncoding`, whose `+` character `html/template` escapes as `&#43;`, breaking the match against the `nonce-...` CSP header source. The server also logs when the header nonce is missing from the rendered HTML so this class of mismatch surfaces instead of failing silently (#2995)
+
 ## v2.0.8
 
  **Security**:
