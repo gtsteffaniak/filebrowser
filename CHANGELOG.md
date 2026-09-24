@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bugfixes**:
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
+ - ffmpeg unresponsive lock issue (#2996)
 
 ## v2.0.8
 
