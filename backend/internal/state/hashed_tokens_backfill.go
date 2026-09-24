@@ -36,18 +36,13 @@ func BackfillHashedTokensFromUserRecords() error {
 }
 
 // BackfillUserTokenHashesOnStore writes hash mappings for a user's stored token strings (migration helper).
+// It scans both Tokens and legacy ApiKeys so pre-2.0.8 tokens issued before the
+// minimal-JWT cutover regain a hashed_tokens row. Strict auth ignores BelongsTo.
 func BackfillUserTokenHashesOnStore(store *sqldb.SQLStore, user *users.User) error {
 	if store == nil || user == nil || user.ID == 0 {
 		return nil
 	}
-	for _, tok := range user.Tokens {
-		raw := tok.Token
-		if raw == "" {
-			raw = tok.Key
-		}
-		if raw == "" {
-			continue
-		}
+	for _, raw := range collectStoredRawTokens(user) {
 		if err := store.SaveHashedToken(utils.HashSHA256(raw), user.ID, false); err != nil {
 			return err
 		}
@@ -55,22 +50,46 @@ func BackfillUserTokenHashesOnStore(store *sqldb.SQLStore, user *users.User) err
 	return nil
 }
 
+// collectStoredRawTokens returns deduplicated raw JWT strings from Tokens (Token
+// field, falling back to legacy Key) and legacy ApiKeys.
+func collectStoredRawTokens(user *users.User) []string {
+	seen := make(map[string]struct{})
+	var out []string
+	add := func(raw string) {
+		if raw == "" {
+			return
+		}
+		if _, ok := seen[raw]; ok {
+			return
+		}
+		seen[raw] = struct{}{}
+		out = append(out, raw)
+	}
+	for _, tok := range user.Tokens {
+		add(tok.Token)
+		if tok.Token == "" {
+			add(tok.Key)
+		}
+	}
+	for _, tok := range user.ApiKeys {
+		add(tok.Token)
+		if tok.Token == "" {
+			add(tok.Key)
+		}
+	}
+	return out
+}
+
 // backfillUserTokenHashes maps each stored named API token to its owner. A
 // persistence failure is returned so initialization aborts instead of leaving a
-// mapping that silently stops working after restart.
+// mapping that silently stops working after restart. Legacy ApiKeys are
+// included so pre-2.0.8 tokens without a hashed_tokens row work again.
 func backfillUserTokenHashes(user *users.User) (int, error) {
 	if accessDb == nil || user == nil || user.ID == 0 {
 		return 0, nil
 	}
 	added := 0
-	for _, tok := range user.Tokens {
-		raw := tok.Token
-		if raw == "" {
-			raw = tok.Key
-		}
-		if raw == "" {
-			continue
-		}
+	for _, raw := range collectStoredRawTokens(user) {
 		if _, ok := accessDb.GetUserIDFromToken(raw); ok {
 			continue
 		}

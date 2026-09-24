@@ -3,10 +3,8 @@ package access_test
 import (
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 )
 
 type failingRevokePersister struct{}
@@ -18,9 +16,6 @@ func (failingRevokePersister) DeleteGroup(string) error                         
 func (failingRevokePersister) SaveRevokedToken(string, int64) error                    { return nil }
 func (failingRevokePersister) PersistImmediateTokenRevocation(string) error {
 	return errors.New("simulated revocation persistence failure")
-}
-func (failingRevokePersister) PersistTokenRetirement(string, int64, []string) error {
-	return errors.New("simulated retirement persistence failure")
 }
 func (failingRevokePersister) DeleteRevokedToken(string) error      { return nil }
 func (failingRevokePersister) SaveHashedToken(string, uint64, bool) error { return nil }
@@ -71,24 +66,6 @@ func TestRevokeTokenRollsBackMemoryOnPersistenceFailure(t *testing.T) {
 	}
 }
 
-func TestRetireTokenRollsBackMemoryOnPersistenceFailure(t *testing.T) {
-	store, _ := createTestStorage(t)
-	store.SetSQLStore(failingRevokePersister{})
-
-	if err := store.AddSessionToken("tok", 1); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.RetireToken("tok"); err == nil {
-		t.Fatal("expected RetireToken to propagate persistence failure")
-	}
-	if store.IsTokenRevoked("tok") {
-		t.Fatal("failed retirement must not leave in-memory revoked state")
-	}
-	if _, ok := store.GetHashedTokenInfo("tok"); !ok {
-		t.Fatal("failed retirement must keep owner mapping")
-	}
-}
-
 func TestRevokeTokenIsImmediate(t *testing.T) {
 	store, _ := createTestStorage(t)
 
@@ -106,28 +83,5 @@ func TestRevokeTokenIsImmediate(t *testing.T) {
 	}
 	if _, ok := store.GetHashedTokenInfo("tok"); ok {
 		t.Fatal("immediate revocation must remove the owner mapping")
-	}
-}
-
-func TestRetireTokenHonorsGraceWindow(t *testing.T) {
-	store, _ := createTestStorage(t)
-
-	if err := store.AddSessionToken("tok", 1); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.RetireToken("tok"); err != nil {
-		t.Fatal(err)
-	}
-	if store.IsTokenRevoked("tok") {
-		t.Fatal("retired token must remain valid during the grace window")
-	}
-	if _, ok := store.GetHashedTokenInfo("tok"); !ok {
-		t.Fatal("retired token mapping must remain during the grace window")
-	}
-
-	// Simulate the grace window elapsing.
-	store.RevokedTokens[utils.HashSHA256("tok")] = time.Now().Add(-3 * time.Minute).Unix()
-	if !store.IsTokenRevoked("tok") {
-		t.Fatal("retired token must be revoked once the grace window elapses")
 	}
 }

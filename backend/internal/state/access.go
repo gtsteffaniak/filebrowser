@@ -111,6 +111,9 @@ func RemoveRuleByPathKey(sourcePath, pathKey string) {
 }
 
 func AddApiToken(tokenString string, userID uint64) error {
+	if accessDb == nil {
+		return fmt.Errorf("access storage not available")
+	}
 	return accessDb.AddApiToken(tokenString, userID)
 }
 
@@ -120,15 +123,6 @@ func RegisterSessionToken(tokenString string, userID uint64) error {
 		return fmt.Errorf("access storage not available")
 	}
 	return accessDb.AddSessionToken(tokenString, userID)
-}
-
-// RetireSessionToken schedules a rotated session token for revocation after a
-// short grace window so in-flight requests carrying the old cookie still work.
-func RetireSessionToken(tokenString string) error {
-	if accessDb == nil {
-		return fmt.Errorf("access storage not available")
-	}
-	return accessDb.RetireToken(tokenString)
 }
 
 // HashedTokenOwner returns the owner id and session type for a registered bearer

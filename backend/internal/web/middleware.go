@@ -234,10 +234,12 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 func resolveBearerTokenUser(rawToken string) (*users.User, error) {
 	ownerID, isSession, ok := state.HashedTokenOwner(rawToken)
 	if !ok {
+		logger.Debugf("auth rejected: no hashed token mapping (hash=%s)", utils.HashSHA256(rawToken)[:8])
 		return nil, fmt.Errorf("token is invalid or revoked")
 	}
 	userValue, err := state.GetUserByID(ownerID)
 	if err != nil {
+		logger.Debugf("auth rejected: token owner %d not found (hash=%s)", ownerID, utils.HashSHA256(rawToken)[:8])
 		return nil, err
 	}
 	if isSession {
@@ -245,6 +247,7 @@ func resolveBearerTokenUser(rawToken string) (*users.User, error) {
 	}
 	tokenName, ok := state.TokenNameForRawToken(&userValue, rawToken)
 	if !ok {
+		logger.Debugf("auth rejected: token has no permission metadata for user %s (hash=%s)", userValue.Username, utils.HashSHA256(rawToken)[:8])
 		return nil, fmt.Errorf("token has no permission metadata")
 	}
 	applyNamedApiTokenGlobalCaps(&userValue, tokenName)

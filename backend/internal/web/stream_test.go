@@ -94,7 +94,7 @@ func TestMintAndValidateViewGrant(t *testing.T) {
 }
 
 func TestValidateViewGrantWrongScope(t *testing.T) {
-	t.Parallel()
+	// No t.Parallel: SourceMap is process-global and parallel readers race with this write.
 	initStreamTestSources(t)
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/default": {Path: "/default", Name: "default"},
@@ -190,7 +190,7 @@ func TestValidateViewGrantExtendsExpiry(t *testing.T) {
 }
 
 func TestValidateViewGrantShareBinding(t *testing.T) {
-	t.Parallel()
+	// No t.Parallel: SourceMap is process-global and parallel readers race with this write.
 	initStreamTestSources(t)
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/srv": {Path: "/srv", Name: "srv"},
@@ -634,7 +634,7 @@ func TestViewTokenHandlerMintsUniversalGrant(t *testing.T) {
 }
 
 func TestViewTokenHandlerMintsOnShareWithoutWebSession(t *testing.T) {
-	t.Parallel()
+	// No t.Parallel: SourceMap is process-global and parallel readers race with this write/cleanup.
 	initStreamTestSources(t)
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/srv": {Path: "/srv", Name: "srv"},
@@ -672,7 +672,7 @@ func TestViewTokenHandlerMintsOnShareWithoutWebSession(t *testing.T) {
 }
 
 func TestViewTokenHandlerRejectsUploadShare(t *testing.T) {
-	t.Parallel()
+	// No t.Parallel: SourceMap is process-global and parallel readers race with this write/cleanup.
 	initStreamTestSources(t)
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/srv": {Path: "/srv", Name: "srv"},
@@ -727,7 +727,7 @@ func TestCanMintViewTokenRejectsUploadShare(t *testing.T) {
 }
 
 func TestViewTokenHandlerRejectsSourceOnShare(t *testing.T) {
-	t.Parallel()
+	// No t.Parallel: SourceMap is process-global and parallel readers race with this write/cleanup.
 	initStreamTestSources(t)
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/srv": {Path: "/srv", Name: "srv"},

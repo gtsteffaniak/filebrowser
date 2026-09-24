@@ -26,7 +26,7 @@ func TestReplaceSessionTokenKeepsOldTokenWhenMintFails(t *testing.T) {
 	}
 }
 
-func TestReplaceSessionTokenRetiresOldWithGrace(t *testing.T) {
+func TestReplaceSessionTokenRevokesOldImmediately(t *testing.T) {
 	setupTestEnv(t)
 	user := createTokenAuthUser(t, "rotation-user-2", users.Permissions{Api: true})
 	oldToken := testSessionToken(t, user, time.Hour)
@@ -41,12 +41,11 @@ func TestReplaceSessionTokenRetiresOldWithGrace(t *testing.T) {
 	if _, isSession, ok := state.HashedTokenOwner(newToken); !ok || !isSession {
 		t.Fatalf("new token must be registered as a session: ok=%v isSession=%v", ok, isSession)
 	}
-	// The Playwright failures came from revoking the old token while in-flight
-	// requests still carried it. It must stay valid during the grace window.
-	if state.IsTokenRevoked(oldToken) {
-		t.Fatal("old token must remain valid during the retirement grace window")
+	// Revocation is immediate: the rotated token stops working at once.
+	if !state.IsTokenRevoked(oldToken) {
+		t.Fatal("old token must be revoked immediately after rotation")
 	}
-	if _, _, ok := state.HashedTokenOwner(oldToken); !ok {
-		t.Fatal("old token mapping must remain during the grace window")
+	if _, _, ok := state.HashedTokenOwner(oldToken); ok {
+		t.Fatal("old token mapping must be removed after rotation")
 	}
 }
