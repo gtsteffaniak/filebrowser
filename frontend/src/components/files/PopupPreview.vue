@@ -60,14 +60,14 @@ export default {
       if (!this.sourceInfo || this.sourceInfo.type === "3d") return;
       const { source, path, size, url, modified } = this.sourceInfo;
       setImageLoaded(source, path, size, modified, url);
-      if (!state.isMobile) {
+      if (!getters.isMobile()) {
         this.$nextTick(() => this.positionPopup());
       }
     },
     updateCursorPosition(event) {
       this.cursorX = event.clientX;
       this.cursorY = event.clientY;
-      if (!state.isMobile) this.positionPopup();
+      if (!getters.isMobile()) this.positionPopup();
     },
     positionPopup() {
       if (!this.sourceInfo) return;
@@ -84,7 +84,7 @@ export default {
       const minLeft = getters.isSidebarVisible() ? 320 : padding;
       const minTop = padding + 100;
 
-      if (state.isMobile) {
+      if (getters.isMobile()) {
         this.popupStyle = {
           top: "50%",
           left: "5%",

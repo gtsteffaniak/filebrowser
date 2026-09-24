@@ -53,6 +53,18 @@ func effectiveFilePerms(d *Context, sourceName string) (users.SourceFilePermissi
 	return share.EffectiveFilePermissions(d.User, link, sourceName)
 }
 
+// accessCheckUsername is the username used for filesystem access-rule checks.
+// Public share routes evaluate rules as the share owner, not the anonymous visitor.
+func accessCheckUsername(d *Context) string {
+	if d == nil || d.User == nil {
+		return ""
+	}
+	if d.Share.Hash != "" && d.ShareUser != nil {
+		return d.ShareUser.Username
+	}
+	return d.User.Username
+}
+
 // HttpResponse is the standard JSON error/success envelope.
 type HttpResponse struct {
 	Status  int    `json:"status,omitempty"`
@@ -130,9 +142,9 @@ func ErrToStatus(err error) int {
 		return http.StatusForbidden
 	case errors.Is(err, libErrors.ErrPathEscapesScope):
 		return http.StatusForbidden
-	case os.IsNotExist(err), err == libErrors.ErrNotExist:
+	case os.IsNotExist(err), errors.Is(err, os.ErrNotExist), err == libErrors.ErrNotExist:
 		return http.StatusNotFound
-	case os.IsExist(err), err == libErrors.ErrExist:
+	case os.IsExist(err), errors.Is(err, os.ErrExist), err == libErrors.ErrExist:
 		return http.StatusConflict
 	case errors.Is(err, libErrors.ErrPermissionDenied):
 		return http.StatusForbidden
@@ -145,6 +157,14 @@ func ErrToStatus(err error) int {
 	default:
 		return http.StatusInternalServerError
 	}
+}
+
+// realPathErrStatus maps filesystem path resolution errors to HTTP status codes for download/view/archive paths.
+func realPathErrStatus(err error) int {
+	if errors.Is(err, libErrors.ErrPathEscapesScope) {
+		return http.StatusForbidden
+	}
+	return ErrToStatus(err)
 }
 
 // RenderJSON writes a JSON response, optionally gzip-compressed.

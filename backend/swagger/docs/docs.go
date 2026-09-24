@@ -1910,6 +1910,15 @@ const docTemplate = `{
                             "$ref": "#/definitions/iteminfo.FileInfo"
                         }
                     },
+                    "400": {
+                        "description": "Missing or invalid path query parameter",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Resource not found",
                         "schema": {
@@ -5564,7 +5573,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "key": {
-                    "description": "secret: the key used to sign the JWT tokens. If not set, a random key will be generated.",
+                    "description": "secret: HMAC key for JWT tokens. If unset in config/env, one is generated and stored in the application database.",
                     "type": "string"
                 },
                 "methods": {
@@ -7242,7 +7251,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "belongsTo": {
-                    "description": "numeric user id in JWT claims (bolt-era small ids still work)",
+                    "description": "legacy stored metadata only; identity is hashed_tokens lookup",
                     "type": "integer"
                 },
                 "expiresAt": {

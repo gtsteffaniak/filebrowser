@@ -9,7 +9,6 @@
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
-      'out-of-view': !isInView && !isSelected,
     }"
     :id="getID"
     role="button"
@@ -96,7 +95,6 @@
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
-      'out-of-view': !isInView && !isSelected,
     }"
     :id="getID"
     role="button"
@@ -176,7 +174,6 @@ export default {
   data() {
     return {
       isThumbnailInView: false,
-      isInView: false,
       touches: 0,
       touchStartX: 0,
       touchStartY: 0,
@@ -369,26 +366,20 @@ export default {
     },
   },
   mounted() {
-    // Set up IntersectionObserver for lazy-loading thumbnails
+    // Note: dragend listener moved to parent ListingView for better performance
+    if (!this.hasPreview) return;
+
     this.observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
-      rootMargin: "500px", // Reduced from 1500px for better performance
+      rootMargin: "500px",
       threshold: 0,
     });
 
-    // Use $nextTick to ensure $el is available and is an Element
     this.$nextTick(() => {
       if (this.$el && this.$el instanceof Element) {
         this.observer.observe(this.$el);
-        const rect = this.$el.getBoundingClientRect();
-        const isInViewport = rect.top < window.innerHeight + 500 && rect.bottom > -500;
-        if (isInViewport && this.hasPreview) {
-          this.isThumbnailInView = true;
-          this.isInView = true;
-        }
       }
     });
-    // Note: dragend listener moved to parent ListingView for better performance
   },
   beforeUnmount() {
     // Clean up observer
@@ -491,13 +482,13 @@ export default {
      * @param {IntersectionObserver} observer
      */
     handleIntersect(entries) {
-      entries.forEach((entry) => {
-        // Update both view state and thumbnail state
-        this.isInView = entry.isIntersecting;
-        if (entry.isIntersecting) {
-          this.isThumbnailInView = true;
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        this.isThumbnailInView = true;
+        if (this.observer) {
+          this.observer.unobserve(entry.target);
         }
-      });
+      }
     },
     /** @param {DragEvent} event */
     dragLeave(event) {
@@ -857,18 +848,7 @@ export default {
   border-color: color-mix(in srgb, var(--primaryColor) 35%, transparent);
 }
 
-/* Disable transitions and hide content for out-of-view items for better performance */
-.listing-item.out-of-view {
-  transition: none !important;
-}
-
-.listing-item.out-of-view * {
-  transition: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Ensure items maintain their height even when content is hidden */
+/* Ensure items maintain their height while offscreen content is skipped */
 .listing-item > div {
   min-height: 1em; /* Forces layout calculation even with hidden content */
 }

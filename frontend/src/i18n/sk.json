@@ -58,7 +58,8 @@
     "lonely": "Tu nie je čo ukázať...",
     "cannotAccesDir": "Nie je možné otvoriť priečinok",
     "newFolderMessage": "Napíšte názov nového priečinka.",
-    "newFolderSuccess": "Zložka bola úspešne vytvorená!"
+    "newFolderSuccess": "Zložka bola úspešne vytvorená!",
+    "mobilePdfPreviewHint": "Váš prehliadač nedokáže zobraziť tento súbor PDF v náhľade aplikácie."
   },
   "help": {
     "functionKeys": "Funkčné Klávesy",
@@ -163,6 +164,15 @@
     "dragAndDrop": "Presuňte sem súbory",
     "completed": "Dokončené",
     "conflictsDetected": "Zistené konflikty",
+    "uploadMissing": "Nahrať len to, čo chýba",
+    "optionLabel": "{name}:",
+    "uploadConflictTitle": "Súbory už existujú",
+    "uploadConflictMessage": "Niektoré z týchto súborov už v tomto priečinku existujú. Čo chcete urobiť?",
+    "uploadMissingInfo": "Súbory, ktoré sú už kompletné (rovnaká veľkosť), sa znova nenahrávajú, prázdne súbory sa nahradia a súbory s inou veľkosťou sa uložia s príponou _01, _02... Nič sa nevymaže.",
+    "uploadReplaceInfo": "Prepíše všetky existujúce súbory súbormi, ktoré nahrávate.",
+    "uploadRenameInfo": "Nahrá priečinok pod novým názvom.",
+    "uploadRenamed": "Súborov: {count} už existovalo s inou veľkosťou a boli nahrané s príponou _01, _02... namiesto nahradenia",
+    "uploadSkipped": "Preskočených súborov: {count} (už nahrané s rovnakou veľkosťou)",
     "downloadsLimit": "Limit počtu stiahnutí",
     "maxBandwidth": "Maximálna šírka pásma sťahovania (kbps)",
     "shareThemeColor": "Zdieľanie farby témy (hodnota CSS)",

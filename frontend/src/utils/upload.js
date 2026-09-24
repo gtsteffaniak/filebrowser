@@ -2,6 +2,8 @@ import { reactive } from "vue";
 import { resourcesApi } from "@/api";
 import { mutations, state } from "@/store";
 import { getters } from "@/store/getters";
+import { notify } from "@/notify";
+import i18n from "@/i18n";
 import {
   notifyUploadComplete,
   notifyUploadError,
@@ -69,6 +71,26 @@ export async function readAllDirectoryEntries(reader, debugLabel = "") {
   return all;
 }
 
+// Directory listings report disk usage (rounded up to 4 KiB blocks) unless the source
+// sets useLogicalSize, so a complete remote file matches either its exact size or the
+// block-rounded one. Anything else (e.g. an empty leftover of a failed upload) differs.
+const DISK_BLOCK_SIZE = 4096;
+
+export function isSameSize(remoteSize, localSize) {
+  return (
+    remoteSize === localSize ||
+    remoteSize === Math.ceil(localSize / DISK_BLOCK_SIZE) * DISK_BLOCK_SIZE
+  );
+}
+
+// "name.ext" -> "name_01.ext" (suffix goes before the extension).
+export function numberedName(name, n) {
+  const dot = name.lastIndexOf(".");
+  const stem = dot > 0 ? name.slice(0, dot) : name;
+  const ext = dot > 0 ? name.slice(dot) : "";
+  return `${stem}_${String(n).padStart(2, "0")}${ext}`;
+}
+
 class UploadManager {
   constructor() {
     this.queue = reactive([]);
@@ -91,7 +113,111 @@ class UploadManager {
     this.onConflict = handler;
   }
 
-  async add(basePath, items, overwrite = false) {
+  /**
+   * Decides what to do with each item that already exists at the destination, so
+   * a repeated upload of a folder only sends what is missing or incomplete:
+   * - same size (see isSameSize), or a numbered copy of it with the same size: skipped
+   * - existing file is empty (leftover of a failed upload): replaced
+   * - any other size: uploaded under the next free numbered name (name_01.ext, ...)
+   *   so the existing file is never overwritten
+   * @returns {Promise<{items: object[], skipped: number, renamed: number}>}
+   */
+  async filterExistingItems(basePath, items) {
+    const dirOf = (item) => {
+      const relativePath = item.relativePath || item.file.name;
+      const slash = relativePath.lastIndexOf("/");
+      return slash === -1 ? basePath : `${basePath}${relativePath.slice(0, slash + 1)}`;
+    };
+
+    const dirPaths = [...new Set(Array.from(items).map(dirOf))];
+    const listings = new Map();
+    const listBatchSize = 5;
+    for (let i = 0; i < dirPaths.length; i += listBatchSize) {
+      await Promise.all(
+        dirPaths.slice(i, i + listBatchSize).map(async (dirPath) => {
+          listings.set(
+            dirPath,
+            await resourcesApi.listDirectoryEntries(state.req.source, dirPath)
+          );
+        })
+      );
+    }
+
+    let skipped = 0;
+    let renamed = 0;
+    const remaining = [];
+    for (const item of items) {
+      const dirPath = dirOf(item);
+      const listing = listings.get(dirPath);
+      const name = item.file.name;
+      const existing = listing?.get(name);
+      if (!existing) {
+        remaining.push(item);
+        continue;
+      }
+      const isFile = existing.type !== "directory";
+      if (isFile && isSameSize(existing.size, item.file.size)) {
+        skipped++;
+        continue;
+      }
+      if (isFile && existing.size === 0) {
+        remaining.push({ ...item, overwriteExisting: true });
+        continue;
+      }
+
+      // Different content under the same name: keep it and use a numbered name.
+      let n = 1;
+      let alreadyUploaded = false;
+      while (listing.has(numberedName(name, n))) {
+        const copy = listing.get(numberedName(name, n));
+        if (copy.type !== "directory" && isSameSize(copy.size, item.file.size)) {
+          alreadyUploaded = true;
+          break;
+        }
+        n++;
+      }
+      if (alreadyUploaded) {
+        skipped++;
+        continue;
+      }
+      const newName = numberedName(name, n);
+      // Reserve the name so two items of this batch can't pick the same one.
+      listing.set(newName, { size: item.file.size, type: "file" });
+      const relativePath = item.relativePath || name;
+      const slash = relativePath.lastIndexOf("/");
+      renamed++;
+      remaining.push({
+        ...item,
+        relativePath: `${relativePath.slice(0, slash + 1)}${newName}`,
+        uploadName: newName,
+      });
+    }
+    return { items: remaining, skipped, renamed };
+  }
+
+  resolveConflict(basePath, items, resolution) {
+    if (resolution === true) {
+      // User chose overwrite - set the flag and add with overwrite=true
+      this.overwriteAll = true;
+      void this.add(basePath, items, true);
+    } else if (resolution?.rename) {
+      // User chose rename - continue with renamed items
+      this.conflictingFolder = null;
+      void this.add(basePath, this.pendingItems, false);
+    } else if (resolution?.skip) {
+      // User chose skip - only upload what is missing or incomplete
+      const pending = this.pendingItems;
+      this.conflictingFolder = null;
+      void this.add(basePath, pending, false, true);
+    } else {
+      // User cancelled
+      this.overwriteAll = null;
+      this.conflictingFolder = null;
+      this.pendingItems = null;
+    }
+  }
+
+  async add(basePath, items, overwrite = false, skipExisting = false) {
     // Handle undefined/null basePath
     if (!basePath) {
       basePath = "/";
@@ -102,7 +228,7 @@ class UploadManager {
 
     // Pre-upload conflict check for top-level directories
     // Skip probing if overwrite is already true or overwriteAll is set
-    if (this.overwriteAll === null && !overwrite) {
+    if (this.overwriteAll === null && !overwrite && !skipExisting) {
       const topLevelDirs = new Set();
       for (const item of items) {
         if (item.relativePath?.includes('/')) {
@@ -157,26 +283,54 @@ class UploadManager {
           this.conflictingFolder = conflictingDirs[0];
           this.pendingItems = items;
 
-          this.onConflict(resolution => {
-            if (resolution === true) {
-              // User chose overwrite - set the flag and add with overwrite=true
-              this.overwriteAll = true;
-              void this.add(basePath, items, true);
-            } else if (resolution?.rename) {
-              // User chose rename - continue with renamed items
-              this.conflictingFolder = null;
-              void this.add(basePath, this.pendingItems, false);
-            } else {
-              // User cancelled
-              this.overwriteAll = null;
-              this.conflictingFolder = null;
-              this.pendingItems = null;
-            }
-          });
+          this.onConflict(
+            (resolution) => this.resolveConflict(basePath, items, resolution),
+            { allowRename: true }
+          );
           return;
         }
         // Store probed directories so we can skip them in queue processing
         this.probedDirs = probedDirs;
+      }
+
+      // Loose files dropped into the folder being viewed: their names can be checked
+      // against the current listing (renaming is only offered for folders).
+      const currentDir = state.req?.path?.endsWith("/") ? state.req.path : `${state.req?.path}/`;
+      if (!getters.isShare() && currentDir === basePath) {
+        const existingNames = new Set((state.req.items || []).map((i) => i.name));
+        const hasLooseConflict = Array.from(items).some(
+          (item) => !item.relativePath?.includes("/") && existingNames.has(item.file.name)
+        );
+        if (hasLooseConflict) {
+          this.conflictingFolder = null;
+          this.pendingItems = items;
+          this.onConflict(
+            (resolution) => this.resolveConflict(basePath, items, resolution),
+            { allowRename: false }
+          );
+          return;
+        }
+      }
+    }
+
+    if (skipExisting) {
+      const filtered = await this.filterExistingItems(basePath, items);
+      if (filtered.skipped > 0) {
+        notify.showSuccessToast(
+          i18n.global.t("prompts.uploadSkipped", { count: filtered.skipped })
+        );
+      }
+      if (filtered.renamed > 0) {
+        notify.showSuccessToast(
+          i18n.global.t("prompts.uploadRenamed", { count: filtered.renamed })
+        );
+      }
+      items = filtered.items;
+      if (items.length === 0) {
+        this.pendingItems = null;
+        this.conflictingFolder = null;
+        this.probedDirs.clear();
+        return [];
       }
     }
 
@@ -221,7 +375,8 @@ class UploadManager {
           isToplevelDir: pathParts.length === 1,
           path: `${basePath}${dir}`,
           source: state.req.source,
-          overwrite: effectiveOverwrite,
+          // Existing folders are merged into when skipping existing files.
+          overwrite: effectiveOverwrite || skipExisting,
         };
 
         newUploads.push(upload);
@@ -237,7 +392,7 @@ class UploadManager {
         id,
         sessionId: newUploadSessionId(),
         file,
-        name: file.name,
+        name: item.uploadName || file.name,
         size: file.size,
         progress: 0,
         chunkOffset: 0,
@@ -245,7 +400,7 @@ class UploadManager {
         xhr: null,
         path: destinationPath, // Full destination path
         source: state.req.source,
-        overwrite: effectiveOverwrite,
+        overwrite: effectiveOverwrite || item.overwriteExisting === true,
         lastProgressTime: null, // Track when progress was last updated
         connectionIssue: false, // Flag for connection-related issues
       };

@@ -58,7 +58,8 @@
     "lonely": "Zde není nic k vidění...",
     "cannotAccesDir": "Nelze otevřít složku",
     "newFolderMessage": "Zadejte název nové složky.",
-    "newFolderSuccess": "Složka byla úspěšně vytvořena!"
+    "newFolderSuccess": "Složka byla úspěšně vytvořena!",
+    "mobilePdfPreviewHint": "Váš prohlížeč nedokáže zobrazit tento soubor PDF v náhledu aplikace."
   },
   "help": {
     "functionKeys": "Funkční Klávesy",
@@ -233,6 +234,15 @@
     "dragAndDrop": "Přetáhněte sem soubory",
     "completed": "Dokončeno",
     "conflictsDetected": "Zjištěné konflikty",
+    "uploadMissing": "Nahrát jen to, co chybí",
+    "optionLabel": "{name}:",
+    "uploadConflictTitle": "Soubory již existují",
+    "uploadConflictMessage": "Některé z těchto souborů již v této složce existují. Co chcete udělat?",
+    "uploadMissingInfo": "Soubory, které jsou již kompletní (stejná velikost), se znovu nenahrávají, prázdné se nahradí a soubory s jinou velikostí se uloží s příponou _01, _02... Nic se nemaže.",
+    "uploadReplaceInfo": "Přepíše všechny existující soubory těmi, které nahráváte.",
+    "uploadRenameInfo": "Nahraje složku pod novým názvem.",
+    "uploadRenamed": "Souborů: {count} již existovalo s jinou velikostí a bylo nahráno s příponou _01, _02... místo nahrazení",
+    "uploadSkipped": "Přeskočeno souborů: {count} (již nahrané se stejnou velikostí)",
     "downloadsLimit": "Limit počtu stažení",
     "maxBandwidth": "Maximální šířka pásma stahování (kbps)",
     "shareThemeColor": "Sdílet barvu motivu (hodnota CSS)",

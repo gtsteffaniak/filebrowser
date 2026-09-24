@@ -652,7 +652,9 @@ export default {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: 13em;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .expand-dropdown-anchor {

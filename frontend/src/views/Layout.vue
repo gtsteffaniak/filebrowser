@@ -76,7 +76,6 @@ export default {
     };
   },
   mounted() {
-    window.addEventListener("resize", this.updateIsMobile);
     if (getters.eventTheme() === "halloween") {
       document.documentElement.style.setProperty("--primaryColor", "var(--icon-orange)");
     } else if (state.user.themeColor) {
@@ -121,7 +120,7 @@ export default {
     },
     spaceForEditorStatusBar() {
       if (getters.currentView() === 'editor') {
-        const height = state.isMobile ? '3em' : '2.5em';
+        const height = getters.isMobile() ? '3em' : '2.5em';
         return { paddingBottom: height };
       }
       return {};
@@ -231,9 +230,6 @@ export default {
             },
           });
         }
-    },
-    updateIsMobile() {
-      mutations.setMobile();
     },
     resetItems() {
       mutations.closeSidebar();

@@ -14,7 +14,7 @@
 import { DocumentEditor } from "@onlyoffice/document-editor-vue";
 import { globalVars } from "@/utils/constants";
 import router from "@/router";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { removeLastDir } from "@/utils/url";
 import { officeApi } from "@/api";
 import { toStandardLocale } from "@/i18n";
@@ -58,7 +58,7 @@ export default {
     // Perform the setup and fetch config from backend
     try {
       const configData = await officeApi.getConfig(state.req);
-      configData.type = state.isMobile ? "mobile" : "desktop";
+      configData.type = getters.isMobile() ? "mobile" : "desktop";
       this.clientConfig = configData;
       console.log("OnlyOffice client config received:", this.clientConfig);
 

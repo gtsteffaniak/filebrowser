@@ -1,7 +1,6 @@
 package web
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -469,6 +468,10 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 	}
 	path = cleanPath
 
+	if err := validateOnlyOfficeCallbackKey(source, path, user, data); err != nil {
+		return returnOnlyOfficeError(w, r, 400, err.Error())
+	}
+
 	// Handle document closure - clean up document key cache
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
 		data.Status == onlyOfficeStatusDocumentClosedWithNoChanges {
@@ -705,18 +708,11 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *Contex
 
 // parseOnlyOfficeCallbackFromJWT extracts callback data from JWT in Authorization header
 func parseOnlyOfficeCallbackFromJWT(r *http.Request) (*OnlyOfficeCallback, error) {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		return nil, errors.New("missing Authorization header")
+	jwtToken := onlyOfficeCallbackBearerToken(r.Header.Get("Authorization"))
+	if jwtToken == "" {
+		return nil, errors.New("missing OnlyOffice callback JWT in Authorization header")
 	}
-
-	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return nil, errors.New("invalid Authorization header format")
-	}
-
-	jwtToken := strings.TrimPrefix(authHeader, "Bearer ")
-
-	return parseOnlyOfficeJWT(jwtToken)
+	return parseOnlyOfficeCallbackToken(jwtToken)
 }
 
 // parseOnlyOfficeCallbackFromJSON extracts callback data from JSON request body
@@ -725,13 +721,132 @@ func parseOnlyOfficeCallbackFromJSON(r *http.Request) (*OnlyOfficeCallback, erro
 	if err != nil {
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
-	var data OnlyOfficeCallback
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %v", err)
+	if len(body) == 0 {
+		return nil, errors.New("empty callback body")
 	}
 
+	secret := settings.Config.Integrations.OnlyOffice.Secret
+	if secret != "" {
+		var wrapper struct {
+			Token string `json:"token"`
+		}
+		if err := json.Unmarshal(body, &wrapper); err == nil && wrapper.Token != "" {
+			return parseOnlyOfficeCallbackToken(wrapper.Token)
+		}
+		if headerToken := onlyOfficeCallbackBearerToken(r.Header.Get("Authorization")); headerToken != "" {
+			return parseOnlyOfficeCallbackToken(headerToken)
+		}
+		return nil, errors.New("unsigned callback rejected when OnlyOffice JWT secret is configured")
+	}
+
+	var data OnlyOfficeCallback
+	if err := json.Unmarshal(body, &data); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON: %v", err)
+	}
+	if data.Key == "" {
+		return nil, errors.New("missing document key in callback JSON")
+	}
 	return &data, nil
+}
+
+func onlyOfficeCallbackBearerToken(authHeader string) string {
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
+}
+
+// parseOnlyOfficeCallbackToken verifies (when secret is configured) and decodes an OnlyOffice callback JWT.
+func parseOnlyOfficeCallbackToken(tokenString string) (*OnlyOfficeCallback, error) {
+	secret := settings.Config.Integrations.OnlyOffice.Secret
+	var claims jwt.MapClaims
+
+	if secret != "" {
+		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+			if t.Method != jwt.SigningMethodHS256 {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
+			return []byte(secret), nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("invalid OnlyOffice callback JWT: %w", err)
+		}
+		if !token.Valid {
+			return nil, errors.New("invalid OnlyOffice callback JWT: token is not valid")
+		}
+		mapClaims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			return nil, errors.New("invalid OnlyOffice callback JWT claims")
+		}
+		claims = mapClaims
+	} else {
+		parser := jwt.NewParser()
+		token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse OnlyOffice callback JWT: %w", err)
+		}
+		mapClaims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			return nil, errors.New("invalid OnlyOffice callback JWT claims")
+		}
+		claims = mapClaims
+	}
+
+	callback, err := onlyOfficeCallbackFromClaims(claims)
+	if err != nil {
+		return nil, err
+	}
+	if settings.Config.Integrations.OnlyOffice.Secret != "" && callback.Status == 0 {
+		return nil, errors.New("missing callback status in OnlyOffice JWT payload")
+	}
+	return callback, nil
+}
+
+func onlyOfficeCallbackFromClaims(claims jwt.MapClaims) (*OnlyOfficeCallback, error) {
+	payload, ok := claims["payload"].(map[string]interface{})
+	if !ok {
+		payload = map[string]interface{}(claims)
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode callback payload: %w", err)
+	}
+	var callback OnlyOfficeCallback
+	if err := json.Unmarshal(payloadBytes, &callback); err != nil {
+		return nil, fmt.Errorf("failed to decode callback payload: %w", err)
+	}
+	if callback.Key == "" {
+		return nil, errors.New("missing document key in callback payload")
+	}
+	return &callback, nil
+}
+
+// validateOnlyOfficeCallbackKey ensures the callback document key matches the active editor session.
+// Fails closed when the path cannot be resolved or no editor session key is cached for that file.
+func validateOnlyOfficeCallbackKey(source, path string, user *users.User, data *OnlyOfficeCallback) error {
+	if data.Key == "" {
+		return errors.New("missing document key in callback")
+	}
+	fi, err := files.FileInfoFaster(utils.FileOptions{
+		Path:           path,
+		Source:         source,
+		Expand:         false,
+		FollowSymlinks: true,
+	}, user)
+	if err != nil {
+		return fmt.Errorf("could not resolve document for callback: %w", err)
+	}
+	if fi == nil || fi.RealPath == "" {
+		return errors.New("could not resolve document path for callback")
+	}
+	expectedKey, err := GetOnlyOfficeId(fi.RealPath)
+	if err != nil {
+		return errors.New("unknown or expired OnlyOffice editor session for document")
+	}
+	if expectedKey != data.Key {
+		return fmt.Errorf("document key mismatch for path %s", path)
+	}
+	return nil
 }
 
 func GetOnlyOfficeId(realpath string) (string, error) {
@@ -759,74 +874,6 @@ func deleteOfficeId(source, path string, user *users.User) {
 		logger.Errorf("deleteOfficeId: failed to resolve realpath, source=%s, path=%s: %v", source, path, err)
 	}
 	utils.OnlyOfficeCache.Delete(key)
-}
-
-// parseOnlyOfficeJWT parses the JWT token from OnlyOffice callback
-func parseOnlyOfficeJWT(tokenString string) (*OnlyOfficeCallback, error) {
-	// Parse the JWT token without signature verification since OnlyOffice uses different signing
-	// We'll parse it manually to avoid signature validation issues
-	parts := strings.Split(tokenString, ".")
-	if len(parts) != 3 {
-		return nil, fmt.Errorf("invalid JWT format")
-	}
-
-	// Decode the payload (second part) with fallback to standard base64
-	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
-	if err != nil {
-		// Fallback to standard base64 decoding
-		payloadBytes, err = base64.StdEncoding.DecodeString(parts[1])
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode JWT payload: %v", err)
-		}
-	}
-
-	var claims jwt.MapClaims
-	err = json.Unmarshal(payloadBytes, &claims)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JWT claims: %v", err)
-	}
-
-	// Extract payload from claims with fallback
-	payload, ok := claims["payload"].(map[string]interface{})
-	if !ok {
-		// Fallback: try to use claims directly if no payload wrapper
-		payload = map[string]interface{}(claims)
-	}
-
-	// Convert to OnlyOfficeCallback struct with safe type assertions
-	callback := &OnlyOfficeCallback{}
-
-	// Extract key with validation
-	if key, ok := payload["key"].(string); ok && key != "" {
-		callback.Key = key
-	} else {
-		logger.Warningf("OnlyOffice callback: missing or empty key in JWT payload")
-	}
-
-	// Extract status with validation
-	if status, ok := payload["status"].(float64); ok {
-		callback.Status = int(status)
-	} else {
-		logger.Warningf("OnlyOffice callback: missing or invalid status in JWT payload")
-		callback.Status = 0 // Default to unknown status
-	}
-
-	// Extract users with safe array handling
-	if users, ok := payload["users"].([]interface{}); ok {
-		callback.Users = make([]string, 0, len(users))
-		for _, user := range users {
-			if userStr, ok := user.(string); ok && userStr != "" {
-				callback.Users = append(callback.Users, userStr)
-			}
-		}
-	}
-
-	// Validate essential fields
-	if callback.Key == "" {
-		return nil, fmt.Errorf("missing document key in JWT payload")
-	}
-
-	return callback, nil
 }
 
 // returnOnlyOfficeSuccess returns a success response to OnlyOffice server

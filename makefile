@@ -21,7 +21,7 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 
 .PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
-.PHONY: check-translations sync-translations test-playwright run-proxy screenshots
+.PHONY: check-translations sync-translations test-playwright test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
 .PHONY: check-icons generate-icons sync-icons setup-gofitz-cgo
 
 setup:
@@ -148,6 +148,65 @@ test-playwright: build-frontend
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .
+
+# --- Listing performance (optional; does not affect test-playwright / CI playwright matrix) ---
+
+# Same image as CI (chromium only). Matches _docker/Dockerfile.playwright-base on main.
+playwright-base:
+	DOCKER_BUILDKIT=1 docker build -t filebrowser-playwright-base \
+		-f _docker/Dockerfile.playwright-base .
+
+# Optional multi-browser base for local perf-check only (not used by test-playwright / GHCR publish).
+PERF_PLAYWRIGHT_BROWSERS ?= chromium,firefox,webkit
+
+playwright-perf-base:
+	DOCKER_BUILDKIT=1 docker build -t filebrowser-playwright-perf-base \
+		--build-arg PLAYWRIGHT_BROWSERS="$(PERF_PLAYWRIGHT_BROWSERS)" \
+		-f _docker/Dockerfile.playwright-perf-base .
+
+test-playwright-performance: build-frontend
+	cd backend && GOOS=linux go build -o filebrowser .
+	DOCKER_BUILDKIT=1 docker build --target ci -t filebrowser-playwright-performance \
+		-f _docker/Dockerfile.playwright-performance .
+
+PERF_GREP ?=
+PERF_SKIP_BUILD ?=
+PERF_SKIP_PLAYWRIGHT_BASE ?=
+# Local runs repeat each scenario 3x and take the median; CI uses a single pass.
+PERF_REPEATS ?= 3
+PERF_BROWSERS ?= chromium,firefox,webkit
+
+# Full local sweep: all three browsers, for cross-browser comparison.
+# Only chromium feeds the CI baseline; the others are advisory insight.
+perf-check:
+ifndef PERF_SKIP_BUILD
+	$(MAKE) build-frontend
+endif
+	cd backend && GOOS=linux go build -o filebrowser .
+ifndef PERF_SKIP_PLAYWRIGHT_BASE
+	$(MAKE) playwright-perf-base PLAYWRIGHT_BROWSERS="$(PERF_PLAYWRIGHT_BROWSERS)"
+endif
+	@echo "Running listing performance tests (docker, browsers=$(PERF_BROWSERS), repeats=$(PERF_REPEATS))..."
+	mkdir -p frontend/test-results/listing-performance-perf frontend/test-results/playwright-performance
+	cd _docker && DOCKER_BUILDKIT=1 PERF_GREP="$(PERF_GREP)" PERF_BROWSERS="$(PERF_BROWSERS)" PERF_REPEATS="$(PERF_REPEATS)" docker compose run --rm --build local-playwright-performance
+	@echo "--- Dashboard: make perf-dashboard  →  http://127.0.0.1:9323/dashboard/report.html ---"
+
+# Fast local smoke test: small scales, chromium only, one pass. Seconds, not minutes.
+perf-smoke:
+	cd frontend && PERF_SCALES=100,1000 PERF_BROWSERS=chromium PERF_REPEATS=1 \
+		npx playwright test -c playwright.performance.config.ts
+
+# Regenerate the committed chromium baseline. Run this in the SAME environment
+# as CI so timings are comparable: the baseline records worker count, browser
+# version and Playwright version, and comparisons warn when they differ.
+perf-baseline:
+	@echo "Regenerating chromium baseline (PERF_UPDATE_BASELINE=1)..."
+	cd frontend && PERF_UPDATE_BASELINE=1 PERF_BROWSERS=chromium \
+		npx playwright test -c playwright.performance.config.ts
+	@echo "Baseline written to frontend/tests/playwright/performance/perf-baseline.json"
+
+perf-dashboard:
+	cd frontend && node ./scripts/serve-perf-dashboard.mjs
 
 # get version from environment variable, for example
 # cd frontend && npm i @playwright/test && npx playwright install --with-deps chromium

@@ -222,7 +222,8 @@
     "sameFolder": "Kan niet verplaatsen naar dezelfde map",
     "cannotAccesDir": "Kan de map niet openen",
     "newFolderMessage": "Typ de naam van de nieuwe map.",
-    "newFolderSuccess": "De map is succesvol aangemaakt!"
+    "newFolderSuccess": "De map is succesvol aangemaakt!",
+    "mobilePdfPreviewHint": "Je browser kan dit PDF-bestand niet weergeven in het app-voorbeeld."
   },
   "help": {
     "functionKeys": "Functietoetsen",
@@ -431,6 +432,15 @@
     "optionalPassword": "Optioneel wachtwoord",
     "deleted": "Met succes verwijderd!",
     "conflictsDetected": "Conflicten gedetecteerd",
+    "uploadMissing": "Alleen ontbrekende bestanden uploaden",
+    "optionLabel": "{name}:",
+    "uploadConflictTitle": "Bestanden bestaan al",
+    "uploadConflictMessage": "Sommige van deze bestanden bestaan al in deze map. Wat wilt u doen?",
+    "uploadMissingInfo": "Bestanden die al compleet zijn (zelfde grootte) worden niet opnieuw geüpload, lege bestanden worden vervangen en bestanden met een andere grootte worden opgeslagen met het achtervoegsel _01, _02... Er wordt niets verwijderd.",
+    "uploadReplaceInfo": "Overschrijft elk bestaand bestand met de bestanden die u uploadt.",
+    "uploadRenameInfo": "Uploadt de map onder een nieuwe naam.",
+    "uploadRenamed": "{count} bestand(en) bestonden al met een andere grootte en zijn geüpload met het achtervoegsel _01, _02... in plaats van ze te vervangen",
+    "uploadSkipped": "{count} al geüploade bestand(en) met dezelfde grootte zijn overgeslagen",
     "copyPasteConfirm": "Bevestiging kopiëren/plakken",
     "copyItemQuestion": "Dit item kopiëren naar de nieuwe locatie?",
     "moveItemQuestion": "Dit item verplaatsen naar de nieuwe locatie?",

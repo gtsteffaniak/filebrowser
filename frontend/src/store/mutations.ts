@@ -285,14 +285,6 @@ export const mutations = {
     state.settings = value;
     emitStateChanged();
   },
-  setMobile() {
-    const newValue = window.innerWidth <= 768;
-    if (newValue === state.isMobile) {
-      return;
-    }
-    state.isMobile = newValue;
-    emitStateChanged();
-  },
   toggleDarkMode() {
     void mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
     emitStateChanged();

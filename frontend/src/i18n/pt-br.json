@@ -58,7 +58,8 @@
     "lonely": "Nada para mostrar aqui...",
     "cannotAccesDir": "Não é possível acessar a pasta",
     "newFolderMessage": "Digite o nome da nova pasta.",
-    "newFolderSuccess": "A pasta foi criada com sucesso!"
+    "newFolderSuccess": "A pasta foi criada com sucesso!",
+    "mobilePdfPreviewHint": "Seu navegador não consegue exibir este PDF na visualização do aplicativo."
   },
   "help": {
     "functionKeys": "Teclas de Função",
@@ -163,6 +164,15 @@
     "dragAndDrop": "Arraste e solte os arquivos aqui",
     "completed": "Concluído",
     "conflictsDetected": "Conflitos detectados",
+    "uploadMissing": "Carregar apenas o que falta",
+    "optionLabel": "{name}:",
+    "uploadConflictTitle": "Os arquivos já existem",
+    "uploadConflictMessage": "Alguns destes arquivos já existem nesta pasta. O que você quer fazer?",
+    "uploadMissingInfo": "Os arquivos que já estão completos (mesmo tamanho) não são carregados novamente, os arquivos vazios são substituídos e os arquivos com tamanho diferente são salvos com o sufixo _01, _02... Nada é excluído.",
+    "uploadReplaceInfo": "Sobrescreve todos os arquivos existentes com os que você está carregando.",
+    "uploadRenameInfo": "Carrega a pasta com outro nome.",
+    "uploadRenamed": "{count} arquivo(s) já existiam com tamanho diferente e foram carregados com o sufixo _01, _02... em vez de serem substituídos",
+    "uploadSkipped": "{count} arquivo(s) já carregado(s) com o mesmo tamanho foram ignorados",
     "downloadsLimit": "Limite de número de downloads",
     "maxBandwidth": "Largura de banda máxima de download (kbps)",
     "shareThemeColor": "Compartilhar a cor do tema (valor CSS)",

@@ -58,7 +58,8 @@
     "lonely": "No hay nada aquí...",
     "cannotAccesDir": "No se puede acceder a la carpeta",
     "newFolderMessage": "Escribe el nombre de la nueva carpeta.",
-    "newFolderSuccess": "¡La carpeta se ha creado correctamente!"
+    "newFolderSuccess": "¡La carpeta se ha creado correctamente!",
+    "mobilePdfPreviewHint": "Tu navegador no puede mostrar este PDF en la vista previa de la aplicación."
   },
   "help": {
     "functionKeys": "Teclas de función",
@@ -169,6 +170,15 @@
     "dragAndDrop": "Arrastra y suelta los archivos aquí",
     "completed": "Completado",
     "conflictsDetected": "Se detectaron conflictos",
+    "uploadMissing": "Subir solo lo que falta",
+    "optionLabel": "{name}:",
+    "uploadConflictTitle": "Ya existen archivos",
+    "uploadConflictMessage": "Algunos de estos archivos ya existen en la carpeta. ¿Qué quieres hacer?",
+    "uploadMissingInfo": "No vuelve a subir los archivos que ya están completos (mismo tamaño), reemplaza los que están vacíos y guarda con sufijo _01, _02... los que tienen otro tamaño. No se borra nada.",
+    "uploadReplaceInfo": "Sobrescribe todos los archivos existentes con los que estás subiendo.",
+    "uploadRenameInfo": "Sube la carpeta con otro nombre.",
+    "uploadRenamed": "{count} archivo(s) ya existían con otro tamaño y se subieron con sufijo _01, _02... en lugar de reemplazarlos",
+    "uploadSkipped": "Se omitieron {count} archivo(s) que ya estaban subidos con el mismo tamaño",
     "renameMessage": "Escribe un nuevo nombre:",
     "renameMessageInvalid": "El nombre no puede tener \"/\" o \"\\\"",
     "deleteMessageMultiple": "¿Quieres borrar estos {count} archivos?",

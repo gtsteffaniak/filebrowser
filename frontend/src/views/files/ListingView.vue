@@ -225,7 +225,6 @@ export default {
   watch: {
     gallerySize() {
       this.columnWidth = 250 + state.user.gallerySize * 50;
-      this.colunmsResize();
     },
     scrolling() {
       const scrollContainer = this.$refs.listingView;
@@ -315,22 +314,22 @@ export default {
       if (!elem) {
         return 1;
       }
-      if (getters.viewMode() === 'icons') {
-        const containerSize = 70 + (state.user.gallerySize * 15); // 85px to 190px range
+      if (getters.viewMode() === "icons") {
+        const containerSize = 70 + state.user.gallerySize * 15;
         let columns = Math.floor(elem.offsetWidth / containerSize);
-        if (columns === 0) columns = 1;
-
+        if (columns === 0) {
+          columns = 1;
+        }
         const minColumns = 3;
         const maxColumns = 12;
-        columns = Math.max(minColumns, Math.min(columns, maxColumns));
-        return columns;
+        return Math.max(minColumns, Math.min(columns, maxColumns));
       }
-      // Rest of views
       let columns = Math.floor(elem.offsetWidth / this.columnWidth);
-      if (columns === 0) columns = 1;
+      if (columns === 0) {
+        columns = 1;
+      }
       return columns;
     },
-    // Create a computed property that references the Vuex state
     gallerySize() {
       return state.user.gallerySize;
     },
@@ -388,7 +387,6 @@ export default {
       return icons[getters.viewMode()];
     },
     listingViewMode() {
-      this.colunmsResize();
       return getters.viewMode();
     },
     selectedCount() {
@@ -445,7 +443,7 @@ export default {
         const iconFontSize = (3 + (size * 0.5)).toFixed(2); // 3em to 7.5em
         styles['--icon-font-size'] = `${iconFontSize}em`;
 
-        if (state.isMobile) {
+        if (getters.isMobile()) {
           const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
           const mobileHeight = 120 + (size * 20); // 120px to 300px
           styles['--gallery-mobile-min-width'] = `${minWidth}px`;
@@ -483,7 +481,6 @@ export default {
   mounted() {
     mutations.setSearch(false);
     this.lastSelected = state.selected;
-    this.colunmsResize();
 
     // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
@@ -527,12 +524,6 @@ export default {
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
       this.resizeTimeout = null;
-    }
-
-    // Clean up resize observer
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = null;
     }
 
     // Remove event listeners before destroying this page.
@@ -651,7 +642,7 @@ export default {
     },
     // Helper method to find the closest item in the given direction (up or down) from the current one.
     findClosestItem(selectedItem, direction) {
-      const listItems = Array.from(this.$el.querySelectorAll('.listing-item:not(.out-of-view)'));
+      const listItems = Array.from(this.$el.querySelectorAll('.listing-item'));
       const selectedBounds = selectedItem.getBoundingClientRect();
       const selectedMidX = (selectedBounds.left + selectedBounds.right) / 2;
 
@@ -1109,10 +1100,6 @@ export default {
         },
       });
     },
-    colunmsResize() {
-      // No longer needed - CSS variables are now handled reactively via itemStyles computed property
-      // Kept for backwards compatibility with any remaining callers
-    },
     dragEnter(event) {
       // If in upload share mode, let the embedded Upload component handle it
       if (state.shareInfo?.shareType === 'upload') {
@@ -1159,34 +1146,18 @@ export default {
       await this.handleDrop(event);
     },
     windowsResize: throttle(function () {
-      // Mark as resizing to disable transitions
       if (!this.isResizing) {
         this.isResizing = true;
-        if (this.$refs.listingView) {
-          this.$refs.listingView.classList.add('resizing');
-        }
+        this.$refs.listingView?.classList.add("resizing");
       }
-
-      // Clear existing timeout
       if (this.resizeTimeout) {
         clearTimeout(this.resizeTimeout);
       }
-
-      // Do the resize work
-      this.colunmsResize();
       this.width = window.innerWidth;
-      mutations.setMobile();
-
-      // Re-enable transitions after resize is complete
       this.resizeTimeout = setTimeout(() => {
         this.isResizing = false;
-        if (this.$refs.listingView) {
-          this.$refs.listingView.classList.remove('resizing');
-        }
-      }, 150); // Wait 150ms after last resize event
-
-      // Listing element is not displayed
-      if (this.$refs.listingView === null) return;
+        this.$refs.listingView?.classList.remove("resizing");
+      }, 150);
     }, 100),
     openContext(event) {
       event.preventDefault();
