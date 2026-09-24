@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
  - ffmpeg unresponsive lock issue (#2996)
  - fixed token migration lockout regression from v2.0.8-beta (#2999)
+ - OnlyOffice document downloads now re-validate redirect targets against the configured document-server host, closing an SSRF gap where a redirect could send the fetch to an internal address
 
 ## v2.0.8
  **Security**:
