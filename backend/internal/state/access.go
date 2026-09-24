@@ -111,6 +111,9 @@ func RemoveRuleByPathKey(sourcePath, pathKey string) {
 }
 
 func AddApiToken(tokenString string, userID uint64) error {
+	if accessDb == nil {
+		return fmt.Errorf("access storage not available")
+	}
 	return accessDb.AddApiToken(tokenString, userID)
 }
 

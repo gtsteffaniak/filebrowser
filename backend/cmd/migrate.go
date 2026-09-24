@@ -296,8 +296,9 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 			users.MigrateToSourcePermissions(user)
 		}
 		normalizeUserTokensBeforeSQLite(user)
+		promoteLegacyApiKeysBeforeSQLite(user)
 		updateTokens(user)
-		user.Version = users.ProfileStorageVersion
+		user.Version = users.NewestUserVersion
 		if newScopesCount > oldScopesCount {
 			promoted++
 			logger.Infof("  user %q: legacy database had %d scopes, SQLite now has %d",
@@ -345,6 +346,34 @@ func normalizeUserTokensBeforeSQLite(user *users.User) {
 		users.StoreToken(normalized, token)
 	}
 	user.Tokens = normalized
+}
+
+// promoteLegacyApiKeysBeforeSQLite merges Bolt apiKeys entries into Tokens so
+// they survive the SQLite migration and the hashed-tokens backfill (strict
+// auth ignores BelongsTo and requires a hash row per raw JWT).
+func promoteLegacyApiKeysBeforeSQLite(user *users.User) {
+	if len(user.ApiKeys) == 0 {
+		return
+	}
+	if user.Tokens == nil {
+		user.Tokens = make(map[string]users.AuthToken)
+	}
+	for name, token := range user.ApiKeys {
+		if token.Name == "" {
+			token.Name = name
+		}
+		if token.Token == "" {
+			token.Token = token.Key
+		}
+		if token.Token == "" {
+			continue
+		}
+		if _, exists := user.Tokens[token.Name]; exists {
+			continue
+		}
+		token.Permissions = users.SanitizeTokenPermissions(token.Permissions)
+		users.StoreToken(user.Tokens, token)
+	}
 }
 
 // migrateShares migrates all shares from BoltDB to SQLite.

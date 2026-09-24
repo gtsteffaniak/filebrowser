@@ -8,10 +8,27 @@ import (
 )
 
 // ProfileStorageVersion is the user version after nested profile JSON in user_data.
+// It marks a storage-shape boundary (used by the persist layer), not the newest version.
 const ProfileStorageVersion = 5
 
+// NewestUserVersion is the single reference for the latest user version.
+// Per-migration watermarks below keep their historical values; only this moves forward.
+const NewestUserVersion = 6
+
+// PermMigrationVersion is the user version after the legacy perm-key to permissions migration.
+const PermMigrationVersion = 1
+
+// TokenMigrationVersion is the user version after the legacy apiKeys to tokens migration.
+const TokenMigrationVersion = 2
+
+// TokenHashBackfillVersion is the user version that guarantees every stored API
+// token (Tokens and legacy ApiKeys) has a SHA256(raw) → owner row in
+// hashed_tokens. Strict server-side auth ignores BelongsTo and rejects any
+// bearer JWT without a hash mapping, so this migration must run on startup.
+const TokenHashBackfillVersion = 6
+
 // CurrentUserMigrationVersion is persisted for newly created accounts and after legacy migrations finish.
-const CurrentUserMigrationVersion = ProfileStorageVersion
+const CurrentUserMigrationVersion = NewestUserVersion
 
 type LoginMethod string
 
@@ -77,7 +94,7 @@ type AuthToken struct {
 	Token       string      `json:"token,omitempty"`
 	Name        string      `json:"name,omitempty"`
 	Username    string      `json:"username,omitempty"`
-	BelongsTo   uint64      `json:"belongsTo,omitempty"` // legacy stored metadata only; identity is hashed_tokens lookup
+	BelongsTo   uint64      `json:"belongsTo,omitempty"` // legacy stored metadata only, never trusted for auth; identity is always the hashed_tokens lookup
 	IssuedAt    int64       `json:"issuedAt,omitempty"`
 	ExpiresAt   int64       `json:"expiresAt,omitempty"`
 	Permissions Permissions `json:"Permissions,omitempty"`
