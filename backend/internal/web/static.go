@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 var templateRenderer *TemplateRenderer
@@ -54,8 +56,18 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("X-Accel-Expires", "0")
 	w.Header().Set("Transfer-Encoding", "identity")
-	// Execute the template with the provided data
-	return templates.ExecuteTemplate(w, name, data)
+	// Render to a buffer first so a template-escaping mismatch between the
+	// CSP header nonce and the rendered HTML is observable instead of
+	// serving a page whose inline scripts the browser will block.
+	var buf bytes.Buffer
+	if err := templates.ExecuteTemplate(&buf, name, data); err != nil {
+		return err
+	}
+	if nonce != "" && !bytes.Contains(buf.Bytes(), []byte(nonce)) {
+		logger.Errorf("CSP nonce %q missing from rendered %q -- CSP will block inline scripts", nonce, name)
+	}
+	_, err = buf.WriteTo(w)
+	return err
 }
 
 // spaContentSecurityPolicy restricts only scripts. srcdoc preview frames inherit
