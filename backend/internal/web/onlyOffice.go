@@ -92,6 +92,9 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if settings.Config.Integrations.OnlyOffice.Url == "" {
 		return http.StatusInternalServerError, errors.New("only-office integration must be configured in settings")
 	}
+	if !onlyOfficeShareEnabled(d) {
+		return http.StatusForbidden, errors.New("onlyoffice is not enabled for this share")
+	}
 
 	// Extract clean parameters from request
 	source := r.URL.Query().Get("source")
@@ -442,8 +445,18 @@ func onlyOfficeURLHostsMatch(callback, configured *url.URL) bool {
 	return onlyOfficeEffectivePort(callback) == onlyOfficeEffectivePort(configured)
 }
 
+// onlyOfficeShareEnabled reports whether the active request may use OnlyOffice.
+// Requests carrying a share context are rejected when the share disables the integration.
+func onlyOfficeShareEnabled(d *Context) bool {
+	return d.Share.Hash == "" || d.Share.EnableOnlyOffice
+}
+
 // processOnlyOfficeCallback handles the common callback processing logic for both GET and POST requests
 func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Context, data *OnlyOfficeCallback) (int, error) {
+	if !onlyOfficeShareEnabled(d) {
+		return returnOnlyOfficeError(w, r, 403, "onlyoffice is not enabled for this share")
+	}
+
 	// Extract clean parameters from query string
 	source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")

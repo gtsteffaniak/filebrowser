@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -51,6 +52,72 @@ func TestOnlyOfficeClientConfigDeniedWithoutView(t *testing.T) {
 	status, err := onlyofficeClientConfigGetHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden {
 		t.Fatalf("status = %d, want %d (err: %v)", status, http.StatusForbidden, err)
+	}
+}
+
+func TestOnlyOfficeClientConfigDeniedWhenShareDisablesOnlyOffice(t *testing.T) {
+	initStreamTestSources(t)
+
+	origOnlyOffice := settings.Config.Integrations.OnlyOffice
+	t.Cleanup(func() { settings.Config.Integrations.OnlyOffice = origOnlyOffice })
+	settings.Config.Integrations.OnlyOffice.Url = "http://onlyoffice.example"
+
+	d := &requestContext{
+		User: testUserWithView(1, "srv"),
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123"},
+			SourcePath:   "/srv",
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{EnableOnlyOffice: false},
+			},
+		},
+	}
+	req := httptest.NewRequest(http.MethodGet, "/public/api/office/config?hash=abc123&path=/doc.docx", nil)
+	status, err := onlyofficeClientConfigGetHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusForbidden {
+		t.Fatalf("status = %d, want %d (err: %v)", status, http.StatusForbidden, err)
+	}
+}
+
+func TestOnlyOfficeClientConfigAllowedWhenShareEnablesOnlyOffice(t *testing.T) {
+	initStreamTestSources(t)
+
+	origOnlyOffice := settings.Config.Integrations.OnlyOffice
+	origSourceMap := settings.Config.Server.SourceMap
+	t.Cleanup(func() {
+		settings.Config.Integrations.OnlyOffice = origOnlyOffice
+		settings.Config.Server.SourceMap = origSourceMap
+	})
+	settings.Config.Integrations.OnlyOffice.Url = "http://onlyoffice.example"
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+
+	const realPath = "/srv/docs/doc.docx"
+	utils.OnlyOfficeCache.Set(realPath, "doc-key")
+	t.Cleanup(func() { utils.OnlyOfficeCache.Delete(realPath) })
+
+	d := &requestContext{
+		User: testUserWithView(1, "srv"),
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123", Path: "/docs/doc.docx"},
+			SourcePath:   "/srv",
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{EnableOnlyOffice: true},
+			},
+		},
+		FileInfo: iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{
+				ItemInfo: iteminfo.ItemInfo{Name: "doc.docx", Type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
+			},
+			RealPath: realPath,
+		},
+	}
+	req := httptest.NewRequest(http.MethodGet, "/public/api/office/config?hash=abc123&path=/doc.docx", nil)
+	rec := httptest.NewRecorder()
+	status, err := onlyofficeClientConfigGetHandler(rec, req, d)
+	if err != nil || status != http.StatusOK {
+		t.Fatalf("status = %d, want %d (err: %v)", status, http.StatusOK, err)
 	}
 }
 
@@ -354,7 +421,7 @@ func TestOnlyOfficeFileBrowserBaseURL(t *testing.T) {
 		reqHost       string
 		forwardedHost string
 		reqProto      string
-		trustProxy     bool
+		trustProxy    bool
 		want          string
 	}{
 		{

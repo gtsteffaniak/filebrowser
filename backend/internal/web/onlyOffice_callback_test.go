@@ -11,6 +11,7 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -138,6 +139,73 @@ func TestParseOnlyOfficeCallbackFromJSONPlainWhenNoSecret(t *testing.T) {
 	}
 	if callback.Key != "doc-key" || callback.Status != 2 {
 		t.Fatalf("callback = %+v", callback)
+	}
+}
+
+func TestOnlyOfficeCallbackDeniedWhenShareDisablesOnlyOffice(t *testing.T) {
+	initStreamTestSources(t)
+
+	d := &requestContext{
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123"},
+			SourcePath:   "/srv",
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{EnableOnlyOffice: false},
+			},
+		},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/public/api/office/callback?hash=abc123", nil)
+	rec := httptest.NewRecorder()
+	if _, err := processOnlyOfficeCallback(rec, req, d, &OnlyOfficeCallback{Key: "k", Status: onlyOfficeStatusDocumentClosedWithNoChanges}); err != nil {
+		t.Fatalf("processOnlyOfficeCallback returned err=%v", err)
+	}
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusForbidden)
+	}
+}
+
+func TestOnlyOfficeCallbackAllowedWhenShareEnablesOnlyOffice(t *testing.T) {
+	initStreamTestSources(t)
+
+	origSourceMap := settings.Config.Server.SourceMap
+	origFileInfo := files.FileInfoFasterFunc
+	t.Cleanup(func() {
+		settings.Config.Server.SourceMap = origSourceMap
+		files.FileInfoFasterFunc = origFileInfo
+	})
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+
+	const realPath = "/srv/docs/doc.docx"
+	const docKey = "oo-share-key"
+	files.FileInfoFasterFunc = func(utils.FileOptions, *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		return &iteminfo.ExtendedFileInfo{RealPath: realPath}, nil
+	}
+	utils.OnlyOfficeCache.Set(realPath, docKey)
+	t.Cleanup(func() { utils.OnlyOfficeCache.Delete(realPath) })
+
+	d := &requestContext{
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123"},
+			SourcePath:   "/srv",
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{EnableOnlyOffice: true},
+			},
+		},
+		ShareUser: testUserWithView(1, "srv"),
+		IndexPath: "/docs/doc.docx",
+	}
+	req := httptest.NewRequest(http.MethodPost, "/public/api/office/callback?hash=abc123", nil)
+	rec := httptest.NewRecorder()
+	if _, err := processOnlyOfficeCallback(rec, req, d, &OnlyOfficeCallback{Key: docKey, Status: onlyOfficeStatusDocumentClosedWithNoChanges}); err != nil {
+		t.Fatalf("processOnlyOfficeCallback returned err=%v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if _, err := GetOnlyOfficeId(realPath); err == nil {
+		t.Fatal("document key should be deleted when the document closed without changes")
 	}
 }
 
