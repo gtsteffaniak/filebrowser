@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.9
+
+ **Bugfixes**:
+ - ffmpeg unresponsive lock issue (#2996)
+
 ## v2.0.8
 
  **Security**:

@@ -28,7 +28,7 @@ require (
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
 	github.com/air-verse/air v1.67.4 // indirect
 	github.com/alecthomas/chroma/v2 v2.27.0 // indirect
-	github.com/alecthomas/go-check-sumtype v0.4.0 // indirect
+	github.com/alecthomas/go-check-sumtype v0.5.1-0.20260828200218-ae6904d28606 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.6 // indirect
 	github.com/alexkohler/prealloc v1.1.0 // indirect
 	github.com/alfatraining/structtag v1.0.0 // indirect
@@ -54,7 +54,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charithe/durationcheck v0.0.11 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260910203606-6c9e17dc7a16 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260922123528-4e49372c11f9 // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
@@ -105,7 +105,7 @@ require (
 	github.com/golangci/dupl v0.0.0-20260401084720-c99c5cf5c202 // indirect
 	github.com/golangci/go-printf-func-name v0.1.1 // indirect
 	github.com/golangci/gofmt v0.0.0-20260820135601-e84e05053792 // indirect
-	github.com/golangci/golangci-lint/v2 v2.13.2 // indirect
+	github.com/golangci/golangci-lint/v2 v2.14.0 // indirect
 	github.com/golangci/golines v0.15.0 // indirect
 	github.com/golangci/misspell v0.8.0 // indirect
 	github.com/golangci/plugin-module-register v0.1.2 // indirect
@@ -150,7 +150,7 @@ require (
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.30 // indirect
-	github.com/mgechev/revive v1.16.0 // indirect
+	github.com/mgechev/revive v1.17.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/moricho/tparallel v0.3.2 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
@@ -200,7 +200,7 @@ require (
 	github.com/swaggo/swag v1.16.6 // indirect
 	github.com/tdewolff/parse/v2 v2.8.16 // indirect
 	github.com/tetafro/godot v1.5.6 // indirect
-	github.com/timakin/bodyclose v0.0.0-20260723120731-857993a2939c // indirect
+	github.com/timakin/bodyclose v0.0.0-20260923065923-98ded9ab4ef2 // indirect
 	github.com/timonwong/loggercheck v0.12.0 // indirect
 	github.com/tomarrell/wrapcheck/v2 v2.12.0 // indirect
 	github.com/tommy-muehle/go-mnd/v2 v2.5.1 // indirect
