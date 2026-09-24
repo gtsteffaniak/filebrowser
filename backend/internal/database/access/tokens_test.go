@@ -17,10 +17,13 @@ func (failingRevokePersister) SaveRevokedToken(string, int64) error             
 func (failingRevokePersister) PersistImmediateTokenRevocation(string) error {
 	return errors.New("simulated revocation persistence failure")
 }
-func (failingRevokePersister) DeleteRevokedToken(string) error      { return nil }
+func (failingRevokePersister) PersistTokenRetirement(string, int64, []string) error {
+	return nil
+}
+func (failingRevokePersister) DeleteRevokedToken(string) error            { return nil }
 func (failingRevokePersister) SaveHashedToken(string, uint64, bool) error { return nil }
-func (failingRevokePersister) DeleteHashedToken(string) error         { return nil }
-func (failingRevokePersister) DeleteHashedTokensByUserID(uint64) error { return nil }
+func (failingRevokePersister) DeleteHashedToken(string) error             { return nil }
+func (failingRevokePersister) DeleteHashedTokensByUserID(uint64) error    { return nil }
 
 func TestSessionAndApiTokenMetadata(t *testing.T) {
 	store, _ := createTestStorage(t)

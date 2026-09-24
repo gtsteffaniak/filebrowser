@@ -42,7 +42,7 @@ func BackfillUserTokenHashesOnStore(store *sqldb.SQLStore, user *users.User) err
 	if store == nil || user == nil || user.ID == 0 {
 		return nil
 	}
-	for _, raw := range collectStoredRawTokens(user) {
+	for _, raw := range CollectStoredRawTokens(user) {
 		if err := store.SaveHashedToken(utils.HashSHA256(raw), user.ID, false); err != nil {
 			return err
 		}
@@ -50,9 +50,9 @@ func BackfillUserTokenHashesOnStore(store *sqldb.SQLStore, user *users.User) err
 	return nil
 }
 
-// collectStoredRawTokens returns deduplicated raw JWT strings from Tokens (Token
+// CollectStoredRawTokens returns deduplicated raw JWT strings from Tokens (Token
 // field, falling back to legacy Key) and legacy ApiKeys.
-func collectStoredRawTokens(user *users.User) []string {
+func CollectStoredRawTokens(user *users.User) []string {
 	seen := make(map[string]struct{})
 	var out []string
 	add := func(raw string) {
@@ -89,7 +89,7 @@ func backfillUserTokenHashes(user *users.User) (int, error) {
 		return 0, nil
 	}
 	added := 0
-	for _, raw := range collectStoredRawTokens(user) {
+	for _, raw := range CollectStoredRawTokens(user) {
 		if _, ok := accessDb.GetUserIDFromToken(raw); ok {
 			continue
 		}

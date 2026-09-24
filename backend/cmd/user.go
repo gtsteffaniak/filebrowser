@@ -16,6 +16,10 @@ import (
 
 var createBackup = false
 
+// addApiToken registers a raw API token's hash with access storage. It is a
+// variable so tests can inject a failing registration deterministically.
+var addApiToken = state.AddApiToken
+
 func validateUserInfo(newDB bool) {
 	// update source info for users if names/sources/paths might have changed
 	usersList, err := state.GetAllUsers()
@@ -297,52 +301,14 @@ func updateTokenHashBackfill(user *users.User) (bool, bool) {
 	if user == nil || user.Version >= users.TokenHashBackfillVersion {
 		return false, false
 	}
-	changed := false
-	if len(user.ApiKeys) > 0 {
-		if user.Tokens == nil {
-			user.Tokens = make(map[string]users.AuthToken)
-		}
-		for name, token := range user.ApiKeys {
-			if token.Name == "" {
-				token.Name = name
-			}
-			if token.Token == "" {
-				token.Token = token.Key
-			}
-			if token.Token == "" {
-				continue
-			}
-			if _, exists := user.Tokens[token.Name]; !exists {
-				users.StoreToken(user.Tokens, token)
-				changed = true
-			}
-		}
-	}
+	before := len(user.Tokens)
+	promoteLegacyApiKeysBeforeSQLite(user)
+	changed := len(user.Tokens) != before
 	hashesRegistered := true
-	seen := make(map[string]struct{})
-	register := func(raw string) {
-		if raw == "" {
-			return
-		}
-		if _, ok := seen[raw]; ok {
-			return
-		}
-		seen[raw] = struct{}{}
-		if err := state.AddApiToken(raw, user.ID); err != nil {
+	for _, raw := range state.CollectStoredRawTokens(user) {
+		if err := addApiToken(raw, user.ID); err != nil {
 			logger.Errorf("could not register token hash for user %s: %v", user.Username, err)
 			hashesRegistered = false
-		}
-	}
-	for _, token := range user.Tokens {
-		register(token.Token)
-		if token.Token == "" {
-			register(token.Key)
-		}
-	}
-	for _, token := range user.ApiKeys {
-		register(token.Token)
-		if token.Token == "" {
-			register(token.Key)
 		}
 	}
 	if hashesRegistered {

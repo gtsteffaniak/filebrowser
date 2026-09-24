@@ -29,10 +29,10 @@ func mintAndRegisterSessionToken(user *users.User) (string, error) {
 	return tokenString, nil
 }
 
-// replaceSessionToken mints and registers the replacement before revoking the
+// replaceSessionToken mints and registers the replacement before retiring the
 // prior token. If minting or registration fails the current session is left
-// untouched. Revocation is immediate: requests carrying the old cookie stop
-// working as soon as rotation succeeds.
+// untouched. The prior token is retired with a grace window (not revoked
+// immediately) so requests already in flight with the old cookie stay valid.
 func replaceSessionToken(oldToken string, user *users.User) (string, error) {
 	newToken, err := mintAndRegisterSessionToken(user)
 	if err != nil {
@@ -41,7 +41,7 @@ func replaceSessionToken(oldToken string, user *users.User) (string, error) {
 	if oldToken == "" || oldToken == newToken {
 		return newToken, nil
 	}
-	if err := state.RevokeToken(oldToken); err != nil {
+	if err := state.RetireSessionToken(oldToken); err != nil {
 		if cleanupErr := state.RemoveApiToken(newToken); cleanupErr != nil {
 			logger.Errorf("failed to roll back replacement session token: %v", cleanupErr)
 		}

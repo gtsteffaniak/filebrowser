@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -67,6 +67,10 @@ type HashedTokenInfo struct {
 	IsSession bool
 }
 
+// sessionTokenRetireGrace is how long a rotated session token stays usable after
+// renewal. In-flight requests still carrying the previous cookie must not 401.
+const sessionTokenRetireGrace = 2 * time.Minute
+
 // Storage manages access rules and group membership.
 type Storage struct {
 	mux           sync.RWMutex
@@ -86,6 +90,7 @@ type SQLPersister interface {
 	DeleteGroup(name string) error
 	SaveRevokedToken(tokenHash string, revokedAt int64) error
 	PersistImmediateTokenRevocation(tokenHash string) error
+	PersistTokenRetirement(tokenHash string, revokedAt int64, pruned []string) error
 	DeleteRevokedToken(tokenHash string) error
 	SaveHashedToken(tokenHash string, userID uint64, isSession bool) error
 	DeleteHashedToken(tokenHash string) error
@@ -1332,6 +1337,32 @@ func (s *Storage) RevokeToken(tokenString string) error {
 	return nil
 }
 
+// RetireToken schedules a rotated session token for revocation after
+// sessionTokenRetireGrace. The owner mapping is kept during the grace window so
+// in-flight requests still carrying the previous cookie stay authenticated.
+func (s *Storage) RetireToken(tokenString string) error {
+	tokenHash := utils.HashSHA256(tokenString)
+	now := time.Now()
+	var rollback tokenRetireRollback
+	s.mux.Lock()
+	rollback.capture(s, tokenHash, now)
+	s.RevokedTokens[tokenHash] = now.Unix()
+	pruned := s.pruneRevocationsNL(now)
+	sqlStore := s.sqlStore
+	s.mux.Unlock()
+
+	if sqlStore == nil {
+		return nil
+	}
+	if err := sqlStore.PersistTokenRetirement(tokenHash, now.Unix(), pruned); err != nil {
+		s.mux.Lock()
+		rollback.apply(s)
+		s.mux.Unlock()
+		return err
+	}
+	return nil
+}
+
 type tokenRevokeRollback struct {
 	tokenHash  string
 	hadHashed  bool
@@ -1365,14 +1396,81 @@ func (rb *tokenRevokeRollback) apply(s *Storage) {
 	}
 }
 
-// IsTokenRevoked reports whether a token is revoked. Revocation is immediate:
-// any recorded entry means the token is invalid.
+type tokenRetireRollback struct {
+	tokenHash       string
+	hadTokenRevoked bool
+	tokenRevokedAt  int64
+	prunedRevoked   map[string]int64
+	prunedHashed    map[string]HashedTokenInfo
+}
+
+func (rb *tokenRetireRollback) capture(s *Storage, tokenHash string, now time.Time) {
+	rb.tokenHash = tokenHash
+	if at, ok := s.RevokedTokens[tokenHash]; ok {
+		rb.hadTokenRevoked = true
+		rb.tokenRevokedAt = at
+	}
+	revokedAfter := maps.Clone(s.RevokedTokens)
+	revokedAfter[tokenHash] = now.Unix()
+	rb.prunedRevoked = make(map[string]int64)
+	rb.prunedHashed = make(map[string]HashedTokenInfo)
+	for hash, revokedAt := range revokedAfter {
+		if revokedAt != 0 && now.Sub(time.Unix(revokedAt, 0)) < sessionTokenRetireGrace {
+			continue
+		}
+		if at, ok := s.RevokedTokens[hash]; ok {
+			rb.prunedRevoked[hash] = at
+		}
+		if info, ok := s.HashedTokens[hash]; ok {
+			rb.prunedHashed[hash] = info
+		}
+	}
+}
+
+func (rb *tokenRetireRollback) apply(s *Storage) {
+	if rb.hadTokenRevoked {
+		s.RevokedTokens[rb.tokenHash] = rb.tokenRevokedAt
+	} else {
+		delete(s.RevokedTokens, rb.tokenHash)
+	}
+	for hash, at := range rb.prunedRevoked {
+		s.RevokedTokens[hash] = at
+	}
+	for hash, info := range rb.prunedHashed {
+		s.HashedTokens[hash] = info
+	}
+}
+
+// pruneRevocationsNL drops revocation records that no longer need to be retained
+// and returns their hashes so the caller can clean up SQL. Immediate revocations
+// (timestamp 0) and retirements past the grace window no longer resolve a user
+// because their owner mapping is removed here. Caller must hold s.mux.
+func (s *Storage) pruneRevocationsNL(now time.Time) []string {
+	var pruned []string
+	for hash, revokedAt := range s.RevokedTokens {
+		if revokedAt == 0 || now.Sub(time.Unix(revokedAt, 0)) >= sessionTokenRetireGrace {
+			delete(s.RevokedTokens, hash)
+			delete(s.HashedTokens, hash)
+			pruned = append(pruned, hash)
+		}
+	}
+	return pruned
+}
+
+// IsTokenRevoked reports whether a token is revoked. Retired session tokens are
+// only considered revoked once the grace window has elapsed.
 func (s *Storage) IsTokenRevoked(tokenString string) bool {
 	tokenHash := utils.HashSHA256(tokenString)
 	s.mux.RLock()
-	_, exists := s.RevokedTokens[tokenHash]
+	revokedAt, exists := s.RevokedTokens[tokenHash]
 	s.mux.RUnlock()
-	return exists
+	if !exists {
+		return false
+	}
+	if revokedAt == 0 {
+		return true
+	}
+	return time.Since(time.Unix(revokedAt, 0)) >= sessionTokenRetireGrace
 }
 
 // AddApiToken maps a named API token string hash to an owner user id.

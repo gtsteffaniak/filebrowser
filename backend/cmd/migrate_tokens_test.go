@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -118,8 +119,14 @@ func TestUpdateTokenHashBackfillSuccessStampsVersion(t *testing.T) {
 }
 
 func TestUpdateTokenHashBackfillFailureSkipsBump(t *testing.T) {
-	// No state access DB in this package's tests, so hash registration fails
-	// and the version must stay below newest for a retry on next startup.
+	// Force token hash registration to fail; the version must stay below
+	// newest so the backfill retries on next startup.
+	orig := addApiToken
+	addApiToken = func(string, uint64) error {
+		return errors.New("simulated token registration failure")
+	}
+	t.Cleanup(func() { addApiToken = orig })
+
 	user := &users.User{FrontendUser: users.FrontendUser{Username: "backfill-retry"}}
 	user.Version = users.ProfileStorageVersion
 	user.ApiKeys = map[string]users.AuthToken{
@@ -128,7 +135,7 @@ func TestUpdateTokenHashBackfillFailureSkipsBump(t *testing.T) {
 
 	_, failed := updateTokenHashBackfill(user)
 	if !failed {
-		t.Fatal("expected failure without access storage")
+		t.Fatal("expected failure when token registration fails")
 	}
 	if user.Version != users.ProfileStorageVersion {
 		t.Fatalf("failed backfill must not bump version, got %d", user.Version)
