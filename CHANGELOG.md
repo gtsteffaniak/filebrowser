@@ -4,10 +4,12 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.9
 
+ **Notes**:
+ - Webdav always shows hidden files, ignores user preference. (#3004)
+
  **Bugfixes**:
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
  - ffmpeg unresponsive lock issue (#2996)
- - WebDAV listings now always include hidden (dot) files, independent of the user's `showHidden` UI preference, so sync clients such as rclone no longer delete local dotfiles (#3004)
 
 ## v2.0.8
 
