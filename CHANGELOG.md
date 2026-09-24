@@ -2,8 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v2.0.8
+## v2.0.9
 
+ **Bugfixes**:
+ - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
+ - ffmpeg unresponsive lock issue (#2996)
+
+## v2.0.8
  **Security**:
  - [Critical] A forged JWT could authenticate as any known `belongsTo`. Auth signing keys are now persisted in the application database and JWT validation fails closed when no key is configured. (GHSA-8f9r-wg7w-pfw) (#2987) Thanks @d3do-23 and @whoamis3c.
  - [Medium] Public upload shares with replacements disabled (`allowReplacements=false`) now reject overwrites when clients send `override=true`. (GHSA-3846-gh75-gp3m) Thanks @d3do-23
