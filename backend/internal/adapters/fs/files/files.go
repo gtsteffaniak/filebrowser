@@ -961,7 +961,14 @@ func WriteDirectory(opts utils.FileOptions) error {
 	return nil
 }
 
+// WriteFileFunc is a variable that can be mocked in tests
+var WriteFileFunc = writeFile
+
 func WriteFile(source, path string, in io.Reader) error {
+	return WriteFileFunc(source, path, in)
+}
+
+func writeFile(source, path string, in io.Reader) error {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)

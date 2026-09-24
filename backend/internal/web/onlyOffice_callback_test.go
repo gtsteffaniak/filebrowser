@@ -3,7 +3,9 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -138,6 +140,125 @@ func TestParseOnlyOfficeCallbackFromJSONPlainWhenNoSecret(t *testing.T) {
 	}
 	if callback.Key != "doc-key" || callback.Status != 2 {
 		t.Fatalf("callback = %+v", callback)
+	}
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+func TestOnlyOfficeCallbackRetainsKeyWhenSaveFails(t *testing.T) {
+	initStreamTestSources(t)
+
+	const realPath = "/default/doc.docx"
+	const docKey = "oo-key-save-fail"
+
+	origOnlyOffice := settings.Config.Integrations.OnlyOffice
+	origFileInfo := files.FileInfoFasterFunc
+	origWriteFile := files.WriteFileFunc
+	origClient := onlyOfficeDownloadClient
+	t.Cleanup(func() {
+		settings.Config.Integrations.OnlyOffice = origOnlyOffice
+		files.FileInfoFasterFunc = origFileInfo
+		files.WriteFileFunc = origWriteFile
+		onlyOfficeDownloadClient = origClient
+		utils.OnlyOfficeCache.Delete(realPath)
+	})
+
+	settings.Config.Integrations.OnlyOffice.Url = "http://onlyoffice.test"
+
+	files.FileInfoFasterFunc = func(utils.FileOptions, *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		return &iteminfo.ExtendedFileInfo{RealPath: realPath}, nil
+	}
+	onlyOfficeDownloadClient = &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader("updated-document")),
+		}, nil
+	})}
+	utils.OnlyOfficeCache.Set(realPath, docKey)
+
+	writeCalls := 0
+	files.WriteFileFunc = func(string, string, io.Reader) error {
+		writeCalls++
+		return errors.New("write failed")
+	}
+
+	user := testUserWithSourcePerms("/default", users.SourceFilePermissions{
+		View: true, Download: true, Modify: true,
+	})
+	d := &requestContext{User: user}
+	callback := &OnlyOfficeCallback{
+		Key:    docKey,
+		Status: onlyOfficeStatusDocumentClosedWithChanges,
+		URL:    "http://onlyoffice.test/cache/doc.docx",
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/office/callback?source=default&path=/doc.docx", nil)
+
+	rec := httptest.NewRecorder()
+	if _, err := processOnlyOfficeCallback(rec, req, d, callback); err != nil {
+		t.Fatalf("processOnlyOfficeCallback returned err=%v", err)
+	}
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected save failure, got status=%d", rec.Code)
+	}
+	if _, err := GetOnlyOfficeId(realPath); err != nil {
+		t.Fatal("document key was deleted despite failed save; document server retry would be rejected")
+	}
+
+	// The document server retries the callback with the same key; the session
+	// must still resolve and the save must be allowed to complete.
+	files.WriteFileFunc = func(string, string, io.Reader) error {
+		writeCalls++
+		return nil
+	}
+	rec = httptest.NewRecorder()
+	if _, err := processOnlyOfficeCallback(rec, req, d, callback); err != nil {
+		t.Fatalf("retry failed: %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("retry failed: status=%d", rec.Code)
+	}
+	if _, err := GetOnlyOfficeId(realPath); err == nil {
+		t.Fatal("document key should be deleted after a successful save")
+	}
+	if writeCalls != 2 {
+		t.Fatalf("writeCalls = %d, want 2", writeCalls)
+	}
+}
+
+func TestOnlyOfficeCallbackDeletesKeyWhenClosedWithoutChanges(t *testing.T) {
+	initStreamTestSources(t)
+
+	const realPath = "/default/doc.docx"
+	const docKey = "oo-key-no-changes"
+
+	origFileInfo := files.FileInfoFasterFunc
+	t.Cleanup(func() {
+		files.FileInfoFasterFunc = origFileInfo
+		utils.OnlyOfficeCache.Delete(realPath)
+	})
+
+	files.FileInfoFasterFunc = func(utils.FileOptions, *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		return &iteminfo.ExtendedFileInfo{RealPath: realPath}, nil
+	}
+	utils.OnlyOfficeCache.Set(realPath, docKey)
+
+	d := &requestContext{User: testUserWithSourcePerms("/default", users.SourceFilePermissions{
+		View: true, Download: true, Modify: true,
+	})}
+	req := httptest.NewRequest(http.MethodPost, "/api/office/callback?source=default&path=/doc.docx", nil)
+
+	status, err := processOnlyOfficeCallback(httptest.NewRecorder(), req, d, &OnlyOfficeCallback{
+		Key:    docKey,
+		Status: onlyOfficeStatusDocumentClosedWithNoChanges,
+	})
+	if err != nil || status != http.StatusOK {
+		t.Fatalf("status=%d err=%v", status, err)
+	}
+	if _, err := GetOnlyOfficeId(realPath); err == nil {
+		t.Fatal("document key should be deleted when the document closed without changes")
 	}
 }
 
