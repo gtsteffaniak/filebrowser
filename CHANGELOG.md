@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
  - ffmpeg unresponsive lock issue (#2996)
  - fixed token migration lockout regression from v2.0.8-beta (#2999)
+ - External JWT (JwtAuth) requests now reuse an existing valid session cookie instead of minting and registering a new session token on every request
 
 ## v2.0.8
  **Security**:
