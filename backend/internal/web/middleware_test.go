@@ -290,6 +290,21 @@ func TestExtractUserFromExpiredToken_RejectsRevokedExpired(t *testing.T) {
 	}
 }
 
+func TestExtractUserFromExpiredToken_RejectsPastGrace(t *testing.T) {
+	_, tokenString := issueExtractUserTestToken(t, -(state.ExpiredTokenGrace + time.Hour))
+
+	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
+	req.AddCookie(&http.Cookie{
+		Name:  "filebrowser_quantum_jwt",
+		Value: tokenString,
+	})
+
+	data := &requestContext{}
+	if got := extractUserFromExpiredToken(req, data); got != nil {
+		t.Fatalf("extractUserFromExpiredToken() = user %q, want nil for token expired past grace", got.Username)
+	}
+}
+
 func issueExtractUserTestToken(t *testing.T, duration time.Duration) (*users.User, string) {
 	t.Helper()
 	setupTestEnv(t)

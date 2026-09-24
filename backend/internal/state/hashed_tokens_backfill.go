@@ -2,7 +2,9 @@ package state
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -42,8 +44,13 @@ func BackfillUserTokenHashesOnStore(store *sqldb.SQLStore, user *users.User) err
 	if store == nil || user == nil || user.ID == 0 {
 		return nil
 	}
+	now := time.Now()
 	for _, raw := range CollectStoredRawTokens(user) {
-		if err := store.SaveHashedToken(utils.HashSHA256(raw), user.ID, false); err != nil {
+		expiresAt := access.TokenExpiryUnix(raw)
+		if access.TokenExpiredPastGrace(expiresAt, now) {
+			continue
+		}
+		if err := store.SaveHashedToken(utils.HashSHA256(raw), user.ID, false, expiresAt); err != nil {
 			return err
 		}
 	}
@@ -90,6 +97,9 @@ func backfillUserTokenHashes(user *users.User) (int, error) {
 	}
 	added := 0
 	for _, raw := range CollectStoredRawTokens(user) {
+		if access.TokenExpiredPastGrace(access.TokenExpiryUnix(raw), time.Now()) {
+			continue
+		}
 		if _, ok := accessDb.GetUserIDFromToken(raw); ok {
 			continue
 		}

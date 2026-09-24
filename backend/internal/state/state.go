@@ -3,6 +3,7 @@ package state
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
@@ -146,13 +147,23 @@ func initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to load hashed tokens: %w", err)
 	}
 	accessDb.HashedTokens = make(map[string]access.HashedTokenInfo, len(hashedTokens))
+	now := time.Now()
+	expired := 0
 	for hash, record := range hashedTokens {
+		if access.TokenExpiredPastGrace(record.ExpiresAt, now) {
+			expired++
+			if err := sqlDb.DeleteHashedToken(hash); err != nil {
+				logger.Errorf("failed to delete expired token hash from sql: %v", err)
+			}
+			continue
+		}
 		accessDb.HashedTokens[hash] = access.HashedTokenInfo{
 			UserID:    record.UserID,
 			IsSession: record.IsSession,
+			ExpiresAt: record.ExpiresAt,
 		}
 	}
-	logger.Debugf("Loaded %d hashed tokens", len(hashedTokens))
+	logger.Debugf("Loaded %d hashed tokens (%d expired dropped)", len(hashedTokens)-expired, expired)
 
 	accessDb.SetSQLStore(sqlDb)
 

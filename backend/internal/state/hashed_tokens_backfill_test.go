@@ -16,7 +16,7 @@ type failingTokenPersister struct {
 	access.SQLPersister
 }
 
-func (failingTokenPersister) SaveHashedToken(string, uint64, bool) error {
+func (failingTokenPersister) SaveHashedToken(string, uint64, bool, int64) error {
 	return errors.New("simulated hashed token persistence failure")
 }
 

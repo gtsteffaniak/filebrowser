@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -65,11 +66,41 @@ type GroupMap map[string]StringSet
 type HashedTokenInfo struct {
 	UserID    uint64
 	IsSession bool
+	// ExpiresAt is the token's exp claim as unix time; 0 means no expiry (e.g.
+	// non-JWT strings or rows persisted before expiry tracking).
+	ExpiresAt int64
 }
 
 // sessionTokenRetireGrace is how long a rotated session token stays usable after
 // renewal. In-flight requests still carrying the previous cookie must not 401.
 const sessionTokenRetireGrace = 2 * time.Minute
+
+// ExpiredTokenGrace is how long an expired bearer token may still resolve to its
+// owner (expired sessions are used for share-ACL identity checks) before the
+// registry treats the mapping as gone.
+const ExpiredTokenGrace = 24 * time.Hour
+
+// TokenExpiryUnix extracts the exp claim of a bearer JWT without verifying the
+// signature; the value is only used for expiry bookkeeping and tokens are
+// verified on the auth path. Returns 0 for non-JWT strings or tokens without
+// an expiry claim.
+func TokenExpiryUnix(tokenString string) int64 {
+	claims := jwt.MapClaims{}
+	if _, _, err := jwt.NewParser().ParseUnverified(tokenString, claims); err != nil {
+		return 0
+	}
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return 0
+	}
+	return int64(exp)
+}
+
+// TokenExpiredPastGrace reports whether a token expiry is older than the
+// resolution grace window. expiresAt == 0 (unknown/none) never expires.
+func TokenExpiredPastGrace(expiresAt int64, now time.Time) bool {
+	return expiresAt != 0 && now.After(time.Unix(expiresAt, 0).Add(ExpiredTokenGrace))
+}
 
 // Storage manages access rules and group membership.
 type Storage struct {
@@ -92,7 +123,7 @@ type SQLPersister interface {
 	PersistImmediateTokenRevocation(tokenHash string) error
 	PersistTokenRetirement(tokenHash string, revokedAt int64, pruned []string) error
 	DeleteRevokedToken(tokenHash string) error
-	SaveHashedToken(tokenHash string, userID uint64, isSession bool) error
+	SaveHashedToken(tokenHash string, userID uint64, isSession bool, expiresAt int64) error
 	DeleteHashedToken(tokenHash string) error
 	DeleteHashedTokensByUserID(userID uint64) error
 }
@@ -1484,15 +1515,47 @@ func (s *Storage) AddSessionToken(tokenString string, userID uint64) error {
 }
 
 func (s *Storage) addHashedToken(tokenString string, userID uint64, isSession bool) error {
+	expiresAt := TokenExpiryUnix(tokenString)
 	tokenHash := utils.HashSHA256(tokenString)
+	now := time.Now()
+	// Tokens already past the expiry grace window are never registered.
+	register := !TokenExpiredPastGrace(expiresAt, now)
+
 	s.mux.Lock()
-	s.HashedTokens[tokenHash] = HashedTokenInfo{UserID: userID, IsSession: isSession}
+	if register {
+		s.HashedTokens[tokenHash] = HashedTokenInfo{UserID: userID, IsSession: isSession, ExpiresAt: expiresAt}
+	}
+	pruned := s.pruneExpiredHashedTokensNL(now)
 	sqlStore := s.sqlStore
 	s.mux.Unlock()
-	if sqlStore != nil {
-		return sqlStore.SaveHashedToken(tokenHash, userID, isSession)
+
+	if sqlStore == nil {
+		return nil
 	}
-	return nil
+	for _, hash := range pruned {
+		if err := sqlStore.DeleteHashedToken(hash); err != nil {
+			logger.Errorf("failed to delete expired token hash from sql: %v", err)
+		}
+	}
+	if !register {
+		return nil
+	}
+	return sqlStore.SaveHashedToken(tokenHash, userID, isSession, expiresAt)
+}
+
+// pruneExpiredHashedTokensNL drops owner mappings whose token expiry is past
+// the grace window and returns their hashes so the caller can clean up SQL.
+// Caller must hold s.mux.
+func (s *Storage) pruneExpiredHashedTokensNL(now time.Time) []string {
+	var pruned []string
+	for hash, info := range s.HashedTokens {
+		if !TokenExpiredPastGrace(info.ExpiresAt, now) {
+			continue
+		}
+		delete(s.HashedTokens, hash)
+		pruned = append(pruned, hash)
+	}
+	return pruned
 }
 
 // GetUserIDFromToken retrieves the owner user id for a given token string (memory read; SQL populated at startup).
@@ -1502,12 +1565,19 @@ func (s *Storage) GetUserIDFromToken(tokenString string) (uint64, bool) {
 }
 
 // GetHashedTokenInfo retrieves owner/type metadata for a given token string.
+// Tokens past their expiry grace window resolve as unknown.
 func (s *Storage) GetHashedTokenInfo(tokenString string) (HashedTokenInfo, bool) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 	tokenHash := utils.HashSHA256(tokenString)
 	info, exists := s.HashedTokens[tokenHash]
-	return info, exists
+	if !exists {
+		return info, false
+	}
+	if TokenExpiredPastGrace(info.ExpiresAt, time.Now()) {
+		return HashedTokenInfo{}, false
+	}
+	return info, true
 }
 
 // GetRevokedTokens returns a copy of the revocation map (hash → revocation unix time).

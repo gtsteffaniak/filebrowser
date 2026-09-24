@@ -117,6 +117,10 @@ func AddApiToken(tokenString string, userID uint64) error {
 	return accessDb.AddApiToken(tokenString, userID)
 }
 
+// ExpiredTokenGrace re-exports access.ExpiredTokenGrace for callers that should
+// not depend on the access package directly.
+const ExpiredTokenGrace = access.ExpiredTokenGrace
+
 // RegisterSessionToken maps a session bearer JWT to its owner user id.
 func RegisterSessionToken(tokenString string, userID uint64) error {
 	if accessDb == nil {

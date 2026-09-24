@@ -214,6 +214,14 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	if state.IsTokenRevoked(tokenString) {
 		return nil
 	}
+
+	// An expired token may only identify a user for a bounded window past its
+	// expiry; older tokens resolve nothing even if their hash is still known.
+	if tk.RegisteredClaims.ExpiresAt != nil &&
+		time.Since(tk.RegisteredClaims.ExpiresAt.Time) >= state.ExpiredTokenGrace {
+		return nil
+	}
+
 	user, err := resolveBearerTokenUser(tokenString)
 	if err != nil {
 		logger.Errorf("Failed to get user from token: %v", err)
@@ -470,7 +478,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if state.IsTokenRevoked( data.Token) {
+		if state.IsTokenRevoked(data.Token) {
 			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
 		// ExpiresAt should always be set in valid tokens created by our system
