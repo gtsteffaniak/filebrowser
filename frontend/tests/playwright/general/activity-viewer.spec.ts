@@ -1,3 +1,7 @@
+import {
+  loginPlaywrightAdmin,
+  PLAYWRIGHT_ADMIN_PASSWORD,
+} from "../playwright-auth";
 import { expect, test } from "../test-setup";
 
 test.describe("Activity Viewer API", () => {
@@ -33,9 +37,7 @@ test.describe("Activity Viewer API", () => {
     const page = await context.newPage();
 
     await page.goto("/login");
-    await page.getByPlaceholder("Username").fill("admin");
-    await page.getByPlaceholder("Password").fill("admin");
-    await page.getByRole("button", { name: "Login" }).click();
+    await loginPlaywrightAdmin(page);
     await page.waitForURL("**/files/**");
 
     const usersRes = await page.request.get("http://127.0.0.1/api/users");
@@ -48,7 +50,7 @@ test.describe("Activity Viewer API", () => {
     const createRes = await page.request.post("http://127.0.0.1/api/users", {
       headers: {
         "Content-Type": "application/json",
-        "X-Password": "admin",
+        "X-Password": PLAYWRIGHT_ADMIN_PASSWORD,
       },
       data: {
         which: [],

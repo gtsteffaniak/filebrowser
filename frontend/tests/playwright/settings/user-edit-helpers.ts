@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import { fillPlaywrightAdminPasswordPrompt } from "../playwright-auth";
 import { expect } from "../test-setup";
 
 /** Users tab uses SettingsTable; scoped to `.settings-table` body rows only. */
@@ -104,14 +105,14 @@ export async function openUserEdit(
 
 /**
  * User POST/PUT/DELETE for sensitive actions return 401 until X-Password is supplied.
- * Password must match tests/playwright/global-setup.ts.
+ * Password must match tests/playwright/playwright-auth.ts.
  */
 export async function confirmActorPasswordPrompt(page: Page) {
   const passwordModal = page.locator(
     'div[aria-label="password-prompt"]:not(.prompt-behind)',
   );
   await expect(passwordModal).toBeVisible();
-  await passwordModal.locator("input").fill("admin");
+  await fillPlaywrightAdminPasswordPrompt(passwordModal);
   await passwordModal.locator('button[aria-label="Confirm"]').click();
   await expect(passwordModal).not.toBeVisible();
 }

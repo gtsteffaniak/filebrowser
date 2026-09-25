@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { fillPlaywrightAdminPasswordPrompt } from "../playwright-auth";
 import { expect, test } from "../test-setup";
 import {
     SETTINGS_TEST_SOURCE,
@@ -109,7 +110,7 @@ test("two factor auth check", async ({ page, checkForErrors }) => {
     const passwordModal = page.locator(
         'div[aria-label="password-prompt"]:not(.prompt-behind)',
     );
-    await passwordModal.locator("input").fill("admin");
+    await fillPlaywrightAdminPasswordPrompt(passwordModal);
     await passwordModal.locator('button[aria-label="Confirm"]').click();
 
     const totpModal = page.locator('div[aria-label="totp-prompt"]');
