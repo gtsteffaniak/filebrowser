@@ -195,7 +195,7 @@ import { mutations, state, getters } from "@/store";
 import Prompts from "@/components/prompts/Prompts.vue";
 import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
-import { removeLeadingSlash } from "@/utils/url";
+import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { globalVars } from "@/utils/constants";
 import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
@@ -238,10 +238,9 @@ export default {
   }),
   mounted() {
     syncDocumentTheme(this.isDarkMode);
-    let redirect = state.route.query.redirect;
-    if (redirect) {
-      redirect = removeLeadingSlash(redirect);
-      redirect = globalVars.baseURL + redirect;
+    if (state.route.query.redirect) {
+      const safeRedirect = sanitizePostLoginRedirect(state.route.query.redirect);
+      const redirect = postLoginRedirectForServer(safeRedirect, globalVars.baseURL);
       this.loginURL += `?redirect=${encodeURIComponent(redirect)}`;
       // If password auth is disabled and OIDC is available, auto-redirect
       // Only auto-redirect when there's a valid redirect URL (user needs to go somewhere)
@@ -305,10 +304,7 @@ export default {
       this.inProgress = true;
       event.preventDefault();
       event.stopPropagation();
-      let redirect = state.route.query.redirect;
-      if (redirect === "" || redirect === undefined || redirect === null) {
-        redirect = "/files/";
-      }
+      const redirect = sanitizePostLoginRedirect(state.route.query.redirect);
 
       let captcha = "";
       if (globalVars.recaptcha) {

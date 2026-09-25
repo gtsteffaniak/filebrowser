@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import i18n from "@/i18n";
 import { getters, mutations, state } from "@/store";
 import { validateLogin } from "@/utils/auth";
+import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { globalVars } from "@/utils/constants";
 import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
@@ -203,8 +204,8 @@ router.beforeResolve(async (to, from, next) => {
     } else {
       // Validation failed - clear state and redirect to login
       void mutations.setCurrentUser(null);
-      // Always redirect to login when not authenticated
-      next({ path: "/login", query: { redirect: to.fullPath } });
+      const safeRedirect = sanitizePostLoginRedirect(to.fullPath);
+      next({ path: "/login", query: { redirect: safeRedirect } });
       return;
     }
 

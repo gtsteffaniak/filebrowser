@@ -1,6 +1,7 @@
 import { getters, mutations, state } from "@/store";
 import { globalVars } from "@/utils/constants";
 import { getApiPath } from "@/utils/url.js";
+import { sanitizeLogoutDestination, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 
 /** Session JWT: renew when within 30 minutes of expiry (former X-Renew-Token threshold). */
 export const SESSION_REFRESH_BEFORE_MS = 30 * 60 * 1000;
@@ -194,7 +195,7 @@ export async function logout(redirectUrl) {
       const data = await res.json();
       let destination = data.logoutUrl || `${globalVars.baseURL}login`;
       if (redirectUrl) {
-        destination = redirectUrl;
+        destination = sanitizeLogoutDestination(redirectUrl, destination);
       }
       // Backend clears the HttpOnly session cookie.
       sessionExpiresAt = null;
@@ -226,7 +227,8 @@ export function sessionExpired() {
     return;
   }
   const current = window.location.pathname + window.location.search;
-  window.location.href = `${globalVars.baseURL}login?redirect=${encodeURIComponent(current)}`;
+  const safeRedirect = sanitizePostLoginRedirect(current, '/files/');
+  window.location.href = `${globalVars.baseURL}login?redirect=${encodeURIComponent(safeRedirect)}`;
 }
 
 export async function initAuth() {

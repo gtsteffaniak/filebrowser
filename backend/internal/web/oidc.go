@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
-	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -15,11 +14,56 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/oauth2"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-
 )
+
+const (
+	oidcStateCookieName    = "filebrowser_oidc_state"
+	oidcRedirectCookieName = "filebrowser_oidc_redirect"
+	oidcFlowCookieMaxAge   = 600 // seconds
+)
+
+func oidcFlowCookie(r *http.Request, name, value string, maxAge int) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     "/",
+		Domain:   sessionCookieDomain(r),
+		HttpOnly: true,
+		Secure:   requestScheme(r) == "https",
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   maxAge,
+	}
+}
+
+func clearOidcFlowCookies(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, oidcFlowCookie(r, oidcStateCookieName, "", -1))
+	http.SetCookie(w, oidcFlowCookie(r, oidcRedirectCookieName, "", -1))
+}
+
+// validateOidcCallbackState checks the OAuth state parameter against the HttpOnly cookie set at login.
+func validateOidcCallbackState(r *http.Request, w http.ResponseWriter) (postLoginRedirect string, status int, err error) {
+	stateParam := r.URL.Query().Get("state")
+	stateCookie, stateErr := r.Cookie(oidcStateCookieName)
+	redirectCookie, _ := r.Cookie(oidcRedirectCookieName)
+	clearOidcFlowCookies(w, r)
+
+	if stateParam == "" || stateErr != nil || stateCookie.Value == "" || stateParam != stateCookie.Value {
+		return "", http.StatusBadRequest, fmt.Errorf("invalid OIDC state")
+	}
+
+	postLoginRedirect = settings.Config.Http.BaseURL
+	if redirectCookie != nil && redirectCookie.Value != "" {
+		if path, ok := SafeRelativeRedirectPath(redirectCookie.Value); ok {
+			postLoginRedirect = path
+		} else {
+			logger.Warningf("Blocked OIDC post-login redirect cookie value: %s", redirectCookie.Value)
+		}
+	}
+	return postLoginRedirect, 0, nil
+}
 
 // userInfo holds all claims dynamically, plus pre-parsed Groups.
 type userInfo struct {
@@ -177,9 +221,23 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		Scopes:       strings.Fields(oidcCfg.Scopes),
 	}
 
-	nonce := utils.InsecureRandomIdentifier(16)
-	fbRedirect := r.URL.Query().Get("redirect")
-	state := fmt.Sprintf("%s:%s", nonce, fbRedirect)
+	state, err := utils.RandomHex(16)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("generate OIDC state: %w", err)
+	}
+
+	postLogin := settings.Config.Http.BaseURL
+	if rawRedirect := r.URL.Query().Get("redirect"); rawRedirect != "" {
+		if path, ok := SafeRelativeRedirectPath(rawRedirect); ok {
+			postLogin = path
+		} else {
+			logger.Warningf("Blocked OIDC post-login redirect: %s", rawRedirect)
+		}
+	}
+
+	http.SetCookie(w, oidcFlowCookie(r, oidcStateCookieName, state, oidcFlowCookieMaxAge))
+	http.SetCookie(w, oidcFlowCookie(r, oidcRedirectCookieName, postLogin, oidcFlowCookieMaxAge))
+
 	authURL := oauth2Config.AuthCodeURL(state)
 	http.Redirect(w, r, authURL, http.StatusFound)
 	return 0, nil
@@ -218,7 +276,10 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		ctx = oidc.ClientContext(ctx, customClient)
 	}
 	code := r.URL.Query().Get("code")
-	// state := r.URL.Query().Get("state") // You might want to validate the state parameter for CSRF protection
+	postLoginRedirect, status, stateErr := validateOidcCallbackState(r, w)
+	if stateErr != nil {
+		return status, stateErr
+	}
 
 	oauth2Config := &oauth2.Config{
 		ClientID:     oidcCfg.ClientID,
@@ -238,10 +299,10 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	rawIDToken, ok := token.Extra("id_token").(string)
 	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
 
-	var userdata userInfo                // Declare userdata here to be populated by either source
-	var idTokenClaims map[string]any   // Verified ID-token claims preserved across UserInfo fallback
-	claimsFromIDToken := false           // Flag to track if we successfully got claims from ID token
-	loginUsername := ""                  // Variable to hold the login username
+	var userdata userInfo            // Declare userdata here to be populated by either source
+	var idTokenClaims map[string]any // Verified ID-token claims preserved across UserInfo fallback
+	claimsFromIDToken := false       // Flag to track if we successfully got claims from ID token
+	loginUsername := ""              // Variable to hold the login username
 
 	// Create custom unmarshaller for userInfo
 	userInfoUnmarshaller := &userInfoUnmarshaller{
@@ -322,7 +383,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
-	return loginWithOidcUser(w, r, loginUsername, userdata.Groups)
+	return loginWithOidcUser(w, r, loginUsername, userdata.Groups, postLoginRedirect)
 }
 
 // mergeMissingOidcClaims copies claims from from into userdata when absent after UserInfo fallback.
@@ -340,7 +401,7 @@ func mergeMissingOidcClaims(userdata *userInfo, from map[string]any) {
 // loginWithOidcUser extracts the username from the user claims (userInfo)
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
-func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, groups []string) (int, error) {
+func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, groups []string, postLoginRedirect string) (int, error) {
 	oidcCfg := settings.Config.Auth.Methods.OidcAuth
 
 	// Check if user is in required groups (if userGroups is configured)
@@ -404,35 +465,17 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 
 	activity.RecordLogin(r, user)
 
-	// Redirect the user to the page they were trying to access before login,
-	// or to the root ("/") if no specific redirect was requested.
-	// The 'fb_redirect' parameter is extracted from the 'state' parameter for security.
-	state := r.URL.Query().Get("state")
-
-	fbRedirect := settings.Config.Http.BaseURL // Default redirect to the base URL
-	if state != "" {
-		parts := strings.SplitN(state, ":", 2)
-
-		// 2. Validate the nonce
-		// receivedNonce := parts[0]
-		// if receivedNonce != nonceCookie.Value {
-		//    // Handle error: nonce mismatch (possible CSRF attack)
-		//    return http.StatusBadRequest, fmt.Errorf("invalid state nonce")
-		// }
-
-		if len(parts) == 2 && parts[1] != "" {
-			// 3. Prevent Open Redirect vulnerability
-			// Ensure the redirect is to a local path.
-			potentialRedirect, err := url.QueryUnescape(parts[1])
-			if err == nil && strings.HasPrefix(potentialRedirect, "/") {
-				fbRedirect = potentialRedirect
-			} else {
-				logger.Warningf("Blocked potentially malicious redirect to: %s", parts[1])
-			}
-		}
+	fbRedirect := postLoginRedirect
+	if fbRedirect == "" {
+		fbRedirect = settings.Config.Http.BaseURL
+	}
+	if path, ok := SafeRelativeRedirectPath(fbRedirect); ok {
+		fbRedirect = path
+	} else if fbRedirect != settings.Config.Http.BaseURL {
+		logger.Warningf("Blocked OIDC post-login redirect: %s", fbRedirect)
+		fbRedirect = settings.Config.Http.BaseURL
 	}
 
-	// Clean up
 	http.Redirect(w, r, fbRedirect, http.StatusFound)
 
 	// Return 0 to indicate that the response has been handled by the redirect

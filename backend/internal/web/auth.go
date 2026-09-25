@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	libError "errors"
 	"fmt"
+	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"strings"
@@ -296,9 +298,10 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		return http.StatusMethodNotAllowed, fmt.Errorf("signup is disabled")
 	}
 
-	// Get credentials from query parameters
-	username := r.URL.Query().Get("username")
-	password := r.URL.Query().Get("password")
+	username, password, credErr := parseSignupCredentials(r)
+	if credErr != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid signup request body")
+	}
 
 	// Validate that we have both username and password
 	if username == "" || password == "" {
@@ -324,6 +327,24 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		LoginMethod: string(users.LoginMethodPassword),
 	})
 	return 201, nil
+}
+
+type signupCredentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func parseSignupCredentials(r *http.Request) (username, password string, err error) {
+	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err == nil && mediaType == "application/json" {
+		var body signupCredentials
+		dec := json.NewDecoder(io.LimitReader(r.Body, 8192))
+		if err := dec.Decode(&body); err != nil {
+			return "", "", err
+		}
+		return strings.TrimSpace(body.Username), body.Password, nil
+	}
+	return r.URL.Query().Get("username"), r.URL.Query().Get("password"), nil
 }
 
 // renewHandler refreshes the authentication token for a logged-in user.
