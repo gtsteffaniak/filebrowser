@@ -294,7 +294,6 @@ body.sidebar-resizing * {
 
 #sidebar.scrollable {
   overflow: auto;
-  -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
 

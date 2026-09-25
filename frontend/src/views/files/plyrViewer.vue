@@ -3392,7 +3392,7 @@ export default {
   outline: none;
   box-shadow:
     0 0 0 2px rgb(255 255 255 / 90%),
-    0 8px 25px rgb(var(--primaryColor-rgb), 0.3),
+    0 8px 25px rgb(var(--primaryColor), 0.3),
     0 4px 12px rgb(0 0 0 / 20%);
 }
 

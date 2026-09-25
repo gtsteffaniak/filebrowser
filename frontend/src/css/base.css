@@ -46,11 +46,6 @@ audio, video {
   margin: 1em auto 0;
 }
 
-/* Icons */
-i.spin {
-  animation: 1s spin linear infinite;
-}
-
 /* App Styles */
 #app {
   transition: 0.2s ease padding;
