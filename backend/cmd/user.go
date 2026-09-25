@@ -87,7 +87,7 @@ func validateUserInfo(newDB bool) {
 				changedFields = append(changedFields, "permissions")
 			}
 		}
-		if user.Username == adminUser && settings.Config.Auth.AdminPassword != "" && user.LoginMethod == users.LoginMethodPassword {
+		if user.Username == adminUser && settings.ConfigTriggersAdminPasswordReset() && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
