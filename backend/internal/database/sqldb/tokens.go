@@ -41,6 +41,7 @@ type sqlExecutor interface {
 type HashedTokenRecord struct {
 	UserID    uint64
 	IsSession bool
+	ExpiresAt int64 // unix expiry from the token's exp claim; 0 = unknown/none
 }
 
 // PersistImmediateTokenRevocation records an immediate revocation and removes the
@@ -145,9 +146,10 @@ func (s *SQLStore) DeleteRevokedToken(tokenHash string) error {
 // SaveHashedToken saves a token hash to owner user_id mapping (decimal text).
 // isSession records that the bearer token is a FileBrowser session token rather
 // than a named API token, so auth can reject non-session tokens without caps.
-func (s *SQLStore) SaveHashedToken(tokenHash string, userID uint64, isSession bool) error {
-	query := `INSERT OR REPLACE INTO hashed_tokens (token_hash, user_id, is_session) VALUES (?, ?, ?)`
-	_, err := s.db.Exec(query, tokenHash, strconv.FormatUint(userID, 10), isSession)
+// expiresAt is the token's exp claim as unix time; 0 means no expiry.
+func (s *SQLStore) SaveHashedToken(tokenHash string, userID uint64, isSession bool, expiresAt int64) error {
+	query := `INSERT OR REPLACE INTO hashed_tokens (token_hash, user_id, is_session, expires_at) VALUES (?, ?, ?, ?)`
+	_, err := s.db.Exec(query, tokenHash, strconv.FormatUint(userID, 10), isSession, expiresAt)
 	if err != nil {
 		return fmt.Errorf("failed to save hashed token: %w", err)
 	}
@@ -170,7 +172,7 @@ func (s *SQLStore) GetUserIDByTokenHash(tokenHash string) (uint64, error) {
 
 // GetAllHashedTokens retrieves all token hash → owner mappings.
 func (s *SQLStore) GetAllHashedTokens() (map[string]HashedTokenRecord, error) {
-	query := `SELECT token_hash, user_id, is_session FROM hashed_tokens`
+	query := `SELECT token_hash, user_id, is_session, expires_at FROM hashed_tokens`
 	rows, err := s.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hashed tokens: %w", err)
@@ -181,14 +183,15 @@ func (s *SQLStore) GetAllHashedTokens() (map[string]HashedTokenRecord, error) {
 	for rows.Next() {
 		var tokenHash, idStr string
 		var isSession bool
-		if err := rows.Scan(&tokenHash, &idStr, &isSession); err != nil {
+		var expiresAt int64
+		if err := rows.Scan(&tokenHash, &idStr, &isSession, &expiresAt); err != nil {
 			return nil, fmt.Errorf("failed to scan hashed token: %w", err)
 		}
 		uid, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid user_id in hashed_tokens: %w", err)
 		}
-		hashedTokens[tokenHash] = HashedTokenRecord{UserID: uid, IsSession: isSession}
+		hashedTokens[tokenHash] = HashedTokenRecord{UserID: uid, IsSession: isSession, ExpiresAt: expiresAt}
 	}
 
 	if err := rows.Err(); err != nil {

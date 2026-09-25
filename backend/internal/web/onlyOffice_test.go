@@ -341,6 +341,84 @@ func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 	})
 }
 
+func TestOnlyOfficeDownloadClientRedirects(t *testing.T) {
+	orig := settings.Config.Integrations.OnlyOffice
+	t.Cleanup(func() { settings.Config.Integrations.OnlyOffice = orig })
+
+	t.Run("rejects redirect to a different host", func(t *testing.T) {
+		target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer target.Close()
+
+		office := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, target.URL+"/doc", http.StatusFound)
+		}))
+		defer office.Close()
+
+		settings.Config.Integrations.OnlyOffice.Url = office.URL
+		settings.Config.Integrations.OnlyOffice.InternalUrl = ""
+
+		downloadURL := resolveOnlyOfficeDownloadURL(office.URL + "/cache/doc.docx")
+		if downloadURL == "" {
+			t.Fatal("expected download URL to resolve")
+		}
+		resp, err := onlyOfficeDownloadClient.Get(downloadURL)
+		if err == nil {
+			t.Fatal("expected cross-host redirect to be rejected")
+		}
+		if resp != nil {
+			resp.Body.Close()
+		}
+	})
+
+	t.Run("follows redirect on the same host", func(t *testing.T) {
+		var base string
+		mux := http.NewServeMux()
+		mux.HandleFunc("/redirect", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, base+"/final", http.StatusFound)
+		})
+		mux.HandleFunc("/final", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+		server := httptest.NewServer(mux)
+		defer server.Close()
+		base = server.URL
+
+		settings.Config.Integrations.OnlyOffice.Url = server.URL
+		settings.Config.Integrations.OnlyOffice.InternalUrl = ""
+
+		downloadURL := resolveOnlyOfficeDownloadURL(server.URL + "/redirect")
+		if downloadURL == "" {
+			t.Fatal("expected download URL to resolve")
+		}
+		resp, err := onlyOfficeDownloadClient.Get(downloadURL)
+		if err != nil {
+			t.Fatalf("same-host redirect should be followed: %v", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+		}
+	})
+
+	t.Run("rejects scheme downgrade redirect", func(t *testing.T) {
+		orig, _ := url.Parse("https://office.example.com/doc")
+		downgrade, _ := url.Parse("http://office.example.com/doc")
+		err := onlyOfficeDownloadClient.CheckRedirect(
+			&http.Request{URL: downgrade}, []*http.Request{{URL: orig}})
+		if err == nil {
+			t.Fatal("expected https→http scheme downgrade redirect to be rejected")
+		}
+
+		same, _ := url.Parse("https://office.example.com/other")
+		if err := onlyOfficeDownloadClient.CheckRedirect(
+			&http.Request{URL: same}, []*http.Request{{URL: orig}}); err != nil {
+			t.Fatalf("same-scheme same-host redirect should be allowed: %v", err)
+		}
+	})
+}
+
 func TestDeleteOfficeId(t *testing.T) {
 	const rawPath = "/docs/document.docx"
 

@@ -505,7 +505,7 @@ func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 			logger.Warningf("  skipping hashed token: invalid user id 0")
 			continue
 		}
-		err := sqlStore.SaveHashedToken(tokenHash, uint64(userID), false)
+		err := sqlStore.SaveHashedToken(tokenHash, uint64(userID), false, 0)
 		if err != nil {
 			return fmt.Errorf("failed to save hashed token: %w", err)
 		}

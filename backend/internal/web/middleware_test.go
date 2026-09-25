@@ -254,7 +254,7 @@ func TestExtractUserFromExpiredToken_RejectsRevokedJWT(t *testing.T) {
 }
 
 func TestExtractUserFromExpiredToken_AcceptsExpiredNonRevoked(t *testing.T) {
-	user, tokenString := issueExtractUserTestToken(t, -time.Hour)
+	user, tokenString := issueExtractUserTestToken(t, -time.Minute)
 
 	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
 	req.AddCookie(&http.Cookie{
@@ -287,6 +287,21 @@ func TestExtractUserFromExpiredToken_RejectsRevokedExpired(t *testing.T) {
 	data := &requestContext{}
 	if got := extractUserFromExpiredToken(req, data); got != nil {
 		t.Fatalf("extractUserFromExpiredToken() = user %q, want nil for revoked expired token", got.Username)
+	}
+}
+
+func TestExtractUserFromExpiredToken_RejectsPastGrace(t *testing.T) {
+	_, tokenString := issueExtractUserTestToken(t, -(state.BearerTokenGrace + time.Minute))
+
+	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
+	req.AddCookie(&http.Cookie{
+		Name:  "filebrowser_quantum_jwt",
+		Value: tokenString,
+	})
+
+	data := &requestContext{}
+	if got := extractUserFromExpiredToken(req, data); got != nil {
+		t.Fatalf("extractUserFromExpiredToken() = user %q, want nil for token expired past grace", got.Username)
 	}
 }
 
