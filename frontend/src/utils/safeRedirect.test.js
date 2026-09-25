@@ -49,4 +49,14 @@ describe('postLoginRedirectForServer', () => {
   it('returns path unchanged when baseURL is root', () => {
     expect(postLoginRedirectForServer('/files/', '/')).toBe('/files/');
   });
+
+  it('does not double-prefix when path is base with query', () => {
+    expect(postLoginRedirectForServer('/app?tab=recent', '/app/')).toBe(
+      '/app?tab=recent'
+    );
+  });
+
+  it('does not double-prefix when path is base with fragment', () => {
+    expect(postLoginRedirectForServer('/app#section', '/app/')).toBe('/app#section');
+  });
 });
