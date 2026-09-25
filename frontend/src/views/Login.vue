@@ -303,7 +303,7 @@ export default {
       this.inProgress = true;
       event.preventDefault();
       event.stopPropagation();
-      let redirect = sanitizePostLoginRedirect(state.route.query.redirect);
+      const redirect = sanitizePostLoginRedirect(state.route.query.redirect);
 
       let captcha = "";
       if (globalVars.recaptcha) {

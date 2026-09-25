@@ -1,4 +1,18 @@
 /**
+ * @param {string} str
+ * @returns {boolean}
+ */
+function hasUnsafeControlChars(str) {
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code === 0 || code === 10 || code === 13) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * @param {unknown} redirect
  * @param {string} defaultPath
  * @returns {string}
@@ -7,7 +21,7 @@ export function sanitizePostLoginRedirect(redirect, defaultPath = '/files/') {
   if (redirect === '' || redirect === undefined || redirect === null) {
     return defaultPath;
   }
-  let path = String(redirect).trim();
+  const path = String(redirect).trim();
   if (path.includes('://')) {
     return defaultPath;
   }
@@ -17,7 +31,7 @@ export function sanitizePostLoginRedirect(redirect, defaultPath = '/files/') {
   if (path.startsWith('//') || path.startsWith('/\\')) {
     return defaultPath;
   }
-  if (/[\r\n\x00]/.test(path)) {
+  if (hasUnsafeControlChars(path)) {
     return defaultPath;
   }
   return path;
@@ -34,7 +48,7 @@ export function sanitizeLogoutDestination(destination, fallback) {
   }
   const trimmed = String(destination).trim();
   if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/\\')) {
-    if (!/[\r\n\x00]/.test(trimmed)) {
+    if (!hasUnsafeControlChars(trimmed)) {
       return new URL(trimmed, window.location.origin).href;
     }
   }
