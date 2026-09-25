@@ -48,6 +48,11 @@ func BackfillUserTokenHashesOnStore(store *sqldb.SQLStore, user *users.User) err
 	for _, raw := range CollectStoredRawTokens(user) {
 		expiresAt := access.TokenExpiryUnix(raw)
 		if access.TokenExpiredPastGrace(expiresAt, now) {
+			// The token is dead past the grace window: drop any lingering
+			// mapping (e.g. a row migrated with expires_at=0).
+			if err := store.DeleteHashedToken(utils.HashSHA256(raw)); err != nil {
+				return err
+			}
 			continue
 		}
 		if err := store.SaveHashedToken(utils.HashSHA256(raw), user.ID, false, expiresAt); err != nil {
@@ -91,16 +96,26 @@ func CollectStoredRawTokens(user *users.User) []string {
 // persistence failure is returned so initialization aborts instead of leaving a
 // mapping that silently stops working after restart. Legacy ApiKeys are
 // included so pre-2.0.8 tokens without a hashed_tokens row work again.
+// Existing rows are reconciled: tokens dead past the grace window have their
+// mapping removed, and live tokens re-register so rows migrated before expiry
+// tracking (expires_at=0) pick up the token's real expiry.
 func backfillUserTokenHashes(user *users.User) (int, error) {
 	if accessDb == nil || user == nil || user.ID == 0 {
 		return 0, nil
 	}
 	added := 0
+	now := time.Now()
 	for _, raw := range CollectStoredRawTokens(user) {
-		if access.TokenExpiredPastGrace(access.TokenExpiryUnix(raw), time.Now()) {
+		expiresAt := access.TokenExpiryUnix(raw)
+		if access.TokenExpiredPastGrace(expiresAt, now) {
+			if err := RemoveApiToken(raw); err != nil {
+				return added, err
+			}
 			continue
 		}
-		if _, ok := accessDb.GetUserIDFromToken(raw); ok {
+		if info, ok := accessDb.GetHashedTokenInfo(raw); ok && (expiresAt == 0 || info.ExpiresAt != 0) {
+			// Already registered and either the token carries no expiry or the
+			// stored expiry is already populated.
 			continue
 		}
 		if err := AddApiToken(raw, user.ID); err != nil {
