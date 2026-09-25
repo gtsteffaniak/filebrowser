@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - Fresh install with default `admin`/`admin` startup generates a random initial password and logs it once (#2977). Updated documentation to follow.
+ - OIDC login binds OAuth `state` to an HttpOnly cookie (crypto-random) and rejects tampered callbacks; post-login redirects must be same-app relative paths.
+ - Login, logout, and session-expiry redirects reject open-redirect targets (`//`, `/\\`, off-site URLs); signup sends credentials in a JSON body instead of query parameters.
 
  **Notes**:
  - Webdav always shows hidden files, ignores user preference. (#3004)
