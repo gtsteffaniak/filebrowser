@@ -1516,46 +1516,20 @@ func (s *Storage) AddSessionToken(tokenString string, userID uint64) error {
 
 func (s *Storage) addHashedToken(tokenString string, userID uint64, isSession bool) error {
 	expiresAt := TokenExpiryUnix(tokenString)
-	tokenHash := utils.HashSHA256(tokenString)
-	now := time.Now()
-	// Tokens already past the expiry grace window are never registered.
-	register := !TokenExpiredPastGrace(expiresAt, now)
-
-	s.mux.Lock()
-	if register {
-		s.HashedTokens[tokenHash] = HashedTokenInfo{UserID: userID, IsSession: isSession, ExpiresAt: expiresAt}
+	// Tokens already past the expiry grace window are never registered; expired
+	// mappings are pruned at startup load instead of on each registration.
+	if TokenExpiredPastGrace(expiresAt, time.Now()) {
+		return nil
 	}
-	pruned := s.pruneExpiredHashedTokensNL(now)
+	tokenHash := utils.HashSHA256(tokenString)
+	s.mux.Lock()
+	s.HashedTokens[tokenHash] = HashedTokenInfo{UserID: userID, IsSession: isSession, ExpiresAt: expiresAt}
 	sqlStore := s.sqlStore
 	s.mux.Unlock()
-
-	if sqlStore == nil {
-		return nil
+	if sqlStore != nil {
+		return sqlStore.SaveHashedToken(tokenHash, userID, isSession, expiresAt)
 	}
-	for _, hash := range pruned {
-		if err := sqlStore.DeleteHashedToken(hash); err != nil {
-			logger.Errorf("failed to delete expired token hash from sql: %v", err)
-		}
-	}
-	if !register {
-		return nil
-	}
-	return sqlStore.SaveHashedToken(tokenHash, userID, isSession, expiresAt)
-}
-
-// pruneExpiredHashedTokensNL drops owner mappings whose token expiry is past
-// the grace window and returns their hashes so the caller can clean up SQL.
-// Caller must hold s.mux.
-func (s *Storage) pruneExpiredHashedTokensNL(now time.Time) []string {
-	var pruned []string
-	for hash, info := range s.HashedTokens {
-		if !TokenExpiredPastGrace(info.ExpiresAt, now) {
-			continue
-		}
-		delete(s.HashedTokens, hash)
-		pruned = append(pruned, hash)
-	}
-	return pruned
+	return nil
 }
 
 // GetUserIDFromToken retrieves the owner user id for a given token string (memory read; SQL populated at startup).

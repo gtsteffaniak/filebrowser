@@ -152,7 +152,7 @@ func initialize(dbPath string) (bool, error) {
 	for hash, record := range hashedTokens {
 		if access.TokenExpiredPastGrace(record.ExpiresAt, now) {
 			expired++
-			if err := sqlDb.DeleteHashedToken(hash); err != nil {
+			if err = sqlDb.DeleteHashedToken(hash); err != nil {
 				logger.Errorf("failed to delete expired token hash from sql: %v", err)
 			}
 			continue

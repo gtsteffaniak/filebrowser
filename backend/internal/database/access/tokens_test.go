@@ -134,24 +134,3 @@ func TestExpiredTokenPastGraceNeverRegistered(t *testing.T) {
 		t.Fatal("token expired past grace must not be registered")
 	}
 }
-
-func TestAddHashedTokenPrunesExpired(t *testing.T) {
-	store, _, sqlStore := createTestStorageWithSQL(t)
-	deadExp := time.Now().Add(-2 * access.ExpiredTokenGrace).Unix()
-	deadHash := utils.HashSHA256(signedTestJWT(t, time.Unix(deadExp, 0)))
-	store.HashedTokens[deadHash] = access.HashedTokenInfo{UserID: 9, IsSession: true, ExpiresAt: deadExp}
-	if err := sqlStore.SaveHashedToken(deadHash, 9, true, deadExp); err != nil {
-		t.Fatal(err)
-	}
-
-	live := signedTestJWT(t, time.Now().Add(time.Hour))
-	if err := store.AddSessionToken(live, 7); err != nil {
-		t.Fatal(err)
-	}
-	if _, ok := store.HashedTokens[deadHash]; ok {
-		t.Fatal("registering a new token must prune expired in-memory mappings")
-	}
-	if _, err := sqlStore.GetUserIDByTokenHash(deadHash); err == nil {
-		t.Fatal("registering a new token must prune expired persisted mappings")
-	}
-}

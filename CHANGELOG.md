@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
  - ffmpeg unresponsive lock issue (#2996)
  - fixed token migration lockout regression from v2.0.8-beta (#2999)
- - Session/API token registrations now record the JWT expiry; expired mappings are pruned on registration and at startup, and tokens expired beyond a 24-hour grace window no longer resolve a user identity on public share routes
+ - Session/API token registrations now record the JWT expiry; expired mappings are pruned at startup, and tokens expired beyond a 24-hour grace window no longer resolve a user identity on public share routes
 
 ## v2.0.8
  **Security**:
