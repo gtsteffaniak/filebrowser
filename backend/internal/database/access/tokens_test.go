@@ -108,7 +108,7 @@ func signedTestJWT(t *testing.T, exp time.Time) string {
 
 func TestExpiredTokenResolvesWithinGrace(t *testing.T) {
 	store, _ := createTestStorage(t)
-	token := signedTestJWT(t, time.Now().Add(-time.Hour))
+	token := signedTestJWT(t, time.Now().Add(-time.Minute))
 	if err := store.AddSessionToken(token, 7); err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestExpiredTokenResolvesWithinGrace(t *testing.T) {
 
 func TestExpiredTokenPastGraceNeverRegistered(t *testing.T) {
 	store, _ := createTestStorage(t)
-	token := signedTestJWT(t, time.Now().Add(-2*access.ExpiredTokenGrace))
+	token := signedTestJWT(t, time.Now().Add(-access.BearerTokenGrace-time.Minute))
 	if err := store.AddSessionToken(token, 7); err != nil {
 		t.Fatal(err)
 	}

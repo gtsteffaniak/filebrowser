@@ -71,14 +71,10 @@ type HashedTokenInfo struct {
 	ExpiresAt int64
 }
 
-// sessionTokenRetireGrace is how long a rotated session token stays usable after
-// renewal. In-flight requests still carrying the previous cookie must not 401.
-const sessionTokenRetireGrace = 2 * time.Minute
-
-// ExpiredTokenGrace is how long an expired bearer token may still resolve to its
-// owner (expired sessions are used for share-ACL identity checks) before the
-// registry treats the mapping as gone.
-const ExpiredTokenGrace = 24 * time.Hour
+// BearerTokenGrace is how long a bearer token may still resolve after session
+// rotation or after its JWT exp (e.g. share-ACL identity). In-flight requests
+// still carrying the previous cookie must not 401 during rotation.
+const BearerTokenGrace = 2 * time.Minute
 
 // TokenExpiryUnix extracts the exp claim of a bearer JWT without verifying the
 // signature; the value is only used for expiry bookkeeping and tokens are
@@ -99,7 +95,7 @@ func TokenExpiryUnix(tokenString string) int64 {
 // TokenExpiredPastGrace reports whether a token expiry is older than the
 // resolution grace window. expiresAt == 0 (unknown/none) never expires.
 func TokenExpiredPastGrace(expiresAt int64, now time.Time) bool {
-	return expiresAt != 0 && now.After(time.Unix(expiresAt, 0).Add(ExpiredTokenGrace))
+	return expiresAt != 0 && now.After(time.Unix(expiresAt, 0).Add(BearerTokenGrace))
 }
 
 // Storage manages access rules and group membership.
@@ -1369,7 +1365,7 @@ func (s *Storage) RevokeToken(tokenString string) error {
 }
 
 // RetireToken schedules a rotated session token for revocation after
-// sessionTokenRetireGrace. The owner mapping is kept during the grace window so
+// BearerTokenGrace. The owner mapping is kept during the grace window so
 // in-flight requests still carrying the previous cookie stay authenticated.
 func (s *Storage) RetireToken(tokenString string) error {
 	tokenHash := utils.HashSHA256(tokenString)
@@ -1446,7 +1442,7 @@ func (rb *tokenRetireRollback) capture(s *Storage, tokenHash string, now time.Ti
 	rb.prunedRevoked = make(map[string]int64)
 	rb.prunedHashed = make(map[string]HashedTokenInfo)
 	for hash, revokedAt := range revokedAfter {
-		if revokedAt != 0 && now.Sub(time.Unix(revokedAt, 0)) < sessionTokenRetireGrace {
+		if revokedAt != 0 && now.Sub(time.Unix(revokedAt, 0)) < BearerTokenGrace {
 			continue
 		}
 		if at, ok := s.RevokedTokens[hash]; ok {
@@ -1479,7 +1475,7 @@ func (rb *tokenRetireRollback) apply(s *Storage) {
 func (s *Storage) pruneRevocationsNL(now time.Time) []string {
 	var pruned []string
 	for hash, revokedAt := range s.RevokedTokens {
-		if revokedAt == 0 || now.Sub(time.Unix(revokedAt, 0)) >= sessionTokenRetireGrace {
+		if revokedAt == 0 || now.Sub(time.Unix(revokedAt, 0)) >= BearerTokenGrace {
 			delete(s.RevokedTokens, hash)
 			delete(s.HashedTokens, hash)
 			pruned = append(pruned, hash)
@@ -1501,7 +1497,7 @@ func (s *Storage) IsTokenRevoked(tokenString string) bool {
 	if revokedAt == 0 {
 		return true
 	}
-	return time.Since(time.Unix(revokedAt, 0)) >= sessionTokenRetireGrace
+	return time.Since(time.Unix(revokedAt, 0)) >= BearerTokenGrace
 }
 
 // AddApiToken maps a named API token string hash to an owner user id.

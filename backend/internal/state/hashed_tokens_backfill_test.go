@@ -125,24 +125,24 @@ func TestBackfillReconcilesLegacyTokenExpiry(t *testing.T) {
 
 	mint := func(exp time.Time) string {
 		t.Helper()
-		tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		tokenString, signErr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"exp": exp.Unix(),
 		}).SignedString([]byte("test-key"))
-		if err != nil {
-			t.Fatal(err)
+		if signErr != nil {
+			t.Fatal(signErr)
 		}
 		return tokenString
 	}
 	liveExp := time.Now().Add(time.Hour).Unix()
 	liveRaw := mint(time.Unix(liveExp, 0))
-	deadRaw := mint(time.Now().Add(-2 * ExpiredTokenGrace))
+	deadRaw := mint(time.Now().Add(-BearerTokenGrace - time.Minute))
 
 	// Simulate mappings migrated before expiry tracking (expires_at=0).
 	for _, raw := range []string{liveRaw, deadRaw} {
 		hash := utils.HashSHA256(raw)
 		accessDb.HashedTokens[hash] = access.HashedTokenInfo{UserID: stored.ID}
-		if err := sqlDb.SaveHashedToken(hash, stored.ID, false, 0); err != nil {
-			t.Fatal(err)
+		if saveErr := sqlDb.SaveHashedToken(hash, stored.ID, false, 0); saveErr != nil {
+			t.Fatal(saveErr)
 		}
 	}
 

@@ -254,7 +254,7 @@ func TestExtractUserFromExpiredToken_RejectsRevokedJWT(t *testing.T) {
 }
 
 func TestExtractUserFromExpiredToken_AcceptsExpiredNonRevoked(t *testing.T) {
-	user, tokenString := issueExtractUserTestToken(t, -time.Hour)
+	user, tokenString := issueExtractUserTestToken(t, -time.Minute)
 
 	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
 	req.AddCookie(&http.Cookie{
@@ -291,7 +291,7 @@ func TestExtractUserFromExpiredToken_RejectsRevokedExpired(t *testing.T) {
 }
 
 func TestExtractUserFromExpiredToken_RejectsPastGrace(t *testing.T) {
-	_, tokenString := issueExtractUserTestToken(t, -(state.ExpiredTokenGrace + time.Hour))
+	_, tokenString := issueExtractUserTestToken(t, -(state.BearerTokenGrace + time.Minute))
 
 	req := httptest.NewRequest(http.MethodGet, "/public/api/resources", http.NoBody)
 	req.AddCookie(&http.Cookie{
