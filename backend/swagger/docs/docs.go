@@ -5183,6 +5183,10 @@ const docTemplate = `{
                     "description": "text content of a file, if requested",
                     "type": "string"
                 },
+                "created": {
+                    "description": "filesystem birth time, nil when unavailable",
+                    "type": "string"
+                },
                 "files": {
                     "description": "files in the directory with optional metadata",
                     "type": "array",
@@ -5276,6 +5280,10 @@ const docTemplate = `{
         "iteminfo.ExtendedItemInfo": {
             "type": "object",
             "properties": {
+                "created": {
+                    "description": "filesystem birth time, nil when unavailable",
+                    "type": "string"
+                },
                 "hasPreview": {
                     "description": "whether the file has a thumbnail preview",
                     "type": "boolean"
@@ -5321,6 +5329,10 @@ const docTemplate = `{
         "iteminfo.FileInfo": {
             "type": "object",
             "properties": {
+                "created": {
+                    "description": "filesystem birth time, nil when unavailable",
+                    "type": "string"
+                },
                 "files": {
                     "description": "files in the directory with optional metadata",
                     "type": "array",
@@ -5372,6 +5384,10 @@ const docTemplate = `{
         "iteminfo.ItemInfo": {
             "type": "object",
             "properties": {
+                "created": {
+                    "description": "filesystem birth time, nil when unavailable",
+                    "type": "string"
+                },
                 "hasPreview": {
                     "description": "whether the file has a thumbnail preview",
                     "type": "boolean"
