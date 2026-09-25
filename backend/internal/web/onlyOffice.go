@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -31,6 +32,44 @@ const (
 
 	onlyOfficeDownloadTimeout = 10 * time.Second
 )
+
+// onlyOfficeDocLocks serializes save callbacks per document so overlapping
+// document-server callbacks cannot interleave downloads and writes to the same
+// file (files.WriteFile truncates the destination). Entries are reference
+// counted so the map does not grow with every document ever saved.
+var (
+	onlyOfficeDocLocksMu sync.Mutex
+	onlyOfficeDocLocks   = map[string]*onlyOfficeDocLock{}
+)
+
+type onlyOfficeDocLock struct {
+	mu    sync.Mutex
+	users int
+}
+
+// lockOnlyOfficeDoc blocks until the caller holds the save lock for key and
+// returns the unlock function, which must be called when the write is done.
+func lockOnlyOfficeDoc(key string) func() {
+	onlyOfficeDocLocksMu.Lock()
+	l, ok := onlyOfficeDocLocks[key]
+	if !ok {
+		l = &onlyOfficeDocLock{}
+		onlyOfficeDocLocks[key] = l
+	}
+	l.users++
+	onlyOfficeDocLocksMu.Unlock()
+
+	l.mu.Lock()
+	return func() {
+		l.mu.Unlock()
+		onlyOfficeDocLocksMu.Lock()
+		l.users--
+		if l.users == 0 {
+			delete(onlyOfficeDocLocks, key)
+		}
+		onlyOfficeDocLocksMu.Unlock()
+	}
+}
 
 // onlyOfficeDownloadClient fetches saved documents from the OnlyOffice document server.
 // A bounded timeout avoids hanging goroutines when the server is unreachable.
@@ -587,6 +626,12 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 				user.Username, source, path)
 			return returnOnlyOfficeError(w, r, 403, "user lacks modify permissions")
 		}
+
+		// Serialize save callbacks for the same document: overlapping callbacks
+		// would otherwise interleave the download and WriteFile, which opens the
+		// destination with O_TRUNC.
+		unlock := lockOnlyOfficeDoc(source + "|" + path)
+		defer unlock()
 
 		downloadURL := resolveOnlyOfficeDownloadURL(data.URL)
 		if downloadURL == "" {

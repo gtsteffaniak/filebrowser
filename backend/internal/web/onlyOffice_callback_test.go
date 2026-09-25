@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
@@ -225,6 +227,105 @@ func TestOnlyOfficeCallbackRetainsKeyWhenSaveFails(t *testing.T) {
 	}
 	if writeCalls != 2 {
 		t.Fatalf("writeCalls = %d, want 2", writeCalls)
+	}
+}
+
+// Concurrent save callbacks for the same document must not overlap: WriteFile
+// opens the destination with O_TRUNC, so a second callback racing the first
+// could corrupt the in-flight write.
+func TestOnlyOfficeCallbackSerializesConcurrentSaves(t *testing.T) {
+	initStreamTestSources(t)
+
+	const realPath = "/default/doc.docx"
+	const docKey = "oo-key-serialized-save"
+
+	origOnlyOffice := settings.Config.Integrations.OnlyOffice
+	origFileInfo := files.FileInfoFasterFunc
+	origWriteFile := files.WriteFileFunc
+	origClient := onlyOfficeDownloadClient
+	t.Cleanup(func() {
+		settings.Config.Integrations.OnlyOffice = origOnlyOffice
+		files.FileInfoFasterFunc = origFileInfo
+		files.WriteFileFunc = origWriteFile
+		onlyOfficeDownloadClient = origClient
+		utils.OnlyOfficeCache.Delete(realPath)
+	})
+
+	settings.Config.Integrations.OnlyOffice.Url = "http://onlyoffice.test"
+
+	files.FileInfoFasterFunc = func(utils.FileOptions, *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		return &iteminfo.ExtendedFileInfo{RealPath: realPath}, nil
+	}
+	onlyOfficeDownloadClient = &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader("updated-document")),
+		}, nil
+	})}
+	utils.OnlyOfficeCache.Set(realPath, docKey)
+
+	var writesMu sync.Mutex
+	writeCalls, active, maxActive := 0, 0, 0
+	writeStarted := make(chan struct{}, 2)
+	writeRelease := make(chan struct{})
+	files.WriteFileFunc = func(string, string, io.Reader) error {
+		writesMu.Lock()
+		writeCalls++
+		active++
+		if active > maxActive {
+			maxActive = active
+		}
+		writesMu.Unlock()
+		writeStarted <- struct{}{}
+		<-writeRelease
+		writesMu.Lock()
+		active--
+		writesMu.Unlock()
+		return nil
+	}
+
+	user := testUserWithSourcePerms("/default", users.SourceFilePermissions{
+		View: true, Download: true, Modify: true,
+	})
+	callback := &OnlyOfficeCallback{
+		Key:    docKey,
+		Status: onlyOfficeStatusDocumentClosedWithChanges,
+		URL:    "http://onlyoffice.test/doc.docx",
+	}
+	call := func() error {
+		_, err := processOnlyOfficeCallback(httptest.NewRecorder(),
+			httptest.NewRequest(http.MethodPost, "/api/office/callback?source=default&path=/doc.docx", nil),
+			&requestContext{User: user}, callback)
+		return err
+	}
+
+	firstDone := make(chan error, 1)
+	go func() { firstDone <- call() }()
+	<-writeStarted // first callback is inside WriteFile, holding the doc lock
+
+	secondDone := make(chan error, 1)
+	go func() { secondDone <- call() }()
+
+	// Let the second callback validate the (still cached) key and block on the
+	// document lock before the first write completes.
+	time.Sleep(100 * time.Millisecond)
+	close(writeRelease)
+
+	if err := <-firstDone; err != nil {
+		t.Fatalf("first callback: %v", err)
+	}
+	if err := <-secondDone; err != nil {
+		t.Fatalf("second callback: %v", err)
+	}
+
+	writesMu.Lock()
+	defer writesMu.Unlock()
+	if writeCalls != 2 {
+		t.Fatalf("expected both callbacks to write sequentially, got %d writes", writeCalls)
+	}
+	if maxActive != 1 {
+		t.Fatalf("writes overlapped: maxActive=%d", maxActive)
 	}
 }
 
