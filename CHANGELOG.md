@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Webdav always shows hidden files, ignores user preference. (#3004)
+ - SQLite shared cache (`cache=shared`) removed from the application database connection: its table-lock conflicts bypass `busy_timeout` and fail immediately. WAL mode already allows concurrent readers.
 
  **Bugfixes**:
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)

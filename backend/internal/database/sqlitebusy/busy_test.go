@@ -8,43 +8,9 @@ import (
 	"testing"
 )
 
-func TestIsBusyResultCode(t *testing.T) {
-	// Primary and extended SQLITE_BUSY / SQLITE_LOCKED result codes.
-	// e.g. SQLITE_BUSY_RECOVERY (261), SQLITE_BUSY_SNAPSHOT (517),
-	// SQLITE_LOCKED_SHAREDCACHE (262), SQLITE_LOCKED_VTAB (518).
-	for _, code := range []int{5, 6, 261, 517, 773, 262, 518} {
-		if !isBusyResultCode(code) {
-			t.Fatalf("expected result code %d to be busy/locked", code)
-		}
-	}
-	// Extended codes of other primaries must not be classified as busy.
-	for _, code := range []int{0, 1, 8, 10, 19, 266, 2067, 264, 1544} {
-		if isBusyResultCode(code) {
-			t.Fatalf("expected result code %d not to be busy/locked", code)
-		}
-	}
-}
-
-// TestIsBusyOrLockedExtendedCodes verifies extended busy/locked result codes
-// are classified through the driver error path and wrapped with ErrBusy.
-func TestIsBusyOrLockedExtendedCodes(t *testing.T) {
-	for _, code := range []int{517, 261, 773, 262, 518} {
-		if !IsBusyOrLocked(newCodeError(code)) {
-			t.Fatalf("expected extended code %d to be busy/locked", code)
-		}
-		if err := Wrap(newCodeError(code)); !errors.Is(err, ErrBusy) {
-			t.Fatalf("expected ErrBusy for extended code %d, got %v", code, err)
-		}
-	}
-	for _, code := range []int{1, 266, 2067, 264, 1544} {
-		if IsBusyOrLocked(newCodeError(code)) {
-			t.Fatalf("expected code %d not to be busy/locked", code)
-		}
-		if err := Wrap(newCodeError(code)); errors.Is(err, ErrBusy) {
-			t.Fatalf("expected code %d to pass through unwrapped, got %v", code, err)
-		}
-	}
-}
+// sqliteBusySnapshot is the extended result code returned when a WAL read
+// transaction tries to upgrade to a write on a stale snapshot.
+const sqliteBusySnapshot = 517
 
 func TestIsBusyOrLocked(t *testing.T) {
 	if IsBusyOrLocked(nil) {
@@ -56,12 +22,22 @@ func TestIsBusyOrLocked(t *testing.T) {
 	if !IsBusyOrLocked(newBusyError(t)) {
 		t.Fatal("expected SQLITE_BUSY to be classified as busy")
 	}
+	if !IsBusyOrLocked(newBusySnapshotError(t)) {
+		t.Fatal("expected SQLITE_BUSY_SNAPSHOT to be classified as busy")
+	}
 }
 
 func TestWrap(t *testing.T) {
-	wrapped := Wrap(newBusyError(t))
-	if !errors.Is(wrapped, ErrBusy) {
-		t.Fatalf("expected ErrBusy, got %v", wrapped)
+	for name, makeErr := range map[string]func(*testing.T) error{
+		"SQLITE_BUSY":          newBusyError,
+		"SQLITE_BUSY_SNAPSHOT": newBusySnapshotError,
+	} {
+		t.Run(name, func(t *testing.T) {
+			wrapped := Wrap(makeErr(t))
+			if !errors.Is(wrapped, ErrBusy) {
+				t.Fatalf("expected ErrBusy, got %v", wrapped)
+			}
+		})
 	}
 
 	generic := newGenericError(t)
@@ -158,6 +134,66 @@ func newBusyError(t *testing.T) error {
 	_, err = contender.Exec("INSERT INTO t VALUES (2)")
 	if err == nil {
 		t.Fatal("expected SQLITE_BUSY from contended write")
+	}
+	return err
+}
+
+// newBusySnapshotError returns a real extended-busy error (SQLITE_BUSY_SNAPSHOT)
+// from the driver. In WAL mode, a transaction that has already taken a read
+// snapshot cannot upgrade to a write after another connection committed —
+// SQLite returns SQLITE_BUSY_SNAPSHOT instead of waiting on busy_timeout.
+func newBusySnapshotError(t *testing.T) error {
+	t.Helper()
+	dbPath := filepath.Join(t.TempDir(), "snapshot.db")
+	dsn := "file:" + dbPath + "?_journal_mode=WAL&_busy_timeout=0"
+
+	db, err := sql.Open(testDriver, dsn)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer db.Close()
+	db.SetMaxOpenConns(2)
+
+	if _, err = db.Exec("CREATE TABLE t (id INTEGER); INSERT INTO t VALUES (1)"); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	ctx := context.Background()
+	reader, err := db.Conn(ctx)
+	if err != nil {
+		t.Fatalf("reader conn: %v", err)
+	}
+	defer reader.Close()
+
+	tx, err := reader.BeginTx(ctx, nil)
+	if err != nil {
+		t.Fatalf("begin: %v", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// Establish the read snapshot.
+	var count int
+	if err = tx.QueryRow("SELECT COUNT(*) FROM t").Scan(&count); err != nil {
+		t.Fatalf("snapshot read: %v", err)
+	}
+
+	// Commit a write from a different connection, invalidating the snapshot.
+	writer, err := db.Conn(ctx)
+	if err != nil {
+		t.Fatalf("writer conn: %v", err)
+	}
+	defer writer.Close()
+	if _, err = writer.ExecContext(ctx, "INSERT INTO t VALUES (2)"); err != nil {
+		t.Fatalf("writer insert: %v", err)
+	}
+
+	// Upgrading the stale snapshot to a write must fail with SQLITE_BUSY_SNAPSHOT.
+	_, err = tx.Exec("INSERT INTO t VALUES (3)")
+	if err == nil {
+		t.Fatal("expected SQLITE_BUSY_SNAPSHOT from write on stale snapshot")
+	}
+	if code := driverErrorCode(err); code != sqliteBusySnapshot {
+		t.Fatalf("expected extended code %d (SQLITE_BUSY_SNAPSHOT), got %d", sqliteBusySnapshot, code)
 	}
 	return err
 }

@@ -4,19 +4,20 @@
 package sqlitebusy
 
 import (
-	"fmt"
+	"errors"
 
-	_ "modernc.org/sqlite"
+	sqlite "modernc.org/sqlite"
 )
 
 const testDriver = "sqlite"
 
-// fakeCodeError mimics the result-code API of modernc's *sqlite.Error (its
-// fields are unexported, so it cannot be constructed directly) so that
-// extended result codes can be exercised through IsBusyOrLocked and Wrap.
-type fakeCodeError int
-
-func (e fakeCodeError) Error() string { return fmt.Sprintf("sqlite error (%d)", int(e)) }
-func (e fakeCodeError) Code() int     { return int(e) }
-
-func newCodeError(code int) error { return fakeCodeError(code) }
+// driverErrorCode returns the driver's extended result code for err, so tests
+// can assert which busy/locked variant was produced. modernc reports the
+// (possibly extended) code via Error.Code.
+func driverErrorCode(err error) int {
+	var sqliteErr *sqlite.Error
+	if errors.As(err, &sqliteErr) {
+		return sqliteErr.Code()
+	}
+	return -1
+}

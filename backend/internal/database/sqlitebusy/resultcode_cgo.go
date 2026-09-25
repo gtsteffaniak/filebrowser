@@ -9,12 +9,13 @@ import (
 	sqlite3 "github.com/mattn/go-sqlite3"
 )
 
-// driverResultCode extracts the SQLite primary result code from err using the
-// CGO (mattn/go-sqlite3) driver's error type.
-func driverResultCode(err error) (int, bool) {
+// isBusyOrLocked reports whether err is a SQLITE_BUSY or SQLITE_LOCKED error
+// from the CGO (mattn/go-sqlite3) driver. Error.Code is already the primary
+// result code; extended codes are reported separately in Error.ExtendedCode.
+func isBusyOrLocked(err error) bool {
 	var sqliteErr sqlite3.Error
-	if errors.As(err, &sqliteErr) {
-		return int(sqliteErr.Code), true
+	if !errors.As(err, &sqliteErr) {
+		return false
 	}
-	return 0, false
+	return sqliteErr.Code == sqlite3.ErrBusy || sqliteErr.Code == sqlite3.ErrLocked
 }

@@ -9,12 +9,6 @@ import (
 // DefaultBusyTimeoutMs is how long SQLite waits on SQLITE_BUSY before failing an operation.
 const DefaultBusyTimeoutMs = 5000
 
-// SQLite primary result codes we treat as retryable.
-const (
-	sqliteBusyCode   = 5 // SQLITE_BUSY
-	sqliteLockedCode = 6 // SQLITE_LOCKED
-)
-
 // ErrBusy is returned when an operation could not complete because the database was busy or locked.
 var ErrBusy = errors.New("sqlite database is busy or locked")
 
@@ -32,24 +26,10 @@ func WithBusyTimeout(dsn string) string {
 }
 
 // IsBusyOrLocked reports whether err is SQLITE_BUSY or SQLITE_LOCKED from the
-// configured SQLite driver, classified by result code rather than error text.
+// configured SQLite driver, classified by the driver's result code rather than
+// error text.
 func IsBusyOrLocked(err error) bool {
-	if err == nil {
-		return false
-	}
-	code, ok := driverResultCode(err)
-	return ok && isBusyResultCode(code)
-}
-
-func isBusyResultCode(code int) bool {
-	// Only the lowest byte is the primary result code; higher bits carry
-	// extended detail (e.g. SQLITE_BUSY_SNAPSHOT, SQLITE_LOCKED_SHAREDCACHE).
-	switch code & 0xff {
-	case sqliteBusyCode, sqliteLockedCode:
-		return true
-	default:
-		return false
-	}
+	return err != nil && isBusyOrLocked(err)
 }
 
 // Wrap returns err wrapped with ErrBusy when the underlying error is busy/locked.

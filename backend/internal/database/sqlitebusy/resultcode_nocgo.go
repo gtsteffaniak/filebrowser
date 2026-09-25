@@ -3,20 +3,26 @@
 
 package sqlitebusy
 
-import "errors"
+import (
+	"errors"
 
-// codeError matches the result-code-bearing error type exposed by the pure-Go
-// (modernc.org/sqlite) driver (*sqlite.Error). The code may be an extended
-// result code; the primary code is isolated by isBusyResultCode.
-type codeError interface {
-	error
-	Code() int
-}
+	sqlite "modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
+)
 
-func driverResultCode(err error) (int, bool) {
-	var sqliteErr codeError
-	if errors.As(err, &sqliteErr) {
-		return sqliteErr.Code(), true
+// isBusyOrLocked reports whether err is a SQLITE_BUSY or SQLITE_LOCKED error
+// from the pure-Go (modernc.org/sqlite) driver. The driver enables extended
+// result codes, so Error.Code() may carry extra detail in the high bits (e.g.
+// SQLITE_BUSY_SNAPSHOT); only the lowest byte holds the primary code.
+func isBusyOrLocked(err error) bool {
+	var sqliteErr *sqlite.Error
+	if !errors.As(err, &sqliteErr) {
+		return false
 	}
-	return 0, false
+	switch sqliteErr.Code() & 0xff {
+	case sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED:
+		return true
+	default:
+		return false
+	}
 }
