@@ -42,7 +42,14 @@ func IsBusyOrLocked(err error) bool {
 }
 
 func isBusyResultCode(code int) bool {
-	return code == sqliteBusyCode || code == sqliteLockedCode
+	// Only the lowest byte is the primary result code; higher bits carry
+	// extended detail (e.g. SQLITE_BUSY_SNAPSHOT, SQLITE_LOCKED_SHAREDCACHE).
+	switch code & 0xff {
+	case sqliteBusyCode, sqliteLockedCode:
+		return true
+	default:
+		return false
+	}
 }
 
 // Wrap returns err wrapped with ErrBusy when the underlying error is busy/locked.

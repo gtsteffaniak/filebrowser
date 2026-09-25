@@ -3,16 +3,18 @@
 
 package sqlitebusy
 
-import (
-	"errors"
+import "errors"
 
-	sqlite "modernc.org/sqlite"
-)
+// codeError matches the result-code-bearing error type exposed by the pure-Go
+// (modernc.org/sqlite) driver (*sqlite.Error). The code may be an extended
+// result code; the primary code is isolated by isBusyResultCode.
+type codeError interface {
+	error
+	Code() int
+}
 
-// driverResultCode extracts the SQLite primary result code from err using the
-// pure-Go (modernc.org/sqlite) driver's error type.
 func driverResultCode(err error) (int, bool) {
-	var sqliteErr *sqlite.Error
+	var sqliteErr codeError
 	if errors.As(err, &sqliteErr) {
 		return sqliteErr.Code(), true
 	}

@@ -9,14 +9,40 @@ import (
 )
 
 func TestIsBusyResultCode(t *testing.T) {
-	if !isBusyResultCode(5) {
-		t.Fatal("expected SQLITE_BUSY (5) to be busy")
+	// Primary and extended SQLITE_BUSY / SQLITE_LOCKED result codes.
+	// e.g. SQLITE_BUSY_RECOVERY (261), SQLITE_BUSY_SNAPSHOT (517),
+	// SQLITE_LOCKED_SHAREDCACHE (262), SQLITE_LOCKED_VTAB (518).
+	for _, code := range []int{5, 6, 261, 517, 773, 262, 518} {
+		if !isBusyResultCode(code) {
+			t.Fatalf("expected result code %d to be busy/locked", code)
+		}
 	}
-	if !isBusyResultCode(6) {
-		t.Fatal("expected SQLITE_LOCKED (6) to be busy")
+	// Extended codes of other primaries must not be classified as busy.
+	for _, code := range []int{0, 1, 8, 10, 19, 266, 2067, 264, 1544} {
+		if isBusyResultCode(code) {
+			t.Fatalf("expected result code %d not to be busy/locked", code)
+		}
 	}
-	if isBusyResultCode(1) {
-		t.Fatal("expected SQLITE_ERROR (1) not to be busy")
+}
+
+// TestIsBusyOrLockedExtendedCodes verifies extended busy/locked result codes
+// are classified through the driver error path and wrapped with ErrBusy.
+func TestIsBusyOrLockedExtendedCodes(t *testing.T) {
+	for _, code := range []int{517, 261, 773, 262, 518} {
+		if !IsBusyOrLocked(newCodeError(code)) {
+			t.Fatalf("expected extended code %d to be busy/locked", code)
+		}
+		if err := Wrap(newCodeError(code)); !errors.Is(err, ErrBusy) {
+			t.Fatalf("expected ErrBusy for extended code %d, got %v", code, err)
+		}
+	}
+	for _, code := range []int{1, 266, 2067, 264, 1544} {
+		if IsBusyOrLocked(newCodeError(code)) {
+			t.Fatalf("expected code %d not to be busy/locked", code)
+		}
+		if err := Wrap(newCodeError(code)); errors.Is(err, ErrBusy) {
+			t.Fatalf("expected code %d to pass through unwrapped, got %v", code, err)
+		}
 	}
 }
 
