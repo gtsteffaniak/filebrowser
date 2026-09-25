@@ -34,14 +34,15 @@ const (
 
 // onlyOfficeDownloadClient fetches saved documents from the OnlyOffice document server.
 // A bounded timeout avoids hanging goroutines when the server is unreachable.
-// Redirect targets are re-validated against the originally requested host so a
-// trusted document server cannot redirect the download to a different (e.g.
-// internal) address after the initial URL check.
+// Redirect targets are re-validated against the originally requested host and
+// scheme so a trusted document server cannot redirect the download to a
+// different (e.g. internal) address or downgrade it to plaintext HTTP after the
+// initial URL check.
 var onlyOfficeDownloadClient = &http.Client{
 	Timeout: onlyOfficeDownloadTimeout,
 	CheckRedirect: func(req *http.Request, via []*http.Request) error {
-		if len(via) == 0 || !onlyOfficeURLHostsMatch(req.URL, via[0].URL) {
-			return errors.New("onlyoffice document download redirect to a different host is not allowed")
+		if len(via) == 0 || req.URL.Scheme != via[0].URL.Scheme || !onlyOfficeURLHostsMatch(req.URL, via[0].URL) {
+			return errors.New("onlyoffice document download redirect to a different host or scheme is not allowed")
 		}
 		if len(via) >= 10 {
 			return errors.New("onlyoffice document download exceeded redirect limit")

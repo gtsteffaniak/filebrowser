@@ -334,6 +334,22 @@ func TestOnlyOfficeDownloadClientRedirects(t *testing.T) {
 			t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
 		}
 	})
+
+	t.Run("rejects scheme downgrade redirect", func(t *testing.T) {
+		orig, _ := url.Parse("https://office.example.com/doc")
+		downgrade, _ := url.Parse("http://office.example.com/doc")
+		err := onlyOfficeDownloadClient.CheckRedirect(
+			&http.Request{URL: downgrade}, []*http.Request{{URL: orig}})
+		if err == nil {
+			t.Fatal("expected https→http scheme downgrade redirect to be rejected")
+		}
+
+		same, _ := url.Parse("https://office.example.com/other")
+		if err := onlyOfficeDownloadClient.CheckRedirect(
+			&http.Request{URL: same}, []*http.Request{{URL: orig}}); err != nil {
+			t.Fatalf("same-scheme same-host redirect should be allowed: %v", err)
+		}
+	})
 }
 
 func TestDeleteOfficeId(t *testing.T) {
