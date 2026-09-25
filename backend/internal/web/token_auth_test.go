@@ -121,9 +121,16 @@ func TestJwtAuthReusesSessionCookie(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	call := func(cookieToken string) (*requestContext, *httptest.ResponseRecorder) {
+	call := func(cookieToken, authHeader, authQuery string) (*requestContext, *httptest.ResponseRecorder) {
 		t.Helper()
-		req := httptest.NewRequest(http.MethodGet, "/api/resources", nil)
+		url := "/api/resources"
+		if authQuery != "" {
+			url += "?auth=" + authQuery
+		}
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		if authHeader != "" {
+			req.Header.Set("Authorization", "Bearer "+authHeader)
+		}
 		if cookieToken != "" {
 			req.AddCookie(&http.Cookie{Name: "filebrowser_quantum_jwt", Value: cookieToken})
 		}
@@ -137,7 +144,7 @@ func TestJwtAuthReusesSessionCookie(t *testing.T) {
 	}
 
 	// First request without a cookie mints a session token and sets the cookie.
-	d1, rec1 := call("")
+	d1, rec1 := call("", "", "")
 	if d1.Token == "" {
 		t.Fatal("expected a session token on first JwtAuth request")
 	}
@@ -147,13 +154,26 @@ func TestJwtAuthReusesSessionCookie(t *testing.T) {
 
 	// Follow-up requests carrying the session cookie must reuse it instead of
 	// minting and registering a new session.
-	d2, _ := call(d1.Token)
+	d2, _ := call(d1.Token, "", "")
 	if d2.Token != d1.Token {
 		t.Fatal("expected JwtAuth to reuse the existing session token")
 	}
-	d3, _ := call(d1.Token)
+	d3, _ := call(d1.Token, "", "")
 	if d3.Token != d1.Token {
 		t.Fatal("expected repeated JwtAuth requests to reuse the session token")
+	}
+
+	// When the external JWT also travels in the Authorization header or the
+	// auth query param, ExtractToken would prefer it over the session cookie.
+	// Reuse must still pick the cookie so those deployments don't mint a new
+	// session on every request.
+	d4, _ := call(d1.Token, externalJWT, "")
+	if d4.Token != d1.Token {
+		t.Fatal("expected JwtAuth to reuse the session cookie when the external JWT is in the Authorization header")
+	}
+	d5, _ := call(d1.Token, "", externalJWT)
+	if d5.Token != d1.Token {
+		t.Fatal("expected JwtAuth to reuse the session cookie when the external JWT is in the auth query param")
 	}
 }
 
