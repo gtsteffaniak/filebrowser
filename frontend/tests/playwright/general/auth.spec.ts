@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { loginPlaywrightAdmin } from "../playwright-auth";
 
 test("redirect to login from root", async ({ page, context }) => {
   await context.clearCookies();
@@ -20,9 +21,7 @@ test("logout", async ({ browser }) => {
   const page = await context.newPage();
 
   await page.goto("/login");
-  await page.getByPlaceholder("Username").fill("admin");
-  await page.getByPlaceholder("Password").fill("admin");
-  await page.getByRole("button", { name: "Login" }).click();
+  await loginPlaywrightAdmin(page);
   await page.waitForURL("**/files/**");
 
   await expect(page.locator("div.wrong")).toBeHidden();

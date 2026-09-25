@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.9
 
+ **Security**:
+ - Fresh install with default `admin`/`admin` startup generates a random initial password and logs it once (#2977). Updated documentation to follow.
+
  **Notes**:
  - Webdav always shows hidden files, ignores user preference. (#3004)
 

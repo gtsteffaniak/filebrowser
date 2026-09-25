@@ -22,3 +22,6 @@ server-main: &server-main
         rules:
           - folderPath: "/"
             viewable: true
+
+auth-main: &auth-main
+  adminPassword: "playwright-password"

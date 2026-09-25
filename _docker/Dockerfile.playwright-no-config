@@ -15,4 +15,5 @@ COPY [ "./backend/internal/web/embed/", "./internal/web/dist/"]
 
 # Run tests
 ENV FILEBROWSER_PLAYWRIGHT_TEST=true
+ENV FILEBROWSER_ADMIN_PASSWORD=playwright-password
 RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

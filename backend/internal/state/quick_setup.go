@@ -32,10 +32,6 @@ func QuickSetup() error {
 		user.Username = "admin"
 	}
 
-	if settings.Config.Auth.AdminPassword == "" {
-		settings.Config.Auth.AdminPassword = "admin"
-	}
-
 	user.Permissions.Admin = true
 	user.LoginMethod = users.LoginMethodPassword
 
@@ -59,7 +55,12 @@ func QuickSetup() error {
 
 	logger.Debugf("Creating user as admin: %v", user.Username)
 
-	hashedPassword, hashErr := utils.HashPwd(settings.Config.Auth.AdminPassword)
+	plainPassword, _, err := bootstrapDefaultAdminPassword(user.Username)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, hashErr := utils.HashPwd(plainPassword)
 	if hashErr != nil {
 		return fmt.Errorf("failed to hash admin password: %w", hashErr)
 	}
