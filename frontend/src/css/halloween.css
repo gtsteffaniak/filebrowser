@@ -3,16 +3,15 @@
 /* Halloween-specific CSS variables */
 .halloween-theme {
     --primaryColor: var(--icon-orange) !important;
-    --halloween-dark-orange: #ff6600;
+    --halloween-dark-orange: #f60;
     --halloween-black: #1a1a1a;
-    --halloween-gray: #cccccc;
+    --halloween-gray: #ccc;
 }
 
 body.halloween-theme,
 .scroll-wrapper.halloween-theme,
 #login.halloween-theme {
     background: black !important;
-    background-color: black !important;
 }
 
 #login.halloween-theme {
@@ -29,7 +28,7 @@ body.halloween-theme,
     height: 100%;
     pointer-events: none;
     z-index: 0;
-    background: radial-gradient(circle at center, rgba(0, 0, 0, .5) 0%, #000000 70%);
+    background: radial-gradient(circle at center, rgb(0 0 0 / 50%) 0%, #000 70%);
 }
 
 /* Tombstone Shape for Login Card */
@@ -37,20 +36,20 @@ body.halloween-theme,
     /* Updated background for more subtle levels of detail/texture */
     background:
         /* Subtle rock grain/texture */
-        radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.05) 0%, transparent 80%),
+        radial-gradient(ellipse at 50% 50%, rgb(0 0 0 / 5%) 0%, transparent 80%),
         /* Light gray moss/ageing */
-        linear-gradient(170deg, rgba(168, 168, 168, 0.05) 5%, transparent 60%),
-        linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
-        linear-gradient(225deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(170deg, rgb(168 168 168 / 5%) 5%, transparent 60%),
+        linear-gradient(135deg, rgb(0 0 0 / 10%) 0%, transparent 100%),
+        linear-gradient(225deg, rgb(0 0 0 / 10%) 0%, transparent 100%),
         linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 50%, #a8a8a8 100%) !important;
     border: 4px solid #888 !important;
     border-radius: 0 0 20px 20px !important;
     box-shadow:
-        0 15px 50px rgba(255, 140, 0, 0.6),
-        inset 0 2px 20px rgba(0, 0, 0, 0.3),
-        inset 3px 3px 10px rgba(255, 255, 255, 0.2),
-        0 0 40px rgba(255, 140, 0, 0.4) !important;
-    padding: 2.5em 2em 2em 2em !important;
+        0 15px 50px rgb(255 140 0 / 60%),
+        inset 0 2px 20px rgb(0 0 0 / 30%),
+        inset 3px 3px 10px rgb(255 255 255 / 20%),
+        0 0 40px rgb(255 140 0 / 40%) !important;
+    padding: 2.5em 2em 2em !important;
     z-index: 10;
     position: relative;
     overflow: visible;
@@ -65,15 +64,15 @@ body.halloween-theme,
     right: -4px;
     height: 70px;
     background:
-        linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
-        linear-gradient(225deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(135deg, rgb(0 0 0 / 10%) 0%, transparent 100%),
+        linear-gradient(225deg, rgb(0 0 0 / 10%) 0%, transparent 100%),
         linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 100%);
     border: 4px solid #888;
     border-bottom: none;
     border-radius: 50% 50% 0 0 / 100% 100% 0 0;
     box-shadow:
-        inset 0 2px 20px rgba(0, 0, 0, 0.3),
-        inset 3px 3px 10px rgba(255, 255, 255, 0.2);
+        inset 0 2px 20px rgb(0 0 0 / 30%),
+        inset 3px 3px 10px rgb(255 255 255 / 20%);
 }
 
 /* R.I.P. text */
@@ -88,8 +87,8 @@ body.halloween-theme,
     font-weight: bold;
     color: #333;
     text-shadow:
-        2px 2px 4px rgba(0, 0, 0, 0.5),
-        inset -1px -1px 2px rgba(255, 255, 255, 0.3);
+        2px 2px 4px rgb(0 0 0 / 50%),
+        inset -1px -1px 2px rgb(255 255 255 / 30%);
     letter-spacing: 0.3em;
     z-index: 1;
     font-style: italic;
@@ -99,16 +98,16 @@ body.halloween-theme,
 .halloween-theme .login-card.tombstone {
     background-image:
         /* Fine, subtle cracks */
-        linear-gradient(45deg, transparent 30%, rgba(0, 0, 0, 0.15) 30.2%, transparent 30.5%),
-        linear-gradient(135deg, transparent 60%, rgba(0, 0, 0, 0.12) 60.3%, transparent 60.6%),
-        linear-gradient(75deg, transparent 45%, rgba(0, 0, 0, 0.1) 45.1%, transparent 45.2%),
-        linear-gradient(165deg, transparent 70%, rgba(0, 0, 0, 0.08) 70.4%, transparent 70.8%),
+        linear-gradient(45deg, transparent 30%, rgb(0 0 0 / 15%) 30.2%, transparent 30.5%),
+        linear-gradient(135deg, transparent 60%, rgb(0 0 0 / 12%) 60.3%, transparent 60.6%),
+        linear-gradient(75deg, transparent 45%, rgb(0 0 0 / 10%) 45.1%, transparent 45.2%),
+        linear-gradient(165deg, transparent 70%, rgb(0 0 0 / 8%) 70.4%, transparent 70.8%),
         /* Deeper, more noticeable crack */
-        linear-gradient(-30deg, transparent 55%, rgba(0, 0, 0, 0.3) 55.5%, transparent 56.5%),
-        linear-gradient(150deg, transparent 35%, rgba(0, 0, 0, 0.35) 35.5%, transparent 36.5%),
+        linear-gradient(-30deg, transparent 55%, rgb(0 0 0 / 30%) 55.5%, transparent 56.5%),
+        linear-gradient(150deg, transparent 35%, rgb(0 0 0 / 35%) 35.5%, transparent 36.5%),
         /* Original background gradients */
-        linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
-        linear-gradient(225deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(135deg, rgb(0 0 0 / 10%) 0%, transparent 100%),
+        linear-gradient(225deg, rgb(0 0 0 / 10%) 0%, transparent 100%),
         linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 50%, #a8a8a8 100%);
 }
 
@@ -127,7 +126,7 @@ body.halloween-theme,
     text-transform: uppercase;
     letter-spacing: 0.25em;
     margin-bottom: 0.6em;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: 1px 1px 2px rgb(0 0 0 / 30%);
     text-align: center;
     font-style: italic;
 }
@@ -145,17 +144,17 @@ body.halloween-theme,
 }
 
 .tombstone-field .input {
-    background: rgba(0, 0, 0, 0.7) !important;
+    background: rgb(0 0 0 / 70%) !important;
     border: 3px solid #ff8c00 !important;
     color: #ff8c00 !important;
-    text-shadow: 0 0 8px rgba(255, 140, 0, 0.6);
+    text-shadow: 0 0 8px rgb(255 140 0 / 60%);
     font-weight: 500;
 }
 
 .tombstone-field .input:focus {
-    border-color: #ff6600 !important;
-    box-shadow: 0 0 20px rgba(255, 140, 0, 0.8) !important;
-    background: rgba(0, 0, 0, 0.8) !important;
+    border-color: #f60 !important;
+    box-shadow: 0 0 20px rgb(255 140 0 / 80%) !important;
+    background: rgb(0 0 0 / 80%) !important;
 }
 
 .tombstone-field .input::placeholder {
@@ -165,15 +164,15 @@ body.halloween-theme,
 /* Floating Clouds - Twice as big and with light coming from them */
 .cloud {
     position: absolute;
-    background: rgba(40, 40, 40, 0.7);
+    background: rgb(40 40 40 / 70%);
     border-radius: 400px;
     opacity: 0.9;
     animation: float-cloud linear infinite;
     filter: blur(5px);
     box-shadow:
-        0 0 10px rgba(255, 140, 0, 0.2),
-        0 0 60px rgba(255, 255, 255, 0.3),
-        0 0 30px rgba(40, 40, 40, 0.6);
+        0 0 10px rgb(255 140 0 / 20%),
+        0 0 60px rgb(255 255 255 / 30%),
+        0 0 30px rgb(40 40 40 / 60%);
     transform: scale(2);
 }
 
@@ -181,7 +180,7 @@ body.halloween-theme,
 .cloud::after {
     content: '';
     position: absolute;
-    background: rgba(40, 40, 40, 0.7);
+    background: rgb(40 40 40 / 70%);
     border-radius: 400px;
     filter: blur(4px);
 }
@@ -266,7 +265,6 @@ body.halloween-theme,
     0% {
         transform: translateX(0) scale(2);
     }
-
     100% {
         /* Kept the final position far to the right so they all eventually move off-screen */
         transform: translateX(calc(100vw + 400px)) scale(2);
@@ -281,7 +279,7 @@ body.halloween-theme,
     width: 100%;
     height: 100%;
     /* Made light more focused, simulating it coming from above/clouds */
-    background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.95), rgba(255, 220, 100, 0.8) 15%, transparent 50%);
+    background: radial-gradient(circle at 50% 10%, rgb(255 255 255 / 95%), rgb(255 220 100 / 80%) 15%, transparent 50%);
     opacity: 0;
     animation: lightning-flash-animation 12s infinite;
     pointer-events: none;
@@ -291,23 +289,18 @@ body.halloween-theme,
     0%, 10%, 100% {
         opacity: 0;
     }
-
     10.1% {
         opacity: 0.9;
     }
-
     10.15% {
         opacity: 0.4;
     }
-
     10.2%, 10.35% {
         opacity: 0;
     }
-
     10.4% {
         opacity: 1;
     }
-
     10.5% {
         opacity: 0;
     }
@@ -342,26 +335,21 @@ body.halloween-theme,
         transform: scaleY(0);
         transform-origin: top;
     }
-
     10.1% {
         opacity: 1;
         transform: scaleY(1);
     }
-
     10.15% {
         opacity: 0.6;
     }
-
     10.2%, 10.35% {
         opacity: 0;
         transform: scaleY(0.8);
     }
-
     10.4% {
         opacity: 1;
         transform: scaleY(1);
     }
-
     10.5% {
         opacity: 0;
         transform: scaleY(0);
@@ -377,26 +365,21 @@ body.halloween-theme,
     0%, 10%, 100% {
         opacity: 0;
     }
-
     10.1% {
         opacity: 1;
         fill: #fff;
     }
-
     10.15% {
         opacity: 0.7;
         fill: #ffd700;
     }
-
     10.2%, 10.35% {
         opacity: 0;
     }
-
     10.4% {
         opacity: 1;
         fill: #fff;
     }
-
     10.5% {
         opacity: 0;
     }
@@ -420,7 +403,7 @@ body.halloween-theme,
     left: 8%;
     width: 180px;
     height: 200px;
-    filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.5));
+    filter: drop-shadow(0 0 20px rgb(255 140 0 / 50%));
     animation: cat-tail-swish 3s ease-in-out infinite;
     z-index: 6;
 }
@@ -429,7 +412,6 @@ body.halloween-theme,
     0%, 100% {
         transform: translateY(0);
     }
-
     50% {
         transform: translateY(-5px);
     }
@@ -443,7 +425,6 @@ body.halloween-theme,
     0%, 96%, 100% {
         opacity: 1;
     }
-
     97%, 99% {
         opacity: 0.1;
     }
@@ -456,7 +437,7 @@ body.halloween-theme,
     right: 8%;
     width: 160px;
     height: 240px;
-    filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.4));
+    filter: drop-shadow(0 0 20px rgb(255 140 0 / 40%));
     animation: skeleton-wobble 3s ease-in-out infinite;
     z-index: 6;
 }
@@ -465,7 +446,6 @@ body.halloween-theme,
     0%, 100% {
         transform: translateY(0) rotate(-5deg);
     }
-
     50% {
         transform: translateY(-15px) rotate(5deg);
     }
@@ -481,7 +461,6 @@ body.halloween-theme,
     0%, 100% {
         transform: rotate(-5deg);
     }
-
     50% {
         transform: rotate(5deg);
     }
@@ -489,38 +468,37 @@ body.halloween-theme,
 
 /* Additional Effects for Login Card in Halloween Theme */
 .halloween-theme .login-card.tombstone .button {
-    background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%) !important;
+    background: linear-gradient(135deg, #1a1a1a 0%, #000 100%) !important;
     border: 3px solid #ff8c00 !important;
     color: #ff8c00 !important;
     font-weight: bold;
-    text-shadow: 0 0 10px rgba(255, 140, 0, 0.8);
-    box-shadow: 0 4px 20px rgba(255, 140, 0, 0.5) !important;
+    text-shadow: 0 0 10px rgb(255 140 0 / 80%);
+    box-shadow: 0 4px 20px rgb(255 140 0 / 50%) !important;
     transition: all 0.3s ease;
 }
 
 .halloween-theme .login-card.tombstone .button:hover {
-    background: linear-gradient(135deg, #ff8c00 0%, #ff6600 100%) !important;
+    background: linear-gradient(135deg, #ff8c00 0%, #f60 100%) !important;
     border-color: #ffa500 !important;
     color: #000 !important;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
-    box-shadow: 0 6px 30px rgba(255, 140, 0, 0.8) !important;
+    text-shadow: 0 0 15px rgb(255 255 255 / 90%);
+    box-shadow: 0 6px 30px rgb(255 140 0 / 80%) !important;
     transform: translateY(-2px);
 }
 
 /* Brand Icon Glow */
 .halloween-theme .login-brand i {
     color: #ff8c00 !important;
-    filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.8));
+    filter: drop-shadow(0 0 20px rgb(255 140 0 / 80%));
     animation: icon-pulse 3s ease-in-out infinite;
 }
 
 @keyframes icon-pulse {
     0%, 100% {
-        filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.8));
+        filter: drop-shadow(0 0 20px rgb(255 140 0 / 80%));
     }
-
     50% {
-        filter: drop-shadow(0 0 35px rgba(255, 69, 0, 1));
+        filter: drop-shadow(0 0 35px rgb(255 69 0 / 100%));
     }
 }
 
@@ -528,59 +506,55 @@ body.halloween-theme,
 .halloween-theme .brand-text h3 {
     color: #ff8c00 !important;
     text-shadow:
-        2px 2px 4px rgba(0, 0, 0, 0.8),
-        0 0 15px rgba(255, 140, 0, 0.6);
+        2px 2px 4px rgb(0 0 0 / 80%),
+        0 0 15px rgb(255 140 0 / 60%);
     font-family: 'Courier New', monospace;
     letter-spacing: 0.1em;
 }
 
 /* Error Message */
 .halloween-theme .wrong-login {
-    background: rgba(0, 0, 0, 0.8) !important;
+    background: rgb(0 0 0 / 80%) !important;
     border: 2px solid #ff8c00 !important;
     color: #ff8c00 !important;
-    box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+    box-shadow: 0 0 20px rgb(255 140 0 / 50%);
 }
 
 /* Loading Spinner */
 .halloween-theme .loading-spinner i {
     color: #ff8c00 !important;
-    filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.8));
+    filter: drop-shadow(0 0 10px rgb(255 140 0 / 80%));
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .halloween-cat {
         width: 80px;
         height: 80px;
         bottom: 5%;
         left: 5%;
     }
-
     .halloween-skeleton {
         width: 100px;
         height: 150px;
         bottom: 3%;
         right: 5%;
     }
-
     .login-card.tombstone::after {
         font-size: 1.4em;
         top: -40px;
     }
 }
 
-@media (max-width: 480px) {
+@media (width <= 480px) {
     .halloween-cat {
         width: 60px;
         height: 60px;
     }
-
     .halloween-skeleton {
         width: 70px;
         height: 110px;
     }
-
     .cloud {
         /* Adjusted scale for mobile to compensate for the overall increase */
         transform: scale(1.4);
@@ -590,7 +564,6 @@ body.halloween-theme,
         0% {
             transform: translateX(0) scale(1.4);
         }
-
         100% {
             transform: translateX(calc(100vw + 400px)) scale(1.4);
         }
@@ -600,9 +573,9 @@ body.halloween-theme,
 
 .search-input-container {
     /* ... existing search-input styles ... */
-    background-color: rgba(100, 100, 100, 0.2);
+    background-color: rgb(100 100 100 / 20%);
     display: flex;
-    padding: 0em 0.75em;
+    padding: 0 0.75em;
     border-radius: 1em;
     border-style: unset;
     border-width: 1px;
@@ -646,8 +619,8 @@ body.halloween-theme,
     overflow: hidden; /* Ensure eyelids don't overflow when moving */
     box-shadow:
       0 0 10px var(--icon-orange),
-      0 0 30px rgba(255, 255, 0, 0.8),
-      inset 0 0 10px rgba(0,0,0,0.3);
+      0 0 30px rgb(255 255 0 / 80%),
+      inset 0 0 10px rgb(0 0 0 / 30%);
     /* Removed 'eye-blink' from here, will use pseudo-elements for blink */
     animation:
       eye-look 4s infinite alternate ease-in-out;
@@ -694,9 +667,7 @@ body.halloween-theme,
   .eye.right {
     animation-delay: 0.1s;
   }
-  .eye.right .pupil {
-    animation-delay: 0.3s;
-  }
+
   .eye.right::before, .eye.right::after {
     animation-delay: 0.2s; /* Slightly delay eyelid blink */
   }
@@ -721,6 +692,10 @@ body.halloween-theme,
     100% { transform: translate(-100%, -50%); }
   }
 
+  .eye.right .pupil {
+    animation-delay: 0.3s;
+  }
+
   /* NEW: Eyelid blinking animation */
   @keyframes lid-blink-top {
     0%, 20%, 40%, 60%, 80%, 100% {
@@ -732,6 +707,7 @@ body.halloween-theme,
       transform: translateY(0%) scaleY(1.2);
     }
   }
+
   @keyframes lid-blink-bottom {
     0%, 20%, 40%, 60%, 80%, 100% {
       /* Bottom lid is down and open */

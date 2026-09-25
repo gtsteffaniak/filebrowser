@@ -65,13 +65,13 @@ export default {
   color: white;
 }
 
-.delete-button:hover:not(:disabled) {
-  background: #e0455a;
-}
-
 .delete-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #e0455a;
 }
 
 .spin {

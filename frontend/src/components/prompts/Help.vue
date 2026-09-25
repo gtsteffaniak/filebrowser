@@ -226,7 +226,7 @@ export default {
   font-size: 0.95em;
   font-weight: 600;
   color: var(--textPrimary);
-  margin: 0 0 0.75em 0;
+  margin: 0 0 0.75em;
   padding-bottom: 0.5em;
   border-bottom: 1px solid var(--divider);
 }
@@ -256,7 +256,7 @@ export default {
   background-color: var(--surfaceSecondary);
   border: 1px solid var(--divider);
   border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 10%);
   text-align: center;
 }
 
@@ -267,11 +267,10 @@ export default {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .shortcuts-grid {
     grid-template-columns: 1fr;
   }
-
   .shortcut-item kbd {
     min-width: 70px;
     font-size: 0.8em;

@@ -1,19 +1,19 @@
-@import "normalize.css/normalize.css";
-@import "./_variables.css";
-@import "./_buttons.css";
-@import "./_fab.css";
-@import "./_inputs.css";
-@import "./_banners.css";
-@import "./_settings-items.css";
-@import "./fonts.css";
-@import "./base.css";
-@import "./header.css";
-@import "./listing.css";
-@import "./dashboard.css";
-@import "./mobile.css";
-@import "./halloween.css";
+@import url("normalize.css/normalize.css");
+@import url("./_variables.css");
+@import url("./_buttons.css");
+@import url("./_fab.css");
+@import url("./_inputs.css");
+@import url("./_banners.css");
+@import url("./_settings-items.css");
+@import url("./fonts.css");
+@import url("./base.css");
+@import url("./header.css");
+@import url("./listing.css");
+@import url("./dashboard.css");
+@import url("./mobile.css");
+@import url("./halloween.css");
 /* Loader / skeleton: single source in public/css/loadingSpinners.css (also inlined in index.html for first paint). */
-@import "../../public/css/loadingSpinners.css";
+@import url("../../public/css/loadingSpinners.css");
 
 /* Selection color */
 ::selection {
@@ -22,6 +22,12 @@
 
 .link {
     color: var(--blue);
+}
+
+.rules>div {
+    display: flex;
+    align-items: center;
+    margin: 0.5rem 0;
 }
 
 #main .spinner {
@@ -36,7 +42,7 @@
     height: 0.8em;
     margin: 0 0.1em;
     font-size: 1em;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgb(0 0 0 / 30%);
     border-radius: 100%;
     display: inline-block;
     animation: sk-bouncedelay 1.4s infinite ease-in-out both;
@@ -58,11 +64,9 @@
     0% {
         opacity: 0;
     }
-
     99% {
         opacity: 0;
     }
-
     100% {
         opacity: 1;
     }
@@ -71,7 +75,6 @@
 /* * * * * * * * * * * * * * * *
  *            ACTION           *
  * * * * * * * * * * * * * * * */
-
 .action {
     cursor: pointer;
     transition: 0.2s ease all;
@@ -97,8 +100,15 @@
     border-radius: 50%;
 }
 
+.action:hover {
+    box-shadow: inset 0 -3em 3em rgb(172 172 172 / 21.1%),
+    0 0 0 2px var(--alt-background) !important;
+    /* Darker shadow for better visibility in light mode */
+    transform: scale(1.02);
+}
+
 .action:not(:disabled):hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgb(0 0 0 / 10%);
 }
 
 .action ul {
@@ -119,7 +129,7 @@
 }
 
 .action ul li:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgb(0 0 0 / 4%);
 }
 
 .action .counter {
@@ -139,9 +149,8 @@
 }
 
 /* PREVIEWER */
-
 #previewer {
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgb(0 0 0 / 90%);
     width: 100%;
     height: 100%;
     z-index: 9999;
@@ -152,18 +161,28 @@
     color: #fff;
 }
 
+.expand-dropdown.form-compact .expand-dropdown-trigger i,
+.expand-dropdown.form-compact .expand-dropdown-chevron {
+  padding: 0;
+  line-height: 1;
+}
+
+#previewer>button>i {
+    padding: 0.5em;
+}
+
 #previewer header>.action i {
     color: #fff;
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
     #previewer header #dropdown .action i {
         color: #fff;
     }
 }
 
 #previewer header .action:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgb(255 255 255 / 30%);
 }
 
 #previewer header .action span {
@@ -207,6 +226,12 @@
     margin-bottom: 1em;
 }
 
+#previewer .preview .info a i {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 1.3em;
+}
+
 #previewer .preview .info .title i {
     display: block;
     margin-bottom: 0.1em;
@@ -218,13 +243,7 @@
 }
 
 #previewer .preview .info a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-#previewer .preview .info a i {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 1.3em;
+    background-color: rgb(255 255 255 / 20%);
 }
 
 #previewer .pdf {
@@ -233,14 +252,25 @@
 }
 
 #previewer h2.message {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgb(255 255 255 / 50%);
+}
+
+.rules button {
+    margin-left: auto;
+}
+
+button:hover {
+    box-shadow: inset 0 -3em 3em rgb(172 172 172 / 21.1%),
+    0 0 0 2px var(--alt-background) !important;
+    /* Darker shadow for better visibility in light mode */
+    transform: scale(1.02);
 }
 
 #previewer>button {
     position: fixed;
     top: calc(50% + 1.85em);
     transform: translateY(-50%);
-    background-color: rgba(80, 80, 80, 0.5);
+    background-color: rgb(80 80 80 / 50%);
     color: white;
     border-radius: 50%;
     cursor: pointer;
@@ -253,10 +283,6 @@
 #previewer>button.hidden {
     opacity: 0;
     visibility: hidden;
-}
-
-#previewer>button>i {
-    padding: 0.5em;
 }
 
 #previewer>button:last-of-type {
@@ -278,11 +304,10 @@
 }
 
 /* EDITOR */
-
 #editor-container {
     display: flex;
     flex-direction: column;
-    background-color: none;
+    background-color: transparent;
     height: 100%;
     width: 100%;
     overflow: hidden;
@@ -296,7 +321,6 @@
 /* * * * * * * * * * * * * * * *
  *          ANIMATIONS         *
  * * * * * * * * * * * * * * * */
-
 @keyframes spin {
     100% {
         transform: rotate(360deg);
@@ -306,13 +330,6 @@
 /* * * * * * * * * * * * * * * *
  *         SETTINGS RULES      *
  * * * * * * * * * * * * * * * */
-
-.rules>div {
-    display: flex;
-    align-items: center;
-    margin: 0.5rem 0;
-}
-
 .rules input[type="checkbox"] {
     margin-right: 0.2rem;
 }
@@ -331,10 +348,6 @@
     margin-right: 0.5rem;
 }
 
-.rules button {
-    margin-left: auto;
-}
-
 .rules button.delete {
     padding: 0.2rem 0.5rem;
     margin-left: 0.5rem;
@@ -343,7 +356,6 @@
 /* * * * * * * * * * * * * * * *
  *         RTL overrides       *
  * * * * * * * * * * * * * * * */
-
 body.rtl .card-content textarea {
     direction: ltr;
     text-align: left;
@@ -382,14 +394,11 @@ body.rtl .card-content .small+input {
 
 .clickable:hover,
 .plyr .plyr__control:hover,
-button:hover,
-.action:hover,
 .listing-item.drag-hover {
-    box-shadow: inset 0 -3em 3em rgba(172, 172, 172, 0.211),
+    box-shadow: inset 0 -3em 3em rgb(172 172 172 / 21.1%),
     0 0 0 2px var(--alt-background) !important;
     /* Darker shadow for better visibility in light mode */
     transform: scale(1.02);
-    /* Slightly enlarges the element */
 }
 
 .listing-item[aria-selected="true"] .material-symbols-outlined,
@@ -447,12 +456,6 @@ button.flat-right.flat-left,
   box-sizing: border-box;
 }
 
-.expand-dropdown.form-compact .expand-dropdown-trigger i,
-.expand-dropdown.form-compact .expand-dropdown-chevron {
-  padding: 0;
-  line-height: 1;
-}
-
 .expand-dropdown.flat-left .expand-dropdown-anchor {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
@@ -465,13 +468,13 @@ button.flat-right.flat-left,
   border-right-width: 0;
 }
 
-.expand-dropdown.flat-left.flat-right .expand-dropdown-anchor {
-  border-radius: 0 !important;
-}
-
 .expand-dropdown.flat-left .expand-dropdown-anchor,
 .expand-dropdown.flat-right .expand-dropdown-anchor {
   box-shadow: none;
+}
+
+.expand-dropdown.flat-left.flat-right .expand-dropdown-anchor {
+  border-radius: 0 !important;
 }
 
 .expand-dropdown.flat-left.expand-dropdown--open .expand-dropdown-anchor {
@@ -483,15 +486,15 @@ button.flat-right.flat-left,
 }
 
 /* Joined controls: input/button keeps full border; dropdown drops flat-side border */
-.form-flex-group > .input.flat-right + .expand-dropdown.flat-left .expand-dropdown-anchor,
-.form-flex-group > input.flat-right + .expand-dropdown.flat-left .expand-dropdown-anchor {
+.form-flex-group > input.flat-right + .expand-dropdown.flat-left .expand-dropdown-anchor,
+.form-flex-group > .input.flat-right + .expand-dropdown.flat-left .expand-dropdown-anchor {
   border-left-width: 0;
 }
 
-.form-flex-group > .input.flat-right + .button.flat-left,
-.form-flex-group > .input.flat-right + button.flat-left,
 .form-flex-group > input.flat-right + .button.flat-left,
-.form-flex-group > input.flat-right + button.flat-left {
+.form-flex-group > .input.flat-right + .button.flat-left,
+.form-flex-group > input.flat-right + button.flat-left,
+.form-flex-group > .input.flat-right + button.flat-left {
   border-left-width: 0;
 }
 
@@ -507,6 +510,10 @@ button.flat-right.flat-left,
     align-items: stretch;
 }
 
+.form-compact {
+    padding: 0;
+}
+
 .form-flex-group>.form-compact {
     min-height: 2em;
     width: unset !important;
@@ -519,10 +526,6 @@ button.flat-right.flat-left,
 
 .form-invalid {
     border-color: red !important;
-}
-
-.form-compact {
-    padding: 0em;
 }
 
 .form-dropdown {
@@ -557,7 +560,6 @@ button.flat-right.flat-left,
     0% {
         transform: rotate(0deg);
     }
-
     100% {
         transform: rotate(360deg);
     }

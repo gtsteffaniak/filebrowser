@@ -1573,7 +1573,7 @@ export default {
   margin-left: auto;
 }
 
-@media (max-width: 559px) {
+@media (width <= 559px) {
   .advanced-search-actions-row .search-submit {
     margin-left: 0;
     flex: 1 1 100%;

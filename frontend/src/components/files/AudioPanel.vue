@@ -780,7 +780,7 @@ export default {
   background: rgb(216 216 216);
   border-radius: 1em;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
 }
 
 .audio-side-panel.dark-mode {
@@ -854,6 +854,7 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 .tab-queue,
 .tab-lyrics,
 .tab-visualizer {
@@ -996,7 +997,7 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 0.8em;
-  background: rgba(0, 0, 0, 0.12);
+  background: rgb(0 0 0 / 12%);
   display: block;
 }
 </style>

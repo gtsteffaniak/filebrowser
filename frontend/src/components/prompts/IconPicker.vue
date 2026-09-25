@@ -274,7 +274,7 @@ export default {
   font-size: 0.65em;
   color: var(--textSecondary);
   text-align: center;
-  word-break: break-word;
+  overflow-wrap: break-word;
   line-height: 1.1;
   max-width: 100%;
   overflow: hidden;

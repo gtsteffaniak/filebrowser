@@ -1157,7 +1157,7 @@ export default {
 }
 
 .quota-share-fields {
-  margin: 0.5em 0 1em 0;
+  margin: 0.5em 0 1em;
 }
 
 .quota-custom-row {

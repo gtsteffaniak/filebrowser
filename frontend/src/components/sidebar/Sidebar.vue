@@ -251,6 +251,13 @@ body.rtl .action {
   text-align: right;
 }
 
+body.sidebar-resizing,
+body.sidebar-resizing * {
+  cursor: col-resize !important;
+  pointer-events: none;
+  transition: none !important;
+}
+
 #sidebar .action > * {
   vertical-align: middle;
 }
@@ -313,18 +320,10 @@ body.rtl .action {
   height: 2.5em;
 }
 
-.sidebar-resizer:hover .resizer-handle,
-body.sidebar-resizing .resizer-handle {
+body.sidebar-resizing .resizer-handle,
+.sidebar-resizer:hover .resizer-handle {
   background-color: var(--primaryColor);
   border-radius: 1em;
   width: 0.3em;
 }
-
-body.sidebar-resizing,
-body.sidebar-resizing * {
-  cursor: col-resize !important;
-  pointer-events: none;
-  transition: none !important;
-}
-
 </style>

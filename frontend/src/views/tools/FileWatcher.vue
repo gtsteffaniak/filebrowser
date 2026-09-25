@@ -652,6 +652,9 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .file-picker {
@@ -668,12 +671,6 @@ export default {
   padding: 0 !important;
 }
 
-.file-picker-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .status-indicator {
   display: flex;
   align-items: center;
@@ -686,8 +683,8 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 0.75rem 1rem;
-  background: var(--surfaceSecondary, rgba(0, 0, 0, 0.05));
-  border-bottom: 1px solid var(--borderPrimary, rgba(0, 0, 0, 0.1));
+  background: var(--surfaceSecondary, rgb(0 0 0 / 5%));
+  border-bottom: 1px solid var(--borderPrimary, rgb(0 0 0 / 10%));
   margin-bottom: 0;
   font-size: 0.9rem;
   border-bottom-left-radius: 0;
@@ -803,12 +800,11 @@ export default {
 }
 
 .terminal-output {
-  font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+  font-family: 'Courier New', Consolas, Monaco, monospace;
   font-size: 14px;
   padding: 1rem;
   min-height: 100px;
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow: auto;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   /* Dark mode (default) */
@@ -818,9 +814,9 @@ export default {
 
 .terminal-output:not(.dark-mode) {
   /* Light mode */
-  background: #ffffff;
+  background: #fff;
   color: #1e1e1e;
-  border: 1px solid var(--borderPrimary, rgba(0, 0, 0, 0.1));
+  border: 1px solid var(--borderPrimary, rgb(0 0 0 / 10%));
 }
 
 .terminal-line {
@@ -852,39 +848,33 @@ export default {
   font-size: 1.1rem;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .file-watcher {
     padding: 1rem;
   }
-
   .config-row {
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
   }
-
   .config-item.file-picker {
     width: 100% !important;
   }
-
   .config-item.file-picker .file-picker-button {
     width: 100%;
   }
-
   .config-row-second {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     width: 100%;
   }
-
   .config-item.interval-select,
   .config-item.lines-input,
   .config-item.play-button {
     flex: 1;
     width: auto !important;
   }
-
   .terminal-output {
     font-size: 12px;
     min-height: 100px;

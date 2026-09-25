@@ -122,7 +122,7 @@ export default {
   background-color: var(--alt-background);
   color: var(--textPrimary);
   border-radius: 1em;
-  box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0.25em 1em rgb(0 0 0 / 20%);
   z-index: 9999;
   pointer-events: none;
   max-width: 20em;
@@ -146,6 +146,7 @@ export default {
   pointer-events: auto;
   cursor: pointer;
 }
+
 .tooltip-info-icon {
   font-size: 1em !important;
   padding: 0.1em !important;

@@ -99,15 +99,12 @@ export default {
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   transition: 0.4s;
   background-color: gray;
 }
 
-.slider:before {
+.slider::before {
   position: absolute;
   content: "";
   height: 26px;
@@ -122,7 +119,7 @@ input:checked + .slider {
   background-color: var(--primaryColor);
 }
 
-input:checked + .slider:before {
+input:checked + .slider::before {
   transform: translateX(26px);
 }
 
@@ -130,7 +127,7 @@ input:checked + .slider:before {
   border-radius: 50px;
 }
 
-.slider.round:before {
+.slider.round::before {
   border-radius: 50%;
 }
 

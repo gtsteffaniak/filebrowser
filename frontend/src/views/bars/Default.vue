@@ -327,7 +327,6 @@ export default {
 <style scoped>
 header button:hover {
   box-shadow: unset !important;
-  -webkit-box-shadow: unset !important;
 }
 
 header {
@@ -351,7 +350,7 @@ header {
 .search-bar-container {
   display: flex;
   align-items: center;
-  background-color: rgba(100, 100, 100, 0.2);
+  background-color: rgb(100 100 100 / 20%);
   border-radius: 1em;
   padding: 0.5em 0.75em;
   transition: background-color 0.2s ease;
@@ -369,11 +368,21 @@ header {
   cursor: not-allowed;
 }
 
+#search-bar-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgb(255 255 255 / 90%);
+  width: 100%;
+  font-size: 0.95em;
+  user-select: none;
+}
+
 .search-bar-container.disabled #search-bar-input {
   pointer-events: none;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .search-bar-container {
     min-width: unset;
     max-width: 60%;
@@ -381,21 +390,11 @@ header {
 }
 
 .search-bar-container:hover {
-  background-color: rgba(100, 100, 100, 0.3);
+  background-color: rgb(100 100 100 / 30%);
 }
 
 .search-bar-container .material-symbols {
   font-size: 1.25em;
-  user-select: none;
-}
-
-#search-bar-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: rgba(255, 255, 255, 0.9);
-  width: 100%;
-  font-size: 0.95em;
   user-select: none;
 }
 
@@ -405,10 +404,10 @@ header {
 
 
 .dark-mode-header .search-bar-container {
-  background-color: rgba(100, 100, 100, 0.2);
+  background-color: rgb(100 100 100 / 20%);
 }
 
 .dark-mode-header .search-bar-container:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgb(255 255 255 / 15%);
 }
 </style>

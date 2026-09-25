@@ -1248,6 +1248,7 @@ export default {
 .disable-viewing {
   width: 100%;
 }
+
 .centered-with-tooltip {
   display: flex;
   justify-content: center;

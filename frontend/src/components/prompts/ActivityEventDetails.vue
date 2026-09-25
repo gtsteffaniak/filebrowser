@@ -132,7 +132,7 @@ export default {
   font-size: 0.95em;
   font-weight: 600;
   color: var(--textPrimary);
-  margin: 0 0 0.75em 0;
+  margin: 0 0 0.75em;
   padding-bottom: 0.5em;
   border-bottom: 1px solid var(--divider);
 }
@@ -159,13 +159,13 @@ export default {
 .detail-value {
   flex: 1;
   color: var(--textSecondary);
-  word-break: break-word;
+  overflow-wrap: break-word;
   white-space: pre-wrap;
   user-select: text;
 }
 
 .break-word {
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .activity-details-table :deep(thead th),
@@ -181,11 +181,11 @@ export default {
 }
 
 .activity-details-table :deep(tbody td:last-child) {
-  word-break: break-word;
+  overflow-wrap: break-word;
   white-space: pre-wrap;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .info-item strong {
     min-width: 100px;
   }

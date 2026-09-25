@@ -170,7 +170,7 @@ export default {
 }
 
 .menu-option-list :deep(.menu-option--selected) {
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: rgb(0 0 0 / 8%);
   font-weight: 600;
 }
 
@@ -188,6 +188,6 @@ export default {
 
 <style>
 .dark-mode .menu-option-list .menu-option--selected {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgb(255 255 255 / 8%);
 }
 </style>

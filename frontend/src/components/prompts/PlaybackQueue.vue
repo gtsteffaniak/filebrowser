@@ -508,6 +508,11 @@ export default {
   color: white;
 }
 
+.mode-btn i,
+.repeat-one-btn i {
+  font-size: 1.5rem;
+}
+
 .queue-item.current .queue-item-icon i,
 .queue-item.current .current-indicator,
 .queue-item-indicator {
@@ -527,6 +532,7 @@ export default {
 .queue-item-icon :deep(.image-preview) {
   width: 100%;
   height: 100%;
+
   --icon-font-size: 1.8em;
 }
 
@@ -586,7 +592,7 @@ export default {
 }
 
 .queue-item.current .file-type-badge {
-  background: rgba(255,255,255,0.2);
+  background: rgb(255 255 255 / 20%);
   color: white;
   opacity: 1;
 }
@@ -684,11 +690,6 @@ export default {
   transform: scale(1.02);
 }
 
-.mode-btn i,
-.repeat-one-btn i {
-  font-size: 1.5rem;
-}
-
 .repeat-one-btn {
   border-radius: 2em;
   color: var(--textSecondary);
@@ -715,7 +716,7 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.40);
+  background: rgb(0 0 0 / 40%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -729,7 +730,12 @@ export default {
   width: 3px;
   border-radius: 2px;
   background: #fff;
-  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  box-shadow: 0 0 4px rgb(0 0 0 / 30%);
+}
+
+.wave-indicator.paused span {
+  animation: none;
+  height: 3px;
 }
 
 /* 5 bars with different animations */
@@ -739,11 +745,6 @@ export default {
 .wave-indicator:not(.paused) span:nth-child(4) { animation: wave1 2.3s ease-in-out infinite alternate; }
 .wave-indicator:not(.paused) span:nth-child(5) { animation: wave2 1.6s ease-in-out infinite alternate; }
 
-.wave-indicator.paused span {
-  animation: none;
-  height: 3px;
-}
-
 @keyframes wave1 {
   0%   { height: 3px; }
   25%  { height: 12px; }
@@ -751,6 +752,7 @@ export default {
   75%  { height: 14px; }
   100% { height: 7px; }
 }
+
 @keyframes wave2 {
   0%   { height: 8px; }
   30%  { height: 3px; }
@@ -758,6 +760,7 @@ export default {
   90%  { height: 5px; }
   100% { height: 10px; }
 }
+
 @keyframes wave3 {
   0%   { height: 6px; }
   20%  { height: 14px; }

@@ -803,7 +803,6 @@ export default {
 </script>
 
 <style scoped>
-
 /* Floating window base styles */
 .floating-window {
   border-radius: 1em;
@@ -853,8 +852,7 @@ export default {
   margin-top: 1px;
   margin-bottom: 1px;
   flex: 1 1 auto;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow: auto;
   min-height: 0;
   overscroll-behavior: contain;
 }
@@ -915,7 +913,7 @@ export default {
 }
 
 /* Block all interactions but allow move and resize */
-.floating-window.blocked > :not(.prompt-taskbar):not(.resize-handles) {
+.floating-window.blocked > :not(.prompt-taskbar, .resize-handles) {
   pointer-events: none;
 }
 
@@ -924,6 +922,23 @@ export default {
   user-select: none;
   opacity: 0.7;
   transition: opacity 0.5s;
+}
+
+.prompt-close {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  border: none;
+  border-radius: 1em;
+  background: #c62828;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, filter 0.15s;
 }
 
 .prompt-close:disabled {
@@ -969,25 +984,18 @@ export default {
   background: color-mix(in srgb, var(--primaryColor) 22%, var(--surfaceSecondary));
 }
 
-.prompt-close {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2em;
-  height: 2em;
-  padding: 0;
-  border: none;
-  border-radius: 1em;
-  background: #c62828;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.15s, filter 0.15s;
-}
-
 .prompt-close-right .prompt-close {
   order: 3;
+}
+
+.prompt-resize-corner {
+  position: relative;
+  z-index: 1;
+  cursor: ne-resize;
+  transition: opacity 0.2s ease;
+  opacity: 0.5;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .prompt-close-right .prompt-resize-corner {
@@ -1005,16 +1013,6 @@ export default {
   font-size: 1em;
 }
 
-.prompt-resize-corner {
-  position: relative;
-  z-index: 1;
-  cursor: ne-resize;
-  transition: opacity 0.2s ease;
-  opacity: 0.5;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
 .prompt-resize-corner-left {
   cursor: nw-resize;
 }
@@ -1025,10 +1023,7 @@ export default {
 
 .prompt-taskbar-drag {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1046,18 +1041,17 @@ export default {
 
 .resize-handles {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   pointer-events: none;
 }
+
 .resize-handle {
   position: absolute;
   pointer-events: auto;
   background: transparent;
   z-index: 20;
 }
+
 .resize-handle-top {
   top: -5px;
   left: 5px;
@@ -1065,6 +1059,7 @@ export default {
   height: 10px;
   cursor: n-resize;
 }
+
 .resize-handle-bottom {
   bottom: -5px;
   left: 5px;
@@ -1072,6 +1067,7 @@ export default {
   height: 10px;
   cursor: s-resize;
 }
+
 .resize-handle-left {
   left: -5px;
   top: 5px;
@@ -1079,6 +1075,7 @@ export default {
   width: 10px;
   cursor: w-resize;
 }
+
 .resize-handle-right {
   right: -5px;
   top: 5px;
@@ -1086,6 +1083,7 @@ export default {
   width: 10px;
   cursor: e-resize;
 }
+
 .resize-handle-top-left {
   top: -5px;
   left: -5px;
@@ -1093,6 +1091,7 @@ export default {
   height: 15px;
   cursor: nw-resize;
 }
+
 .resize-handle-top-right {
   top: -5px;
   right: -5px;
@@ -1100,6 +1099,7 @@ export default {
   height: 15px;
   cursor: ne-resize;
 }
+
 .resize-handle-bottom-left {
   bottom: -5px;
   left: -5px;
@@ -1107,6 +1107,7 @@ export default {
   height: 15px;
   cursor: sw-resize;
 }
+
 .resize-handle-bottom-right {
   bottom: -5px;
   right: -5px;

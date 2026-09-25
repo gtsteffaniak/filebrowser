@@ -201,7 +201,7 @@ export default {
 
 .notifications-description {
   color: var(--textSecondary);
-  margin: 0 0 1em 0;
+  margin: 0 0 1em;
 }
 
 .header-actions {
@@ -278,7 +278,7 @@ export default {
   color: white;
   padding: 1em;
   flex: 1;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
   user-select: text;
   cursor: text;
 }
@@ -298,12 +298,12 @@ export default {
 
 .notification-buttons .button {
   color: white !important;
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgb(255 255 255 / 30%);
 }
 
 .notification-buttons .button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 50%);
 }
 
 .notification-item.success {
@@ -352,34 +352,28 @@ export default {
   font-size: 0.875em;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .notifications-view {
     padding: 1em;
   }
-
   .header-actions {
     align-items: stretch;
   }
-
   .notification-item {
     padding: 0.75em;
   }
-
   .notification-icon {
     font-size: 1.25em;
   }
-
   .notification-metadata {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25em;
   }
-
   .clear-button {
     width: 100%;
     justify-content: center;
   }
-
   .notification-count {
     text-align: center;
     width: 100%;

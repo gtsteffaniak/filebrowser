@@ -373,7 +373,7 @@ export default {
   outline: 1px solid var(--divider);
   outline-offset: -1px;
   overflow: hidden;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 5px rgb(0 0 0 / 5%);
 }
 
 .settings-table thead th,
@@ -419,6 +419,10 @@ body.rtl .settings-table tr > *:last-child {
   transition: 0.1s ease all;
 }
 
+.settings-table--loading thead th.settings-table__th {
+  pointer-events: none;
+}
+
 .settings-table thead th.settings-table__th:hover {
   background: color-mix(in srgb, var(--primaryColor) 22%, var(--surfacePrimary));
 }
@@ -460,6 +464,10 @@ body.rtl .settings-table thead th.settings-table__th--unified {
   opacity: 1;
 }
 
+.settings-table__loading-row:hover td {
+  background-color: transparent;
+}
+
 .settings-table tbody tr:last-child td {
   border-bottom: none;
 }
@@ -477,10 +485,6 @@ body.rtl .settings-table thead th.settings-table__th--unified {
   outline-offset: -2px;
 }
 
-.settings-table--loading thead th.settings-table__th {
-  pointer-events: none;
-}
-
 .settings-table__loading-cell {
   text-align: center;
   padding: 2em 1em;
@@ -494,10 +498,6 @@ body.rtl .settings-table thead th.settings-table__th--unified {
   align-items: center;
   justify-content: center;
   margin: 1em;
-}
-
-.settings-table__loading-row:hover td {
-  background-color: transparent;
 }
 
 .settings-table__td--narrow {

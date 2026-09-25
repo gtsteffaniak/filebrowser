@@ -796,11 +796,8 @@ export default {
 
 .conflict-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background-color: rgb(0 0 0 / 70%);
   z-index: 999;
   display: flex;
   justify-content: center;
@@ -846,6 +843,7 @@ export default {
 .sizeInput {
   max-width: 100px;
 }
+
 .card-actions {
   display: flex;
   justify-content: flex-end;

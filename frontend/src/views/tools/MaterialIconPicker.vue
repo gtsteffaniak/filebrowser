@@ -197,8 +197,7 @@ a.button {
   padding: 1em 0.6em;
   background: var(--surfaceSecondary);
   border: 1px solid var(--borderColor);
-  border-radius: 1em;
-  /* Use button border-radius */
+  border-radius: var(--borderRadius);
 }
 
 /* Custom Icon Styling */
@@ -221,7 +220,7 @@ a.button {
   font-size: 0.75em;
   color: var(--textSecondary);
   text-align: center;
-  word-break: break-word;
+  overflow-wrap: break-word;
   line-height: 1.2;
 }
 
@@ -263,20 +262,17 @@ a.button {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   #tool-material-icon-picker {
     padding: 1em;
   }
-
   .icon-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 0.75em;
   }
-
   .icon-card {
     padding: 1em 0.5em;
   }
-
   .icon-display {
     font-size: 2em;
   }

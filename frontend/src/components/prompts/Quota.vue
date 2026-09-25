@@ -213,22 +213,27 @@ export default {
   padding-left: 1em;
   padding-right: 1em;
 }
+
 .quota-path {
   font-weight: 600;
 }
+
 .quota-source {
   opacity: 0.8;
   margin-bottom: 1rem;
 }
+
 .quota-usage-bar {
-  margin: 1em 0 1.5rem 0;
+  margin: 1em 0 1.5rem;
 }
+
 .quota-custom-row {
   display: flex;
   gap: 0.5rem;
   align-items: center;
   margin-bottom: 1rem;
 }
+
 .quota-help {
   font-size: 0.85rem;
   opacity: 0.85;

@@ -70,21 +70,25 @@ export default {
 .quota-folder-bar__progress {
   margin: 0;
 }
+
 .quota-folder-bar__progress :deep(.vue-simple-progress) {
   margin: 0;
   min-height: 36px;
 }
+
 .quota-folder-bar__progress :deep(.vue-simple-progress-bar) {
   min-height: 36px;
 }
+
 .quota-folder-bar__progress--disabled :deep(.vue-simple-progress-text) {
   color: #5a5a5a;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
+
 .quota-folder-bar__help {
   font-size: 0.85rem;
   opacity: 0.85;
-  margin: 0.35rem 0 0.5rem 0;
+  margin: 0.35rem 0 0.5rem;
 }
 </style>

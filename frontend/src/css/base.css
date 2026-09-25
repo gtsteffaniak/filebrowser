@@ -1,11 +1,9 @@
 body {
-  font-family: "Roboto", sans-serif;
+  font-family: Roboto, sans-serif;
   padding-top: var(--header-height);
-  color: #333333;
+  color: #333;
   overflow:initial;
   scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  -webkit-overflow-scrolling: touch;
 }
 
 body.rtl {
@@ -30,10 +28,7 @@ audio, video {
 }
 
 .no-select {
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none;    /* Firefox */
-  -ms-user-select: none;     /* Internet Explorer/Edge */
-  user-select: none;         /* Standard */
+  user-select: none;
 }
 
 .hidden {
@@ -67,8 +62,7 @@ i.spin {
 
 /* Main Content */
 #main {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
   position: fixed;
   padding-top: var(--header-height);
   padding-left: var(--safe-area-left);
@@ -80,15 +74,14 @@ i.spin {
   width: 100%;
   display: flex;
   flex-direction: column;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Hide scrollbar for WebKit browsers */
 #main::-webkit-scrollbar {
-  width: 0px;
+  width: 0;
   background: transparent; /* Optional: just make scrollbar invisible */
   display: none;
-  -webkit-appearance: none;
+  appearance: none;
 }
 
 .main-padding {
@@ -164,9 +157,9 @@ i.spin {
   background-color: var(--surfacePrimary);
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow:
-  0 1px 1px hsl(0deg 0% 0% / 0.075),
-  0 2px 2px hsl(0deg 0% 0% / 0.075),
-  0 4px 4px hsl(0deg 0% 0% / 0.075),
-  0 8px 8px hsl(0deg 0% 0% / 0.075),
-  0 16px 16px hsl(0deg 0% 0% / 0.075);
+  0 1px 1px hsl(0deg 0% 0% / 7.5%),
+  0 2px 2px hsl(0deg 0% 0% / 7.5%),
+  0 4px 4px hsl(0deg 0% 0% / 7.5%),
+  0 8px 8px hsl(0deg 0% 0% / 7.5%),
+  0 16px 16px hsl(0deg 0% 0% / 7.5%);
 }

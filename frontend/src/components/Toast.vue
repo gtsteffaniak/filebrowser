@@ -48,12 +48,12 @@ export default {
   align-items: center;
   gap: 0.5em;
   border-radius: 1em; /* Reuse button border-radius */
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 5px rgb(0 0 0 / 5%), 0 4px 12px rgb(0 0 0 / 20%);
   font-weight: 500;
   color: white;
   min-width: 250px;
   max-width: 500px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgb(0 0 0 / 5%);
   transition: .1s ease all; /* Reuse button transition */
 }
 
@@ -115,14 +115,13 @@ export default {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .toast-container {
     bottom: 1em;
     left: 1em;
     right: 1em;
     transform: none;
   }
-
   .toast {
     width: 100%;
     max-width: none;

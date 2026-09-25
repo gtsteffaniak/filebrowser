@@ -223,7 +223,7 @@ export default {
   background-color: white;
   border: 1px solid #ccc;
   padding: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 10%);
   z-index: 10;
   width: max-content;
 }
@@ -234,8 +234,7 @@ export default {
 
 .api-table-actions {
   display: inline-flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-flow: row nowrap;
   gap: 0.25em;
   justify-content: flex-end;
   align-items: center;

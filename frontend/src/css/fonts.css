@@ -1,115 +1,115 @@
 
 /* Roboto Regular - Optimized for FileBrowser languages */
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 400;
   font-display: block;
   src: local('Roboto'), local('Roboto-Regular'), 
-       url(/fonts/roboto-normal-latin.woff2) format('woff2');
+       url("/fonts/roboto-normal-latin.woff2") format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: local('Roboto'), local('Roboto-Regular'), url(/fonts/roboto-normal-latin.woff2) format('woff2');
+  src: local('Roboto'), local('Roboto-Regular'), url("/fonts/roboto-normal-latin.woff2") format('woff2');
   unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: local('Roboto'), local('Roboto-Regular'), url(/fonts/roboto-normal-latin.woff2) format('woff2');
+  src: local('Roboto'), local('Roboto-Regular'), url("/fonts/roboto-normal-latin.woff2") format('woff2');
   unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: local('Roboto'), local('Roboto-Regular'), url(/fonts/roboto-normal-latin.woff2) format('woff2');
+  src: local('Roboto'), local('Roboto-Regular'), url("/fonts/roboto-normal-latin.woff2") format('woff2');
   unicode-range: U+0370-03FF;
 }
 
 /* Roboto Medium - Optimized for FileBrowser languages */
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 500;
   font-display: swap;
   src: local('Roboto Medium'), local('Roboto-Medium'), 
-       url(/fonts/roboto-medium-latin.woff2) format('woff2');
+       url("/fonts/roboto-medium-latin.woff2") format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: local('Roboto Medium'), local('Roboto-Medium'), url(/fonts/roboto-medium-latin.woff2) format('woff2');
+  src: local('Roboto Medium'), local('Roboto-Medium'), url("/fonts/roboto-medium-latin.woff2") format('woff2');
   unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: local('Roboto Medium'), local('Roboto-Medium'), url(/fonts/roboto-medium-latin.woff2) format('woff2');
+  src: local('Roboto Medium'), local('Roboto-Medium'), url("/fonts/roboto-medium-latin.woff2") format('woff2');
   unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: local('Roboto Medium'), local('Roboto-Medium'), url(/fonts/roboto-medium-latin.woff2) format('woff2');
+  src: local('Roboto Medium'), local('Roboto-Medium'), url("/fonts/roboto-medium-latin.woff2") format('woff2');
   unicode-range: U+0370-03FF;
 }
 
 /* Roboto Bold - Optimized for FileBrowser languages */
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 700;
   font-display: swap;
   src: local('Roboto Bold'), local('Roboto-Bold'), 
-       url(/fonts/roboto-bold-latin.woff2) format('woff2');
+       url("/fonts/roboto-bold-latin.woff2") format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: local('Roboto Bold'), local('Roboto-Bold'), url(/fonts/roboto-bold-latin.woff2) format('woff2');
+  src: local('Roboto Bold'), local('Roboto-Bold'), url("/fonts/roboto-bold-latin.woff2") format('woff2');
   unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: local('Roboto Bold'), local('Roboto-Bold'), url(/fonts/roboto-bold-latin.woff2) format('woff2');
+  src: local('Roboto Bold'), local('Roboto-Bold'), url("/fonts/roboto-bold-latin.woff2") format('woff2');
   unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
 @font-face {
-  font-family: 'Roboto';
+  font-family: Roboto;
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: local('Roboto Bold'), local('Roboto-Bold'), url(/fonts/roboto-bold-latin.woff2) format('woff2');
+  src: local('Roboto Bold'), local('Roboto-Bold'), url("/fonts/roboto-bold-latin.woff2") format('woff2');
   unicode-range: U+0370-03FF;
 }
 
@@ -118,7 +118,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url(/fonts/material-symbols-core-filled.woff2) format('woff2');
+  src: url("/fonts/material-symbols-core-filled.woff2") format('woff2');
 }
 
 /* Declared here but not referenced until html.icons-full — keeps the 3.8 MB font lazy. */
@@ -127,17 +127,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/material-symbols.woff2) format('woff2');
-}
-
-html:not(.icons-full) .material-symbols-outlined,
-html:not(.icons-full) .material-symbols {
-  font-family: 'Material Symbols Core';
-}
-
-html.icons-full .material-symbols-outlined,
-html.icons-full .material-symbols {
-  font-family: 'Material Symbols Outlined';
+  src: url("/fonts/material-symbols.woff2") format('woff2');
 }
 
 .material-symbols-outlined,
@@ -150,11 +140,10 @@ html.icons-full .material-symbols {
   text-transform: none;
   display: inline-block;
   white-space: nowrap;
-  word-wrap: normal;
+  overflow-wrap: normal;
   direction: ltr;
   font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
-  -webkit-user-select: none;
   user-select: none;
   transition: 0.25s ease;
 }
@@ -165,4 +154,14 @@ html.icons-full .material-symbols {
 
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0;
+}
+
+html:not(.icons-full) .material-symbols-outlined,
+html:not(.icons-full) .material-symbols {
+  font-family: 'Material Symbols Core';
+}
+
+html.icons-full .material-symbols-outlined,
+html.icons-full .material-symbols {
+  font-family: 'Material Symbols Outlined';
 }

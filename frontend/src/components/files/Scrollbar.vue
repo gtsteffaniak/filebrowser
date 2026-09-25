@@ -338,7 +338,7 @@ export default {
 @supports (backdrop-filter: none) {
   .thumb,
   .thumb-section-id {
-    background-color: rgba(237, 237, 237, 0.1) !important;
+    background-color: rgb(237 237 237 / 10%) !important;
     backdrop-filter: blur(10px) invert(0.1);
   }
 }
@@ -374,14 +374,15 @@ export default {
   z-index: 1001;
 }
 
-.custom-scrollbar.visible .thumb-section-id {
-  display: flex;
-}
-
 .thumb, .thumb-section-id {
   will-change: transform;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   perspective: 1000px;
 }
+
+.custom-scrollbar.visible .thumb-section-id {
+  display: flex;
+}
+
 </style>

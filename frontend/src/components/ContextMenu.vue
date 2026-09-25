@@ -1120,7 +1120,6 @@ export default {
 #context-menu.centered {
   top: 50% !important;
   left: 50% !important;
-  -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
 
@@ -1165,6 +1164,14 @@ export default {
   flex-shrink: 0;
 }
 
+.context-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
 #context-menu > .context-menu-header,
 #context-menu > hr.divider {
   flex-shrink: 0;
@@ -1203,11 +1210,4 @@ export default {
   opacity: 0;
 }
 
-.context-menu-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-}
 </style>

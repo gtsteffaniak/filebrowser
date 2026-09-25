@@ -150,7 +150,7 @@ export default {
   font-size: 0.95em;
   font-weight: 600;
   color: var(--textPrimary);
-  margin: 0 0 0.75em 0;
+  margin: 0 0 0.75em;
   padding-bottom: 0.5em;
   border-bottom: 1px solid var(--divider);
 }
@@ -285,17 +285,15 @@ export default {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .permissions-grid {
     grid-template-columns: 1fr;
   }
-
   .info-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25em;
   }
-
   .info-value {
     text-align: left;
   }

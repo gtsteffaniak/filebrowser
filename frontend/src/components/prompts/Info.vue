@@ -437,7 +437,7 @@ export default {
   font-size: 0.95em;
   font-weight: 600;
   color: var(--textPrimary);
-  margin: 0 0 0.75em 0;
+  margin: 0 0 0.75em;
   padding-bottom: 0.5em;
   border-bottom: 1px solid var(--divider);
 }
@@ -464,11 +464,11 @@ export default {
 .info-item span {
   flex: 1;
   color: var(--textSecondary);
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .break-word {
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .hash-generator {
@@ -496,11 +496,10 @@ export default {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .info-grid {
     grid-template-columns: 1fr;
   }
-
   .info-item strong {
     min-width: 100px;
   }

@@ -247,7 +247,6 @@ export default {
 <style>
 .scrollable {
   overflow: scroll !important;
-  -webkit-overflow-scrolling: touch;
   /* Enable momentum scrolling in iOS */
 }
 
@@ -257,7 +256,6 @@ export default {
 
 #main {
   overflow: unset;
-  -ms-overflow-style: none;
   /* Internet Explorer 10+ */
   scrollbar-width: none;
   /* Firefox */
@@ -276,6 +274,7 @@ export default {
   display: none;
   /* Safari and Chrome */
 }
+
 #main>div {
   height: 100%;
 }

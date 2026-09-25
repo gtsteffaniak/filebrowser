@@ -599,14 +599,14 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(0 0 0 / 10%);
   border-top: 0;
   padding: 0.5em;
   border-radius: 0;
 }
 
 .file-item-wrapper:first-child {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgb(0 0 0 / 10%);
 }
 
 .file-item-wrapper.deleted {
@@ -670,26 +670,22 @@ export default {
   from {
     transform: rotate(0deg);
   }
-
   to {
     transform: rotate(360deg);
   }
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .duplicate-finder {
     padding: 1rem;
   }
-
   .stats {
     flex-direction: column;
     gap: 0.5rem;
   }
-
   .group-header {
     flex-wrap: wrap;
   }
-
   .wasted-space {
     margin-left: 0;
     width: 100%;

@@ -18,11 +18,19 @@ body.rtl .dashboard .row {
   width: 50%;
 }
 
+.card {
+  position: relative;
+  margin: 0 0 1rem;
+  background-color: var(--surfacePrimary);
+  box-shadow: 0 2px 2px 0 rgb(0 0 0 / 14%), 0 1px 5px 0 rgb(0 0 0 / 12%), 0 3px 1px -2px rgb(0 0 0 / 20%);
+  border-radius: 1em;
+}
+
 .dashboard .row .column .card {
   flex-grow: 1;
 }
 
-@media(max-width: 1200px) {
+@media(width <= 1200px) {
   .dashboard .row .column {
     width: 100%;
   }
@@ -32,17 +40,26 @@ a {
   color: inherit
 }
 
+.collapsible > label {
+  padding: 1em 0;
+  cursor: pointer;
+  border-right: 0;
+  border-left: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
 .dashboard p label {
   margin-bottom: .2em;
   display: block;
   font-size: .8em;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.57);
+  color: rgb(0 0 0 / 57%);
 }
 
 li code,
 p code {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgb(0 0 0 / 5%);
   padding: .1em;
   border-radius: .2em;
 }
@@ -62,20 +79,26 @@ p code {
   display: flex;
   flex-grow: 1;
   justify-content: center;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 2px solid rgb(0 0 0 / 5%);
 }
 
 body.rtl #nav .wrapper {
   margin-right: 16em;
 }
 
+.help ul {
+  padding: 0;
+  margin: 1em 0;
+  list-style: none;
+}
+
 .dashboard #nav ul {
   list-style: none;
   display: flex;
-  color: rgb(84, 110, 122);
+  color: rgb(84 110 122);
   font-weight: 500;
   padding: 0;
-  margin: 0 0 -2px 0;
+  margin: 0 0 -2px;
   font-size: .8em;
   text-align: center;
   justify-content: left;
@@ -108,6 +131,22 @@ body.rtl #nav .wrapper {
   content: "";
   background: var(--primaryColor);
   opacity: 0.08;
+}
+
+.collapsible > label i {
+  transition: .2s ease transform;
+  user-select: none;
+}
+
+.collapsible > input:checked ~ label i {
+  transform: rotate(180deg)
+}
+
+.card .card-action.full .action i {
+  display: block;
+  padding: 0;
+  margin-bottom: 0.25em;
+  font-size: 4em;
 }
 
 .dashboard #nav i {
@@ -143,8 +182,17 @@ table td.small {
   width: 1em;
 }
 
+.collapsible > label * {
+  margin: 0;
+  color: rgb(0 0 0 / 57%);
+}
+
 table tr>*:first-child {
   padding-left: 1em;
+}
+
+table tr>*:last-child {
+  padding-right: 1em;
 }
 
 body.rtl table tr>* {
@@ -152,18 +200,6 @@ body.rtl table tr>* {
   padding-right: 1em;
   text-align: right;
   direction: ltr;
-}
-
-table tr>*:last-child {
-  padding-right: 1em;
-}
-
-.card {
-  position: relative;
-  margin: 0 0 1rem 0;
-  background-color: var(--surfacePrimary);
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
-  border-radius: 1em;
 }
 
 .card>*>*:first-child {
@@ -208,11 +244,11 @@ body.rtl .card-title>*:first-child {
 .card h3 {
   font-size: 1em;
   font-weight: 500;
-  margin: 1em 0 1em;
+  margin: 1em 0;
 }
 
 .card code {
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .card#download {
@@ -222,12 +258,6 @@ body.rtl .card-title>*:first-child {
 
 .help {
   max-width: 24em;
-}
-
-.help ul {
-  padding: 0;
-  margin: 1em 0;
-  list-style: none;
 }
 
 @keyframes show {
@@ -246,34 +276,15 @@ body.rtl .card-title>*:first-child {
 }
 
 .collapsible {
-  border-top: 1px solid rgba(0,0,0,0.1);
+  border-top: 1px solid rgb(0 0 0 / 10%);
 }
 
 .collapsible:last-of-type {
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-bottom: 1px solid rgb(0 0 0 / 10%);
 }
 
 .collapsible > input {
   display: none;
-}
-
-.collapsible > label {
-  padding: 1em 0;
-  cursor: pointer;
-  border-right: 0;
-  border-left: 0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.collapsible > label * {
-  margin: 0;
-  color: rgba(0,0,0,0.57);
-}
-
-.collapsible > label i {
-  transition: .2s ease transform;
-  user-select: none;
 }
 
 .collapsible .collapse {
@@ -282,14 +293,14 @@ body.rtl .card-title>*:first-child {
   transition: .2s ease all;
 }
 
+.card .collapsible .collapse {
+  padding: 0 1em;
+}
+
 .collapsible > input:checked ~ .collapse {
   padding-top: 1em;
   padding-bottom: 1em;
   max-height: 20em;
-}
-
-.collapsible > input:checked ~ label i {
-  transform: rotate(180deg)
 }
 
 .card .collapsible {
@@ -299,10 +310,6 @@ body.rtl .card-title>*:first-child {
 
 .card .collapsible > label {
   padding: 1em;
-}
-
-.card .collapsible .collapse {
-  padding: 0 1em;
 }
 
 .card .card-action.full {
@@ -315,19 +322,9 @@ body.rtl .card-title>*:first-child {
   flex: 1;
   padding: 2em;
   border-radius: 1em;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.card .card-action.full .action {
+  border: 1px solid rgb(0 0 0 / 10%);
   margin: 0 0.25em 0.50em;
-}
-
-.card .card-action.full .action i {
-  display: block;
-  padding: 0;
-  margin-bottom: 0.25em;
-  font-size: 4em;
+  text-align: center;
 }
 
 .card .card-action.full .action .title {
@@ -342,7 +339,7 @@ body.rtl .credits {
 }
 
 .overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgb(0 0 0 / 50%);
   position: fixed;
   height: 100%;
   width: 100%;

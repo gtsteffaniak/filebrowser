@@ -820,16 +820,16 @@ export default {
   width: 100%;
 }
 
-#editor-root.split-active #editor-container {
-  flex: 0 0 auto;
-  min-width: 0;
-  position: relative;
-}
-
 #editor-container {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+#editor-root.split-active #editor-container {
+  flex: 0 0 auto;
+  min-width: 0;
+  position: relative;
 }
 
 #editor-container #editor {
@@ -849,16 +849,14 @@ export default {
   font-size: 14px;
   line-height: 1.4;
   z-index: 1 !important;
+
   --ace-dark-bg: #151515;
   --ace-popup-bg: #1a1a1a;
   --ace-control-bg: #232323;
 }
 
-/* make sure the text selection is detected*/
+/* make sure the text selection is detected */
 .ace_content {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
   user-select: text;
 }
 
@@ -868,7 +866,7 @@ export default {
 }
 
 .ace_editor .ace_selection.ace_start {
-  box-shadow: 0 0 3px 0px color-mix(in srgb, var(--primaryColor) 40%, transparent) !important;
+  box-shadow: 0 0 3px 0 color-mix(in srgb, var(--primaryColor) 40%, transparent) !important;
 }
 
 .ace_editor .ace_gutter-active-line {
