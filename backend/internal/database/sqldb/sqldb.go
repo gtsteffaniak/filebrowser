@@ -39,8 +39,10 @@ func NewSQLStoreWithOptions(dbPath string, opts NewSQLStoreOpts) (*SQLStore, boo
 		return nil, existingDb, fmt.Errorf("failed to create database directory: %w", err)
 	}
 
-	// Open SQLite database with the appropriate driver
-	db, err := sql.Open(SqliteDriver, fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", dbPath))
+	// Open SQLite database with the appropriate driver.
+	// busy_timeout is set in the DSN so every pooled connection honors it.
+	dsn := fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", dbPath)
+	db, err := sql.Open(SqliteDriver, sqlitebusy.WithBusyTimeout(dsn))
 	if err != nil {
 		return nil, existingDb, fmt.Errorf("failed to open database: %w", err)
 	}
@@ -49,11 +51,6 @@ func NewSQLStoreWithOptions(dbPath string, opts NewSQLStoreOpts) (*SQLStore, boo
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(5 * time.Minute)
-
-	if err = sqlitebusy.ApplyBusyTimeout(db); err != nil {
-		db.Close()
-		return nil, existingDb, fmt.Errorf("failed to set busy_timeout: %w", err)
-	}
 
 	// Enable foreign keys
 	_, err = db.Exec("PRAGMA foreign_keys = ON")

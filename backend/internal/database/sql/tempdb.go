@@ -226,9 +226,10 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		tmpFile.Close()
 	}
 
-	// Open SQLite database with basic connection string
-	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go)
-	db, err := sql.Open(SqliteDriver, tmpPath)
+	// Open SQLite database with basic connection string.
+	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go).
+	// busy_timeout is set in the DSN so every pooled connection honors it.
+	db, err := sql.Open(SqliteDriver, sqlitebusy.WithBusyTimeout(tmpPath))
 	if err != nil {
 		os.Remove(tmpPath)
 		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
@@ -262,7 +263,6 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		sql string
 		err string
 	}{
-		{fmt.Sprintf("PRAGMA busy_timeout = %d;", sqlitebusy.DefaultBusyTimeoutMs), "failed to set busy_timeout"},
 		{fmt.Sprintf("PRAGMA journal_mode = %s;", cfg.JournalMode), "failed to set journal_mode"},
 		{fmt.Sprintf("PRAGMA cache_size = %d;", cacheSizeInPages), "failed to set cache_size"},
 		{fmt.Sprintf("PRAGMA synchronous = %s;", cfg.Synchronous), "failed to set synchronous"},
