@@ -6,7 +6,7 @@ import (
 )
 
 // currentSchemaVersion is the SQLite schema marker for this codebase.
-const currentSchemaVersion = 3
+const currentSchemaVersion = 4
 
 // Schema creates all tables for the SQLite database
 func createSchema(db *sql.DB) error {
@@ -78,7 +78,8 @@ func createSchema(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS hashed_tokens (
 		token_hash TEXT PRIMARY KEY,
 		user_id TEXT NOT NULL,
-		is_session INTEGER NOT NULL DEFAULT 0
+		is_session INTEGER NOT NULL DEFAULT 0,
+		expires_at INTEGER NOT NULL DEFAULT 0
 	);
 	CREATE INDEX IF NOT EXISTS idx_hashed_tokens_user_id ON hashed_tokens(user_id);
 
@@ -190,6 +191,10 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 			if err := addHashedTokenSessionColumn(db); err != nil {
 				return err
 			}
+		case 4:
+			if err := addHashedTokenExpiryColumn(db); err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("unknown schema version: %d", v)
 		}
@@ -216,6 +221,23 @@ func addHashedTokenSessionColumn(db *sql.DB) error {
 	}
 	if _, err := db.Exec(`ALTER TABLE hashed_tokens ADD COLUMN is_session INTEGER NOT NULL DEFAULT 0`); err != nil {
 		return fmt.Errorf("failed to add hashed_tokens.is_session: %w", err)
+	}
+	return nil
+}
+
+// addHashedTokenExpiryColumn adds the expires_at timestamp to pre-existing
+// hashed_tokens tables. Existing rows get 0 (unknown expiry) and are left
+// untouched; expiry is recorded for newly registered tokens.
+func addHashedTokenExpiryColumn(db *sql.DB) error {
+	hasColumn, err := tableHasColumn(db, "hashed_tokens", "expires_at")
+	if err != nil {
+		return err
+	}
+	if hasColumn {
+		return nil
+	}
+	if _, err := db.Exec(`ALTER TABLE hashed_tokens ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0`); err != nil {
+		return fmt.Errorf("failed to add hashed_tokens.expires_at: %w", err)
 	}
 	return nil
 }

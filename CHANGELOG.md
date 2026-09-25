@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
  - ffmpeg unresponsive lock issue (#2996)
  - fixed token migration lockout regression from v2.0.8-beta (#2999)
+ - Session/API token registrations now record the JWT expiry; expired mappings are pruned at startup, and tokens expired beyond the same 2-minute grace window used for session rotation no longer resolve a user identity on public share routes
  - Startup now fails when the configured/env auth signing key differs from the key persisted in the application database, instead of warning and minting tokens with divergent keys
  - OnlyOffice document downloads now re-validate redirect targets against the configured document-server host, closing an SSRF gap where a redirect could send the fetch to an internal address
  - OnlyOffice "closed with changes" callbacks now keep the document key until the save succeeds, so a failed save can be retried by the document server instead of being rejected as an unknown session
