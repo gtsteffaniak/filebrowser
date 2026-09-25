@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.9
 
+ **Notes**:
+ - Webdav always shows hidden files, ignores user preference. (#3004)
+
  **Bugfixes**:
  - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
  - ffmpeg unresponsive lock issue (#2996)
  - fixed token migration lockout regression from v2.0.8-beta (#2999)
  - Session/API token registrations now record the JWT expiry; expired mappings are pruned at startup, and tokens expired beyond a 24-hour grace window no longer resolve a user identity on public share routes
+ - OnlyOffice "closed with changes" callbacks now keep the document key until the save succeeds, so a failed save can be retried by the document server instead of being rejected as an unknown session
+ - External JWT (JwtAuth) requests now reuse an existing valid session cookie instead of minting and registering a new session token on every request
 
 ## v2.0.8
  **Security**:

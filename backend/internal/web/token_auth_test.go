@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -92,6 +93,128 @@ func TestApiTokenCapsAppliedFromStoredMetadata(t *testing.T) {
 	rec := cookieRequest(t, withAdmin(mockHandler), tokenString)
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("capped API token: got status %d, want %d", rec.Code, http.StatusForbidden)
+	}
+}
+
+// JwtAuth must reuse the session cookie it already issued instead of minting
+// and registering a new session hash on every request.
+func TestJwtAuthReusesSessionCookie(t *testing.T) {
+	setupTestEnv(t)
+	origAuthKey := settings.Config.Auth.Key
+	origJwtAuth := settings.Config.Auth.Methods.JwtAuth
+	origExp := settings.Config.Auth.TokenExpirationHours
+	t.Cleanup(func() {
+		settings.Config.Auth.Key = origAuthKey
+		settings.Config.Auth.Methods.JwtAuth = origJwtAuth
+		settings.Config.Auth.TokenExpirationHours = origExp
+	})
+	settings.Config.Auth.Key = "key"
+	settings.Config.Auth.TokenExpirationHours = 2
+	settings.Config.Auth.Methods.JwtAuth.Secret = "jwt-secret"
+	settings.Config.Auth.Methods.JwtAuth.Algorithm = "HS256"
+	settings.Config.Auth.Methods.JwtAuth.UserIdentifier = "sub"
+
+	externalJWT, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": "jwt-user",
+	}).SignedString([]byte("jwt-secret"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	call := func(cookieToken, authHeader, authQuery string) (*requestContext, *httptest.ResponseRecorder) {
+		t.Helper()
+		url := "/api/resources"
+		if authQuery != "" {
+			url += "?auth=" + authQuery
+		}
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		if authHeader != "" {
+			req.Header.Set("Authorization", "Bearer "+authHeader)
+		}
+		if cookieToken != "" {
+			req.AddCookie(&http.Cookie{Name: "filebrowser_quantum_jwt", Value: cookieToken})
+		}
+		rec := httptest.NewRecorder()
+		d := &requestContext{Ctx: req.Context()}
+		status, err := getJwtUser(rec, req, d, mockHandler, externalJWT)
+		if err != nil || status != http.StatusOK {
+			t.Fatalf("getJwtUser: status=%d err=%v", status, err)
+		}
+		return d, rec
+	}
+
+	// First request without a cookie mints a session token and sets the cookie.
+	d1, rec1 := call("", "", "")
+	if d1.Token == "" {
+		t.Fatal("expected a session token on first JwtAuth request")
+	}
+	if rec1.Header().Get("Set-Cookie") == "" {
+		t.Fatal("expected session cookie on first JwtAuth request")
+	}
+
+	// Follow-up requests carrying the session cookie must reuse it instead of
+	// minting and registering a new session.
+	d2, _ := call(d1.Token, "", "")
+	if d2.Token != d1.Token {
+		t.Fatal("expected JwtAuth to reuse the existing session token")
+	}
+	d3, _ := call(d1.Token, "", "")
+	if d3.Token != d1.Token {
+		t.Fatal("expected repeated JwtAuth requests to reuse the session token")
+	}
+
+	// When the external JWT also travels in the Authorization header or the
+	// auth query param, ExtractToken would prefer it over the session cookie.
+	// Reuse must still pick the cookie so those deployments don't mint a new
+	// session on every request.
+	d4, _ := call(d1.Token, externalJWT, "")
+	if d4.Token != d1.Token {
+		t.Fatal("expected JwtAuth to reuse the session cookie when the external JWT is in the Authorization header")
+	}
+	d5, _ := call(d1.Token, "", externalJWT)
+	if d5.Token != d1.Token {
+		t.Fatal("expected JwtAuth to reuse the session cookie when the external JWT is in the auth query param")
+	}
+}
+
+// A session cookie belonging to a different user must not be adopted by the
+// JwtAuth user; a fresh session is minted instead.
+func TestJwtAuthDoesNotReuseOtherUsersSessionCookie(t *testing.T) {
+	setupTestEnv(t)
+	origAuthKey := settings.Config.Auth.Key
+	origJwtAuth := settings.Config.Auth.Methods.JwtAuth
+	origExp := settings.Config.Auth.TokenExpirationHours
+	t.Cleanup(func() {
+		settings.Config.Auth.Key = origAuthKey
+		settings.Config.Auth.Methods.JwtAuth = origJwtAuth
+		settings.Config.Auth.TokenExpirationHours = origExp
+	})
+	settings.Config.Auth.Key = "key"
+	settings.Config.Auth.TokenExpirationHours = 2
+	settings.Config.Auth.Methods.JwtAuth.Secret = "jwt-secret"
+	settings.Config.Auth.Methods.JwtAuth.Algorithm = "HS256"
+	settings.Config.Auth.Methods.JwtAuth.UserIdentifier = "sub"
+
+	other := createTokenAuthUser(t, "other-user", users.Permissions{})
+	otherToken := testSessionToken(t, other, time.Hour)
+
+	externalJWT, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": "jwt-user",
+	}).SignedString([]byte("jwt-secret"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/api/resources", nil)
+	req.AddCookie(&http.Cookie{Name: "filebrowser_quantum_jwt", Value: otherToken})
+	rec := httptest.NewRecorder()
+	d := &requestContext{Ctx: req.Context()}
+	status, err := getJwtUser(rec, req, d, mockHandler, externalJWT)
+	if err != nil || status != http.StatusOK {
+		t.Fatalf("getJwtUser: status=%d err=%v", status, err)
+	}
+	if d.Token == "" || d.Token == otherToken {
+		t.Fatal("expected a new session token, not the other user's cookie token")
 	}
 }
 
