@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqlitebusy"
 	"github.com/gtsteffaniak/go-logger/logger"
 	// SQLite driver is imported in driver_cgo.go or driver_nocgo.go based on build tags
 )
@@ -48,6 +49,11 @@ func NewSQLStoreWithOptions(dbPath string, opts NewSQLStoreOpts) (*SQLStore, boo
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(5 * time.Minute)
+
+	if err = sqlitebusy.ApplyBusyTimeout(db); err != nil {
+		db.Close()
+		return nil, existingDb, fmt.Errorf("failed to set busy_timeout: %w", err)
+	}
 
 	// Enable foreign keys
 	_, err = db.Exec("PRAGMA foreign_keys = ON")

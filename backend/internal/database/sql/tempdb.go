@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqlitebusy"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 	// SQLite driver is imported in driver_cgo.go or driver_nocgo.go based on build tags
@@ -261,6 +262,7 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		sql string
 		err string
 	}{
+		{fmt.Sprintf("PRAGMA busy_timeout = %d;", sqlitebusy.DefaultBusyTimeoutMs), "failed to set busy_timeout"},
 		{fmt.Sprintf("PRAGMA journal_mode = %s;", cfg.JournalMode), "failed to set journal_mode"},
 		{fmt.Sprintf("PRAGMA cache_size = %d;", cacheSizeInPages), "failed to set cache_size"},
 		{fmt.Sprintf("PRAGMA synchronous = %s;", cfg.Synchronous), "failed to set synchronous"},
