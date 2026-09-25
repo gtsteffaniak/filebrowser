@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   sanitizeLogoutDestination,
+  postLoginRedirectForServer,
   sanitizePostLoginRedirect,
 } from './safeRedirect.js';
 
@@ -33,5 +34,19 @@ describe('sanitizeLogoutDestination', () => {
     );
     expect(dest).toBe('http://localhost/public/share/abc');
     vi.unstubAllGlobals();
+  });
+});
+
+describe('postLoginRedirectForServer', () => {
+  it('prefixes router-relative paths with baseURL', () => {
+    expect(postLoginRedirectForServer('/files/', '/app/')).toBe('/app/files/');
+  });
+
+  it('leaves paths that already include baseURL unchanged', () => {
+    expect(postLoginRedirectForServer('/app/files/', '/app/')).toBe('/app/files/');
+  });
+
+  it('returns path unchanged when baseURL is root', () => {
+    expect(postLoginRedirectForServer('/files/', '/')).toBe('/files/');
   });
 });

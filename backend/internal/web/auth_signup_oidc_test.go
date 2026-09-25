@@ -68,3 +68,18 @@ func TestParseSignupCredentialsQueryFallback(t *testing.T) {
 		t.Fatalf("got user=%q pass=%q", user, pass)
 	}
 }
+
+func TestParseSignupCredentialsJSONMixedCaseContentType(t *testing.T) {
+	body := `{"username":"carol","password":"p4ss"}`
+	req := httptest.NewRequest("POST", "/api/auth/signup", strings.NewReader(body))
+	req.Header.Set("Content-Type", "Application/JSON; charset=utf-8")
+
+	user, pass, err := parseSignupCredentials(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if user != "carol" || pass != "p4ss" {
+		t.Fatalf("got user=%q pass=%q", user, pass)
+	}
+}
+

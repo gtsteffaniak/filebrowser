@@ -14,7 +14,7 @@ func SafeRelativeRedirectPath(raw string) (string, bool) {
 	if strings.ContainsAny(raw, "\r\n\x00") {
 		return "", false
 	}
-	decoded, err := url.QueryUnescape(raw)
+	decoded, err := url.PathUnescape(raw)
 	if err != nil {
 		decoded = raw
 	}

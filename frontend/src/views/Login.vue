@@ -195,7 +195,7 @@ import { mutations, state, getters } from "@/store";
 import Prompts from "@/components/prompts/Prompts.vue";
 import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
-import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
+import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { globalVars } from "@/utils/constants";
 import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
@@ -239,7 +239,8 @@ export default {
   mounted() {
     syncDocumentTheme(this.isDarkMode);
     if (state.route.query.redirect) {
-      const redirect = sanitizePostLoginRedirect(state.route.query.redirect);
+      const safeRedirect = sanitizePostLoginRedirect(state.route.query.redirect);
+      const redirect = postLoginRedirectForServer(safeRedirect, globalVars.baseURL);
       this.loginURL += `?redirect=${encodeURIComponent(redirect)}`;
       // If password auth is disabled and OIDC is available, auto-redirect
       // Only auto-redirect when there's a valid redirect URL (user needs to go somewhere)

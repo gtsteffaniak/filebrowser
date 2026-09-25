@@ -17,6 +17,7 @@ func TestSafeRelativeRedirectPath(t *testing.T) {
 		{"https://evil.example/", "", false},
 		{"/files/\n", "", false},
 		{"%2Ffiles%2F", "/files/", true},
+		{"/files/?q=a+b", "/files/?q=a+b", true},
 	}
 	for _, tt := range tests {
 		got, ok := SafeRelativeRedirectPath(tt.raw)

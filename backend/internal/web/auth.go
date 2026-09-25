@@ -5,6 +5,7 @@ import (
 	libError "errors"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"strings"
@@ -334,8 +335,8 @@ type signupCredentials struct {
 }
 
 func parseSignupCredentials(r *http.Request) (username, password string, err error) {
-	contentType := r.Header.Get("Content-Type")
-	if strings.HasPrefix(contentType, "application/json") {
+	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err == nil && mediaType == "application/json" {
 		var body signupCredentials
 		dec := json.NewDecoder(io.LimitReader(r.Body, 8192))
 		if err := dec.Decode(&body); err != nil {

@@ -62,3 +62,23 @@ export function sanitizeLogoutDestination(destination, fallback) {
   }
   return fallback;
 }
+
+/**
+ * Absolute path for server-driven redirects (e.g. OIDC), including Http baseURL.
+ * @param {string} safePath
+ * @param {string} baseURL
+ * @returns {string}
+ */
+export function postLoginRedirectForServer(safePath, baseURL = '/') {
+  const base = baseURL || '/';
+  if (base === '/') {
+    return safePath;
+  }
+  const baseNoTrail = base.endsWith('/') ? base.slice(0, -1) : base;
+  if (safePath === baseNoTrail || safePath.startsWith(`${baseNoTrail}/`)) {
+    return safePath;
+  }
+  const suffix = safePath.startsWith('/') ? safePath.slice(1) : safePath;
+  return base.endsWith('/') ? `${base}${suffix}` : `${base}/${suffix}`;
+}
+
