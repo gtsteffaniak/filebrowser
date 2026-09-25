@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqlitebusy"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 	// SQLite driver is imported in driver_cgo.go or driver_nocgo.go based on build tags
@@ -225,9 +226,10 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		tmpFile.Close()
 	}
 
-	// Open SQLite database with basic connection string
-	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go)
-	db, err := sql.Open(SqliteDriver, tmpPath)
+	// Open SQLite database with basic connection string.
+	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go).
+	// busy_timeout is set in the DSN so every pooled connection honors it.
+	db, err := sql.Open(SqliteDriver, sqlitebusy.WithBusyTimeout(tmpPath))
 	if err != nil {
 		os.Remove(tmpPath)
 		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
