@@ -18,11 +18,15 @@
 
   .list .listing-item .text .name,
   .list .listing-item .text .modified,
+  .list .listing-item .text .created,
+  .list .listing-item .text .kind,
   .list .listing-item .text .size,
   .list .listing-item .text .duration {
     width: 100% !important;
   }
 
+  .compact .listing-item .text .created,
+  .compact .listing-item .text .kind,
   .compact .listing-item .text .duration {
     display: none !important;
   }

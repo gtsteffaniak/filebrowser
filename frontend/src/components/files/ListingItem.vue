@@ -66,6 +66,10 @@
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
+      <p class="created">
+        <time v-if="created" :datetime="created">{{ formattedCreatedTime }}</time>
+      </p>
+      <p class="kind">{{ kindLabel }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -144,6 +148,10 @@
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
+      <p class="created">
+        <time v-if="created" :datetime="created">{{ formattedCreatedTime }}</time>
+      </p>
+      <p class="kind">{{ kindLabel }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -156,6 +164,7 @@
 import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { getKindKey } from "@/utils/mimetype";
 import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { resourcesApi } from "@/api";
@@ -192,6 +201,7 @@ export default {
     type: String,
     size: Number,
     modified: String,
+    created: String,
     index: [Number, String],
     readOnly: Boolean,
     path: String,
@@ -356,6 +366,38 @@ export default {
     },
     formattedTime() {
       return getters.getTime(this.modified);
+    },
+    formattedCreatedTime() {
+      if (!this.created) return "";
+      return getters.getTime(this.created);
+    },
+    kindLabel() {
+      switch (getKindKey(this.type)) {
+        case "directory":
+          return this.$t("general.folder");
+        case "archive":
+          return this.$t("fileTypes.archive");
+        case "audio":
+          return this.$t("fileTypes.audio");
+        case "document":
+          return this.$t("fileTypes.document");
+        case "ebook":
+          return this.$t("fileTypes.ebook");
+        case "font":
+          return this.$t("fileTypes.font");
+        case "image":
+          return this.$t("fileTypes.image");
+        case "text":
+          return this.$t("fileTypes.text");
+        case "video":
+          return this.$t("fileTypes.video");
+        case "3d-model":
+          return this.$t("fileTypes.model3d");
+        case "invalid_link":
+          return this.$t("fileTypes.brokenLink");
+        default:
+          return this.$t("fileTypes.other");
+      }
     },
     formattedDuration() {
       return formatDuration(this.metadata?.duration);

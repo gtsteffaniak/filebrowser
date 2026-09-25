@@ -7,13 +7,14 @@ import (
 )
 
 type ItemInfo struct {
-	Name       string    `json:"name"`               // name of the file
-	Size       int64     `json:"size"`               // length in bytes for regular files
-	ModTime    time.Time `json:"modified"`           // modification time
-	Type       string    `json:"type"`               // type of the file, either "directory" or a file mimetype
-	Hidden     bool      `json:"hidden"`             // whether the file is hidden
-	HasPreview bool      `json:"hasPreview"`         // whether the file has a thumbnail preview
-	IsShared   bool      `json:"isShared,omitempty"` // whether the file or folder is shared
+	Name       string     `json:"name"`               // name of the file
+	Size       int64      `json:"size"`               // length in bytes for regular files
+	Created    *time.Time `json:"created,omitempty"`  // filesystem birth time, nil when unavailable
+	ModTime    time.Time  `json:"modified"`           // modification time
+	Type       string     `json:"type"`               // type of the file, either "directory" or a file mimetype
+	Hidden     bool       `json:"hidden"`             // whether the file is hidden
+	HasPreview bool       `json:"hasPreview"`         // whether the file has a thumbnail preview
+	IsShared   bool       `json:"isShared,omitempty"` // whether the file or folder is shared
 }
 
 // ExtendedItemInfo extends ItemInfo with optional metadata that's only populated on-demand

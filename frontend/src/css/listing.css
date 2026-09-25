@@ -63,6 +63,8 @@ body.rtl .listing-items {
 
 .listing-item .size,
 .listing-item .modified,
+.listing-item .created,
+.listing-item .kind,
 .listing-item .duration {
   font-size: 0.9em;
 }
@@ -222,6 +224,8 @@ body.rtl .listing-items {
 }
 .listing-items.gallery .listing-item .size,
 .listing-items.gallery .listing-item .modified,
+.listing-items.gallery .listing-item .created,
+.listing-items.gallery .listing-item .kind,
 .listing-items.gallery .listing-item .duration {
   display: none !important;
 }
@@ -265,6 +269,8 @@ body.rtl .listing-items {
 
 .listing-items.icons .listing-item .size,
 .listing-items.icons .listing-item .modified,
+.listing-items.icons .listing-item .created,
+.listing-items.icons .listing-item .kind,
 .listing-items.icons .listing-item .duration {
   display: none !important;
 }
@@ -430,6 +436,28 @@ body.rtl .listing-items {
   text-align: right;
   padding-right: 1em;
   overflow: visible;
+  white-space: nowrap;
+}
+
+.listing-items.list .listing-item .created,
+.listing-items.compact .listing-item .created {
+  width: 18%;
+  min-width: 100px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 1em;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.listing-items.list .listing-item .kind,
+.listing-items.compact .listing-item .kind {
+  width: 10%;
+  min-width: 90px;
+  flex-shrink: 0;
+  padding-right: 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 

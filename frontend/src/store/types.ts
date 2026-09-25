@@ -7,6 +7,7 @@ export interface FileListItem {
   type?: string;
   source?: string;
   modified?: string;
+  created?: string;
   hasPreview?: boolean;
   viewToken?: string;
   isShared?: boolean;
@@ -32,6 +33,7 @@ export interface ReqObject {
   source?: string;
   content?: string;
   modified?: string;
+  created?: string;
   hasPreview?: boolean;
   subtitles?: unknown[];
   viewToken?: string;
