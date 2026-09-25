@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
  - ffmpeg unresponsive lock issue (#2996)
  - fixed token migration lockout regression from v2.0.8-beta (#2999)
  - OnlyOffice document downloads now re-validate redirect targets against the configured document-server host, closing an SSRF gap where a redirect could send the fetch to an internal address
+ - OnlyOffice "closed with changes" callbacks now keep the document key until the save succeeds, so a failed save can be retried by the document server instead of being rejected as an unknown session
  - External JWT (JwtAuth) requests now reuse an existing valid session cookie instead of minting and registering a new session token on every request
 
 ## v2.0.8
