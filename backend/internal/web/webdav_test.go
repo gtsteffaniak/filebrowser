@@ -875,6 +875,120 @@ func TestWebDAV_CopyPreservesModTime(t *testing.T) {
 }
 
 
+// TestWebDAV_ListingsIncludeHidden verifies that dotfiles/dotdirs are listed
+// over WebDAV even when the user's showHidden UI preference is false, and that
+// hidden paths are writable (needed for two-way sync clients like rclone).
+func TestWebDAV_ListingsIncludeHidden(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+
+	user := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{
+			Username:   "hiddentest",
+			ShowHidden: false, // WebDAV should ignore this UI preference
+		},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
+		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
+	}
+	applyBackendSourcePerms(user, user.BackendSourcePermissions)
+
+	// Hidden directory creation must succeed when create permissions are granted
+	t.Run("MKCOL creates dot directory", func(t *testing.T) {
+		dotPath := filepath.Join(source1Path, ".dotdir")
+		req := httptest.NewRequest("MKCOL", "/dav/source1/.dotdir", nil)
+		req.SetPathValue("source", "source1")
+		req.SetPathValue("path", "/.dotdir")
+
+		w := httptest.NewRecorder()
+		if _, err := webDAVHandler(w, req, &requestContext{User: user}); err != nil {
+			t.Fatalf("webDAVHandler: %v", err)
+		}
+		if w.Code != http.StatusCreated {
+			t.Fatalf("expected 201, got %d", w.Code)
+		}
+		if _, err := os.Stat(dotPath); err != nil {
+			t.Fatalf("dot directory not created: %v", err)
+		}
+	})
+
+	// Create real hidden items in the source to be listed. These must exist on
+	// disk so the webdav library can stat/open them when building the response.
+	if err := os.WriteFile(filepath.Join(source1Path, ".dotfile"), []byte("hidden"), 0644); err != nil {
+		t.Fatalf("create dot file: %v", err)
+	}
+	if err := os.Mkdir(filepath.Join(source1Path, ".hiddendir"), 0755); err != nil {
+		t.Fatalf("create dot dir: %v", err)
+	}
+
+	// Capture the mock set up by setupWebDAVTestEnv and override to assert ShowHidden,
+	// returning a root listing that mirrors the real hidden items we just created.
+	prev := files.FileInfoFasterFunc
+	var gotShowHidden bool
+	files.FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		gotShowHidden = opts.ShowHidden
+		base := iteminfo.ItemInfo{Name: filepath.Base(opts.Path), Type: "directory"}
+		if base.Name == "/" || base.Name == "." {
+			base.Name = ""
+		}
+		if opts.Expand && (opts.Path == "/" || opts.Path == "") {
+			return &iteminfo.ExtendedFileInfo{
+				FileInfo: iteminfo.FileInfo{
+					ItemInfo: base,
+					Files: []iteminfo.ExtendedItemInfo{
+						{ItemInfo: iteminfo.ItemInfo{Name: ".dotfile", Size: 6, Type: "text/plain"}},
+					},
+					Folders: []iteminfo.ItemInfo{
+						{Name: ".dotdir", Type: "directory"},
+						{Name: ".hiddendir", Type: "directory"},
+						{Name: "public", Type: "directory"},
+					},
+				},
+			}, nil
+		}
+		return &iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{
+				ItemInfo: base,
+			},
+		}, nil
+	}
+	t.Cleanup(func() { files.FileInfoFasterFunc = prev })
+
+	// PROPFIND should list hidden entries despite user.ShowHidden=false
+	t.Run("PROPFIND lists dot entries", func(t *testing.T) {
+		req := httptest.NewRequest("PROPFIND", "/dav/source1/", nil)
+		req.Header.Set("Depth", "1")
+		req.SetPathValue("source", "source1")
+		req.SetPathValue("path", "/")
+
+		w := httptest.NewRecorder()
+		if _, err := webDAVHandler(w, req, &requestContext{User: user}); err != nil {
+			t.Fatalf("webDAVHandler: %v", err)
+		}
+		if w.Code != http.StatusMultiStatus {
+			t.Fatalf("expected 207, got %d", w.Code)
+		}
+		body := w.Body.String()
+		if !gotShowHidden {
+			t.Fatalf("expected ShowHidden=true in listing call, got false")
+		}
+		if !strings.Contains(body, ".dotfile") {
+			t.Fatalf("PROPFIND body missing .dotfile: %s", body)
+		}
+		if !strings.Contains(body, ".dotdir") {
+			t.Fatalf("PROPFIND body missing .dotdir: %s", body)
+		}
+		if !strings.Contains(body, ".hiddendir") {
+			t.Fatalf("PROPFIND body missing .hiddendir: %s", body)
+		}
+		if !strings.Contains(body, "public") {
+			t.Fatalf("PROPFIND body missing non-hidden entry: %s", body)
+		}
+	})
+}
+
 // Helper function to initialize a test index - simplified for WebDAV tests
 func initTestIndex(t *testing.T, name, path string) {
 	// For WebDAV tests, indices are already initialized in setupWebDAVTestEnv
