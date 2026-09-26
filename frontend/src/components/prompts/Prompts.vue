@@ -47,10 +47,10 @@
         <svg
           class="prompt-resize-corner"
           :class="{ 'prompt-resize-corner-left': promptRightCloseButton }"
-          width="24" 
-          height="24" 
-          viewBox="0 0 24 24" 
-          fill="none" 
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
           xmlns="http://www.w3.org/2000/svg"
           @mousedown.stop="startResize($event, prompt.id, promptRightCloseButton ? 'top-left' : 'top-right')"
           @touchstart.stop="startResize($event, prompt.id, promptRightCloseButton ? 'top-left' : 'top-right')"
@@ -272,7 +272,7 @@ export default {
     handleWindowResize() {
       const maxWidth = window.innerWidth * 0.9;
       const maxHeight = window.innerHeight * 0.9;
-      
+
       this.prompts.forEach(prompt => {
         const size = this.sizes[prompt.id];
         if (size) {
@@ -283,7 +283,7 @@ export default {
             };
           }
         }
-        
+
         const el = this.getPromptElement(prompt.id);
         if (el) {
           this.clampDragOffset(prompt.id, el);
@@ -362,7 +362,7 @@ export default {
           return this.$t("general.downloadFiles");
         case "move":
           return this.$t("general.move");
-    
+
         case "copy":
           return this.$t("general.copy");
         case "rename":
@@ -460,7 +460,7 @@ export default {
       if (promptToClose.name === "upload") {
         const hasActiveUploads = state.upload.isUploading;
         const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
-        
+
         if (hasActiveUploads && !hasWarningPrompt) {
           // Show warning prompt instead of closing
           mutations.showPrompt({
@@ -886,16 +886,14 @@ export default {
   gap: 0.25em;
 }
 
-/* Backdrop-filter support */
-@supports (backdrop-filter: none) {
-  .floating-window :deep(.prompt-taskbar) {
-    backdrop-filter: blur(12px) invert(0.2);
-    background-color: color-mix(in srgb, var(--background) 50%, transparent);
-  }
-  .floating-window :deep(.card-actions) {
-    backdrop-filter: blur(12px);
-    background-color: transparent;
-  }
+.floating-window :deep(.prompt-taskbar) {
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+}
+
+.floating-window :deep(.card-actions) {
+  backdrop-filter: blur(12px);
+  background-color: transparent;
 }
 
 .floating-window.is-dragging {

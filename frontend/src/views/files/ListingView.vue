@@ -17,7 +17,7 @@
         [listingViewMode]: true,
         dropping: isDragging,
         'rectangle-selecting': isRectangleSelecting,
-        'font-size-large': numDirs + numFiles + numPinned === 0 
+        'font-size-large': numDirs + numFiles + numPinned === 0
       }"
       :style="itemStyles"
       class="listing-items"
@@ -265,7 +265,7 @@ export default {
         category = "pinned";
         const firstPinned = this.pinnedItems[0];
         letter = firstPinned?.name?.[0]?.toUpperCase();
-      } 
+      }
       else if (this.numFiles > 0) {
         const fileSection = this.$el.querySelector(".file-items");
         const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
@@ -727,7 +727,7 @@ export default {
       }
 
       // But for gallery, normal, icons views, we need to find the closest item
-      // because the rows aren't always consistent (some have 1 item, others 5, etc) 
+      // because the rows aren't always consistent (some have 1 item, others 5, etc)
       // which caused "random jumps"
       const selectedItem = this.$el.querySelector(`.listing-item[data-index="${selectedIndex}"]`);
       if (!selectedItem) return;
@@ -1197,7 +1197,7 @@ export default {
       if (getters.currentPromptName() === "ContextMenu") {
         return;
       }
-      
+
       mutations.showPrompt({
         name: "ContextMenu",
         props: {
@@ -1503,7 +1503,7 @@ export default {
 .drop-indicator {
   position: absolute;
   inset: 0;
-  bottom: 1.75em;
+  bottom: 2.5em;
   z-index: 50;
   border: 0.2em dashed var(--primaryColor);
   background: rgb(0 0 0 / 30%);

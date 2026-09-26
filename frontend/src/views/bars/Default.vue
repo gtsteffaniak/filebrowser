@@ -8,13 +8,13 @@
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
-    <div class="search-bar-container" :class="{ disabled: isDisabled }" 
+    <div class="search-bar-container" :class="{ disabled: isDisabled }"
          v-if="showSearch && !isSearchActive" @click="openSearch" >
       <i class="material-symbols">search</i>
-      <input 
-        type="text" 
-        id="search-bar-input" 
-        :placeholder="$t('general.search', { suffix: '...' })" 
+      <input
+        type="text"
+        id="search-bar-input"
+        :placeholder="$t('general.search', { suffix: '...' })"
         readonly
       />
     </div>
@@ -330,13 +330,8 @@ header button:hover {
 }
 
 header {
-  background-color: color-mix(in srgb, var(--alt-background) 15%, transparent);
-}
-/* Header with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  header {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
 }
 
 :deep(.action.nav-toggle-button .line),

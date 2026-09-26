@@ -23,6 +23,8 @@
   --header-height: calc(4em + var(--safe-area-top));
   --borderRadius: 1em;
   --borderWidth: 2px;
+  --panel-bg: color-mix(in srgb, var(--alt-background) 40%, transparent);
+  --panel-blur: blur(12px) invert(0.1);
   --surfaceElevationShadow:
     0 1px 2px hsl(0deg 0% 0% / 7%),
     0 2px 4px hsl(0deg 0% 0% / 6%),

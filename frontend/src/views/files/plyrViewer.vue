@@ -3190,13 +3190,6 @@ export default {
   color: black;
 }
 
-/* Backdrop-filter support for plyr */
-@supports (backdrop-filter: none) {
-  .plyr {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-}
-
 /* Position/space of the buttons */
 .plyr .plyr__controls {
   display: flex;
@@ -3460,12 +3453,6 @@ export default {
 .video-player-container .plyr {
   background-color: #000;
   box-shadow: none;
-}
-
-@supports (backdrop-filter: none) {
-  .video-player-container .plyr {
-    backdrop-filter: none;
-  }
 }
 
 .video-player-container .plyr .plyr__controls {

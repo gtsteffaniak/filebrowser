@@ -1227,7 +1227,6 @@ body.rtl #search .boxes h3 {
   }
   #search.active .search-input-container {
     box-shadow: 0 0 10px rgb(0 0 0 / 10%);
-    backdrop-filter: blur(6px);
     height: 4em;
     background: var(--surfacePrimary)
   }

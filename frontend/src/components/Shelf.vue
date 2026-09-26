@@ -214,6 +214,7 @@ export default {
   height: auto;
   min-height: 0;
   pointer-events: auto;
+  backdrop-filter: blur(8px);
 }
 
 .shelf-slide-enter-active,
@@ -231,13 +232,6 @@ export default {
 .shelf-slide-leave-from {
   transform: translateY(0);
   opacity: 1;
-}
-
-/* Backdrop-filter support */
-@supports (backdrop-filter: none) {
-  #shelf {
-    backdrop-filter: blur(12px) invert(0.01);
-  }
 }
 
 </style>

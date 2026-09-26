@@ -204,20 +204,11 @@ export default {
   transition: left 0.4s ease, width 0.4s ease;
   top: 4em;
   padding-bottom: 4em;
-  background-color: color-mix(in srgb, var(--alt-background) 20%, transparent);
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
   will-change: left;
   backface-visibility: hidden;
-}
-
-/* sidebar with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  #sidebar {
-    backdrop-filter: blur(8px) invert(0.1);
-    isolation: isolate;
-  }
-  #sidebar:not(.active) {
-    backdrop-filter: blur(0) invert(0);
-  }
+  isolation: isolate;
 }
 
 #sidebar.behind-overlay {

@@ -239,7 +239,8 @@ export default {
 
 <style scoped>
 #status-bar {
-  background-color: color-mix(in srgb, var(--alt-background) 15%, transparent);
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
   height: 2.5em;
   display: flex;
   align-items: center;
@@ -307,13 +308,6 @@ export default {
 input[type="range"] {
   accent-color: var(--primaryColor);
   width: 8em;
-}
-
-/* Backdrop filter support */
-@supports (backdrop-filter: none) {
-  #status-bar {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
 }
 
 /* Mobile styles */

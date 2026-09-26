@@ -376,7 +376,7 @@ export default {
     calc(100% - 1.275em) 100%,
     0% 100%,
     1.275em 50%);
-  margin-right: -0.85em;
+  margin-right: -0.90em;
   border: 1px solid rgb(0 0 0 / 10%);
 }
 
