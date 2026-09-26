@@ -736,12 +736,12 @@ export default {
 }
 
 .error-message {
-  background: #fee;
-  color: #c33;
+  background: color-mix(in srgb, var(--red), transparent 90%);
+  color: var(--icon-red);
   padding: 1rem;
   border-radius: 4px;
   margin-bottom: 1rem;
-  border: 1px solid #fcc;
+  border: 1px solid color-mix(in srgb, var(--red), transparent 60%);
 }
 
 .stats {
@@ -768,7 +768,7 @@ export default {
 .treemap-overlay {
   position: absolute;
   inset: 0;
-  background: rgb(0 0 0 / 50%);
+  background: var(--overlay);
   z-index: 50;
   cursor: pointer;
 }
@@ -943,35 +943,35 @@ export default {
 
 /* Type colors - solid colors for utilitarian look */
 .type-video {
-  background: #667eea;
+  background: var(--blue)
 }
 
 .type-image {
-  background: #f5576c;
+  background: var(--icon-coral);
 }
 
 .type-audio {
-  background: #4facfe;
+  background: var(--icon-plum)
 }
 
 .type-archive {
-  background: #ffa726;
+  background: var(--icon-tan)
 }
 
 .type-document {
-  background: #26a69a;
+  background: indigo;
 }
 
 .type-binary {
-  background: #676767;
+  background: var(--divider);
 }
 
 .type-directory {
-  background: #9575cd;
+  background: var(--primaryColor)
 }
 
 .type-other {
-  background: #78909c;
+  background: var(--light-gray);
 }
 
 .legend {

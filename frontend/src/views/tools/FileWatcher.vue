@@ -203,7 +203,7 @@ export default {
         this.selectedInterval = validated;
         return; // Don't proceed with update, let the watcher fire again with corrected value
       }
-      
+
       // If watching and interval changed, restart watching
       if (this.watching) {
         this.stopWatch();
@@ -236,10 +236,10 @@ export default {
     document.title = `${globalVars.name} - ${this.$t('tools.title')} - ${this.$t('tools.fileWatcher.name')}`;
     // Initialize from URL query parameters
     this.initializeFromQuery();
-    
+
     // Validate and correct interval based on permissions
     this.selectedInterval = this.validateInterval(this.selectedInterval);
-    
+
     // Set default source if not provided
     if (!this.selectedSource) {
       if (state.sources.current) {
@@ -248,7 +248,7 @@ export default {
         this.selectedSource = Object.keys(state.sources.info)[0];
       }
     }
-    
+
     // Mark initialization as complete
     this.isInitializing = false;
 
@@ -422,14 +422,14 @@ export default {
         (event) => {
           try {
             const parsed = JSON.parse(event.data);
-            
+
             // Check if the data is wrapped in eventType/message format (from events system)
             let data = parsed;
             if (parsed.eventType === 'fileWatch' && parsed.message) {
               // The message is a JSON string that needs to be parsed
               data = typeof parsed.message === 'string' ? JSON.parse(parsed.message) : parsed.message;
             }
-            
+
             // Handle connection status messages
             if (data.status) {
               if (data.status === 'shutdown') {
@@ -683,8 +683,8 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 0.75rem 1rem;
-  background: var(--surfaceSecondary, rgb(0 0 0 / 5%));
-  border-bottom: 1px solid var(--borderPrimary, rgb(0 0 0 / 10%));
+  background: var(--surfaceSecondary);
+  border-bottom: 1px solid var(--divider);
   margin-bottom: 0;
   font-size: 0.9rem;
   border-bottom-left-radius: 0;
@@ -767,26 +767,26 @@ export default {
 }
 
 .header-value.latency-good {
-  color: #4caf50; /* Green */
+  color: var(--icon-green);
 }
 
 .header-value.latency-ok {
-  color: #ff9800; /* Yellow/Orange */
+  color: var(--icon-deep-orange);
 }
 
 .header-value.latency-slow {
-  color: #f44336; /* Red */
+  color: var(--icon-red);
 }
 
 .header-value.latency-inactive {
-  color: var(--textSecondary); /* Gray */
+  color: var(--textSecondary);
 }
 
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #4caf50;
+  background: var(--icon-green);
   animation: pulse 2s infinite;
 }
 
@@ -807,16 +807,8 @@ export default {
   overflow: auto;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  /* Dark mode (default) */
-  background: #1e1e1e;
-  color: #d4d4d4;
-}
-
-.terminal-output:not(.dark-mode) {
-  /* Light mode */
-  background: #fff;
-  color: #1e1e1e;
-  border: 1px solid var(--borderPrimary, rgb(0 0 0 / 10%));
+  background: var(--iconBackground);
+  color: var(--textPrimary);
 }
 
 .terminal-line {

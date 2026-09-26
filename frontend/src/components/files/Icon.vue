@@ -601,17 +601,13 @@ export default {
   color: lightskyblue;
 }
 
-.skyblue-icons {
-  color: rgb(42 170 242);
-}
-
 /* purple variations */
 .purple-icons {
   color: var(--icon-violet);
 }
 
 .plum-icons {
-  color: plum;
+  color: var(--icon-plum);
 }
 
 .yellow-icons {
@@ -635,20 +631,16 @@ export default {
 }
 
 .coral-icons {
-  color: lightcoral;
+  color: var(--icon-coral);
 }
 
 .tan-icons {
-  color: tan;
+  color: var(--icon-tan);
 }
 
 /* green variations */
 .green-icons {
   color: var(--icon-green)
-}
-
-.light-green-icons {
-  color: rgb(48 207 117);
 }
 
 /* white variations */
@@ -657,11 +649,11 @@ export default {
 }
 
 .gray-icons {
-  color: gray;
+  color: var(--divider);
 }
 
 .lightgray-icons {
-  color: rgb(176 176 176);
+  color: var(--light-gray)
 }
 
 #listingView.gallery .listing-item i.white-icons,

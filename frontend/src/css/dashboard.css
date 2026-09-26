@@ -129,7 +129,7 @@ body.rtl .credits {
 }
 
 .overlay {
-  background-color: rgb(0 0 0 / 50%);
+  background-color: var(--overlay);
   position: fixed;
   height: 100%;
   width: 100%;

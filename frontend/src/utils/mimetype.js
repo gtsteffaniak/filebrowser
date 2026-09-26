@@ -96,7 +96,7 @@ const TYPE_TABLE = [
     mimeTypes: ["application/vnd.google-apps.video"],
     prefix: "video/",
     extensions: [".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v"],
-    classes: "skyblue-icons material-symbols-outlined",
+    classes: "blue-icons material-symbols-outlined",
     materialSymbol: "movie",
     simpleType: "video",
   },
@@ -185,7 +185,7 @@ const TYPE_TABLE = [
   {
     mimeTypes: ["text/vue"],
     extensions: [".vue"],
-    classes: "light-green-icons material-symbols-outlined",
+    classes: "green-icons material-symbols-outlined",
     materialSymbol: "code",
     simpleType: "text",
   },
@@ -227,7 +227,7 @@ const TYPE_TABLE = [
   {
     mimeTypes: ["text/tab-separated-values"],
     extensions: [".tsv"],
-    classes: "light-green-icons material-symbols-outlined",
+    classes: "green-icons material-symbols-outlined",
     materialSymbol: "tsv",
     simpleType: "text",
   },
@@ -242,7 +242,7 @@ const TYPE_TABLE = [
     // bash, sh
     mimeTypes: ["text/x-scriptsh", "text/x-shellscript"],
     extensions: [".sh", ".bash"],
-    classes: "light-green-icons material-symbols-outlined",
+    classes: "green-icons material-symbols-outlined",
     materialSymbol: "terminal_2",
     simpleType: "text",
   },
@@ -405,7 +405,7 @@ const TYPE_TABLE = [
     // Android: APK
     mimeTypes: ["application/vnd.android.package-archive"],
     extensions: [".apk"],
-    classes: "light-green-icons material-symbols-outlined",
+    classes: "green-icons material-symbols-outlined",
     materialSymbol: "android",
     simpleType: "archive",
   },
@@ -557,7 +557,7 @@ const TYPE_TABLE = [
     // torrents: torrent
     mimeTypes: ["application/x-bittorrent"],
     extensions: [".torrent"],
-    classes: "light-green-icons material-symbols-outlined",
+    classes: "green-icons material-symbols-outlined",
     materialSymbol: "format_underlined",
     simpleType: "blob",
   },

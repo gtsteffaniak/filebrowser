@@ -61,17 +61,13 @@ export default {
 }
 
 .delete-button {
-  background: #f5576c;
+  background: var(--icon-red);
   color: white;
 }
 
 .delete-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.delete-button:hover:not(:disabled) {
-  background: #e0455a;
 }
 
 .spin {
