@@ -199,7 +199,7 @@ const TYPE_TABLE = [
   {
     mimeTypes: ["text/markdown", "text/x-markdown", "text/x-rmarkdown", "text/x-quarto"],
     extensions: [".md", ".markdown", ".rmd", ".qmd"],
-    classes: "skyblue-icons material-symbols-outlined",
+    classes: "blue-icons material-symbols-outlined",
     materialSymbol: "markdown",
     simpleType: "text",
   },
