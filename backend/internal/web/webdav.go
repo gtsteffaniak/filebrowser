@@ -86,12 +86,14 @@ func (ffs *filteredFileSystem) getFileInfo(requestPath string, expand bool) (*it
 	}
 
 	// Call FileInfoFaster with clean requestPath (without scope or cache suffix)
-	// FileInfoFaster applies user scope internally AND enforces access control
+	// FileInfoFaster applies user scope internally AND enforces access control.
+	// WebDAV is a sync/read surface, so listings must include hidden files
+	// regardless of the user's "show hidden" UI preference.
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Path:              requestPath,
 		Source:            ffs.source,
 		Expand:            expand,
-		ShowHidden:        ffs.user.ShowHidden,
+		ShowHidden:        true,
 		HideFileExt:       ffs.user.HideFileExt,
 		SkipExtendedAttrs: true,
 		FollowSymlinks:    true,
@@ -142,7 +144,7 @@ func (ffs *filteredFileSystem) checkAccess(requestPath string) error {
 		FollowSymlinks: false,
 		Path:           requestPath,
 		Source:         ffs.source,
-		ShowHidden:     ffs.user.ShowHidden,
+		ShowHidden:     true,
 	}, ffs.user)
 	if err != nil {
 		logger.Debugf("checkAccess: CheckPermissions denied for %s: %v", requestPath, err)
@@ -182,7 +184,7 @@ func (ffs *filteredFileSystem) checkAccess(requestPath string) error {
 		info, getErr := idx.GetFileInfo(indexing.FileInfoRequest{
 			IndexPath:         indexPath,
 			FollowSymlinks:    false,
-			ShowHidden:        ffs.user.ShowHidden,
+			ShowHidden:        true,
 			Expand:            false,
 			SkipExtendedAttrs: true,
 		})
@@ -460,7 +462,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		FollowSymlinks: false,
 		Path:           requestPath,
 		Source:         source,
-		ShowHidden:     d.User.ShowHidden,
+		ShowHidden:     true,
 		HideFileExt:    d.User.HideFileExt,
 	}, d.User)
 	if err != nil {

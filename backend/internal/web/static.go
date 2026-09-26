@@ -54,7 +54,6 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("X-Accel-Expires", "0")
 	w.Header().Set("Transfer-Encoding", "identity")
-	// Execute the template with the provided data
 	return templates.ExecuteTemplate(w, name, data)
 }
 

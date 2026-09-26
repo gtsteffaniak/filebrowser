@@ -10,10 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -65,11 +66,37 @@ type GroupMap map[string]StringSet
 type HashedTokenInfo struct {
 	UserID    uint64
 	IsSession bool
+	// ExpiresAt is the token's exp claim as unix time; 0 means no expiry (e.g.
+	// non-JWT strings or rows persisted before expiry tracking).
+	ExpiresAt int64
 }
 
-// sessionTokenRetireGrace is how long a rotated session token stays usable after
-// renewal. In-flight requests still carrying the previous cookie must not 401.
-const sessionTokenRetireGrace = 2 * time.Minute
+// BearerTokenGrace is how long a bearer token may still resolve after session
+// rotation or after its JWT exp (e.g. share-ACL identity). In-flight requests
+// still carrying the previous cookie must not 401 during rotation.
+const BearerTokenGrace = 2 * time.Minute
+
+// TokenExpiryUnix extracts the exp claim of a bearer JWT without verifying the
+// signature; the value is only used for expiry bookkeeping and tokens are
+// verified on the auth path. Returns 0 for non-JWT strings or tokens without
+// an expiry claim.
+func TokenExpiryUnix(tokenString string) int64 {
+	claims := jwt.MapClaims{}
+	if _, _, err := jwt.NewParser().ParseUnverified(tokenString, claims); err != nil {
+		return 0
+	}
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return 0
+	}
+	return int64(exp)
+}
+
+// TokenExpiredPastGrace reports whether a token expiry is older than the
+// resolution grace window. expiresAt == 0 (unknown/none) never expires.
+func TokenExpiredPastGrace(expiresAt int64, now time.Time) bool {
+	return expiresAt != 0 && now.After(time.Unix(expiresAt, 0).Add(BearerTokenGrace))
+}
 
 // Storage manages access rules and group membership.
 type Storage struct {
@@ -92,7 +119,7 @@ type SQLPersister interface {
 	PersistImmediateTokenRevocation(tokenHash string) error
 	PersistTokenRetirement(tokenHash string, revokedAt int64, pruned []string) error
 	DeleteRevokedToken(tokenHash string) error
-	SaveHashedToken(tokenHash string, userID uint64, isSession bool) error
+	SaveHashedToken(tokenHash string, userID uint64, isSession bool, expiresAt int64) error
 	DeleteHashedToken(tokenHash string) error
 	DeleteHashedTokensByUserID(userID uint64) error
 }
@@ -1338,7 +1365,7 @@ func (s *Storage) RevokeToken(tokenString string) error {
 }
 
 // RetireToken schedules a rotated session token for revocation after
-// sessionTokenRetireGrace. The owner mapping is kept during the grace window so
+// BearerTokenGrace. The owner mapping is kept during the grace window so
 // in-flight requests still carrying the previous cookie stay authenticated.
 func (s *Storage) RetireToken(tokenString string) error {
 	tokenHash := utils.HashSHA256(tokenString)
@@ -1415,7 +1442,7 @@ func (rb *tokenRetireRollback) capture(s *Storage, tokenHash string, now time.Ti
 	rb.prunedRevoked = make(map[string]int64)
 	rb.prunedHashed = make(map[string]HashedTokenInfo)
 	for hash, revokedAt := range revokedAfter {
-		if revokedAt != 0 && now.Sub(time.Unix(revokedAt, 0)) < sessionTokenRetireGrace {
+		if revokedAt != 0 && now.Sub(time.Unix(revokedAt, 0)) < BearerTokenGrace {
 			continue
 		}
 		if at, ok := s.RevokedTokens[hash]; ok {
@@ -1448,7 +1475,7 @@ func (rb *tokenRetireRollback) apply(s *Storage) {
 func (s *Storage) pruneRevocationsNL(now time.Time) []string {
 	var pruned []string
 	for hash, revokedAt := range s.RevokedTokens {
-		if revokedAt == 0 || now.Sub(time.Unix(revokedAt, 0)) >= sessionTokenRetireGrace {
+		if revokedAt == 0 || now.Sub(time.Unix(revokedAt, 0)) >= BearerTokenGrace {
 			delete(s.RevokedTokens, hash)
 			delete(s.HashedTokens, hash)
 			pruned = append(pruned, hash)
@@ -1470,7 +1497,7 @@ func (s *Storage) IsTokenRevoked(tokenString string) bool {
 	if revokedAt == 0 {
 		return true
 	}
-	return time.Since(time.Unix(revokedAt, 0)) >= sessionTokenRetireGrace
+	return time.Since(time.Unix(revokedAt, 0)) >= BearerTokenGrace
 }
 
 // AddApiToken maps a named API token string hash to an owner user id.
@@ -1484,13 +1511,19 @@ func (s *Storage) AddSessionToken(tokenString string, userID uint64) error {
 }
 
 func (s *Storage) addHashedToken(tokenString string, userID uint64, isSession bool) error {
+	expiresAt := TokenExpiryUnix(tokenString)
+	// Tokens already past the expiry grace window are never registered; expired
+	// mappings are pruned at startup load instead of on each registration.
+	if TokenExpiredPastGrace(expiresAt, time.Now()) {
+		return nil
+	}
 	tokenHash := utils.HashSHA256(tokenString)
 	s.mux.Lock()
-	s.HashedTokens[tokenHash] = HashedTokenInfo{UserID: userID, IsSession: isSession}
+	s.HashedTokens[tokenHash] = HashedTokenInfo{UserID: userID, IsSession: isSession, ExpiresAt: expiresAt}
 	sqlStore := s.sqlStore
 	s.mux.Unlock()
 	if sqlStore != nil {
-		return sqlStore.SaveHashedToken(tokenHash, userID, isSession)
+		return sqlStore.SaveHashedToken(tokenHash, userID, isSession, expiresAt)
 	}
 	return nil
 }
@@ -1502,12 +1535,19 @@ func (s *Storage) GetUserIDFromToken(tokenString string) (uint64, bool) {
 }
 
 // GetHashedTokenInfo retrieves owner/type metadata for a given token string.
+// Tokens past their expiry grace window resolve as unknown.
 func (s *Storage) GetHashedTokenInfo(tokenString string) (HashedTokenInfo, bool) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 	tokenHash := utils.HashSHA256(tokenString)
 	info, exists := s.HashedTokens[tokenHash]
-	return info, exists
+	if !exists {
+		return info, false
+	}
+	if TokenExpiredPastGrace(info.ExpiresAt, time.Now()) {
+		return HashedTokenInfo{}, false
+	}
+	return info, true
 }
 
 // GetRevokedTokens returns a copy of the revocation map (hash → revocation unix time).

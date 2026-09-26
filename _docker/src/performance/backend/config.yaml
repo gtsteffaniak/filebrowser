@@ -5,6 +5,9 @@ http:
 frontend:
   <<: *frontend-main
 
+auth:
+  <<: *auth-main
+
 userDefaults:
   preview:
     image: true

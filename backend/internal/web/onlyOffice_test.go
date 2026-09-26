@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -51,6 +52,72 @@ func TestOnlyOfficeClientConfigDeniedWithoutView(t *testing.T) {
 	status, err := onlyofficeClientConfigGetHandler(httptest.NewRecorder(), req, d)
 	if status != http.StatusForbidden {
 		t.Fatalf("status = %d, want %d (err: %v)", status, http.StatusForbidden, err)
+	}
+}
+
+func TestOnlyOfficeClientConfigDeniedWhenShareDisablesOnlyOffice(t *testing.T) {
+	initStreamTestSources(t)
+
+	origOnlyOffice := settings.Config.Integrations.OnlyOffice
+	t.Cleanup(func() { settings.Config.Integrations.OnlyOffice = origOnlyOffice })
+	settings.Config.Integrations.OnlyOffice.Url = "http://onlyoffice.example"
+
+	d := &requestContext{
+		User: testUserWithView(1, "srv"),
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123"},
+			SourcePath:   "/srv",
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{EnableOnlyOffice: false},
+			},
+		},
+	}
+	req := httptest.NewRequest(http.MethodGet, "/public/api/office/config?hash=abc123&path=/doc.docx", nil)
+	status, err := onlyofficeClientConfigGetHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusForbidden {
+		t.Fatalf("status = %d, want %d (err: %v)", status, http.StatusForbidden, err)
+	}
+}
+
+func TestOnlyOfficeClientConfigAllowedWhenShareEnablesOnlyOffice(t *testing.T) {
+	initStreamTestSources(t)
+
+	origOnlyOffice := settings.Config.Integrations.OnlyOffice
+	origSourceMap := settings.Config.Server.SourceMap
+	t.Cleanup(func() {
+		settings.Config.Integrations.OnlyOffice = origOnlyOffice
+		settings.Config.Server.SourceMap = origSourceMap
+	})
+	settings.Config.Integrations.OnlyOffice.Url = "http://onlyoffice.example"
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+
+	const realPath = "/srv/docs/doc.docx"
+	utils.OnlyOfficeCache.Set(realPath, "doc-key")
+	t.Cleanup(func() { utils.OnlyOfficeCache.Delete(realPath) })
+
+	d := &requestContext{
+		User: testUserWithView(1, "srv"),
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "abc123", Path: "/docs/doc.docx"},
+			SourcePath:   "/srv",
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{EnableOnlyOffice: true},
+			},
+		},
+		FileInfo: iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{
+				ItemInfo: iteminfo.ItemInfo{Name: "doc.docx", Type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
+			},
+			RealPath: realPath,
+		},
+	}
+	req := httptest.NewRequest(http.MethodGet, "/public/api/office/config?hash=abc123&path=/doc.docx", nil)
+	rec := httptest.NewRecorder()
+	status, err := onlyofficeClientConfigGetHandler(rec, req, d)
+	if err != nil || status != http.StatusOK {
+		t.Fatalf("status = %d, want %d (err: %v)", status, http.StatusOK, err)
 	}
 }
 
@@ -274,6 +341,84 @@ func TestResolveOnlyOfficeDownloadURL(t *testing.T) {
 	})
 }
 
+func TestOnlyOfficeDownloadClientRedirects(t *testing.T) {
+	orig := settings.Config.Integrations.OnlyOffice
+	t.Cleanup(func() { settings.Config.Integrations.OnlyOffice = orig })
+
+	t.Run("rejects redirect to a different host", func(t *testing.T) {
+		target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer target.Close()
+
+		office := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, target.URL+"/doc", http.StatusFound)
+		}))
+		defer office.Close()
+
+		settings.Config.Integrations.OnlyOffice.Url = office.URL
+		settings.Config.Integrations.OnlyOffice.InternalUrl = ""
+
+		downloadURL := resolveOnlyOfficeDownloadURL(office.URL + "/cache/doc.docx")
+		if downloadURL == "" {
+			t.Fatal("expected download URL to resolve")
+		}
+		resp, err := onlyOfficeDownloadClient.Get(downloadURL)
+		if err == nil {
+			t.Fatal("expected cross-host redirect to be rejected")
+		}
+		if resp != nil {
+			resp.Body.Close()
+		}
+	})
+
+	t.Run("follows redirect on the same host", func(t *testing.T) {
+		var base string
+		mux := http.NewServeMux()
+		mux.HandleFunc("/redirect", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, base+"/final", http.StatusFound)
+		})
+		mux.HandleFunc("/final", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+		server := httptest.NewServer(mux)
+		defer server.Close()
+		base = server.URL
+
+		settings.Config.Integrations.OnlyOffice.Url = server.URL
+		settings.Config.Integrations.OnlyOffice.InternalUrl = ""
+
+		downloadURL := resolveOnlyOfficeDownloadURL(server.URL + "/redirect")
+		if downloadURL == "" {
+			t.Fatal("expected download URL to resolve")
+		}
+		resp, err := onlyOfficeDownloadClient.Get(downloadURL)
+		if err != nil {
+			t.Fatalf("same-host redirect should be followed: %v", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+		}
+	})
+
+	t.Run("rejects scheme downgrade redirect", func(t *testing.T) {
+		orig, _ := url.Parse("https://office.example.com/doc")
+		downgrade, _ := url.Parse("http://office.example.com/doc")
+		err := onlyOfficeDownloadClient.CheckRedirect(
+			&http.Request{URL: downgrade}, []*http.Request{{URL: orig}})
+		if err == nil {
+			t.Fatal("expected https→http scheme downgrade redirect to be rejected")
+		}
+
+		same, _ := url.Parse("https://office.example.com/other")
+		if err := onlyOfficeDownloadClient.CheckRedirect(
+			&http.Request{URL: same}, []*http.Request{{URL: orig}}); err != nil {
+			t.Fatalf("same-scheme same-host redirect should be allowed: %v", err)
+		}
+	})
+}
+
 func TestDeleteOfficeId(t *testing.T) {
 	const rawPath = "/docs/document.docx"
 
@@ -354,7 +499,7 @@ func TestOnlyOfficeFileBrowserBaseURL(t *testing.T) {
 		reqHost       string
 		forwardedHost string
 		reqProto      string
-		trustProxy     bool
+		trustProxy    bool
 		want          string
 	}{
 		{

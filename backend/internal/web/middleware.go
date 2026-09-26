@@ -214,6 +214,14 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	if state.IsTokenRevoked(tokenString) {
 		return nil
 	}
+
+	// An expired token may only identify a user for a bounded window past its
+	// expiry; older tokens resolve nothing even if their hash is still known.
+	if tk.RegisteredClaims.ExpiresAt == nil ||
+		time.Since(tk.RegisteredClaims.ExpiresAt.Time) >= state.BearerTokenGrace {
+		return nil
+	}
+
 	user, err := resolveBearerTokenUser(tokenString)
 	if err != nil {
 		logger.Errorf("Failed to get user from token: %v", err)
@@ -234,10 +242,12 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 func resolveBearerTokenUser(rawToken string) (*users.User, error) {
 	ownerID, isSession, ok := state.HashedTokenOwner(rawToken)
 	if !ok {
+		logger.Debugf("auth rejected: no hashed token mapping (hash=%s)", utils.HashSHA256(rawToken)[:8])
 		return nil, fmt.Errorf("token is invalid or revoked")
 	}
 	userValue, err := state.GetUserByID(ownerID)
 	if err != nil {
+		logger.Debugf("auth rejected: token owner %d not found (hash=%s)", ownerID, utils.HashSHA256(rawToken)[:8])
 		return nil, err
 	}
 	if isSession {
@@ -245,6 +255,7 @@ func resolveBearerTokenUser(rawToken string) (*users.User, error) {
 	}
 	tokenName, ok := state.TokenNameForRawToken(&userValue, rawToken)
 	if !ok {
+		logger.Debugf("auth rejected: token has no permission metadata for user %s (hash=%s)", userValue.Username, utils.HashSHA256(rawToken)[:8])
 		return nil, fmt.Errorf("token has no permission metadata")
 	}
 	applyNamedApiTokenGlobalCaps(&userValue, tokenName)
@@ -467,7 +478,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if state.IsTokenRevoked( data.Token) {
+		if state.IsTokenRevoked(data.Token) {
 			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
 		// ExpiresAt should always be set in valid tokens created by our system
@@ -525,7 +536,16 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		return http.StatusForbidden, errors.ErrUnauthorized
 	}
 
-	// Generate a FileBrowser session token for JWT users if they don't have one
+	// Generate a FileBrowser session token for JWT users if they don't have one.
+	// A valid session token already carried by the request (e.g. the session
+	// cookie set on a previous JwtAuth request) is reused so every request does
+	// not register a new session hash.
+	if data.Token == "" {
+		if existing, expiresAt := reusableSessionToken(r, user); existing != "" {
+			data.Token = existing
+			SetSessionCookie(w, r, existing, expiresAt)
+		}
+	}
 	if data.Token == "" {
 		tokenString, err := mintAndRegisterSessionToken(user)
 		if err != nil {
@@ -542,6 +562,39 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		return http.StatusOK, nil
 	}
 	return fn(w, r, data)
+}
+
+// reusableSessionToken returns an existing FileBrowser session token carried by
+// the request when it is valid, registered, unexpired, and owned by the given
+// user. The expiry time is returned so callers can refresh the session cookie.
+// The session cookie is preferred over ExtractToken because ExtractToken would
+// otherwise select the external JwtAuth bearer (Authorization header or auth
+// query param), which is not a registered FileBrowser session and can never be
+// reused.
+func reusableSessionToken(r *http.Request, user *users.User) (string, time.Time) {
+	var existing string
+	var err error
+	if cookie, cookieErr := r.Cookie("filebrowser_quantum_jwt"); cookieErr == nil && cookie.Value != "" {
+		existing = cookie.Value
+	} else {
+		existing, err = ExtractToken(r)
+	}
+	if err != nil || existing == "" {
+		return "", time.Time{}
+	}
+	var tk users.AuthToken
+	token, err := jwt.ParseWithClaims(existing, &tk, auth.JWTSigningKeyFunc())
+	if err != nil || !token.Valid || tk.RegisteredClaims.ExpiresAt == nil {
+		return "", time.Time{}
+	}
+	if state.IsTokenRevoked(existing) {
+		return "", time.Time{}
+	}
+	ownerID, isSession, ok := state.HashedTokenOwner(existing)
+	if !ok || !isSession || ownerID != user.ID {
+		return "", time.Time{}
+	}
+	return existing, tk.RegisteredClaims.ExpiresAt.Time
 }
 
 func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn handleFunc, proxyUser string) (int, error) {

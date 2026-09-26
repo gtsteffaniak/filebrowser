@@ -1,4 +1,5 @@
 import { chromium, expect } from "@playwright/test";
+import { loginPlaywrightAdmin } from "../playwright-auth";
 import { warmPerfConfig } from "./perf-config";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -75,9 +76,7 @@ async function globalSetup() {
   );
 
   await page.goto(`${baseURL}login`);
-  await page.getByPlaceholder("Username").fill("admin");
-  await page.getByPlaceholder("Password").fill("admin");
-  await page.getByRole("button", { name: "Login" }).click();
+  await loginPlaywrightAdmin(page);
   await page.waitForURL("**/files/**", { timeout: 30_000 });
 
   const cookies = await context.cookies();

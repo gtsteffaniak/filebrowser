@@ -16,6 +16,10 @@ import (
 
 var createBackup = false
 
+// addApiToken registers a raw API token's hash with access storage. It is a
+// variable so tests can inject a failing registration deterministically.
+var addApiToken = state.AddApiToken
+
 func validateUserInfo(newDB bool) {
 	// update source info for users if names/sources/paths might have changed
 	usersList, err := state.GetAllUsers()
@@ -55,14 +59,19 @@ func validateUserInfo(newDB bool) {
 		if normalizeApiTokenPermissions(user) {
 			changedFields = append(changedFields, "tokens")
 		}
+		tokenBackfillChanged, tokenBackfillFailed := updateTokenHashBackfill(user)
+		if tokenBackfillChanged && !tokenBackfillFailed {
+			changedFields = append(changedFields, "tokens", "version")
+		} else if tokenBackfillChanged {
+			changedFields = append(changedFields, "tokens")
+		}
 		if state.ApplyEnforcedSyncToUser(user) {
 			changedFields = append(changedFields, settings.UserJSONFieldsForEnforcedSync()...)
 		}
 		if state.ApplyEnforcedSourcePermissionsSyncToUser(user) {
 			changedFields = append(changedFields, "backendScopes", "backendSourcePermissions")
 		}
-		if user.Version < users.ProfileStorageVersion {
-			user.Version = users.ProfileStorageVersion
+		if bumpToNewestVersion(user, tokenBackfillFailed) {
 			changedFields = append(changedFields, "version")
 		}
 		adminUser := settings.Config.Auth.AdminUsername
@@ -78,7 +87,7 @@ func validateUserInfo(newDB bool) {
 				changedFields = append(changedFields, "permissions")
 			}
 		}
-		if user.Username == adminUser && settings.Config.Auth.AdminPassword != "" && user.LoginMethod == users.LoginMethodPassword {
+		if user.Username == adminUser && settings.ConfigTriggersAdminPasswordReset() && user.LoginMethod == users.LoginMethodPassword {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions = settings.AdminPerms()
 			user.Password = settings.Config.Auth.AdminPassword
@@ -162,7 +171,7 @@ func updateShowFirstLogin(user *users.User) bool {
 
 // func to convert legacy user with perm key to permissions
 func updatePermissions(user *users.User) bool {
-	if user.Version >= 1 {
+	if user.Version >= users.PermMigrationVersion {
 		return false
 	}
 	updateUser := true
@@ -208,7 +217,7 @@ func updatePermissions(user *users.User) bool {
 		user.Permissions.Delete = true
 		updateUser = true
 	}
-	user.Version = 2
+	user.Version = users.PermMigrationVersion
 	if updateUser {
 		createBackup = true
 	}
@@ -248,7 +257,7 @@ func updateSidebarLinks(user *users.User, scopesChanged bool) bool {
 }
 
 func updateTokens(user *users.User) bool {
-	if user.Version >= 2 {
+	if user.Version >= users.TokenMigrationVersion {
 		return false
 	}
 	if user.ApiKeys != nil {
@@ -259,7 +268,7 @@ func updateTokens(user *users.User) bool {
 			users.StoreToken(user.Tokens, token)
 		}
 	}
-	user.Version = 2
+	user.Version = users.TokenMigrationVersion
 	return true
 }
 
@@ -280,4 +289,43 @@ func normalizeApiTokenPermissions(user *users.User) bool {
 		}
 	}
 	return changed
+}
+
+// updateTokenHashBackfill promotes legacy ApiKeys into Tokens and registers a
+// hashed_tokens row for every stored raw JWT so strict server-side auth (which
+// ignores BelongsTo) accepts pre-2.0.8 tokens. Runs once per user via
+// TokenHashBackfillVersion. It reports (changed, failed): when hash
+// registration fails the version is left alone so callers skip the newest
+// bump and the backfill retries on next startup.
+func updateTokenHashBackfill(user *users.User) (bool, bool) {
+	if user == nil || user.Version >= users.TokenHashBackfillVersion {
+		return false, false
+	}
+	before := len(user.Tokens)
+	promoteLegacyApiKeysBeforeSQLite(user)
+	changed := len(user.Tokens) != before
+	hashesRegistered := true
+	for _, raw := range state.CollectStoredRawTokens(user) {
+		if err := addApiToken(raw, user.ID); err != nil {
+			logger.Errorf("could not register token hash for user %s: %v", user.Username, err)
+			hashesRegistered = false
+		}
+	}
+	if hashesRegistered {
+		user.Version = users.TokenHashBackfillVersion
+		createBackup = true
+		return true, false
+	}
+	return changed, true
+}
+
+// bumpToNewestVersion stamps the user at NewestUserVersion. It is skipped when
+// a migration failed so the failed migration retries on next startup instead
+// of being buried by the catch-all bump.
+func bumpToNewestVersion(user *users.User, migrationFailed bool) bool {
+	if migrationFailed || user == nil || user.Version >= users.NewestUserVersion {
+		return false
+	}
+	user.Version = users.NewestUserVersion
+	return true
 }

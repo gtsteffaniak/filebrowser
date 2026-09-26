@@ -1,6 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import type { Browser, Page } from "@playwright/test";
 import { expect, firefox } from "@playwright/test";
+import { loginPlaywrightAdmin } from "./playwright-auth";
 import {
   getOrCreateShareViaApi,
 } from "./test-setup";
@@ -12,9 +13,7 @@ async function globalSetup() {
   const page: Page = await context.newPage();
 
   await page.goto("http://127.0.0.1/login");
-  await page.getByPlaceholder("Username").fill("admin");
-  await page.getByPlaceholder("Password").fill("admin");
-  await page.getByRole("button", { name: "Login" }).click();
+  await loginPlaywrightAdmin(page);
   await page.waitForURL("**/files/", { timeout: 1000 });
 
   const cookies = await context.cookies();

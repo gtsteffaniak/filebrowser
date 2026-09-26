@@ -111,8 +111,15 @@ func RemoveRuleByPathKey(sourcePath, pathKey string) {
 }
 
 func AddApiToken(tokenString string, userID uint64) error {
+	if accessDb == nil {
+		return fmt.Errorf("access storage not available")
+	}
 	return accessDb.AddApiToken(tokenString, userID)
 }
+
+// BearerTokenGrace re-exports access.BearerTokenGrace for callers that should
+// not depend on the access package directly.
+const BearerTokenGrace = access.BearerTokenGrace
 
 // RegisterSessionToken maps a session bearer JWT to its owner user id.
 func RegisterSessionToken(tokenString string, userID uint64) error {

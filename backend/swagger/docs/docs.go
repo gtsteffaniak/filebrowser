@@ -7188,7 +7188,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "belongsTo": {
-                    "description": "legacy stored metadata only; identity is hashed_tokens lookup",
+                    "description": "legacy stored metadata only, never trusted for auth; identity is always the hashed_tokens lookup",
                     "type": "integer"
                 },
                 "expiresAt": {
