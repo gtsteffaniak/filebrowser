@@ -452,7 +452,7 @@ export default {
 .fab-button i.material-symbols,
 .fab-button i.material-symbols-outlined {
   font-size: var(--fab-icon-size);
-  transition: transform var(--fab-transition);
+  transition: transform var(--fab-transition), font-variation-settings 0.25s ease, color 0.25s ease;
 }
 
 .fab-button--neutral:hover:not(:disabled) i.material-symbols,
