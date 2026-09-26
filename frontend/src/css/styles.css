@@ -41,14 +41,6 @@
   display: inline-block;
 }
 
-#main .spinner .bounce1 {
-  animation-delay: -0.32s;
-}
-
-#main .spinner .bounce2 {
-  animation-delay: -0.16s;
-}
-
 .delayed {
   animation: delayed linear 100ms;
 }

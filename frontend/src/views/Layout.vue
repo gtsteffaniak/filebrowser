@@ -10,7 +10,6 @@
       'dark-mode': isDarkMode,
       moveWithSidebar: moveWithSidebar.shouldMove,
       'remove-padding-top': isOnlyOffice,
-      'main-padding': showPadding,
       scrollable: scrollable,
     }" :style="[moveWithSidebar.style, spaceForEditorStatusBar]">
       <shelf />
@@ -105,9 +104,6 @@ export default {
     },
     scrollable() {
       return getters.isScrollable();
-    },
-    showPadding() {
-      return getters.showBreadCrumbs() || getters.currentView() === "settings";
     },
     isLoggedIn() {
       return getters.isLoggedIn();

@@ -622,7 +622,6 @@ body.halloween-theme,
       0 0 30px rgb(255 255 0 / 80%),
       inset 0 0 10px rgb(0 0 0 / 30%);
     /* Removed 'eye-blink' from here, will use pseudo-elements for blink */
-    animation: 4s infinite alternate ease-in-out;
   }
 
   /* NEW: Eyelids using pseudo-elements */
@@ -638,7 +637,6 @@ body.halloween-theme,
     /* Cat-eye shape for eyelids */
     border-radius: 50% / 60% 60% 40% 40%;
     transform-origin: center center;
-    animation: 5s infinite; /* Eyelid blink animation */
   }
 
   .eye::before { /* Top eyelid */

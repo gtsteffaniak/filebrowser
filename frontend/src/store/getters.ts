@@ -34,7 +34,7 @@ export const getters = {
     if (new Date().getMonth() === 9 && new Date().getDate() === 31) {
       return "halloween";
     }
-    return "";
+    return "halloween";
   },
   getTime: timestamp => {
     if (state.user?.dateFormat) {
@@ -74,7 +74,7 @@ export const getters = {
     if (state.req.type !== "directory") {
       path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
     }
-  
+
     return getters.displayPreferenceFor(source, path);
   },
   viewModeChangeLocked: () => {
