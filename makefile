@@ -58,7 +58,7 @@ build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'"
 	@echo "✓ Backend built successfully"
 
-# New dev target with hot-reloading for frontend and backend
+# Local development: Vite HMR (frontend) + Air (backend)
 .NOTPARALLEL: dev
 dev: generate-docs generate-icons setup-gofitz-cgo
 	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
@@ -71,7 +71,7 @@ run: build-frontend generate-docs setup-gofitz-cgo
 	else \
 		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
 	fi
-	cd backend && CGO_ENABLED=1 FILEBROWSER_DEVMODE=true go run --tags=mupdf \
+	cd backend && CGO_ENABLED=1 go run --tags=mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'" . -c test_config.yaml
 
 generate-docs:
@@ -205,7 +205,7 @@ perf-dashboard:
 
 # get version from environment variable, for example
 # cd frontend && npm i @playwright/test && npx playwright install --with-deps chromium
-# make PLAYWRIGHT_TEST=settings test-playwright-ui 
+# make PLAYWRIGHT_TEST=settings test-playwright-ui
 test-playwright-ui: build-frontend
 	docker stop local-playwright-tests || true
 	docker rm local-playwright-tests || true
