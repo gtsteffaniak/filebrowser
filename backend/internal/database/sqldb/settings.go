@@ -3,8 +3,13 @@ package sqldb
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 )
+
+// ErrSettingNotFound is returned by GetSetting when the key has no persisted row.
+// Callers must treat this as absence, not as an I/O failure.
+var ErrSettingNotFound = errors.New("setting not found")
 
 // Settings SQL operations
 
@@ -16,7 +21,7 @@ func (s *SQLStore) GetSetting(key string) ([]byte, error) {
 	err := s.db.QueryRow(query, key).Scan(&value)
 	
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("setting not found: %s", key)
+		return nil, fmt.Errorf("%w: %s", ErrSettingNotFound, key)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get setting: %w", err)

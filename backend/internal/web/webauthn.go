@@ -90,7 +90,7 @@ func finishPasskeyLoginHandler(w http.ResponseWriter, r *http.Request, d *Contex
 	}
 
 	d.User = user
-	status, err := printToken(w, r, d.User)
+	status, err := printToken(w, r, d.User, "")
 	if err != nil || status != 0 {
 		return status, err
 	}

@@ -270,7 +270,6 @@ export interface StoreState {
   sessionId: string;
   isSafari: boolean;
   activeSettingsView: string;
-  isMobile: boolean;
   isSearchActive: boolean;
   showSidebar: boolean;
   displayPreferences: unknown;

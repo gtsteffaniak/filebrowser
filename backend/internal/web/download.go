@@ -250,9 +250,17 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
-	_, isDir, err := idx.GetRealPath(firstFilePath)
+	var isDir bool
+	if d.Share.Hash != "" {
+		if d.Share.Path == "" {
+			return http.StatusForbidden, fmt.Errorf("share has no path scope")
+		}
+		_, isDir, err = idx.GetRealPathScoped(d.Share.Path, firstFilePath)
+	} else {
+		_, isDir, err = idx.GetRealPath(firstFilePath)
+	}
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return realPathErrStatus(err), err
 	}
 
 	if len(fileList) == 1 && !isDir {

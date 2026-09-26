@@ -18,6 +18,65 @@ import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
 export { fetchPreviewImage } from '@/utils/previewRequests'
 
 const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
+const MOCK_DATA_SOURCE = 'mockData';
+const MOCK_DATA_DEFAULT_COUNT = 1000;
+const MOCK_DATA_MAX_COUNT = 100_000;
+
+function isMockDataSource(source) {
+  return !!(globalVars.devMode || globalVars.playwrightTest) && source === MOCK_DATA_SOURCE;
+}
+
+function parseMockDataCount(value, defaultCount) {
+  if (value === undefined || value === null || value === '') {
+    return defaultCount;
+  }
+  const n = parseInt(String(value), 10);
+  if (!Number.isFinite(n) || n < 0) {
+    return defaultCount;
+  }
+  return Math.min(n, MOCK_DATA_MAX_COUNT);
+}
+
+function getMockDataCounts() {
+  const query = state.route?.query ?? {};
+  const seedRaw = query.seed;
+  const seed =
+    seedRaw === undefined || seedRaw === null || seedRaw === ''
+      ? undefined
+      : String(seedRaw);
+  return {
+    numDirs: parseMockDataCount(query.numDirs, MOCK_DATA_DEFAULT_COUNT),
+    numFiles: parseMockDataCount(query.numFiles, MOCK_DATA_DEFAULT_COUNT),
+    seed,
+  };
+}
+
+function normalizeMockListing(raw) {
+  const data = { ...raw };
+  data.type = 'directory';
+  data.source = MOCK_DATA_SOURCE;
+  data.path = '/';
+  data.name = MOCK_DATA_SOURCE;
+  // The backend already types folder rows as 'directory'; this stays as a
+  // defensive default so a partial/older mock payload still renders as folders.
+  if (Array.isArray(data.folders)) {
+    data.folders = data.folders.map((folder) => ({
+      ...folder,
+      type: folder.type || 'directory',
+    }));
+  }
+  return data;
+}
+
+async function fetchMockDataListing(numDirs, numFiles, seed) {
+  const apiPath = getApiPath('mock-data', {
+    numDirs: String(numDirs),
+    numFiles: String(numFiles),
+    seed,
+  });
+  const res = await fetchURL(apiPath);
+  return res.json();
+}
 
 function chunkUploadApiPath(apiPath, headers) {
   if (headers["X-File-Chunk-Offset"] === undefined) {
@@ -53,6 +112,22 @@ export async function fetchFiles(source, path, content = false, metadata = false
     throw new Error('no source provided')
   }
   try {
+    if (isMockDataSource(source)) {
+      if (content || metadata) {
+        throw new Error('mockData does not support file content or metadata');
+      }
+      const normalizedPath = path === '' ? '/' : path;
+      if (normalizedPath !== '/') {
+        const err = new Error('mockData only supports the root listing');
+        err.status = 404;
+        throw err;
+      }
+      const { numDirs, numFiles, seed } = getMockDataCounts();
+      const raw = await fetchMockDataListing(numDirs, numFiles, seed);
+      const adjusted = adjustedData(normalizeMockListing(raw));
+      cacheViewTokenFromListing(adjusted);
+      return adjusted;
+    }
     const apiPath = getApiPath('resources', {
       path: path,
       source: source,
@@ -68,6 +143,24 @@ export async function fetchFiles(source, path, content = false, metadata = false
   } catch (err) {
     notify.showError(err.message || 'Error fetching data')
     throw err
+  }
+}
+
+/**
+ * Lists a directory as a Map of name -> { size, type } without showing error toasts.
+ * Returns null when the directory can't be listed (e.g. it doesn't exist yet), so
+ * callers can treat every item in it as missing.
+ */
+export async function listDirectoryEntries(source, path) {
+  try {
+    const res = await fetchURL(getApiPath('resources', { path, source }))
+    const data = adjustedData(await res.json())
+    if (data.type !== 'directory') {
+      return null
+    }
+    return new Map(data.items.map((item) => [item.name, { size: item.size, type: item.type }]))
+  } catch {
+    return null
   }
 }
 

@@ -25,3 +25,15 @@ export function isMediaRequest(req) {
   }
   return isMediaFile(req.type) || isMediaFile(req.name) || isMediaFile(req.path)
 }
+
+/** @param {string | undefined | null} typeOrName MIME type or file name/path */
+export function isPdfFile(typeOrName) {
+  if (!typeOrName || typeof typeOrName !== 'string') {
+    return false
+  }
+  const lower = typeOrName.toLowerCase()
+  if (lower === 'application/pdf') {
+    return true
+  }
+  return lower.endsWith('.pdf')
+}

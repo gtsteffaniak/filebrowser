@@ -48,7 +48,7 @@ type AuthCommon struct {
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"` // time in hours each web UI session token is valid for. Default is 2 hours.
 	Methods              LoginMethods `json:"methods"`
-	Key                  string       `json:"key"`           // secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
+	Key                  string       `json:"key"`           // secret: HMAC key for JWT tokens. If unset in config/env, one is generated and stored in the application database.
 	TotpSecret           string       `json:"totpSecret"`    // secret: secret used to encrypt TOTP secrets
 	AdminUsername        string       `json:"adminUsername"` // deprecated: use auth.methods.password.adminUsername. secret: password-auth admin username.
 	AdminPassword        string       `json:"adminPassword"` // deprecated: use auth.methods.password.adminPassword. secret: password-auth admin password.

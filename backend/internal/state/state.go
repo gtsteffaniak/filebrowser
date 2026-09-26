@@ -74,6 +74,10 @@ func initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to initialize share defaults settings: %w", err)
 	}
 
+	if err = InitAuthSigningKey(); err != nil {
+		return existingDb, fmt.Errorf("failed to initialize auth signing key: %w", err)
+	}
+
 	var userCount int
 	if countErr := sqlDb.DB().QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount); countErr != nil {
 		return existingDb, fmt.Errorf("failed to count users: %w", countErr)
@@ -114,8 +118,8 @@ func initialize(dbPath string) (bool, error) {
 	newAccessDb := &access.Storage{
 		AllRules:      make(access.SourceRuleMap),
 		Groups:        make(access.GroupMap),
-		RevokedTokens: make(map[string]struct{}),
-		HashedTokens:  make(map[string]uint64),
+		RevokedTokens: make(map[string]int64),
+		HashedTokens:  make(map[string]access.HashedTokenInfo),
 	}
 
 	allRules, err := sqlDb.GetAllAccessRules()
@@ -143,7 +147,13 @@ func initialize(dbPath string) (bool, error) {
 	if err != nil {
 		return existingDb, fmt.Errorf("failed to load hashed tokens: %w", err)
 	}
-	newAccessDb.HashedTokens = hashedTokens
+	newAccessDb.HashedTokens = make(map[string]access.HashedTokenInfo, len(hashedTokens))
+	for hash, record := range hashedTokens {
+		newAccessDb.HashedTokens[hash] = access.HashedTokenInfo{
+			UserID:    record.UserID,
+			IsSession: record.IsSession,
+		}
+	}
 	logger.Debugf("Loaded %d hashed tokens", len(hashedTokens))
 
 	newAccessDb.SetSQLStore(sqlDb)
@@ -158,6 +168,10 @@ func initialize(dbPath string) (bool, error) {
 	usersMux.Unlock()
 	sharesMux.Unlock()
 	indexMux.Unlock()
+
+	if err = BackfillHashedTokensFromUserRecords(); err != nil {
+		return existingDb, fmt.Errorf("failed to backfill hashed tokens: %w", err)
+	}
 
 	err = auth.InitializeEncryption()
 	if err != nil {

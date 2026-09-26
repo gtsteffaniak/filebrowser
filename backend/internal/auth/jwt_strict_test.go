@@ -63,9 +63,7 @@ func invalidSignatureSpelling(token string) string {
 }
 
 func parseSessionToken(tokenString string) error {
-	keyFunc := func(token *jwt.Token) (interface{}, error) {
-		return []byte(settings.Config.Auth.Key), nil
-	}
+	keyFunc := JWTSigningKeyFunc()
 	var tk users.AuthToken
 	_, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
 	return err
