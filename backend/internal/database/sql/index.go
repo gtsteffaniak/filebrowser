@@ -245,6 +245,7 @@ func (db *IndexDB) CreateIndexTable() error {
 		parent_path TEXT NOT NULL,
 		name TEXT NOT NULL,
 		size INTEGER NOT NULL,
+		created_time INTEGER NOT NULL DEFAULT 0,
 		mod_time INTEGER NOT NULL,
 		type TEXT NOT NULL,
 		is_dir BOOLEAN NOT NULL,
@@ -259,17 +260,59 @@ func (db *IndexDB) CreateIndexTable() error {
 	CREATE INDEX IF NOT EXISTS idx_last_updated ON index_items(source, last_updated);
 	`
 	_, err := db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return db.ensureCreatedTimeColumn()
+}
+
+func (db *IndexDB) ensureCreatedTimeColumn() error {
+	rows, err := db.Query(`PRAGMA table_info(index_items)`)
+	if err != nil {
+		return err
+	}
+	found := false
+	for rows.Next() {
+		var cid, notNull, pk int
+		var name, columnType string
+		var defaultValue interface{}
+		scanErr := rows.Scan(&cid, &name, &columnType, &notNull, &defaultValue, &pk)
+		if scanErr != nil {
+			rows.Close()
+			return scanErr
+		}
+		if name == "created_time" {
+			found = true
+		}
+	}
+	if rowsErr := rows.Err(); rowsErr != nil {
+		rows.Close()
+		return rowsErr
+	}
+	rows.Close()
+	if found {
+		return nil
+	}
+	_, err = db.Exec(`ALTER TABLE index_items ADD COLUMN created_time INTEGER NOT NULL DEFAULT 0`)
 	return err
+}
+
+func createdUnix(created *time.Time) int64 {
+	if created == nil || created.IsZero() {
+		return 0
+	}
+	return created.Unix()
 }
 
 func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) error {
 	query := `
-	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO index_items (source, path, parent_path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(source, path) DO UPDATE SET
 		parent_path = excluded.parent_path,
 		name = excluded.name,
 		size = excluded.size,
+		created_time = excluded.created_time,
 		mod_time = excluded.mod_time,
 		type = excluded.type,
 		is_dir = excluded.is_dir,
@@ -284,6 +327,7 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 		parentPath,
 		info.Name,
 		info.Size,
+		createdUnix(info.Created),
 		info.ModTime.Unix(),
 		info.Type,
 		info.Type == "directory",
@@ -365,12 +409,13 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 	}()
 
 	stmt, err := tx.Prepare(`
-	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO index_items (source, path, parent_path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(source, path) DO UPDATE SET
 		parent_path = excluded.parent_path,
 		name = excluded.name,
 		size = excluded.size,
+		created_time = excluded.created_time,
 		mod_time = excluded.mod_time,
 		type = excluded.type,
 		is_dir = excluded.is_dir,
@@ -396,6 +441,7 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 			parentPath,
 			info.Name,
 			info.Size,
+			createdUnix(info.Created),
 			info.ModTime.Unix(),
 			info.Type,
 			info.Type == "directory",
@@ -428,7 +474,7 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 // Busy/locked errors are returned so callers can fall back to the filesystem.
 func (db *IndexDB) GetItem(source, path string) (*iteminfo.FileInfo, error) {
 	query := `
-	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+	SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 	FROM index_items WHERE source = ? AND path = ?
 	`
 	row := db.QueryRow(query, source, path)
@@ -456,7 +502,7 @@ func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*i
 	}
 
 	query := fmt.Sprintf(`
-	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+	SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 	FROM index_items WHERE source = ? AND path IN (%s)
 	`, strings.Join(placeholders, ","))
 
@@ -481,7 +527,7 @@ func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*i
 // GetDirectoryChildren retrieves all children of a directory for a specific source.
 func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.FileInfo, error) {
 	query := `
-	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+	SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 	FROM index_items WHERE source = ? AND parent_path = ?
 	ORDER BY is_dir DESC, name ASC
 	`
@@ -927,7 +973,7 @@ func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPr
 	if pathPrefix != "" {
 		nextPrefix := getNextPathPrefix(pathPrefix)
 		query = fmt.Sprintf(`
-		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
 		WHERE source = ? AND size IN (%s) AND is_dir = 0 AND path >= ? AND path < ?
 		ORDER BY size, type, name
@@ -935,7 +981,7 @@ func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPr
 		args = append(args, pathPrefix, nextPrefix)
 	} else {
 		query = fmt.Sprintf(`
-		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
 		WHERE source = ? AND size IN (%s) AND is_dir = 0
 		ORDER BY size, type, name
@@ -1095,7 +1141,7 @@ func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType str
 	if pathPrefix != "" {
 		nextPrefix := getNextPathPrefix(pathPrefix)
 		query = `
-		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
 		WHERE source = ? AND size = ? AND type = ? AND is_dir = 0 AND path >= ? AND path < ?
 		ORDER BY name
@@ -1103,7 +1149,7 @@ func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType str
 		args = []interface{}{source, size, fileType, pathPrefix, nextPrefix}
 	} else {
 		query = `
-		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
 		WHERE source = ? AND size = ? AND type = ? AND is_dir = 0
 		ORDER BY name
@@ -1137,7 +1183,7 @@ func (db *IndexDB) GetFilesBySize(source string, size int64, pathPrefix string) 
 	if pathPrefix != "" {
 		nextPrefix := getNextPathPrefix(pathPrefix)
 		query = `
-		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
 		WHERE source = ? AND size = ? AND is_dir = 0 AND path >= ? AND path < ?
 		ORDER BY name
@@ -1145,7 +1191,7 @@ func (db *IndexDB) GetFilesBySize(source string, size int64, pathPrefix string) 
 		args = []interface{}{source, size, pathPrefix, nextPrefix}
 	} else {
 		query = `
-		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		SELECT path, name, size, created_time, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
 		WHERE source = ? AND size = ? AND is_dir = 0
 		ORDER BY name
@@ -1260,6 +1306,7 @@ func getParentPath(path string) string {
 
 func scanItem(scanner interface{ Scan(...interface{}) error }) (*iteminfo.FileInfo, error) {
 	var info iteminfo.FileInfo
+	var createdTime int64
 	var modTime int64
 	var isDir bool
 
@@ -1267,6 +1314,7 @@ func scanItem(scanner interface{ Scan(...interface{}) error }) (*iteminfo.FileIn
 		&info.Path,
 		&info.Name,
 		&info.Size,
+		&createdTime,
 		&modTime,
 		&info.Type,
 		&isDir,
@@ -1275,6 +1323,10 @@ func scanItem(scanner interface{ Scan(...interface{}) error }) (*iteminfo.FileIn
 	)
 	if err != nil {
 		return nil, err
+	}
+	if createdTime > 0 {
+		t := time.Unix(createdTime, 0)
+		info.Created = &t
 	}
 	info.ModTime = time.Unix(modTime, 0)
 	info.IsDir = isDir

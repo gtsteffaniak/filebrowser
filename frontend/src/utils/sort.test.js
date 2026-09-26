@@ -155,4 +155,25 @@ describe('testSort', () => {
     expect(sortedItems(input, "name", true)).toEqual(expected);
   });
 
+  it('sort items by date added, missing dates sort as oldest', () => {
+    const input = [
+      { name: "b", created: "2026-09-24T08:59:00Z" },
+      { name: "none" },
+      { name: "a", created: "2026-09-22T22:09:56Z" },
+    ];
+    expect(sortedItems([...input], "created", true).map((i) => i.name)).toEqual(["none", "a", "b"]);
+    expect(sortedItems([...input], "created", false).map((i) => i.name)).toEqual(["b", "a", "none"]);
+  });
+
+  it('sort items by kind, then name', () => {
+    const input = [
+      { name: "b.mp4", type: "video/mp4" },
+      { name: "a.zip", type: "application/zip" },
+      { name: "a.mp4", type: "video/mp4" },
+      { name: "song.mp3", type: "audio/mpeg" },
+    ];
+    expect(sortedItems([...input], "kind", true).map((i) => i.name)).toEqual(["a.zip", "song.mp3", "a.mp4", "b.mp4"]);
+    expect(sortedItems([...input], "kind", false).map((i) => i.name)).toEqual(["a.mp4", "b.mp4", "song.mp3", "a.zip"]);
+  });
+
 });

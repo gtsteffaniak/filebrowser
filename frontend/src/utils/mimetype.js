@@ -674,3 +674,23 @@ export function getTypeInfo(mimeType) {
         simpleType: "blob",
     };
 }
+
+export const KIND_ORDER = [
+  "directory",
+  "archive",
+  "audio",
+  "document",
+  "ebook",
+  "font",
+  "image",
+  "text",
+  "video",
+  "3d-model",
+  "other",
+  "invalid_link",
+];
+
+export function getKindKey(mimeType) {
+  const kind = getTypeInfo(mimeType)?.simpleType ?? "file";
+  return KIND_ORDER.includes(kind) ? kind : "other";
+}
