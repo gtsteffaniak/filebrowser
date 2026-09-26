@@ -4,7 +4,6 @@ vi.mock('@/store', () => {
   return {
     state: {
       activeSettingsView: "",
-      isMobile: false,
       showSidebar: false,
       usage: {
         used: "0 B",

@@ -139,11 +139,11 @@ func PathWithinRoot(root, path string) error {
 func ResolveSymlinks(path string) (string, bool, error) {
 	resolvedPath, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		return path, false, fmt.Errorf("could not resolve symlinks for %s: %v", path, err)
+		return path, false, fmt.Errorf("could not resolve symlinks for %s: %w", path, err)
 	}
 	info, err := os.Lstat(resolvedPath)
 	if err != nil {
-		return resolvedPath, false, fmt.Errorf("could not stat resolved path %s: %v", resolvedPath, err)
+		return resolvedPath, false, fmt.Errorf("could not stat resolved path %s: %w", resolvedPath, err)
 	}
 	return resolvedPath, IsDirectory(info), nil
 }

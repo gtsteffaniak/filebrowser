@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Listing performance</title>
+    <!-- Served from node_modules by make perf-dashboard; no CDN required. -->
+    <script src="chart.umd.min.js"></script>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Mock listing performance</h1>
+      <p id="meta">Loading report.json…</p>
+      <p id="env-line" class="hint"></p>
+    </header>
+    <main id="app">
+      <p class="error" id="load-error" hidden></p>
+      <div id="content" hidden>
+        <section class="card" id="headlines-section">
+          <h2>Headline findings</h2>
+          <ul class="summary-list" id="headlines"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Summary</h2>
+          <ul class="summary-list" id="summary"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Slowest interaction — root cause &amp; contributors</h2>
+          <div id="slowest-root" class="detail-stack"></div>
+        </section>
+
+        <section class="card">
+          <h2>How time grows from 100 → 1000 → 10000</h2>
+          <p class="hint">
+            Each panel is one scenario. X-axis is listing size (100, 1000, 10000 files).
+            Solid lines are the median across repeats; faint dots are the individual repeats.
+            The dashed line is what that browser would do if time scaled linearly from its 100-file run
+            (10× rows → 10× time). A solid line that bends above the dash is the scaling problem.
+          </p>
+          <div id="scaling-grid" class="scenario-grid"></div>
+        </section>
+
+        <section class="card">
+          <h2>Milliseconds per thousand rows</h2>
+          <p class="hint">
+            Duration ÷ (folders + files) × 1000. A flat line is O(n): each extra row costs the same.
+            A line that rises as the listing grows means work per row is getting worse — that is
+            where the implementation degrades.
+          </p>
+          <div id="per-row-grid" class="scenario-grid"></div>
+        </section>
+
+        <section class="card">
+          <h2>DOM &amp; listeners at load</h2>
+          <p class="hint">One panel per browser. Lines are listing rows, addEventListener calls, and IntersectionObservers as listing size grows 100 → 1000 → 10000.</p>
+          <div id="dom-grid" class="browser-grid"></div>
+        </section>
+
+        <section class="card" id="delta-section" hidden>
+          <h2 id="delta-heading">Baseline comparison</h2>
+          <p id="delta-note" class="hint"></p>
+          <div id="delta-pills" class="filter-bar"></div>
+          <p class="hint">
+            Status uses a ±10% bar: ≥10% worse is a regression, ≥10% better is an improvement.
+            Metrics that were never collected (0→0 FPS on load, Event Timing on programmatic scroll, CDP layout during compositor-only scroll) are omitted instead of looking like a pass.
+            Histogram: green = better, red = worse. Click a bar or chip to filter.
+          </p>
+          <div id="delta-hist" class="delta-hist"></div>
+          <div id="delta-strip" class="delta-strip" title="Every compared metric, sorted worst → best"></div>
+          <div id="delta-filters" class="delta-filters"></div>
+          <p id="delta-shown" class="hint"></p>
+          <div class="table-scroll">
+            <table id="delta-table">
+              <thead>
+                <tr>
+                  <th data-sort="status">Status</th>
+                  <th data-sort="scale">Scale</th>
+                  <th data-sort="scenario">Scenario</th>
+                  <th data-sort="label">Metric</th>
+                  <th class="num" data-sort="baseline">Baseline</th>
+                  <th class="num" data-sort="current">Current</th>
+                  <th class="num" data-sort="delta">Δ</th>
+                  <th class="num" data-sort="signedPct">Δ%</th>
+                </tr>
+              </thead>
+              <tbody id="delta-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>All runs</h2>
+          <p class="hint">Click a row for full profiling, contributors, and threshold warnings. Time is the median; Repeats lists every iteration.</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Browser</th>
+                <th>Scale</th>
+                <th>Scenario</th>
+                <th class="num">Median (ms)</th>
+                <th class="num">Repeats (ms)</th>
+                <th class="num">Rows</th>
+                <th class="num">Listeners</th>
+                <th class="num">IO</th>
+                <th>Thresholds</th>
+              </tr>
+            </thead>
+            <tbody id="runs-body"></tbody>
+          </table>
+          <div id="run-detail" class="run-detail" hidden></div>
+        </section>
+
+        <section class="card">
+          <h2>Analysis table</h2>
+          <table class="analysis-table">
+            <thead>
+              <tr>
+                <th>Browser</th>
+                <th>Scale</th>
+                <th>Scenario</th>
+                <th>Metric</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="analysis-body"></tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="dashboard.js"></script>
+</body>
+</html>

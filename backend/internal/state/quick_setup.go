@@ -17,8 +17,6 @@ func QuickSetup() error {
 		settings.Env.IsFirstLoad = true
 	}
 
-	settings.Config.Auth.Key = utils.GenerateKey()
-
 	passwordAuth := settings.Config.Auth.Methods.PasswordAuth.Enabled
 	noAuth := settings.Config.Auth.Methods.NoAuth
 

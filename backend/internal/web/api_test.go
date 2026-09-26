@@ -86,7 +86,7 @@ func TestCreateApiTokenCustomizedWithNoEffectiveCapsKeepsPermissionsClaim(t *tes
 	setupTestEnv(t)
 	setTestAuthKey(t)
 
-	// User can create API tokens but lacks admin; explicit customized token keeps Permissions in JWT.
+	// User can create API tokens but lacks admin; caps are stored in user.Tokens metadata, not JWT.
 	user := createApiTokenTestUser(t, "tokenuser2", users.Permissions{Api: true})
 	rec := invokeCreateApiToken(t, user, "/auth/token?name=custom&days=365&minimal=false&permissions=admin")
 	if rec.Code != http.StatusOK {
@@ -94,16 +94,18 @@ func TestCreateApiTokenCustomizedWithNoEffectiveCapsKeepsPermissionsClaim(t *tes
 	}
 
 	token := decodeCreatedToken(t, rec.Body.Bytes())
-	claims := jwt.MapClaims{}
-	if _, _, err := jwt.NewParser().ParseUnverified(token, claims); err != nil {
-		t.Fatalf("parse token: %v", err)
+	assertHandlerMinimalJWTClaims(t, token)
+
+	got, err := state.GetUserByUsername(user.Username)
+	if err != nil {
+		t.Fatal(err)
 	}
-	perms, ok := claims["Permissions"].(map[string]interface{})
+	stored, ok := got.Tokens["custom"]
 	if !ok {
-		t.Fatalf("customized token should include Permissions claim, got %v", claims)
+		t.Fatal("expected custom token metadata on user")
 	}
-	if perms["admin"] != false {
-		t.Fatalf("expected admin false in customized token, got %v", perms["admin"])
+	if stored.Permissions.Admin {
+		t.Fatalf("expected admin false in stored caps, got %+v", stored.Permissions)
 	}
 }
 
@@ -118,16 +120,18 @@ func TestCreateApiTokenCustomizedWithEffectiveCaps(t *testing.T) {
 	}
 
 	token := decodeCreatedToken(t, rec.Body.Bytes())
-	claims := jwt.MapClaims{}
-	if _, _, err := jwt.NewParser().ParseUnverified(token, claims); err != nil {
-		t.Fatalf("parse token: %v", err)
+	assertHandlerMinimalJWTClaims(t, token)
+
+	got, err := state.GetUserByUsername(user.Username)
+	if err != nil {
+		t.Fatal(err)
 	}
-	perms, ok := claims["Permissions"].(map[string]interface{})
+	stored, ok := got.Tokens["custom"]
 	if !ok {
-		t.Fatalf("expected Permissions claim in customized token, got %v", claims)
+		t.Fatal("expected custom token metadata on user")
 	}
-	if perms["admin"] != true || perms["api"] != true {
-		t.Fatalf("expected admin and api true, got %v", perms)
+	if !stored.Permissions.Admin || !stored.Permissions.Api {
+		t.Fatalf("expected admin and api in stored caps, got %+v", stored.Permissions)
 	}
 }
 

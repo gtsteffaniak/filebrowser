@@ -100,4 +100,7 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 )
 
-exclude github.com/alecthomas/go-check-sumtype v0.5.0
+exclude (
+	github.com/alecthomas/go-check-sumtype v0.5.0
+	github.com/gtsteffaniak/go-ffmpeg v1.1.0
+)

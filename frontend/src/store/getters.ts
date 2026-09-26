@@ -10,6 +10,7 @@ import { fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 import { defaultDarkMode } from '@/utils/theme';
+import { isMobileLayout } from '@/utils/viewport.js';
 import type { DisplayPreference, FileListItem } from './types';
 
 export const getters = {
@@ -158,7 +159,7 @@ export const getters = {
     getters.viewMode() === 'normal' ||
     getters.viewMode() === 'icons',
   currentHash: () => state.shareInfo?.hash,
-  isMobile: () => state.isMobile,
+  isMobile: () => isMobileLayout.value,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
   isDarkMode: () => {
@@ -378,7 +379,7 @@ export const getters = {
         const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
         const canEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowModify);
-        if (isMarkdown && state.editor.markdownSplitView && !state.isMobile && canEdit) {
+        if (isMarkdown && state.editor.markdownSplitView && !getters.isMobile() && canEdit) {
           return 'editor';
         }
         switch (hash) {
@@ -581,12 +582,12 @@ export const getters = {
         return "back";
       }
       if (cv === "settings") {
-        if (state.isMobile) {
+        if (getters.isMobile()) {
           return "back";
         }
         return "close";
       }
-      if (state.isMobile) {
+      if (getters.isMobile()) {
         return "back";
       }
       if (cv === "listingView" || state.shareInfo?.singleFileShare) {
@@ -604,7 +605,7 @@ export const getters = {
       return "menu";
     }
     if (cv === "settings") {
-      if (state.isMobile) {
+      if (getters.isMobile()) {
         return "menu";
       }
     }
@@ -641,7 +642,7 @@ export const getters = {
     return view === 'editor';
   },
   canSplitView: () => {
-    if (state.isMobile) return false;
+    if (getters.isMobile()) return false;
     if (!state.req || !('content' in state.req)) return false;
     const canEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowModify);
     if (!canEdit) return false;
@@ -708,6 +709,15 @@ export const getters = {
       create: false,
       delete: false,
     };
+    if ((globalVars.devMode || globalVars.playwrightTest) && activeSource === 'mockData') {
+      return {
+        view: true,
+        download: false,
+        modify: false,
+        create: false,
+        delete: false,
+      };
+    }
     if (!activeSource || !Array.isArray(state.user?.scopes)) {
       return denyFile;
     }

@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -170,6 +172,12 @@ func migrateFromBoltToSQLite() error {
 		}
 	}()
 
+	// Migrate auth signing key from legacy Bolt settings
+	logger.Info("Migrating auth signing key...")
+	if err := migrateAuthSigningKey(oldDB, sqlStore); err != nil {
+		return fmt.Errorf("failed to migrate auth signing key: %w", err)
+	}
+
 	// Migrate users (bolt User.ID is stored as SQLite users.user_id)
 	logger.Info("Migrating users...")
 	if err := migrateUsers(oldDB, sqlStore); err != nil {
@@ -206,6 +214,22 @@ func migrateFromBoltToSQLite() error {
 	logger.Infof("Your legacy database file is unchanged at: %s", oldDBPath)
 	logger.Infof("New SQLite database created at: %s", newDBPath)
 
+	return nil
+}
+
+func migrateAuthSigningKey(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
+	key, err := state.AuthSigningKeyFromBoltDB(oldDB)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			logger.Info("  No legacy auth signing key in Bolt settings")
+			return nil
+		}
+		return fmt.Errorf("read legacy auth signing key: %w", err)
+	}
+	if err := sqlStore.SaveSetting("auth.signingKey", base64.StdEncoding.EncodeToString([]byte(key))); err != nil {
+		return fmt.Errorf("save auth signing key: %w", err)
+	}
+	logger.Info("  ✓ Migrated auth signing key from legacy database")
 	return nil
 }
 
@@ -282,6 +306,9 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		boltID := user.ID
 		if err := sqlStore.CreateUser(user); err != nil {
 			return fmt.Errorf("failed to save user %s (bolt id: %d): %w", user.Username, boltID, err)
+		}
+		if err := state.BackfillUserTokenHashesOnStore(sqlStore, user); err != nil {
+			return fmt.Errorf("failed to backfill token hashes for user %s: %w", user.Username, err)
 		}
 	}
 
@@ -436,20 +463,20 @@ func migrateAccessRules(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 
 	// Migrate revoked tokens
 	for tokenHash := range storage.RevokedTokens {
-		err := sqlStore.SaveRevokedToken(tokenHash)
+		err := sqlStore.SaveRevokedToken(tokenHash, 0)
 		if err != nil {
 			return fmt.Errorf("failed to save revoked token: %w", err)
 		}
 	}
 	logger.Infof("  ✓ Migrated %d revoked tokens", len(storage.RevokedTokens))
 
-	// Migrate hashed tokens (bolt stored owner user id)
+	// Migrate hashed tokens (bolt stored owner user id); legacy rows are named API tokens.
 	for tokenHash, userID := range storage.HashedTokens {
 		if userID == 0 {
 			logger.Warningf("  skipping hashed token: invalid user id 0")
 			continue
 		}
-		err := sqlStore.SaveHashedToken(tokenHash, uint64(userID))
+		err := sqlStore.SaveHashedToken(tokenHash, uint64(userID), false)
 		if err != nil {
 			return fmt.Errorf("failed to save hashed token: %w", err)
 		}
