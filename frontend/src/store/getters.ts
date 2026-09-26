@@ -34,7 +34,7 @@ export const getters = {
     if (new Date().getMonth() === 9 && new Date().getDate() === 31) {
       return "halloween";
     }
-    return "halloween";
+    return "";
   },
   getTime: timestamp => {
     if (state.user?.dateFormat) {
