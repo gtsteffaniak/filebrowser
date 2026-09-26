@@ -577,7 +577,7 @@ export default {
   background: var(--background);
 }
 
-/* ----------- 
+/* -----------
    Icon Colors
    ----------- */
 .primary-icons {
@@ -607,33 +607,31 @@ export default {
 
 /* purple variations */
 .purple-icons {
-  color: purple;
+  color: var(--icon-violet);
 }
 
 .plum-icons {
   color: plum;
 }
 
-/* yellow */
 .yellow-icons {
-  color: yellow;
+  color: var(--icon-yellow)
 }
 
-/* orange/red variations */
 .orange-icons {
-  color: orange;
+  color: var(--icon-orange)
 }
 
 .red-icons {
-  color: rgb(211 16 16);
+  color: var(--red)
 }
 
 .deep-orange-icons {
-  color: rgb(255 111 0);
+  color: var(--icon-deep-orange)
 }
 
 .brown-icons {
-  color: brown;
+  color: var(--icon-brown)
 }
 
 .coral-icons {
@@ -646,7 +644,7 @@ export default {
 
 /* green variations */
 .green-icons {
-  color: rgb(23 128 74);
+  color: var(--icon-green)
 }
 
 .light-green-icons {

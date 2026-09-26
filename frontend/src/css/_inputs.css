@@ -26,21 +26,6 @@
   opacity: 0.75;
 }
 
-.input--textarea {
-  line-height: 1.15;
-  font-family: monospace;
-  min-height: 10em;
-  resize: vertical;
-}
-
-.input--red {
-  background: #fcd0cd;
-}
-
-.input--green {
-  background: #c9f2da;
-}
-
 /* ExpandDropdown renders its own surface; avoid double-styling when .input is on the wrapper */
 .expand-dropdown.input,
 .expand-dropdown.input:hover,

@@ -597,10 +597,10 @@ export default {
       if (event?.preventDefault) {
         event.preventDefault();
       }
-      
+
       // Expand the item (sticky)
       this.expandedItem = item;
-      
+
       // Build selected item object similar to ListingItem.vue
       const fullPath = this.getFullPath(item.path);
       const selectedItem = {
@@ -614,10 +614,10 @@ export default {
         url: fullPath,
         index: 0,
       };
-      
+
       mutations.resetSelected();
       mutations.addSelected(selectedItem);
-      
+
       mutations.showPrompt({
         name: "ContextMenu",
         props: {
@@ -681,7 +681,7 @@ export default {
     onItemHover(event, item) {
       this.tooltipMouseX = event.clientX;
       this.tooltipMouseY = event.clientY;
-      
+
       this.tooltipHoverTimer = setTimeout(() => {
         const displayPath = this.getDisplayPath(item.path);
         const size = this.humanSize(item.size);

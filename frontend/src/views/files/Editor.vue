@@ -824,6 +824,9 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 #editor-root.split-active #editor-container {

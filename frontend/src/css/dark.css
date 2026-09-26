@@ -124,15 +124,6 @@
   border-top: 1px solid var(--divider);
 }
 
-/* Editor container */
-.dark-mode #editor-container {
-  background: var(--background);
-}
-
-.dark-mode #editor-container .bar {
-  background: var(--surfacePrimary);
-}
-
 /* Navigation */
 .dark-mode nav {
   background: var(--surfaceSecondary);

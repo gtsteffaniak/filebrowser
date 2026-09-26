@@ -51,10 +51,6 @@ audio, video {
   transition: 0.2s ease padding;
 }
 
-#app.multiple {
-  padding-bottom: 4em;
-}
-
 /* Main Content */
 #main {
   scrollbar-width: none;
@@ -79,18 +75,6 @@ audio, video {
   appearance: none;
 }
 
-.main-padding {
-  padding-top: 4em;
-  padding-bottom: 0.5em;
-}
-
-/* Files */
-.files {
-  position: absolute;
-  bottom: 30px;
-  width: 100%;
-}
-
 /* Progress Bar */
 .progress {
   position: fixed;
@@ -106,40 +90,6 @@ audio, video {
   background-color: #40c4ff;
   width: 0;
   transition: 0.2s ease width;
-}
-
-#popup-notification {
-  border-radius: 1em;
-  color: #fff;
-  position: fixed;
-  max-width: 90vw;
-  bottom: 0;
-  right: -20em;
-  display: flex;
-  padding: 0.5em;
-  align-items: center;
-  transition: right 1s ease;
-  z-index: 7;
-  margin: 1em;
-  height: auto;
-}
-
-#popup-notification-content {
-  color: white;
-  padding: 1em;
-}
-
-#popup-notification.success {
-  background: var(--primaryColor);
-}
-
-#popup-notification.error {
-  background: var(--red);
-}
-
-#popup-notification > i {
-  cursor: pointer;
-  font-size: 1.75em;
 }
 
 .qrcode {
