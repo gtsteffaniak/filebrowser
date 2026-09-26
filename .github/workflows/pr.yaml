@@ -88,6 +88,8 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-previews
           - name: jwt
             dockerfile: ./_docker/Dockerfile.playwright-jwt
+          - name: performance
+            dockerfile: ./_docker/Dockerfile.playwright-performance
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,6 +126,20 @@ jobs:
             type=gha,scope=main-playwright-base
           cache-to: |
             type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
+      - name: Extract listing performance results
+        if: matrix.name == 'performance' && success()
+        run: |
+          mkdir -p perf-artifact
+          cid=$(docker create "${{ steps.build.outputs.imageid }}")
+          docker cp "$cid:/app/frontend/test-results/listing-performance-perf/results.json" perf-artifact/results.json
+          docker rm "$cid"
+      - name: Upload listing performance results
+        if: matrix.name == 'performance' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: listing-performance-results
+          path: perf-artifact/results.json
+          retention-days: 7
   push_pr_to_registry:
     name: Build docker image
     runs-on: ubuntu-24.04-arm

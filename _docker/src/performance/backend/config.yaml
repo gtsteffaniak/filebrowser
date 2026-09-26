@@ -1,0 +1,19 @@
+server:
+  <<: *server-main
+http:
+  <<: *http-main
+frontend:
+  <<: *frontend-main
+
+userDefaults:
+  preview:
+    image: true
+    popup: true
+    video: true
+    audio: true
+    models: true
+    office: true
+    highQuality: true
+  account:
+    permissions:
+      share: true

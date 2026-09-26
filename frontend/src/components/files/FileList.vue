@@ -167,7 +167,7 @@ export default {
       return getters.isDarkMode();
     },
     isMobile() {
-      return state.isMobile;
+      return getters.isMobile();
     },
     sourcePath() {
       return { source: this.source, path: this.path };

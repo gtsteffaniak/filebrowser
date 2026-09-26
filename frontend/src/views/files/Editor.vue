@@ -163,7 +163,7 @@ export default {
       return !this.editorReadOnly;
     },
     isSplitActive() {
-      return !this.viewerMode && this.isMarkdownFile && state.editor.markdownSplitView && !state.isMobile && this.permissions.modify;
+      return !this.viewerMode && this.isMarkdownFile && state.editor.markdownSplitView && !getters.isMobile() && this.permissions.modify;
     },
     editorScrollRatio() {
       return state.editor.scrollRatio;

@@ -27,7 +27,6 @@ export const state: StoreState = reactive({
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
-  isMobile: window.innerWidth <= 768,
   isSearchActive: false,
   showSidebar: false,
   displayPreferences: {},

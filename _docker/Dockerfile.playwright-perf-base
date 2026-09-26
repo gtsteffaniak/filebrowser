@@ -1,0 +1,12 @@
+# Local listing-performance only (see docker-compose local-playwright-performance).
+# CI uses ghcr.io/gtsteffaniak/playwright-base:chromium + Dockerfile.playwright-performance.
+FROM node:22-slim
+WORKDIR /app/frontend
+
+COPY frontend/package-lock.json /tmp/package-lock.json
+RUN PW_VERSION=$(node -p "require('/tmp/package-lock.json').packages['node_modules/@playwright/test'].version") \
+  && npm i "@playwright/test@${PW_VERSION}"
+
+ARG PLAYWRIGHT_BROWSERS=chromium,firefox,webkit
+ENV PLAYWRIGHT_BROWSERS=${PLAYWRIGHT_BROWSERS}
+RUN bash -ec 'set -euo pipefail; for b in ${PLAYWRIGHT_BROWSERS//,/ }; do npx playwright install --with-deps "$b"; done'

@@ -136,7 +136,7 @@ auth:
       rpId: ""                            # the Relying Party ID; if empty, auto-derived from base URL host
       rpOrigins:                          # allowed origins; if empty, auto-derived from base URL
       loginButtonText: ""                 # custom text for the passkey login button
-  key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
+  key: ""                                 # secret: HMAC key for JWT tokens. If unset in config/env, one is generated and stored in the application database.
   totpSecret: ""                          # secret: secret used to encrypt TOTP secrets
 frontend:
   name: "FileBrowser Quantum"             # display name, PWA installation name is capped at 30 characters

@@ -82,7 +82,7 @@ export default {
   },
   computed: {
     isMobile() {
-      return state.isMobile;
+      return getters.isMobile();
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -136,7 +136,7 @@ export default {
       if (this.usePickerSorting) {
         return false;
       }
-      if (state.isMobile) {
+      if (getters.isMobile()) {
         return false
       }
       if (getters.isShare()) {

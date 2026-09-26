@@ -29,6 +29,7 @@
     "src/**/*.d.ts",
     "src/**/*.vue",
     "tests/playwright/**/*.ts",
+    "tests/playwright/performance/dashboard/**/*.js",
     "scripts/**/*.js",
     "vite.config.ts",
     "eslint.config.js",

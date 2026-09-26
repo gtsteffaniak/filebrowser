@@ -6,11 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 )
 
 func TestWithSearchToolAccess_largestRequiresSizeViewer(t *testing.T) {
@@ -45,10 +43,7 @@ func TestWithSearchToolAccess_largestRequiresSizeViewer(t *testing.T) {
 		t.Fatal("failed to set search user permissions:", err)
 	}
 
-	tokenString, _, err := auth.MakeSignedTokenAPI(searchUser, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, searchUser.Permissions, false)
-	if err != nil {
-		t.Fatalf("failed to make token: %v", err)
-	}
+	tokenString := testSessionToken(t, searchUser, time.Hour*2)
 
 	handler := withUser(withSearchToolAccess(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		return http.StatusOK, nil

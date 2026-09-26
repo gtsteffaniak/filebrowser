@@ -306,6 +306,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"recaptchaHost":          recaptchaHost,
 		"recaptchaKey":           recaptchaKey,
 		"disablePWAInstall":      settings.Config.Frontend.DisablePWAInstall,
+		"devMode":                settings.Env.IsDevMode,
+		"playwrightTest":         settings.Env.IsPlaywright,
 	}
 
 	cspNonce, err := utils.CSPNonce()

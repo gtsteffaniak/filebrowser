@@ -182,7 +182,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
 import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
-import { mutations, state } from "@/store";
+import { getters, mutations, state } from "@/store";
 import { notify } from "@/notify";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProgressBar from "@/components/ProgressBar.vue";
@@ -272,14 +272,21 @@ export default {
       }
     };
 
-    const handleConflict = (resolver) => {
+    const handleConflict = (resolver, options = {}) => {
       conflictResolver = resolver;
       mutations.showPrompt({
         name: "replace-rename",
         pinned: true,
+        props: {
+          allowSkip: !getters.isShare(),
+          allowRename: options.allowRename !== false,
+          ...(getters.isShare() ? {} : { title: i18n.global.t("prompts.uploadConflictTitle") }),
+        },
         confirm: (_event, option) => {
           if (option === "overwrite") {
             resolveConflict(true);
+          } else if (option === "skip") {
+            resolveConflict({ skip: true });
           } else if (option === "rename") {
             showRenamePrompt();
           } else {

@@ -8,8 +8,10 @@ import "./css/styles.css";
 import "./css/dark.css";
 import { initPwaInstall } from "@/utils/pwaInstall";
 import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
+import { initViewportLayoutListener } from "@/utils/viewport.js";
 
 initPwaInstall();
+initViewportLayoutListener();
 syncDocumentTheme(defaultDarkMode());
 
 const app = createApp(App);
