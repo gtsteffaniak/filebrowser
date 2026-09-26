@@ -141,7 +141,6 @@ export default {
   max-height: 14rem;
   overflow-y: auto;
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
 
 .menu-option-list-scroll::-webkit-scrollbar {

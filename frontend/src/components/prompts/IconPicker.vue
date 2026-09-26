@@ -182,7 +182,7 @@ export default {
   gap: 0.5em;
   padding: 0.5em 1em; /* Use button padding */
   background: var(--surfaceSecondary);
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--divider);
   border-radius: 1em; /* Use button border-radius */
   margin-bottom: 1em;
   font-size: 0.9em;
@@ -256,7 +256,7 @@ export default {
   align-items: center;
   padding: 0.6em 0.3em;
   background: var(--surfaceSecondary);
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--divider);
   border-radius: 1em; /* Use button border-radius */
 }
 

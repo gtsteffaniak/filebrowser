@@ -881,7 +881,7 @@ export default {
   width: 3em;
   height: 2.5em;
   background: var(--surfaceSecondary);
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--divider);
   border-radius: var(--borderRadius);
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;

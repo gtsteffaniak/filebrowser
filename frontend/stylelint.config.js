@@ -3,7 +3,7 @@ export default {
     "stylelint-config-standard",
     "stylelint-config-standard-vue",
   ],
-  ignoreFiles: ["**/dist/**", "**/node_modules/**", "**/public/**"],
+  ignoreFiles: ["**/dist/**", "**/node_modules/**", "**/public/**", "!**/public/css/**"],
  "referenceFiles": [
    "src/css/_variables.css",
    "src/css/_fab.css",
@@ -28,6 +28,11 @@ export default {
     "font-family-no-missing-generic-family-keyword": null,
     "no-unknown-animations": true,
     "no-unknown-custom-properties": true,
-    "no-unknown-custom-media": true
+    "no-unknown-custom-media": true,
+    "function-no-unknown": true,
+    "selector-no-deprecated": true,
+    "color-no-invalid-hex": true,
+    "selector-no-invalid": true,
+    "function-linear-gradient-no-nonstandard-direction": true,
   },
 };

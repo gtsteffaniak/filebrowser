@@ -699,7 +699,7 @@ export default {
   margin-top: 0 !important;
   margin-bottom: 0.5em;
   padding-bottom: 0.25em;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1px solid var(--divider);
 }
 
 .vue-simple-progress {
@@ -881,7 +881,7 @@ a.sidebar-link-button {
   position: relative;
   margin-bottom: 0;
   padding-bottom: 0;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1px solid var(--divider);
 }
 
 .sidebar-source-switcher {

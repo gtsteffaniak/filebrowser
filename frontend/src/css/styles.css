@@ -45,7 +45,6 @@
     background-color: rgb(0 0 0 / 30%);
     border-radius: 100%;
     display: inline-block;
-    animation: sk-bouncedelay 1.4s infinite ease-in-out both;
 }
 
 #main .spinner .bounce1 {
@@ -377,7 +376,7 @@ body.rtl .card-content .small+input {
     width: var(--icon-size);
     height: var(--icon-size);
     flex: 0 0 var(--icon-size);
-    border: 1px solid var(--borderColor);
+    border: 1px solid var(--divider);
     background: var(--surfaceSecondary);
     color: var(--primaryColor);
 }

@@ -196,7 +196,7 @@ a.button {
   align-items: center;
   padding: 1em 0.6em;
   background: var(--surfaceSecondary);
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--divider);
   border-radius: var(--borderRadius);
 }
 

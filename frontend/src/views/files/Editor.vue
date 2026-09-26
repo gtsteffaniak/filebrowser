@@ -968,7 +968,7 @@ export default {
 
 .ace_editor .ace_tooltip,
 .ace_editor .ace_doc-tooltip {
-  color: var(--secondaryText);
+  color: var(--textSecondary);
   border: 1px solid color-mix(in srgb, var(--divider) 45%, transparent);
 }
 

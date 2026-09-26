@@ -557,8 +557,8 @@ export default {
 }
 
 .duplicate-group {
-  border: 1px solid var(--borderPrimary);
-  border-radius: 4px;
+  border: 1px solid var(--divider);
+  border-radius: var(--borderRadius);
   overflow: hidden;
 }
 
@@ -568,7 +568,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
-  border-bottom: 1px solid var(--borderPrimary);
   border-radius: 0.5em;
 }
 

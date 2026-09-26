@@ -1380,7 +1380,7 @@ export default {
 .link-item.dragging {
   opacity: 0.5;
   border-color: var(--primaryColor);
-  background: var(--surfaceTertiary);
+  background: var(--surfacePrimary);
 }
 
 .link-drag-handle {

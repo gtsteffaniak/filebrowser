@@ -284,7 +284,7 @@ body.sidebar-resizing * {
 }
 
 .release-banner {
-  background-color: var(--primarColor);
+  background-color: var(--primaryColor);
   display: flex !important;
   height: fit-content !important;
   justify-content: space-between;

@@ -539,7 +539,7 @@ export default {
   position: absolute;
   top: -5px;
   right: -5px;
-  background: var(--accentColor);
+  background: transparent;
   color: white;
   border-radius: 50%;
   width: 20px;

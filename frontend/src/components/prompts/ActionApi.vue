@@ -174,11 +174,6 @@ export default {
   cursor: pointer;
 }
 
-.api-key-button:hover,
-.api-key-value-button:hover {
-  background-color: var(--surfaceTertiary);
-}
-
 .api-key-name {
   font-family: monospace;
   font-size: 0.9em;
@@ -260,7 +255,7 @@ export default {
 }
 
 .permission-item:hover {
-  background-color: var(--surfaceTertiary);
+  background-color: var(--surfacePrimary);
 }
 
 .permission-name {

@@ -805,7 +805,6 @@ export default {
 }
 
 .conflict-overlay .card {
-  background-color: var(--card-background-color);
   padding: 1em;
   border-radius: 8px;
 }

@@ -75,7 +75,7 @@ export default {
   position: relative;
   width: 100%;
   height: 20rem;
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--divider);
   border-radius: 0.5em;
   overflow: hidden;
 }
