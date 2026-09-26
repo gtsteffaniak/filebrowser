@@ -639,7 +639,22 @@
     "defaultBehavior": "Action par défaut{suffix}",
     "deletedCascade": "Règles d'accès supprimées du chemin et de tous les sous-chemins !",
     "cascadeDelete": "Suppression récursive",
-    "cascadeDeleteDescription": "Lorsque cette option est activée, la suppression d'une règle d'accès s'applique également à tous les sous-répertoires. Cela vous permet de supprimer complètement un utilisateur ou un groupe de toute l'arborescence des répertoires."
+    "cascadeDeleteDescription": "Lorsque cette option est activée, la suppression d'une règle d'accès s'applique également à tous les sous-répertoires. Cela vous permet de supprimer complètement un utilisateur ou un groupe de toute l'arborescence des répertoires.",
+    "groups": "Groupes",
+    "newGroup": "Nouveau groupe",
+    "editGroup": "Modifier le groupe",
+    "groupName": "Nom du groupe",
+    "userGroups": "Groupes",
+    "addGroup": "Ajouter un groupe",
+    "createGroupConfirm": "Le groupe « {name} » n'existe pas. Le créer ?",
+    "addGroupPlaceholder": "Nom du groupe",
+    "removeGroup": "Retirer du groupe",
+    "groupMembers": "Membres",
+    "enterUsername": "Saisir le nom d'utilisateur",
+    "addMember": "Ajouter un membre",
+    "unknownUser": "Aucun utilisateur nommé « {name} »",
+    "deleteGroupConfirm": "Supprimer le groupe « {name} » ? Il sera également retiré de toutes les règles d'accès.",
+    "groupsOidcNote": "Les membres des groupes synchronisés par OIDC sont réinitialisés depuis le fournisseur d'identité à chaque connexion de ces utilisateurs."
   },
   "fileLoading": {
     "title": "Importations et téléchargements",

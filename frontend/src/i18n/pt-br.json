@@ -639,7 +639,22 @@
     "defaultBehavior": "Ação padrão{suffix}",
     "deletedCascade": "Regras de acesso excluídas do caminho e de todos os subcaminhos!",
     "cascadeDelete": "Exclusão recursiva",
-    "cascadeDeleteDescription": "Quando ativada, a exclusão de uma regra de acesso também a removerá de todos os subdiretórios. Isso permite remover completamente um usuário ou grupo de toda a árvore de diretórios."
+    "cascadeDeleteDescription": "Quando ativada, a exclusão de uma regra de acesso também a removerá de todos os subdiretórios. Isso permite remover completamente um usuário ou grupo de toda a árvore de diretórios.",
+    "groups": "Grupos",
+    "newGroup": "Novo grupo",
+    "editGroup": "Editar grupo",
+    "groupName": "Nome do grupo",
+    "userGroups": "Grupos",
+    "addGroup": "Adicionar grupo",
+    "createGroupConfirm": "O grupo \"{name}\" não existe. Criá-lo?",
+    "addGroupPlaceholder": "Nome do grupo",
+    "removeGroup": "Remover do grupo",
+    "groupMembers": "Membros",
+    "enterUsername": "Digite o nome de usuário",
+    "addMember": "Adicionar membro",
+    "unknownUser": "Nenhum usuário chamado \"{name}\"",
+    "deleteGroupConfirm": "Excluir o grupo \"{name}\"? Ele também será removido de todas as regras de acesso.",
+    "groupsOidcNote": "Os membros de grupos sincronizados por OIDC são redefinidos a partir do provedor de identidade sempre que esses usuários fazem login."
   },
   "fileLoading": {
     "title": "Uploads e downloads",

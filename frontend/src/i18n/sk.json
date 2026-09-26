@@ -639,7 +639,22 @@
     "defaultBehavior": "Predvolená akcia{suffix}",
     "deletedCascade": "Prístupové pravidlá odstránené z cesty a všetkých podcestí!",
     "cascadeDelete": "Rekurzívne vymazanie",
-    "cascadeDeleteDescription": "Ak je táto možnosť povolená, odstránením pravidla prístupu sa odstráni aj zo všetkých podadresárov. To umožňuje úplne odstrániť používateľa alebo skupinu z celého stromu adresárov."
+    "cascadeDeleteDescription": "Ak je táto možnosť povolená, odstránením pravidla prístupu sa odstráni aj zo všetkých podadresárov. To umožňuje úplne odstrániť používateľa alebo skupinu z celého stromu adresárov.",
+    "groups": "Skupiny",
+    "newGroup": "Nová skupina",
+    "editGroup": "Upraviť skupinu",
+    "groupName": "Názov skupiny",
+    "userGroups": "Skupiny",
+    "addGroup": "Pridať skupinu",
+    "createGroupConfirm": "Skupina „{name}“ neexistuje. Vytvoriť ju?",
+    "addGroupPlaceholder": "Názov skupiny",
+    "removeGroup": "Odstrániť zo skupiny",
+    "groupMembers": "Členovia",
+    "enterUsername": "Zadajte používateľské meno",
+    "addMember": "Pridať člena",
+    "unknownUser": "Žiadny používateľ s menom „{name}“",
+    "deleteGroupConfirm": "Odstrániť skupinu „{name}“? Bude tiež odstránená zo všetkých pravidiel prístupu.",
+    "groupsOidcNote": "Členovia skupín synchronizovaných cez OIDC sa pri každom prihlásení týchto používateľov obnovia od poskytovateľa identity."
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",

@@ -181,3 +181,18 @@ func UpdateAccessRulesOnMove(sourcePath string, oldPath, newPath utils.IndexPath
 	}
 	return accessDb.UpdateRules(sourcePath, oldPath, newPath)
 }
+
+// GetGroupMembers returns every group with its sorted member usernames.
+func GetGroupMembers() map[string][]string {
+	return accessDb.GetGroupMembers()
+}
+
+// SetGroupMembers creates the group if needed and replaces its member list.
+func SetGroupMembers(group string, usernames []string) error {
+	return accessDb.SetGroupMembers(group, usernames)
+}
+
+// DeleteGroup removes a group and every access rule entry that references it.
+func DeleteGroup(group string) error {
+	return accessDb.DeleteGroup(group)
+}

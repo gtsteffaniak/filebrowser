@@ -639,7 +639,22 @@
     "defaultBehavior": "Standard-Aktion{suffix}",
     "deletedCascade": "Zugriffsregeln aus Pfad und allen Unterpfaden gelöscht!",
     "cascadeDelete": "Rekursives Löschen",
-    "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen."
+    "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen.",
+    "groups": "Gruppen",
+    "newGroup": "Neue Gruppe",
+    "editGroup": "Gruppe bearbeiten",
+    "groupName": "Gruppenname",
+    "userGroups": "Gruppen",
+    "addGroup": "Gruppe hinzufügen",
+    "createGroupConfirm": "Die Gruppe „{name}“ existiert nicht. Erstellen?",
+    "addGroupPlaceholder": "Gruppenname",
+    "removeGroup": "Aus Gruppe entfernen",
+    "groupMembers": "Mitglieder",
+    "enterUsername": "Benutzernamen eingeben",
+    "addMember": "Mitglied hinzufügen",
+    "unknownUser": "Kein Benutzer mit dem Namen „{name}“",
+    "deleteGroupConfirm": "Gruppe „{name}“ löschen? Sie wird auch aus allen Zugriffsregeln entfernt.",
+    "groupsOidcNote": "Mitglieder von OIDC-synchronisierten Gruppen werden bei jeder Anmeldung dieser Benutzer vom Identitätsanbieter zurückgesetzt."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",

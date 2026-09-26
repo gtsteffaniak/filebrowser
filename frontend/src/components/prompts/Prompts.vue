@@ -96,6 +96,7 @@ import SidebarLinks from "./SidebarLinks.vue";
 import IconPicker from "./IconPicker.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
+import GroupEdit from "./GroupEdit.vue";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
@@ -124,6 +125,7 @@ export default {
   name: "Prompts",
   components: {
     UserEdit,
+    GroupEdit,
     Info,
     Delete,
     Rename,
@@ -318,6 +320,8 @@ export default {
       // convert to lowercase
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
+        case "group-edit":
+          return this.$t("access.editGroup");
         case "user-edit":
           return this.$t("settings.modifyOtherUser");
         case "delete":

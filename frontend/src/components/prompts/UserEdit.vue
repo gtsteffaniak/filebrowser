@@ -136,6 +136,30 @@
         />
       </div>
 
+      <div v-if="stateUser.permissions.admin" class="user-groups">
+        <label for="user-group-input">{{ $t("access.userGroups") }}</label>
+        <div class="group-chips">
+          <span v-for="group in groups" :key="group" class="group-chip">
+            {{ group }}
+            <button type="button" class="chip-remove" :aria-label="$t('access.removeGroup')"
+              :title="$t('access.removeGroup')" @click="removeGroup(group)">
+              <i class="material-symbols material-size">close</i>
+            </button>
+          </span>
+        </div>
+        <div class="form-flex-group">
+          <input id="user-group-input" class="input form-form flat-right" type="text" list="user-group-options"
+            v-model.trim="newGroup" :placeholder="$t('access.addGroupPlaceholder')" @keydown.enter.prevent="addGroup" />
+          <datalist id="user-group-options">
+            <option v-for="g in suggestedGroups" :key="g" :value="g"></option>
+          </datalist>
+          <button type="button" class="button form-button flat-left" :disabled="!newGroup" @click="addGroup">
+            {{ $t("access.addGroup") }}
+          </button>
+        </div>
+        <p v-if="user.loginMethod === 'oidc'" class="group-note">{{ $t("access.groupsOidcNote") }}</p>
+      </div>
+
       <UserDefaultsAccountSection
         v-if="stateUser.permissions.admin && loaded"
         :enforceable="false"
@@ -178,7 +202,7 @@
 
 <script>
 import { mutations, state } from "@/store";
-import { usersApi, settingsApi, authApi } from "@/api";
+import { usersApi, settingsApi, authApi, accessApi } from "@/api";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -277,6 +301,11 @@ export default {
       pendingScopeSelectionContextId: null,
       pendingScopeSourceName: null,
       addingPasskey: false,
+      groups: [],
+      createdUser: false,
+      originalGroups: [],
+      allGroups: [],
+      newGroup: "",
       sourceFilePermissionDefaults: null,
       editAccount: {
         lockPassword: false,
@@ -295,6 +324,7 @@ export default {
     await mutations.syncEnforcedUserDefaults();
     await this.fetchData();
     await this.initializeForm();
+    await this.loadGroups();
   },
   mounted() {
     eventBus.on("pathSelected", this.onPathSelectedFromPicker);
@@ -310,6 +340,9 @@ export default {
     },
     settings() {
       return state.settings;
+    },
+    suggestedGroups() {
+      return this.allGroups.filter((g) => !this.groups.includes(g));
     },
     isNew() {
       return !this.targetUsername;
@@ -891,6 +924,71 @@ export default {
         },
       });
     },
+    async loadGroups() {
+      if (!state.user.permissions.admin) return;
+      try {
+        this.allGroups = (await accessApi.getGroups()).groups || [];
+        if (!this.isNew) {
+          this.groups = (await accessApi.getUserGroups(this.user.username)).groups || [];
+          this.originalGroups = [...this.groups];
+        }
+      } catch (e) {
+        notify.showError(e);
+      }
+    },
+    addGroup() {
+      const name = this.newGroup;
+      if (!name) return;
+      this.newGroup = "";
+      if (this.groups.includes(name)) return;
+      if (this.allGroups.includes(name)) {
+        this.groups.push(name);
+        return;
+      }
+      // Unknown group: ask before creating it (it is created when the user is saved).
+      const el = document.createElement("div");
+      el.textContent = name;
+      mutations.showPrompt({
+        name: "generic",
+        props: {
+          title: this.$t("access.addGroup"),
+          // Generic renders body via v-html, so the name is escaped.
+          body: this.$t("access.createGroupConfirm", { name: el.innerHTML }),
+          buttons: [
+            {
+              label: this.$t("general.cancel"),
+              className: "button--grey",
+              action: () => mutations.closeTopPrompt(),
+            },
+            {
+              label: this.$t("general.create"),
+              action: () => {
+                this.groups.push(name);
+                this.allGroups.push(name);
+                mutations.closeTopPrompt();
+              },
+            },
+          ],
+        },
+      });
+    },
+    removeGroup(group) {
+      this.groups = this.groups.filter((g) => g !== group);
+    },
+    async saveGroups(username) {
+      if (!state.user.permissions.admin) return;
+      const toAdd = this.groups.filter((g) => !this.originalGroups.includes(g));
+      const toRemove = this.originalGroups.filter((g) => !this.groups.includes(g));
+      // Record each change as it succeeds so a retry after a partial failure only redoes what is pending.
+      for (const group of toAdd) {
+        await accessApi.addUserToGroup(group, username);
+        this.originalGroups.push(group);
+      }
+      for (const group of toRemove) {
+        await accessApi.removeUserFromGroup(group, username);
+        this.originalGroups = this.originalGroups.filter((g) => g !== group);
+      }
+    },
     async save(event) {
       event.preventDefault();
       try {
@@ -910,12 +1008,17 @@ export default {
             notify.showError(this.$t("settings.userNotAdmin"));
             return;
           }
-          await usersApi.create(
-            payload,
-            {
-              actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
-            }
-          );
+          // Skip creation on a retry after the user was created but a group change failed.
+          if (!this.createdUser) {
+            await usersApi.create(
+              payload,
+              {
+                actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+              }
+            );
+            this.createdUser = true;
+          }
+          await this.saveGroups(payload.username);
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the prompt
@@ -923,10 +1026,14 @@ export default {
         } else {
           const fields = this.computeChangedFields();
           if (fields.length === 0) {
+            // Group membership is saved separately from the user fields.
+            await this.saveGroups(payload.username);
+            eventBus.emit('usersChanged');
             mutations.closeTopPrompt();
             return;
           }
           await usersApi.update(payload, fields);
+          await this.saveGroups(payload.username);
           if (payload.username === state.user.username) {
             await validateLogin();
           }
@@ -1112,6 +1219,36 @@ export default {
 </script>
 
 <style scoped>
+.user-groups {
+  padding-bottom: 1em;
+}
+.group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin: 0.4em 0;
+}
+.group-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  padding: 0.1em 0.3em 0.1em 0.7em;
+  border-radius: 1em;
+  background: var(--surfaceSecondary, rgba(128, 128, 128, 0.2));
+}
+.chip-remove {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.group-note {
+  opacity: 0.75;
+  margin: 0.4em 0 0;
+}
 label + .form-flex-group {
   margin-top: 0.35em;
 }

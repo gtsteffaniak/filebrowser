@@ -739,7 +739,22 @@
     "defaultBehavior": "Ação por defeito{suffix}",
     "deletedCascade": "Regras de acesso eliminadas do caminho e de todos os subcaminhos!",
     "cascadeDelete": "Eliminação recursiva",
-    "cascadeDeleteDescription": "Quando activada, a eliminação de uma regra de acesso também a removerá de todos os subdirectórios. Isto permite-lhe remover completamente um utilizador ou grupo de toda a árvore de diretórios."
+    "cascadeDeleteDescription": "Quando activada, a eliminação de uma regra de acesso também a removerá de todos os subdirectórios. Isto permite-lhe remover completamente um utilizador ou grupo de toda a árvore de diretórios.",
+    "groups": "Grupos",
+    "newGroup": "Novo grupo",
+    "editGroup": "Editar grupo",
+    "groupName": "Nome do grupo",
+    "userGroups": "Grupos",
+    "addGroup": "Adicionar grupo",
+    "createGroupConfirm": "O grupo \"{name}\" não existe. Criá-lo?",
+    "addGroupPlaceholder": "Nome do grupo",
+    "removeGroup": "Remover do grupo",
+    "groupMembers": "Membros",
+    "enterUsername": "Introduza o nome de utilizador",
+    "addMember": "Adicionar membro",
+    "unknownUser": "Não existe nenhum utilizador com o nome \"{name}\"",
+    "deleteGroupConfirm": "Eliminar o grupo \"{name}\"? Também será removido de todas as regras de acesso.",
+    "groupsOidcNote": "Os membros dos grupos sincronizados por OIDC são repostos a partir do fornecedor de identidade sempre que esses utilizadores iniciam sessão."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",

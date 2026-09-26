@@ -739,7 +739,22 @@
     "defaultBehavior": "Standaardactie{suffix}",
     "deletedCascade": "Toegangsregels verwijderd van pad en alle subpaden!",
     "cascadeDelete": "Recursief verwijderen",
-    "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kun je een gebruiker of groep volledig verwijderen uit de hele mappenstructuur."
+    "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kun je een gebruiker of groep volledig verwijderen uit de hele mappenstructuur.",
+    "groups": "Groepen",
+    "newGroup": "Nieuwe groep",
+    "editGroup": "Groep bewerken",
+    "groupName": "Groepsnaam",
+    "userGroups": "Groepen",
+    "addGroup": "Groep toevoegen",
+    "createGroupConfirm": "De groep \"{name}\" bestaat niet. Aanmaken?",
+    "addGroupPlaceholder": "Groepsnaam",
+    "removeGroup": "Uit groep verwijderen",
+    "groupMembers": "Leden",
+    "enterUsername": "Voer gebruikersnaam in",
+    "addMember": "Lid toevoegen",
+    "unknownUser": "Geen gebruiker met de naam \"{name}\"",
+    "deleteGroupConfirm": "Groep \"{name}\" verwijderen? Deze wordt ook uit alle toegangsregels verwijderd.",
+    "groupsOidcNote": "Leden van OIDC-gesynchroniseerde groepen worden bij elke aanmelding van die gebruikers opnieuw ingesteld vanuit de identiteitsprovider."
   },
   "editor": {
     "uninitialized": "Het is niet gelukt de editor te initialiseren. Gelieve opnieuw te laden.",

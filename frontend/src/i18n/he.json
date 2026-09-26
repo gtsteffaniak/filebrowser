@@ -639,7 +639,22 @@
     "defaultBehavior": "פעולה ברירת מחדל{suffix}",
     "deletedCascade": "כללי הגישה נמחקו מהנתיב ומכל הנתיבים המשניים!",
     "cascadeDelete": "מחיקה רקורסיבית",
-    "cascadeDeleteDescription": "כאשר אפשרות זו מופעלת, מחיקת כלל גישה תסיר אותו גם מכל הספריות המשנה. כך תוכל להסיר משתמש או קבוצה לחלוטין מכל עץ הספריות."
+    "cascadeDeleteDescription": "כאשר אפשרות זו מופעלת, מחיקת כלל גישה תסיר אותו גם מכל הספריות המשנה. כך תוכל להסיר משתמש או קבוצה לחלוטין מכל עץ הספריות.",
+    "groups": "קבוצות",
+    "newGroup": "קבוצה חדשה",
+    "editGroup": "עריכת קבוצה",
+    "groupName": "שם הקבוצה",
+    "userGroups": "קבוצות",
+    "addGroup": "הוספת קבוצה",
+    "createGroupConfirm": "הקבוצה \"{name}\" אינה קיימת. ליצור אותה?",
+    "addGroupPlaceholder": "שם הקבוצה",
+    "removeGroup": "הסרה מהקבוצה",
+    "groupMembers": "חברים",
+    "enterUsername": "הזן שם משתמש",
+    "addMember": "הוספת חבר",
+    "unknownUser": "אין משתמש בשם \"{name}\"",
+    "deleteGroupConfirm": "למחוק את הקבוצה \"{name}\"? היא תוסר גם מכל כללי הגישה.",
+    "groupsOidcNote": "חברי קבוצות שמסונכרנות דרך OIDC מאופסים מספק הזהות בכל פעם שמשתמשים אלה מתחברים."
   },
   "fileLoading": {
     "title": "העלאות והורדות",

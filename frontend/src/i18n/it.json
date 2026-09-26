@@ -728,7 +728,22 @@
     "defaultBehavior": "Azione predefinita{suffix}",
     "defaultBehaviorDescription": "Cosa succede quando non esistono regole specifiche. 'Consenti' permette l'accesso, 'Nega' blocca tutto tranne gli esplicitamente autorizzati.",
     "cascadeDelete": "Eliminazione Ricorsiva",
-    "cascadeDeleteDescription": "Se abilitato, l'eliminazione di una regola rimuoverà anche quelle nelle sottodirectory."
+    "cascadeDeleteDescription": "Se abilitato, l'eliminazione di una regola rimuoverà anche quelle nelle sottodirectory.",
+    "groups": "Gruppi",
+    "newGroup": "Nuovo gruppo",
+    "editGroup": "Modifica gruppo",
+    "groupName": "Nome del gruppo",
+    "userGroups": "Gruppi",
+    "addGroup": "Aggiungi gruppo",
+    "createGroupConfirm": "Il gruppo \"{name}\" non esiste. Crearlo?",
+    "addGroupPlaceholder": "Nome del gruppo",
+    "removeGroup": "Rimuovi dal gruppo",
+    "groupMembers": "Membri",
+    "enterUsername": "Inserisci il nome utente",
+    "addMember": "Aggiungi membro",
+    "unknownUser": "Nessun utente chiamato \"{name}\"",
+    "deleteGroupConfirm": "Eliminare il gruppo \"{name}\"? Verrà rimosso anche da tutte le regole di accesso.",
+    "groupsOidcNote": "I membri dei gruppi sincronizzati tramite OIDC vengono reimpostati dal provider di identità a ogni accesso di tali utenti."
   },
   "fileLoading": {
     "title": "Caricamenti e Download",
