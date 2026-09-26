@@ -1,11 +1,10 @@
-
 /* Roboto Regular - Optimized for FileBrowser languages */
 @font-face {
   font-family: Roboto;
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: local('Roboto'), local('Roboto-Regular'), 
+  src: local('Roboto'), local('Roboto-Regular'),
        url("/fonts/roboto-normal-latin.woff2") format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
 }
@@ -43,7 +42,7 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: local('Roboto Medium'), local('Roboto-Medium'), 
+  src: local('Roboto Medium'), local('Roboto-Medium'),
        url("/fonts/roboto-medium-latin.woff2") format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
 }
@@ -81,7 +80,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: local('Roboto Bold'), local('Roboto-Bold'), 
+  src: local('Roboto Bold'), local('Roboto-Bold'),
        url("/fonts/roboto-bold-latin.woff2") format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
 }
@@ -145,7 +144,7 @@
   font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
   user-select: none;
-  transition: 0.25s ease;
+  transition: font-variation-settings 0.25s ease, color 0.25s ease;
 }
 
 .material-symbols {

@@ -410,7 +410,7 @@ export default {
       const result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
-      } else {  
+      } else {
         return "/"; // if searching on non-current source, search the whole thing
       }
     },
@@ -559,7 +559,7 @@ export default {
             : `case:exact ${searchTypesFull}${this.value}`;
       }
       this.ongoing++;
-      
+
       // Determine which sources to search
       let sourcesToSearch;
       if (this.selectedSource === "__all__" || this.selectedSource === "") {
@@ -569,10 +569,10 @@ export default {
         // Search single source
         sourcesToSearch = [this.selectedSource || state.sources.current];
       }
-      
+
       // Only pass scope if searching a single source
       const scope = sourcesToSearch.length === 1 ? this.getContext : null;
-      
+
       this.results = await toolsApi.search(
         scope,
         sourcesToSearch,
@@ -1054,7 +1054,7 @@ export default {
   text-align: left;
   color: rgb(0 0 0 / 60%);
   height: 0;
-  transition: 2s ease height, 2s ease padding, 2s ease width, 2s ease padding;
+  transition: height 2s ease, padding 2s ease;
   z-index: 3;
 }
 
@@ -1223,7 +1223,7 @@ body.rtl #search .boxes h3 {
     max-width: 100%;
   }
   .search-input-container {
-    transition: 1s ease all;
+    transition: height 1s ease, background-color 1s ease, box-shadow 1s ease;
   }
   #search.active .search-input-container {
     box-shadow: 0 0 10px rgb(0 0 0 / 10%);

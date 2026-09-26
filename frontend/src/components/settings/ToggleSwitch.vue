@@ -282,7 +282,7 @@ export default {
   left: 6px;
   bottom: 4px;
   background-color: white;
-  transition: 0.4s;
+  transition: transform 0.4s;
 }
 
 .switch--icon-mode .slider::before {
@@ -294,7 +294,7 @@ export default {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  transition: 0.4s;
+  transition: background-color 0.4s;
   background-color: gray;
 }
 

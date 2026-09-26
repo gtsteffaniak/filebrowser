@@ -812,7 +812,7 @@ export default {
   border-radius: 0.8em;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
   position: relative;
   z-index: 1;
   user-select: none;

@@ -70,7 +70,7 @@
  * * * * * * * * * * * * * * * */
 .action {
   cursor: pointer;
-  transition: 0.2s ease all;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
   border: 0;
   margin: 0;
   color: #546e7a;
@@ -89,7 +89,6 @@
 
 .action i {
   padding: 0.5em;
-  transition: 0.1s ease-in-out all;
   border-radius: 50%;
 }
 
@@ -243,7 +242,7 @@ button:hover {
   border: 0;
   margin: 0;
   padding: 0;
-  transition: 0.2s ease all;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 #previewer>button.hidden {

@@ -247,7 +247,6 @@ export default {
 <style>
 .scrollable {
   overflow: scroll !important;
-  /* Enable momentum scrolling in iOS */
 }
 
 .remove-padding-top {
@@ -256,10 +255,8 @@ export default {
 
 #main {
   overflow: unset;
-  /* Internet Explorer 10+ */
   scrollbar-width: none;
-  /* Firefox */
-  transition: 0.2s ease;
+  transition: padding-left 0.2s ease;
 }
 
 #main.moveWithSidebar {
@@ -272,7 +269,6 @@ export default {
 
 #main::-webkit-scrollbar {
   display: none;
-  /* Safari and Chrome */
 }
 
 #main>div {

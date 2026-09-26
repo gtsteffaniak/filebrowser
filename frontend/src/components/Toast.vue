@@ -54,7 +54,6 @@ export default {
   min-width: 250px;
   max-width: 500px;
   border: 1px solid rgb(0 0 0 / 5%);
-  transition: .1s ease all; /* Reuse button transition */
 }
 
 /* Toast Types - using existing color variables */
@@ -128,4 +127,3 @@ export default {
   }
 }
 </style>
-

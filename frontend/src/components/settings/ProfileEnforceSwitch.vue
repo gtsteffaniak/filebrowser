@@ -100,7 +100,7 @@ export default {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  transition: 0.4s;
+  transition: background-color 0.4s;
   background-color: gray;
 }
 
@@ -112,7 +112,7 @@ export default {
   left: 6px;
   bottom: 4px;
   background-color: white;
-  transition: 0.4s;
+  transition: transform 0.4s;
 }
 
 input:checked + .slider {

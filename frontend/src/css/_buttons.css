@@ -9,7 +9,7 @@
   background: var(--primaryColor);
   color: white;
   box-shadow: 0 0 5px rgb(0 0 0 / 5%);
-  transition: .1s ease all;
+  transition: transform 0.1s ease, opacity 0.1s ease, background-color 0.1s ease;
   min-width: 2em;
   min-height: 2em;
   padding-left: 1em;

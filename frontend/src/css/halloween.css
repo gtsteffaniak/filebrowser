@@ -474,7 +474,7 @@ body.halloween-theme,
     font-weight: bold;
     text-shadow: 0 0 10px rgb(255 140 0 / 80%);
     box-shadow: 0 4px 20px rgb(255 140 0 / 50%) !important;
-    transition: all 0.3s ease;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, text-shadow 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .halloween-theme .login-card.tombstone .button:hover {

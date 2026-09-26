@@ -97,7 +97,7 @@ export default {
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       subtitlesList: [],
       lyrics: [],
-      lyricsFetchedForPath: null, 
+      lyricsFetchedForPath: null,
       isDeleted: false,
       tapTimeout: null,
       avMetadataLoading: false,
@@ -707,7 +707,7 @@ export default {
   justify-content: center;
   background: var(--background);
   z-index: 10000;
-  transition: 0.1s ease opacity;
+  transition: opacity 0.1s ease;
 }
 
 .transition-loading .spinner {

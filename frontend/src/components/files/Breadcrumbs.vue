@@ -160,7 +160,7 @@ export default {
       if (event.currentTarget.contains(event.relatedTarget)) {
         return;
       }
-      
+
       if (this.dragOverItem?.path === link.path ||
           (this.dragOverItem?.type === 'home' && link.type === 'home')) {
         this.clearDragState();
@@ -364,7 +364,8 @@ export default {
   border-radius: 0;
   align-content: center;
   align-items: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, padding-left 0.2s ease,
+    padding-right 0.2s ease, margin-right 0.2s ease, border-radius 0.2s ease, clip-path 0.2s ease;
   user-select: none;
   white-space: nowrap;
   max-width: 90vw;

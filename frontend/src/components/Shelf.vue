@@ -8,7 +8,7 @@
     >
       <breadcrumbs v-if="showBreadcrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
       <listing-header v-if="showListingHeader" :hasDuration="hasDuration" />
-      <duplicate-finder-actions 
+      <duplicate-finder-actions
         v-if="showDuplicateFinderActions"
         :selectedCount="duplicateFinderSelectedCount"
         :deleting="duplicateFinderDeleting"
@@ -77,7 +77,7 @@ export default {
     hasDuration() {
       // Check if any file has duration metadata
       if (!state.req?.items) return false;
-      return state.req.items.some(item => 
+      return state.req.items.some(item =>
         item.type !== 'directory' && item.metadata?.duration
       );
     },
@@ -103,7 +103,7 @@ export default {
   },
   beforeUnmount() {
     this.detachScrollListener();
-    
+
     // Clean up event bus listeners
     eventBus.off('duplicateFinderSelectionChanged', this.handleDuplicateFinderSelectionChanged);
     eventBus.off('duplicateFinderDeletingChanged', this.handleDuplicateFinderDeletingChanged);
@@ -149,10 +149,10 @@ export default {
     handleScroll(event) {
       // Use requestAnimationFrame to throttle updates (like Scrollbar component)
       if (this.scrollFrame) return;
-      
+
       this.scrollFrame = requestAnimationFrame(() => {
         const scrollTop = event.target.scrollTop;
-        
+
         // Always show when at the top
         if (scrollTop <= 10) {
           this.isHidden = false;
@@ -183,7 +183,7 @@ export default {
         this.scrollFrame = null;
       });
     },
-    
+
     // Duplicate finder event handlers
     handleDuplicateFinderSelectionChanged(count) {
       this.duplicateFinderSelectedCount = count;
@@ -209,7 +209,7 @@ export default {
   z-index: 1000;
   right: 0;
   left: 0;
-  transition: 0.2s ease;
+  transition: left 0.2s ease;
   box-sizing: border-box;
   height: auto;
   min-height: 0;

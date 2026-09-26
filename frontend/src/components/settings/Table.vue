@@ -416,7 +416,7 @@ body.rtl .settings-table tr > *:last-child {
   user-select: none;
   position: relative;
   padding-inline-end: 1.75em;
-  transition: 0.1s ease all;
+  transition: background 0.1s ease;
 }
 
 .settings-table--loading thead th.settings-table__th {

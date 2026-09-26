@@ -240,7 +240,7 @@ i {
   vertical-align: middle;
   margin-left: .2em;
   opacity: 0;
-  transition: .1s ease all;
+  transition: opacity 0.1s ease;
   flex-shrink: 0;
 }
 

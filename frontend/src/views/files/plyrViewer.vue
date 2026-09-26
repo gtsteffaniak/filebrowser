@@ -671,7 +671,7 @@ export default {
     },
     mediaElement() {
       return this.previewType === 'video'
-        ? this.$refs.videoElement 
+        ? this.$refs.videoElement
         : this.$refs.audioElement;
     },
     shouldAutoplay() {
@@ -1117,7 +1117,7 @@ export default {
           const closed = context.close();
           if (closed?.catch) closed.catch(() => {});
         } catch (_) {
-          /* ignore */ 
+          /* ignore */
         }
         this.audioContext = null;
       }
@@ -1429,12 +1429,12 @@ export default {
       // This prevents Plyr from trying to access tracks before they have valid blob URLs
       const hasSubtitleMetadata = this.req?.subtitles?.length > 0;
       const subtitlesNotLoaded = !this.subtitlesList || this.subtitlesList.length === 0;
-      
+
       if (this.previewType === 'video' && hasSubtitleMetadata && subtitlesNotLoaded) {
         // Wait for subtitles to be loaded (watcher will call initializePlyr)
         return;
       }
-      
+
       this.initializePlyr();
     },
     initializePlyr() {
@@ -1632,7 +1632,7 @@ export default {
               el.addEventListener('canplay', onCanPlay, { once: true });
             }
           }
-          
+
           const startDefault = () => {
             this.clearAttachVideoStreamWait();
             this.applyQueryPlaybackSeek();
@@ -3214,7 +3214,7 @@ export default {
 
 /* Transitions (e.g. how much time take to hide the player UI) */
 .plyr .plyr__control {
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
   display: flex;
   min-width: 2em;
