@@ -48,10 +48,12 @@ export async function createArchive(opts) {
  * @param {string} [opts.toSource] - Source to extract to (default: fromSource)
  * @param {string} opts.path - Archive file path
  * @param {string} opts.destination - Directory path to extract into
+ * @param {string} [opts.filenameEncoding] - Fallback encoding for ZIP filenames
+ * @param {boolean} [opts.preview] - Inspect ZIP filenames without extracting
  * @param {boolean} [opts.deleteAfter] - Delete archive after successful extract
  */
 export async function unarchive(opts) {
-  const { fromSource, toSource, path, destination, deleteAfter } = opts;
+  const { fromSource, toSource, path, destination, deleteAfter, filenameEncoding, preview } = opts;
   if (!fromSource || !path || !destination) {
     throw new Error("fromSource, path, and destination are required");
   }
@@ -60,7 +62,9 @@ export async function unarchive(opts) {
     ...(toSource && toSource !== fromSource && { toSource }),
     path,
     destination,
-    ...(deleteAfter && { deleteAfter: true }),
+    ...(filenameEncoding && { filenameEncoding }),
+    ...(preview && { preview: true }),
+    ...(!preview && deleteAfter && { deleteAfter: true }),
   };
   try {
     const apiPath = getApiPath("resources/unarchive");

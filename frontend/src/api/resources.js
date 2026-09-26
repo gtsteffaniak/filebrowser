@@ -1184,32 +1184,8 @@ export async function createArchive(opts) {
   }
 }
 
-// POST /api/resources/unarchive - Extract an archive
-export async function unarchive(opts) {
-  const { fromSource, toSource, path, destination, deleteAfter } = opts;
-  if (!fromSource || !path || !destination) {
-    throw new Error("fromSource, path, and destination are required");
-  }
-  const body = {
-    fromSource,
-    ...(toSource && toSource !== fromSource && { toSource }),
-    path,
-    destination,
-    ...(deleteAfter && { deleteAfter: true }),
-  };
-  try {
-    const apiPath = getApiPath("resources/unarchive");
-    const response = await fetchURL(apiPath, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    return response.json();
-  } catch (err) {
-    notify.showError(err.message || "Error extracting archive");
-    throw err;
-  }
-}
+// Shared extraction client, including ZIP filename previews.
+export { unarchive } from "./archive";
 
 // ============================================================================
 // PUBLIC API ENDPOINTS (hash-based authentication)

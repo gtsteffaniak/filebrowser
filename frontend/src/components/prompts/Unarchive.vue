@@ -25,6 +25,32 @@
         >
           {{ $t("general.path", { suffix: ":" }) }} {{ destPath }}{{ destSource ? ` (${destSource})` : "" }}
         </div>
+        <section v-if="isZip" class="encoding-options" aria-live="polite">
+          <label for="zip-filename-encoding" class="prompts-label">{{ $t("prompts.zipFilenameEncoding") }}</label>
+          <p v-if="encodingLoading">{{ $t("prompts.zipEncodingLoading") }}</p>
+          <template v-else-if="encodingError">
+            <p role="alert">{{ $t("prompts.zipEncodingError") }}</p>
+            <button type="button" class="button button--flat" @click="loadEncodingPreview">
+              {{ $t("prompts.zipEncodingRetry") }}
+            </button>
+          </template>
+          <template v-else>
+            <select id="zip-filename-encoding" class="input" v-model="filenameEncoding">
+              <option disabled value="">{{ $t("prompts.zipEncodingChoose") }}</option>
+              <option v-for="candidate in encodingCandidates" :key="candidate.encoding" :value="candidate.encoding">
+                {{ candidate.encoding }}{{ candidate.encoding === suggestedEncoding ? ` (${$t("prompts.zipEncodingSuggested")})` : "" }}
+              </option>
+            </select>
+            <p>{{ $t("prompts.zipEncodingHint") }}</p>
+            <template v-if="filenamePreview.length">
+              <p class="prompts-label">{{ $t("prompts.zipFilenamePreview") }}</p>
+              <ul class="filename-preview">
+                <li v-for="(name, index) in filenamePreview" :key="index">{{ name }}</li>
+              </ul>
+            </template>
+            <p v-else-if="!encodingCandidates.length" role="alert">{{ $t("prompts.zipEncodingUnavailable") }}</p>
+          </template>
+        </section>
         <div class="unarchive-options settings-items">
           <ToggleSwitch class="item" v-model="deleteAfter" 
             :name="$t('profileSettings.deleteAfterArchive')"
@@ -107,7 +133,7 @@
       <button
         type="button"
         class="button button--flat"
-        :disabled="!destPath || !isDirSelection || isLoading"
+        :disabled="!destPath || !isDirSelection || isLoading || !encodingReady"
         :aria-label="$t('prompts.unarchive')"
         :title="$t('prompts.unarchive')"
         @click="submit"
@@ -144,6 +170,11 @@ export default {
       destType: null,
       deleteAfter: state.user?.deleteAfterArchive === true,
       isLoading: false,
+      encodingLoading: true,
+      encodingError: false,
+      encodingCandidates: [],
+      filenameEncoding: "",
+      suggestedEncoding: "",
       showFileList: false,
       showNewDirInput: false,
       newDirName: "",
@@ -164,8 +195,18 @@ export default {
   mounted() {
     this.destPath = this.parentPath || "/";
     this.destSource = this.itemSource;
+    if (this.isZip) void this.loadEncodingPreview();
   },
   computed: {
+    isZip() {
+      return (this.itemPath || "").toLowerCase().endsWith(".zip");
+    },
+    encodingReady() {
+      return !this.isZip || (!this.encodingLoading && !this.encodingError && !!this.filenameEncoding);
+    },
+    filenamePreview() {
+      return this.encodingCandidates.find((candidate) => candidate.encoding === this.filenameEncoding)?.names || [];
+    },
     itemSource() {
       return this.item.source || this.item.fromSource;
     },
@@ -195,6 +236,27 @@ export default {
     },
   },
   methods: {
+    async loadEncodingPreview() {
+      this.encodingLoading = true;
+      this.encodingError = false;
+      this.filenameEncoding = "";
+      try {
+        const result = await resourcesApi.unarchive({
+          fromSource: this.itemSource,
+          toSource: this.destSource || this.itemSource,
+          path: this.itemPath,
+          destination: this.destPath,
+          preview: true,
+        });
+        this.encodingCandidates = result.candidates;
+        this.suggestedEncoding = result.suggested;
+        this.filenameEncoding = result.suggested;
+      } catch {
+        this.encodingError = true;
+      } finally {
+        this.encodingLoading = false;
+      }
+    },
     closeTopPrompt() {
       mutations.closeTopPrompt();
     },
@@ -263,7 +325,7 @@ export default {
       }
     },
     async submit() {
-      if (!this.destPath || !this.isDirSelection) return;
+      if (!this.destPath || !this.isDirSelection || !this.encodingReady || this.isLoading) return;
       this.isLoading = true;
       try {
         const toSource = this.destSource || this.itemSource;
@@ -273,6 +335,7 @@ export default {
           path: this.itemPath,
           destination: this.destPath,
           deleteAfter: this.deleteAfter,
+          ...(this.isZip && { filenameEncoding: this.filenameEncoding }),
         });
         mutations.setReload(true);
         mutations.closeTopPrompt();
@@ -303,6 +366,9 @@ export default {
 </script>
 
 <style scoped>
+.encoding-options { margin-top: 1em; }
+.encoding-options label { display: block; }
+.filename-preview { max-height: 10em; overflow: auto; overflow-wrap: anywhere; }
 .loading-content {
   text-align: center;
   display: flex;
