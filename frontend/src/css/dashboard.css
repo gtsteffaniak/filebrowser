@@ -2,49 +2,12 @@
   margin: 1em;
 }
 
-.dashboard .row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-body.rtl .dashboard .row {
-  margin-right: 16em;
-}
-
-.dashboard .row .column {
-  display: flex;
-  padding: 0 .5em;
-  width: 50%;
-}
-
-.dashboard .row .column .card {
-  flex-grow: 1;
-}
-
-@media(max-width: 1200px) {
-  .dashboard .row .column {
-    width: 100%;
-  }
-}
-
-a {
-  color: inherit
-}
-
-.dashboard p label {
-  margin-bottom: .2em;
-  display: block;
-  font-size: .8em;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.57);
-}
-
-li code,
-p code {
-  background: rgba(0, 0, 0, 0.05);
-  padding: .1em;
-  border-radius: .2em;
+.card {
+  position: relative;
+  margin: 0 0 1rem;
+  background-color: var(--surfacePrimary);
+  box-shadow: 0 2px 2px 0 rgb(0 0 0 / 14%), 0 1px 5px 0 rgb(0 0 0 / 12%), 0 3px 1px -2px rgb(0 0 0 / 20%);
+  border-radius: 1em;
 }
 
 .small {
@@ -52,67 +15,14 @@ p code {
   line-height: 1.5;
 }
 
-.dashboard #nav {
-  display: flex;
-  padding-bottom: 1em;
-  overflow: auto;
-}
-
-.dashboard #nav .wrapper {
-  display: flex;
-  flex-grow: 1;
-  justify-content: center;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
-}
-
 body.rtl #nav .wrapper {
   margin-right: 16em;
 }
 
-.dashboard #nav ul {
-  list-style: none;
-  display: flex;
-  color: rgb(84, 110, 122);
-  font-weight: 500;
+.help ul {
   padding: 0;
-  margin: 0 0 -2px 0;
-  font-size: .8em;
-  text-align: center;
-  justify-content: left;
-}
-
-.dashboard #nav ul li {
-  position: relative;
-  padding: 1.5em 2em;
-  white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  transition: .1s ease-in-out all;
-
-}
-
-.dashboard #nav ul li:hover {
-  background: var(--moon-grey);
-}
-
-.dashboard #nav ul li.active {
-  border-color: var(--primaryColor);
-  color: var(--primaryColor);
-}
-
-.dashboard #nav ul li.active::before {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  content: "";
-  background: var(--primaryColor);
-  opacity: 0.08;
-}
-
-.dashboard #nav i {
-  font-size: 1em;
-  vertical-align: middle;
+  margin: 1em 0;
+  list-style: none;
 }
 
 table {
@@ -147,23 +57,15 @@ table tr>*:first-child {
   padding-left: 1em;
 }
 
+table tr>*:last-child {
+  padding-right: 1em;
+}
+
 body.rtl table tr>* {
   padding-left: unset;
   padding-right: 1em;
   text-align: right;
   direction: ltr;
-}
-
-table tr>*:last-child {
-  padding-right: 1em;
-}
-
-.card {
-  position: relative;
-  margin: 0 0 1rem 0;
-  background-color: var(--surfacePrimary);
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
-  border-radius: 1em;
 }
 
 .card>*>*:first-child {
@@ -187,16 +89,6 @@ body.rtl .card-title>*:first-child {
   text-align: right;
 }
 
-/* Regular card styles (non-floating) */
-.card .card-action {
-  text-align: right;
-}
-
-.card-content.full {
-  padding-bottom: 0;
-  overflow: auto;
-}
-
 .card-content h3 {
   text-align: center;
 }
@@ -208,26 +100,17 @@ body.rtl .card-title>*:first-child {
 .card h3 {
   font-size: 1em;
   font-weight: 500;
-  margin: 1em 0 1em;
+  margin: 1em 0;
 }
-
-.card code {
-  word-wrap: break-word;
-}
-
-.card#download {
-  max-width: 15em;
-}
-
 
 .help {
   max-width: 24em;
 }
 
-.help ul {
-  padding: 0;
-  margin: 1em 0;
-  list-style: none;
+/*** RTL - Fix disk usage information (in english) ***/
+body.rtl .credits {
+  text-align: right;
+  direction: ltr;
 }
 
 @keyframes show {
@@ -245,112 +128,12 @@ body.rtl .card-title>*:first-child {
   }
 }
 
-.collapsible {
-  border-top: 1px solid rgba(0,0,0,0.1);
-}
-
-.collapsible:last-of-type {
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-
-.collapsible > input {
-  display: none;
-}
-
-.collapsible > label {
-  padding: 1em 0;
-  cursor: pointer;
-  border-right: 0;
-  border-left: 0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.collapsible > label * {
-  margin: 0;
-  color: rgba(0,0,0,0.57);
-}
-
-.collapsible > label i {
-  transition: .2s ease transform;
-  user-select: none;
-}
-
-.collapsible .collapse {
-  max-height: 0;
-  overflow: hidden;
-  transition: .2s ease all;
-}
-
-.collapsible > input:checked ~ .collapse {
-  padding-top: 1em;
-  padding-bottom: 1em;
-  max-height: 20em;
-}
-
-.collapsible > input:checked ~ label i {
-  transform: rotate(180deg)
-}
-
-.card .collapsible {
-  width: calc(100% + 2em);
-  margin: 0 -1em;
-}
-
-.card .collapsible > label {
-  padding: 1em;
-}
-
-.card .collapsible .collapse {
-  padding: 0 1em;
-}
-
-.card .card-action.full {
-  padding-top: 0;
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.card .card-action.full .action {
-  flex: 1;
-  padding: 2em;
-  border-radius: 1em;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.card .card-action.full .action {
-  margin: 0 0.25em 0.50em;
-}
-
-.card .card-action.full .action i {
-  display: block;
-  padding: 0;
-  margin-bottom: 0.25em;
-  font-size: 4em;
-}
-
-.card .card-action.full .action .title {
-  font-size: 1.5em;
-  font-weight: 500;
-}
-
-/*** RTL - Fix disk usage information (in english) ***/
-body.rtl .credits {
-  text-align: right;
-  direction: ltr;
-}
-
 .overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgb(0 0 0 / 50%);
   position: fixed;
   height: 100%;
   width: 100%;
   z-index: 4;
   top: 0;
   animation: .3s show ease-in;
-}
-
-.card.padding-normal {
-  padding: 1em;
 }

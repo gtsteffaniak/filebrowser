@@ -71,18 +71,18 @@ export default {
   overflow: hidden;
 }
 
-.yaml-editor-panel--fill .yaml-editor-host {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
 .yaml-editor-host {
   position: relative;
   width: 100%;
   height: 20rem;
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--divider);
   border-radius: 0.5em;
   overflow: hidden;
+}
+
+.yaml-editor-panel--fill .yaml-editor-host {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .yaml-error {

@@ -59,16 +59,10 @@ build-backend:
 	@echo "✓ Backend built successfully"
 
 # New dev target with hot-reloading for frontend and backend
+.NOTPARALLEL: dev
 dev: generate-docs generate-icons setup-gofitz-cgo
-	@echo "Starting dev servers... Press Ctrl+C to stop."
-	pkill -f '[t]est_config.yaml' || true
-	pkill -f '[a]ir -c .air' || true
-	@cd frontend && DEV_BUILD=true npm run watch & \
-	FRONTEND_PID=$$!; \
-	cd backend && export FILEBROWSER_DEVMODE=true && $(call backend_dev_tool,air) $$([ "$(OS)" = "Windows_NT" ] && echo "-c .air.windows.toml" || echo "") & \
-	BACKEND_PID=$$!; \
-	trap 'echo "Stopping..."; kill $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; sleep 1; kill -9 $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; exit 0' INT TERM; \
-	wait $$FRONTEND_PID $$BACKEND_PID 2>/dev/null || true
+	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
+	bash ./scripts/dev.sh
 
 run: build-frontend generate-docs setup-gofitz-cgo
 	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
@@ -99,6 +93,7 @@ build-frontend:
 
 lint-frontend:
 	cd frontend && npm run lint
+	cd frontend && npm run lint:css
 
 lint-backend:
 	cd backend && GOLANGCI_LINT="$$(cd $(BACKEND_BUILD) && go tool -n golangci-lint)" && "$$GOLANGCI_LINT" run --path-prefix=backend

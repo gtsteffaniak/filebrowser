@@ -15,6 +15,8 @@
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
     "lint": "eslint --ext .js,.vue,.ts src/",
     "lint:fix": "eslint --fix --ext .js,.vue,.ts src/",
+    "lint:css": "stylelint \"src/**/*.{css,vue}\"",
+    "lint:css:fix": "stylelint --fix \"src/**/*.{css,vue}\"",
     "i18n:sync": "node ./scripts/sync-translations.js",
     "i18n:check": "node ./scripts/sync-translations.js --check",
     "i18n:enforce-order": "node scripts/sync-translations.js --enforce-order",
@@ -27,9 +29,7 @@
   "dependencies": {
     "@onlyoffice/document-editor-vue": "^1.4.0",
     "ace-builds": "^1.24.2",
-    "axios": "^1.13.5",
     "chart.js": "^4.5.1",
-    "css-vars-ponyfill": "^2.4.3",
     "dompurify": "^3.2.4",
     "epubjs": "^0.3.93",
     "highlight.js": "^11.11.1",
@@ -41,16 +41,21 @@
     "normalize.css": "^8.0.1",
     "plyr": "^3.8.4",
     "qrcode.vue": "^3.4.1",
-    "srt-support-for-html5-videos": "^2.6.11",
     "three": "^0.182.0",
     "vue": "^3.4.21",
     "vue-i18n": "^11.4.4",
     "vue-router": "^4.3.0"
   },
   "overrides": {
-    "minimatch": "^10.2.1",
-    "@xmldom/xmldom": "^0.8.12",
-    "adm-zip": "^0.6.0"
+    "minimatch": "^10.2.6",
+    "@xmldom/xmldom": "^0.9.12",
+    "adm-zip": "^0.6.1",
+    "@intlify/vue-i18n-extensions": {
+      "vue-i18n": "$vue-i18n"
+    },
+    "@intlify/eslint-plugin-vue-i18n": {
+      "glob": "^13.0.0"
+    }
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -67,6 +72,9 @@
     "fs-extra": "^11.3.0",
     "globals": "^17.6.0",
     "jsdom": "^25.0.1",
+    "stylelint": "^17.15.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-config-standard-vue": "^2.0.0",
     "typescript": "^6.0.0",
     "typescript-eslint": "^8.59.4",
     "vite": "^6.2.0",

@@ -1,0 +1,23 @@
+/* `--background` is intentionally set here as a placeholder for stylelint */
+:root {
+  --background: #f5f5f5;
+  --alt-background: #ddd;
+  --surfacePrimary: #ebebeb;
+  --surfaceSecondary: lightgray;
+  --textPrimary: #546e7a;
+  --textSecondary: gray;
+  --iconBackground: #ddd;
+  --activeWhiteIcon: gray;
+}
+
+.dark-mode {
+  --background: #141D24;
+  --alt-background: #283136;
+  --surfacePrimary: #20292F;
+  --surfaceSecondary: #3A4147;
+  --divider: rgb(255 255 255 / 12%);
+  --textPrimary: rgb(255 255 255 / 87%);
+  --textSecondary: rgb(255 255 255 / 60%);
+  --iconBackground: #1e1f20;
+  --activeWhiteIcon: white;
+}

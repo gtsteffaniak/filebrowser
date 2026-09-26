@@ -745,7 +745,7 @@ export default {
   padding: 0.5em 1em;
   background: var(--primaryColor);
   color: white;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
   margin-bottom: 0 !important;
   box-sizing: border-box;
 }
@@ -857,7 +857,7 @@ export default {
 
 .searchContext.input {
   background-color: var(--primaryColor) !important;
-  border-radius: 0em !important;
+  border-radius: 0 !important;
   color: white;
   border: unset;
   width: 25%;
@@ -887,25 +887,28 @@ export default {
   margin: auto
 }
 
+#result-list {
+  scrollbar-width: none;
+  max-width: 95vw;
+}
+
 #results>#result-list {
   max-height: 80vh;
   width: 35em;
   overflow: scroll;
   padding-bottom: 1em;
-  -webkit-transition: width 0.3s ease 0s;
   transition: width 0.3s ease 0s;
   background-color: unset;
 }
 
 #results {
-  -webkit-animation: SlideDown 0.5s forwards;
-  animation: SlideDown 0.5s forwards;
+  animation: slide-down 0.5s forwards;
   border-radius: 1em;
   border-top: none;
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   border: var(--borderWidth) solid var(--surfaceSecondary);
-  box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2em 50px 10px rgb(0 0 0 / 30%);
   background-color: var(--surfacePrimary);
   max-height: 80vh;
   overflow: hidden;
@@ -923,12 +926,11 @@ export default {
 }
 
 /* Animations */
-@keyframes SlideDown {
+@keyframes slide-down {
   0% {
     transform: translateY(-3em);
     opacity: 0;
   }
-
   100% {
     transform: translateY(0);
     opacity: 1;
@@ -943,12 +945,11 @@ export default {
   top: 0.5em;
   min-width: 35em;
   left: 50%;
-  -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
 }
 
 .search-input-container {
-  background-color: rgba(100, 100, 100, 0.2);
+  background-color: rgb(100 100 100 / 20%);
   display: flex;
   padding: 0.5em 0.75em;
   border-radius: 1em;
@@ -961,7 +962,7 @@ export default {
 
 .search-input-container .material-symbols {
   font-size: 1.25em;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(255 255 255 / 70%);
 }
 
 #search.active .search-input-container .material-symbols {
@@ -986,23 +987,19 @@ export default {
 }
 
 #search .search-input-container input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--divider) 50%, transparent);
 }
 
 #search.active .search-input-container input::placeholder {
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--textSecondary);
 }
 
 #search.dark-mode .search-input-container {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(255 255 255 / 10%);
 }
 
 #search.dark-mode .search-input-container input::placeholder {
   color: gray !important;
-}
-
-#search.dark-mode.active .search-input-container {
-  background-color: var(--background);
 }
 
 #search.active .search-input-container {
@@ -1015,6 +1012,10 @@ export default {
   border-width: var(--borderWidth);
 }
 
+#search.dark-mode.active .search-input-container {
+  background-color: var(--background);
+}
+
 #result-list p {
   margin: 1em;
 }
@@ -1022,13 +1023,6 @@ export default {
 /* Hiding scrollbar for Chrome, Safari and Opera */
 #result-list::-webkit-scrollbar {
   display: none;
-}
-
-/* Hiding scrollbar for IE, Edge and Firefox */
-#result-list {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  max-width: 95vw;
 }
 
 .search-entry:hover {
@@ -1058,23 +1052,19 @@ export default {
   flex-direction: column;
   align-items: center;
   text-align: left;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgb(0 0 0 / 60%);
   height: 0;
   transition: 2s ease height, 2s ease padding, 2s ease width, 2s ease padding;
   z-index: 3;
 }
 
 body.rtl #search #result {
-  direction: ltr;
+  direction: rtl;
+  text-align: right;
 }
 
 #search #result>div>*:first-child {
   margin-top: 0;
-}
-
-body.rtl #search #result {
-  direction: rtl;
-  text-align: right;
 }
 
 /* Search Results */
@@ -1103,22 +1093,6 @@ body.rtl #search #result ul>* {
 
 #search.ongoing #renew {
   display: block;
-}
-
-#search .search-input-container input::placeholder {
-  color: color-mix(in srgb, var(--divider) 50%, transparent);
-}
-
-#search.active .search-input-container input::placeholder {
-  color: var(--textSecondary);
-}
-
-#search.dark-mode .search-input-container {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-#search.dark-mode.active .search-input-container {
-  background-color: var(--background);
 }
 
 /* Search Boxes */
@@ -1157,6 +1131,7 @@ body.rtl #search .boxes h3 {
   padding: 1em;
   border-radius: 1em;
   text-align: center;
+  scrollbar-width: none;
 }
 
 /* Hiding scrollbar for Chrome, Safari and Opera */
@@ -1164,28 +1139,17 @@ body.rtl #search .boxes h3 {
   display: none;
 }
 
-/* Hiding scrollbar for IE, Edge and Firefox */
-.mobile-boxes {
-  scrollbar-width: none;
-  /* Firefox */
-  -ms-overflow-style: none;
-  /* IE and Edge */
-}
-
 .constraints {
   display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
-  align-content: center;
+  flex-flow: row wrap;
+  place-content: center center;
   margin: 1em;
-  justify-content: center;
 }
 
 .searchPrompt {
   display: flex;
   flex-direction: row;
-  align-content: center;
-  justify-content: center;
+  place-content: center center;
   align-items: center;
   gap: 0.5em;
 }
@@ -1245,12 +1209,11 @@ body.rtl #search .boxes h3 {
   min-width: 0;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   #search {
     min-width: unset;
     max-width: 60%;
   }
-
   #search.active {
     display: block;
     position: fixed;
@@ -1259,53 +1222,43 @@ body.rtl #search .boxes h3 {
     width: 100%;
     max-width: 100%;
   }
-
   .search-input-container {
     transition: 1s ease all;
   }
-
   #search.active .search-input-container {
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 10px rgb(0 0 0 / 10%);
     backdrop-filter: blur(6px);
     height: 4em;
     background: var(--surfacePrimary)
   }
-
   #search.active>div {
     border-radius: 0 !important;
   }
-
   #search.active #result {
     height: 100vh;
     padding-top: 0;
   }
-
+  .search-input-container>.action,
+  .search-input-container>i {
+    margin-right: 0.3em;
+    user-select: none;
+  }
   #search.active #result>p>i {
     text-align: center;
     margin: 0 auto;
     display: table;
   }
-
   #search.active #result ul li a {
     display: flex;
     align-items: center;
     padding: .3em 0;
     margin-right: .3em;
   }
-
-  .search-input-container>.action,
-  .search-input-container>i {
-    margin-right: 0.3em;
-    user-select: none;
-  }
-
   #result-list {
     width: 100vw !important;
     max-width: 100vw !important;
     left: 0;
     top: 4em;
-    -webkit-box-direction: normal;
-    -ms-flex-direction: column;
     overflow: scroll;
     display: flex;
     flex-direction: column;

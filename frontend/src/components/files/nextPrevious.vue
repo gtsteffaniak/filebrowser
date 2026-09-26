@@ -1125,12 +1125,11 @@ export default {
 }
 
 /* Mobile styles */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .nav-button {
     width: var(--fab-size-small);
     height: var(--fab-size-small);
   }
-
   .nav-button i.material-symbols {
     font-size: 20px;
   }
@@ -1138,7 +1137,7 @@ export default {
 }
 
 /* Ensure buttons don't interfere with scrollbars */
-@media (max-width: 480px) {
+@media (width <= 480px) {
   .nav-next {
     right: 8px;
   }

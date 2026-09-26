@@ -1,51 +1,46 @@
-@media (max-width: 768px) {
-  #listingView .header .name,
-  .list .listing-item .name,
-  .compact .listing-item .name {
+@media (width <= 768px) {
+  /* .name-related rules, ordered by ascending specificity */
+  .list .listing-item .name {
     width: 50%;
   }
-
-  .compact .listing-item div:first-of-type  {
-    width: unset !important;
-  }
-
-  .list .listing-item .text {
-    flex-direction: column;
-    align-items: flex-start !important;
+  .compact .listing-item .name {
+    width: 42%;
     padding-left: 0.5em;
-    width: 100%;
   }
-
   .list .listing-item .text .name,
   .list .listing-item .text .modified,
   .list .listing-item .text .size,
   .list .listing-item .text .duration {
     width: 100% !important;
   }
+  #listingView .header .name {
+    width: 50%;
+  }
 
+  /* Other mobile styles */
+  .compact .listing-item div:first-of-type {
+    width: unset !important;
+  }
+  .list .listing-item .text {
+    flex-direction: column;
+    align-items: flex-start !important;
+    padding-left: 0.5em;
+    width: 100%;
+  }
   .compact .listing-item .text .duration {
     display: none !important;
   }
-
-  .compact .listing-item .name {
-    width: 42%;
-    padding-left: 0.5em;
-  }
-
   body {
     padding-bottom: 5em;
   }
-
   #more {
-    display: inherit
+    display: inherit;
   }
-
   body.rtl #dropdown {
     right: unset;
     left: 1em;
     transform-origin: top left;
   }
-
   #listingView {
     margin-bottom: 5em;
   }
@@ -54,22 +49,18 @@
   #listingView.list .listing-item,
   #listingView.compact .listing-item,
   #listingView.normal .listing-item {
-    width: 100%
+    width: 100%;
   }
-
   .listing-items.list .pinned-indicator,
   .listing-items.compact .pinned-indicator {
     margin-right: 0.5em;
   }
-
   body.rtl #listingView {
     margin-right: unset;
   }
-
   body.rtl #nav .wrapper {
     margin-right: unset;
   }
-
   body.rtl .dashboard .row {
     margin-right: unset;
   }

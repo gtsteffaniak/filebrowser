@@ -158,6 +158,10 @@ export default {
   color: white !important;
 }
 
+.settings-icon {
+  font-size: 1.2em;
+}
+
 .active-settings .settings-icon,
 .settings-card:hover .material-symbols-outlined {
   font-variation-settings: 'FILL' 1;
@@ -174,10 +178,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5em;
-}
-
-.settings-icon {
-  font-size: 1.2em;
 }
 </style>
 

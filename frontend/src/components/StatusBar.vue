@@ -317,35 +317,29 @@ input[type="range"] {
 }
 
 /* Mobile styles */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   #status-bar {
     height: 3em;
     bottom: -3em;
     font-size: 0.9em;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -2px 10px rgb(0 0 0 / 10%);
   }
-
   #status-bar.active {
     bottom: 0;
     pointer-events: auto;
   }
-
   .status-content {
     padding: 0 0.8em;
   }
-
   .status-controls {
     gap: 1.2em;
   }
-
   input[type="range"] {
     width: 7em;
   }
-
   .status-info {
     font-size: 1em;
   }
-
   .size-label {
     font-size: 0.9em;
   }

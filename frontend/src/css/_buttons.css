@@ -8,7 +8,7 @@
   cursor: pointer;
   background: var(--primaryColor);
   color: white;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 5px rgb(0 0 0 / 5%);
   transition: .1s ease all;
   min-width: 2em;
   min-height: 2em;

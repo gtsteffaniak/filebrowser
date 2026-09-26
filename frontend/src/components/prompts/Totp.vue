@@ -175,7 +175,7 @@ export default {
 
 <style scoped>
 .box {
-  box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
+  box-shadow: rgb(0 0 0 / 6%) 0 1px 3px, rgb(0 0 0 / 12%) 0 1px 2px;
   background: #fff;
   border-radius: 1em;
   margin: 5px;
@@ -202,7 +202,7 @@ export default {
 
 .box__element {
   padding: 1em;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgb(0 0 0 / 10%);
   word-break: break-all;
 }
 

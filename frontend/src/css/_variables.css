@@ -2,22 +2,18 @@
   --blue: #2196f3;
   --dark-blue: #1E88E5;
   --red: #f44336;
-  --dark-red: #D32F2F;
-  --moon-grey: #f2f2f2;
+  --dark-red: #be2626;
   --icon-red: #da4453;
   --icon-orange: #ff8c00;
-  --icon-yellow: #fdbc4b;
+  --icon-deep-orange: rgb(255 111 0);
+  --icon-yellow: #fdd34b;
   --icon-green: #2ecc71;
   --icon-blue: #1d99f3;
   --icon-violet: #9b59b6;
+  --icon-brown: brown;
   --primaryColor: var(--blue);
   --divider: lightgray;
   --icon-size: 3em;
-  --layer-show: 1;
-  --layer-above-show: 2;
-  --layer-middle: 3;
-  --layer-below-top: 4;
-  --layer-top: 10;
   /* device insets (notch, rounded corners, home indicator) */
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
@@ -28,9 +24,9 @@
   --borderRadius: 1em;
   --borderWidth: 2px;
   --surfaceElevationShadow:
-    0 1px 2px hsl(0deg 0% 0% / 0.07),
-    0 2px 4px hsl(0deg 0% 0% / 0.06),
-    0 4px 8px hsl(0deg 0% 0% / 0.05);
+    0 1px 2px hsl(0deg 0% 0% / 7%),
+    0 2px 4px hsl(0deg 0% 0% / 6%),
+    0 4px 8px hsl(0deg 0% 0% / 5%);
 }
 
 .border-radius {

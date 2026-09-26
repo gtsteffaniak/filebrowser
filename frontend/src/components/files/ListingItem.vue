@@ -850,7 +850,7 @@ export default {
 <style>
 .download-icon {
   cursor: pointer;
-  color: var(--secondaryColor);
+  color: var(--surfaceSecondary);
 }
 
 .icon-download {

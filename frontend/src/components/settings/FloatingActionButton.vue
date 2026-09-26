@@ -434,13 +434,19 @@ export default {
   box-shadow: var(--fab-elevation-hover);
 }
 
-.fab-button:active:not(:disabled) {
-  box-shadow: var(--fab-elevation-pressed);
-}
-
 .fab-button:focus-visible {
   outline: 2px solid var(--primaryColor);
   outline-offset: 2px;
+}
+
+.fab-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.fab-button:active:not(:disabled) {
+  box-shadow: var(--fab-elevation-pressed);
 }
 
 .fab-button i.material-symbols,
@@ -454,12 +460,6 @@ export default {
 .fab-button--primary:hover:not(:disabled) i.material-symbols,
 .fab-button--primary:hover:not(:disabled) i.material-symbols-outlined {
   transform: scale(1.1);
-}
-
-.fab-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
 }
 
 .fab-button--hidden {
@@ -539,7 +539,7 @@ export default {
   position: absolute;
   top: -5px;
   right: -5px;
-  background: var(--accentColor);
+  background: transparent;
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -550,21 +550,19 @@ export default {
   justify-content: center;
   font-weight: bold;
   text-shadow:
-    0 0 3px rgba(0, 0, 0, 0.9),
-    0 0 5px rgba(0, 0, 0, 0.7),
-    0 0 8px rgba(0, 0, 0, 0.5),
-    0 0 8px rgba(0, 0, 0, 0.3);
+    0 0 3px rgb(0 0 0 / 90%),
+    0 0 5px rgb(0 0 0 / 70%),
+    0 0 8px rgb(0 0 0 / 50%),
+    0 0 8px rgb(0 0 0 / 30%);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .fab-button {
     transition: background-color var(--fab-transition), color var(--fab-transition), box-shadow var(--fab-transition), opacity 0.01ms;
   }
-
   .fab-button--top-center {
     transition: background-color var(--fab-transition), color var(--fab-transition), box-shadow var(--fab-transition), opacity 0.01ms, transform 0.01ms;
   }
-
   .fab-button--top-center.fab-button--slide-in-visible {
     transform: translate(-50%, 1em);
   }

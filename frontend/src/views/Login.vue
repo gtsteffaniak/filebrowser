@@ -463,12 +463,10 @@ export default {
 }
 
 .login-brand {
-  padding: 0em !important;
-  padding-bottom: 0 !important;
+  padding: 0 !important;
   padding-top: 0.5em !important;
   display: flex;
-  align-content: center;
-  justify-content: center;
+  place-content: center center;
   align-items: center;
 }
 
@@ -479,8 +477,8 @@ export default {
 
 .login-brand i {
   font-size: 5em !important;
-  padding-top: 0em !important;
-  padding-bottom: 0em !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .login-icon {
@@ -490,7 +488,7 @@ export default {
 }
 
 .password-entry {
-  padding: 0em !important;
+  padding: 0 !important;
   width: 100%;
 }
 
@@ -512,11 +510,8 @@ export default {
   position: absolute;
   width: 2em;
   height: 1px;
-
   top: 24px;
-
   background-color: #aaa;
-
   content: "";
 }
 
@@ -532,7 +527,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5em 1em;
+  padding: .5em;
+  background: var(--red);
+  color: #fff;
+  text-align: center;
+  animation: .2s opac forwards;
+  margin-bottom: 0.5em;
 }
 
 .login-spinner-wrapper {
@@ -545,9 +545,8 @@ export default {
 .loginOptions {
   text-align: center;
   display: flex;
-  align-content: center;
+  place-content: center center;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
   flex-direction: column;
 }
@@ -592,15 +591,6 @@ export default {
 
 #login #recaptcha {
   margin: .5em 0 0;
-}
-
-.wrong-login {
-  background: var(--red) !important;
-  color: #fff;
-  padding: .5em;
-  text-align: center;
-  animation: .2s opac forwards;
-  margin-bottom: 0.5em;
 }
 
 @keyframes opac {

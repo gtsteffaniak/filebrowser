@@ -43,7 +43,13 @@ jobs:
         with:
           node-version-file: frontend/.nvmrc
       - working-directory: frontend
-        run: npm i && npm run lint
+        run: npm i
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+      - name: Lint frontend CSS
+        working-directory: frontend
+        run: npm run lint:css
   test-frontend:
     runs-on: ubuntu-24.04-arm
     steps:

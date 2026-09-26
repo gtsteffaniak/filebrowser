@@ -164,6 +164,7 @@ export default {
   color: #666;
   margin-top: 0.5em;
 }
+
 .info-text {
   font-style: italic;
   color: #666;

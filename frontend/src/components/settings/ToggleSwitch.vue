@@ -239,15 +239,15 @@ export default {
   justify-content: center;
 }
 
+.enforced-label {
+  user-select: none;
+  font-size: 1rem;
+}
+
 .toggle-row--enforced .enforced-label {
   flex: 0 1 auto;
   min-width: 0;
   padding-right: 0.75em;
-}
-
-.enforced-label {
-  user-select: none;
-  font-size: 1rem;
 }
 
 .toggle-name-container {
@@ -274,9 +274,28 @@ export default {
   flex-shrink: 0;
 }
 
-.switch--icon-mode .slider:before {
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 6px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+}
+
+.switch--icon-mode .slider::before {
   content: none;
   display: none;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  transition: 0.4s;
+  background-color: gray;
 }
 
 .switch--icon-mode .slider {
@@ -326,6 +345,11 @@ export default {
   transform: translateX(0);
 }
 
+.toggle-container--neutral .slider-knob,
+.toggle-container--neutral .slider::before {
+  background-color: var(--surfacePrimary);
+}
+
 .switch--icon-mode input:checked + .slider .slider-knob {
   transform: translateX(26px);
 }
@@ -337,26 +361,12 @@ export default {
   outline: none;
 }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  transition: 0.4s;
-  background-color: gray;
+.toggle-container--neutral .slider {
+  background-color: var(--surfaceSecondary);
 }
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 6px;
-  bottom: 4px;
-  background-color: white;
-  transition: 0.4s;
+.toggle-row--disabled .slider {
+  cursor: not-allowed;
 }
 
 input:checked + .slider {
@@ -367,12 +377,8 @@ input:focus-visible + .slider {
   box-shadow: 0 0 0 2px var(--primaryColor);
 }
 
-input:checked + .slider:before {
+input:checked + .slider::before {
   transform: translateX(26px);
-}
-
-.toggle-container--neutral .slider {
-  background-color: var(--surfaceSecondary);
 }
 
 .toggle-container--neutral input:checked + .slider {
@@ -388,16 +394,11 @@ input:checked + .slider:before {
   box-shadow: none;
 }
 
-.toggle-container--neutral .slider:before,
-.toggle-container--neutral .slider-knob {
-  background-color: var(--surfacePrimary);
-}
-
 .slider.round {
   border-radius: 50px;
 }
 
-.slider.round:before {
+.slider.round::before {
   border-radius: 50%;
 }
 
@@ -408,10 +409,6 @@ input:checked + .slider:before {
 
 .toggle-row--disabled .toggle-name {
   color: #999;
-}
-
-.toggle-row--disabled .slider {
-  cursor: not-allowed;
 }
 
 .toggle-row--disabled input:disabled + .slider {

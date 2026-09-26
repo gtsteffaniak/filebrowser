@@ -1448,6 +1448,7 @@ export default {
 .add-padding {
   padding-left: 0.5em;
 }
+
 .font-size-large h2 {
   font-size: 2em !important;
 }
@@ -1487,7 +1488,7 @@ export default {
   border-radius: 8px;
   pointer-events: none;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
 }
 
 .rectangle-selecting {
@@ -1505,7 +1506,7 @@ export default {
   bottom: 1.75em;
   z-index: 50;
   border: 0.2em dashed var(--primaryColor);
-  background: rgba(0, 0, 0, 0.3);
+  background: rgb(0 0 0 / 30%);
   backdrop-filter: blur(2px);
   border-radius: 1em;
   display: flex;

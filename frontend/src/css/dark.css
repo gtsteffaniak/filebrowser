@@ -8,11 +8,6 @@
   background: var(--background);
 }
 
-/* Login */
-.dark-mode #login {
-  background: var(--background);
-}
-
 #search.dark-mode input {
   color: white;
 }
@@ -129,15 +124,6 @@
   border-top: 1px solid var(--divider);
 }
 
-/* Editor container */
-.dark-mode #editor-container {
-  background: var(--background);
-}
-
-.dark-mode #editor-container .bar {
-  background: var(--surfacePrimary);
-}
-
 /* Navigation */
 .dark-mode nav {
   background: var(--surfaceSecondary);
@@ -192,12 +178,12 @@
 .dark-mode .action:hover,
 .dark-mode .listing-item.drag-hover {
     box-shadow:
-        inset 0 -3em 3em rgba(217, 217, 217, 0.211),
+        inset 0 -3em 3em rgb(217 217 217 / 21.1%),
         0 0 0 2px var(--alt-background);
 }
 
 .dark-mode .pin-icon-wrapper,
 .dark-mode .listing-items.list .pinned-indicator,
 .dark-mode .listing-items.compact .pinned-indicator {
-  background: rgba(0, 0, 0, 0.75);
+  background: rgb(0 0 0 / 75%);
 }

@@ -318,26 +318,31 @@ export default {
   padding-top: 2em;
   min-height: 200px;
 }
+
 .loading-text {
   padding: 1em;
   margin: 0;
   font-size: 1em;
   font-weight: 500;
 }
+
 .prompts-label {
   margin-top: 1em;
   margin-bottom: 0.25em;
   font-weight: 500;
 }
+
 .unarchive-options {
   margin-top: 1em;
 }
+
 .checkbox-label {
   display: flex;
   align-items: center;
   gap: 0.5em;
   cursor: pointer;
 }
+
 .card-content {
   position: relative;
 }

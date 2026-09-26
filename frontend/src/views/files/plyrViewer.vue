@@ -3130,8 +3130,7 @@ export default {
 /* Remove blue overlay when tapping on mobile */
 .plyr,
 .plyr__video-wrapper,
-.plyr video,
-.video-player-container .plyr {
+.plyr video {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -3165,35 +3164,30 @@ export default {
 
 .plyr {
   --plyr-color-main: var(--primaryColor);
-  --plyr-video-background: rgba(0, 0, 0, 1);
+  --plyr-video-background: rgb(0 0 0 / 100%);
   --plyr-focus-visible-color: var(--primaryColor);
-  --plyr-audio-control-color: #ffffff;
-  --plyr-menu-background: rgba(0, 0, 0, 0.7);
-  --plyr-menu-color: #ffffff;
-  --plyr-menu-border-shadow-color: rgba(0, 0, 0, 0.5);
+  --plyr-audio-control-color: #fff;
+  --plyr-menu-background: rgb(0 0 0 / 70%);
+  --plyr-menu-color: #fff;
+  --plyr-menu-border-shadow-color: rgb(0 0 0 / 50%);
   --plyr-menu-radius: 12px;
-  --plyr-menu-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --plyr-menu-shadow: 0 1px 2px rgb(0 0 0 / 50%);
   --plyr-control-radius: 12px;
   --plyr-control-icon-size: 16px;
   --plyr-control-spacing: 8px;
   --plyr-control-padding: 6px;
-  --plyr-tooltip-background: rgba(0, 0, 0, 0.8);
-  --plyr-tooltip-color: #ffffff;
+  --plyr-tooltip-background: rgb(0 0 0 / 80%);
+  --plyr-tooltip-color: #fff;
   --plyr-video-controls-background: linear-gradient(transparent,
-          rgba(0, 0, 0, 0.7));
+          rgb(0 0 0 / 70%));
 
   overflow: visible;
   background-color: rgb(216 216 216);
-  box-shadow: 0 2px 6px rgba(88, 88, 88, 0.45);
+  box-shadow: 0 2px 6px rgb(88 88 88 / 45%);
 }
 
 .plyr__controls {
   color: black;
-}
-
-.audio-controls-container.dark-mode .plyr {
-  background-color: rgb(37 49 55 / 33%);
-  color: white;
 }
 
 /* Backdrop-filter support for plyr */
@@ -3209,14 +3203,6 @@ export default {
   flex-direction: row;
   gap: 8px;
   background-color: transparent;
-}
-
-.audio-controls-container.dark-mode .plyr .plyr__controls {
-  color: white;
-}
-
-.audio-controls-container.light-mode .plyr .plyr__controls {
-  color: black;
 }
 
 .plyr .plyr__controls__items {
@@ -3267,8 +3253,8 @@ export default {
   background: #000;
   border: 2px solid var(--primaryColor);
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.35),
-    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgb(0 0 0 / 35%),
+    0 6px 20px rgb(0 0 0 / 55%),
     0 0 12px color-mix(in srgb, var(--primaryColor) 35%, transparent);
 }
 
@@ -3279,8 +3265,15 @@ export default {
   right: 0;
   bottom: 0;
   height: 44%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+  background: linear-gradient(to top, rgb(0 0 0 / 60%), rgb(0 0 0 / 0%));
   pointer-events: none;
+}
+
+.fb-scrub-preview__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .fb-scrub-preview__loading {
@@ -3290,7 +3283,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgb(0 0 0 / 45%);
 }
 
 .fb-scrub-preview__loading[hidden] {
@@ -3299,7 +3292,7 @@ export default {
 
 /* Spinner sits above the previous frame while the next preview loads. */
 .fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) .fb-scrub-preview__loading {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgb(0 0 0 / 50%);
 }
 
 .fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) img {
@@ -3309,13 +3302,6 @@ export default {
 .fb-scrub-preview__loading .loader {
   position: relative;
   z-index: 1;
-}
-
-.fb-scrub-preview__frame img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .fb-scrub-preview__time {
@@ -3330,8 +3316,8 @@ export default {
   color: #fff;
   white-space: nowrap;
   text-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.9),
-    0 0 8px rgba(0, 0, 0, 0.6);
+    0 1px 3px rgb(0 0 0 / 90%),
+    0 0 8px rgb(0 0 0 / 60%);
   pointer-events: none;
 }
 
@@ -3356,13 +3342,6 @@ export default {
   border-top: 8px solid var(--primaryColor);
 }
 
-/* Big play button when pause/start the video */
-.plyr--full-ui.plyr--video .plyr__control--overlaid {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 .plyr__control--overlaid {
   background: var(--plyr-video-control-background-hover, var(--primaryColor));
   border: 0;
@@ -3375,24 +3354,33 @@ export default {
     box-shadow 0.3s ease !important;
   z-index: 5;
   height: 4em;
-  top: 50%;
-  left: 50%;
-  right: auto;
+  inset: 50% auto auto 50%;
   transform: translate(-50%, -50%) !important;
-  bottom: auto;
   width: 4em !important;
   margin: 0 !important;
   border-radius: 5em !important;
   pointer-events: auto;
   cursor: pointer;
   outline: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 30%);
 }
 
 .plyr--fullscreen-active .plyr__control--overlaid {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
+}
+
+/* Hide the overlaid play button in audio mode */
+.plyr--audio .plyr__control--overlaid {
+  display: none !important;
+}
+
+/* Big play button when pause/start the video */
+.plyr--full-ui.plyr--video .plyr__control--overlaid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .plyr--video .plyr__control--overlaid:hover,
@@ -3403,29 +3391,9 @@ export default {
   opacity: 1 !important;
   outline: none;
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.9),
-    0 8px 25px rgba(var(--primaryColor-rgb), 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* Hide center button while playing unless shown or fading out */
-.plyr--playing.plyr--hide-controls:not(.fb-overlaid--shown):not(.fb-overlaid--fade-out)
-  .plyr__control--overlaid {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-.plyr--playing:not(.plyr--hide-controls) .plyr__control--overlaid,
-.plyr--playing.fb-overlaid--shown:not(.fb-overlaid--fade-out) .plyr__control--overlaid {
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-  transition:
-    opacity 0.4s ease-in-out,
-    transform 0.3s ease,
-    visibility 0.2s ease-out,
-    box-shadow 0.3s ease !important;
+    0 0 0 2px rgb(255 255 255 / 90%),
+    0 8px 25px rgb(var(--primaryColor), 0.3),
+    0 4px 12px rgb(0 0 0 / 20%);
 }
 
 .plyr.fb-overlaid--fade-in .plyr__control--overlaid {
@@ -3443,6 +3411,26 @@ export default {
     opacity 0.4s ease-in-out,
     transform 0.3s ease,
     box-shadow 0.3s ease !important;
+}
+
+.plyr--playing:not(.plyr--hide-controls) .plyr__control--overlaid,
+.plyr--playing.fb-overlaid--shown:not(.fb-overlaid--fade-out) .plyr__control--overlaid {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.3s ease,
+    visibility 0.2s ease-out,
+    box-shadow 0.3s ease !important;
+}
+
+/* Hide center button while playing unless shown or fading out */
+.plyr--playing.plyr--hide-controls:not(.fb-overlaid--shown, .fb-overlaid--fade-out)
+  .plyr__control--overlaid {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 /************
@@ -3465,7 +3453,7 @@ export default {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgb(0 0 0 / 35%);
 }
 
 /* Letterboxing and Plyr chrome: match cinema-style black (audio uses .audio-controls-container .plyr) */
@@ -3524,8 +3512,8 @@ export default {
   flex-shrink: 0;
   font-size: clamp(2.5rem, 7vmin, 6rem);
   line-height: 1;
-  color: rgba(255, 255, 255, 0.96);
-  filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.85));
+  color: rgb(255 255 255 / 96%);
+  filter: drop-shadow(0 2px 16px rgb(0 0 0 / 85%));
   opacity: 0;
   transform: scale(0.55);
   font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 40;
@@ -3550,6 +3538,11 @@ export default {
   }
 }
 
+/* Hide the captions button in audio mode */
+.plyr--audio .plyr__control[data-plyr="captions"] {
+  display: none !important;
+}
+
 /* Hide captions button when there are no subtitle tracks */
 .video-player-container.no-captions .plyr__control[data-plyr="captions"] {
   display: none !important;
@@ -3569,7 +3562,7 @@ export default {
   color: #fff;
   -webkit-text-stroke: 0.1em #000;
   paint-order: stroke fill;
-  text-shadow: 0 0.08em 0.2em rgba(0, 0, 0, 0.55);
+  text-shadow: 0 0.08em 0.2em rgb(0 0 0 / 55%);
 }
 
 .plyr.plyr-caption-size--small {
@@ -3588,8 +3581,8 @@ export default {
   --fb-captions-font-size: max(2.5em, 5.5vmin);
 }
 
-.video-player-container .plyr:fullscreen .plyr__captions,
-.video-player-container .plyr--fullscreen-fallback .plyr__captions {
+.video-player-container .plyr--fullscreen-fallback .plyr__captions,
+.video-player-container .plyr:fullscreen .plyr__captions {
   font-size: var(--fb-captions-font-size);
 }
 
@@ -3603,7 +3596,7 @@ export default {
       -0.0625em 0.0625em 0 #000,
       -0.0625em -0.0625em 0 #000,
       0.0625em -0.0625em 0 #000,
-      0 0.08em 0.2em rgba(0, 0, 0, 0.55);
+      0 0.08em 0.2em rgb(0 0 0 / 55%);
   }
 }
 
@@ -3620,26 +3613,35 @@ export default {
   border-radius: 12px;
 }
 
+.audio-controls-container.dark-mode .plyr {
+  background-color: rgb(37 49 55 / 33%);
+  color: white;
+}
+
+.audio-controls-container.dark-mode .plyr .plyr__controls {
+  color: white;
+}
+
+.audio-controls-container.light-mode .plyr .plyr__controls {
+  color: black;
+}
+
 /* Hide some unnesary buttons on the audio player */
-.plyr--audio .plyr__control--overlaid,
-.plyr--audio .plyr__control[data-plyr="captions"],
 .plyr--audio .plyr__control[data-plyr="fullscreen"],
 .plyr--audio .plyr__control[data-plyr="pip"] {
   display: none !important;
 }
 
 /* Style for audio player on mobile */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   /* Buttons container more "big" for easy touch */
   .plyr--audio .plyr__control {
     min-width: 44px;
     min-height: 44px;
   }
-
   .plyr--audio .plyr__progress__container {
     margin: 10px 0;
   }
-
   .plyr--audio .plyr__controls__items {
     justify-content: center;
     gap: 12px;
@@ -3674,30 +3676,6 @@ export default {
   gap: 0;
 }
 
-.audio-player-container--lyrics-open .audio-player-content {
-  height: auto;
-  flex: none;
-}
-
-.audio-player-container--lyrics-open .lyrics-mobile {
-  flex: 1 1 0%;
-  min-height: 0;
-  max-height: none;
-  margin-top: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.audio-player-container--lyrics-open .lyrics-mobile-scrollable {
-  flex: 1;
-  min-height: 0;
-}
-
-.audio-player-container--lyrics-open .album-art-container {
-  width: 5em;
-  height: 5em;
-}
-
 /* Full-area swipe / double-tap seek (album art + metadata + Plyr); skip overlay uses position absolute. */
 .audio-player-container--plyr-gestures {
   position: relative;
@@ -3717,6 +3695,11 @@ export default {
   justify-content: flex-start;
   overflow: hidden;
   position: relative;
+}
+
+.audio-player-container--lyrics-open .audio-player-content {
+  height: auto;
+  flex: none;
 }
 
 /* Left column (album art + metadata) */
@@ -3757,9 +3740,11 @@ export default {
 .panel-slide-enter-active {
   transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+
 .panel-slide-leave-active {
   transition: none;
 }
+
 .panel-slide-enter-from,
 .panel-slide-leave-to {
   opacity: 0;
@@ -3772,7 +3757,7 @@ export default {
   transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
   transform: scale(1);
   transform-origin: center;
-  word-break: break-word;
+  overflow-wrap: break-word;
   cursor: pointer;
   font-size: 1.15rem;
 }
@@ -3818,12 +3803,39 @@ export default {
   padding-top: 0;
 }
 
+.audio-player-container--lyrics-open .lyrics-mobile {
+  flex: 1 1 0%;
+  min-height: 0;
+  max-height: none;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .lyrics-mobile-scrollable {
   flex: 1;
   overflow-y: auto;
   padding: 0 1em;
   text-align: center;
   color: var(--textPrimary);
+}
+
+/* Hide scrollbars in lyrics */
+.lyrics-scrollable,
+.lyrics-mobile-scrollable,
+.lyrics-panel {
+  scrollbar-width: none;
+}
+
+.lyrics-scrollable::-webkit-scrollbar,
+.lyrics-mobile-scrollable::-webkit-scrollbar,
+.lyrics-panel::-webkit-scrollbar {
+  display: none;
+}
+
+.audio-player-container--lyrics-open .lyrics-mobile-scrollable {
+  flex: 1;
+  min-height: 0;
 }
 
 .lyrics-mobile-scrollable .lyric-line:first-child {
@@ -3841,26 +3853,18 @@ export default {
   user-select: none;
 }
 
-/* Hide scrollbars in lyrics */
-.lyrics-scrollable,
-.lyrics-mobile-scrollable,
-.lyrics-panel {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.lyrics-scrollable::-webkit-scrollbar,
-.lyrics-mobile-scrollable::-webkit-scrollbar,
-.lyrics-panel::-webkit-scrollbar {
-  display: none;
-}
-
 .album-art-container {
   flex-shrink: 0;
   border-radius: 1em;
   overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
   transition: width 0.3s ease;
   will-change: transform;
+}
+
+.audio-player-container--lyrics-open .album-art-container {
+  width: 5em;
+  height: 5em;
 }
 
 .album-art {
@@ -3876,7 +3880,7 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 18px;
-  background: linear-gradient(115deg, var(--primaryColor), rgba(2, 0, 36, 0.9));
+  background: linear-gradient(115deg, var(--primaryColor), rgb(2 0 36 / 90%));
   filter: brightness(0.85);
 }
 
@@ -3888,7 +3892,7 @@ export default {
 }
 
 .album-art-container.no-artwork {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
   height: auto;
   aspect-ratio: 1 / 1;
 }
@@ -3898,7 +3902,7 @@ export default {
   font-size: max(1.4rem, 3.1vmin);
   font-weight: bold;
   margin-bottom: 8px;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .audio-metadata {
@@ -3908,7 +3912,7 @@ export default {
    padding-bottom: 0;
    margin-bottom: 0;
    padding-top: 1.2em;
-   word-wrap: break-word;
+   overflow-wrap: break-word;
 }
 
 .audio-artist,
@@ -3917,7 +3921,7 @@ export default {
   font-size: max(1.2rem, 2.5vmin);
   opacity: 0.8;
   margin-bottom: 5px;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .filetype-badge {
@@ -3938,33 +3942,29 @@ export default {
 }
 
 /* For small tablets and phones with big screen */
-@media (max-width: 740px) {
+@media (width <= 740px) {
   .audio-player-container {
     padding: 0;
     padding-top: 1em;
   }
-
   .plyr.plyr--audio {
     padding: 1em;
     border-radius: 0;
   }
-
   .plyr--audio .plyr__controls {
     padding: 0;
     gap: 5px;
   }
-
   .album-art-container {
     margin-top: 1em;
     max-width: min(71vw);
   }
-
   .audio-player-container--lyrics-open .album-art-container {
     transition: none !important;
   }
 }
 
-@media (max-width: 550px) {
+@media (width <= 550px) {
   /* Hide volume buttons to made more space */
   .plyr__volume {
     display: none;
@@ -3975,7 +3975,6 @@ export default {
     font-size: 14px;
     margin: 0 5px;
   }
-
   .audio-left-column {
     padding: 0;
     margin: 0;
@@ -3983,7 +3982,7 @@ export default {
 }
 
 /* For small screens in landscape orientation (Like a phone) */
-@media (max-height: 600px) and (orientation: landscape) {
+@media (height <= 600px) and (orientation: landscape) {
   .album-art-container {
     width: min(100px, 30vh);
     height: min(100px, 30vh);
@@ -4001,7 +4000,7 @@ export default {
   bottom: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
+  background: rgb(0 0 0 / 80%);
   color: white;
   padding: 15px 25px;
   border-radius: 8px;
@@ -4014,7 +4013,7 @@ export default {
   user-select: none;
   opacity: 0;
   transition: opacity 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
 }
 
 .playback-toast.visible {

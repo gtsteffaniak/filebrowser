@@ -524,17 +524,14 @@ export default {
   top: 0.2em;
   left: 0.2em;
   font-size: 1.2em !important;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 3px rgb(0 0 0 / 80%);
   z-index: 2;
   color: white;
   opacity: 0.7;
 }
 
 .overlay-icon--bottom {
-  top: auto;
-  left: auto;
-  bottom: 0;
-  right: 0;
+  inset: auto 0 0 auto;
   width: auto !important;
   height: auto !important;
   pointer-events: auto;
@@ -567,7 +564,7 @@ export default {
 
 .icon {
   font-size: 1.5rem;
-  fill: currentColor;
+  fill: currentcolor;
   /* Uses inherited color */
   border-radius: 0.2em;
   padding: 0.1em;
@@ -580,7 +577,7 @@ export default {
   background: var(--background);
 }
 
-/* ----------- 
+/* -----------
    Icon Colors
    ----------- */
 .primary-icons {
@@ -588,7 +585,7 @@ export default {
 }
 
 .primary-icons.active {
-  text-shadow: 0px 0px 1px #000;
+  text-shadow: 0 0 1px #000;
 }
 
 /* blue variations */
@@ -597,7 +594,7 @@ export default {
 }
 
 .deep-blue-icons {
-  color: rgb(29, 95, 191);
+  color: rgb(29 95 191);
 }
 
 .lightblue-icons {
@@ -605,38 +602,36 @@ export default {
 }
 
 .skyblue-icons {
-  color: rgb(42, 170, 242);
+  color: rgb(42 170 242);
 }
 
 /* purple variations */
 .purple-icons {
-  color: purple;
+  color: var(--icon-violet);
 }
 
 .plum-icons {
   color: plum;
 }
 
-/* yellow */
 .yellow-icons {
-  color: yellow;
+  color: var(--icon-yellow)
 }
 
-/* orange/red variations */
 .orange-icons {
-  color: orange;
+  color: var(--icon-orange)
 }
 
 .red-icons {
-  color: rgb(211, 16, 16);
+  color: var(--red)
 }
 
 .deep-orange-icons {
-  color: rgb(255, 111, 0);
+  color: var(--icon-deep-orange)
 }
 
 .brown-icons {
-  color: brown;
+  color: var(--icon-brown)
 }
 
 .coral-icons {
@@ -649,11 +644,11 @@ export default {
 
 /* green variations */
 .green-icons {
-  color: rgb(23, 128, 74);
+  color: var(--icon-green)
 }
 
 .light-green-icons {
-  color: rgb(48, 207, 117);
+  color: rgb(48 207 117);
 }
 
 /* white variations */
@@ -666,7 +661,7 @@ export default {
 }
 
 .lightgray-icons {
-  color: rgb(176, 176, 176);
+  color: rgb(176 176 176);
 }
 
 #listingView.gallery .listing-item i.white-icons,

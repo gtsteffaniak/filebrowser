@@ -26,21 +26,6 @@
   opacity: 0.75;
 }
 
-.input--textarea {
-  line-height: 1.15;
-  font-family: monospace;
-  min-height: 10em;
-  resize: vertical;
-}
-
-.input--red {
-  background: #fcd0cd;
-}
-
-.input--green {
-  background: #c9f2da;
-}
-
 /* ExpandDropdown renders its own surface; avoid double-styling when .input is on the wrapper */
 .expand-dropdown.input,
 .expand-dropdown.input:hover,
@@ -56,7 +41,7 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0px 1000px var(--background) inset;
+  box-shadow: 0 0 0 1000px var(--background) inset;
   -webkit-text-fill-color: var(--textPrimary);
   border-color: unset;
 }
@@ -79,11 +64,11 @@ input.sizeInput:disabled {
   background-color: var(--background);
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow:
-    0 1px 1px hsl(0deg 0% 0% / 0.075),
-    0 2px 2px hsl(0deg 0% 0% / 0.075),
-    0 4px 4px hsl(0deg 0% 0% / 0.075),
-    0 8px 8px hsl(0deg 0% 0% / 0.075),
-    0 16px 16px hsl(0deg 0% 0% / 0.075);
+    0 1px 1px hsl(0deg 0% 0% / 7.5%),
+    0 2px 2px hsl(0deg 0% 0% / 7.5%),
+    0 4px 4px hsl(0deg 0% 0% / 7.5%),
+    0 8px 8px hsl(0deg 0% 0% / 7.5%),
+    0 16px 16px hsl(0deg 0% 0% / 7.5%);
   padding: .25em .5em;
   justify-content: center;
   color: var(--textPrimary);
@@ -91,6 +76,18 @@ input.sizeInput:disabled {
 
 .sizeInputWrapper:focus-within {
   border-color: var(--primaryColor);
+}
+
+.sizeInput {
+  text-align: center;
+  border-radius: 0.5em;
+  padding: 0.5em;
+  border: var(--borderWidth) solid var(--surfaceSecondary);
+  margin-right: 0.5em;
+  background: var(--background);
+  height: 2em;
+  width: 5em;
+  color: var(--textPrimary);
 }
 
 .sizeInputWrapper .sizeInput {
@@ -113,18 +110,6 @@ input.sizeInput:disabled {
 
 .sizeInputWrapper .sizeInput:last-child {
   margin-right: 0;
-}
-
-.sizeInput {
-  text-align: center;
-  border-radius: 0.5em;
-  padding: 0.5em;
-  border: var(--borderWidth) solid var(--surfaceSecondary);
-  margin-right: 0.5em;
-  background: var(--background);
-  height: 2em;
-  width: 5em;
-  color: var(--textPrimary);
 }
 
 .roundedInputLeft {

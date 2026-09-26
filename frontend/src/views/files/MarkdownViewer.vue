@@ -780,7 +780,6 @@ export default {
 #markedown-viewer {
   margin: 1em;
   overflow-wrap: break-word;
-  word-break: break-word;
 }
 
 #markedown-viewer.html-viewer-mode {
@@ -837,7 +836,7 @@ export default {
   border-radius: 0.5em;
   overflow: hidden;
   margin: 1em 0;
-  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
+  font-family: SFMono-Regular, Monaco, Inconsolata, 'Liberation Mono', 'Courier New', monospace;
   font-size: 0.85em;
   line-height: 1.45;
   max-width: 100%;
@@ -848,7 +847,7 @@ export default {
   background-color: var(--background);
   padding: 0.25em 0.4em;
   border-radius: 0.5em;
-  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
+  font-family: SFMono-Regular, Monaco, Inconsolata, 'Liberation Mono', 'Courier New', monospace;
   font-size: 0.85em;
 }
 
@@ -858,7 +857,7 @@ export default {
   border: 1px solid var(--divider);
   border-radius: 0.35em;
   padding: 0.1em 0.5em;
-  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Liberation Mono', 'Courier New', monospace;
+  font-family: SFMono-Regular, Monaco, Inconsolata, 'Liberation Mono', 'Courier New', monospace;
   font-size: 0.85em;
   box-shadow: inset 0 -2px 0 var(--divider);
 }
@@ -881,10 +880,7 @@ export default {
 /* Line numbers styling */
 #markedown-viewer .markdown-content-container .line-numbers {
   -webkit-touch-callout: none;
-  -webkit-user-select: none;
   user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   background-color: var(--background);
   border-right: 1px solid var(--divider);
   padding: 0.625em 0.5em 0.625em 0.75em;
@@ -960,6 +956,11 @@ export default {
 /* Ensure each line in the code has the same height as line numbers */
 #markedown-viewer .markdown-content-container .code-content pre code br {
   line-height: 1.45;
+}
+
+#markedown-viewer .markdown-content a {
+  color: var(--primaryColor);
+  text-decoration: underline;
 }
 
 #markedown-viewer .markdown-content-container .code-content a {
@@ -1083,12 +1084,6 @@ export default {
 #markedown-viewer .markdown-content li:has(input[type="checkbox"]:checked) {
   color: color-mix(in srgb, var(--textPrimary) 55%, transparent);
   text-decoration: line-through;
-}
-
-/* Links */
-#markedown-viewer .markdown-content a {
-  color: var(--primaryColor);
-  text-decoration: underline;
 }
 
 /* Tables */

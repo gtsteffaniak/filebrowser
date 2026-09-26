@@ -30,8 +30,13 @@
     "src/**/*.vue",
     "tests/playwright/**/*.ts",
     "scripts/**/*.js",
+    "vite.config.ts",
     "eslint.config.js",
-    "vite.config.ts"
+    "stylelint.config.js"
   ],
-  "exclude": ["node_modules", "dist", "../_docker/src/proxy/frontend/playwright.config.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "../_docker/src/proxy/frontend/playwright.config.ts"
+  ],
 }

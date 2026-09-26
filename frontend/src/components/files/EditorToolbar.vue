@@ -797,9 +797,7 @@ export default {
   padding: 0.35em 0;
   border-bottom: 1px solid var(--alt-background);
   flex-shrink: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow: auto hidden;
   scrollbar-width: none;
 }
 
@@ -840,7 +838,6 @@ export default {
 
 .editor-toolbar-sticky--right {
   right: -1px;
-  /*margin-left: auto;*/
   padding-right: calc(0.25em + 1px);
   border-left: 1px solid var(--alt-background);
   border-right: none;

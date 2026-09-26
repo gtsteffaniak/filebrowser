@@ -326,7 +326,6 @@ export default {
 <style scoped>
 #breadcrumbs {
   overflow-x: auto;
-  -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
@@ -377,7 +376,7 @@ export default {
     0% 100%,
     1.275em 50%);
   margin-right: -0.85em;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(0 0 0 / 10%);
 }
 
 #breadcrumbs ul li a .breadcrumb-text {
@@ -425,15 +424,13 @@ export default {
   background: var(--primaryColor) !important; /* Needs !important to make the hover effect work when dragging items */
   color: white !important;
   z-index: 2;
+  animation: breadcrumb-pulse 0.5s ease-in-out infinite;
 }
 
-@keyframes breadcrumbPulse {
+@keyframes breadcrumb-pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-.drag-over {
-  animation: breadcrumbPulse 0.5s ease-in-out infinite;
-}
 </style>

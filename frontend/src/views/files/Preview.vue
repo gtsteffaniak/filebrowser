@@ -700,10 +700,7 @@ export default {
 /* Loading overlay for navigation transitions */
 .transition-loading {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -739,7 +736,6 @@ export default {
   0%, 80%, 100% {
     transform: scale(0);
   }
-
   40% {
     transform: scale(1.0);
   }
@@ -763,12 +759,12 @@ export default {
 }
 
 .pdf-wrapper .floating-btn {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgb(0 0 0 / 50%);
   color: white;
 }
 
 .pdf-wrapper .floating-btn:hover {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgb(0 0 0 / 70%);
 }
 
 .preview .info {

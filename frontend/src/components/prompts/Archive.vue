@@ -358,20 +358,24 @@ export default {
   padding-top: 2em;
   min-height: 200px;
 }
+
 .loading-text {
   padding: 1em;
   margin: 0;
   font-size: 1em;
   font-weight: 500;
 }
+
 .prompts-label {
   margin-top: 1em;
   margin-bottom: 0.25em;
   font-weight: 500;
 }
+
 .archive-options {
   margin-top: 1em;
 }
+
 .card-content {
   position: relative;
 }

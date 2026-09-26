@@ -193,6 +193,5 @@ export default {
 .source-file-permissions {
   margin-top: 0.5em;
   padding-left: 0.5em;
-  border-left: 2px solid var(--borderPrimary);
 }
 </style>

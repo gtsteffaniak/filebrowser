@@ -150,7 +150,7 @@ export default {
   font-size: 0.95em;
   font-weight: 600;
   color: var(--textPrimary);
-  margin: 0 0 0.75em 0;
+  margin: 0 0 0.75em;
   padding-bottom: 0.5em;
   border-bottom: 1px solid var(--divider);
 }
@@ -172,11 +172,6 @@ export default {
   border-radius: 4px;
   transition: background-color 0.2s;
   cursor: pointer;
-}
-
-.api-key-button:hover,
-.api-key-value-button:hover {
-  background-color: var(--surfaceTertiary);
 }
 
 .api-key-name {
@@ -260,7 +255,7 @@ export default {
 }
 
 .permission-item:hover {
-  background-color: var(--surfaceTertiary);
+  background-color: var(--surfacePrimary);
 }
 
 .permission-name {
@@ -285,17 +280,15 @@ export default {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .permissions-grid {
     grid-template-columns: 1fr;
   }
-
   .info-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25em;
   }
-
   .info-value {
     text-align: left;
   }

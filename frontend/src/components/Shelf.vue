@@ -203,9 +203,7 @@ export default {
 
 <style scoped>
 #shelf {
-
-  overflow-y: visible;
-  overflow-x: hidden;
+  overflow: hidden visible;
   position: fixed;
   padding: 0.5em;
   z-index: 1000;

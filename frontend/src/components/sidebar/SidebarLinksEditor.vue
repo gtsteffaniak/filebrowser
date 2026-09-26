@@ -1380,7 +1380,7 @@ export default {
 .link-item.dragging {
   opacity: 0.5;
   border-color: var(--primaryColor);
-  background: var(--surfaceTertiary);
+  background: var(--surfacePrimary);
 }
 
 .link-drag-handle {
@@ -1457,6 +1457,12 @@ export default {
   margin: 0.5em
 }
 
+.sidebar-links-content > p {
+  width: 100%;
+  margin: 0 0 0.5em;
+  box-sizing: border-box;
+}
+
 .form-group p:first-of-type,
 .add-link-form>p:first-of-type {
   margin-top: 0;
@@ -1476,12 +1482,6 @@ export default {
 .sidebar-links-content {
   min-width: 0;
   width: 100%;
-  box-sizing: border-box;
-}
-
-.sidebar-links-content > p {
-  width: 100%;
-  margin: 0 0 0.5em;
   box-sizing: border-box;
 }
 

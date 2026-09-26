@@ -652,7 +652,7 @@ export default {
 }
 
 .sidebar-links-header .material-symbols.action {
-  padding: 0.25em 0.25em;
+  padding: 0.25em;
   border-radius: 0.5em;
   transition: background 0.2s;
 }
@@ -699,7 +699,11 @@ export default {
   margin-top: 0 !important;
   margin-bottom: 0.5em;
   padding-bottom: 0.25em;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1px solid var(--divider);
+}
+
+.vue-simple-progress {
+  margin-top: 0 !important;
 }
 
 .usage-info .vue-simple-progress {
@@ -806,13 +810,13 @@ a.sidebar-link-button {
 }
 
 .realtime-pulse.danger>.pulse {
-  fill: rgb(190, 147, 147);
-  stroke: rgb(235, 55, 55);
+  fill: rgb(190 147 147);
+  stroke: rgb(235 55 55);
 }
 
 .realtime-pulse.warning>.pulse {
-  fill: rgb(255, 157, 0);
-  stroke: rgb(255, 157, 0);
+  fill: rgb(255 157 0);
+  stroke: rgb(255 157 0);
 }
 
 @keyframes pulse {
@@ -828,10 +832,6 @@ a.sidebar-link-button {
   }
 }
 
-.disabled .source-container {
-  display: block;
-}
-
 .source-container {
   display: flex;
   flex-direction: row;
@@ -839,6 +839,10 @@ a.sidebar-link-button {
   align-content: center;
   align-items: center;
   min-height: 3em;
+}
+
+.disabled .source-container {
+  display: block;
 }
 
 .source-container.has-usage-info {
@@ -856,14 +860,11 @@ a.sidebar-link-button {
 }
 
 .realtime-pulse.danger>.center {
-  fill: rgb(235, 55, 55);
+  fill: rgb(235 55 55);
 }
 
 .realtime-pulse.warning>.center {
-  fill: rgb(255, 157, 0);
-}
-.vue-simple-progress {
-  margin-top: 0 !important;
+  fill: rgb(255 157 0);
 }
 
 .edit-share-button {
@@ -880,7 +881,7 @@ a.sidebar-link-button {
   position: relative;
   margin-bottom: 0;
   padding-bottom: 0;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1px solid var(--divider);
 }
 
 .sidebar-source-switcher {
@@ -904,8 +905,7 @@ a.sidebar-link-button {
   font-size: .85em;
   color: var(--textSecondary);
   letter-spacing: .05em;
-  justify-content: center;
-  align-content: center;
+  place-content: center center;
   align-items: center;
 }
 

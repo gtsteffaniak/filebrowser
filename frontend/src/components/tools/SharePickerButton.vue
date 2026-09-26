@@ -203,7 +203,7 @@ export default {
   align-items: center;
   justify-content: flex-start;
   min-width: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
   box-sizing: border-box;
 }
 

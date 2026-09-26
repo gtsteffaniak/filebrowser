@@ -597,10 +597,10 @@ export default {
       if (event?.preventDefault) {
         event.preventDefault();
       }
-      
+
       // Expand the item (sticky)
       this.expandedItem = item;
-      
+
       // Build selected item object similar to ListingItem.vue
       const fullPath = this.getFullPath(item.path);
       const selectedItem = {
@@ -614,10 +614,10 @@ export default {
         url: fullPath,
         index: 0,
       };
-      
+
       mutations.resetSelected();
       mutations.addSelected(selectedItem);
-      
+
       mutations.showPrompt({
         name: "ContextMenu",
         props: {
@@ -681,7 +681,7 @@ export default {
     onItemHover(event, item) {
       this.tooltipMouseX = event.clientX;
       this.tooltipMouseY = event.clientY;
-      
+
       this.tooltipHoverTimer = setTimeout(() => {
         const displayPath = this.getDisplayPath(item.path);
         const size = this.humanSize(item.size);
@@ -767,11 +767,8 @@ export default {
 /* Overlay that blocks interaction with other items */
 .treemap-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgb(0 0 0 / 50%);
   z-index: 50;
   cursor: pointer;
 }
@@ -800,7 +797,7 @@ export default {
 }
 
 .treemap-item {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(0 0 0 / 10%);
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s;
   display: flex;
@@ -829,8 +826,8 @@ export default {
   height: 50% !important;
   left: 25% !important;
   top: 25% !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 70%);
+  border: 2px solid rgb(255 255 255 / 90%);
   pointer-events: auto;
 }
 
@@ -838,7 +835,7 @@ export default {
   text-align: center;
   color: white;
   font-weight: 500;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 1px 1px 2px rgb(0 0 0 / 50%);
   width: 100%;
   padding: 0.5rem;
   overflow: hidden;
@@ -880,10 +877,7 @@ export default {
 /* Expanded hover content */
 .item-expanded {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -917,15 +911,14 @@ export default {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 1px 1px 2px rgb(0 0 0 / 50%);
 }
 
 .field-value {
   font-size: 0.8rem;
   color: white;
   font-weight: 500;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  word-break: break-word;
+  text-shadow: 1px 1px 2px rgb(0 0 0 / 50%);
   overflow-wrap: break-word;
   max-height: 3em;
   overflow: hidden;
@@ -998,7 +991,7 @@ export default {
   width: 20px;
   height: 20px;
   border-radius: 3px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
 }
 
 .empty-state {
@@ -1025,46 +1018,38 @@ export default {
   from {
     transform: rotate(0deg);
   }
-
   to {
     transform: rotate(360deg);
   }
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .size-viewer {
     padding: 1rem;
   }
-
   .treemap {
     height: 400px;
   }
-
   .item-path {
     font-size: 0.7rem;
   }
-
   .item-size {
     font-size: 0.65rem;
   }
-
   .stats {
     flex-direction: column;
     gap: 0.5rem;
   }
-
   .treemap-item.expanded {
     width: 50% !important;
     height: 50% !important;
     left: 25% !important;
     top: 25% !important;
   }
-
   .field-label {
     font-size: 0.6rem;
   }
-
   .field-value {
     font-size: 0.75rem;
   }

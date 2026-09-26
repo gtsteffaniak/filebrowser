@@ -172,7 +172,7 @@ export default {
 .listing-item-header {
   display: flex;
   background: white;
-  border: 1px solid rgba(0, 0, 0, .1);
+  border: 1px solid rgb(0 0 0 / 10%);
   z-index: 999;
   padding: .85em;
   width: 100%;
@@ -210,6 +210,14 @@ span {
   flex: 1;
 }
 
+.size,
+.modified,
+.duration {
+  flex: 1;
+  justify-content: flex-end;
+  text-align: end;
+}
+
 .desktop-view .size,
 .desktop-view .duration {
   width: 12%;
@@ -227,14 +235,6 @@ span {
   text-align: right;
 }
 
-.size,
-.modified,
-.duration {
-  flex: 1;
-  justify-content: flex-end;
-  text-align: end;
-}
-
 i {
   font-size: 1.5em;
   vertical-align: middle;
@@ -244,8 +244,8 @@ i {
   flex-shrink: 0;
 }
 
-p:hover i,
-.active i {
+.active i,
+p:hover i {
   opacity: 1;
 }
 

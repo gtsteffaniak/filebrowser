@@ -132,18 +132,18 @@ button {
   border-right: var(--borderWidth) solid var(--surfaceSecondary);
 }
 
-.button-group > button:last-child {
-  border-right: none;
-}
-
 button:disabled {
   cursor: not-allowed !important;
   color: var(--textSecondary);
   opacity: 0.75;
 }
 
+.button-group > button:last-child {
+  border-right: none;
+}
+
 button.active {
   background-color: var(--primaryColor) !important;
-  color: #ffffff;
+  color: #fff;
 }
 </style>
