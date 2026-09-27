@@ -3598,19 +3598,12 @@ export default {
 
 .plyr.plyr--audio {
   border-radius: 12px;
+  backdrop-filter: var(--panel-blur);
 }
 
-.audio-controls-container.dark-mode .plyr {
-  background-color: rgb(37 49 55 / 33%);
-  color: white;
-}
-
-.audio-controls-container.dark-mode .plyr .plyr__controls {
-  color: white;
-}
-
-.audio-controls-container.light-mode .plyr .plyr__controls {
-  color: black;
+.audio-controls-container .plyr .plyr__controls {
+  background-color: var(--alt-background);
+  color: var(--textPrimary);
 }
 
 /* Hide some unnesary buttons on the audio player */
