@@ -95,23 +95,23 @@
               </div>
               <div v-if="hasUsageInfo(link) && link.category !== 'source-minimal'" class="usage-info">
                 <!-- For source-hybrid, show single bar with background value for disk usage -->
-                <ProgressBar 
+                <ProgressBar
                   v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
                   :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                   :val="sourceInfo[link.sourceName]?.used || 0"
                   :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
                   :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
-                  :max="sourceInfo[link.sourceName]?.total || 1" 
+                  :max="sourceInfo[link.sourceName]?.total || 1"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
                 <!-- For other source types, show single bar -->
-                <ProgressBar 
+                <ProgressBar
                   v-else
                   :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
+                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})"
                   :val-background="getProgressBarReserved(sourceInfo[link.sourceName] || {})"
-                  :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})" 
+                  :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -652,7 +652,7 @@ export default {
 }
 
 .sidebar-links-header .material-symbols.action {
-  padding: 0.25em 0.25em;
+  padding: 0.25em;
   border-radius: 0.5em;
   transition: background 0.2s;
 }
@@ -699,12 +699,16 @@ export default {
   margin-top: 0 !important;
   margin-bottom: 0.5em;
   padding-bottom: 0.25em;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1px solid var(--divider);
+}
+
+.vue-simple-progress {
+  margin-top: 0 !important;
 }
 
 .usage-info .vue-simple-progress {
   border: var(--borderWidth) solid var(--surfaceSecondary);
-  border-radius: 1em !important;
+  border-radius: var(--borderRadius) !important;
 }
 
 .sidebar-links .inner-card {
@@ -806,13 +810,13 @@ a.sidebar-link-button {
 }
 
 .realtime-pulse.danger>.pulse {
-  fill: rgb(190, 147, 147);
-  stroke: rgb(235, 55, 55);
+  fill: rgb(190 147 147);
+  stroke: rgb(235 55 55);
 }
 
 .realtime-pulse.warning>.pulse {
-  fill: rgb(255, 157, 0);
-  stroke: rgb(255, 157, 0);
+  fill: rgb(255 157 0);
+  stroke: rgb(255 157 0);
 }
 
 @keyframes pulse {
@@ -828,10 +832,6 @@ a.sidebar-link-button {
   }
 }
 
-.disabled .source-container {
-  display: block;
-}
-
 .source-container {
   display: flex;
   flex-direction: row;
@@ -839,6 +839,10 @@ a.sidebar-link-button {
   align-content: center;
   align-items: center;
   min-height: 3em;
+}
+
+.disabled .source-container {
+  display: block;
 }
 
 .source-container.has-usage-info {
@@ -856,14 +860,11 @@ a.sidebar-link-button {
 }
 
 .realtime-pulse.danger>.center {
-  fill: rgb(235, 55, 55);
+  fill: rgb(235 55 55);
 }
 
 .realtime-pulse.warning>.center {
-  fill: rgb(255, 157, 0);
-}
-.vue-simple-progress {
-  margin-top: 0 !important;
+  fill: rgb(255 157 0);
 }
 
 .edit-share-button {
@@ -880,7 +881,7 @@ a.sidebar-link-button {
   position: relative;
   margin-bottom: 0;
   padding-bottom: 0;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1px solid var(--divider);
 }
 
 .sidebar-source-switcher {
@@ -904,8 +905,7 @@ a.sidebar-link-button {
   font-size: .85em;
   color: var(--textSecondary);
   letter-spacing: .05em;
-  justify-content: center;
-  align-content: center;
+  place-content: center center;
   align-items: center;
 }
 

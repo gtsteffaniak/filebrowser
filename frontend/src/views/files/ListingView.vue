@@ -17,7 +17,7 @@
         [listingViewMode]: true,
         dropping: isDragging,
         'rectangle-selecting': isRectangleSelecting,
-        'font-size-large': numDirs + numFiles + numPinned === 0 
+        'font-size-large': numDirs + numFiles + numPinned === 0
       }"
       :style="itemStyles"
       class="listing-items"
@@ -59,17 +59,18 @@
       <template v-else>
         <!-- Pinned Items Section -->
         <div v-if="numPinned > 0">
-          <h2 :class="{'dark-mode': isDarkMode}">{{ pinnedHeaderText }}</h2>
+          <h2>{{ pinnedHeaderText }}</h2>
         </div>
         <div
           v-if="numPinned > 0"
           class="pinned-items"
           aria-label="Pinned Items"
-          :class="{ lastGroup: numDirs === 0 && numFiles === 0 }"
+          :class="{ lastGroup: numDirs === 0 && numFiles === 0, firstGroup: true }"
         >
           <item
-            v-for="item in pinnedItems"
+            v-for="(item, idx) in pinnedItems"
             :key="base64(`pinned-${item.path || item.name}`)"
+            :class="{ 'zebra-row': idx % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type == 'directory'"
@@ -91,17 +92,18 @@
 
         <!-- Directories Section -->
         <div v-if="numDirs > 0">
-          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
+          <h2>{{ $t("general.folders") }}</h2>
         </div>
         <div
           v-if="numDirs > 0"
           class="folder-items"
           aria-label="Folder Items"
-          :class="{ lastGroup: numFiles === 0 }"
+          :class="{ lastGroup: numFiles === 0, firstGroup: numPinned === 0 }"
         >
           <item
-            v-for="item in dirs"
+            v-for="(item, idx) in dirs"
             :key="base64(item.name)"
+            :class="{ 'zebra-row': (numPinned + idx) % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type === 'directory'"
@@ -122,17 +124,18 @@
 
         <!-- Files Section -->
         <div v-if="numFiles > 0">
-          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
+          <h2>{{ $t("general.files") }}</h2>
         </div>
         <div
           v-if="numFiles > 0"
           class="file-items"
-          :class="{ lastGroup: numFiles > 0 }"
+          :class="{ lastGroup: numFiles > 0, firstGroup: numPinned === 0 && numDirs === 0 }"
           aria-label="File Items"
         >
           <item
-            v-for="item in files"
+            v-for="(item, idx) in files"
             :key="base64(item.name)"
+            :class="{ 'zebra-row': (numPinned + numDirs + idx) % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type === 'directory'"
@@ -264,7 +267,7 @@ export default {
         category = "pinned";
         const firstPinned = this.pinnedItems[0];
         letter = firstPinned?.name?.[0]?.toUpperCase();
-      } 
+      }
       else if (this.numFiles > 0) {
         const fileSection = this.$el.querySelector(".file-items");
         const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
@@ -333,9 +336,6 @@ export default {
     },
     gallerySize() {
       return state.user.gallerySize;
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     ascOrdered() {
       return getters.sorting().asc;
@@ -417,13 +417,12 @@ export default {
       // Dynamic padding-top: applied to the entire container (loading spinner + listing items)
       const isEmpty = this.numDirs + this.numFiles + this.numPinned === 0;
       const isRootPath = state.req.path === '/' || !state.req.path;
-
       if (isEmpty) {
         return { 'padding-top': '4.1em' }; // Empty - no files or folders
       } else if (isRootPath) {
         return { 'padding-top': '4.25em' }; // Root - no breadcrumbs showing
       } else {
-        return { 'padding-top': '7.28em' }; // Non-root - breadcrumbs + listing header
+        return { 'padding-top': '7.50em' }; // Non-root - breadcrumbs + listing header
       }
     },
     itemStyles() {
@@ -718,7 +717,7 @@ export default {
       }
 
       // But for gallery, normal, icons views, we need to find the closest item
-      // because the rows aren't always consistent (some have 1 item, others 5, etc) 
+      // because the rows aren't always consistent (some have 1 item, others 5, etc)
       // which caused "random jumps"
       const selectedItem = this.$el.querySelector(`.listing-item[data-index="${selectedIndex}"]`);
       if (!selectedItem) return;
@@ -1168,7 +1167,7 @@ export default {
       if (getters.currentPromptName() === "ContextMenu") {
         return;
       }
-      
+
       mutations.showPrompt({
         name: "ContextMenu",
         props: {
@@ -1419,6 +1418,7 @@ export default {
 .add-padding {
   padding-left: 0.5em;
 }
+
 .font-size-large h2 {
   font-size: 2em !important;
 }
@@ -1439,7 +1439,7 @@ export default {
   font-size: 1rem;
 }
 
-.folder-items a {
+.listing-items:not(.list, .compact) .folder-items a {
   border-width: var(--borderWidth);
   border-style: solid;
 }
@@ -1458,7 +1458,7 @@ export default {
   border-radius: 8px;
   pointer-events: none;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
 }
 
 .rectangle-selecting {
@@ -1473,10 +1473,10 @@ export default {
 .drop-indicator {
   position: absolute;
   inset: 0;
-  bottom: 1.75em;
+  bottom: 2.5em;
   z-index: 50;
   border: 0.2em dashed var(--primaryColor);
-  background: rgba(0, 0, 0, 0.3);
+  background: rgb(0 0 0 / 30%);
   backdrop-filter: blur(2px);
   border-radius: 1em;
   display: flex;

@@ -97,7 +97,6 @@ export default {
 .action span {
   min-width: 0;
   overflow-wrap: break-word;
-  word-break: break-word;
 }
 
 .action i {
@@ -108,9 +107,6 @@ export default {
   width: 2.5em;
   -webkit-tap-highlight-color: transparent;
   transition: transform 400ms;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 

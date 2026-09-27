@@ -135,12 +135,12 @@ export default {
       // 2. The search term doesn't exactly match any existing icon
       const trimmed = this.searchQuery.trim();
       if (!trimmed) return false;
-      
+
       // Check if it's an exact match
       const exactMatch = this.materialSymbols.some(
         (icon) => icon.toLowerCase() === trimmed.toLowerCase()
       );
-      
+
       return !exactMatch;
     },
     visibleIcons() {
@@ -182,8 +182,8 @@ export default {
   gap: 0.5em;
   padding: 0.5em 1em; /* Use button padding */
   background: var(--surfaceSecondary);
-  border: 1px solid var(--borderColor);
-  border-radius: 1em; /* Use button border-radius */
+  border: 1px solid var(--divider);
+  border-radius: var(--borderRadius);
   margin-bottom: 1em;
   font-size: 0.9em;
   color: var(--textSecondary);
@@ -256,8 +256,8 @@ export default {
   align-items: center;
   padding: 0.6em 0.3em;
   background: var(--surfaceSecondary);
-  border: 1px solid var(--borderColor);
-  border-radius: 1em; /* Use button border-radius */
+  border: 1px solid var(--divider);
+  border-radius: var(--borderRadius);
 }
 
 .icon-display {
@@ -274,7 +274,7 @@ export default {
   font-size: 0.65em;
   color: var(--textSecondary);
   text-align: center;
-  word-break: break-word;
+  overflow-wrap: break-word;
   line-height: 1.1;
   max-width: 100%;
   overflow: hidden;

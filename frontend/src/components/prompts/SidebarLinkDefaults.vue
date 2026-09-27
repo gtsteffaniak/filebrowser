@@ -18,7 +18,7 @@
     <div v-if="!linksInSubFlow" class="card-actions">
       <button
         type="button"
-        class="button button--flat"
+        class="button button--flat button--grey"
         :disabled="!canPatch()"
         @click="closeTopPrompt"
       >

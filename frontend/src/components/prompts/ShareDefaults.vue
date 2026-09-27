@@ -16,7 +16,7 @@
   <div class="card-actions">
     <button
       type="button"
-      class="button button--flat"
+      class="button button--flat button--grey"
       :disabled="saving"
       @click="close"
       :aria-label="$t('general.cancel')"

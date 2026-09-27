@@ -59,7 +59,7 @@ export default {
 }
 
 .activity-details-table :deep(tbody td:last-child) {
-  word-break: break-word;
+  overflow-wrap: break-word;
   white-space: pre-wrap;
 }
 </style>

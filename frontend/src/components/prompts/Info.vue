@@ -1,9 +1,11 @@
 <template>
   <div class="card-content info-content">
-    <ActivityViewerButton
-      v-if="source"
-      :href="activityViewerHref"
-    />
+    <div class="settings-items">
+      <ActivityViewerButton
+        v-if="source"
+        :href="activityViewerHref"
+      />
+    </div>
     <div class="info-grid">
       <!-- Basic Information Section -->
       <div class="info-section">
@@ -68,7 +70,7 @@
       </div>
 
       <!-- Access rules (admin) -->
-      <div v-if="showAccessSection" class="info-section">
+      <div v-if="showAccessSection" class="info-section settings-items">
         <h3 class="section-title">{{ $t("access.rules") }}</h3>
         <SettingsButton
           class="info-manage-link"
@@ -246,7 +248,7 @@ export default {
     },
     additionalInfo() {
       const info = [];
-      
+
       if (this.item?.token) {
         info.push({ key: "token", label: this.$t("prompts.token"), value: this.item.token });
       }
@@ -437,8 +439,9 @@ export default {
   font-size: 0.95em;
   font-weight: 600;
   color: var(--textPrimary);
-  margin: 0 0 0.75em 0;
+  margin: 0 0 0.75em;
   padding-bottom: 0.5em;
+  padding-top: 0.5em;
   border-bottom: 1px solid var(--divider);
 }
 
@@ -464,11 +467,11 @@ export default {
 .info-item span {
   flex: 1;
   color: var(--textSecondary);
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .break-word {
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .hash-generator {
@@ -496,11 +499,10 @@ export default {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .info-grid {
     grid-template-columns: 1fr;
   }
-
   .info-item strong {
     min-width: 100px;
   }

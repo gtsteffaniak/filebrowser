@@ -10,15 +10,18 @@
     />
     <p class="quota-path">{{ displayPath }}</p>
     <p class="quota-source">{{ source }}</p>
-    <ActivityViewerButton :href="activityViewerHref" />
 
-    <ToggleSwitch
-      class="item"
-      v-model="enabled"
-      :name="$t('general.limit')"
-      :description="$t('quotas.folderDescription')"
-    />
-
+    <div class="settings-items">
+      <ActivityViewerButton :href="activityViewerHref" />
+    </div>
+    <div class="settings-items">
+      <ToggleSwitch
+        class="item"
+        v-model="enabled"
+        :name="$t('general.limit')"
+        :description="$t('quotas.folderDescription')"
+      />
+    </div>
     <div v-if="enabled">
       <ExpandDropdown
         v-model="meter"
@@ -41,7 +44,7 @@
     </div>
   </div>
   <div class="card-actions">
-    <button type="button" class="button button--flat" @click="close">{{ $t("general.cancel") }}</button>
+    <button type="button" class="button button--flat button--grey" @click="close">{{ $t("general.cancel") }}</button>
     <button v-if="quotaExists" type="button" class="button button--flat button--red" @click="removeQuota">
       {{ $t("general.remove") }}
     </button>
@@ -213,22 +216,27 @@ export default {
   padding-left: 1em;
   padding-right: 1em;
 }
+
 .quota-path {
   font-weight: 600;
 }
+
 .quota-source {
   opacity: 0.8;
   margin-bottom: 1rem;
 }
+
 .quota-usage-bar {
-  margin: 1em 0 1.5rem 0;
+  margin: 1em 0 1.5rem;
 }
+
 .quota-custom-row {
-  display: flex;
+  width: 100%;
   gap: 0.5rem;
   align-items: center;
   margin-bottom: 1rem;
 }
+
 .quota-help {
   font-size: 0.85rem;
   opacity: 0.85;

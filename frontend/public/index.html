@@ -8,6 +8,7 @@
   <title>"{{ .htmlVars.title }}"</title>
 
   <link rel="icon" type="image/png" sizes="256x256" href="{{ .htmlVars.favicon }}">
+  <link rel="stylesheet" href="{{ .htmlVars.staticURL }}/css/variables.css">
 
   {{- if not .htmlVars.devMode }}
   <!-- Preload critical fonts for production first paint (skipped in dev: CSS loads async via Vite) -->
@@ -64,34 +65,17 @@
   </script>
 
   <style>
-    /* Basic Styles */
     :root {
       --background: {{ .htmlVars.lightBackground }};
-      --alt-background: #ddd;
-      --surfacePrimary: #ebebeb;
-      --surfaceSecondary: lightgray;
-      --textPrimary: #546e7a;
-      --textSecondary: gray;
-      --iconBackground: #dddddd;
-      --activeWhiteIcon: gray;
+    }
+    .dark-mode {
+      --background: {{ .htmlVars.darkBackground }};
     }
     /* paint safe areas + iOS overscroll with app background (notched PWAs) */
     html {
       background-color: var(--background);
       min-height: calc(100% + env(safe-area-inset-top, 0px));
     }
-    .dark-mode {
-      --background: {{ .htmlVars.darkBackground }};
-      --alt-background: #283136;
-      --surfacePrimary: #20292F;
-      --surfaceSecondary: #3A4147;
-      --divider: rgba(255, 255, 255, 0.12);
-      --textPrimary: rgba(255, 255, 255, 0.87);
-      --textSecondary: rgba(255, 255, 255, 0.6);
-      --iconBackground: #1e1f20;
-      --activeWhiteIcon: white;
-    }
-
     {{ .htmlVars.loadingSpinnersCSS }}
   </style>
 </head>

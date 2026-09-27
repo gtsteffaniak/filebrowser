@@ -4,7 +4,6 @@
       ref="promptWindow"
       class="floating-window"
       :class="{
-        'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
         'is-resizing': resizingId === prompt.id,
         'prompt-behind': !isTopmost(prompt.id),
@@ -47,10 +46,10 @@
         <svg
           class="prompt-resize-corner"
           :class="{ 'prompt-resize-corner-left': promptRightCloseButton }"
-          width="24" 
-          height="24" 
-          viewBox="0 0 24 24" 
-          fill="none" 
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
           xmlns="http://www.w3.org/2000/svg"
           @mousedown.stop="startResize($event, prompt.id, promptRightCloseButton ? 'top-left' : 'top-right')"
           @touchstart.stop="startResize($event, prompt.id, promptRightCloseButton ? 'top-left' : 'top-right')"
@@ -236,9 +235,6 @@ export default {
       const p = (state.prompts || []).filter(prompt => prompt.name !== "ContextMenu" && prompt.name !== "OverflowMenu");
       return p;
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     promptRightCloseButton() {
       return !!state.user?.promptRightCloseButton;
     },
@@ -272,7 +268,7 @@ export default {
     handleWindowResize() {
       const maxWidth = window.innerWidth * 0.9;
       const maxHeight = window.innerHeight * 0.9;
-      
+
       this.prompts.forEach(prompt => {
         const size = this.sizes[prompt.id];
         if (size) {
@@ -283,7 +279,7 @@ export default {
             };
           }
         }
-        
+
         const el = this.getPromptElement(prompt.id);
         if (el) {
           this.clampDragOffset(prompt.id, el);
@@ -362,7 +358,7 @@ export default {
           return this.$t("general.downloadFiles");
         case "move":
           return this.$t("general.move");
-    
+
         case "copy":
           return this.$t("general.copy");
         case "rename":
@@ -460,7 +456,7 @@ export default {
       if (promptToClose.name === "upload") {
         const hasActiveUploads = state.upload.isUploading;
         const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
-        
+
         if (hasActiveUploads && !hasWarningPrompt) {
           // Show warning prompt instead of closing
           mutations.showPrompt({
@@ -803,10 +799,9 @@ export default {
 </script>
 
 <style scoped>
-
 /* Floating window base styles */
 .floating-window {
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -819,6 +814,7 @@ export default {
   display: flex !important;
   flex-direction: column;
   overflow: hidden;
+  color: var(--textPrimary);
 }
 
 @keyframes show {
@@ -853,8 +849,7 @@ export default {
   margin-top: 1px;
   margin-bottom: 1px;
   flex: 1 1 auto;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow: auto;
   min-height: 0;
   overscroll-behavior: contain;
 }
@@ -888,16 +883,14 @@ export default {
   gap: 0.25em;
 }
 
-/* Backdrop-filter support */
-@supports (backdrop-filter: none) {
-  .floating-window :deep(.prompt-taskbar) {
-    backdrop-filter: blur(12px) invert(0.2);
-    background-color: color-mix(in srgb, var(--background) 50%, transparent);
-  }
-  .floating-window :deep(.card-actions) {
-    backdrop-filter: blur(12px);
-    background-color: transparent;
-  }
+.floating-window :deep(.prompt-taskbar) {
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+}
+
+.floating-window :deep(.card-actions) {
+  backdrop-filter: blur(12px);
+  background-color: transparent;
 }
 
 .floating-window.is-dragging {
@@ -915,7 +908,7 @@ export default {
 }
 
 /* Block all interactions but allow move and resize */
-.floating-window.blocked > :not(.prompt-taskbar):not(.resize-handles) {
+.floating-window.blocked > :not(.prompt-taskbar, .resize-handles) {
   pointer-events: none;
 }
 
@@ -924,6 +917,23 @@ export default {
   user-select: none;
   opacity: 0.7;
   transition: opacity 0.5s;
+}
+
+.prompt-close {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  border: none;
+  border-radius: 1em;
+  background: #c62828;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, filter 0.15s;
 }
 
 .prompt-close:disabled {
@@ -961,33 +971,18 @@ export default {
   background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary, #f5f5f5));
 }
 
-.dark-mode .prompt-taskbar:hover {
-  background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary));
-}
-
-.dark-mode .prompt-taskbar.is-dragging {
-  background: color-mix(in srgb, var(--primaryColor) 22%, var(--surfaceSecondary));
-}
-
-.prompt-close {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2em;
-  height: 2em;
-  padding: 0;
-  border: none;
-  border-radius: 1em;
-  background: #c62828;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.15s, filter 0.15s;
-}
-
 .prompt-close-right .prompt-close {
   order: 3;
+}
+
+.prompt-resize-corner {
+  position: relative;
+  z-index: 1;
+  cursor: ne-resize;
+  transition: opacity 0.2s ease;
+  opacity: 0.5;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .prompt-close-right .prompt-resize-corner {
@@ -1005,16 +1000,6 @@ export default {
   font-size: 1em;
 }
 
-.prompt-resize-corner {
-  position: relative;
-  z-index: 1;
-  cursor: ne-resize;
-  transition: opacity 0.2s ease;
-  opacity: 0.5;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
 .prompt-resize-corner-left {
   cursor: nw-resize;
 }
@@ -1025,10 +1010,7 @@ export default {
 
 .prompt-taskbar-drag {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1042,22 +1024,22 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 80%;
+  color: var(--textPrimary);
 }
 
 .resize-handles {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   pointer-events: none;
 }
+
 .resize-handle {
   position: absolute;
   pointer-events: auto;
   background: transparent;
   z-index: 20;
 }
+
 .resize-handle-top {
   top: -5px;
   left: 5px;
@@ -1065,6 +1047,7 @@ export default {
   height: 10px;
   cursor: n-resize;
 }
+
 .resize-handle-bottom {
   bottom: -5px;
   left: 5px;
@@ -1072,6 +1055,7 @@ export default {
   height: 10px;
   cursor: s-resize;
 }
+
 .resize-handle-left {
   left: -5px;
   top: 5px;
@@ -1079,6 +1063,7 @@ export default {
   width: 10px;
   cursor: w-resize;
 }
+
 .resize-handle-right {
   right: -5px;
   top: 5px;
@@ -1086,6 +1071,7 @@ export default {
   width: 10px;
   cursor: e-resize;
 }
+
 .resize-handle-top-left {
   top: -5px;
   left: -5px;
@@ -1093,6 +1079,7 @@ export default {
   height: 15px;
   cursor: nw-resize;
 }
+
 .resize-handle-top-right {
   top: -5px;
   right: -5px;
@@ -1100,6 +1087,7 @@ export default {
   height: 15px;
   cursor: ne-resize;
 }
+
 .resize-handle-bottom-left {
   bottom: -5px;
   left: -5px;
@@ -1107,6 +1095,7 @@ export default {
   height: 15px;
   cursor: sw-resize;
 }
+
 .resize-handle-bottom-right {
   bottom: -5px;
   right: -5px;

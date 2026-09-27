@@ -34,10 +34,7 @@
     background-color: var(--spinner-color, var(--primaryColor));
     /* Mirrored annulus-sector polygon, 120° sweep, viewBox 0 0 100 100 */
     --fb-loader-taper-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M57.47%2C7.65%20L54.99%2C7.29%20L52.50%2C7.07%20L50.00%2C7.00%20L47.50%2C7.07%20L45.01%2C7.29%20L42.53%2C7.65%20L40.08%2C8.16%20L37.67%2C8.81%20L35.29%2C9.59%20L32.97%2C10.52%20L30.70%2C11.57%20L28.50%2C12.76%20L26.37%2C14.07%20L24.32%2C15.51%20L22.36%2C17.06%20L20.49%2C18.72%20L18.72%2C20.49%20L17.06%2C22.36%20L15.51%2C24.32%20L14.07%2C26.37%20L12.76%2C28.50%20L11.57%2C30.70%20L10.52%2C32.97%20L9.59%2C35.29%20L8.81%2C37.67%20L8.16%2C40.08%20L7.65%2C42.53%20L7.29%2C45.01%20L7.07%2C47.50%20L7.00%2C50.00%20L7.07%2C52.50%20L7.29%2C54.99%20L7.65%2C57.47%20L8.16%2C59.92%20L8.81%2C62.33%20L9.59%2C64.71%20L10.16%2C64.50%20L9.56%2C62.11%20L9.12%2C59.69%20L8.81%2C57.26%20L8.65%2C54.83%20L8.63%2C52.41%20L8.75%2C50.00%20L9.01%2C47.61%20L9.41%2C45.26%20L9.94%2C42.94%20L10.61%2C40.66%20L11.40%2C38.44%20L12.32%2C36.28%20L13.36%2C34.19%20L14.51%2C32.18%20L15.77%2C30.24%20L17.14%2C28.39%20L18.60%2C26.63%20L20.16%2C24.96%20L21.81%2C23.40%20L23.53%2C21.95%20L25.33%2C20.60%20L27.20%2C19.37%20L29.12%2C18.26%20L31.10%2C17.26%20L33.12%2C16.39%20L35.18%2C15.64%20L37.27%2C15.02%20L39.38%2C14.52%20L41.50%2C14.15%20L43.64%2C13.91%20L45.77%2C13.79%20L47.89%2C13.79%20L50.00%2C13.92%20L52.09%2C14.18%20L54.14%2C14.55%20L56.16%2C15.04Z%22%2F%3E%3C%2Fsvg%3E");
-    -webkit-mask-image: var(--fb-loader-taper-mask);
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
+
     mask-image: var(--fb-loader-taper-mask);
     mask-size: contain;
     mask-repeat: no-repeat;
@@ -261,7 +258,7 @@ body > .loader.done {
 }
 
 .placeholder-item {
-    background-color: rgba(128, 128, 128, 0.1);
+    background-color: rgb(128 128 128 / 10%);
     animation: fb-placeholder-ripple 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite,
         fb-placeholder-bg-fade 2s ease-in-out infinite;
     display: block;
@@ -292,8 +289,8 @@ body > .loader.done {
     }
     25% {
         transform: scale(1.07);
-        box-shadow: inset 0 -3em 3em rgba(172, 172, 172, 0.211),
-            0 0 0 2px var(--alt-background), 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: inset 0 -3em 3em rgb(172 172 172 / 21.1%),
+            0 0 0 2px var(--alt-background), 0 4px 12px rgb(0 0 0 / 15%);
         opacity: 0.6;
     }
     50% {
@@ -310,13 +307,13 @@ body > .loader.done {
 
 @keyframes fb-placeholder-bg-fade {
     0% {
-        background-color: rgba(128, 128, 128, 0.1);
+        background-color: rgb(128 128 128 / 10%);
     }
     50% {
-        background-color: rgba(128, 128, 128, 0.4);
+        background-color: rgb(128 128 128 / 40%);
     }
     100% {
-        background-color: rgba(128, 128, 128, 0.1);
+        background-color: rgb(128 128 128 / 10%);
     }
 }
 
@@ -352,7 +349,7 @@ body > .loader.done {
 /* Standard portrait mobile responsive fix                                   */
 /* -------------------------------------------------------------------------- */
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .loader--placeholder.loader--large .placeholder-item {
         width: 100%;
         min-width: auto;

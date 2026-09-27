@@ -319,6 +319,7 @@ export default {
 <style>
 .vue-simple-progress {
   margin: 0.5em;
+  background: var(--primaryColor);
 }
 
 .vue-simple-progress,
@@ -326,9 +327,6 @@ export default {
   border-radius: 0.5em;
 }
 
-.vue-simple-progress {
-  background: var(--primaryColor);
-}
 .vue-simple-progress-text {
   color: black;
 }

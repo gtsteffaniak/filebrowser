@@ -445,7 +445,7 @@ export default {
   align-items: center;
   margin-bottom: 8px;
   padding-bottom: 5px;
-  border-bottom: 1px solid rgba(255,255,255,0.3);
+  border-bottom: 1px solid rgb(255 255 255 / 30%);
 }
 
 .debug-section-header-logs {
@@ -476,7 +476,7 @@ export default {
   font-family: monospace;
   padding: 2px 4px;
   border-radius: 2px;
-  background: rgba(255,255,255,0.5);
+  background: rgb(255 255 255 / 50%);
   color: #000;
 }
 

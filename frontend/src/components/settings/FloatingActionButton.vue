@@ -19,7 +19,6 @@
       `fab-button--${effectiveSize}`,
       `fab-button--${variant}`,
       {
-        'dark-mode': darkMode,
         'fab-button--extended': extended,
         'fab-button--slide-in-visible': topCenterVisible,
         'fab-button--hidden': autoHide && !showButton,
@@ -158,9 +157,6 @@ export default {
     };
   },
   computed: {
-    darkMode(): boolean {
-      return getters.isDarkMode();
-    },
     effectiveSize(): string {
       return this.extended ? "normal" : this.size;
     },
@@ -412,7 +408,7 @@ export default {
   opacity: 1;
 }
 
-.fab-button.dark-mode:not(.fab-button--primary) {
+.fab-button:not(.fab-button--primary) {
   background: var(--surfacePrimary);
 }
 
@@ -423,8 +419,7 @@ export default {
   color: white;
 }
 
-.fab-button--primary,
-.fab-button--primary.dark-mode {
+.fab-button--primary {
   background: var(--primaryColor);
   color: white;
 }
@@ -434,19 +429,25 @@ export default {
   box-shadow: var(--fab-elevation-hover);
 }
 
-.fab-button:active:not(:disabled) {
-  box-shadow: var(--fab-elevation-pressed);
-}
-
 .fab-button:focus-visible {
   outline: 2px solid var(--primaryColor);
   outline-offset: 2px;
 }
 
+.fab-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.fab-button:active:not(:disabled) {
+  box-shadow: var(--fab-elevation-pressed);
+}
+
 .fab-button i.material-symbols,
 .fab-button i.material-symbols-outlined {
   font-size: var(--fab-icon-size);
-  transition: transform var(--fab-transition);
+  transition: transform var(--fab-transition), font-variation-settings 0.25s ease, color 0.25s ease;
 }
 
 .fab-button--neutral:hover:not(:disabled) i.material-symbols,
@@ -454,12 +455,6 @@ export default {
 .fab-button--primary:hover:not(:disabled) i.material-symbols,
 .fab-button--primary:hover:not(:disabled) i.material-symbols-outlined {
   transform: scale(1.1);
-}
-
-.fab-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
 }
 
 .fab-button--hidden {
@@ -539,7 +534,7 @@ export default {
   position: absolute;
   top: -5px;
   right: -5px;
-  background: var(--accentColor);
+  background: transparent;
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -550,21 +545,19 @@ export default {
   justify-content: center;
   font-weight: bold;
   text-shadow:
-    0 0 3px rgba(0, 0, 0, 0.9),
-    0 0 5px rgba(0, 0, 0, 0.7),
-    0 0 8px rgba(0, 0, 0, 0.5),
-    0 0 8px rgba(0, 0, 0, 0.3);
+    0 0 3px rgb(0 0 0 / 90%),
+    0 0 5px rgb(0 0 0 / 70%),
+    0 0 8px rgb(0 0 0 / 50%),
+    0 0 8px rgb(0 0 0 / 30%);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .fab-button {
     transition: background-color var(--fab-transition), color var(--fab-transition), box-shadow var(--fab-transition), opacity 0.01ms;
   }
-
   .fab-button--top-center {
     transition: background-color var(--fab-transition), color var(--fab-transition), box-shadow var(--fab-transition), opacity 0.01ms, transform 0.01ms;
   }
-
   .fab-button--top-center.fab-button--slide-in-visible {
     transform: translate(-50%, 1em);
   }

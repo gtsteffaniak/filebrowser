@@ -11,7 +11,7 @@
       v-if="showContext"
       :style="centered ? {} : { top: `${posY}px`, left: `${posX}px` }"
       class="no-select floating-window"
-      :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
+      :class="{ 'centered': centered }"
       :key="showNewFileTemplate ? 'template-mode' : (showCreate ? 'create-mode' : 'normal-mode')"
     >
       <template v-if="showNewFileTemplate">
@@ -223,7 +223,6 @@
         right: '1em',
       }"
       class="no-select floating-window"
-      :class="{ 'dark-mode': isDarkMode }"
     >
       <action icon="info" :label="$t('general.info')" @action="showInfoPrompt"/>
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
@@ -620,9 +619,6 @@ export default {
     },
     isMobileDevice() {
       return getters.isMobile();
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     currentPrompt() {
       return getters.currentPrompt();
@@ -1112,7 +1108,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   padding: 0.5em;
   overscroll-behavior: contain;
 }
@@ -1120,12 +1116,11 @@ export default {
 #context-menu.centered {
   top: 50% !important;
   left: 50% !important;
-  -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
 
 .selected-count-header {
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   cursor: unset;
 }
 
@@ -1163,6 +1158,14 @@ export default {
   align-items: center;
   justify-content: flex-start;
   flex-shrink: 0;
+}
+
+.context-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
 #context-menu > .context-menu-header,
@@ -1203,11 +1206,4 @@ export default {
   opacity: 0;
 }
 
-.context-menu-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-}
 </style>

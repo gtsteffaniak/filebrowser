@@ -1,5 +1,5 @@
 <template>
-  <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
+  <header v-if="!isOnlyOffice" :class="['flexbar']">
     <action
       v-if="!disableNavButtons"
       class="nav-toggle-button"
@@ -8,13 +8,13 @@
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
-    <div class="search-bar-container" :class="{ disabled: isDisabled }" 
+    <div class="search-bar-container" :class="{ disabled: isDisabled }"
          v-if="showSearch && !isSearchActive" @click="openSearch" >
       <i class="material-symbols">search</i>
-      <input 
-        type="text" 
-        id="search-bar-input" 
-        :placeholder="$t('general.search', { suffix: '...' })" 
+      <input
+        type="text"
+        id="search-bar-input"
+        :placeholder="$t('general.search', { suffix: '...' })"
         readonly
       />
     </div>
@@ -163,9 +163,6 @@ export default {
     },
     req() {
       return state.req;
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     isSettings() {
       return getters.isSettings();
@@ -327,17 +324,12 @@ export default {
 <style scoped>
 header button:hover {
   box-shadow: unset !important;
-  -webkit-box-shadow: unset !important;
 }
 
 header {
-  background-color: color-mix(in srgb, var(--alt-background) 15%, transparent);
-}
-/* Header with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  header {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  color: var(--textPrimary);
 }
 
 :deep(.action.nav-toggle-button .line),
@@ -351,8 +343,8 @@ header {
 .search-bar-container {
   display: flex;
   align-items: center;
-  background-color: rgba(100, 100, 100, 0.2);
-  border-radius: 1em;
+  background-color: color-mix(in srgb, var(--surfaceSecondary) 80%, transparent);;
+  border-radius: var(--borderRadius);
   padding: 0.5em 0.75em;
   transition: background-color 0.2s ease;
   gap: 0.5em;
@@ -369,11 +361,21 @@ header {
   cursor: not-allowed;
 }
 
+#search-bar-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgb(255 255 255 / 90%);
+  width: 100%;
+  font-size: 0.95em;
+  user-select: none;
+}
+
 .search-bar-container.disabled #search-bar-input {
   pointer-events: none;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .search-bar-container {
     min-width: unset;
     max-width: 60%;
@@ -381,7 +383,7 @@ header {
 }
 
 .search-bar-container:hover {
-  background-color: rgba(100, 100, 100, 0.3);
+  background-color: color-mix(in srgb, var(--divider) 75%, transparent);
 }
 
 .search-bar-container .material-symbols {
@@ -389,26 +391,8 @@ header {
   user-select: none;
 }
 
-#search-bar-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: rgba(255, 255, 255, 0.9);
-  width: 100%;
-  font-size: 0.95em;
-  user-select: none;
-}
-
 #search-bar-input::placeholder {
   color: gray;
 }
 
-
-.dark-mode-header .search-bar-container {
-  background-color: rgba(100, 100, 100, 0.2);
-}
-
-.dark-mode-header .search-bar-container:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-}
 </style>

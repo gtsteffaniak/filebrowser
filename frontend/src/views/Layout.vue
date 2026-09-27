@@ -4,13 +4,12 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: `${this.progress}%` }"></div>
     </div>
-    <defaultBar :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
+    <defaultBar></defaultBar>
     <sidebar v-if="!invalidShare"></sidebar>
     <Scrollbar id="main" :class="{
       'dark-mode': isDarkMode,
       moveWithSidebar: moveWithSidebar.shouldMove,
       'remove-padding-top': isOnlyOffice,
-      'main-padding': showPadding,
       scrollable: scrollable,
     }" :style="[moveWithSidebar.style, spaceForEditorStatusBar]">
       <shelf />
@@ -104,9 +103,6 @@ export default {
     },
     scrollable() {
       return getters.isScrollable();
-    },
-    showPadding() {
-      return getters.showBreadCrumbs() || getters.currentView() === "settings";
     },
     isLoggedIn() {
       return getters.isLoggedIn();
@@ -243,8 +239,6 @@ export default {
 <style>
 .scrollable {
   overflow: scroll !important;
-  -webkit-overflow-scrolling: touch;
-  /* Enable momentum scrolling in iOS */
 }
 
 .remove-padding-top {
@@ -253,11 +247,8 @@ export default {
 
 #main {
   overflow: unset;
-  -ms-overflow-style: none;
-  /* Internet Explorer 10+ */
   scrollbar-width: none;
-  /* Firefox */
-  transition: 0.2s ease;
+  transition: padding-left 0.2s ease;
 }
 
 #main.moveWithSidebar {
@@ -270,8 +261,8 @@ export default {
 
 #main::-webkit-scrollbar {
   display: none;
-  /* Safari and Chrome */
 }
+
 #main>div {
   height: 100%;
 }

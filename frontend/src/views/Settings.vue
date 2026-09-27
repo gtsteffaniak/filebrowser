@@ -119,7 +119,7 @@ export default {
     initializeActiveSettingFromHash() {
       // Get the current hash from the URL
       const hash = window.location.hash.replace('#', '');
-      
+
       if (hash) {
         // Check if the hash corresponds to a valid setting
         const validSetting = this.settings.find(
@@ -136,12 +136,12 @@ export default {
           return;
         }
       }
-      
+
       // Default to profile-main if no hash or invalid hash
       const defaultSetting = this.settings.find(
         (setting) => setting.id === 'profile' && this.shouldShow(setting)
       );
-      
+
       if (defaultSetting) {
         mutations.setActiveSettingsView('profile-main');
       } else {
@@ -163,6 +163,7 @@ export default {
   flex-direction: column;
   height: 100%;
   align-items: center;
+  padding-bottom: 0.5em;
 }
 
 .settings-views {

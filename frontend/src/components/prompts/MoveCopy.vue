@@ -30,7 +30,7 @@
     <button
       type="button"
       v-if="canCreateFolder && showNewDirInput"
-      class="button button--flat"
+      class="button button--flat button--grey"
       :disabled="isLoading"
       @click="cancelNewDir"
       :aria-label="$t('general.cancel')"
@@ -492,7 +492,4 @@ export default {
   justify-content: space-between;
 }
 
-.move-copy-path-picker {
-  margin-bottom: 1rem;
-}
 </style>

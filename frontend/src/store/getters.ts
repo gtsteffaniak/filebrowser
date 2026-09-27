@@ -75,7 +75,7 @@ export const getters = {
     if (state.req.type !== "directory") {
       path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
     }
-  
+
     return getters.displayPreferenceFor(source, path);
   },
   viewModeChangeLocked: () => {

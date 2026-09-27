@@ -37,7 +37,9 @@ cleanup() {
 	if [[ -n "${VITE_PID:-}" ]] && kill -0 "$VITE_PID" 2>/dev/null; then
 		kill -TERM "$VITE_PID" 2>/dev/null || true
 	fi
-	wait "$AIR_PID" 2>/dev/null || true
+  if [[ -n "${AIR_PID:-}" ]]; then
+    wait "$AIR_PID" 2>/dev/null || true
+  fi
 	wait "$VITE_PID" 2>/dev/null || true
 	exit "$status"
 }

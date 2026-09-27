@@ -1,5 +1,5 @@
 <template>
-  <div class="listing-item-header card" :class="{ 'dark-mode': isDarkMode, 'desktop-view': !isMobile }">
+  <div class="listing-item-header card" :class="{ 'desktop-view': !isMobile }">
     <p
       :class="{ active: nameSorted }"
       class="name"
@@ -12,7 +12,7 @@
       :aria-label="$t('files.sortByName')"
     >
       <span>{{ $t("general.name") }}</span>
-      <i v-if="nameSorted" class="material-symbols">{{ nameIcon }}</i>
+      <i class="material-symbols">{{ nameIcon }}</i>
     </p>
 
     <p
@@ -26,7 +26,7 @@
       :title="$t('files.sortBySize')"
       :aria-label="$t('files.sortBySize')"
     >
-      <i v-if="sizeSorted" class="material-symbols">{{ sizeIcon }}</i>
+      <i class="material-symbols">{{ sizeIcon }}</i>
       <span>{{ $t("general.size") }}</span>
     </p>
 
@@ -41,7 +41,7 @@
       :title="$t('files.sortByLastModified')"
       :aria-label="$t('files.sortByLastModified')"
     >
-      <i v-if="modifiedSorted" class="material-symbols">{{ modifiedIcon }}</i>
+      <i class="material-symbols">{{ modifiedIcon }}</i>
       <span>{{ $t("files.lastModified") }}</span>
     </p>
 
@@ -57,7 +57,7 @@
       :title="$t('files.sortByDuration')"
       :aria-label="$t('files.sortByDuration')"
     >
-      <i v-if="durationSorted" class="material-symbols">{{ durationIcon }}</i>
+      <i class="material-symbols">{{ durationIcon }}</i>
       <span>{{ $t("files.duration") }}</span>
     </p>
     <span v-if="quickDownloadEnabled" class="placeholder"></span>
@@ -83,9 +83,6 @@ export default {
   computed: {
     isMobile() {
       return getters.isMobile();
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     sortConfig() {
       return this.usePickerSorting ? getters.pickerSorting() : getters.sorting();
@@ -171,8 +168,8 @@ export default {
 <style scoped>
 .listing-item-header {
   display: flex;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, .1);
+  background: var(--surfacePrimary);
+  border: 1px solid var(--divider);
   z-index: 999;
   padding: .85em;
   width: 100%;
@@ -181,11 +178,6 @@ export default {
   border-top-right-radius: 1em;
   margin-bottom: 0 !important;
   justify-content: space-between;
-}
-
-.dark-mode {
-  border-color: var(--divider) !important;
-  background: var(--surfacePrimary) !important;
   user-select: none;
 }
 
@@ -210,6 +202,14 @@ span {
   flex: 1;
 }
 
+.size,
+.modified,
+.duration {
+  flex: 1;
+  justify-content: flex-end;
+  text-align: end;
+}
+
 .desktop-view .size,
 .desktop-view .duration {
   width: 12%;
@@ -227,29 +227,23 @@ span {
   text-align: right;
 }
 
-.size,
-.modified,
-.duration {
-  flex: 1;
-  justify-content: flex-end;
-  text-align: end;
-}
-
 i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
   opacity: 0;
-  transition: .1s ease all;
+  transition: opacity 0.1s ease;
   flex-shrink: 0;
 }
 
+.active i,
 p:hover i,
-.active i {
+.active:hover i {
   opacity: 1;
 }
 
-.active {
+.active,
+p:hover {
   font-weight: bold;
 }
 </style>

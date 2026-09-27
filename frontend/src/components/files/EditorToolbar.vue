@@ -50,7 +50,7 @@
         </button>
         <Teleport to="body">
           <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu, el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu, el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :style="menuStyle">
               <li v-for="item in iconMenuItems(btn.menu)" :key="item.id">
                 <button
                   type="button"
@@ -111,7 +111,7 @@
       </button>
       <Teleport to="body">
         <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-          <ul v-if="openMenu === 'extra'" ref="extraMenu" class="editor-toolbar-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+          <ul v-if="openMenu === 'extra'" ref="extraMenu" class="editor-toolbar-menu floating-window border-radius" :style="menuStyle">
             <li v-for="item in extraMenuItems" :key="item.id">
               <button
                 type="button"
@@ -336,9 +336,6 @@ export default {
         return { top: `${this.menuPosition.top}px`, left: `${this.menuPosition.left}px`, transform: "translateX(-50%)" };
       }
       return { top: `${this.menuPosition.top}px`, right: `${this.menuPosition.right}px` };
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
   },
   methods: {
@@ -797,9 +794,7 @@ export default {
   padding: 0.35em 0;
   border-bottom: 1px solid var(--alt-background);
   flex-shrink: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow: auto hidden;
   scrollbar-width: none;
 }
 
@@ -840,7 +835,6 @@ export default {
 
 .editor-toolbar-sticky--right {
   right: -1px;
-  /*margin-left: auto;*/
   padding-right: calc(0.25em + 1px);
   border-left: 1px solid var(--alt-background);
   border-right: none;

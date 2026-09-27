@@ -93,6 +93,7 @@ build-frontend:
 
 lint-frontend:
 	cd frontend && npm run lint
+	cd frontend && npm run lint:css
 
 lint-backend:
 	cd backend && GOLANGCI_LINT="$$(cd $(BACKEND_BUILD) && go tool -n golangci-lint)" && "$$GOLANGCI_LINT" run --path-prefix=backend
@@ -204,7 +205,7 @@ perf-dashboard:
 
 # get version from environment variable, for example
 # cd frontend && npm i @playwright/test && npx playwright install --with-deps chromium
-# make PLAYWRIGHT_TEST=settings test-playwright-ui 
+# make PLAYWRIGHT_TEST=settings test-playwright-ui
 test-playwright-ui: build-frontend
 	docker stop local-playwright-tests || true
 	docker rm local-playwright-tests || true

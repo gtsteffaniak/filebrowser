@@ -1,5 +1,5 @@
 <template>
-  <div id="status-bar" :style="moveWithSidebar" :class="{ 'dark-mode-header': isDarkMode, 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
+  <div id="status-bar" :style="moveWithSidebar" :class="{ 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
     <div class="status-content" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
       <!-- Left side: selection/directory info and stats for the editor and markdown viewer -->
       <div class="status-info">
@@ -66,9 +66,6 @@ export default {
     },
     showGallerySizeSlider() {
       return getters.showGallerySizeSlider();
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     selectedCount() {
       return getters.selectedCount();
@@ -239,7 +236,8 @@ export default {
 
 <style scoped>
 #status-bar {
-  background-color: color-mix(in srgb, var(--alt-background) 15%, transparent);
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
   height: 2.5em;
   display: flex;
   align-items: center;
@@ -309,43 +307,30 @@ input[type="range"] {
   width: 8em;
 }
 
-/* Backdrop filter support */
-@supports (backdrop-filter: none) {
-  #status-bar {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-}
-
 /* Mobile styles */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   #status-bar {
     height: 3em;
     bottom: -3em;
     font-size: 0.9em;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -2px 10px rgb(0 0 0 / 10%);
   }
-
   #status-bar.active {
     bottom: 0;
     pointer-events: auto;
   }
-
   .status-content {
     padding: 0 0.8em;
   }
-
   .status-controls {
     gap: 1.2em;
   }
-
   input[type="range"] {
     width: 7em;
   }
-
   .status-info {
     font-size: 1em;
   }
-
   .size-label {
     font-size: 0.9em;
   }

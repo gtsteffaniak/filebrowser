@@ -1,5 +1,5 @@
 <template>
-  <div class="audio-side-panel" :class="{ 'dark-mode': darkMode }">
+  <div class="audio-side-panel">
     <div class="panel-tabs">
       <div class="tab-container">
         <input type="radio" id="tab-queue" v-model="activeTab" value="queue" hidden />
@@ -92,7 +92,7 @@
 <script>
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { getters, mutations, state } from "@/store";
+import { mutations, state } from "@/store";
 import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
 const LAST_TAB_KEY = 'plyrSidePanelActiveTab';
@@ -170,9 +170,6 @@ export default {
      */
     visualizerConfig() {
       return visualizerConfig;
-    },
-    darkMode() {
-      return getters.isDarkMode();
     },
     queueCount() {
       return state.playbackQueue.queue.length;
@@ -777,14 +774,10 @@ export default {
   display: flex;
   flex-direction: column;
   max-height: 65vh;
-  background: rgb(216 216 216);
-  border-radius: 1em;
+  background: color-mix(in srgb, var(--alt-background) 20%, var(--background) 20%);
+  border-radius: var(--borderRadius);
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.audio-side-panel.dark-mode {
-  background: rgb(37 49 55 / 33%);
+  box-shadow: var(--surfaceElevationShadow);
 }
 
 .panel-tabs {
@@ -809,10 +802,10 @@ export default {
   border: none;
   background: transparent;
   color: var(--textSecondary);
-  border-radius: 0.8em;
+  border-radius: var(--borderRadius);
   cursor: pointer;
   font-size: 0.9rem;
-  transition: 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
   position: relative;
   z-index: 1;
   user-select: none;
@@ -841,7 +834,7 @@ export default {
   top: 0; bottom: 0;
   left: 0;
   background: var(--primaryColor);
-  border-radius: 0.8em;
+  border-radius: var(--borderRadius);
   z-index: 0;
   transition: left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
               width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -854,6 +847,7 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 .tab-queue,
 .tab-lyrics,
 .tab-visualizer {
@@ -995,8 +989,8 @@ export default {
 .visualizer-canvas {
   width: 100%;
   height: 100%;
-  border-radius: 0.8em;
-  background: rgba(0, 0, 0, 0.12);
+  border-radius: var(--borderRadius);
+  background: rgb(0 0 0 / 12%);
   display: block;
 }
 </style>

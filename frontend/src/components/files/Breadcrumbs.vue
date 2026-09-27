@@ -160,7 +160,7 @@ export default {
       if (event.currentTarget.contains(event.relatedTarget)) {
         return;
       }
-      
+
       if (this.dragOverItem?.path === link.path ||
           (this.dragOverItem?.type === 'home' && link.type === 'home')) {
         this.clearDragState();
@@ -326,7 +326,6 @@ export default {
 <style scoped>
 #breadcrumbs {
   overflow-x: auto;
-  -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
@@ -365,7 +364,8 @@ export default {
   border-radius: 0;
   align-content: center;
   align-items: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, padding-left 0.2s ease,
+    padding-right 0.2s ease, margin-right 0.2s ease, border-radius 0.2s ease, clip-path 0.2s ease;
   user-select: none;
   white-space: nowrap;
   max-width: 90vw;
@@ -376,8 +376,8 @@ export default {
     calc(100% - 1.275em) 100%,
     0% 100%,
     1.275em 50%);
-  margin-right: -0.85em;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  margin-right: -0.90em;
+  border: 1px solid rgb(0 0 0 / 10%);
 }
 
 #breadcrumbs ul li a .breadcrumb-text {
@@ -425,15 +425,13 @@ export default {
   background: var(--primaryColor) !important; /* Needs !important to make the hover effect work when dragging items */
   color: white !important;
   z-index: 2;
+  animation: breadcrumb-pulse 0.5s ease-in-out infinite;
 }
 
-@keyframes breadcrumbPulse {
+@keyframes breadcrumb-pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-.drag-over {
-  animation: breadcrumbPulse 0.5s ease-in-out infinite;
-}
 </style>

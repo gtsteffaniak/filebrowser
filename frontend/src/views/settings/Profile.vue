@@ -166,6 +166,7 @@ export default {
 .card-content :deep(.settings-group) {
   margin-bottom: -0.35em;
 }
+
 .settings-group {
   padding-top: 0.5em;
 }
