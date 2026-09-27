@@ -44,7 +44,7 @@
     </div>
   </div>
   <div class="card-actions">
-    <button type="button" class="button button--flat" @click="close">{{ $t("general.cancel") }}</button>
+    <button type="button" class="button button--flat button--grey" @click="close">{{ $t("general.cancel") }}</button>
     <button v-if="quotaExists" type="button" class="button button--flat button--red" @click="removeQuota">
       {{ $t("general.remove") }}
     </button>
