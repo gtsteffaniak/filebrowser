@@ -663,7 +663,22 @@
     "cascadeDelete": "Yinelemeli Silme",
     "cascadeDeleteDescription": "Etkinleştirildiğinde, bir erişim kuralı silindiğinde tüm alt dizinlerden de kaldırılır. Bu, bir kullanıcıyı veya grubu tüm dizin ağacından tamamen kaldırmanıza olanak tanır.",
     "hasRules": "Erişim kuralları yapılandırıldı",
-    "manageDescription": "Bu yol için açık erişim kuralları."
+    "manageDescription": "Bu yol için açık erişim kuralları.",
+    "groups": "Gruplar",
+    "newGroup": "Yeni grup",
+    "editGroup": "Grubu düzenle",
+    "groupName": "Grup adı",
+    "userGroups": "Gruplar",
+    "addGroup": "Grup ekle",
+    "createGroupConfirm": "\"{name}\" grubu mevcut değil. Oluşturulsun mu?",
+    "addGroupPlaceholder": "Grup adı",
+    "removeGroup": "Gruptan çıkar",
+    "groupMembers": "Üyeler",
+    "enterUsername": "Kullanıcı adını girin",
+    "addMember": "Üye ekle",
+    "unknownUser": "\"{name}\" adında bir kullanıcı yok",
+    "deleteGroupConfirm": "\"{name}\" grubu silinsin mi? Tüm erişim kurallarından da kaldırılacaktır.",
+    "groupsOidcNote": "OIDC ile senkronize edilen grupların üyeleri, bu kullanıcılar her oturum açtığında kimlik sağlayıcısından sıfırlanır."
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",

@@ -35,6 +35,7 @@ const settings = [
   { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }, icon: 'key' },
   { id: 'users', component: 'UserManagement', icon: 'group' },
   { id: 'access', label: 'access.accessManagement', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
+  { id: 'groups', label: 'access.groups', component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
   { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
 ];
 
@@ -49,6 +50,7 @@ i18n.global.t('fileLoading.title');
 i18n.global.t('notifications.title');
 i18n.global.t('api.title');
 i18n.global.t('access.accessManagement');
+i18n.global.t('access.groups');
 
 const previewViews = [
   'preview',

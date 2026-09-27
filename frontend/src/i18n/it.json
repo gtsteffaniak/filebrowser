@@ -757,7 +757,22 @@
     "cascadeDelete": "Eliminazione Ricorsiva",
     "cascadeDeleteDescription": "Se abilitato, l'eliminazione di una regola rimuoverà anche quelle nelle sottodirectory.",
     "hasRules": "Regole di accesso configurate",
-    "manageDescription": "Regole di libero accesso per questo percorso."
+    "manageDescription": "Regole di libero accesso per questo percorso.",
+    "groups": "Gruppi",
+    "newGroup": "Nuovo gruppo",
+    "editGroup": "Modifica gruppo",
+    "groupName": "Nome del gruppo",
+    "userGroups": "Gruppi",
+    "addGroup": "Aggiungi gruppo",
+    "createGroupConfirm": "Il gruppo \"{name}\" non esiste. Crearlo?",
+    "addGroupPlaceholder": "Nome del gruppo",
+    "removeGroup": "Rimuovi dal gruppo",
+    "groupMembers": "Membri",
+    "enterUsername": "Inserisci il nome utente",
+    "addMember": "Aggiungi membro",
+    "unknownUser": "Nessun utente chiamato \"{name}\"",
+    "deleteGroupConfirm": "Eliminare il gruppo \"{name}\"? Verrà rimosso anche da tutte le regole di accesso.",
+    "groupsOidcNote": "I membri dei gruppi sincronizzati tramite OIDC vengono reimpostati dal provider di identità a ogni accesso di tali utenti."
   },
   "fileLoading": {
     "title": "Caricamenti e Download",

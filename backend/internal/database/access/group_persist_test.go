@@ -20,6 +20,9 @@ func (s *stubGroupSQL) SaveGroup(string, access.StringSet) error {
 	return s.saveErr
 }
 func (s *stubGroupSQL) DeleteGroup(string) error { return s.deleteErr }
+func (s *stubGroupSQL) DeleteGroupWithRules(string, []access.RuleUpsert, []access.RuleKey) error {
+	return s.deleteErr
+}
 func (s *stubGroupSQL) SaveRevokedToken(string, int64) error {
 	return nil
 }
@@ -57,6 +60,9 @@ func (s *recordingGroupSQL) DeleteGroup(name string) error {
 	}
 	delete(s.groups, name)
 	return nil
+}
+func (s *recordingGroupSQL) DeleteGroupWithRules(name string, _ []access.RuleUpsert, _ []access.RuleKey) error {
+	return s.DeleteGroup(name)
 }
 func (s *recordingGroupSQL) SaveRevokedToken(string, int64) error                   { return nil }
 func (s *recordingGroupSQL) PersistImmediateTokenRevocation(string) error          { return nil }
