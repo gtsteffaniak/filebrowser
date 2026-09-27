@@ -3596,10 +3596,10 @@ export default {
 .plyr.plyr--audio {
   border-radius: var(--borderRadius);
   backdrop-filter: var(--panel-blur);
+  background-color: var(--alt-background);
 }
 
 .audio-controls-container .plyr .plyr__controls {
-  background-color: var(--alt-background);
   color: var(--textPrimary);
 }
 

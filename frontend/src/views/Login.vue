@@ -1,6 +1,6 @@
 <template>
   <Tooltip />
-  <div id="login" :class="{ recaptcha: globalVars.recaptcha, 'dark-mode': isDarkMode, 'halloween-theme': eventTheme === 'halloween' }">
+  <div id="login" :class="{ recaptcha: globalVars.recaptcha, 'halloween-theme': eventTheme === 'halloween' }">
     <!-- Halloween Background Elements -->
     <div v-if="eventTheme === 'halloween'" class="halloween-background">
       <!-- Floating Clouds -->

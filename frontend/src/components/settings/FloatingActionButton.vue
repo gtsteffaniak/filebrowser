@@ -19,7 +19,6 @@
       `fab-button--${effectiveSize}`,
       `fab-button--${variant}`,
       {
-        'dark-mode': darkMode,
         'fab-button--extended': extended,
         'fab-button--slide-in-visible': topCenterVisible,
         'fab-button--hidden': autoHide && !showButton,
@@ -158,9 +157,6 @@ export default {
     };
   },
   computed: {
-    darkMode(): boolean {
-      return getters.isDarkMode();
-    },
     effectiveSize(): string {
       return this.extended ? "normal" : this.size;
     },
@@ -412,7 +408,7 @@ export default {
   opacity: 1;
 }
 
-.fab-button.dark-mode:not(.fab-button--primary) {
+.fab-button:not(.fab-button--primary) {
   background: var(--surfacePrimary);
 }
 
@@ -423,8 +419,7 @@ export default {
   color: white;
 }
 
-.fab-button--primary,
-.fab-button--primary.dark-mode {
+.fab-button--primary {
   background: var(--primaryColor);
   color: white;
 }

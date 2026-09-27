@@ -50,7 +50,7 @@
         </button>
         <Teleport to="body">
           <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu, el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu, el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :style="menuStyle">
               <li v-for="item in iconMenuItems(btn.menu)" :key="item.id">
                 <button
                   type="button"
@@ -111,7 +111,7 @@
       </button>
       <Teleport to="body">
         <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-          <ul v-if="openMenu === 'extra'" ref="extraMenu" class="editor-toolbar-menu floating-window border-radius" :class="{ 'dark-mode': isDarkMode }" :style="menuStyle">
+          <ul v-if="openMenu === 'extra'" ref="extraMenu" class="editor-toolbar-menu floating-window border-radius" :style="menuStyle">
             <li v-for="item in extraMenuItems" :key="item.id">
               <button
                 type="button"
@@ -336,9 +336,6 @@ export default {
         return { top: `${this.menuPosition.top}px`, left: `${this.menuPosition.left}px`, transform: "translateX(-50%)" };
       }
       return { top: `${this.menuPosition.top}px`, right: `${this.menuPosition.right}px` };
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
   },
   methods: {

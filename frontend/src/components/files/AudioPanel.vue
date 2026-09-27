@@ -777,14 +777,10 @@ export default {
   display: flex;
   flex-direction: column;
   max-height: 65vh;
-  background: rgb(216 216 216);
+    background: color-mix(in srgb, var(--alt-background) 20%, var(--background) 20%);
   border-radius: var(--borderRadius);
   overflow: hidden;
-  box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
-}
-
-.audio-side-panel.dark-mode {
-  background: rgb(37 49 55 / 33%);
+  box-shadow: var(--surfaceElevationShadow);
 }
 
 .panel-tabs {

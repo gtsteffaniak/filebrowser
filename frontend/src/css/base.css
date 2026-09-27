@@ -100,7 +100,7 @@ audio, video {
 }
 
 .floating-window {
-  background-color: var(--surfacePrimary);
+  background-color: var(--background);
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow:
   0 1px 1px hsl(0deg 0% 0% / 7.5%),

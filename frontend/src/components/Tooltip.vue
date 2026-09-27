@@ -4,7 +4,6 @@
     v-show="tooltip.show"
     class="floating-tooltip floating-window"
     :class="{
-      'dark-mode': isDarkMode,
       'pointer-enabled': tooltip.pointerEvents,
       'floating-tooltip--component': hasComponent,
     }"
@@ -20,7 +19,7 @@
 </template>
 
 <script>
-import { getters, state } from "@/store";
+import { state } from "@/store";
 import { hideInteractiveTooltip } from "@/utils/tooltipHelp.js";
 
 export default {
@@ -38,9 +37,6 @@ export default {
     },
     hasComponent() {
       return Boolean(this.tooltip.component);
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     tooltipStyle() {
       const style = {

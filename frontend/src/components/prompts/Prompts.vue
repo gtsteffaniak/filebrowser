@@ -4,7 +4,6 @@
       ref="promptWindow"
       class="floating-window"
       :class="{
-        'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
         'is-resizing': resizingId === prompt.id,
         'prompt-behind': !isTopmost(prompt.id),
@@ -818,6 +817,7 @@ export default {
   display: flex !important;
   flex-direction: column;
   overflow: hidden;
+  color: var(--textPrimary);
 }
 
 @keyframes show {
@@ -974,14 +974,6 @@ export default {
   background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary, #f5f5f5));
 }
 
-.dark-mode .prompt-taskbar:hover {
-  background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary));
-}
-
-.dark-mode .prompt-taskbar.is-dragging {
-  background: color-mix(in srgb, var(--primaryColor) 22%, var(--surfaceSecondary));
-}
-
 .prompt-close-right .prompt-close {
   order: 3;
 }
@@ -1035,6 +1027,7 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 80%;
+  color: var(--textPrimary);
 }
 
 .resize-handles {

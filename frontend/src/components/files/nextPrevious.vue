@@ -34,7 +34,6 @@
       disabled: !hasPrevious,
       dragging: dragState.type === 'previous',
       active: (dragState.atFullExtent && dragState.type === 'previous') || (gestureHint === 'previous' && gestureHintCommitReady),
-      'dark-mode': isDarkMode,
       'media-mode': isMediaQueueMode,
       'sidebar-resizing': isSidebarResizing,
       'nav-button--hidden': !showNav,
@@ -62,7 +61,7 @@
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-next"
-    :class="{ dragging: dragState.type === 'next', active: (dragState.atFullExtent && dragState.type === 'next') || (gestureHint === 'next' && gestureHintCommitReady), 'dark-mode': isDarkMode, 'media-mode': isMediaQueueMode, 'nav-button--hidden': !showNav }"
+    :class="{ dragging: dragState.type === 'next', active: (dragState.atFullExtent && dragState.type === 'next') || (gestureHint === 'next' && gestureHintCommitReady), 'media-mode': isMediaQueueMode, 'nav-button--hidden': !showNav }"
     :style="nextButtonStyle"
     :aria-label="$t('general.next')"
     :title="$t('general.next')"
@@ -82,7 +81,6 @@
     class="nav-button nav-close"
     :class="{
       active: gestureHint === 'close' && gestureHintCommitReady,
-      'dark-mode': isDarkMode,
       'media-mode': isMediaQueueMode,
       'gesture-flash': gestureHintFlashClose,
       'sidebar-resizing': isSidebarResizing,
@@ -148,7 +146,6 @@ export default {
     };
   },
   computed: {
-    isDarkMode() { return getters.isDarkMode(); },
     moveWithSidebar() {
       return getters.isSidebarVisible() && getters.isStickySidebar();
     },
@@ -1022,7 +1019,7 @@ export default {
   height: var(--fab-size);
   border: var(--borderWidth) solid var(--divider);
   border-radius: 50%;
-  background: var(--background);
+  background: var(--surfacePrimary);
   color: var(--textPrimary);
   cursor: pointer;
   transition:
@@ -1040,11 +1037,6 @@ export default {
   opacity: 1;
   margin-top: 2em;
   user-select: none;
-}
-
-.nav-button.dark-mode {
-  background: var(--surfacePrimary);
-  color: var(--textPrimary);
 }
 
 .nav-button.media-mode {

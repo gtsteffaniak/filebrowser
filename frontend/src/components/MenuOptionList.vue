@@ -183,10 +183,8 @@ export default {
   font-size: 0.9em;
   color: var(--textSecondary);
 }
-</style>
 
-<style>
-.dark-mode .menu-option-list .menu-option--selected {
-  background-color: rgb(255 255 255 / 8%);
+.menu-option-list .menu-option--selected {
+  background-color: color-mix(in srgb, var(--alt-background) 75%, transparent);
 }
 </style>
