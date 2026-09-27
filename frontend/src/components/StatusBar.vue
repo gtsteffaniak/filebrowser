@@ -1,5 +1,5 @@
 <template>
-  <div id="status-bar" :style="moveWithSidebar" :class="{ 'dark-mode-header': isDarkMode, 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
+  <div id="status-bar" :style="moveWithSidebar" :class="{ 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
     <div class="status-content" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
       <!-- Left side: selection/directory info and stats for the editor and markdown viewer -->
       <div class="status-info">

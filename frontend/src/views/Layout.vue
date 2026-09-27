@@ -4,7 +4,7 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: `${this.progress}%` }"></div>
     </div>
-    <defaultBar :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
+    <defaultBar></defaultBar>
     <sidebar v-if="!invalidShare"></sidebar>
     <Scrollbar id="main" :class="{
       'dark-mode': isDarkMode,

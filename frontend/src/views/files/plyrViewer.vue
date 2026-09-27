@@ -104,7 +104,7 @@
       </div>
 
       <!-- Audio controls -->
-      <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
+      <div class="audio-controls-container">
         <div class="plyr-audio-container" ref="plyrAudioContainer">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
@@ -588,9 +588,6 @@ export default {
   computed: {
     routePath() {
       return state.route.path;
-    },
-    darkMode() {
-      return state.user.darkMode;
     },
     filetype() {
       return getTypeFromMime(this.req.type || '');

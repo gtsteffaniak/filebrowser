@@ -1,5 +1,5 @@
 <template>
-  <div class="listing-item-header card" :class="{ 'dark-mode': isDarkMode, 'desktop-view': !isMobile }">
+  <div class="listing-item-header card" :class="{ 'desktop-view': !isMobile }">
     <p
       :class="{ active: nameSorted }"
       class="name"
@@ -171,8 +171,8 @@ export default {
 <style scoped>
 .listing-item-header {
   display: flex;
-  background: white;
-  border: 1px solid rgb(0 0 0 / 10%);
+  background: var(--surfacePrimary);
+  border: 1px solid var(--divider);
   z-index: 999;
   padding: .85em;
   width: 100%;
@@ -181,11 +181,6 @@ export default {
   border-top-right-radius: 1em;
   margin-bottom: 0 !important;
   justify-content: space-between;
-}
-
-.dark-mode {
-  border-color: var(--divider) !important;
-  background: var(--surfacePrimary) !important;
   user-select: none;
 }
 

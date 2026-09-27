@@ -78,7 +78,7 @@
             </div>
           </div>
         </div>
-        <div ref="terminalOutput" class="terminal-output border-radius" :class="{ 'dark-mode': isDarkMode }">
+        <div ref="terminalOutput" class="terminal-output border-radius">
           <div v-for="(line, index) in outputLines" :key="index" class="terminal-line">
             <span class="terminal-text">{{ line.text }}</span>
           </div>
@@ -131,9 +131,6 @@ export default {
     };
   },
   computed: {
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     isMobile() {
       return getters.isMobile();
     },
@@ -692,7 +689,7 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 0.75rem 1rem;
-  background: var(--surfaceSecondary);
+  background: var(--surfacePrimary);
   border-bottom: 1px solid var(--divider);
   margin-bottom: 0;
   font-size: 0.9rem;

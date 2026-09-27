@@ -6,6 +6,7 @@
   --surfaceSecondary: lightgray;
   --textPrimary: #546e7a;
   --textSecondary: gray;
+  --divider: rgb(176 176 176 / 50%);
   --iconBackground: #ddd;
   --activeWhiteIcon: gray;
 }

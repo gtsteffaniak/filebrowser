@@ -1,7 +1,7 @@
 <template>
   <nav
     id="sidebar"
-    :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
+    :class="{ active: active, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
     :style="{ width: `${sidebarWidth}em`, left: active ? '0' : `-${sidebarWidth}em` }"
   >
     <div v-if="shouldShow" class="button release-banner">
@@ -106,7 +106,6 @@ export default {
     externalLinks: () => globalVars.externalLinks,
     name: () => globalVars.name,
     releaseUrl: () => globalVars.updateAvailable,
-    isDarkMode: () => getters.isDarkMode(),
     isSettings: () => getters.isSettings(),
     isMobile: () => getters.isMobile(),
     active: () => getters.isSidebarVisible(),

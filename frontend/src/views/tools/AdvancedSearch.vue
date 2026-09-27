@@ -180,7 +180,7 @@
             >
               <template v-if="reqListing.dirs.length > 0">
                 <div>
-                  <h2 :class="{ 'dark-mode': isDarkMode }">{{ $t("general.folders") }}</h2>
+                  <h2>{{ $t("general.folders") }}</h2>
                 </div>
                 <div
                   class="folder-items"
@@ -210,7 +210,7 @@
               </template>
               <template v-if="reqListing.files.length > 0">
                 <div>
-                  <h2 :class="{ 'dark-mode': isDarkMode }">{{ $t("general.files") }}</h2>
+                  <h2>{{ $t("general.files") }}</h2>
                 </div>
                 <div class="file-items" :class="{ lastGroup: true }" aria-label="File Items">
                   <Item
@@ -608,9 +608,6 @@ export default {
     },
     isStickySidebar() {
       return getters.isStickySidebar();
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     listingViewMode() {
       return getters.viewMode();

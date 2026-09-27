@@ -16,7 +16,7 @@
       title="HTML preview"
       @load="applyHtmlPreviewHeight"
     ></iframe>
-    <div v-else class="markdown-content-container" :class="{ 'dark-mode': darkMode }">
+    <div v-else class="markdown-content-container">
       <div ref="viewer" class="markdown-content">
         <div
           v-for="block in renderedContent"

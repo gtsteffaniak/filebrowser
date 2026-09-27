@@ -11,7 +11,7 @@
       v-if="showContext"
       :style="centered ? {} : { top: `${posY}px`, left: `${posX}px` }"
       class="no-select floating-window"
-      :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
+      :class="{ 'centered': centered }"
       :key="showNewFileTemplate ? 'template-mode' : (showCreate ? 'create-mode' : 'normal-mode')"
     >
       <template v-if="showNewFileTemplate">
@@ -223,7 +223,6 @@
         right: '1em',
       }"
       class="no-select floating-window"
-      :class="{ 'dark-mode': isDarkMode }"
     >
       <action icon="info" :label="$t('general.info')" @action="showInfoPrompt"/>
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />

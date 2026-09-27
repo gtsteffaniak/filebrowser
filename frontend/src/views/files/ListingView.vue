@@ -59,7 +59,7 @@
       <template v-else>
         <!-- Pinned Items Section -->
         <div v-if="numPinned > 0">
-          <h2 :class="{'dark-mode': isDarkMode}">{{ pinnedHeaderText }}</h2>
+          <h2>{{ pinnedHeaderText }}</h2>
         </div>
         <div
           v-if="numPinned > 0"
@@ -92,7 +92,7 @@
 
         <!-- Directories Section -->
         <div v-if="numDirs > 0">
-          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
+          <h2>{{ $t("general.folders") }}</h2>
         </div>
         <div
           v-if="numDirs > 0"
@@ -124,7 +124,7 @@
 
         <!-- Files Section -->
         <div v-if="numFiles > 0">
-          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
+          <h2>{{ $t("general.files") }}</h2>
         </div>
         <div
           v-if="numFiles > 0"
@@ -336,9 +336,6 @@ export default {
     },
     gallerySize() {
       return state.user.gallerySize;
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     ascOrdered() {
       return getters.sorting().asc;

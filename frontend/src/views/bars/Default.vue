@@ -1,5 +1,5 @@
 <template>
-  <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
+  <header v-if="!isOnlyOffice" :class="['flexbar']">
     <action
       v-if="!disableNavButtons"
       class="nav-toggle-button"
@@ -332,6 +332,7 @@ header button:hover {
 header {
   background-color: var(--panel-bg);
   backdrop-filter: var(--panel-blur);
+  color: var(--textPrimary);
 }
 
 :deep(.action.nav-toggle-button .line),
@@ -345,7 +346,7 @@ header {
 .search-bar-container {
   display: flex;
   align-items: center;
-  background-color: rgb(100 100 100 / 20%);
+  background-color: color-mix(in srgb, var(--surfaceSecondary) 80%, transparent);;
   border-radius: var(--borderRadius);
   padding: 0.5em 0.75em;
   transition: background-color 0.2s ease;
@@ -385,7 +386,7 @@ header {
 }
 
 .search-bar-container:hover {
-  background-color: rgb(100 100 100 / 30%);
+  background-color: color-mix(in srgb, var(--divider) 75%, transparent);
 }
 
 .search-bar-container .material-symbols {
@@ -397,12 +398,4 @@ header {
   color: gray;
 }
 
-
-.dark-mode-header .search-bar-container {
-  background-color: rgb(100 100 100 / 20%);
-}
-
-.dark-mode-header .search-bar-container:hover {
-  background-color: rgb(255 255 255 / 15%);
-}
 </style>
