@@ -164,9 +164,6 @@ export default {
     req() {
       return state.req;
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     isSettings() {
       return getters.isSettings();
     },

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="active" id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }" @click="clearContext">
+  <div v-if="active" id="search" :class="{ active, ongoing }" @click="clearContext">
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
@@ -339,9 +339,6 @@ export default {
     },
     active() {
       return state.isSearchActive;
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
     },
     showBoxes() {
       return this.searchTypes === "";
@@ -994,14 +991,6 @@ export default {
   color: var(--textSecondary);
 }
 
-#search.dark-mode .search-input-container {
-  background-color: rgb(255 255 255 / 10%);
-}
-
-#search.dark-mode .search-input-container input::placeholder {
-  color: gray !important;
-}
-
 #search.active .search-input-container {
   background-color: var(--background);
   border-color: var(--surfaceSecondary);
@@ -1010,10 +999,6 @@ export default {
   border-bottom-right-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
   border-width: var(--borderWidth);
-}
-
-#search.dark-mode.active .search-input-container {
-  background-color: var(--background);
 }
 
 #result-list p {

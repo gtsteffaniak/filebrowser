@@ -11,7 +11,6 @@
       ref="anchor"
       class="expand-dropdown-anchor menu-panel no-select border-radius"
       :class="{
-        'dark-mode': isDarkMode,
         'expand-upward': open && expandUpward && !transparent,
         'expand-dropdown-anchor--placeholder': open && transparent,
       }"
@@ -55,7 +54,6 @@
           <div
             class="expand-dropdown-anchor menu-panel no-select border-radius"
             :class="{
-              'dark-mode': isDarkMode,
               'expand-upward': expandUpward,
             }"
             :style="overlayAnchorStyle"
@@ -148,7 +146,6 @@
 
 <script>
 import MenuOptionList from "@/components/MenuOptionList.vue";
-import { getters } from "@/store";
 import {
   expandBeforeEnter,
   expandEnter,
@@ -255,9 +252,6 @@ export default {
   },
 
   computed: {
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     resolvedInputId() {
       return this.inputId || this.localInputId;
     },
@@ -272,7 +266,6 @@ export default {
         {
           "expand-dropdown--transparent": this.transparent,
           "expand-dropdown-overlay--anchored": this.transparent,
-          "dark-mode": this.isDarkMode,
           "expand-upward": this.expandUpward,
         },
         ...this.overlayContextClassNames,

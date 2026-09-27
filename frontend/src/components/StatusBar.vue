@@ -67,9 +67,6 @@ export default {
     showGallerySizeSlider() {
       return getters.showGallerySizeSlider();
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     selectedCount() {
       return getters.selectedCount();
     },

@@ -1,5 +1,5 @@
 <template>
-  <div class="audio-side-panel" :class="{ 'dark-mode': darkMode }">
+  <div class="audio-side-panel">
     <div class="panel-tabs">
       <div class="tab-container">
         <input type="radio" id="tab-queue" v-model="activeTab" value="queue" hidden />
@@ -92,7 +92,7 @@
 <script>
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { getters, mutations, state } from "@/store";
+import { mutations, state } from "@/store";
 import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
 const LAST_TAB_KEY = 'plyrSidePanelActiveTab';
@@ -170,9 +170,6 @@ export default {
      */
     visualizerConfig() {
       return visualizerConfig;
-    },
-    darkMode() {
-      return getters.isDarkMode();
     },
     queueCount() {
       return state.playbackQueue.queue.length;
@@ -777,7 +774,7 @@ export default {
   display: flex;
   flex-direction: column;
   max-height: 65vh;
-    background: color-mix(in srgb, var(--alt-background) 20%, var(--background) 20%);
+  background: color-mix(in srgb, var(--alt-background) 20%, var(--background) 20%);
   border-radius: var(--borderRadius);
   overflow: hidden;
   box-shadow: var(--surfaceElevationShadow);

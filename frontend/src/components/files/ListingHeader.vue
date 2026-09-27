@@ -84,9 +84,6 @@ export default {
     isMobile() {
       return getters.isMobile();
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     sortConfig() {
       return this.usePickerSorting ? getters.pickerSorting() : getters.sorting();
     },

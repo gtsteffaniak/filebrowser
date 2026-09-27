@@ -235,9 +235,6 @@ export default {
       const p = (state.prompts || []).filter(prompt => prompt.name !== "ContextMenu" && prompt.name !== "OverflowMenu");
       return p;
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     promptRightCloseButton() {
       return !!state.user?.promptRightCloseButton;
     },

@@ -346,6 +346,15 @@ tbody tr.sev-low td {
   cursor: pointer;
 }
 
+.delta-strip button {
+  width: 11px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
 .filter-bar button:hover,
 .delta-filters button:hover {
   border-color: var(--accent);
@@ -414,15 +423,6 @@ tbody tr.sev-low td {
   flex-wrap: wrap;
   gap: 2px;
   margin: 0 0 0.85rem;
-}
-
-.delta-strip button {
-  width: 11px;
-  height: 20px;
-  padding: 0;
-  border: 0;
-  border-radius: 2px;
-  cursor: pointer;
 }
 
 .delta-strip button.active {

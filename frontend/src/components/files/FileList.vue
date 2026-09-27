@@ -164,9 +164,6 @@ export default {
     pickerSort() {
       return this.sortable ? getters.pickerSorting() : getters.sorting();
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     isMobile() {
       return getters.isMobile();
     },

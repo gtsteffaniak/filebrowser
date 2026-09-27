@@ -620,9 +620,6 @@ export default {
     isMobileDevice() {
       return getters.isMobile();
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     currentPrompt() {
       return getters.currentPrompt();
     },
