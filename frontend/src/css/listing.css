@@ -1,7 +1,7 @@
 .listing-items {
   animation-duration: 0.25s;
   user-select: none;
-  padding-bottom: 2.5em; /* Space for status bar - this prevents items from going behind */
+  padding-bottom: 3em; /* Space for status bar - this prevents items from going behind */
 }
 
 body.rtl .listing-items {
@@ -406,13 +406,15 @@ body.rtl .listing-items {
   max-width: 100%;
 }
 
-.listing-items.list :where(.firstGroup) .listing-item:first-child {
+.listing-items.list > .listing-item:first-child,
+.listing-items.list :where(.pinned-items, .folder-items, .file-items) .listing-item:first-child {
   border-top-left-radius: var(--borderRadius);
   border-top-right-radius: var(--borderRadius);
   border-top: var(--borderWidth) solid var(--divider);
 }
 
-.listing-items.list :where(.lastGroup) .listing-item:last-child {
+.listing-items.list > .listing-item:last-child,
+.listing-items.list :where(.pinned-items, .folder-items, .file-items) .listing-item:last-child {
   border-bottom-left-radius: var(--borderRadius);
   border-bottom-right-radius: var(--borderRadius);
   border-bottom: var(--borderWidth) solid var(--divider);
@@ -533,5 +535,5 @@ body.rtl .listing-items {
 
 .listing-items.list .listing-item.zebra-row:not([aria-selected="true"]),
 .listing-items.compact .listing-item.zebra-row:not([aria-selected="true"]) {
-  background: color-mix(in srgb, var(--divider) 45%, var(--surfacePrimary));
+  background: color-mix(in srgb, var(--surfacePrimary) 30%, var(--background));
 }

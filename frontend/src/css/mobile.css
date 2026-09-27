@@ -7,6 +7,9 @@
     width: 42%;
     padding-left: 0.5em;
   }
+  .listing-item-header .duration {
+    display: none !important;
+  }
   .list .listing-item .text .name,
   .list .listing-item .text .modified,
   .list .listing-item .text .size,

@@ -41,6 +41,7 @@
         :size="item.originalItem?.size || 0"
         :modified="item.originalItem?.modified || new Date().toISOString()"
         :index="index"
+        :class="{ 'zebra-row': index % 2 === 1 }"
         :path="item.path"
         :hasPreview="item.originalItem?.hasPreview && item.type !== 'directory' || false"
         :metadata="item.originalItem?.metadata"
@@ -127,7 +128,7 @@ export default {
     /** When true, show a clickable Name/Size/Modified header that sorts the listing (uses pickerSorting). */
     sortable: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   data: function () {
@@ -587,6 +588,10 @@ export default {
 .listing-items :deep(.listing-item.activebutton) {
   background: var(--primaryColor) !important;
   color: #fff !important;
+}
+
+:deep(.listing-item-header) {
+  margin-bottom: 0.55em !important;
 }
 
 /* Loading spinner (not part of listing.css) */

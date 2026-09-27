@@ -12,7 +12,7 @@
       :aria-label="$t('files.sortByName')"
     >
       <span>{{ $t("general.name") }}</span>
-      <i v-if="nameSorted" class="material-symbols">{{ nameIcon }}</i>
+      <i class="material-symbols">{{ nameIcon }}</i>
     </p>
 
     <p
@@ -26,7 +26,7 @@
       :title="$t('files.sortBySize')"
       :aria-label="$t('files.sortBySize')"
     >
-      <i v-if="sizeSorted" class="material-symbols">{{ sizeIcon }}</i>
+      <i class="material-symbols">{{ sizeIcon }}</i>
       <span>{{ $t("general.size") }}</span>
     </p>
 
@@ -41,7 +41,7 @@
       :title="$t('files.sortByLastModified')"
       :aria-label="$t('files.sortByLastModified')"
     >
-      <i v-if="modifiedSorted" class="material-symbols">{{ modifiedIcon }}</i>
+      <i class="material-symbols">{{ modifiedIcon }}</i>
       <span>{{ $t("files.lastModified") }}</span>
     </p>
 
@@ -57,7 +57,7 @@
       :title="$t('files.sortByDuration')"
       :aria-label="$t('files.sortByDuration')"
     >
-      <i v-if="durationSorted" class="material-symbols">{{ durationIcon }}</i>
+      <i class="material-symbols">{{ durationIcon }}</i>
       <span>{{ $t("files.duration") }}</span>
     </p>
     <span v-if="quickDownloadEnabled" class="placeholder"></span>
@@ -245,11 +245,13 @@ i {
 }
 
 .active i,
-p:hover i {
+p:hover i,
+.active:hover i {
   opacity: 1;
 }
 
-.active {
+.active,
+p:hover {
   font-weight: bold;
 }
 </style>
