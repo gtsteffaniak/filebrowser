@@ -463,22 +463,23 @@ export default {
 }
 
 .login-brand {
-  padding: 0 !important;
-  padding-top: 0.5em !important;
+  padding: 0;
+  padding-top: 0.5em;
   display: flex;
   place-content: center center;
   align-items: center;
 }
 
 .brand-text {
-  padding: 1em !important;
-  padding-top: 0.9em !important;
+  padding: 1em;
+  padding-top: 0.9em;
+  color: var(--textPrimary);
 }
 
 .login-brand i {
-  font-size: 5em !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+  font-size: 5em;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .login-icon {
@@ -488,12 +489,12 @@ export default {
 }
 
 .password-entry {
-  padding: 0 !important;
+  padding: 0;
   width: 100%;
 }
 
 .direct-login {
-  display: flex !important;
+  display: flex;
   justify-content: center;
 }
 
@@ -568,6 +569,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
+  background: var(--background);
 }
 
 #login h1 {

@@ -65,7 +65,7 @@
   transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease, margin 0.2s ease;
   border: 0;
   margin: 0;
-  color: #546e7a;
+  color: var(--textPrimary);
   background: transparent;
   padding: 0;
   box-shadow: none;
@@ -84,9 +84,16 @@
   border-radius: var(--borderRadius);
 }
 
-.action:hover {
-  box-shadow: inset 0 -3em 3em rgb(172 172 172 / 21.1%),
-  0 0 0 2px var(--alt-background) !important;
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover,
+.plyr .plyr__control:hover,
+button:hover,
+.action:hover,
+.listing-item.drag-hover {
+  box-shadow: inset 0 -3em 3em var(--hoverOverlay) !important;
   transform: scale(1.02);
 }
 
@@ -232,12 +239,6 @@
     margin-left: auto;
 }
 
-button:hover {
-  box-shadow: inset 0 -3em 3em rgb(172 172 172 / 21.1%),
-  0 0 0 2px var(--alt-background) !important;
-  transform: scale(1.02);
-}
-
 #previewer>button {
   position: fixed;
   top: calc(50% + 1.85em);
@@ -291,10 +292,6 @@ body.rtl .card-content .small+input {
   text-align: left;
 }
 
-.clickable {
-  cursor: pointer;
-}
-
 .icon-preview {
   display: flex;
   align-items: center;
@@ -315,14 +312,6 @@ body.rtl .card-content .small+input {
 .icon-preview-placeholder {
   color: var(--textSecondary);
   opacity: 0.6;
-}
-
-.clickable:hover,
-.plyr .plyr__control:hover,
-.listing-item.drag-hover {
-  box-shadow: inset 0 -3em 3em rgb(172 172 172 / 21.1%),
-  0 0 0 2px var(--alt-background) !important;
-  transform: scale(1.02);
 }
 
 .listing-item[aria-selected="true"] .material-symbols-outlined,

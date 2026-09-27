@@ -343,7 +343,7 @@ header {
 .search-bar-container {
   display: flex;
   align-items: center;
-  background-color: color-mix(in srgb, var(--surfaceSecondary) 80%, transparent);;
+  background-color: color-mix(in srgb, var(--surfaceSecondary) 75%, transparent);
   border-radius: var(--borderRadius);
   padding: 0.5em 0.75em;
   transition: background-color 0.2s ease;
@@ -353,6 +353,10 @@ header {
   flex: 1;
   height: 3em;
   box-sizing: border-box;
+}
+
+.search-bar-container:hover {
+  filter:brightness(1.15);
 }
 
 /* prevent open search if a prompt is open */
@@ -380,10 +384,6 @@ header {
     min-width: unset;
     max-width: 60%;
   }
-}
-
-.search-bar-container:hover {
-  background-color: color-mix(in srgb, var(--divider) 75%, transparent);
 }
 
 .search-bar-container .material-symbols {

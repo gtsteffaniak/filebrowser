@@ -887,6 +887,8 @@ export default {
 #result-list {
   scrollbar-width: none;
   max-width: 95vw;
+  background-color: var(--background);
+  color: var(--textPrimary);
 }
 
 #results>#result-list {
@@ -895,7 +897,6 @@ export default {
   overflow: scroll;
   padding-bottom: 1em;
   transition: width 0.3s ease 0s;
-  background-color: unset;
 }
 
 #results {
@@ -1031,13 +1032,13 @@ export default {
 #search #result {
   padding-top: 1em;
   overflow: hidden;
-  background: white;
+  background: var(--background);
+  color: var(--textPrimary);
   display: flex;
   top: -4em;
   flex-direction: column;
   align-items: center;
   text-align: left;
-  color: rgb(0 0 0 / 60%);
   height: 0;
   transition: height 2s ease, padding 2s ease;
   z-index: 3;
@@ -1090,8 +1091,8 @@ body.rtl #search #result ul>* {
   margin: 0;
   font-weight: 500;
   font-size: 1em;
-  color: #212121;
   padding: 0.5em;
+  color: var(--textPrimary);
 }
 
 body.rtl #search .boxes h3 {

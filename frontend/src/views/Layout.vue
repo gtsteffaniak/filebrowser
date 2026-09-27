@@ -7,7 +7,6 @@
     <defaultBar></defaultBar>
     <sidebar v-if="!invalidShare"></sidebar>
     <Scrollbar id="main" :class="{
-      'dark-mode': isDarkMode,
       moveWithSidebar: moveWithSidebar.shouldMove,
       'remove-padding-top': isOnlyOffice,
       scrollable: scrollable,
@@ -249,6 +248,7 @@ export default {
   overflow: unset;
   scrollbar-width: none;
   transition: padding-left 0.2s ease;
+  color: var(--textPrimary);
 }
 
 #main.moveWithSidebar {

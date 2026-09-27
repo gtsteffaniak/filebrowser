@@ -33,6 +33,13 @@
     0 2px 4px hsl(0deg 0% 0% / 6%),
     0 4px 8px hsl(0deg 0% 0% / 5%);
   --overlay: rgb(0 0 0 / 50%);
+  --hoverOverlay: rgb(0 0 0 / 10%);
+}
+
+.dark-mode {
+  --hoverOverlay: rgb(255 255 255 / 12%);
+
+  color: var(--textPrimary);
 }
 
 .border-radius {

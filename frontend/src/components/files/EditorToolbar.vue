@@ -809,7 +809,7 @@ export default {
   border: none;
   background: transparent;
   border-radius: 0.5em;
-  color: inherit;
+  color: var(--textPrimary);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }

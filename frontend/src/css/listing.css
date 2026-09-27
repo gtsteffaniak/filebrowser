@@ -189,10 +189,11 @@ body.rtl .listing-items {
   align-items: center;
   justify-content: center;
   overflow: visible;
-  background: rgb(255 255 255 / 75%);
+  background: var(--iconBackground);
   border-radius: 50%;
   width: 1.8em;
   height: 1.8em;
+  box-shadow: 0 0 4px rgb(0 0 0 / 30%), 0 0 10px rgb(0 0 0 / 15%);
 }
 
 .listing-items.gallery .listing-item .gallery-div {
@@ -236,7 +237,7 @@ body.rtl .listing-items {
   display: flex;
   align-items: center;
   gap: 0.35em;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .listing-items.gallery .listing-item .text .name {
@@ -259,6 +260,7 @@ body.rtl .listing-items {
   align-items: center;
   flex: 1;
   min-width: 0;
+  overflow: visible;
 }
 
 .listing-items.gallery .listing-item[data-type="image"] div:last-of-type {
@@ -467,7 +469,7 @@ body.rtl .listing-items {
   flex-shrink: 0;
   font-size: 1rem;
   color: var(--primaryColor);
-  background: rgb(255 255 255 / 75%);
+  background: var(--iconBackground);
   border-radius: 50%;
   width: 1.4em;
   height: 1.4em;
@@ -477,6 +479,7 @@ body.rtl .listing-items {
   overflow: visible;
   line-height: 1;
   margin-left: 0.25em;
+  box-shadow: 0 0 4px rgb(0 0 0 / 30%), 0 0 10px rgb(0 0 0 / 15%);
 }
 
 .placeholder {
