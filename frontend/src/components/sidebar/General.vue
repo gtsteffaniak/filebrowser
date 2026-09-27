@@ -316,7 +316,6 @@ export default {
 
 button.action {
   border-radius: 0.5em;
-  transform: translateZ(0);
 }
 
 .quick-toggles .active {
@@ -331,7 +330,7 @@ button.action {
   justify-content: center;
   align-items: center;
   padding: 0 !important;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
 }
 
 .headline-card {

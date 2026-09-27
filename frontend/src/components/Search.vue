@@ -903,7 +903,7 @@ export default {
 
 #results {
   animation: slide-down 0.5s forwards;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -952,7 +952,7 @@ export default {
   background-color: rgb(100 100 100 / 20%);
   display: flex;
   padding: 0.5em 0.75em;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   border-style: unset;
   align-items: center;
   height: 3em;
@@ -1129,7 +1129,7 @@ body.rtl #search .boxes h3 {
   background: var(--primaryColor);
   color: white;
   padding: 1em;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   text-align: center;
   scrollbar-width: none;
 }
@@ -1162,7 +1162,7 @@ body.rtl #search .boxes h3 {
 
 .filesize {
   background: var(--alt-background);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   padding: 0.25em;
   padding-left: 0.5em;
   padding-right: 0.5em;
@@ -1172,7 +1172,7 @@ body.rtl #search .boxes h3 {
 .source-badge {
   background: var(--primaryColor);
   color: white;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   padding: 0.25em 0.5em;
   font-size: 0.85em;
   font-weight: 500;

@@ -142,7 +142,7 @@ export default {
 .popup-preview {
   position: fixed;
   pointer-events: none;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   border-style: solid;
   border-width: 0.2em;
   box-shadow: 0 0 0.5em black;

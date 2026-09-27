@@ -323,7 +323,7 @@ export default {
   position: fixed;
   top: 4em;
   height: 6em;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   cursor: pointer;
   pointer-events: auto;
   justify-content: center;

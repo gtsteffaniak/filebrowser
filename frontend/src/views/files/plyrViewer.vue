@@ -3597,7 +3597,7 @@ export default {
 ************/
 
 .plyr.plyr--audio {
-  border-radius: 12px;
+  border-radius: var(--borderRadius);
   backdrop-filter: var(--panel-blur);
 }
 
@@ -3712,7 +3712,7 @@ export default {
   scroll-behavior: smooth;
   text-align: center;
   background: transparent;
-  border-radius: 12px;
+  border-radius: var(--borderRadius);
   box-sizing: border-box;
 }
 

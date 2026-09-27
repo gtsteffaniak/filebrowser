@@ -389,7 +389,7 @@ export default {
 .queue-count-badge {
   background: var(--primaryColor);
   color: white;
-  border-radius: 12px;
+  border-radius: var(--borderRadius);
   padding: 2px 8px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -442,7 +442,7 @@ export default {
   margin-left: 0.5rem;
   background: var(--surfaceSecondary);
   padding: 0.1rem 0.6rem;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   font-size: 0.85rem;
   color: var(--textSecondary);
 }
@@ -484,7 +484,7 @@ export default {
 .queue-list {
   overflow-y: auto;
   min-height: 0;
-  border-radius: 12px;
+  border-radius: var(--borderRadius);
   padding: 0;
 }
 
@@ -496,7 +496,7 @@ export default {
   cursor: pointer;
   transition: background-color 0.2s ease;
   gap: 0.5rem;
-  border-radius: 12px;
+  border-radius: var(--borderRadius);
 }
 
 .queue-item:hover {
@@ -585,7 +585,7 @@ export default {
   text-transform: uppercase;
   background: var(--surfaceSecondary);
   padding: 0.1em 0.6em;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   opacity: 0.7;
   font-weight: 600;
   letter-spacing: 0.02em;

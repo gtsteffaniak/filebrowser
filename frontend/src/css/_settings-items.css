@@ -1,7 +1,7 @@
 /* Shared settings list rows (profile, prompts, Settings view). */
 .settings-items > .item {
   padding: 1em;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
 }
 
 .settings-items > .item:hover {

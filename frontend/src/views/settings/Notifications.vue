@@ -250,7 +250,7 @@ export default {
 }
 
 .notification-item {
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   color: #fff;
   position: relative;
   width: 100%;

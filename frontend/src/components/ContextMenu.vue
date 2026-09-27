@@ -1112,7 +1112,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   padding: 0.5em;
   overscroll-behavior: contain;
 }
@@ -1124,7 +1124,7 @@ export default {
 }
 
 .selected-count-header {
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   cursor: unset;
 }
 

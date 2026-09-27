@@ -793,7 +793,7 @@ export default {
 
 #markedown-viewer .markdown-content-container {
   background-color: color-mix(in srgb, var(--surfacePrimary) 75%, transparent);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   padding: 1.2em;
   margin: 0 auto;
   box-shadow: var(--surfaceElevationShadow);

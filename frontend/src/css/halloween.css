@@ -576,7 +576,7 @@ body.halloween-theme,
     background-color: rgb(100 100 100 / 20%);
     display: flex;
     padding: 0 0.75em;
-    border-radius: 1em;
+    border-radius: var(--borderRadius);
     border-style: unset;
     border-width: 1px;
     align-items: center;

@@ -778,7 +778,7 @@ export default {
   flex-direction: column;
   max-height: 65vh;
   background: rgb(216 216 216);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   overflow: hidden;
   box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
 }
@@ -809,7 +809,7 @@ export default {
   border: none;
   background: transparent;
   color: var(--textSecondary);
-  border-radius: 0.8em;
+  border-radius: var(--borderRadius);
   cursor: pointer;
   font-size: 0.9rem;
   transition: color 0.2s ease, transform 0.2s ease;
@@ -841,7 +841,7 @@ export default {
   top: 0; bottom: 0;
   left: 0;
   background: var(--primaryColor);
-  border-radius: 0.8em;
+  border-radius: var(--borderRadius);
   z-index: 0;
   transition: left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
               width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -996,7 +996,7 @@ export default {
 .visualizer-canvas {
   width: 100%;
   height: 100%;
-  border-radius: 0.8em;
+  border-radius: var(--borderRadius);
   background: rgb(0 0 0 / 12%);
   display: block;
 }

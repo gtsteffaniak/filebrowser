@@ -95,23 +95,23 @@
               </div>
               <div v-if="hasUsageInfo(link) && link.category !== 'source-minimal'" class="usage-info">
                 <!-- For source-hybrid, show single bar with background value for disk usage -->
-                <ProgressBar 
+                <ProgressBar
                   v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
                   :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                   :val="sourceInfo[link.sourceName]?.used || 0"
                   :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
                   :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
-                  :max="sourceInfo[link.sourceName]?.total || 1" 
+                  :max="sourceInfo[link.sourceName]?.total || 1"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
                 <!-- For other source types, show single bar -->
-                <ProgressBar 
+                <ProgressBar
                   v-else
                   :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
+                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})"
                   :val-background="getProgressBarReserved(sourceInfo[link.sourceName] || {})"
-                  :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})" 
+                  :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -708,7 +708,7 @@ export default {
 
 .usage-info .vue-simple-progress {
   border: var(--borderWidth) solid var(--surfaceSecondary);
-  border-radius: 1em !important;
+  border-radius: var(--borderRadius) !important;
 }
 
 .sidebar-links .inner-card {

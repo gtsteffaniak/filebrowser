@@ -121,7 +121,7 @@ export default {
   padding: 0.5em;
   background-color: var(--alt-background);
   color: var(--textPrimary);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   box-shadow: 0 0.25em 1em rgb(0 0 0 / 20%);
   z-index: 9999;
   pointer-events: none;

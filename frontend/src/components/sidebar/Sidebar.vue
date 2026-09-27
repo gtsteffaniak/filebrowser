@@ -313,7 +313,7 @@ body.sidebar-resizing * {
 body.sidebar-resizing .resizer-handle,
 .sidebar-resizer:hover .resizer-handle {
   background-color: var(--primaryColor);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   width: 0.3em;
 }
 </style>

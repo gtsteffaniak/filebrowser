@@ -346,7 +346,7 @@ header {
   display: flex;
   align-items: center;
   background-color: rgb(100 100 100 / 20%);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   padding: 0.5em 0.75em;
   transition: background-color 0.2s ease;
   gap: 0.5em;

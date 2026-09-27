@@ -805,7 +805,7 @@ export default {
 <style scoped>
 /* Floating window base styles */
 .floating-window {
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   position: fixed;
   top: 50%;
   left: 50%;

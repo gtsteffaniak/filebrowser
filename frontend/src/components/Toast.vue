@@ -47,7 +47,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5em;
-  border-radius: 1em; /* Reuse button border-radius */
+  border-radius: var(--borderRadius);
   box-shadow: 0 0 5px rgb(0 0 0 / 5%), 0 4px 12px rgb(0 0 0 / 20%);
   font-weight: 500;
   color: white;
