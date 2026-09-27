@@ -65,11 +65,12 @@
           v-if="numPinned > 0"
           class="pinned-items"
           aria-label="Pinned Items"
-          :class="{ lastGroup: numDirs === 0 && numFiles === 0 }"
+          :class="{ lastGroup: numDirs === 0 && numFiles === 0, firstGroup: true }"
         >
           <item
-            v-for="item in pinnedItems"
+            v-for="(item, idx) in pinnedItems"
             :key="base64(`pinned-${item.path || item.name}`)"
+            :class="{ 'zebra-row': idx % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type == 'directory'"
@@ -97,11 +98,12 @@
           v-if="numDirs > 0"
           class="folder-items"
           aria-label="Folder Items"
-          :class="{ lastGroup: numFiles === 0 }"
+          :class="{ lastGroup: numFiles === 0, firstGroup: numPinned === 0 }"
         >
           <item
-            v-for="item in dirs"
+            v-for="(item, idx) in dirs"
             :key="base64(item.name)"
+            :class="{ 'zebra-row': (numPinned + idx) % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type === 'directory'"
@@ -127,12 +129,13 @@
         <div
           v-if="numFiles > 0"
           class="file-items"
-          :class="{ lastGroup: numFiles > 0 }"
+          :class="{ lastGroup: numFiles > 0, firstGroup: numPinned === 0 && numDirs === 0 }"
           aria-label="File Items"
         >
           <item
-            v-for="item in files"
+            v-for="(item, idx) in files"
             :key="base64(item.name)"
+            :class="{ 'zebra-row': (numPinned + numDirs + idx) % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type === 'directory'"
@@ -1440,7 +1443,7 @@ export default {
   font-size: 1rem;
 }
 
-.folder-items a {
+.listing-items:not(.list, .compact) .folder-items a {
   border-width: var(--borderWidth);
   border-style: solid;
 }

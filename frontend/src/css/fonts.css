@@ -144,7 +144,7 @@
   font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
   user-select: none;
-  transition: font-variation-settings 0.25s ease, color 0.25s ease;
+  transition: font-variation-settings 0.25s ease;
 }
 
 .material-symbols {

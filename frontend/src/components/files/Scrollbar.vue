@@ -350,7 +350,6 @@ export default {
   width: 3em;
   height: 2.75em;
   border-radius: 3em;
-  border: var(--borderWidth) solid var(--background);
   font-size: 1em;
   justify-content: center;
   align-items: center;
@@ -365,6 +364,7 @@ export default {
   will-change: transform;
   background-color: var(--panel-bg);
   backdrop-filter: var(--panel-blur);
+  border: var(--borderWidth) solid var(--background);
 }
 
 .custom-scrollbar.visible .thumb-section-id {
