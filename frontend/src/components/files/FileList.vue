@@ -592,6 +592,7 @@ export default {
 
 :deep(.listing-item-header) {
   margin-bottom: 0.55em !important;
+  margin-top: 0.55em !important;
 }
 
 /* Loading spinner (not part of listing.css) */

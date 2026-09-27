@@ -11,7 +11,7 @@
     />
     <ExpandDropdown
       :model-value="unit"
-      class="flat-left form-compact form-dropdown"
+      class="flat-left form-compact form-dropdown quota-unit-dropdown"
       :options="unitOptions"
       :aria-label="ariaLabel"
       :disabled="disabled"
@@ -52,3 +52,15 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.quota-custom-limit-input {
+  width: 100%;
+}
+
+:global(.expand-dropdown.form-dropdown.quota-unit-dropdown) {
+  width: 6.5rem;
+  min-width: 6.5rem;
+}
+
+</style>

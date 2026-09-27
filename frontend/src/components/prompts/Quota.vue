@@ -10,15 +10,18 @@
     />
     <p class="quota-path">{{ displayPath }}</p>
     <p class="quota-source">{{ source }}</p>
-    <ActivityViewerButton :href="activityViewerHref" />
 
-    <ToggleSwitch
-      class="item"
-      v-model="enabled"
-      :name="$t('general.limit')"
-      :description="$t('quotas.folderDescription')"
-    />
-
+    <div class="settings-items">
+      <ActivityViewerButton :href="activityViewerHref" />
+    </div>
+    <div class="settings-items">
+      <ToggleSwitch
+        class="item"
+        v-model="enabled"
+        :name="$t('general.limit')"
+        :description="$t('quotas.folderDescription')"
+      />
+    </div>
     <div v-if="enabled">
       <ExpandDropdown
         v-model="meter"
@@ -228,7 +231,7 @@ export default {
 }
 
 .quota-custom-row {
-  display: flex;
+  width: 100%;
   gap: 0.5rem;
   align-items: center;
   margin-bottom: 1rem;

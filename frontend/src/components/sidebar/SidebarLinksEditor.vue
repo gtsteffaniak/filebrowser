@@ -186,7 +186,7 @@
               @update:modelValue="updateUsageToggles('disk', $event)"
               :name="$t('sidebar.showDiskUsage')"
               :description="$t('sidebar.showDiskUsageDescription')" />
-            
+
             <!-- Dropdown to choose which usage text to display (only shown in hybrid mode) -->
             <div v-if="showIndexedUsage && showDiskUsage" class="form-group" style="margin-top: 0.5em;">
               <p>{{ $t('sidebar.usageTextDisplay') }}</p>
@@ -256,7 +256,7 @@
         </div>
 
         <!-- Divider - special visual separator -->
-        <div v-if="newLink.category === 'divider'" class="form-group">          
+        <div v-if="newLink.category === 'divider'" class="form-group">
           <p>{{ $t('sidebar.linkName') }}</p>
           <input aria-label="Link Name" v-model="newLink.name" type="text" class="input"
             :placeholder="$t('sidebar.dividerNamePlaceholder')" />
@@ -391,7 +391,7 @@
     <template v-else-if="showPromptActions">
       <button
         type="button"
-        class="button button--flat"
+        class="button button--flat button--grey"
         :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')"
         @click="$emit('cancel')"
@@ -554,8 +554,8 @@ export default {
       if (!this.newLink.category) return false;
 
       // Special link types that don't need additional validation
-      if (this.newLink.category === "shareInfo" || 
-          this.newLink.category === "download" || 
+      if (this.newLink.category === "shareInfo" ||
+          this.newLink.category === "download" ||
           this.newLink.category === "divider") {
         return true;
       }
@@ -973,10 +973,10 @@ export default {
       // indexed=false, disk=true  -> 'source-alt'
       // indexed=true, disk=true   -> 'source-hybrid' or 'source-hybrid-2' (depends on usageTextMode)
       // indexed=false, disk=false -> 'source-minimal'
-      
+
       const indexed = toggleType === 'indexed' ? value : this.showIndexedUsage;
       const disk = toggleType === 'disk' ? value : this.showDiskUsage;
-      
+
       if (indexed && disk) {
         // Preserve the hybrid mode variant if it was already set
         if (this.newLink.category === 'source-hybrid-2') {
@@ -1028,7 +1028,7 @@ export default {
       if (link.category === 'divider') {
         return link.name || this.$t('general.divider');
       }
-      
+
       // Check if the name looks like a translation key that needs translating
       if (link.category === 'shareInfo' && link.name === 'share.shareInfo') {
         return this.$t('share.shareInfo');
@@ -1264,7 +1264,7 @@ export default {
       // Close the form and return to list view
       this.cancelAddLink();
     },
-    processCustomUrl(url) {      
+    processCustomUrl(url) {
       // Check if it's an external URL (case insensitive)
       const lowerUrl = url.toLowerCase();
       if (lowerUrl.startsWith('http://') || lowerUrl.startsWith('https://')) {
@@ -1516,7 +1516,7 @@ export default {
 
 .yaml-editor-container {
   flex: 1 1 auto;
-  min-height: 85%;
+  min-height: 50vh;
   display: flex;
   flex-direction: column;
 }

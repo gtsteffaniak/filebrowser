@@ -13,7 +13,7 @@
   <div class="card-actions">
     <button
       type="button"
-      class="button button--flat"
+      class="button button--flat button--grey"
       @click="closeTopPrompt"
     >
       {{ $t("general.cancel") }}

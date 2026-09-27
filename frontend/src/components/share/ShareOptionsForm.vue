@@ -496,20 +496,22 @@
       </div>
 
       <div>
-        <ToggleSwitch
-          class="item"
-          :model-value="modelValue.quotaEnabled"
-          :name="$t('quotas.shareLimit')"
-          :description="$t('quotas.shareLimitDescription')"
-          :disabled="fieldDisabled('quotaLimitBytes')"
-          :enforceable="enforceable"
-          :enforced="enforcedFlag('quotaLimitBytes')"
-          :enforcement-disabled="enforcementDisabled('quotaLimitBytes')"
-          :enforcement-locked="isEnforcementLocked('quotaLimitBytes')"
-          :value-tooltip="enforcementLockTooltip('quotaLimitBytes')"
-          @update:model-value="setField('quotaEnabled', $event)"
-          @update:enforced="(v) => emitEnforced('quotaLimitBytes', v)"
-        />
+        <div class="settings-items">
+          <ToggleSwitch
+            class="item"
+            :model-value="modelValue.quotaEnabled"
+            :name="$t('quotas.shareLimit')"
+            :description="$t('quotas.shareLimitDescription')"
+            :disabled="fieldDisabled('quotaLimitBytes')"
+            :enforceable="enforceable"
+            :enforced="enforcedFlag('quotaLimitBytes')"
+            :enforcement-disabled="enforcementDisabled('quotaLimitBytes')"
+            :enforcement-locked="isEnforcementLocked('quotaLimitBytes')"
+            :value-tooltip="enforcementLockTooltip('quotaLimitBytes')"
+            @update:model-value="setField('quotaEnabled', $event)"
+            @update:enforced="(v) => emitEnforced('quotaLimitBytes', v)"
+          />
+        </div>
         <div v-if="modelValue.quotaEnabled" class="quota-share-fields">
           <p>{{ $t("general.limit") }}</p>
           <QuotaCustomLimitInput
@@ -603,21 +605,23 @@
           {{ $t("prompts.shareBanner") }}
           <HelpTooltipIcon :text="$t('share.shareBannerDescription')" />
         </p>
-        <div class="file-picker-input-group">
+        <div class="form-flex-group form-grow">
           <input
-            class="input file-picker-input"
+            class="input form-form flat-right"
             type="text"
             :value="modelValue.banner"
             :disabled="fieldDisabled('banner')"
             @input="setField('banner', $event.target.value)"
           />
-          <div
-            class="file-picker-button clickable"
+          <button
+            type="button"
+            class="button form-button flat-left"
             :title="$t('share.browseFiles')"
+            :aria-label="$t('share.browseFiles')"
             @click="$emit('pick-banner')"
           >
-            <i class="material-symbols">folder_open</i>
-          </div>
+            <i class="material-symbols-outlined">folder_open</i>
+          </button>
         </div>
         <ProfileEnforceSwitch
           :visible="enforceable"
@@ -634,21 +638,23 @@
           {{ $t("prompts.shareFavicon") }}
           <HelpTooltipIcon :text="$t('share.shareFaviconDescription')" />
         </p>
-        <div class="file-picker-input-group">
+        <div class="form-flex-group form-grow">
           <input
-            class="input file-picker-input"
+            class="input form-form flat-right"
             type="text"
             :value="modelValue.favicon"
             :disabled="fieldDisabled('favicon')"
             @input="setField('favicon', $event.target.value)"
           />
-          <div
-            class="file-picker-button clickable"
+          <button
+            type="button"
+            class="button form-button flat-left"
             :title="$t('share.browseFiles')"
+            :aria-label="$t('share.browseFiles')"
             @click="$emit('pick-favicon')"
           >
-            <i class="material-symbols">folder_open</i>
-          </div>
+            <i class="material-symbols-outlined">folder_open</i>
+          </button>
         </div>
         <ProfileEnforceSwitch
           :visible="enforceable"
@@ -861,36 +867,17 @@ export default {
   height: auto;
 }
 
-.file-picker-input-group {
-  display: flex;
-  gap: 0.5em;
-  align-items: center;
-  margin-bottom: 1em;
-}
-
-.file-picker-input {
-  flex: 1;
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-.file-picker-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3em;
-  height: 2.5em;
-  background: var(--surfaceSecondary);
-  border: 1px solid var(--divider);
-  border-radius: var(--borderRadius);
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  cursor: pointer;
-}
-
 .preference-field-block--enforceable {
   padding: 0.35em;
   border-radius: var(--borderRadius);
   margin-bottom: 0.5em;
+}
+
+.form-button .material-symbols-outlined {
+  transition: font-variation-settings 0.15s;
+}
+
+.form-button:hover .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1;
 }
 </style>

@@ -440,7 +440,7 @@ button.flat-right.flat-left,
 
 .form-flex-group>.form-compact {
   min-height: 2em;
-  width: unset !important;
+  width: unset;
 }
 
 .form-button {
@@ -453,7 +453,7 @@ button.flat-right.flat-left,
 }
 
 .form-dropdown {
-  width: unset !important;
+  width: unset;
 }
 
 .divider {
@@ -462,7 +462,7 @@ button.flat-right.flat-left,
 }
 
 .no-padding {
-  padding: 0 !important;
+  padding: 0;
 }
 
 .loading-spinner {

@@ -48,11 +48,12 @@
       <p> {{ $t('share.notice') }} </p>
       <p v-if="sourceReadOnly" class="read-only-notice">{{ $t('share.readOnlySourceNotice') }}</p>
 
-      <ActivityViewerButton
-        v-if="!isEditingPath"
-        :href="activityViewerHref"
-      />
-
+      <div class="settings-items">
+        <ActivityViewerButton
+          v-if="!isEditingPath"
+          :href="activityViewerHref"
+        />
+      </div>
       <div v-if="listing">
         <settings-table
           :columns="sharePromptTableColumns"
