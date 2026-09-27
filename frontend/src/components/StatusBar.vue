@@ -246,7 +246,6 @@ export default {
   left: 0;
   right: 0;
   z-index: 2;
-  border-radius: 2px;
   overflow: hidden;
   margin: 0;
   padding: 0;

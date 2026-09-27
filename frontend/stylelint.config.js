@@ -25,6 +25,7 @@ export default {
       },
     ],
     "comment-empty-line-before": null,
+    "declaration-empty-line-before": null,
     "font-family-no-missing-generic-family-keyword": null,
     "no-unknown-animations": true,
     "no-unknown-custom-properties": true,

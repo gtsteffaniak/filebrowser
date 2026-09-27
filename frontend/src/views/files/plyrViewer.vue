@@ -3896,7 +3896,7 @@ export default {
   background: var(--primaryColor);
   color: white;
   padding: 2px 8px;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   font-size: 0.8em;
   margin-left: 0.5em;
   vertical-align: middle;
@@ -3904,7 +3904,7 @@ export default {
 
 .audio-controls-container {
   width: 100%;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   margin: -2px;
 }
 

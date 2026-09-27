@@ -32,7 +32,7 @@ table {
 }
 
 table tr {
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--divider);
 }
 
 table tr:last-child {
@@ -81,7 +81,7 @@ body.rtl table tr>* {
   text-align: center;
 }
 
- .card-title>*:first-child {
+.card-title>*:first-child {
   margin-right: auto;
 }
 

@@ -108,7 +108,7 @@ main {
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--borderRadius);
   padding: 1rem 1.25rem;
   margin-bottom: 1.25rem;
 }

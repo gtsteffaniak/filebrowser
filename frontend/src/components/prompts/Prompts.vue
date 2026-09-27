@@ -929,7 +929,7 @@ export default {
   height: 2em;
   padding: 0;
   border: none;
-  border-radius: 1em;
+  border-radius: 50%;
   background: #c62828;
   color: #fff;
   cursor: pointer;

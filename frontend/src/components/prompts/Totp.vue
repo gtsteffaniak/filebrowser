@@ -13,7 +13,7 @@
   </div>
 
   <div class="card-actions">
-    <button 
+    <button
       v-if="!succeeded && code !== ''"
       type="button"
       class="button button--flat button--blue"
@@ -177,7 +177,7 @@ export default {
 .box {
   box-shadow: rgb(0 0 0 / 6%) 0 1px 3px, rgb(0 0 0 / 12%) 0 1px 2px;
   background: #fff;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   margin: 5px;
   overflow: hidden;
 }

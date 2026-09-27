@@ -458,7 +458,7 @@ export default {
   color: var(--textSecondary);
   cursor: pointer;
   padding: 0.25rem 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--borderRadius);
   transition: background 0.2s, color 0.2s;
   display: flex;
   align-items: center;
