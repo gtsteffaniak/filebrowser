@@ -41,7 +41,7 @@ table tr:last-child {
 
 table th {
   font-weight: 500;
-  color: #757575;
+  color: var(--textSecondary);
   text-align: left;
 }
 

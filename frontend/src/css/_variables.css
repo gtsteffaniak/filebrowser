@@ -38,8 +38,6 @@
 
 .dark-mode {
   --hoverOverlay: rgb(255 255 255 / 12%);
-
-  color: var(--textPrimary);
 }
 
 .border-radius {

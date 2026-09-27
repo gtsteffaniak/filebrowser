@@ -102,7 +102,7 @@ body.rtl .listing-items {
   margin: 1em auto;
   display: block !important;
   width: 95%;
-  color: rgb(0 0 0 / 30%);
+  color: color-mix(in srgb, var(--textPrimary) 90%, transparent);
   font-weight: 500;
 }
 
@@ -505,10 +505,11 @@ body.rtl .listing-items {
 
 /* Search results with icon size overrides */
 .search-entry.large-icons .image-preview {
-  --icon-size: 5em;
+  --icon-size: 4.5em;
 
-  max-height: 4em;
-  max-width: 4em;
+  max-height: 3.5em;
+  max-width: 3.5em;
+  transform: scale(0.85);
 }
 
 .search-entry.small-icons .image-preview {

@@ -3542,11 +3542,15 @@ export default {
   line-height: 150%;
   font-weight: 700;
   -webkit-font-smoothing: antialiased;
-  /* Combo from stroke + shadow: crisp outline, soft drop for muddy mid-tones (em scales with size) */
   color: #fff;
   -webkit-text-stroke: 0.1em #000;
   paint-order: stroke fill;
-  text-shadow: 0 0.08em 0.2em rgb(0 0 0 / 55%);
+  text-shadow:
+    0.0625em 0.0625em 0 #000,
+    -0.0625em 0.0625em 0 #000,
+    -0.0625em -0.0625em 0 #000,
+    0.0625em -0.0625em 0 #000,
+    0 0.08em 0.2em rgb(0 0 0 / 55%);
 }
 
 .plyr.plyr-caption-size--small {
@@ -3568,20 +3572,6 @@ export default {
 .video-player-container .plyr--fullscreen-fallback .plyr__captions,
 .video-player-container .plyr:fullscreen .plyr__captions {
   font-size: var(--fb-captions-font-size);
-}
-
-/* No text-stroke (legacy engines): 4-offset ring in em + same halo */
-@supports not (-webkit-text-stroke: 0.1em #000) {
-  .plyr__captions {
-    -webkit-text-stroke: unset;
-    paint-order: unset;
-    text-shadow:
-      0.0625em 0.0625em 0 #000,
-      -0.0625em 0.0625em 0 #000,
-      -0.0625em -0.0625em 0 #000,
-      0.0625em -0.0625em 0 #000,
-      0 0.08em 0.2em rgb(0 0 0 / 55%);
-  }
 }
 
 .plyr__caption {
