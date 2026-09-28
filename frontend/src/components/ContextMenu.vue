@@ -654,11 +654,7 @@ export default {
   },
   methods: {
     showInfoPrompt() {
-      if (!this.isPreview) {
-        mutations.closeHovers();
-      } else {
-        mutations.closeTopPrompt();
-      }
+      mutations.closeHovers();
       mutations.showPrompt({
         name: "info",
         props: {
@@ -802,7 +798,7 @@ export default {
       });
     },
     showRenamePromptForPreview() {
-      mutations.closeTopPrompt(); // Close the ContextMenu (if it was open from preview)
+      mutations.closeHovers(); // Close the ContextMenu (if it was open from preview)
       // Get parent items from the listing
       const parentItems = state.navigation.listing || [];
       mutations.showPrompt({

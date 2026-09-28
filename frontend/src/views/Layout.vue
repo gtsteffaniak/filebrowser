@@ -144,7 +144,7 @@ export default {
       return getters.showOverlay();
     },
     overlayOverPrompt() {
-      return state.prompts.length > 1 && state.prompts.some((prompt) => prompt.name === "ContextMenu");
+      return state.prompts.length > 1 && getters.currentPromptName() === "ContextMenu";
     },
     isDarkMode() {
       return getters.isDarkMode();
