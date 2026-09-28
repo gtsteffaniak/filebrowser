@@ -1071,16 +1071,6 @@ export default {
   background-color: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
 }
 
-.search-entry.current-item::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  border: 1px solid var(--primaryColor);
-  border-radius: inherit;
-  pointer-events: none;
-}
-
 .text-container {
   margin-left: 0.25em;
   white-space: nowrap;

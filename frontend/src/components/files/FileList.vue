@@ -266,8 +266,11 @@ export default {
       const previous = this.selectionBeforeMenu;
       this.selectionBeforeMenu = null;
       mutations.resetSelected();
-      if (previous?.length) {
-        previous.forEach((entry) => mutations.addSelected(entry));
+      if (previous?.entries?.length) {
+        previous.entries.forEach((entry) => mutations.addSelected(entry));
+      }
+      if (previous?.multiple) {
+        mutations.setMultiple(true);
       }
     },
     loading(isLoading) {
@@ -566,7 +569,10 @@ export default {
     // this is to restore the previous selection that the previews use for the overflow menu, otherwise would remain undefined.
     snapshotSelection() {
       if (this.ownsContextMenu || this.currentPromptName === "ContextMenu") return;
-      this.selectionBeforeMenu = Array.isArray(state.selected) ? [...state.selected] : [];
+      this.selectionBeforeMenu = {
+        entries: Array.isArray(state.selected) ? [...state.selected] : [],
+        multiple: state.multiple,
+      };
     },
     clearSelection() {
       this.selected = null;
@@ -728,16 +734,6 @@ export default {
 /* Item that opened the context menu */
 .listing-items :deep(.listing-item.context-item) {
   background: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
-}
-
-.listing-items :deep(.listing-item.context-item::before) {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  border: 1px solid var(--primaryColor);
-  border-radius: inherit;
-  pointer-events: none;
 }
 
 /* Highlight selected items with primary color */

@@ -740,17 +740,6 @@ export default {
   color: var(--textPrimary);
 }
 
-.tree-node.context-item::before,
-.tree-node.drag-over::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  border: 1px solid var(--primaryColor);
-  border-radius: inherit;
-  pointer-events: none;
-}
-
 .expand-icon {
   cursor: pointer;
 }
