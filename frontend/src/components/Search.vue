@@ -115,7 +115,7 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry clickable"
-            :class="{ active: activeStates[k], 'current-item': itemState[k], 'large-icons': showPreviewImages, 'small-icons': !showPreviewImages }" :aria-label="baseName(s.path)">
+            :class="{ 'zebra-row': k % 2 === 1, active: activeStates[k], 'current-item': itemState[k], 'large-icons': showPreviewImages, 'small-icons': !showPreviewImages }" :aria-label="baseName(s.path)">
             <a :href="getItemUrl(s)" @contextmenu="addSelected($event, s)">
               <Icon :mimetype="s.type" :filename="baseName(s.path)" :path="s.path"
                 :hasPreview="showPreviewImages && (s.hasPreview || false)"
@@ -1114,7 +1114,8 @@ body.rtl #search #result ul>* {
 }
 
 #search li {
-  margin: 0.5em;
+  margin: 0 0.5em;
+  padding: 0.25em 0;
 }
 
 #search #renew {

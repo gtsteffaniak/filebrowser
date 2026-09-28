@@ -538,5 +538,9 @@ body.rtl .listing-items {
 
 .listing-items.list .listing-item.zebra-row:not([aria-selected="true"]),
 .listing-items.compact .listing-item.zebra-row:not([aria-selected="true"]) {
-  background: color-mix(in srgb, var(--surfacePrimary) 30%, var(--background));
+  background: color-mix(in srgb, var(--surfacePrimary) 20%, var(--background));
+}
+
+.search-entry.zebra-row {
+  background: color-mix(in srgb, var(--surfacePrimary) 80%, var(--background));
 }
