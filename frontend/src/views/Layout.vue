@@ -4,7 +4,7 @@
       <div v-show="showOverlay" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay"></div>
     </transition>
     <transition name="overlay-fade">
-      <div v-if="overlayOverPrompt" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay overlay-prompt"></div>
+      <div v-if="overlayOverPrompt" @contextmenu.prevent="closeContextMenu" @click="closeContextMenu" class="overlay overlay-prompt"></div>
     </transition>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: `${this.progress}%` }"></div>
@@ -238,6 +238,12 @@ export default {
     resetItems() {
       mutations.closeSidebar();
       mutations.closeHovers();
+      mutations.setSearch(false);
+    },
+    closeContextMenu() {
+      if (getters.currentPrompt?.name === "ContextMenu") {
+        mutations.closeTopPrompt(prompt.id);
+      }
     },
   },
 };
