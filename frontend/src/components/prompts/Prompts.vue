@@ -12,6 +12,7 @@
         'editor-prompt': isEditorPrompt(prompt),
       }"
       @mousedown="makeTopPrompt(prompt.id)"
+      @contextmenu="isBlocked(prompt) && $event.preventDefault()"
       :style="{
         transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`,
         width: sizes[prompt.id]?.width ? `${sizes[prompt.id].width}px` : null,

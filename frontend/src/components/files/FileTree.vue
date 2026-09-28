@@ -16,7 +16,8 @@
           :class="{
             'current-item': isCurrentItem(node),
             'has-children': node.childrenCount > 0,
-            'drag-over': node.dragOver || isSelected(node),
+            'drag-over': node.dragOver,
+            'context-item': isSelected(node),
             'hidden-file': node.isHidden,
           }"
           @click="handleNodeClick(node)"
@@ -284,7 +285,7 @@ export default {
 
       // Immediately expand and show loading state
       node.expanded = true;
-      
+
       // Load children if not loaded
       if (!node.children) {
         node.loading = true;
@@ -717,6 +718,7 @@ export default {
   line-height: 1.4;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
 }
 
 .tree-node.hidden-file {
@@ -732,11 +734,25 @@ export default {
   color: white;
 }
 
+.tree-node.context-item,
 .tree-node.drag-over {
-  background-color: var(--primaryColor) !important;
-  opacity: 0.8;
-  outline: 2px solid var(--primaryColor);
-  outline-offset: -1px;
+  background-color: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
+  color: var(--textPrimary);
+}
+
+.tree-node.context-item::before,
+.tree-node.drag-over::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: 1px solid var(--primaryColor);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.expand-icon {
+  cursor: pointer;
 }
 
 .expand-icon,
@@ -750,11 +766,12 @@ export default {
   flex-shrink: 0;
 }
 
-.expand-icon {
-  cursor: pointer;
+.expand-icon:hover {
+  color: var(--primaryColor);
 }
 
-.expand-icon:hover {
+.tree-node.context-item .expand-icon:hover,
+.tree-node.drag-over .expand-icon:hover {
   color: var(--primaryColor);
 }
 

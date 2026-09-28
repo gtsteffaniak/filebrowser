@@ -172,6 +172,14 @@ body.rtl .listing-items {
   padding: .5em;
 }
 
+.listing-items:not(.list, .compact) .listing-item {
+  border: var(--borderWidth) solid transparent;
+}
+
+.listing-items:not(.list, .compact) :where(.folder-items) .listing-item {
+  border-color: var(--divider);
+}
+
 .listing-items.compact .listing-item:hover,
 .listing-items.list .listing-item:hover {
   width: 98% !important;
@@ -487,15 +495,26 @@ body.rtl .listing-items {
 }
 
 .listing-item[aria-selected="true"] {
-  background-color: color-mix(in srgb, var(--primaryColor) 65%, transparent);
+  background-color: color-mix(in srgb, var(--primaryColor) 50%, transparent);
   color: white;
   scroll-margin-top: 9em;
   scroll-margin-bottom: 3em;
+}
+
+.listing-items .listing-item[aria-selected="true"] {
   border-color: var(--primaryColor);
 }
 
 .listing-items.gallery .listing-item[aria-selected="true"] {
-  border: 0.45em solid var(--primaryColor) !important;
+  border: 0.45em solid var(--primaryColor);
+}
+
+.listing-items:is(.list, .compact) .listing-item[aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .half-selected {

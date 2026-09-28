@@ -83,16 +83,12 @@ export default {
     // Calculate total size of selected items
     totalSelectedSize() {
       if (this.selectedCount === 0) return 0;
-      if (!Array.isArray(state.req?.items)) {
-        return 0;
-      }
+      const reqItems = Array.isArray(state.req?.items) ? state.req.items : [];
       let total = 0;
-      state.selected.forEach(index => {
-        if (index >= 0 && index < state.req?.items.length) {
-          const item = state.req.items.at(index);
-          if (item?.size) {
-            total += item.size;
-          }
+      state.selected.forEach(entry => {
+        const item = typeof entry === 'number' ? reqItems.at(entry) : entry;
+        if (item?.size) {
+          total += item.size;
         }
       });
       return total;

@@ -30,7 +30,13 @@
     </div>
 
     <!-- File List -->
-    <div v-if="!loading" ref="list" class="listing-items list">
+    <div
+      v-if="!loading"
+      ref="list"
+      class="listing-items list"
+      @contextmenu.capture="snapshotSelection"
+      @touchstart.capture="snapshotSelection"
+    >
       <ListingItem
         v-for="(item, index) in visibleItems"
         :key="item.path"
@@ -38,7 +44,7 @@
         :isDir="item.type === 'directory' || item.originalItem?.isDir"
         :source="item.source"
         :type="item.type"
-        :size="item.originalItem?.size || 0"
+        :size="item.size ?? item.originalItem?.size ?? 0"
         :modified="item.originalItem?.modified || new Date().toISOString()"
         :index="index"
         :class="{ 'zebra-row': index % 2 === 1, 'current-item': isCurrentItem(item), 'context-item': isContextItem(item) }"
@@ -163,6 +169,7 @@ export default {
       headerHidden: false,
       lastScrollTop: 0,
       scrollContainer: null,
+      ownsContextMenu: false,
     };
   },
   computed: {
@@ -187,6 +194,9 @@ export default {
     },
     currentPromptName() {
       return getters.currentPromptName();
+    },
+    promptCount() {
+      return state.prompts.length;
     },
     sourcePath() {
       return { source: this.source, path: this.path };
@@ -245,11 +255,19 @@ export default {
         this.clearSelection();
       }
     },
-    currentPromptName(now, before) {
-      if (now === "ContextMenu") {
-        this.promptBeforeMenu = before;
-      } else if (before === "ContextMenu" && now === this.promptBeforeMenu) {
-        mutations.resetSelected();
+    currentPromptName(now) {
+      if (now !== "ContextMenu") return;
+      this.promptsBeforeMenu = this.promptCount - 1;
+      this.ownsContextMenu = !this.$el.closest(".floating-window")?.classList.contains("prompt-behind");
+    },
+    promptCount(count) {
+      if (!this.ownsContextMenu || count > this.promptsBeforeMenu) return;
+      this.ownsContextMenu = false;
+      const previous = this.selectionBeforeMenu;
+      this.selectionBeforeMenu = null;
+      mutations.resetSelected();
+      if (previous?.length) {
+        previous.forEach((entry) => mutations.addSelected(entry));
       }
     },
     loading(isLoading) {
@@ -544,6 +562,12 @@ export default {
       };
       this.next(syntheticEvent);
     },
+    // ListingItem overwrites state.selected when opening the menu (eg: from quick jump)
+    // this is to restore the previous selection that the previews use for the overflow menu, otherwise would remain undefined.
+    snapshotSelection() {
+      if (this.ownsContextMenu || this.currentPromptName === "ContextMenu") return;
+      this.selectionBeforeMenu = Array.isArray(state.selected) ? [...state.selected] : [];
+    },
     clearSelection() {
       this.selected = null;
       this.selectedSource = null;
@@ -622,7 +646,7 @@ export default {
     },
     // Items selected via right click or long press
     isContextItem(item) {
-      return !!this.contextItemPath && item.path === this.contextItemPath;
+      return this.ownsContextMenu && !!this.contextItemPath && item.path === this.contextItemPath;
     },
     attachScrollListener() {
       const el = this.$el.closest(".floating-window > .card-content");
