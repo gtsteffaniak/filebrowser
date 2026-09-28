@@ -1,10 +1,10 @@
 <template>
   <div @dragover.prevent @drop.prevent>
     <transition name="overlay-fade">
-      <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetItems" class="overlay"></div>
+      <div v-show="showOverlay" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay"></div>
     </transition>
     <transition name="overlay-fade">
-      <div v-if="overlayOverPrompt" @contextmenu.prevent="onOverlayRightClick" @click="resetItems" class="overlay overlay-prompt"></div>
+      <div v-if="overlayOverPrompt" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay overlay-prompt"></div>
     </transition>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: `${this.progress}%` }"></div>

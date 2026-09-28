@@ -465,7 +465,6 @@ export default {
         mutations.resetSelected();
         mutations.addSelected(selectedItem);
       }
-      
       if (this.disableContextMenu) {
         return;
       }

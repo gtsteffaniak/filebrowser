@@ -14,7 +14,7 @@
         v-model:filter-query="filterQuery"
         @update:selected="updateDestination"
       >
-        <template>
+        <template #sticky>
           <PathPickerButton
             v-if="!isShareContext"
             v-model:path="destPath"

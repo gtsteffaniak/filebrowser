@@ -25,7 +25,7 @@
 
     <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
     <div v-if="sortable || $slots.pinned" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
-      <slot name="pinned" />
+      <slot name="sticky" />
       <ListingHeader v-if="sortable && !loading" use-picker-sorting />
     </div>
 
@@ -233,6 +233,13 @@ export default {
     path() {
       if (this.filterQuery) {
         this.$emit("update:filterQuery", "");
+      }
+    },
+    filterQuery() {
+      if (!this.selected) return;
+      const stillVisible = this.visibleItems.some((item) => item.path === this.selected);
+      if (!stillVisible) {
+        this.clearSelection();
       }
     },
     loading(isLoading) {
@@ -526,19 +533,21 @@ export default {
       };
       this.next(syntheticEvent);
     },
+    clearSelection() {
+      this.selected = null;
+      this.selectedSource = null;
+      this.selectedType = null;
+      this.$emit("update:selected", {
+        path: this.current,
+        source: this.source,
+        type: 'directory',
+        isValid: !this.requireFileSelection,
+      });
+    },
     select: function (event) {
       const path = event.currentTarget.dataset.path;
-      // If the element is already selected, unselect it.
       if (this.selected === path) {
-        this.selected = null;
-        this.selectedSource = null;
-        this.selectedType = null;
-        this.$emit("update:selected", {
-          path: this.current,
-          source: this.source,
-          type: 'directory',
-          isValid: !this.requireFileSelection,
-        });
+        this.clearSelection();
         return;
       }
       // Otherwise select the element.
