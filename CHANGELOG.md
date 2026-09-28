@@ -33,6 +33,8 @@ All notable changes to this project will be documented in this file. For commit 
    - sidebar link defaults and enforcements (#2561) (settings > user management)
    - tool defaults and enforcement (settings > user management)
  - Add cli init CLI command (#2957)
+ - Sort header in file listings inside prompts like move/copy/quick jump, is now sticky. Also added a button to show a search input and filter the items of the current listing (#3028).
+ - Quick jump now scrolls and highlights the current item you are previewing (#3028).
 
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
@@ -45,6 +47,7 @@ All notable changes to this project will be documented in this file. For commit 
  - sidebar links/navigation is button group toggle for clearer visibility
  - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly.
  - Added risc-v to official releases
+ - Polished a bit some styles across various places of the UI (#3019) (#3028).
 
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
@@ -60,6 +63,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
  - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)
  - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
+ - Context menu stuck when opened from a listing in a prompt like move/copy or search (#3028).
 
 ## v2.0.8
 
@@ -87,7 +91,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Add cli init CLI command (#2957)
 
  **Notes**:
- - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly. 
+ - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly.
  - Added risc-v to official releases
 
  **Bugfixes**:
@@ -241,7 +245,7 @@ This version represents the most significant change to date. It **requires** bot
  - opt-in feature to send deployment analytics to filebrowser quantum developer servers
    - anonymized with a viewer so users can see what info would be sent.
    - if opt-in, every month a snapshot of your deployment config would be sent to developer servers
-   - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future. 
+   - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future.
  - WebDAV now supports set modification time via the `X-OC-Mtime` header for clients that support it (#2626). See [WebDAV docs](https://filebrowserquantum.com/en/docs/features/webdav/).
  - Copy operations now preserve their original modification times (#2642) (#2647):
    - WebUI preserves both, files and directories.
@@ -421,14 +425,14 @@ This version represents the most significant change to date. It **requires** bot
  - Improved style of drag and drop into listing view (#2407)
  - Edit Sidebar links has new "show tools in sidebar" toggle and all users have this enabled by default. can be disabled via for new users `userDefaults.sidebar.showTools: false`
  - Update user defaults ordering (#1140)
- - Save view modes and sizes into local storage instead of db (#2301) 
+ - Save view modes and sizes into local storage instead of db (#2301)
 
  **BugFixes**:
  - Blue overlay when using gestures in video files on mobile (#2360)
  - Playback queue wasn't updating when changing of folder (#2360)
  - Added missing `UserDefaults.listing.showCopyPath` option to config file (#2364)
  - Delete prompt thumbnail didn't worked when using it with the `delete` shortcut. (#2407)
- - Searching icons in the Icon picker prompt wasn't working properly (#2407) 
+ - Searching icons in the Icon picker prompt wasn't working properly (#2407)
  - Drag and drop style state was stuck until page reload (#2407)
  - Navigate close settings shows "something went wrong" (#2047)
 
@@ -574,7 +578,7 @@ This version represents the most significant change to date. It **requires** bot
  - Cannot edit shared file in OnlyOffice #2143
  - PWA install button disappeared (#2086)
  - Deleting a root folder was possible #2128
- - PUT resource api errors if action against a folder (#2153) 
+ - PUT resource api errors if action against a folder (#2153)
  - LDAP authentication issue if a password caontains @ symbol (#2154)
  - Share banner seems to be not working for custom urls (#2120)
 
@@ -608,7 +612,7 @@ Note: a potentially breaking change for docker users: \the default user is now "
  - New Sidebar Features
    - Sidebar tree navigation (#2006) (#350)
    - Source usage to be customized to show os-reported values rather than calculated. This can be changed per source by editing the source link in the sidebar. (#1266) (#982)
- - Archive/Unarchive actions in UI (#1252) (#335) (#1569) 
+ - Archive/Unarchive actions in UI (#1252) (#335) (#1569)
    - new api to archive/unarchive files on the server
    - requires `create` user permissions
    - archiving actions respect `server.maxArchiveSize`
@@ -771,7 +775,7 @@ Note: a potentially breaking change for docker users: \the default user is now "
 ## v1.2.1-beta
 
  **New Features**:
- - Global disable onlyoffice editor via "*" file option to disable all files for a specific user. (#1533) 
+ - Global disable onlyoffice editor via "*" file option to disable all files for a specific user. (#1533)
 
  **Notes**:
  - upgraded imaging package and improved thumbnail generation performance. (#1797) (#1850)
@@ -874,7 +878,7 @@ Sorry for the delay -- a lot of effort went into this release, specifically abou
    - warning for low free space below 20GB
    - warning if read/write latency is slow
    - fatal for any errors reading or writing to the directory
-   - links to official docs for more info 
+   - links to official docs for more info
  - access rule changes:
    - denied folders won't show up in parent directory listing view (#1684)
    - tools will respect access rules
@@ -909,7 +913,7 @@ Sorry for the delay -- a lot of effort went into this release, specifically abou
 
  **BugFixes**:
  - better index status updates, fixing delays #1649
- - fixed long load times for listings with media info due sequential processing of files. 
+ - fixed long load times for listings with media info due sequential processing of files.
  - downloaded files always included `utf-8` in filename #1671
  - custom sidebar links allow external links like `https://google.com`
  - html title not populated correctly for links #1676
