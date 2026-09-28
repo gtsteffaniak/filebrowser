@@ -1031,8 +1031,22 @@ export default {
 
 .search-entry {
   position: relative;
-  border-radius: var(--borderRadius);
+  border-left: var(--borderWidth) solid var(--divider);
+  border-right: var(--borderWidth) solid var(--divider);
 }
+
+.search-entry:first-child {
+  border-top: var(--borderWidth) solid var(--divider);
+  border-top-left-radius: var(--borderRadius);
+  border-top-right-radius: var(--borderRadius);
+}
+
+.search-entry:last-child {
+  border-bottom: var(--borderWidth) solid var(--divider);
+  border-bottom-left-radius: var(--borderRadius);
+  border-bottom-right-radius: var(--borderRadius);
+}
+
 
 .search-entry:hover {
   background-color: var(--alt-background);

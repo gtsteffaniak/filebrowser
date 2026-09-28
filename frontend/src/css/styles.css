@@ -321,7 +321,8 @@ body.rtl .card-content .small+input {
 .tree-node.drag-over .material-symbols-outlined,
 .search-entry:hover .material-symbols-outlined,
 .search-entry.current-item .material-symbols-outlined,
-.queue-item:hover .material-symbols-outlined {
+.queue-item:hover .material-symbols-outlined,
+.listing-item.context-item .material-symbols-outlined {
   font-variation-settings: 'FILL' 1;
 }
 

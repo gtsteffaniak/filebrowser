@@ -916,7 +916,8 @@ export default {
   cursor: not-allowed;
   user-select: none;
   opacity: 0.7;
-  transition: opacity 0.5s;
+  filter: brightness(0.90);
+  transition: opacity 0.5s, filter 0.5s;
 }
 
 .prompt-close {

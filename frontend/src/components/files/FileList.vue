@@ -181,9 +181,12 @@ export default {
       );
     },
     contextItemPath() {
-      if (!state.prompts.some((prompt) => prompt.name === "ContextMenu")) return null;
+      if (state.prompts.length < 2 && !state.prompts.some((prompt) => prompt.name === "ContextMenu")) return null;
       const entry = state.selected.find((selected) => selected && typeof selected === "object");
       return entry ? entry.path : null;
+    },
+    currentPromptName() {
+      return getters.currentPromptName();
     },
     sourcePath() {
       return { source: this.source, path: this.path };
@@ -240,6 +243,13 @@ export default {
       const stillVisible = this.visibleItems.some((item) => item.path === this.selected);
       if (!stillVisible) {
         this.clearSelection();
+      }
+    },
+    currentPromptName(now, before) {
+      if (now === "ContextMenu") {
+        this.promptBeforeMenu = before;
+      } else if (before === "ContextMenu" && now === this.promptBeforeMenu) {
+        mutations.resetSelected();
       }
     },
     loading(isLoading) {
@@ -694,7 +704,16 @@ export default {
 /* Item that opened the context menu */
 .listing-items :deep(.listing-item.context-item) {
   background: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
-  border-color: var(--primaryColor) !important;
+}
+
+.listing-items :deep(.listing-item.context-item::before) {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: 1px solid var(--primaryColor);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 /* Highlight selected items with primary color */
