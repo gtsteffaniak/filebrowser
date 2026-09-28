@@ -144,7 +144,8 @@ export default {
       return getters.showOverlay();
     },
     overlayOverPrompt() {
-      return state.prompts.length > 1 && getters.currentPromptName() === "ContextMenu";
+      if (getters.currentPromptName() !== "ContextMenu") return false;
+      return state.prompts.length > 1 || state.isSearchActive;
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -237,7 +238,6 @@ export default {
     resetItems() {
       mutations.closeSidebar();
       mutations.closeHovers();
-      mutations.setSearch(false);
     },
   },
 };

@@ -502,6 +502,7 @@ export default {
       event.stopPropagation();
 
       if (this.fileList) {
+        if (this.isCurrentItem(item)) return;
         this.navigateToItem(item);
         return;
       }

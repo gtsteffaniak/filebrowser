@@ -1,5 +1,5 @@
 <template>
-  <div v-if="active" id="search" :class="{ active, ongoing }" @click="clearContext">
+  <div v-if="active" id="search" :class="{ active, ongoing, 'prompt-open': promptOpen }" @click="clearContext">
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
@@ -115,7 +115,7 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry clickable"
-            :class="{ active: activeStates[k], 'large-icons': showPreviewImages, 'small-icons': !showPreviewImages }" :aria-label="baseName(s.path)">
+            :class="{ active: activeStates[k], 'current-item': itemState[k], 'large-icons': showPreviewImages, 'small-icons': !showPreviewImages }" :aria-label="baseName(s.path)">
             <a :href="getItemUrl(s)" @contextmenu="addSelected($event, s)">
               <Icon :mimetype="s.type" :filename="baseName(s.path)" :path="s.path"
                 :hasPreview="showPreviewImages && (s.hasPreview || false)"
@@ -243,6 +243,11 @@ export default {
     active(isNowActive) {
       if (isNowActive) {
         this.resetSearchOnOpen();
+      }
+    },
+    hasPrompts(now, before) {
+      if (before && !now && state.isSearchActive) {
+        mutations.resetSelected();
       }
     },
   },
@@ -379,6 +384,15 @@ export default {
         const fullPath = `${context}/${pathStr}`;
         return selectedPaths.has(fullPath);
       });
+    },
+    hasPrompts() {
+      return state.prompts.length > 0;
+    },
+    promptOpen() {
+      return state.prompts.some((prompt) => prompt.name !== "ContextMenu" && prompt.name !== "OverflowMenu");
+    },
+    itemState() {
+      return this.hasPrompts ? this.activeStates : this.results.map(() => false);
     },
     sourceInfo() {
       return state.sources.info;
@@ -914,6 +928,10 @@ export default {
   flex-direction: column;
 }
 
+.search-entry > a {
+  padding-left: 0.5em;
+}
+
 #search.active #results ul li a {
   display: flex;
   align-items: center;
@@ -1011,12 +1029,42 @@ export default {
   display: none;
 }
 
+.search-entry {
+  position: relative;
+  border-radius: var(--borderRadius);
+}
+
 .search-entry:hover {
   background-color: var(--alt-background);
+  transform: scale(1.01);
+  box-shadow: none !important;
 }
 
 .search-entry.active {
   background-color: var(--surfacePrimary);
+}
+
+#search.prompt-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background-color: var(--overlay);
+  border-radius: var(--borderRadius);
+}
+
+.search-entry.current-item {
+  background-color: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
+}
+
+.search-entry.current-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: 1px solid var(--primaryColor);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .text-container {

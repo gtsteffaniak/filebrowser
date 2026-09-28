@@ -173,8 +173,7 @@ body.rtl .listing-items {
 }
 
 .listing-items.compact .listing-item:hover,
-.listing-items.list .listing-item:hover,
-.search-entry:hover {
+.listing-items.list .listing-item:hover {
   width: 98% !important;
   margin-left: 1% !important;
   padding-left: 0.5em !important;
@@ -513,8 +512,8 @@ body.rtl .listing-items {
 }
 
 .search-entry.small-icons .image-preview {
-  --icon-size: 2em;
-  --icon-font-size: 1.5em;
+  --icon-size: 1.75em;
+  --icon-font-size: 1.3em;
 }
 
 @media (width <= 768px) {
