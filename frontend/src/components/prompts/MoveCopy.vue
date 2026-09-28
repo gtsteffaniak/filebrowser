@@ -7,26 +7,30 @@
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
     <div v-show="!isLoading">
-      <PathPickerButton
-        v-if="!isShareContext"
-        v-model:path="destPath"
-        v-model:source="destSource"
-        class="move-copy-path-picker"
-        :show-files="false"
-        :show-folders="true"
-        :placeholder="$t('sidebar.chooseSource')"
-        @navigate="syncFileListFromPicker"
-      />
       <file-list
         ref="fileList"
         :hide-path-chrome="!isShareContext"
         :sortable="true"
+        v-model:filter-query="filterQuery"
         @update:selected="updateDestination"
       >
+        <template>
+          <PathPickerButton
+            v-if="!isShareContext"
+            v-model:path="destPath"
+            v-model:source="destSource"
+            class="move-copy-path-picker"
+            :show-files="false"
+            :show-folders="true"
+            :placeholder="$t('sidebar.chooseSource')"
+            @navigate="syncFileListFromPicker"
+          />
+        </template>
       </file-list>
     </div>
   </div>
   <div class="card-actions split-buttons" >
+    <ListingFilter v-if="!showNewDirInput" v-model="filterQuery" :disabled="isLoading" />
     <button
       type="button"
       v-if="canCreateFolder && showNewDirInput"
@@ -91,11 +95,12 @@ import {
 import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import ListingFilter from "@/components/files/ListingFilter.vue";
 import { eventBus } from '@/store/eventBus';
 
 export default {
   name: "move-copy",
-  components: { FileList, LoadingSpinner, PathPickerButton },
+  components: { FileList, LoadingSpinner, PathPickerButton, ListingFilter },
   props: {
     promptId: {
       type: [String, Number],
@@ -124,6 +129,7 @@ export default {
     isLoading: false, // Track loading state for spinner
     showNewDirInput: false, // When true will replace the new folder button with a input field
     newDirName: "",
+    filterQuery: "",
   }),
   computed: {
     destContainsSrc() {

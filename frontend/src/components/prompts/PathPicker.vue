@@ -3,11 +3,12 @@
     <file-list ref="fileList" @update:selected="updateSelection" :browseSource="currentSource"
       :browse-path="initialBrowsePath" :hide-destination-source="hideDestinationSource" :showFiles="showFiles"
       :showFolders="showFolders" :require-file-selection="requireFileSelection"
-      :allowed-file-types="allowedFileTypes" :title="listTitle">
+      :allowed-file-types="allowedFileTypes" :title="listTitle" v-model:filter-query="filterQuery">
     </file-list>
   </div>
 
   <div class="card-actions">
+    <ListingFilter v-model="filterQuery"/>
     <button class="button button--flat button--grey" type="button" @click="onCancel" :aria-label="$t('general.cancel')"
       :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
@@ -23,11 +24,12 @@
 <script>
 import { mutations } from "@/store";
 import FileList from "../files/FileList.vue";
+import ListingFilter from "@/components/files/ListingFilter.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "path-picker",
-  components: { FileList },
+  components: { FileList, ListingFilter },
   props: {
     promptId: {
       type: [String, Number],
@@ -80,6 +82,7 @@ export default {
       selectionIsValid: false,
       /** True after confirm or explicit cancel — used to avoid duplicate cancel events. */
       selectionFinished: false,
+      filterQuery: "",
     };
   },
   computed: {

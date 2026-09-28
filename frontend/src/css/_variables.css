@@ -24,7 +24,7 @@
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   /* app top bar height, including the top safe-area inset */
   --header-height: calc(4em + var(--safe-area-top));
-  --borderRadius: 0.80rem;
+  --borderRadius: 0.85rem;
   --borderWidth: 2px;
   --panel-bg: color-mix(in srgb, var(--alt-background) 65%, transparent);
   --panel-blur: blur(12px) invert(0.1);

@@ -64,7 +64,7 @@ audio, video {
 .qrcode {
   border: 0.25em;
   border-style: solid;
-  border-color: var(--divider);
+  border-color: white;
 }
 
 .floating-window {

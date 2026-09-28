@@ -24,15 +24,15 @@
     </div>
 
     <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
-    <ListingHeader
-      v-if="sortable && !loading"
-      use-picker-sorting
-    />
+    <div v-if="sortable || $slots.pinned" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
+      <slot name="pinned" />
+      <ListingHeader v-if="sortable && !loading" use-picker-sorting />
+    </div>
 
     <!-- File List -->
-    <div v-if="!loading" class="listing-items list">
+    <div v-if="!loading" ref="list" class="listing-items list">
       <ListingItem
-        v-for="(item, index) in items"
+        v-for="(item, index) in visibleItems"
         :key="item.path"
         :name="item.name"
         :isDir="item.type === 'directory' || item.originalItem?.isDir"
@@ -41,7 +41,7 @@
         :size="item.originalItem?.size || 0"
         :modified="item.originalItem?.modified || new Date().toISOString()"
         :index="index"
-        :class="{ 'zebra-row': index % 2 === 1 }"
+        :class="{ 'zebra-row': index % 2 === 1, 'current-item': isCurrentItem(item), 'context-item': isContextItem(item) }"
         :path="item.path"
         :hasPreview="item.originalItem?.hasPreview && item.type !== 'directory' || false"
         :metadata="item.originalItem?.metadata"
@@ -125,7 +125,10 @@ export default {
       type: Boolean,
       default: false, // If true, only files (not folders) can be selected
     },
-    /** When true, show a clickable Name/Size/Modified header that sorts the listing (uses pickerSorting). */
+    filterQuery: {
+      type: String,
+      default: "",
+    },
     sortable: {
       type: Boolean,
       default: true,
@@ -157,6 +160,9 @@ export default {
       current: window.location.pathname,
       currentSource: initialSource,
       loading: false,
+      headerHidden: false,
+      lastScrollTop: 0,
+      scrollContainer: null,
     };
   },
   computed: {
@@ -166,6 +172,18 @@ export default {
     },
     isMobile() {
       return getters.isMobile();
+    },
+    visibleItems() {
+      const query = this.filterQuery.trim().toLowerCase();
+      if (!query) return this.items;
+      return this.items.filter(
+        (item) => item.name === ".." || item.name.toLowerCase().includes(query)
+      );
+    },
+    contextItemPath() {
+      if (!state.prompts.some((prompt) => prompt.name === "ContextMenu")) return null;
+      const entry = state.selected.find((selected) => selected && typeof selected === "object");
+      return entry ? entry.path : null;
     },
     sourcePath() {
       return { source: this.source, path: this.path };
@@ -212,6 +230,16 @@ export default {
         this.resetToSource(newSource);
       }
     },
+    path() {
+      if (this.filterQuery) {
+        this.$emit("update:filterQuery", "");
+      }
+    },
+    loading(isLoading) {
+      if (!isLoading && this.fileList) {
+        this.$nextTick(() => this.followCurrentItem());
+      }
+    },
     // Re-sort local items when the picker header changes the sort config
     pickerSort() {
       if (this.sortable) {
@@ -246,6 +274,11 @@ export default {
         this.fillOptions(initialReq);
       }
     }
+    this.attachScrollListener();
+  },
+  beforeUnmount() {
+    this.scrollContainer?.removeEventListener("scroll", this.handleScroll);
+    this.stopFollowingCurrentItem?.();
   },
   methods: {
     // Helper method to ensure loading spinner shows for minimum 200ms
@@ -564,6 +597,67 @@ export default {
       const allItems = this.fileList || [];
       this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
     },
+    isCurrentItem(item) {
+      return !!this.fileList && !!state.req && item.name === state.req.name;
+    },
+    // Items selected via right click or long press
+    isContextItem(item) {
+      return !!this.contextItemPath && item.path === this.contextItemPath;
+    },
+    attachScrollListener() {
+      const el = this.$el.closest(".floating-window > .card-content");
+      if (!el) return;
+      el.addEventListener("scroll", this.handleScroll, { passive: true });
+      this.scrollContainer = el;
+    },
+    handleScroll() {
+      const top = this.scrollContainer.scrollTop;
+      const diff = top - this.lastScrollTop;
+      if (top <= 10 || this.stopFollowingCurrentItem) {
+        this.headerHidden = false;
+      } else if (Math.abs(diff) >= 30) {
+        this.headerHidden = diff > 0;
+      } else {
+        return;
+      }
+      this.lastScrollTop = top;
+    },
+    scrollToCurrentItem() {
+      const current = this.$refs.list?.querySelector(".current-item");
+      if (!current) return null;
+      let container = current.parentElement;
+      while (container && !/(auto|scroll)/.test(getComputedStyle(container).overflowY)) {
+        container = container.parentElement;
+      }
+      if (!container) return null;
+      const itemTop =
+        current.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+      container.scrollTo({
+        top: itemTop - (container.clientHeight - current.offsetHeight) / 2,
+        behavior: "instant",
+      });
+      return container;
+    },
+    // Keeps the current item centered while the list is still resizing
+    followCurrentItem() {
+      this.stopFollowingCurrentItem?.();
+      const container = this.scrollToCurrentItem();
+      if (!container) return;
+      const observer = new ResizeObserver(() => this.scrollToCurrentItem());
+      observer.observe(container);
+      observer.observe(this.$refs.list);
+      const events = ["wheel", "touchstart", "pointerdown", "keydown"];
+      const timer = setTimeout(() => this.stopFollowingCurrentItem?.(), 1000);
+      this.stopFollowingCurrentItem = () => {
+        observer.disconnect();
+        clearTimeout(timer);
+        events.forEach((name) => container.removeEventListener(name, this.stopFollowingCurrentItem));
+        this.stopFollowingCurrentItem = null;
+      };
+      events.forEach((name) =>
+        container.addEventListener(name, this.stopFollowingCurrentItem, { passive: true })
+      );
+    },
     navigateToItem(item) {
       mutations.closeTopPrompt();
       mutations.setNavigationTransitioning(true);
@@ -581,15 +675,40 @@ export default {
   cursor: pointer;
 }
 
+/* Current file (quick jump) */
+.listing-items :deep(.listing-item.current-item) {
+  background: var(--primaryColor) !important;
+  color: #fff !important;
+}
+
+/* Item that opened the context menu */
+.listing-items :deep(.listing-item.context-item) {
+  background: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
+  border-color: var(--primaryColor) !important;
+}
+
 /* Highlight selected items with primary color */
 .listing-items :deep(.listing-item.activebutton) {
   background: var(--primaryColor) !important;
   color: #fff !important;
 }
 
-:deep(.listing-item-header) {
-  margin-bottom: 0.55em !important;
-  margin-top: 0.55em !important;
+.sticky-header {
+  position: sticky;
+  top: calc(-0.5em - 1px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0.5em 0;
+  backdrop-filter: blur(8px);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.sticky-header.header-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Loading spinner (not part of listing.css) */

@@ -136,7 +136,21 @@ body.rtl .credits {
   width: 100%;
   z-index: 4;
   top: 0;
-  animation: .3s show ease-in;
+}
+
+.overlay-fade-enter-active,
+.overlay-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
+  opacity: 0;
+}
+
+.overlay-prompt {
+  z-index: 999;
+  background-color: color-mix(in srgb, var(--overlay) 50%, transparent);
 }
 
 .card.padding-normal {
