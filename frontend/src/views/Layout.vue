@@ -241,7 +241,8 @@ export default {
       mutations.setSearch(false);
     },
     closeContextMenu() {
-      if (getters.currentPrompt?.name === "ContextMenu") {
+      const prompt = getters.currentPrompt();
+      if (prompt?.name === "ContextMenu") {
         mutations.closeTopPrompt(prompt.id);
       }
     },
