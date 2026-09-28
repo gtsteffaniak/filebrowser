@@ -506,43 +506,45 @@ body.rtl .listing-items {
   border-color: var(--primaryColor);
 }
 
-:is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item)::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  border: var(--borderWidth) solid var(--primaryColor);
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-:where(.listing-items:is(.normal, .icons)) :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item)::before {
-  border-width: 0;
-}
-
 .listing-items.gallery .listing-item.listing-item:is([aria-selected="true"], .context-item) {
   border-width: 0;
 }
 
-:where(.listing-items.gallery) :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item)::before {
-  border-width: 0.45em;
-}
+:is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item) {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border: var(--borderWidth) solid var(--primaryColor);
+    border-radius: inherit;
+    pointer-events: none;
+  }
 
-:where(.listing-items:is(.list, .compact), #results) :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item)::before {
-  border-left-width: 0;
-  border-right-width: 0;
-}
+  :where(.listing-items:is(.normal, .icons)) &::before {
+    border-width: 0;
+  }
 
-:where(.listing-items.list, .listing-items.compact .firstGroup, #results) :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item):where(:first-child)::before,
-:where(:is(.listing-items:is(.list, .compact), #results) :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item)) + :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item)::before,
-:where(.listing-items.compact > div:has(> :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item):last-child) + div + div) > :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item):where(:first-child)::before {
-  border-top: 0;
-}
+  :where(.listing-items.gallery) &::before {
+    border-width: 0.45em;
+  }
 
-:where(.listing-items.list, .listing-items.compact .lastGroup, #results) :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item):where(:last-child)::before,
-:where(:is(.listing-items:is(.list, .compact), #results)) :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item):where(:has(+ :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item)))::before,
-:where(.listing-items.compact > div:has(+ div + div > :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item):first-child)) > :is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item):where(:last-child)::before {
-  border-bottom: 0;
+  :where(.listing-items:is(.list, .compact), #results) &::before {
+    border-left-width: 0;
+    border-right-width: 0;
+  }
+
+  :where(.listing-items.list, .listing-items.compact .firstGroup, #results) &:where(:first-child)::before,
+  :where(:is(.listing-items:is(.list, .compact), #results) &) + &::before,
+  :where(.listing-items.compact > div:has(> &:last-child) + div + div) > &:where(:first-child)::before {
+    border-top: 0;
+  }
+
+  :where(.listing-items.list, .listing-items.compact .lastGroup, #results) &:where(:last-child)::before,
+  :where(:is(.listing-items:is(.list, .compact), #results)) &:where(:has(+ &))::before,
+  :where(.listing-items.compact > div:has(+ div + div > &:first-child)) > &:where(:last-child)::before {
+    border-bottom: 0;
+  }
 }
 
 .half-selected {
