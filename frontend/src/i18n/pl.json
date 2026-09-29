@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Nie udało się zaktualizować ustawień analityki",
     "analyticsPreviewFailed": "Nie udało się załadować informacji diagnostycznych dotyczących analityki",
     "scopePath": "Ścieżka zakresu",
+    "maxStorage": "Maks. pamięć",
+    "maxStoragePlaceholder": "Nielimitowane",
     "sourcePermissionsHelp": "Rozwiń wiersz źródła, aby ustawić uprawnienia do przeglądania, pobierania, modyfikowania, tworzenia i usuwania dla tego źródła.",
     "permissionsHelp": "Uprawnienia globalne użytkownika mają zastosowanie wszędzie, w tym do wszystkich źródeł i udziałów.",
     "userDefaults": "Ustawienia domyślne użytkownika",

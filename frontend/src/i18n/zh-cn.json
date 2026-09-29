@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "无法更新分析设置",
     "analyticsPreviewFailed": "无法加载分析诊断信息",
     "scopePath": "作用域路径",
+    "maxStorage": "最大存储空间",
+    "maxStoragePlaceholder": "无限制",
     "sourcePermissionsHelp": "展开源行，以设置该源的查看、下载、修改、创建和删除权限。",
     "permissionsHelp": "该用户的全局权限适用于所有位置，包括所有源和共享。",
     "userDefaults": "用户默认设置",

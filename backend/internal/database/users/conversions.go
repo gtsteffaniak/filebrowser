@@ -52,6 +52,9 @@ func APIScopesToBackend(apiScopes []FrontendScope) ([]BackendScope, error) {
 
 	newScopes := []BackendScope{}
 	for _, scope := range apiScopes {
+		if scope.MaxStorageBytes < 0 {
+			return nil, fmt.Errorf("scope %q: maxStorageBytes must be >= 0", scope.Name)
+		}
 		source, ok := ResolveSourceKey(scope.Name)
 		if !ok {
 			continue
@@ -61,9 +64,10 @@ func APIScopesToBackend(apiScopes []FrontendScope) ([]BackendScope, error) {
 		}
 		scope.Scope = normalizeScope(scope.Scope)
 		newScopes = append(newScopes, BackendScope{
-			Path:        source.Path,
-			Scope:       scope.Scope,
-			Permissions: frontendScopePermissions(scope),
+			Path:            source.Path,
+			Scope:           scope.Scope,
+			Permissions:     frontendScopePermissions(scope),
+			MaxStorageBytes: scope.MaxStorageBytes,
 		})
 	}
 	return newScopes, nil
@@ -86,6 +90,7 @@ func (u *User) GetFrontendScopes() []FrontendScope {
 			Name:        source.Name,
 			Scope:       scope.Scope,
 			Permissions: &perms,
+			MaxStorageBytes: scope.MaxStorageBytes,
 		})
 	}
 	return newScopes

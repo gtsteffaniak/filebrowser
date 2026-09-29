@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Falha ao atualizar as configurações de análise",
     "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise",
     "scopePath": "Caminho do escopo",
+    "maxStorage": "Armazenamento máx.",
+    "maxStoragePlaceholder": "Ilimitado",
     "sourcePermissionsHelp": "Expanda uma linha de fonte para definir permissões de visualização, download, modificação, criação e exclusão para essa fonte.",
     "permissionsHelp": "As permissões globais do usuário se aplicam a todos os locais, incluindo todas as fontes e compartilhamentos.",
     "userDefaults": "Configurações padrão do usuário",

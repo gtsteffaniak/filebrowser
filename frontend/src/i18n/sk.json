@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Aktualizácia nastavení analytiky sa nepodarila",
     "analyticsPreviewFailed": "Nepodarilo sa načítať diagnostické informácie o analýze",
     "scopePath": "Trasa rozsahu",
+    "maxStorage": "Maximálne úložisko",
+    "maxStoragePlaceholder": "Neobmedzené",
     "sourcePermissionsHelp": "Rozbaľte riadok zdroja, aby ste mohli nastaviť oprávnenia na zobrazenie, stiahnutie, úpravu, vytvorenie a vymazanie pre daný zdroj.",
     "permissionsHelp": "Globálne oprávnenia pre daného používateľa platia všade, vrátane všetkých zdrojov a zdieľaných priečinkov.",
     "userDefaults": "Predvolené nastavenia používateľa",

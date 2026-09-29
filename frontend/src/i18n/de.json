@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Die Aktualisierung der Analyseeinstellungen ist fehlgeschlagen",
     "analyticsPreviewFailed": "Die Analyse-Diagnoseinformationen konnten nicht geladen werden",
     "scopePath": "Gültigkeitsbereichspfad",
+    "maxStorage": "Max. Speicherplatz",
+    "maxStoragePlaceholder": "Unbegrenzt",
     "sourcePermissionsHelp": "Erweitern Sie eine Quellzeile, um Berechtigungen zum Anzeigen, Herunterladen, Ändern, Erstellen und Löschen für diese Quelle festzulegen.",
     "permissionsHelp": "Die globalen Berechtigungen für den Benutzer gelten überall, einschließlich aller Quellen und Freigaben.",
     "userDefaults": "Benutzervorgaben",

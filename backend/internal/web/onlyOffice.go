@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -711,6 +713,20 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 			return returnOnlyOfficeError(w, r, 403, "user scope not found")
 		}
 		fullIndexPath := utils.JoinPathAsUnix(userScope, path)
+
+		// Enforce the acting user's per-source storage quota for the overwrite.
+		if idx := indexing.GetIndex(source); idx != nil {
+			var replaced int64
+			if st, statErr := os.Stat(idx.Path + fullIndexPath); statErr == nil && !st.IsDir() {
+				replaced = st.Size()
+			}
+			if _, quotaErr := checkSourceQuota(user, source, 0, replaced); quotaErr != nil {
+				// Body size is unknown for streaming document saves; reject only when
+				// the user is already at or over quota.
+				logger.Warningf("OnlyOffice callback: storage quota exceeded for source=%s user=%s", source, user.Username)
+				return returnOnlyOfficeError(w, r, 413, "storage quota exceeded")
+			}
+		}
 
 		writeErr := files.WriteFile(source, fullIndexPath, doc.Body)
 		if writeErr != nil {

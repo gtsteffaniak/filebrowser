@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "לא הצליח לעדכן את הגדרות הניתוח",
     "analyticsPreviewFailed": "לא הצליח לטעון את מידע האבחון של Analytics",
     "scopePath": "נתיב ההיקף",
+    "maxStorage": "אחסון מקסימלי",
+    "maxStoragePlaceholder": "ללא הגבלה",
     "sourcePermissionsHelp": "הרחב שורת מקור כדי להגדיר הרשאות לצפייה, הורדה, עריכה, יצירה ומחיקה עבור אותו מקור.",
     "permissionsHelp": "ההרשאות הגלובליות של המשתמש חלות בכל מקום, כולל כל המקורות והמשאבים המשותפים.",
     "userDefaults": "הגדרות ברירת מחדל של המשתמש",

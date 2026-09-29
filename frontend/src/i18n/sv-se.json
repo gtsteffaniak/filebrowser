@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Det gick inte att uppdatera analysinställningarna",
     "analyticsPreviewFailed": "Det gick inte att ladda diagnostisk information om analysdata",
     "scopePath": "Omfattningsväg",
+    "maxStorage": "Max lagring",
+    "maxStoragePlaceholder": "Obegränsad",
     "sourcePermissionsHelp": "Veckla ut en källrad för att ställa in behörigheter för visning, nedladdning, redigering, skapande och radering för den källan.",
     "permissionsHelp": "Användarens globala behörigheter gäller överallt, inklusive alla källor och delade resurser.",
     "userDefaults": "Användarinställningar",

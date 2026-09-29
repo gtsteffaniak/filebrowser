@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Analitik ayarları güncellenemedi",
     "analyticsPreviewFailed": "Analitik tanılama bilgileri yüklenemedi",
     "scopePath": "Kapsam yolu",
+    "maxStorage": "Maksimum depolama",
+    "maxStoragePlaceholder": "Sınırsız",
     "sourcePermissionsHelp": "Bir kaynak satırını genişleterek, o kaynak için görüntüleme, indirme, değiştirme, oluşturma ve silme izinlerini ayarlayın.",
     "permissionsHelp": "Kullanıcının genel izinleri, tüm kaynaklar ve paylaşımlar dahil olmak üzere her yerde geçerlidir.",
     "userDefaults": "Kullanıcı varsayılan ayarları",

@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "분석 설정 업데이트에 실패했습니다.",
     "analyticsPreviewFailed": "분석 진단 정보를 불러오지 못했습니다.",
     "scopePath": "범위 경로",
+    "maxStorage": "최대 저장 공간",
+    "maxStoragePlaceholder": "무제한",
     "sourcePermissionsHelp": "소스 행을 확장하여 해당 소스에 대한 보기, 다운로드, 수정, 생성 및 삭제 권한을 설정합니다.",
     "permissionsHelp": "해당 사용자의 전체 권한은 모든 소스 및 공유 항목을 포함하여 모든 곳에 적용됩니다.",
     "userDefaults": "사용자 기본 설정",

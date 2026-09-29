@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Nu s-a putut actualiza setările de analiză",
     "analyticsPreviewFailed": "Nu s-au putut încărca informațiile de diagnosticare privind analizele",
     "scopePath": "Calea de acoperire",
+    "maxStorage": "Stocare maximă",
+    "maxStoragePlaceholder": "Nelimitat",
     "sourcePermissionsHelp": "Extindeți un rând sursă pentru a seta permisiunile de vizualizare, descărcare, modificare, creare și ștergere pentru sursa respectivă.",
     "permissionsHelp": "Permisiunile globale ale utilizatorului se aplică peste tot, inclusiv în toate sursele și partajările.",
     "userDefaults": "Setări implicite ale utilizatorului",

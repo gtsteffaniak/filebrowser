@@ -611,6 +611,8 @@
     "analyticsUpdateFailed": "Het bijwerken van de analyse-instellingen is mislukt",
     "analyticsPreviewFailed": "Het laden van diagnostische gegevens voor Analytics is mislukt",
     "scopePath": "Bereikpad",
+    "maxStorage": "Max. opslag",
+    "maxStoragePlaceholder": "Onbeperkt",
     "sourcePermissionsHelp": "Vouw een bronrij uit om de rechten voor het bekijken, downloaden, wijzigen, aanmaken en verwijderen van die bron in te stellen.",
     "permissionsHelp": "Algemene machtigingen voor de gebruiker gelden overal, inclusief alle bronnen en gedeelde mappen.",
     "userDefaults": "Standaardinstellingen voor gebruikers",

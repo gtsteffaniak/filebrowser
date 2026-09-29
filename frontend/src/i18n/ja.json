@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "アナリティクスの設定の更新に失敗しました",
     "analyticsPreviewFailed": "分析診断情報の読み込みに失敗しました",
     "scopePath": "スコープパス",
+    "maxStorage": "最大ストレージ",
+    "maxStoragePlaceholder": "無制限",
     "sourcePermissionsHelp": "ソース行を展開して、そのソースに対する表示、ダウンロード、変更、作成、および削除の権限を設定します。",
     "permissionsHelp": "そのユーザーのグローバル権限は、すべてのソースおよび共有を含め、あらゆる場所で適用されます。",
     "userDefaults": "ユーザーのデフォルト設定",

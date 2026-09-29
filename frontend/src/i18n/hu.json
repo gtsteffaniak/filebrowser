@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Az elemzési beállítások frissítése nem sikerült",
     "analyticsPreviewFailed": "Az elemzési diagnosztikai adatok betöltése nem sikerült",
     "scopePath": "A hatókör útvonala",
+    "maxStorage": "Maximális tárhely",
+    "maxStoragePlaceholder": "Korlátlan",
     "sourcePermissionsHelp": "Bontsa ki a forrás sorát, hogy beállítsa az adott forrás megtekintési, letöltési, módosítási, létrehozási és törlési jogosultságait.",
     "permissionsHelp": "A felhasználó globális jogosultságai mindenhol érvényesek, beleértve az összes forrást és megosztást is.",
     "userDefaults": "Felhasználói alapbeállítások",

@@ -211,15 +211,21 @@ type User struct {
 }
 
 type FrontendScope struct {
-	Name        string                `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
-	Scope       string                `json:"scope"` // index path within that source
+	Name        string                 `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
+	Scope       string                 `json:"scope"` // index path within that source
 	Permissions *SourceFilePermissions `json:"permissions,omitempty"`
+	// MaxStorageBytes caps the total bytes this user may store under the scope
+	// directory of this source. 0 means unlimited.
+	MaxStorageBytes int64 `json:"maxStorageBytes,omitempty"`
 }
 
 type BackendScope struct {
-	Path        string               `json:"path"`  // real path for the source
-	Scope       string               `json:"scope"` // index path within that source
+	Path        string                `json:"path"`  // real path for the source
+	Scope       string                `json:"scope"` // index path within that source
 	Permissions SourceFilePermissions `json:"permissions,omitempty"`
+	// MaxStorageBytes caps the total bytes this user may store under the scope
+	// directory of this source. 0 means unlimited.
+	MaxStorageBytes int64 `json:"maxStorageBytes,omitempty"`
 }
 
 // json tags must match variable name with smaller case first letter

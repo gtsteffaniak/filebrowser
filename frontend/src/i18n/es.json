@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "No se ha podido actualizar la configuración de análisis",
     "analyticsPreviewFailed": "No se ha podido cargar la información de diagnóstico de análisis",
     "scopePath": "Ruta de alcance",
+    "maxStorage": "Almacenamiento máx.",
+    "maxStoragePlaceholder": "Ilimitado",
     "sourcePermissionsHelp": "Despliega una fila de origen para configurar los permisos de visualización, descarga, modificación, creación y eliminación de ese origen.",
     "permissionsHelp": "Los permisos globales del usuario se aplican en todas partes, incluidas todas las fuentes y recursos compartidos.",
     "userDefaults": "Configuración predeterminada del usuario",

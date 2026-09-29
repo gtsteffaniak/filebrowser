@@ -116,6 +116,16 @@
                 >{{ scopePathDisplay(source) }}
                 </button>
               </div>
+              <div class="scope-path-row">
+                <label class="scope-path-label">{{ $t("settings.maxStorage") }}</label>
+                <input
+                  v-model="source.maxStorageText"
+                  class="input"
+                  type="text"
+                  :placeholder="$t('settings.maxStoragePlaceholder')"
+                  @input="emitUpdate"
+                />
+              </div>
               <source-file-permissions
                 :permissions="sourcePermissionsFor(source.name)"
                 @changed="markScopePermissionsExplicit(source.name)"
@@ -373,6 +383,7 @@ export default {
             scope: "/",
             permissions: undefined,
             permissionsExplicit: false,
+            maxStorageText: "",
           };
         });
         if (
@@ -627,6 +638,7 @@ export default {
           ? { ...scope.permissions }
           : undefined,
         permissionsExplicit: !!scope?.permissions,
+        maxStorageBytes: scope?.maxStorageBytes || 0,
       })) : [];
       if (legacySourcePermissions && typeof legacySourcePermissions === "object") {
         for (const entry of normalized) {
@@ -646,6 +658,28 @@ export default {
     normalizeScopeForApi(scope) {
       const t = String(scope ?? "").trim();
       return t.length > 0 ? t : "/";
+    },
+    /** Format a byte count for display (e.g. "1.5 GB"). */
+    formatMaxStorageBytes(bytes) {
+      const n = Number(bytes);
+      if (!Number.isFinite(n) || n <= 0) return "";
+      const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+      let value = n;
+      let unit = 0;
+      while (value >= 1024 && unit < units.length - 1) {
+        value /= 1024;
+        unit += 1;
+      }
+      const text = value === Math.floor(value) ? String(value) : value.toFixed(1);
+      return `${text} ${units[unit]}`;
+    },
+    /** Parse user input like "5 GB" or "512 MB" into bytes. Empty or unparsable returns 0 (unlimited). */
+    parseMaxStorageText(text) {
+      const match = String(text ?? "").trim().toUpperCase().match(/^(\d+(?:\.\d+)?)\s*(B|KB|MB|GB|TB|PB)?$/);
+      if (!match) return 0;
+      const values = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3, TB: 1024 ** 4, PB: 1024 ** 5 };
+      const multiplier = values[match[2]] || 1;
+      return Math.round(parseFloat(match[1]) * multiplier);
     },
     closeTopPrompt() {
       mutations.closeTopPrompt();
@@ -723,6 +757,7 @@ export default {
           ? { ...scope.permissions }
           : undefined,
         permissionsExplicit: !!scope.permissions,
+        maxStorageText: scope.maxStorageBytes ? this.formatMaxStorageBytes(scope.maxStorageBytes) : "",
       }));
 
       if (this.isNew && this.selectedSources.length === 0 && this.sourceList.length > 0) {
@@ -739,6 +774,7 @@ export default {
         name: source.name || "",
         scope: this.normalizeScopeForApi(source.scope),
         permissions: { ...this.sourcePermissionsFor(source.name) },
+        maxStorageBytes: this.parseMaxStorageText(source.maxStorageText),
       }));
     },
     normalizeScopesForCompare(scopes) {
@@ -747,6 +783,7 @@ export default {
           name: scope.name || "",
           scope: this.normalizeScopeForApi(scope.scope),
           permissions: scope.permissions ? { ...scope.permissions } : undefined,
+          maxStorageBytes: scope.maxStorageBytes || 0,
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
     },

@@ -611,6 +611,8 @@
     "analyticsUpdateFailed": "Impossibile aggiornare le impostazioni di analisi",
     "analyticsPreviewFailed": "Impossibile caricare le informazioni diagnostiche relative all'analisi",
     "scopePath": "Percorso di copertura",
+    "maxStorage": "Archiviazione max.",
+    "maxStoragePlaceholder": "Illimitato",
     "sourcePermissionsHelp": "Espandi una riga di origine per impostare le autorizzazioni di visualizzazione, download, modifica, creazione ed eliminazione per quella origine.",
     "permissionsHelp": "Le autorizzazioni globali dell'utente si applicano ovunque, comprese tutte le fonti e le condivisioni.",
     "userDefaults": "Impostazioni predefinite dell'utente",

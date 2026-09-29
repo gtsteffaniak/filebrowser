@@ -769,6 +769,10 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		dirOpts := fileOpts
 		dirOpts.Path = fullIndexPath
 
+		if status, quotaErr := checkSourceQuota(filePermUser, source, 0, 0); quotaErr != nil {
+			return status, quotaErr
+		}
+
 		err = files.WriteDirectory(dirOpts)
 		if err != nil {
 			logger.Debugf("error writing directory: %v", err)
@@ -845,8 +849,19 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				// If overriding, delete existing thumbnails
 				preview.DelThumbs(r.Context(), *fileInfo)
 			}
-		}
 
+			// Enforce the per-source storage quota against the declared total size.
+			var replaced int64
+			if r.URL.Query().Get("override") == "true" {
+				if st, statErr := os.Stat(realPath); statErr == nil && !st.IsDir() {
+					replaced = st.Size()
+				}
+			}
+			if status, quotaErr := checkSourceQuota(filePermUser, source, totalSize, replaced); quotaErr != nil {
+				drainRequestBody(r)
+				return status, quotaErr
+			}
+		}
 		// Use a temporary file for chunks.
 		tempFilePath := uploadTempPath(realPath, sessionID)
 		// Create or open the temporary file
@@ -964,6 +979,16 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 
 	if !isContentUpload(r) {
+		var incoming, replaced int64
+		if r.ContentLength >= 0 {
+			incoming = r.ContentLength
+		}
+		if err == nil {
+		replaced = fileInfo.Size
+		}
+		if status, quotaErr := checkSourceQuota(filePermUser, source, incoming, replaced); quotaErr != nil {
+			return status, quotaErr
+		}
 		err = files.WriteFile(fileOpts.Source, fullIndexPath, r.Body)
 		if err != nil {
 			logger.Debugf("error writing file: %v", err)
@@ -977,6 +1002,20 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if err != nil {
 		logger.Debugf("%v", err)
 		return http.StatusBadRequest, err
+	}
+
+	// Enforce the per-source storage quota against the incoming upload size.
+	var incoming, replaced int64
+	if hasTotalSize {
+		incoming = totalSize
+	} else if r.ContentLength >= 0 {
+		incoming = r.ContentLength
+	}
+	if err == nil {
+		replaced = fileInfo.Size
+	}
+	if status, quotaErr := checkSourceQuota(filePermUser, source, incoming, replaced); quotaErr != nil {
+		return status, quotaErr
 	}
 
 	// Write to a temp file, verify size, then move into place so truncated
@@ -1144,6 +1183,18 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusMethodNotAllowed, fmt.Errorf("path is a directory")
 	}
 
+	// Enforce the per-source storage quota for the overwrite.
+	var incoming, replaced int64
+	if r.ContentLength >= 0 {
+		incoming = r.ContentLength
+	}
+	if err == nil {
+		replaced = stat.Size()
+	}
+	if status, quotaErr := checkSourceQuota(d.User, source, incoming, replaced); quotaErr != nil {
+		return status, quotaErr
+	}
+
 	err = files.WriteFile(source, fullIndexPath, r.Body)
 	return ErrToStatus(err), err
 }
@@ -1179,6 +1230,25 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	resolvedPath := utils.JoinScopedIndexPath(d.Share.Path, cleanPath)
+
+	// Enforce the share owner's per-source storage quota for the overwrite.
+	quotaUser := d.ShareUser
+	if quotaUser == nil {
+		quotaUser = d.User
+	}
+	var incoming, replaced int64
+	if r.ContentLength >= 0 {
+		incoming = r.ContentLength
+	}
+	if idx := indexing.GetIndex(sourceName); idx != nil {
+		if st, statErr := os.Stat(idx.Path + resolvedPath); statErr == nil && !st.IsDir() {
+			replaced = st.Size()
+		}
+	}
+	if status, quotaErr := checkSourceQuota(quotaUser, sourceName, incoming, replaced); quotaErr != nil {
+		return status, quotaErr
+	}
+
 	err = files.WriteFile(sourceName, resolvedPath, r.Body)
 	if err != nil {
 		logger.Errorf("public put handler: error updating resource with error %v", err)
@@ -1430,6 +1500,32 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 					})
 					continue
 				}
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+				continue
+			}
+		}
+
+		// Enforce the per-source storage quota on the destination: copies always
+		// grow the destination scope directory, and cross-source moves bring the
+		// item into a new one; same-source moves leave usage unchanged.
+		if req.Action == "copy" || (req.Action == "move" && item.FromSource != item.ToSource) {
+			var incoming int64
+			if isSrcDir {
+				if sz, szErr := dirTreeSize(realSrc); szErr == nil {
+					incoming = sz
+				}
+			} else if srcInfo, srcErr := os.Stat(realSrc); srcErr == nil {
+				incoming = srcInfo.Size()
+			}
+			if _, quotaErr := checkSourceQuota(d.User, item.ToSource, incoming, 0); quotaErr != nil {
+				if d.Share.Hash != "" {
+					item.Message = "storage quota exceeded for destination"
+					response.Failed = append(response.Failed, MoveCopyItem{
+						Message: item.Message,
+					})
+					continue
+				}
+				item.Message = quotaErr.Error()
 				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}

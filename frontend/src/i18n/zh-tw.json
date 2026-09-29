@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "無法更新分析設定",
     "analyticsPreviewFailed": "無法載入分析診斷資訊",
     "scopePath": "範圍路徑",
+    "maxStorage": "最大儲存空間",
+    "maxStoragePlaceholder": "無限制",
     "sourcePermissionsHelp": "展開來源列，以設定該來源的檢視、下載、修改、建立及刪除權限。",
     "permissionsHelp": "該使用者的全域權限適用於所有位置，包括所有來源和共享資料夾。",
     "userDefaults": "使用者預設值",

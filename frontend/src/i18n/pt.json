@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Não foi possível atualizar as definições de análise",
     "analyticsPreviewFailed": "Não foi possível carregar as informações de diagnóstico de análise",
     "scopePath": "Percurso do alcance",
+    "maxStorage": "Armazenamento máx.",
+    "maxStoragePlaceholder": "Ilimitado",
     "sourcePermissionsHelp": "Expanda uma linha de fonte para definir permissões de visualização, descarregamento, modificação, criação e eliminação para essa fonte.",
     "permissionsHelp": "As permissões globais do utilizador aplicam-se em todo o lado, incluindo todas as fontes e partilhas.",
     "userDefaults": "Definições predefinidas do utilizador",

@@ -297,6 +297,8 @@
     "analyticsUpdateFailed": "Échec de la mise à jour des paramètres d'analyse",
     "analyticsPreviewFailed": "Échec du chargement des informations de diagnostic analytique",
     "scopePath": "Chemin d'accès à la portée",
+    "maxStorage": "Stockage max.",
+    "maxStoragePlaceholder": "Illimité",
     "sourcePermissionsHelp": "Développez une ligne de source pour définir les autorisations d'affichage, de téléchargement, de modification, de création et de suppression pour cette source.",
     "permissionsHelp": "Les autorisations globales attribuées à l'utilisateur s'appliquent partout, y compris à toutes les sources et à tous les partages.",
     "userDefaults": "Paramètres par défaut de l'utilisateur",

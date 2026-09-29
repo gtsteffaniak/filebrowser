@@ -99,11 +99,11 @@ func MergeDefaultEnabledBackendScopes(existing []users.BackendScope) []users.Bac
 		} else {
 			continue
 		}
-		newScopes = append(newScopes, users.BackendScope{
-			Path:        src.Path,
-			Scope:       existingScope.Scope,
-			Permissions: existingScope.Permissions,
-		})
+		// Preserve every field of the existing scope (e.g. per-scope quotas)
+		// while normalizing path/scope; only rebuild from scratch for
+		// default-enabled sources the user has not seen before.
+		existingScope.Path = src.Path
+		newScopes = append(newScopes, existingScope)
 		seen[src.Path] = struct{}{}
 	}
 	for _, s := range existing {
