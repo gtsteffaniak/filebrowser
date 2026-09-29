@@ -68,7 +68,8 @@ export default {
       return getters.showGallerySizeSlider();
     },
     selectedCount() {
-      return getters.selectedCount();
+      // keep the main listing selection when a item from a FileList owns state.selected
+      return (state.selected.find((entry) => typeof entry !== 'number')?.heldSelected ?? state.selected).length;
     },
     numDirs() {
       return getters.reqNumDirs();
@@ -85,7 +86,8 @@ export default {
       if (this.selectedCount === 0) return 0;
       const reqItems = Array.isArray(state.req?.items) ? state.req.items : [];
       let total = 0;
-      state.selected.forEach(entry => {
+      const selected = state.selected.find((entry) => typeof entry !== 'number')?.heldSelected ?? state.selected;
+      selected.forEach(entry => {
         const item = typeof entry === 'number' ? reqItems.at(entry) : entry;
         if (item?.size) {
           total += item.size;
