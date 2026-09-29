@@ -16,7 +16,7 @@ body.rtl .listing-items {
   background: transparent;
 }
 
-.listing-item div:last-of-type * {
+.listing-item .text * {
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -49,10 +49,11 @@ body.rtl .listing-items {
   position: relative;
 }
 
-.listing-item div:last-of-type {
-  text-overflow: ellipsis;
+.listing-item .text {
+  padding-left: 0.5em;
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
-  overflow: hidden;
 }
 
 .listing-item p {
@@ -213,12 +214,6 @@ body.rtl .listing-items {
   aspect-ratio: 1;
   transition: width 0.25s ease-out, height 0.25s ease-out;
   position: relative;
-}
-
-.listing-item .text {
-  padding-left: 0.5em;
-  flex: 1;
-  min-width: 0;
 }
 
 .listing-items.gallery .listing-item .text {
@@ -423,7 +418,7 @@ body.rtl .listing-items {
   border-top: var(--borderWidth) solid var(--divider);
 }
 
-.listing-items.list > .listing-item:last-child,
+.listing-items.list > .listing-item:not(:has(~ .listing-item)),
 .listing-items.list :where(.pinned-items, .folder-items, .file-items) .listing-item:last-child {
   border-bottom-left-radius: var(--borderRadius);
   border-bottom-right-radius: var(--borderRadius);
