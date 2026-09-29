@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -395,10 +395,8 @@ func (idx *Index) GetFolderSizeForIndexPath(path string) (uint64, bool) {
 		alt := strings.TrimSuffix(key, "/")
 		size, ok = idx.GetFolderSize(alt)
 		if ok {
-			logger.Debugf("quota/index size: found %q via alternate key %q (primary %q)", path, alt, key)
 			return size, true
 		}
 	}
-	logger.Debugf("quota/index size: no folder size for indexPath=%q lookupKey=%q source=%s", path, key, idx.Name)
 	return 0, false
 }
