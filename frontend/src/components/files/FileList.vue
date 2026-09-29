@@ -13,20 +13,19 @@
       />
     </div>
 
-    <!-- Current Path Display -->
-    <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
-      {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
+    <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
+    <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.pinned" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
+      <!-- Current Path Display -->
+      <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
+        {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
+      </div>
+      <slot name="sticky" />
+      <ListingHeader v-if="sortable && !loading" use-picker-sorting />
     </div>
 
     <!-- Loading Spinner -->
     <div v-if="loading" class="loading-spinner-wrapper">
       <LoadingSpinner size="small" mode="placeholder" />
-    </div>
-
-    <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
-    <div v-if="sortable || $slots.pinned" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
-      <slot name="sticky" />
-      <ListingHeader v-if="sortable && !loading" use-picker-sorting />
     </div>
 
     <!-- File List -->
@@ -62,6 +61,10 @@
         @click.prevent="(event) => handleItemClick(item, index, event)"
         @dblclick.prevent="(event) => handleItemDblClick(item, index, event)"
       />
+      <h2 v-if="filterQuery && !visibleItems.some((item) => item.name !== '..')" class="no-results">
+        <i class="material-symbols-outlined">search_off</i>
+        <span>{{ $t("tools.advancedSearch.noResults") }}</span>
+      </h2>
     </div>
   </div>
 </template>
@@ -745,7 +748,7 @@ export default {
 
 .sticky-header {
   position: sticky;
-  top: calc(-0.5em - 1px);
+  top: calc(-0.5em - 2px);
   z-index: 5;
   display: flex;
   flex-direction: column;
@@ -759,6 +762,20 @@ export default {
   transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+  padding-top: 2em;
+  font-size: 1.2em;
+  opacity: 0.6;
+}
+
+.no-results i {
+  font-size: 2.2em;
 }
 
 /* Loading spinner (not part of listing.css) */
