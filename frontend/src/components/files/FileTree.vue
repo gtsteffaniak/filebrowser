@@ -635,41 +635,40 @@ export default {
     },
 
     isSelected(node) {
-      const prompt = getters.currentPrompt();
-      if (!prompt) return false;
+      return state.prompts.some((prompt) => {
+        const props = prompt.props || {};
 
-      const props = prompt.props || {};
+        // Collect items from various prompt prop
+        let candidates = [];
 
-      // Collect items from various prompt prop
-      let candidates = [];
-
-      // Most prompts store items in an "items" array
-      if (props.items && Array.isArray(props.items)) {
-        candidates = props.items;
-      }
-      // Rename, share, info have a single "item"
-      else if (props.item) {
-        candidates = [props.item];
-      }
-      // Access prompt uses sourceName + path
-      else if (props.sourceName && props.path) {
-        candidates = [{ source: props.sourceName, path: props.path, isDir: true }];
-      }
-      // Upload prompt uses targetPath + targetSource (yeah, I wanted to support upload from the tree context menu too)
-      else if (props.targetPath && props.targetSource) {
-        candidates = [{ source: props.targetSource, path: props.targetPath, isDir: true }];
-      }
-
-      if (candidates.length === 0) return false;
-
-      // Compare node to each candidate (usually only one, but safe to loop)
-      return candidates.some(selected => {
-        if (!selected.path) return false;
-        if (this.isShare) {
-          return selected.path === node.path;
-        } else {
-          return selected.source === node.source && selected.path === node.path;
+        // Most prompts store items in an "items" array
+        if (props.items && Array.isArray(props.items)) {
+          candidates = props.items;
         }
+        // Rename, share, info have a single "item"
+        else if (props.item) {
+          candidates = [props.item];
+        }
+        // Access prompt uses sourceName + path
+        else if (props.sourceName && props.path) {
+          candidates = [{ source: props.sourceName, path: props.path, isDir: true }];
+        }
+        // Upload prompt uses targetPath + targetSource (yeah, I wanted to support upload from the tree context menu too)
+        else if (props.targetPath && props.targetSource) {
+          candidates = [{ source: props.targetSource, path: props.targetPath, isDir: true }];
+        }
+
+        if (candidates.length === 0) return false;
+
+        // Compare node to each candidate (usually only one, but safe to loop)
+        return candidates.some(selected => {
+          if (!selected.path || selected.heldSelected) return false; // picked from ListingView
+          if (this.isShare) {
+            return selected.path === node.path;
+          } else {
+            return selected.source === node.source && selected.path === node.path;
+          }
+        });
       });
     }
   },

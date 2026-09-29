@@ -289,7 +289,9 @@ export default {
         // If parent provides isSelectedProp, use it; otherwise use local state
         return this.isSelectedProp !== null ? this.isSelectedProp : this.localSelected;
       }
-      return state.selected.indexOf(this.index) !== -1;
+      return state.selected.some((entry) =>
+        typeof entry === "number" ? entry === this.index : entry?.heldSelected?.includes(this.index)
+      );
     },
     isDraggable() {
       return (
@@ -461,6 +463,7 @@ export default {
           path: this.path,
           url: this.path,
           index: this.index,
+          heldSelected: state.selected.filter((entry) => typeof entry === "number"), // keeps the main listing highlighted while this item owns state.selected
         };
         mutations.resetSelected();
         mutations.addSelected(selectedItem);
