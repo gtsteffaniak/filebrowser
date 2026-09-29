@@ -1,5 +1,5 @@
 <template>
-  <div @dragover.prevent @drop.prevent>
+  <div :class="{ 'sidebar-overlay': floatingSidebar }" @dragover.prevent @drop.prevent>
     <transition name="overlay-fade">
       <div v-show="showOverlay" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay"></div>
     </transition>
@@ -143,6 +143,9 @@ export default {
     showOverlay() {
       return getters.showOverlay();
     },
+    floatingSidebar() {
+      return getters.isSidebarVisible() && !getters.isStickySidebar() && !state.prompts.length && !state.isSearchActive;
+    },
     overlayOverPrompt() {
       if (getters.currentPromptName() !== "ContextMenu") return false;
       return state.prompts.length > 1 || state.isSearchActive;
@@ -257,6 +260,10 @@ export default {
 
 .remove-padding-top {
   padding-top: 0 !important;
+}
+
+.sidebar-overlay header.flexbar {
+  z-index: 5;
 }
 
 #main {

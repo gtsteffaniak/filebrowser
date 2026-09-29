@@ -41,7 +41,7 @@
         v-else
         class="overflow-menu-button"
         :icon="iconName"
-        :disabled="noItems"
+        :disabled="noItems || isSidebarFloating"
         @click="toggleOverflow"
       />
     </template>
@@ -125,6 +125,9 @@ export default {
     },
     isShare() {
       return getters.isShare();
+    },
+    isSidebarFloating() {
+      return getters.isSidebarVisible() && !getters.isStickySidebar();
     },
     noItems() {
       return !state.contextMenuHasItems && !getters.isPreviewView();

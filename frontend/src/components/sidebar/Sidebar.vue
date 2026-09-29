@@ -200,7 +200,7 @@ export default {
   z-index: 4;
   transform: translateZ(0);
   height: 100%;
-  transition: left 0.4s ease, width 0.4s ease;
+  transition: left 0.4s ease, width 0.4s ease, z-index 0s linear 0.2s;
   top: 4em;
   padding-bottom: 4em;
   background-color: var(--panel-bg);
@@ -212,6 +212,7 @@ export default {
 
 #sidebar.behind-overlay {
   z-index: 3;
+  transition: left 0.4s ease, width 0.4s ease, z-index 0s;
 }
 
 #sidebar.sticky {
