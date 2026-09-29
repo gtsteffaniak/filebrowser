@@ -420,7 +420,7 @@ export default {
       if (isEmpty) {
         return { 'padding-top': '4.1em' }; // Empty - no files or folders
       } else if (isRootPath) {
-        return { 'padding-top': '4.25em' }; // Root - no breadcrumbs showing
+        return { 'padding-top': '4.28em' }; // Root - no breadcrumbs showing
       } else {
         return { 'padding-top': '7.50em' }; // Non-root - breadcrumbs + listing header
       }

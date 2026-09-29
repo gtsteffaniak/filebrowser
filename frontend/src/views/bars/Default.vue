@@ -1,5 +1,5 @@
 <template>
-  <header v-if="!isOnlyOffice" :class="['flexbar']">
+  <header v-if="!isOnlyOffice" :class="['flexbar']" :inert="overlayShown">
     <action
       v-if="!disableNavButtons"
       class="nav-toggle-button"
@@ -8,7 +8,7 @@
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
-    <div class="search-bar-container" :class="{ disabled: isDisabled }"
+    <div class="search-bar-container"
          v-if="showSearch && !isSearchActive" @click="openSearch" >
       <i class="material-symbols">search</i>
       <input
@@ -25,7 +25,7 @@
       :icon="viewIcon"
       :label="viewModeActionLabel"
       @action="switchView"
-      :disabled="isDisabled || viewModeChangeLocked"
+      :disabled="viewModeChangeLocked"
     />
     <template v-else>
       <action
@@ -34,7 +34,6 @@
         id="save-button"
         icon="save"
         :label="$t('general.save')"
-        :disabled="isDisabled"
         @action="save()"
       />
       <action
@@ -141,7 +140,7 @@ export default {
     isSearchActive() {
       return state.isSearchActive;
     },
-    isDisabled() {
+    overlayShown() {
       return state.isSearchActive || getters.currentPromptName() !== "";
     },
     viewModeChangeLocked() {
@@ -156,7 +155,7 @@ export default {
     isDisabledMultiAction() {
       const regularDisabled = getters.isStickySidebar() && getters.multibuttonState() === "menu";
       const shareDisabled = state.shareInfo?.disableSidebar && getters.multibuttonState() === "menu";
-      return this.isDisabled || regularDisabled || shareDisabled;
+      return regularDisabled || shareDisabled;
     },
     showSwitchView() {
       return this.showHeaderSwitchView;
@@ -173,7 +172,7 @@ export default {
   },
   methods: {
     openSearch() {
-      if (!state.isSearchActive && !this.isDisabled) {
+      if (!state.isSearchActive) {
         mutations.closeHovers();
         mutations.closeSidebar();
         mutations.resetSelected();
@@ -362,12 +361,6 @@ header {
   filter:brightness(1.15);
 }
 
-/* prevent open search if a prompt is open */
-.search-bar-container.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 #search-bar-input {
   background: transparent;
   border: none;
@@ -376,10 +369,6 @@ header {
   width: 100%;
   font-size: 0.95em;
   user-select: none;
-}
-
-.search-bar-container.disabled #search-bar-input {
-  pointer-events: none;
 }
 
 @media (width <= 768px) {

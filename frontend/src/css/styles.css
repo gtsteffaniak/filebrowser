@@ -316,6 +316,7 @@ body.rtl .card-content .small+input {
 
 .listing-item[aria-selected="true"] .material-symbols-outlined,
 .listing-item:hover .material-symbols-outlined,
+.listing-item.current-item .material-symbols-outlined,
 .tree-node:hover .material-symbols-outlined,
 .tree-node.current-item .material-symbols-outlined,
 .tree-node.drag-over .material-symbols-outlined,
