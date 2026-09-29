@@ -645,7 +645,8 @@ export default {
     },
     fillFromList() {
       const allItems = this.fileList || [];
-      this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
+      const items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
+      this.items = this.sortable ? this.sortEntries(items) : items;
     },
     isCurrentItem(item) {
       return !!this.fileList && !!state.req && item.name === state.req.name;
