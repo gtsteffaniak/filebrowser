@@ -176,7 +176,8 @@ body.rtl .listing-items {
   border: var(--borderWidth) solid transparent;
 }
 
-.listing-items:not(.list, .compact) :where(.folder-items) .listing-item {
+.listing-items:not(.list, .compact) :where(.folder-items) .listing-item,
+.listing-items:not(.list, .compact) :where(.pinned-items) .listing-item[data-type="directory"] {
   border-color: var(--divider);
 }
 
@@ -529,6 +530,16 @@ body.rtl .listing-items {
     border-width: 0.45em;
   }
 
+  .tree-item:has(> &:last-child) + .tree-item > & {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .tree-item:has(+ .tree-item > &) > &:last-child {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
   :where(.listing-items:is(.list, .compact), #results) &::before {
     border-left-width: 0;
     border-right-width: 0;
@@ -544,6 +555,14 @@ body.rtl .listing-items {
   :where(:is(.listing-items:is(.list, .compact), #results)) &:where(:has(+ &))::before,
   :where(.listing-items.compact > div:has(+ div + div > &:first-child)) > &:where(:last-child)::before {
     border-bottom: 0;
+  }
+
+  .tree-item:has(> &:last-child) + .tree-item > &::before {
+    border-top-width: 0;
+  }
+
+  .tree-item:has(+ .tree-item > &) > &:last-child::before {
+    border-bottom-width: 0;
   }
 }
 

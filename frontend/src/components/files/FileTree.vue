@@ -758,11 +758,6 @@ export default {
   color: var(--primaryColor);
 }
 
-.tree-node.context-item .expand-icon:hover,
-.tree-node.drag-over .expand-icon:hover {
-  color: var(--primaryColor);
-}
-
 .tree-node.current-item .expand-icon:hover {
   color: white;
 }
