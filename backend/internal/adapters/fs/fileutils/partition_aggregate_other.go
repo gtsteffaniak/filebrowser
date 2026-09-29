@@ -1,17 +1,14 @@
-//go:build !linux
+//go:build !linux && !freebsd
 
 package fileutils
 
-// GetAggregatedPartitionUsage returns total and used bytes for the filesystem
-// that owns root. Non-Linux builds use a single statfs/GetDiskFreeSpaceEx path.
-func GetAggregatedPartitionUsage(root string) (total, used uint64, err error) {
-	total, err = GetPartitionSize(root)
+// GetPartitionUsageVariants returns the aggregate and root-only capacity views
+// of root. Without mount info only a single statfs of the source path is
+// available, so both variants are identical.
+func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage, err error) {
+	u, err := singlePathPartitionUsage(root)
 	if err != nil {
-		return 0, 0, err
+		return aggregate, rootOnly, err
 	}
-	used, err = GetPartitionUsed(root)
-	if err != nil {
-		return 0, 0, err
-	}
-	return total, used, nil
+	return u, u, nil
 }

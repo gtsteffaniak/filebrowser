@@ -138,6 +138,14 @@
                 @update:model-value="updateUsageTextMode"
               />
             </div>
+
+            <!-- Include nested mounts in the disk total toggle (any bar shows disk total as max) -->
+            <ToggleSwitch class="item"
+              v-if="showIndexedUsage || showDiskUsage"
+              :modelValue="includeNestedMounts"
+              @update:modelValue="updateIncludeNestedMounts"
+              :name="$t('sidebar.includeNestedMounts')"
+              :description="$t('sidebar.includeNestedMountsDescription')" />
           </div>
         </div>
 
@@ -297,6 +305,7 @@ import { notify } from "@/notify";
 import { shareApi } from "@/api";
 import { tools } from "@/utils/constants";
 import { getIconClass } from "@/utils/material-symbols";
+import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory, withRootOnlySuffix } from "@/utils/sidebarCategory";
 import { getObjectProperty } from '@/utils/object.js';
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -382,13 +391,18 @@ export default {
       return this.newLink.target && this.newLink.name;
     },
     showIndexedUsage() {
-      return this.newLink.category === 'source' || this.newLink.category === 'source-hybrid' || this.newLink.category === 'source-hybrid-2';
+      const base = baseSidebarCategory(this.newLink.category);
+      return base === 'source' || base === 'source-hybrid' || base === 'source-hybrid-2';
     },
     showDiskUsage() {
-      return this.newLink.category === 'source-alt' || this.newLink.category === 'source-hybrid' || this.newLink.category === 'source-hybrid-2';
+      const base = baseSidebarCategory(this.newLink.category);
+      return base === 'source-alt' || base === 'source-hybrid' || base === 'source-hybrid-2';
+    },
+    includeNestedMounts() {
+      return !isRootOnlySidebarCategory(this.newLink.category);
     },
     usageTextMode() {
-      if (this.newLink.category === 'source-hybrid-2') {
+      if (baseSidebarCategory(this.newLink.category) === 'source-hybrid-2') {
         return 'disk';
       }
       return 'indexed';
@@ -565,7 +579,7 @@ export default {
       return defaultLinks;
     },
     isSourceCategory(category) {
-      return category === 'source' || category === 'source-minimal' || category === 'source-alt' || category === 'source-hybrid' || category === 'source-hybrid-2';
+      return isSourceSidebarCategory(category);
     },
     updateUsageToggles(toggleType, value) {
       // Determine the new category based on toggle states
@@ -573,34 +587,34 @@ export default {
       // indexed=false, disk=true  -> 'source-alt'
       // indexed=true, disk=true   -> 'source-hybrid' or 'source-hybrid-2' (depends on usageTextMode)
       // indexed=false, disk=false -> 'source-minimal'
-      
+      // The root-only "-root" suffix is preserved across all variants.
+
       const indexed = toggleType === 'indexed' ? value : this.showIndexedUsage;
       const disk = toggleType === 'disk' ? value : this.showDiskUsage;
-      
+      const base = baseSidebarCategory(this.newLink.category);
+
+      let category;
       if (indexed && disk) {
         // Preserve the hybrid mode variant if it was already set
-        if (this.newLink.category === 'source-hybrid-2') {
-          this.newLink.category = 'source-hybrid-2';
-        } else {
-          this.newLink.category = 'source-hybrid';
-        }
+        category = base === 'source-hybrid-2' ? 'source-hybrid-2' : 'source-hybrid';
       } else if (indexed && !disk) {
-        this.newLink.category = 'source';
+        category = 'source';
       } else if (!indexed && disk) {
-        this.newLink.category = 'source-alt';
+        category = 'source-alt';
       } else {
-        this.newLink.category = 'source-minimal';
+        category = 'source-minimal';
       }
+      this.newLink.category = withRootOnlySuffix(category, !this.includeNestedMounts);
     },
     updateUsageTextMode(mode) {
-      if (mode === "disk") {
-        this.newLink.category = 'source-hybrid-2';
-      } else {
-        this.newLink.category = 'source-hybrid';
-      }
+      const category = mode === "disk" ? 'source-hybrid-2' : 'source-hybrid';
+      this.newLink.category = withRootOnlySuffix(category, !this.includeNestedMounts);
+    },
+    updateIncludeNestedMounts(value) {
+      this.newLink.category = withRootOnlySuffix(this.newLink.category, !value);
     },
     getCategoryLabel(category) {
-      switch (category) {
+      switch (baseSidebarCategory(category)) {
         case 'source':
         case 'source-minimal':
         case 'source-alt':

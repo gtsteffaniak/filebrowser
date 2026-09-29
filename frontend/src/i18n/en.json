@@ -651,6 +651,8 @@
     "usageTextDisk": "usage as reported by disk/partition",
     "showIndexedUsage": "Show usage as indexed",
     "showDiskUsage": "Show usage as reported by disk/partition",
+    "includeNestedMounts": "Include nested mounts in disk total",
+    "includeNestedMountsDescription": "When enabled, the disk total sums all filesystems mounted under the source path (shared pools like ZFS datasets are counted once). When disabled, only the filesystem containing the source path is reported.",
     "selectSource": "Select Source",
     "chooseSource": "Choose a source",
     "selectShare": "Select Share",
