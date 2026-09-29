@@ -264,6 +264,7 @@ export default {
 
 .sidebar-overlay header.flexbar {
   z-index: 5;
+  transition: z-index 0s;
 }
 
 #main {

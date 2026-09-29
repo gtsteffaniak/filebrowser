@@ -15,6 +15,7 @@ header {
 /* only the app top bar absorbs the safe-area insets (top bar, landscape notch) */
 header.flexbar {
   z-index: 3;
+  transition: z-index 0s linear 0.2s;
   height: var(--header-height);
   padding-top: calc(0.5em + var(--safe-area-top));
   padding-left: calc(0.5em + var(--safe-area-left));
