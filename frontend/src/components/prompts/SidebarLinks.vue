@@ -139,13 +139,13 @@
               />
             </div>
 
-            <!-- Include nested mounts in the disk total toggle (any bar shows disk total as max) -->
+            <!-- Root-filesystem-only disk usage toggle (any bar shows disk total as max) -->
             <ToggleSwitch class="item"
               v-if="showIndexedUsage || showDiskUsage"
-              :modelValue="includeNestedMounts"
-              @update:modelValue="updateIncludeNestedMounts"
-              :name="$t('sidebar.includeNestedMounts')"
-              :description="$t('sidebar.includeNestedMountsDescription')" />
+              :modelValue="rootFilesystemOnly"
+              @update:modelValue="updateRootFilesystemOnly"
+              :name="$t('sidebar.rootFilesystemOnly')"
+              :description="$t('sidebar.rootFilesystemOnlyDescription')" />
           </div>
         </div>
 
@@ -398,8 +398,10 @@ export default {
       const base = baseSidebarCategory(this.newLink.category);
       return base === 'source-alt' || base === 'source-hybrid' || base === 'source-hybrid-2';
     },
-    includeNestedMounts() {
-      return !isRootOnlySidebarCategory(this.newLink.category);
+    rootFilesystemOnly() {
+      // Default (off) = aggregate all filesystems under the source; on = only
+      // the filesystem containing the source path.
+      return isRootOnlySidebarCategory(this.newLink.category);
     },
     usageTextMode() {
       if (baseSidebarCategory(this.newLink.category) === 'source-hybrid-2') {
@@ -604,14 +606,14 @@ export default {
       } else {
         category = 'source-minimal';
       }
-      this.newLink.category = withRootOnlySuffix(category, !this.includeNestedMounts);
+      this.newLink.category = withRootOnlySuffix(category, this.rootFilesystemOnly);
     },
     updateUsageTextMode(mode) {
       const category = mode === "disk" ? 'source-hybrid-2' : 'source-hybrid';
-      this.newLink.category = withRootOnlySuffix(category, !this.includeNestedMounts);
+      this.newLink.category = withRootOnlySuffix(category, this.rootFilesystemOnly);
     },
-    updateIncludeNestedMounts(value) {
-      this.newLink.category = withRootOnlySuffix(this.newLink.category, !value);
+    updateRootFilesystemOnly(value) {
+      this.newLink.category = withRootOnlySuffix(this.newLink.category, value);
     },
     getCategoryLabel(category) {
       switch (baseSidebarCategory(category)) {

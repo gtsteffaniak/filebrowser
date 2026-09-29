@@ -345,7 +345,9 @@
     "usageTextDisk": "disk/bölüm tarafından bildirilen kullanım",
     "dividerNamePlaceholder": "Ayırıcı metin (bir çizgi göstermek için boş bırakın)",
     "showIndexedUsage": "Kullanımı dizinlenmiş haliyle göster",
-    "showDiskUsage": "Disk/bölüm tarafından bildirilen kullanım miktarını göster"
+    "showDiskUsage": "Disk/bölüm tarafından bildirilen kullanım miktarını göster",
+    "rootFilesystemOnly": "Disk kullanımını kaynak dosya sistemiyle sınırla",
+    "rootFilesystemOnlyDescription": "Etkinleştirildiğinde, yalnızca kaynak yolunu içeren dosya sistemi raporlanır. Devre dışı bırakıldığında (varsayılan), disk toplamına kaynak yolunun altına bağlanmış dosya sistemleri de dahil edilir; ZFS veri kümeleri gibi paylaşımlı havuzlar ise yalnızca bir kez sayılır."
   },
   "share": {
     "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",

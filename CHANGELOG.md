@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.0.10
 
  **Notes**:
- - Sidebar source links can now switch between aggregated usage and a root only view via a new "Include nested mounts in disk total" toggle.
+ - Sidebar source links can now switch between aggregated usage (default) and a root-filesystem-only view via a new "Limit disk usage to source filesystem" toggle.
 
  **Bugfixes**:
  - Fixed inflated disk usage for sources spanning multiple ZFS datasets (or btrfs subvolumes): shared-pool filesystems are now grouped by pool and counted once, instead of multiplying capacity by the number of mounted datasets (#3025) (#2997) (#2761).

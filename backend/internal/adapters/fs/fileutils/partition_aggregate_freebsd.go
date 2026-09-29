@@ -44,26 +44,54 @@ func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage,
 		usage      rawUsage
 		fsid       unix.Fsid
 	}
-	var covering *bsdMount
-	var nested []bsdMount
+	var mounts []bsdMount
+	mountpointCount := make(map[string]int)
 	for i := range stats {
 		s := &stats[i]
-		mp := unix.ByteSliceToString(s.Mntonname[:])
-		source := unix.ByteSliceToString(s.Mntfromname[:])
-		fstype := unix.ByteSliceToString(s.Fstypename[:])
 		avail := uint64(0)
 		if s.Bavail > 0 {
 			avail = uint64(s.Bavail)
 		}
 		m := bsdMount{
-			fstype:     fstype,
-			source:     source,
-			mountpoint: filepath.Clean(mp),
+			fstype:     unix.ByteSliceToString(s.Fstypename[:]),
+			source:     unix.ByteSliceToString(s.Mntfromname[:]),
+			mountpoint: filepath.Clean(unix.ByteSliceToString(s.Mntonname[:])),
 			usage: rawUsage{
 				total: s.Blocks * s.Bsize,
 				avail: avail * s.Bsize,
 			},
 			fsid: s.Fsid,
+		}
+		mounts = append(mounts, m)
+		mountpointCount[m.mountpoint]++
+	}
+
+	// Getfsstat may return several records for one mountpoint (stacked mounts)
+	// with no documented order, so position cannot identify the visible mount.
+	// The visible record is the one a path lookup resolves to: statfs the
+	// mountpoint and keep the record whose fsid matches.
+	visibleFsid := make(map[string]unix.Fsid)
+	for mp, n := range mountpointCount {
+		if n < 2 {
+			continue
+		}
+		var st unix.Statfs_t
+		if err := unix.Statfs(mp, &st); err == nil {
+			visibleFsid[mp] = st.Fsid
+		}
+	}
+
+	var covering *bsdMount
+	var nested []bsdMount
+	claimed := make(map[string]bool)
+	for i := range mounts {
+		m := mounts[i]
+		if mountpointCount[m.mountpoint] > 1 {
+			fsid, ok := visibleFsid[m.mountpoint]
+			if !ok || m.fsid != fsid || claimed[m.mountpoint] {
+				continue
+			}
+			claimed[m.mountpoint] = true
 		}
 		if m.mountpoint == root || strings.HasPrefix(root, m.mountpoint+"/") || m.mountpoint == "/" {
 			if covering == nil || len(m.mountpoint) > len(covering.mountpoint) {
@@ -72,7 +100,7 @@ func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage,
 			}
 		}
 		if strings.HasPrefix(m.mountpoint, root+"/") {
-			if fstype == "zfs" && isZFSSnapshotMount(source, m.mountpoint) {
+			if isZFSType(m.fstype) && isZFSSnapshotMount(m.source, m.mountpoint) {
 				continue
 			}
 			nested = append(nested, m)
@@ -80,7 +108,7 @@ func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage,
 	}
 
 	key := func(m bsdMount) string {
-		if m.fstype == "zfs" {
+		if isZFSType(m.fstype) {
 			return "zfs:" + zfsPoolName(m.source)
 		}
 		if m.fsid.Val[0] == 0 && m.fsid.Val[1] == 0 {
@@ -112,7 +140,7 @@ func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage,
 
 	for k, stats := range groups {
 		u := combineGroupUsage(stats)
-		if fstypes[k] != "zfs" && len(stats) > 1 {
+		if !isZFSType(fstypes[k]) && len(stats) > 1 {
 			// Non-shared-pool mounts dedupe to a single measurement.
 			u = combineGroupUsage(stats[:1])
 		}

@@ -55,6 +55,12 @@ func GetAggregatedPartitionUsage(root string) (total, used uint64, err error) {
 	return aggregate.Total, aggregate.Used, nil
 }
 
+// isZFSType reports whether fstype is a ZFS variant whose datasets share pool
+// capacity across mounts (kernel zfs or zfsfuse).
+func isZFSType(fstype string) bool {
+	return fstype == "zfs" || fstype == "zfsfuse"
+}
+
 // zfsPoolName returns the pool component of a ZFS mount source ("pool/ds@snap" -> "pool").
 func zfsPoolName(source string) string {
 	if i := strings.IndexAny(source, "/@"); i >= 0 {

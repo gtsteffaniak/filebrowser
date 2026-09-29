@@ -345,7 +345,9 @@
     "usageTextDisk": "lemez/partíció által bejelentett használat",
     "dividerNamePlaceholder": "Választószöveg (üresen hagyva egy sor megjelenítéséhez)",
     "showIndexedUsage": "Az indexelt használat megjelenítése",
-    "showDiskUsage": "A lemez/partíció által jelentett felhasználás megjelenítése"
+    "showDiskUsage": "A lemez/partíció által jelentett felhasználás megjelenítése",
+    "rootFilesystemOnly": "A lemezhasználat korlátozása a forrásfájlrendszerre",
+    "rootFilesystemOnlyDescription": "Ha engedélyezve van, akkor csak a forrásútvonalat tartalmazó fájlrendszer kerül jelentésre. Ha letiltva van (alapértelmezett), akkor a lemez teljes mérete magában foglalja a forrásútvonal alá csatlakoztatott fájlrendszereket is, wobei a megosztott tárolók, például a ZFS-adatállományok, csak egyszer kerülnek beszámításra."
   },
   "share": {
     "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",

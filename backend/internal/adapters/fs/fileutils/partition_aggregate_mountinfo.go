@@ -63,7 +63,7 @@ func mountGroupsFromMountinfo(mountinfo string, root string) ([]mountGroup, erro
 		}
 		// Only shared-pool filesystems (zfs) need every mountpoint; other groups
 		// report identical statfs per mount, so one probe path suffices.
-		if groups[i].fstype != "zfs" && len(groups[i].paths) > 0 {
+		if !isZFSType(groups[i].fstype) && len(groups[i].paths) > 0 {
 			return
 		}
 		for _, existing := range groups[i].paths {
@@ -110,7 +110,7 @@ func mountGroupsFromMountinfo(mountinfo string, root string) ([]mountGroup, erro
 		if lastAtMountpoint[mp] != i {
 			continue
 		}
-		if e.fstype == "zfs" && isZFSSnapshotMount(e.source, mp) {
+		if isZFSType(e.fstype) && isZFSSnapshotMount(e.source, mp) {
 			continue
 		}
 		addPath(e, mp)

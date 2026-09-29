@@ -345,7 +345,9 @@
     "usageTextDisk": "utilisation telle que rapportée par disque/partition",
     "dividerNamePlaceholder": "Texte du séparateur (laisser en blanc pour montrer une ligne)",
     "showIndexedUsage": "Afficher l'utilisation telle qu'elle est répertoriée",
-    "showDiskUsage": "Afficher l'utilisation telle qu'elle est indiquée par le disque/la partition"
+    "showDiskUsage": "Afficher l'utilisation telle qu'elle est indiquée par le disque/la partition",
+    "rootFilesystemOnly": "Limiter l'utilisation du disque au système de fichiers source",
+    "rootFilesystemOnlyDescription": "Lorsque cette option est activée, seul le système de fichiers contenant le chemin source est pris en compte. Lorsqu'elle est désactivée (par défaut), le total du disque inclut également les systèmes de fichiers montés sous le chemin source, les pools partagés tels que les ensembles de données ZFS n'étant comptés qu'une seule fois."
   },
   "share": {
     "notice": "Remarque : lorsqu'un partage est créé, il est davantage exposé au public et les règles d'accès sont différentes. Si votre partage n'est pas configuré de manière sécurisée, n'importe qui peut y accéder.",

@@ -345,7 +345,9 @@
     "usageTextDisk": "användning som rapporteras av disk/partition",
     "dividerNamePlaceholder": "Delningstext (lämna tom för att visa en rad)",
     "showIndexedUsage": "Visa användningen enligt indexeringen",
-    "showDiskUsage": "Visa användning enligt uppgifter från disk/partition"
+    "showDiskUsage": "Visa användning enligt uppgifter från disk/partition",
+    "rootFilesystemOnly": "Begränsa diskanvändningen till källfilsystemet",
+    "rootFilesystemOnlyDescription": "När denna inställning är aktiverad redovisas endast det filsystem som innehåller källsökvägen. När den är inaktiverad (standard) inkluderar den totala diskutrymmet även filsystem som är monterade under källsökvägen, varvid delade pooler som ZFS-datauppsättningar räknas en gång."
   },
   "share": {
     "notice": "Observera: När en andel skapas blir den mer exponerad för allmänheten och har andra regler för åtkomst. Om din andel inte är säkert konfigurerad kan vem som helst komma åt den.",

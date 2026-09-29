@@ -345,7 +345,9 @@
     "usageTextDisk": "Nutzung, wie von der Festplatte/Partition gemeldet",
     "dividerNamePlaceholder": "Teilertext (leer lassen, um eine Zeile anzuzeigen)",
     "showIndexedUsage": "Verwendung gemäß Index anzeigen",
-    "showDiskUsage": "Nutzung nach Festplatte/Partition anzeigen"
+    "showDiskUsage": "Nutzung nach Festplatte/Partition anzeigen",
+    "rootFilesystemOnly": "Festplattennutzung auf das Quelldateisystem beschränken",
+    "rootFilesystemOnlyDescription": "Wenn diese Option aktiviert ist, wird nur das Dateisystem gemeldet, das den Quellpfad enthält. Wenn sie deaktiviert ist (Standardeinstellung), umfasst die Gesamtgröße der Festplatte auch die unter dem Quellpfad eingebundenen Dateisysteme, wobei gemeinsam genutzte Pools wie ZFS-Datensätze nur einmal gezählt werden."
   },
   "share": {
     "notice": "Hinweis: Wenn eine Freigabe erstellt wird, ist sie der Öffentlichkeit stärker ausgesetzt und unterliegt anderen Zugriffsregeln. Wenn Ihre Freigabe nicht sicher konfiguriert ist, kann jeder auf sie zugreifen.",
