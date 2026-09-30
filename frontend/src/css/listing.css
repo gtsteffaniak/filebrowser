@@ -16,7 +16,7 @@ body.rtl .listing-items {
   background: transparent;
 }
 
-.listing-item div:last-of-type * {
+.listing-item .text * {
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -49,10 +49,11 @@ body.rtl .listing-items {
   position: relative;
 }
 
-.listing-item div:last-of-type {
-  text-overflow: ellipsis;
+.listing-item .text {
+  padding-left: 0.5em;
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
-  overflow: hidden;
 }
 
 .listing-item p {
@@ -102,7 +103,7 @@ body.rtl .listing-items {
   margin: 1em auto;
   display: block !important;
   width: 95%;
-  color: rgb(0 0 0 / 30%);
+  color: color-mix(in srgb, var(--textPrimary) 90%, transparent);
   font-weight: 500;
 }
 
@@ -172,9 +173,17 @@ body.rtl .listing-items {
   padding: .5em;
 }
 
+.listing-items:not(.list, .compact) .listing-item {
+  border: var(--borderWidth) solid transparent;
+}
+
+.listing-items:not(.list, .compact) :where(.folder-items) .listing-item,
+.listing-items:not(.list, .compact) :where(.pinned-items) .listing-item[data-type="directory"] {
+  border-color: var(--divider);
+}
+
 .listing-items.compact .listing-item:hover,
-.listing-items.list .listing-item:hover,
-.search-entry:hover {
+.listing-items.list .listing-item:hover {
   width: 98% !important;
   margin-left: 1% !important;
   padding-left: 0.5em !important;
@@ -189,10 +198,11 @@ body.rtl .listing-items {
   align-items: center;
   justify-content: center;
   overflow: visible;
-  background: rgb(255 255 255 / 75%);
+  background: var(--iconBackground);
   border-radius: 50%;
   width: 1.8em;
   height: 1.8em;
+  box-shadow: 0 0 4px rgb(0 0 0 / 30%), 0 0 10px rgb(0 0 0 / 15%);
 }
 
 .listing-items.gallery .listing-item .gallery-div {
@@ -204,12 +214,6 @@ body.rtl .listing-items {
   aspect-ratio: 1;
   transition: width 0.25s ease-out, height 0.25s ease-out;
   position: relative;
-}
-
-.listing-item .text {
-  padding-left: 0.5em;
-  flex: 1;
-  min-width: 0;
 }
 
 .listing-items.gallery .listing-item .text {
@@ -236,7 +240,7 @@ body.rtl .listing-items {
   display: flex;
   align-items: center;
   gap: 0.35em;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .listing-items.gallery .listing-item .text .name {
@@ -259,6 +263,7 @@ body.rtl .listing-items {
   align-items: center;
   flex: 1;
   min-width: 0;
+  overflow: visible;
 }
 
 .listing-items.gallery .listing-item[data-type="image"] div:last-of-type {
@@ -413,7 +418,7 @@ body.rtl .listing-items {
   border-top: var(--borderWidth) solid var(--divider);
 }
 
-.listing-items.list > .listing-item:last-child,
+.listing-items.list > .listing-item:not(:has(~ .listing-item)),
 .listing-items.list :where(.pinned-items, .folder-items, .file-items) .listing-item:last-child {
   border-bottom-left-radius: var(--borderRadius);
   border-bottom-right-radius: var(--borderRadius);
@@ -467,7 +472,7 @@ body.rtl .listing-items {
   flex-shrink: 0;
   font-size: 1rem;
   color: var(--primaryColor);
-  background: rgb(255 255 255 / 75%);
+  background: var(--iconBackground);
   border-radius: 50%;
   width: 1.4em;
   height: 1.4em;
@@ -477,6 +482,7 @@ body.rtl .listing-items {
   overflow: visible;
   line-height: 1;
   margin-left: 0.25em;
+  box-shadow: 0 0 4px rgb(0 0 0 / 30%), 0 0 10px rgb(0 0 0 / 15%);
 }
 
 .placeholder {
@@ -485,15 +491,74 @@ body.rtl .listing-items {
 }
 
 .listing-item[aria-selected="true"] {
-  background-color: color-mix(in srgb, var(--primaryColor) 65%, transparent);
+  background-color: color-mix(in srgb, var(--primaryColor) 50%, transparent);
   color: white;
   scroll-margin-top: 9em;
   scroll-margin-bottom: 3em;
+}
+
+.listing-items .listing-item.listing-item:is([aria-selected="true"], .context-item),
+#results .search-entry.current-item {
   border-color: var(--primaryColor);
 }
 
-.listing-items.gallery .listing-item[aria-selected="true"] {
-  border: 0.45em solid var(--primaryColor) !important;
+.listing-items.gallery .listing-item.listing-item:is([aria-selected="true"], .context-item) {
+  border-width: 0;
+}
+
+:is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item) {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border: var(--borderWidth) solid var(--primaryColor);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  :where(.listing-items:is(.normal, .icons)) &::before {
+    border-width: 0;
+  }
+
+  :where(.listing-items.gallery) &::before {
+    border-width: 0.45em;
+  }
+
+  .tree-item:has(> &:last-child) + .tree-item > & {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .tree-item:has(+ .tree-item > &) > &:last-child {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  :where(.listing-items:is(.list, .compact), #results) &::before {
+    border-left-width: 0;
+    border-right-width: 0;
+  }
+
+  :where(.listing-items.list, .listing-items.compact .firstGroup, #results) &:where(:first-child)::before,
+  :where(:is(.listing-items:is(.list, .compact), #results) &) + &::before,
+  :where(.listing-items.compact > div:has(> &:last-child) + div + div) > &:where(:first-child)::before {
+    border-top: 0;
+  }
+
+  :where(.listing-items.list, .listing-items.compact .lastGroup, #results) &:where(:last-child)::before,
+  :where(:is(.listing-items:is(.list, .compact), #results)) &:where(:has(+ &))::before,
+  :where(.listing-items.compact > div:has(+ div + div > &:first-child)) > &:where(:last-child)::before {
+    border-bottom: 0;
+  }
+
+  .tree-item:has(> &:last-child) + .tree-item > &::before {
+    border-top-width: 0;
+  }
+
+  .tree-item:has(+ .tree-item > &) > &:last-child::before {
+    border-bottom-width: 0;
+  }
 }
 
 .half-selected {
@@ -502,15 +567,16 @@ body.rtl .listing-items {
 
 /* Search results with icon size overrides */
 .search-entry.large-icons .image-preview {
-  --icon-size: 5em;
+  --icon-size: 4.5em;
 
-  max-height: 4em;
-  max-width: 4em;
+  max-height: 3.5em;
+  max-width: 3.5em;
+  transform: scale(0.85);
 }
 
 .search-entry.small-icons .image-preview {
-  --icon-size: 2em;
-  --icon-font-size: 1.5em;
+  --icon-size: 1.75em;
+  --icon-font-size: 1.3em;
 }
 
 @media (width <= 768px) {
@@ -535,5 +601,9 @@ body.rtl .listing-items {
 
 .listing-items.list .listing-item.zebra-row:not([aria-selected="true"]),
 .listing-items.compact .listing-item.zebra-row:not([aria-selected="true"]) {
-  background: color-mix(in srgb, var(--surfacePrimary) 30%, var(--background));
+  background: color-mix(in srgb, var(--surfacePrimary) 20%, var(--background));
+}
+
+.search-entry.zebra-row {
+  background: color-mix(in srgb, var(--surfacePrimary) 80%, var(--background));
 }

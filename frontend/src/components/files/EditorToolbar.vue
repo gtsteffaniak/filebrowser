@@ -808,8 +808,8 @@ export default {
   flex-shrink: 0;
   border: none;
   background: transparent;
-  border-radius: 0.5em;
-  color: inherit;
+  border-radius: var(--borderRadius);
+  color: var(--textPrimary);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }

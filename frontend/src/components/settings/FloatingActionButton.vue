@@ -388,7 +388,7 @@ export default {
 .fab-button {
   width: var(--fab-size);
   height: var(--fab-size);
-  border: none;
+  border: var(--borderWidth) solid var(--divider);
   border-radius: 50%;
   background: var(--background);
   color: var(--textPrimary);

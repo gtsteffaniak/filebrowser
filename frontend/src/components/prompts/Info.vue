@@ -47,12 +47,14 @@
       <!-- Storage quota (admin, folders) -->
       <div v-if="showQuotaSection" class="info-section">
         <h3 class="section-title">{{ $t("quotas.title") }}</h3>
-        <SettingsButton
-          class="info-manage-link"
-          :name="$t('quotas.title')"
-          :description="$t('quotas.openDescription')"
-          @click="openQuotaPrompt"
-        />
+        <div class="settings-items">
+          <SettingsButton
+            class="info-manage-link"
+            :name="$t('quotas.title')"
+            :description="$t('quotas.openDescription')"
+            @click="openQuotaPrompt"
+          />
+        </div>
         <div class="info-item">
           <strong>{{ $t("general.enabled") }}</strong>
           <span>{{ quotaEnabled ? $t("general.yes") : $t("general.no") }}</span>

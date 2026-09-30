@@ -407,7 +407,8 @@ export const mutations = {
       cancel: value?.cancel,
     };
     const pinnedCount = state.prompts.filter(p => p.pinned).length;
-    if (entry.pinned) {
+    const isContextMenu = entry.name === "ContextMenu" || entry.name === "OverflowMenu";
+    if (entry.pinned || isContextMenu) {
       state.prompts.push(entry);
     } else {
       // Non‑pinned prompts go just before the first pinned prompt

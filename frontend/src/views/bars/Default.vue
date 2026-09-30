@@ -1,5 +1,5 @@
 <template>
-  <header v-if="!isOnlyOffice" :class="['flexbar']">
+  <header v-if="!isOnlyOffice" :class="['flexbar']" :inert="overlayShown">
     <action
       v-if="!disableNavButtons"
       class="nav-toggle-button"
@@ -8,7 +8,7 @@
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
-    <div class="search-bar-container" :class="{ disabled: isDisabled }"
+    <div class="search-bar-container"
          v-if="showSearch && !isSearchActive" @click="openSearch" >
       <i class="material-symbols">search</i>
       <input
@@ -25,7 +25,7 @@
       :icon="viewIcon"
       :label="viewModeActionLabel"
       @action="switchView"
-      :disabled="isDisabled || viewModeChangeLocked"
+      :disabled="viewModeChangeLocked"
     />
     <template v-else>
       <action
@@ -34,14 +34,13 @@
         id="save-button"
         icon="save"
         :label="$t('general.save')"
-        :disabled="isDisabled"
         @action="save()"
       />
       <action
         v-else
         class="overflow-menu-button"
         :icon="iconName"
-        :disabled="noItems"
+        :disabled="noItems || isSidebarFloating"
         @click="toggleOverflow"
       />
     </template>
@@ -126,6 +125,9 @@ export default {
     isShare() {
       return getters.isShare();
     },
+    isSidebarFloating() {
+      return getters.isSidebarVisible() && !getters.isStickySidebar();
+    },
     noItems() {
       return !state.contextMenuHasItems && !getters.isPreviewView();
     },
@@ -138,7 +140,7 @@ export default {
     isSearchActive() {
       return state.isSearchActive;
     },
-    isDisabled() {
+    overlayShown() {
       return state.isSearchActive || getters.currentPromptName() !== "";
     },
     viewModeChangeLocked() {
@@ -153,7 +155,7 @@ export default {
     isDisabledMultiAction() {
       const regularDisabled = getters.isStickySidebar() && getters.multibuttonState() === "menu";
       const shareDisabled = state.shareInfo?.disableSidebar && getters.multibuttonState() === "menu";
-      return this.isDisabled || regularDisabled || shareDisabled;
+      return regularDisabled || shareDisabled;
     },
     showSwitchView() {
       return this.showHeaderSwitchView;
@@ -170,7 +172,7 @@ export default {
   },
   methods: {
     openSearch() {
-      if (!state.isSearchActive && !this.isDisabled) {
+      if (!state.isSearchActive) {
         mutations.closeHovers();
         mutations.closeSidebar();
         mutations.resetSelected();
@@ -343,7 +345,7 @@ header {
 .search-bar-container {
   display: flex;
   align-items: center;
-  background-color: color-mix(in srgb, var(--surfaceSecondary) 80%, transparent);;
+  background-color: color-mix(in srgb, var(--surfaceSecondary) 75%, transparent);
   border-radius: var(--borderRadius);
   padding: 0.5em 0.75em;
   transition: background-color 0.2s ease;
@@ -355,10 +357,8 @@ header {
   box-sizing: border-box;
 }
 
-/* prevent open search if a prompt is open */
-.search-bar-container.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.search-bar-container:hover {
+  filter:brightness(1.15);
 }
 
 #search-bar-input {
@@ -371,19 +371,11 @@ header {
   user-select: none;
 }
 
-.search-bar-container.disabled #search-bar-input {
-  pointer-events: none;
-}
-
 @media (width <= 768px) {
   .search-bar-container {
     min-width: unset;
     max-width: 60%;
   }
-}
-
-.search-bar-container:hover {
-  background-color: color-mix(in srgb, var(--divider) 75%, transparent);
 }
 
 .search-bar-container .material-symbols {

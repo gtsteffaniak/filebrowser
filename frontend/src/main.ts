@@ -5,7 +5,6 @@ import App from "./App.vue"; // Adjust the path as per your setup
 import router from "./router"; // Adjust the path as per your setup
 
 import "./css/styles.css";
-import "./css/dark.css";
 import { initPwaInstall } from "@/utils/pwaInstall";
 import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
 import { initViewportLayoutListener } from "@/utils/viewport.js";

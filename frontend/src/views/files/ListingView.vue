@@ -420,7 +420,7 @@ export default {
       if (isEmpty) {
         return { 'padding-top': '4.1em' }; // Empty - no files or folders
       } else if (isRootPath) {
-        return { 'padding-top': '4.25em' }; // Root - no breadcrumbs showing
+        return { 'padding-top': '4.28em' }; // Root - no breadcrumbs showing
       } else {
         return { 'padding-top': '7.50em' }; // Non-root - breadcrumbs + listing header
       }
@@ -1455,7 +1455,7 @@ export default {
   position: absolute;
   border: 2px solid var(--primaryColor);
   background-color: color-mix(in srgb, var(--primaryColor) 25%, transparent);
-  border-radius: 8px;
+  border-radius: var(--borderRadius);
   pointer-events: none;
   z-index: 10;
   box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
@@ -1478,7 +1478,7 @@ export default {
   border: 0.2em dashed var(--primaryColor);
   background: rgb(0 0 0 / 30%);
   backdrop-filter: blur(2px);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   display: flex;
   align-items: center;
   justify-content: center;

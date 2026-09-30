@@ -46,6 +46,7 @@
   }
   #listingView {
     margin-bottom: 5em;
+    margin-left: 0.5em;
   }
 
   /* Don't override width for gallery and icons views - they use CSS variables */
@@ -67,9 +68,4 @@
   body.rtl .dashboard .row {
     margin-right: unset;
   }
-}
-
-/* Mobile Specific Styles */
-.mobile-only {
-  display: none !important;
 }

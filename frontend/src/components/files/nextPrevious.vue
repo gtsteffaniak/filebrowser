@@ -942,6 +942,7 @@ export default {
         name: "file-list",
         props: {
           fileList: currentItems,
+          filterable: true,
           title: this.$t("prompts.quickJump")
         }
       });
@@ -956,6 +957,8 @@ export default {
         source: item.source || state.req.source,
         type: item.type,
         isDirectory: item.type === 'directory',
+        size: item.size,
+        modified: item.modified,
         originalItem: item
       }));
     },

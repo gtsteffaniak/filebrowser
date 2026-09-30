@@ -297,7 +297,7 @@ export default {
   background: var(--primaryColor);
   color: white;
   padding: 0.15em 0.4em;
-  border-radius: 0.5em; /* Smaller rounded corners consistent with design */
+  border-radius: var(--borderRadius);
   font-size: 0.6em;
   font-weight: 600;
   text-transform: uppercase;

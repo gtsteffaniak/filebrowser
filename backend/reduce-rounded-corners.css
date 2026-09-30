@@ -1,3 +1,7 @@
+:root {
+  --borderRadius: 0.25em !important;
+}
+
 .card,
 .listing-item,
 .floating-window,

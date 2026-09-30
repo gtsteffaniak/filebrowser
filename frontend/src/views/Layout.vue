@@ -1,13 +1,17 @@
 <template>
-  <div @dragover.prevent @drop.prevent>
-    <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetItems" class="overlay"></div>
+  <div :class="{ 'sidebar-overlay': floatingSidebar }" @dragover.prevent @drop.prevent>
+    <transition name="overlay-fade">
+      <div v-show="showOverlay" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay"></div>
+    </transition>
+    <transition name="overlay-fade">
+      <div v-if="overlayOverPrompt" @contextmenu.prevent="closeContextMenu" @click="closeContextMenu" class="overlay overlay-prompt"></div>
+    </transition>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: `${this.progress}%` }"></div>
     </div>
     <defaultBar></defaultBar>
     <sidebar v-if="!invalidShare"></sidebar>
     <Scrollbar id="main" :class="{
-      'dark-mode': isDarkMode,
       moveWithSidebar: moveWithSidebar.shouldMove,
       'remove-padding-top': isOnlyOffice,
       scrollable: scrollable,
@@ -139,6 +143,13 @@ export default {
     showOverlay() {
       return getters.showOverlay();
     },
+    floatingSidebar() {
+      return getters.isSidebarVisible() && !getters.isStickySidebar() && !state.prompts.length && !state.isSearchActive;
+    },
+    overlayOverPrompt() {
+      if (getters.currentPromptName() !== "ContextMenu") return false;
+      return state.prompts.length > 1 || state.isSearchActive;
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -232,6 +243,12 @@ export default {
       mutations.closeHovers();
       mutations.setSearch(false);
     },
+    closeContextMenu() {
+      const prompt = getters.currentPrompt();
+      if (prompt?.name === "ContextMenu") {
+        mutations.closeTopPrompt(prompt.id);
+      }
+    },
   },
 };
 </script>
@@ -245,10 +262,16 @@ export default {
   padding-top: 0 !important;
 }
 
+.sidebar-overlay header.flexbar {
+  z-index: 5;
+  transition: z-index 0s;
+}
+
 #main {
   overflow: unset;
   scrollbar-width: none;
   transition: padding-left 0.2s ease;
+  color: var(--textPrimary);
 }
 
 #main.moveWithSidebar {

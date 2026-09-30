@@ -57,15 +57,15 @@
     <div class="text">
       <!-- For list/compact pin inside .name (inline), or if inlinePin is true (like on FileList) -->
       <p v-if="isListMode || inlinePin" class="name">
-        <span>{{ displayName }}</span>
+        <span :title="nameTitle">{{ displayName }}</span>
         <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
       </p>
       <!-- For other views pin is separate -->
       <p v-else class="name">
-        <span>{{ displayName }}</span>
+        <span :title="nameTitle">{{ displayName }}</span>
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
-      <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
+      <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -136,14 +136,14 @@
 
     <div class="text">
       <p v-if="isListMode || inlinePin" class="name">
-        <span>{{ displayName }}</span>
+        <span :title="nameTitle">{{ displayName }}</span>
         <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
       </p>
       <p v-else class="name">
-        <span>{{ displayName }}</span>
+        <span :title="nameTitle">{{ displayName }}</span>
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
-      <p class="modified"><time :datetime="modified">{{ formattedTime }}</time></p>
+      <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -162,6 +162,7 @@ import { resourcesApi } from "@/api";
 import { checkConflict } from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
+import { formatTimestamp, fromNow } from "@/utils/moment";
 import { notify } from "@/notify";
 import { goToItemNotificationButton } from "@/utils/notificationActions";
 import { notifyMoveCopyFailure } from "@/utils/appNotifications";
@@ -248,6 +249,14 @@ export default {
       // If displayFullPath is true, show the full path, otherwise just the name
       return this.displayFullPath ? this.path : this.name;
     },
+    nameTitle() {
+      return this.displayName;
+    },
+    modifiedTitle() {
+      return state.user?.dateFormat
+        ? fromNow(this.modified, state.user?.locale)
+        : formatTimestamp(this.modified, state.user?.locale);
+    },
     galleryView() {
       return getters.viewMode() === "gallery";
     },
@@ -289,7 +298,9 @@ export default {
         // If parent provides isSelectedProp, use it; otherwise use local state
         return this.isSelectedProp !== null ? this.isSelectedProp : this.localSelected;
       }
-      return state.selected.indexOf(this.index) !== -1;
+      return state.selected.some((entry) =>
+        typeof entry === "number" ? entry === this.index : entry?.heldSelected?.includes(this.index)
+      );
     },
     isDraggable() {
       return (
@@ -461,11 +472,11 @@ export default {
           path: this.path,
           url: this.path,
           index: this.index,
+          heldSelected: state.selected.filter((entry) => typeof entry === "number"), // keeps the main listing highlighted while this item owns state.selected
         };
         mutations.resetSelected();
         mutations.addSelected(selectedItem);
       }
-      
       if (this.disableContextMenu) {
         return;
       }

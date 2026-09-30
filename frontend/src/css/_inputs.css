@@ -93,10 +93,10 @@ input.sizeInput:disabled {
 .sizeInputWrapper .sizeInput {
   text-align: center;
   border: none;
-  border-radius: 0;
+  border-radius: var(--borderRadius);
   padding: 0.5em;
   margin: 0 0.5em 0 0;
-  background: transparent;
+  background: var(--surfacePrimary);
   height: 2em;
   width: 5em;
   color: var(--textPrimary);

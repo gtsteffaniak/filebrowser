@@ -13,9 +13,14 @@
       />
     </div>
 
-    <!-- Current Path Display -->
-    <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
-      {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
+    <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
+    <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.pinned" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
+      <!-- Current Path Display -->
+      <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
+        {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
+      </div>
+      <slot name="sticky" />
+      <ListingHeader v-if="sortable && !loading" use-picker-sorting />
     </div>
 
     <!-- Loading Spinner -->
@@ -23,25 +28,25 @@
       <LoadingSpinner size="small" mode="placeholder" />
     </div>
 
-    <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
-    <ListingHeader
-      v-if="sortable && !loading"
-      use-picker-sorting
-    />
-
     <!-- File List -->
-    <div v-if="!loading" class="listing-items list">
+    <div
+      v-if="!loading"
+      ref="list"
+      class="listing-items list"
+      @contextmenu.capture="snapshotSelection"
+      @touchstart.capture="snapshotSelection"
+    >
       <ListingItem
-        v-for="(item, index) in items"
+        v-for="(item, index) in visibleItems"
         :key="item.path"
         :name="item.name"
         :isDir="item.type === 'directory' || item.originalItem?.isDir"
         :source="item.source"
         :type="item.type"
-        :size="item.originalItem?.size || 0"
+        :size="item.size ?? item.originalItem?.size ?? 0"
         :modified="item.originalItem?.modified || new Date().toISOString()"
         :index="index"
-        :class="{ 'zebra-row': index % 2 === 1 }"
+        :class="{ 'zebra-row': index % 2 === 1, 'current-item': isCurrentItem(item), 'context-item': isContextItem(item) }"
         :path="item.path"
         :hasPreview="item.originalItem?.hasPreview && item.type !== 'directory' || false"
         :metadata="item.originalItem?.metadata"
@@ -56,6 +61,10 @@
         @click.prevent="(event) => handleItemClick(item, index, event)"
         @dblclick.prevent="(event) => handleItemDblClick(item, index, event)"
       />
+      <h2 v-if="filterQuery && !visibleItems.some((item) => item.name !== '..')" class="no-results">
+        <i class="material-symbols-outlined">search_off</i>
+        <span>{{ $t("tools.advancedSearch.noResults") }}</span>
+      </h2>
     </div>
   </div>
 </template>
@@ -125,7 +134,10 @@ export default {
       type: Boolean,
       default: false, // If true, only files (not folders) can be selected
     },
-    /** When true, show a clickable Name/Size/Modified header that sorts the listing (uses pickerSorting). */
+    filterQuery: {
+      type: String,
+      default: "",
+    },
     sortable: {
       type: Boolean,
       default: true,
@@ -157,6 +169,10 @@ export default {
       current: window.location.pathname,
       currentSource: initialSource,
       loading: false,
+      headerHidden: false,
+      lastScrollTop: 0,
+      scrollContainer: null,
+      ownsContextMenu: false,
     };
   },
   computed: {
@@ -166,6 +182,24 @@ export default {
     },
     isMobile() {
       return getters.isMobile();
+    },
+    visibleItems() {
+      const query = this.filterQuery.trim().toLowerCase();
+      if (!query) return this.items;
+      return this.items.filter(
+        (item) => item.name === ".." || item.name.toLowerCase().includes(query)
+      );
+    },
+    contextItemPath() {
+      if (state.prompts.length < 2 && !state.prompts.some((prompt) => prompt.name === "ContextMenu")) return null;
+      const entry = state.selected.find((selected) => selected && typeof selected === "object");
+      return entry ? entry.path : null;
+    },
+    currentPromptName() {
+      return getters.currentPromptName();
+    },
+    promptCount() {
+      return state.prompts.length;
     },
     sourcePath() {
       return { source: this.source, path: this.path };
@@ -212,6 +246,41 @@ export default {
         this.resetToSource(newSource);
       }
     },
+    path() {
+      if (this.filterQuery) {
+        this.$emit("update:filterQuery", "");
+      }
+    },
+    filterQuery() {
+      if (!this.selected) return;
+      const stillVisible = this.visibleItems.some((item) => item.path === this.selected);
+      if (!stillVisible) {
+        this.clearSelection();
+      }
+    },
+    currentPromptName(now) {
+      if (now !== "ContextMenu") return;
+      this.promptsBeforeMenu = this.promptCount - 1;
+      this.ownsContextMenu = !this.$el.closest(".floating-window")?.classList.contains("prompt-behind");
+    },
+    promptCount(count) {
+      if (!this.ownsContextMenu || count > this.promptsBeforeMenu) return;
+      this.ownsContextMenu = false;
+      const previous = this.selectionBeforeMenu;
+      this.selectionBeforeMenu = null;
+      mutations.resetSelected();
+      if (previous?.entries?.length) {
+        previous.entries.forEach((entry) => mutations.addSelected(entry));
+      }
+      if (previous?.multiple) {
+        mutations.setMultiple(true);
+      }
+    },
+    loading(isLoading) {
+      if (!isLoading && this.fileList) {
+        this.$nextTick(() => this.followCurrentItem());
+      }
+    },
     // Re-sort local items when the picker header changes the sort config
     pickerSort() {
       if (this.sortable) {
@@ -246,6 +315,11 @@ export default {
         this.fillOptions(initialReq);
       }
     }
+    this.attachScrollListener();
+  },
+  beforeUnmount() {
+    this.scrollContainer?.removeEventListener("scroll", this.handleScroll);
+    this.stopFollowingCurrentItem?.();
   },
   methods: {
     // Helper method to ensure loading spinner shows for minimum 200ms
@@ -462,6 +536,7 @@ export default {
       event.stopPropagation();
 
       if (this.fileList) {
+        if (this.isCurrentItem(item)) return;
         this.navigateToItem(item);
         return;
       }
@@ -493,19 +568,30 @@ export default {
       };
       this.next(syntheticEvent);
     },
+    // ListingItem overwrites state.selected when opening the menu (eg: from quick jump)
+    // this is to restore the previous selection that the previews use for the overflow menu, otherwise would remain undefined.
+    snapshotSelection() {
+      if (this.ownsContextMenu || this.currentPromptName === "ContextMenu") return;
+      this.selectionBeforeMenu = {
+        entries: Array.isArray(state.selected) ? [...state.selected] : [],
+        multiple: state.multiple,
+      };
+    },
+    clearSelection() {
+      this.selected = null;
+      this.selectedSource = null;
+      this.selectedType = null;
+      this.$emit("update:selected", {
+        path: this.current,
+        source: this.source,
+        type: 'directory',
+        isValid: !this.requireFileSelection,
+      });
+    },
     select: function (event) {
       const path = event.currentTarget.dataset.path;
-      // If the element is already selected, unselect it.
       if (this.selected === path) {
-        this.selected = null;
-        this.selectedSource = null;
-        this.selectedType = null;
-        this.$emit("update:selected", {
-          path: this.current,
-          source: this.source,
-          type: 'directory',
-          isValid: !this.requireFileSelection,
-        });
+        this.clearSelection();
         return;
       }
       // Otherwise select the element.
@@ -562,7 +648,69 @@ export default {
     },
     fillFromList() {
       const allItems = this.fileList || [];
-      this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
+      const items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
+      this.items = this.sortable ? this.sortEntries(items) : items;
+    },
+    isCurrentItem(item) {
+      return !!this.fileList && !!state.req && item.name === state.req.name;
+    },
+    // Items selected via right click or long press
+    isContextItem(item) {
+      return this.ownsContextMenu && !!this.contextItemPath && item.path === this.contextItemPath;
+    },
+    attachScrollListener() {
+      const el = this.$el.closest(".floating-window > .card-content");
+      if (!el) return;
+      el.addEventListener("scroll", this.handleScroll, { passive: true });
+      this.scrollContainer = el;
+    },
+    handleScroll() {
+      const top = this.scrollContainer.scrollTop;
+      const diff = top - this.lastScrollTop;
+      if (top <= 10 || this.stopFollowingCurrentItem) {
+        this.headerHidden = false;
+      } else if (Math.abs(diff) >= 30) {
+        this.headerHidden = diff > 0;
+      } else {
+        return;
+      }
+      this.lastScrollTop = top;
+    },
+    scrollToCurrentItem() {
+      const current = this.$refs.list?.querySelector(".current-item");
+      if (!current) return null;
+      let container = current.parentElement;
+      while (container && !/(auto|scroll)/.test(getComputedStyle(container).overflowY)) {
+        container = container.parentElement;
+      }
+      if (!container) return null;
+      const itemTop =
+        current.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+      container.scrollTo({
+        top: itemTop - (container.clientHeight - current.offsetHeight) / 2,
+        behavior: "instant",
+      });
+      return container;
+    },
+    // Keeps the current item centered while the list is still resizing
+    followCurrentItem() {
+      this.stopFollowingCurrentItem?.();
+      const container = this.scrollToCurrentItem();
+      if (!container) return;
+      const observer = new ResizeObserver(() => this.scrollToCurrentItem());
+      observer.observe(container);
+      observer.observe(this.$refs.list);
+      const events = ["wheel", "touchstart", "pointerdown", "keydown"];
+      const timer = setTimeout(() => this.stopFollowingCurrentItem?.(), 1000);
+      this.stopFollowingCurrentItem = () => {
+        observer.disconnect();
+        clearTimeout(timer);
+        events.forEach((name) => container.removeEventListener(name, this.stopFollowingCurrentItem));
+        this.stopFollowingCurrentItem = null;
+      };
+      events.forEach((name) =>
+        container.addEventListener(name, this.stopFollowingCurrentItem, { passive: true })
+      );
     },
     navigateToItem(item) {
       mutations.closeTopPrompt();
@@ -581,15 +729,53 @@ export default {
   cursor: pointer;
 }
 
+/* Current file (quick jump) */
+.listing-items :deep(.listing-item.current-item) {
+  background: var(--primaryColor) !important;
+  color: #fff !important;
+}
+
+/* Item that opened the context menu */
+.listing-items :deep(.listing-item.context-item) {
+  background: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
+}
+
 /* Highlight selected items with primary color */
 .listing-items :deep(.listing-item.activebutton) {
   background: var(--primaryColor) !important;
   color: #fff !important;
 }
 
-:deep(.listing-item-header) {
-  margin-bottom: 0.55em !important;
-  margin-top: 0.55em !important;
+.sticky-header {
+  position: sticky;
+  top: calc(-0.5em - 2px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0.5em 0;
+  backdrop-filter: blur(8px);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.sticky-header.header-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+  padding-top: 2em;
+  font-size: 1.2em;
+  opacity: 0.6;
+}
+
+.no-results i {
+  font-size: 2.2em;
 }
 
 /* Loading spinner (not part of listing.css) */

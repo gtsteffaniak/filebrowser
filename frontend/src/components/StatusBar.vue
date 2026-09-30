@@ -68,7 +68,8 @@ export default {
       return getters.showGallerySizeSlider();
     },
     selectedCount() {
-      return getters.selectedCount();
+      // keep the main listing selection when a item from a FileList owns state.selected
+      return (state.selected.find((entry) => typeof entry !== 'number')?.heldSelected ?? state.selected).length;
     },
     numDirs() {
       return getters.reqNumDirs();
@@ -83,16 +84,13 @@ export default {
     // Calculate total size of selected items
     totalSelectedSize() {
       if (this.selectedCount === 0) return 0;
-      if (!Array.isArray(state.req?.items)) {
-        return 0;
-      }
+      const reqItems = Array.isArray(state.req?.items) ? state.req.items : [];
       let total = 0;
-      state.selected.forEach(index => {
-        if (index >= 0 && index < state.req?.items.length) {
-          const item = state.req.items.at(index);
-          if (item?.size) {
-            total += item.size;
-          }
+      const selected = state.selected.find((entry) => typeof entry !== 'number')?.heldSelected ?? state.selected;
+      selected.forEach(entry => {
+        const item = typeof entry === 'number' ? reqItems.at(entry) : entry;
+        if (item?.size) {
+          total += item.size;
         }
       });
       return total;
@@ -246,7 +244,6 @@ export default {
   left: 0;
   right: 0;
   z-index: 2;
-  border-radius: 2px;
   overflow: hidden;
   margin: 0;
   padding: 0;

@@ -382,10 +382,10 @@ export default {
     const hasClearable = computed(() => {
       if (state.user.fileLoading?.clearAll) {
         // For "clear all" mode: check for completed, error, conflict, or paused uploads
-        return files.value.some((file) => 
-          file.status === "completed" || 
-          file.status === "error" || 
-          file.status === "conflict" || 
+        return files.value.some((file) =>
+          file.status === "completed" ||
+          file.status === "error" ||
+          file.status === "conflict" ||
           file.status === "paused"
         );
       } else {
@@ -629,7 +629,7 @@ export default {
       if (status === 'paused' && file?.connectionIssue) {
         return 'Paused (connection issue)';
       }
-      
+
       switch (status) {
         case 'uploading':
           return i18n.global.t('general.uploading', { suffix: '...' });
@@ -718,7 +718,7 @@ export default {
 
 .dropping {
   transform: scale(0.97);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 

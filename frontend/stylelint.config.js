@@ -20,11 +20,12 @@ export default {
     "rule-empty-line-before": [
       "always-multi-line",
       {
-        except: ["first-nested", "inside-block"],
-        ignore: ["after-comment"],
+        except: ["first-nested"],
+        ignore: ["after-comment", "inside-block"],
       },
     ],
     "comment-empty-line-before": null,
+    "declaration-empty-line-before": null,
     "font-family-no-missing-generic-family-keyword": null,
     "no-unknown-animations": true,
     "no-unknown-custom-properties": true,

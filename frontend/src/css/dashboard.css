@@ -8,6 +8,7 @@
   background-color: var(--surfacePrimary);
   box-shadow: 0 2px 2px 0 rgb(0 0 0 / 14%), 0 1px 5px 0 rgb(0 0 0 / 12%), 0 3px 1px -2px rgb(0 0 0 / 20%);
   border-radius: var(--borderRadius);
+  color: var(--textPrimary);
 }
 
 .small {
@@ -31,7 +32,7 @@ table {
 }
 
 table tr {
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--divider);
 }
 
 table tr:last-child {
@@ -40,7 +41,7 @@ table tr:last-child {
 
 table th {
   font-weight: 500;
-  color: #757575;
+  color: var(--textSecondary);
   text-align: left;
 }
 
@@ -80,7 +81,7 @@ body.rtl table tr>* {
   text-align: center;
 }
 
- .card-title>*:first-child {
+.card-title>*:first-child {
   margin-right: auto;
 }
 
@@ -135,7 +136,21 @@ body.rtl .credits {
   width: 100%;
   z-index: 4;
   top: 0;
-  animation: .3s show ease-in;
+}
+
+.overlay-fade-enter-active,
+.overlay-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
+  opacity: 0;
+}
+
+.overlay-prompt {
+  z-index: 999;
+  background-color: color-mix(in srgb, var(--overlay) 50%, transparent);
 }
 
 .card.padding-normal {

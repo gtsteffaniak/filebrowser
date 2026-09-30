@@ -12,6 +12,7 @@
         'editor-prompt': isEditorPrompt(prompt),
       }"
       @mousedown="makeTopPrompt(prompt.id)"
+      @contextmenu="isBlocked(prompt) && $event.preventDefault()"
       :style="{
         transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`,
         width: sizes[prompt.id]?.width ? `${sizes[prompt.id].width}px` : null,
@@ -920,7 +921,8 @@ export default {
   cursor: not-allowed;
   user-select: none;
   opacity: 0.7;
-  transition: opacity 0.5s;
+  filter: brightness(0.90);
+  transition: opacity 0.5s, filter 0.5s;
 }
 
 .prompt-close {
@@ -933,7 +935,7 @@ export default {
   height: 2em;
   padding: 0;
   border: none;
-  border-radius: 1em;
+  border-radius: 50%;
   background: #c62828;
   color: #fff;
   cursor: pointer;
