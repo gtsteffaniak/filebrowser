@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -48,16 +49,16 @@ type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"` // time in hours each web UI session token is valid for. Default is 2 hours.
 	Methods              LoginMethods `json:"methods"`
 	Key                  string       `json:"key"`           // secret: HMAC key for JWT tokens. If unset in config/env, one is generated and stored in the application database.
-	AdminUsername        string       `json:"adminUsername"` // secret: the username of the admin user. If not set, the default is "admin".
-	AdminPassword        string       `json:"adminPassword"` // secret: the password of the admin user. If not set, the default is "admin".
 	TotpSecret           string       `json:"totpSecret"`    // secret: secret used to encrypt TOTP secrets
+	AdminUsername        string       `json:"adminUsername"` // deprecated: use auth.methods.password.adminUsername. secret: password-auth admin username.
+	AdminPassword        string       `json:"adminPassword"` // deprecated: use auth.methods.password.adminPassword. secret: password-auth admin password.
 	AuthMethods          []string     `json:"-"`
 }
 
 // ConfigTriggersAdminPasswordReset reports whether startup should sync auth.adminPassword from config into the admin user record.
 // Blank or "admin" leaves the stored password unchanged across restarts.
 func ConfigTriggersAdminPasswordReset() bool {
-	p := Config.Auth.AdminPassword
+	p := PasswordAdminPassword()
 	return p != "" && p != "admin"
 }
 
@@ -72,11 +73,58 @@ type LoginMethods struct {
 }
 
 type PasswordAuthConfig struct {
-	Enabled     bool      `json:"enabled"`
-	MinLength   int       `json:"minLength" validate:"omitempty"` // minimum pasword length required, default is 5.
-	Signup      bool      `json:"signup" validate:"omitempty"`    // allow signups on login page if enabled -- not secure.
-	Recaptcha   Recaptcha `json:"recaptcha" validate:"omitempty"` // recaptcha config, only used if signup is enabled
-	EnforcedOtp bool      `json:"enforcedOtp"`                    // if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
+	Enabled       bool      `json:"enabled"`
+	AdminUsername string    `json:"adminUsername"`                  // secret: admin username auto-assigned. If not set, the default is "admin".
+	AdminPassword string    `json:"adminPassword"`                  // secret: password for admin auto-assigned admin account. If set, reset on startup.
+	MinLength     int       `json:"minLength" validate:"omitempty"` // minimum pasword length required, default is 5.
+	Signup        bool      `json:"signup" validate:"omitempty"`    // allow signups on login page if enabled -- not secure.
+	Recaptcha     Recaptcha `json:"recaptcha" validate:"omitempty"` // recaptcha config. If configured will show up the checkbox verification in the login page
+	EnforcedOtp   bool      `json:"enforcedOtp"`                    // if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
+}
+
+// PasswordAdminUsername returns the password-auth admin username.
+// auth.methods.password.adminUsername takes priority; otherwise auth.adminUsername;
+// otherwise "admin".
+func PasswordAdminUsername() string {
+	if u := strings.TrimSpace(Config.Auth.Methods.PasswordAuth.AdminUsername); u != "" {
+		return u
+	}
+	if u := strings.TrimSpace(Config.Auth.AdminUsername); u != "" {
+		return u
+	}
+	return "admin"
+}
+
+// PasswordAdminPassword returns the password-auth admin password override.
+// auth.methods.password.adminPassword takes priority; otherwise auth.adminPassword.
+func PasswordAdminPassword() string {
+	if p := Config.Auth.Methods.PasswordAuth.AdminPassword; p != "" {
+		return p
+	}
+	return Config.Auth.AdminPassword
+}
+
+// MigrateLegacyPasswordAdminFromAuth copies deprecated top-level auth.adminUsername and
+// auth.adminPassword into auth.methods.password in memory when the nested keys are
+// unset (or still the generated "admin" placeholder). It does not rewrite the config file.
+func MigrateLegacyPasswordAdminFromAuth() {
+	pwd := &Config.Auth.Methods.PasswordAuth
+	legacyUser := strings.TrimSpace(Config.Auth.AdminUsername)
+	if legacyUser != "" {
+		nestedUser := strings.TrimSpace(pwd.AdminUsername)
+		if nestedUser == "" || (nestedUser == "admin" && legacyUser != "admin") {
+			pwd.AdminUsername = legacyUser
+			logger.Warning("auth.adminUsername is deprecated; use auth.methods.password.adminUsername")
+		}
+	}
+	legacyPass := Config.Auth.AdminPassword
+	if legacyPass != "" {
+		nestedPass := pwd.AdminPassword
+		if nestedPass == "" || (nestedPass == "admin" && legacyPass != "admin") {
+			pwd.AdminPassword = legacyPass
+			logger.Warning("auth.adminPassword is deprecated; use auth.methods.password.adminPassword")
+		}
+	}
 }
 
 type ProxyAuthConfig struct {
@@ -85,9 +133,23 @@ type ProxyAuthConfig struct {
 }
 
 type Recaptcha struct {
-	Host   string `json:"host" validate:"required"`
-	Key    string `json:"key" validate:"required"`
-	Secret string `json:"secret" validate:"required"`
+	Host   string `json:"host" validate:"required"`   // google recaptcha host, for example: https://www.google.com/recaptcha/api.js
+	Key    string `json:"key" validate:"required"`    // v2 site key
+	Secret string `json:"secret" validate:"required"` // v2 secret key
+}
+
+// ValidateRecaptcha disables recaptcha at startup if the configured host isn't a valid https URL
+func ValidateRecaptcha() {
+	r := &Config.Auth.Methods.PasswordAuth.Recaptcha
+	if r.Host == "" || r.Key == "" {
+		return
+	}
+	parsed, err := url.Parse(r.Host)
+	if err != nil || !strings.EqualFold(parsed.Scheme, "https") || parsed.Hostname() == "" {
+		logger.Warning(fmt.Sprintf("configured recaptcha host %q is not a valid https URL - disabling recaptcha", r.Host))
+		r.Host = ""
+		r.Key = ""
+	}
 }
 
 // OpenID OAuth2.0
@@ -282,6 +344,18 @@ func verifyLdapConnection() error {
 	_, err = conn.Search(searchRequest)
 	if err != nil {
 		return fmt.Errorf("LDAP search test failed (server may require StartTLS or bind before search): %w", err)
+	}
+	return nil
+}
+
+// ValidateProxyAuth checks proxy config. Call when proxy auth is enabled.
+func ValidateProxyAuth() error {
+	proxyCfg := &Config.Auth.Methods.ProxyAuth
+	if proxyCfg.Header == "" {
+		return fmt.Errorf("proxy header is required when proxy auth is enabled")
+	}
+	if (len(proxyCfg.UserGroups) > 0 || proxyCfg.AdminGroup != "") && proxyCfg.GroupsClaim == "" {
+		return fmt.Errorf("groupsClaim is required when userGroups or adminGroup is set for proxy auth")
 	}
 	return nil
 }

@@ -4,12 +4,12 @@
   justify-content: center;
   outline: 0;
   padding: .5em;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   cursor: pointer;
   background: var(--primaryColor);
   color: white;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
-  transition: .1s ease all;
+  box-shadow: 0 0 5px rgb(0 0 0 / 5%);
+  transition: transform 0.1s ease, opacity 0.1s ease, background-color 0.1s ease;
   min-width: 2em;
   min-height: 2em;
   padding-left: 1em;
@@ -78,11 +78,4 @@ button:disabled {
 .button[disabled] {
   opacity: .5;
   cursor: not-allowed;
-}
-
-.floating-action-button {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 1000;
 }

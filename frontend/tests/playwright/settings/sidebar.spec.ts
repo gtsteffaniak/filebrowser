@@ -43,6 +43,39 @@ test("check sidebar source links are formatted correctly", async ({ page, checkF
     checkForErrors();
 });
 
+test("source info icon shows tooltip without navigating", async ({ page, checkForErrors }) => {
+    await page.goto("/files/");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+
+    const pwFiles = page.getByRole("link", { name: "playwright + files", exact: true });
+    await expect(pwFiles).toBeVisible();
+
+    const infoIcon = pwFiles.locator(".tooltip-info-icon");
+    await expect(infoIcon).toBeVisible();
+
+    const urlBefore = page.url();
+    await infoIcon.click();
+
+    await expect(page).toHaveURL(urlBefore);
+    await expect(page.locator(".floating-tooltip")).toBeVisible();
+    await expect(page.locator(".floating-tooltip .index-info-table")).toBeVisible();
+
+    checkForErrors();
+});
+
+test("navigation mode has no source card", async ({ page, checkForErrors }) => {
+    await page.goto("/files/");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+
+    // Icon-mode ToggleSwitch keeps the checkbox visually hidden; click the visible track.
+    await page.locator(".sidebar-mode-toggle label.switch").click();
+
+    await expect(page.locator(".navigation-source-card")).toHaveCount(0);
+    await expect(page.locator(".file-tree-container")).toBeVisible();
+
+    checkForErrors();
+});
+
 test("check sidebar Tools link is formatted correctly", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
     const tools = page.getByRole("link", { name: "Tools", exact: true });

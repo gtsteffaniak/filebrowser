@@ -133,6 +133,9 @@ function freqOptions(values) {
 export default {
   name: "VisualizerSettings",
   components: { HelpTooltipIcon, ExpandDropdown, ToggleSwitch },
+  props: {
+    promptId: { type: [String, Number], default: null },
+  },
   data() {
     return {
       fftSizeOptions: [1024, 2048, 4096, 8192, 16384, 32768].map((value) => ({ value, label: `${value}` })),

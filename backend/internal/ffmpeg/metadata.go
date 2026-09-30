@@ -69,11 +69,6 @@ func (s *Service) ProbeFile(ctx context.Context, mediaPath string) (*FileProbeIn
 		return nil, err
 	}
 
-	if err = s.Acquire(ctx); err != nil {
-		return nil, err
-	}
-	defer s.Release()
-
 	info, err := s.inner.ProbeStream(ctx, goffmpeg.ProbeStreamOptions{
 		URL:        localPath,
 		StreamType: goffmpeg.StreamFile,
@@ -105,11 +100,6 @@ func (s *Service) GetMediaDuration(ctx context.Context, mediaPath string) (float
 	if duration, found := MetadataCache.Get(cacheKey); found {
 		return duration, nil
 	}
-
-	if err = s.Acquire(ctx); err != nil {
-		return 0, err
-	}
-	defer s.Release()
 
 	duration, err := s.inner.GetMediaDuration(ctx, localPath)
 	if err != nil {

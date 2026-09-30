@@ -45,10 +45,15 @@
 
 <script>
 import { mutations } from "@/store";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications";
 
 export default {
   name: "copy-paste-confirm",
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     operation: {
       type: String,
       required: true,
@@ -86,8 +91,9 @@ export default {
     async confirm() {
       try {
         await this.onConfirm();
-      } finally {
         mutations.closeTopPrompt();
+      } catch (error) {
+        notifyMoveCopyFailure(error);
       }
     },
   },

@@ -1,11 +1,9 @@
 body {
-  font-family: "Roboto", sans-serif;
+  font-family: Roboto, sans-serif;
   padding-top: var(--header-height);
-  color: #333333;
+  color: #333;
   overflow:initial;
   scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  -webkit-overflow-scrolling: touch;
 }
 
 body.rtl {
@@ -19,6 +17,7 @@ body.rtl {
 
 a {
   text-decoration: none;
+  color: inherit;
 }
 
 img {
@@ -30,10 +29,7 @@ audio, video {
 }
 
 .no-select {
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none;    /* Firefox */
-  -ms-user-select: none;     /* Internet Explorer/Edge */
-  user-select: none;         /* Standard */
+  user-select: none;
 }
 
 .hidden {
@@ -44,31 +40,14 @@ audio, video {
   word-break: break-all;
 }
 
-/* Container */
-.container {
-  width: 95%;
-  max-width: 960px;
-  margin: 1em auto 0;
-}
-
-/* Icons */
-i.spin {
-  animation: 1s spin linear infinite;
-}
-
 /* App Styles */
 #app {
   transition: 0.2s ease padding;
 }
 
-#app.multiple {
-  padding-bottom: 4em;
-}
-
 /* Main Content */
 #main {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
   position: fixed;
   padding-top: var(--header-height);
   padding-left: var(--safe-area-left);
@@ -80,78 +59,6 @@ i.spin {
   width: 100%;
   display: flex;
   flex-direction: column;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Hide scrollbar for WebKit browsers */
-#main::-webkit-scrollbar {
-  width: 0px;
-  background: transparent; /* Optional: just make scrollbar invisible */
-  display: none;
-  -webkit-appearance: none;
-}
-
-.main-padding {
-  padding-top: 4em;
-  padding-bottom: 0.5em;
-}
-
-/* Files */
-.files {
-  position: absolute;
-  bottom: 30px;
-  width: 100%;
-}
-
-/* Progress Bar */
-.progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  z-index: 9999999999;
-}
-
-.progress div {
-  height: 100%;
-  background-color: #40c4ff;
-  width: 0;
-  transition: 0.2s ease width;
-}
-
-#popup-notification {
-  border-radius: 1em;
-  color: #fff;
-  position: fixed;
-  max-width: 90vw;
-  bottom: 0;
-  right: -20em;
-  display: flex;
-  padding: 0.5em;
-  align-items: center;
-  transition: right 1s ease;
-  z-index: 7;
-  margin: 1em;
-  height: auto;
-}
-
-#popup-notification-content {
-  color: white;
-  padding: 1em;
-}
-
-#popup-notification.success {
-  background: var(--primaryColor);
-}
-
-#popup-notification.error {
-  background: var(--red);
-}
-
-#popup-notification > i {
-  cursor: pointer;
-  font-size: 1.75em;
 }
 
 .qrcode {
@@ -161,12 +68,12 @@ i.spin {
 }
 
 .floating-window {
-  background-color: var(--surfacePrimary);
+  background-color: var(--background);
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow:
-  0 1px 1px hsl(0deg 0% 0% / 0.075),
-  0 2px 2px hsl(0deg 0% 0% / 0.075),
-  0 4px 4px hsl(0deg 0% 0% / 0.075),
-  0 8px 8px hsl(0deg 0% 0% / 0.075),
-  0 16px 16px hsl(0deg 0% 0% / 0.075);
+  0 1px 1px hsl(0deg 0% 0% / 7.5%),
+  0 2px 2px hsl(0deg 0% 0% / 7.5%),
+  0 4px 4px hsl(0deg 0% 0% / 7.5%),
+  0 8px 8px hsl(0deg 0% 0% / 7.5%),
+  0 16px 16px hsl(0deg 0% 0% / 7.5%);
 }

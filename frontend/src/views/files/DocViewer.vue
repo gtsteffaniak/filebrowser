@@ -264,16 +264,18 @@ export default defineComponent({
   padding: 2em;
   box-sizing: border-box;
 }
+
 .docx-page {
   background: white;
   width: 8.5in;
   min-height: 11in;
   margin: 0 auto;
   padding: 1in;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 10px rgb(0 0 0 / 15%);
   box-sizing: border-box;
   color: black;
 }
+
 .status-text {
   text-align: center;
   padding: 3em;
@@ -281,10 +283,12 @@ export default defineComponent({
   color: #333;
   font-size: 1.2em;
 }
+
 .status-text.error {
   color: #d9534f;
 }
-@media (max-width: 8.5in) {
+
+@media (width <= 8.5in) {
   .viewer-background {
     padding: 0;
   }

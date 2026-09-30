@@ -11,7 +11,6 @@
       ref="anchor"
       class="expand-dropdown-anchor menu-panel no-select border-radius"
       :class="{
-        'dark-mode': isDarkMode,
         'expand-upward': open && expandUpward && !transparent,
         'expand-dropdown-anchor--placeholder': open && transparent,
       }"
@@ -55,7 +54,6 @@
           <div
             class="expand-dropdown-anchor menu-panel no-select border-radius"
             :class="{
-              'dark-mode': isDarkMode,
               'expand-upward': expandUpward,
             }"
             :style="overlayAnchorStyle"
@@ -148,7 +146,6 @@
 
 <script>
 import MenuOptionList from "@/components/MenuOptionList.vue";
-import { getters } from "@/store";
 import {
   expandBeforeEnter,
   expandEnter,
@@ -255,9 +252,6 @@ export default {
   },
 
   computed: {
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     resolvedInputId() {
       return this.inputId || this.localInputId;
     },
@@ -272,7 +266,6 @@ export default {
         {
           "expand-dropdown--transparent": this.transparent,
           "expand-dropdown-overlay--anchored": this.transparent,
-          "dark-mode": this.isDarkMode,
           "expand-upward": this.expandUpward,
         },
         ...this.overlayContextClassNames,
@@ -720,9 +713,37 @@ export default {
   flex-direction: column-reverse;
 }
 
+.expand-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding-left: 0.5em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.expand-dropdown-trigger:disabled,
+.expand-dropdown-trigger[disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-trigger {
+  padding-left: 0;
+  color: inherit;
+}
+
 .expand-dropdown-overlay--anchored .expand-dropdown-trigger:hover:not(:disabled) {
   width: 100% !important;
   margin-left: 0 !important;
+}
+
+.expand-dropdown-trigger:hover:not(:disabled, .expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-trigger) {
+  width: 98% !important;
+  margin-left: 1% !important;
+  padding-left: 0.5em !important;
 }
 
 .expand-dropdown-overlay {
@@ -766,30 +787,6 @@ export default {
   padding-bottom: 0;
 }
 
-.expand-dropdown-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  width: 100%;
-  padding-left: 0.5em;
-  text-align: left;
-  cursor: pointer;
-}
-
-/* Match menu-option hover inset so scale(1.02) does not clip in the anchor */
-.expand-dropdown-trigger:hover:not(:disabled) {
-  width: 98% !important;
-  margin-left: 1% !important;
-  padding-left: 0.5em !important;
-}
-
-.expand-dropdown-trigger:disabled,
-.expand-dropdown-trigger[disabled] {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 .expand-dropdown-trigger-label {
   flex: 1;
   min-width: 0;
@@ -825,11 +822,6 @@ export default {
   background-color: transparent;
   border-radius: 0;
   padding: 0;
-}
-
-.expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-trigger {
-  padding-left: 0;
-  color: inherit;
 }
 
 .expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-trigger.action:not(:disabled):hover {

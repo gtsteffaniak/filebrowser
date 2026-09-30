@@ -1,6 +1,4 @@
-import { PLYR_CONTROLS_TRANSITION_MS } from '@/plyr/pipSession.js';
-
-const FADE_MS = PLYR_CONTROLS_TRANSITION_MS;
+const FADE_MS = 400;
 const REVEAL_AFTER_PLAY_MS = 1000;
 
 const CLASS_SHOWN = 'fb-overlaid--shown';
@@ -16,20 +14,19 @@ export function enableOverlaidHintController({
   player,
   hasStartedPlayback,
   baseUrl,
+  isPlaying = false,
 }) {
   if (!player?.elements?.container) {
     return {
       cleanup: () => {},
-      onPlaybackToggle: () => {},
+      syncPlayback: () => {},
       reset: () => {},
-      setInitialIcon: () => {},
     };
   }
 
-  let state = 'hidden';
-  let lastIconState = null;
+  let currentlyPlaying = false;
   let fadeTimer = null;
-  let fadeOutRaf = null;
+  let fadeInRaf = null;
   let suppressUntil = 0;
 
   const getPlyrEl = () => player.elements.container;
@@ -45,76 +42,64 @@ export function enableOverlaidHintController({
     return player.elements.container.querySelector('.plyr__control--overlaid');
   };
 
-  const clearFadeTimer = () => {
+  const applyIcon = () => {
+    const btn = getOverlaidButton();
+    const use = btn?.querySelector('use');
+    if (!use) return;
+    const isPlaying = currentlyPlaying ? 'pause' : 'play';
+    const href = `${baseUrl}public/static/img/plyr.svg#plyr-${isPlaying}`;
+    use.setAttribute('href', href);
+    use.setAttribute('xlink:href', href);
+  };
+
+  const clearTimers = () => {
     if (fadeTimer) {
       clearTimeout(fadeTimer);
       fadeTimer = null;
     }
-  };
-
-  const clearFadeOutRaf = () => {
-    if (fadeOutRaf !== null) {
-      cancelAnimationFrame(fadeOutRaf);
-      fadeOutRaf = null;
+    if (fadeInRaf !== null) {
+      cancelAnimationFrame(fadeInRaf);
+      fadeInRaf = null;
     }
   };
 
   const isSuppressed = () => suppressUntil > Date.now();
-
-  const setIcon = (which) => {
-    if (lastIconState === which) {
-      return;
-    }
-    lastIconState = which;
-    const btn = getOverlaidButton();
-    if (!btn) {
-      return;
-    }
-    const href = `${baseUrl}public/static/img/plyr.svg#plyr-${which}`;
-    const use = btn.querySelector('use');
-    if (use) {
-      use.setAttribute('href', href);
-      use.setAttribute('xlink:href', href);
-    }
-  };
-
-  const fadeOut = ({ force = false } = {}) => {
-    if (!force && (state === 'hidden' || state === 'fadeOut')) {
-      return;
-    }
+  const fadeOut = () => {
     const plyrEl = getPlyrEl();
     if (!plyrEl) {
-      state = 'hidden';
       return;
     }
-    state = 'fadeOut';
-    clearFadeTimer();
-    clearFadeOutRaf();
-    plyrEl.classList.remove(CLASS_FADE_IN);
+    clearTimers();
+    plyrEl.classList.remove(CLASS_FADE_IN, CLASS_FADE_OUT);
     plyrEl.classList.add(CLASS_SHOWN);
-    plyrEl.classList.remove(CLASS_FADE_OUT);
-    fadeOutRaf = requestAnimationFrame(() => {
-      fadeOutRaf = null;
+    fadeInRaf = requestAnimationFrame(() => {
+      fadeInRaf = null;
       plyrEl.classList.add(CLASS_FADE_OUT);
     });
     fadeTimer = setTimeout(() => {
       plyrEl.classList.remove(CLASS_SHOWN, CLASS_FADE_OUT, CLASS_FADE_IN);
-      state = 'hidden';
       fadeTimer = null;
     }, FADE_MS);
   };
 
+  // Instant hide on pause, plyr own paused will take place
+  const hideInstantly = () => {
+    clearTimers();
+    const plyrEl = getPlyrEl();
+    if (plyrEl) {
+      plyrEl.classList.remove(CLASS_SHOWN, CLASS_FADE_IN, CLASS_FADE_OUT);
+    }
+  };
+
   const show = () => {
-    if (!player.playing || !hasStartedPlayback() || isSuppressed()) {
+    if (!currentlyPlaying || !hasStartedPlayback() || isSuppressed()) {
       return;
     }
     const plyrEl = getPlyrEl();
     if (!plyrEl) {
       return;
     }
-    clearFadeTimer();
-    clearFadeOutRaf();
-    state = 'shown';
+    clearTimers();
     plyrEl.classList.remove(CLASS_FADE_OUT);
     plyrEl.classList.add(CLASS_SHOWN, CLASS_FADE_IN);
     fadeTimer = setTimeout(() => {
@@ -129,46 +114,25 @@ export function enableOverlaidHintController({
   };
 
   const onControlsHidden = () => {
-    fadeOut({ force: true });
+    fadeOut();
   };
 
   player.on('controlsshown', onControlsShown);
   player.on('controlshidden', onControlsHidden);
 
-  const onPlaybackToggle = (isPlaying) => {
-    if (isPlaying) {
-      setIcon('pause');
+  const syncPlayback = (playing) => {
+    currentlyPlaying = !!playing;
+    applyIcon();
+    if (currentlyPlaying) {
       suppressUntil = Date.now() + REVEAL_AFTER_PLAY_MS;
-      fadeOut({ force: true });
-      return;
-    }
-    setIcon('play');
-    suppressUntil = 0;
-    clearFadeTimer();
-    clearFadeOutRaf();
-    state = 'hidden';
-    const plyrEl = getPlyrEl();
-    if (plyrEl) {
-      plyrEl.classList.remove(CLASS_SHOWN, CLASS_FADE_IN, CLASS_FADE_OUT);
+      fadeOut();
+    } else {
+      suppressUntil = 0;
+      hideInstantly();
     }
   };
 
-  const reset = () => {
-    suppressUntil = 0;
-    clearFadeTimer();
-    clearFadeOutRaf();
-    state = 'hidden';
-    const plyrEl = getPlyrEl();
-    if (plyrEl) {
-      plyrEl.classList.remove(CLASS_SHOWN, CLASS_FADE_IN, CLASS_FADE_OUT);
-    }
-    lastIconState = null;
-    setIcon('play');
-  };
-
-  const setInitialIcon = () => {
-    setIcon('play');
-  };
+  const reset = () => syncPlayback(false);
 
   const cleanup = () => {
     player.off('controlsshown', onControlsShown);
@@ -176,12 +140,11 @@ export function enableOverlaidHintController({
     reset();
   };
 
-  setInitialIcon();
+  syncPlayback(isPlaying);
 
   return {
     cleanup,
-    onPlaybackToggle,
+    syncPlayback,
     reset,
-    setInitialIcon,
   };
 }

@@ -27,10 +27,7 @@ func QuickSetup() error {
 	user := &users.User{}
 	ApplyUserDefaults(user)
 
-	user.Username = settings.Config.Auth.AdminUsername
-	if user.Username == "" {
-		user.Username = "admin"
-	}
+	user.Username = settings.PasswordAdminUsername()
 
 	user.Permissions.Admin = true
 	user.LoginMethod = users.LoginMethodPassword

@@ -1,6 +1,6 @@
 <template>
   <Tooltip />
-  <div id="login" :class="{ recaptcha: globalVars.recaptcha, 'dark-mode': isDarkMode, 'halloween-theme': eventTheme === 'halloween' }">
+  <div id="login" :class="{ recaptcha: globalVars.recaptcha, 'halloween-theme': eventTheme === 'halloween' }">
     <!-- Halloween Background Elements -->
     <div v-if="eventTheme === 'halloween'" class="halloween-background">
       <!-- Floating Clouds -->
@@ -44,7 +44,7 @@
               :placeholder="$t('login.passwordConfirm')" />
 
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
-            <input class="button button--block" type="submit"
+            <input class="button button--block" type="submit" :disabled="globalVars.recaptcha && !recaptchaReady"
               :value="createMode ? $t('general.signup') : getLoginButtonValue()" />
             <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
@@ -186,7 +186,7 @@
       </svg>
     </div>
   </div>
-  <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
+  <prompts></prompts>
 </template>
 
 <script>
@@ -201,6 +201,40 @@ import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+
+function loadRecaptcha(onReady, onError) {
+  if (typeof window.grecaptcha !== "undefined") {
+    onReady();
+    return;
+  }
+  const host = globalVars.recaptchaHost; // commonly https://www.google.com/recaptcha/api.js
+  if (!/^https:\/\//i.test(host)) { // Backend should already have filtered non-https URLs but we filter it here too just in case
+    onError(new Error(`the configured recaptcha host is not a valid https URL`));
+    return;
+  }
+  const existing = document.querySelector(`script[src="${host}"]`);
+  if (!existing) {
+    const script = document.createElement("script");
+    script.src = host;
+    script.async = true;
+    script.defer = true;
+    script.onerror = () => onError(new Error('Failed to load recaptcha script'));
+    document.head.appendChild(script);
+  }
+  const startedAt = Date.now();
+  const waitForRecaptcha = () => {
+    if (typeof window.grecaptcha !== "undefined") {
+      onReady();
+      return;
+    }
+    if (Date.now() - startedAt > 15000) {
+      onError(new Error("recaptcha loading timed out"));
+      return;
+    }
+    setTimeout(waitForRecaptcha, 100);
+  };
+  waitForRecaptcha();
+}
 
 export default {
   name: "login",
@@ -232,10 +266,20 @@ export default {
     username: "",
     password: "",
     recaptcha: globalVars.recaptcha,
+    recaptchaReady: false,
+    recaptchaId: null,
     passwordConfirm: "",
     loginURL: `${globalVars.baseURL}api/auth/oidc/login`,
     inProgress: false,
   }),
+  watch: {
+    // To render a new captcha whenever the login form is re-created (which can happen with wrong credentials)
+    inProgress(isInProgress, wasInProgress) {
+      if (!globalVars.recaptcha || !wasInProgress || isInProgress) return;
+      this.recaptchaReady = false;
+      this.$nextTick(() => this.renderRecaptcha());
+    },
+  },
   mounted() {
     syncDocumentTheme(this.isDarkMode);
     if (state.route.query.redirect) {
@@ -250,13 +294,22 @@ export default {
       }
     }
     if (!globalVars.recaptcha) return;
-    window.globalVars.recaptcha.ready(() => {
-      window.globalVars.recaptcha.render("globalVars.recaptcha", {
-        sitekey: globalVars.globalVars.recaptchaKey,
-      });
-    });
+    loadRecaptcha(
+      () => this.renderRecaptcha(),
+      (err) => console.error("recaptcha failed to load:", err)
+    );
   },
   methods: {
+    renderRecaptcha() {
+      const container = document.getElementById("globalVars.recaptcha");
+      if (!container) return;
+      window.grecaptcha.ready(() => {
+        this.recaptchaId = window.grecaptcha.render(container, {
+          sitekey: globalVars.recaptchaKey,
+        });
+        this.recaptchaReady = true;
+      });
+    },
     getOrLabel() {
       return this.$t("general.or").toUpperCase();
     },
@@ -308,9 +361,13 @@ export default {
 
       let captcha = "";
       if (globalVars.recaptcha) {
-        captcha = window.gglobalVars.recaptcha.getResponse();
+        if (!this.recaptchaReady) {
+          this.inProgress = false;
+          return;
+        }
+        captcha = window.grecaptcha.getResponse(this.recaptchaId);
         if (captcha === "") {
-          this.error = this.$t("login.wrongCredentials");
+          this.error = this.$t("login.recaptchaRequired");
           this.inProgress = false;
           return;
         }
@@ -402,24 +459,23 @@ export default {
 }
 
 .login-brand {
-  padding: 0em !important;
-  padding-bottom: 0 !important;
-  padding-top: 0.5em !important;
+  padding: 0;
+  padding-top: 0.5em;
   display: flex;
-  align-content: center;
-  justify-content: center;
+  place-content: center center;
   align-items: center;
 }
 
 .brand-text {
-  padding: 1em !important;
-  padding-top: 0.9em !important;
+  padding: 1em;
+  padding-top: 0.9em;
+  color: var(--textPrimary);
 }
 
 .login-brand i {
-  font-size: 5em !important;
-  padding-top: 0em !important;
-  padding-bottom: 0em !important;
+  font-size: 5em;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .login-icon {
@@ -429,12 +485,12 @@ export default {
 }
 
 .password-entry {
-  padding: 0em !important;
+  padding: 0;
   width: 100%;
 }
 
 .direct-login {
-  display: flex !important;
+  display: flex;
   justify-content: center;
 }
 
@@ -451,11 +507,8 @@ export default {
   position: absolute;
   width: 2em;
   height: 1px;
-
   top: 24px;
-
   background-color: #aaa;
-
   content: "";
 }
 
@@ -471,7 +524,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5em 1em;
+  padding: .5em;
+  background: var(--red);
+  color: #fff;
+  text-align: center;
+  animation: .2s opac forwards;
+  margin-bottom: 0.5em;
 }
 
 .login-spinner-wrapper {
@@ -484,9 +542,8 @@ export default {
 .loginOptions {
   text-align: center;
   display: flex;
-  align-content: center;
+  place-content: center center;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
   flex-direction: column;
 }
@@ -508,6 +565,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
+  background: var(--background);
 }
 
 #login h1 {
@@ -531,15 +589,6 @@ export default {
 
 #login #recaptcha {
   margin: .5em 0 0;
-}
-
-.wrong-login {
-  background: var(--red) !important;
-  color: #fff;
-  padding: .5em;
-  text-align: center;
-  animation: .2s opac forwards;
-  margin-bottom: 0.5em;
 }
 
 @keyframes opac {

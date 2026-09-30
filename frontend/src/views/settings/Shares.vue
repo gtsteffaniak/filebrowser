@@ -5,7 +5,16 @@
   </div>
 
   <div class="card-content full">
-    <div class="settings-items">
+    <div v-if="isAdmin" class="settings-items share-defaults-entry">
+      <SettingsButton
+        class="item"
+        :name="$t('share.shareDefaults')"
+        :description="$t('share.shareDefaultsDescription')"
+        @click="openShareDefaultsPrompt"
+      />
+      <ActivityViewerButton class="item" :href="activityViewerHref" />
+    </div>
+    <div v-else class="settings-items">
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
     <settings-table
@@ -24,7 +33,10 @@
         <template v-else>{{ $t("general.permanent") }}</template>
       </template>
       <template #cell-downloads="{ row }">
-        <template v-if="row.downloadsLimit && row.downloadsLimit > 0">{{ row.downloads }} / {{ row.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <template v-if="row.quotaLimitBytes && row.quotaLimitBytes > 0">
+          {{ formatBytes(row.quotaUsedBytes || 0) }} / {{ formatBytes(row.quotaLimitBytes) }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        </template>
+        <template v-else-if="row.downloadsLimit && row.downloadsLimit > 0">{{ row.downloads }} / {{ row.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <template v-else>{{ row.downloads }}</template>
       </template>
       <template #cell-warning="{ row }">
@@ -87,9 +99,10 @@
 <script>
 import { notify } from "@/notify";
 import { shareApi } from "@/api";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { fromNow } from '@/utils/moment';
@@ -101,6 +114,7 @@ export default {
   components: {
     Errors,
     SettingsTable,
+    SettingsButton,
     ActivityViewerButton,
   },
   data: () => ({
@@ -173,10 +187,34 @@ export default {
     activityViewerHref() {
       return activityViewerPresets.shares();
     },
+    isAdmin() {
+      return getters.isAdmin();
+    },
   },
   methods: {
+    openShareDefaultsPrompt() {
+      mutations.showPrompt({
+        name: "share-defaults",
+        props: {
+          title: this.$t("share.shareDefaults"),
+        },
+      });
+    },
     shareManagementLabel() {
       return this.$t("general.shareManagement");
+    },
+    formatBytes(bytes) {
+      const n = Number(bytes) || 0;
+      if (n < 1024) return `${n} B`;
+      const units = ["KB", "MB", "GB", "TB"];
+      let v = n;
+      let i = -1;
+      do {
+        v /= 1024;
+        i += 1;
+      } while (v >= 1024 && i < units.length - 1);
+      // eslint-disable-next-line security/detect-object-injection -- units index is bounded by loop
+      return `${v.toFixed(1)} ${units[i]}`;
     },
     async copyToClipboard(text) {
       await copyToClipboard(text);

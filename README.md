@@ -86,7 +86,7 @@ See the [Official Docs](https://filebrowserquantum.com/). Contributions are welc
 ## Comparison Chart
 Application Name | <img width="48" alt="" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174" > Quantum | <img width="48" alt="" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" alt="" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" alt="" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" alt="" src="https://cdn.iconscout.com/icon/free/png-256/free-google-drive-logo-icon-svg-download-png-2476481.png" > Google_Drive | <img width="48" alt="" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
 --- | --- | --- | --- | --- | --- | --- |
-Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+Filesystem support            | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Windows                       | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
@@ -95,7 +95,7 @@ Has Stable Release?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
 webdav support                | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Dedicated docs site?          | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+Dedicated docs site?          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Docker image size             | 180 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
 Min. Memory Requirements      | 512 MB | 128 MB | 128 MB (main image) | 512 MB | ❌ | 512 MB   |
@@ -109,25 +109,25 @@ Content-aware search?         | ❌ | ❌ | ✅ | configurable | ✅ | ✅ |
 Custom job support            | :construction: | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Single sign-on support        | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-LDAP sign-on support          | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
+LDAP sign-on support          | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Long-live API key support     | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-API documentation page        | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Mobile App                    | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
+API documentation page        | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+Mobile App                    | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
 open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 tags support                  | :construction: | ❌ | ✅ | ✅ | ❌ | ✅ |
 shareable web links?          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Event-based notifications     | :construction: | ❌ | ✅ | ❌ | ❌ | ✅ |
-Metrics                       | :construction: | ❌ | ✅ | ❌ | ❌ | ❌ |
-file space quotas             | :construction: | ❌ | ✅ | ❌ | ✅ | ✅ |
+Metrics                       | :construction: | ❌ | ✅ | ✅ | ❌ | ❌ |
+file space quotas             | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ |
 text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Office file support           | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Office file previews          | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-Themes                        | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+Themes                        | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Branding support              | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 activity log                  | ✅ | ❌ | ✅ | ✅ | ✅ | ✅
 Comments support              | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 trash support                 | :construction: | ❌ | ✅ | ✅ | ✅ | ✅ |
-Starred/pinned files          | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ |
+Starred/pinned files          | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 Share collections of files    | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can archive selected files    | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |

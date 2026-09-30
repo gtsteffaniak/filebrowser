@@ -50,6 +50,8 @@ export function sectionsFromFlatUser(user) {
       deleteAfterArchive: !!u.deleteAfterArchive,
       viewMode: u.viewMode,
       gallerySize: u.gallerySize,
+      promptRightCloseButton: !!u.promptRightCloseButton,
+      newFileTemplate: Array.isArray(u.newFileTemplate) ? [...u.newFileTemplate] : [],
     },
     preview: {
       image: boolPtr(preview.image),
@@ -83,6 +85,7 @@ export function sectionsFromFlatUser(user) {
       lockPassword: !!u.lockPassword,
       disableSettings: !!u.disableSettings,
       disableUpdateNotifications: !!u.disableUpdateNotifications,
+      showAdvancedProfile: !!u.showAdvancedProfile,
       loginMethod: u.loginMethod || "",
       permissions: { ...(u.permissions || {}) },
     },
@@ -116,6 +119,7 @@ export function applySectionsToFlatUser(user, sections) {
     : !!sidebar.showTools;
 
   user.deleteWithoutConfirming = !!listing.deleteWithoutConfirming;
+  user.promptRightCloseButton = !!listing.promptRightCloseButton;
   user.dateFormat = !!listing.dateFormat;
   user.showHidden = !!listing.showHidden;
   user.quickDownload = !!listing.quickDownload;
@@ -130,6 +134,7 @@ export function applySectionsToFlatUser(user, sections) {
   if (listing.gallerySize !== undefined) {
     user.gallerySize = listing.gallerySize;
   }
+  user.newFileTemplate = Array.isArray(listing.newFileTemplate) ? [...listing.newFileTemplate] : [];
 
   user.preview.image = boolPtr(preview.image);
   user.preview.video = boolPtr(preview.video);
@@ -165,6 +170,9 @@ export function applySectionsToFlatUser(user, sections) {
   }
   if (account.disableUpdateNotifications !== undefined) {
     user.disableUpdateNotifications = !!account.disableUpdateNotifications;
+  }
+  if (account.showAdvancedProfile !== undefined) {
+    user.showAdvancedProfile = !!account.showAdvancedProfile;
   }
   if (account.loginMethod) {
     user.loginMethod = account.loginMethod;
@@ -206,6 +214,10 @@ const FLAT_PROFILE_FIELD_ENFORCED_PATHS = {
   debugOffice: ["fileViewer", "debugOffice"],
   viewMode: ["listing", "viewMode"],
   gallerySize: ["listing", "gallerySize"],
+  showAdvancedProfile: ["account", "showAdvancedProfile"],
+  lockPassword: ["account", "lockPassword"],
+  disableSettings: ["account", "disableSettings"],
+  disableUpdateNotifications: ["account", "disableUpdateNotifications"],
 };
 
 function enforcedFlagAt(enforced, section, field) {

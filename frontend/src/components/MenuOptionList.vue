@@ -141,7 +141,6 @@ export default {
   max-height: 14rem;
   overflow-y: auto;
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
 
 .menu-option-list-scroll::-webkit-scrollbar {
@@ -170,7 +169,7 @@ export default {
 }
 
 .menu-option-list :deep(.menu-option--selected) {
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: rgb(0 0 0 / 8%);
   font-weight: 600;
 }
 
@@ -184,10 +183,8 @@ export default {
   font-size: 0.9em;
   color: var(--textSecondary);
 }
-</style>
 
-<style>
-.dark-mode .menu-option-list .menu-option--selected {
-  background-color: rgba(255, 255, 255, 0.08);
+.menu-option-list .menu-option--selected {
+  background-color: color-mix(in srgb, var(--alt-background) 75%, transparent);
 }
 </style>

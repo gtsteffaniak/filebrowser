@@ -2,6 +2,74 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.0
+
+ **Security**:
+ - [Moderate] Conflicting upload responses no longer synchronously drain the request body before returning HTTP 409; the server now closes the body and marks the connection for closure, preventing denial-of-service from clients that never send EOF (CWE-400).
+ - Share download links no longer create links with token, instead they link to the UI prompting for password before download. If a direct download is required, the `/api/share/direct` api exists and documented by swagger. (#2888)
+
+ **New Features**:
+ - Added Storage Quotas
+   - configurable by folder, source, user, and share.
+   - Administrators can create, edit, view, and delete folder quotas through the interface.
+   - Quota information now appears in source views, share details, sidebar progress bars, and folder prompts.
+ - Enhancements to the editor (#2714):
+   - Added a floating button to open a resizable split view with live editing for markdown files, the scrolling is synced in both sides and scrolling in single-view modes (the viewer and editor in non-split) now also tries to sync with each other so you don't lose context easily.
+   - Added a toolbar: This toolbar is present on all the files.
+     - JSON files have a button to toggle between formatted and minified versions (#2854) (#2566).
+     - Markdown files have a richer toolbar with lots of quick actions, for example you can now browse, navigate and insert images more easily from your current source.
+   - Added a prompt to configure some editor settings in UI, that prompt is accessible via the toolbar in the three-dots menu, there you can configure things like:
+     - Word wrap, keybinds, autocompletion, scrollbar, etc.
+   - The markdown viewer now supports rendering LaTeX Math and Chemistry formulas.
+   - Improved and fixed some styles that weren't following the app light/dark theme (#2949).
+ - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
+ - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
+ - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
+ - Added setting to configure the placement of the prompts close button in profile settings (#2853) (#2595).
+ - Added "New file templates". You can now add and configure pre-defined filenames + extension for the creation of new files in the context menu on profile settings! (#2881) (#1239).
+ - sidebar links can be bulk edited as yaml (#1963) (settings > user management)
+ - admins can customize more defaults:
+   - share creation defaults and enforcements (#1692) (#2434) (#2279) (#2812) (settings > share management)
+   - sidebar link defaults and enforcements (#2561) (settings > user management)
+   - tool defaults and enforcement (settings > user management)
+ - Add cli init CLI command (#2957)
+ - Sort header in file listings inside prompts like move/copy/quick jump, is now sticky. Also added a button to show a search input and filter the items of the current listing (#3028).
+ - Quick jump now scrolls and highlights the current item you are previewing (#3028).
+ - When hovering `date` and `name` in the listings, will show up the formatted/raw date (the inverse of what you have configured to display) and the full filename (#3028) (#2623).
+ - User groups can now be managed from the WebUI under `User Management` -> `Groups` and when editing a user (#2983) (#3040).
+
+ **Notes**:
+ - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
+ - Enhancements to cross-source copy/move permissions and behavior.
+ - Improved resume upload behavior.
+ - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
+ - improved video thumbnail generation speed and efficiency.
+ - Added icons based on extension to the upload prompt and new file/folder/rename prompts (#2881).
+ - Profile settings show minimal options by default. Full advanced profile settings can be shown by default by enabling `account.showAdvancedProfile`.
+ - sidebar links/navigation is button group toggle for clearer visibility
+ - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly.
+ - Added risc-v to official releases
+ - Polished a bit some styles across various places of the UI (#3019) (#3028).
+ - Moved `Access Management` under `User Management` in the UI (#3040).
+ - improved developer experience with native vue webhook reloads.
+ - improved ffmpeg handling and concurrency via library upgrades
+
+ **Bug Fixes**:
+ - Undo in a fresh opened file on the editor was setting the file empty (#2714)
+ - Added some missing styles in the markdown viewer (#2714)
+ - Recaptcha not working (#1925) (#2861)
+ - Fix disk-usage overstatement on virtiofs bind mounts (#2894)
+ - Support non-ASCII share passwords (#2933)
+ - Fall back to buffered copies when FUSE rejects fast paths (#2938)
+ - Preserve deleted sidebar links across restarts (#2935)
+ - scope padding to listing view (#2934)
+ - Hide the Replace option on upload/create conflict prompts when the user lacks modify permission (or when a public share disallows replacements), so create-only users are not offered an action that the server rejects (#2837)
+ - Preserve Ctrl-click file selection when keyboard state is stale (#2958) (#2923)
+ - Avoid false stalls during parallel transfers (#2950) (#2948) thanks @gudcks0305
+ - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)
+ - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
+ - Context menu stuck when opened from a listing in a prompt like move/copy or search (#3028).
+
 ## v2.0.9
 
  **Security**:
@@ -26,6 +94,7 @@ All notable changes to this project will be documented in this file. For commit 
  - SQLite index and application databases configure `busy_timeout` on every pooled connection, and busy/locked detection now uses driver result codes; index batch writes and maintenance no longer report success when the DB stays busy, and index cache reads return busy errors instead of empty results so listing can fall back to the filesystem.
 
 ## v2.0.8
+
  **Security**:
  - [Critical] A forged JWT could authenticate as any known `belongsTo`. Auth signing keys are now persisted in the application database and JWT validation fails closed when no key is configured. (GHSA-8f9r-wg7w-pfw) (#2987) Thanks @d3do-23 and @whoamis3c.
  - [Medium] Public upload shares with replacements disabled (`allowReplacements=false`) now reject overwrites when clients send `override=true`. (GHSA-3846-gh75-gp3m) Thanks @d3do-23
@@ -50,7 +119,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Add cli init CLI command (#2957)
 
  **Notes**:
- - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly. 
+ - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly.
  - Added risc-v to official releases
 
  **Bugfixes**:
@@ -130,6 +199,7 @@ All notable changes to this project will be documented in this file. For commit 
  - External subtitles fail to load on public video shares due to authenticated subtitle endpoint (#2822) (#2827)
  - OnlyOffice is inaccessible on password-protected shares (#2811)
  - FFmpeg 9.0 incorrectly detected as below minimum 5.0.0 on Windows (#2820) -- thanks @yzxcj797
+ - Queue buttons not clickable in the desktop panel in audio files.
 
 ## v2.0.1
 
@@ -203,7 +273,7 @@ This version represents the most significant change to date. It **requires** bot
  - opt-in feature to send deployment analytics to filebrowser quantum developer servers
    - anonymized with a viewer so users can see what info would be sent.
    - if opt-in, every month a snapshot of your deployment config would be sent to developer servers
-   - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future. 
+   - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future.
  - WebDAV now supports set modification time via the `X-OC-Mtime` header for clients that support it (#2626). See [WebDAV docs](https://filebrowserquantum.com/en/docs/features/webdav/).
  - Copy operations now preserve their original modification times (#2642) (#2647):
    - WebUI preserves both, files and directories.
@@ -383,14 +453,14 @@ This version represents the most significant change to date. It **requires** bot
  - Improved style of drag and drop into listing view (#2407)
  - Edit Sidebar links has new "show tools in sidebar" toggle and all users have this enabled by default. can be disabled via for new users `userDefaults.sidebar.showTools: false`
  - Update user defaults ordering (#1140)
- - Save view modes and sizes into local storage instead of db (#2301) 
+ - Save view modes and sizes into local storage instead of db (#2301)
 
  **BugFixes**:
  - Blue overlay when using gestures in video files on mobile (#2360)
  - Playback queue wasn't updating when changing of folder (#2360)
  - Added missing `UserDefaults.listing.showCopyPath` option to config file (#2364)
  - Delete prompt thumbnail didn't worked when using it with the `delete` shortcut. (#2407)
- - Searching icons in the Icon picker prompt wasn't working properly (#2407) 
+ - Searching icons in the Icon picker prompt wasn't working properly (#2407)
  - Drag and drop style state was stuck until page reload (#2407)
  - Navigate close settings shows "something went wrong" (#2047)
 
@@ -536,7 +606,7 @@ This version represents the most significant change to date. It **requires** bot
  - Cannot edit shared file in OnlyOffice #2143
  - PWA install button disappeared (#2086)
  - Deleting a root folder was possible #2128
- - PUT resource api errors if action against a folder (#2153) 
+ - PUT resource api errors if action against a folder (#2153)
  - LDAP authentication issue if a password caontains @ symbol (#2154)
  - Share banner seems to be not working for custom urls (#2120)
 
@@ -570,7 +640,7 @@ Note: a potentially breaking change for docker users: \the default user is now "
  - New Sidebar Features
    - Sidebar tree navigation (#2006) (#350)
    - Source usage to be customized to show os-reported values rather than calculated. This can be changed per source by editing the source link in the sidebar. (#1266) (#982)
- - Archive/Unarchive actions in UI (#1252) (#335) (#1569) 
+ - Archive/Unarchive actions in UI (#1252) (#335) (#1569)
    - new api to archive/unarchive files on the server
    - requires `create` user permissions
    - archiving actions respect `server.maxArchiveSize`
@@ -733,7 +803,7 @@ Note: a potentially breaking change for docker users: \the default user is now "
 ## v1.2.1-beta
 
  **New Features**:
- - Global disable onlyoffice editor via "*" file option to disable all files for a specific user. (#1533) 
+ - Global disable onlyoffice editor via "*" file option to disable all files for a specific user. (#1533)
 
  **Notes**:
  - upgraded imaging package and improved thumbnail generation performance. (#1797) (#1850)
@@ -836,7 +906,7 @@ Sorry for the delay -- a lot of effort went into this release, specifically abou
    - warning for low free space below 20GB
    - warning if read/write latency is slow
    - fatal for any errors reading or writing to the directory
-   - links to official docs for more info 
+   - links to official docs for more info
  - access rule changes:
    - denied folders won't show up in parent directory listing view (#1684)
    - tools will respect access rules
@@ -871,7 +941,7 @@ Sorry for the delay -- a lot of effort went into this release, specifically abou
 
  **BugFixes**:
  - better index status updates, fixing delays #1649
- - fixed long load times for listings with media info due sequential processing of files. 
+ - fixed long load times for listings with media info due sequential processing of files.
  - downloaded files always included `utf-8` in filename #1671
  - custom sidebar links allow external links like `https://google.com`
  - html title not populated correctly for links #1676

@@ -66,7 +66,7 @@ export default {
 
   data() {
     return {
-      localuser: { fileLoading: {} },
+      localuser: { fileLoading: { clearAll: false } },
     };
   },
   computed: {

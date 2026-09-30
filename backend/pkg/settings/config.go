@@ -21,6 +21,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
+	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -167,18 +168,17 @@ func testCacheDirSpeed() {
 		logger.Fatalf("%s failed to create cache directory: %v\n%s", msgPrfx, err, failSuffix)
 	}
 
-	testFileName := filepath.Join(Config.Server.CacheDir, "speed_test.tmp")
+	file, err := os.CreateTemp(Config.Server.CacheDir, "speed_test_*.tmp")
+	if err != nil {
+		logger.Fatalf("%s failed to create test file: %v\n%s", msgPrfx, err, failSuffix)
+	}
+	testFileName := file.Name()
 
 	// Create test data (10MB of zeros)
 	testData := make([]byte, testFileSize)
 
 	// Test write performance
 	writeStart := time.Now()
-	file, err := os.Create(testFileName)
-	if err != nil {
-		logger.Fatalf("%s failed to create test file: %v\n%s", msgPrfx, err, failSuffix)
-	}
-
 	written, err := file.Write(testData)
 	if err != nil {
 		file.Close()
@@ -378,14 +378,18 @@ func isGoTest() bool {
 }
 
 func setupFFmpegIntegration() {
-	maxConcurrent := Config.Server.NumImageProcessors
-	if maxConcurrent < 1 {
-		maxConcurrent = 4
+	n := Config.Server.NumImageProcessors
+	if n < 1 {
+		n = 4
 	}
-	ffmpegConcurrency := (maxConcurrent + 1) / 2
+	maxDecode := (n + 1) / 2
 	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
-		FFmpegPath:           Config.Integrations.Media.FfmpegPath,
-		MaxConcurrent:        ffmpegConcurrency,
+		FFmpegPath: Config.Integrations.Media.FfmpegPath,
+		Concurrency: goffmpeg.Concurrency{
+			MaxProbe:  16,
+			MaxDecode: maxDecode,
+			MaxEncode: 2,
+		},
 		CacheDir:             Config.Server.CacheDir,
 		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
 		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
@@ -522,13 +526,19 @@ func setupUrls() {
 
 func setupAuth(generate bool) {
 	if generate {
-		Config.Auth.AdminPassword = "admin"
+		Config.Auth.Methods.PasswordAuth.AdminUsername = "admin"
+		Config.Auth.Methods.PasswordAuth.AdminPassword = "admin"
 	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
+		ValidateRecaptcha()
 	}
 	if Config.Auth.Methods.ProxyAuth.Enabled {
 		applyAuthCommonDefaults(&Config.Auth.Methods.ProxyAuth.AuthCommon)
+		err := ValidateProxyAuth()
+		if err != nil && !generate {
+			logger.Fatalf("Error validating proxy auth: %v", err)
+		}
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "proxy")
 	}
 	if Config.Auth.Methods.NoAuth {
@@ -571,6 +581,7 @@ func setupAuth(generate bool) {
 	if len(Config.Auth.AuthMethods) == 0 {
 		Config.Auth.Methods.PasswordAuth.Enabled = true
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
+		ValidateRecaptcha()
 	}
 	Config.UserDefaults.Account.LoginMethod = Config.Auth.AuthMethods[0]
 
@@ -687,6 +698,8 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
 
+	MigrateLegacyPasswordAdminFromAuth()
+
 	if err := applyLoadedUserDefaultsFromConfig(generate); err != nil {
 		return err
 	}
@@ -787,7 +800,7 @@ func loadEnvConfig() {
 	adminPassword, ok := os.LookupEnv("FILEBROWSER_ADMIN_PASSWORD")
 	if ok {
 		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
-		Config.Auth.AdminPassword = adminPassword
+		Config.Auth.Methods.PasswordAuth.AdminPassword = adminPassword
 	}
 	officeSecret, ok := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
 	if ok {
@@ -858,6 +871,10 @@ func SetDefaults(generate bool) Settings {
 					FlushIntervalSeconds: 10,
 					MaxBufferSize:        10000,
 				},
+				Quotas: QuotasConfig{
+					FlushIntervalSeconds: 10,
+					FlushMaxBuffers:      500,
+				},
 			},
 			SourceMap:        map[string]*Source{},
 			NameToSource:     map[string]*Source{},
@@ -876,7 +893,6 @@ func SetDefaults(generate bool) Settings {
 			},
 		},
 		Auth: Auth{
-			AdminUsername:        "admin",
 			TokenExpirationHours: 2,
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
@@ -901,6 +917,7 @@ func SetDefaults(generate bool) Settings {
 			},
 			Listing: UserDefaultsListing{
 				DeleteWithoutConfirming: false,
+				PromptRightCloseButton:  false,
 				DateFormat:              false,
 				ShowHidden:              false,
 				QuickDownload:           false,
@@ -911,6 +928,7 @@ func SetDefaults(generate bool) Settings {
 				DeleteAfterArchive:      true,
 				ViewMode:                "normal",
 				GallerySize:             3,
+				NewFileTemplate:         []string{""},
 			},
 			Preview: UserDefaultsPreview{
 				Image:              boolPtr(true),
@@ -957,6 +975,7 @@ func SetDefaults(generate bool) Settings {
 				DisableSettings:            false,
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
+				ShowAdvancedProfile:        false,
 			},
 		},
 	}

@@ -72,7 +72,11 @@ export function navigateActivityViewerHref(href) {
 
 export const ACCESS_EVENT_TYPES = ["accessCreate", "accessUpdate", "accessDelete"];
 
+export const QUOTA_EVENT_TYPES = ["quotaCreate", "quotaUpdate", "quotaDelete"];
+
 export const ACCESS_ACTIVITY_EVENT_TYPES = ACCESS_EVENT_TYPES.join(",");
+
+export const QUOTA_ACTIVITY_EVENT_TYPES = QUOTA_EVENT_TYPES.join(",");
 
 export const activityViewerPresets = {
   shares: () => activityViewerUrl({ scope: "shares" }),
@@ -91,6 +95,13 @@ export const activityViewerPresets = {
     activityViewerUrl({
       scope: "access",
       eventType: ACCESS_ACTIVITY_EVENT_TYPES,
+      source,
+      path,
+    }),
+  quotas: (source, path) =>
+    activityViewerUrl({
+      scope: "quotas",
+      eventType: QUOTA_ACTIVITY_EVENT_TYPES,
       source,
       path,
     }),

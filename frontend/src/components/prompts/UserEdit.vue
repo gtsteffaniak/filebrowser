@@ -98,13 +98,13 @@
           :default-placeholder-if-empty="noSourcesPlaceholder"
           :aria-label="$t('settings.scopes')"
         />
-        <div class="scope-blocks">
+        <SettingsAccordion v-model="expandedSourceName" class="scope-blocks">
           <div class="scope-block" v-for="source in selectedSources" :key="source.name">
             <SettingsItem
+              accordion
+              :name="source.name"
               :title="sourceBlockTitle(source)"
               :collapsable="true"
-              :force-collapsed="expandedSourceName !== source.name"
-              @toggle="onSourceExpandToggle(source.name)"
             >
               <div class="scope-path-row">
                 <label class="scope-path-label">{{ $t("settings.scopePath") }}</label>
@@ -120,9 +120,37 @@
                 :permissions="sourcePermissionsFor(source.name)"
                 @changed="markScopePermissionsExplicit(source.name)"
               />
+              <div class="scope-quota-block">
+                <ToggleSwitch
+                  class="item"
+                  :model-value="scopeQuotaEnabled(source)"
+                  :name="$t('quotas.scopeLimit')"
+                  :description="$t('quotas.scopeLimitDescription')"
+                  @update:model-value="(v) => setScopeQuotaEnabled(source, v)"
+                />
+                <div v-if="scopeQuotaEnabled(source)" class="scope-quota-fields">
+                  <ExpandDropdown
+                    :model-value="scopeQuotaMeter(source)"
+                    :options="scopeMeterOptions(source)"
+                    :aria-label="$t('quotas.usageCounting')"
+                    @update:model-value="(v) => setScopeQuotaMeter(source, v)"
+                  />
+                  <p v-if="sourceIndexingDisabled(source.name)" class="scope-quota-hint">
+                    {{ $t("quotas.indexingDisabledMeterHint") }}
+                  </p>
+                  <p>{{ $t("general.limit") }}</p>
+                  <QuotaCustomLimitInput
+                    :amount="scopeQuotaCustomAmount(source)"
+                    :unit="scopeQuotaCustomUnit(source)"
+                    :aria-label="$t('general.limit')"
+                    @update:amount="(v) => setScopeQuotaCustomAmount(source, v)"
+                    @update:unit="(v) => setScopeQuotaCustomUnit(source, v)"
+                  />
+                </div>
+              </div>
             </SettingsItem>
           </div>
-        </div>
+        </SettingsAccordion>
       </div>
 
       <div v-if="stateUser.permissions.admin">
@@ -135,6 +163,53 @@
           @update:model-value="emitUpdate"
         />
       </div>
+
+      <div v-if="stateUser.permissions.admin && loaded" class="settings-items user-edit-hub">
+        <SettingsButton
+          class="item"
+          :name="$t('settings.userEditPreferences')"
+          :description="$t('settings.userDefaultsDescription')"
+          @click="openPreferencesPrompt"
+        />
+        <SettingsButton
+          class="item"
+          :name="$t('settings.userEditTools')"
+          :description="$t('settings.userEditToolsDescription')"
+          @click="openToolsPrompt"
+        />
+        <SettingsButton
+          class="item"
+          :name="$t('settings.userEditSidebarLinks')"
+          :description="$t('sidebar.customizeLinksDescription')"
+          @click="openSidebarLinksPrompt"
+        />
+      </div>
+
+      <div v-if="stateUser.permissions.admin" class="user-groups">
+        <label for="user-group-input">{{ $t("access.userGroups") }}</label>
+        <div class="group-chips">
+          <span v-for="group in groups" :key="group" class="group-chip">
+            {{ group }}
+            <button type="button" class="action chip-remove" :aria-label="$t('access.removeGroup')"
+              :title="$t('access.removeGroup')" @click="removeGroup(group)">
+              <i class="material-symbols material-size">close</i>
+            </button>
+          </span>
+        </div>
+        <div class="form-flex-group">
+          <input id="user-group-input" class="input form-form flat-right" type="text" list="user-group-options"
+            v-model.trim="newGroup" :placeholder="$t('access.addGroupPlaceholder')" @keydown.enter.prevent="addGroup" />
+          <datalist id="user-group-options">
+            <option v-for="g in suggestedGroups" :key="g" :value="g"></option>
+          </datalist>
+          <button type="button" class="button form-button flat-left" :disabled="!newGroup"
+            :aria-label="$t('access.addGroup')" :title="$t('access.addGroup')" @click="addGroup">
+            <i class="material-symbols">add</i>
+          </button>
+        </div>
+        <p v-if="user.loginMethod === 'oidc'" class="group-note">{{ $t("access.groupsOidcNote") }}</p>
+      </div>
+
 
       <UserDefaultsAccountSection
         v-if="stateUser.permissions.admin && loaded"
@@ -178,24 +253,37 @@
 
 <script>
 import { mutations, state } from "@/store";
-import { usersApi, settingsApi, authApi } from "@/api";
+import { usersApi, settingsApi, authApi, accessApi } from "@/api";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import SettingsAccordion from "@/components/settings/SettingsAccordion.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
-import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
+import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 import { validateLogin } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
-import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
+import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
+import {
+  GB,
+  bytesFromCustomAmount,
+  customAmountFromBytes,
+} from "@/utils/quotaUnits";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,
   isFlatProfileFieldEnforced,
 } from "@/utils/userProfileSections.js";
+import {
+  createUserEditSession,
+  destroyUserEditSession,
+  getUserEditSession,
+  subscribeUserEditSession,
+  updateUserEditSession,
+} from "@/utils/userEditSession.js";
 
 /** Flat user fields editable via admin user edit (matches profile PATCH surface). */
 const PROFILE_SNAPSHOT_FIELDS = [
@@ -236,9 +324,10 @@ export default {
     ExpandDropdown,
     SourceFilePermissions,
     SettingsItem,
+    SettingsAccordion,
     ToggleSwitch,
-    UserDefaultsAccountSection,
-    UserProfilePreferences,
+    QuotaCustomLimitInput,
+    SettingsButton,
     Errors,
   },
   props: {
@@ -277,11 +366,18 @@ export default {
       pendingScopeSelectionContextId: null,
       pendingScopeSourceName: null,
       addingPasskey: false,
+      groups: [],
+      createdUser: false,
+      originalGroups: [],
+      allGroups: [],
+      newGroup: "",
       sourceFilePermissionDefaults: null,
+      sessionUnsubscribe: null,
       editAccount: {
         lockPassword: false,
         disableSettings: false,
         disableUpdateNotifications: false,
+        showAdvancedProfile: false,
         permissions: {
           admin: false,
           share: false,
@@ -295,6 +391,7 @@ export default {
     await mutations.syncEnforcedUserDefaults();
     await this.fetchData();
     await this.initializeForm();
+    await this.loadGroups();
   },
   mounted() {
     eventBus.on("pathSelected", this.onPathSelectedFromPicker);
@@ -303,6 +400,11 @@ export default {
   beforeUnmount() {
     eventBus.off("pathSelected", this.onPathSelectedFromPicker);
     eventBus.off("pathPickerCancelled", this.onPathPickerCancelled);
+    if (this.sessionUnsubscribe) {
+      this.sessionUnsubscribe();
+      this.sessionUnsubscribe = null;
+    }
+    destroyUserEditSession();
   },
   computed: {
     actor() {
@@ -310,6 +412,9 @@ export default {
     },
     settings() {
       return state.settings;
+    },
+    suggestedGroups() {
+      return this.allGroups.filter((g) => !this.groups.includes(g));
     },
     isNew() {
       return !this.targetUsername;
@@ -460,6 +565,73 @@ export default {
     },
   },
   methods: {
+    sourceIndexingDisabled(sourceName) {
+      // eslint-disable-next-line security/detect-object-injection -- source name from configured source list
+      return Boolean(state.sources.info?.[sourceName]?.indexingDisabled);
+    },
+    scopeMeterOptions(source) {
+      const opts = [
+        { value: "index_scope", label: this.$t("quotas.meterIndexScope") },
+        { value: "accounted", label: this.$t("quotas.meterAccounted") },
+      ];
+      if (this.sourceIndexingDisabled(source.name)) {
+        return opts.filter((o) => o.value === "accounted");
+      }
+      return opts;
+    },
+    ensureScopeQuota(source) {
+      if (!source.quota) {
+        source.quota = {
+          limitBytes: 0,
+          meter: "index_scope",
+          customAmount: 10,
+          customUnit: "gb",
+        };
+      }
+      return source.quota;
+    },
+    scopeQuotaEnabled(source) {
+      return (source.quota?.limitBytes || 0) > 0;
+    },
+    setScopeQuotaEnabled(source, enabled) {
+      const q = this.ensureScopeQuota(source);
+      if (!enabled) {
+        q.limitBytes = 0;
+        return;
+      }
+      if (!q.limitBytes) {
+        q.limitBytes = 10 * GB;
+        q.customAmount = 10;
+        q.customUnit = "gb";
+      }
+      if (this.sourceIndexingDisabled(source.name)) {
+        q.meter = "accounted";
+      }
+    },
+    scopeQuotaMeter(source) {
+      return this.ensureScopeQuota(source).meter || "index_scope";
+    },
+    setScopeQuotaMeter(source, meter) {
+      this.ensureScopeQuota(source).meter = meter;
+    },
+    scopeQuotaCustomAmount(source) {
+      return this.ensureScopeQuota(source).customAmount || 10;
+    },
+    scopeQuotaCustomUnit(source) {
+      return this.ensureScopeQuota(source).customUnit || "gb";
+    },
+    setScopeQuotaCustomAmount(source, value) {
+      this.setScopeQuotaCustom(source, value, this.scopeQuotaCustomUnit(source));
+    },
+    setScopeQuotaCustomUnit(source, unit) {
+      this.setScopeQuotaCustom(source, this.scopeQuotaCustomAmount(source), unit);
+    },
+    setScopeQuotaCustom(source, amount, unit) {
+      const q = this.ensureScopeQuota(source);
+      q.customAmount = Number(amount) || 1;
+      q.customUnit = unit === "mb" ? "mb" : "gb";
+      q.limitBytes = bytesFromCustomAmount(q.customAmount, q.customUnit);
+    },
     cloneUserRecord(user) {
       return JSON.parse(
         JSON.stringify(user ?? { preview: {}, permissions: {}, fileLoading: {} })
@@ -543,12 +715,6 @@ export default {
       }
       return scope.permissions;
     },
-    toggleSourceExpanded(sourceName) {
-      this.expandedSourceName = this.expandedSourceName === sourceName ? null : sourceName;
-    },
-    onSourceExpandToggle(sourceName) {
-      this.toggleSourceExpanded(sourceName);
-    },
     sourceBlockTitle(source) {
       return source?.name || "";
     },
@@ -626,6 +792,7 @@ export default {
         permissions: scope?.permissions
           ? { ...scope.permissions }
           : undefined,
+        quota: scope?.quota ? { ...scope.quota } : undefined,
         permissionsExplicit: !!scope?.permissions,
       })) : [];
       if (legacySourcePermissions && typeof legacySourcePermissions === "object") {
@@ -638,6 +805,11 @@ export default {
       for (const entry of normalized) {
         if (!entry.permissions) {
           entry.permissionsExplicit = false;
+        }
+        if (entry.quota?.limitBytes > 0) {
+          const { amount, unit } = customAmountFromBytes(entry.quota.limitBytes);
+          entry.quota.customAmount = amount;
+          entry.quota.customUnit = unit;
         }
       }
       return normalized;
@@ -722,6 +894,7 @@ export default {
         permissions: scope.permissions
           ? { ...scope.permissions }
           : undefined,
+        quota: scope.quota ? { ...scope.quota } : undefined,
         permissionsExplicit: !!scope.permissions,
       }));
 
@@ -732,14 +905,84 @@ export default {
       if (!this.isNew) {
         this.originalSnapshot = JSON.parse(JSON.stringify(this.buildEditableSnapshot()));
       }
+      this.syncSessionState();
+      this.sessionUnsubscribe = subscribeUserEditSession((session) => {
+        this.applySessionState(session);
+      });
       this.loaded = true;
     },
+    syncSessionState() {
+      if (!this.stateUser.permissions.admin) {
+        return;
+      }
+      const payload = {
+        targetUsername: this.targetUsername,
+        user: this.user,
+        profileUser: this.profileUser,
+        selectedSources: this.selectedSources,
+        originalSnapshot: this.originalSnapshot,
+      };
+      if (!getUserEditSession()) {
+        createUserEditSession(payload);
+      } else {
+        updateUserEditSession(payload);
+      }
+    },
+    applySessionState(session) {
+      if (!session || !this.loaded) {
+        return;
+      }
+      if (session.user) {
+        this.user = { ...this.user, ...session.user };
+        this.syncEditAccountForm();
+      }
+      if (session.profileUser) {
+        this.profileUser = JSON.parse(JSON.stringify(session.profileUser));
+        this.profileLoadKey += 1;
+      }
+      if (session.selectedSources) {
+        this.selectedSources = JSON.parse(JSON.stringify(session.selectedSources));
+      }
+    },
+    openPreferencesPrompt() {
+      this.syncSessionState();
+      mutations.showPrompt({
+        name: "user-edit-preferences",
+        props: { title: this.$t("settings.userEditPreferences") },
+      });
+    },
+    openToolsPrompt() {
+      this.syncSessionState();
+      mutations.showPrompt({
+        name: "user-edit-tools",
+        props: { title: this.$t("settings.userEditTools") },
+      });
+    },
+    openSidebarLinksPrompt() {
+      this.syncSessionState();
+      mutations.showPrompt({
+        name: "user-edit-sidebar-links",
+        props: { title: this.$t("settings.userEditSidebarLinks") },
+      });
+    },
     buildScopesPayload() {
-      return this.selectedSources.map((source) => ({
-        name: source.name || "",
-        scope: this.normalizeScopeForApi(source.scope),
-        permissions: { ...this.sourcePermissionsFor(source.name) },
-      }));
+      return this.selectedSources.map((source) => {
+        const entry = {
+          name: source.name || "",
+          scope: this.normalizeScopeForApi(source.scope),
+          permissions: { ...this.sourcePermissionsFor(source.name) },
+        };
+        if (source.quota && source.quota.limitBytes > 0) {
+          entry.quota = {
+            id: source.quota.id || "",
+            limitBytes: source.quota.limitBytes,
+            meter: this.sourceIndexingDisabled(source.name)
+              ? "accounted"
+              : (source.quota.meter || "index_scope"),
+          };
+        }
+        return entry;
+      });
     },
     normalizeScopesForCompare(scopes) {
       return [...scopes]
@@ -747,6 +990,7 @@ export default {
           name: scope.name || "",
           scope: this.normalizeScopeForApi(scope.scope),
           permissions: scope.permissions ? { ...scope.permissions } : undefined,
+          quota: scope.quota ? { ...scope.quota } : undefined,
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
     },
@@ -773,12 +1017,17 @@ export default {
         lockPassword: !!this.user.lockPassword,
         disableSettings: !!this.user.disableSettings,
         disableUpdateNotifications: !!this.user.disableUpdateNotifications,
+        showAdvancedProfile: !!this.user.showAdvancedProfile,
         permissions: {
           admin: !!permissions.admin,
           share: !!permissions.share,
           api: !!permissions.api,
           realtime: !!permissions.realtime,
         },
+        toolAccess: this.user.toolAccess ? { ...this.user.toolAccess } : {},
+        sidebarLinks: Array.isArray(this.user.sidebarLinks)
+          ? JSON.parse(JSON.stringify(this.user.sidebarLinks))
+          : [],
         profile: this.buildProfileSnapshot(this.profileUser),
       };
     },
@@ -810,6 +1059,12 @@ export default {
       ) {
         fields.push("disableUpdateNotifications");
       }
+      if (
+        current.showAdvancedProfile !== orig.showAdvancedProfile
+        && !this.enforcedAccount.showAdvancedProfile
+      ) {
+        fields.push("showAdvancedProfile");
+      }
       if (JSON.stringify(current.permissions) !== JSON.stringify(orig.permissions)) {
         const permissionFields = ["admin", "share", "api", "realtime"];
         for (const perm of permissionFields) {
@@ -822,11 +1077,20 @@ export default {
           }
         }
       }
+      if (JSON.stringify(current.toolAccess) !== JSON.stringify(orig.toolAccess)) {
+        fields.push("toolAccess");
+      }
+      if (JSON.stringify(current.sidebarLinks) !== JSON.stringify(orig.sidebarLinks)) {
+        fields.push("sidebarLinks");
+      }
       for (const field of PROFILE_SNAPSHOT_FIELDS) {
         if (isFlatProfileFieldEnforced(this.enforcedPreferences, field)) {
           continue;
         }
-        if (JSON.stringify(getObjectProperty(current.profile, field)) !== JSON.stringify(getObjectProperty(orig.profile, field))) {
+        if (
+          JSON.stringify(getObjectProperty(current.profile, field))
+            !== JSON.stringify(getObjectProperty(orig.profile, field))
+        ) {
           fields.push(field);
         }
       }
@@ -837,6 +1101,7 @@ export default {
       this.editAccount.lockPassword = !!this.user.lockPassword;
       this.editAccount.disableSettings = !!this.user.disableSettings;
       this.editAccount.disableUpdateNotifications = !!this.user.disableUpdateNotifications;
+      this.editAccount.showAdvancedProfile = !!this.user.showAdvancedProfile;
       this.editAccount.permissions = {
         admin: !!p.admin,
         share: !!p.share,
@@ -848,6 +1113,7 @@ export default {
       this.user.lockPassword = this.editAccount.lockPassword;
       this.user.disableSettings = this.editAccount.disableSettings;
       this.user.disableUpdateNotifications = this.editAccount.disableUpdateNotifications;
+      this.user.showAdvancedProfile = this.editAccount.showAdvancedProfile;
       if (!this.user.permissions) {
         this.user.permissions = this.defaultPermissions();
       }
@@ -891,9 +1157,97 @@ export default {
         },
       });
     },
+    async loadGroups() {
+      if (!state.user.permissions.admin) return;
+      try {
+        this.allGroups = (await accessApi.getGroups()).groups || [];
+        if (!this.isNew) {
+          this.groups = (await accessApi.getUserGroups(this.user.username)).groups || [];
+          this.originalGroups = [...this.groups];
+        }
+      } catch (e) {
+        notify.showError(e);
+      }
+    },
+    addGroup() {
+      const name = this.newGroup;
+      if (!name) return;
+      this.newGroup = "";
+      if (this.groups.includes(name)) return;
+      if (this.allGroups.includes(name)) {
+        this.groups.push(name);
+        return;
+      }
+      // Unknown group: ask before creating it (it is created when the user is saved).
+      const el = document.createElement("div");
+      el.textContent = name;
+      mutations.showPrompt({
+        name: "generic",
+        props: {
+          title: this.$t("access.addGroup"),
+          // Generic renders body via v-html, so the name is escaped.
+          body: this.$t("access.createGroupConfirm", { name: el.innerHTML }),
+          buttons: [
+            {
+              label: this.$t("general.cancel"),
+              className: "button--grey",
+              action: () => mutations.closeTopPrompt(),
+            },
+            {
+              label: this.$t("general.create"),
+              action: () => {
+                this.groups.push(name);
+                this.allGroups.push(name);
+                mutations.closeTopPrompt();
+              },
+            },
+          ],
+        },
+      });
+    },
+    removeGroup(group) {
+      this.groups = this.groups.filter((g) => g !== group);
+    },
+    async saveGroups(username) {
+      if (!state.user.permissions.admin) return;
+      const toAdd = this.groups.filter((g) => !this.originalGroups.includes(g));
+      const toRemove = this.originalGroups.filter((g) => !this.groups.includes(g));
+      // Record each change as it succeeds so a retry after a partial failure only redoes what is pending.
+      for (const group of toAdd) {
+        await accessApi.addUserToGroup(group, username);
+        this.originalGroups.push(group);
+      }
+      for (const group of toRemove) {
+        await accessApi.removeUserFromGroup(group, username);
+        this.originalGroups = this.originalGroups.filter((g) => g !== group);
+      }
+    },
     async save(event) {
       event.preventDefault();
       try {
+        const session = getUserEditSession();
+        if (session) {
+          const newUserCredentials = this.isNew
+            ? {
+                username: this.user.username,
+                password: this.user.password,
+                passwordRef: this.passwordRef,
+              }
+            : null;
+          this.applySessionState(session);
+          if (newUserCredentials) {
+            this.user.username = newUserCredentials.username;
+            if (newUserCredentials.password) {
+              this.user.password = newUserCredentials.password;
+            }
+            if (newUserCredentials.passwordRef) {
+              this.passwordRef = newUserCredentials.passwordRef;
+            }
+          }
+        }
+        if (this.isNew && this.canUpdatePassword) {
+          this.user.password = this.passwordRef;
+        }
         this.applyEditAccountToUser();
         this.applyProfileUserToFormUser();
         // Profile sections carry a stale account snapshot; restore admin-edited account fields.
@@ -910,12 +1264,17 @@ export default {
             notify.showError(this.$t("settings.userNotAdmin"));
             return;
           }
-          await usersApi.create(
-            payload,
-            {
-              actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
-            }
-          );
+          // Skip creation on a retry after the user was created but a group change failed.
+          if (!this.createdUser) {
+            await usersApi.create(
+              payload,
+              {
+                actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
+              }
+            );
+            this.createdUser = true;
+          }
+          await this.saveGroups(payload.username);
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the prompt
@@ -923,10 +1282,14 @@ export default {
         } else {
           const fields = this.computeChangedFields();
           if (fields.length === 0) {
+            // Group membership is saved separately from the user fields.
+            await this.saveGroups(payload.username);
+            eventBus.emit('usersChanged');
             mutations.closeTopPrompt();
             return;
           }
           await usersApi.update(payload, fields);
+          await this.saveGroups(payload.username);
           if (payload.username === state.user.username) {
             await validateLogin();
           }
@@ -1112,6 +1475,47 @@ export default {
 </script>
 
 <style scoped>
+.user-edit-hub {
+  margin-top: 1rem;
+}
+
+.user-groups {
+  padding-bottom: 1em;
+}
+
+.group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin: 0.4em 0;
+}
+
+.group-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  padding: 0.1em 0.3em 0.1em 0.7em;
+  border-radius: 1em;
+  color: var(--primaryColor);
+  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
+}
+
+.chip-remove {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  border-radius: 50%;
+}
+
+.chip-remove i {
+  padding: 0;
+}
+
+.group-note {
+  opacity: 0.75;
+  margin: 0.4em 0 0;
+}
+
 label + .form-flex-group {
   margin-top: 0.35em;
 }
@@ -1148,6 +1552,17 @@ label + .form-flex-group {
   border: 1px solid var(--divider);
   border-radius: var(--borderRadius, 4px);
   margin-top: -0.5em;
+}
+
+.scope-quota-block {
+  margin-top: 1rem;
+}
+
+.scope-quota-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .scope-path-display {

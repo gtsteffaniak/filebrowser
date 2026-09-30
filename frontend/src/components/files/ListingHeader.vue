@@ -1,16 +1,18 @@
 <template>
-  <div class="listing-item-header card" :class="{ 'dark-mode': isDarkMode, 'desktop-view': !isMobile }">
+  <div class="listing-item-header card" :class="{ 'desktop-view': !isMobile }">
     <p
       :class="{ active: nameSorted }"
       class="name"
       role="button"
       tabindex="0"
       @click="sort('name')"
+      @keydown.enter.prevent="sort('name')"
+      @keydown.space.prevent="sort('name')"
       :title="$t('files.sortByName')"
       :aria-label="$t('files.sortByName')"
     >
       <span>{{ $t("general.name") }}</span>
-      <i v-if="nameSorted" class="material-symbols">{{ nameIcon }}</i>
+      <i class="material-symbols">{{ nameIcon }}</i>
     </p>
 
     <p
@@ -19,10 +21,12 @@
       role="button"
       tabindex="0"
       @click="sort('size')"
+      @keydown.enter.prevent="sort('size')"
+      @keydown.space.prevent="sort('size')"
       :title="$t('files.sortBySize')"
       :aria-label="$t('files.sortBySize')"
     >
-      <i v-if="sizeSorted" class="material-symbols">{{ sizeIcon }}</i>
+      <i class="material-symbols">{{ sizeIcon }}</i>
       <span>{{ $t("general.size") }}</span>
     </p>
 
@@ -32,10 +36,12 @@
       role="button"
       tabindex="0"
       @click="sort('modified')"
+      @keydown.enter.prevent="sort('modified')"
+      @keydown.space.prevent="sort('modified')"
       :title="$t('files.sortByLastModified')"
       :aria-label="$t('files.sortByLastModified')"
     >
-      <i v-if="modifiedSorted" class="material-symbols">{{ modifiedIcon }}</i>
+      <i class="material-symbols">{{ modifiedIcon }}</i>
       <span>{{ $t("files.lastModified") }}</span>
     </p>
 
@@ -46,10 +52,12 @@
       role="button"
       tabindex="0"
       @click="sort('duration')"
+      @keydown.enter.prevent="sort('duration')"
+      @keydown.space.prevent="sort('duration')"
       :title="$t('files.sortByDuration')"
       :aria-label="$t('files.sortByDuration')"
     >
-      <i v-if="durationSorted" class="material-symbols">{{ durationIcon }}</i>
+      <i class="material-symbols">{{ durationIcon }}</i>
       <span>{{ $t("files.duration") }}</span>
     </p>
     <span v-if="quickDownloadEnabled" class="placeholder"></span>
@@ -66,28 +74,33 @@ export default {
       type: Boolean,
       default: false,
     },
+    /** When true, sort via pickerSorting (destination pickers) instead of the main listing sort. */
+    usePickerSorting: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     isMobile() {
       return getters.isMobile();
     },
-    isDarkMode() {
-      return getters.isDarkMode();
+    sortConfig() {
+      return this.usePickerSorting ? getters.pickerSorting() : getters.sorting();
     },
     nameSorted() {
-      return getters.sorting().by === "name";
+      return this.sortConfig.by === "name";
     },
     sizeSorted() {
-      return getters.sorting().by === "size";
+      return this.sortConfig.by === "size";
     },
     modifiedSorted() {
-      return getters.sorting().by === "modified";
+      return this.sortConfig.by === "modified";
     },
     durationSorted() {
-      return getters.sorting().by === "duration";
+      return this.sortConfig.by === "duration";
     },
     ascOrdered() {
-      return getters.sorting().asc;
+      return this.sortConfig.asc;
     },
     galleryView() {
       return getters.viewMode() === "gallery";
@@ -117,6 +130,9 @@ export default {
       return "arrow_upward";
     },
     quickDownloadEnabled() {
+      if (this.usePickerSorting) {
+        return false;
+      }
       if (getters.isMobile()) {
         return false
       }
@@ -138,6 +154,10 @@ export default {
         asc = true;
       }
       // Commit the updateSort mutation
+      if (this.usePickerSorting) {
+        mutations.updatePickerSortConfig({ field, asc });
+        return;
+      }
       mutations.updateListingSortConfig({ field, asc });
       mutations.updateListingItems();
     },
@@ -148,8 +168,8 @@ export default {
 <style scoped>
 .listing-item-header {
   display: flex;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, .1);
+  background: var(--surfacePrimary);
+  border: 1px solid var(--divider);
   z-index: 999;
   padding: .85em;
   width: 100%;
@@ -158,11 +178,6 @@ export default {
   border-top-right-radius: 1em;
   margin-bottom: 0 !important;
   justify-content: space-between;
-}
-
-.dark-mode {
-  border-color: var(--divider) !important;
-  background: var(--surfacePrimary) !important;
   user-select: none;
 }
 
@@ -187,6 +202,14 @@ span {
   flex: 1;
 }
 
+.size,
+.modified,
+.duration {
+  flex: 1;
+  justify-content: flex-end;
+  text-align: end;
+}
+
 .desktop-view .size,
 .desktop-view .duration {
   width: 12%;
@@ -198,18 +221,10 @@ span {
 
 .desktop-view .modified {
   width: 18%;
-  min-width: 110px;
+  min-width: fit-content;
   flex: 0 0 auto;
   justify-content: flex-end;
   text-align: right;
-}
-
-.size,
-.modified,
-.duration {
-  flex: 1;
-  justify-content: flex-end;
-  text-align: end;
 }
 
 i {
@@ -217,16 +232,18 @@ i {
   vertical-align: middle;
   margin-left: .2em;
   opacity: 0;
-  transition: .1s ease all;
+  transition: opacity 0.1s ease;
   flex-shrink: 0;
 }
 
+.active i,
 p:hover i,
-.active i {
+.active:hover i {
   opacity: 1;
 }
 
-.active {
+.active,
+p:hover {
   font-weight: bold;
 }
 </style>

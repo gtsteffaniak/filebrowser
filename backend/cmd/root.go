@@ -200,9 +200,9 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 		if err != nil {
 			logger.Fatalf("Failed to create sub filesystem: %v", err)
 		}
-		fileutils.InitAssetFS(subAssets, true)
+		fileutils.InitAssetFS(subAssets, true, false)
 	} else {
-		fileutils.InitAssetFS(nil, false)
+		fileutils.InitAssetFS(nil, false, settings.Env.IsDevMode)
 	}
 
 	// Start preview service

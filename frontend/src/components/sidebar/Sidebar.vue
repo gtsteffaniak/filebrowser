@@ -1,7 +1,7 @@
 <template>
   <nav
     id="sidebar"
-    :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
+    :class="{ active: active, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
     :style="{ width: `${sidebarWidth}em`, left: active ? '0' : `-${sidebarWidth}em` }"
   >
     <div v-if="shouldShow" class="button release-banner">
@@ -106,7 +106,6 @@ export default {
     externalLinks: () => globalVars.externalLinks,
     name: () => globalVars.name,
     releaseUrl: () => globalVars.updateAvailable,
-    isDarkMode: () => getters.isDarkMode(),
     isSettings: () => getters.isSettings(),
     isMobile: () => getters.isMobile(),
     active: () => getters.isSidebarVisible(),
@@ -201,27 +200,19 @@ export default {
   z-index: 4;
   transform: translateZ(0);
   height: 100%;
-  transition: 0.4s ease;
+  transition: left 0.4s ease, width 0.4s ease, z-index 0s linear 0.2s;
   top: 4em;
   padding-bottom: 4em;
-  background-color: color-mix(in srgb, var(--alt-background) 20%, transparent);
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
   will-change: left;
   backface-visibility: hidden;
-}
-
-/* sidebar with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  #sidebar {
-    backdrop-filter: blur(8px) invert(0.1);
-    isolation: isolate;
-  }
-  #sidebar:not(.active) {
-    backdrop-filter: blur(0) invert(0);
-  }
+  isolation: isolate;
 }
 
 #sidebar.behind-overlay {
   z-index: 3;
+  transition: left 0.4s ease, width 0.4s ease, z-index 0s;
 }
 
 #sidebar.sticky {
@@ -251,6 +242,13 @@ body.rtl .action {
   text-align: right;
 }
 
+body.sidebar-resizing,
+body.sidebar-resizing * {
+  cursor: col-resize !important;
+  pointer-events: none;
+  transition: none !important;
+}
+
 #sidebar .action > * {
   vertical-align: middle;
 }
@@ -277,7 +275,7 @@ body.rtl .action {
 }
 
 .release-banner {
-  background-color: var(--primarColor);
+  background-color: var(--primaryColor);
   display: flex !important;
   height: fit-content !important;
   justify-content: space-between;
@@ -287,7 +285,6 @@ body.rtl .action {
 
 #sidebar.scrollable {
   overflow: auto;
-  -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
 
@@ -313,18 +310,10 @@ body.rtl .action {
   height: 2.5em;
 }
 
-.sidebar-resizer:hover .resizer-handle,
-body.sidebar-resizing .resizer-handle {
+body.sidebar-resizing .resizer-handle,
+.sidebar-resizer:hover .resizer-handle {
   background-color: var(--primaryColor);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   width: 0.3em;
 }
-
-body.sidebar-resizing,
-body.sidebar-resizing * {
-  cursor: col-resize !important;
-  pointer-events: none;
-  transition: none !important;
-}
-
 </style>

@@ -44,7 +44,7 @@ import { getters, mutations, state } from "@/store";
 
 export default {
   name: "action",
-  props: ["icon", "label", "counter", "show", "isDisabled"],
+  props: ["icon", "label", "counter", "show", "isDisabled", "customIconClass"],
   computed: {
     req() {
       return state.req;
@@ -59,11 +59,15 @@ export default {
       return getters.currentView();
     },
     iconClass() {
+      if (this.customIconClass) {
+        return this.customIconClass;
+      }
       const outlinedIcons = [
         'table_rows_narrow',
         'content_copy',
         'file_copy',
-        'copy_all'
+        'copy_all',
+        'insert_drive_file'
       ];
       return outlinedIcons.includes(this.icon)
         ? 'material-symbols-outlined'
@@ -90,13 +94,19 @@ export default {
 </script>
 
 <style>
+.action span {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.action i {
+  flex-shrink: 0;
+}
+
 .ham {
   width: 2.5em;
   -webkit-tap-highlight-color: transparent;
   transition: transform 400ms;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 

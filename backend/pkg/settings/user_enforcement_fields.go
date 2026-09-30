@@ -15,6 +15,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"hideFilesInTree":            "sidebar.hideFiles",
 	"showToolsInSidebar":         "sidebar.showTools",
 	"deleteWithoutConfirming":    "listing.deleteWithoutConfirming",
+	"promptRightCloseButton":     "listing.promptRightCloseButton",
 	"dateFormat":                 "listing.dateFormat",
 	"showHidden":                 "listing.showHidden",
 	"quickDownload":              "listing.quickDownload",
@@ -25,6 +26,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"deleteAfterArchive":         "listing.deleteAfterArchive",
 	"viewMode":                   "listing.viewMode",
 	"gallerySize":                "listing.gallerySize",
+	"newFileTemplate":            "listing.newFileTemplate",
 	"disablePreviewExt":          "preview.disablePreviewExt",
 	"disableSearchOptions":       "search.disableOptions",
 	"editorQuickSave":            "fileViewer.editorQuickSave",
@@ -40,6 +42,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"lockPassword":               "account.lockPassword",
 	"disableSettings":            "account.disableSettings",
 	"disableUpdateNotifications": "account.disableUpdateNotifications",
+	"showAdvancedProfile":        "account.showAdvancedProfile",
 }
 
 var previewJSONSubfields = map[string]string{

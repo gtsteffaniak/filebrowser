@@ -6,8 +6,11 @@ import {
     type AccessRuleExpectation,
 } from "./access-behavior-fixture";
 import {
+    closeUserEditPreferences,
     expandUserEditSourceScope,
+    globalPermissionCheckbox,
     openUserEdit,
+    openUserEditPreferences,
     userEditScopeBlock,
 } from "./user-edit-helpers";
 
@@ -289,10 +292,6 @@ function scopePathButton(modal: Locator, sourceName: string): Locator {
     return userEditScopeBlock(modal, sourceName).locator(".scope-path-display");
 }
 
-function globalPermissionCheckbox(modal: Locator, label: string): Locator {
-    return modal.locator(".toggle-container", { hasText: label }).locator('input[type="checkbox"]');
-}
-
 function sourcePermissionCheckbox(
     modal: Locator,
     sourceName: string,
@@ -310,7 +309,23 @@ function sharePermissionCheckbox(modal: Locator, ariaLabel: string): Locator {
 async function openSettingsSection(page: Page, sidebarId: string) {
     await page.goto("/settings");
     await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-    await page.locator(`#${sidebarId}`).click();
+
+    const usersCard = page
+        .locator(".settings-card-collapsible")
+        .filter({ hasText: "User management" });
+
+    if (sidebarId === "users-sidebar") {
+        await usersCard.locator(".settings-card-collapsible-header").click();
+        return;
+    }
+
+    if (sidebarId === "access-sidebar") {
+        await usersCard.locator(".settings-card-collapsible-chevron").click();
+        await usersCard
+            .locator(".settings-card-collapsible-sub-item")
+            .filter({ hasText: "Access" })
+            .click();
+    }
 }
 
 async function expectCheckboxState(checkbox: Locator, checked: boolean) {
@@ -318,7 +333,7 @@ async function expectCheckboxState(checkbox: Locator, checked: boolean) {
 }
 
 function accessRulesTable(page: Page) {
-    return page.getByRole("table", { name: "Access Management" });
+    return page.getByRole("table", { name: "Access", exact: true });
 }
 
 function sharesTable(page: Page) {
@@ -344,7 +359,7 @@ async function readAccessRuleRows(page: Page): Promise<AccessRuleExpectation[]> 
 
 async function selectAccessSource(page: Page, sourceName: string) {
     const accessCard = page.locator(".card-title").filter({
-        has: page.getByRole("heading", { name: "Access Management" }),
+        has: page.getByRole("heading", { name: "Access", exact: true }),
     });
     const sourceButton = accessCard.locator('button[aria-label="Source"]');
     const currentSource = (
@@ -449,27 +464,29 @@ test.describe("Migration fixture verification", () => {
                 userRowInSettingsUsersTable(page, expected.username),
                 { username: expected.username },
             );
+            const prefsModal = await openUserEditPreferences(page, modal);
 
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Administrator"),
+                globalPermissionCheckbox(prefsModal, "Administrator"),
                 expected.global.administrator,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Share files"),
+                globalPermissionCheckbox(prefsModal, "Share files"),
                 expected.global.shareFiles,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Create and manage long-live API tokens"),
+                globalPermissionCheckbox(prefsModal, "Create and manage long-live API tokens"),
                 expected.global.apiTokens,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Enable real-time connections and updates"),
+                globalPermissionCheckbox(prefsModal, "Enable real-time connections and updates"),
                 expected.global.realtime,
             );
             await expectCheckboxState(
-                globalPermissionCheckbox(modal, "Prevent the user from changing the password"),
+                globalPermissionCheckbox(prefsModal, "Prevent the user from changing the password"),
                 expected.global.lockPassword,
             );
+            await closeUserEditPreferences(page);
 
             await expect(modal.locator("#loginMethod .expand-dropdown-trigger-label")).toHaveText(
                 expected.loginMethod,
@@ -640,7 +657,7 @@ test.describe("Migration fixture verification", () => {
 
     test("access rules exist for each source", async ({ page, checkForErrors }) => {
         await openSettingsSection(page, "access-sidebar");
-        await expect(page.getByRole("heading", { name: "Access Management" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Access", exact: true })).toBeVisible();
         await expect(accessRulesTable(page)).not.toHaveAttribute("aria-busy", "true");
 
         for (const [sourceName, rules] of EXPECTED_ACCESS_RULES) {

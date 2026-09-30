@@ -11,8 +11,12 @@ export function expandBeforeEnter(el) {
  * @param {HTMLElement} el
  * @param {() => void} done
  * @param {number} [durationMs=300]
+ * @param {object} [options]
+ * @param {(fullHeight: number, fullWidth: number) => number|null|void} [options.getMaxHeight]
+ * @param {(fullHeight: number, fullWidth: number) => void} [options.onMeasured]
  */
-export function expandEnter(el, done, durationMs = 300) {
+export function expandEnter(el, done, durationMs = 300, options = {}) {
+  const { getMaxHeight, onMeasured } = options;
   el.style.transition = "";
   el.style.height = "0";
   el.style.opacity = "0";
@@ -21,11 +25,22 @@ export function expandEnter(el, done, durationMs = 300) {
   el.style.visibility = "hidden";
   void el.offsetHeight;
   const fullHeight = el.scrollHeight;
+  const fullWidth = el.scrollWidth;
+
+  if (onMeasured) onMeasured(fullHeight, fullWidth);
+
+  const maxHeight = getMaxHeight ? getMaxHeight(fullHeight, fullWidth) : null;
+  const scrollable = maxHeight !== null && fullHeight > maxHeight;
+  const targetHeight = scrollable ? maxHeight : fullHeight;
+  el.style.overflowY = scrollable ? "auto" : "";
+  el.style.overflowX = scrollable ? "hidden" : "";
+  el.style.justifyContent = scrollable ? "flex-start" : "";
+
   el.style.height = "0";
   el.style.visibility = "visible";
   el.style.transition = `height ${durationMs}ms, opacity ${durationMs}ms`;
   void el.offsetHeight;
-  el.style.height = `${fullHeight}px`;
+  el.style.height = `${targetHeight}px`;
   el.style.opacity = "1";
   setTimeout(done, durationMs);
 }

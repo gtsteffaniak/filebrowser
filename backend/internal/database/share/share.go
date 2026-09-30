@@ -48,6 +48,7 @@ type ShareLimits struct {
 	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"`
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
+	QuotaLimitBytes          int64    `json:"quotaLimitBytes,omitempty"`
 	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
 	Banner                   string   `json:"banner,omitempty"`
 	SourceName               string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
@@ -85,8 +86,11 @@ type ShareEditable struct {
 type ShareFrontend struct {
 	ShareEditable
 	ShareColumns
-	Username   string `json:"username,omitempty"`
-	PathExists bool   `json:"pathExists,omitempty"`
+	Username            string `json:"username,omitempty"`
+	PathExists          bool   `json:"pathExists,omitempty"`
+	QuotaUsedBytes      int64  `json:"quotaUsedBytes,omitempty"`
+	QuotaReservedBytes  int64  `json:"quotaReservedBytes,omitempty"`
+	QuotaAvailableBytes int64  `json:"quotaAvailableBytes,omitempty"`
 }
 
 // SharePostBody is POST /api/share JSON. Plaintext password is hashed to Share.PasswordHash before persist.
@@ -96,6 +100,19 @@ type SharePostBody struct {
 	Password *string `json:"password,omitempty"`
 	Hash     string  `json:"hash,omitempty"`
 	Path     string  `json:"path,omitempty"`
+}
+
+// EditableFromShare returns the client-editable subset of a persisted share.
+// ShareExpiryInput is omitted because expiration is stored in ShareColumns.Expire;
+// callers merging partial updates must preserve Expire when expires/unit are absent.
+func EditableFromShare(s *Share) ShareEditable {
+	if s == nil {
+		return ShareEditable{}
+	}
+	return ShareEditable{
+		FrontendShareInfo: s.FrontendShareInfo,
+		ShareLimits:       s.ShareLimits,
+	}
 }
 
 // ApplyPostBodyUpdate copies client-editable fields onto link.

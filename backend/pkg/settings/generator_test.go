@@ -50,6 +50,14 @@ type UserDefaults struct {
 }
 
 type Auth struct {
+	Methods LoginMethods ` + "`json:\"methods\"`" + `
+}
+
+type LoginMethods struct {
+	PasswordAuth PasswordAuthConfig ` + "`json:\"password\"`" + `
+}
+
+type PasswordAuthConfig struct {
 	AdminUsername string ` + "`json:\"adminUsername\"`" + `
 }
 `
@@ -65,7 +73,11 @@ type Auth struct {
 			},
 		},
 		Auth: Auth{
-			AdminUsername: "admin",
+			Methods: LoginMethods{
+				PasswordAuth: PasswordAuthConfig{
+					AdminUsername: "admin",
+				},
+			},
 		},
 	}
 
@@ -294,9 +306,13 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 			},
 		},
 		Auth: Auth{
-			Key:           "secret123", // This is secret
-			AdminUsername: "admin",     // This is secret
-			AdminPassword: "password",  // This is secret
+			Key: "secret123", // This is secret
+			Methods: LoginMethods{
+				PasswordAuth: PasswordAuthConfig{
+					AdminUsername: "admin",    // This is secret
+					AdminPassword: "password", // This is secret
+				},
+			},
 		},
 	}
 
@@ -356,6 +372,12 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 				}
 				if strings.Contains(yamlOutput, "secret123") {
 					t.Error("Secret values should not appear in output")
+				}
+				if strings.Contains(yamlOutput, "adminPassword: \"password\"") || strings.Contains(yamlOutput, "adminPassword: password") {
+					t.Error("adminPassword value should not appear in output")
+				}
+				if strings.Contains(yamlOutput, "adminUsername: \"admin\"") || strings.Contains(yamlOutput, "adminUsername: admin") {
+					t.Error("adminUsername value should not appear in output")
 				}
 			}
 

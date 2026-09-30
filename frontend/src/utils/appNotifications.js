@@ -1,4 +1,5 @@
 import i18n from "@/i18n";
+import { notify } from "@/notify";
 import { state } from "@/store";
 import { globalVars } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
@@ -162,4 +163,64 @@ export function notifyOperationError(message) {
     message || t("prompts.operationFailed"),
     "operation-error"
   );
+}
+
+/**
+ * Extract a user-facing message from a move/copy API error.
+ * @param {unknown} error
+ * @param {string} [fallback]
+ */
+export function extractMoveCopyErrorMessage(error, fallback) {
+  const t = i18n.global.t;
+  const defaultFallback = fallback || t("prompts.operationFailed");
+
+  if (!error) {
+    return defaultFallback;
+  }
+
+  /** @type {{ failed?: { message?: string }[]; message?: string; code?: string }} */
+  const err = error;
+  const failedMessages = (err.failed || [])
+    .map((item) => item?.message)
+    .filter(Boolean);
+  if (failedMessages.length > 0) {
+    const combined = failedMessages.join("; ");
+    return mapQuotaErrorMessage(combined, t) || combined;
+  }
+
+  if (err.code === "quota_exceeded") {
+    return t("quotas.errors.exceeded");
+  }
+
+  if (typeof err.message === "string" && err.message.trim()) {
+    return mapQuotaErrorMessage(err.message, t) || err.message;
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+
+  return defaultFallback;
+}
+
+function mapQuotaErrorMessage(text, t) {
+  const lower = text.toLowerCase();
+  if (lower.includes("quota exceeded")) {
+    return t("quotas.errors.exceeded");
+  }
+  if (lower.includes("indexed size unavailable")) {
+    return t("quotas.usageSyncPending");
+  }
+  return null;
+}
+
+/**
+ * Show move/copy failure in toast + notification center.
+ * @param {unknown} error
+ * @param {string} [fallback]
+ */
+export function notifyMoveCopyFailure(error, fallback) {
+  const message = extractMoveCopyErrorMessage(error, fallback);
+  notify.showError(message);
+  notifyOperationError(message);
 }

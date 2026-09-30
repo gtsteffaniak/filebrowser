@@ -13,3 +13,6 @@ server:
       name: "playwright"
       config:
         defaultEnabled: true
+userDefaults:
+  account:
+    showAdvancedProfile: true

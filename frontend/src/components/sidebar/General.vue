@@ -283,6 +283,12 @@ export default {
   padding: 1em;
 }
 
+.inner-card {
+  display: flex;
+  align-items: center;
+  padding: 0 !important;
+}
+
 .sources .inner-card {
   display: flex;
   justify-content: center;
@@ -297,6 +303,10 @@ export default {
   transform: translateZ(0);
 }
 
+.file-actions i {
+  padding: 0 !important;
+}
+
 .quick-toggles div i {
   font-size: 2em;
   padding: 0.25em;
@@ -306,7 +316,6 @@ export default {
 
 button.action {
   border-radius: 0.5em;
-  transform: translateZ(0);
 }
 
 .quick-toggles .active {
@@ -315,19 +324,13 @@ button.action {
   color: white;
 }
 
-.inner-card {
-  display: flex;
-  align-items: center;
-  padding: 0px !important;
-}
-
 .card-wrapper {
   display: flex !important;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 0em !important;
-  border-radius: 1em;
+  padding: 0 !important;
+  border-radius: var(--borderRadius);
 }
 
 .headline-card {
@@ -363,10 +366,6 @@ button.action {
   display: flex !important;
   align-items: center;
   justify-content: center;
-}
-
-.file-actions i {
-  padding: 0em !important;
 }
 
 .extra-padding {

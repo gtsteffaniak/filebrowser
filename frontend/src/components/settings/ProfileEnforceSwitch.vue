@@ -37,6 +37,10 @@ export default {
       type: Boolean,
       default: true,
     },
+    targetLabel: {
+      type: String,
+      default: "",
+    },
   },
   emits: ["update:enforced"],
   data() {
@@ -47,6 +51,9 @@ export default {
   },
   computed: {
     enforcedLabelText() {
+      if (this.targetLabel) {
+        return `${this.$t("general.enforce")}: ${this.targetLabel}`;
+      }
       return this.$t("general.enforce");
     },
   },
@@ -60,19 +67,7 @@ export default {
 
 <style scoped>
 .profile-enforce-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 3.25em;
-  padding: 0.5em 1em;
-  margin-top: 0.35em;
-  transition: background-color 0.15s ease;
-}
-
-.profile-enforce-row:hover {
-  background-color: var(--surfaceSecondary);
+  margin-top: 0;
 }
 
 .profile-enforce-row.disabled {
@@ -104,15 +99,12 @@ export default {
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  transition: 0.4s;
+  inset: 0;
+  transition: background-color 0.4s;
   background-color: gray;
 }
 
-.slider:before {
+.slider::before {
   position: absolute;
   content: "";
   height: 26px;
@@ -120,14 +112,14 @@ export default {
   left: 6px;
   bottom: 4px;
   background-color: white;
-  transition: 0.4s;
+  transition: transform 0.4s;
 }
 
 input:checked + .slider {
   background-color: var(--primaryColor);
 }
 
-input:checked + .slider:before {
+input:checked + .slider::before {
   transform: translateX(26px);
 }
 
@@ -135,7 +127,7 @@ input:checked + .slider:before {
   border-radius: 50px;
 }
 
-.slider.round:before {
+.slider.round::before {
   border-radius: 50%;
 }
 

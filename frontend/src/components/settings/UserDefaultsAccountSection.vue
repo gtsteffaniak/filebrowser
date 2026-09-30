@@ -35,6 +35,18 @@
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')"
       />
+      <ToggleSwitch
+        class="item"
+        :enforceable="enforceable"
+        :enforced="!!enforced.showAdvancedProfile"
+        v-model="account.showAdvancedProfile"
+        @change="$emit('account-change', 'showAdvancedProfile')"
+        @update:enforced="(v) => emitEnforced('showAdvancedProfile', v)"
+        :disabled="isFieldDisabled('showAdvancedProfile')"
+        :value-tooltip="fieldDisabledTooltip('showAdvancedProfile')"
+        :name="$t('profileSettings.showAdvancedProfile')"
+        :description="$t('profileSettings.showAdvancedProfileDescription')"
+      />
     </div>
     <div class="settings-items">
       <h3>{{ $t("general.permissions") }}</h3>

@@ -4,4 +4,4 @@ WORKDIR /app/frontend
 COPY frontend/package-lock.json /tmp/package-lock.json
 RUN PW_VERSION=$(node -p "require('/tmp/package-lock.json').packages['node_modules/@playwright/test'].version") \
   && npm i "@playwright/test@${PW_VERSION}" oauth2-mock-server @types/node
-RUN npx playwright install --with-deps chromium
+RUN npx playwright install --with-deps chromium-headless-shell

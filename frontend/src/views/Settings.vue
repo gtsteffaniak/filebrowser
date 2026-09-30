@@ -1,11 +1,9 @@
 <template>
   <div class="dashboard">
     <div v-if="isRootSettings && !userPage" class="settings-views">
-      <component
-        v-if="activeSetting"
-        :is="activeSetting.component"
-        :id="`${activeSetting.id}-main`"
-      />
+      <div v-if="activeSetting" :id="`${activeSetting.id}-main`">
+        <component :is="activeComponent" />
+      </div>
     </div>
     <div v-else class="settings-views">
       <div class="active">
@@ -29,6 +27,7 @@ import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
 import UserManagement from "@/views/settings/Users.vue";
 import AccessSettings from "@/views/settings/Access.vue";
+import GroupsSettings from "@/views/settings/Groups.vue";
 import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
@@ -46,6 +45,7 @@ export default {
     SharesSettings,
     ApiKeys,
     AccessSettings,
+    GroupsSettings,
     FileLoading,
     UserSettings,
     SystemAdmin,
@@ -76,13 +76,22 @@ export default {
     activeSetting() {
       // Find the setting that matches the current activeSettingsView
       let active = this.settings.find(
-        (setting) => `${setting.id}-main` === state.activeSettingsView && this.shouldShow(setting)
+        (setting) =>
+          (`${setting.id}-main` === state.activeSettingsView || this.findSection(setting, state.activeSettingsView)) &&
+          this.shouldShow(setting)
       );
       // Fallback: first allowed setting
       if (!active) {
         active = this.settings.find((setting) => this.shouldShow(setting));
       }
       return active;
+    },
+    activeComponent() {
+      const section = this.findSection(this.activeSetting, state.activeSettingsView);
+      return section?.component || this.activeSetting?.component;
+    },
+    profileSections() {
+      return this.settings.find((setting) => setting.id === 'profile')?.sections || [];
     },
   },
   watch: {
@@ -111,6 +120,11 @@ export default {
       const userPermissions = /** @type {Record<string, boolean>} */ (state.user.permissions || {});
       return Object.keys(perm).every((key) => getObjectProperty(userPermissions, key));
     },
+    findSection(setting, view) {
+      return setting?.sections?.find(
+        (section) => section.component && `${setting.id}-${section.id}` === view && this.shouldShow(section)
+      );
+    },
     handleHashChange() {
       // Handle browser back/forward navigation
       this.initializeActiveSettingFromHash();
@@ -118,25 +132,32 @@ export default {
     initializeActiveSettingFromHash() {
       // Get the current hash from the URL
       const hash = window.location.hash.replace('#', '');
-      
+
       if (hash) {
         // Check if the hash corresponds to a valid setting
         const validSetting = this.settings.find(
           (setting) => `${setting.id}-main` === hash && this.shouldShow(setting)
         );
-        
-        if (validSetting) {
+        const validProfileSection =
+          hash.startsWith('profile-') &&
+          !!state.user?.showAdvancedProfile &&
+          this.profileSections.some((section) => `profile-${section.id}` === hash) &&
+          this.settings.some((setting) => setting.id === 'profile' && this.shouldShow(setting));
+        const validSubSection = this.settings.some(
+          (setting) => this.findSection(setting, hash) && this.shouldShow(setting)
+        );
+        if (validSetting || validProfileSection || validSubSection) {
           // Set the active settings view to the hash value
           mutations.setActiveSettingsView(hash);
           return;
         }
       }
-      
+
       // Default to profile-main if no hash or invalid hash
       const defaultSetting = this.settings.find(
         (setting) => setting.id === 'profile' && this.shouldShow(setting)
       );
-      
+
       if (defaultSetting) {
         mutations.setActiveSettingsView('profile-main');
       } else {
@@ -158,6 +179,7 @@ export default {
   flex-direction: column;
   height: 100%;
   align-items: center;
+  padding-bottom: 0.5em;
 }
 
 .settings-views {
@@ -173,16 +195,5 @@ export default {
   border: var(--borderWidth) solid var(--divider);
   opacity: 1;
 }
-
-.settings-items > .item {
-  padding: 1em;
-  border-radius: 1em;
-}
-
-.settings-items > .item:hover {
-  background-color: var(--surfaceSecondary);
-}
-
-
 
 </style>

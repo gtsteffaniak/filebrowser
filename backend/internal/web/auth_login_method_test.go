@@ -28,7 +28,7 @@ func TestGetOrCreateAuthenticatedUserRejectsLoginMethodMismatch(t *testing.T) {
 		t.Fatalf("CreateUser: %v", err)
 	}
 
-	_, err := getOrCreateAuthenticatedUser("graham", users.LoginMethodOidc, false, nil)
+	_, err := getOrCreateAuthenticatedUser("graham", users.LoginMethodOidc, false, nil, false)
 	if !errors.Is(err, fberrors.ErrWrongLoginMethod) {
 		t.Fatalf("getOrCreateAuthenticatedUser() err = %v, want ErrWrongLoginMethod", err)
 	}
@@ -55,7 +55,7 @@ func TestGetOrCreateAuthenticatedUserRejectsPasswordUserForOIDCAccount(t *testin
 		t.Fatalf("CreateUser: %v", err)
 	}
 
-	_, err := getOrCreateAuthenticatedUser("graham", users.LoginMethodOidc, false, nil)
+	_, err := getOrCreateAuthenticatedUser("graham", users.LoginMethodOidc, false, nil, false)
 	if err != nil {
 		t.Fatalf("getOrCreateAuthenticatedUser() for matching oidc user: %v", err)
 	}

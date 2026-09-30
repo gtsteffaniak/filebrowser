@@ -16,7 +16,8 @@
           :class="{
             'current-item': isCurrentItem(node),
             'has-children': node.childrenCount > 0,
-            'drag-over': node.dragOver || isSelected(node),
+            'drag-over': node.dragOver,
+            'context-item': isSelected(node),
             'hidden-file': node.isHidden,
           }"
           @click="handleNodeClick(node)"
@@ -83,6 +84,7 @@ import { eventBus } from '@/store/eventBus';
 import { goToItem, joinPath } from '@/utils/url';
 import { goToItemNotificationButton } from '@/utils/notificationActions';
 import { notify } from '@/notify';
+import { notifyMoveCopyFailure } from '@/utils/appNotifications';
 import { getObjectProperty } from '@/utils/object.js';
 
 export default {
@@ -283,7 +285,7 @@ export default {
 
       // Immediately expand and show loading state
       node.expanded = true;
-      
+
       // Load children if not loaded
       if (!node.children) {
         node.loading = true;
@@ -604,7 +606,7 @@ export default {
           mutations.setReload(true);
         } catch (error) {
           mutations.closeTopPrompt();
-          throw error;
+          notifyMoveCopyFailure(error);
         }
       };
       if (conflict) {
@@ -616,50 +618,57 @@ export default {
             const rename = option === 'rename';
             event.preventDefault();
             mutations.closeTopPrompt();
-            await performAction(overwrite, rename);
+            try {
+              await performAction(overwrite, rename);
+            } catch (error) {
+              notifyMoveCopyFailure(error);
+            }
           },
         });
         return;
       }
-      await performAction(false, false);
+      try {
+        await performAction(false, false);
+      } catch (error) {
+        notifyMoveCopyFailure(error);
+      }
     },
 
     isSelected(node) {
-      const prompt = getters.currentPrompt();
-      if (!prompt) return false;
+      return state.prompts.some((prompt) => {
+        const props = prompt.props || {};
 
-      const props = prompt.props || {};
+        // Collect items from various prompt prop
+        let candidates = [];
 
-      // Collect items from various prompt prop
-      let candidates = [];
-
-      // Most prompts store items in an "items" array
-      if (props.items && Array.isArray(props.items)) {
-        candidates = props.items;
-      }
-      // Rename, share, info have a single "item"
-      else if (props.item) {
-        candidates = [props.item];
-      }
-      // Access prompt uses sourceName + path
-      else if (props.sourceName && props.path) {
-        candidates = [{ source: props.sourceName, path: props.path, isDir: true }];
-      }
-      // Upload prompt uses targetPath + targetSource (yeah, I wanted to support upload from the tree context menu too)
-      else if (props.targetPath && props.targetSource) {
-        candidates = [{ source: props.targetSource, path: props.targetPath, isDir: true }];
-      }
-
-      if (candidates.length === 0) return false;
-
-      // Compare node to each candidate (usually only one, but safe to loop)
-      return candidates.some(selected => {
-        if (!selected.path) return false;
-        if (this.isShare) {
-          return selected.path === node.path;
-        } else {
-          return selected.source === node.source && selected.path === node.path;
+        // Most prompts store items in an "items" array
+        if (props.items && Array.isArray(props.items)) {
+          candidates = props.items;
         }
+        // Rename, share, info have a single "item"
+        else if (props.item) {
+          candidates = [props.item];
+        }
+        // Access prompt uses sourceName + path
+        else if (props.sourceName && props.path) {
+          candidates = [{ source: props.sourceName, path: props.path, isDir: true }];
+        }
+        // Upload prompt uses targetPath + targetSource (yeah, I wanted to support upload from the tree context menu too)
+        else if (props.targetPath && props.targetSource) {
+          candidates = [{ source: props.targetSource, path: props.targetPath, isDir: true }];
+        }
+
+        if (candidates.length === 0) return false;
+
+        // Compare node to each candidate (usually only one, but safe to loop)
+        return candidates.some(selected => {
+          if (!selected.path || selected.heldSelected) return false; // picked from ListingView
+          if (this.isShare) {
+            return selected.path === node.path;
+          } else {
+            return selected.source === node.source && selected.path === node.path;
+          }
+        });
       });
     }
   },
@@ -708,6 +717,7 @@ export default {
   line-height: 1.4;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
 }
 
 .tree-node.hidden-file {
@@ -723,11 +733,14 @@ export default {
   color: white;
 }
 
+.tree-node.context-item,
 .tree-node.drag-over {
-  background-color: var(--primaryColor) !important;
-  opacity: 0.8;
-  outline: 2px solid var(--primaryColor);
-  outline-offset: -1px;
+  background-color: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
+  color: var(--textPrimary);
+}
+
+.expand-icon {
+  cursor: pointer;
 }
 
 .expand-icon,
@@ -739,10 +752,6 @@ export default {
   font-size: 1em;
   color: var(--textSecondary);
   flex-shrink: 0;
-}
-
-.expand-icon {
-  cursor: pointer;
 }
 
 .expand-icon:hover {
