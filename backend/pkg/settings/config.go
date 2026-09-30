@@ -634,7 +634,6 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to combine YAML files: %v", err)
 	}
-	combinedYAML = expandConfigEnv(combinedYAML)
 
 	// First pass: Unmarshal into a generic map to resolve all anchors and aliases
 	// This allows YAML anchors defined in auxiliary files to be properly merged
@@ -643,6 +642,10 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	if err != nil {
 		return fmt.Errorf("error parsing YAML data: %v", err)
 	}
+
+	// Expand $VAR / ${VAR} in decoded string scalars only (after parse) so
+	// secrets may contain quotes, backslashes, or newlines safely.
+	rawConfig = expandConfigEnv(rawConfig).(map[string]interface{})
 
 	// Filter to only keep valid top-level Settings struct fields
 	// This removes anchor definitions that are just templates (e.g., "test_server: &test_server")
