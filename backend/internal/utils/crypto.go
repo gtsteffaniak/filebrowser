@@ -113,14 +113,19 @@ func GenerateKey() string {
 	return string(b)
 }
 
-// CSPNonce returns a base64-encoded random value suitable for Content-Security-Policy nonces
-// and matching HTML nonce="" attributes (cryptographically random, URL/header safe characters).
+// CSPNonce returns a random value suitable for Content-Security-Policy nonces
+// and matching HTML nonce="" attributes: 16 cryptographically random bytes
+// encoded with unpadded URL-safe base64 (22 chars from A-Za-z0-9-_).
+// URL-safe encoding is required because html/template HTML-escapes '+' as
+// "&#43;" inside quoted attributes, so a StdEncoding nonce containing '+'
+// would not byte-match the 'nonce-...' source in the CSP response header
+// and the browser would block the inline script.
 func CSPNonce() (string, error) {
 	b, err := randomBytes(16)
 	if err != nil {
 		return "", err
 	}
-	return base64.StdEncoding.EncodeToString(b), nil
+	return base64.RawURLEncoding.EncodeToString(b), nil
 }
 
 // CSPNonceFromData returns an existing cspNonce from map template data, or generates

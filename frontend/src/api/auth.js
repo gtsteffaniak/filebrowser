@@ -57,13 +57,18 @@ export async function logout() {
 
 // POST /api/auth/signup
 export async function signup(username, password, otp) {
-  const params = { username, password, otp }
-  const apiPath = getApiPath('auth/signup', params)
+  const apiPath = getApiPath('auth/signup')
   const res = await fetch(apiPath, {
     method: 'POST',
+    credentials: 'same-origin',
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username,
+      password,
+      ...(otp ? { otp } : {}),
+    }),
   })
 
   if (res.status !== 201) {

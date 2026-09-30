@@ -886,6 +886,7 @@ export default {
     align-items: stretch;
     gap: 0.5rem;
   }
+
   .config-row:not(.mobile) .config-row-second {
     width: 100%;
     display: grid;

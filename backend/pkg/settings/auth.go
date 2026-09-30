@@ -55,6 +55,16 @@ type Auth struct {
 	AuthMethods          []string     `json:"-"`
 }
 
+// ConfigTriggersAdminPasswordReset reports whether startup should sync auth.adminPassword from config into the admin user record.
+// Blank or "admin" leaves the stored password unchanged across restarts.
+func ConfigTriggersAdminPasswordReset() bool {
+	p := PasswordAdminPassword()
+	if p == "" {
+		p = Config.Auth.AdminPassword
+	}
+	return p != "" && p != "admin"
+}
+
 type LoginMethods struct {
 	ProxyAuth    ProxyAuthConfig    `json:"proxy" validate:"omitempty"`
 	NoAuth       bool               `json:"noauth"` // if set to true, overrides all other auth methods and disables authentication

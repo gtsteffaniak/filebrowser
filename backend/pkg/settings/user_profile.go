@@ -17,9 +17,6 @@ type UserProfile struct {
 	Account     UserDefaultsAccount    `json:"account,omitempty"`
 }
 
-// ProfileStorageVersion is the user.Version value after nested profile JSON is persisted.
-const ProfileStorageVersion = 5
-
 // ProfileFromUserDefaults extracts the profile sections from a defaults template.
 func ProfileFromUserDefaults(d UserDefaults) UserProfile {
 	return UserProfile{

@@ -70,6 +70,29 @@ All notable changes to this project will be documented in this file. For commit 
  - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
  - Context menu stuck when opened from a listing in a prompt like move/copy or search (#3028).
 
+## v2.0.9
+
+ **Security**:
+ - Fresh install with default `admin`/`admin` startup generates a random initial password and logs it once (#2977). Updated documentation to follow.
+ - OIDC login binds OAuth `state` to an HttpOnly cookie (crypto-random) and rejects tampered callbacks; post-login redirects must be same-app relative paths.
+ - Login, logout, and session-expiry redirects reject open-redirect targets (`//`, `/\\`, off-site URLs); signup sends credentials in a JSON body instead of query parameters.
+
+ **Notes**:
+ - Webdav always shows hidden files, ignores user preference. (#3004)
+ - SQLite shared cache (`cache=shared`) removed from the application database connection: its table-lock conflicts bypass `busy_timeout` and fail immediately. WAL mode already allows concurrent readers.
+
+ **Bugfixes**:
+ - Fixed intermittent blank page / blocked inline SPA script after CSP hardening (#2995)
+ - ffmpeg unresponsive lock issue (#2996)
+ - fixed token migration lockout regression from v2.0.8-beta (#2999)
+ - Public shares with OnlyOffice disabled (`enableOnlyOffice=false`) now reject `/office/config` and `/office/callback` requests server-side instead of only hiding the editor in the UI
+ - Session/API token registrations now record the JWT expiry; expired mappings are pruned at startup, and tokens expired beyond the same 2-minute grace window used for session rotation no longer resolve a user identity on public share routes
+ - Startup now fails when the configured/env auth signing key differs from the key persisted in the application database, instead of warning and minting tokens with divergent keys
+ - OnlyOffice document downloads now re-validate redirect targets against the configured document-server host, closing an SSRF gap where a redirect could send the fetch to an internal address
+ - OnlyOffice "closed with changes" callbacks now keep the document key until the save succeeds, so a failed save can be retried by the document server instead of being rejected as an unknown session
+ - External JWT (JwtAuth) requests now reuse an existing valid session cookie instead of minting and registering a new session token on every request
+ - SQLite index and application databases configure `busy_timeout` on every pooled connection, and busy/locked detection now uses driver result codes; index batch writes and maintenance no longer report success when the DB stays busy, and index cache reads return busy errors instead of empty results so listing can fall back to the filesystem.
+
 ## v2.0.8
 
  **Security**:

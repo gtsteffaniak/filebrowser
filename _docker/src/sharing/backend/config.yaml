@@ -16,6 +16,9 @@ server:
         private: true
         defaultEnabled: true
 
+auth:
+  adminPassword: "playwright-password"
+
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true

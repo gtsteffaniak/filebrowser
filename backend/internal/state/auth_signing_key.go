@@ -35,19 +35,17 @@ func InitAuthSigningKey() error {
 
 // resolveAuthSigningKey returns the key to use without mutating config until the
 // key is known to be valid. Only a missing persisted row counts as absence; a
-// malformed row or an unreadable legacy database is a hard error so an existing
-// key is never silently replaced (which would invalidate all issued JWTs).
+// malformed row, an unreadable legacy database, or a configured key that differs
+// from the persisted one are hard errors so nodes in the same deployment can
+// never mint and verify with divergent keys.
 func resolveAuthSigningKey(explicitKey string) (string, error) {
 	storedKey, storedErr := loadPersistedAuthSigningKey()
 	switch {
 	case storedErr == nil && storedKey != "":
-		if explicitKey == "" {
+		if explicitKey == "" || explicitKey == storedKey {
 			return storedKey, nil
 		}
-		if explicitKey != storedKey {
-			logger.Warning("auth signing key from config/env differs from value stored in the application database; using config/env for this process")
-		}
-		return explicitKey, nil
+		return "", fmt.Errorf("auth signing key from config/env differs from the persisted database key; remove the configured key to use the stored key")
 	case errors.Is(storedErr, errAuthSigningKeyAbsent):
 		// No persisted key yet: persist the configured key or fall back below.
 	default:

@@ -56,6 +56,39 @@ func TestInitAuthSigningKeyPersistsAndReloads(t *testing.T) {
 	}
 }
 
+func TestInitAuthSigningKeyRejectsMismatchedConfiguredKey(t *testing.T) {
+	newAuthSigningKeyTestStore(t)
+	preserveAuthKey(t)
+
+	settings.Config.Auth.Key = ""
+	if err := InitAuthSigningKey(); err != nil {
+		t.Fatal(err)
+	}
+	stored := settings.Config.Auth.Key
+	if stored == "" {
+		t.Fatal("expected generated key")
+	}
+
+	// A config/env key that disagrees with the persisted key must abort startup
+	// rather than silently minting tokens other nodes cannot verify.
+	settings.Config.Auth.Key = "different-config-key"
+	if err := InitAuthSigningKey(); err == nil {
+		t.Fatal("expected error for config/env key mismatch with persisted key")
+	}
+	if settings.Config.Auth.Key != "different-config-key" {
+		t.Fatalf("config key was mutated on failure: %q", settings.Config.Auth.Key)
+	}
+
+	// The persisted key remains authoritative: with no explicit key it loads.
+	settings.Config.Auth.Key = ""
+	if err := InitAuthSigningKey(); err != nil {
+		t.Fatal(err)
+	}
+	if settings.Config.Auth.Key != stored {
+		t.Fatalf("expected persisted key %q after reload, got %q", stored, settings.Config.Auth.Key)
+	}
+}
+
 func TestInitAuthSigningKeyRejectsMalformedPersistedRow(t *testing.T) {
 	store := newAuthSigningKeyTestStore(t)
 	preserveAuthKey(t)

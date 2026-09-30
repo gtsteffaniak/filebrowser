@@ -1,6 +1,9 @@
 http:
   port: 8080
   baseURL:  "/files/"
+auth:
+  adminPassword: "playwright-password"
+
 server:
   logging:
     - levels: "info|error|warning|debug"
