@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Proxy auth group support: `groupsClaim`, `adminGroup`, and `userGroups` now control role-based access when the proxy sends a group/role header (#2755). Admin is determined by `adminGroup` only.
  - Moved `auth.adminUsername` and `auth.adminPassword` to `auth.methods.password` (legacy top-level keys are migrated automatically on load).
  - Support for `.elrc` (word-by-word lyrics), `.vtt`, `.srt` sidecar files for lyrics in audio files in the media player. (#2838)
- - Added setting to configure the placement of the prompts close button in profile settings (#2853).
+ - Added setting to configure the placement of the prompts close button in profile settings (#2853) (#2595).
  - Added "New file templates". You can now add and configure pre-defined filenames + extension for the creation of new files in the context menu on profile settings! (#2881) (#1239).
  - sidebar links can be bulk edited as yaml (#1963) (settings > user management)
  - admins can customize more defaults:
@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Sort header in file listings inside prompts like move/copy/quick jump, is now sticky. Also added a button to show a search input and filter the items of the current listing (#3028).
  - Quick jump now scrolls and highlights the current item you are previewing (#3028).
  - When hovering `date` and `name` in the listings, will show up the formatted/raw date (the inverse of what you have configured to display) and the full filename (#3028) (#2623).
+ - User groups can now be managed from the WebUI under `User Management` -> `Groups` (#2983) (#3040)
 
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.
@@ -44,11 +45,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Play/pause on videos in mobile now is toggled by the button in the middle rather than the whole container (#2828).
  - improved video thumbnail generation speed and efficiency.
  - Added icons based on extension to the upload prompt and new file/folder/rename prompts (#2881).
- - Profile settings show minimal options by default with prompt for advanced options. Full advanced profile settings can be shown by default by enabling `account.showAdvancedSettings`
+ - Profile settings show minimal options by default. Full advanced profile settings can be shown by default by enabling `account.showAdvancedProfile`.
  - sidebar links/navigation is button group toggle for clearer visibility
  - Pop-up preview has 200ms debounce delay so it doesn't flash from moving the cursor across files quickly.
  - Added risc-v to official releases
  - Polished a bit some styles across various places of the UI (#3019) (#3028).
+ - Moved `Access Management` under `User Management` in the UI (#3040).
 
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
