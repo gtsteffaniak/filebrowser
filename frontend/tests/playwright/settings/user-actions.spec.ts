@@ -23,7 +23,11 @@ test("create, check settings, and delete user (retry-safe name)", async ({
     const username = `testuser2-${testInfo.retry + 1}`;
     await page.goto("/settings");
     await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-    await page.locator("#users-sidebar").click();
+    await page
+        .locator(".settings-card-collapsible")
+        .filter({ hasText: "User management" })
+        .locator(".settings-card-collapsible-header")
+        .click();
     await page.locator('button[aria-label="New user"]').click();
     await page.locator("#username").fill(username);
     await page.locator('input[aria-label="Password1"]').fill("testpassword");
@@ -92,7 +96,11 @@ test("two factor auth check", async ({ page, checkForErrors }) => {
 
     await page.goto("/settings");
     await expect(page).toHaveURL(/\/settings/);
-    await page.locator("#users-sidebar").click();
+    await page
+        .locator(".settings-card-collapsible")
+        .filter({ hasText: "User management" })
+        .locator(".settings-card-collapsible-header")
+        .click();
 
     const modal = await openUserEdit(
         page,
@@ -129,7 +137,11 @@ test.describe("User Settings Persistence", () => {
     const username = "testuser1";
     test.beforeEach(async ({ page }) => {
         await page.goto("/settings");
-        await page.locator("#users-sidebar").click();
+        await page
+            .locator(".settings-card-collapsible")
+            .filter({ hasText: "User management" })
+            .locator(".settings-card-collapsible-header")
+            .click();
     });
 
     async function checkTogglePersistence(page: Page, settingName: string) {

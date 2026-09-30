@@ -21,7 +21,11 @@ async function expandUserDefaultsGroup(
 async function openUserDefaultsPrompt(page: import("@playwright/test").Page) {
   await page.goto("/settings#profile-main");
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-  await page.locator("#users-sidebar").click();
+  await page
+    .locator(".settings-card-collapsible")
+    .filter({ hasText: "User management" })
+    .locator(".settings-card-collapsible-header")
+    .click();
 
   const defaultsResponse = page.waitForResponse(
     (response) => isExactSettingsApiResponse(response, "settings/user-defaults", "GET"),
