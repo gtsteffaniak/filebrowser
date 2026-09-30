@@ -40,9 +40,10 @@ setup-gofitz-cgo:
 	echo "linking go-fitz MuPDF headers for preview CGO..."
 	cd backend && go run ./scripts/setup-gofitz-cgo
 
+# todo: updating build causes issues.
+# 	cd backend/build && go get -u tool && go mod tidy
 update:
 	cd backend && go get -u ./... && go mod tidy
-	cd backend/build && go get -u tool && go mod tidy
 	cd frontend && npm update
 
 build: build-frontend build-backend
