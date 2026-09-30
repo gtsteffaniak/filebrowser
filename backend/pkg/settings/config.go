@@ -643,6 +643,10 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		return fmt.Errorf("error parsing YAML data: %v", err)
 	}
 
+	// Expand $VAR / ${VAR} in decoded string scalars only (after parse) so
+	// secrets may contain quotes, backslashes, or newlines safely.
+	expandConfigEnv(rawConfig)
+
 	// Filter to only keep valid top-level Settings struct fields
 	// This removes anchor definitions that are just templates (e.g., "test_server: &test_server")
 	validFields := map[string]bool{
