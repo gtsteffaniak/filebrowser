@@ -26,7 +26,7 @@ func (s *stubGroupSQL) SaveRevokedToken(string, int64) error                    
 func (s *stubGroupSQL) PersistImmediateTokenRevocation(string) error           { return nil }
 func (s *stubGroupSQL) PersistTokenRetirement(string, int64, []string) error   { return nil }
 func (s *stubGroupSQL) DeleteRevokedToken(string) error                        { return nil }
-func (s *stubGroupSQL) SaveHashedToken(string, uint64, bool) error             { return nil }
+func (s *stubGroupSQL) SaveHashedToken(string, uint64, bool, int64) error { return nil }
 func (s *stubGroupSQL) DeleteHashedToken(string) error                         { return nil }
 func (s *stubGroupSQL) DeleteHashedTokensByUserID(uint64) error                { return nil }
 
