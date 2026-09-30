@@ -76,9 +76,7 @@ async function globalSetup() {
   );
 
   await page.goto(`${baseURL}login`);
-  await page.getByPlaceholder("Username").fill("admin");
-  await page.getByPlaceholder("Password").fill("admin");
-  await page.getByRole("button", { name: "Login" }).click();
+  await loginPlaywrightAdmin(page);
   await page.waitForURL("**/files/**", { timeout: 30_000 });
 
   const cookies = await context.cookies();
