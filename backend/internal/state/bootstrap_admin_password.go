@@ -11,9 +11,10 @@ import (
 const bootstrapAdminPasswordHexBytes = 6 // 12 hex characters
 
 // bootstrapDefaultAdminPassword returns the plaintext password for initial admin creation.
-// When config adminPassword is blank or "admin", a random password is generated and logged once.
+// Uses auth.methods.password.adminPassword (backfilled from auth.adminPassword when unset).
+// Blank or "admin" is ignored and a random password is generated and logged once.
 func bootstrapDefaultAdminPassword(username string) (plaintext string, generated bool, err error) {
-	cfg := settings.Config.Auth.AdminPassword
+	cfg := settings.PasswordAdminPassword()
 	if cfg != "" && cfg != "admin" {
 		return cfg, false, nil
 	}
@@ -23,7 +24,7 @@ func bootstrapDefaultAdminPassword(username string) (plaintext string, generated
 		return "", false, fmt.Errorf("generate bootstrap admin password: %w", err)
 	}
 	logger.Infof(
-		"Generated initial admin password for user %q (set auth.adminPassword in config to override on future resets): %s",
+		"Generated initial admin password for user %q (set auth.methods.password.adminPassword in config to override): %s",
 		username,
 		plaintext,
 	)
