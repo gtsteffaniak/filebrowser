@@ -309,7 +309,26 @@ function sharePermissionCheckbox(modal: Locator, ariaLabel: string): Locator {
 async function openSettingsSection(page: Page, sidebarId: string) {
     await page.goto("/settings");
     await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-    await page.locator(`#${sidebarId}`).click();
+
+    const usersCard = page
+        .locator(".settings-card-collapsible")
+        .filter({ hasText: "User management" });
+
+    if (sidebarId === "users-sidebar") {
+        await usersCard
+            .locator(".settings-card-collapsible-header")
+            .click();
+        return;
+    }
+
+    if (sidebarId === "access-sidebar") {
+        await usersCard.locator(".settings-card-collapsible-chevron").click();
+        await usersCard
+            .locator(".settings-card-collapsible-sub-item")
+            .filter({ hasText: "Access" })
+            .click();
+        return;
+    }
 }
 
 async function expectCheckboxState(checkbox: Locator, checked: boolean) {
