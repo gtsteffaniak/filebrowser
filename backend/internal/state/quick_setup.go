@@ -29,11 +29,6 @@ func QuickSetup() error {
 
 	user.Username = settings.PasswordAdminUsername()
 
-	adminPassword := settings.PasswordAdminPassword()
-	if adminPassword == "" {
-		adminPassword = "admin"
-	}
-
 	user.Permissions.Admin = true
 	user.LoginMethod = users.LoginMethodPassword
 

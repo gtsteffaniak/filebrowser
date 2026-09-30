@@ -59,9 +59,6 @@ type Auth struct {
 // Blank or "admin" leaves the stored password unchanged across restarts.
 func ConfigTriggersAdminPasswordReset() bool {
 	p := PasswordAdminPassword()
-	if p == "" {
-		p = Config.Auth.AdminPassword
-	}
 	return p != "" && p != "admin"
 }
 
@@ -85,21 +82,31 @@ type PasswordAuthConfig struct {
 	EnforcedOtp   bool      `json:"enforcedOtp"`                    // if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
 }
 
-// PasswordAdminUsername returns the configured password-admin username, defaulting to "admin".
+// PasswordAdminUsername returns the password-auth admin username.
+// auth.methods.password.adminUsername takes priority; otherwise auth.adminUsername;
+// otherwise "admin".
 func PasswordAdminUsername() string {
 	if u := strings.TrimSpace(Config.Auth.Methods.PasswordAuth.AdminUsername); u != "" {
+		return u
+	}
+	if u := strings.TrimSpace(Config.Auth.AdminUsername); u != "" {
 		return u
 	}
 	return "admin"
 }
 
-// PasswordAdminPassword returns the configured password-admin password override (may be empty).
+// PasswordAdminPassword returns the password-auth admin password override.
+// auth.methods.password.adminPassword takes priority; otherwise auth.adminPassword.
 func PasswordAdminPassword() string {
-	return Config.Auth.Methods.PasswordAuth.AdminPassword
+	if p := Config.Auth.Methods.PasswordAuth.AdminPassword; p != "" {
+		return p
+	}
+	return Config.Auth.AdminPassword
 }
 
 // MigrateLegacyPasswordAdminFromAuth copies deprecated top-level auth.adminUsername and
-// auth.adminPassword into auth.methods.password when the new location is unset.
+// auth.adminPassword into auth.methods.password in memory when the nested keys are
+// unset (or still the generated "admin" placeholder). It does not rewrite the config file.
 func MigrateLegacyPasswordAdminFromAuth() {
 	pwd := &Config.Auth.Methods.PasswordAuth
 	legacyUser := strings.TrimSpace(Config.Auth.AdminUsername)
@@ -110,12 +117,14 @@ func MigrateLegacyPasswordAdminFromAuth() {
 			logger.Warning("auth.adminUsername is deprecated; use auth.methods.password.adminUsername")
 		}
 	}
-	if Config.Auth.AdminPassword != "" && pwd.AdminPassword == "" {
-		pwd.AdminPassword = Config.Auth.AdminPassword
-		logger.Warning("auth.adminPassword is deprecated; use auth.methods.password.adminPassword")
+	legacyPass := Config.Auth.AdminPassword
+	if legacyPass != "" {
+		nestedPass := pwd.AdminPassword
+		if nestedPass == "" || (nestedPass == "admin" && legacyPass != "admin") {
+			pwd.AdminPassword = legacyPass
+			logger.Warning("auth.adminPassword is deprecated; use auth.methods.password.adminPassword")
+		}
 	}
-	Config.Auth.AdminUsername = ""
-	Config.Auth.AdminPassword = ""
 }
 
 type ProxyAuthConfig struct {

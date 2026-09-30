@@ -7,28 +7,60 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-func TestBootstrapDefaultAdminPasswordUsesConfigWhenSet(t *testing.T) {
-	orig := settings.Config.Auth.AdminPassword
-	defer func() { settings.Config.Auth.AdminPassword = orig }()
+func TestBootstrapDefaultAdminPasswordUsesNestedConfigWhenSet(t *testing.T) {
+	origNested := settings.Config.Auth.Methods.PasswordAuth.AdminPassword
+	origLegacy := settings.Config.Auth.AdminPassword
+	defer func() {
+		settings.Config.Auth.Methods.PasswordAuth.AdminPassword = origNested
+		settings.Config.Auth.AdminPassword = origLegacy
+	}()
 
-	settings.Config.Auth.AdminPassword = "from-config"
+	settings.Config.Auth.Methods.PasswordAuth.AdminPassword = "from-nested"
+	settings.Config.Auth.AdminPassword = "from-legacy"
 	plain, generated, err := bootstrapDefaultAdminPassword("admin")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if generated {
-		t.Fatal("expected generated=false when config password is set")
+		t.Fatal("expected generated=false when nested config password is set")
 	}
-	if plain != "from-config" {
-		t.Fatalf("password = %q, want from-config", plain)
+	if plain != "from-nested" {
+		t.Fatalf("password = %q, want from-nested", plain)
+	}
+}
+
+func TestBootstrapDefaultAdminPasswordUsesTopLevelWhenNestedUnset(t *testing.T) {
+	origNested := settings.Config.Auth.Methods.PasswordAuth.AdminPassword
+	origLegacy := settings.Config.Auth.AdminPassword
+	defer func() {
+		settings.Config.Auth.Methods.PasswordAuth.AdminPassword = origNested
+		settings.Config.Auth.AdminPassword = origLegacy
+	}()
+
+	settings.Config.Auth.Methods.PasswordAuth.AdminPassword = ""
+	settings.Config.Auth.AdminPassword = "from-legacy"
+	plain, generated, err := bootstrapDefaultAdminPassword("admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if generated {
+		t.Fatal("expected generated=false when top-level config password is set")
+	}
+	if plain != "from-legacy" {
+		t.Fatalf("password = %q, want from-legacy", plain)
 	}
 }
 
 func TestBootstrapDefaultAdminPasswordGeneratesWhenDefault(t *testing.T) {
-	orig := settings.Config.Auth.AdminPassword
-	defer func() { settings.Config.Auth.AdminPassword = orig }()
+	origNested := settings.Config.Auth.Methods.PasswordAuth.AdminPassword
+	origLegacy := settings.Config.Auth.AdminPassword
+	defer func() {
+		settings.Config.Auth.Methods.PasswordAuth.AdminPassword = origNested
+		settings.Config.Auth.AdminPassword = origLegacy
+	}()
 
 	for _, cfg := range []string{"", "admin"} {
+		settings.Config.Auth.Methods.PasswordAuth.AdminPassword = cfg
 		settings.Config.Auth.AdminPassword = cfg
 		plain, generated, err := bootstrapDefaultAdminPassword("bootstrap-user")
 		if err != nil {
