@@ -98,6 +98,7 @@ export default {
       this.expandableSettings.forEach((setting) => {
         if (!this.isSectionActive(setting)) this.expandedSections[setting.id] = false;
         else if (this.isSubSectionActive(setting)) this.expandedSections[setting.id] = true;
+        else if (setting.id === 'users') this.expandedSections[setting.id] = false;
       });
     },
     showAdvancedProfile(val) {

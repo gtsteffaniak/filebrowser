@@ -36,7 +36,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Sort header in file listings inside prompts like move/copy/quick jump, is now sticky. Also added a button to show a search input and filter the items of the current listing (#3028).
  - Quick jump now scrolls and highlights the current item you are previewing (#3028).
  - When hovering `date` and `name` in the listings, will show up the formatted/raw date (the inverse of what you have configured to display) and the full filename (#3028) (#2623).
- - User groups can now be managed from the WebUI under `User Management` -> `Groups` (#2983) (#3040)
+ - User groups can now be managed from the WebUI under `User Management` -> `Groups` and when editing a user (#2983) (#3040).
 
  **Notes**:
  - An Admin can remove a `defautlEnabled` source for a user and it will remove removed until an admin adds it back.

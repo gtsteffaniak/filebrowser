@@ -7,6 +7,7 @@
         class="input"
         type="text"
         v-model.trim="name"
+        :placeholder="$t('access.groupName')"
         v-focus
         @keyup.enter="submit"
       />
@@ -39,28 +40,26 @@
         <i class="material-symbols">add</i>
       </button>
     </div>
-    <table v-if="selected.length > 0">
-      <tbody>
-        <tr>
-          <th>{{ $t("general.name", { suffix: "" }) }}</th>
-          <th>{{ $t("general.edit") }}</th>
-        </tr>
-        <tr v-for="username in selected" :key="username">
-          <td>{{ username }}</td>
-          <td>
-            <button
-              type="button"
-              class="action"
-              :aria-label="$t('general.delete')"
-              :title="$t('general.delete')"
-              @click="removeMember(username)"
-            >
-              <i class="material-symbols">delete</i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <settings-table
+      v-if="selected.length > 0"
+      :columns="columns"
+      :items="memberRows"
+      item-key="name"
+      default-sort-key="name"
+      :aria-label="membersLabel"
+    >
+      <template #cell-edit="{ row }">
+        <button
+          type="button"
+          class="action"
+          :aria-label="$t('general.delete')"
+          :title="$t('general.delete')"
+          @click="removeMember(row.name)"
+        >
+          <i class="material-symbols">delete</i>
+        </button>
+      </template>
+    </settings-table>
   </div>
 
   <div class="card-actions">
@@ -89,9 +88,11 @@ import { accessApi, usersApi } from "@/api";
 import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
+import SettingsTable from "@/components/settings/Table.vue";
 
 export default {
   name: "group-edit",
+  components: { SettingsTable },
   props: {
     group: { type: String, default: "" },
     members: { type: Array, default: () => [] },
@@ -122,6 +123,15 @@ export default {
     },
     isNew() {
       return !this.group;
+    },
+    memberRows() {
+      return this.selected.map((name) => ({ name }));
+    },
+    columns() {
+      return [
+        { key: "name", label: this.$t("general.name", { suffix: "" }), sortable: true },
+        { key: "edit", label: this.$t("general.edit"), narrow: true, align: "right" },
+      ];
     },
     suggestedUsers() {
       return this.allUsers.filter((u) => !this.selected.includes(u));

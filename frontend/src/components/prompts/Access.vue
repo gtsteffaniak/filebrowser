@@ -6,7 +6,7 @@
     <template v-else>
       <!-- Warning banner for missing path -->
       <div v-if="!pathExists && !isEditingPath" class="warning-banner">
-        <i class="material-symbols">warning</i>
+        <i class="material-symbols-outlined">warning</i>
         <span>{{ $t("messages.pathNotFoundMessage") }}</span>
         <button type="button" class="button button--flat button--blue" @click="startPathReassignment">
           {{ $t("messages.reassignPath") }}
@@ -33,7 +33,7 @@
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
-          <i class="material-symbols">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="material-symbols-outlined">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           {{ $t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? $t("access.deny") : $t("access.allow")
           }}
           <HelpTooltipIcon :text="$t('access.defaultBehaviorDescription')" />
@@ -61,7 +61,7 @@
           <option v-for="group in groups" :key="group" :value="group"></option>
         </datalist>
         <button type="button" class="button form-button flat-left form-compact" @click="submitAdd">
-          <i class="material-symbols">add</i>
+          <i class="material-symbols-outlined">add</i>
         </button>
       </div>
       <!-- Cascade Delete Toggle -->
@@ -70,28 +70,19 @@
           :name="$t('access.cascadeDelete')"
           :description="$t('access.cascadeDeleteDescription')" />
       </div>
-      <table v-if="entries.length > 0">
-        <tbody>
-          <tr>
-            <th>{{ $t("access.allowDeny") }}</th>
-            <th>{{ $t("access.userGroup") }}</th>
-            <th>{{ $t("general.name") }}</th>
-            <th>{{ $t("general.edit") }}</th>
-          </tr>
-          <tr v-for="entry in entries" :key="`${entry.type}-${entry.name}`">
-            <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
-            <td>{{ entry.type === 'user' ? $t("general.user") : (entry.type === 'group' ? $t("general.group") :
-              $t('access.all')) }}</td>
-            <td>{{ entry.name }}</td>
-            <td>
-              <button type="button" @click="deleteAccess(entry)" class="action" :aria-label="$t('general.delete')"
-                :title="$t('general.delete')">
-                <i class="material-symbols">delete</i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <settings-table
+        v-if="entries.length > 0"
+        :columns="columns"
+        :items="tableRows"
+        :aria-label="$t('access.access')"
+      >
+        <template #cell-edit="{ row }">
+          <button type="button" @click="deleteAccess(row.entry)" class="action" :aria-label="$t('general.delete')"
+            :title="$t('general.delete')">
+            <i class="material-symbols">delete</i>
+          </button>
+        </template>
+      </settings-table>
       </div>
     </template>
   </div>
@@ -117,6 +108,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import SettingsTable from "@/components/settings/Table.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
@@ -130,6 +122,7 @@ export default {
     PathPickerButton,
     ExpandDropdown,
     ActivityViewerButton,
+    SettingsTable,
   },
   props: {
     promptId: { type: [String, Number], default: null },
@@ -189,6 +182,25 @@ export default {
         entries.push({ allow: true, type: "group", name });
       });
       return entries;
+    },
+    columns() {
+      return [
+        { key: "allowDeny", label: this.$t("access.allowDeny"), sortable: true },
+        { key: "userGroup", label: this.$t("access.userGroup"), sortable: true },
+        { key: "name", label: this.$t("general.name"), sortable: true },
+        { key: "edit", label: this.$t("general.edit"), narrow: true, align: "right" },
+      ];
+    },
+    tableRows() {
+      return this.entries.map((entry) => ({
+        id: `${entry.type}-${entry.name}`,
+        allowDeny: entry.allow ? this.$t("access.allow") : this.$t("access.deny"),
+        userGroup: entry.type === "user"
+          ? this.$t("general.user")
+          : (entry.type === "group" ? this.$t("general.group") : this.$t("access.all")),
+        name: entry.name,
+        entry,
+      }));
     },
     activityViewerHref() {
       return activityViewerPresets.access(this.currentSource, this.currentPath);

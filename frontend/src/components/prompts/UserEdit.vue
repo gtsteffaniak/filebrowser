@@ -190,7 +190,7 @@
         <div class="group-chips">
           <span v-for="group in groups" :key="group" class="group-chip">
             {{ group }}
-            <button type="button" class="chip-remove" :aria-label="$t('access.removeGroup')"
+            <button type="button" class="action chip-remove" :aria-label="$t('access.removeGroup')"
               :title="$t('access.removeGroup')" @click="removeGroup(group)">
               <i class="material-symbols material-size">close</i>
             </button>
@@ -202,8 +202,9 @@
           <datalist id="user-group-options">
             <option v-for="g in suggestedGroups" :key="g" :value="g"></option>
           </datalist>
-          <button type="button" class="button form-button flat-left" :disabled="!newGroup" @click="addGroup">
-            {{ $t("access.addGroup") }}
+          <button type="button" class="button form-button flat-left" :disabled="!newGroup"
+            :aria-label="$t('access.addGroup')" :title="$t('access.addGroup')" @click="addGroup">
+            <i class="material-symbols">add</i>
           </button>
         </div>
         <p v-if="user.loginMethod === 'oidc'" class="group-note">{{ $t("access.groupsOidcNote") }}</p>
@@ -1495,17 +1496,19 @@ export default {
   gap: 0.2em;
   padding: 0.1em 0.3em 0.1em 0.7em;
   border-radius: 1em;
-  background: var(--surfaceSecondary, rgb(128 128 128 / 20%));
+  color: var(--primaryColor);
+  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
 }
 
 .chip-remove {
   display: inline-flex;
   align-items: center;
-  padding: 0;
-  border: 0;
-  background: none;
   color: inherit;
-  cursor: pointer;
+  border-radius: 50%;
+}
+
+.chip-remove i {
+  padding: 0;
 }
 
 .group-note {

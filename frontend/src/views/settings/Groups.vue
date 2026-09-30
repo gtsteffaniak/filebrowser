@@ -26,30 +26,24 @@
       <template #cell-members="{ row }">{{ row.members.join(", ") }}</template>
       <template #cell-actions="{ row }">
         <div class="row-actions">
-        <div
-          @click="openPrompt(row.name)"
-          class="clickable action button"
-          role="button"
-          tabindex="0"
-          :aria-label="$t('general.edit')"
-          :title="$t('general.edit')"
-          @keydown.enter.prevent="openPrompt(row.name)"
-          @keydown.space.prevent="openPrompt(row.name)"
-        >
-          <i class="material-symbols">edit</i>
-        </div>
-        <div
-          @click="remove(row.name)"
-          class="clickable action button"
-          role="button"
-          tabindex="0"
-          :aria-label="$t('general.delete')"
-          :title="$t('general.delete')"
-          @keydown.enter.prevent="remove(row.name)"
-          @keydown.space.prevent="remove(row.name)"
-        >
-          <i class="material-symbols">delete</i>
-        </div>
+          <button
+            type="button"
+            class="action"
+            :aria-label="$t('general.edit')"
+            :title="$t('general.edit')"
+            @click="openPrompt(row.name)"
+          >
+            <i class="material-symbols">edit</i>
+          </button>
+          <button
+            type="button"
+            class="action"
+            :aria-label="$t('general.delete')"
+            :title="$t('general.delete')"
+            @click="remove(row.name)"
+          >
+            <i class="material-symbols">delete</i>
+          </button>
         </div>
       </template>
     </settings-table>
@@ -103,7 +97,7 @@ export default {
           sortFn: (a, b) => a.memberCount - b.memberCount,
         },
         { key: "members", label: this.$t("general.users", { suffix: "" }) },
-        { key: "actions", label: "", align: "right", narrow: true },
+        { key: "actions", label: this.$t("general.edit"), align: "right", narrow: true },
       ];
     },
   },
@@ -179,10 +173,6 @@ export default {
   display: flex;
   justify-content: flex-end;
   gap: 0.25rem;
-}
-
-.clickable {
-  cursor: pointer;
 }
 
 .note {
