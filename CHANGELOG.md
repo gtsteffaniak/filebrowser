@@ -51,6 +51,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Added risc-v to official releases
  - Polished a bit some styles across various places of the UI (#3019) (#3028).
  - Moved `Access Management` under `User Management` in the UI (#3040).
+ - improved developer experience with native vue webhook reloads.
+ - improved ffmpeg handling and concurrency via library upgrades
 
  **Bug Fixes**:
  - Undo in a fresh opened file on the editor was setting the file empty (#2714)
