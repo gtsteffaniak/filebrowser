@@ -770,6 +770,7 @@
     "passwordRequiredForGeneration": "Your password is required to generate an authenticator code."
   },
   "access": {
+    "access": "Access",
     "groups": "Groups",
     "newGroup": "New group",
     "editGroup": "Edit group",

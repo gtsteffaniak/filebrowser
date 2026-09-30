@@ -645,6 +645,7 @@
     "back": "Vissza{suffix}"
   },
   "access": {
+    "access": "Hozzáférés",
     "rules": "Hozzáférési szabályok",
     "deny": "Deny",
     "allow": "Engedélyezze a",

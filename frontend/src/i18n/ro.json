@@ -645,6 +645,7 @@
     "back": "Înapoi{suffix}"
   },
   "access": {
+    "access": "Acces",
     "rules": "Reguli de acces",
     "deny": "Neagă",
     "allow": "Permiteți",

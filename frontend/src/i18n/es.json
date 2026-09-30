@@ -645,6 +645,7 @@
     "back": "Atrás{suffix}"
   },
   "access": {
+    "access": "Acceso",
     "rules": "Reglas de acceso",
     "deny": "Bloquear",
     "allow": "Permitir",

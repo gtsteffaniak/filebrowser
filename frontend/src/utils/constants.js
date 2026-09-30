@@ -38,7 +38,7 @@ const settings = [
     component: 'UserManagement',
     icon: 'group',
     sections: [
-      { id: 'access', label: 'access.accessManagement', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
+      { id: 'access', label: 'access.access', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
       { id: 'groups', label: 'access.groups', component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
     ],
   },
@@ -55,7 +55,7 @@ i18n.global.t('settings.systemAdmin');
 i18n.global.t('fileLoading.title');
 i18n.global.t('notifications.title');
 i18n.global.t('api.title');
-i18n.global.t('access.accessManagement');
+i18n.global.t('access.access');
 i18n.global.t('access.groups');
 
 const previewViews = [

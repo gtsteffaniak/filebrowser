@@ -645,6 +645,7 @@
     "back": "뒤로{suffix}"
   },
   "access": {
+    "access": "접근",
     "rules": "액세스 규칙",
     "deny": "거부",
     "allow": "허용",

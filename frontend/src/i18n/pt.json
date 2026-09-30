@@ -750,6 +750,7 @@
     "back": "Voltar{suffix}"
   },
   "access": {
+    "access": "Acesso",
     "rules": "Regras de acesso",
     "deny": "Recusar",
     "totalDenied": "Recusado",

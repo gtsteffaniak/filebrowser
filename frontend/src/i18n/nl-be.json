@@ -750,6 +750,7 @@
     "back": "Terug{suffix}"
   },
   "access": {
+    "access": "Toegang",
     "rules": "Toegangsregels",
     "deny": "Weigeren",
     "totalDenied": "Geweigerd",

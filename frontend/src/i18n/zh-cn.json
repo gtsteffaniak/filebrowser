@@ -750,6 +750,7 @@
     "back": "返回{suffix}"
   },
   "access": {
+    "access": "访问",
     "rules": "访问规则",
     "deny": "拒绝",
     "totalDenied": "拒绝",
