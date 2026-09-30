@@ -8,23 +8,15 @@
       :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
     >
       <!-- Desktop panel button, will auto‑hide only when panel is closed -->
-      <button
-        type="button"
-        v-if="showButtons && previewType === 'audio' && !isMobile"
+      <FloatingActionButton
+        v-if="previewType === 'audio' && !isMobile"
+        :icon="showDesktopPanel ? 'close' : 'queue_music'"
+        :badge="!showDesktopPanel ? queueCount : null"
+        :auto-hide="!showDesktopPanel"
+        :offset="{ zIndex: 9999 }"
         @click="showDesktopPanel = !showDesktopPanel"
-        @touchstart="resetButtonTimer"
-        @mouseenter="buttonZoneRight = true"
-        @mouseleave="buttonZoneRight = false"
-        class="queue-button floating panel-toggle-fab"
-        :class="{
-          'dark-mode': darkMode,
-        }"
-        :aria-label="showDesktopPanel ? $t('player.closePanel') : $t('player.openPanel')"
-        :title="showDesktopPanel ? $t('player.closePanel') : $t('player.openPanel')"
-      >
-        <i class="material-symbols">{{ showDesktopPanel ? 'close' : 'queue_music' }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <span v-if="!showDesktopPanel && queueCount > 0" class="queue-count">{{ queueCount }}</span>
-      </button>
+        :label="desktopPanelToggleLabel"
+      />
 
       <!-- Two‑column layout -->
         <div class="audio-player-content" :class="{ 'panel-open': !isMobile && showDesktopPanel }" >
@@ -70,7 +62,9 @@
           <AudioPanel
             v-if="!isMobile && showDesktopPanel"
             :lyrics="lyrics"
+            :lyrics-meta="lyricsMeta"
             :active-lyric-index="activeLyricIndex"
+            :active-word-index="activeWordIndex"
             :player="player"
             :audio-context="audioContext"
             :audio-source="audioSource"
@@ -85,6 +79,7 @@
       <div v-if="isMobile && showMobileLyrics && lyrics.length" class="lyrics-mobile">
         <!-- Scrollable area -->
         <div class="lyrics-mobile-scrollable" ref="lyricsMobileScrollable">
+          <p v-if="lyricsMeta" class="lyrics-meta-header" aria-hidden="true">{{ lyricsMeta }}</p>
           <p
             v-for="(line, i) in lyrics"
             :key="i"
@@ -95,13 +90,21 @@
             role="button"
             :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
           >
-            {{ line.text }}
+            <template v-if="i === activeLyricIndex && line.words && line.words.length">
+              <span
+                v-for="(word, w) in line.words"
+                :key="w"
+                class="lyric-word"
+                :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
+              >{{ word.text }}&nbsp;</span>
+            </template>
+            <template v-else>{{ line.text }}</template>
           </p>
         </div>
       </div>
 
       <!-- Audio controls -->
-      <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
+      <div class="audio-controls-container">
         <div class="plyr-audio-container" ref="plyrAudioContainer">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
@@ -134,6 +137,7 @@
           :type="req.type"
           preload="none"
           :src="nativeVideoSrc"
+          :poster="posterUrl"
           :autoplay="videoElementAutoplay"
           @play="handlePlay"
           playsinline
@@ -165,79 +169,38 @@
     </div>
 
     <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
-    <div
-      v-if="showRightZone"
-      class="floating-zone floating-zone--right"
-      @mousemove="resetButtonTimer"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-    ></div>
-
-    <!-- Left detection zone – only on mobile audio when lyrics exist -->
-    <div
-      v-if="isMobile && previewType === 'audio' && lyrics.length"
-      class="floating-zone floating-zone--left"
-      @mousemove="resetButtonTimer"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneLeft = true"
-      @mouseleave="buttonZoneLeft = false"
-    ></div>
-
-    <!-- Queue button – visible on videos, in audio on mobile -->
-    <button
-      type="button"
-      v-if="showButtons && showQueueButton"
-      class="queue-button floating"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+    <FloatingActionButton
+      v-if="showQueueButton"
+      icon="queue_music"
+      :badge="queueCount"
+      group="plyr-controls"
       @click="showQueuePrompt"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-      :aria-label="$t('player.QueueButtonHint')"
-      :title="$t('player.QueueButtonHint')"
-    >
-      <i class="material-symbols">queue_music</i>
-      <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
-    </button>
+      :label="queueButtonLabel"
+    />
 
     <!-- Lyrics button (left side) – only on mobile when lyrics exist -->
-    <button
-      type="button"
-      v-if="showButtons && isMobile && lyrics.length"
-      class="queue-button floating lyrics-fab-left"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+    <FloatingActionButton
+      v-if="isMobile && lyrics.length"
+      icon="lyrics"
+      position="top-left"
+      zone-height="8.5em"
+      group="plyr-controls"
       @click="showMobileLyrics = !showMobileLyrics"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneLeft = true"
-      @mouseleave="buttonZoneLeft = false"
-      :aria-label="$t('player.toggleLyrics')"
-      :title="$t('player.toggleLyrics')"
-    >
-      <i class="material-symbols">lyrics</i>
-    </button>
+      :label="lyricsToggleLabel"
+    />
 
     <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
-    <button
-      type="button"
+    <FloatingActionButton
       v-if="isMobile && previewType === 'audio' && showMobileLyrics && lyrics.length && syncedLyrics"
-      class="queue-button floating lyrics-lock-fab"
-      :class="{
-        'dark-mode': darkMode,
-      }"
+      icon="lock"
+      :icon-outlined="mobileLyricsScrollLocked"
+      position="bottom-right"
+      size="small"
+      :offset="{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }"
+      :auto-hide="false"
       @click="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
-      @touchstart="resetButtonTimer"
-      @mouseenter="buttonZoneRight = true"
-      @mouseleave="buttonZoneRight = false"
-      :title="mobileLyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
-    >
-      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-      <i :class="mobileLyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ mobileLyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
-    </button>
+      :label="mobileLyricsLockToggleLabel"
+    />
 
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
@@ -263,6 +226,7 @@ import {
   buildPlaybackQueue,
   navigatePlaybackQueue,
   getEndOfMediaAction,
+  getNextItem,
   cyclePlaybackModes,
   toggleSingleLoop,
   clearPlaybackQueue,
@@ -305,6 +269,7 @@ import {
   takeSessionSnapshot,
 } from '@/plyr/pipSession.js';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import FloatingActionButton from '@/components/settings/FloatingActionButton.vue';
 import {
   parsePlaybackTimeFromQuery,
   playbackQueryChanged,
@@ -328,6 +293,7 @@ export default {
   components: {
     AudioPanel,
     LoadingSpinner,
+    FloatingActionButton,
   },
   props: {
     previewType: {
@@ -375,7 +341,9 @@ export default {
 
       // Lyrics
       activeLyricIndex: -1,
+      activeWordIndex: -1,
       doubleTapSeekCleanup: null,
+      rewindForwardFeedback: null,
       mobileLyricsScrollLocked: false,
 
       // Audio Visualizer
@@ -388,13 +356,7 @@ export default {
       loopMenuInitialized: false,
       lastAppliedMode: null,
       showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
-      showMobileLyrics: false,
-
-      // Buttons visibility
-      buttonVisible: false,
-      buttonTimer: null,
-      buttonZoneLeft: false,
-      buttonZoneRight: false,
+      showMobileLyrics: sessionStorage.getItem('plyrShowMobileLyrics') === '1',
       isFullscreen: false,
 
       // Gestures
@@ -405,10 +367,8 @@ export default {
       skipFeedbackTimer: null,
       skipNextTap: false,
       skipNextTapTimer: null, // Timer for clearing skipNextTap
-      pendingPlayPauseTapTimer: null,
       edgeTapLastTime: 0,
       edgeTapLastZone: null,
-      edgeSeekAt: 0,
       ignoreClickUntil: 0,
 
       hasStartedPlayback: false,
@@ -487,6 +447,7 @@ export default {
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
+        this.updateMediaSessionNavHandlers();
       }
     },
     loop(newVal, oldVal) {
@@ -496,7 +457,11 @@ export default {
         this.$nextTick(() => {
           this.ensurePlaybackModeApplied();
         });
+        this.updateMediaSessionNavHandlers();
       }
+    },
+    currentQueueIndex() {
+      this.updateMediaSessionNavHandlers();
     },
     showDesktopPanel(val) {
       localStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
@@ -509,12 +474,19 @@ export default {
         this.$nextTick(() => this.scrollMobileLyrics());
       }
     },
+    lyrics(newLyrics, oldLyrics) {
+      if (newLyrics !== oldLyrics) {
+        this.activeLyricIndex = -1;
+        this.activeWordIndex = -1;
+      }
+    },
     mobileLyricsScrollLocked(val) {
       if (!val && this.showMobileLyrics && this.lyrics.length) {
         this.$nextTick(() => this.scrollMobileLyrics());
       }
     },
     showMobileLyrics(val) {
+        sessionStorage.setItem('plyrShowMobileLyrics', val ? '1' : '0');
         if (val && this.lyrics.length) {
             this.$nextTick(() => this.scrollMobileLyrics());
         }
@@ -522,6 +494,11 @@ export default {
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
       this.togglePlayPause();
+      }
+    },
+    isPlaying(isPlaying) {
+      if (this.previewType === 'video') {
+        this.overlaidHintApi?.syncPlayback(isPlaying);
       }
     },
     'req.path'() {
@@ -612,32 +589,23 @@ export default {
     routePath() {
       return state.route.path;
     },
-    darkMode() {
-      return state.user.darkMode;
-    },
     filetype() {
       return getTypeFromMime(this.req.type || '');
     },
     formattedArtist() {
       return formatArtist(this.metadata?.artist);
     },
-    showButtons() {
-      if (this.previewType === 'audio' && !this.isMobile && this.showDesktopPanel) {
-        return true;
-      }
-      if (this.isMobile) {
-        return this.buttonVisible;
-      }
-      return this.buttonVisible || this.buttonZoneLeft || this.buttonZoneRight;
+    desktopPanelToggleLabel() {
+      return this.showDesktopPanel ? this.$t('player.closePanel') : this.$t('player.openPanel');
     },
-    showRightZone() {
-      // show zone only when panel is closed
-      if (this.previewType === 'audio' && !this.isMobile) {
-        return !this.showDesktopPanel;
-      }
-      if (this.previewType === 'video') return true;
-      if (this.isMobile && this.previewType === 'audio') return true;
-      return false;
+    queueButtonLabel() {
+      return this.$t('player.QueueButtonHint');
+    },
+    lyricsToggleLabel() {
+      return this.$t('player.toggleLyrics');
+    },
+    mobileLyricsLockToggleLabel() {
+      return this.mobileLyricsScrollLocked ? this.$t('player.unlockLyrics') : this.$t('player.lockLyrics');
     },
     showQueueButton() {
       if (this.previewType === 'video') {
@@ -646,6 +614,9 @@ export default {
       }
       if (this.isMobile && this.previewType === 'audio') return true;
       return false;
+    },
+    mobileLyricsActive() {
+      return this.isMobile && this.showMobileLyrics && this.lyrics.length > 0;
     },
     displayArtSize() {
       if (this.isMobile && this.showMobileLyrics && this.lyrics.length) {
@@ -658,6 +629,9 @@ export default {
     },
     shouldTogglePlayPause() {
       return state.playbackQueue.shouldTogglePlayPause || false;
+    },
+    isPlaying() {
+      return state.playbackQueue.isPlaying || false;
     },
     playbackQueue() {
       return state.playbackQueue.queue;
@@ -694,7 +668,7 @@ export default {
     },
     mediaElement() {
       return this.previewType === 'video'
-        ? this.$refs.videoElement 
+        ? this.$refs.videoElement
         : this.$refs.audioElement;
     },
     shouldAutoplay() {
@@ -706,7 +680,7 @@ export default {
     videoSwipeGesturesActive() {
       return (
         (this.previewType === 'video' || this.previewType === 'audio') &&
-        !!this.player
+        !!this.player && !this.mobileLyricsActive
       );
     },
     videoNavigationGestureAllowed() {
@@ -730,12 +704,25 @@ export default {
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
     },
+    // "Title - Artist" shown above the lyrics from the [ti:] [ar:] tags on lyrics (if present)
+    lyricsMeta() {
+      const lyricsTitle = this.lyrics?.lrcMeta?.title;
+      const lyricsArtist = this.lyrics?.lrcMeta?.artist;
+      if (lyricsTitle && lyricsArtist) return `${lyricsTitle} - ${lyricsArtist}`;
+      return lyricsTitle || lyricsArtist || '';
+    },
     scrubPreviewEnabled() {
       return (
         this.previewType === 'video'
         && Boolean(this.req?.hasPreview)
         && getters.previewPerms().video
       );
+    },
+    posterUrl() {
+      if (!this.scrubPreviewEnabled) return undefined;
+      return getters.isShare()
+        ? getPreviewURLPublic(this.req.path, 'original')
+        : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=original`;
     },
     nativeVideoSrc() {
       if (this.previewType !== 'video') {
@@ -866,7 +853,6 @@ export default {
       this.loadAudioMetadata();
     }
     document.addEventListener('keydown', this.handleKeydown);
-    this.resetButtonTimer(); // Show buttons initially
     this.pagehideHandler = (event) => {
       if (event.persisted) return;
       this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
@@ -876,7 +862,6 @@ export default {
   beforeUnmount() {
     // Cleanup timeouts
     [this.toastTimeout,
-    this.buttonTimer,
     this.skipFeedbackTimer,
     this.videoDismissCloseTimer,
     this.videoDismissHintTimer,
@@ -891,20 +876,6 @@ export default {
     window.removeEventListener('pagehide', this.pagehideHandler);
   },
   methods: {
-    resetButtonTimer() {
-      this.buttonVisible = true;
-      if (this.buttonTimer) clearTimeout(this.buttonTimer);
-      this.buttonTimer = setTimeout(() => {
-        if (this.isMobile) {
-          this.buttonVisible = false;
-        } else {
-          if (!this.buttonZoneLeft && !this.buttonZoneRight) {
-            this.buttonVisible = false;
-          }
-        }
-        this.buttonTimer = null;
-      }, 3000);
-    },
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
     subtitleTrackLabel(sub) {
       const ext = getSubtitleFormatExtension(sub?.name || '');
@@ -927,29 +898,21 @@ export default {
       const fallbackUrl = fallbackIcon.includes('?')
         ? `${fallbackIcon}&t=${timestamp}`
         : `${fallbackIcon}?t=${timestamp}`;
+      // Video uses the same thumbnail as the poster; audio uses embedded album art (if any).
+      const artworkSrc = this.previewType === 'video' ? this.posterUrl : this.albumArtUrl;
       const metadata = {
         title: this.metadata?.title || this.fileName,
         artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
         album: this.metadata?.album || "",
         // In current versions of Firefox the artwork will not work, seems that doesn't like blob URLs.
         // But testing in 149.0a1 (nightly builds), it seems to work, so this something that will solve over time :)
-        artwork: [ { src: this.albumArtUrl || fallbackUrl } ]
+        artwork: [ { src: artworkSrc || fallbackUrl } ]
       };
       navigator.mediaSession.metadata = new MediaMetadata(metadata);
       // Setup handlers for the media session
       const actionHandlers = [
         ['play', () => this.player?.play()],
         ['pause', () => this.player?.pause()],
-        ['previoustrack', () => {
-          if (this.playbackQueue.length > 1) {
-            this.playPrevious();
-          }
-        }],
-        ['nexttrack', () => {
-          if (this.playbackQueue.length > 1) {
-            this.playNext();
-          }
-        }],
         ['seekbackward', (details) => this.player?.rewind(details.seekOffset || 10)],
         ['seekforward', (details) => this.player?.forward(details.seekOffset || 10)],
         ['seekto', (details) => {
@@ -964,7 +927,26 @@ export default {
           console.warn(`The media session action "${String(action)}" is not supported`, e);
         }
       }
+      this.updateMediaSessionNavHandlers();
       this.updateMediaSessionPlaybackState();
+    },
+    updateMediaSessionNavHandlers() {
+      if (!('mediaSession' in navigator) || !this.ownsMediaSession()) return;
+      const { queue, currentIndex, loop } = state.playbackQueue;
+      const hasPrevious = queue.length > 1 && !!getNextItem(queue, currentIndex, loop, -1);
+      const hasNext = queue.length > 1 && !!getNextItem(queue, currentIndex, loop, 1);
+      try {
+        navigator.mediaSession.setActionHandler(
+          'previoustrack',
+          hasPrevious ? () => this.playPrevious() : null
+        );
+      } catch (e) { /*ignore*/ }
+      try {
+        navigator.mediaSession.setActionHandler(
+          'nexttrack',
+          hasNext ? () => this.playNext() : null
+        );
+      } catch (e) { /*ignore*/ }
     },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
@@ -1083,6 +1065,7 @@ export default {
         }
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
+        this.clearRewindForwardFeedback();
         this.cleanupAudioVisualizer();
         this.clearMediaSession();
         this.cleanupAlbumArt();
@@ -1131,7 +1114,7 @@ export default {
           const closed = context.close();
           if (closed?.catch) closed.catch(() => {});
         } catch (_) {
-          /* ignore */ 
+          /* ignore */
         }
         this.audioContext = null;
       }
@@ -1318,8 +1301,11 @@ export default {
       if (!this.lyrics.length || !this.syncedLyrics) return;
       const currentMs = this.player.currentTime * 1000;
       let idx = this.activeLyricIndex;
-      if (idx > 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
-        idx = 0;
+      if (idx > this.lyrics.length - 1) {
+        idx = -1;
+      }
+      if (idx >= 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
+        idx = -1;
       }
       while (
         idx + 1 < this.lyrics.length &&
@@ -1328,11 +1314,40 @@ export default {
         idx++;
       }
       let first = idx;
-      while (first > 0 && this.lyrics.at(first - 1).timestamp === this.lyrics.at(idx).timestamp) {
+      while (
+        first > 0 &&
+        this.lyrics.at(first - 1)?.timestamp === this.lyrics.at(idx)?.timestamp
+      ) {
         first--;
       }
       if (first !== this.activeLyricIndex) {
         this.activeLyricIndex = first;
+        this.activeWordIndex = -1;
+      }
+      this.syncActiveWord(currentMs);
+    },
+    // Update active word within the active lyric line (for elrc)
+    syncActiveWord(currentMs) {
+      const words = this.activeLyricIndex >= 0 ? this.lyrics.at(this.activeLyricIndex)?.words : null;
+      if (!words?.length) {
+        this.activeWordIndex = -1;
+        return;
+      }
+      let idx = this.activeWordIndex;
+      if (idx > words.length - 1) {
+        idx = -1;
+      }
+      if (idx < 0 || words.at(idx)?.timestamp > currentMs) {
+        idx = 0;
+      }
+      while (idx + 1 < words.length && words.at(idx + 1).timestamp <= currentMs) {
+        idx++;
+      }
+      if (words.at(idx)?.timestamp > currentMs) {
+        idx = -1;
+      }
+      if (idx !== this.activeWordIndex) {
+        this.activeWordIndex = idx;
       }
     },
     scrollMobileLyrics() {
@@ -1411,12 +1426,12 @@ export default {
       // This prevents Plyr from trying to access tracks before they have valid blob URLs
       const hasSubtitleMetadata = this.req?.subtitles?.length > 0;
       const subtitlesNotLoaded = !this.subtitlesList || this.subtitlesList.length === 0;
-      
+
       if (this.previewType === 'video' && hasSubtitleMetadata && subtitlesNotLoaded) {
         // Wait for subtitles to be loaded (watcher will call initializePlyr)
         return;
       }
-      
+
       this.initializePlyr();
     },
     initializePlyr() {
@@ -1438,6 +1453,7 @@ export default {
       this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
       this.pipHandoffApplying = false;
       await this.reconcilePipSessionOnMount();
+      if (this.plyrTeardownDone || !this.mediaElement) return;
       this.player = new Plyr(this.mediaElement, this.plyrOptions);
       if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
         this.nativePlayerPlay = this.player.play.bind(this.player);
@@ -1588,6 +1604,7 @@ export default {
         return;
       }
       this.videoStreamAttached = true;
+      this.videoLoadingCleanup?.expectPlayback?.();
       this.$nextTick(() => {
         this.$nextTick(() => {
           const el = this.mediaElement;
@@ -1612,7 +1629,7 @@ export default {
               el.addEventListener('canplay', onCanPlay, { once: true });
             }
           }
-          
+
           const startDefault = () => {
             this.clearAttachVideoStreamWait();
             this.applyQueryPlaybackSeek();
@@ -1639,10 +1656,8 @@ export default {
             } else {
               el.addEventListener('loadedmetadata', start, { once: true });
             }
-          } else if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-            start();
           } else {
-            el.addEventListener('canplay', start, { once: true });
+            start();
           }
         });
       });
@@ -1974,20 +1989,15 @@ export default {
     },
     setupPlyrEvents() {
       if (!this.player) return;
+      mutations.setPlaybackState(this.player.playing);
       const eventMap = {
         ended: this.handleMediaEnd,
         play: () => {
           this.hasStartedPlayback = true;
-          if (this.previewType === 'video') {
-            this.overlaidHintApi?.onPlaybackToggle(true);
-          }
           mutations.setPlaybackState(true);
           this.updateMediaSessionPlaybackState();
         },
         pause: () => {
-          if (this.previewType === 'video' && this.hasStartedPlayback && !this.player?.ended) {
-            this.overlaidHintApi?.onPlaybackToggle(false);
-          }
           mutations.setPlaybackState(false);
           this.updateMediaSessionPlaybackState();
         },
@@ -2019,6 +2029,7 @@ export default {
       if (this.previewType === 'video' || this.previewType === 'audio') {
         this.setupDoubleTapSeek();
         this.setupVideoSwipeGestures();
+        this.setupRewindForwardFeedback();
       }
       if (this.previewType === 'video') {
         this.setupOverlaidHintController();
@@ -2049,7 +2060,7 @@ export default {
         '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
         '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
         '.audio-side-panel .tab-btn, ' +
-        '.audio-side-panel .lyrics-lock-btn, ' +
+        '.audio-side-panel .fab-button, ' +
         '.audio-side-panel .lyric-line, ' +
         '.audio-side-panel input[type="radio"], ' +
         '.audio-side-panel label[for^="tab-"], ' +
@@ -2066,6 +2077,32 @@ export default {
         this.doubleTapSeekCleanup = null;
       }
     },
+    setupRewindForwardFeedback() {
+      this.clearRewindForwardFeedback();
+      const container = this.player?.elements?.container;
+      if (!container) {
+        return;
+      }
+      const rewind = container.querySelector('[data-plyr="rewind"]');
+      const forward = container.querySelector('[data-plyr="fast-forward"]');
+      if (!rewind && !forward) {
+        return;
+      }
+      const onRewind = () => this.flashSkipFeedback(true);
+      const onForward = () => this.flashSkipFeedback(false);
+      rewind?.addEventListener('click', onRewind);
+      forward?.addEventListener('click', onForward);
+      this.rewindForwardFeedback = () => {
+        rewind?.removeEventListener('click', onRewind);
+        forward?.removeEventListener('click', onForward);
+      };
+    },
+    clearRewindForwardFeedback() {
+      if (typeof this.rewindForwardFeedback === 'function') {
+        this.rewindForwardFeedback();
+      }
+      this.rewindForwardFeedback = null;
+    },
     setupOverlaidHintController() {
       this.teardownOverlaidHintController();
       if (!this.player) {
@@ -2075,6 +2112,7 @@ export default {
         player: this.player,
         hasStartedPlayback: () => this.hasStartedPlayback,
         baseUrl: globalVars.baseURL,
+        isPlaying: this.isPlaying,
       });
       this.overlaidHintApi = api;
       this.overlaidHintCleanup = api.cleanup;
@@ -2086,14 +2124,7 @@ export default {
       this.overlaidHintCleanup = null;
       this.overlaidHintApi = null;
     },
-    clearPendingPlayPauseTap() {
-      if (this.pendingPlayPauseTapTimer) {
-        clearTimeout(this.pendingPlayPauseTapTimer);
-        this.pendingPlayPauseTapTimer = null;
-      }
-    },
     clearEdgeTapGestureState() {
-      this.clearPendingPlayPauseTap();
       this.edgeTapLastTime = 0;
       this.edgeTapLastZone = null;
     },
@@ -2105,10 +2136,10 @@ export default {
       const surface = this.getPlyrGestureSurface();
       if (!surface || !this.player) return;
 
-      const DOUBLE_MS = 320;
+      const EDGE_CLICK_MS = 200;
 
       const peekNavChromeForEdgeTap = (clientX, zone) => {
-        if (this.previewType !== 'video' || !state.navigation.enabled) {
+        if (!state.navigation.enabled) {
           return;
         }
         const moveWithSidebar = getters.isSidebarVisible() && getters.isStickySidebar();
@@ -2125,9 +2156,21 @@ export default {
         const rect = surface.getBoundingClientRect();
         return zoneFromClientX(clientX, rect);
       };
+      const OVERLAID_BUTTON_TOUCH_PADDING = 8;
+      const isOverlaidButtonHit = (clientX, clientY) => {
+        const btn = this.player?.elements?.container?.querySelector('.plyr__control--overlaid');
+        if (!btn) return false;
+        const r = btn.getBoundingClientRect();
+        if (!r.width || !r.height) return false;
+        const cx = r.left + (r.width / 2);
+        const cy = r.top + (r.height / 2);
+        const radius = (Math.min(r.width, r.height) / 2) + OVERLAID_BUTTON_TOUCH_PADDING;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+        return (dx * dx) + (dy * dy) <= radius * radius;
+      };
 
       const applySeek = (rewind) => {
-        this.edgeSeekAt = Date.now();
         this.clearEdgeTapGestureState();
         this.clearLongPressTimer();
         this.longPressPending = false;
@@ -2148,22 +2191,9 @@ export default {
           this.player.play();
         }
       };
-
-      const scheduleEdgePlayPause = () => {
-        this.clearPendingPlayPauseTap();
-        this.pendingPlayPauseTapTimer = setTimeout(() => {
-          this.pendingPlayPauseTapTimer = null;
-          this.edgeTapLastTime = 0;
-          this.edgeTapLastZone = null;
-          if (!this.skipNextTap && this.previewType === 'video') {
-            togglePlayPause();
-          }
-        }, DOUBLE_MS);
-      };
-
       const handleEdgeZoneTap = (zone, event) => {
         const now = Date.now();
-        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < DOUBLE_MS) {
+        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < 300) {
           applySeek(zone === 'left');
           if (event) {
             event.preventDefault();
@@ -2173,7 +2203,6 @@ export default {
         }
         this.edgeTapLastTime = now;
         this.edgeTapLastZone = zone;
-        scheduleEdgePlayPause();
         if (event) {
           event.preventDefault();
           event.stopPropagation();
@@ -2206,17 +2235,28 @@ export default {
           this.clearEdgeTapGestureState();
           return;
         }
-        const zone = zoneFromSurfaceX(t.clientX);
-        if (zone === 'center') {
+        if (isOverlaidButtonHit(t.clientX, t.clientY)) {
           handleCenterTap(event);
           this.ignoreClickUntil = Date.now() + 500;
           return;
         }
-        handleEdgeZoneTap(zone, event);
-        peekNavChromeForEdgeTap(t.clientX, zone);
+        const zone = zoneFromSurfaceX(t.clientX);
+        if (zone === 'left' || zone === 'right') {
+          handleEdgeZoneTap(zone, event);
+          peekNavChromeForEdgeTap(t.clientX, zone);
+          this.ignoreClickUntil = Date.now() + 500;
+          return;
+        }
+        this.clearEdgeTapGestureState();
         this.ignoreClickUntil = Date.now() + 500;
       };
-
+      let edgeClickToggleTimer = null;
+      const clearEdgeClickToggleTimer = () => {
+        if (edgeClickToggleTimer) {
+          clearTimeout(edgeClickToggleTimer);
+          edgeClickToggleTimer = null;
+        }
+      };
       const onClick = (event) => {
         if (Date.now() < this.ignoreClickUntil) {
           event.preventDefault();
@@ -2227,27 +2267,39 @@ export default {
           return;
         }
         if (this.skipNextTap) return;
+        this.clearEdgeTapGestureState();
         const zone = zoneFromSurfaceX(event.clientX);
-        if (zone === 'center') {
-          handleCenterTap(event);
-          return;
+        if (zone === 'left' || zone === 'right') {
+          if (event.detail >= 2) {
+            clearEdgeClickToggleTimer();
+          } else {
+            clearEdgeClickToggleTimer();
+            edgeClickToggleTimer = setTimeout(() => {
+              edgeClickToggleTimer = null;
+              if (this.previewType === 'video') {
+                togglePlayPause();
+              }
+            }, EDGE_CLICK_MS);
+          }
+          peekNavChromeForEdgeTap(event.clientX, zone);
+        } else if (this.previewType === 'video') {
+          togglePlayPause();
         }
-        handleEdgeZoneTap(zone, event);
-        peekNavChromeForEdgeTap(event.clientX, zone);
+
+        event.preventDefault();
+        event.stopPropagation();
       };
 
       const onDblClick = (event) => {
+        if (Date.now() < this.ignoreClickUntil) {
+          return;
+        }
         if (this.isPlyrControlOrMenuTarget(event.target)) {
           return;
         }
         const zone = zoneFromSurfaceX(event.clientX);
         if (zone === 'left' || zone === 'right') {
-          this.clearEdgeTapGestureState();
-          if (Date.now() - this.edgeSeekAt < 400) {
-            event.preventDefault();
-            event.stopPropagation();
-            return;
-          }
+          clearEdgeClickToggleTimer();
           applySeek(zone === 'left');
           event.preventDefault();
           event.stopPropagation();
@@ -2262,6 +2314,7 @@ export default {
         surface.removeEventListener('touchend', onTouchEnd);
         surface.removeEventListener('click', onClick);
         surface.removeEventListener('dblclick', onDblClick);
+        clearEdgeClickToggleTimer();
         this.clearEdgeTapGestureState();
       };
     },
@@ -2359,20 +2412,6 @@ export default {
         this.applyVideoSwipeTransform();
         this.syncVideoNavigationGestureHintToStore();
         return;
-      }
-      if (this.showMobileLyrics) {
-        // Allow horizontal navigation swipes, ignore vertical if lyrics are shown
-        const ax = Math.abs(this.videoEdgeDx);
-        const ay = Math.abs(this.videoEdgeDy);
-        if (ay > ax) {
-          this.videoDragOffsetX = 0;
-          this.videoDragOffsetY = 0;
-          this.videoShowNavHint = false;
-          this.videoShowDismissHint = false;
-          this.applyVideoSwipeTransform();
-          this.syncVideoNavigationGestureHintToStore();
-          return;
-        }
       }
 
       const kind = this.videoEdgeKind;
@@ -2488,10 +2527,6 @@ export default {
           return;
         }
       } else if (kind === 'vertical-dismiss') {
-        if (this.showMobileLyrics) {
-          this.resetVideoEdgeGestureImmediate();
-          return;
-        }
         if (this.videoEdgeDy >= this.videoEdgeCommitY) {
           this.clearVideoDismissAnimTimers();
           this.videoDismissFlashActive = true;
@@ -2841,6 +2876,7 @@ export default {
       }
     },
     handleMediaEnd() {
+      mutations.setPlaybackState(false);
       const queue = state.playbackQueue.queue;
       const currentIndex = state.playbackQueue.currentIndex;
       const loop = state.playbackQueue.loop;
@@ -3091,8 +3127,7 @@ export default {
 /* Remove blue overlay when tapping on mobile */
 .plyr,
 .plyr__video-wrapper,
-.plyr video,
-.video-player-container .plyr {
+.plyr video {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -3126,42 +3161,30 @@ export default {
 
 .plyr {
   --plyr-color-main: var(--primaryColor);
-  --plyr-video-background: rgba(0, 0, 0, 1);
+  --plyr-video-background: rgb(0 0 0 / 100%);
   --plyr-focus-visible-color: var(--primaryColor);
-  --plyr-audio-control-color: #ffffff;
-  --plyr-menu-background: rgba(0, 0, 0, 0.7);
-  --plyr-menu-color: #ffffff;
-  --plyr-menu-border-shadow-color: rgba(0, 0, 0, 0.5);
+  --plyr-audio-control-color: #fff;
+  --plyr-menu-background: rgb(0 0 0 / 70%);
+  --plyr-menu-color: #fff;
+  --plyr-menu-border-shadow-color: rgb(0 0 0 / 50%);
   --plyr-menu-radius: 12px;
-  --plyr-menu-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --plyr-menu-shadow: 0 1px 2px rgb(0 0 0 / 50%);
   --plyr-control-radius: 12px;
   --plyr-control-icon-size: 16px;
   --plyr-control-spacing: 8px;
   --plyr-control-padding: 6px;
-  --plyr-tooltip-background: rgba(0, 0, 0, 0.8);
-  --plyr-tooltip-color: #ffffff;
+  --plyr-tooltip-background: rgb(0 0 0 / 80%);
+  --plyr-tooltip-color: #fff;
   --plyr-video-controls-background: linear-gradient(transparent,
-          rgba(0, 0, 0, 0.7));
+          rgb(0 0 0 / 70%));
 
   overflow: visible;
   background-color: rgb(216 216 216);
-  box-shadow: 0 2px 6px rgba(88, 88, 88, 0.45);
+  box-shadow: 0 2px 6px rgb(88 88 88 / 45%);
 }
 
 .plyr__controls {
   color: black;
-}
-
-.audio-controls-container.dark-mode .plyr {
-  background-color: rgb(37 49 55 / 33%);
-  color: white;
-}
-
-/* Backdrop-filter support for plyr */
-@supports (backdrop-filter: none) {
-  .plyr {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
 }
 
 /* Position/space of the buttons */
@@ -3170,14 +3193,6 @@ export default {
   flex-direction: row;
   gap: 8px;
   background-color: transparent;
-}
-
-.audio-controls-container.dark-mode .plyr .plyr__controls {
-  color: white;
-}
-
-.audio-controls-container.light-mode .plyr .plyr__controls {
-  color: black;
 }
 
 .plyr .plyr__controls__items {
@@ -3189,7 +3204,7 @@ export default {
 
 /* Transitions (e.g. how much time take to hide the player UI) */
 .plyr .plyr__control {
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
   display: flex;
   min-width: 2em;
@@ -3228,8 +3243,8 @@ export default {
   background: #000;
   border: 2px solid var(--primaryColor);
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.35),
-    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgb(0 0 0 / 35%),
+    0 6px 20px rgb(0 0 0 / 55%),
     0 0 12px color-mix(in srgb, var(--primaryColor) 35%, transparent);
 }
 
@@ -3240,8 +3255,15 @@ export default {
   right: 0;
   bottom: 0;
   height: 44%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+  background: linear-gradient(to top, rgb(0 0 0 / 60%), rgb(0 0 0 / 0%));
   pointer-events: none;
+}
+
+.fb-scrub-preview__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .fb-scrub-preview__loading {
@@ -3251,7 +3273,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgb(0 0 0 / 45%);
 }
 
 .fb-scrub-preview__loading[hidden] {
@@ -3260,7 +3282,7 @@ export default {
 
 /* Spinner sits above the previous frame while the next preview loads. */
 .fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) .fb-scrub-preview__loading {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgb(0 0 0 / 50%);
 }
 
 .fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) img {
@@ -3270,13 +3292,6 @@ export default {
 .fb-scrub-preview__loading .loader {
   position: relative;
   z-index: 1;
-}
-
-.fb-scrub-preview__frame img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .fb-scrub-preview__time {
@@ -3291,8 +3306,8 @@ export default {
   color: #fff;
   white-space: nowrap;
   text-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.9),
-    0 0 8px rgba(0, 0, 0, 0.6);
+    0 1px 3px rgb(0 0 0 / 90%),
+    0 0 8px rgb(0 0 0 / 60%);
   pointer-events: none;
 }
 
@@ -3317,13 +3332,6 @@ export default {
   border-top: 8px solid var(--primaryColor);
 }
 
-/* Big play button when pause/start the video */
-.plyr--full-ui.plyr--video .plyr__control--overlaid {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 .plyr__control--overlaid {
   background: var(--plyr-video-control-background-hover, var(--primaryColor));
   border: 0;
@@ -3336,24 +3344,33 @@ export default {
     box-shadow 0.3s ease !important;
   z-index: 5;
   height: 4em;
-  top: 50%;
-  left: 50%;
-  right: auto;
+  inset: 50% auto auto 50%;
   transform: translate(-50%, -50%) !important;
-  bottom: auto;
   width: 4em !important;
   margin: 0 !important;
   border-radius: 5em !important;
   pointer-events: auto;
   cursor: pointer;
   outline: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 30%);
 }
 
 .plyr--fullscreen-active .plyr__control--overlaid {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
+}
+
+/* Hide the overlaid play button in audio mode */
+.plyr--audio .plyr__control--overlaid {
+  display: none !important;
+}
+
+/* Big play button when pause/start the video */
+.plyr--full-ui.plyr--video .plyr__control--overlaid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .plyr--video .plyr__control--overlaid:hover,
@@ -3364,29 +3381,9 @@ export default {
   opacity: 1 !important;
   outline: none;
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.9),
-    0 8px 25px rgba(var(--primaryColor-rgb), 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* Hide center button while playing unless shown or fading out */
-.plyr--playing.plyr--hide-controls:not(.fb-overlaid--shown):not(.fb-overlaid--fade-out)
-  .plyr__control--overlaid {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-.plyr--playing:not(.plyr--hide-controls) .plyr__control--overlaid,
-.plyr--playing.fb-overlaid--shown:not(.fb-overlaid--fade-out) .plyr__control--overlaid {
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-  transition:
-    opacity 0.4s ease-in-out,
-    transform 0.3s ease,
-    visibility 0.2s ease-out,
-    box-shadow 0.3s ease !important;
+    0 0 0 2px rgb(255 255 255 / 90%),
+    0 8px 25px color-mix(in srgb, var(--primaryColor) 30%, transparent),
+    0 4px 12px rgb(0 0 0 / 20%);
 }
 
 .plyr.fb-overlaid--fade-in .plyr__control--overlaid {
@@ -3404,6 +3401,26 @@ export default {
     opacity 0.4s ease-in-out,
     transform 0.3s ease,
     box-shadow 0.3s ease !important;
+}
+
+.plyr--playing:not(.plyr--hide-controls) .plyr__control--overlaid,
+.plyr--playing.fb-overlaid--shown:not(.fb-overlaid--fade-out) .plyr__control--overlaid {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 0.3s ease,
+    visibility 0.2s ease-out,
+    box-shadow 0.3s ease !important;
+}
+
+/* Hide center button while playing unless shown or fading out */
+.plyr--playing.plyr--hide-controls:not(.fb-overlaid--shown, .fb-overlaid--fade-out)
+  .plyr__control--overlaid {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 /************
@@ -3426,19 +3443,13 @@ export default {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgb(0 0 0 / 35%);
 }
 
 /* Letterboxing and Plyr chrome: match cinema-style black (audio uses .audio-controls-container .plyr) */
 .video-player-container .plyr {
   background-color: #000;
   box-shadow: none;
-}
-
-@supports (backdrop-filter: none) {
-  .video-player-container .plyr {
-    backdrop-filter: none;
-  }
 }
 
 .video-player-container .plyr .plyr__controls {
@@ -3485,8 +3496,8 @@ export default {
   flex-shrink: 0;
   font-size: clamp(2.5rem, 7vmin, 6rem);
   line-height: 1;
-  color: rgba(255, 255, 255, 0.96);
-  filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.85));
+  color: rgb(255 255 255 / 96%);
+  filter: drop-shadow(0 2px 16px rgb(0 0 0 / 85%));
   opacity: 0;
   transform: scale(0.55);
   font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 40;
@@ -3511,6 +3522,11 @@ export default {
   }
 }
 
+/* Hide the captions button in audio mode */
+.plyr--audio .plyr__control[data-plyr="captions"] {
+  display: none !important;
+}
+
 /* Hide captions button when there are no subtitle tracks */
 .video-player-container.no-captions .plyr__control[data-plyr="captions"] {
   display: none !important;
@@ -3526,11 +3542,15 @@ export default {
   line-height: 150%;
   font-weight: 700;
   -webkit-font-smoothing: antialiased;
-  /* Combo from stroke + shadow: crisp outline, soft drop for muddy mid-tones (em scales with size) */
   color: #fff;
   -webkit-text-stroke: 0.1em #000;
   paint-order: stroke fill;
-  text-shadow: 0 0.08em 0.2em rgba(0, 0, 0, 0.55);
+  text-shadow:
+    0.0625em 0.0625em 0 #000,
+    -0.0625em 0.0625em 0 #000,
+    -0.0625em -0.0625em 0 #000,
+    0.0625em -0.0625em 0 #000,
+    0 0.08em 0.2em rgb(0 0 0 / 55%);
 }
 
 .plyr.plyr-caption-size--small {
@@ -3549,23 +3569,9 @@ export default {
   --fb-captions-font-size: max(2.5em, 5.5vmin);
 }
 
-.video-player-container .plyr:fullscreen .plyr__captions,
-.video-player-container .plyr--fullscreen-fallback .plyr__captions {
+.video-player-container .plyr--fullscreen-fallback .plyr__captions,
+.video-player-container .plyr:fullscreen .plyr__captions {
   font-size: var(--fb-captions-font-size);
-}
-
-/* No text-stroke (legacy engines): 4-offset ring in em + same halo */
-@supports not (-webkit-text-stroke: 0.1em #000) {
-  .plyr__captions {
-    -webkit-text-stroke: unset;
-    paint-order: unset;
-    text-shadow:
-      0.0625em 0.0625em 0 #000,
-      -0.0625em 0.0625em 0 #000,
-      -0.0625em -0.0625em 0 #000,
-      0.0625em -0.0625em 0 #000,
-      0 0.08em 0.2em rgba(0, 0, 0, 0.55);
-  }
 }
 
 .plyr__caption {
@@ -3578,29 +3584,31 @@ export default {
 ************/
 
 .plyr.plyr--audio {
-  border-radius: 12px;
+  border-radius: var(--borderRadius);
+  backdrop-filter: var(--panel-blur);
+  background-color: var(--alt-background);
+}
+
+.audio-controls-container .plyr .plyr__controls {
+  color: var(--textPrimary);
 }
 
 /* Hide some unnesary buttons on the audio player */
-.plyr--audio .plyr__control--overlaid,
-.plyr--audio .plyr__control[data-plyr="captions"],
 .plyr--audio .plyr__control[data-plyr="fullscreen"],
 .plyr--audio .plyr__control[data-plyr="pip"] {
   display: none !important;
 }
 
 /* Style for audio player on mobile */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   /* Buttons container more "big" for easy touch */
   .plyr--audio .plyr__control {
     min-width: 44px;
     min-height: 44px;
   }
-
   .plyr--audio .plyr__progress__container {
     margin: 10px 0;
   }
-
   .plyr--audio .plyr__controls__items {
     justify-content: center;
     gap: 12px;
@@ -3635,30 +3643,6 @@ export default {
   gap: 0;
 }
 
-.audio-player-container--lyrics-open .audio-player-content {
-  height: auto;
-  flex: none;
-}
-
-.audio-player-container--lyrics-open .lyrics-mobile {
-  flex: 1 1 0%;
-  min-height: 0;
-  max-height: none;
-  margin-top: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.audio-player-container--lyrics-open .lyrics-mobile-scrollable {
-  flex: 1;
-  min-height: 0;
-}
-
-.audio-player-container--lyrics-open .album-art-container {
-  width: 5em;
-  height: 5em;
-}
-
 /* Full-area swipe / double-tap seek (album art + metadata + Plyr); skip overlay uses position absolute. */
 .audio-player-container--plyr-gestures {
   position: relative;
@@ -3678,6 +3662,11 @@ export default {
   justify-content: flex-start;
   overflow: hidden;
   position: relative;
+}
+
+.audio-player-container--lyrics-open .audio-player-content {
+  height: auto;
+  flex: none;
 }
 
 /* Left column (album art + metadata) */
@@ -3710,7 +3699,7 @@ export default {
   scroll-behavior: smooth;
   text-align: center;
   background: transparent;
-  border-radius: 12px;
+  border-radius: var(--borderRadius);
   box-sizing: border-box;
 }
 
@@ -3718,9 +3707,11 @@ export default {
 .panel-slide-enter-active {
   transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+
 .panel-slide-leave-active {
   transition: none;
 }
+
 .panel-slide-enter-from,
 .panel-slide-leave-to {
   opacity: 0;
@@ -3730,8 +3721,10 @@ export default {
 .lyric-line {
   padding: 0.2em 0;
   opacity: 0.5;
-  transition: opacity 0.2s, font-weight 0.2s, font-size 0.2s;
-  word-break: break-word;
+  transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
+  transform: scale(1);
+  transform-origin: center;
+  overflow-wrap: break-word;
   cursor: pointer;
   font-size: 1.15rem;
 }
@@ -3745,6 +3738,27 @@ export default {
   font-weight: bold;
   color: var(--primaryColor);
   font-size: 1.35rem;
+  animation: lyric-line-in 0.3s ease;
+}
+
+@keyframes lyric-line-in {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.lyric-word {
+  display: inline-block;
+  opacity: 0.4;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.lyric-word.sung {
+  opacity: 1;
+}
+
+.lyric-word.current {
+  transform: scale(1.06);
 }
 
 .lyrics-mobile {
@@ -3756,6 +3770,15 @@ export default {
   padding-top: 0;
 }
 
+.audio-player-container--lyrics-open .lyrics-mobile {
+  flex: 1 1 0%;
+  min-height: 0;
+  max-height: none;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .lyrics-mobile-scrollable {
   flex: 1;
   overflow-y: auto;
@@ -3764,30 +3787,51 @@ export default {
   color: var(--textPrimary);
 }
 
-.lyrics-mobile-scrollable .lyric-line:first-child {
-  padding-top: 0;
-}
-
 /* Hide scrollbars in lyrics */
 .lyrics-scrollable,
 .lyrics-mobile-scrollable,
 .lyrics-panel {
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
+
 .lyrics-scrollable::-webkit-scrollbar,
 .lyrics-mobile-scrollable::-webkit-scrollbar,
 .lyrics-panel::-webkit-scrollbar {
   display: none;
 }
 
+.audio-player-container--lyrics-open .lyrics-mobile-scrollable {
+  flex: 1;
+  min-height: 0;
+}
+
+.lyrics-mobile-scrollable .lyric-line:first-child {
+  padding-top: 0;
+}
+
+.lyrics-meta-header {
+  padding: 0.2em 0 0.6em;
+  margin: 0;
+  opacity: 0.55;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
 .album-art-container {
   flex-shrink: 0;
   border-radius: 1em;
   overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
   transition: width 0.3s ease;
   will-change: transform;
+}
+
+.audio-player-container--lyrics-open .album-art-container {
+  width: 5em;
+  height: 5em;
 }
 
 .album-art {
@@ -3803,7 +3847,7 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 18px;
-  background: linear-gradient(115deg, var(--primaryColor), rgba(2, 0, 36, 0.9));
+  background: linear-gradient(115deg, var(--primaryColor), rgb(2 0 36 / 90%));
   filter: brightness(0.85);
 }
 
@@ -3815,7 +3859,7 @@ export default {
 }
 
 .album-art-container.no-artwork {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
   height: auto;
   aspect-ratio: 1 / 1;
 }
@@ -3825,7 +3869,7 @@ export default {
   font-size: max(1.4rem, 3.1vmin);
   font-weight: bold;
   margin-bottom: 8px;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .audio-metadata {
@@ -3835,7 +3879,7 @@ export default {
    padding-bottom: 0;
    margin-bottom: 0;
    padding-top: 1.2em;
-   word-wrap: break-word;
+   overflow-wrap: break-word;
 }
 
 .audio-artist,
@@ -3844,7 +3888,7 @@ export default {
   font-size: max(1.2rem, 2.5vmin);
   opacity: 0.8;
   margin-bottom: 5px;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .filetype-badge {
@@ -3852,7 +3896,7 @@ export default {
   background: var(--primaryColor);
   color: white;
   padding: 2px 8px;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   font-size: 0.8em;
   margin-left: 0.5em;
   vertical-align: middle;
@@ -3860,38 +3904,34 @@ export default {
 
 .audio-controls-container {
   width: 100%;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   margin: -2px;
 }
 
 /* For small tablets and phones with big screen */
-@media (max-width: 740px) {
+@media (width <= 740px) {
   .audio-player-container {
     padding: 0;
     padding-top: 1em;
   }
-
   .plyr.plyr--audio {
     padding: 1em;
     border-radius: 0;
   }
-
   .plyr--audio .plyr__controls {
     padding: 0;
     gap: 5px;
   }
-
   .album-art-container {
     margin-top: 1em;
     max-width: min(71vw);
   }
-
   .audio-player-container--lyrics-open .album-art-container {
     transition: none !important;
   }
 }
 
-@media (max-width: 550px) {
+@media (width <= 550px) {
   /* Hide volume buttons to made more space */
   .plyr__volume {
     display: none;
@@ -3902,7 +3942,6 @@ export default {
     font-size: 14px;
     margin: 0 5px;
   }
-
   .audio-left-column {
     padding: 0;
     margin: 0;
@@ -3910,148 +3949,12 @@ export default {
 }
 
 /* For small screens in landscape orientation (Like a phone) */
-@media (max-height: 600px) and (orientation: landscape) {
+@media (height <= 600px) and (orientation: landscape) {
   .album-art-container {
     width: min(100px, 30vh);
     height: min(100px, 30vh);
     margin: 0;
     flex-shrink: 0;
-  }
-}
-
-/*******************
-*** QUEUE BUTTON ***
-*******************/
-
-/* Queue detection zone for top-right corner */
-.floating-zone {
-  position: fixed;
-  top: 4em; /* below header */
-  width: 5em;
-  height: 5em;
-  pointer-events: auto;
-  z-index: 1000;
-  background: transparent;
-}
-
-.floating-zone--right {
-  right: 0;
-}
-
-.floating-zone--left {
-  left: 0;
-  height: 8.5em;
-}
-
-.queue-button {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  border: none;
-  border-radius: 50%;
-  background: var(--background);
-  color: var(--textPrimary);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  outline: none;
-  z-index: 9998; /* Make sure it's below prompts but above other content */
-}
-
-/* Desktop panel toggle button */
-.panel-toggle-fab {
-  top: 80px;
-  right: 20px;
-  position: fixed;
-  z-index: 9999;
-}
-
-/* Lyrics floating button */
-.lyrics-fab-left {
-  top: 80px;
-  left: 20px;
-  right: auto;
-}
-
-/* Mobile lyrics scroll-lock FAB – bottom-right above Plyr bar */
-.lyrics-lock-fab {
-  width: 36px;
-  height: 36px;
-  top: auto;
-  left: auto;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
-  right: calc(env(safe-area-inset-right, 0px) + 20px);
-}
-
-.lyrics-lock-fab .material-symbols,
-.lyrics-lock-fab .material-symbols-outlined {
-  font-size: 18px;
-}
-
-.queue-button.dark-mode {
-  background: var(--surfacePrimary);
-}
-
-.queue-button:hover {
-  background: var(--primaryColor);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(var(--primaryColor-rgb), 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
-  color: white;
-}
-
-.queue-button i.material-symbols,
-.queue-button i.material-symbols-outlined {
-  font-size: 24px;
-  transition: transform 0.2s ease;
-}
-
-.queue-button:hover i.material-symbols {
-  transform: scale(1.1);
-}
-
-.queue-button:hover i.material-symbols-outlined {
-  transform: scale(1.1);
-}
-
-.queue-count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--accentColor);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  text-shadow: 
-    0 0 3px rgba(0, 0, 0, 0.9),
-    0 0 5px rgba(0, 0, 0, 0.7),
-    0 0 8px rgba(0, 0, 0, 0.5),
-    0 0 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Smooth show animation for better UX */
-.queue-button:not(.hidden) {
-  animation: queue-button-show 0.4s ease-out;
-}
-
-@keyframes queue-button-show {
-  0% {
-    opacity: 0;
-    transform: translateY(-2px) scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(-2px) scale(1);
   }
 }
 
@@ -4064,7 +3967,7 @@ export default {
   bottom: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
+  background: rgb(0 0 0 / 80%);
   color: white;
   padding: 15px 25px;
   border-radius: 8px;
@@ -4077,7 +3980,7 @@ export default {
   user-select: none;
   opacity: 0;
   transition: opacity 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
 }
 
 .playback-toast.visible {

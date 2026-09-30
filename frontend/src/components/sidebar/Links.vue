@@ -7,10 +7,22 @@
       <i :class="{ 'disabled': !isLoggedIn }"
         aria-label="Navigate Home"
         @click="goHome()" class="material-symbols action">home</i>
-      <!-- Mode button (is the title) -->
-      <button type="button" @click="cycleMode" class="mode-toggle" @mouseenter="showTooltip($event, $t('sidebar.switchMode'))" @mouseleave="hideTooltip">
-        {{ mode === 'links' ? $t('general.links') : $t('general.navigation') }}
-      </button>
+      <span
+        class="sidebar-mode-toggle-wrap item"
+        @mouseenter="showTooltip($event, $t('sidebar.switchMode'))"
+        @mouseleave="hideTooltip"
+      >
+        <ToggleSwitch
+          class="sidebar-mode-toggle"
+          variant="neutral"
+          :model-value="mode === 'navigation'"
+          off-icon="format_list_bulleted"
+          on-icon="link"
+          :name="$t('general.links')"
+          :aria-label="$t('sidebar.switchMode')"
+          @update:model-value="onSidebarModeToggle"
+        />
+      </span>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
         @click="showEditShareHover" class="material-symbols action">edit</i>
@@ -83,22 +95,23 @@
               </div>
               <div v-if="hasUsageInfo(link) && link.category !== 'source-minimal'" class="usage-info">
                 <!-- For source-hybrid, show single bar with background value for disk usage -->
-                <ProgressBar 
+                <ProgressBar
                   v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
                   :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                   :val="sourceInfo[link.sourceName]?.used || 0"
                   :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
                   :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
-                  :max="sourceInfo[link.sourceName]?.total || 1" 
+                  :max="sourceInfo[link.sourceName]?.total || 1"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
                 <!-- For other source types, show single bar -->
-                <ProgressBar 
+                <ProgressBar
                   v-else
                   :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
-                  :max="sourceInfo[link.sourceName]?.total || 1" 
+                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})"
+                  :val-background="getProgressBarReserved(sourceInfo[link.sourceName] || {})"
+                  :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -118,72 +131,13 @@
       </template>
       <!-- Navigation Mode -->
       <template v-else>
-        <!-- Source card (hidden in shares) -->
-        <div v-if="!isShare" class="source-card-container" ref="sourceCardContainer">
-          <!-- Current Source Card -->
-          <div class="action button source-button navigation-source-card"
-               :class="{ 'has-usage': hasUsageInfo(activeSourceLink) }"
-               @click="navigateToSource(activeSource)" role="button" tabindex="0">
-            <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(activeSourceLink) }">
-              <i v-if="activeSourceLink.icon && isLinkAccessible(activeSourceLink)"
-                 :class="`${getIconClass(activeSourceLink.icon)} link-icon`">
-                {{ activeSourceLink.icon }}
-              </i>
-              <svg v-else-if="isLinkAccessible(activeSourceLink)"
-                   class="realtime-pulse"
-                   :class="{
-                     active: realtimeActive,
-                     danger: activeSourceInfo.status !== 'indexing' && activeSourceInfo.status !== 'ready',
-                     warning: activeSourceInfo.status === 'indexing',
-                     ready: activeSourceInfo.status === 'ready',
-                   }">
-                <circle class="center" cx="50%" cy="50%" r="7px"></circle>
-                <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
-              </svg>
-              <HelpTooltipIcon
-                v-else
-                icon="warning"
-                icon-style="symbols"
-                icon-class="warning-icon"
-                :text="$t('sidebar.sourceNotAccessible')"
-              />
-              <!-- Source name -->
-              <span>{{ activeSourceLink.name }}</span>
-              <i v-if="hasUsageInfo(activeSourceLink)"
-                 class="no-select material-symbols-outlined tooltip-info-icon"
-                 :class="{ 'tooltip-info-icon--pressed': pressedSourceInfo === activeSource }"
-                 role="button"
-                 tabindex="0"
-                 @touchstart.stop="onSourceInfoTouchStart(activeSource)"
-                 @touchend.stop="onSourceInfoTouchEnd($event, activeSourceInfo)"
-                 @touchcancel.stop="onSourceInfoTouchCancel"
-                 @click.stop="onSourceInfoClick($event, activeSourceInfo)"
-                 @mouseenter="onSourceInfoMouseEnter($event, activeSourceInfo)"
-                 @mouseleave="onSourceInfoMouseLeave">
-                info
-              </i>
-            </div>
-            <div v-if="hasUsageInfo(activeSourceLink)" class="usage-info">
-              <ProgressBar 
-                v-if="activeSourceLink.category === 'source-hybrid' || activeSourceLink.category === 'source-hybrid-2'"
-                :val="(activeSourceInfo).used || 0"
-                :val-background="(activeSourceInfo).usedAlt || 0"
-                :val-text="activeSourceLink.category === 'source-hybrid-2' ? ((activeSourceInfo).usedAlt || 0) : null"
-                :max="(activeSourceInfo).total || 1" 
-                :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
-                unit="bytes">
-              </ProgressBar>
-              <ProgressBar 
-                v-else
-                :val="getProgressBarValue(activeSourceLink, activeSourceInfo)" 
-                :max="(activeSourceInfo).total || 1" 
-                :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
-                unit="bytes">
-              </ProgressBar>
-            </div>
-          </div>
+        <!-- Source switcher only when multiple sources (hidden in shares) -->
+        <div
+          v-if="!isShare && sourceNames.length > 1"
+          class="source-card-container"
+          ref="sourceCardContainer"
+        >
           <ExpandDropdown
-            v-if="sourceNames.length > 1"
             class="sidebar-source-switcher"
             :model-value="activeSource"
             :options="sourceDropdownOptions"
@@ -218,10 +172,12 @@ import { getIconClass } from "@/utils/material-symbols";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
+import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
 import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 export default {
   name: "SidebarLinks",
   components: {
@@ -230,6 +186,7 @@ export default {
     ShareInfo,
     FileTree,
     ExpandDropdown,
+    ToggleSwitch,
   },
   data() {
     return {
@@ -304,9 +261,6 @@ export default {
     sourceNames() {
       return Object.keys(state.sources.info || {});
     },
-    activeSourceInfo() {
-      return this.sourceInfo[this.activeSource] || {};
-    },
     mode() {
       return getters.sidebarMode();
     },
@@ -321,20 +275,6 @@ export default {
         });
       }
       return map;
-    },
-    activeSourceLink() {
-      // If user has a custom link for this source, use it
-      const customLink = this.sourceLinkMap[this.activeSource];
-      if (customLink) {
-        return customLink;
-      }
-      return {
-        name: this.activeSource,
-        category: 'source',
-        target: '/',
-        icon: '',
-        sourceName: this.activeSource,
-      };
     },
     dropdownSourceItems() {
       return this.sourceNames.map(rawName => {
@@ -361,12 +301,11 @@ export default {
     },
     getIconClass,
     hasUsageInfo(link) {
-      // Check if usage info should be displayed for this link (source only; source-minimal hides usage)
-      // Returns true when link is accessible and has usage > 0
       if (!this.isSourceCategory(link.category) || !link.sourceName) return false;
       if (!this.hasSourceInfo || !this.isLinkAccessible(link)) return false;
       if (link.category === 'source-minimal') return false;
       const info = this.sourceInfo[link.sourceName] || {};
+      if (info.scopeQuota?.limitBytes > 0) return true;
       return (info.used || 0) > 0 || (info.usedAlt || 0) > 0;
     },
     getLinkHref(link) {
@@ -440,7 +379,15 @@ export default {
         }
         return false;
       }
-      // Tools and custom links are always accessible
+      // Tools and custom links: tools require access; hub requires any tool access
+      if (link.category === "tool") {
+        const targetPath = String(link.target || "").split(/[?#]/)[0];
+        if (targetPath === "/tools") {
+          return availableTools().length > 0;
+        }
+        const toolId = toolIdFromPath(targetPath);
+        return toolId ? hasToolAccess(toolId) : false;
+      }
       return true;
     },
     isLinkActive(link) {
@@ -482,11 +429,23 @@ export default {
       return total > 0 && used > total;
     },
     getProgressBarValue(link, sourceInfo) {
+      if (sourceInfo.scopeQuota?.limitBytes > 0) {
+        return sourceInfo.scopeQuota.usedBytes || 0;
+      }
       // Called with (link, sourceInfo) from both modes
       if (link.category === 'source-alt') {
         return sourceInfo.usedAlt || 0;
       }
       return sourceInfo.used || 0;
+    },
+    getProgressBarMax(link, sourceInfo) {
+      if (sourceInfo.scopeQuota?.limitBytes > 0) {
+        return sourceInfo.scopeQuota.limitBytes;
+      }
+      return sourceInfo.total || 1;
+    },
+    getProgressBarReserved(sourceInfo) {
+      return sourceInfo.scopeQuota?.reservedBytes || 0;
     },
     handleLinkClick(link) {
       // Handle special share actions
@@ -662,9 +621,8 @@ export default {
         console.error("Failed to open edit share dialog:", err);
       }
     },
-    cycleMode() {
-      const newMode = state.sidebar.mode === 'links' ? 'navigation' : 'links';
-      mutations.setSidebarMode(newMode);
+    onSidebarModeToggle(isNavigation) {
+      mutations.setSidebarMode(isNavigation ? "navigation" : "links");
     },
     navigateToSource(sourceName) {
       if (!sourceName || sourceName === this.activeSource) {
@@ -694,7 +652,7 @@ export default {
 }
 
 .sidebar-links-header .material-symbols.action {
-  padding: 0.25em 0.25em;
+  padding: 0.25em;
   border-radius: 0.5em;
   transition: background 0.2s;
 }
@@ -703,20 +661,23 @@ export default {
   background: var(--surfaceSecondary);
 }
 
-.sidebar-links-header .mode-toggle {
-  background: none;
-  border: none;
-  font-weight: 500;
-  color: var(--textPrimary);
-  font-size: 1em;
-  padding: 0.25em 0.5em;
-  border-radius: 0.5em;
-  transition: background 0.2s;
+.sidebar-links-header .sidebar-mode-toggle-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 0.25em;
 }
 
-.sidebar-links-header .mode-toggle:hover {
-  background: var(--surfaceSecondary);
-  cursor: pointer;
+.sidebar-links-header :deep(.sidebar-mode-toggle) {
+  width: auto;
+}
+
+.sidebar-links-header :deep(.sidebar-mode-toggle .toggle-row--icon-mode) {
+  width: auto;
 }
 
 .sidebar-links-content {
@@ -738,12 +699,16 @@ export default {
   margin-top: 0 !important;
   margin-bottom: 0.5em;
   padding-bottom: 0.25em;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1px solid var(--divider);
+}
+
+.vue-simple-progress {
+  margin-top: 0 !important;
 }
 
 .usage-info .vue-simple-progress {
   border: var(--borderWidth) solid var(--surfaceSecondary);
-  border-radius: 1em !important;
+  border-radius: var(--borderRadius) !important;
 }
 
 .sidebar-links .inner-card {
@@ -845,13 +810,13 @@ a.sidebar-link-button {
 }
 
 .realtime-pulse.danger>.pulse {
-  fill: rgb(190, 147, 147);
-  stroke: rgb(235, 55, 55);
+  fill: rgb(190 147 147);
+  stroke: rgb(235 55 55);
 }
 
 .realtime-pulse.warning>.pulse {
-  fill: rgb(255, 157, 0);
-  stroke: rgb(255, 157, 0);
+  fill: rgb(255 157 0);
+  stroke: rgb(255 157 0);
 }
 
 @keyframes pulse {
@@ -867,10 +832,6 @@ a.sidebar-link-button {
   }
 }
 
-.disabled .source-container {
-  display: block;
-}
-
 .source-container {
   display: flex;
   flex-direction: row;
@@ -878,6 +839,10 @@ a.sidebar-link-button {
   align-content: center;
   align-items: center;
   min-height: 3em;
+}
+
+.disabled .source-container {
+  display: block;
 }
 
 .source-container.has-usage-info {
@@ -895,14 +860,11 @@ a.sidebar-link-button {
 }
 
 .realtime-pulse.danger>.center {
-  fill: rgb(235, 55, 55);
+  fill: rgb(235 55 55);
 }
 
 .realtime-pulse.warning>.center {
-  fill: rgb(255, 157, 0);
-}
-.vue-simple-progress {
-  margin-top: 0 !important;
+  fill: rgb(255 157 0);
 }
 
 .edit-share-button {
@@ -919,16 +881,12 @@ a.sidebar-link-button {
   position: relative;
   margin-bottom: 0;
   padding-bottom: 0;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1px solid var(--divider);
 }
 
 .sidebar-source-switcher {
-  margin-top: 0.5em;
-}
-
-.navigation-source-card {
   margin-top: 0;
-  max-width: 98%;
+  margin-bottom: 0.5em;
 }
 
 .sidebar-divider-container {
@@ -947,8 +905,7 @@ a.sidebar-link-button {
   font-size: .85em;
   color: var(--textSecondary);
   letter-spacing: .05em;
-  justify-content: center;
-  align-content: center;
+  place-content: center center;
   align-items: center;
 }
 

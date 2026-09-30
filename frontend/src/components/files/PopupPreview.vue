@@ -142,14 +142,16 @@ export default {
 .popup-preview {
   position: fixed;
   pointer-events: none;
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   border-style: solid;
   border-width: 0.2em;
   box-shadow: 0 0 0.5em black;
   border-color: var(--primaryColor);
   overflow: hidden;
   z-index: 1000;
-  transition: all 0.3s ease-in-out;
+  transition: top 0.3s ease-in-out, left 0.3s ease-in-out, right 0.3s ease-in-out,
+    margin 0.3s ease-in-out, max-width 0.3s ease-in-out, max-height 0.3s ease-in-out,
+    transform 0.3s ease-in-out;
   background: gray;
   display: flex;
   align-items: center;

@@ -1,5 +1,5 @@
 <template>
-  <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
+  <header v-if="!isOnlyOffice" :class="['flexbar']" :inert="overlayShown">
     <action
       v-if="!disableNavButtons"
       class="nav-toggle-button"
@@ -8,13 +8,13 @@
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
-    <div class="search-bar-container" :class="{ disabled: isDisabled }" 
+    <div class="search-bar-container"
          v-if="showSearch && !isSearchActive" @click="openSearch" >
       <i class="material-symbols">search</i>
-      <input 
-        type="text" 
-        id="search-bar-input" 
-        :placeholder="$t('general.search', { suffix: '...' })" 
+      <input
+        type="text"
+        id="search-bar-input"
+        :placeholder="$t('general.search', { suffix: '...' })"
         readonly
       />
     </div>
@@ -25,23 +25,25 @@
       :icon="viewIcon"
       :label="viewModeActionLabel"
       @action="switchView"
-      :disabled="isDisabled || viewModeChangeLocked"
+      :disabled="viewModeChangeLocked"
     />
-    <action
-      class="overflow-menu-button"
-      v-else-if="!showHeaderSwitchView && !showQuickSave"
-      :icon="iconName"
-      :disabled="noItems"
-      @click="toggleOverflow"
-    />
-    <action
-      class="save-button"
-      v-else-if="showQuickSave"
-      id="save-button"
-      icon="save"
-      :label="$t('general.save')"
-      @action="save()"
-    />
+    <template v-else>
+      <action
+        v-if="showQuickSave"
+        class="save-button"
+        id="save-button"
+        icon="save"
+        :label="$t('general.save')"
+        @action="save()"
+      />
+      <action
+        v-else
+        class="overflow-menu-button"
+        :icon="iconName"
+        :disabled="noItems || isSidebarFloating"
+        @click="toggleOverflow"
+      />
+    </template>
   </header>
 </template>
 
@@ -123,14 +125,11 @@ export default {
     isShare() {
       return getters.isShare();
     },
+    isSidebarFloating() {
+      return getters.isSidebarVisible() && !getters.isStickySidebar();
+    },
     noItems() {
       return !state.contextMenuHasItems && !getters.isPreviewView();
-    },
-    showEdit() {
-      return window.location.hash !== "#edit" && getters.sourcePermissions().modify;
-    },
-    showDelete() {
-      return getters.sourcePermissions().delete && getters.currentView() === "preview";
     },
     showSave() {
       return getters.currentView() === "editor" && getters.sourcePermissions().modify;
@@ -141,7 +140,7 @@ export default {
     isSearchActive() {
       return state.isSearchActive;
     },
-    isDisabled() {
+    overlayShown() {
       return state.isSearchActive || getters.currentPromptName() !== "";
     },
     viewModeChangeLocked() {
@@ -156,7 +155,7 @@ export default {
     isDisabledMultiAction() {
       const regularDisabled = getters.isStickySidebar() && getters.multibuttonState() === "menu";
       const shareDisabled = state.shareInfo?.disableSidebar && getters.multibuttonState() === "menu";
-      return this.isDisabled || regularDisabled || shareDisabled;
+      return regularDisabled || shareDisabled;
     },
     showSwitchView() {
       return this.showHeaderSwitchView;
@@ -167,16 +166,13 @@ export default {
     req() {
       return state.req;
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     isSettings() {
       return getters.isSettings();
     },
   },
   methods: {
     openSearch() {
-      if (!state.isSearchActive && !this.isDisabled) {
+      if (!state.isSearchActive) {
         mutations.closeHovers();
         mutations.closeSidebar();
         mutations.resetSelected();
@@ -194,8 +190,8 @@ export default {
       buttons.loading("save");
       try {
         // Call the editor's save handler directly
-        if (state.editorSaveHandler) {
-          await state.editorSaveHandler();
+        if (state.editor.saveHandler) {
+          await state.editor.saveHandler();
           buttons.success(button);
           // Note: Success notification is shown by the editor
         } else {
@@ -254,7 +250,7 @@ export default {
       const cv = getters.currentView();
 
       // Check for unsaved editor changes before navigation
-      if (cv === "editor" && state.editorDirty) {
+      if (cv === "editor" && state.editor.dirty) {
         this.showSaveBeforeExitPrompt(() => this.performNavigation(cv));
         return;
       }
@@ -330,16 +326,12 @@ export default {
 <style scoped>
 header button:hover {
   box-shadow: unset !important;
-  -webkit-box-shadow: unset !important;
 }
+
 header {
-  background-color: color-mix(in srgb, var(--alt-background) 15%, transparent);
-}
-/* Header with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  header {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  color: var(--textPrimary);
 }
 
 :deep(.action.nav-toggle-button .line),
@@ -353,8 +345,8 @@ header {
 .search-bar-container {
   display: flex;
   align-items: center;
-  background-color: rgba(100, 100, 100, 0.2);
-  border-radius: 1em;
+  background-color: color-mix(in srgb, var(--surfaceSecondary) 75%, transparent);
+  border-radius: var(--borderRadius);
   padding: 0.5em 0.75em;
   transition: background-color 0.2s ease;
   gap: 0.5em;
@@ -365,25 +357,25 @@ header {
   box-sizing: border-box;
 }
 
-/* prevent open search if a prompt is open */
-.search-bar-container.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.search-bar-container:hover {
+  filter:brightness(1.15);
 }
 
-.search-bar-container.disabled #search-bar-input {
-  pointer-events: none;
+#search-bar-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgb(255 255 255 / 90%);
+  width: 100%;
+  font-size: 0.95em;
+  user-select: none;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .search-bar-container {
     min-width: unset;
     max-width: 60%;
   }
-}
-
-.search-bar-container:hover {
-  background-color: rgba(100, 100, 100, 0.3);
 }
 
 .search-bar-container .material-symbols {
@@ -391,26 +383,8 @@ header {
   user-select: none;
 }
 
-#search-bar-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: rgba(255, 255, 255, 0.9);
-  width: 100%;
-  font-size: 0.95em;
-  user-select: none;
-}
-
 #search-bar-input::placeholder {
   color: gray;
 }
 
-
-.dark-mode-header .search-bar-container {
-  background-color: rgba(100, 100, 100, 0.2);
-}
-
-.dark-mode-header .search-bar-container:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-}
 </style>

@@ -4,7 +4,6 @@
       ref="promptWindow"
       class="floating-window"
       :class="{
-        'dark-mode': isDarkMode,
         'is-dragging': isDragging(prompt.id),
         'is-resizing': resizingId === prompt.id,
         'prompt-behind': !isTopmost(prompt.id),
@@ -13,6 +12,7 @@
         'editor-prompt': isEditorPrompt(prompt),
       }"
       @mousedown="makeTopPrompt(prompt.id)"
+      @contextmenu="isBlocked(prompt) && $event.preventDefault()"
       :style="{
         transform: `translate(calc(-50% + ${(dragOffsets[prompt.id]?.x || 0)}px), calc(-50% + ${(dragOffsets[prompt.id]?.y || 0)}px))`,
         width: sizes[prompt.id]?.width ? `${sizes[prompt.id].width}px` : null,
@@ -25,7 +25,7 @@
     >
       <header
         class="prompt-taskbar"
-        :class="{ 'is-dragging': isDragging(prompt.id) }"
+        :class="{ 'is-dragging': isDragging(prompt.id), 'prompt-close-right': promptRightCloseButton }"
         @mousedown="onPointerDown($event, prompt.id, 'mouse')"
         @touchstart.passive="onPointerDown($event, prompt.id, 'touch')"
       >
@@ -44,18 +44,25 @@
         <div class="prompt-taskbar-drag">
           <span class="prompt-title">{{ prompt?.props?.title || getDisplayTitle(prompt?.name) }}</span>
         </div>
-        <svg 
+        <svg
           class="prompt-resize-corner"
-          width="24" 
-          height="24" 
-          viewBox="0 0 24 24" 
-          fill="none" 
+          :class="{ 'prompt-resize-corner-left': promptRightCloseButton }"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          @mousedown.stop="startResize($event, prompt.id, 'top-right')"
-          @touchstart.stop="startResize($event, prompt.id, 'top-right')"
+          @mousedown.stop="startResize($event, prompt.id, promptRightCloseButton ? 'top-left' : 'top-right')"
+          @touchstart.stop="startResize($event, prompt.id, promptRightCloseButton ? 'top-left' : 'top-right')"
         >
-          <line x1="12" y1="2" x2="22" y2="12" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="17" y1="2" x2="22" y2="7" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+          <template v-if="promptRightCloseButton">
+            <line x1="12" y1="2" x2="2" y2="12" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="7" y1="2" x2="2" y2="7" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+          </template>
+          <template v-else>
+            <line x1="12" y1="2" x2="22" y2="12" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="17" y1="2" x2="22" y2="7" stroke="var(--divider)" stroke-width="2" stroke-linecap="round"/>
+          </template>
         </svg>
       </header>
       <!-- Resize for prompts -->
@@ -96,11 +103,13 @@ import SidebarLinks from "./SidebarLinks.vue";
 import IconPicker from "./IconPicker.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
+import GroupEdit from "./GroupEdit.vue";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
 import VisualizerSettings from "./VisualizerSettings.vue";
+import EditorSettings from "./EditorSettings.vue";
 import SharePicker from "./SharePicker.vue";
 import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
@@ -117,6 +126,15 @@ import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
 import UserDefaults from "./UserDefaults.vue";
+import ShareDefaults from "./ShareDefaults.vue";
+import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
+import ToolAccessDefaults from "./ToolAccessDefaults.vue";
+import UserEditTools from "./UserEditTools.vue";
+import UserEditPreferences from "./UserEditPreferences.vue";
+import UserEditSidebarLinks from "./UserEditSidebarLinks.vue";
+import Quota from "./Quota.vue";
+import NewFileTemplate from "./NewFileTemplate.vue";
+import DefaultViewPrefs from "./DefaultViewPrefs.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -124,6 +142,7 @@ export default {
   name: "Prompts",
   components: {
     UserEdit,
+    GroupEdit,
     Info,
     Delete,
     Rename,
@@ -147,6 +166,7 @@ export default {
     Password,
     PlaybackQueue,
     VisualizerSettings,
+    EditorSettings,
     PathPicker,
     SharePicker,
     SaveBeforeExit,
@@ -163,6 +183,15 @@ export default {
     AnalyticsDiagnostic,
     ConfigViewer,
     UserDefaults,
+    SidebarLinkDefaults,
+    ToolAccessDefaults,
+    ShareDefaults,
+    UserEditTools,
+    UserEditPreferences,
+    UserEditSidebarLinks,
+    Quota,
+    NewFileTemplate,
+    DefaultViewPrefs,
   },
   data() {
     return {
@@ -209,8 +238,8 @@ export default {
       const p = (state.prompts || []).filter(prompt => prompt.name !== "ContextMenu" && prompt.name !== "OverflowMenu");
       return p;
     },
-    isDarkMode() {
-      return getters.isDarkMode();
+    promptRightCloseButton() {
+      return !!state.user?.promptRightCloseButton;
     },
     pinnedPromptExists() {
       return this.prompts.some(p => p.pinned);
@@ -242,7 +271,7 @@ export default {
     handleWindowResize() {
       const maxWidth = window.innerWidth * 0.9;
       const maxHeight = window.innerHeight * 0.9;
-      
+
       this.prompts.forEach(prompt => {
         const size = this.sizes[prompt.id];
         if (size) {
@@ -253,7 +282,7 @@ export default {
             };
           }
         }
-        
+
         const el = this.getPromptElement(prompt.id);
         if (el) {
           this.clampDragOffset(prompt.id, el);
@@ -275,7 +304,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "tool-access-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarLinks" || prompt?.name === "sidebarlinks" || prompt?.name === "user-edit-preferences" || prompt?.name === "user-edit-tools" || prompt?.name === "user-edit-sidebar-links";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -318,19 +347,23 @@ export default {
       // convert to lowercase
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
+        case "group-edit":
+          return this.$t("access.editGroup");
         case "user-edit":
           return this.$t("settings.modifyOtherUser");
         case "delete":
           return this.$t("prompts.deleteTitle");
         case "access":
           return this.$t("access.rules");
+        case "quota":
+          return this.$t("quotas.title");
         case "officedebug":
           return this.$t("onlyoffice.debug");
         case "download":
           return this.$t("general.downloadFiles");
         case "move":
           return this.$t("general.move");
-    
+
         case "copy":
           return this.$t("general.copy");
         case "rename":
@@ -349,12 +382,25 @@ export default {
           return this.$t("settings.configViewer");
         case "user-defaults":
           return this.$t("settings.userDefaults");
+        case "sidebar-link-defaults":
+          return this.$t("sidebar.sidebarLinkDefaults");
+        case "tool-access-defaults":
+          return this.$t("tools.toolAccessDefaults");
+        case "share-defaults":
+          return this.$t("share.shareDefaults");
+        case "user-edit-preferences":
+          return this.$t("settings.userEditPreferences");
+        case "user-edit-tools":
+          return this.$t("settings.userEditTools");
+        case "user-edit-sidebar-links":
+          return this.$t("settings.userEditSidebarLinks");
         case "upload":
           return this.$t("general.upload");
         case "createapi":
           return this.$t("api.createTitle");
         case "actionapi":
           return this.$t("api.title");
+        case "sidebarLinks":
         case "sidebarlinks":
           return this.$t("sidebar.customizeLinks");
         case "password":
@@ -363,6 +409,8 @@ export default {
           return this.$t("player.QueuePlayback");
         case "visualizersettings":
           return this.$t("player.visualizer.settings");
+        case "editorsettings":
+          return this.$t("editor.settings.title");
         case "pathpicker":
           return this.$t("prompts.selectPath");
         case "savebeforeexit":
@@ -395,6 +443,10 @@ export default {
           return this.$t("threejs.controls");
         case "activityeventdetails":
           return this.$t("general.details");
+        case "new-file-template":
+          return this.$t("prompts.newFileTemplate")
+        case "default-view-prefs":
+          return this.$t("profileSettings.defaultViewMode");
         default:
           console.error("[Prompts.vue] unknown prompt name", promptName);
           // Fallback for unknown prompt types
@@ -409,7 +461,7 @@ export default {
       if (promptToClose.name === "upload") {
         const hasActiveUploads = state.upload.isUploading;
         const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
-        
+
         if (hasActiveUploads && !hasWarningPrompt) {
           // Show warning prompt instead of closing
           mutations.showPrompt({
@@ -752,10 +804,9 @@ export default {
 </script>
 
 <style scoped>
-
 /* Floating window base styles */
 .floating-window {
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -768,6 +819,7 @@ export default {
   display: flex !important;
   flex-direction: column;
   overflow: hidden;
+  color: var(--textPrimary);
 }
 
 @keyframes show {
@@ -794,14 +846,17 @@ export default {
 }
 
 .floating-window > :deep(.card-content) {
+  position: relative;
+  z-index: 1;
   padding: 0.5em;
   padding-top: 3.5em;
   padding-bottom: 3.5em;
   margin-top: 1px;
   margin-bottom: 1px;
-  flex-grow: 1;
+  flex: 1 1 auto;
   overflow: auto;
   min-height: 0;
+  overscroll-behavior: contain;
 }
 
 /* No buttons variant - removes bottom padding */
@@ -822,6 +877,7 @@ export default {
 
 .floating-window > :deep(.card-actions) {
   position: absolute;
+  z-index: 10;
   bottom: 0;
   left: 0;
   right: 0;
@@ -832,16 +888,14 @@ export default {
   gap: 0.25em;
 }
 
-/* Backdrop-filter support */
-@supports (backdrop-filter: none) {
-  .floating-window :deep(.prompt-taskbar) {
-    backdrop-filter: blur(12px) invert(0.2);
-    background-color: color-mix(in srgb, var(--background) 50%, transparent);
-  }
-  .floating-window :deep(.card-actions) {
-    backdrop-filter: blur(12px);
-    background-color: transparent;
-  }
+.floating-window :deep(.prompt-taskbar) {
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+}
+
+.floating-window :deep(.card-actions) {
+  backdrop-filter: blur(12px);
+  background-color: transparent;
 }
 
 .floating-window.is-dragging {
@@ -859,7 +913,7 @@ export default {
 }
 
 /* Block all interactions but allow move and resize */
-.floating-window.blocked > :not(.prompt-taskbar):not(.resize-handles) {
+.floating-window.blocked > :not(.prompt-taskbar, .resize-handles) {
   pointer-events: none;
 }
 
@@ -867,7 +921,25 @@ export default {
   cursor: not-allowed;
   user-select: none;
   opacity: 0.7;
-  transition: opacity 0.5s;
+  filter: brightness(0.90);
+  transition: opacity 0.5s, filter 0.5s;
+}
+
+.prompt-close {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #c62828;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, filter 0.15s;
 }
 
 .prompt-close:disabled {
@@ -905,38 +977,8 @@ export default {
   background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary, #f5f5f5));
 }
 
-.dark-mode .prompt-taskbar:hover {
-  background: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary));
-}
-
-.dark-mode .prompt-taskbar.is-dragging {
-  background: color-mix(in srgb, var(--primaryColor) 22%, var(--surfaceSecondary));
-}
-
-.prompt-close {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2em;
-  height: 2em;
-  padding: 0;
-  border: none;
-  border-radius: 1em;
-  background: #c62828;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.15s, filter 0.15s;
-}
-
-.prompt-close:hover {
-  background: #b71c1c;
-  filter: brightness(1.1);
-}
-
-.prompt-close .material-symbols {
-  font-size: 1em;
+.prompt-close-right .prompt-close {
+  order: 3;
 }
 
 .prompt-resize-corner {
@@ -949,16 +991,32 @@ export default {
   margin-left: auto;
 }
 
+.prompt-close-right .prompt-resize-corner {
+  order: -1;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.prompt-close:hover {
+  background: #b71c1c;
+  filter: brightness(1.1);
+}
+
+.prompt-close .material-symbols {
+  font-size: 1em;
+}
+
+.prompt-resize-corner-left {
+  cursor: nw-resize;
+}
+
 .prompt-resize-corner:hover {
   opacity: 1;
 }
 
 .prompt-taskbar-drag {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -972,22 +1030,22 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 80%;
+  color: var(--textPrimary);
 }
 
 .resize-handles {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   pointer-events: none;
 }
+
 .resize-handle {
   position: absolute;
   pointer-events: auto;
   background: transparent;
   z-index: 20;
 }
+
 .resize-handle-top {
   top: -5px;
   left: 5px;
@@ -995,6 +1053,7 @@ export default {
   height: 10px;
   cursor: n-resize;
 }
+
 .resize-handle-bottom {
   bottom: -5px;
   left: 5px;
@@ -1002,6 +1061,7 @@ export default {
   height: 10px;
   cursor: s-resize;
 }
+
 .resize-handle-left {
   left: -5px;
   top: 5px;
@@ -1009,6 +1069,7 @@ export default {
   width: 10px;
   cursor: w-resize;
 }
+
 .resize-handle-right {
   right: -5px;
   top: 5px;
@@ -1016,6 +1077,7 @@ export default {
   width: 10px;
   cursor: e-resize;
 }
+
 .resize-handle-top-left {
   top: -5px;
   left: -5px;
@@ -1023,6 +1085,7 @@ export default {
   height: 15px;
   cursor: nw-resize;
 }
+
 .resize-handle-top-right {
   top: -5px;
   right: -5px;
@@ -1030,6 +1093,7 @@ export default {
   height: 15px;
   cursor: ne-resize;
 }
+
 .resize-handle-bottom-left {
   bottom: -5px;
   left: -5px;
@@ -1037,6 +1101,7 @@ export default {
   height: 15px;
   cursor: sw-resize;
 }
+
 .resize-handle-bottom-right {
   bottom: -5px;
   right: -5px;

@@ -12,7 +12,14 @@ async function openAccessSettings(page: import("@playwright/test").Page) {
   const defaultsResponse = page.waitForResponse(
     (response) => isExactSettingsApiResponse(response, "settings/source", "GET"),
   );
-  await page.locator("#access-sidebar").click();
+  const usersCard = page
+    .locator(".settings-card-collapsible")
+    .filter({ hasText: "User management" });
+  await usersCard.locator(".settings-card-collapsible-chevron").click();
+  await usersCard
+    .locator(".settings-card-collapsible-sub-item")
+    .filter({ hasText: "Access" })
+    .click();
 
   const permissionsGroup = page
     .locator(".settings-group")

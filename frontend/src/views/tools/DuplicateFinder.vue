@@ -179,10 +179,10 @@ export default {
 
     // Initialize from URL query params or use defaults
     const query = this.$route.query;
-    
+
     this.searchPath = (typeof query.path === 'string' ? query.path : null) || "/";
     this.selectedSource = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(state.sources.info || {})[0] || "";
-    
+
     if (query.minSize) {
       const parsed = parseInt(String(query.minSize), 10);
       if (!Number.isNaN(parsed)) {
@@ -200,11 +200,11 @@ export default {
   beforeUnmount() {
     // Clear local selection when leaving
     this.selectedIndices.clear();
-    
+
     eventBus.off('itemsDeleted', this.handleItemsDeleted);
     eventBus.off('duplicateFinderDeleteRequested', this.showDeleteConfirm);
     eventBus.off('duplicateFinderClearRequested', this.clearSelection);
-    
+
     // Notify Files.vue that selection is cleared
     eventBus.emit('duplicateFinderSelectionChanged', 0);
     eventBus.emit('duplicateFinderDeletingChanged', false);
@@ -351,7 +351,7 @@ export default {
       const type = file.type || '';
       const typeInfo = getTypeInfo(type);
       const simpleType = typeInfo.simpleType;
-      
+
       // Files that typically have previews
       if (simpleType === 'image' || simpleType === 'video') {
         return true;
@@ -447,9 +447,9 @@ export default {
       this.deleting = true;
       // Notify Files.vue that deletion is in progress
       eventBus.emit('duplicateFinderDeletingChanged', true);
-      
+
       const itemsToDelete = [];
-      
+
       // Map selected indices to files
       for (const selectedIndex of this.selectedIndices) {
         // Find the file corresponding to this index
@@ -470,7 +470,7 @@ export default {
 
       try {
         const response = await resourcesApi.bulkDelete(itemsToDelete);
-        
+
         // Process succeeded items
         if (response.succeeded && response.succeeded.length > 0) {
           response.succeeded.forEach(item => {
@@ -527,11 +527,11 @@ export default {
 
 .error-message {
   background: #fee;
-  color: #c33;
+  color: var(--dark-red);
   padding: 1rem;
   border-radius: 4px;
   margin-bottom: 1rem;
-  border: 1px solid #fcc;
+  border: 1px solid color-mix(in srgb, var(--red), transparent 60%);
 }
 
 .hint {
@@ -557,8 +557,8 @@ export default {
 }
 
 .duplicate-group {
-  border: 1px solid var(--borderPrimary);
-  border-radius: 4px;
+  border: 1px solid var(--divider);
+  border-radius: var(--borderRadius);
   overflow: hidden;
 }
 
@@ -568,7 +568,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
-  border-bottom: 1px solid var(--borderPrimary);
   border-radius: 0.5em;
 }
 
@@ -584,7 +583,7 @@ export default {
 
 .wasted-space {
   margin-left: auto;
-  color: #f5576c;
+  color: var(--icon-red);
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -599,14 +598,14 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(0 0 0 / 10%);
   border-top: 0;
   padding: 0.5em;
   border-radius: 0;
 }
 
 .file-item-wrapper:first-child {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgb(0 0 0 / 10%);
 }
 
 .file-item-wrapper.deleted {
@@ -615,7 +614,7 @@ export default {
 }
 
 .file-item-wrapper.failed {
-  border-left: 3px solid #f5576c;
+  border-left: 3px solid var(--icon-red);
 }
 
 .file-item-content {
@@ -670,26 +669,22 @@ export default {
   from {
     transform: rotate(0deg);
   }
-
   to {
     transform: rotate(360deg);
   }
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .duplicate-finder {
     padding: 1rem;
   }
-
   .stats {
     flex-direction: column;
     gap: 0.5rem;
   }
-
   .group-header {
     flex-wrap: wrap;
   }
-
   .wasted-space {
     margin-left: 0;
     width: 100%;

@@ -18,7 +18,7 @@ import { settingsApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 
 export default {
-  name: "settings",
+  name: "globalSettings",
   components: {
     Errors,
   },

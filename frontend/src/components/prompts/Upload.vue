@@ -62,7 +62,7 @@
       </div>
       <div class="upload-list">
         <div v-for="file in files" :key="file.id" class="upload-item">
-          <i class="material-symbols file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="file-icon" :class="fileTypeInfo(file).classes">{{ fileTypeInfo(file).materialSymbol }}</i>
           <div class="file-info">
             <p class="file-name">{{ file.name }}</p>
             <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
@@ -181,6 +181,7 @@
 <script>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
+import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
 import { getters, mutations, state } from "@/store";
 import { notify } from "@/notify";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
@@ -200,6 +201,10 @@ export default {
     ButtonGroup,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     initialItems: {
       type: Object,
       default: null,
@@ -377,10 +382,10 @@ export default {
     const hasClearable = computed(() => {
       if (state.user.fileLoading?.clearAll) {
         // For "clear all" mode: check for completed, error, conflict, or paused uploads
-        return files.value.some((file) => 
-          file.status === "completed" || 
-          file.status === "error" || 
-          file.status === "conflict" || 
+        return files.value.some((file) =>
+          file.status === "completed" ||
+          file.status === "error" ||
+          file.status === "conflict" ||
           file.status === "paused"
         );
       } else {
@@ -624,7 +629,7 @@ export default {
       if (status === 'paused' && file?.connectionIssue) {
         return 'Paused (connection issue)';
       }
-      
+
       switch (status) {
         case 'uploading':
           return i18n.global.t('general.uploading', { suffix: '...' });
@@ -639,6 +644,10 @@ export default {
         default:
           return status;
       }
+    };
+
+    const fileTypeInfo = (file) => {
+      return file.type === "directory" ? getTypeInfo("directory") : getTypeInfoFromExt(file.name);
     };
 
     const getHelpText = (file) => {
@@ -691,6 +700,7 @@ export default {
       clearAll,
       getStatusText,
       getHelpText,
+      fileTypeInfo,
       updateUploadSettings,
     };
   },
@@ -708,7 +718,7 @@ export default {
 
 .dropping {
   transform: scale(0.97);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 
@@ -745,7 +755,6 @@ export default {
 
 .file-icon {
   margin-right: 0.5em;
-  color: #999;
 }
 
 .file-info {
@@ -794,11 +803,8 @@ export default {
 
 .conflict-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background-color: rgb(0 0 0 / 70%);
   z-index: 999;
   display: flex;
   justify-content: center;
@@ -806,7 +812,6 @@ export default {
 }
 
 .conflict-overlay .card {
-  background-color: var(--card-background-color);
   padding: 1em;
   border-radius: 8px;
 }
@@ -844,6 +849,7 @@ export default {
 .sizeInput {
   max-width: 100px;
 }
+
 .card-actions {
   display: flex;
   justify-content: flex-end;

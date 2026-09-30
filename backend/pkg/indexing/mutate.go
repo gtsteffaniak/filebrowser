@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -346,6 +346,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	reducedIdx.Status = idx.getStatusUnlocked()
 	reducedIdx.ReadOnly = idx.Config.ReadOnly
 	reducedIdx.Private = idx.Config.Private
+	reducedIdx.IndexingDisabled = idx.Config.ResolvedRules.IndexingDisabled
 	idx.mu.RUnlock()
 	return reducedIdx, nil
 }
@@ -364,4 +365,38 @@ func (idx *Index) GetFolderSize(path string) (uint64, bool) {
 	defer idx.folderSizesMu.RUnlock()
 	size, exists := idx.folderSizes[path]
 	return size, exists
+}
+
+// folderSizeLookupKey maps a quota/listing index path to the folderSizes map key
+// (trailing slash for non-root directories; root stays "/").
+func folderSizeLookupKey(path string) string {
+	path = strings.TrimSpace(path)
+	path = strings.TrimSuffix(path, "/")
+	if path == "" {
+		return "/"
+	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	if path == "/" {
+		return "/"
+	}
+	return utils.AddTrailingSlashIfNotExists(path)
+}
+
+// GetFolderSizeForIndexPath looks up rollup size using index path conventions.
+func (idx *Index) GetFolderSizeForIndexPath(path string) (uint64, bool) {
+	key := folderSizeLookupKey(path)
+	size, ok := idx.GetFolderSize(key)
+	if ok {
+		return size, true
+	}
+	if key != "/" {
+		alt := strings.TrimSuffix(key, "/")
+		size, ok = idx.GetFolderSize(alt)
+		if ok {
+			return size, true
+		}
+	}
+	return 0, false
 }

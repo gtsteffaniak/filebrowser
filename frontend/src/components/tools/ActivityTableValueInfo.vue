@@ -47,7 +47,7 @@ export default {
 }
 
 .activity-table-value-info :deep(tbody td) {
-  word-break: break-word;
+  overflow-wrap: break-word;
   white-space: pre-wrap;
 }
 </style>

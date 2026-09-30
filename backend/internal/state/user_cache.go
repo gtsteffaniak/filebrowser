@@ -11,7 +11,7 @@ import (
 
 const userCacheTTL = 30 * time.Minute
 
-var userRecordCache = cache.NewCache[*users.User](userCacheTTL, userCacheTTL+5*time.Minute)
+var userRecordCache = cache.NewCache[*users.User](userCacheTTL, userCacheTTL)
 
 func userCacheKeyID(id uint64) string {
 	return fmt.Sprintf("id:%d", id)

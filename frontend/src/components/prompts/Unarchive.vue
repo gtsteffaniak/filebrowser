@@ -12,6 +12,7 @@
           :browse-source="itemSource"
           :show-folders="true"
           :show-files="false"
+          :sortable="true"
           @update:selected="updateDestination"
         />
       </template>
@@ -26,7 +27,7 @@
           {{ $t("general.path", { suffix: ":" }) }} {{ destPath }}{{ destSource ? ` (${destSource})` : "" }}
         </div>
         <div class="unarchive-options settings-items">
-          <ToggleSwitch class="item" v-model="deleteAfter" 
+          <ToggleSwitch class="item" v-model="deleteAfter"
             :name="$t('profileSettings.deleteAfterArchive')"
             :description="$t('profileSettings.deleteAfterArchiveDescription')" />
         </div>
@@ -48,7 +49,7 @@
       <button
         type="button"
         v-if="canCreateFolder && showNewDirInput"
-        class="button button--flat"
+        class="button button--flat button--grey"
         @click="cancelNewDir"
         :aria-label="$t('general.cancel')"
         :title="$t('general.cancel')"
@@ -132,6 +133,10 @@ export default {
   name: "unarchive",
   components: { FileList, LoadingSpinner, ToggleSwitch },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     item: {
       type: Object,
       required: true,
@@ -313,26 +318,31 @@ export default {
   padding-top: 2em;
   min-height: 200px;
 }
+
 .loading-text {
   padding: 1em;
   margin: 0;
   font-size: 1em;
   font-weight: 500;
 }
+
 .prompts-label {
   margin-top: 1em;
   margin-bottom: 0.25em;
   font-weight: 500;
 }
+
 .unarchive-options {
   margin-top: 1em;
 }
+
 .checkbox-label {
   display: flex;
   align-items: center;
   gap: 0.5em;
   cursor: pointer;
 }
+
 .card-content {
   position: relative;
 }

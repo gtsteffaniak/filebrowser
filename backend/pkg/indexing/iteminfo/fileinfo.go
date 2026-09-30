@@ -35,12 +35,6 @@ type FileInfo struct {
 	IsDir bool `json:"-"`
 }
 
-// Lyric is a single line of lyrics with timestamps (if available)
-type Lyric struct {
-	Text      string `json:"text"`
-	Timestamp int64  `json:"timestamp"` // milliseconds
-}
-
 // MediaMetadata contains metadata extracted from audio and video files
 type MediaMetadata struct {
 	Title     string  `json:"title,omitempty"`     // track/video title
@@ -54,7 +48,6 @@ type MediaMetadata struct {
 	AudioCodec string `json:"audioCodec,omitempty"` // audio codec name (e.g. aac)
 	Container  string `json:"container,omitempty"`  // container/format name (e.g. mov,mp4,m4a,3gp,3g2,mj2)
 	AlbumArt  []byte  `json:"albumArt,omitempty"`  // album art image data (automatically base64-encoded in JSON)
-	Lyrics    []Lyric `json:"lyrics,omitempty"`    // lyrics (from embedded tags or .lrc files)
 	HasLyrics bool    `json:"hasLyrics,omitempty"` // checks if lyrics are available without parse them
 }
 

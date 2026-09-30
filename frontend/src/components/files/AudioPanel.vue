@@ -1,21 +1,21 @@
 <template>
-  <div class="audio-side-panel" :class="{ 'dark-mode': darkMode }">
+  <div class="audio-side-panel">
     <div class="panel-tabs">
       <div class="tab-container">
         <input type="radio" id="tab-queue" v-model="activeTab" value="queue" hidden />
-        <label for="tab-queue" class="tab-btn" :class="{ active: activeTab === 'queue' }">
+        <label for="tab-queue" class="tab-btn" :class="{ active: activeTab === 'queue' }" :title="$t('player.QueuePlayback')">
           <i class="material-symbols">queue_music</i>
           <span>{{ $t('player.queue') }}</span>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
           <span v-if="queueCount > 0">({{ queueCount }})</span>
         </label>
         <input type="radio" id="tab-lyrics" v-model="activeTab" value="lyrics" hidden />
-        <label for="tab-lyrics" class="tab-btn" :class="{ active: activeTab === 'lyrics' }">
+        <label for="tab-lyrics" class="tab-btn" :class="{ active: activeTab === 'lyrics' }" :title="$t('player.lyrics')">
           <i class="material-symbols">lyrics</i>
           <span>{{ $t('player.lyrics') }}</span>
         </label>
         <input type="radio" id="tab-visualizer" v-model="activeTab" value="visualizer" hidden />
-        <label for="tab-visualizer" class="tab-btn" :class="{ active: activeTab === 'visualizer' }">
+        <label for="tab-visualizer" class="tab-btn" :class="{ active: activeTab === 'visualizer' }" :title="$t('player.visualizer.title')">
           <i class="material-symbols">equalizer</i>
           <span>{{ $t('player.visualizer.title') }}</span>
         </label>
@@ -29,19 +29,21 @@
       </div>
       <div v-else-if="activeTab === 'lyrics'" class="tab-lyrics">
         <!-- Lock button -->
-        <button
+        <FloatingActionButton
           v-if="lyrics.length && syncedLyrics"
-          type="button"
-          class="lyrics-lock-btn"
+          icon="lock"
+          :icon-outlined="lyricsScrollLocked"
+          size="small"
+          position-mode="absolute"
+          :edge-offset="{ top: '0.5em', right: '0.5em' }"
+          :auto-hide="false"
           @click="lyricsScrollLocked = !lyricsScrollLocked"
-          :title="lyricsScrollLocked ? $t('player.unlockLyrics') : $t('player.lockLyrics')"
-        >
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          <i :class="lyricsScrollLocked ? 'material-symbols-outlined' : 'material-symbols'">{{ lyricsScrollLocked ? 'lock_open' : 'lock' }}</i>
-        </button>
+          :label="lyricsLockToggleLabel"
+        />
         <!-- Scrollable area -->
         <div class="lyrics-scrollable" ref="lyricsScrollable">
           <div v-if="lyrics.length" class="lyrics-list">
+            <p v-if="lyricsMeta" class="lyrics-meta-header" aria-hidden="true">{{ lyricsMeta }}</p>
             <p
               v-for="(line, index) in lyrics"
               :key="index"
@@ -54,7 +56,15 @@
               :tabindex="syncedLyrics ? 0 : undefined"
               :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
             >
-              {{ line.text }}
+              <template v-if="index === activeLyricIndex && line.words && line.words.length">
+                <span
+                  v-for="(word, w) in line.words"
+                  :key="w"
+                  class="lyric-word"
+                  :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
+                >{{ word.text }}&nbsp;</span>
+              </template>
+              <template v-else>{{ line.text }}</template>
             </p>
           </div>
           <div v-else class="no-lyrics">
@@ -64,15 +74,15 @@
         </div>
       </div>
       <div v-else-if="activeTab === 'visualizer'" class="tab-visualizer">
-        <button
-          type="button"
-          class="lyrics-lock-btn"
+        <FloatingActionButton
+          icon="tune"
+          size="small"
+          position-mode="absolute"
+          :edge-offset="{ top: '0.5em', right: '0.5em' }"
+          :auto-hide="false"
           @click="showVisualizerSettings"
-          :title="$t('player.visualizer.settings')"
-          :aria-label="$t('player.visualizer.settings')"
-        >
-          <i class="material-symbols">tune</i>
-        </button>
+          :label="visualizerSettingsLabel"
+        />
         <canvas ref="visualizerCanvas" class="visualizer-canvas"></canvas>
       </div>
     </div>
@@ -81,7 +91,8 @@
 
 <script>
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
-import { getters, mutations, state } from "@/store";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
+import { mutations, state } from "@/store";
 import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
 const LAST_TAB_KEY = 'plyrSidePanelActiveTab';
@@ -108,10 +119,12 @@ const FREQ_LABELS = [
 
 export default {
   name: "AudioPanel",
-  components: { PlaybackQueue },
+  components: { PlaybackQueue, FloatingActionButton },
   props: {
     lyrics: { type: Array, default: () => [] },
+    lyricsMeta: { type: String, default: '' },
     activeLyricIndex: { type: Number, default: -1 },
+    activeWordIndex: { type: Number, default: -1 },
     player: { type: Object, default: null },
     audioContext: { type: Object, default: null },
     audioSource: { type: Object, default: null }, // MediaElementAudioSourceNode, see https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode
@@ -158,14 +171,17 @@ export default {
     visualizerConfig() {
       return visualizerConfig;
     },
-    darkMode() {
-      return getters.isDarkMode();
-    },
     queueCount() {
       return state.playbackQueue.queue.length;
     },
     syncedLyrics() {
       return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
+    },
+    lyricsLockToggleLabel() {
+      return this.lyricsScrollLocked ? this.$t('player.unlockLyrics') : this.$t('player.lockLyrics');
+    },
+    visualizerSettingsLabel() {
+      return this.$t('player.visualizer.settings');
     },
     // tabs in the panel
     indicatorStyle() {
@@ -758,14 +774,10 @@ export default {
   display: flex;
   flex-direction: column;
   max-height: 65vh;
-  background: rgb(216 216 216);
-  border-radius: 1em;
+  background: color-mix(in srgb, var(--alt-background) 20%, var(--background) 20%);
+  border-radius: var(--borderRadius);
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.audio-side-panel.dark-mode {
-  background: rgb(37 49 55 / 33%);
+  box-shadow: var(--surfaceElevationShadow);
 }
 
 .panel-tabs {
@@ -790,14 +802,27 @@ export default {
   border: none;
   background: transparent;
   color: var(--textSecondary);
-  border-radius: 0.8em;
+  border-radius: var(--borderRadius);
   cursor: pointer;
   font-size: 0.9rem;
-  transition: 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
   position: relative;
   z-index: 1;
   user-select: none;
   width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.tab-btn > i,
+.tab-btn > span + span {
+  flex-shrink: 0;
+}
+
+.tab-btn > span:first-of-type {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab-btn.active {
@@ -809,7 +834,7 @@ export default {
   top: 0; bottom: 0;
   left: 0;
   background: var(--primaryColor);
-  border-radius: 0.8em;
+  border-radius: var(--borderRadius);
   z-index: 0;
   transition: left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
               width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -822,6 +847,7 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 .tab-queue,
 .tab-lyrics,
 .tab-visualizer {
@@ -865,16 +891,31 @@ export default {
 }
 
 .lyrics-list {
-  padding: 1em;
+  padding-top: 1em;
+  padding-bottom: 1em;
   text-align: center;
   color: var(--textPrimary);
+}
+
+.lyrics-meta-header {
+  padding: 0 0 0.6em;
+  margin: 0;
+  opacity: 0.55;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: default;
+  user-select: none;
 }
 
 .lyric-line {
   padding: 0.5em 0;
   opacity: 0.6;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
+  transform: scale(1);
+  transform-origin: center;
   font-size: 1.15rem;
 }
 
@@ -886,7 +927,29 @@ export default {
   opacity: 1;
   font-weight: bold;
   color: var(--primaryColor);
-  font-size: 1.35rem;
+  font-size: 1.33rem;
+  animation: lyric-line-in 0.3s ease;
+}
+
+@keyframes lyric-line-in {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.lyric-word {
+  display: inline-block;
+  opacity: 0.4;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.lyric-word.sung {
+  opacity: 1;
+}
+
+.lyric-word.current {
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 .no-lyrics {
@@ -908,30 +971,6 @@ export default {
   cursor: default;
 }
 
-.audio-side-panel .lyrics-lock-btn {
-  position: absolute;
-  top: 0.5em;
-  right: 0.5em;
-  z-index: 10;
-  background: var(--background);
-  border: 1px solid var(--divider);
-  border-radius: 50%;
-  width: 2em;
-  height: 2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--textSecondary);
-  transition: 0.2s;
-}
-
-.audio-side-panel .lyrics-lock-btn:hover {
-  background: var(--primaryColor);
-  color: white;
-  border-color: var(--primaryColor);
-}
-
 .tab-btn:hover:not(.active) {
   color: var(--primaryColor);
   transform: scale(1.02);
@@ -950,8 +989,8 @@ export default {
 .visualizer-canvas {
   width: 100%;
   height: 100%;
-  border-radius: 0.8em;
-  background: rgba(0, 0, 0, 0.12);
+  border-radius: var(--borderRadius);
+  background: rgb(0 0 0 / 12%);
   display: block;
 }
 </style>

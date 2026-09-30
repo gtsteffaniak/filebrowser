@@ -1,5 +1,5 @@
 <template>
-  <div id="status-bar" :style="moveWithSidebar" :class="{ 'dark-mode-header': isDarkMode, 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
+  <div id="status-bar" :style="moveWithSidebar" :class="{ 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
     <div class="status-content" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
       <!-- Left side: selection/directory info and stats for the editor and markdown viewer -->
       <div class="status-info">
@@ -67,11 +67,9 @@ export default {
     showGallerySizeSlider() {
       return getters.showGallerySizeSlider();
     },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
     selectedCount() {
-      return getters.selectedCount();
+      // keep the main listing selection when a item from a FileList owns state.selected
+      return (state.selected.find((entry) => typeof entry !== 'number')?.heldSelected ?? state.selected).length;
     },
     numDirs() {
       return getters.reqNumDirs();
@@ -86,16 +84,13 @@ export default {
     // Calculate total size of selected items
     totalSelectedSize() {
       if (this.selectedCount === 0) return 0;
-      if (!Array.isArray(state.req?.items)) {
-        return 0;
-      }
+      const reqItems = Array.isArray(state.req?.items) ? state.req.items : [];
       let total = 0;
-      state.selected.forEach(index => {
-        if (index >= 0 && index < state.req?.items.length) {
-          const item = state.req.items.at(index);
-          if (item?.size) {
-            total += item.size;
-          }
+      const selected = state.selected.find((entry) => typeof entry !== 'number')?.heldSelected ?? state.selected;
+      selected.forEach(entry => {
+        const item = typeof entry === 'number' ? reqItems.at(entry) : entry;
+        if (item?.size) {
+          total += item.size;
         }
       });
       return total;
@@ -149,16 +144,16 @@ export default {
       return {};
     },
     editorStatsText() {
-      const { lines, words, chars } = state.editorStats;
+      const { lines, words, chars } = state.editor.stats;
       const parts = [];
-      if (words !== null) parts.push(this.$t('editor.words', { count: words }));
-      if (chars !== null) parts.push(this.$t('editor.chars', { count: chars }));
-      if (lines !== null) parts.push(this.$t('editor.lines', { count: lines }));
+      if (words !== null) parts.push(this.$t('editor.stats.words', { count: words }));
+      if (chars !== null) parts.push(this.$t('editor.stats.chars', { count: chars }));
+      if (lines !== null) parts.push(this.$t('editor.stats.lines', { count: lines }));
       return parts.join(' | ');
     },
     editorFontSize: {
       get() {
-        return state.editorFontSize;
+        return state.editor.fontSize;
       },
       set(value) {
         mutations.setEditorFontSize(value);
@@ -239,7 +234,8 @@ export default {
 
 <style scoped>
 #status-bar {
-  background-color: color-mix(in srgb, var(--alt-background) 15%, transparent);
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
   height: 2.5em;
   display: flex;
   align-items: center;
@@ -248,7 +244,6 @@ export default {
   left: 0;
   right: 0;
   z-index: 2;
-  border-radius: 2px;
   overflow: hidden;
   margin: 0;
   padding: 0;
@@ -309,43 +304,30 @@ input[type="range"] {
   width: 8em;
 }
 
-/* Backdrop filter support */
-@supports (backdrop-filter: none) {
-  #status-bar {
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-}
-
 /* Mobile styles */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   #status-bar {
     height: 3em;
     bottom: -3em;
     font-size: 0.9em;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -2px 10px rgb(0 0 0 / 10%);
   }
-
   #status-bar.active {
     bottom: 0;
     pointer-events: auto;
   }
-
   .status-content {
     padding: 0 0.8em;
   }
-
   .status-controls {
     gap: 1.2em;
   }
-
   input[type="range"] {
     width: 7em;
   }
-
   .status-info {
     font-size: 1em;
   }
-
   .size-label {
     font-size: 0.9em;
   }

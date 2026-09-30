@@ -169,7 +169,7 @@ export default {
   justify-content: flex-start;
   max-width: 100%;
   min-width: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
   box-sizing: border-box;
 }
 </style>

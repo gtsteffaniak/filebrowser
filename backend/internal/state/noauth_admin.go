@@ -19,15 +19,11 @@ func isUserLookupNotFound(err error) bool {
 }
 
 func noAuthAdminUsername() string {
-	admin := settings.Config.Auth.AdminUsername
-	if admin == "" {
-		return "admin"
-	}
-	return admin
+	return settings.PasswordAdminUsername()
 }
 
-// ResolveNoAuthUser returns the user noauth mode impersonates at runtime: auth.adminUsername when
-// present, otherwise the sole user when exactly one account exists.
+// ResolveNoAuthUser returns the user noauth mode impersonates at runtime: the password
+// admin username when present, otherwise the sole user when exactly one account exists.
 func ResolveNoAuthUser() (users.User, error) {
 	target := noAuthAdminUsername()
 	user, err := GetUserByUsername(target)
@@ -50,7 +46,7 @@ func ResolveNoAuthUser() (users.User, error) {
 
 // EnsureNoAuthAdminUserAfterMigration runs once after Bolt→SQLite user import when noauth is enabled.
 // It never renames or modifies existing users. A new admin account is created only when
-// auth.adminUsername is missing and more than one user was migrated (a single migrated user is
+// auth.methods.password.adminUsername is missing and more than one user was migrated (a single migrated user is
 // used at runtime via ResolveNoAuthUser).
 func EnsureNoAuthAdminUserAfterMigration(store *sqldb.SQLStore) error {
 	if store == nil || !settings.Config.Auth.Methods.NoAuth {
@@ -88,7 +84,7 @@ func createNoAuthAdminUser(store *sqldb.SQLStore) error {
 	ApplyUserDefaults(user)
 	user.Username = target
 
-	password := settings.Config.Auth.AdminPassword
+	password := settings.PasswordAdminPassword()
 	if password == "" {
 		password = "admin"
 	}

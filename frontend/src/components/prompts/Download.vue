@@ -95,6 +95,12 @@ export default {
   components: {
     ProgressBar,
   },
+  props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+  },
   data: () => ({
     formats: {
       zip: "zip",
@@ -212,11 +218,11 @@ export default {
 .error-banner {
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: var(--errorBackground, rgba(244, 67, 54, 0.1));
+  background: var(--errorBackground, rgb(244 67 54 / 10%));
   color: var(--errorColor, #f44336);
   border-radius: 4px;
   font-size: 0.875rem;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .download-item {

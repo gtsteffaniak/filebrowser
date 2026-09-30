@@ -17,17 +17,20 @@ vi.mock("@/store", () => ({
     shareInfo: { hash: "share" },
   },
   mutations: { setIsUploading: vi.fn(), setReload: vi.fn() },
+  getters: { isShare: vi.fn(() => false) },
 }));
-vi.mock("@/store/getters", () => ({ getters: { isShare: vi.fn(() => false) } }));
-vi.mock("@/utils/appNotifications", () => ({
-  notifyUploadComplete: vi.fn(),
-  notifyUploadError: vi.fn(),
-}));
+vi.mock("@/utils/appNotifications", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    notifyUploadComplete: vi.fn(),
+    notifyUploadError: vi.fn(),
+  };
+});
 
 import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
-import { state } from "@/store";
-import { getters } from "@/store/getters";
+import { state, getters } from "@/store";
 import { isSameSize, numberedName, uploadManager } from "./upload";
 
 function addUpload(status = "uploading", file = new Blob(["a"])) {

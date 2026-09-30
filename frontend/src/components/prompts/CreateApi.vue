@@ -88,6 +88,10 @@ export default {
     ExpandDropdown,
   },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     permissions: {
       type: Object,
       required: true,
@@ -160,6 +164,7 @@ export default {
   color: #666;
   margin-top: 0.5em;
 }
+
 .info-text {
   font-style: italic;
   color: #666;

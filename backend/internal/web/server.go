@@ -74,7 +74,7 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 		},
 	})
 	if !settings.Env.IsDevMode {
-		templates = template.Must(templates.ParseFS(fs, "public/index.html"))
+		templates = template.Must(templates.ParseFS(fs, indexTemplatePath()))
 	}
 	templateRenderer = &TemplateRenderer{
 		templates: templates,

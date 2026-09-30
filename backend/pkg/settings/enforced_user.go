@@ -8,9 +8,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
-// AuthManagedEnforcementPaths are default paths owned by authentication (adminGroup,
-// AdminUsername) rather than the user-defaults template. Enforcement must not block
-// or overwrite auth-granted admin privileges.
+// AuthManagedEnforcementPaths are default paths owned by authentication (adminGroup
+// for external auth methods) rather than the user-defaults template. Enforcement must
+// not block or overwrite auth-granted admin privileges.
 var AuthManagedEnforcementPaths = map[string]struct{}{
 	"account.permissions.admin": {},
 }

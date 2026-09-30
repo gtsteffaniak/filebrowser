@@ -209,6 +209,25 @@ func TestValidateSelfUserUpdateNotEnforced_allowsNonEnforced(t *testing.T) {
 	}
 }
 
+func TestValidateSelfUserUpdateNotEnforced_blocksShowAdvancedProfile(t *testing.T) {
+	t.Parallel()
+	enforced := UserDefaultsEnforcement{
+		Account: UserDefaultsAccountEnforcement{ShowAdvancedProfile: true},
+	}
+	regular := &users.User{FrontendUser: users.FrontendUser{Username: "alice"}}
+	err := ValidateSelfUserUpdateNotEnforced([]string{"showAdvancedProfile"}, enforced, regular)
+	if err == nil {
+		t.Fatal("expected error for enforced showAdvancedProfile")
+	}
+	var locked ErrEnforcedUserField
+	if !errors.As(err, &locked) {
+		t.Fatalf("expected ErrEnforcedUserField, got %T", err)
+	}
+	if locked.Field != "showAdvancedProfile" {
+		t.Fatalf("field: got %q", locked.Field)
+	}
+}
+
 func TestValidateSelfUserUpdateNotEnforced_skipsAdmin(t *testing.T) {
 	t.Parallel()
 	enforced := UserDefaultsEnforcement{

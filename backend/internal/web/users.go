@@ -18,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -376,10 +377,7 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		targetUsername = strings.TrimSpace(req.User.Username)
 	}
 	if targetUsername == "" && settings.Config.Auth.Methods.NoAuth {
-		admin := settings.Config.Auth.AdminUsername
-		if admin == "" {
-			admin = "admin"
-		}
+		admin := settings.PasswordAdminUsername()
 		targetUsername = admin
 	}
 	if targetUsername == "" && d.User != nil && d.User.Username != "" && d.User.Username != "anonymous" {
@@ -451,7 +449,9 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		var locked settings.ErrEnforcedUserField
 		var mismatch settings.ErrEnforcedUserValueMismatch
-		if stderrors.As(err, &locked) || stderrors.As(err, &mismatch) {
+		var enforcedLink usersidebar.ErrEnforcedSidebarLinkRemoved
+		var enforcedTool toolaccess.ErrEnforcedToolAccess
+		if stderrors.As(err, &locked) || stderrors.As(err, &mismatch) || stderrors.As(err, &enforcedLink) || stderrors.As(err, &enforcedTool) {
 			return http.StatusForbidden, err
 		}
 		return http.StatusBadRequest, err
@@ -487,6 +487,7 @@ func PrepForFrontend(u users.User) users.User {
 	u.Permissions = users.GlobalPermissionsOnly(u.Permissions)
 	u.SourcePermissions = nil
 	u.SidebarLinks = usersidebar.FrontendLinks(u.SidebarLinks, u.ShowToolsInSidebar)
+	u.EffectiveToolAccess = toolaccess.EffectiveToolAccessMap(&u, state.EffectiveToolAccessDefaults())
 	u.Password = ""
 	u.ApiKeys = nil
 	u.Tokens = nil

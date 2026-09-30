@@ -34,12 +34,21 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import { globalVars } from "@/utils/constants";
+import { isHtmlMimeType } from "@/utils/mimetype";
 
 const offsetFromBottomListing = 110;
 const offsetFromBottomFull = 75;
+const offsetFromBottomEmbedded = 12;
 
 export default {
   name: "Scrollbar",
+  props: {
+    // to bypass the currentView for the editor split-view where currentView is editor
+    forceEnabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       isDragging: false,
@@ -83,11 +92,17 @@ export default {
       return this.isFolder ? 'folder' : 'description';
     },
     showScrollbar() {
+      if (this.forceEnabled) return true;
       const view = getters.currentView();
+      if (view === 'markdownViewer' && isHtmlMimeType(state.req?.type)) return false;
       return view === 'listingView' || view === 'settings' || view === 'tools' || view === 'markdownViewer';
     },
   },
   methods: {
+    getBottomOffset() {
+      if (this.forceEnabled) return offsetFromBottomEmbedded;
+      return getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
+    },
     handleResize() {
       if (!this.isReady) return;
       // Force scroll event to re-compute thumb position
@@ -122,7 +137,9 @@ export default {
       this.scrollTimeout = setTimeout(() => {
         if (!this.isDragging && !this.isHovering) {
           this.isVisible = false;
-          mutations.updateListing({ ...state.listing, scrolling: false });
+          if (!this.forceEnabled) {
+            mutations.updateListing({ ...state.listing, scrolling: false });
+          }
         }
       }, 800);
     },
@@ -146,12 +163,11 @@ export default {
       if (scrollableHeight <= 0) return;
       const scrollRatio = scrollTop / scrollableHeight;
       const thumbHeight = thumb.clientHeight;
-      const maxThumbTop = scrollbar.clientHeight - thumbHeight - (getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull);
+      const maxThumbTop = scrollbar.clientHeight - thumbHeight - this.getBottomOffset();
       const thumbPosition = scrollRatio * maxThumbTop;
 
-      // Use transform3d for better performance
-      thumb.style.transform = `translate3d(0, ${thumbPosition}px, 0)`;
-      sectionId.style.transform = `translate3d(0, ${thumbPosition}px, 0)`;
+      thumb.style.transform = `translateY(${thumbPosition}px)`;
+      sectionId.style.transform = `translateY(${thumbPosition}px)`;
     },
     handleScroll() {
       if (!this.isReady) return;
@@ -162,8 +178,12 @@ export default {
         const content = this.$refs.wrapper;
         this.isVisible = true;
         this.scheduleHide();
-        mutations.setPreviewSource("");
         this.updateThumbPosition(content.scrollTop);
+        if (this.forceEnabled) {
+          this.scrollFrame = null;
+          return;
+        }
+        mutations.setPreviewSource("");
         mutations.updateListing({
           ...state.listing,
           scrolling: true,
@@ -196,7 +216,7 @@ export default {
 
       const deltaY = clientY - this.startY;
       const scrollableHeight = content.scrollHeight - content.clientHeight;
-      const offsetFromBottom = getters.showStatusBar() ? offsetFromBottomListing : offsetFromBottomFull;
+      const offsetFromBottom = this.getBottomOffset();
       const scrollbarHeight = scrollbar.clientHeight - thumb.clientHeight - offsetFromBottom;
       const scrollRatio = scrollableHeight / scrollbarHeight;
 
@@ -298,28 +318,18 @@ export default {
 
 .thumb {
   right: -5em;
-  /* <- Start hidden */
   display: none;
   border: var(--borderWidth) solid var(--background);
   position: fixed;
   top: 4em;
   height: 6em;
-  background-color: var(--alt-background);
-  border-radius: 1em;
+  border-radius: var(--borderRadius);
   cursor: pointer;
   pointer-events: auto;
   justify-content: center;
   align-items: center;
   transition: right 0.25s ease, opacity 0.2s;
   z-index: 1001;
-}
-
-@supports (backdrop-filter: none) {
-  .thumb,
-  .thumb-section-id {
-    background-color: rgba(237, 237, 237, 0.1) !important;
-    backdrop-filter: blur(10px) invert(0.1);
-  }
 }
 
 .thumb-letters {
@@ -332,7 +342,6 @@ export default {
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  transition: opacity 0.2s;
 }
 
 .thumb-section-id {
@@ -340,9 +349,7 @@ export default {
   right: 3em;
   width: 3em;
   height: 2.75em;
-  background-color: var(--alt-background);
   border-radius: 3em;
-  border: var(--borderWidth) solid var(--background);
   font-size: 1em;
   justify-content: center;
   align-items: center;
@@ -353,14 +360,15 @@ export default {
   z-index: 1001;
 }
 
+.thumb, .thumb-section-id {
+  will-change: transform;
+  background-color: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  border: var(--borderWidth) solid var(--background);
+}
+
 .custom-scrollbar.visible .thumb-section-id {
   display: flex;
 }
 
-.thumb, .thumb-section-id {
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
 </style>

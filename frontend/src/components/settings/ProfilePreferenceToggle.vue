@@ -40,6 +40,12 @@ export default {
       if (this.profilePrefs.isConfigLocked(this.section, this.field)) {
         return this.$t("settings.userDefaultFieldLockedFromConfig");
       }
+      if (
+        this.valueDisabled
+        && this.profilePrefs.isEnforcementLocked(this.section, this.field)
+      ) {
+        return this.$t("profileSettings.enforcedByAdmin");
+      }
       return "";
     },
   },

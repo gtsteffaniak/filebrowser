@@ -7,29 +7,34 @@
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
     <div v-show="!isLoading">
-      <PathPickerButton
-        v-if="!isShareContext"
-        v-model:path="destPath"
-        v-model:source="destSource"
-        class="move-copy-path-picker"
-        :show-files="false"
-        :show-folders="true"
-        :placeholder="$t('sidebar.chooseSource')"
-        @navigate="syncFileListFromPicker"
-      />
       <file-list
         ref="fileList"
         :hide-path-chrome="!isShareContext"
+        :sortable="true"
+        v-model:filter-query="filterQuery"
         @update:selected="updateDestination"
       >
+        <template #sticky>
+          <PathPickerButton
+            v-if="!isShareContext"
+            v-model:path="destPath"
+            v-model:source="destSource"
+            class="move-copy-path-picker"
+            :show-files="false"
+            :show-folders="true"
+            :placeholder="$t('sidebar.chooseSource')"
+            @navigate="syncFileListFromPicker"
+          />
+        </template>
       </file-list>
     </div>
   </div>
   <div class="card-actions split-buttons" >
+    <ListingFilter v-if="!showNewDirInput" v-model="filterQuery" :disabled="isLoading" />
     <button
       type="button"
       v-if="canCreateFolder && showNewDirInput"
-      class="button button--flat"
+      class="button button--flat button--grey"
       :disabled="isLoading"
       @click="cancelNewDir"
       :aria-label="$t('general.cancel')"
@@ -84,16 +89,23 @@ import { notify } from "@/notify";
 import {
   notifyMoveCopyComplete,
   notifyOperationError,
+  notifyMoveCopyFailure,
+  extractMoveCopyErrorMessage,
 } from "@/utils/appNotifications";
 import { goToItemNotificationButton } from "@/utils/notificationActions";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
+import ListingFilter from "@/components/files/ListingFilter.vue";
 import { eventBus } from '@/store/eventBus';
 
 export default {
   name: "move-copy",
-  components: { FileList, LoadingSpinner, PathPickerButton },
+  components: { FileList, LoadingSpinner, PathPickerButton, ListingFilter },
   props: {
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
     operation: {
       type: String,
       required: true,
@@ -117,6 +129,7 @@ export default {
     isLoading: false, // Track loading state for spinner
     showNewDirInput: false, // When true will replace the new folder button with a input field
     newDirName: "",
+    filterQuery: "",
   }),
   computed: {
     destContainsSrc() {
@@ -363,8 +376,10 @@ export default {
         const hasSuccesses = result?.succeeded && result.succeeded.length > 0;
 
         if (hasFailures && !hasSuccesses) {
-          // All operations failed - show error but DON'T close prompt
-          const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
+          const errorMessage = extractMoveCopyErrorMessage(
+            { failed: result.failed },
+            this.$t("prompts.operationFailed"),
+          );
           notify.showError(errorMessage);
           notifyOperationError(errorMessage);
           return;
@@ -444,28 +459,7 @@ export default {
           }
         }
       } catch (error) {
-        // Handle errors thrown by the API (e.g., 500 errors)
-        // DON'T close the prompt on error - let user try again or cancel manually
-
-        // Try to extract error message from the error response
-        let errorMessage = null;
-
-        // Check if error has a response body with failed items
-        if (error?.failed && error.failed.length > 0 && error.failed[0]?.message) {
-          errorMessage = error.failed[0].message;
-        } else if (error?.message) {
-          errorMessage = error.message;
-        } else if (typeof error === 'string') {
-          errorMessage = error;
-        }
-
-        // Only use fallback if we couldn't extract a message
-        if (!errorMessage) {
-          errorMessage = this.$t("prompts.operationFailed");
-        }
-
-        notify.showError(errorMessage);
-        notifyOperationError(errorMessage);
+        notifyMoveCopyFailure(error, this.$t("prompts.operationFailed"));
       } finally {
         this.isLoading = false; // Hide loading spinner
       }
@@ -504,7 +498,4 @@ export default {
   justify-content: space-between;
 }
 
-.move-copy-path-picker {
-  margin-bottom: 1rem;
-}
 </style>

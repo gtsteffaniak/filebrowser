@@ -272,7 +272,7 @@ export default defineComponent({
   background-color: var(--surfaceSecondary);
   padding: 0.5em;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
   align-items: center;
 }
 
@@ -288,28 +288,5 @@ export default defineComponent({
 
 .nav-button:hover {
   background-color: var(--alt-background);
-}
-
-/* Copied directly from your example */
-.floating-close {
-  position: fixed;
-  left: 50%;
-  transform: translate(-50%, -5em); /* Start offscreen */
-  transition: transform 0.4s ease;
-  background: var(--surfaceSecondary);
-  font-size: 0.5em;
-  top: 0;
-  z-index: 1002;
-}
-
-.float-in {
-  transform: translate(-50%, 2.75em); /* Animate to final position */
-}
-
-.floating-close i {
-  font-size: 2em;
-  padding-right: 1em;
-  padding-left: 1em;
-  color: var(--textPrimary);
 }
 </style>

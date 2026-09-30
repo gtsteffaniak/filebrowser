@@ -40,9 +40,10 @@ setup-gofitz-cgo:
 	echo "linking go-fitz MuPDF headers for preview CGO..."
 	cd backend && go run ./scripts/setup-gofitz-cgo
 
+# todo: updating build causes issues.
+# 	cd backend/build && go get -u tool && go mod tidy
 update:
 	cd backend && go get -u ./... && go mod tidy
-	cd backend/build && go get -u tool && go mod tidy
 	cd frontend && npm update
 
 build: build-frontend build-backend
@@ -58,17 +59,11 @@ build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'"
 	@echo "✓ Backend built successfully"
 
-# New dev target with hot-reloading for frontend and backend
+# Local development: Vite HMR (frontend) + Air (backend)
+.NOTPARALLEL: dev
 dev: generate-docs generate-icons setup-gofitz-cgo
-	@echo "Starting dev servers... Press Ctrl+C to stop."
-	pkill -f '[t]est_config.yaml' || true
-	pkill -f '[a]ir -c .air' || true
-	@cd frontend && DEV_BUILD=true npm run watch & \
-	FRONTEND_PID=$$!; \
-	cd backend && export FILEBROWSER_DEVMODE=true && $(call backend_dev_tool,air) $$([ "$(OS)" = "Windows_NT" ] && echo "-c .air.windows.toml" || echo "") & \
-	BACKEND_PID=$$!; \
-	trap 'echo "Stopping..."; kill $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; sleep 1; kill -9 $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; exit 0' INT TERM; \
-	wait $$FRONTEND_PID $$BACKEND_PID 2>/dev/null || true
+	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
+	bash ./scripts/dev.sh
 
 run: build-frontend generate-docs setup-gofitz-cgo
 	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
@@ -77,7 +72,7 @@ run: build-frontend generate-docs setup-gofitz-cgo
 	else \
 		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
 	fi
-	cd backend && CGO_ENABLED=1 FILEBROWSER_DEVMODE=true go run --tags=mupdf \
+	cd backend && CGO_ENABLED=1 go run --tags=mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'" . -c test_config.yaml
 
 generate-docs:
@@ -99,6 +94,7 @@ build-frontend:
 
 lint-frontend:
 	cd frontend && npm run lint
+	cd frontend && npm run lint:css
 
 lint-backend:
 	cd backend && GOLANGCI_LINT="$$(cd $(BACKEND_BUILD) && go tool -n golangci-lint)" && "$$GOLANGCI_LINT" run --path-prefix=backend
@@ -210,7 +206,7 @@ perf-dashboard:
 
 # get version from environment variable, for example
 # cd frontend && npm i @playwright/test && npx playwright install --with-deps chromium
-# make PLAYWRIGHT_TEST=settings test-playwright-ui 
+# make PLAYWRIGHT_TEST=settings test-playwright-ui
 test-playwright-ui: build-frontend
 	docker stop local-playwright-tests || true
 	docker rm local-playwright-tests || true

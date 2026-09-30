@@ -1,17 +1,19 @@
 <template>
-  <button
-    type="button"
-    @click.prevent="createPrompt"
-    class="button floating-action-button"
-  >
-    {{ $t("general.new") }}
-  </button>
+  <FloatingActionButton
+    icon="add"
+    variant="primary"
+    position="bottom-right"
+    :edge-offset="{ bottom: '1rem', right: '1rem' }"
+    :auto-hide="false"
+    :label="$t('general.new')"
+    @click="createPrompt"
+  />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("api.title") }}</h2>
   </div>
 
-  <div class="card-content full">
+  <div class="card-content full has-fab-bottom-right">
     <div class="settings-items">
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
@@ -79,6 +81,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import { eventBus } from "@/store/eventBus";
 
@@ -88,6 +91,7 @@ export default {
     Errors,
     SettingsTable,
     ActivityViewerButton,
+    FloatingActionButton,
   },
   data: () => ({
     error: null,
@@ -219,7 +223,7 @@ export default {
   background-color: white;
   border: 1px solid #ccc;
   padding: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 10%);
   z-index: 10;
   width: max-content;
 }
@@ -230,8 +234,7 @@ export default {
 
 .api-table-actions {
   display: inline-flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-flow: row nowrap;
   gap: 0.25em;
   justify-content: flex-end;
   align-items: center;

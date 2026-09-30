@@ -271,7 +271,7 @@ export default {
   max-width: 90vw;
   height: auto;
   bottom: 0;
-  right: 0em;
+  right: 0;
   display: flex;
   padding: 0.5em;
   align-items: center;
@@ -290,7 +290,7 @@ export default {
 
 /* selection color for better visibility (since the selection color is the same as --primaryColor) */
 .notification-item ::selection {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgb(255 255 255 / 80%);
   color: #000;
 }
 
@@ -311,7 +311,7 @@ export default {
   color: white;
   padding: 1em;
   flex: 1;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .notification-icon {
@@ -330,12 +330,12 @@ export default {
 /* Override button colors for notifications - buttons should be white on colored backgrounds */
 .notification-buttons .button {
   color: white !important;
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgb(255 255 255 / 30%);
 }
 
 .notification-buttons .button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 50%);
 }
 
 .notification-item > .material-symbols:first-child {
@@ -379,11 +379,11 @@ canvas.notification-spinner {
 }
 
 .notification-enter-to {
-  right: 0em;
+  right: 0;
 }
 
 .notification-leave-from {
-  right: 0em;
+  right: 0;
   max-height: 500px;
   opacity: 1;
 }
@@ -408,13 +408,13 @@ canvas.notification-spinner {
   left: 0;
   right: 0;
   height: 3px;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgb(255 255 255 / 25%);
   overflow: hidden;
 }
 
 .notification-progress-fill {
   height: 100%;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgb(255 255 255 / 70%);
   transition: width 0.1s linear;
 }
 </style>

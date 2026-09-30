@@ -388,6 +388,12 @@ const ACCESS_EVENT_TYPES = [
   "accessDelete",
 ];
 
+const QUOTA_EVENT_TYPES = [
+  "quotaCreate",
+  "quotaUpdate",
+  "quotaDelete",
+];
+
 const SHARE_EVENT_TYPES = [
   "shareCreate",
   "shareUpdate",
@@ -417,6 +423,7 @@ const ADMIN_EVENT_TYPES = [
 const EVENT_TYPES = [
   ...FILE_EVENT_TYPES,
   ...ACCESS_EVENT_TYPES,
+  ...QUOTA_EVENT_TYPES,
   ...SHARE_EVENT_TYPES,
   ...AUTH_EVENT_TYPES,
   ...TOOL_EVENT_TYPES,
@@ -545,7 +552,7 @@ const VALID_RANGES = new Set(["1h", "24h", "7d", "30d", "custom"]);
 const VALID_VIEWS = new Set(["table", "chart", "line", "pie", "summary"]);
 const VALID_INTERVALS = new Set(["minute", "hour", "day"]);
 const VALID_SPLITS = new Set(["eventType", "user", "none"]);
-const VALID_SCOPES = new Set(["all", "files", "access", "shares"]);
+const VALID_SCOPES = new Set(["all", "files", "access", "quotas", "shares"]);
 const ANONYMOUS_USERNAME = "anonymous";
 const ACTIVITY_QUERY_KEYS = [
   "range",
@@ -616,6 +623,7 @@ export default {
     visibleEventTypes() {
       if (this.activityScope === "files") return FILE_EVENT_TYPES;
       if (this.activityScope === "access") return ACCESS_EVENT_TYPES;
+      if (this.activityScope === "quotas") return QUOTA_EVENT_TYPES;
       if (this.activityScope === "shares") return [...SHARE_EVENT_TYPES, "download"];
       return EVENT_TYPES;
     },
@@ -623,7 +631,9 @@ export default {
       return this.activityScope === "all";
     },
     showFileFilters() {
-      return this.activityScope === "files" || this.activityScope === "access";
+      return this.activityScope === "files"
+        || this.activityScope === "access"
+        || this.activityScope === "quotas";
     },
     showShareFilters() {
       return this.activityScope === "shares";
@@ -644,7 +654,7 @@ export default {
       return Object.keys(state.sources?.info || {}).sort();
     },
     activityScopeOptions() {
-      return ["all", "files", "access", "shares"].map((scope) => ({
+      return ["all", "files", "access", "quotas", "shares"].map((scope) => ({
         value: scope,
         label: this.activityScopeLabel(scope),
       }));
@@ -1095,7 +1105,7 @@ export default {
           this.visibleEventTypes,
         );
       }
-      if (this.activityScope === "files" || this.activityScope === "all" || this.activityScope === "access") {
+      if (this.activityScope === "files" || this.activityScope === "all" || this.activityScope === "access" || this.activityScope === "quotas") {
         this.filterShareHash = "";
       }
       if (this.activityScope === "shares") {
@@ -1162,6 +1172,9 @@ export default {
       const eventTypes = normalizeEventTypeQueryValue(query.eventType);
       if (eventTypes.some((type) => ACCESS_EVENT_TYPES.includes(type))) {
         return "access";
+      }
+      if (eventTypes.some((type) => QUOTA_EVENT_TYPES.includes(type))) {
+        return "quotas";
       }
       if (queryValuePresent(query.source)
         || queryValuePresent(query.path)
@@ -1747,6 +1760,9 @@ export default {
       if (scope === "access") {
         return this.$t("tools.activityViewer.scopeAccess");
       }
+      if (scope === "quotas") {
+        return this.$t("quotas.title");
+      }
       if (scope === "shares") {
         return this.$t("tools.activityViewer.scopeShares");
       }
@@ -2107,21 +2123,18 @@ export default {
   max-width: 0;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .results-table-scroll {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
     width: 100%;
     max-width: 1000px;
   }
-
   .results-table-scroll :deep(.settings-table) {
     width: max-content;
     min-width: 100%;
     max-width: 1000px;
     table-layout: auto;
   }
-
   .results-table-scroll :deep(.settings-table thead th),
   .results-table-scroll :deep(.settings-table tbody td) {
     white-space: nowrap;
@@ -2220,13 +2233,10 @@ export default {
 }
 
 .custom-range {
-  grid-column: 1 / -1;
-}
-
-.custom-range {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  grid-column: 1 / -1;
 }
 
 .custom-range .input {
@@ -2309,27 +2319,27 @@ export default {
 }
 
 .results-table-scroll :deep(.event-type-badge--delete) {
-  background: rgba(244, 67, 54, 0.2);
+  background: rgb(244 67 54 / 20%);
   color: #c62828;
 }
 
 .results-table-scroll :deep(.event-type-badge--create) {
-  background: rgba(33, 150, 243, 0.18);
+  background: rgb(33 150 243 / 18%);
   color: #1565c0;
 }
 
 .results-table-scroll :deep(.event-type-badge--change) {
-  background: rgba(255, 193, 7, 0.24);
+  background: rgb(255 193 7 / 24%);
   color: #f57f17;
 }
 
 .results-table-scroll :deep(.event-type-badge--auth) {
-  background: rgba(156, 39, 176, 0.18);
+  background: rgb(156 39 176 / 18%);
   color: #7b1fa2;
 }
 
 .results-table-scroll :deep(.event-type-badge--default) {
-  background: rgba(128, 128, 128, 0.12);
+  background: rgb(128 128 128 / 12%);
   color: var(--textSecondary);
 }
 
@@ -2352,8 +2362,8 @@ export default {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 6px 20px rgba(0, 0, 0, 0.06);
+    0 1px 2px rgb(0 0 0 / 4%),
+    0 6px 20px rgb(0 0 0 / 6%);
   overflow: hidden;
 }
 
@@ -2378,16 +2388,14 @@ export default {
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .activity-viewer {
     padding: 1rem;
   }
-
   .chart-panel {
     height: 320px;
     padding: 1rem;
   }
-
   .results-stats {
     flex-direction: column;
     gap: 0.5rem;

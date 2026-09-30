@@ -16,18 +16,19 @@ func (failingRevokePersister) SaveAccessRule(string, string, *access.AccessRule)
 func (failingRevokePersister) DeleteAccessRule(string, string) error                   { return nil }
 func (failingRevokePersister) SaveGroup(string, access.StringSet) error                { return nil }
 func (failingRevokePersister) DeleteGroup(string) error                                { return nil }
-func (failingRevokePersister) SaveRevokedToken(string, int64) error                    { return nil }
+func (failingRevokePersister) DeleteGroupWithRules(string, []access.RuleUpsert, []access.RuleKey) error {
+	return nil
+}
+func (failingRevokePersister) SaveRevokedToken(string, int64) error { return nil }
 func (failingRevokePersister) PersistImmediateTokenRevocation(string) error {
 	return errors.New("simulated revocation persistence failure")
 }
 func (failingRevokePersister) PersistTokenRetirement(string, int64, []string) error {
-	return nil
+	return errors.New("simulated retirement persistence failure")
 }
-func (failingRevokePersister) DeleteRevokedToken(string) error { return nil }
-func (failingRevokePersister) SaveHashedToken(string, uint64, bool, int64) error {
-	return nil
-}
-func (failingRevokePersister) DeleteHashedToken(string) error          { return nil }
+func (failingRevokePersister) DeleteRevokedToken(string) error      { return nil }
+func (failingRevokePersister) SaveHashedToken(string, uint64, bool, int64) error { return nil }
+func (failingRevokePersister) DeleteHashedToken(string) error         { return nil }
 func (failingRevokePersister) DeleteHashedTokensByUserID(uint64) error { return nil }
 
 func TestSessionAndApiTokenMetadata(t *testing.T) {
@@ -71,6 +72,24 @@ func TestRevokeTokenRollsBackMemoryOnPersistenceFailure(t *testing.T) {
 	}
 	if _, ok := store.GetHashedTokenInfo("tok"); !ok {
 		t.Fatal("failed revocation must restore owner mapping")
+	}
+}
+
+func TestRetireTokenRollsBackMemoryOnPersistenceFailure(t *testing.T) {
+	store, _ := createTestStorage(t)
+	store.SetSQLStore(failingRevokePersister{})
+
+	if err := store.AddSessionToken("tok", 1); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.RetireToken("tok"); err == nil {
+		t.Fatal("expected RetireToken to propagate persistence failure")
+	}
+	if store.IsTokenRevoked("tok") {
+		t.Fatal("failed retirement must not leave in-memory revoked state")
+	}
+	if _, ok := store.GetHashedTokenInfo("tok"); !ok {
+		t.Fatal("failed retirement must keep owner mapping")
 	}
 }
 

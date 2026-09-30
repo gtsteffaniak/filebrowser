@@ -27,7 +27,7 @@
           :req="req"
           :listing="listing"
           :autoPlayEnabled="autoPlay"
-          @play="autoPlay = true"
+          @play="playbackStarted = true"
           :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
@@ -92,8 +92,10 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
 import { isRawImageMimeType } from "@/utils/mimetype";
 import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
+import { parseLyrics } from "@/utils/lyrics";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
 import {
   hasActiveSession as hasActivePipSession,
   pendingInlineResumeFor,
@@ -116,13 +118,15 @@ export default {
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       subtitlesList: [],
       lyrics: [],
-      lyricsFetchedForPath: null, 
+      lyricsFetchedForPath: null,
       isDeleted: false,
       tapTimeout: null,
       avMetadataLoading: false,
       /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
       mediaEnrichDoneForPath: null,
       listingKey: null,
+      /** User pressed play; enables autoplay for queue navigation even when autoplayMedia pref is off. */
+      playbackStarted: false,
     };
   },
   computed: {
@@ -139,7 +143,11 @@ export default {
       return this.previewType === 'image' || this.pdfConvertable;
     },
     autoPlay() {
-      return getters.previewPerms().autoplayMedia;
+      return shouldAutoPlayPreview(
+        getters.previewPerms().autoplayMedia,
+        this.playbackStarted,
+        getters.isPreviewPlaybackQueueNavMode(),
+      );
     },
     isMobileSafari() {
       const userAgent = window.navigator.userAgent;
@@ -319,6 +327,9 @@ export default {
       if (!getters.isLoggedIn() && !getters.isShare()) {
         return;
       }
+      if (!getters.isPreviewPlaybackQueueNavMode()) {
+        this.playbackStarted = false;
+      }
       this.isDeleted = false;
       const currentDirectoryPath = removeLastDir(state.req.path) || '/';
       const currentListingKey = this.listingContextKey(currentDirectoryPath);
@@ -401,9 +412,11 @@ export default {
             if (getters.isShare()) {
               const hash = state.shareInfo.hash;
               const password = localStorage.getItem(`sharepass:${hash}`) || "";
-              this.lyrics = await mediaApi.getLyricsPublic(state.req.path, hash, password);
+              const { lyrics: raw, format } = await mediaApi.getLyricsPublic(state.req.path, hash, password);
+              this.lyrics = parseLyrics(raw, format);
             } else {
-              this.lyrics = await mediaApi.getLyrics(state.req.source, state.req.path);
+              const { lyrics: raw, format } = await mediaApi.getLyrics(state.req.source, state.req.path);
+              this.lyrics = parseLyrics(raw, format);
             }
           } catch (err) {
             console.warn("Failed to fetch lyrics:", err);
@@ -700,17 +713,14 @@ export default {
 /* Loading overlay for navigation transitions */
 .transition-loading {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: var(--background);
   z-index: 10000;
-  transition: 0.1s ease opacity;
+  transition: opacity 0.1s ease;
 }
 
 .transition-loading .spinner {
@@ -739,7 +749,6 @@ export default {
   0%, 80%, 100% {
     transform: scale(0);
   }
-
   40% {
     transform: scale(1.0);
   }
@@ -763,12 +772,12 @@ export default {
 }
 
 .pdf-wrapper .floating-btn {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgb(0 0 0 / 50%);
   color: white;
 }
 
 .pdf-wrapper .floating-btn:hover {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgb(0 0 0 / 70%);
 }
 
 .preview-buttons {
