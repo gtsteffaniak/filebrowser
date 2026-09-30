@@ -750,6 +750,7 @@
     "back": "返回{suffix}"
   },
   "access": {
+    "access": "存取",
     "rules": "存取規則",
     "deny": "拒絕",
     "totalDenied": "拒絕",

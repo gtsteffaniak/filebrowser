@@ -309,7 +309,23 @@ function sharePermissionCheckbox(modal: Locator, ariaLabel: string): Locator {
 async function openSettingsSection(page: Page, sidebarId: string) {
     await page.goto("/settings");
     await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-    await page.locator(`#${sidebarId}`).click();
+
+    const usersCard = page
+        .locator(".settings-card-collapsible")
+        .filter({ hasText: "User management" });
+
+    if (sidebarId === "users-sidebar") {
+        await usersCard.locator(".settings-card-collapsible-header").click();
+        return;
+    }
+
+    if (sidebarId === "access-sidebar") {
+        await usersCard.locator(".settings-card-collapsible-chevron").click();
+        await usersCard
+            .locator(".settings-card-collapsible-sub-item")
+            .filter({ hasText: "Access" })
+            .click();
+    }
 }
 
 async function expectCheckboxState(checkbox: Locator, checked: boolean) {
@@ -317,7 +333,7 @@ async function expectCheckboxState(checkbox: Locator, checked: boolean) {
 }
 
 function accessRulesTable(page: Page) {
-    return page.getByRole("table", { name: "Access Management" });
+    return page.getByRole("table", { name: "Access", exact: true });
 }
 
 function sharesTable(page: Page) {
@@ -343,7 +359,7 @@ async function readAccessRuleRows(page: Page): Promise<AccessRuleExpectation[]> 
 
 async function selectAccessSource(page: Page, sourceName: string) {
     const accessCard = page.locator(".card-title").filter({
-        has: page.getByRole("heading", { name: "Access Management" }),
+        has: page.getByRole("heading", { name: "Access", exact: true }),
     });
     const sourceButton = accessCard.locator('button[aria-label="Source"]');
     const currentSource = (
@@ -641,7 +657,7 @@ test.describe("Migration fixture verification", () => {
 
     test("access rules exist for each source", async ({ page, checkForErrors }) => {
         await openSettingsSection(page, "access-sidebar");
-        await expect(page.getByRole("heading", { name: "Access Management" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Access", exact: true })).toBeVisible();
         await expect(accessRulesTable(page)).not.toHaveAttribute("aria-busy", "true");
 
         for (const [sourceName, rules] of EXPECTED_ACCESS_RULES) {

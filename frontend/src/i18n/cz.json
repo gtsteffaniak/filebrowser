@@ -750,6 +750,7 @@
     "back": "Zpět{suffix}"
   },
   "access": {
+    "access": "Přístup",
     "rules": "Pravidla přístupu",
     "deny": "Odmítnout",
     "totalDenied": "Odmítnuto",

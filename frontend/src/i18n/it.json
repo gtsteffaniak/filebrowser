@@ -739,6 +739,7 @@
     "passwordRequiredForGeneration": "La password è necessaria per generare un codice autenticatore."
   },
   "access": {
+    "access": "Accesso",
     "all": "Nega Tutto",
     "rules": "Regole di accesso",
     "deny": "Nega",

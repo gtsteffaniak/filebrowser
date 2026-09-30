@@ -739,6 +739,7 @@
     "passwordRequiredForGeneration": "Uw wachtwoord is nodig om een verificatiecode te genereren."
   },
   "access": {
+    "access": "Toegang",
     "all": "Alles weigeren",
     "rules": "Toegangsregels",
     "deny": "Weigeren",

@@ -645,6 +645,7 @@
     "back": "Powrót{suffix}"
   },
   "access": {
+    "access": "Dostęp",
     "rules": "Zasady dostępu",
     "deny": "Odmowa",
     "allow": "Zezwalaj",

@@ -190,7 +190,7 @@
         <div class="group-chips">
           <span v-for="group in groups" :key="group" class="group-chip">
             {{ group }}
-            <button type="button" class="chip-remove" :aria-label="$t('access.removeGroup')"
+            <button type="button" class="action chip-remove" :aria-label="$t('access.removeGroup')"
               :title="$t('access.removeGroup')" @click="removeGroup(group)">
               <i class="material-symbols material-size">close</i>
             </button>
@@ -202,8 +202,9 @@
           <datalist id="user-group-options">
             <option v-for="g in suggestedGroups" :key="g" :value="g"></option>
           </datalist>
-          <button type="button" class="button form-button flat-left" :disabled="!newGroup" @click="addGroup">
-            {{ $t("access.addGroup") }}
+          <button type="button" class="button form-button flat-left" :disabled="!newGroup"
+            :aria-label="$t('access.addGroup')" :title="$t('access.addGroup')" @click="addGroup">
+            <i class="material-symbols">add</i>
           </button>
         </div>
         <p v-if="user.loginMethod === 'oidc'" class="group-note">{{ $t("access.groupsOidcNote") }}</p>
@@ -1481,33 +1482,40 @@ export default {
 .user-groups {
   padding-bottom: 1em;
 }
+
 .group-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4em;
   margin: 0.4em 0;
 }
+
 .group-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.2em;
   padding: 0.1em 0.3em 0.1em 0.7em;
   border-radius: 1em;
-  background: var(--surfaceSecondary, rgba(128, 128, 128, 0.2));
+  color: var(--primaryColor);
+  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
 }
+
 .chip-remove {
   display: inline-flex;
   align-items: center;
-  padding: 0;
-  border: 0;
-  background: none;
   color: inherit;
-  cursor: pointer;
+  border-radius: 50%;
 }
+
+.chip-remove i {
+  padding: 0;
+}
+
 .group-note {
   opacity: 0.75;
   margin: 0.4em 0 0;
 }
+
 label + .form-flex-group {
   margin-top: 0.35em;
 }

@@ -645,6 +645,7 @@
     "back": "חזרה{suffix}"
   },
   "access": {
+    "access": "גישה",
     "rules": "כללי גישה",
     "deny": "לדחות",
     "allow": "אפשר",

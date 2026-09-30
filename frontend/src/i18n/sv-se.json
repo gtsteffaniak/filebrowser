@@ -750,6 +750,7 @@
     "back": "Tillbaka{suffix}"
   },
   "access": {
+    "access": "Åtkomst",
     "rules": "Regler för åtkomst",
     "deny": "Förneka",
     "totalDenied": "Avslås",

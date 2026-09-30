@@ -645,6 +645,7 @@
     "back": "Späť{suffix}"
   },
   "access": {
+    "access": "Prístup",
     "rules": "Pravidlá prístupu",
     "deny": "Odmietnuť",
     "allow": "Povoľte",

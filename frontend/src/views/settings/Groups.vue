@@ -1,18 +1,19 @@
 <template>
-  <button
-    type="button"
+  <FloatingActionButton
+    icon="add"
+    variant="primary"
+    position="bottom-right"
+    :edge-offset="{ bottom: '1rem', right: '1rem' }"
+    :auto-hide="false"
+    :label="$t('access.newGroup')"
     @click="openPrompt(null)"
-    class="button floating-action-button"
-    :aria-label="$t('access.newGroup')"
-  >
-    {{ $t("general.new") }}
-  </button>
+  />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("access.groups") }}</h2>
   </div>
 
-  <div class="card-content full">
+  <div class="card-content full has-fab-bottom-right">
     <p class="note">{{ $t("access.groupsOidcNote") }}</p>
     <settings-table
       :columns="columns"
@@ -25,30 +26,24 @@
       <template #cell-members="{ row }">{{ row.members.join(", ") }}</template>
       <template #cell-actions="{ row }">
         <div class="row-actions">
-        <div
-          @click="openPrompt(row.name)"
-          class="clickable action button"
-          role="button"
-          tabindex="0"
-          :aria-label="$t('general.edit')"
-          :title="$t('general.edit')"
-          @keydown.enter.prevent="openPrompt(row.name)"
-          @keydown.space.prevent="openPrompt(row.name)"
-        >
-          <i class="material-symbols">edit</i>
-        </div>
-        <div
-          @click="remove(row.name)"
-          class="clickable action button"
-          role="button"
-          tabindex="0"
-          :aria-label="$t('general.delete')"
-          :title="$t('general.delete')"
-          @keydown.enter.prevent="remove(row.name)"
-          @keydown.space.prevent="remove(row.name)"
-        >
-          <i class="material-symbols">delete</i>
-        </div>
+          <button
+            type="button"
+            class="action"
+            :aria-label="$t('general.edit')"
+            :title="$t('general.edit')"
+            @click="openPrompt(row.name)"
+          >
+            <i class="material-symbols">edit</i>
+          </button>
+          <button
+            type="button"
+            class="action"
+            :aria-label="$t('general.delete')"
+            :title="$t('general.delete')"
+            @click="remove(row.name)"
+          >
+            <i class="material-symbols">delete</i>
+          </button>
         </div>
       </template>
     </settings-table>
@@ -61,11 +56,12 @@ import { accessApi } from "@/api";
 import { notify } from "@/notify";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "groups",
-  components: { Errors, SettingsTable },
+  components: { Errors, SettingsTable, FloatingActionButton },
   data() {
     return {
       error: null,
@@ -101,7 +97,7 @@ export default {
           sortFn: (a, b) => a.memberCount - b.memberCount,
         },
         { key: "members", label: this.$t("general.users", { suffix: "" }) },
-        { key: "actions", label: "", align: "right", narrow: true },
+        { key: "actions", label: this.$t("general.edit"), align: "right", narrow: true },
       ];
     },
   },
@@ -172,14 +168,13 @@ export default {
 .card-content.full :deep(.settings-table-wrapper) {
   margin-top: 0.75rem;
 }
+
 .row-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.25rem;
 }
-.clickable {
-  cursor: pointer;
-}
+
 .note {
   opacity: 0.75;
   margin: 0.5rem 1rem 0;

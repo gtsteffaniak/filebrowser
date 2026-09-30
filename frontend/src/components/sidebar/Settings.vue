@@ -7,40 +7,40 @@
   </div>
   <template v-for="setting in settings" :key="`${setting.id}-sidebar`">
     <div
-      v-if="setting.id === 'profile'"
+      v-if="setting.sections"
       class="card item settings-card-collapsible"
       :class="{ hidden: !shouldShow(setting) }"
     >
       <div
         role="button"
         class="settings-card-collapsible-header settings-card clickable"
-        :class="{ 'active-settings': profileActive }"
-        @click="setView('profile-main')"
+        :class="{ 'active-settings': isSectionActive(setting) }"
+        @click="setView(`${setting.id}-main`)"
       >
         <span class="settings-item-content">
           <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
           {{ settingLabel(setting) }}
         </span>
         <i
-          v-if="showAdvancedProfile"
+          v-if="canExpand(setting)"
           role="button"
           class="material-symbols-outlined settings-card-collapsible-chevron"
-          :class="{ rotated: sectionExpanded }"
-          :aria-expanded="sectionExpanded"
-          @click.stop="expandSection"
+          :class="{ rotated: expandedSections[setting.id] }"
+          :aria-expanded="!!expandedSections[setting.id]"
+          @click.stop="expandSection(setting)"
         >
           keyboard_arrow_down
         </i>
       </div>
-      <div class="settings-card-sub-item" :class="{ 'settings-card-collapsible--expanded': sectionExpanded }">
+      <div class="settings-card-sub-item" :class="{ 'settings-card-collapsible--expanded': expandedSections[setting.id] }">
         <div class="settings-card-sub-item-inner">
           <div
-            v-for="section in profileSections"
+            v-for="section in visibleSections(setting)"
             :key="section.id"
             role="button"
             class="settings-card-collapsible-sub-item settings-card clickable"
-            :class="{ 'active-settings': active(`profile-${section.id}`) }"
-            @click.stop="setView(`profile-${section.id}`)"
+            :class="{ 'active-settings': active(`${setting.id}-${section.id}`) }"
+            @click.stop="setView(`${setting.id}-${section.id}`)"
           >
             <span class="settings-item-content">
               <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
@@ -79,49 +79,57 @@ export default {
   data() {
     return {
       settings, // Initialize the settings array in data
-      sectionExpanded: false,
+      expandedSections: {},
     };
   },
   computed: {
     currentHash: () => getters.currentHash(),
     isMobile: () => getters.isMobile(),
-    isProfileSectionActive() {
-      const hash = state.activeSettingsView || "";
-      return hash.startsWith("profile-");
-    },
-    profileActive() {
-      return this.isProfileSectionActive;
-    },
-    isProfileSubSectionActive() {
-      const hash = state.activeSettingsView || "";
-      return hash.startsWith("profile-") && hash !== "profile-main";
-    },
-    profileSections() {
-      return this.settings.find((setting) => setting.id === 'profile')?.sections || [];
+    activeView: () => state.activeSettingsView || "",
+    expandableSettings() {
+      return this.settings.filter((setting) => setting.sections);
     },
     showAdvancedProfile() {
       return !!state.user?.showAdvancedProfile;
     },
   },
   watch: {
-    isProfileSectionActive(val) {
-      if (!val) this.sectionExpanded = false;
-    },
-    isProfileSubSectionActive(val) {
-      if (val) this.sectionExpanded = true;
+    activeView() {
+      this.expandableSettings.forEach((setting) => {
+        if (!this.isSectionActive(setting)) this.expandedSections[setting.id] = false;
+        else if (this.isSubSectionActive(setting)) this.expandedSections[setting.id] = true;
+        else if (setting.id === 'users') this.expandedSections[setting.id] = false;
+      });
     },
     showAdvancedProfile(val) {
-      this.sectionExpanded = val;
+      this.expandedSections.profile = val && this.activeView.startsWith("profile-");
     },
   },
   mounted() {
-    if (this.isProfileSubSectionActive || this.showAdvancedProfile) {
-      requestAnimationFrame(() => { this.sectionExpanded = true; });
-    }
+    requestAnimationFrame(() => {
+      this.expandableSettings.forEach((setting) => {
+        if (this.isSectionActive(setting) && (this.isSubSectionActive(setting) || (setting.id === "profile" && this.showAdvancedProfile))) {
+          this.expandedSections[setting.id] = true;
+        }
+      });
+    });
   },
   methods: {
-    expandSection() {
-      this.sectionExpanded = !this.sectionExpanded;
+    expandSection(setting) {
+      this.expandedSections[setting.id] = !this.expandedSections[setting.id];
+    },
+    isSectionActive(setting) {
+      return this.activeView.startsWith(`${setting.id}-`);
+    },
+    isSubSectionActive(setting) {
+      return this.isSectionActive(setting) && this.activeView !== `${setting.id}-main`;
+    },
+    visibleSections(setting) {
+      return (setting.sections || []).filter((section) => this.shouldShow(section));
+    },
+    canExpand(setting) {
+      if (setting.id === "profile") return this.showAdvancedProfile;
+      return this.visibleSections(setting).length > 0;
     },
     closeSettings() {
       router.go(-1);

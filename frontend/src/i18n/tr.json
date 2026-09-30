@@ -645,6 +645,7 @@
     "back": "Geri{suffix}"
   },
   "access": {
+    "access": "Erişim",
     "rules": "Erişim kuralları",
     "deny": "Reddet",
     "allow": "İzin ver",
