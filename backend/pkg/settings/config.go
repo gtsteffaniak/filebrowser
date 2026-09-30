@@ -634,6 +634,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to combine YAML files: %v", err)
 	}
+	combinedYAML = expandConfigEnv(combinedYAML)
 
 	// First pass: Unmarshal into a generic map to resolve all anchors and aliases
 	// This allows YAML anchors defined in auxiliary files to be properly merged
