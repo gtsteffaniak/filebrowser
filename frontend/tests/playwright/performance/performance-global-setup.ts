@@ -1,4 +1,5 @@
 import { chromium, expect } from "@playwright/test";
+import { loginPlaywrightAdmin } from "../playwright-auth";
 import { warmPerfConfig } from "./perf-config";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";

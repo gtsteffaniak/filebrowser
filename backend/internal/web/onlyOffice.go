@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -32,10 +33,61 @@ const (
 	onlyOfficeDownloadTimeout = 10 * time.Second
 )
 
+// onlyOfficeDocLocks serializes save callbacks per document so overlapping
+// document-server callbacks cannot interleave downloads and writes to the same
+// file (files.WriteFile truncates the destination). Entries are reference
+// counted so the map does not grow with every document ever saved.
+var (
+	onlyOfficeDocLocksMu sync.Mutex
+	onlyOfficeDocLocks   = map[string]*onlyOfficeDocLock{}
+)
+
+type onlyOfficeDocLock struct {
+	mu    sync.Mutex
+	users int
+}
+
+// lockOnlyOfficeDoc blocks until the caller holds the save lock for key and
+// returns the unlock function, which must be called when the write is done.
+func lockOnlyOfficeDoc(key string) func() {
+	onlyOfficeDocLocksMu.Lock()
+	l, ok := onlyOfficeDocLocks[key]
+	if !ok {
+		l = &onlyOfficeDocLock{}
+		onlyOfficeDocLocks[key] = l
+	}
+	l.users++
+	onlyOfficeDocLocksMu.Unlock()
+
+	l.mu.Lock()
+	return func() {
+		l.mu.Unlock()
+		onlyOfficeDocLocksMu.Lock()
+		l.users--
+		if l.users == 0 {
+			delete(onlyOfficeDocLocks, key)
+		}
+		onlyOfficeDocLocksMu.Unlock()
+	}
+}
+
 // onlyOfficeDownloadClient fetches saved documents from the OnlyOffice document server.
 // A bounded timeout avoids hanging goroutines when the server is unreachable.
+// Redirect targets are re-validated against the originally requested host and
+// scheme so a trusted document server cannot redirect the download to a
+// different (e.g. internal) address or downgrade it to plaintext HTTP after the
+// initial URL check.
 var onlyOfficeDownloadClient = &http.Client{
 	Timeout: onlyOfficeDownloadTimeout,
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		if len(via) == 0 || req.URL.Scheme != via[0].URL.Scheme || !onlyOfficeURLHostsMatch(req.URL, via[0].URL) {
+			return errors.New("onlyoffice document download redirect to a different host or scheme is not allowed")
+		}
+		if len(via) >= 10 {
+			return errors.New("onlyoffice document download exceeded redirect limit")
+		}
+		return nil
+	},
 }
 
 type OnlyOfficeCallback struct {
@@ -91,6 +143,9 @@ type OnlyOfficeJWTPayload struct {
 func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if settings.Config.Integrations.OnlyOffice.Url == "" {
 		return http.StatusInternalServerError, errors.New("only-office integration must be configured in settings")
+	}
+	if !onlyOfficeShareEnabled(d) {
+		return http.StatusForbidden, errors.New("onlyoffice is not enabled for this share")
 	}
 
 	// Extract clean parameters from request
@@ -442,8 +497,18 @@ func onlyOfficeURLHostsMatch(callback, configured *url.URL) bool {
 	return onlyOfficeEffectivePort(callback) == onlyOfficeEffectivePort(configured)
 }
 
+// onlyOfficeShareEnabled reports whether the active request may use OnlyOffice.
+// Requests carrying a share context are rejected when the share disables the integration.
+func onlyOfficeShareEnabled(d *Context) bool {
+	return d.Share.Hash == "" || d.Share.EnableOnlyOffice
+}
+
 // processOnlyOfficeCallback handles the common callback processing logic for both GET and POST requests
 func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Context, data *OnlyOfficeCallback) (int, error) {
+	if !onlyOfficeShareEnabled(d) {
+		return returnOnlyOfficeError(w, r, 403, "onlyoffice is not enabled for this share")
+	}
+
 	// Extract clean parameters from query string
 	source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
@@ -481,7 +546,12 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 		//
 		// When the document is fully closed by all editors,
 		// the document key should no longer be re-used.
-		deleteOfficeId(source, path, user)
+		// For "closed with changes" the key must be kept until the document
+		// has been saved successfully below, otherwise a failed save could
+		// not be retried by the document server.
+		if data.Status == onlyOfficeStatusDocumentClosedWithNoChanges {
+			deleteOfficeId(source, path, user)
+		}
 
 		// Send log event for document closure and clean up log context
 		if logContext := GetOnlyOfficeLogContext(data.Key); logContext != nil {
@@ -583,6 +653,12 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 			return returnOnlyOfficeError(w, r, 403, "user lacks modify permissions")
 		}
 
+		// Serialize save callbacks for the same document: overlapping callbacks
+		// would otherwise interleave the download and WriteFile, which opens the
+		// destination with O_TRUNC.
+		unlock := lockOnlyOfficeDoc(source + "|" + path)
+		defer unlock()
+
 		downloadURL := resolveOnlyOfficeDownloadURL(data.URL)
 		if downloadURL == "" {
 			logger.Errorf("OnlyOffice callback: missing or untrusted document URL in callback payload")
@@ -655,6 +731,12 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 		// Send success log event with detailed path information
 		if logContext := GetOnlyOfficeLogContext(data.Key); logContext != nil {
 			SendOnlyOfficeLogEvent(logContext, "INFO", "callback", fmt.Sprintf("Document saved successfully to path: %s", path))
+		}
+
+		// The document was saved, so a "closed with changes" session is
+		// complete: retire the document key so it cannot be reused.
+		if data.Status == onlyOfficeStatusDocumentClosedWithChanges {
+			deleteOfficeId(source, path, user)
 		}
 	}
 

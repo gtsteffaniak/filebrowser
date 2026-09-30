@@ -1,5 +1,6 @@
 import type { Browser, Page } from "@playwright/test";
 import { chromium, expect } from "@playwright/test";
+import { loginPlaywrightAdmin } from "./playwright-auth";
 
 // Perform authentication and store auth state
 async function localSetup() {
@@ -8,9 +9,7 @@ async function localSetup() {
   const page: Page = await context.newPage();
 
   await page.goto("http://localhost:8080/login");
-  await page.getByPlaceholder("Username").fill("admin");
-  await page.getByPlaceholder("Password").fill("admin");
-  await page.getByRole("button", { name: "Login" }).click();
+  await loginPlaywrightAdmin(page);
   
   // Wait for the login request to complete and cookie to be set
   await page.waitForResponse(

@@ -123,7 +123,7 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 		return nil, false
 	}
 
-	// Guard against nil item (can happen if DB was busy/locked and GetItem returned nil, nil)
+	// Guard against nil item (not found in index cache)
 	if item == nil {
 		return nil, false
 	}

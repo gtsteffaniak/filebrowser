@@ -9,6 +9,7 @@ import (
 )
 
 func TestPublicUploadHandlerDeniesOverrideWhenReplacementsDisallowed(t *testing.T) {
+	t.Parallel()
 
 	d := &Context{
 		Share: share.Share{
@@ -34,6 +35,7 @@ func TestPublicUploadHandlerDeniesOverrideWhenReplacementsDisallowed(t *testing.
 }
 
 func TestPublicUploadHandlerAllowsOverrideQueryWhenReplacementsAllowed(t *testing.T) {
+	t.Parallel()
 
 	d := &Context{
 		Share: share.Share{

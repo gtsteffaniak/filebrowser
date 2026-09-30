@@ -41,6 +41,7 @@ frontend:
       title: "Playwright"
 
 auth:
+  adminPassword: "playwright-password"
   methods:
     password:
       signup: true

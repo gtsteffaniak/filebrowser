@@ -32,7 +32,7 @@ func TestMigrationAddsHashedTokenSessionColumn(t *testing.T) {
 		t.Fatalf("runMigrations: %v", err)
 	}
 
-	if err = store.SaveHashedToken("new-hash", 8, true); err != nil {
+	if err = store.SaveHashedToken("new-hash", 8, true, 12345); err != nil {
 		t.Fatalf("SaveHashedToken after migration: %v", err)
 	}
 	records, err := store.GetAllHashedTokens()
@@ -46,8 +46,14 @@ func TestMigrationAddsHashedTokenSessionColumn(t *testing.T) {
 	if legacy.IsSession {
 		t.Fatal("legacy rows must migrate as non-session tokens")
 	}
+	if legacy.ExpiresAt != 0 {
+		t.Fatalf("legacy rows must migrate with no expiry, got %d", legacy.ExpiresAt)
+	}
 	if !records["new-hash"].IsSession {
 		t.Fatal("session flag was not persisted")
+	}
+	if records["new-hash"].ExpiresAt != 12345 {
+		t.Fatalf("expires_at not persisted, got %d", records["new-hash"].ExpiresAt)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqlitebusy"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -291,11 +292,12 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 		time.Now().Unix(),
 	)
 	if err != nil {
-		if !isBusyError(err) && !isTransactionError(err) {
+		if !sqlitebusy.IsBusyOrLocked(err) {
 			logger.Errorf("InsertItem failed for source=%s path=%s: %v", source, path, err)
 		}
+		return sqlitebusy.Wrap(err)
 	}
-	return err
+	return nil
 }
 
 // dbTransientOpAttempts is how many times to run a bulk DB op that may hit SQLITE_BUSY before giving up.
@@ -304,9 +306,7 @@ const dbTransientOpAttempts = 2
 const dbTransientRetryBackoff = 50 * time.Millisecond
 
 // BulkInsertItems inserts multiple items in a single transaction for a specific source.
-// Database errors (busy/locked) are treated as soft failures - the filesystem is the source of truth.
-// Returns nil on success or soft failure (busy/locked), error only on hard failures.
-// Transient busy/locked errors retry once before giving up (see dbTransientOpAttempts).
+// Transient busy/locked errors retry before giving up (see dbTransientOpAttempts); persistent busy returns an error.
 func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) error {
 	if len(items) == 0 {
 		return nil
@@ -332,8 +332,10 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 			continue
 		}
 		if transient {
-			logger.Warningf("[DB_TX] BulkInsertItems: still failing after %d attempts (%d items, %v) — batch dropped",
+			logger.Warningf("[DB_TX] BulkInsertItems: still failing after %d attempts (%d items, %v)",
 				dbTransientOpAttempts, len(items), time.Since(startTime))
+			return fmt.Errorf("bulk insert failed after %d attempts (%d items): %w",
+				dbTransientOpAttempts, len(items), sqlitebusy.ErrBusy)
 		}
 		return nil
 	}
@@ -345,7 +347,7 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) (success bool, transient bool, err error) {
 	tx, err := db.BeginTransaction()
 	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
+		if sqlitebusy.IsBusyOrLocked(err) {
 			db.mu.Unlock()
 			logger.Debugf("[DB_TX] BulkInsertItems: BeginTransaction failed (DB busy/locked): %v", err)
 			return false, true, nil
@@ -377,7 +379,7 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 		last_updated = excluded.last_updated
 	`)
 	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
+		if sqlitebusy.IsBusyOrLocked(err) {
 			logger.Debugf("[DB_TX] BulkInsertItems: Prepare busy/locked: %v", err)
 			return false, true, nil
 		}
@@ -402,7 +404,7 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 			nowUnix,
 		)
 		if err != nil {
-			if isBusyError(err) || isTransactionError(err) {
+			if sqlitebusy.IsBusyOrLocked(err) {
 				logger.Debugf("[DB_TX] BulkInsertItems: Exec busy/locked during insert: %v", err)
 				return false, true, nil
 			}
@@ -412,7 +414,7 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 	}
 
 	if err := tx.Commit(); err != nil {
-		if isBusyError(err) || isTransactionError(err) {
+		if sqlitebusy.IsBusyOrLocked(err) {
 			logger.Debugf("[DB_TX] BulkInsertItems: Commit busy/locked: %v", err)
 			return false, true, nil
 		}
@@ -422,30 +424,8 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 	return true, false, nil
 }
 
-// isBusyError checks if an error is SQLITE_BUSY (error code 5)
-func isBusyError(err error) bool {
-	if err == nil {
-		return false
-	}
-	errStr := err.Error()
-	// SQLITE_BUSY is error code 5, and modernc.org/sqlite returns it as "database is locked (5)"
-	return strings.Contains(errStr, "database is locked") || strings.Contains(errStr, "SQLITE_BUSY") || strings.Contains(errStr, "(5)")
-}
-
-// isTransactionError checks if an error is related to nested transactions (error code 1)
-func isTransactionError(err error) bool {
-	if err == nil {
-		return false
-	}
-	errStr := err.Error()
-	// SQLITE_ERROR for transaction issues is error code 1
-	return strings.Contains(errStr, "cannot start a transaction within a transaction") ||
-		strings.Contains(errStr, "cannot commit") ||
-		strings.Contains(errStr, "(1)")
-}
-
 // GetItem retrieves a single item by path for a specific source.
-// Returns nil on database busy/lock errors (non-fatal).
+// Busy/locked errors are returned so callers can fall back to the filesystem.
 func (db *IndexDB) GetItem(source, path string) (*iteminfo.FileInfo, error) {
 	query := `
 	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
@@ -454,19 +434,13 @@ func (db *IndexDB) GetItem(source, path string) (*iteminfo.FileInfo, error) {
 	row := db.QueryRow(query, source, path)
 	item, err := scanItem(row)
 	if err != nil {
-		// Soft failure: DB is busy or locked, return nil
-		// Caller will handle missing data by fetching from filesystem
-		if isBusyError(err) || isTransactionError(err) {
-			return nil, nil
-		}
-		return nil, err
+		return nil, sqlitebusy.Wrap(err)
 	}
 	return item, nil
 }
 
 // GetItemsByPaths retrieves multiple items by their paths in a single query for a specific source.
 // This is more efficient than calling GetItem multiple times.
-// Returns empty map on database busy/lock errors (non-fatal).
 func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*iteminfo.FileInfo, error) {
 	if len(paths) == 0 {
 		return make(map[string]*iteminfo.FileInfo), nil
@@ -488,12 +462,7 @@ func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*i
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		// Soft failure: DB is busy or locked, return empty map
-		// Caller will handle missing data (e.g., skip size updates, fetch from filesystem)
-		if isBusyError(err) || isTransactionError(err) {
-			return make(map[string]*iteminfo.FileInfo), nil
-		}
-		return nil, err
+		return nil, sqlitebusy.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -519,9 +488,9 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 
 	rows, err := db.Query(query, source, dirPath)
 	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			logger.Warningf("[DB_TX] GetDirectoryChildren: DB busy/locked, skipping query")
-			return []*iteminfo.FileInfo{}, nil
+		if sqlitebusy.IsBusyOrLocked(err) {
+			logger.Warningf("[DB_TX] GetDirectoryChildren: DB busy/locked: %v", err)
+			return nil, sqlitebusy.Wrap(err)
 		}
 		logger.Errorf("GetDirectoryChildren: Query failed for source=%s, parent_path=%s, error=%v", source, dirPath, err)
 		return nil, err
@@ -671,9 +640,9 @@ func (db *IndexDB) DeleteStaleFolders(source string, pathPrefix string, scanStar
 		}
 
 		if err != nil {
-			if isBusyError(err) || isTransactionError(err) {
-				logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntriesQuick Phase 1: DB busy, skipping cleanup")
-				return totalDeleted, nil
+			if sqlitebusy.IsBusyOrLocked(err) {
+				logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntriesQuick Phase 1: DB busy: %v", err)
+				return totalDeleted, sqlitebusy.Wrap(err)
 			}
 			return totalDeleted, err
 		}
@@ -738,9 +707,9 @@ func (db *IndexDB) DeleteStaleFilesInDirs(source string, updatedDirs []string, s
 
 			result, err := db.Exec(query, queryArgs...)
 			if err != nil {
-				if isBusyError(err) || isTransactionError(err) {
-					logger.Debugf("[DB_MAINTENANCE] DeleteStaleFilesInDirs: DB busy, skipping batch")
-					break // Skip this batch and continue with next
+				if sqlitebusy.IsBusyOrLocked(err) {
+					logger.Debugf("[DB_MAINTENANCE] DeleteStaleFilesInDirs: DB busy: %v", err)
+					return totalDeleted, sqlitebusy.Wrap(err)
 				}
 				return totalDeleted, err
 			}
@@ -802,9 +771,9 @@ func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStar
 		}
 
 		if err != nil {
-			if isBusyError(err) || isTransactionError(err) {
-				logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy, skipping cleanup")
-				return totalDeleted, nil
+			if sqlitebusy.IsBusyOrLocked(err) {
+				logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy: %v", err)
+				return totalDeleted, sqlitebusy.Wrap(err)
 			}
 			return totalDeleted, err
 		}
@@ -832,9 +801,9 @@ func (db *IndexDB) DeleteStaleItemsOlderThan(olderThan time.Duration) (int, erro
 
 	result, err := db.Exec(query, cutoffTime)
 	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			logger.Debugf("[DB_MAINTENANCE] DeleteStaleItemsOlderThan: DB busy, skipping cleanup")
-			return 0, nil
+		if sqlitebusy.IsBusyOrLocked(err) {
+			logger.Debugf("[DB_MAINTENANCE] DeleteStaleItemsOlderThan: DB busy: %v", err)
+			return 0, sqlitebusy.Wrap(err)
 		}
 		return 0, err
 	}
@@ -859,8 +828,8 @@ func (db *IndexDB) GetRecursiveCount(source string, pathPrefix string) (dirs uin
 	var dirCount, fileCount sql.NullInt64
 	err = db.QueryRow(query, source, pathPrefix, nextPrefix).Scan(&dirCount, &fileCount)
 	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return 0, 0, nil
+		if sqlitebusy.IsBusyOrLocked(err) {
+			return 0, 0, sqlitebusy.Wrap(err)
 		}
 		return 0, 0, err
 	}
@@ -883,8 +852,8 @@ func (db *IndexDB) GetDirectFileCount(source string, pathPrefix string) (files u
 	var fileCount sql.NullInt64
 	err = db.QueryRow(query, source, pathPrefix).Scan(&fileCount)
 	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return 0, nil
+		if sqlitebusy.IsBusyOrLocked(err) {
+			return 0, sqlitebusy.Wrap(err)
 		}
 		return 0, err
 	}
@@ -920,9 +889,8 @@ func (db *IndexDB) GetTypeGroupsForSize(source string, size int64, pathPrefix st
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		// Soft failure: DB is busy or locked, return empty results
-		if isBusyError(err) || isTransactionError(err) {
-			return []string{}, nil
+		if sqlitebusy.IsBusyOrLocked(err) {
+			return nil, sqlitebusy.Wrap(err)
 		}
 		return nil, err
 	}
@@ -976,9 +944,8 @@ func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPr
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		// Soft failure: DB is busy or locked, return empty results
-		if isBusyError(err) || isTransactionError(err) {
-			return make(map[int64][]*iteminfo.FileInfo), nil
+		if sqlitebusy.IsBusyOrLocked(err) {
+			return nil, sqlitebusy.Wrap(err)
 		}
 		return nil, err
 	}
@@ -1008,10 +975,7 @@ func (db *IndexDB) GetAllDirectories(source string) ([]string, error) {
 
 	rows, err := db.Query(query, source)
 	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return []string{}, nil
-		}
-		return nil, err
+		return nil, sqlitebusy.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -1071,16 +1035,17 @@ func (db *IndexDB) UpdateFolderSizesIfChanged(source string, pathSizes map[strin
 	for attempt := 1; attempt <= dbTransientOpAttempts; attempt++ {
 		result, err := db.Exec(query, args...)
 		if err != nil {
-			if isBusyError(err) || isTransactionError(err) {
+			if sqlitebusy.IsBusyOrLocked(err) {
 				if attempt < dbTransientOpAttempts {
 					logger.Warningf("[DB_TX] UpdateFolderSizesIfChanged: busy/locked (attempt %d/%d), retrying after %v: %v",
 						attempt, dbTransientOpAttempts, dbTransientRetryBackoff, err)
 					time.Sleep(dbTransientRetryBackoff)
 					continue
 				}
-				logger.Warningf("[DB_TX] UpdateFolderSizesIfChanged: still busy after %d attempts (%d paths, %v) — skipped",
+				logger.Warningf("[DB_TX] UpdateFolderSizesIfChanged: still busy after %d attempts (%d paths, %v)",
 					dbTransientOpAttempts, len(pathSizes), time.Since(startTime))
-				return 0, nil
+				return 0, fmt.Errorf("update folder sizes failed after %d attempts (%d paths): %w",
+					dbTransientOpAttempts, len(pathSizes), sqlitebusy.ErrBusy)
 			}
 			return 0, err
 		}
@@ -1148,11 +1113,7 @@ func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType str
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		// Soft failure: DB is busy or locked, return empty results
-		if isBusyError(err) || isTransactionError(err) {
-			return []*iteminfo.FileInfo{}, nil
-		}
-		return nil, err
+		return nil, sqlitebusy.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -1194,11 +1155,7 @@ func (db *IndexDB) GetFilesBySize(source string, size int64, pathPrefix string) 
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		// Soft failure: DB is busy or locked, return empty slice
-		if isBusyError(err) || isTransactionError(err) {
-			return []*iteminfo.FileInfo{}, nil
-		}
-		return nil, err
+		return nil, sqlitebusy.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -1244,11 +1201,7 @@ func (db *IndexDB) GetSizeGroupsForDuplicates(source string, minSize int64, path
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		// Soft failure: DB is busy or locked, return empty results
-		if isBusyError(err) || isTransactionError(err) {
-			return []int64{}, make(map[int64]int), nil
-		}
-		return nil, nil, err
+		return nil, nil, sqlitebusy.Wrap(err)
 	}
 	defer rows.Close()
 

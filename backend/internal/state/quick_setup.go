@@ -57,7 +57,12 @@ func QuickSetup() error {
 
 	logger.Debugf("Creating user as admin: %v", user.Username)
 
-	hashedPassword, hashErr := utils.HashPwd(adminPassword)
+	plainPassword, _, err := bootstrapDefaultAdminPassword(user.Username)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, hashErr := utils.HashPwd(plainPassword)
 	if hashErr != nil {
 		return fmt.Errorf("failed to hash admin password: %w", hashErr)
 	}
