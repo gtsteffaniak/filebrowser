@@ -11,17 +11,27 @@ import (
 // booleans, null) are left unchanged so typed config fields stay intact.
 // Expansion happens after YAML decode so secrets may contain quotes, backslashes,
 // or newlines without breaking the document.
-func expandConfigEnv(v interface{}) interface{} {
+// Maps and slices are mutated in place.
+func expandConfigEnv(v interface{}) {
 	switch x := v.(type) {
 	case map[string]interface{}:
 		for k, val := range x {
-			x[k] = expandConfigEnv(val)
+			x[k] = expandConfigEnvValue(val)
 		}
-		return x
 	case []interface{}:
 		for i, val := range x {
-			x[i] = expandConfigEnv(val)
+			x[i] = expandConfigEnvValue(val)
 		}
+	}
+}
+
+func expandConfigEnvValue(v interface{}) interface{} {
+	switch x := v.(type) {
+	case map[string]interface{}:
+		expandConfigEnv(x)
+		return x
+	case []interface{}:
+		expandConfigEnv(x)
 		return x
 	case string:
 		return expandConfigEnvString(x)

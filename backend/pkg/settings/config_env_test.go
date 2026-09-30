@@ -18,26 +18,32 @@ func TestExpandConfigEnvStrings(t *testing.T) {
 		"port": 8080,
 		"on":   true,
 	}
-	got := expandConfigEnv(in).(map[string]interface{})
-	if got["password"] != "from-env" {
-		t.Fatalf("password = %#v, want from-env", got["password"])
+	expandConfigEnv(in)
+	if in["password"] != "from-env" {
+		t.Fatalf("password = %#v, want from-env", in["password"])
 	}
-	if got["plain"] != "no-expansion" {
-		t.Fatalf("plain = %#v", got["plain"])
+	if in["plain"] != "no-expansion" {
+		t.Fatalf("plain = %#v", in["plain"])
 	}
-	nested := got["nested"].(map[string]interface{})
+	nested, ok := in["nested"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("nested = %#v, want map", in["nested"])
+	}
 	if nested["value"] != "from-env" {
 		t.Fatalf("nested.value = %#v", nested["value"])
 	}
-	list := got["list"].([]interface{})
+	list, ok := in["list"].([]interface{})
+	if !ok {
+		t.Fatalf("list = %#v, want slice", in["list"])
+	}
 	if list[0] != "from-env" || list[1] != "keep" {
 		t.Fatalf("list = %#v", list)
 	}
-	if got["port"] != 8080 {
-		t.Fatalf("port = %#v, want typed int 8080", got["port"])
+	if in["port"] != 8080 {
+		t.Fatalf("port = %#v, want typed int 8080", in["port"])
 	}
-	if got["on"] != true {
-		t.Fatalf("on = %#v, want typed bool true", got["on"])
+	if in["on"] != true {
+		t.Fatalf("on = %#v, want typed bool true", in["on"])
 	}
 }
 
@@ -46,25 +52,26 @@ func TestExpandConfigEnvCoercesWholeReference(t *testing.T) {
 	t.Setenv("TEST_ENV_FLAG", "true")
 	t.Setenv("TEST_ENV_FLOAT", "1.5")
 
-	got := expandConfigEnv(map[string]interface{}{
+	in := map[string]interface{}{
 		"port": "${TEST_ENV_PORT}",
 		"flag": "${TEST_ENV_FLAG}",
 		"rate": "${TEST_ENV_FLOAT}",
 		// Partial expansion must stay a string (and not coerce "true"-like secrets).
 		"msg": "prefix-${TEST_ENV_FLAG}",
-	}).(map[string]interface{})
+	}
+	expandConfigEnv(in)
 
-	if got["port"] != int64(9090) {
-		t.Fatalf("port = %#v (%T), want int64 9090", got["port"], got["port"])
+	if in["port"] != int64(9090) {
+		t.Fatalf("port = %#v (%T), want int64 9090", in["port"], in["port"])
 	}
-	if got["flag"] != true {
-		t.Fatalf("flag = %#v, want bool true", got["flag"])
+	if in["flag"] != true {
+		t.Fatalf("flag = %#v, want bool true", in["flag"])
 	}
-	if got["rate"] != 1.5 {
-		t.Fatalf("rate = %#v, want float64 1.5", got["rate"])
+	if in["rate"] != 1.5 {
+		t.Fatalf("rate = %#v, want float64 1.5", in["rate"])
 	}
-	if got["msg"] != "prefix-true" {
-		t.Fatalf("msg = %#v, want string prefix-true", got["msg"])
+	if in["msg"] != "prefix-true" {
+		t.Fatalf("msg = %#v, want string prefix-true", in["msg"])
 	}
 }
 

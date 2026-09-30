@@ -645,7 +645,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 
 	// Expand $VAR / ${VAR} in decoded string scalars only (after parse) so
 	// secrets may contain quotes, backslashes, or newlines safely.
-	rawConfig = expandConfigEnv(rawConfig).(map[string]interface{})
+	expandConfigEnv(rawConfig)
 
 	// Filter to only keep valid top-level Settings struct fields
 	// This removes anchor definitions that are just templates (e.g., "test_server: &test_server")
