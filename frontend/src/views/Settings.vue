@@ -2,7 +2,7 @@
   <div class="dashboard">
     <div v-if="isRootSettings && !userPage" class="settings-views">
       <div v-if="activeSetting" :id="`${activeSetting.id}-main`">
-        <component :is="activeSetting.component" />
+        <component :is="activeComponent" />
       </div>
     </div>
     <div v-else class="settings-views">
@@ -76,13 +76,19 @@ export default {
     activeSetting() {
       // Find the setting that matches the current activeSettingsView
       let active = this.settings.find(
-        (setting) => `${setting.id}-main` === state.activeSettingsView && this.shouldShow(setting)
+        (setting) =>
+          (`${setting.id}-main` === state.activeSettingsView || this.findSection(setting, state.activeSettingsView)) &&
+          this.shouldShow(setting)
       );
       // Fallback: first allowed setting
       if (!active) {
         active = this.settings.find((setting) => this.shouldShow(setting));
       }
       return active;
+    },
+    activeComponent() {
+      const section = this.findSection(this.activeSetting, state.activeSettingsView);
+      return section?.component || this.activeSetting?.component;
     },
     profileSections() {
       return this.settings.find((setting) => setting.id === 'profile')?.sections || [];
@@ -114,6 +120,11 @@ export default {
       const userPermissions = /** @type {Record<string, boolean>} */ (state.user.permissions || {});
       return Object.keys(perm).every((key) => getObjectProperty(userPermissions, key));
     },
+    findSection(setting, view) {
+      return setting?.sections?.find(
+        (section) => section.component && `${setting.id}-${section.id}` === view && this.shouldShow(section)
+      );
+    },
     handleHashChange() {
       // Handle browser back/forward navigation
       this.initializeActiveSettingFromHash();
@@ -132,7 +143,10 @@ export default {
           !!state.user?.showAdvancedProfile &&
           this.profileSections.some((section) => `profile-${section.id}` === hash) &&
           this.settings.some((setting) => setting.id === 'profile' && this.shouldShow(setting));
-        if (validSetting || validProfileSection) {
+        const validSubSection = this.settings.some(
+          (setting) => this.findSection(setting, hash) && this.shouldShow(setting)
+        );
+        if (validSetting || validProfileSection || validSubSection) {
           // Set the active settings view to the hash value
           mutations.setActiveSettingsView(hash);
           return;

@@ -1,18 +1,19 @@
 <template>
-  <button
-    type="button"
+  <FloatingActionButton
+    icon="add"
+    variant="primary"
+    position="bottom-right"
+    :edge-offset="{ bottom: '1rem', right: '1rem' }"
+    :auto-hide="false"
+    :label="$t('access.newGroup')"
     @click="openPrompt(null)"
-    class="button floating-action-button"
-    :aria-label="$t('access.newGroup')"
-  >
-    {{ $t("general.new") }}
-  </button>
+  />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("access.groups") }}</h2>
   </div>
 
-  <div class="card-content full">
+  <div class="card-content full has-fab-bottom-right">
     <p class="note">{{ $t("access.groupsOidcNote") }}</p>
     <settings-table
       :columns="columns"
@@ -61,11 +62,12 @@ import { accessApi } from "@/api";
 import { notify } from "@/notify";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "groups",
-  components: { Errors, SettingsTable },
+  components: { Errors, SettingsTable, FloatingActionButton },
   data() {
     return {
       error: null,
@@ -172,14 +174,17 @@ export default {
 .card-content.full :deep(.settings-table-wrapper) {
   margin-top: 0.75rem;
 }
+
 .row-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.25rem;
 }
+
 .clickable {
   cursor: pointer;
 }
+
 .note {
   opacity: 0.75;
   margin: 0.5rem 1rem 0;
