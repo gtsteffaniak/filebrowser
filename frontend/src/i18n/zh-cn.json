@@ -768,7 +768,22 @@
     "cascadeDelete": "递归删除",
     "cascadeDeleteDescription": "启用后，删除访问规则也会从所有子目录中删除该规则。这样就可以从整个目录树中完全删除用户或组。",
     "hasRules": "已配置访问规则",
-    "manageDescription": "此路径的开放访问规则。"
+    "manageDescription": "此路径的开放访问规则。",
+    "groups": "群组",
+    "newGroup": "新建群组",
+    "editGroup": "编辑群组",
+    "groupName": "群组名称",
+    "userGroups": "群组",
+    "addGroup": "添加群组",
+    "createGroupConfirm": "群组“{name}”不存在。是否创建?",
+    "addGroupPlaceholder": "群组名称",
+    "removeGroup": "从群组中移除",
+    "groupMembers": "成员",
+    "enterUsername": "输入用户名",
+    "addMember": "添加成员",
+    "unknownUser": "没有名为“{name}”的用户",
+    "deleteGroupConfirm": "删除群组“{name}”?它也将从所有访问规则中移除。",
+    "groupsOidcNote": "通过 OIDC 同步的群组成员会在这些用户每次登录时从身份提供商重置。"
   },
   "editor": {
     "stats": {

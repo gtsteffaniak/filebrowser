@@ -27,6 +27,7 @@ import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
 import UserManagement from "@/views/settings/Users.vue";
 import AccessSettings from "@/views/settings/Access.vue";
+import GroupsSettings from "@/views/settings/Groups.vue";
 import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
@@ -44,6 +45,7 @@ export default {
     SharesSettings,
     ApiKeys,
     AccessSettings,
+    GroupsSettings,
     FileLoading,
     UserSettings,
     SystemAdmin,

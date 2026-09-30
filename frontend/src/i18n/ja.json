@@ -663,7 +663,22 @@
     "cascadeDelete": "再帰的削除",
     "cascadeDeleteDescription": "有効な場合、アクセスルールを削除すると、すべてのサブディレクトリからも削除される。これにより、ディレクトリツリー全体からユーザーまたはグループを 完全に削除することができる。",
     "hasRules": "アクセスルールが設定されました",
-    "manageDescription": "この経路に関するオープンアクセスに関する規則。"
+    "manageDescription": "この経路に関するオープンアクセスに関する規則。",
+    "groups": "グループ",
+    "newGroup": "新規グループ",
+    "editGroup": "グループを編集",
+    "groupName": "グループ名",
+    "userGroups": "グループ",
+    "addGroup": "グループを追加",
+    "createGroupConfirm": "グループ「{name}」は存在しません。作成しますか?",
+    "addGroupPlaceholder": "グループ名",
+    "removeGroup": "グループから削除",
+    "groupMembers": "メンバー",
+    "enterUsername": "ユーザー名を入力",
+    "addMember": "メンバーを追加",
+    "unknownUser": "「{name}」というユーザーはいません",
+    "deleteGroupConfirm": "グループ「{name}」を削除しますか?すべてのアクセスルールからも削除されます。",
+    "groupsOidcNote": "OIDCで同期されたグループのメンバーは、該当ユーザーがログインするたびにIDプロバイダーから再設定されます。"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",
