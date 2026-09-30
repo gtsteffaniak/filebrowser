@@ -160,7 +160,9 @@ func pickUserEntry(entries []*ldap.Entry) *ldap.Entry {
 
 // ldapGroupMatches reports whether an LDAP group membership value matches a
 // configured group. Matching is case-insensitive and accepts a full DN or a
-// CN-only value for either side (memberOf values are typically full DNs).
+// CN-only value. When both sides are DNs, the complete DN must match (case-
+// insensitive); CN-only fallback applies only when one side is not a DN, so
+// groups that share a CN under different parents cannot authorize each other.
 func ldapGroupMatches(member, configured string) bool {
 	member = strings.TrimSpace(member)
 	configured = strings.TrimSpace(configured)
@@ -170,21 +172,26 @@ func ldapGroupMatches(member, configured string) bool {
 	if strings.EqualFold(member, configured) {
 		return true
 	}
+	memberIsDN := ldapIsDN(member)
+	configuredIsDN := ldapIsDN(configured)
 	memberCN := ldapCN(member)
 	configuredCN := ldapCN(configured)
-	// Config CN-only vs member full DN (or any RDN cn=).
-	if memberCN != "" && strings.EqualFold(memberCN, configured) {
+
+	// Config CN-only vs member full DN.
+	if memberIsDN && !configuredIsDN && memberCN != "" && strings.EqualFold(memberCN, configured) {
 		return true
 	}
 	// Config full DN vs member CN-only.
-	if configuredCN != "" && strings.EqualFold(member, configuredCN) {
-		return true
-	}
-	// Both sides have a CN: compare CNs case-insensitively.
-	if memberCN != "" && configuredCN != "" && strings.EqualFold(memberCN, configuredCN) {
+	if configuredIsDN && !memberIsDN && configuredCN != "" && strings.EqualFold(member, configuredCN) {
 		return true
 	}
 	return false
+}
+
+// ldapIsDN reports whether s parses as an LDAP distinguished name.
+func ldapIsDN(s string) bool {
+	_, err := ldap.ParseDN(s)
+	return err == nil
 }
 
 // ldapCN returns the first CN RDN value from an LDAP DN string, or "" if none.

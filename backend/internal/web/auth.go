@@ -80,6 +80,10 @@ func ExtractToken(r *http.Request) (string, error) {
 // getOrCreateAuthenticatedUser is a common helper for retrieving or auto-creating users
 // across different authentication methods (proxy, JWT, LDAP, OIDC)
 func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string) (*users.User, error) {
+	if err := ensureUserInAllowedGroups(loginMethod, groups); err != nil {
+		return nil, err
+	}
+
 	// Try to get existing user
 	userValue, err := state.GetUserByUsername(username)
 	if err != nil {
@@ -113,32 +117,6 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 			return nil, err
 		}
 	}
-	allowedGroups := []string{}
-	switch loginMethod {
-	case users.LoginMethodJwt:
-		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
-	case users.LoginMethodLdap:
-		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
-	case users.LoginMethodOidc:
-		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
-	}
-	allowed := len(allowedGroups) == 0
-	for _, userGroup := range groups {
-		for _, allowedGroup := range allowedGroups {
-			if loginMethod == users.LoginMethodLdap {
-				if ldapGroupMatches(userGroup, allowedGroup) {
-					allowed = true
-					break
-				}
-			} else if userGroup == allowedGroup {
-				allowed = true
-				break
-			}
-		}
-	}
-	if !allowed {
-		return nil, fmt.Errorf("user is not in allowed groups")
-	}
 	// Sync admin status if needed (in case admin username changed)
 	if isAdmin && !userValue.Permissions.Admin {
 		userValue.Permissions.Admin = true
@@ -162,6 +140,36 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	}
 
 	return &userValue, nil
+}
+
+// ensureUserInAllowedGroups rejects login when userGroups is configured and none
+// of the IdP groups are allowed. Must run before auto-create so denied users
+// leave no account behind.
+func ensureUserInAllowedGroups(loginMethod users.LoginMethod, groups []string) error {
+	allowedGroups := []string{}
+	switch loginMethod {
+	case users.LoginMethodJwt:
+		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
+	case users.LoginMethodLdap:
+		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
+	case users.LoginMethodOidc:
+		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
+	}
+	if len(allowedGroups) == 0 {
+		return nil
+	}
+	for _, userGroup := range groups {
+		for _, allowedGroup := range allowedGroups {
+			if loginMethod == users.LoginMethodLdap {
+				if ldapGroupMatches(userGroup, allowedGroup) {
+					return nil
+				}
+			} else if userGroup == allowedGroup {
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("user is not in allowed groups")
 }
 
 func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {

@@ -140,6 +140,12 @@ func TestLdapGroupMatches(t *testing.T) {
 			want:       false,
 		},
 		{
+			name:       "same CN different parents rejected",
+			member:     "cn=Admins,ou=Other,dc=example,dc=com",
+			configured: "cn=Admins,ou=Privileged,dc=example,dc=com",
+			want:       false,
+		},
+		{
 			name:       "whitespace trimmed",
 			member:     "  cn=admins,ou=groups,dc=test  ",
 			configured: "cn=admins,ou=groups,dc=test",
