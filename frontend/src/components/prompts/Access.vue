@@ -193,7 +193,7 @@ export default {
     },
     tableRows() {
       return this.entries.map((entry) => ({
-        id: `${entry.type}-${entry.name}`,
+        id: `${entry.type}-${entry.name}-${entry.allow ? "allow" : "deny"}`,
         allowDeny: entry.allow ? this.$t("access.allow") : this.$t("access.deny"),
         userGroup: entry.type === "user"
           ? this.$t("general.user")
