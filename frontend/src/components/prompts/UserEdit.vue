@@ -1481,20 +1481,23 @@ export default {
 .user-groups {
   padding-bottom: 1em;
 }
+
 .group-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4em;
   margin: 0.4em 0;
 }
+
 .group-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.2em;
   padding: 0.1em 0.3em 0.1em 0.7em;
   border-radius: 1em;
-  background: var(--surfaceSecondary, rgba(128, 128, 128, 0.2));
+  background: var(--surfaceSecondary, rgb(128 128 128 / 20%));
 }
+
 .chip-remove {
   display: inline-flex;
   align-items: center;
@@ -1504,10 +1507,12 @@ export default {
   color: inherit;
   cursor: pointer;
 }
+
 .group-note {
   opacity: 0.75;
   margin: 0.4em 0 0;
 }
+
 label + .form-flex-group {
   margin-top: 0.35em;
 }
