@@ -125,7 +125,12 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 	allowed := len(allowedGroups) == 0
 	for _, userGroup := range groups {
 		for _, allowedGroup := range allowedGroups {
-			if userGroup == allowedGroup {
+			if loginMethod == users.LoginMethodLdap {
+				if ldapGroupMatches(userGroup, allowedGroup) {
+					allowed = true
+					break
+				}
+			} else if userGroup == allowedGroup {
 				allowed = true
 				break
 			}

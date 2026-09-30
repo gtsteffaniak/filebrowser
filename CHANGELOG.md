@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.10
+
+ **Bugfixes**:
+ - LDAP `userGroups` matching now accepts CN-only config values against full `memberOf` DNs and compares case-insensitively, instead of failing the shared auth helper with strict string equality (#3044).
+
 ## v2.0.9
 
  **Security**:
