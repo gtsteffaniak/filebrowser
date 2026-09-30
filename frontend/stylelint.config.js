@@ -3,7 +3,13 @@ export default {
     "stylelint-config-standard",
     "stylelint-config-standard-vue",
   ],
-  ignoreFiles: ["**/dist/**", "**/node_modules/**", "**/public/**", "!**/public/css/**"],
+  ignoreFiles: [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/public/**",
+    "!**/public/css/**",
+    "**/pkg/**",
+  ],
  "referenceFiles": [
    "src/css/_variables.css",
    "src/css/_fab.css",
