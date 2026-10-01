@@ -173,6 +173,14 @@ export const getters = {
       return true
     }
     if (!getters.isLoggedIn()) {
+      // Public shares honor an initialized anonymous preference so the sidebar
+      // toggle reaches the document. Login and other logged-out routes, and a
+      // share whose user or darkMode boolean is not ready yet, stay on the
+      // configured default.
+      const sharePreference = getters.isShare() ? state.user?.darkMode : undefined
+      if (typeof sharePreference === "boolean") {
+        return sharePreference
+      }
       return defaultDarkMode()
     }
     return state.user.darkMode === true
