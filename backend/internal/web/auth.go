@@ -126,6 +126,18 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 			user.Permissions.Admin = true
 		}
 
+		// Auto-created accounts get explicit source access: admins get full
+		// access to their default sources; everyone else starts without any
+		// file access and must be granted visibility per source by an admin.
+		perms := users.DenyAllSourceFilePermissions()
+		if user.Permissions.Admin {
+			perms = settings.AdminSourceFilePermissions()
+		}
+		for i := range user.BackendScopes {
+			user.BackendScopes[i].Permissions = perms
+		}
+		users.SyncBackendSourcePermissionsMap(&user)
+
 		err = state.CreateUser(&user, "")
 		if err != nil {
 			return nil, err
@@ -148,6 +160,24 @@ func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod
 			if err != nil {
 				return nil, err
 			}
+		}
+	}
+	if !allowed {
+		return nil, fmt.Errorf("user is not in allowed groups")
+	}
+	// Sync admin status if needed (in case admin username changed)
+	if isAdmin && !userValue.Permissions.Admin {
+		userValue.Permissions.Admin = true
+		// Newly promoted admins gain full access to their default sources.
+		perms := settings.AdminSourceFilePermissions()
+		for i := range userValue.BackendScopes {
+			userValue.BackendScopes[i].Permissions = perms
+		}
+		users.SyncBackendSourcePermissionsMap(&userValue)
+		// No password change, pass empty string
+		err = state.UpdateUser(&userValue, "", "permissions", "backendScopes")
+		if err != nil {
+			return nil, err
 		}
 	}
 	// Verify login method matches

@@ -10,8 +10,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	fberrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -117,5 +117,138 @@ func TestLoginHelperReturnsInvalidLoginMethodForPasswordMismatch(t *testing.T) {
 	}
 	if !errors.Is(err, fberrors.ErrInvalidLoginMethod) {
 		t.Fatalf("err = %v, want ErrInvalidLoginMethod", err)
+	}
+}
+
+// setupDefaultEnabledTestSource points source config at a temp dir so
+// auto-created users receive a default-enabled backend scope.
+func setupDefaultEnabledTestSource(t *testing.T) string {
+	t.Helper()
+	srcPath := t.TempDir()
+	savedSources := settings.Config.Server.Sources
+	savedSourceMap := settings.Config.Server.SourceMap
+	savedNameToSource := settings.Config.Server.NameToSource
+	t.Cleanup(func() {
+		settings.Config.Server.Sources = savedSources
+		settings.Config.Server.SourceMap = savedSourceMap
+		settings.Config.Server.NameToSource = savedNameToSource
+	})
+	src := &settings.Source{
+		Path:   srcPath,
+		Name:   "src",
+		Config: settings.SourceConfig{DefaultEnabled: true, DefaultUserScope: "/"},
+	}
+	settings.Config.Server.Sources = []*settings.Source{src}
+	settings.Config.Server.SourceMap[srcPath] = src
+	settings.Config.Server.NameToSource["src"] = src
+	settings.InitializeUserResolvers()
+	return srcPath
+}
+
+func TestGetOrCreateAuthenticatedUserDeniesSourceAccessToNewUsers(t *testing.T) {
+	setupTestEnv(t)
+	setupDefaultEnabledTestSource(t)
+
+	user, err := getOrCreateAuthenticatedUser("newbie", users.LoginMethodOidc, false, nil)
+	if err != nil {
+		t.Fatalf("getOrCreateAuthenticatedUser() err = %v", err)
+	}
+	if user.Permissions.Admin {
+		t.Fatalf("auto-created user should not be admin")
+	}
+	if len(user.BackendScopes) == 0 {
+		t.Fatalf("auto-created user has no backend scopes, default source not applied")
+	}
+	denyAll := users.DenyAllSourceFilePermissions()
+	for _, scope := range user.BackendScopes {
+		if scope.Permissions != denyAll {
+			t.Fatalf("scope %q permissions = %+v, want deny-all", scope.Path, scope.Permissions)
+		}
+	}
+
+	loaded, err := state.GetUserByUsername("newbie")
+	if err != nil {
+		t.Fatalf("GetUserByUsername() err = %v", err)
+	}
+	perms, err := loaded.FilePermsForSourceName("src")
+	if err != nil {
+		t.Fatalf("FilePermsForSourceName() err = %v for new user", err)
+	}
+	if perms != denyAll {
+		t.Fatalf("persisted source permissions = %+v, want deny-all", perms)
+	}
+}
+
+func TestGetOrCreateAuthenticatedUserGrantsAdminsFullSourceAccess(t *testing.T) {
+	setupTestEnv(t)
+	setupDefaultEnabledTestSource(t)
+
+	user, err := getOrCreateAuthenticatedUser("boss", users.LoginMethodOidc, true, nil)
+	if err != nil {
+		t.Fatalf("getOrCreateAuthenticatedUser() err = %v", err)
+	}
+	if !user.Permissions.Admin {
+		t.Fatalf("auto-created admin user should have admin permission")
+	}
+	if len(user.BackendScopes) == 0 {
+		t.Fatalf("auto-created admin user has no backend scopes")
+	}
+	full := settings.AdminSourceFilePermissions()
+	for _, scope := range user.BackendScopes {
+		if scope.Permissions != full {
+			t.Fatalf("admin scope %q permissions = %+v, want full access", scope.Path, scope.Permissions)
+		}
+	}
+
+	loaded, err := state.GetUserByUsername("boss")
+	if err != nil {
+		t.Fatalf("GetUserByUsername() err = %v", err)
+	}
+	perms, err := loaded.FilePermsForSourceName("src")
+	if err != nil {
+		t.Fatalf("FilePermsForSourceName() err = %v for admin user", err)
+	}
+	if perms != full {
+		t.Fatalf("persisted admin source permissions = %+v, want full access", perms)
+	}
+}
+
+func TestGetOrCreateAuthenticatedUserPromotesExistingUserToAdminAccess(t *testing.T) {
+	setupTestEnv(t)
+	setupDefaultEnabledTestSource(t)
+
+	// First login: auto-created as a regular user (deny-all).
+	if _, err := getOrCreateAuthenticatedUser("late", users.LoginMethodOidc, false, nil); err != nil {
+		t.Fatalf("getOrCreateAuthenticatedUser() err = %v", err)
+	}
+
+	// Second login: user is now in the admin group.
+	user, err := getOrCreateAuthenticatedUser("late", users.LoginMethodOidc, true, nil)
+	if err != nil {
+		t.Fatalf("getOrCreateAuthenticatedUser() err = %v", err)
+	}
+	if !user.Permissions.Admin {
+		t.Fatalf("promoted user should have admin permission")
+	}
+	full := settings.AdminSourceFilePermissions()
+	for _, scope := range user.BackendScopes {
+		if scope.Permissions != full {
+			t.Fatalf("promoted admin scope %q permissions = %+v, want full access", scope.Path, scope.Permissions)
+		}
+	}
+
+	loaded, err := state.GetUserByUsername("late")
+	if err != nil {
+		t.Fatalf("GetUserByUsername() err = %v", err)
+	}
+	if !loaded.Permissions.Admin {
+		t.Fatalf("promoted user was not persisted as admin")
+	}
+	perms, err := loaded.FilePermsForSourceName("src")
+	if err != nil {
+		t.Fatalf("FilePermsForSourceName() err = %v for promoted admin", err)
+	}
+	if perms != full {
+		t.Fatalf("persisted promoted admin source permissions = %+v, want full access", perms)
 	}
 }
