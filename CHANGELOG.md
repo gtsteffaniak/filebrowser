@@ -4,12 +4,15 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.10
 
+ **New Features**:
+ - Config YAML expands `$VAR` and `${VAR}` so values such as `userPassword: "${FILEBROWSER_LDAP_USER_PASSWORD}"` work as documented (#3042).
+
  **Notes**:
  - Sidebar source links can now switch between aggregated usage (default) and a root-filesystem-only view via a new "Limit disk usage to source filesystem" toggle.
 
  **Bugfixes**:
  - Fixed inflated disk usage for sources spanning multiple ZFS datasets (or btrfs subvolumes): shared-pool filesystems are now grouped by pool and counted once, instead of multiplying capacity by the number of mounted datasets (#3025) (#2997) (#2761).
-
+ - LDAP `userGroups` matching now accepts CN-only config values against full `memberOf` DNs and compares case-insensitively, instead of failing the shared auth helper with strict string equality (#3044).
 
 ## v2.0.9
 
