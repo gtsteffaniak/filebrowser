@@ -158,56 +158,68 @@ func pickUserEntry(entries []*ldap.Entry) *ldap.Entry {
 	return user
 }
 
-// ldapGroupMatchesAdmin returns true if the LDAP group DN matches the configured admin group (full DN or CN value).
-func ldapGroupMatchesAdmin(groupDN, adminGroup string) bool {
-	g := strings.TrimSpace(groupDN)
-	if g == adminGroup {
-		return true
-	}
-	dn, err := ldap.ParseDN(g)
-	if err != nil {
+// ldapGroupMatches reports whether an LDAP group membership value matches a
+// configured group. Matching is case-insensitive and accepts a full DN or a
+// CN-only value. When both sides are DNs, the complete DN must match (case-
+// insensitive); CN-only fallback applies only when one side is not a DN, so
+// groups that share a CN under different parents cannot authorize each other.
+func ldapGroupMatches(member, configured string) bool {
+	member = strings.TrimSpace(member)
+	configured = strings.TrimSpace(configured)
+	if configured == "" {
 		return false
 	}
-	for _, rdn := range dn.RDNs {
-		for _, attr := range rdn.Attributes {
-			if strings.EqualFold(attr.Type, "cn") && attr.Value == adminGroup {
-				return true
-			}
-		}
+	if strings.EqualFold(member, configured) {
+		return true
+	}
+	memberIsDN := ldapIsDN(member)
+	configuredIsDN := ldapIsDN(configured)
+	memberCN := ldapCN(member)
+	configuredCN := ldapCN(configured)
+
+	// Config CN-only vs member full DN.
+	if memberIsDN && !configuredIsDN && memberCN != "" && strings.EqualFold(memberCN, configured) {
+		return true
+	}
+	// Config full DN vs member CN-only.
+	if configuredIsDN && !memberIsDN && configuredCN != "" && strings.EqualFold(member, configuredCN) {
+		return true
 	}
 	return false
 }
 
+// ldapIsDN reports whether s parses as an LDAP distinguished name.
+func ldapIsDN(s string) bool {
+	_, err := ldap.ParseDN(s)
+	return err == nil
+}
+
+// ldapCN returns the first CN RDN value from an LDAP DN string, or "" if none.
+func ldapCN(s string) string {
+	dn, err := ldap.ParseDN(s)
+	if err != nil {
+		return ""
+	}
+	for _, rdn := range dn.RDNs {
+		for _, attr := range rdn.Attributes {
+			if strings.EqualFold(attr.Type, "cn") {
+				return attr.Value
+			}
+		}
+	}
+	return ""
+}
+
 // getOrCreateLdapUser returns the filebrowser user for an LDAP-authenticated username, creating one if configured.
+// userGroups authorization is enforced in getOrCreateAuthenticatedUser via ldapGroupMatches.
 func getOrCreateLdapUser(username string, groups []string) (*users.User, error) {
 	logger.Debugf("getting or creating ldap user %s", username)
 	ldapCfg := settings.Config.Auth.Methods.LdapAuth
 
-	// Check if user is in required groups (if userGroups is configured)
-	if len(ldapCfg.UserGroups) > 0 {
-		userInAllowedGroup := false
-		for _, allowedGroup := range ldapCfg.UserGroups {
-			for _, userGroup := range groups {
-				if ldapGroupMatchesAdmin(userGroup, allowedGroup) {
-					userInAllowedGroup = true
-					break
-				}
-			}
-			if userInAllowedGroup {
-				break
-			}
-		}
-		if !userInAllowedGroup {
-			logger.Warningf("User %s is not in any of the required groups %v. Access denied.", username, ldapCfg.UserGroups)
-			return nil, fmt.Errorf("user %s is not authorized to access this application (not in required groups)", username)
-		}
-		logger.Debugf("User %s is in required group, allowing access.", username)
-	}
-
 	isAdmin := false
 	if ldapCfg.AdminGroup != "" {
 		for _, g := range groups {
-			if ldapGroupMatchesAdmin(g, ldapCfg.AdminGroup) {
+			if ldapGroupMatches(g, ldapCfg.AdminGroup) {
 				isAdmin = true
 				break
 			}
