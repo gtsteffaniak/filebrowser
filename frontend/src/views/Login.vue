@@ -37,9 +37,15 @@
               <span>{{ $t("login.failedLogin") }}</span>
               <HelpTooltipIcon :text="error" />
             </div>
-            <input autofocus class="input" type="text" autocapitalize="off" v-model="username"
-              :placeholder="$t('general.username')" />
-            <input class="input" type="password" v-model="password" :placeholder="$t('general.password')" />
+            <div class="field-wrap" :class="{ 'tombstone-field': eventTheme === 'halloween', born: eventTheme === 'halloween' }">
+              <span v-if="eventTheme === 'halloween'" class="tombstone-label" aria-hidden="true"></span>
+              <input autofocus class="input" type="text" autocapitalize="off" v-model="username"
+                :placeholder="$t('general.username')" />
+            </div>
+            <div class="field-wrap" :class="{ 'tombstone-field': eventTheme === 'halloween', died: eventTheme === 'halloween' }">
+              <span v-if="eventTheme === 'halloween'" class="tombstone-label" aria-hidden="true"></span>
+              <input class="input" type="password" v-model="password" :placeholder="$t('general.password')" />
+            </div>
             <input class="input" v-if="createMode" type="password" v-model="passwordConfirm"
               :placeholder="$t('login.passwordConfirm')" />
 
@@ -520,7 +526,7 @@ export default {
   right: 0;
 }
 
-.wrong-login {
+.password-entry .wrong-login {
   display: flex;
   align-items: center;
   justify-content: center;

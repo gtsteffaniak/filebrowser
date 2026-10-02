@@ -925,20 +925,17 @@ export default {
   text-overflow: ellipsis;
   display: -webkit-box;
   line-clamp: 2;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
 .expanded-field:first-child .field-value {
   max-height: 1.5em;
   line-clamp: 1;
-  -webkit-line-clamp: 1;
 }
 
 .expanded-field:nth-child(2) .field-value {
   max-height: 4em;
   line-clamp: 3;
-  -webkit-line-clamp: 3;
 }
 
 /* Type colors - solid colors for utilitarian look */

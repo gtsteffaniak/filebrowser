@@ -68,7 +68,7 @@
       </template>
     </ProfileEnforceableField>
     <ProfileEnforceableField
-      v-if="Object.keys(availableThemes).length > 0"
+      v-if="themeOptions.length > 0"
       :enforceable="enforceable"
     >
       <h4>{{ $t("profileSettings.customTheme") }}</h4>
@@ -652,16 +652,16 @@
             />
           </div>
           <template #enforce>
-<ProfileEnforceSwitch
-            :visible="enforceable"
-            :enforced="enforcedFlag('ui', 'themeColor')"
-            :disabled="disabled"
-            @update:enforced="(v) => emitEnforced('ui', 'themeColor', v)"
-          />
-      </template>
-    </ProfileEnforceableField>
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('ui', 'themeColor')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('ui', 'themeColor', v)"
+            />
+          </template>
+        </ProfileEnforceableField>
         <ProfileEnforceableField
-          v-if="Object.keys(availableThemes).length > 0"
+          v-if="themeOptions.length > 0"
           :enforceable="enforceable"
         >
           <h4>{{ $t("profileSettings.customTheme") }}</h4>
@@ -679,12 +679,12 @@
             />
           </div>
           <template #enforce>
-<ProfileEnforceSwitch
-            :visible="enforceable"
-            :enforced="enforcedFlag('ui', 'customTheme')"
-            :disabled="disabled"
-            @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
-          />
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('ui', 'customTheme')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
+            />
       </template>
     </ProfileEnforceableField>
         <ProfileEnforceableField          :enforceable="enforceable">
@@ -823,6 +823,9 @@ export default {
         this.$emit("update:modelValue", val);
       },
     },
+    halloweenSeason() {
+      return getters.eventThemeAvailable() === "halloween";
+    },
     mediaEnabled() {
       return globalVars.mediaAvailable;
     },
@@ -843,12 +846,20 @@ export default {
       ];
     },
     themeOptions() {
-      return Object.entries(this.availableThemes).map(([key, theme]) => ({
+      const options = Object.entries(this.availableThemes).map(([key, theme]) => ({
         value: key,
         label: String(key) === "default"
           ? this.$t("profileSettings.defaultThemeDescription")
           : `${key} - ${theme.description}`,
       }));
+      // Halloween is only offered while it is in season and stored locally (not as a customTheme)
+      if (this.halloweenSeason) {
+        options.push({
+          value: "halloween",
+          label: `halloween - ${this.$t("prompts.halloweenTitle")}`,
+        });
+      }
+      return options;
     },
     motionPreviewVisible() {
       const p = this.sections.preview || {};
@@ -914,9 +925,19 @@ export default {
     },
     selectedTheme: {
       get() {
+        if (this.halloweenSeason && getters.eventTheme() === "halloween") {
+          return "halloween";
+        }
         return this.sections.ui?.customTheme || "default";
       },
       set(value) {
+        if (value === "halloween") {
+          mutations.enableEventThemes();
+          return;
+        }
+        if (getters.eventTheme() === "halloween") {
+          mutations.disableEventThemes();
+        }
         const next = { ...this.sections, ui: { ...(this.sections.ui || {}), customTheme: value } };
         this.sections = next;
       },
@@ -1120,7 +1141,10 @@ export default {
       this.$emit("theme-color", color);
       this.emitSectionChange("ui", "themeColor");
     },
-    onThemeChange() {
+    onThemeChange(value) {
+      if (value === "halloween") {
+        return;
+      }
       this.emitSectionChange("ui", "customTheme");
     },
     onLocaleChange(locale) {

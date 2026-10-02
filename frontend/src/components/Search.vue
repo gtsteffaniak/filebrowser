@@ -1,5 +1,5 @@
 <template>
-  <div v-if="active" id="search" :class="{ active, ongoing, 'prompt-open': promptOpen }" @click="clearContext">
+  <div v-if="active" id="search" :class="{ active, ongoing, 'prompt-open': promptOpen, halloween: eventTheme === 'halloween' }" @click="clearContext">
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
@@ -13,6 +13,10 @@
       <input id="search-input" type="text"
         @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
         aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
+      <div v-if="eventTheme === 'halloween'" class="halloween-eyes" aria-hidden="true">
+        <div class="eye"><div class="pupil"></div></div>
+        <div class="eye right"><div class="pupil"></div></div>
+      </div>
     </div>
     <div v-show="active" id="results" ref="result">
       <div class="inputWrapper">

@@ -1,4 +1,4 @@
-@import url("normalize.css/normalize.css");
+@import url("./reset.css");
 @import url("./_variables.css");
 @import url("./_buttons.css");
 @import url("./_fab.css");
@@ -268,15 +268,6 @@ button:hover,
   top: calc(50% + 1.85em);
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-/* * * * * * * * * * * * * * * *
- *          ANIMATIONS         *
- * * * * * * * * * * * * * * * */
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 /* * * * * * * * * * * * * * * *

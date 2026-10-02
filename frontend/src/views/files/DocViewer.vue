@@ -102,12 +102,12 @@ export default defineComponent({
 
       // Use same directory path calculation as Preview.vue
       let directoryPath = removeLastDir(state.req.path);
-      
+
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
         directoryPath = '/';
       }
-      
+
       let listing;
 
       // Try to get listing from current request first
@@ -255,11 +255,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Styles remain the same */
 .viewer-background {
   width: 100%;
   height: 100%;
-  overflow-y: auto;
+  overflow: hidden auto;
   background-color: #f0f2f5;
   padding: 2em;
   box-sizing: border-box;
@@ -267,13 +266,52 @@ export default defineComponent({
 
 .docx-page {
   background: white;
-  width: 8.5in;
+  width: min(8.5in, 100%);
   min-height: 11in;
   margin: 0 auto;
-  padding: 1in;
+  padding: clamp(1em, 8vw, 1in);
   box-shadow: 0 0 10px rgb(0 0 0 / 15%);
   box-sizing: border-box;
   color: black;
+  overflow-wrap: anywhere;
+}
+
+.docx-page :deep(img),
+.docx-page :deep(svg),
+.docx-page :deep(video) {
+  max-width: 100%;
+  height: auto;
+}
+
+.docx-page :deep(table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.docx-page :deep(td),
+.docx-page :deep(th) {
+  border: 1px solid black;
+  padding: 0.4em 0.7em;
+  vertical-align: top;
+  text-align: left;
+}
+
+.docx-page :deep(th) {
+  background-color: #f3f4f6;
+  font-weight: 600;
+}
+
+.docx-page :deep(td > p),
+.docx-page :deep(th > p) {
+  margin: 0;
+}
+
+.docx-page :deep(pre) {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .status-text {
@@ -285,7 +323,7 @@ export default defineComponent({
 }
 
 .status-text.error {
-  color: #d9534f;
+  color: var(--red);
 }
 
 @media (width <= 8.5in) {
@@ -293,10 +331,7 @@ export default defineComponent({
     padding: 0;
   }
   .docx-page {
-    width: 100%;
     min-height: 100%;
-    margin: 0;
-    padding: 1em;
     box-shadow: none;
   }
 }

@@ -21,23 +21,24 @@ export const getters = {
     }
     return (getNestedProperty(state.displayPreferences, sourceKey, path) as DisplayPreference) || null;
   },
-  eventTheme: () => {
-    if (getters.isShare()) {
+  eventThemeAvailable: () => {
+    if (getters.isShare() || !globalVars.eventBasedThemes) {
       return "";
     }
-    if (!globalVars.eventBasedThemes) {
-      return ""
-    }
-    if (state.disableEventThemes) {
-      return ""
-    }
-    // if date is halloween october 31st, return halloween
-    if (new Date().getMonth() === 9 && new Date().getDate() === 31) {
+    // october 9th to 31st available in the theme dropdown to change freely
+    const now = new Date();
+    if (now.getMonth() === 9 && now.getDate() >= 9) {
       return "halloween";
     }
     return "";
   },
-  getTime: timestamp => {
+  eventTheme: () => {
+    if (state.disableEventThemes) {
+      return "";
+    }
+    return getters.eventThemeAvailable();
+  },
+  getTime: (timestamp: string) => {
     if (state.user?.dateFormat) {
       // Truncate the fractional seconds to 3 digits (milliseconds)
       const sanitizedString = timestamp.replace(/\.\d+/, match =>
@@ -168,9 +169,6 @@ export const getters = {
     }
     if (state.shareInfo?.enforceDarkLightMode === "light") {
       return false
-    }
-    if (!getters.isShare() && getters.eventTheme() === "halloween") {
-      return true
     }
     if (!getters.isLoggedIn()) {
       return defaultDarkMode()

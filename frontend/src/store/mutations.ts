@@ -14,6 +14,7 @@ import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.js";
 import { updateManifestLink } from "@/utils/pwaManifest";
+import { syncEventTheme } from "@/utils/theme";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters";
 import { state } from "./state";
@@ -26,12 +27,24 @@ export const mutations = {
     }
     localStorage.setItem("disableEventThemes", "true");
     state.disableEventThemes = true;
+    syncEventTheme(false);
     // Set theme color back to user's preference or default
     if (state.user.themeColor) {
       document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
     } else {
       // Remove the override to use the default CSS variable
       document.documentElement.style.removeProperty("--primaryColor");
+    }
+    emitStateChanged();
+  },
+  enableEventThemes: () => {
+    if (!state.disableEventThemes) {
+      return;
+    }
+    localStorage.removeItem("disableEventThemes");
+    state.disableEventThemes = false;
+    if (getters.eventTheme() === "halloween") {
+      syncEventTheme(true);
     }
     emitStateChanged();
   },

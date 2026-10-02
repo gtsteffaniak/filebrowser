@@ -41,7 +41,7 @@ body.rtl .listing-items {
   padding: 0.5em;
   color: var(--textPrimary);
   border-color: var(--divider);
-  background: var(--surfacePrimary);
+  background: color-mix(in srgb, var(--surfacePrimary) 60%, transparent);
   /* Performance optimizations */
   contain: layout style paint;
   content-visibility: auto;

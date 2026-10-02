@@ -23,6 +23,7 @@ import router from "@/router";
 import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
+import { syncEventTheme } from "@/utils/theme";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 import { invalidateDirMetadataCache } from "@/utils/metadataCache.js";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
@@ -168,6 +169,8 @@ export default {
     },
   },
   created() {
+    const isHalloween = getters.eventTheme() === "halloween";
+    syncEventTheme(isHalloween);
     if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
       mutations.showPrompt({
         name: "generic",
