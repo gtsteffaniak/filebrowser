@@ -790,6 +790,7 @@ export default {
 .editor-toolbar {
   display: flex;
   align-items: center;
+  background: var(--background);
   gap: 0.15em;
   padding: 0.35em 0;
   border-bottom: 1px solid var(--alt-background);
