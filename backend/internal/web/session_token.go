@@ -29,23 +29,40 @@ func mintAndRegisterSessionToken(user *users.User) (string, error) {
 	return tokenString, nil
 }
 
+func tokenHashPrefix(token string) string {
+	if token == "" {
+		return "<empty>"
+	}
+	return utils.HashSHA256(token)[:8]
+}
+
 // replaceSessionToken mints and registers the replacement before retiring the
 // prior token. If minting or registration fails the current session is left
 // untouched. The prior token is retired with a grace window (not revoked
 // immediately) so requests already in flight with the old cookie stay valid.
 func replaceSessionToken(oldToken string, user *users.User) (string, error) {
+	logger.Debugf("AUTH DEBUG: ROTATE start oldHash=%s userID=%d username=%s", tokenHashPrefix(oldToken), user.ID, user.Username)
+
 	newToken, err := mintAndRegisterSessionToken(user)
 	if err != nil {
+		logger.Errorf("AUTH DEBUG: ROTATE mint FAILED oldHash=%s err=%v", tokenHashPrefix(oldToken), err)
 		return "", err
 	}
+
+	logger.Debugf("AUTH DEBUG: ROTATE newHash=%s oldHash=%s", tokenHashPrefix(newToken), tokenHashPrefix(oldToken))
+
 	if oldToken == "" || oldToken == newToken {
 		return newToken, nil
 	}
+
 	if err := state.RetireSessionToken(oldToken); err != nil {
+		logger.Errorf("AUTH DEBUG: ROTATE retire FAILED oldHash=%s newHash=%s err=%v", tokenHashPrefix(oldToken), tokenHashPrefix(newToken), err)
 		if cleanupErr := state.RemoveApiToken(newToken); cleanupErr != nil {
 			logger.Errorf("failed to roll back replacement session token: %v", cleanupErr)
 		}
 		return "", err
 	}
+
+	logger.Debugf("AUTH DEBUG: ROTATE complete oldHash=%s newHash=%s", tokenHashPrefix(oldToken), tokenHashPrefix(newToken))
 	return newToken, nil
 }
