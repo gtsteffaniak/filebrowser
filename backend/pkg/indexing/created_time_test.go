@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// TestGetCreatedTime checks that a freshly created file reports a recent birth time.
 func TestGetCreatedTime(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "created_time_test.txt")
@@ -22,8 +23,17 @@ func TestGetCreatedTime(t *testing.T) {
 
 	created := getCreatedTime(info, path)
 
-	if runtime.GOOS == "linux" && created == nil {
-		t.Skip("filesystem does not report birth time")
+	switch runtime.GOOS {
+	case "darwin", "windows":
+	case "linux":
+		if created == nil {
+			t.Skip("filesystem does not report birth time")
+		}
+	default:
+		if created != nil {
+			t.Errorf("expected nil created time on %s, got %v", runtime.GOOS, created)
+		}
+		return
 	}
 
 	if created == nil {
@@ -34,6 +44,7 @@ func TestGetCreatedTime(t *testing.T) {
 	}
 }
 
+// TestGetCreatedTime_NilInfo checks that a nil FileInfo yields no creation time.
 func TestGetCreatedTime_NilInfo(t *testing.T) {
 	if got := getCreatedTime(nil, ""); got != nil {
 		t.Errorf("expected nil for nil info, got %v", got)

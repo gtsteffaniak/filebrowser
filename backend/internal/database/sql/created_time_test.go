@@ -7,6 +7,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 )
 
+// TestCreatedTime_InsertAndReadBack checks that an inserted Created value is returned unchanged.
 func TestCreatedTime_InsertAndReadBack(t *testing.T) {
 	dir := t.TempDir()
 	pop := pushTestIndexConfig(t, dir, testIndexSQLConfig(""))
@@ -45,6 +46,7 @@ func TestCreatedTime_InsertAndReadBack(t *testing.T) {
 	}
 }
 
+// TestCreatedTime_NilStaysNil checks that an item inserted without Created reads back with nil.
 func TestCreatedTime_NilStaysNil(t *testing.T) {
 	dir := t.TempDir()
 	pop := pushTestIndexConfig(t, dir, testIndexSQLConfig(""))
@@ -78,6 +80,7 @@ func TestCreatedTime_NilStaysNil(t *testing.T) {
 	}
 }
 
+// TestCreatedTime_UpsertSetsCreated checks that an upsert fills in a previously nil Created.
 func TestCreatedTime_UpsertSetsCreated(t *testing.T) {
 	dir := t.TempDir()
 	pop := pushTestIndexConfig(t, dir, testIndexSQLConfig(""))
@@ -120,6 +123,8 @@ func TestCreatedTime_UpsertSetsCreated(t *testing.T) {
 	}
 }
 
+// TestCreatedTime_MigrationAddsColumn checks that CreateIndexTable adds created_time to an
+// old-schema table and can be run repeatedly.
 func TestCreatedTime_MigrationAddsColumn(t *testing.T) {
 	dir := t.TempDir()
 	pop := pushTestIndexConfig(t, dir, testIndexSQLConfig(""))
@@ -169,6 +174,7 @@ func TestCreatedTime_MigrationAddsColumn(t *testing.T) {
 	}
 }
 
+// hasCreatedTimeColumn reports whether index_items currently has a created_time column.
 func hasCreatedTimeColumn(t *testing.T, db *IndexDB) bool {
 	t.Helper()
 	rows, err := db.Query(`PRAGMA table_info(index_items)`)

@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// getCreatedTime returns the file's creation time from its Win32 attribute data, or nil if unavailable.
 func getCreatedTime(info os.FileInfo, _ string) *time.Time {
 	if info == nil {
 		return nil

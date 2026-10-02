@@ -266,6 +266,8 @@ func (db *IndexDB) CreateIndexTable() error {
 	return db.ensureCreatedTimeColumn()
 }
 
+// ensureCreatedTimeColumn adds the created_time column to index_items when it is
+// missing, so databases created before the column existed are upgraded in place.
 func (db *IndexDB) ensureCreatedTimeColumn() error {
 	rows, err := db.Query(`PRAGMA table_info(index_items)`)
 	if err != nil {
@@ -297,6 +299,8 @@ func (db *IndexDB) ensureCreatedTimeColumn() error {
 	return err
 }
 
+// createdUnix converts a creation time to unix seconds for storage, returning 0
+// when the time is nil or zero (stored as "unavailable").
 func createdUnix(created *time.Time) int64 {
 	if created == nil || created.IsZero() {
 		return 0

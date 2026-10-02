@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// getCreatedTime returns the file's birth time from the stat result, or nil if unavailable.
 func getCreatedTime(info os.FileInfo, _ string) *time.Time {
 	if info == nil {
 		return nil

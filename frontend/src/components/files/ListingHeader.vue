@@ -51,6 +51,8 @@
       role="button"
       tabindex="0"
       @click="sort('created')"
+      @keydown.enter.prevent.stop="sort('created')"
+      @keydown.space.prevent.stop="sort('created')"
       :title="$t('files.sortByDateAdded')"
       :aria-label="$t('files.sortByDateAdded')"
     >
@@ -64,6 +66,8 @@
       role="button"
       tabindex="0"
       @click="sort('kind')"
+      @keydown.enter.prevent.stop="sort('kind')"
+      @keydown.space.prevent.stop="sort('kind')"
       :title="$t('files.sortByType')"
       :aria-label="$t('files.sortByType')"
     >
