@@ -502,26 +502,31 @@ func withUserHelper(fn handleFunc) handleFunc {
 		var tk users.AuthToken
 		token, err := jwt.ParseWithClaims(data.Token, &tk, keyFunc)
 		if err != nil {
+			logger.Debugf("AUTH DEBUG: JWT parse failed hash=%s err=%v", utils.HashSHA256(data.Token)[:8], err)
 			if isProxyUser {
 				return getProxyUser(w, r, data, fn, proxyUser)
 			}
-			// JWT library automatically validates expiration - if expired, it returns an error
 			return http.StatusUnauthorized, fmt.Errorf("invalid token: %v", err)
 		}
 		if !token.Valid {
+			logger.Debugf("AUTH DEBUG: JWT invalid hash=%s", utils.HashSHA256(data.Token)[:8])
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if state.IsTokenRevoked(data.Token) {
+		revoked := state.IsTokenRevoked(data.Token)
+		logger.Debugf("AUTH DEBUG: JWT valid hash=%s exp=%v revoked=%v", utils.HashSHA256(data.Token)[:8], tk.RegisteredClaims.ExpiresAt, revoked)
+		if revoked {
+			logger.Debugf("AUTH DEBUG: token REJECTED as revoked hash=%s", utils.HashSHA256(data.Token)[:8])
 			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
-		// ExpiresAt should always be set in valid tokens created by our system
-		// JWT library populates RegisteredClaims.ExpiresAt
 		if tk.RegisteredClaims.ExpiresAt == nil {
+			logger.Debugf("AUTH DEBUG: token REJECTED without expiry hash=%s", utils.HashSHA256(data.Token)[:8])
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
+		ownerID, isSession, mapped := state.HashedTokenOwner(data.Token)
+		logger.Debugf("AUTH DEBUG: token mapping hash=%s mapped=%v ownerID=%d isSession=%v", utils.HashSHA256(data.Token)[:8], mapped, ownerID, isSession)
 		userValue, err := resolveBearerTokenUser(data.Token)
 		if err != nil {
-			logger.Errorf("Failed to get user from token: %v", err)
+			logger.Errorf("AUTH DEBUG: resolve user FAILED hash=%s ownerID=%d isSession=%v err=%v", utils.HashSHA256(data.Token)[:8], ownerID, isSession, err)
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
 		data.User = userValue
