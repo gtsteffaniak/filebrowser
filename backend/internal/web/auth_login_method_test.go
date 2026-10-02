@@ -61,6 +61,79 @@ func TestGetOrCreateAuthenticatedUserRejectsPasswordUserForOIDCAccount(t *testin
 	}
 }
 
+func TestGetOrCreateAuthenticatedUserLDAPUserGroupsCNMatch(t *testing.T) {
+	setupTestEnv(t)
+
+	orig := settings.Config.Auth.Methods.LdapAuth.UserGroups
+	settings.Config.Auth.Methods.LdapAuth.UserGroups = []string{"employees"}
+	t.Cleanup(func() {
+		settings.Config.Auth.Methods.LdapAuth.UserGroups = orig
+	})
+
+	ldapUser := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "ldap-user",
+			LoginMethod: users.LoginMethodLdap,
+		},
+	}
+	if err := state.CreateUser(ldapUser, ""); err != nil {
+		t.Fatalf("CreateUser: %v", err)
+	}
+
+	groups := []string{"cn=Employees,ou=groups,dc=example,dc=com"}
+	_, err := getOrCreateAuthenticatedUser("ldap-user", users.LoginMethodLdap, false, groups)
+	if err != nil {
+		t.Fatalf("getOrCreateAuthenticatedUser() with CN-only userGroups: %v", err)
+	}
+}
+
+func TestGetOrCreateAuthenticatedUserLDAPUserGroupsDenied(t *testing.T) {
+	setupTestEnv(t)
+
+	orig := settings.Config.Auth.Methods.LdapAuth.UserGroups
+	settings.Config.Auth.Methods.LdapAuth.UserGroups = []string{"employees"}
+	t.Cleanup(func() {
+		settings.Config.Auth.Methods.LdapAuth.UserGroups = orig
+	})
+
+	ldapUser := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "ldap-user",
+			LoginMethod: users.LoginMethodLdap,
+		},
+	}
+	if err := state.CreateUser(ldapUser, ""); err != nil {
+		t.Fatalf("CreateUser: %v", err)
+	}
+
+	groups := []string{"cn=Contractors,ou=groups,dc=example,dc=com"}
+	_, err := getOrCreateAuthenticatedUser("ldap-user", users.LoginMethodLdap, false, groups)
+	if err == nil || err.Error() != "user is not in allowed groups" {
+		t.Fatalf("getOrCreateAuthenticatedUser() err = %v, want user is not in allowed groups", err)
+	}
+}
+
+func TestGetOrCreateAuthenticatedUserLDAPDeniedFirstLoginCreatesNoAccount(t *testing.T) {
+	setupTestEnv(t)
+
+	orig := settings.Config.Auth.Methods.LdapAuth.UserGroups
+	settings.Config.Auth.Methods.LdapAuth.UserGroups = []string{"employees"}
+	t.Cleanup(func() {
+		settings.Config.Auth.Methods.LdapAuth.UserGroups = orig
+	})
+
+	groups := []string{"cn=Contractors,ou=groups,dc=example,dc=com"}
+	_, err := getOrCreateAuthenticatedUser("denied-ldap-user", users.LoginMethodLdap, false, groups)
+	if err == nil || err.Error() != "user is not in allowed groups" {
+		t.Fatalf("getOrCreateAuthenticatedUser() err = %v, want user is not in allowed groups", err)
+	}
+
+	_, getErr := state.GetUserByUsername("denied-ldap-user")
+	if !errors.Is(getErr, fberrors.ErrNotExist) {
+		t.Fatalf("GetUserByUsername after denied login: %v, want ErrNotExist", getErr)
+	}
+}
+
 func TestAuthenticatePasswordRejectsWrongLoginMethod(t *testing.T) {
 	setupTestEnv(t)
 

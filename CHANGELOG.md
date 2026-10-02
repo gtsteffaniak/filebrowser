@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - Config YAML expands `$VAR` and `${VAR}` so values such as `userPassword: "${FILEBROWSER_LDAP_USER_PASSWORD}"` work as documented (#3042).
 
+ **Bugfixes**:
+ - LDAP `userGroups` matching now accepts CN-only config values against full `memberOf` DNs and compares case-insensitively, instead of failing the shared auth helper with strict string equality (#3044).
+
 ## v2.0.9
 
  **Security**:
