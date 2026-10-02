@@ -345,7 +345,9 @@
     "usageTextDisk": "uso conforme relatado pelo disco/partição",
     "dividerNamePlaceholder": "Texto do divisor (deixe em branco para mostrar uma linha)",
     "showIndexedUsage": "Mostrar uso conforme indexado",
-    "showDiskUsage": "Mostrar o uso conforme relatado pelo disco/partição"
+    "showDiskUsage": "Mostrar o uso conforme relatado pelo disco/partição",
+    "rootFilesystemOnly": "Limitar o uso do disco ao sistema de arquivos de origem",
+    "rootFilesystemOnlyDescription": "Quando ativada, apenas o sistema de arquivos que contém o caminho de origem é relatado. Quando desativada (padrão), o total do disco também inclui os sistemas de arquivos montados no caminho de origem, sendo que os pools compartilhados, como os conjuntos de dados ZFS, são contados uma única vez."
   },
   "share": {
     "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",

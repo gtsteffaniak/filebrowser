@@ -345,7 +345,9 @@
     "usageTextDisk": "użycie zgłoszone przez dysk/partycję",
     "dividerNamePlaceholder": "Tekst podziału (pozostaw pusty, aby wyświetlić linię)",
     "showIndexedUsage": "Pokaż zastosowania zgodnie z indeksem",
-    "showDiskUsage": "Pokaż wykorzystanie według dysku/partycji"
+    "showDiskUsage": "Pokaż wykorzystanie według dysku/partycji",
+    "rootFilesystemOnly": "Ogranicz wykorzystanie miejsca na dysku do rozmiarów systemu plików źródłowego",
+    "rootFilesystemOnlyDescription": "Gdy opcja jest włączona, uwzględniane są wyłącznie systemy plików zawierające ścieżkę źródłową. Gdy opcja jest wyłączona (ustawienie domyślne), całkowita pojemność dysku obejmuje również systemy plików zamontowane w ramach ścieżki źródłowej, przy czym wspólne pule, takie jak zbiory danych ZFS, są liczone tylko raz."
   },
   "share": {
     "notice": "Uwaga: po utworzeniu folderu udostępnionego staje się on bardziej dostępny publicznie i ma inne zasady dostępu. Jeśli udział nie jest bezpiecznie skonfigurowany, może być dostępny dla każdego.",

@@ -81,24 +81,24 @@
                   info
                 </i>
               </div>
-              <div v-if="hasUsageInfo(link) && link.category !== 'source-minimal'" class="usage-info">
+              <div v-if="hasUsageInfo(link) && baseSidebarCategory(link.category) !== 'source-minimal'" class="usage-info">
                 <!-- For source-hybrid, show single bar with background value for disk usage -->
-                <ProgressBar 
-                  v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
-                  :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
+                <ProgressBar
+                  v-if="isHybridCategory(link.category)"
+                  :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${getDiskUsed(link, sourceInfo[link.sourceName] || {})}-${getUsageTotal(link, sourceInfo[link.sourceName] || {})}`"
                   :val="sourceInfo[link.sourceName]?.used || 0"
-                  :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
-                  :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
-                  :max="sourceInfo[link.sourceName]?.total || 1" 
+                  :val-background="getDiskUsed(link, sourceInfo[link.sourceName] || {})"
+                  :val-text="baseSidebarCategory(link.category) === 'source-hybrid-2' ? getDiskUsed(link, sourceInfo[link.sourceName] || {}) : null"
+                  :max="getUsageTotal(link, sourceInfo[link.sourceName] || {})"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
                 <!-- For other source types, show single bar -->
-                <ProgressBar 
+                <ProgressBar
                   v-else
-                  :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
-                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})" 
-                  :max="sourceInfo[link.sourceName]?.total || 1" 
+                  :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${getDiskUsed(link, sourceInfo[link.sourceName] || {})}-${getUsageTotal(link, sourceInfo[link.sourceName] || {})}`"
+                  :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})"
+                  :max="getUsageTotal(link, sourceInfo[link.sourceName] || {})"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
@@ -164,19 +164,19 @@
               </i>
             </div>
             <div v-if="hasUsageInfo(activeSourceLink)" class="usage-info">
-              <ProgressBar 
-                v-if="activeSourceLink.category === 'source-hybrid' || activeSourceLink.category === 'source-hybrid-2'"
+              <ProgressBar
+                v-if="isHybridCategory(activeSourceLink.category)"
                 :val="(activeSourceInfo).used || 0"
-                :val-background="(activeSourceInfo).usedAlt || 0"
-                :val-text="activeSourceLink.category === 'source-hybrid-2' ? ((activeSourceInfo).usedAlt || 0) : null"
-                :max="(activeSourceInfo).total || 1" 
+                :val-background="getDiskUsed(activeSourceLink, activeSourceInfo)"
+                :val-text="baseSidebarCategory(activeSourceLink.category) === 'source-hybrid-2' ? getDiskUsed(activeSourceLink, activeSourceInfo) : null"
+                :max="getUsageTotal(activeSourceLink, activeSourceInfo)"
                 :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
-              <ProgressBar 
+              <ProgressBar
                 v-else
-                :val="getProgressBarValue(activeSourceLink, activeSourceInfo)" 
-                :max="(activeSourceInfo).total || 1" 
+                :val="getProgressBarValue(activeSourceLink, activeSourceInfo)"
+                :max="getUsageTotal(activeSourceLink, activeSourceInfo)"
                 :status="getProgressBarStatus(activeSourceLink, activeSourceInfo)"
                 unit="bytes">
               </ProgressBar>
@@ -215,6 +215,7 @@ import {
 import ProgressBar from "@/components/ProgressBar.vue";
 import { goToItem } from "@/utils/url";
 import { getIconClass } from "@/utils/material-symbols";
+import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
@@ -357,7 +358,24 @@ export default {
   },
   methods: {
     isSourceCategory(category) {
-      return category.startsWith("source")
+      return isSourceSidebarCategory(category);
+    },
+    isHybridCategory(category) {
+      const base = baseSidebarCategory(category);
+      return base === 'source-hybrid' || base === 'source-hybrid-2';
+    },
+    baseSidebarCategory,
+    /** Disk capacity for the link's scope: aggregated nested mounts (default) or root filesystem only (-root categories). */
+    getUsageTotal(link, sourceInfo) {
+      const root = isRootOnlySidebarCategory(link.category);
+      const total = root ? (sourceInfo.totalRoot || 0) : (sourceInfo.total || 0);
+      return total > 0 ? total : (sourceInfo.total || 1);
+    },
+    /** Disk-reported used bytes for the link's scope. */
+    getDiskUsed(link, sourceInfo) {
+      return isRootOnlySidebarCategory(link.category)
+        ? (sourceInfo.usedAltRoot || 0)
+        : (sourceInfo.usedAlt || 0);
     },
     getIconClass,
     hasUsageInfo(link) {
@@ -365,7 +383,7 @@ export default {
       // Returns true when link is accessible and has usage > 0
       if (!this.isSourceCategory(link.category) || !link.sourceName) return false;
       if (!this.hasSourceInfo || !this.isLinkAccessible(link)) return false;
-      if (link.category === 'source-minimal') return false;
+      if (baseSidebarCategory(link.category) === 'source-minimal') return false;
       const info = this.sourceInfo[link.sourceName] || {};
       return (info.used || 0) > 0 || (info.usedAlt || 0) > 0;
     },
@@ -470,21 +488,21 @@ export default {
     },
     hasUsageScopeMismatch(link, sourceInfo) {
       if (!link || !sourceInfo) return false;
-      const cat = link.category;
-      if (cat !== 'source' && cat !== 'source-hybrid' && cat !== 'source-hybrid-2') {
+      const base = baseSidebarCategory(link.category);
+      if (base !== 'source' && base !== 'source-hybrid' && base !== 'source-hybrid-2') {
         return false;
       }
-      if (sourceInfo.usageScopeMismatch) {
+      if (sourceInfo.usageScopeMismatch && !isRootOnlySidebarCategory(link.category)) {
         return true;
       }
       const used = Number(sourceInfo.used) || 0;
-      const total = Number(sourceInfo.total) || 0;
+      const total = Number(this.getUsageTotal(link, sourceInfo)) || 0;
       return total > 0 && used > total;
     },
     getProgressBarValue(link, sourceInfo) {
       // Called with (link, sourceInfo) from both modes
-      if (link.category === 'source-alt') {
-        return sourceInfo.usedAlt || 0;
+      if (baseSidebarCategory(link.category) === 'source-alt') {
+        return this.getDiskUsed(link, sourceInfo);
       }
       return sourceInfo.used || 0;
     },

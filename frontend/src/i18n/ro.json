@@ -345,7 +345,9 @@
     "usageTextDisk": "utilizare raportată de disc/partiție",
     "dividerNamePlaceholder": "Textul separatorului (lăsați gol pentru a afișa o linie)",
     "showIndexedUsage": "Afișează utilizarea conform indexului",
-    "showDiskUsage": "Afișează utilizarea conform datelor raportate de disc/partiție"
+    "showDiskUsage": "Afișează utilizarea conform datelor raportate de disc/partiție",
+    "rootFilesystemOnly": "Limitează utilizarea spațiului pe disc la sistemul de fișiere sursă",
+    "rootFilesystemOnlyDescription": "Când această opțiune este activată, se raportează doar sistemul de fișiere care conține calea sursă. Când este dezactivată (implicit), capacitatea totală a discului include și sistemele de fișiere montate sub calea sursă, iar spațiile de stocare partajate, precum seturile de date ZFS, sunt luate în calcul o singură dată."
   },
   "share": {
     "notice": "Notă: atunci când este creată o partajare, aceasta devine mai expusă publicului și are reguli diferite de acces. Dacă partajul dvs. nu este configurat în siguranță, acesta poate fi accesat de oricine.",

@@ -345,7 +345,9 @@
     "usageTextDisk": "磁盘/分区报告的使用量",
     "dividerNamePlaceholder": "分隔线文本（留空以显示一行）",
     "showIndexedUsage": "按索引显示用法",
-    "showDiskUsage": "显示磁盘/分区报告的已用空间"
+    "showDiskUsage": "显示磁盘/分区报告的已用空间",
+    "rootFilesystemOnly": "将磁盘使用量限制在源文件系统内",
+    "rootFilesystemOnlyDescription": "启用此选项时，仅报告包含源路径的文件系统。禁用此选项（默认设置）时，磁盘总容量还包括源路径下挂载的文件系统，其中 ZFS 数据集等共享池仅计数一次。"
   },
   "share": {
     "notice": "注意：创建共享后，它将更多地向公众开放，并有不同的访问规则。如果未对共享进行安全配置，任何人都可以访问它。",

@@ -659,7 +659,9 @@
     "noLinksYet": "Nessun link configurato. Aggiungi il primo qui sotto.",
     "switchMode": "Cambia modalità barra laterale",
     "showIndexedUsage": "Mostra l'utilizzo come indicizzato",
-    "showDiskUsage": "Mostra l'utilizzo in base ai dati riportati dal disco/dalla partizione"
+    "showDiskUsage": "Mostra l'utilizzo in base ai dati riportati dal disco/dalla partizione",
+    "rootFilesystemOnly": "Limita l'utilizzo del disco al filesystem di origine",
+    "rootFilesystemOnlyDescription": "Se abilitata, viene segnalato solo il filesystem contenente il percorso di origine. Se disabilitata (impostazione predefinita), il totale del disco include anche i filesystem montati sotto il percorso di origine, con i pool condivisi come i dataset ZFS conteggiati una sola volta."
   },
   "api": {
     "title": "Token API",

@@ -495,7 +495,9 @@
     "usageTextDisk": "využití podle hlášení disku/oddílu",
     "dividerNamePlaceholder": "Text oddělovače (pro zobrazení řádku nechte prázdný)",
     "showIndexedUsage": "Zobrazit použití podle indexu",
-    "showDiskUsage": "Zobrazit využití podle údajů o disku/oddílu"
+    "showDiskUsage": "Zobrazit využití podle údajů o disku/oddílu",
+    "rootFilesystemOnly": "Omezit využití disku na zdrojový souborový systém",
+    "rootFilesystemOnlyDescription": "Je-li tato možnost zapnutá, vykazuje se pouze souborový systém obsahující zdrojovou cestu. Je-li vypnutá (výchozí nastavení), celková velikost disku zahrnuje také souborové systémy připojené pod zdrojovou cestou, přičemž sdílené fondy, jako jsou datové sady ZFS, se počítají pouze jednou."
   },
   "api": {
     "createdAt": "Vytvořeno:",

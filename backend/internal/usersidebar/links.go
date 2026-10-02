@@ -23,8 +23,13 @@ func FrontendLinks(links []users.SidebarLink, showToolsInSidebar bool) []users.S
 			}
 			if full, ok := settings.Config.Server.SourceMap[source.Path]; ok {
 				category := users.NormalizeSidebarLinkCategory(link.Category)
-				if full.Config.ResolvedRules.IndexingDisabled && category == string(users.SidebarLinkSource) {
-					link.Category = string(users.SidebarLinkSourceAlt)
+				if full.Config.ResolvedRules.IndexingDisabled &&
+					users.BaseSidebarLinkCategory(category) == string(users.SidebarLinkSource) {
+					if users.SidebarLinkDiskScopeRoot(category) {
+						link.Category = string(users.SidebarLinkSourceAltRoot)
+					} else {
+						link.Category = string(users.SidebarLinkSourceAlt)
+					}
 				}
 			}
 			link.SourceName = source.Name

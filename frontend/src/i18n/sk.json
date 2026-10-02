@@ -345,7 +345,9 @@
     "usageTextDisk": "využitie podľa hlásenia disku/oddielu",
     "dividerNamePlaceholder": "Text oddeľovača (nechajte prázdny, aby sa zobrazil riadok)",
     "showIndexedUsage": "Zobraziť použitie podľa indexu",
-    "showDiskUsage": "Zobraziť využitie podľa údajov z disku/partície"
+    "showDiskUsage": "Zobraziť využitie podľa údajov z disku/partície",
+    "rootFilesystemOnly": "Obmedziť využitie disku na zdrojový súborový systém",
+    "rootFilesystemOnlyDescription": "Ak je táto voľba zapnutá, vykazuje sa len súborový systém obsahujúci zdrojovú cestu. Ak je vypnutá (predvolené nastavenie), celková veľkosť disku zahŕňa aj súborové systémy pripojené pod zdrojovou cestou, pričom zdieľané fondy, ako napríklad dátové súbory ZFS, sa počítajú len raz."
   },
   "share": {
     "notice": "Poznámka: po vytvorení zdieľanej zložky sa táto stáva verejne prístupnou a platia pre ňu iné pravidlá prístupu. Ak vaša zdieľaná zložka nie je bezpečne nakonfigurovaná, môže k nej mať prístup ktokoľvek.",

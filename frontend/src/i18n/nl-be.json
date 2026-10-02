@@ -345,7 +345,9 @@
     "usageTextDisk": "gebruik zoals gerapporteerd door schijf/partitie",
     "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",
     "showIndexedUsage": "Gebruik weergeven zoals geïndexeerd",
-    "showDiskUsage": "Weergave van het gebruik zoals gerapporteerd per schijf/partitie"
+    "showDiskUsage": "Weergave van het gebruik zoals gerapporteerd per schijf/partitie",
+    "rootFilesystemOnly": "Het schijfgebruik beperken tot het bronbestandssysteem",
+    "rootFilesystemOnlyDescription": "Indien deze optie is ingeschakeld, wordt alleen het bestandssysteem met het bronpad weergegeven. Indien deze optie is uitgeschakeld (standaard), omvat het totale schijfvolume ook de bestandssystemen die onder het bronpad zijn gekoppeld, waarbij gedeelde pools zoals ZFS-datasets slechts één keer worden meegeteld."
   },
   "share": {
     "notice": "Opmerking: wanneer een share wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als je share niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",

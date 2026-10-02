@@ -345,7 +345,9 @@
     "usageTextDisk": "uso por disco/partición",
     "showIndexedUsage": "Mostrar uso indexado",
     "showDiskUsage": "Mostrar uso del disco/partición",
-    "dividerNamePlaceholder": "Separador visual (déjalo en blanco para mostrar una línea)"
+    "dividerNamePlaceholder": "Separador visual (déjalo en blanco para mostrar una línea)",
+    "rootFilesystemOnly": "Limitar el uso del disco al sistema de archivos de origen",
+    "rootFilesystemOnlyDescription": "Cuando está activada, solo se incluye en el informe el sistema de archivos que contiene la ruta de origen. Cuando está desactivada (por defecto), el total del disco también incluye los sistemas de archivos montados bajo la ruta de origen, y los conjuntos de datos compartidos, como los de ZFS, se cuentan una sola vez."
   },
   "share": {
     "notice": "Cuando se crea un recurso compartido, este quedará más expuesto al público y tendrá diferentes reglas de acceso. Si no está configurado de forma forma segura, cualquiera podrá acceder a él.",
