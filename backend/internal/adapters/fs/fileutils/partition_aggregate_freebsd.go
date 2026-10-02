@@ -10,6 +10,38 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// bsdMount is one Getfsstat record reduced to what capacity aggregation
+// needs: fstype, source, mountpoint, usage, and the mount's own fsid.
+type bsdMount struct {
+	fstype     string
+	source     string
+	mountpoint string
+	usage      rawUsage
+	fsid       unix.Fsid
+}
+
+// resolvedMount is what a path lookup reports for a mountpoint: the
+// mountpoint of the filesystem that actually owns the path and that
+// filesystem's fsid.
+type resolvedMount struct {
+	mountpoint string
+	fsid       unix.Fsid
+	ok         bool
+}
+
+// statfsMountpoint resolves which filesystem a mountpoint path lands on.
+func statfsMountpoint(mp string) resolvedMount {
+	var st unix.Statfs_t
+	if err := unix.Statfs(mp, &st); err != nil {
+		return resolvedMount{}
+	}
+	return resolvedMount{
+		mountpoint: filepath.Clean(unix.ByteSliceToString(st.Mntonname[:])),
+		fsid:       st.Fsid,
+		ok:         true,
+	}
+}
+
 // GetPartitionUsageVariants returns the aggregate and root-only capacity views
 // of root. FreeBSD has no mountinfo; Getfsstat already carries per-mount statfs
 // data, so grouping happens on the result set directly (ZFS datasets grouped by
@@ -37,22 +69,14 @@ func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage,
 		return rootOnly, rootOnly, nil
 	}
 
-	type bsdMount struct {
-		fstype     string
-		source     string
-		mountpoint string
-		usage      rawUsage
-		fsid       unix.Fsid
-	}
 	var mounts []bsdMount
-	mountpointCount := make(map[string]int)
 	for i := range stats {
 		s := &stats[i]
 		avail := uint64(0)
 		if s.Bavail > 0 {
 			avail = uint64(s.Bavail)
 		}
-		m := bsdMount{
+		mounts = append(mounts, bsdMount{
 			fstype:     unix.ByteSliceToString(s.Fstypename[:]),
 			source:     unix.ByteSliceToString(s.Mntfromname[:]),
 			mountpoint: filepath.Clean(unix.ByteSliceToString(s.Mntonname[:])),
@@ -61,51 +85,10 @@ func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage,
 				avail: avail * s.Bsize,
 			},
 			fsid: s.Fsid,
-		}
-		mounts = append(mounts, m)
-		mountpointCount[m.mountpoint]++
+		})
 	}
 
-	// Getfsstat may return several records for one mountpoint (stacked mounts)
-	// with no documented order, so position cannot identify the visible mount.
-	// The visible record is the one a path lookup resolves to: statfs the
-	// mountpoint and keep the record whose fsid matches.
-	visibleFsid := make(map[string]unix.Fsid)
-	for mp, n := range mountpointCount {
-		if n < 2 {
-			continue
-		}
-		var st unix.Statfs_t
-		if err := unix.Statfs(mp, &st); err == nil {
-			visibleFsid[mp] = st.Fsid
-		}
-	}
-
-	var covering *bsdMount
-	var nested []bsdMount
-	claimed := make(map[string]bool)
-	for i := range mounts {
-		m := mounts[i]
-		if mountpointCount[m.mountpoint] > 1 {
-			fsid, ok := visibleFsid[m.mountpoint]
-			if !ok || m.fsid != fsid || claimed[m.mountpoint] {
-				continue
-			}
-			claimed[m.mountpoint] = true
-		}
-		if m.mountpoint == root || strings.HasPrefix(root, m.mountpoint+"/") || m.mountpoint == "/" {
-			if covering == nil || len(m.mountpoint) > len(covering.mountpoint) {
-				c := m
-				covering = &c
-			}
-		}
-		if strings.HasPrefix(m.mountpoint, root+"/") {
-			if isZFSType(m.fstype) && isZFSSnapshotMount(m.source, m.mountpoint) {
-				continue
-			}
-			nested = append(nested, m)
-		}
-	}
+	covering, nested := selectCapacityMounts(mounts, root, statfsMountpoint)
 
 	key := func(m bsdMount) string {
 		if isZFSType(m.fstype) {
@@ -148,4 +131,58 @@ func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage,
 		aggregate.Used += u.Used
 	}
 	return aggregate, rootOnly, rootErr
+}
+
+// selectCapacityMounts picks the mounts contributing capacity under root: the
+// filesystem covering root plus mounts nested beneath it.
+//
+// Getfsstat retains records that path lookups no longer reach: mounts stacked
+// under a later mount at the same mountpoint, and mounts below an overmounted
+// ancestor (stacked records have no documented order, so position cannot
+// identify the visible one). A record counts only when a lookup on its
+// mountpoint still lands on it: the resolved mountpoint must equal the
+// record's and, for filesystems carrying an fsid, the resolved fsid must match
+// the record's (every stacked record resolves to the topmost fsid). fsid-less
+// records keep the first match at a mountpoint; stacked fsid-less mounts are
+// indistinguishable.
+func selectCapacityMounts(mounts []bsdMount, root string, lookup func(string) resolvedMount) (*bsdMount, []bsdMount) {
+	var covering *bsdMount
+	var nested []bsdMount
+	claimed := make(map[string]bool)
+	resolved := make(map[string]resolvedMount)
+	for i := range mounts {
+		m := mounts[i]
+		covers := m.mountpoint == root || m.mountpoint == "/" || strings.HasPrefix(root, m.mountpoint+"/")
+		nests := strings.HasPrefix(m.mountpoint, root+"/")
+		if !covers && !nests {
+			continue
+		}
+		r, seen := resolved[m.mountpoint]
+		if !seen {
+			r = lookup(m.mountpoint)
+			resolved[m.mountpoint] = r
+		}
+		if !r.ok || r.mountpoint != m.mountpoint {
+			continue
+		}
+		if m.fsid.Val[0] != 0 || m.fsid.Val[1] != 0 {
+			if r.fsid != m.fsid {
+				continue
+			}
+		} else if claimed[m.mountpoint] {
+			continue
+		}
+		claimed[m.mountpoint] = true
+		if covers && (covering == nil || len(m.mountpoint) > len(covering.mountpoint)) {
+			c := m
+			covering = &c
+		}
+		if nests {
+			if isZFSType(m.fstype) && isZFSSnapshotMount(m.source, m.mountpoint) {
+				continue
+			}
+			nested = append(nested, m)
+		}
+	}
+	return covering, nested
 }
