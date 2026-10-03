@@ -183,6 +183,7 @@ export default {
               label: this.$t("general.close"),
               action: () => {
                 localStorage.setItem("seenHalloweenMessage", "true");
+                mutations.closeTopPrompt();
               },
             },
             {
@@ -190,6 +191,7 @@ export default {
               action: () => {
                 mutations.disableEventThemes();
                 localStorage.setItem("seenHalloweenMessage", "true");
+                mutations.closeTopPrompt();
               },
               primary: true,
             },
