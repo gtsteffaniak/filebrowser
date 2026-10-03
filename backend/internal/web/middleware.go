@@ -579,9 +579,8 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	// cookie set on a previous JwtAuth request) is reused so every request does
 	// not register a new session hash.
 	if data.Token == "" {
-		if existing, expiresAt := reusableSessionToken(r, user); existing != "" {
+		if existing, _ := reusableSessionToken(r, user); existing != "" {
 			data.Token = existing
-			SetSessionCookie(w, r, existing, expiresAt)
 		}
 	}
 	if data.Token == "" {
