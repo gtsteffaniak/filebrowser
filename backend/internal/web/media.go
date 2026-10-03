@@ -2,7 +2,6 @@ package web
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -242,7 +241,15 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	if path == "" || source == "" {
+	fileUser := d.User
+	if d.Share.Hash != "" {
+		source = d.Share.GetSourceName()
+		if source == "" {
+			return http.StatusNotFound, fmt.Errorf("source not found")
+		}
+		path = d.IndexPath
+		fileUser = d.ShareUser
+	} else if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
 	filePerms, err := effectiveFilePerms(d, source)
@@ -253,17 +260,22 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
 	}
 
+	showHidden := d.User.ShowHidden
+	hideFileExt := d.User.HideFileExt
+	if d.Share.Hash != "" {
+		showHidden = d.Share.ShowHidden
+	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		FollowSymlinks:    true,
+		FollowSymlinks:    d.Share.Hash == "",
 		Path:              path,
 		Source:            source,
 		Expand:            true,
 		Content:           false,
 		Metadata:          false,
-		ShowHidden:        d.User.ShowHidden,
-		HideFileExt:       d.User.HideFileExt,
+		ShowHidden:        showHidden,
+		HideFileExt:       hideFileExt,
 		SkipExtendedAttrs: false,
-	}, d.User)
+	}, fileUser)
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -289,34 +301,10 @@ func lyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 // @Failure 404 {object} map[string]string "Not found"
 // @Router /public/api/media/lyrics [get]
 func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	sourceCfg, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
-	if !ok {
-		return http.StatusNotFound, fmt.Errorf("source not found")
+	if status, err := publicShareMediaContentPolicy(d); err != nil {
+		return status, err
 	}
-
-	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Path:              d.IndexPath,
-		Source:            sourceCfg.Name,
-		Expand:            true,
-		Content:           false,
-		Metadata:          false,
-		ShowHidden:        d.Share.ShowHidden,
-		HideFileExt:       d.User.HideFileExt,
-		FollowSymlinks:    false,
-		SkipExtendedAttrs: false,
-	}, d.ShareUser)
-	if err != nil {
-		return ErrToStatus(err), err
-	}
-	if !strings.HasPrefix(fileInfo.Type, "audio") {
-		return http.StatusNotFound, fmt.Errorf("file is not an audio file")
-	}
-
-	lyrics, err := files.ExtractLyrics(fileInfo.RealPath)
-	if err != nil {
-		return http.StatusInternalServerError, errors.New("failed to extract lyrics")
-	}
-	return RenderJSON(w, r, map[string]any{"lyrics": lyrics})
+	return lyricsHandler(w, r, d)
 }
 
 // publicSubtitlesHandler is the share-link variant of subtitlesHandler.
@@ -330,8 +318,8 @@ func publicLyricsHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 // @Success 200 {string} string "Raw subtitle content"
 // @Router /public/api/media/subtitles [get]
 func publicSubtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if d.Share.ShareType == "upload" {
-		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	if status, err := publicShareMediaContentPolicy(d); err != nil {
+		return status, err
 	}
 	return subtitlesHandler(w, r, d)
 }

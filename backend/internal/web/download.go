@@ -151,25 +151,8 @@ func downloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 // @Failure 501 {object} map[string]string "Downloads disabled for upload shares"
 // @Router /public/api/resources/download [get]
 func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if d.Share.ShareType == "upload" {
-		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
-	}
-
-	if d.Share.DisableDownload {
-		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
-	}
-
-	if !d.Share.PerUserDownloadLimit && d.Share.DownloadsLimit > 0 && d.Share.Downloads >= d.Share.DownloadsLimit {
-		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
-	}
-
-	if d.Share.PerUserDownloadLimit {
-		if d.User.Username == "anonymous" {
-			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
-		}
-		if d.Share.HasReachedUserLimit(d.User.Username) {
-			return http.StatusForbidden, fmt.Errorf("user download limit reached for this share")
-		}
+	if status, err := publicShareDownloadGate(d); err != nil {
+		return status, err
 	}
 
 	files := r.URL.Query()["file"]
@@ -211,6 +194,57 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		}
 	}
 	return status, nil
+}
+
+// publicShareDownloadGate enforces upload-share, disable-download, and download-counter rules for public share byte egress.
+func publicShareDownloadGate(d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
+	}
+	if d.Share.DisableDownload {
+		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
+	}
+	if status, err := publicShareDownloadLimits(d); err != nil {
+		return status, err
+	}
+	return 0, nil
+}
+
+func publicShareDownloadLimits(d *Context) (int, error) {
+	if !d.Share.PerUserDownloadLimit && d.Share.DownloadsLimit > 0 && d.Share.Downloads >= d.Share.DownloadsLimit {
+		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
+	}
+	if d.Share.PerUserDownloadLimit {
+		if d.User.Username == "anonymous" {
+			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
+		}
+		if d.Share.HasReachedUserLimit(d.User.Username) {
+			return http.StatusForbidden, fmt.Errorf("user download limit reached for this share")
+		}
+	}
+	return 0, nil
+}
+
+// publicShareMediaContentPolicy applies the same share view/download flags and download limits as other public content routes.
+func publicShareMediaContentPolicy(d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	filePerms, err := effectiveFilePerms(d, sourceInfo.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
+	if !filePerms.Download {
+		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
+	}
+	return publicShareDownloadLimits(d)
 }
 
 func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source string, fileList []string) (int, error) {
