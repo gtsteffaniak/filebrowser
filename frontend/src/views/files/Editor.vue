@@ -182,6 +182,7 @@ export default {
         keybinding: editorConfig.keybinding,
         tabSize: editorConfig.tabSize,
         overscroll: editorConfig.overscroll,
+        indentedSoftWrap: editorConfig.indentedSoftWrap,
         showIndentGuides: editorConfig.showIndentGuides,
         showGutter: editorConfig.showGutter,
         fixedGutterWidth: editorConfig.fixedGutterWidth,
@@ -483,6 +484,7 @@ export default {
           theme: this.isDarkMode ? THEME_DARK : THEME_LIGHT,
           readOnly: this.editorReadOnly,
           wrap: !!editorConfig.wrapEditorContent,
+          indentedSoftWrap: editorConfig.indentedSoftWrap,
           enableMobileMenu: false,
           enableBasicAutocompletion: editorConfig.enableAutocompletion,
           enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
@@ -785,6 +787,7 @@ export default {
       this.editor.setOption('keyboardHandler', cfg.keybinding || null);
       this.editor.setOption('tabSize', cfg.tabSize);
       this.editor.setOption('scrollPastEnd', cfg.overscroll);
+      this.editor.setOption('indentedSoftWrap', cfg.indentedSoftWrap);
       this.editor.setOption('displayIndentGuides', cfg.showIndentGuides);
       this.editor.setOption('showGutter', cfg.showGutter);
       this.editor.setOption('fixedWidthGutter', cfg.fixedGutterWidth);
