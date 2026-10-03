@@ -14,7 +14,7 @@ import { state, mutations, getters } from "@/store";
 import { sanitizeDocxHtml } from "@/utils/docxPreview";
 import { removeLastDir } from "@/utils/url.js";
 
-defineOptions({ name: "DocxViewer" });
+defineOptions({ name: "docViewer" });
 
 const docxHtml = ref("");
 const loading = ref(false);
@@ -66,7 +66,10 @@ async function updateNavigationForCurrentItem() {
   });
 }
 
+let loadSeq = 0;
+
 async function loadFile() {
+  const seq = ++loadSeq;
   try {
     const filename = state.req.name;
     // Check if the filename is valid and ends with .docx
@@ -153,10 +156,10 @@ async function loadFile() {
         console.warn("Failed to refresh view token after 403:", refreshErr);
       }
     }
-
     if (!response.ok) {
       throw new Error(`Failed to download file (Status: ${response.status})`);
     }
+
     const arrayBuffer = await response.arrayBuffer();
 
     if (arrayBuffer.byteLength === 0) {
@@ -167,11 +170,13 @@ async function loadFile() {
     const mammoth = mammothModule.default ?? mammothModule;
     const { convertToHtml } = mammoth;
     const result = await convertToHtml({ arrayBuffer });
+    if (seq !== loadSeq) return;
     docxHtml.value = sanitizeDocxHtml(result.value);
   } catch (e) {
+    if (seq !== loadSeq) return;
     error.value = (e as Error).message || "An unknown error occurred.";
   } finally {
-    loading.value = false;
+    if (seq === loadSeq) loading.value = false;
   }
 }
 
