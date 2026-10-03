@@ -17,13 +17,13 @@ jobs:
 
     steps:
       # ----------------------------------------
-      # 1. NEUEN DEV-STAND holen
+      # 1. DEINEN DEV-STAND holen
       # ----------------------------------------
-      - name: Checkout FileBrowser dev/v2.1.0
+      - name: Checkout FileBrowser dev/v2.1.0-arm64
         uses: actions/checkout@v4
         with:
-          repository: gtsteffaniak/filebrowser
-          ref: dev/v2.1.0
+          repository: anonymous-writer/filebrowser
+          ref: dev/v2.1.0-arm64
 
       # ----------------------------------------
       # 2. Node.js / Frontend
