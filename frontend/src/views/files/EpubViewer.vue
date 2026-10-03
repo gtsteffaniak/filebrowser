@@ -140,7 +140,7 @@ export default defineComponent({
 
       this.unwatchDarkMode = watch(() => getters.isDarkMode(), (isDark) => {
         this.applyTheme(isDark);
-      });
+      }, { flush: "post" });
 
       this.onRelocatedHandler = (loc: unknown) => {
         const start = (loc as { start?: { cfi?: unknown } })?.start;
@@ -195,16 +195,18 @@ export default defineComponent({
   methods: {
     applyTheme(isDark: boolean) {
       if (!this.rendition) return;
+      const rootStyle = getComputedStyle(document.documentElement);
+      const background = rootStyle.getPropertyValue("--background").trim();
+      const text = rootStyle.getPropertyValue("--textPrimary").trim();
       if (isDark) {
         this.rendition.themes.default({
-          body: { color: "#fff !important" },
+          "html, body": { background: `${background} !important`, color: `${text} !important` },
           a: { color: "#bb86fc !important" },
-          p: { color: "var(--textPrimary) !important" },
-          h1: { color: "var(--textPrimary) !important" },
+          "p, h1, h2, h3, h4, h5, h6, li": { color: `${text} !important` },
         });
       } else {
         this.rendition.themes.default({
-          body: { color: "#000 !important" },
+          "html, body": { background: `${background} !important`, color: "#000 !important" },
           a: { color: "#6200ee !important" },
         });
       }
@@ -235,6 +237,7 @@ export default defineComponent({
 
 <style scoped>
 .epub-container {
+  position: relative;
   width: 100%;
   height: 100%;
   background-color: var(--background); /* background for the reader */
@@ -262,23 +265,23 @@ export default defineComponent({
 }
 
 .navigation {
-  position: fixed;
+  position: absolute;
   bottom: 1.5em;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001; /* Ensure controls are on top */
   display: flex;
   gap: 1em;
-  background-color: var(--surfaceSecondary);
+  background-color: var(--surfacePrimary);
   padding: 0.5em;
-  border-radius: 8px;
+  border-radius: var(--borderRadius);
   box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
   align-items: center;
 }
 
 .nav-button {
   background-color: transparent;
-  border: none;
+  border-radius: var(--borderRadius);
   font-size: 1.5em;
   color: var(--textPrimary);
   cursor: pointer;
@@ -288,5 +291,6 @@ export default defineComponent({
 
 .nav-button:hover {
   background-color: var(--hoverOverlay);
+  color: var(--primaryColor);
 }
 </style>
