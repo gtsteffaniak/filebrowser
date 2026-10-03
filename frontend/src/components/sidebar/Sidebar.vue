@@ -202,7 +202,7 @@ export default {
   transform: translateZ(0);
   height: 100%;
   transition: 0.4s ease;
-  top: 4em;
+  top: var(--header-height);
   padding-bottom: 4em;
   background-color: color-mix(in srgb, var(--alt-background) 20%, transparent);
   will-change: left;
