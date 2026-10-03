@@ -97,7 +97,7 @@ export default defineConfig(({ command }) => {
         // Add buildDelay to batch multiple changes
         buildDelay: 500,
       } : null,
-      target: "es2022",
+      target: "es2024",
       sourcemap: false,
       chunkSizeWarningLimit: 5000,
       rollupOptions: {
