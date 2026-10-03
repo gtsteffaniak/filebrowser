@@ -380,7 +380,12 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, erro
 	if _, err := jwt.ParseWithClaims(d.Token, &tk, auth.JWTSigningKeyFunc()); err == nil &&
 		tk.RegisteredClaims.ExpiresAt != nil &&
 		time.Until(tk.RegisteredClaims.ExpiresAt.Time) > sessionRenewWindow {
-		SetSessionCookie(w, r, d.Token, tk.RegisteredClaims.ExpiresAt.Add(sessionCookieBuffer))
+		// Do not re-emit the cookie when the request already carried this token.
+		// A concurrent renew may have rotated the jar; an in-flight idempotent
+		// response would otherwise revert the browser to a retiring token.
+		if c, err := r.Cookie(sessionCookieName); err != nil || c.Value == "" || c.Value != d.Token {
+			SetSessionCookie(w, r, d.Token, tk.RegisteredClaims.ExpiresAt.Add(sessionCookieBuffer))
+		}
 		w.Header().Set("Content-Type", "text/plain")
 		if _, err := w.Write([]byte(d.Token)); err != nil {
 			return 401, errors.ErrUnauthorized

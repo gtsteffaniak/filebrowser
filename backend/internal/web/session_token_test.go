@@ -132,6 +132,102 @@ func TestRenewHandlerFreshTokenIsIdempotent(t *testing.T) {
 	if state.IsTokenRevoked(token) {
 		t.Fatal("fresh token must not be retired by a no-op renew")
 	}
+	if setCookie := recorder.Header().Values("Set-Cookie"); len(setCookie) != 0 {
+		t.Fatalf("idempotent renew with matching cookie must not re-emit Set-Cookie, got %v", setCookie)
+	}
+}
+
+func TestRenewHandlerFreshTokenPlantsCookieWithoutJar(t *testing.T) {
+	setupTestEnv(t)
+	user := createTokenAuthUser(t, "renew-fresh-no-cookie", users.Permissions{Api: true})
+	token := testSessionToken(t, user, 2*time.Hour)
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/renew", http.NoBody)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	status, err := renewHandler(recorder, req, &requestContext{User: user, Token: token})
+	if err != nil {
+		t.Fatalf("renewHandler: %v", err)
+	}
+	if status != 0 && status != http.StatusOK {
+		t.Fatalf("expected success status, got %d", status)
+	}
+	if len(recorder.Header().Values("Set-Cookie")) == 0 {
+		t.Fatal("idempotent renew without session cookie must plant Set-Cookie")
+	}
+}
+
+// Concurrent renew ordering: an in-flight idempotent renew must not revert a
+// jar that a later rotation already upgraded.
+func TestRenewHandlerIdempotentDoesNotRevertRotatedJar(t *testing.T) {
+	setupTestEnv(t)
+	user := createTokenAuthUser(t, "renew-order-user", users.Permissions{Api: true})
+	oldToken := testSessionToken(t, user, 2*time.Hour)
+
+	newToken, err := replaceSessionToken(oldToken, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/renew", http.NoBody)
+	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: oldToken})
+
+	status, err := renewHandler(recorder, req, &requestContext{User: user, Token: oldToken})
+	if err != nil {
+		t.Fatalf("renewHandler: %v", err)
+	}
+	if status != 0 && status != http.StatusOK {
+		t.Fatalf("expected success status, got %d", status)
+	}
+	if got := recorder.Body.String(); got != oldToken {
+		t.Fatal("idempotent renew must still return the presented token")
+	}
+	if setCookie := recorder.Header().Values("Set-Cookie"); len(setCookie) != 0 {
+		t.Fatalf("must not Set-Cookie old token after jar already rotated, got %v", setCookie)
+	}
+	if _, isSession, ok := state.HashedTokenOwner(newToken); !ok || !isSession {
+		t.Fatalf("rotated token must remain registered: ok=%v isSession=%v", ok, isSession)
+	}
+}
+
+func TestWithUserRefreshesCookieWhenBearerMismatchesJar(t *testing.T) {
+	setupTestEnv(t)
+	origExp := settings.Config.Auth.TokenExpirationHours
+	t.Cleanup(func() { settings.Config.Auth.TokenExpirationHours = origExp })
+	settings.Config.Auth.TokenExpirationHours = 2
+
+	user := createTokenAuthUser(t, "bearer-mismatch-user", users.Permissions{Api: true})
+	stale := testSessionToken(t, user, time.Hour)
+	fresh, err := replaceSessionToken(stale, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/users", http.NoBody)
+	req.Header.Set("Authorization", "Bearer "+fresh)
+	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: stale})
+
+	withUser(mockHandler)(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d body=%s", recorder.Code, recorder.Body.String())
+	}
+	cookies := recorder.Result().Cookies()
+	var session *http.Cookie
+	for _, c := range cookies {
+		if c.Name == sessionCookieName {
+			session = c
+		}
+	}
+	if session == nil {
+		t.Fatalf("Bearer auth with stale cookie jar must refresh Set-Cookie, headers=%v", recorder.Header().Values("Set-Cookie"))
+	}
+	if session.Value != fresh {
+		t.Fatal("planted cookie must match the Bearer token")
+	}
 }
 
 // Inside the refresh window renew rotates: new token registered, old retired
