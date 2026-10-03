@@ -59,6 +59,8 @@ export default defineComponent({
       book: null as Book | null,
       rendition: null as Rendition | null,
       epubHashDebounceTimer: null as number | null,
+      resizeObserver: null as ResizeObserver | null,
+      resizeTimer: null as number | null,
       unwatchDarkMode: null as (() => void) | null,
       onRelocatedHandler: null as ((loc: unknown) => void) | null,
       onWindowHashChangeHandler: null as (() => void) | null,
@@ -124,6 +126,25 @@ export default defineComponent({
         flow: "paginated", // Standard book-like pagination
       });
 
+      let manager: object | undefined;
+      Object.defineProperty(this.rendition, "manager", {
+        configurable: true,
+        get: () => manager,
+        set: (value: object) => {
+          manager = value;
+          let stage: { size: (width?: string | number | null, height?: string | number | null) => unknown } | undefined;
+          Object.defineProperty(value, "stage", {
+            configurable: true,
+            get: () => stage,
+            set: (created: NonNullable<typeof stage>) => {
+              const size = created.size.bind(created);
+              created.size = (width, height) => size(width ?? "100%", height ?? "100%");
+              stage = created;
+            },
+          });
+        },
+      });
+
       // 4. Display: restore from `#epubcfi=...` if present, else first linear chapter
       const initialCfi = parseEpubCfiFromHash();
       try {
@@ -164,6 +185,18 @@ export default defineComponent({
       };
       window.addEventListener("hashchange", this.onWindowHashChangeHandler);
 
+      const viewer: HTMLElement = this.$el.querySelector("#viewer");
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.resizeTimer !== null) {
+          clearTimeout(this.resizeTimer);
+        }
+        this.resizeTimer = window.setTimeout(() => {
+          this.resizeTimer = null;
+          this.rendition?.resize(viewer.clientWidth, viewer.clientHeight);
+        }, 100);
+      });
+      this.resizeObserver.observe(viewer);
+
       // Set flags to show the book and trigger animations
       this.isReady = true;
       setTimeout(() => {
@@ -174,6 +207,12 @@ export default defineComponent({
     }
   },
   beforeUnmount() {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    if (this.resizeTimer !== null) {
+      clearTimeout(this.resizeTimer);
+      this.resizeTimer = null;
+    }
     if (this.epubHashDebounceTimer !== null) {
       clearTimeout(this.epubHashDebounceTimer);
       this.epubHashDebounceTimer = null;
@@ -266,7 +305,7 @@ export default defineComponent({
 
 .navigation {
   position: absolute;
-  bottom: 1.5em;
+  bottom: 1em;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001; /* Ensure controls are on top */
