@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
 
@@ -371,8 +372,36 @@ func parseSignupCredentials(r *http.Request) (username, password string, err err
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/renew [post]
 func renewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	// Renew is idempotent while the presented session token is still fresh:
+	// without this every page load rotates the token (the frontend tracks exp
+	// in memory only), churning token state. Rotation happens only inside the
+	// refresh window, matching the frontend's renew threshold.
+	var tk users.AuthToken
+	if _, err := jwt.ParseWithClaims(d.Token, &tk, auth.JWTSigningKeyFunc()); err == nil &&
+		tk.RegisteredClaims.ExpiresAt != nil &&
+		time.Until(tk.RegisteredClaims.ExpiresAt.Time) > sessionRenewWindow {
+		// Do not re-emit the cookie when the request already carried this token.
+		// A concurrent renew may have rotated the jar; an in-flight idempotent
+		// response would otherwise revert the browser to a retiring token.
+		if c, err := r.Cookie(sessionCookieName); err != nil || c.Value == "" || c.Value != d.Token {
+			SetSessionCookie(w, r, d.Token, tk.RegisteredClaims.ExpiresAt.Add(sessionCookieBuffer))
+		}
+		w.Header().Set("Content-Type", "text/plain")
+		if _, err := w.Write([]byte(d.Token)); err != nil {
+			return 401, errors.ErrUnauthorized
+		}
+		return 0, nil
+	}
 	return printToken(w, r, d.User, d.Token)
 }
+
+// sessionRenewWindow mirrors the frontend SESSION_REFRESH_BEFORE_MS: renews
+// arriving while the session token has more than this left return it unchanged.
+const sessionRenewWindow = 30 * time.Minute
+
+// sessionCookieBuffer keeps the browser cookie briefly past JWT expiry so an
+// in-flight renew can still authenticate against the just-expired token.
+const sessionCookieBuffer = 30 * time.Minute
 
 func printToken(w http.ResponseWriter, r *http.Request, user *users.User, priorToken string) (int, error) {
 	expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
@@ -384,7 +413,7 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User, priorT
 		return 401, errors.ErrUnauthorized
 	}
 
-	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
+	expiresTime := time.Now().Add(expires).Add(sessionCookieBuffer)
 
 	SetSessionCookie(w, r, tokenString, expiresTime)
 
