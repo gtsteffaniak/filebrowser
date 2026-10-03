@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.0.10
 
+ **Security**:
+ - [Low] Public share lyrics and subtitle media routes now honor the share's file-viewer setting, download disable flag, and download limits, matching the public download route (GHSA-p7x3-p5jj-9xfh) -- thanks Yves Soete of Blacksight LLC.
+
  **New Features**:
  - Config YAML expands `$VAR` and `${VAR}` so values such as `userPassword: "${FILEBROWSER_LDAP_USER_PASSWORD}"` work as documented (#3042).
 
