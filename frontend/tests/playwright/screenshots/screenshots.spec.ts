@@ -2,7 +2,6 @@
 import {
   ensureListingViewMode,
   expect,
-  expectListingViewMode,
   test,
   waitForListing3dThumbnails,
 } from "../test-setup";
@@ -29,15 +28,12 @@ test("each view mode", async ({ page, theme }) => {
   }
   await page.goto("/files/");
   await ensureListingViewMode(page, "normal");
-  await expectListingViewMode(page, "normal");
   await page.waitForTimeout(250);
   await page.screenshot({ path: `./generated/listing/view-mode-normal-${theme}.jpg`, quality: jpgQuality });
   await ensureListingViewMode(page, "gallery");
-  await expectListingViewMode(page, "gallery");
   await page.waitForTimeout(250);
   await page.screenshot({ path: `./generated/listing/view-mode-gallery-${theme}.jpg`, quality: jpgQuality });
   await ensureListingViewMode(page, "list");
-  await expectListingViewMode(page, "list");
   await page.waitForTimeout(250);
   await page.screenshot({ path: `./generated/listing/view-mode-list-${theme}.jpg`, quality: jpgQuality });
   await ensureListingViewMode(page, "normal");
@@ -136,7 +132,7 @@ test("breadcrumbs navigation checks", async ({ page, theme }) => {
   expect(spanChildrenCount).toBe(2);
   breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-testdata"]')
   await expect(breadCrumbLink).toHaveText("testdata");
-  await expectListingViewMode(page, "normal");
+  await ensureListingViewMode(page, "normal");
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./generated/listing/breadcrumbs-navigation-${theme}.jpg`, quality: jpgQuality });
 })

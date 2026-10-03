@@ -538,6 +538,7 @@ export async function ensureListingViewMode(
   for (let i = 0; i <= maxClicks; i++) {
     const classAttr = await listing.getAttribute("class");
     if (listingMatchesViewMode(classAttr, mode)) {
+      await expectListingViewMode(page, mode);
       return;
     }
     if (i === maxClicks) {
