@@ -139,3 +139,43 @@ func TestInvalidConfig(t *testing.T) {
 		}
 	}
 }
+
+func TestSearchResultsLimitConfig(t *testing.T) {
+	original := Config
+	t.Cleanup(func() { Config = original })
+	for _, tc := range []struct {
+		name    string
+		value   string
+		want    int
+		invalid bool
+	}{
+		{name: "default", want: 100},
+		{name: "custom", value: "searchResultsLimit: 250", want: 250},
+		{name: "zero", value: "searchResultsLimit: 0", invalid: true},
+		{name: "negative", value: "searchResultsLimit: -1", invalid: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			configFile := filepath.Join(t.TempDir(), "config.yaml")
+			content := "server:\n  sources:\n    - path: .\n  " + tc.value + "\n"
+			if err := os.WriteFile(configFile, []byte(content), 0644); err != nil {
+				t.Fatal(err)
+			}
+			if err := loadConfigWithDefaults(configFile, true); err != nil {
+				t.Fatal(err)
+			}
+			err := ValidateConfig(Config)
+			if tc.invalid {
+				if err == nil {
+					t.Fatal("expected invalid search result limit to be rejected")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if Config.Server.SearchResultsLimit != tc.want {
+				t.Fatalf("want %d, got %d", tc.want, Config.Server.SearchResultsLimit)
+			}
+		})
+	}
+}

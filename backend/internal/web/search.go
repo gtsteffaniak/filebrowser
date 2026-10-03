@@ -8,12 +8,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-
 )
 
 type searchOptions struct {
@@ -80,7 +79,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		return http.StatusBadRequest, err
 	}
 
-	searchSize := indexing.DefaultSearchResults
+	searchSize := settings.Config.Server.SearchResultsLimit
 	if searchOptions.largest {
 		searchSize = 200
 	}

@@ -6371,6 +6371,11 @@ const docTemplate = `{
                     "description": "number of concurrent image processing jobs used to create previews, default is 4.",
                     "type": "integer"
                 },
+                "searchResultsLimit": {
+                    "description": "maximum results across all sources for advanced search (default: 100); size viewer remains limited to 200",
+                    "type": "integer",
+                    "minimum": 1
+                },
                 "sources": {
                     "type": "array",
                     "items": {
