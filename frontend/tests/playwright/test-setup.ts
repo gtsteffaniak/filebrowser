@@ -327,6 +327,15 @@ export async function createShareAndGetHash(
   return shareHash;
 }
 
+export async function disableAndCloseHalloweenPrompt(page: Page): Promise<void> {
+  await page.addLocatorHandler(
+    page.locator('.floating-window[aria-label="generic-prompt"]').filter({ hasText: /halloween/i }),
+    async (prompt) => {
+      await prompt.getByRole("button", { name: /disable/i }).click();
+    },
+  );
+}
+
 export interface PlaywrightFixtureOptions {
   theme: 'light' | 'dark';
 }
@@ -339,12 +348,7 @@ export const test = base.extend<
   }
 >({
   page: async ({ page }, use) => {
-    await page.addLocatorHandler(
-      page.locator('.floating-window[aria-label="generic-prompt"]').filter({ hasText: /halloween/i }),
-      async (prompt) => {
-        await prompt.getByRole("button", { name: /disable/i }).click();
-      },
-    );
+    await disableAndCloseHalloweenPrompt(page);
     await use(page);
   },
   checkForErrors: async ({ page }, use) => {
