@@ -1204,12 +1204,15 @@ body.rtl #search .boxes h3 {
 }
 
 .filesize {
-  background: var(--alt-background);
+  background: var(--surfaceSecondary);
   border-radius: var(--borderRadius);
   padding: 0.25em;
   padding-left: 0.5em;
   padding-right: 0.5em;
+  margin-right: 0.5em;
   min-width: fit-content;
+  opacity: 0.75;
+  font-weight: 500;
 }
 
 .source-badge {

@@ -923,7 +923,7 @@ export default {
       },
     },
     themeColorValue() {
-      // Display only: Halloween forces orange, but the saved choice stays intact.
+      // halloween forces orange and we also block the theme buttons to prevent misleading indicator
       if (this.halloweenActive) {
         return "var(--icon-orange)";
       }
@@ -1289,7 +1289,6 @@ export default {
   margin-top: 0.5em;
 }
 
-/* ButtonGroup has margin: 1em with width: 100%, which pushes it right and overflows. Keep only the vertical margin. */
 .theme-color-group :deep(.button-group) {
   margin-left: 0;
   margin-right: 0;
