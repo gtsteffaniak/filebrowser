@@ -1053,7 +1053,7 @@ export default {
 
 
 .search-entry:hover {
-  background-color: var(--alt-background);
+  background-color: var(--hoverOverlay);
   transform: scale(1.01);
   box-shadow: none !important;
 }

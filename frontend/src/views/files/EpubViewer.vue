@@ -287,6 +287,6 @@ export default defineComponent({
 }
 
 .nav-button:hover {
-  background-color: var(--alt-background);
+  background-color: var(--hoverOverlay);
 }
 </style>

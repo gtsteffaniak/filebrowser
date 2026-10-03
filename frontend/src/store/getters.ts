@@ -27,7 +27,7 @@ export const getters = {
     }
     // october 9th to 31st available in the theme dropdown to change freely
     const now = new Date();
-    if (now.getMonth() === 9 && now.getDate() >= 9) {
+    if (now.getMonth() === 9 && now.getDate() >= 2) {
       return "halloween";
     }
     return "";
