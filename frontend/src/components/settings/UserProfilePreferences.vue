@@ -45,9 +45,10 @@
       :name="$t('profileSettings.darkMode')"
       :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
     />
-    <ProfileEnforceableField      :enforceable="enforceable">
+    <ProfileEnforceableField :enforceable="enforceable">
       <h4>{{ $t("settings.themeColor") }}</h4>
       <div
+        class="theme-color-group"
         @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'themeColor')"
         @mouseleave="hideTooltip"
       >
@@ -55,16 +56,16 @@
           :buttons="colorChoices"
           @button-clicked="setColor"
           :initialActive="themeColorValue"
-          :is-disabled="fieldDisabled('ui', 'themeColor')"
+          :is-disabled="fieldDisabled('ui', 'themeColor') || halloweenActive"
         />
       </div>
       <template #enforce>
-<ProfileEnforceSwitch
-        :visible="enforceable"
-        :enforced="enforcedFlag('ui', 'themeColor')"
-        :disabled="disabled"
-        @update:enforced="(v) => emitEnforced('ui', 'themeColor', v)"
-      />
+        <ProfileEnforceSwitch
+          :visible="enforceable"
+          :enforced="enforcedFlag('ui', 'themeColor')"
+          :disabled="disabled"
+          @update:enforced="(v) => emitEnforced('ui', 'themeColor', v)"
+        />
       </template>
     </ProfileEnforceableField>
     <ProfileEnforceableField
@@ -86,15 +87,15 @@
         />
       </div>
       <template #enforce>
-<ProfileEnforceSwitch
-        :visible="enforceable"
-        :enforced="enforcedFlag('ui', 'customTheme')"
-        :disabled="disabled"
-        @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
-      />
+        <ProfileEnforceSwitch
+          :visible="enforceable"
+          :enforced="enforcedFlag('ui', 'customTheme')"
+          :disabled="disabled"
+          @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
+        />
       </template>
     </ProfileEnforceableField>
-    <ProfileEnforceableField      :enforceable="enforceable">
+    <ProfileEnforceableField :enforceable="enforceable">
       <h4>{{ $t("general.language") }}</h4>
       <div
         class="form-flex-group"
@@ -108,12 +109,12 @@
         />
       </div>
       <template #enforce>
-<ProfileEnforceSwitch
-        :visible="enforceable"
-        :enforced="enforcedFlag('ui', 'locale')"
-        :disabled="disabled"
-        @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
-      />
+        <ProfileEnforceSwitch
+          :visible="enforceable"
+          :enforced="enforcedFlag('ui', 'locale')"
+          :disabled="disabled"
+          @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
+        />
       </template>
     </ProfileEnforceableField>
     <div class="preference-field-block">
@@ -360,42 +361,42 @@
           />
         </template>
         <template v-if="showExtensionInputs && (!showThumbnailMaster || showThumbnailsForPreviews)">
-          <ProfileEnforceableField            :enforceable="enforceable">
+          <ProfileEnforceableField :enforceable="enforceable">
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
               <HelpTooltipIcon :text="$t('profileSettings.disableThumbnailPreviewsDescription')" />
-          </div>
-          <div
-            class="form-flex-group"
-            @mouseenter="showEnforcedTooltipIfLocked($event, 'preview', 'disablePreviewExt')"
-            @mouseleave="hideTooltip"
-          >
-            <input
-              class="input form-form flat-right disable-viewing"
-              :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }"
-              type="text"
-              :placeholder="$t('profileSettings.disableFileExtensions')"
-              v-model="formDisablePreviews"
-              :disabled="fieldDisabled('preview', 'disablePreviewExt')"
-            />
-            <button
-              type="button"
-              class="button form-button flat-left"
-              :disabled="fieldDisabled('preview', 'disablePreviewExt')"
-              @click="submitDisablePreviewsChange"
+            </div>
+            <div
+              class="form-flex-group"
+              @mouseenter="showEnforcedTooltipIfLocked($event, 'preview', 'disablePreviewExt')"
+              @mouseleave="hideTooltip"
             >
+              <input
+                class="input form-form flat-right disable-viewing"
+                :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }"
+                type="text"
+                :placeholder="$t('profileSettings.disableFileExtensions')"
+                v-model="formDisablePreviews"
+                :disabled="fieldDisabled('preview', 'disablePreviewExt')"
+              />
+              <button
+                type="button"
+                class="button form-button flat-left"
+                :disabled="fieldDisabled('preview', 'disablePreviewExt')"
+                @click="submitDisablePreviewsChange"
+              >
                 {{ $t("general.save") }}
               </button>
             </div>
             <template #enforce>
-<ProfileEnforceSwitch
-              :visible="enforceable"
-              :enforced="enforcedFlag('preview', 'disablePreviewExt')"
-              :disabled="disabled"
-              @update:enforced="(v) => emitEnforced('preview', 'disablePreviewExt', v)"
-            />
-      </template>
-    </ProfileEnforceableField>
+              <ProfileEnforceSwitch
+                :visible="enforceable"
+                :enforced="enforcedFlag('preview', 'disablePreviewExt')"
+                :disabled="disabled"
+                @update:enforced="(v) => emitEnforced('preview', 'disablePreviewExt', v)"
+              />
+            </template>
+          </ProfileEnforceableField>
         </template>
       </div>
     </SettingsItem>
@@ -512,7 +513,7 @@
         />
       </div>
       <template v-if="showExtensionInputs">
-        <ProfileEnforceableField          :enforceable="enforceable">
+        <ProfileEnforceableField :enforceable="enforceable">
           <div class="centered-with-tooltip">
             <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
             <HelpTooltipIcon :text="$t('profileSettings.disableViewingFilesDescription')" />
@@ -540,16 +541,16 @@
             </button>
           </div>
           <template #enforce>
-<ProfileEnforceSwitch
-            :visible="enforceable"
-            :enforced="enforcedFlag('fileViewer', 'disableViewingExt')"
-            :disabled="disabled"
-            @update:enforced="(v) => emitEnforced('fileViewer', 'disableViewingExt', v)"
-          />
-      </template>
-    </ProfileEnforceableField>
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('fileViewer', 'disableViewingExt')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('fileViewer', 'disableViewingExt', v)"
+            />
+          </template>
+        </ProfileEnforceableField>
         <div v-if="onlyOfficeAvailable">
-          <ProfileEnforceableField            :enforceable="enforceable">
+          <ProfileEnforceableField :enforceable="enforceable">
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
               <HelpTooltipIcon :text="$t('profileSettings.disableOfficeEditorDescription')" />
@@ -577,14 +578,14 @@
               </button>
             </div>
             <template #enforce>
-<ProfileEnforceSwitch
-              :visible="enforceable"
-              :enforced="enforcedFlag('fileViewer', 'disableOnlyOfficeExt')"
-              :disabled="disabled"
-              @update:enforced="(v) => emitEnforced('fileViewer', 'disableOnlyOfficeExt', v)"
-            />
-      </template>
-    </ProfileEnforceableField>
+              <ProfileEnforceSwitch
+                :visible="enforceable"
+                :enforced="enforcedFlag('fileViewer', 'disableOnlyOfficeExt')"
+                :disabled="disabled"
+                @update:enforced="(v) => emitEnforced('fileViewer', 'disableOnlyOfficeExt', v)"
+              />
+            </template>
+          </ProfileEnforceableField>
           <div class="settings-items file-viewer-debug-office">
             <ProfilePreferenceToggle
               field="debugOffice"
@@ -638,9 +639,10 @@
           :name="$t('profileSettings.darkMode')"
           :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
         />
-        <ProfileEnforceableField          :enforceable="enforceable">
+        <ProfileEnforceableField :enforceable="enforceable">
           <h4>{{ $t("settings.themeColor") }}</h4>
           <div
+            class="theme-color-group"
             @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'themeColor')"
             @mouseleave="hideTooltip"
           >
@@ -648,7 +650,7 @@
               :buttons="colorChoices"
               @button-clicked="setColor"
               :initialActive="themeColorValue"
-              :is-disabled="fieldDisabled('ui', 'themeColor')"
+              :is-disabled="fieldDisabled('ui', 'themeColor') || halloweenActive"
             />
           </div>
           <template #enforce>
@@ -685,9 +687,9 @@
               :disabled="disabled"
               @update:enforced="(v) => emitEnforced('ui', 'customTheme', v)"
             />
-      </template>
-    </ProfileEnforceableField>
-        <ProfileEnforceableField          :enforceable="enforceable">
+          </template>
+        </ProfileEnforceableField>
+        <ProfileEnforceableField :enforceable="enforceable">
           <h4>{{ $t("general.language") }}</h4>
           <div
             class="form-flex-group"
@@ -701,14 +703,14 @@
             />
           </div>
           <template #enforce>
-<ProfileEnforceSwitch
-            :visible="enforceable"
-            :enforced="enforcedFlag('ui', 'locale')"
-            :disabled="disabled"
-            @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
-          />
-      </template>
-    </ProfileEnforceableField>
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('ui', 'locale')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('ui', 'locale', v)"
+            />
+          </template>
+        </ProfileEnforceableField>
       </div>
     </SettingsItem>
   </SettingsAccordion>
@@ -722,7 +724,7 @@ import {
   hideInteractiveTooltip,
   showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
-import { state, getters, mutations } from "@/store";
+import { getters, mutations } from "@/store";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProfilePreferenceToggle from "@/components/settings/ProfilePreferenceToggle.vue";
@@ -826,6 +828,9 @@ export default {
     halloweenSeason() {
       return getters.eventThemeAvailable() === "halloween";
     },
+    halloweenActive() {
+      return getters.eventTheme() === "halloween";
+    },
     mediaEnabled() {
       return globalVars.mediaAvailable;
     },
@@ -918,6 +923,10 @@ export default {
       },
     },
     themeColorValue() {
+      // Display only: Halloween forces orange, but the saved choice stays intact.
+      if (this.halloweenActive) {
+        return "var(--icon-orange)";
+      }
       return this.sections.ui?.themeColor || "";
     },
     localeValue() {
@@ -1133,9 +1142,6 @@ export default {
       }
     },
     setColor(color) {
-      if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
-        mutations.disableEventThemes();
-      }
       const next = { ...this.sections, ui: { ...(this.sections.ui || {}), themeColor: color } };
       this.sections = next;
       this.$emit("theme-color", color);
@@ -1281,5 +1287,11 @@ export default {
 
 .file-viewer-debug-office {
   margin-top: 0.5em;
+}
+
+/* ButtonGroup has margin: 1em with width: 100%, which pushes it right and overflows. Keep only the vertical margin. */
+.theme-color-group :deep(.button-group) {
+  margin-left: 0;
+  margin-right: 0;
 }
 </style>

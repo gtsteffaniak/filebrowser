@@ -24,7 +24,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { mutations, state, getters } from "@/store";
+import { mutations, state } from "@/store";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import { settings } from "@/utils/constants";
 import {
@@ -108,9 +108,6 @@ export default {
   mounted() {
     this.localuser = cloneUser(state.user);
     void mutations.syncEnforcedUserDefaults();
-    if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
-      this.localuser.themeColor = "";
-    }
     if (typeof this.localuser.showToolsInSidebar !== "boolean") {
       this.localuser.showToolsInSidebar = true;
     }
