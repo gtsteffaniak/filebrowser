@@ -4,7 +4,7 @@ import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
 import { compression } from "vite-plugin-compression2";
-import stripLegacyCSS, { templateSafeParser } from "./scripts/postcss-strip-legacy.js";
+import stripLegacyCSS, { templateSafeParser } from "./scripts/postcss-strip-legacy";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
 const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
