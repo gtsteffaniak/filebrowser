@@ -16,19 +16,94 @@ let keepAliveTimer = null;
 let renewInFlight = null;
 let sessionExpiresAt = null;
 
+/*
+ * ============================================================
+ * AUTH DEBUG
+ * ============================================================
+ */
+
+const AUTH_DEBUG_ID =
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+function authDebug(event, data = {}) {
+  try {
+    console.debug(
+      `[AUTH DEBUG][${AUTH_DEBUG_ID}] ${event}`,
+      {
+        time: new Date().toISOString(),
+        page: window.location.pathname,
+        visibility: document.visibilityState,
+        sessionId: state.sessionId,
+        loggedIn: getters.isLoggedIn?.(),
+        ...data,
+      }
+    );
+  } catch (e) {
+    console.debug(`[AUTH DEBUG] ${event}`, data);
+  }
+}
+
+function tokenDebug(token) {
+  if (!token) {
+    return {
+      present: false,
+    };
+  }
+
+  const exp = decodeJwtExp(token);
+
+  return {
+    present: true,
+    length: token.length,
+    prefix: token.slice(0, 12),
+    hashHint: simpleTokenHint(token),
+    exp,
+    expDate: exp ? new Date(exp * 1000).toISOString() : null,
+  };
+}
+
+function simpleTokenHint(token) {
+  if (!token) {
+    return null;
+  }
+
+  let hash = 0;
+
+  for (let i = 0; i < token.length; i++) {
+    hash = ((hash << 5) - hash + token.charCodeAt(i)) | 0;
+  }
+
+  return Math.abs(hash).toString(16);
+}
+
+/*
+ * ============================================================
+ * JWT
+ * ============================================================
+ */
+
 function decodeJwtExp(token) {
   if (!token) {
     return null;
   }
+
   const parts = token.split(".");
+
   if (parts.length < 2) {
     return null;
   }
+
   try {
     const padded = parts[1].replace(/-/g, "+").replace(/_/g, "/");
     const padLength = (4 - (padded.length % 4)) % 4;
-    const payload = JSON.parse(atob(padded + "=".repeat(padLength)));
-    return typeof payload.exp === "number" ? payload.exp : null;
+
+    const payload = JSON.parse(
+      atob(padded + "=".repeat(padLength))
+    );
+
+    return typeof payload.exp === "number"
+      ? payload.exp
+      : null;
   } catch {
     return null;
   }
@@ -36,6 +111,14 @@ function decodeJwtExp(token) {
 
 function setSessionExpiresAtFromToken(token) {
   sessionExpiresAt = decodeJwtExp(token);
+
+  authDebug("setSessionExpiresAtFromToken()", {
+    token: tokenDebug(token),
+    sessionExpiresAt,
+    sessionExpiresAtDate: sessionExpiresAt
+      ? new Date(sessionExpiresAt * 1000).toISOString()
+      : null,
+  });
 }
 
 /**
@@ -44,10 +127,20 @@ function setSessionExpiresAtFromToken(token) {
  * @returns {number} Milliseconds until a refresh should run (0 = refresh now)
  */
 export function msUntilRefresh(expiresAtSeconds, refreshBeforeMs) {
-  if (expiresAtSeconds === null || expiresAtSeconds === undefined || !Number.isFinite(expiresAtSeconds)) {
+  if (
+    expiresAtSeconds === null ||
+    expiresAtSeconds === undefined ||
+    !Number.isFinite(expiresAtSeconds)
+  ) {
     return 0;
   }
-  return Math.max(0, expiresAtSeconds * 1000 - Date.now() - refreshBeforeMs);
+
+  return Math.max(
+    0,
+    expiresAtSeconds * 1000 -
+      Date.now() -
+      refreshBeforeMs
+  );
 }
 
 /**
@@ -55,7 +148,10 @@ export function msUntilRefresh(expiresAtSeconds, refreshBeforeMs) {
  * @param {number} refreshBeforeMs Refresh this many ms before expiry
  * @returns {boolean} True when the token should be refreshed now
  */
-export function shouldRefreshBeforeExpiry(expiresAtSeconds, refreshBeforeMs) {
+export function shouldRefreshBeforeExpiry(
+  expiresAtSeconds,
+  refreshBeforeMs
+) {
   return msUntilRefresh(expiresAtSeconds, refreshBeforeMs) === 0;
 }
 
@@ -64,190 +160,497 @@ export function getSessionJwtExpiresAt() {
   return sessionExpiresAt;
 }
 
+/*
+ * ============================================================
+ * LOGIN VALIDATION
+ * ============================================================
+ */
+
 export async function validateLogin(isPublicRoute = false) {
-  // Use direct fetch to avoid automatic logout on 401
-  // Public routes (e.g. /public/share/...) use the public API base path
-  const apiPath = getApiPath('users', { username: 'self' }, false, isPublicRoute);
+
+  authDebug("validateLogin START", {
+    isPublicRoute,
+    sessionExpiresAt,
+    sessionExpiresAtDate: sessionExpiresAt
+      ? new Date(sessionExpiresAt * 1000).toISOString()
+      : null,
+  });
+
+  const apiPath = getApiPath(
+    "users",
+    { username: "self" },
+    false,
+    isPublicRoute
+  );
+
+  authDebug("validateLogin FETCH", {
+    apiPath,
+  });
+
   const res = await fetch(apiPath, {
-    credentials: 'same-origin', // Ensure cookies are sent with the request
+    credentials: "same-origin",
     headers: {
-      "sessionId": state.sessionId,
-    }
+      sessionId: state.sessionId,
+    },
+  });
+
+  authDebug("validateLogin RESPONSE", {
+    status: res.status,
+    ok: res.ok,
   });
 
   if (res.status !== 200) {
-    // A 401 from the non-public self check means our session is no longer valid —
-    // typically the HttpOnly JWT cookie expired. Redirect to login when the app
-    // still considers the user logged in (public routes legitimately 401 for
-    // anonymous share visitors).
-    if (res.status === 401 && !isPublicRoute && getters.isLoggedIn()) {
+
+    if (
+      res.status === 401 &&
+      !isPublicRoute &&
+      getters.isLoggedIn()
+    ) {
+      authDebug("validateLogin -> sessionExpired()", {
+        reason: "401",
+      });
+
       sessionExpired();
     }
-    throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
+
+    throw new Error(
+      `{"status":${res.status},"message":"${await res.text()}"}`
+    );
   }
+
   const userInfo = await res.json();
+
+  authDebug("validateLogin USER", {
+    username: userInfo?.username,
+    id: userInfo?.id,
+    loginMethod: userInfo?.loginMethod,
+  });
+
   await mutations.setCurrentUser(userInfo);
   await mutations.syncEnforcedUserDefaults();
   await mutations.syncSidebarLinkDefaultsPolicy();
   await mutations.syncToolAccessDefaultsPolicy();
   await mutations.syncShareDefaultsPolicy();
-  getters.isLoggedIn()
-  // Public share/static routes use the public API; proxy session cookie login is protected-only.
-  if (state.user.loginMethod === "proxy" && !isPublicRoute) {
-    const apiPath = getApiPath("auth/login")
-    const res = await fetch(apiPath, {
-      method: "POST",
-      credentials: 'same-origin', // Ensure cookies are sent and can be set
-    });
-    const body = await res.text();
-    if (res.status !== 200) {
-      throw new Error(body);
-    }
-  }
-  if (!isPublicRoute) {
-    startSessionKeepAlive();
-  }
-  return
-}
 
-/**
- * Cookie-based session renewal. Concurrent callers share one in-flight request
- * so mid-upload 401 retries and keep-alive do not stampede /auth/renew.
- */
-export async function renew() {
-  if (renewInFlight) {
-    return renewInFlight;
-  }
-  renewInFlight = (async () => {
-    // Backend reads cookie, validates, and sets new cookie
-    const apiPath = getApiPath("auth/renew");
+  getters.isLoggedIn();
+
+  if (
+    state.user.loginMethod === "proxy" &&
+    !isPublicRoute
+  ) {
+
+    authDebug("validateLogin PROXY LOGIN");
+
+    const apiPath = getApiPath("auth/login");
+
     const res = await fetch(apiPath, {
       method: "POST",
       credentials: "same-origin",
     });
+
     const body = await res.text();
+
+    authDebug("validateLogin PROXY RESPONSE", {
+      status: res.status,
+      ok: res.ok,
+    });
+
+    if (res.status !== 200) {
+      throw new Error(body);
+    }
+  }
+
+  if (!isPublicRoute) {
+    authDebug("validateLogin -> startSessionKeepAlive()");
+
+    startSessionKeepAlive();
+  }
+
+  authDebug("validateLogin END");
+}
+
+/*
+ * ============================================================
+ * RENEW
+ * ============================================================
+ */
+
+/**
+ * Cookie-based session renewal.
+ */
+export async function renew() {
+
+  authDebug("renew() CALLED", {
+    renewInFlight: !!renewInFlight,
+    sessionExpiresAt,
+    sessionExpiresAtDate: sessionExpiresAt
+      ? new Date(sessionExpiresAt * 1000).toISOString()
+      : null,
+  });
+
+  if (renewInFlight) {
+
+    authDebug("renew() JOIN EXISTING REQUEST");
+
+    return renewInFlight;
+  }
+
+  renewInFlight = (async () => {
+
+    const apiPath = getApiPath("auth/renew");
+
+    authDebug("renew() FETCH START", {
+      apiPath,
+    });
+
+    const started = Date.now();
+
+    const res = await fetch(apiPath, {
+      method: "POST",
+      credentials: "same-origin",
+    });
+
+    const body = await res.text();
+
+    authDebug("renew() RESPONSE", {
+      status: res.status,
+      ok: res.ok,
+      durationMs: Date.now() - started,
+      bodyToken: tokenDebug(body),
+    });
+
     if (res.status === 200) {
+
       setSessionExpiresAtFromToken(body);
+
+      const oldSessionId = state.sessionId;
+
       mutations.setSession(generateRandomCode(8));
+
+      authDebug("renew() SUCCESS", {
+        oldSessionId,
+        newSessionId: state.sessionId,
+        token: tokenDebug(body),
+      });
+
       return;
     }
+
+    authDebug("renew() FAILED", {
+      status: res.status,
+      body,
+    });
+
     throw new Error(body);
+
   })().finally(() => {
+
+    authDebug("renew() FINALLY");
+
     renewInFlight = null;
   });
+
   return renewInFlight;
 }
 
-/**
- * Renew the session JWT when it is missing or within the refresh window.
- * Concurrent callers share one in-flight renew; failures return false.
+/*
+ * ============================================================
+ * SESSION FRESHNESS
+ * ============================================================
  */
-export async function ensureSessionFresh(withinMs = SESSION_REFRESH_BEFORE_MS) {
-  if (getters.isShare?.() && !getters.isLoggedIn?.()) {
+
+export async function ensureSessionFresh(
+  withinMs = SESSION_REFRESH_BEFORE_MS
+) {
+
+  authDebug("ensureSessionFresh() CHECK", {
+    withinMs,
+    sessionExpiresAt,
+    sessionExpiresAtDate: sessionExpiresAt
+      ? new Date(sessionExpiresAt * 1000).toISOString()
+      : null,
+    refreshInMs: msUntilRefresh(
+      sessionExpiresAt,
+      withinMs
+    ),
+  });
+
+  if (
+    getters.isShare?.() &&
+    !getters.isLoggedIn?.()
+  ) {
+
+    authDebug("ensureSessionFresh() SKIP SHARE");
+
     return false;
   }
+
   const exp = getSessionJwtExpiresAt();
+
   if (!shouldRefreshBeforeExpiry(exp, withinMs)) {
+
+    authDebug("ensureSessionFresh() NO RENEW", {
+      exp,
+      expDate: exp
+        ? new Date(exp * 1000).toISOString()
+        : null,
+    });
+
     return false;
   }
+
+  authDebug("ensureSessionFresh() -> renew()");
+
   try {
+
     await renew();
+
+    authDebug("ensureSessionFresh() RENEW SUCCESS");
+
     return true;
+
   } catch (err) {
-    console.warn("session keep-alive renew failed:", err);
+
+    console.warn(
+      "[AUTH DEBUG] session keep-alive renew failed:",
+      err
+    );
+
+    authDebug("ensureSessionFresh() RENEW FAILED", {
+      error: String(err),
+    });
+
     return false;
   }
 }
 
+/*
+ * ============================================================
+ * KEEP ALIVE
+ * ============================================================
+ */
+
 export function startSessionKeepAlive() {
+
+  authDebug("startSessionKeepAlive() CALLED", {
+    alreadyRunning: keepAliveTimer !== null,
+  });
+
   if (keepAliveTimer !== null) {
+
+    authDebug(
+      "startSessionKeepAlive() ALREADY RUNNING"
+    );
+
     return;
   }
+
+  authDebug(
+    "startSessionKeepAlive() STARTING TIMER"
+  );
+
   void ensureSessionFresh();
+
   keepAliveTimer = setInterval(() => {
+
+    authDebug(
+      "KEEP-ALIVE TIMER TICK"
+    );
+
     void ensureSessionFresh();
+
   }, KEEP_ALIVE_INTERVAL_MS);
 }
 
 export function stopSessionKeepAlive() {
+
+  authDebug("stopSessionKeepAlive()", {
+    wasRunning: keepAliveTimer !== null,
+  });
+
   if (keepAliveTimer !== null) {
+
     clearInterval(keepAliveTimer);
+
     keepAliveTimer = null;
   }
 }
 
+/*
+ * ============================================================
+ * SESSION ID
+ * ============================================================
+ */
+
 export function generateRandomCode(length) {
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let code = '';
+
+  const charset =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  let code = "";
+
   for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * charset.length);
+
+    const randomIndex =
+      Math.floor(Math.random() * charset.length);
+
     code += charset.charAt(randomIndex);
   }
 
   return code;
 }
 
+/*
+ * ============================================================
+ * LOGOUT
+ * ============================================================
+ */
+
 export async function logout(redirectUrl) {
+
+  authDebug("logout() START");
+
   stopSessionKeepAlive();
+
   try {
-    const res = await fetch(getApiPath("auth/logout"), {
-      method: "POST",
-      credentials: 'same-origin'
-    });
-    if (res.ok) {
-      const data = await res.json();
-      let destination = data.logoutUrl || `${globalVars.baseURL}login`;
-      if (redirectUrl) {
-        destination = sanitizeLogoutDestination(redirectUrl, destination);
+
+    const res = await fetch(
+      getApiPath("auth/logout"),
+      {
+        method: "POST",
+        credentials: "same-origin",
       }
-      // Backend clears the HttpOnly session cookie.
+    );
+
+    authDebug("logout() RESPONSE", {
+      status: res.status,
+      ok: res.ok,
+    });
+
+    if (res.ok) {
+
+      const data = await res.json();
+
+      let destination =
+        data.logoutUrl ||
+        `${globalVars.baseURL}login`;
+
+      if (redirectUrl) {
+        destination =
+          sanitizeLogoutDestination(
+            redirectUrl,
+            destination
+          );
+      }
+
       sessionExpiresAt = null;
+
       void mutations.setCurrentUser(null);
-      // No need to clear state.jwt - cookie is the source of truth
-      // Add a small delay to ensure cookie deletion completes before redirect
+
       setTimeout(() => {
         window.location.href = destination;
       }, 100);
-      return; // Stop execution
-    } else {
-      // Handle potential errors from the API, e.g., res.status 401, 500
-      console.error("Logout API call failed:", res.status, res.statusText);
+
+      return;
     }
+
+    console.error(
+      "Logout API call failed:",
+      res.status,
+      res.statusText
+    );
+
   } catch (e) {
-    console.error("An error occurred during logout:", e);
+
+    console.error(
+      "An error occurred during logout:",
+      e
+    );
   }
 }
 
-// Handle an authenticated request that came back 401 because the session is no
-// longer valid — typically it expired while the tab was idle. Unlike logout(),
-// this does NOT call the server; it clears client state and redirects to login.
+/*
+ * ============================================================
+ * SESSION EXPIRED
+ * ============================================================
+ */
+
 export function sessionExpired() {
+
+  authDebug("sessionExpired()");
+
   stopSessionKeepAlive();
+
   sessionExpiresAt = null;
+
   void mutations.setCurrentUser(null);
-  // Avoid a redirect loop if we're already on the login page.
-  if (window.location.pathname.endsWith("/login")) {
+
+  if (
+    window.location.pathname.endsWith("/login")
+  ) {
     return;
   }
-  const current = window.location.pathname + window.location.search;
-  const safeRedirect = sanitizePostLoginRedirect(current, '/files/');
-  window.location.href = `${globalVars.baseURL}login?redirect=${encodeURIComponent(safeRedirect)}`;
+
+  const current =
+    window.location.pathname +
+    window.location.search;
+
+  const safeRedirect =
+    sanitizePostLoginRedirect(
+      current,
+      "/files/"
+    );
+
+  window.location.href =
+    `${globalVars.baseURL}login?redirect=${encodeURIComponent(
+      safeRedirect
+    )}`;
 }
 
+/*
+ * ============================================================
+ * INIT
+ * ============================================================
+ */
+
 export async function initAuth() {
+
+  authDebug("initAuth() START", {
+    isShare: getters.isShare?.(),
+    sessionExpiresAt,
+  });
+
   if (!getters.isShare()) {
+
+    authDebug(
+      "initAuth() -> validateLogin()"
+    );
+
     await validateLogin();
   }
+
   if (globalVars.recaptcha) {
-      await new Promise((resolve) => {
-          const check = () => {
-              if (typeof window.grecaptcha === "undefined") {
-                  setTimeout(check, 100);
-              } else {
-                  resolve();
-              }
-          };
-          check();
-      });
+
+    await new Promise((resolve) => {
+
+      const check = () => {
+
+        if (
+          typeof window.grecaptcha ===
+          "undefined"
+        ) {
+
+          setTimeout(check, 100);
+
+        } else {
+
+          resolve();
+        }
+      };
+
+      check();
+    });
   }
+
+  authDebug("initAuth() END");
 }
