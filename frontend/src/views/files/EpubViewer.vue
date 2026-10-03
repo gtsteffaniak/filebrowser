@@ -61,6 +61,7 @@ export default defineComponent({
       epubHashDebounceTimer: null as number | null,
       resizeObserver: null as ResizeObserver | null,
       resizeTimer: null as number | null,
+      isUnmounted: false,
       unwatchDarkMode: null as (() => void) | null,
       onRelocatedHandler: null as ((loc: unknown) => void) | null,
       onWindowHashChangeHandler: null as (() => void) | null,
@@ -116,6 +117,7 @@ export default defineComponent({
 
       // 2. Initialize the EPUB book
       const { default: ePub } = await import("epubjs");
+      if (this.isUnmounted) return;
       this.book = ePub(epubUrl, { openAs: "epub" });
 
       // 3. Render the book to the "viewer" div
@@ -156,6 +158,8 @@ export default defineComponent({
       } catch {
         await this.rendition.display();
       }
+
+      if (this.isUnmounted) return;
 
       this.applyTheme(getters.isDarkMode());
 
@@ -207,6 +211,7 @@ export default defineComponent({
     }
   },
   beforeUnmount() {
+    this.isUnmounted = true;
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     if (this.resizeTimer !== null) {
