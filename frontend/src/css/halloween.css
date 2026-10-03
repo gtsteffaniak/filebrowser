@@ -61,10 +61,10 @@ body.halloween-theme,
   border: 4px solid #888;
   border-radius: 0 0 20px 20px;
   box-shadow:
-    0 15px 50px rgb(255 140 0 / 60%),
     inset 0 2px 20px rgb(0 0 0 / 30%),
-    inset 3px 3px 10px rgb(255 255 255 / 20%),
-    0 0 40px rgb(255 140 0 / 40%);
+    inset 3px 3px 10px rgb(255 255 255 / 20%);
+  /* drop-shadow follows the whole silhouette, including the rounded top */
+  filter: drop-shadow(0 8px 28px rgb(255 140 0 / 60%)) drop-shadow(0 0 24px rgb(255 140 0 / 45%));
   padding: 2.5em 2em 2em;
   z-index: 10;
 }
@@ -89,25 +89,29 @@ body.halloween-theme,
     inset 3px 3px 10px rgb(255 255 255 / 20%);
 }
 
-/* R.I.P. text */
-.login-card.tombstone::after {
-  content: 'R.I.P.';
+/* Chiseled R.I.P. carved into the tombstone head */
+.tombstone-rip {
   position: absolute;
-  padding-left: 0.5em;
-  padding-top: 0.15em;
-  top: -55px;
+  top: -38px;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'Times New Roman', serif;
-  font-size: 2.2em;
-  font-weight: bold;
-  color: #333;
-  text-shadow:
-    2px 2px 4px rgb(0 0 0 / 50%),
-    -1px -1px 2px rgb(255 255 255 / 30%);
-  letter-spacing: 0.3em;
+  pointer-events: none;
   z-index: 1;
+  margin: 0;
+  padding: 0;
+  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
   font-style: italic;
+  font-variant: small-caps;
+  letter-spacing: 0.22em;
+  line-height: 1;
+  white-space: nowrap;
+  color: #424248;
+  text-shadow:
+    0.5px 1px 0 rgb(255 255 255 / 55%),
+    -0.5px -0.5px 0 rgb(0 0 0 / 40%),
+    0 2px 3px rgb(0 0 0 / 22%);
 }
 
 .tombstone-field {
@@ -142,17 +146,31 @@ body.halloween-theme,
 }
 
 .tombstone-field .input {
-  background: rgb(0 0 0 / 70%);
-  border: 3px solid #ff8c00;
+  background: #000;
+  border: 3px solid #888;
   color: #ff8c00;
   text-shadow: 0 0 8px rgb(255 140 0 / 60%);
   font-weight: 500;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tombstone-field .input:hover:not(:focus) {
+  border-color: #9a9a9a;
 }
 
 .tombstone-field .input:focus {
-  border-color: #f60;
-  box-shadow: 0 0 20px rgb(255 140 0 / 80%);
-  background: rgb(0 0 0 / 80%);
+  outline: none;
+  background: #000;
+  border-color: #ff8c00;
+  box-shadow: 0 0 14px rgb(255 140 0 / 55%);
+}
+
+.tombstone-field .input:-webkit-autofill,
+.tombstone-field .input:-webkit-autofill:hover,
+.tombstone-field .input:-webkit-autofill:focus {
+  box-shadow: 0 0 0 1000px #000 inset;
+  -webkit-text-fill-color: #ff8c00;
+  caret-color: #ff8c00;
 }
 
 .tombstone-field .input::placeholder {
@@ -267,118 +285,102 @@ body.halloween-theme,
   }
 }
 
-/* Lightning Flash Effect - Adjusted to match cloud light */
+/* Lightning — random strikes driven by HalloweenLightning.vue */
+.halloween-lightning {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .lightning-flash {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  /* Made light more focused, simulating it coming from above/clouds */
-  background: radial-gradient(circle at 50% 10%, rgb(255 255 255 / 95%), rgb(255 220 100 / 80%) 15%, transparent 50%);
+  background: radial-gradient(
+    circle at 50% 8%,
+    rgb(255 255 255 / 92%),
+    rgb(255 220 100 / 75%) 18%,
+    transparent 55%
+  );
   opacity: 0;
-  animation: lightning-flash-animation 12s infinite;
+  transition: opacity 0.04s ease-out;
   pointer-events: none;
 }
 
-@keyframes lightning-flash-animation {
-  0%, 10%, 100% {
-    opacity: 0;
-  }
-  10.1% {
-    opacity: 0.9;
-  }
-  10.15% {
-    opacity: 0.4;
-  }
-  10.2%, 10.35% {
-    opacity: 0;
-  }
-  10.4% {
-    opacity: 1;
-  }
-  10.5% {
-    opacity: 0;
-  }
+.lightning-flash--active {
+  opacity: 0.88;
 }
 
-/* Lightning Bolts */
 .lightning-bolt {
-  position: absolute;
-  width: 50px;
-  height: 250px;
+  position: fixed;
   opacity: 0;
-  filter: drop-shadow(0 0 15px #fff) drop-shadow(0 0 30px #ffd700) drop-shadow(0 0 45px #ff8c00);
+  filter: drop-shadow(0 0 12px #fff) drop-shadow(0 0 28px #ffd700)
+    drop-shadow(0 0 40px #ff8c00);
   z-index: 100;
+  overflow: visible;
 }
 
-.lightning-1 {
-  top: 8%;
-  left: 30%;
-  animation: lightning-strike 12s infinite;
+.lightning-bolt--strike {
+  --bolt-rotate: 0deg;
+  animation: lightning-bolt-strike 0.48s ease-out forwards;
 }
 
-.lightning-2 {
-  top: 10%;
-  right: 25%;
-  animation: lightning-strike 12s infinite;
-  animation-delay: 0.05s;
-}
-
-@keyframes lightning-strike {
-  0%, 10%, 100% {
+@keyframes lightning-bolt-strike {
+  0% {
     opacity: 0;
-    transform: scaleY(0);
-    transform-origin: top;
+    transform: rotate(var(--bolt-rotate)) scaleY(0.15);
   }
-  10.1% {
+  6% {
     opacity: 1;
-    transform: scaleY(1);
+    transform: rotate(var(--bolt-rotate)) scaleY(1);
   }
-  10.15% {
-    opacity: 0.6;
+  14% {
+    opacity: 0.45;
   }
-  10.2%, 10.35% {
+  22% {
     opacity: 0;
-    transform: scaleY(0.8);
   }
-  10.4% {
+  30% {
     opacity: 1;
-    transform: scaleY(1);
+    transform: rotate(var(--bolt-rotate)) scaleY(1);
   }
-  10.5% {
+  42% {
+    opacity: 0.25;
+  }
+  100% {
     opacity: 0;
-    transform: scaleY(0);
+    transform: rotate(var(--bolt-rotate)) scaleY(0.9);
   }
 }
 
-.lightning-bolt path {
-  fill: #fff;
-  animation: bolt-flicker 12s infinite;
+.lightning-bolt-glow {
+  fill: none;
+  stroke: rgb(255 215 0 / 85%);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
-@keyframes bolt-flicker {
-  0%, 10%, 100% {
-    opacity: 0;
-  }
-  10.1% {
-    opacity: 1;
-    fill: #fff;
-  }
-  10.15% {
-    opacity: 0.7;
-    fill: #ffd700;
-  }
-  10.2%, 10.35% {
-    opacity: 0;
-  }
-  10.4% {
-    opacity: 1;
-    fill: #fff;
-  }
-  10.5% {
-    opacity: 0;
-  }
+.lightning-bolt-branch {
+  fill: none;
+  stroke: rgb(255 255 255 / 70%);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.lightning-bolt-core {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 /* Halloween Decorations Container */
@@ -398,7 +400,7 @@ body.halloween-theme,
   bottom: 5%;
   left: 8%;
   width: 180px;
-  height: 200px;
+  height: 216px;
   filter: drop-shadow(0 0 20px rgb(255 140 0 / 50%));
   animation: cat-tail-swish 3s ease-in-out infinite;
   z-index: 6;
@@ -414,16 +416,37 @@ body.halloween-theme,
 }
 
 .halloween-cat .cat-eye {
-  animation: cat-blink 5s infinite;
+  filter: drop-shadow(0 0 6px rgb(255 178 26 / 90%));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cat-blink 6s infinite;
+}
+
+.halloween-cat .cat-pupil {
+  animation: cat-look 7s ease-in-out infinite;
+}
+
+.halloween-cat .cat-tail {
+  transform-origin: 138px 218px;
+  animation: cat-tail-sway 4s ease-in-out infinite;
+}
+
+@keyframes cat-look {
+  0%, 12% { transform: translate(0, 0); }
+  20%, 36% { transform: translate(-7px, -1px); }
+  44%, 58% { transform: translate(7px, 1px); }
+  66%, 74% { transform: translate(5px, 4px); }
+  82%, 100% { transform: translate(0, 0); }
+}
+
+@keyframes cat-tail-sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(7deg); }
 }
 
 @keyframes cat-blink {
-  0%, 96%, 100% {
-    opacity: 1;
-  }
-  97%, 99% {
-    opacity: 0.1;
-  }
+  0%, 94%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.08); }
 }
 
 /* Skeleton */
@@ -537,9 +560,10 @@ body.halloween-theme,
     bottom: 3%;
     right: 5%;
   }
-  .login-card.tombstone::after {
-    font-size: 1.4em;
-    top: -40px;
+  .tombstone-rip {
+    font-size: 1.1rem;
+    top: -32px;
+    letter-spacing: 0.18em;
   }
 }
 
@@ -670,8 +694,9 @@ body.halloween-theme,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cloud, .lightning-flash, .lightning-bolt, .lightning-bolt path,
-  .halloween-cat, .halloween-cat .cat-eye,
+  .cloud, .lightning-flash, .lightning-bolt, .lightning-bolt-glow,
+  .lightning-bolt-core, .lightning-bolt-branch,
+  .halloween-cat, .halloween-cat .cat-eye, .halloween-cat .cat-pupil, .halloween-cat .cat-tail,
   .halloween-skeleton, .halloween-skeleton .skeleton-head,
   .halloween-theme .login-icon,
   .eye::before, .eye::after, .pupil {

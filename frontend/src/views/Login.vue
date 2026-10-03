@@ -8,19 +8,11 @@
       <div class="cloud cloud-2"></div>
       <div class="cloud cloud-3"></div>
 
-      <!-- Lightning Flash -->
-      <div class="lightning-flash"></div>
-
-      <!-- Lightning Bolts - More Jagged -->
-      <svg class="lightning-bolt lightning-1" viewBox="0 0 50 250" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 25 0 L 20 60 L 28 60 L 18 100 L 24 100 L 15 150 L 22 150 L 10 250 L 35 140 L 28 140 L 38 95 L 30 95 L 40 50 L 32 50 Z" fill="#fff" opacity="0"/>
-      </svg>
-      <svg class="lightning-bolt lightning-2" viewBox="0 0 50 250" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 25 0 L 22 50 L 30 50 L 20 100 L 26 100 L 17 140 L 24 140 L 12 250 L 37 135 L 29 135 L 35 90 L 28 90 L 38 55 L 30 55 Z" fill="#fff" opacity="0"/>
-      </svg>
+      <HalloweenLightning />
     </div>
 
     <form class="card login-card" :class="{ 'tombstone': eventTheme === 'halloween' }" @submit="submit">
+      <span v-if="eventTheme === 'halloween'" class="tombstone-rip" aria-hidden="true">R.I.P.</span>
       <div class="login-brand">
         <img :src="loginIconUrl" alt="Login Icon" class="login-icon" />
       </div>
@@ -68,51 +60,69 @@
 
     <!-- Halloween Decorations -->
     <div v-if="eventTheme === 'halloween'" class="halloween-decorations">
-      <!-- Spooky Black Cat - Side Profile -->
-      <svg class="halloween-cat" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-        <!-- Tail (curved up) -->
-        <path d="M 30 160 Q 15 140 20 100 Q 22 80 28 70" stroke="#000" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <!-- Spooky Black Cat - sitting silhouette with glowing, wandering eyes -->
+      <svg class="halloween-cat" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="cat-eye-clip-l"><path d="M 68 70 Q 82 56 96 70 Q 82 84 68 70 Z"/></clipPath>
+          <clipPath id="cat-eye-clip-r"><path d="M 104 70 Q 118 56 132 70 Q 118 84 104 70 Z"/></clipPath>
+          <linearGradient id="cat-fur" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1c1c1f"/>
+            <stop offset="1" stop-color="#050505"/>
+          </linearGradient>
+        </defs>
 
-        <!-- Back Body -->
-        <ellipse cx="70" cy="150" rx="45" ry="35" fill="#000"/>
+        <!-- Tail (curled, swaying) -->
+        <g class="cat-tail">
+          <path d="M 138 218 C 186 220 196 172 176 150 C 166 138 170 124 184 128"
+            stroke="#0a0a0a" stroke-width="14" fill="none" stroke-linecap="round"/>
+        </g>
 
-        <!-- Front Body/Chest -->
-        <ellipse cx="130" cy="145" rx="38" ry="40" fill="#000"/>
+        <!-- Body and haunch -->
+        <path d="M 100 100 C 55 100 38 160 44 205 C 46 224 60 233 76 233 L 124 233 C 140 233 154 224 156 205 C 162 160 145 100 100 100 Z"
+          fill="url(#cat-fur)"/>
+        <ellipse cx="136" cy="200" rx="26" ry="30" fill="#0e0e10"/>
 
-        <!-- Back Leg -->
-        <rect x="60" y="175" width="14" height="20" rx="3" fill="#000"/>
-        <rect x="58" y="192" width="18" height="6" rx="3" fill="#000"/>
+        <!-- Front legs and paws -->
+        <rect x="76" y="168" width="18" height="62" rx="9" fill="#0b0b0c"/>
+        <rect x="106" y="168" width="18" height="62" rx="9" fill="#0b0b0c"/>
+        <ellipse cx="85" cy="231" rx="14" ry="7" fill="#0b0b0c"/>
+        <ellipse cx="115" cy="231" rx="14" ry="7" fill="#0b0b0c"/>
+        <path d="M 100 150 L 100 228" stroke="#1d1d20" stroke-width="1.5"/>
 
-        <!-- Front Leg -->
-        <rect x="120" y="175" width="14" height="22" rx="3" fill="#000"/>
-        <rect x="118" y="194" width="18" height="6" rx="3" fill="#000"/>
+        <!-- Ears -->
+        <path d="M 62 54 L 56 12 L 92 38 Z" fill="#0a0a0a"/>
+        <path d="M 138 54 L 144 12 L 108 38 Z" fill="#0a0a0a"/>
+        <path d="M 65 45 L 62 25 L 80 38 Z" fill="#2b1206"/>
+        <path d="M 135 45 L 138 25 L 120 38 Z" fill="#2b1206"/>
 
-        <!-- Neck -->
-        <ellipse cx="145" cy="130" rx="22" ry="28" fill="#000"/>
+        <!-- Head with cheek tufts -->
+        <ellipse cx="100" cy="72" rx="43" ry="36" fill="url(#cat-fur)"/>
+        <path d="M 58 78 L 47 92 L 66 91 Z" fill="#0a0a0a"/>
+        <path d="M 142 78 L 153 92 L 134 91 Z" fill="#0a0a0a"/>
 
-        <!-- Head -->
-        <ellipse cx="165" cy="110" rx="28" ry="32" fill="#000"/>
+        <!-- Eyes: glowing almond with a slit pupil that wanders -->
+        <g class="cat-eye">
+          <path d="M 68 70 Q 82 56 96 70 Q 82 84 68 70 Z" fill="#ffb21a"/>
+          <g clip-path="url(#cat-eye-clip-l)">
+            <ellipse class="cat-pupil" cx="82" cy="70" rx="3.4" ry="13" fill="#000"/>
+          </g>
+          <path d="M 104 70 Q 118 56 132 70 Q 118 84 104 70 Z" fill="#ffb21a"/>
+          <g clip-path="url(#cat-eye-clip-r)">
+            <ellipse class="cat-pupil" cx="118" cy="70" rx="3.4" ry="13" fill="#000"/>
+          </g>
+          <circle cx="87" cy="66" r="1.8" fill="#fff" opacity="0.85"/>
+          <circle cx="123" cy="66" r="1.8" fill="#fff" opacity="0.85"/>
+        </g>
 
-        <!-- Ear (pointed) -->
-        <path d="M 175 85 L 190 65 L 180 95 Z" fill="#000"/>
-
-        <!-- Inner Ear -->
-        <path d="M 180 85 L 186 72 L 182 90 Z" fill="#1a1a1a"/>
-
-        <!-- Eye (glowing) -->
-        <ellipse class="cat-eye" cx="172" cy="105" rx="7" ry="11" fill="#ff8c00"/>
-        <ellipse class="cat-eye" cx="172" cy="107" rx="2" ry="7" fill="#000"/>
-
-        <!-- Nose -->
-        <path d="M 185 115 L 182 118 L 185 117 Z" fill="#ff8c00"/>
-
-        <!-- Mouth/Jaw line -->
-        <path d="M 185 117 Q 188 120 190 122" stroke="#1a1a1a" stroke-width="2" fill="none"/>
-
-        <!-- Whiskers -->
-        <line x1="185" y1="110" x2="210" y2="105" stroke="#888" stroke-width="1.5"/>
-        <line x1="185" y1="115" x2="210" y2="115" stroke="#888" stroke-width="1.5"/>
-        <line x1="185" y1="120" x2="210" y2="123" stroke="#888" stroke-width="1.5"/>
+        <!-- Nose, mouth, whiskers -->
+        <path d="M 95 86 L 105 86 L 100 92 Z" fill="#5a2a33"/>
+        <path d="M 100 92 Q 95 99 88 95 M 100 92 Q 105 99 112 95" stroke="#3a3a3f" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <g stroke="#9a9aa2" stroke-width="1.2" opacity="0.7" stroke-linecap="round">
+          <line x1="72" y1="88" x2="30" y2="80"/>
+          <line x1="72" y1="93" x2="28" y2="96"/>
+          <line x1="128" y1="88" x2="170" y2="80"/>
+          <line x1="128" y1="93" x2="172" y2="96"/>
+        </g>
       </svg>
 
       <!-- Stylized Skeleton -->
@@ -207,6 +217,7 @@ import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import HalloweenLightning from "@/components/HalloweenLightning.vue";
 
 function loadRecaptcha(onReady, onError) {
   if (typeof window.grecaptcha !== "undefined") {
@@ -249,6 +260,7 @@ export default {
     HelpTooltipIcon,
     Tooltip,
     LoadingSpinner,
+    HalloweenLightning,
   },
   computed: {
     eventTheme: () => getters.eventTheme(),
