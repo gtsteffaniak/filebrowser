@@ -4,7 +4,7 @@
       <p>{{ $t("general.loading", { suffix: "..." }) }}</p>
     </div>
 
-    <div id="viewer" :class="{ ready: isReady }"></div>
+    <div id="viewer" ref="viewer" :class="{ ready: isReady }"></div>
 
     <div v-if="isReady" class="navigation">
       <button type="button" @click="prevPage" class="nav-button">&lt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -13,14 +13,12 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, watch } from "vue";
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { Book, Rendition } from "epubjs";
-import { state, mutations, getters } from "@/store"; // Assuming your store setup
+import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
 import { ensureViewToken, requestViewIdentity, getCachedViewToken, getRequestViewToken } from "@/api/viewToken.js";
-import router from "@/router";
-import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
 /** Hash format: `#epubcfi=<encodeURIComponent(epub-cfi)>` — distinct from listing `#filename` hashes. */
 const EPUB_HASH_PREFIX = "epubcfi=";
@@ -50,232 +48,211 @@ function cfiToString(cfi: unknown): string {
   return "";
 }
 
-export default defineComponent({
-  name: "epubViewer",
-  data() {
-    return {
-      isReady: false, // Flag to indicate when the book is loaded
-      floatIn: false, // Flag for the float-in animation
-      book: null as Book | null,
-      rendition: null as Rendition | null,
-      epubHashDebounceTimer: null as number | null,
-      resizeObserver: null as ResizeObserver | null,
-      resizeTimer: null as number | null,
-      isUnmounted: false,
-      unwatchDarkMode: null as (() => void) | null,
-      onRelocatedHandler: null as ((loc: unknown) => void) | null,
-      onWindowHashChangeHandler: null as (() => void) | null,
-    };
-  },
-  async mounted() {
-    mutations.resetSelected();
-    mutations.addSelected({
-      name: state.req.name,
-      path: state.req.path,
-      size: state.req.size,
-      type: state.req.type,
-      source: state.req.source,
-      modified: state.req.modified,
-      hasPreview: state.req.hasPreview,
-    });
+const isReady = ref(false); // to indicate when the book is loaded
+const floatIn = ref(false); // for the animation
+const viewer = ref<HTMLElement | null>(null);
+
+let book: Book | null = null;
+let rendition: Rendition | null = null;
+let epubHashDebounceTimer: number | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let resizeTimer: number | null = null;
+let isUnmounted = false;
+let onRelocatedHandler: ((loc: unknown) => void) | null = null;
+let onWindowHashChangeHandler: (() => void) | null = null;
+
+function applyTheme() {
+  if (!rendition) return;
+  const rootStyle = getComputedStyle(document.documentElement);
+  const background = rootStyle.getPropertyValue("--background").trim();
+  const text = rootStyle.getPropertyValue("--textPrimary").trim();
+  const link = rootStyle.getPropertyValue("--primaryColor").trim();
+  rendition.themes.default({
+    "html, body": { background: `${background} !important`, color: `${text} !important` },
+    a: { color: `${link} !important` },
+    "p, h1, h2, h3, h4, h5, h6, li": { color: `${text} !important` },
+  });
+}
+
+function nextPage() {
+  void rendition?.next();
+}
+
+function prevPage() {
+  void rendition?.prev();
+}
+
+function onLoadComponentError(error: unknown) {
+  console.error("Error loading EPUB file:", error);
+}
+
+watch(() => getters.isDarkMode(), () => { applyTheme() }, { flush: "post" });
+
+onMounted(async () => {
+  mutations.resetSelected();
+  mutations.addSelected({
+    name: state.req.name,
+    path: state.req.path,
+    size: state.req.size,
+    type: state.req.type,
+    source: state.req.source,
+    modified: state.req.modified,
+    hasPreview: state.req.hasPreview,
+  });
+  try {
+    const viewIdentity = requestViewIdentity(state.req);
+    let viewToken: string | undefined =
+      getRequestViewToken(state.req) ?? getCachedViewToken(state.req.source ?? "");
     try {
-      const viewIdentity = requestViewIdentity(state.req);
-      let viewToken: string | undefined =
-        getRequestViewToken(state.req) ?? getCachedViewToken(state.req.source ?? "");
-      try {
-        const refreshed = await ensureViewToken(state.req.source ?? "");
-        if (refreshed) {
-          viewToken = refreshed;
-          if (requestViewIdentity(state.req) === viewIdentity) {
-            mutations.setRequestViewToken(refreshed);
-          }
+      const refreshed = await ensureViewToken(state.req.source ?? "");
+      if (refreshed) {
+        viewToken = refreshed;
+        if (requestViewIdentity(state.req) === viewIdentity) {
+          mutations.setRequestViewToken(refreshed);
         }
-      } catch (err) {
-        console.warn("Failed to refresh view token for EPUB preview:", err);
       }
-      // 1. Fetch the download URL for the EPUB file
-      const epubUrl = getters.isShare()
-        ? resourcesApi.getViewURL(
-            state.req.source,
-            state.req.path,
-            viewToken,
-            {
-              path: state.shareInfo.subPath,
-              hash: state.shareInfo.hash,
-            },
-            false,
-            state.req.type || state.req.name,
-          )
-        : resourcesApi.getViewURL(
-            state.req.source,
-            state.req.path,
-            viewToken,
-            null,
-            false,
-            state.req.type || state.req.name,
-          );
+    } catch (err) {
+      console.warn("Failed to refresh view token for EPUB preview:", err);
+    }
 
-      // 2. Initialize the EPUB book
-      const { default: ePub } = await import("epubjs");
-      if (this.isUnmounted) return;
-      this.book = ePub(epubUrl, { openAs: "epub" });
+    const epubUrl = getters.isShare()
+      ? resourcesApi.getViewURL(
+          state.req.source,
+          state.req.path,
+          viewToken,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+          },
+          false,
+          state.req.type || state.req.name,
+        )
+      : resourcesApi.getViewURL(
+          state.req.source,
+          state.req.path,
+          viewToken,
+          null,
+          false,
+          state.req.type || state.req.name,
+        );
 
-      // 3. Render the book to the "viewer" div
-      this.rendition = this.book.renderTo("viewer", {
-        width: "100%",
-        height: "100%",
-        spread: "auto", // Automatically handle single or double page spreads
-        flow: "paginated", // Standard book-like pagination
-      });
+    // Initialize the EPUB book (async)
+    const { default: ePub } = await import("epubjs");
+    if (isUnmounted) return;
+    const newBook = ePub(epubUrl, { openAs: "epub" });
+    book = newBook;
 
-      let manager: object | undefined;
-      Object.defineProperty(this.rendition, "manager", {
-        configurable: true,
-        get: () => manager,
-        set: (value: object) => {
-          manager = value;
-          let stage: { size: (width?: string | number | null, height?: string | number | null) => unknown } | undefined;
-          Object.defineProperty(value, "stage", {
-            configurable: true,
-            get: () => stage,
-            set: (created: NonNullable<typeof stage>) => {
-              const size = created.size.bind(created);
-              created.size = (width, height) => size(width ?? "100%", height ?? "100%");
-              stage = created;
-            },
-          });
-        },
-      });
+    // Render the book to the viewer div
+    const newRendition = newBook.renderTo("viewer", {
+      width: "100%",
+      height: "100%",
+      spread: "auto",
+      flow: "paginated",
+    });
+    rendition = newRendition;
 
-      // 4. Display: restore from `#epubcfi=...` if present, else first linear chapter
-      const initialCfi = parseEpubCfiFromHash();
-      try {
-        if (initialCfi) {
-          await this.rendition.display(initialCfi);
-        } else {
-          await this.rendition.display();
-        }
-      } catch {
-        await this.rendition.display();
+    let manager: object | undefined;
+    Object.defineProperty(newRendition, "manager", {
+      configurable: true,
+      get: () => manager,
+      set: (value: object) => {
+        manager = value;
+        let stage: { size: (width?: string | number | null, height?: string | number | null) => unknown } | undefined;
+        Object.defineProperty(value, "stage", {
+          configurable: true,
+          get: () => stage,
+          set: (created: NonNullable<typeof stage>) => {
+            const size = created.size.bind(created);
+            created.size = (width, height) => size(width ?? "100%", height ?? "100%");
+            stage = created;
+          },
+        });
+      },
+    });
+
+    // restore from `#epubcfi=...` if present, else first linear chapter
+    const initialCfi = parseEpubCfiFromHash();
+    try {
+      if (initialCfi) {
+        await newRendition.display(initialCfi);
+      } else {
+        await newRendition.display();
       }
+    } catch {
+      await newRendition.display();
+    }
+    if (isUnmounted) return;
 
-      if (this.isUnmounted) return;
+    applyTheme();
 
-      this.applyTheme(getters.isDarkMode());
+    onRelocatedHandler = (loc: unknown) => {
+      const start = (loc as { start?: { cfi?: unknown } })?.start;
+      const cfi = cfiToString(start?.cfi);
+      if (!cfi) return;
+      if (epubHashDebounceTimer !== null) {
+        clearTimeout(epubHashDebounceTimer);
+      }
+      epubHashDebounceTimer = window.setTimeout(() => {
+        epubHashDebounceTimer = null;
+        replaceUrlHashWithEpubCfi(cfi);
+      }, 300);
+    };
+    newRendition.on("relocated", onRelocatedHandler);
 
-      this.unwatchDarkMode = watch(() => getters.isDarkMode(), (isDark) => {
-        this.applyTheme(isDark);
-      }, { flush: "post" });
+    onWindowHashChangeHandler = () => {
+      const cfi = parseEpubCfiFromHash();
+      if (!cfi) return;
+      newRendition.display(cfi).catch(() => {});
+    };
+    window.addEventListener("hashchange", onWindowHashChangeHandler);
 
-      this.onRelocatedHandler = (loc: unknown) => {
-        const start = (loc as { start?: { cfi?: unknown } })?.start;
-        const cfi = cfiToString(start?.cfi);
-        if (!cfi) return;
-        if (this.epubHashDebounceTimer !== null) {
-          clearTimeout(this.epubHashDebounceTimer);
+    const viewerEl = viewer.value;
+    if (viewerEl) {
+      resizeObserver = new ResizeObserver(() => {
+        if (resizeTimer !== null) {
+          clearTimeout(resizeTimer);
         }
-        this.epubHashDebounceTimer = window.setTimeout(() => {
-          this.epubHashDebounceTimer = null;
-          replaceUrlHashWithEpubCfi(cfi);
-        }, 300);
-      };
-      this.rendition.on("relocated", this.onRelocatedHandler);
-
-      this.onWindowHashChangeHandler = () => {
-        if (!this.rendition) return;
-        const cfi = parseEpubCfiFromHash();
-        if (!cfi) return;
-        this.rendition.display(cfi).catch(() => {});
-      };
-      window.addEventListener("hashchange", this.onWindowHashChangeHandler);
-
-      const viewer: HTMLElement = this.$el.querySelector("#viewer");
-      this.resizeObserver = new ResizeObserver(() => {
-        if (this.resizeTimer !== null) {
-          clearTimeout(this.resizeTimer);
-        }
-        this.resizeTimer = window.setTimeout(() => {
-          this.resizeTimer = null;
-          this.rendition?.resize(viewer.clientWidth, viewer.clientHeight);
+        resizeTimer = window.setTimeout(() => {
+          resizeTimer = null;
+          rendition?.resize(viewerEl.clientWidth, viewerEl.clientHeight);
         }, 100);
       });
-      this.resizeObserver.observe(viewer);
+      resizeObserver.observe(viewerEl);
+    }
 
-      // Set flags to show the book and trigger animations
-      this.isReady = true;
-      setTimeout(() => {
-        this.floatIn = true;
-      }, 100); // slight delay to allow rendering
-    } catch (error) {
-      this.onLoadComponentError(error);
-    }
-  },
-  beforeUnmount() {
-    this.isUnmounted = true;
-    this.resizeObserver?.disconnect();
-    this.resizeObserver = null;
-    if (this.resizeTimer !== null) {
-      clearTimeout(this.resizeTimer);
-      this.resizeTimer = null;
-    }
-    if (this.epubHashDebounceTimer !== null) {
-      clearTimeout(this.epubHashDebounceTimer);
-      this.epubHashDebounceTimer = null;
-    }
-    if (this.onWindowHashChangeHandler) {
-      window.removeEventListener("hashchange", this.onWindowHashChangeHandler);
-      this.onWindowHashChangeHandler = null;
-    }
-    if (this.rendition && this.onRelocatedHandler) {
-      this.rendition.off("relocated", this.onRelocatedHandler);
-      this.onRelocatedHandler = null;
-    }
-    this.unwatchDarkMode?.();
-    this.unwatchDarkMode = null;
-    if (this.book) {
-      this.book.destroy();
-    }
-  },
-  methods: {
-    applyTheme(isDark: boolean) {
-      if (!this.rendition) return;
-      const rootStyle = getComputedStyle(document.documentElement);
-      const background = rootStyle.getPropertyValue("--background").trim();
-      const text = rootStyle.getPropertyValue("--textPrimary").trim();
-      if (isDark) {
-        this.rendition.themes.default({
-          "html, body": { background: `${background} !important`, color: `${text} !important` },
-          a: { color: "#bb86fc !important" },
-          "p, h1, h2, h3, h4, h5, h6, li": { color: `${text} !important` },
-        });
-      } else {
-        this.rendition.themes.default({
-          "html, body": { background: `${background} !important`, color: "#000 !important" },
-          a: { color: "#6200ee !important" },
-        });
-      }
-    },
-    // Navigate to the next page
-    nextPage() {
-      void this.rendition?.next();
-    },
-    // Navigate to the previous page
-    prevPage() {
-      void this.rendition?.prev();
-    },
-    // Close the viewer and navigate away
-    close() {
-      const filename = state.req.name;
-      mutations.replaceRequest({});
-      const uri = `${removeLastDir(state.route.path)}/`;
-      void router.push({ path: uri, hash: `#${filename}` });
-    },
-    // Error handler
-    onLoadComponentError(error: unknown) {
-      console.error("Error loading EPUB file:", error);
-      // You could add logic here to display an error message to the user
-    },
-  },
+    // flags to show the book and trigger animation
+    isReady.value = true;
+    setTimeout(() => {
+      floatIn.value = true;
+    }, 100); // slight delay to allow rendering
+  } catch (error) {
+    onLoadComponentError(error);
+  }
+});
+
+onBeforeUnmount(() => {
+  isUnmounted = true;
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+  if (resizeTimer !== null) {
+    clearTimeout(resizeTimer);
+    resizeTimer = null;
+  }
+  if (epubHashDebounceTimer !== null) {
+    clearTimeout(epubHashDebounceTimer);
+    epubHashDebounceTimer = null;
+  }
+  if (onWindowHashChangeHandler) {
+    window.removeEventListener("hashchange", onWindowHashChangeHandler);
+    onWindowHashChangeHandler = null;
+  }
+  if (rendition && onRelocatedHandler) {
+    rendition.off("relocated", onRelocatedHandler);
+    onRelocatedHandler = null;
+  }
+  if (book) {
+    book.destroy();
+  }
 });
 </script>
 
