@@ -20,6 +20,8 @@ import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
 import { ensureViewToken, requestViewIdentity, getCachedViewToken, getRequestViewToken } from "@/api/viewToken.js";
 
+defineOptions({ name: "epubViewer" });
+
 /** Hash format: `#epubcfi=<encodeURIComponent(epub-cfi)>` — distinct from listing `#filename` hashes. */
 const EPUB_HASH_PREFIX = "epubcfi=";
 
