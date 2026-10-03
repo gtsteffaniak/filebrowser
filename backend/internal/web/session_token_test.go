@@ -1,11 +1,14 @@
 package web
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func TestReplaceSessionTokenKeepsOldTokenWhenMintFails(t *testing.T) {
@@ -48,5 +51,119 @@ func TestReplaceSessionTokenRetiresOldWithGrace(t *testing.T) {
 	}
 	if _, _, ok := state.HashedTokenOwner(oldToken); !ok {
 		t.Fatal("old token mapping must remain during the grace window")
+	}
+}
+
+// Regression test for #3006: a request that already carried the session cookie
+// must not re-emit Set-Cookie. Otherwise an in-flight response carrying a
+// just-rotated-out token reverts the browser jar to a token that dies when its
+// retirement grace expires.
+func TestWithUserDoesNotEchoCookieToken(t *testing.T) {
+	setupTestEnv(t)
+	user := createTokenAuthUser(t, "echo-user", users.Permissions{Api: true})
+	token := testSessionToken(t, user, time.Hour)
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/users", http.NoBody)
+	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: token})
+
+	withUser(mockHandler)(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", recorder.Code)
+	}
+	if setCookie := recorder.Header().Values("Set-Cookie"); len(setCookie) != 0 {
+		t.Fatalf("cookie-carried request must not re-emit Set-Cookie, got %v", setCookie)
+	}
+}
+
+// Clients that authenticate without a session cookie (gvfs, Bearer, ?auth=)
+// still get the token planted so subsequent requests stay authenticated.
+func TestWithUserPlantsCookieForBearerClients(t *testing.T) {
+	setupTestEnv(t)
+	user := createTokenAuthUser(t, "bearer-user", users.Permissions{Api: true})
+	token := testSessionToken(t, user, time.Hour)
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/users", http.NoBody)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	withUser(mockHandler)(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", recorder.Code)
+	}
+	cookies := recorder.Result().Cookies()
+	var session *http.Cookie
+	for _, c := range cookies {
+		if c.Name == sessionCookieName {
+			session = c
+		}
+	}
+	if session == nil {
+		t.Fatal("cookie-less authenticated request must receive Set-Cookie")
+	}
+	if session.Value != token {
+		t.Fatal("planted cookie must contain the presented token")
+	}
+}
+
+// Renew while the presented token is still fresh returns it unchanged instead
+// of rotating: routine page loads must not churn session-token state.
+func TestRenewHandlerFreshTokenIsIdempotent(t *testing.T) {
+	setupTestEnv(t)
+	user := createTokenAuthUser(t, "renew-fresh-user", users.Permissions{Api: true})
+	token := testSessionToken(t, user, 2*time.Hour)
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/renew", http.NoBody)
+	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: token})
+
+	status, err := renewHandler(recorder, req, &requestContext{User: user, Token: token})
+	if err != nil {
+		t.Fatalf("renewHandler: %v", err)
+	}
+	if status != 0 && status != http.StatusOK {
+		t.Fatalf("expected success status, got %d", status)
+	}
+	if got := recorder.Body.String(); got != token {
+		t.Fatal("renew on a fresh token must return the same token")
+	}
+	if state.IsTokenRevoked(token) {
+		t.Fatal("fresh token must not be retired by a no-op renew")
+	}
+}
+
+// Inside the refresh window renew rotates: new token registered, old retired
+// but still resolvable during the grace window.
+func TestRenewHandlerNearExpiryRotates(t *testing.T) {
+	setupTestEnv(t)
+	origExp := settings.Config.Auth.TokenExpirationHours
+	t.Cleanup(func() { settings.Config.Auth.TokenExpirationHours = origExp })
+	settings.Config.Auth.TokenExpirationHours = 2
+
+	user := createTokenAuthUser(t, "renew-rotate-user", users.Permissions{Api: true})
+	token := testSessionToken(t, user, 10*time.Minute)
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/renew", http.NoBody)
+	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: token})
+
+	status, err := renewHandler(recorder, req, &requestContext{User: user, Token: token})
+	if err != nil {
+		t.Fatalf("renewHandler: %v", err)
+	}
+	if status != 0 && status != http.StatusOK {
+		t.Fatalf("expected success status, got %d", status)
+	}
+	newToken := recorder.Body.String()
+	if newToken == token {
+		t.Fatal("renew inside the refresh window must rotate the token")
+	}
+	if _, isSession, ok := state.HashedTokenOwner(newToken); !ok || !isSession {
+		t.Fatalf("rotated token must be registered as a session: ok=%v isSession=%v", ok, isSession)
+	}
+	if state.IsTokenRevoked(token) {
+		t.Fatal("rotated-out token must remain valid during the grace window")
 	}
 }
