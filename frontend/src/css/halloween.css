@@ -671,7 +671,10 @@ body.halloween-theme,
 
 @media (prefers-reduced-motion: reduce) {
     .cloud, .lightning-flash, .lightning-bolt, .lightning-bolt path,
-    .halloween-cat, .halloween-skeleton, .eye::before, .eye::after, .pupil {
+    .halloween-cat, .halloween-cat .cat-eye,
+    .halloween-skeleton, .halloween-skeleton .skeleton-head,
+    .halloween-theme .login-icon,
+    .eye::before, .eye::after, .pupil {
         animation: none !important;
     }
 }

@@ -15,6 +15,7 @@ const LEGACY_PROP_NAMES = new Set(["-moz-osx-font-smoothing"]);
 const HACK_PROP = /^[*_]/;
 // Old IE value syntax
 const LEGACY_VALUE = /progid:|expression\(/i;
+const STRING_OR_URL = /"[^"]*"|'[^']*'|url\([^)]*\)/gi;
 // At-rules like @-ms-viewport, @-ms-keyframes ...
 const LEGACY_AT_RULE = /^-ms-/;
 
@@ -34,7 +35,7 @@ const plugin: PluginCreator<void> = Object.assign(
         LEGACY_PROP.test(decl.prop) ||
         LEGACY_PROP_NAMES.has(decl.prop) ||
         HACK_PROP.test(decl.prop) ||
-        LEGACY_VALUE.test(decl.value);
+        LEGACY_VALUE.test(decl.value.replace(STRING_OR_URL, '""'));
       if (!legacy) return;
 
       const parent = decl.parent;

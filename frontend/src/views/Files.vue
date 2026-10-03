@@ -201,7 +201,11 @@ export default {
 
   },
   watch: {
-    $route: "fetchData",
+    $route() {
+      const isHalloween = getters.eventTheme() === "halloween";
+      syncEventTheme(isHalloween);
+      this.fetchData();
+    },
     reload(value) {
       if (value) {
         this.fetchData();
