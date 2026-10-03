@@ -828,6 +828,8 @@
       "customScrollbarDescription": "Заменить стандартную полосу прокрутки браузера на встроенную в Ace",
       "wrapContent": "Переносить длинные строки в редакторе",
       "wrapContentDescription": "Переносит содержимое редактора, чтобы очень длинные строки всегда оставались видимыми",
+      "indentedSoftWrap": "Мягкий перенос с отступом",
+      "indentedSoftWrapDescription": "Когда это включено, добавляет отступ в начало перенесённого текста",
       "autocompletion": "Автодополнение",
       "autocompletionDescription": "Включает автодополнение при ручном нажатии 'ctrl + space'",
       "liveAutocompletion": "Живое автодополнение",

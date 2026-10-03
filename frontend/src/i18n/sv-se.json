@@ -828,6 +828,8 @@
       "customScrollbarDescription": "Byt ut webbläsarens inbyggda rullningslist mot Ace:s inbyggda",
       "wrapContent": "Bryt långa rader i redigeraren",
       "wrapContentDescription": "Bryter redigerarens innehåll så att mycket långa rader alltid är synliga",
+      "indentedSoftWrap": "Indragen mjuk radbrytning",
+      "indentedSoftWrapDescription": "När detta är aktiverat läggs en indragning till i början av den radbryta texten",
       "autocompletion": "Autokomplettering",
       "autocompletionDescription": "Aktiverar autokomplettering genom att manuellt trycka på 'ctrl + space'",
       "liveAutocompletion": "Live-autokomplettering",

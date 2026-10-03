@@ -828,6 +828,8 @@
       "customScrollbarDescription": "Zamień natywny pasek przewijania przeglądarki na wbudowany pasek Ace",
       "wrapContent": "Zawijanie długich wierszy w edytorze",
       "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
+      "indentedSoftWrap": "Miękkie zawijanie z wcięciem",
+      "indentedSoftWrapDescription": "Gdy jest włączone, dodaje wcięcie na początku zawiniętego tekstu",
       "autocompletion": "Autouzupełnianie",
       "autocompletionDescription": "Włącza autouzupełnianie poprzez ręczne naciśnięcie 'ctrl + space'",
       "liveAutocompletion": "Autouzupełnianie na żywo",

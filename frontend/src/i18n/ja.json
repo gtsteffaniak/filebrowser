@@ -828,6 +828,8 @@
       "customScrollbarDescription": "ブラウザのネイティブスクロールバーを Ace 組み込みのものに置き換えます",
       "wrapContent": "エディタで長い行を折り返す",
       "wrapContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします",
+      "indentedSoftWrap": "インデント付きソフト折り返し",
+      "indentedSoftWrapDescription": "これが有効な場合、折り返されたテキストの先頭にインデントを追加します",
       "autocompletion": "自動補完",
       "autocompletionDescription": "手動で「ctrl + space」を押して自動補完を有効にします",
       "liveAutocompletion": "ライブ自動補完",

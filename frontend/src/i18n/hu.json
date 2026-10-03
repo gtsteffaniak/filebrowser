@@ -828,6 +828,8 @@
       "customScrollbarDescription": "A böngésző natív görgetősávjának cseréje az Ace beépítettjére",
       "wrapContent": "Hosszú sorok tördelése a szerkesztőben",
       "wrapContentDescription": "Tördeli a szerkesztő tartalmát, hogy a nagyon hosszú sorok mindig láthatóak maradjanak",
+      "indentedSoftWrap": "Behúzott lágy tördelés",
+      "indentedSoftWrapDescription": "Ha ez engedélyezve van, behúzást ad a tördelt szöveg elejéhez",
       "autocompletion": "Automatikus kiegészítés",
       "autocompletionDescription": "Engedélyezi az automatikus kiegészítést a 'ctrl + space' manuális megnyomásával",
       "liveAutocompletion": "Élő automatikus kiegészítés",

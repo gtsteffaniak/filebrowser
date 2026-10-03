@@ -830,6 +830,8 @@
       "customScrollbarDescription": "將原生瀏覽器的捲動列替換為 Ace 內建的捲動列",
       "wrapContent": "在編輯器中讓長行自動換行",
       "wrapContentDescription": "將編輯器內容進行換行處理，以確保非常長的行始終可見",
+      "indentedSoftWrap": "縮排軟換行",
+      "indentedSoftWrapDescription": "啟用後，在換行文字的開頭加入縮排",
       "autocompletion": "自動補全",
       "autocompletionDescription": "透過手動按下 'ctrl + space' 啟用自動補全",
       "liveAutocompletion": "即時自動補全",

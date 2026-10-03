@@ -828,6 +828,8 @@
       "customScrollbarDescription": "Înlocuiește bara de derulare nativă a browser-ului cu cea integrată a lui Ace",
       "wrapContent": "Împărțirea liniilor lungi în editor",
       "wrapContentDescription": "Împarte conținutul editorului pentru a menține liniile foarte lungi întotdeauna vizibile",
+      "indentedSoftWrap": "Împărțire soft cu indentare",
+      "indentedSoftWrapDescription": "Când este activat, adaugă indentare la începutul textului împărțit",
       "autocompletion": "Completare automată",
       "autocompletionDescription": "Activează completarea automată prin apăsarea manuală a 'ctrl + space'",
       "liveAutocompletion": "Completare automată live",

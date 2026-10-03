@@ -828,6 +828,8 @@
       "customScrollbarDescription": "Tarayıcının yerel kaydırma çubuğunu Ace'in yerleşik olanıyla değiştir",
       "wrapContent": "Düzenleyicide uzun satırları kaydır",
       "wrapContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar",
+      "indentedSoftWrap": "Girintili yumuşak kaydırma",
+      "indentedSoftWrapDescription": "Bu etkinleştirildiğinde, kaydırılan metnin başına girinti ekler",
       "autocompletion": "Otomatik tamamlama",
       "autocompletionDescription": "Manuel olarak 'ctrl + space' tuşlarına basarak otomatik tamamlamayı etkinleştirir",
       "liveAutocompletion": "Canlı otomatik tamamlama",
