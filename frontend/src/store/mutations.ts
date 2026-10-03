@@ -26,6 +26,7 @@ export const mutations = {
       return;
     }
     localStorage.setItem("disableEventThemes", "true");
+    localStorage.removeItem("eventThemeOptIn");
     state.disableEventThemes = true;
     syncEventTheme(false);
     // Set theme color back to user's preference or default
@@ -42,6 +43,7 @@ export const mutations = {
       return;
     }
     localStorage.removeItem("disableEventThemes");
+    localStorage.setItem("eventThemeOptIn", "halloween");
     state.disableEventThemes = false;
     if (getters.eventTheme() === "halloween") {
       syncEventTheme(true);

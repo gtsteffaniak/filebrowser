@@ -27,7 +27,17 @@ export const getters = {
     }
     // october 9th to 31st available in the theme dropdown to change freely
     const now = new Date();
-    if (now.getMonth() === 9 && now.getDate() == 30) {
+    if (now.getMonth() === 9 && now.getDate() >= 9) {
+      return "halloween";
+    }
+    return "";
+  },
+  autoEventTheme: () => {
+    if (getters.isShare() || !globalVars.eventBasedThemes) {
+      return "";
+    }
+    const now = new Date();
+    if (now.getMonth() === 9 && now.getDate() === 31) {
       return "halloween";
     }
     return "";
@@ -36,7 +46,16 @@ export const getters = {
     if (state.disableEventThemes) {
       return "";
     }
-    return getters.eventThemeAvailable();
+    if (getters.autoEventTheme()) {
+      return "halloween";
+    }
+    if (
+      getters.eventThemeAvailable() === "halloween" &&
+      localStorage.getItem("eventThemeOptIn") === "halloween"
+    ) {
+      return "halloween";
+    }
+    return "";
   },
   getTime: (timestamp: string) => {
     if (state.user?.dateFormat) {
