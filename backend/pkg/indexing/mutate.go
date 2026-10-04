@@ -276,7 +276,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	_, ok = utils.DiskUsageCache.Get(cacheKey)
 	if !ok {
 		// Only fetch disk total and used if not cached (this is expensive, so we cache it)
-		totalPartitionSize, partitionUsed, err := fileutils.GetAggregatedPartitionUsage(sourcePath)
+		aggregate, rootOnly, err := fileutils.GetPartitionUsageVariants(sourcePath)
 		if err != nil {
 			logger.Errorf("Failed to get partition usage for index %s: %v", sourceName, err)
 		}
@@ -298,7 +298,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 				indexedSizeFromDB += uint64(item.Size)
 			}
 		}
-		idx.SetUsage(totalPartitionSize, partitionUsed, indexedSizeFromDB)
+		idx.SetUsage(aggregate, rootOnly, indexedSizeFromDB)
 		utils.DiskUsageCache.Set(cacheKey, true)
 		if metaStoreConfigured() {
 			if err := idx.writePersistedIndexInfo(); err != nil {
@@ -333,6 +333,8 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	reducedIdx.UsedAsIndexed = idx.UsedAsIndexed
 	reducedIdx.UsedDisk = idx.UsedDisk
 	reducedIdx.DiskTotal = idx.DiskTotal
+	reducedIdx.UsedDiskRoot = idx.UsedDiskRoot
+	reducedIdx.DiskTotalRoot = idx.DiskTotalRoot
 	reducedIdx.UsageScopeMismatch = idx.DiskTotal > 0 && idx.UsedAsIndexed > idx.DiskTotal
 	reducedIdx.Scanners = scannerInfos
 	reducedIdx.NumDirs = idx.getNumDirsUnlocked()

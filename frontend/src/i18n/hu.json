@@ -146,7 +146,11 @@
     "failedLogin": "Sikertelen bejelentkezés",
     "invalidCredentials": "Érvénytelen hitelesítő adatok megadása",
     "passkeyLogin": "Jelszókulcs használata",
-    "recaptchaRequired": "Recaptcha-ellenőrzés szükséges"
+    "recaptchaRequired": "Recaptcha-ellenőrzés szükséges",
+    "requirePasswordChangeTitle": "Jelszó módosítása",
+    "requirePasswordChangeInstructions": "A folytatáshoz új jelszót kell beállítania.",
+    "requirePasswordChangeSuccess": "A jelszó frissítve. Most már be van jelentkezve.",
+    "requirePasswordChangeMustDiffer": "Az új jelszónak különböznie kell a jelenlegi jelszótól"
   },
   "prompts": {
     "noTemplate": "A sablon üres!",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Felhasználói beállítások",
     "userEditTools": "Eszközök elérése",
     "userEditToolsDescription": "Állítsa be, hogy a felhasználó mely eszközökhöz férhessen hozzá",
-    "userEditSidebarLinks": "Oldalsávon található linkek"
+    "userEditSidebarLinks": "Oldalsávon található linkek",
+    "passwordRequirementsMatch": "A jelszavak egyeznek",
+    "passwordRequirementsMinLength": "Legalább {min} karakter",
+    "requirePasswordChange": "A következő bejelentkezéskor jelszóváltás szükséges"
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Ezek azok az alapértelmezett linkek, amelyek minden új felhasználóhoz hozzáadódnak. Ha egy linket kötelezővé teszel, az minden felhasználóhoz hozzáadódik, és a rendszergazdák kivételével senki sem tudja eltávolítani.",
     "sidebarLinkDefaultSourceHelp": "Ez csak akkor érvényes, ha a felhasználónak hozzáférése van ehhez a forráshoz.",
     "sidebarLinkDefaultsYamlInvalid": "Érvénytelen YAML. Ellenőrizze a formátumot, majd próbálja meg újra.",
-    "switchMode": "Váltás a linkek és a navigációs fa között"
+    "switchMode": "Váltás a linkek és a navigációs fa között",
+    "rootFilesystemOnly": "A lemezhasználat korlátozása a forrásfájlrendszerre",
+    "rootFilesystemOnlyDescription": "Ha engedélyezve van, akkor csak a forrásútvonalat tartalmazó fájlrendszer kerül jelentésre. Ha letiltva van (alapértelmezett), akkor a lemez teljes mérete magában foglalja a forrásútvonal alá csatlakoztatott fájlrendszereket is, wobei a megosztott tárolók, például a ZFS-adatállományok, csak egyszer kerülnek beszámításra."
   },
   "share": {
     "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",

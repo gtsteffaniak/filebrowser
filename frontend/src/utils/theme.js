@@ -1,5 +1,11 @@
 import { globalVars } from '@/utils/constants';
 
+function halloweenPatternUrl(filename) {
+  const base = globalVars.baseURL || '/';
+  const normalized = base.endsWith('/') ? base : `${base}/`;
+  return `url("${normalized}public/static/img/${filename}")`;
+}
+
 export function defaultDarkMode() {
   return globalVars.darkMode === true;
 }

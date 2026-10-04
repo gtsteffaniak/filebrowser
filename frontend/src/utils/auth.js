@@ -160,6 +160,9 @@ export async function ensureSessionFresh(withinMs = SESSION_REFRESH_BEFORE_MS) {
 }
 
 export function startSessionKeepAlive() {
+  if (globalVars.noAuth) {
+    return;
+  }
   if (keepAliveTimer !== null) {
     return;
   }

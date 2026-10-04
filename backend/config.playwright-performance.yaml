@@ -1,6 +1,9 @@
 http:
   port: 8080
   baseURL: "/"
+frontend:
+  styling:
+    disableEventThemes: true
 server:
   logging:
     - levels: "info|warning|error"

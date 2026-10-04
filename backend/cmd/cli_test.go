@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/alecthomas/kong"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -190,4 +191,27 @@ func TestSetupNoInputRejected(t *testing.T) {
 	err = ctx.Run()
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "interactive input")
+}
+
+func TestGenerateSetupConfigYAML_MinimalWithComments(t *testing.T) {
+	t.Chdir("..")
+
+	cfg := settings.SetDefaults(false)
+	cfg.Server.Sources = []*settings.Source{{Path: "/var/lib/files"}}
+	cfg.Server.DatabaseV2.Path = "./filebrowser.sqlite"
+	cfg.Http.Port = 8080
+	cfg.Server.Logging = []settings.LogConfig{
+		{Output: "stdout", Levels: "info|warning|error"},
+	}
+
+	out, err := generateSetupConfigYAML(&cfg)
+	require.NoError(t, err)
+	assert.Contains(t, out, "#")
+	assert.Contains(t, out, "/var/lib/files")
+	assert.Contains(t, out, "8080")
+	assert.NotContains(t, out, "FileBrowser Quantum")
+	assert.NotContains(t, out, "darkMode")
+	assert.NotContains(t, out, "minSearchLength:")
+	assert.NotContains(t, out, "frontend:")
+	assert.NotContains(t, out, "rules:")
 }

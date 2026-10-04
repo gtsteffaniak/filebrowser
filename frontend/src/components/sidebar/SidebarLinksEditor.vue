@@ -197,6 +197,13 @@
                 @update:model-value="updateUsageTextMode"
               />
             </div>
+
+            <ToggleSwitch class="item"
+              v-if="showIndexedUsage || showDiskUsage"
+              :modelValue="rootFilesystemOnly"
+              @update:modelValue="updateRootFilesystemOnly"
+              :name="$t('sidebar.rootFilesystemOnly')"
+              :description="$t('sidebar.rootFilesystemOnlyDescription')" />
           </div>
         </div>
 
@@ -425,6 +432,12 @@ import YamlEditorPanel from "@/components/prompts/YamlEditorPanel.vue";
 import { sidebarLinkKey } from "@/utils/sidebarLinkKeys.js";
 import { createDragReorder } from "@/utils/dragAndDropReorder.js";
 import yaml from "js-yaml";
+import {
+  baseSidebarCategory,
+  isRootOnlySidebarCategory,
+  isSourceSidebarCategory,
+  withRootOnlySuffix,
+} from "@/utils/sidebarCategory";
 
 export default {
   name: "SidebarLinksEditor",
@@ -575,13 +588,18 @@ export default {
       return this.newLink.target && this.newLink.name;
     },
     showIndexedUsage() {
-      return this.newLink.category === 'source' || this.newLink.category === 'source-hybrid' || this.newLink.category === 'source-hybrid-2';
+      const base = baseSidebarCategory(this.newLink.category);
+      return base === 'source' || base === 'source-hybrid' || base === 'source-hybrid-2';
     },
     showDiskUsage() {
-      return this.newLink.category === 'source-alt' || this.newLink.category === 'source-hybrid' || this.newLink.category === 'source-hybrid-2';
+      const base = baseSidebarCategory(this.newLink.category);
+      return base === 'source-alt' || base === 'source-hybrid' || base === 'source-hybrid-2';
+    },
+    rootFilesystemOnly() {
+      return isRootOnlySidebarCategory(this.newLink.category);
     },
     usageTextMode() {
-      if (this.newLink.category === 'source-hybrid-2') {
+      if (baseSidebarCategory(this.newLink.category) === 'source-hybrid-2') {
         return 'disk';
       }
       return 'indexed';
@@ -965,39 +983,31 @@ export default {
       return defaultLinks;
     },
     isSourceCategory(category) {
-      return category === 'source' || category === 'source-minimal' || category === 'source-alt' || category === 'source-hybrid' || category === 'source-hybrid-2';
+      return isSourceSidebarCategory(category);
     },
     updateUsageToggles(toggleType, value) {
-      // Determine the new category based on toggle states
-      // indexed=true, disk=false  -> 'source'
-      // indexed=false, disk=true  -> 'source-alt'
-      // indexed=true, disk=true   -> 'source-hybrid' or 'source-hybrid-2' (depends on usageTextMode)
-      // indexed=false, disk=false -> 'source-minimal'
-
       const indexed = toggleType === 'indexed' ? value : this.showIndexedUsage;
       const disk = toggleType === 'disk' ? value : this.showDiskUsage;
+      const base = baseSidebarCategory(this.newLink.category);
 
+      let category;
       if (indexed && disk) {
-        // Preserve the hybrid mode variant if it was already set
-        if (this.newLink.category === 'source-hybrid-2') {
-          this.newLink.category = 'source-hybrid-2';
-        } else {
-          this.newLink.category = 'source-hybrid';
-        }
+        category = base === 'source-hybrid-2' ? 'source-hybrid-2' : 'source-hybrid';
       } else if (indexed && !disk) {
-        this.newLink.category = 'source';
+        category = 'source';
       } else if (!indexed && disk) {
-        this.newLink.category = 'source-alt';
+        category = 'source-alt';
       } else {
-        this.newLink.category = 'source-minimal';
+        category = 'source-minimal';
       }
+      this.newLink.category = withRootOnlySuffix(category, this.rootFilesystemOnly);
     },
     updateUsageTextMode(mode) {
-      if (mode === "disk") {
-        this.newLink.category = 'source-hybrid-2';
-      } else {
-        this.newLink.category = 'source-hybrid';
-      }
+      const category = mode === "disk" ? 'source-hybrid-2' : 'source-hybrid';
+      this.newLink.category = withRootOnlySuffix(category, this.rootFilesystemOnly);
+    },
+    updateRootFilesystemOnly(value) {
+      this.newLink.category = withRootOnlySuffix(this.newLink.category, value);
     },
     getCategoryLabel(category) {
       switch (category) {

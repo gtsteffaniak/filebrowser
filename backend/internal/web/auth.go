@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
 
@@ -83,28 +84,8 @@ func ExtractToken(r *http.Request) (string, error) {
 // When groupsPresent is false the groups claim was omitted and existing memberships are left unchanged.
 // When groupsPresent is true, groups (including empty) are synced into access-control GroupMap.
 func getOrCreateAuthenticatedUser(username string, loginMethod users.LoginMethod, isAdmin bool, groups []string, groupsPresent bool) (*users.User, error) {
-	allowedGroups := []string{}
-	switch loginMethod {
-	case users.LoginMethodJwt:
-		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
-	case users.LoginMethodLdap:
-		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
-	case users.LoginMethodOidc:
-		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
-	case users.LoginMethodProxy:
-		allowedGroups = settings.Config.Auth.Methods.ProxyAuth.UserGroups
-	}
-	allowed := len(allowedGroups) == 0
-	for _, userGroup := range groups {
-		for _, allowedGroup := range allowedGroups {
-			if userGroup == allowedGroup {
-				allowed = true
-				break
-			}
-		}
-	}
-	if !allowed {
-		return nil, fmt.Errorf("user is not in allowed groups")
+	if err := ensureUserInAllowedGroups(loginMethod, groups); err != nil {
+		return nil, err
 	}
 
 	// Try to get existing user
@@ -170,6 +151,38 @@ func isAdminFromGroups(adminGroup string, groups []string) bool {
 	return adminGroup != "" && slices.Contains(groups, adminGroup)
 }
 
+// ensureUserInAllowedGroups rejects login when userGroups is configured and none
+// of the IdP groups are allowed. Must run before auto-create so denied users
+// leave no account behind.
+func ensureUserInAllowedGroups(loginMethod users.LoginMethod, groups []string) error {
+	allowedGroups := []string{}
+	switch loginMethod {
+	case users.LoginMethodJwt:
+		allowedGroups = settings.Config.Auth.Methods.JwtAuth.UserGroups
+	case users.LoginMethodLdap:
+		allowedGroups = settings.Config.Auth.Methods.LdapAuth.UserGroups
+	case users.LoginMethodOidc:
+		allowedGroups = settings.Config.Auth.Methods.OidcAuth.UserGroups
+	case users.LoginMethodProxy:
+		allowedGroups = settings.Config.Auth.Methods.ProxyAuth.UserGroups
+	}
+	if len(allowedGroups) == 0 {
+		return nil
+	}
+	for _, userGroup := range groups {
+		for _, allowedGroup := range allowedGroups {
+			if loginMethod == users.LoginMethodLdap {
+				if ldapGroupMatches(userGroup, allowedGroup) {
+					return nil
+				}
+			} else if strings.EqualFold(userGroup, allowedGroup) {
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("user is not in allowed groups")
+}
+
 func SetupProxyUser(r *http.Request, data *Context, proxyUser string) (*users.User, error) {
 	proxyCfg := settings.Config.Auth.Methods.ProxyAuth
 	groups, groupsPresent := auth.ExtractGroupsFromHeader(r, proxyCfg.GroupsClaim)
@@ -214,6 +227,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, erro
 	}
 	if d.User.HasPasskeyMFA() && d.User.TOTPSecret == "" {
 		return http.StatusForbidden, errors.ErrPasskeyMFARequired
+	}
+	if passwordUser && d.User.RequirePasswordChange {
+		return http.StatusForbidden, errors.ErrPasswordChangeRequired
 	}
 	status, err := printToken(w, r, d.User, "")
 	if err != nil || status != 0 {
@@ -315,6 +331,9 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	if username == "" || password == "" {
 		return http.StatusBadRequest, fmt.Errorf("username and password are required")
 	}
+	if err := settings.ValidatePasswordPolicy(password); err != nil {
+		return http.StatusBadRequest, err
+	}
 
 	user := users.User{
 		FrontendUser: users.FrontendUser{
@@ -363,11 +382,65 @@ func parseSignupCredentials(r *http.Request) (username, password string, err err
 // @Produce json
 // @Success 200 {string} string "New JWT token generated"
 // @Failure 401 {object} map[string]string "Unauthorized - invalid token"
+// @Failure 403 {object} map[string]string "Forbidden - non-session token"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/renew [post]
 func renewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if settings.Config.Auth.Methods.NoAuth {
+		w.Header().Set("Content-Type", "text/plain")
+		if d.Token != "" {
+			if _, err := w.Write([]byte(d.Token)); err != nil {
+				return 401, errors.ErrUnauthorized
+			}
+		}
+		return 0, nil
+	}
+	token := d.Token
+	if token == "" {
+		extracted, err := ExtractToken(r)
+		if err != nil || extracted == "" {
+			return http.StatusUnauthorized, errors.ErrUnauthorized
+		}
+		token = extracted
+		d.Token = token
+	}
+	_, isSession, ok := state.HashedTokenOwner(token)
+	if ok && !isSession {
+		return http.StatusForbidden, fmt.Errorf("renew requires a session token")
+	}
+	if !ok {
+		return http.StatusUnauthorized, errors.ErrUnauthorized
+	}
+	// Renew is idempotent while the presented session token is still fresh:
+	// without this every page load rotates the token (the frontend tracks exp
+	// in memory only), churning token state. Rotation happens only inside the
+	// refresh window, matching the frontend's renew threshold.
+	var tk users.AuthToken
+	if _, err := jwt.ParseWithClaims(d.Token, &tk, auth.JWTSigningKeyFunc()); err == nil &&
+		tk.RegisteredClaims.ExpiresAt != nil &&
+		time.Until(tk.RegisteredClaims.ExpiresAt.Time) > sessionRenewWindow {
+		// Do not re-emit the cookie when the request already carried this token.
+		// A concurrent renew may have rotated the jar; an in-flight idempotent
+		// response would otherwise revert the browser to a retiring token.
+		if c, err := r.Cookie(sessionCookieName); err != nil || c.Value == "" || c.Value != d.Token {
+			SetSessionCookie(w, r, d.Token, tk.RegisteredClaims.ExpiresAt.Add(sessionCookieBuffer))
+		}
+		w.Header().Set("Content-Type", "text/plain")
+		if _, err := w.Write([]byte(d.Token)); err != nil {
+			return 401, errors.ErrUnauthorized
+		}
+		return 0, nil
+	}
 	return printToken(w, r, d.User, d.Token)
 }
+
+// sessionRenewWindow mirrors the frontend SESSION_REFRESH_BEFORE_MS: renews
+// arriving while the session token has more than this left return it unchanged.
+const sessionRenewWindow = 30 * time.Minute
+
+// sessionCookieBuffer keeps the browser cookie briefly past JWT expiry so an
+// in-flight renew can still authenticate against the just-expired token.
+const sessionCookieBuffer = 30 * time.Minute
 
 func printToken(w http.ResponseWriter, r *http.Request, user *users.User, priorToken string) (int, error) {
 	expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
@@ -379,7 +452,7 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User, priorT
 		return 401, errors.ErrUnauthorized
 	}
 
-	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
+	expiresTime := time.Now().Add(expires).Add(sessionCookieBuffer)
 
 	SetSessionCookie(w, r, tokenString, expiresTime)
 

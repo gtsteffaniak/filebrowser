@@ -1,5 +1,5 @@
 <template>
-  <div class="scroll-wrapper" :class="{ 'halloween-theme': eventTheme === 'halloween' }" :style="halloweenBackgroundStyle" ref="wrapper">
+  <div class="scroll-wrapper" :class="{ 'halloween-theme': eventTheme === 'halloween' }" ref="wrapper">
     <slot />
     <div
       class="custom-scrollbar"
@@ -76,15 +76,6 @@ export default {
     },
     eventTheme() {
       return getters.eventTheme();
-    },
-    halloweenBackgroundStyle() {
-      if (this.eventTheme === 'halloween') {
-        return {
-          backgroundImage: `url("${globalVars.baseURL}static/img/halloween-pattern.svg")`,
-          backgroundRepeat: 'repeat'
-        };
-      }
-      return {};
     },
     thumbIcon() {
       const category = this.category();

@@ -1,6 +1,9 @@
 http:
   port: 8080
   baseURL:  "/files/"
+frontend:
+  styling:
+    disableEventThemes: true
 auth:
   adminPassword: "playwright-password"
 

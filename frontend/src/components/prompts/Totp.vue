@@ -86,6 +86,10 @@ export default {
       type: String,
       default: "",
     },
+    recaptcha: {
+      type: String,
+      default: "",
+    },
   },
   async mounted() {
     if (this.generate) {
