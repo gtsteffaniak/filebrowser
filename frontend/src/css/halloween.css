@@ -92,8 +92,8 @@ body.halloween-theme,
 /* Chiseled R.I.P. carved into the tombstone head */
 .tombstone-rip {
   position: absolute;
-  top: -38px;
-  left: 50%;
+  top: -35px;
+  left: 53%;
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 1;
@@ -154,10 +154,6 @@ body.halloween-theme,
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.tombstone-field .input:hover:not(:focus) {
-  border-color: #9a9a9a;
-}
-
 .tombstone-field .input:focus {
   outline: none;
   background: #000;
@@ -171,6 +167,10 @@ body.halloween-theme,
   box-shadow: 0 0 0 1000px #000 inset;
   -webkit-text-fill-color: #ff8c00;
   caret-color: #ff8c00;
+}
+
+.tombstone-field .input:hover:not(:focus) {
+  border-color: #9a9a9a;
 }
 
 .tombstone-field .input::placeholder {
