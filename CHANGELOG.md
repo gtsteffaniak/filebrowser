@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Fixed inflated disk usage for sources spanning multiple ZFS datasets (or btrfs subvolumes): shared-pool filesystems are now grouped by pool and counted once, instead of multiplying capacity by the number of mounted datasets (#3025) (#2997) (#2761).
  - LDAP `userGroups` matching now accepts CN-only config values against full `memberOf` DNs and compares case-insensitively, instead of failing the shared auth helper with strict string equality (#3044).
  - OIDC session expires despite tokenExpirationHours (#3006).
+ - Media playback becomes stuck after opening a failing media file since v2.0.8-beta (#3031)
 
 ## v2.0.9
 
