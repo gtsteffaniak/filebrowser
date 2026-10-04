@@ -243,4 +243,42 @@ test.describe("User Settings Persistence", () => {
         ).toHaveText("Password");
         checkForErrors();
     });
+
+    test('should persist a scope path chosen in the picker', async ({ page }) => {
+        const userRow = userRowInSettingsUsersTable(page, username);
+        const modal = await openUserEdit(page, userRow, { username });
+        await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
+        const scopeButton = modal.getByRole("button", {
+            name: `user-edit-scope-path-${SETTINGS_TEST_SOURCE}`,
+            exact: true,
+        });
+        await expect(scopeButton).toHaveText("/");
+
+        await scopeButton.click();
+        const picker = page.locator('div[aria-label="pathPicker-prompt"]');
+        await expect(picker).toBeVisible();
+        await picker.getByRole("button", { name: "myfolder", exact: true }).click();
+        await picker.locator('button[aria-label="Select"]').click();
+        await expect(picker).not.toBeVisible();
+        const chosenPath = (await scopeButton.innerText()).trim();
+        expect(chosenPath).toContain("myfolder");
+
+        await modal.locator('button[aria-label="Save"]').click();
+        await confirmActorPasswordPrompt(page);
+        await expect(modal).not.toBeVisible();
+
+        await openUserEdit(page, userRow, { username });
+        await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
+        await expect(scopeButton).toHaveText(chosenPath);
+
+        await scopeButton.click();
+        await expect(picker).toBeVisible();
+        await picker.getByRole("button", { name: "..", exact: true }).click();
+        await picker.locator('button[aria-label="Select"]').click();
+        await expect(picker).not.toBeVisible();
+        await expect(scopeButton).toHaveText("/");
+        await modal.locator('button[aria-label="Save"]').click();
+        await confirmActorPasswordPrompt(page);
+        await expect(modal).not.toBeVisible();
+    });
 });
