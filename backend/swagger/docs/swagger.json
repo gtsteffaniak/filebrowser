@@ -2673,7 +2673,7 @@
         },
         "/api/resources/unarchive": {
             "post": {
-                "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: `\"default\"`\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `\"restored\"`\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `\"/downloads/data.zip\"`\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: `\"/projects/imported\"`\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`",
+                "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: `\"default\"`\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `\"restored\"`\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `\"/downloads/data.zip\"`\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: `\"/projects/imported\"`\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`\n- **filenameEncoding** (string, optional): Fallback ZIP filename encoding: utf-8, cp932, gb18030, big5, euc-kr, cp437, windows-1252. Unicode metadata takes precedence. Omit to use a suggestion; ambiguous encodings require a selection.\n- **preview** (boolean, optional): Return ZIP encoding candidates and sample filenames without extracting or deleting anything. Requires the same source/destination permissions as extraction.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2697,12 +2697,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Extracted; returns {\\\"path\\\": \\\"\u003cdestination path\u003e\\\", \\\"source\\\": \\\"\u003ctoSource\u003e\\\"}",
+                        "description": "Preview returns suggested and candidates; extraction returns path and source. Extracted; returns {\\\"path\\\": \\\"\u003cdestination path\u003e\\\", \\\"source\\\": \\\"\u003ctoSource\u003e\\\"}",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -8603,6 +8601,10 @@
                     "description": "Directory path on toSource to extract into (required). Example: \"/projects/imported\"",
                     "type": "string"
                 },
+                "filenameEncoding": {
+                    "description": "Fallback ZIP filename encoding; explicit Unicode metadata takes precedence.",
+                    "type": "string"
+                },
                 "fromSource": {
                     "description": "Source name where the archive file lives (required). Example: \"default\"",
                     "type": "string"
@@ -8610,6 +8612,10 @@
                 "path": {
                     "description": "Path to the archive file on fromSource; .zip, .tar.gz, or .tgz (required). Example: \"/downloads/data.zip\"",
                     "type": "string"
+                },
+                "preview": {
+                    "description": "Inspect ZIP names without writing or deleting files.",
+                    "type": "boolean"
                 },
                 "toSource": {
                     "description": "Source name where contents will be extracted (optional; default: fromSource). Example: \"restored\"",
