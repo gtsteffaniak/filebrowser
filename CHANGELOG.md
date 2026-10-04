@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - Sidebar source links can now switch between aggregated usage (default) and a root-filesystem-only view via a new "Limit disk usage to source filesystem" toggle.
  - [docker] upgraded ffmpeg from 9.0 to 9.0.2
+ - CLI setup command no longer produces full config, instead a minimal config.yaml with comments.
 
  **Bugfixes**:
  - Anonymous visitors on public shares could not play inline video or audio: `GET /public/api/media/stream` returned 403 because view grants were validated before share context was fully hydrated; playback now works when download and the file viewer are allowed ([#3041](https://github.com/gtsteffaniak/filebrowser/issues/3041)).
