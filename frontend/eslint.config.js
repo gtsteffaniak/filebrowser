@@ -7,8 +7,6 @@ import vueParser from "vue-eslint-parser";
 import globals from "globals";
 import security from "eslint-plugin-security";
 
-const TS_PROJECTS = ["./tsconfig.json", "./tsconfig.node.json"];
-
 export default defineConfig(
   {
     ignores: [
@@ -78,8 +76,8 @@ export default defineConfig(
       "no-unused-expressions": ["error", { allowShortCircuit: true, allowTernary: true }],
       "prefer-template": "warn",
       "@typescript-eslint/consistent-type-definitions": "warn",
-      // Enable together with "verbatimModuleSyntax" in tsconfig.base.json (it auto-fixes `import type`):
-      // "@typescript-eslint/consistent-type-imports": "warn",
+      // Pairs with "verbatimModuleSyntax" in tsconfig.app.json (auto-fixes `import type`)
+      "@typescript-eslint/consistent-type-imports": "warn",
       "@typescript-eslint/prefer-optional-chain": "warn",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/no-unnecessary-condition": "off", // this one is useful, but is pretty noisy and found lot of false positives
@@ -102,7 +100,7 @@ export default defineConfig(
       parser: tseslint.parser,
       parserOptions: {
         ecmaVersion: "latest",
-        project: TS_PROJECTS,
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: ['.vue'],
       },
@@ -118,7 +116,7 @@ export default defineConfig(
         parser: tseslint.parser,
         ecmaVersion: "latest",
         sourceType: "module",
-        project: TS_PROJECTS,
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: ['.vue'],
       },
