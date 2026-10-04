@@ -152,18 +152,26 @@ describe('getters.isDarkMode logged-out behavior', () => {
     expect(getters.isDarkMode()).toBe(false);
   });
 
-  it('keeps seasonal themes outside shares and ignores them on public shares', () => {
+  it('does not force dark mode during seasonal themes; the preference still applies', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 9, 31, 12, 0, 0));
     globalVarsMock.eventBasedThemes = true;
     globalVarsMock.darkMode = false;
     stateMock.disableEventThemes = false;
     stateMock.user = { username: 'alice', darkMode: false, locale: 'en' };
+    expect(getters.isDarkMode()).toBe(false);
+
+    stateMock.user.darkMode = true;
     expect(getters.isDarkMode()).toBe(true);
 
-    stateMock.user = { username: '', darkMode: false, locale: 'en' };
+    stateMock.user = { username: '', darkMode: true, locale: 'en' };
+    expect(getters.isDarkMode()).toBe(false);
+
+    globalVarsMock.darkMode = true;
     expect(getters.isDarkMode()).toBe(true);
 
+    globalVarsMock.darkMode = false;
+    stateMock.user = { username: 'alice', darkMode: false, locale: 'en' };
     stateMock.disableEventThemes = true;
     expect(getters.isDarkMode()).toBe(false);
 

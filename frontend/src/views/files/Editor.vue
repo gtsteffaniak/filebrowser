@@ -922,7 +922,7 @@ defineExpose({ getValue });
 
 .ace_editor .ace_search .ace_button:hover,
 .ace_editor .ace_search .ace_searchbtn:hover {
-  background-color: var(--surfaceSecondary);
+  background-color: var(--hoverOverlay);
 }
 
 .ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {

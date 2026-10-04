@@ -5,7 +5,7 @@
 }
 
 .settings-items > .item:hover {
-  background-color: var(--surfaceSecondary);
+  background-color: var(--hoverOverlay);
 }
 
 /* Enforceable preference groups (ToggleSwitch, ProfileEnforceableField). */

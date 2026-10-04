@@ -457,7 +457,7 @@ export default {
 }
 
 .info-item:hover {
-  background-color: var(--surfaceSecondary);
+  background-color: var(--hoverOverlay);
 }
 
 .info-item strong {

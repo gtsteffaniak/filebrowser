@@ -1374,7 +1374,7 @@ export default {
 }
 
 .link-item.input:hover {
-  border-color: var(--surfaceSecondary);
+  border-color: var(--hoverOverlay);
 }
 
 .link-item.dragging {
