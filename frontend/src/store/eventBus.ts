@@ -7,7 +7,8 @@ class EventBus extends EventTarget {
     this.dispatchEvent(new CustomEvent(event, { detail: data }));
   }
 
-  on(event: string, callback: EventCallback) {
+  on<T = unknown>(event: string, typedCallback: (data: T) => void) {
+    const callback = typedCallback as EventCallback;
     if (this.listeners.get(callback)?.has(event)) {
       return;
     }
@@ -23,7 +24,8 @@ class EventBus extends EventTarget {
     this.addEventListener(event, wrapper);
   }
 
-  off(event: string, callback: EventCallback) {
+  off<T = unknown>(event: string, typedCallback: (data: T) => void) {
+    const callback = typedCallback as EventCallback;
     const eventMap = this.listeners.get(callback);
     if (eventMap?.has(event)) {
       const wrapper = eventMap.get(event)!;

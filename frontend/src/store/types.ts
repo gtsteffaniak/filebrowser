@@ -1,5 +1,7 @@
 // Store type definitions
 
+import type { Component } from "vue";
+
 export interface FileListItem {
   name: string;
   path: string;
@@ -12,6 +14,7 @@ export interface FileListItem {
   isShared?: boolean;
   pinned?: boolean;
   hidden?: boolean;
+  metadata?: unknown;
 }
 
 export interface ReqObject {
@@ -236,11 +239,13 @@ export interface UserObject {
     uploadChunkSizeMb?: number;
     clearAll?: boolean;
     downloadChunkSizeMb?: number;
+    maxConcurrent?: number;
+    chunkSizeMb?: number;
   };
 }
 
 export interface RouteObject {
-  name?: string;
+  name?: string | symbol | null;
   path?: string;
   params?: unknown;
   query?: unknown;
@@ -251,7 +256,7 @@ export interface StoreState {
   tooltip: {
     show: boolean;
     content: string;
-    component: import("vue").Component | null;
+    component: Component | null;
     componentProps: Record<string, unknown> | null;
     x: number;
     y: number;
@@ -263,7 +268,7 @@ export interface StoreState {
     source: string;
     path: string;
     isShare?: boolean;
-  };
+  } | null;
   contextMenuHasItems: boolean;
   deletedItem: boolean;
   showOverflowMenu: boolean;

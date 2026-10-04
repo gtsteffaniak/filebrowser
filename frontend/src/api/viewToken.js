@@ -152,6 +152,7 @@ export function rememberViewToken(source, viewToken, expiresAt) {
   }
 }
 
+/** @returns {Promise<{ viewToken: string, expiresAt: number }>} */
 export async function refreshViewToken(source, existingToken, requestScope = null) {
   const scope = requestScope ?? viewGrantScope(source);
   const url = viewTokenApiPath(source, existingToken);
@@ -177,6 +178,7 @@ export async function refreshViewToken(source, existingToken, requestScope = nul
   return data;
 }
 
+/** @returns {Promise<string>} */
 export async function ensureViewToken(source) {
   const scope = viewGrantScope(source);
   const cached = readCacheForScope(scope);

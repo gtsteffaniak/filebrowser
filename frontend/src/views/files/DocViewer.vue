@@ -215,8 +215,8 @@ watch(() => state.req, (newReq) => {
 onMounted(() => {
   mutations.resetSelected();
   mutations.addSelected({
-    name: state.req.name,
-    path: state.req.path,
+    name: state.req.name ?? "",
+    path: state.req.path ?? "",
     size: state.req.size,
     type: state.req.type,
     source: state.req.source,

@@ -38,7 +38,7 @@
       </button>
       <template v-else-if="btn.menu === 'align' || btn.menu === 'clipboard'">
         <button
-          :ref="(el) => setIconMenuTriggerEl(btn.menu, el as HTMLElement | null)"
+          :ref="(el) => setIconMenuTriggerEl(btn.menu as 'align' | 'clipboard', el as HTMLElement | null)"
           type="button"
           class="editor-toolbar-btn"
           :title="btn.title"
@@ -50,7 +50,7 @@
         </button>
         <Teleport to="body">
           <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
-            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu, el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :style="menuStyle">
+            <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu as 'align' | 'clipboard', el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :style="menuStyle">
               <li v-for="item in iconMenuItems(btn.menu)" :key="item.id">
                 <button
                   type="button"
@@ -86,13 +86,13 @@
           :style="selectedColor(btn) ? { backgroundColor: selectedColor(btn) } : null"
         >
           <input
-            :ref="(el) => setColorInput(el as HTMLInputElement | null, btn.color)"
+            :ref="(el) => setColorInput(el as HTMLInputElement | null, btn.color ?? '')"
             type="color"
             class="color-input"
             :value="selectedColor(btn)"
             :aria-label="btn.title"
             @mousedown.stop
-            @change="onColorChange(btn.color, ($event.target as HTMLInputElement).value, btn.applyColor)"
+            @change="onColorChange(btn.color ?? '', ($event.target as HTMLInputElement).value, btn.applyColor)"
           />
         </span>
       </div>
@@ -172,7 +172,7 @@ function formatHtmlAttrValue(value: string): string {
 function advancePosition(pos: Ace.Point, str: string): Ace.Point {
   const parts = str.split("\n");
   if (parts.length === 1) return { row: pos.row, column: pos.column + str.length };
-  return { row: pos.row + parts.length - 1, column: parts[parts.length - 1].length };
+  return { row: pos.row + parts.length - 1, column: parts.at(-1)?.length ?? 0 };
 }
 
 interface ToolbarButton {
@@ -433,7 +433,8 @@ export default {
       editor.execCommand("selectall");
     },
     selectedLineRange() {
-      const range = this.editor.getSelectionRange();
+      const range = this.editor?.getSelectionRange();
+      if (!range) return { startRow: 0, endRow: 0 };
       let endRow = range.end.row;
       if (endRow > range.start.row && range.end.column === 0) {
         endRow -= 1;
@@ -549,7 +550,7 @@ export default {
       const session = editor.session;
       const line = session.getLine(startRow);
       const match = line.match(/^(#{1,6})\s/);
-      const currentLevel = match ? match[1].length : 0;
+      const currentLevel = match?.[1]?.length ?? 0;
       const nextLevel = currentLevel === 0 ? 1 : (currentLevel >= 6 ? 0 : currentLevel + 1);
       const stripped = line.replace(/^#{1,6}\s*/, "");
       const newLine = nextLevel === 0 ? stripped : `${"#".repeat(nextLevel)} ${stripped}`;

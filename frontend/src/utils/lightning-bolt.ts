@@ -46,8 +46,8 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function pointsToPath(points: Point[]): string {
-  if (points.length === 0) return "";
   const [first, ...rest] = points;
+  if (!first) return "";
   let d = `M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`;
   for (const p of rest) {
     d += ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;

@@ -45,7 +45,7 @@ export const state: StoreState = reactive({
       words: 0,
       chars: 0,
     },
-    fontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
+    fontSize: parseInt(localStorage.getItem('editorFontSize') ?? '', 10) || 14,
     markdownSplitView: loadMarkdownSplitView(),
     scrollRatio: 0,
     scrollSource: null,

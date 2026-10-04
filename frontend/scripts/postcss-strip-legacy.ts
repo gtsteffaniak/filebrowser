@@ -9,7 +9,6 @@ import type {
 
 const LEGACY_SELECTOR = /::?-ms-|::-moz-focus-(inner|outer)/;
 const LEGACY_PROP = /^-ms-/;
-const LEGACY_PROP_NAMES = new Set(["-moz-osx-font-smoothing"]);
 // Old IE value syntax
 const LEGACY_VALUE = /progid:|expression\(/i;
 const STRING_OR_URL = /"[^"]*"|'[^']*'|url\([^)]*\)/gi;
@@ -30,7 +29,6 @@ const plugin: PluginCreator<void> = Object.assign(
     Declaration(decl: PostcssDeclaration) {
       const legacy =
         LEGACY_PROP.test(decl.prop) ||
-        LEGACY_PROP_NAMES.has(decl.prop) ||
         LEGACY_VALUE.test(decl.value.replace(STRING_OR_URL, '""'));
       if (!legacy) return;
 

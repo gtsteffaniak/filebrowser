@@ -10,7 +10,7 @@
       "@/*": ["./src/*"]
     },
     "composite": true,
-    "strict": false,
+    "strict": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "noEmit": true,
     "target": "ESNext",
@@ -35,9 +35,9 @@
 
     // we can remove the ones below when strict is true
     "noImplicitThis": true,
-    // "noImplicitAny": true,
-    // "strictNullChecks": true,
-    //"strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "alwaysStrict": true,

@@ -135,7 +135,7 @@ const editorLanguageMode = computed(() => {
     return "ace/mode/text";
   }
 
-  return modelist.getModeForPath(req.value.name).mode;
+  return modelist.getModeForPath(req.value.name ?? "").mode;
 });
 // Editor read-only state
 const editorReadOnly = computed(() => {
@@ -195,10 +195,10 @@ watch(req, (newReq, oldReq) => {
     isDirty = false; // Reset dirty flag for new file
     mutations.setEditorDirty(false);
     mutations.setEditorJsonFormatted(false);
-    mutations.resetEditorScrollRatio(newReq.path);
+    mutations.resetEditorScrollRatio(newReq.path ?? "");
     // Lock saves temporarily
     saveLocked = true;
-    currentReqPath = newReq.path;
+    currentReqPath = newReq.path ?? null;
     // Unlock after content loads
     scheduleSaveUnlock(500);
   }
@@ -313,8 +313,8 @@ function initializeNavigation() {
 
   mutations.resetSelected();
   mutations.addSelected({
-    name: req.value.name,
-    path: req.value.path,
+    name: req.value.name ?? "",
+    path: req.value.path ?? "",
     size: req.value.size,
     type: req.value.type,
     source: req.value.source,
@@ -484,9 +484,10 @@ async function handleEditorValueRequest() {
     throw new Error(errorMsg);
   }
   // Filename protection - ensure state is synced before saving
-  if (!isStateSynced.value) {
+  const original = originalReq.value;
+  if (!isStateSynced.value || !original) {
     const errorMsg = t("editor.saveAbortedMessage", {
-      activeFile: originalReq.value?.name || "unknown",
+      activeFile: original?.name || "unknown",
       tryingToSave: routeFilename.value || "unknown"
     });
     notify.showError(errorMsg);
@@ -500,21 +501,21 @@ async function handleEditorValueRequest() {
 
   const content = editor.value.getValue();
   const newBytes = new TextEncoder().encode(content).length;
-  const oldBytes = originalReq.value?.size ?? 0;
-  const quotaPath = removeLastDir(originalReq.value.path) || "/";
+  const oldBytes = original.size ?? 0;
+  const quotaPath = removeLastDir(original.path) || "/";
   if (await rejectPutIfQuotaExceeded(quotaPath, newBytes, oldBytes)) {
     const errorMsg = t("quotas.errors.exceeded");
     throw new Error(errorMsg);
   }
   if (getters.isShare()) {
     // Save the file
-    await resourcesApi.putPublic(state.shareInfo.hash, originalReq.value.path, content);
+    await resourcesApi.putPublic(state.shareInfo.hash, original.path, content);
   } else {
     // Save the file
-    await resourcesApi.put(originalReq.value.source, originalReq.value.path, content);
+    await resourcesApi.put(original.source, original.path, content);
   }
 
-  notify.showSuccessToast(`${originalReq.value.name} saved successfully.`);
+  notify.showSuccessToast(`${original.name} saved successfully.`);
   savedContent = editor.value.getValue();
   mutations.setRequestContent(savedContent);
   isDirty = false;

@@ -137,7 +137,7 @@ function htmlTagBalance(raw: string): number {
   let balance = 0;
   let match: RegExpExecArray | null;
   while ((match = tagPattern.exec(raw))) {
-    const [full, name] = match;
+    const [full, name = ""] = match;
     if (VOID_ELEMENTS.has(name.toLowerCase()) || full.endsWith("/>")) {
       continue;
     }
@@ -219,12 +219,12 @@ const htmlPreview = computed(() => {
   if (!isHtml.value) {
     return { srcdoc: "" };
   }
-  return buildHtmlPreview(content.value, state.req.path, state.req.source);
+  return buildHtmlPreview(content.value, state.req.path ?? "", state.req.source ?? "");
 });
 
 const renderedContent = computed(() => {
   void katexReady.value;
-  return parseMarkdown(content.value, state.req.path, state.req.source);
+  return parseMarkdown(content.value, state.req.path ?? "", state.req.source ?? "");
 });
 
 const spaceForStatusBar = computed(() => {
@@ -555,7 +555,7 @@ function splitHighlightedHTML(html: string, expectedLines: number): string[] {
   let currentHTML = html;
 
   for (let i = 0; i < textLines.length; i++) {
-    const lineText = textLines.at(i);
+    const lineText = textLines.at(i) ?? "";
     if (i === textLines.length - 1) {
       htmlLines.push(currentHTML);
     } else {
@@ -671,11 +671,11 @@ function updateEditorStats() {
 }
 
 function reinit() {
-  mutations.resetEditorScrollRatio(state.req.path);
+  mutations.resetEditorScrollRatio(state.req.path ?? "");
   mutations.resetSelected();
   mutations.addSelected({
-    name: state.req.name,
-    path: state.req.path,
+    name: state.req.name ?? "",
+    path: state.req.path ?? "",
     size: state.req.size,
     type: state.req.type,
     source: state.req.source,
@@ -756,11 +756,15 @@ function bracketAnchors(
   value: number,
 ): [{ line: number; top: number }, { line: number; top: number }] {
   for (let i = 0; i < anchors.length - 1; i++) {
-    if (getValue(anchors.at(i)) <= value && getValue(anchors.at(i + 1)) > value) {
-      return [anchors.at(i), anchors.at(i + 1)];
+    const current = anchors.at(i);
+    const next = anchors.at(i + 1);
+    if (current && next && getValue(current) <= value && getValue(next) > value) {
+      return [current, next];
     }
   }
-  return [anchors.at(0), anchors.at(-1)];
+  // the fallback is just to satisfy the types
+  const empty = { line: 0, top: 0 };
+  return [anchors.at(0) ?? empty, anchors.at(-1) ?? empty];
 }
 
 // The line currently at the top of the viewport by interpolating between the near block anchors.
@@ -795,6 +799,7 @@ function applyScrollRatio(line: number) {
   const anchors = getLineAnchors();
   if (!anchors.length) return;
   const first = anchors.at(0);
+  if (!first) return;
   let top;
   if (line <= first.line) {
     top = 0;

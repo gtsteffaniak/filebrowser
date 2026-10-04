@@ -4,7 +4,12 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "lib": ["ESNext", "DOM"],
     "types": ["node"],
-    "paths": {}
+    "paths": {},
+    "noImplicitAny": false,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitReturns": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
   },
   "include": [
     "vite.config.ts",

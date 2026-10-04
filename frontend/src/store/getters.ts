@@ -90,7 +90,7 @@ export const getters = {
     if (getters.isShare()) {
       source = getters.currentHash();
     }
-    let path = state.route.path;
+    let path = state.route.path ?? "";
 
     if (state.req.type !== "directory") {
       path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
@@ -226,7 +226,7 @@ export const getters = {
     return false
   },
   isAdmin: () => state.user.permissions?.admin === true,
-  isFiles: () => state.route.path.startsWith('/files'),
+  isFiles: () => (state.route.path ?? '').startsWith('/files'),
   isListing: () => getters.isFiles() || (getters.isShare() && state.req.type === 'directory'),
   selectedCount: () =>
     Array.isArray(state.selected) ? state.selected.length : 0,
@@ -282,9 +282,9 @@ export const getters = {
   },
   reqItems: () => {
     if (state.user === null) return { pinned: [], dirs: [], files: [] };
-    const pinned = [];
-    const dirs = [];
-    const files = [];
+    const pinned: FileListItem[] = [];
+    const dirs: FileListItem[] = [];
+    const files: FileListItem[] = [];
     if (!state.req?.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
@@ -352,7 +352,7 @@ export const getters = {
     return removePrefix(state.route.path, trimModifier)
   },
   shareHash: () => {
-    if (!state.route.path.startsWith('/public/share')) {
+    if (!(state.route.path ?? '').startsWith('/public/share')) {
       return ""
     }
     const urlPath = getters.routePath('/public/share')
@@ -366,7 +366,7 @@ export const getters = {
     return `/public/share/${getters.shareHash()}/`
   },
   getSharePath: (subPath = "") => {
-    if (!state.route.path.startsWith('/public/share')) {
+    if (!(state.route.path ?? '').startsWith('/public/share')) {
       return ""
     }
     let urlPath = getters.routePath('/public/share')
@@ -375,7 +375,7 @@ export const getters = {
     }
     // remove hash from path and decode each part
     const parts = urlPath.split('/').slice(2);
-    urlPath = parts.map(part => decodeURIComponent(part)).join('/')
+    urlPath = parts.map((part: string) => decodeURIComponent(part)).join('/')
     if (subPath !== "") {
       urlPath = url.joinPath(urlPath, removeLeadingSlash(subPath))
     }
@@ -392,10 +392,11 @@ export const getters = {
     if (pathname.startsWith(`/tools`)) return 'tools';
 
     if (state.req.type !== undefined) {
-      const ext = `.${state.req.name.split(".").pop().toLowerCase()}`;
+      const reqName = state.req.name ?? "";
+      const ext = `.${reqName.split(".").pop()?.toLowerCase() ?? ""}`;
       if (state.user.disableViewingExt?.includes(ext)) return 'preview';
       if (state.req.type === 'directory') return 'listingView';
-      if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) return 'onlyOfficeEditor';
+      if (state.req.onlyOfficeId && !getters.officeViewingDisabled(reqName)) return 'onlyOfficeEditor';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
 
       if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
@@ -509,7 +510,7 @@ export const getters = {
     }
     return files.sort((a, b) => a.progress - b.progress)
   },
-  fileViewingDisabled: filename => {
+  fileViewingDisabled: (filename: string) => {
     if (getters.isShare()) {
       if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload") {
         return true
@@ -528,7 +529,7 @@ export const getters = {
     }
     return false
   },
-  officeViewingDisabled: filename => {
+  officeViewingDisabled: (filename: string) => {
     const ext = ` ${getFileExtension(filename)}`;
     const disabledList = state.user.disableOnlyOfficeExt || ''
     if (disabledList === '*') {
@@ -750,7 +751,7 @@ export const getters = {
     return scopeEntry?.permissions ?? denyFile;
   },
   /** Whether the current user may create files/folders in the given source (share-aware). */
-  canCreateInSource: (source) => {
+  canCreateInSource: (source: string) => {
     if (getters.isShare()) {
       return !!state.shareInfo?.allowCreate;
     }
