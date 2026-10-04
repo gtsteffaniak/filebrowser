@@ -24,6 +24,11 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+const (
+	defaultMinSearchLength     = 3
+	defaultFrontendDescription = "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server"
+)
+
 var Config Settings
 
 const (
@@ -279,7 +284,7 @@ func setupFrontend(generate bool) {
 	// Load login icon configuration at startup
 	loadLoginIcon()
 	if Config.Server.MinSearchLength == 0 {
-		Config.Server.MinSearchLength = 3
+		Config.Server.MinSearchLength = defaultMinSearchLength
 	}
 	if !Config.Frontend.DisableDefaultLinks {
 		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
@@ -293,7 +298,7 @@ func setupFrontend(generate bool) {
 		})
 	}
 	if Config.Frontend.Description == "" {
-		Config.Frontend.Description = "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server"
+		Config.Frontend.Description = defaultFrontendDescription
 	}
 	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "#f5f5f5")
 	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
@@ -854,6 +859,7 @@ func SetDefaults(generate bool) Settings {
 			BaseURL: "",
 		},
 		Server: Server{
+			MinSearchLength:    defaultMinSearchLength,
 			NumImageProcessors: 4,
 			DatabaseV2: Database{
 				Path: databaseV2,
@@ -891,7 +897,8 @@ func SetDefaults(generate bool) Settings {
 			},
 		},
 		Frontend: Frontend{
-			Name: "FileBrowser Quantum",
+			Name:        "FileBrowser Quantum",
+			Description: defaultFrontendDescription,
 		},
 		UserDefaults: UserDefaults{
 			// New organized structure

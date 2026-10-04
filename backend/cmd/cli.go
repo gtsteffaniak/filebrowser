@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -225,19 +224,11 @@ func createConfig(configpath string, noInput bool) error {
 		fmt.Printf("Error: '%s' is not a valid port. Please enter a number between 1 and 65535.\n", portStr)
 	}
 
-	for {
-		levels := askQuestion(reader, "What should the log levels be?", "info|warning|error")
-		checkLevels := SplitByMultiple(levels)
-		invalidOptions := []string{}
-		for _, level := range checkLevels {
-			if !(level == "info" || level == "warning" || level == "error" || level == "debug") {
-				invalidOptions = append(invalidOptions, level)
-			}
-		}
-		if len(invalidOptions) == 0 {
-			break
-		}
-		fmt.Printf("Error: invalid options given '%s'. valid options: 'info|warning|error|debug'.\n", invalidOptions)
+	config.Server.Logging = []settings.LogConfig{
+		{
+			Output: "stdout",
+			Levels: "info|warning|error",
+		},
 	}
 
 	for {
@@ -250,9 +241,20 @@ func createConfig(configpath string, noInput bool) error {
 		}
 		fmt.Printf("Error: '%s' is not a valid path. Please enter a path to a file ending in .sqlite", config.Server.DatabaseV2.Path)
 	}
-	config.Frontend.Name = askQuestion(reader, "What should the application brand name be?", "FileBrowser Quantum")
-	config.Auth.AdminUsername = askQuestion(reader, "What should the default admin username be?", "admin")
-	config.Auth.AdminPassword = askQuestion(reader, "What should the default admin password be?", "admin")
+	const defaultFrontendName = "FileBrowser Quantum"
+	brandName := askQuestion(reader, "What should the application brand name be?", defaultFrontendName)
+	if brandName != defaultFrontendName {
+		config.Frontend.Name = brandName
+	}
+	adminUsername := askQuestion(reader, "What should the default admin username be?", "admin")
+	if adminUsername != "admin" {
+		config.Auth.AdminUsername = adminUsername
+	}
+	const adminPasswordGenerateDefault = "generate on startup"
+	adminPassword := askQuestion(reader, "What should the default admin password be?", adminPasswordGenerateDefault)
+	if adminPassword != "" && !strings.EqualFold(adminPassword, adminPasswordGenerateDefault) {
+		config.Auth.AdminPassword = adminPassword
+	}
 
 	modifyDefault := askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
 	config.Server.Sources[0].Config.DefaultPermissions = settings.NormalizeSourceFilePermissions(users.SourceFilePermissions{
@@ -266,12 +268,12 @@ func createConfig(configpath string, noInput bool) error {
 
 	fmt.Println("--- 	Configuration Complete 	---")
 
-	yamlData, err := yaml.Marshal(&config)
+	yamlData, err := generateSetupConfigYAML(&config)
 	if err != nil {
-		return fmt.Errorf("marshaling config: %w", err)
+		return fmt.Errorf("generating config YAML: %w", err)
 	}
 
-	err = os.WriteFile(configpath, yamlData, 0600)
+	err = os.WriteFile(configpath, []byte(yamlData), 0600)
 	if err != nil {
 		return fmt.Errorf("writing config file: %w", err)
 	}
@@ -289,6 +291,22 @@ func createConfig(configpath string, noInput bool) error {
 		}
 	}
 	return nil
+}
+
+func generateSetupConfigYAML(config *settings.Settings) (string, error) {
+	embeddedPaths := []string{
+		"frontend/public/config.generated.yaml",
+		"../frontend/public/config.generated.yaml",
+		"internal/web/dist/config.generated.yaml",
+		"../internal/web/dist/config.generated.yaml",
+	}
+	for _, path := range embeddedPaths {
+		embeddedYaml, err := os.ReadFile(path)
+		if err == nil && len(embeddedYaml) > 0 {
+			return settings.GenerateConfigYamlWithEmbedded(config, true, false, false, string(embeddedYaml))
+		}
+	}
+	return settings.GenerateConfigYaml(config, true, false, false)
 }
 
 func generateYaml() {
