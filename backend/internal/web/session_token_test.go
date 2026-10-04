@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -105,6 +106,44 @@ func TestWithUserPlantsCookieForBearerClients(t *testing.T) {
 	}
 	if session.Value != token {
 		t.Fatal("planted cookie must contain the presented token")
+	}
+}
+
+// Restricted API tokens must not call renew: rotation registers a session hash
+// and would grant the token owner's full permissions (GHSA-6gr6-5qpq-888p).
+func TestRenewHandlerRejectsApiToken(t *testing.T) {
+	setupTestEnv(t)
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
+	user := createTokenAuthUser(t, "renew-api-user", users.Permissions{Admin: true, Api: true})
+	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "capped-key", time.Hour, users.Permissions{Api: true}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokenMeta.Name = "capped-key"
+	tokenMeta.Token = tokenString
+	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
+		t.Fatal(err)
+	}
+	if err := state.AddApiToken(tokenString, user.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/renew", http.NoBody)
+	req.Header.Set("Authorization", "Bearer "+tokenString)
+
+	status, err := renewHandler(recorder, req, &requestContext{User: user, Token: tokenString})
+	if err == nil {
+		t.Fatal("expected renew to fail for API token")
+	}
+	if status != http.StatusForbidden {
+		t.Fatalf("expected status %d, got %d", http.StatusForbidden, status)
+	}
+	if _, isSession, ok := state.HashedTokenOwner(tokenString); !ok || isSession {
+		t.Fatalf("API token must remain non-session: ok=%v isSession=%v", ok, isSession)
 	}
 }
 

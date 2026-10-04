@@ -375,9 +375,14 @@ func parseSignupCredentials(r *http.Request) (username, password string, err err
 // @Produce json
 // @Success 200 {string} string "New JWT token generated"
 // @Failure 401 {object} map[string]string "Unauthorized - invalid token"
+// @Failure 403 {object} map[string]string "Forbidden - non-session token"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/renew [post]
 func renewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	_, isSession, ok := state.HashedTokenOwner(d.Token)
+	if !ok || !isSession {
+		return http.StatusForbidden, fmt.Errorf("renew requires a session token")
+	}
 	// Renew is idempotent while the presented session token is still fresh:
 	// without this every page load rotates the token (the frontend tracks exp
 	// in memory only), churning token state. Rotation happens only inside the
