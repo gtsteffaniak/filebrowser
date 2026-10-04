@@ -7,6 +7,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
 // generateOTPHandler handles the generation of a new TOTP secret and QR code.
@@ -22,13 +23,16 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/otp/generate [post]
 func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	err := checkPassword(r, d)
-	if err != nil {
-		return http.StatusUnauthorized, err
-	}
-	user, getErr := store.Users.Get(r.URL.Query().Get("username"))
+	targetUsername := r.URL.Query().Get("username")
+	user, getErr := store.Users.Get(targetUsername)
 	if getErr != nil {
 		return http.StatusNotFound, fmt.Errorf("user not found: %w", getErr)
+	}
+	if status, err := requireOtpEnrollmentAuthorized(user, d); err != nil {
+		return status, err
+	}
+	if err := checkOtpActorPassword(r, d, user.Username); err != nil {
+		return http.StatusUnauthorized, err
 	}
 	url, err := auth.GenerateOtpForUser(user, store.Users)
 	if err != nil {
@@ -59,16 +63,18 @@ func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if code == "" {
 		return http.StatusUnauthorized, fmt.Errorf("code is required")
 	}
-	err := checkPassword(r, d)
-	if err != nil {
-		return http.StatusUnauthorized, err
-	}
-	user, getErr := store.Users.Get(r.URL.Query().Get("username"))
+	targetUsername := r.URL.Query().Get("username")
+	user, getErr := store.Users.Get(targetUsername)
 	if getErr != nil {
 		return http.StatusNotFound, fmt.Errorf("user not found: %w", getErr)
 	}
-	err = auth.VerifyTotpCode(user, code, store.Users)
-	if err != nil {
+	if status, err := requireOtpEnrollmentAuthorized(user, d); err != nil {
+		return status, err
+	}
+	if err := checkOtpActorPassword(r, d, user.Username); err != nil {
+		return http.StatusUnauthorized, err
+	}
+	if err := auth.VerifyTotpCode(user, code, store.Users); err != nil {
 		return http.StatusUnauthorized, fmt.Errorf("invalid OTP token")
 	}
 	response := HttpResponse{
@@ -79,13 +85,35 @@ func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return renderJSON(w, r, response)
 }
 
-func checkPassword(r *http.Request, d *requestContext) error {
-	providedPassword := r.Header.Get("X-Password")
-	username := r.URL.Query().Get("username")
-	if d.user.Permissions.Admin {
-		username = d.user.Username
+func userConfiguredMFA(u *users.User) bool {
+	if u == nil {
+		return false
 	}
-	// url decode
+	if u.HasPasskeyMFA() {
+		return true
+	}
+	return u.TOTPSecret != ""
+}
+
+func requireOtpEnrollmentAuthorized(target *users.User, d *requestContext) (int, error) {
+	if !userConfiguredMFA(target) {
+		return 0, nil
+	}
+	if d.user == nil || d.user.Username == "" || d.user.Username == "anonymous" {
+		return http.StatusForbidden, fmt.Errorf("authentication required to reset two-factor authentication")
+	}
+	if d.user.Permissions.Admin || d.user.Username == target.Username {
+		return 0, nil
+	}
+	return http.StatusForbidden, fmt.Errorf("not authorized to reset two-factor authentication for this user")
+}
+
+func checkOtpActorPassword(r *http.Request, d *requestContext, targetUsername string) error {
+	providedPassword := r.Header.Get("X-Password")
+	actorUsername := targetUsername
+	if d.user != nil && d.user.Permissions.Admin && d.user.Username != targetUsername {
+		actorUsername = d.user.Username
+	}
 	providedPassword, err := url.QueryUnescape(providedPassword)
 	if err != nil {
 		return fmt.Errorf("invalid password encoding: %v", err)
@@ -93,14 +121,13 @@ func checkPassword(r *http.Request, d *requestContext) error {
 	if providedPassword == "" {
 		return fmt.Errorf("password is required")
 	}
-	user, getErr := store.Users.Get(username)
+	user, getErr := store.Users.Get(actorUsername)
 	var passwordHash string
 	if getErr != nil {
 		passwordHash = utils.InvalidPasswordHash
 	} else {
 		passwordHash = user.Password
 	}
-	// always run checkPwd to prevent timing attacks
 	err = utils.CheckPwd(providedPassword, passwordHash)
 	if err != nil {
 		return fmt.Errorf("invalid password or user not found")
