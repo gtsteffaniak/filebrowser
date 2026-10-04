@@ -26,6 +26,7 @@ import (
 )
 
 type requestContext = Context
+type handleFunc = HandleFunc
 
 // requestTimeoutError is returned by withTimeout when the handler exceeds its budget.
 type requestTimeoutError struct {
@@ -84,6 +85,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 
 		data.Share = link
+
 		// Authenticate the share request if needed
 		var status int
 		if link.Hash != "" {
@@ -132,6 +134,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 
 		data.IndexPath = pathWithoutUserScope
+
 		// skip file fetch for certain apis
 		if (r.Method == "POST" && strings.Contains(r.URL.Path, "/resources")) ||
 			(r.Method == "POST" && strings.Contains(r.URL.Path, "/resources/view-token")) ||
@@ -158,6 +161,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			ShowPinnedItems:          true,
 			ShareHash:                hash,
 		}, data.ShareUser)
+
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return ErrToStatus(err), fmt.Errorf("error fetching share from server")
@@ -165,6 +169,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 
 		file.Source = link.Hash
 		file.Hash = link.Hash
+
 		if !link.EnableOnlyOffice || link.DisableFileViewer || reachedDownloadsLimit {
 			file.OnlyOfficeId = ""
 		}
@@ -176,8 +181,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 
 		file.Path = utils.AddTrailingSlashIfNotExists(path)
-		// Set the file info in the `data` object
+
+		// Set the file info in the data object
 		data.FileInfo = *file
+
 		// Call the next handler with the data
 		return fn(w, r, data)
 	})
@@ -200,6 +207,7 @@ func withSearchToolAccess(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		doc := state.EffectiveToolAccessDefaults()
 		toolID := users.ToolAdvancedSearch
+
 		if r.URL.Query().Get("largest") == "true" {
 			toolID = users.ToolSizeViewer
 		}
@@ -217,6 +225,7 @@ func withToolAccess(toolIDs ...users.ToolID) func(handleFunc) handleFunc {
 	return func(fn handleFunc) handleFunc {
 		return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 			doc := state.EffectiveToolAccessDefaults()
+
 			if !toolaccess.HasAnyToolAccess(data.User, toolIDs, doc) {
 				return http.StatusForbidden, nil
 			}
@@ -247,10 +256,13 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 	}
 
 	data.Token = tokenString
+
 	var tk users.AuthToken
+
 	// Validate signature without enforcing exp/iat so expired session JWTs can still yield
 	// user context on public-share routes; revocation is checked explicitly below.
 	parser := jwt.NewParser(jwt.WithoutClaimsValidation())
+
 	token, err := parser.ParseWithClaims(tokenString, &tk, keyFunc)
 	if err != nil {
 		return nil
@@ -294,14 +306,22 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 // than granted the owner's uncapped permissions.
 func resolveBearerTokenUser(rawToken string) (*users.User, error) {
 	ownerID, isSession, ok := state.HashedTokenOwner(rawToken)
+
 	if !ok {
-		logger.Debugf("auth rejected: no hashed token mapping (hash=%s)", utils.HashSHA256(rawToken)[:8])
+		logger.Debugf(
+			"auth rejected: no hashed token mapping (hash=%s)",
+			utils.HashSHA256(rawToken)[:8],
+		)
 		return nil, fmt.Errorf("token is invalid or revoked")
 	}
 
 	userValue, err := state.GetUserByID(ownerID)
 	if err != nil {
-		logger.Debugf("auth rejected: token owner %d not found (hash=%s)", ownerID, utils.HashSHA256(rawToken)[:8])
+		logger.Debugf(
+			"auth rejected: token owner %d not found (hash=%s)",
+			ownerID,
+			utils.HashSHA256(rawToken)[:8],
+		)
 		return nil, err
 	}
 
@@ -311,11 +331,16 @@ func resolveBearerTokenUser(rawToken string) (*users.User, error) {
 
 	tokenName, ok := state.TokenNameForRawToken(&userValue, rawToken)
 	if !ok {
-		logger.Debugf("auth rejected: token has no permission metadata for user %s (hash=%s)", userValue.Username, utils.HashSHA256(rawToken)[:8])
+		logger.Debugf(
+			"auth rejected: token has no permission metadata for user %s (hash=%s)",
+			userValue.Username,
+			utils.HashSHA256(rawToken)[:8],
+		)
 		return nil, fmt.Errorf("token has no permission metadata")
 	}
 
 	applyNamedApiTokenGlobalCaps(&userValue, tokenName)
+
 	return &userValue, nil
 }
 
@@ -330,9 +355,11 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		var shareHash string
 
 		hash := r.URL.Query().Get("hash")
+
 		if hash != "" {
 			isShareRequest = true
 			shareHash = hash
+
 			if l, err := state.GetShare(hash); err == nil {
 				snap = l
 				haveSnap = true
@@ -340,8 +367,10 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		} else {
 			prefix := settings.Config.Http.BaseURL + "public/share/"
 			reconstructed := settings.Config.Http.BaseURL + "public" + r.URL.Path
+
 			if strings.HasPrefix(reconstructed, prefix) {
 				remaining := strings.TrimPrefix(reconstructed, prefix)
+
 				if remaining != "" {
 					if idx := strings.IndexByte(remaining, '/'); idx >= 0 {
 						remaining = remaining[:idx]
@@ -350,6 +379,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 					if remaining != "" {
 						isShareRequest = true
 						shareHash = remaining
+
 						if l, err := state.GetShare(remaining); err == nil {
 							snap = l
 							haveSnap = true
@@ -366,13 +396,18 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 				data.Share = snap
 				data.ShareValid = true
 			} else {
-				data.Share = share.Share{ShareColumns: share.ShareColumns{Hash: shareHash}}
+				data.Share = share.Share{
+					ShareColumns: share.ShareColumns{
+						Hash: shareHash,
+					},
+				}
 				data.ShareValid = false
 			}
 		}
 
 		// Try to authenticate user first
 		status, err := withUserHelper(nil)(w, r, data)
+
 		if err == nil && status < 400 {
 			if data.ShareValid && data.Share.Hash != "" {
 				if data.User != nil {
@@ -387,24 +422,31 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		if status == http.StatusUnauthorized || status == http.StatusForbidden {
 			// Try to extract user info from potentially expired token
 			userFromExpiredToken := extractUserFromExpiredToken(r, data)
+
 			if userFromExpiredToken != nil {
 				data.User = userFromExpiredToken
+
 				if data.ShareValid && data.Share.Hash != "" {
 					data.User.CustomTheme = data.Share.ShareTheme
 				}
 
 				SetUserInResponseWriter(w, data.User)
+
 				return fn(w, r, data)
 			}
 
 			// No valid token or user found, fall back to anonymous
 			data.User = &users.User{
-				FrontendUser: users.FrontendUser{Username: "anonymous"},
+				FrontendUser: users.FrontendUser{
+					Username: "anonymous",
+				},
 			}
+
 			state.ApplyUserDefaults(data.User)
 
 			// Clear any user data that might have been partially set
 			data.Token = ""
+
 			if data.ShareValid && data.Share.Hash != "" {
 				data.User.CustomTheme = data.Share.ShareTheme
 			}
@@ -430,6 +472,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		if settings.Config.Auth.Methods.ProxyAuth.Enabled {
 			proxyUser := r.Header.Get(settings.Config.Auth.Methods.ProxyAuth.Header)
+
 			if proxyUser != "" {
 				return getProxyUser(w, r, d, fn, proxyUser)
 			}
@@ -439,9 +482,11 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 		if tokenStr, err := ExtractToken(r); err == nil && tokenStr != "" {
 			keyFunc := auth.JWTSigningKeyFunc()
 			var tk users.AuthToken
+
 			if token, err := jwt.ParseWithClaims(tokenStr, &tk, keyFunc); err == nil && token.Valid {
 				if !state.IsTokenRevoked(tokenStr) {
 					userValue, err := resolveBearerTokenUser(tokenStr)
+
 					if err == nil && userValue.Permissions.Admin {
 						d.User = userValue
 						return fn(w, r, d)
@@ -463,6 +508,7 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 			}
 
 			logger.Debug("ldap auth, calling AuthenticateLDAPUser")
+
 			ldapUser, err := AuthenticateLDAPUser(username, password)
 			if err == nil {
 				logger.Debugf("ldap auth successful, calling handler")
@@ -475,8 +521,10 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 
 		if settings.Config.Auth.Methods.PasswordAuth.Enabled {
 			user, err := auth.AuthenticatePassword(r, disableOtp)
+
 			if err != nil {
 				logger.Debug("password auth failed, calling handler:", err)
+
 				if err == errors.ErrNoTotpProvided {
 					return 403, err
 				}
@@ -501,6 +549,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		if settings.Config.Auth.Methods.NoAuth {
 			userValue, err := state.ResolveNoAuthUser()
+
 			if err == nil {
 				data.User = &userValue
 			}
@@ -520,6 +569,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		// Check for JWT external auth first (header or query param)
 		if settings.Config.Auth.Methods.JwtAuth.Enabled {
 			jwtToken := r.Header.Get(settings.Config.Auth.Methods.JwtAuth.Header)
+
 			if jwtToken == "" {
 				// Check query parameter (hardcoded to "jwt")
 				jwtToken = r.URL.Query().Get("jwt")
@@ -532,18 +582,23 @@ func withUserHelper(fn handleFunc) handleFunc {
 
 		proxyUser := r.Header.Get(settings.Config.Auth.Methods.ProxyAuth.Header)
 		isProxyUser := settings.Config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
+
 		keyFunc := auth.JWTSigningKeyFunc()
 
 		if data.Token == "" {
 			var err error
+
 			data.Token, err = ExtractToken(r)
+
 			if err != nil && !isProxyUser {
 				return http.StatusUnauthorized, err
 			}
 		}
 
 		var tk users.AuthToken
+
 		token, err := jwt.ParseWithClaims(data.Token, &tk, keyFunc)
+
 		if err != nil {
 			if isProxyUser {
 				return getProxyUser(w, r, data, fn, proxyUser)
@@ -568,6 +623,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 
 		userValue, err := resolveBearerTokenUser(data.Token)
+
 		if err != nil {
 			logger.Errorf("Failed to get user from token: %v", err)
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
@@ -603,6 +659,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 		settings.Config.Auth.Methods.JwtAuth.Algorithm,
 		settings.Config.Auth.Methods.JwtAuth.UserIdentifier,
 	)
+
 	if err != nil {
 		logger.Debugf("JWT verification failed: %v", err)
 		return http.StatusForbidden, fmt.Errorf("JWT authentication failed: %w", err)
@@ -610,6 +667,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 
 	// Setup user based on JWT claims
 	user, err := SetupJwtUser(r, data, username, claims)
+
 	if err != nil {
 		if status, mapped := loginMethodHTTPStatus(err); status != 0 {
 			return status, mapped
@@ -620,6 +678,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 
 	data.User = user
 	SetUserInResponseWriter(w, data.User)
+
 	if data.User.Username == "" {
 		return http.StatusForbidden, errors.ErrUnauthorized
 	}
@@ -636,6 +695,7 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 
 	if data.Token == "" {
 		tokenString, err := mintAndRegisterSessionToken(user)
+
 		if err != nil {
 			logger.Errorf("Failed to generate token for JWT user %s: %v", username, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
@@ -643,7 +703,13 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 
 		data.Token = tokenString
 		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
-		SetSessionCookie(w, r, tokenString, time.Now().Add(expires).Add(time.Minute*30))
+
+		SetSessionCookie(
+			w,
+			r,
+			tokenString,
+			time.Now().Add(expires).Add(time.Minute*30),
+		)
 	}
 
 	// Call the handler function, passing in the context (or return OK if no handler)
@@ -676,7 +742,13 @@ func reusableSessionToken(r *http.Request, user *users.User) (string, time.Time)
 	}
 
 	var tk users.AuthToken
-	token, err := jwt.ParseWithClaims(existing, &tk, auth.JWTSigningKeyFunc())
+
+	token, err := jwt.ParseWithClaims(
+		existing,
+		&tk,
+		auth.JWTSigningKeyFunc(),
+	)
+
 	if err != nil || !token.Valid || tk.RegisteredClaims.ExpiresAt == nil {
 		return "", time.Time{}
 	}
@@ -686,6 +758,7 @@ func reusableSessionToken(r *http.Request, user *users.User) (string, time.Time)
 	}
 
 	ownerID, isSession, ok := state.HashedTokenOwner(existing)
+
 	if !ok || !isSession || ownerID != user.ID {
 		return "", time.Time{}
 	}
@@ -696,6 +769,7 @@ func reusableSessionToken(r *http.Request, user *users.User) (string, time.Time)
 func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn handleFunc, proxyUser string) (int, error) {
 	// proxy user logic
 	user, err := SetupProxyUser(r, data, proxyUser)
+
 	if err != nil {
 		if status, mapped := loginMethodHTTPStatus(err); status != 0 {
 			return status, mapped
@@ -706,6 +780,7 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 
 	data.User = user
 	SetUserInResponseWriter(w, data.User)
+
 	if data.User.Username == "" {
 		return http.StatusForbidden, errors.ErrUnauthorized
 	}
@@ -713,6 +788,7 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	// Generate a token for proxy users if they don't have one
 	if data.Token == "" {
 		tokenString, err := mintAndRegisterSessionToken(user)
+
 		if err != nil {
 			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
@@ -720,10 +796,16 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 
 		data.Token = tokenString
 		expires := time.Hour * time.Duration(settings.Config.Auth.TokenExpirationHours)
-		SetSessionCookie(w, r, tokenString, time.Now().Add(expires).Add(time.Minute*30))
+
+		SetSessionCookie(
+			w,
+			r,
+			tokenString,
+			time.Now().Add(expires).Add(time.Minute*30),
+		)
 	}
 
-	// Call the actual handler function
+	// Call the handler function
 	if fn == nil {
 		return http.StatusOK, nil
 	}
@@ -750,11 +832,10 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			Ctx: r.Context(),
 		}
 
-		// Call the wrapped function and get the status code and error
+		// Call the wrapped function and get the status code
 		status, err := fn(w, r, data)
 
 		if err != nil {
-			// Handle the error case
 			response := &HttpResponse{
 				Status:  status,
 				Message: err.Error(),
@@ -764,6 +845,7 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			w.WriteHeader(status)
 
 			errorBytes, marshalErr := json.Marshal(response)
+
 			if marshalErr != nil {
 				logger.Errorf("Error marshalling error response: %v", marshalErr)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -815,11 +897,13 @@ func withPermShareHelper(fn handleFunc) handleFunc {
 func withBasicAuthHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		_, password, ok := r.BasicAuth()
+
 		if !ok || password == "" {
 			return http.StatusUnauthorized, fmt.Errorf("basic authentication required")
 		}
 
 		data.Token = password
+
 		return withUserHelper(fn)(w, r, data)
 	}
 }
@@ -865,8 +949,10 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 		ctx, cancel := context.WithTimeout(r.Context(), timeout)
 		defer cancel()
 
+		// Log timeout warning at 80% of timeout duration
 		warningTime := time.Duration(float64(timeout) * 0.8)
 		method, path := r.Method, r.URL.Path
+
 		go func() {
 			select {
 			case <-time.After(warningTime):
@@ -882,14 +968,17 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 						),
 					)
 				}
+
 			case <-ctx.Done():
 				return
 			}
 		}()
 
+		// Replace the request context with the timeout context
 		r = r.WithContext(ctx)
 		data.Ctx = ctx
 
+		// Call the handler and check for timeout
 		status, err := fn(w, r, data)
 
 		if ctx.Err() == context.DeadlineExceeded {
@@ -939,7 +1028,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 					stackTrace,
 				)
 
-				// Attempt to send a 500 error response
+				// Attempt to send a 500 error response to the client
 				if ww, ok := w.(*ResponseWriterWrapper); ok {
 					if !ww.WroteHeader {
 						ww.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -960,6 +1049,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		}()
 
 		start := time.Now()
+
 		wrappedWriter := &ResponseWriterWrapper{
 			ResponseWriter: w,
 			StatusCode:     http.StatusOK,
@@ -970,11 +1060,13 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		// Existing logging logic for normal requests
 		fullURL := r.URL.Path
+
 		if r.URL.RawQuery != "" {
 			fullURL += "?" + r.URL.RawQuery
 		}
 
 		truncUser := wrappedWriter.User
+
 		if truncUser == "" {
 			truncUser = "N/A"
 		} else if len(truncUser) > 12 {
