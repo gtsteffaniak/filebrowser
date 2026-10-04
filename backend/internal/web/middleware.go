@@ -631,10 +631,14 @@ func withUserHelper(fn handleFunc) handleFunc {
 
 		data.User = userValue
 
-		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
-		if tk.RegisteredClaims.ExpiresAt != nil {
-			SetSessionCookie(w, r, data.Token, tk.RegisteredClaims.ExpiresAt.Time)
-		}
+        // Set the session cookie only when the request did not already carry one.
+        // This prevents a request carrying an older session token from overwriting
+        // a newer cookie issued by /auth/renew.
+        if _, err := r.Cookie("filebrowser_quantum_jwt"); err != nil {
+        	if tk.RegisteredClaims.ExpiresAt != nil {
+        		SetSessionCookie(w, r, data.Token, tk.RegisteredClaims.ExpiresAt.Time)
+        	}
+        }
 
 		SetUserInResponseWriter(w, data.User)
 
