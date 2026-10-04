@@ -1,15 +1,11 @@
 <template>
   <ul v-if="visible" class="password-requirements" aria-live="polite">
     <li :class="{ met: state.passwordsMatch, unmet: state.showMismatch }">
-      <i class="material-symbols-outlined" aria-hidden="true">{{
-        state.passwordsMatch ? "check_circle" : "cancel"
-      }}</i>
+      <i class="material-symbols-outlined" aria-hidden="true">{{ matchIcon }}</i>
       {{ $t("settings.passwordRequirementsMatch") }}
     </li>
     <li :class="{ met: state.minLengthMet, unmet: state.showLengthHint && !state.minLengthMet }">
-      <i class="material-symbols-outlined" aria-hidden="true">{{
-        state.minLengthMet ? "check_circle" : "cancel"
-      }}</i>
+      <i class="material-symbols-outlined" aria-hidden="true">{{ minLengthIcon }}</i>
       {{ $t("settings.passwordRequirementsMinLength", { min: state.minLength }) }}
     </li>
   </ul>
@@ -17,6 +13,9 @@
 
 <script>
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
+
+const requirementMetIcon = "check_circle";
+const requirementUnmetIcon = "cancel";
 
 export default {
   name: "PasswordRequirementsHint",
@@ -46,6 +45,12 @@ export default {
       return (
         String(this.password ?? "").length > 0 || String(this.confirmPassword ?? "").length > 0
       );
+    },
+    matchIcon() {
+      return this.state.passwordsMatch ? requirementMetIcon : requirementUnmetIcon;
+    },
+    minLengthIcon() {
+      return this.state.minLengthMet ? requirementMetIcon : requirementUnmetIcon;
     },
   },
 };

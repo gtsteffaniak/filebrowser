@@ -48,7 +48,7 @@ func changeRequiredPasswordHandler(w http.ResponseWriter, r *http.Request, d *Co
 	}
 
 	var body changeRequiredPasswordBody
-	if err := json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body); err != nil {
+	if err = json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body); err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid request body")
 	}
 	if body.Password == "" {
@@ -57,7 +57,7 @@ func changeRequiredPasswordHandler(w http.ResponseWriter, r *http.Request, d *Co
 	if body.Password != body.PasswordConfirm {
 		return http.StatusBadRequest, fmt.Errorf("passwords do not match")
 	}
-	if err := settings.ValidatePasswordPolicy(body.Password); err != nil {
+	if err = settings.ValidatePasswordPolicy(body.Password); err != nil {
 		return http.StatusBadRequest, err
 	}
 
@@ -66,7 +66,7 @@ func changeRequiredPasswordHandler(w http.ResponseWriter, r *http.Request, d *Co
 	if decErr != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid password encoding")
 	}
-	if err := utils.CheckPwd(currentPassword, user.Password); err != nil {
+	if err = utils.CheckPwd(currentPassword, user.Password); err != nil {
 		return http.StatusUnauthorized, errors.ErrUnauthorized
 	}
 	if body.Password == currentPassword {
@@ -75,7 +75,7 @@ func changeRequiredPasswordHandler(w http.ResponseWriter, r *http.Request, d *Co
 
 	patch := *user
 	patch.RequirePasswordChange = false
-	if err := state.UpdateUser(&patch, body.Password, "password", "requirePasswordChange"); err != nil {
+	if err = state.UpdateUser(&patch, body.Password, "password", "requirePasswordChange"); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
