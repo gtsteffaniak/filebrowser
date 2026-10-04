@@ -39,9 +39,6 @@ export const mutations = {
     emitStateChanged();
   },
   enableEventThemes: () => {
-    if (!state.disableEventThemes) {
-      return;
-    }
     localStorage.removeItem("disableEventThemes");
     localStorage.setItem("eventThemeOptIn", "halloween");
     state.disableEventThemes = false;
