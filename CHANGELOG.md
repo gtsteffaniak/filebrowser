@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Config YAML expands `$VAR` and `${VAR}` so values such as `userPassword: "${FILEBROWSER_LDAP_USER_PASSWORD}"` work as documented (#3042).
 
  **Notes**:
+ - Sidebar navigation tree rows are real hyperlinks: middle-click, Ctrl/Cmd+click, and Shift+click use the browser’s default new-tab or new-window behavior.
  - Sidebar source links can now switch between aggregated usage (default) and a root-filesystem-only view via a new "Limit disk usage to source filesystem" toggle.
  - [docker] upgraded ffmpeg from 9.0 to 9.0.2
  - CLI setup command no longer produces full config, instead a minimal config.yaml with comments.
