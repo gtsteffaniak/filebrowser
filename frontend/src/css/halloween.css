@@ -1,10 +1,6 @@
 /* Halloween Theme Styles - Only apply when halloween-theme class is present */
 
-.halloween-theme {
-  --primaryColor: var(--icon-orange);
-}
-
-body:has(#login.halloween-theme) {
+body:has(.halloween-theme) {
   --primaryColor: var(--icon-orange);
 }
 
