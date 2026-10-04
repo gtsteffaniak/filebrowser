@@ -1143,7 +1143,7 @@ export default {
 }
 
 .file-picker-button:hover {
-  background: var(--surfacePrimary);
+  background: var(--hoverOverlay);
 }
 
 .file-picker-button .material-symbols {

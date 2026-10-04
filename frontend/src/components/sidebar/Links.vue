@@ -767,7 +767,7 @@ a.sidebar-link-button {
 }
 
 .source-button.disabled:hover {
-  background: var(--surfaceSecondary);
+  background: var(--hoverOverlay);
   box-shadow: none !important;
   transform: none !important;
 }
