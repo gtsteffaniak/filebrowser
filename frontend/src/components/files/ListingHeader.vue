@@ -46,6 +46,36 @@
     </p>
 
     <p
+      :class="{ active: createdSorted }"
+      class="created"
+      role="button"
+      tabindex="0"
+      @click="sort('created')"
+      @keydown.enter.prevent.stop="sort('created')"
+      @keydown.space.prevent.stop="sort('created')"
+      :title="$t('files.sortByDateAdded')"
+      :aria-label="$t('files.sortByDateAdded')"
+    >
+      <i v-if="createdSorted" class="material-symbols">{{ createdIcon }}</i>
+      <span>{{ $t("files.dateAdded") }}</span>
+    </p>
+
+    <p
+      :class="{ active: kindSorted }"
+      class="kind"
+      role="button"
+      tabindex="0"
+      @click="sort('kind')"
+      @keydown.enter.prevent.stop="sort('kind')"
+      @keydown.space.prevent.stop="sort('kind')"
+      :title="$t('files.sortByType')"
+      :aria-label="$t('files.sortByType')"
+    >
+      <i v-if="kindSorted" class="material-symbols">{{ kindIcon }}</i>
+      <span>{{ $t("general.type") }}</span>
+    </p>
+
+    <p
       v-if="hasDuration"
       :class="{ active: durationSorted }"
       class="duration"
@@ -96,6 +126,12 @@ export default {
     modifiedSorted() {
       return this.sortConfig.by === "modified";
     },
+    createdSorted() {
+      return this.sortConfig.by === "created";
+    },
+    kindSorted() {
+      return this.sortConfig.by === "kind";
+    },
     durationSorted() {
       return this.sortConfig.by === "duration";
     },
@@ -119,6 +155,18 @@ export default {
     },
     modifiedIcon() {
       if (this.modifiedSorted && this.ascOrdered) {
+        return "arrow_downward";
+      }
+      return "arrow_upward";
+    },
+    createdIcon() {
+      if (this.createdSorted && this.ascOrdered) {
+        return "arrow_downward";
+      }
+      return "arrow_upward";
+    },
+    kindIcon() {
+      if (this.kindSorted && this.ascOrdered) {
         return "arrow_downward";
       }
       return "arrow_upward";
@@ -149,6 +197,8 @@ export default {
         (field === "name" && this.nameIcon === "arrow_upward") ||
         (field === "size" && this.sizeIcon === "arrow_upward") ||
         (field === "modified" && this.modifiedIcon === "arrow_upward") ||
+        (field === "created" && this.createdIcon === "arrow_upward") ||
+        (field === "kind" && this.kindIcon === "arrow_upward") ||
         (field === "duration" && this.durationIcon === "arrow_upward")
       ) {
         asc = true;
@@ -219,12 +269,22 @@ span {
   text-align: right;
 }
 
-.desktop-view .modified {
+.desktop-view .modified,
+.desktop-view .created {
   width: 18%;
   min-width: fit-content;
   flex: 0 0 auto;
   justify-content: flex-end;
   text-align: right;
+}
+
+.desktop-view .kind {
+  width: 10%;
+  min-width: 90px;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  text-align: left;
+  padding-left: 1em;
 }
 
 i {

@@ -40,14 +40,14 @@
           "spreadPct": 8.73
         },
         "domNodes": {
-          "value": 2154,
+          "value": 2558,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2154,
-          "max": 2154,
+          "min": 2558,
+          "max": 2558,
           "spreadPct": 0
         },
         "listingItems": {
@@ -233,14 +233,14 @@
           "spreadPct": 3.25
         },
         "domNodes": {
-          "value": 2154,
+          "value": 2558,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2154,
-          "max": 2154,
+          "min": 2558,
+          "max": 2558,
           "spreadPct": 0
         },
         "listingItems": {
@@ -426,14 +426,14 @@
           "spreadPct": 8.02
         },
         "domNodes": {
-          "value": 2154,
+          "value": 2558,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2154,
-          "max": 2154,
+          "min": 2558,
+          "max": 2558,
           "spreadPct": 0
         },
         "listingItems": {
@@ -619,14 +619,14 @@
           "spreadPct": 11.55
         },
         "domNodes": {
-          "value": 2155,
+          "value": 2559,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 2155,
-          "max": 2155,
+          "min": 2559,
+          "max": 2559,
           "spreadPct": 0
         },
         "listingItems": {
@@ -823,14 +823,14 @@
           "spreadPct": 21.7
         },
         "domNodes": {
-          "value": 20154,
+          "value": 24158,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20154,
-          "max": 20154,
+          "min": 24158,
+          "max": 24158,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1016,14 +1016,14 @@
           "spreadPct": 61.74
         },
         "domNodes": {
-          "value": 20154,
+          "value": 24158,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20154,
-          "max": 20154,
+          "min": 24158,
+          "max": 24158,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1209,14 +1209,14 @@
           "spreadPct": 41.58
         },
         "domNodes": {
-          "value": 20154,
+          "value": 24158,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20154,
-          "max": 20154,
+          "min": 24158,
+          "max": 24158,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1402,14 +1402,14 @@
           "spreadPct": 54.12
         },
         "domNodes": {
-          "value": 20155,
+          "value": 24159,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 20155,
-          "max": 20155,
+          "min": 24159,
+          "max": 24159,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1606,14 +1606,14 @@
           "spreadPct": 46.84
         },
         "domNodes": {
-          "value": 200154,
+          "value": 240158,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200154,
-          "max": 200154,
+          "min": 240158,
+          "max": 240158,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1799,14 +1799,14 @@
           "spreadPct": 3.15
         },
         "domNodes": {
-          "value": 200154,
+          "value": 240158,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200154,
-          "max": 200154,
+          "min": 240158,
+          "max": 240158,
           "spreadPct": 0
         },
         "listingItems": {
@@ -1992,14 +1992,14 @@
           "spreadPct": 1.9
         },
         "domNodes": {
-          "value": 200154,
+          "value": 240158,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200154,
-          "max": 200154,
+          "min": 240158,
+          "max": 240158,
           "spreadPct": 0
         },
         "listingItems": {
@@ -2185,14 +2185,14 @@
           "spreadPct": 3.92
         },
         "domNodes": {
-          "value": 200155,
+          "value": 240159,
           "tolerancePct": 10,
           "noiseFloor": 20,
           "direction": "lower-is-better",
           "toleranceClass": "shape",
           "samples": 3,
-          "min": 200155,
-          "max": 200155,
+          "min": 240159,
+          "max": 240159,
           "spreadPct": 0
         },
         "listingItems": {
