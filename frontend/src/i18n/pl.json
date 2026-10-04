@@ -145,7 +145,11 @@
     "wrongCredentials": "Błędne dane logowania",
     "failedLogin": "Logowanie nie powiodło się",
     "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające",
-    "passkeyLogin": "Użyj klucza dostępu"
+    "passkeyLogin": "Użyj klucza dostępu",
+    "requirePasswordChangeTitle": "Zmień hasło",
+    "requirePasswordChangeInstructions": "Przed kontynuowaniem należy ustawić nowe hasło.",
+    "requirePasswordChangeSuccess": "Hasło zostało zaktualizowane. Jesteś teraz zalogowany.",
+    "requirePasswordChangeMustDiffer": "Nowe hasło musi różnić się od obecnego hasła"
   },
   "prompts": {
     "deleteMessageSingle": "Czy jesteś pewien, że chcesz usunąć ten plik/folder?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Ustawienia domyślne konta",
     "disableUserSettings": "Wyłącz stronę ustawień użytkownika",
     "userDefaultFieldLockedFromConfig": "To domyślne ustawienie jest określone w pliku konfiguracyjnym i nie można go tutaj zmienić.",
-    "sourceAccessDefaultsHelp": "Domyślne uprawnienia do plików stosowane w przypadku plików źródłowych i nowych użytkowników. Opcja „Wymuś” ustala stałą wartość dla wszystkich użytkowników niebędących administratorami."
+    "sourceAccessDefaultsHelp": "Domyślne uprawnienia do plików stosowane w przypadku plików źródłowych i nowych użytkowników. Opcja „Wymuś” ustala stałą wartość dla wszystkich użytkowników niebędących administratorami.",
+    "passwordRequirementsMatch": "Hasła są zgodne",
+    "passwordRequirementsMinLength": "Co najmniej {min} znaków",
+    "requirePasswordChange": "Wymagaj zmiany hasła przy następnym logowaniu"
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",

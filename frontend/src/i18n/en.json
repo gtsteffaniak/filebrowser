@@ -309,7 +309,11 @@
     "wrongCredentials": "Wrong credentials",
     "failedLogin": "Failed to login",
     "invalidCredentials": "Invalid credentials provided",
-    "passkeyLogin": "Use Passkey"
+    "passkeyLogin": "Use Passkey",
+    "requirePasswordChangeTitle": "Change your password",
+    "requirePasswordChangeInstructions": "You must set a new password before continuing.",
+    "requirePasswordChangeSuccess": "Password updated. You are now signed in.",
+    "requirePasswordChangeMustDiffer": "New password must be different from your current password"
   },
   "share": {
     "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
@@ -592,6 +596,8 @@
     "analyticsPreviewFailed": "Failed to load analytics diagnostic info",
     "enterPassword": "Enter password",
     "enterPasswordAgain": "Enter the password again",
+    "passwordRequirementsMatch": "Passwords match",
+    "passwordRequirementsMinLength": "At least {min} characters",
     "loginMethod": "Login method",
     "loginMethods": {
       "password": "Password"
@@ -607,6 +613,7 @@
     "userNotAdmin": "User is not an administrator",
     "avoidChanges": "also tick 'change password' to apply this password",
     "lockPassword": "Prevent the user from changing the password",
+    "requirePasswordChange": "Require password change at next login",
     "permissions": {
       "admin": "Administrator",
       "api": "Create and manage long-live API Tokens",

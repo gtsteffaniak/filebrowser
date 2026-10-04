@@ -145,7 +145,11 @@
     "wrongCredentials": "Yanlış hesap bilgileri",
     "failedLogin": "Giriş yapılamadı",
     "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı",
-    "passkeyLogin": "Geçiş Anahtarını Kullan"
+    "passkeyLogin": "Geçiş Anahtarını Kullan",
+    "requirePasswordChangeTitle": "Şifrenizi değiştirin",
+    "requirePasswordChangeInstructions": "Devam etmeden önce yeni bir şifre belirlemelisiniz.",
+    "requirePasswordChangeSuccess": "Şifre güncellendi. Artık oturum açtınız.",
+    "requirePasswordChangeMustDiffer": "Yeni şifreniz, mevcut şifrenizden farklı olmalıdır"
   },
   "prompts": {
     "deleteMessageSingle": "Bu dosyayı/klasörü silmek istediğinizden emin misiniz?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Hesap varsayılan ayarları",
     "disableUserSettings": "Kullanıcı ayarları sayfasını devre dışı bırak",
     "userDefaultFieldLockedFromConfig": "Bu varsayılan ayar, yapılandırma dosyasında belirlenmiştir ve buradan değiştirilemez.",
-    "sourceAccessDefaultsHelp": "Kaynaklara ve yeni kullanıcılara uygulanan varsayılan dosya izinleri. \"Uygula\" seçeneği, yönetici olmayan tüm kullanıcılar için bir değeri kilitler."
+    "sourceAccessDefaultsHelp": "Kaynaklara ve yeni kullanıcılara uygulanan varsayılan dosya izinleri. \"Uygula\" seçeneği, yönetici olmayan tüm kullanıcılar için bir değeri kilitler.",
+    "passwordRequirementsMatch": "Şifreler eşleşiyor",
+    "passwordRequirementsMinLength": "En az {min} karakter",
+    "requirePasswordChange": "Bir sonraki oturum açılışında şifre değişikliği zorunluluğu"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",

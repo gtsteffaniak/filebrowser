@@ -1,11 +1,18 @@
 package state
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
+
+func TestBootstrapWordsCount(t *testing.T) {
+	if len(bootstrapWords) != 100 {
+		t.Fatalf("bootstrapWords len = %d, want 100", len(bootstrapWords))
+	}
+}
 
 func TestBootstrapDefaultAdminPasswordUsesConfigWhenSet(t *testing.T) {
 	orig := settings.Config.Auth.AdminPassword
@@ -24,6 +31,8 @@ func TestBootstrapDefaultAdminPasswordUsesConfigWhenSet(t *testing.T) {
 	}
 }
 
+var speakableBootstrapPasswordPattern = regexp.MustCompile(`^[a-z]+-[abcdefghjkmnpqrstuvwxyz23456789]{5}$`)
+
 func TestBootstrapDefaultAdminPasswordGeneratesWhenDefault(t *testing.T) {
 	orig := settings.Config.Auth.AdminPassword
 	defer func() { settings.Config.Auth.AdminPassword = orig }()
@@ -40,11 +49,31 @@ func TestBootstrapDefaultAdminPasswordGeneratesWhenDefault(t *testing.T) {
 		if plain == "" || plain == "admin" {
 			t.Fatalf("cfg=%q: unexpected password %q", cfg, plain)
 		}
-		if len(plain) != bootstrapAdminPasswordHexBytes*2 {
-			t.Fatalf("cfg=%q: password length %d, want %d", cfg, len(plain), bootstrapAdminPasswordHexBytes*2)
+		if !speakableBootstrapPasswordPattern.MatchString(plain) {
+			t.Fatalf("cfg=%q: password %q does not match speakable pattern", cfg, plain)
 		}
-		if strings.Trim(plain, "0123456789abcdef") != "" {
-			t.Fatalf("cfg=%q: expected hex password, got %q", cfg, plain)
+		word := strings.Split(plain, "-")[0]
+		found := false
+		for _, w := range bootstrapWords {
+			if w == word {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("cfg=%q: word %q not in bootstrap word list", cfg, word)
+		}
+	}
+}
+
+func TestGenerateSpeakableBootstrapPassword(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		plain, err := generateSpeakableBootstrapPassword()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !speakableBootstrapPasswordPattern.MatchString(plain) {
+			t.Fatalf("password %q does not match speakable pattern", plain)
 		}
 	}
 }

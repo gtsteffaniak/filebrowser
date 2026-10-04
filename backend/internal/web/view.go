@@ -82,6 +82,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/api/resources/view [get]
 func PublicViewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	hydratePublicShareContext(d, r)
 	if d.Share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("viewing is disabled for upload shares")
 	}

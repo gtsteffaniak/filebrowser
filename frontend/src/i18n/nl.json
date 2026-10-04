@@ -309,7 +309,11 @@
     "wrongCredentials": "Verkeerde inloggegevens",
     "failedLogin": "Inloggen is mislukt",
     "invalidCredentials": "Ongeldige inloggegevens verstrekt",
-    "passkeyLogin": "Passkey gebruiken"
+    "passkeyLogin": "Passkey gebruiken",
+    "requirePasswordChangeTitle": "Uw wachtwoord wijzigen",
+    "requirePasswordChangeInstructions": "U moet een nieuw wachtwoord instellen voordat u verder kunt gaan.",
+    "requirePasswordChangeSuccess": "Het wachtwoord is bijgewerkt. Je bent nu ingelogd.",
+    "requirePasswordChangeMustDiffer": "Het nieuwe wachtwoord moet anders zijn dan je huidige wachtwoord"
   },
   "share": {
     "notice": "Opmerking: wanneer een gedeelde map wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als uw gedeelde map niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
@@ -618,7 +622,10 @@
     "accountDefaults": "Standaardinstellingen voor accounts",
     "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
     "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd.",
-    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn."
+    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn.",
+    "passwordRequirementsMatch": "Wachtwoorden komen overeen",
+    "passwordRequirementsMinLength": "{min} -tekens",
+    "requirePasswordChange": "Vraag om het wachtwoord te wijzigen bij de volgende aanmelding"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Scheidingstekst (leeg laten om een lijn weer te geven)",

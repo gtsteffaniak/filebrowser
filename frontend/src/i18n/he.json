@@ -145,7 +145,11 @@
     "wrongCredentials": "פרטי התחברות שגויים",
     "failedLogin": "נכשל בכניסה",
     "invalidCredentials": "פרטי הזדהות לא חוקיים",
-    "passkeyLogin": "השתמש במפתח גישה"
+    "passkeyLogin": "השתמש במפתח גישה",
+    "requirePasswordChangeTitle": "שנה את הסיסמה שלך",
+    "requirePasswordChangeInstructions": "עליך להגדיר סיסמה חדשה לפני שתמשיך.",
+    "requirePasswordChangeSuccess": "הסיסמה עודכנה. כעת אתה מחובר.",
+    "requirePasswordChangeMustDiffer": "הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית שלך"
   },
   "prompts": {
     "deleteMessageSingle": "האם אתה בטוח שברצונך למחוק את הקובץ או התקייה?",
@@ -304,7 +308,10 @@
     "accountDefaults": "הגדרות ברירת מחדל של החשבון",
     "disableUserSettings": "השבת את דף הגדרות המשתמש",
     "userDefaultFieldLockedFromConfig": "הגדרה ברירת המחדל הזו נקבעת בקובץ התצורה ואינה ניתנת לשינוי כאן.",
-    "sourceAccessDefaultsHelp": "הרשאות הקובץ המוגדרות כברירת מחדל מוחלות על מקורות ועל משתמשים חדשים. האפשרות \"אכוף\" נועלת ערך זה עבור כל המשתמשים שאינם מנהלים."
+    "sourceAccessDefaultsHelp": "הרשאות הקובץ המוגדרות כברירת מחדל מוחלות על מקורות ועל משתמשים חדשים. האפשרות \"אכוף\" נועלת ערך זה עבור כל המשתמשים שאינם מנהלים.",
+    "passwordRequirementsMatch": "הסיסמאות תואמות",
+    "passwordRequirementsMinLength": "לפחות {min} תווים",
+    "requirePasswordChange": "דרוש שינוי סיסמה בכניסה הבאה"
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",

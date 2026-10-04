@@ -211,6 +211,7 @@ export interface UserObject {
   scope?: string;
   rules?: unknown[];
   lockPassword?: boolean;
+  requirePasswordChange?: boolean;
   hideDotfiles?: boolean;
   sorting?: {
     by: string;

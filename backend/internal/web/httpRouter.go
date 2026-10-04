@@ -35,6 +35,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// Auth Routes - /api/auth/
 	// ========================================
 	api.HandleFunc("POST /auth/login", withRateLimit(AuthRateLimitCredentialLockout, loginHelper(loginHandler)))
+	api.HandleFunc("POST /auth/password/change-required", withoutUser(withRateLimitChain(AuthRateLimitCredentialLockout, changeRequiredPasswordHandler)))
 	api.HandleFunc("POST /auth/logout", withOrWithoutUser(withRateLimitChain(AuthRateLimitModerate, logoutHandler)))
 	api.HandleFunc("POST /auth/signup", withoutUser(withRateLimitChain(AuthRateLimitModerate, signupHandler)))
 	api.HandleFunc("POST /auth/otp/generate", withOrWithoutUser(withRateLimitChain(AuthRateLimitModerate, generateOTPHandler)))

@@ -145,7 +145,11 @@
     "wrongCredentials": "Informații greșite",
     "failedLogin": "A eșuat autentificarea",
     "invalidCredentials": "Acreditări invalide furnizate",
-    "passkeyLogin": "Folosește cheie de acces"
+    "passkeyLogin": "Folosește cheie de acces",
+    "requirePasswordChangeTitle": "Schimbă-ți parola",
+    "requirePasswordChangeInstructions": "Trebuie să setați o nouă parolă înainte de a continua.",
+    "requirePasswordChangeSuccess": "Parola a fost actualizată. Acum sunteți conectat.",
+    "requirePasswordChangeMustDiffer": "Noua parolă trebuie să fie diferită de parola actuală"
   },
   "prompts": {
     "deleteMessageSingle": "Ești sigur că vrei să ștergi acest fișier/director?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Setări implicite ale contului",
     "disableUserSettings": "Dezactivare pagină setări utilizator",
     "userDefaultFieldLockedFromConfig": "Această setare implicită este definită în fișierul de configurare și nu poate fi modificată aici.",
-    "sourceAccessDefaultsHelp": "Permisiunile implicite aplicate fișierelor sursă și utilizatorilor noi. Opțiunea „Enforce” blochează o valoare pentru toți utilizatorii care nu sunt administratori."
+    "sourceAccessDefaultsHelp": "Permisiunile implicite aplicate fișierelor sursă și utilizatorilor noi. Opțiunea „Enforce” blochează o valoare pentru toți utilizatorii care nu sunt administratori.",
+    "passwordRequirementsMatch": "Parolele se potrivesc",
+    "passwordRequirementsMinLength": "Cel puțin {min} caractere",
+    "requirePasswordChange": "Solicită schimbarea parolei la următoarea autentificare"
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",

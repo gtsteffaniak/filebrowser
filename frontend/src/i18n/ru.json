@@ -145,7 +145,11 @@
     "wrongCredentials": "Неверные данные",
     "failedLogin": "Не удалось войти в систему",
     "invalidCredentials": "Предоставлены неверные учетные данные",
-    "passkeyLogin": "Использовать ключ доступа"
+    "passkeyLogin": "Использовать ключ доступа",
+    "requirePasswordChangeTitle": "Изменить пароль",
+    "requirePasswordChangeInstructions": "Прежде чем продолжить, необходимо установить новый пароль.",
+    "requirePasswordChangeSuccess": "Пароль обновлен. Вы вошли в систему.",
+    "requirePasswordChangeMustDiffer": "Новый пароль должен отличаться от вашего текущего пароля"
   },
   "prompts": {
     "deleteMessageSingle": "Удалить этот файл/папку?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Настройки по умолчанию учетной записи",
     "disableUserSettings": "Отключить страницу настроек пользователя",
     "userDefaultFieldLockedFromConfig": "Это значение по умолчанию задано в файле конфигурации и не может быть изменено здесь.",
-    "sourceAccessDefaultsHelp": "К исходным файлам и новым пользователям применяются права доступа по умолчанию. Параметр «Enforce» фиксирует значение для всех пользователей, не являющихся администраторами."
+    "sourceAccessDefaultsHelp": "К исходным файлам и новым пользователям применяются права доступа по умолчанию. Параметр «Enforce» фиксирует значение для всех пользователей, не являющихся администраторами.",
+    "passwordRequirementsMatch": "Пароли совпадают",
+    "passwordRequirementsMinLength": "Не менее {min} символов",
+    "requirePasswordChange": "Требовать смену пароля при следующем входе в систему"
   },
   "sidebar": {
     "updateIsAvailable": "Обновление доступно!",

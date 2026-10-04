@@ -145,7 +145,11 @@
     "wrongCredentials": "Dados errados",
     "failedLogin": "Falha no início de sessão",
     "invalidCredentials": "Credenciais inválidas fornecidas",
-    "passkeyLogin": "Usar chave de acesso"
+    "passkeyLogin": "Usar chave de acesso",
+    "requirePasswordChangeTitle": "Alterar a sua palavra-passe",
+    "requirePasswordChangeInstructions": "Tem de definir uma nova palavra-passe antes de continuar.",
+    "requirePasswordChangeSuccess": "A palavra-passe foi atualizada. Já está com a sessão iniciada.",
+    "requirePasswordChangeMustDiffer": "A nova palavra-passe tem de ser diferente da sua palavra-passe atual"
   },
   "prompts": {
     "deleteMessageSingle": "Quer eliminar esta pasta/ficheiro?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Definições predefinidas da conta",
     "disableUserSettings": "Desativar a página de definições do utilizador",
     "userDefaultFieldLockedFromConfig": "Esta configuração por predefinição é definida no ficheiro de configuração e não pode ser alterada aqui.",
-    "sourceAccessDefaultsHelp": "Permissões de ficheiro predefinidas aplicadas a fontes e a novos utilizadores. A opção «Enforce» bloqueia um valor para todos os utilizadores que não sejam administradores."
+    "sourceAccessDefaultsHelp": "Permissões de ficheiro predefinidas aplicadas a fontes e a novos utilizadores. A opção «Enforce» bloqueia um valor para todos os utilizadores que não sejam administradores.",
+    "passwordRequirementsMatch": "As palavras-passe coincidem",
+    "passwordRequirementsMinLength": "Pelo menos {min} es caracteres",
+    "requirePasswordChange": "Exigir a alteração da palavra-passe no próximo início de sessão"
   },
   "sidebar": {
     "updateIsAvailable": "Está disponível uma atualização!",

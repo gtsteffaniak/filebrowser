@@ -958,6 +958,7 @@ func SetDefaults(generate bool) Settings {
 					Realtime: false,
 				},
 				LockPassword:               false,
+				RequirePasswordChange:      false,
 				DisableSettings:            false,
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,

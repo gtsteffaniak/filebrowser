@@ -13,6 +13,18 @@
         :name="$t('settings.lockPassword')"
       />
       <ToggleSwitch
+        v-if="showRequirePasswordChange"
+        class="item"
+        :enforceable="enforceable"
+        :enforced="!!enforced.requirePasswordChange"
+        v-model="account.requirePasswordChange"
+        @change="$emit('account-change', 'requirePasswordChange')"
+        @update:enforced="(v) => emitEnforced('requirePasswordChange', v)"
+        :disabled="isFieldDisabled('requirePasswordChange')"
+        :value-tooltip="fieldDisabledTooltip('requirePasswordChange')"
+        :name="$t('settings.requirePasswordChange')"
+      />
+      <ToggleSwitch
         class="item"
         :enforceable="enforceable"
         :enforced="!!enforced.disableSettings"
@@ -124,6 +136,10 @@ export default {
       default: () => [],
     },
     respectEnforcedPolicy: {
+      type: Boolean,
+      default: false,
+    },
+    showRequirePasswordChange: {
       type: Boolean,
       default: false,
     },

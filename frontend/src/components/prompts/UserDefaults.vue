@@ -19,6 +19,7 @@
           :enforced="enforced.account || {}"
           :enforced-permissions="enforced.account?.permissions || {}"
           :config-locked-paths="lockedFromConfigPaths"
+          :show-require-password-change="passwordAccountDefaults"
           @account-change="onAccountFieldChange"
           @enforced-change="(field, value) => patchEnforcedFlag('account', field, value)"
           @enforced-permission-change="(field, value) => patchEnforcedFlag('account', `permissions.${field}`, value)"
@@ -78,6 +79,10 @@ export default {
     };
   },
   computed: {
+    passwordAccountDefaults() {
+      const method = this.values.account?.loginMethod;
+      return !method || method === "password";
+    },
     preferenceSections: {
       get() {
         const v = this.values;

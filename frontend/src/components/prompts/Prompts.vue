@@ -97,6 +97,7 @@ import IconPicker from "./IconPicker.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
 import Totp from "./Totp.vue";
+import RequirePasswordChange from "./RequirePasswordChange.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
@@ -137,6 +138,7 @@ export default {
     Replace,
     ReplaceRename,
     Totp,
+    RequirePasswordChange,
     Upload,
     Sidebar,
     CreateApi,
@@ -375,6 +377,8 @@ export default {
           return this.$t("share.shareInfo");
         case "totp":
           return this.$t("otp.name");
+        case "requirepasswordchange":
+          return this.$t("login.requirePasswordChangeTitle");
         case "useredit":
           return this.$t("settings.modifyOtherUser");
         case "deleteuser":

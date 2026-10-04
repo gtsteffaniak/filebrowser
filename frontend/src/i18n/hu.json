@@ -145,7 +145,11 @@
     "wrongCredentials": "Hibás hitelesítő adatok",
     "failedLogin": "Sikertelen bejelentkezés",
     "invalidCredentials": "Érvénytelen hitelesítő adatok megadása",
-    "passkeyLogin": "Jelszókulcs használata"
+    "passkeyLogin": "Jelszókulcs használata",
+    "requirePasswordChangeTitle": "Jelszó módosítása",
+    "requirePasswordChangeInstructions": "A folytatáshoz új jelszót kell beállítania.",
+    "requirePasswordChangeSuccess": "A jelszó frissítve. Most már be van jelentkezve.",
+    "requirePasswordChangeMustDiffer": "Az új jelszónak különböznie kell a jelenlegi jelszótól"
   },
   "prompts": {
     "deleteMessageSingle": "Biztosan törölni szeretné ezt a fájl vagy mappát?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Fiók alapbeállításai",
     "disableUserSettings": "A felhasználói beállítások oldal letiltása",
     "userDefaultFieldLockedFromConfig": "Ez az alapértelmezett beállítás a konfigurációs fájlban van megadva, és itt nem módosítható.",
-    "sourceAccessDefaultsHelp": "A forrásfájlokra és az új felhasználókra alkalmazott alapértelmezett fájlhozzáférési jogosultságok. Az „Enforce” beállítás egy értéket rögzít minden nem rendszergazda felhasználó számára."
+    "sourceAccessDefaultsHelp": "A forrásfájlokra és az új felhasználókra alkalmazott alapértelmezett fájlhozzáférési jogosultságok. Az „Enforce” beállítás egy értéket rögzít minden nem rendszergazda felhasználó számára.",
+    "passwordRequirementsMatch": "A jelszavak egyeznek",
+    "passwordRequirementsMinLength": "Legalább {min} karakter",
+    "requirePasswordChange": "A következő bejelentkezéskor jelszóváltás szükséges"
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",

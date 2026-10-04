@@ -145,7 +145,11 @@
     "wrongCredentials": "用户名或密码错误",
     "failedLogin": "登录失败",
     "invalidCredentials": "提供的证书无效",
-    "passkeyLogin": "使用通行密钥"
+    "passkeyLogin": "使用通行密钥",
+    "requirePasswordChangeTitle": "更改密码",
+    "requirePasswordChangeInstructions": "在继续之前，您必须设置一个新密码。",
+    "requirePasswordChangeSuccess": "密码已更新。您现已登录。",
+    "requirePasswordChangeMustDiffer": "新密码必须与您当前的密码不同"
   },
   "prompts": {
     "deleteMessageSingle": "你确定要删除这个文件/文件夹吗？",
@@ -304,7 +308,10 @@
     "accountDefaults": "账户默认设置",
     "disableUserSettings": "禁用“用户设置”页面",
     "userDefaultFieldLockedFromConfig": "此默认设置在配置文件中设定，无法在此处进行修改。",
-    "sourceAccessDefaultsHelp": "对源文件和新用户应用默认文件权限。强制对所有非管理员用户锁定该值。"
+    "sourceAccessDefaultsHelp": "对源文件和新用户应用默认文件权限。强制对所有非管理员用户锁定该值。",
+    "passwordRequirementsMatch": "密码一致",
+    "passwordRequirementsMinLength": "至少{min} 个字符",
+    "requirePasswordChange": "要求在下一次登录时更改密码"
   },
   "sidebar": {
     "updateIsAvailable": "有了最新进展！",

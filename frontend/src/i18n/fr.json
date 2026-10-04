@@ -145,7 +145,11 @@
     "wrongCredentials": "Identifiants incorrects !",
     "failedLogin": "Échec de la connexion",
     "invalidCredentials": "Les informations d'identification fournies ne sont pas valides",
-    "passkeyLogin": "Utiliser une clé d'accès"
+    "passkeyLogin": "Utiliser une clé d'accès",
+    "requirePasswordChangeTitle": "Modifier votre mot de passe",
+    "requirePasswordChangeInstructions": "Vous devez définir un nouveau mot de passe avant de continuer.",
+    "requirePasswordChangeSuccess": "Mot de passe mis à jour. Vous êtes désormais connecté(e).",
+    "requirePasswordChangeMustDiffer": "Le nouveau mot de passe doit être différent de votre mot de passe actuel"
   },
   "prompts": {
     "deleteMessageSingle": "Êtes-vous sûr de vouloir supprimer cet élément ?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Paramètres par défaut du compte",
     "disableUserSettings": "Désactiver la page des paramètres utilisateur",
     "userDefaultFieldLockedFromConfig": "Cette valeur par défaut est définie dans le fichier de configuration et ne peut pas être modifiée ici.",
-    "sourceAccessDefaultsHelp": "Droits d'accès par défaut appliqués aux fichiers sources et aux nouveaux utilisateurs. L'option « Enforce » impose une valeur fixe à tous les utilisateurs non administrateurs."
+    "sourceAccessDefaultsHelp": "Droits d'accès par défaut appliqués aux fichiers sources et aux nouveaux utilisateurs. L'option « Enforce » impose une valeur fixe à tous les utilisateurs non administrateurs.",
+    "passwordRequirementsMatch": "Les mots de passe correspondent",
+    "passwordRequirementsMinLength": "Au moins {min} caractères",
+    "requirePasswordChange": "Exiger le changement de mot de passe lors de la prochaine connexion"
   },
   "sidebar": {
     "updateIsAvailable": "Une mise à jour est disponible !",
