@@ -78,6 +78,10 @@ export default {
       type: String,
       default: "",
     },
+    recaptcha: {
+      type: String,
+      default: "",
+    },
   },
   async mounted() {
     if (this.generate) {
@@ -124,12 +128,29 @@ export default {
       }
       this.verifyInFlight = true;
       try {
-        await authApi.verifyOTP(this.username, this.password, this.code);
-        if (this.redirect !== "") {
-          await authApi.login(this.username, this.password, this.redirect, this.code);
+        const isLoginFlow = this.redirect !== "";
+        if (isLoginFlow && !this.generate) {
+          await authApi.login(
+            this.username,
+            this.password,
+            this.recaptcha,
+            this.code,
+          );
           await initAuth();
           // Wait for navigation so Layout mounts and registers the toast callback before we toast
           await this.$router.push(this.redirect);
+        } else {
+          await authApi.verifyOTP(this.username, this.password, this.code);
+          if (isLoginFlow) {
+            await authApi.login(
+              this.username,
+              this.password,
+              this.recaptcha,
+              this.code,
+            );
+            await initAuth();
+            await this.$router.push(this.redirect);
+          }
         }
         void mutations.updateCurrentUser({ otpEnabled: true });
         this.succeeded = true;
