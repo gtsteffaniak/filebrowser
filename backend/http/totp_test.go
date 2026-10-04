@@ -23,7 +23,11 @@ func otpRequest(username, password, code string) *http.Request {
 	return req
 }
 
-func TestVerifyOTP_CachedSecretTakesPrecedence(t *testing.T) {
+func anonymousContext() *requestContext {
+	return &requestContext{user: &users.User{Username: "anonymous"}}
+}
+
+func TestVerifyOTP_CachedSecretTakesPrecedenceWhenAuthenticatedSelf(t *testing.T) {
 	setupTestEnv(t)
 
 	oldSecret := "SOMEOLDSECRET234"
@@ -39,15 +43,19 @@ func TestVerifyOTP_CachedSecretTakesPrecedence(t *testing.T) {
 	}
 	t.Cleanup(func() { auth.TotpCache.Delete(user.Username) })
 
-	d := &requestContext{user: user}
+	reloaded, reloadErr := store.Users.Get(user.Username)
+	if reloadErr != nil {
+		t.Fatalf("failed to reload user: %v", reloadErr)
+	}
+	d := &requestContext{user: reloaded}
 
 	rec := httptest.NewRecorder()
-	if _, err := generateOTPHandler(rec, otpRequest(user.Username, "testPass", ""), d); err != nil {
-		t.Fatalf("genration failed: %v", err)
+	if _, genErr := generateOTPHandler(rec, otpRequest(user.Username, "testPass", ""), d); genErr != nil {
+		t.Fatalf("generation failed: %v", genErr)
 	}
 	var resp map[string]string
-	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
+	if unmarshalErr := json.Unmarshal(rec.Body.Bytes(), &resp); unmarshalErr != nil {
+		t.Fatalf("failed to decode response: %v", unmarshalErr)
 	}
 	u, err := url.Parse(resp["url"])
 	if err != nil {
@@ -80,6 +88,47 @@ func TestVerifyOTP_CachedSecretTakesPrecedence(t *testing.T) {
 	}
 	if _, found := auth.TotpCache.Get(user.Username); found {
 		t.Error("expected cache to be cleared after verification")
+	}
+}
+
+func TestRequireOtpEnrollmentAuthorized(t *testing.T) {
+	withMFA := &users.User{
+		Username:   "victim",
+		TOTPSecret: "SOMEOLDSECRET234",
+	}
+	status, err := requireOtpEnrollmentAuthorized(withMFA, anonymousContext())
+	if err == nil {
+		t.Fatal("expected anonymous MFA reset to be rejected")
+	}
+	if status != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d err=%v", status, err)
+	}
+
+	noMFA := &users.User{Username: "new"}
+	if status, err = requireOtpEnrollmentAuthorized(noMFA, anonymousContext()); err != nil {
+		t.Fatalf("expected first-time enrollment to be allowed: status=%d err=%v", status, err)
+	}
+
+	self := &users.User{Username: "victim"}
+	if status, err = requireOtpEnrollmentAuthorized(withMFA, &requestContext{user: self}); err != nil {
+		t.Fatalf("expected self reset to be allowed: status=%d err=%v", status, err)
+	}
+
+	admin := &users.User{
+		Username:    "admin",
+		Permissions: users.Permissions{Admin: true},
+	}
+	if status, err = requireOtpEnrollmentAuthorized(withMFA, &requestContext{user: admin}); err != nil {
+		t.Fatalf("expected admin reset to be allowed: status=%d err=%v", status, err)
+	}
+
+	other := &users.User{Username: "other"}
+	status, err = requireOtpEnrollmentAuthorized(withMFA, &requestContext{user: other})
+	if err == nil {
+		t.Fatal("expected non-admin other user to be rejected")
+	}
+	if status != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d err=%v", status, err)
 	}
 }
 
