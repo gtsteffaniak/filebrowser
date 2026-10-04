@@ -502,31 +502,26 @@ func withUserHelper(fn handleFunc) handleFunc {
 		var tk users.AuthToken
 		token, err := jwt.ParseWithClaims(data.Token, &tk, keyFunc)
 		if err != nil {
-			logger.Debugf("AUTH DEBUG: JWT parse failed hash=%s err=%v", utils.HashSHA256(data.Token)[:8], err)
 			if isProxyUser {
 				return getProxyUser(w, r, data, fn, proxyUser)
 			}
+			// JWT library automatically validates expiration - if expired, it returns an error
 			return http.StatusUnauthorized, fmt.Errorf("invalid token: %v", err)
 		}
 		if !token.Valid {
-			logger.Debugf("AUTH DEBUG: JWT invalid hash=%s", utils.HashSHA256(data.Token)[:8])
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		revoked := state.IsTokenRevoked(data.Token)
-		logger.Debugf("AUTH DEBUG: JWT valid hash=%s exp=%v revoked=%v", utils.HashSHA256(data.Token)[:8], tk.RegisteredClaims.ExpiresAt, revoked)
-		if revoked {
-			logger.Debugf("AUTH DEBUG: token REJECTED as revoked hash=%s", utils.HashSHA256(data.Token)[:8])
+		if state.IsTokenRevoked(data.Token) {
 			return http.StatusUnauthorized, fmt.Errorf("token is expired or revoked")
 		}
+		// ExpiresAt should always be set in valid tokens created by our system
+		// JWT library populates RegisteredClaims.ExpiresAt
 		if tk.RegisteredClaims.ExpiresAt == nil {
-			logger.Debugf("AUTH DEBUG: token REJECTED without expiry hash=%s", utils.HashSHA256(data.Token)[:8])
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
-		ownerID, isSession, mapped := state.HashedTokenOwner(data.Token)
-		logger.Debugf("AUTH DEBUG: token mapping hash=%s mapped=%v ownerID=%d isSession=%v", utils.HashSHA256(data.Token)[:8], mapped, ownerID, isSession)
 		userValue, err := resolveBearerTokenUser(data.Token)
 		if err != nil {
-			logger.Errorf("AUTH DEBUG: resolve user FAILED hash=%s ownerID=%d isSession=%v err=%v", utils.HashSHA256(data.Token)[:8], ownerID, isSession, err)
+			logger.Errorf("Failed to get user from token: %v", err)
 			return http.StatusUnauthorized, fmt.Errorf("token is invalid or revoked")
 		}
 		data.User = userValue
@@ -579,8 +574,9 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	// cookie set on a previous JwtAuth request) is reused so every request does
 	// not register a new session hash.
 	if data.Token == "" {
-		if existing, _ := reusableSessionToken(r, user); existing != "" {
+		if existing, expiresAt := reusableSessionToken(r, user); existing != "" {
 			data.Token = existing
+			SetSessionCookie(w, r, existing, expiresAt)
 		}
 	}
 	if data.Token == "" {
