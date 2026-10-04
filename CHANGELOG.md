@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
  - CLI setup command no longer produces full config, instead a minimal config.yaml with comments.
 
  **Bugfixes**:
+ - Fixed slow or broken file listing when `http.baseURL` is a subpath (for example `/files/`): the default source redirect navigated to `/files/{source}` on top of the app base URL, producing `/files/files/{source}` and resolving the wrong storage source until the route recovered.
  - Anonymous visitors on public shares could not play inline video or audio: `GET /public/api/media/stream` returned 403 because view grants were validated before share context was fully hydrated; playback now works when download and the file viewer are allowed ([#3041](https://github.com/gtsteffaniak/filebrowser/issues/3041)).
  - Fixed inflated disk usage for sources spanning multiple ZFS datasets (or btrfs subvolumes): shared-pool filesystems are now grouped by pool and counted once, instead of multiplying capacity by the number of mounted datasets (#3025) (#2997) (#2761).
  - LDAP `userGroups` matching now accepts CN-only config values against full `memberOf` DNs and compares case-insensitively, instead of failing the shared auth helper with strict string equality (#3044).
