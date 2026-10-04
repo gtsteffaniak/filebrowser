@@ -21,86 +21,93 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
 import {
   createLightningStrike,
   prefersReducedMotion,
-} from "@/utils/lightning-bolt.js";
+  type LightningStrike,
+} from "@/utils/lightning-bolt";
+
+type Bolt = LightningStrike & { id: number };
+
+type Timer = ReturnType<typeof setTimeout>;
 
 const STRIKE_VISIBLE_MS = 480;
 const FIRST_STRIKE_DELAY_MS = 2000;
 const MIN_INTERVAL_MS = 3500;
 const MAX_INTERVAL_MS = 11000;
 
-export default {
-  name: "HalloweenLightning",
-  data: () => ({
-    flashActive: false,
-    visibleBolts: [],
-    nextBoltId: 0,
-    scheduleTimer: null,
-    flashTimers: [],
-  }),
-  mounted() {
-    if (prefersReducedMotion()) return;
-    this.scheduleStrike(FIRST_STRIKE_DELAY_MS);
-  },
-  beforeUnmount() {
-    this.clearSchedule();
-    this.clearFlashTimers();
-    this.visibleBolts = [];
-  },
-  methods: {
-    clearSchedule() {
-      if (this.scheduleTimer != null) {
-        clearTimeout(this.scheduleTimer);
-        this.scheduleTimer = null;
-      }
-    },
-    clearFlashTimers() {
-      for (const id of this.flashTimers) clearTimeout(id);
-      this.flashTimers = [];
-    },
-    scheduleStrike(delayMs) {
-      this.clearSchedule();
-      this.scheduleTimer = setTimeout(() => {
-        this.triggerStrike();
-        this.scheduleNextStrike();
-      }, delayMs);
-    },
-    scheduleNextStrike() {
-      const delay =
-        MIN_INTERVAL_MS +
-        Math.random() * (MAX_INTERVAL_MS - MIN_INTERVAL_MS);
-      this.scheduleStrike(delay);
-    },
-    triggerStrike() {
-      const strike = createLightningStrike();
-      const id = this.nextBoltId++;
-      this.visibleBolts = [{ id, ...strike }];
+const flashActive = ref(false);
+const visibleBolts = shallowRef<Bolt[]>([]);
 
-      this.runFlashSequence();
+let nextBoltId = 0;
+let scheduleTimer: Timer | null = null;
+let flashTimers: Timer[] = [];
 
-      setTimeout(() => {
-        this.visibleBolts = this.visibleBolts.filter((b) => b.id !== id);
-      }, STRIKE_VISIBLE_MS);
-    },
-    runFlashSequence() {
-      this.clearFlashTimers();
-      const setFlash = (on) => {
-        this.flashActive = on;
-      };
-      const schedule = (ms, fn) => {
-        this.flashTimers.push(setTimeout(fn, ms));
-      };
+function clearSchedule() {
+  if (scheduleTimer != null) {
+    clearTimeout(scheduleTimer);
+    scheduleTimer = null;
+  }
+}
 
-      setFlash(true);
-      schedule(70, () => setFlash(false));
-      schedule(130, () => setFlash(true));
-      schedule(210, () => setFlash(false));
-      schedule(280, () => setFlash(true));
-      schedule(360, () => setFlash(false));
-    },
-  },
-};
+function clearFlashTimers() {
+  for (const id of flashTimers) clearTimeout(id);
+  flashTimers = [];
+}
+
+function scheduleStrike(delayMs: number) {
+  clearSchedule();
+  scheduleTimer = setTimeout(() => {
+    triggerStrike();
+    scheduleNextStrike();
+  }, delayMs);
+}
+
+function scheduleNextStrike() {
+  const delay =
+    MIN_INTERVAL_MS + Math.random() * (MAX_INTERVAL_MS - MIN_INTERVAL_MS);
+  scheduleStrike(delay);
+}
+
+function triggerStrike() {
+  const strike = createLightningStrike();
+  const id = nextBoltId++;
+  visibleBolts.value = [{ id, ...strike }];
+
+  runFlashSequence();
+
+  setTimeout(() => {
+    visibleBolts.value = visibleBolts.value.filter((b) => b.id !== id);
+  }, STRIKE_VISIBLE_MS);
+}
+
+function runFlashSequence() {
+  clearFlashTimers();
+  const setFlash = (on: boolean) => {
+    flashActive.value = on;
+  };
+  const schedule = (ms: number, fn: () => void) => {
+    flashTimers.push(setTimeout(fn, ms));
+  };
+
+  setFlash(true);
+  schedule(70, () => setFlash(false));
+  schedule(130, () => setFlash(true));
+  schedule(210, () => setFlash(false));
+  schedule(280, () => setFlash(true));
+  schedule(360, () => setFlash(false));
+}
+
+onMounted(() => {
+  if (prefersReducedMotion()) return;
+  scheduleStrike(FIRST_STRIKE_DELAY_MS);
+});
+
+onBeforeUnmount(() => {
+  clearSchedule();
+  clearFlashTimers();
+  visibleBolts.value = [];
+});
 </script>

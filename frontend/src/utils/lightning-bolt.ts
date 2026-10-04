@@ -1,13 +1,51 @@
 /**
  * Procedural lightning bolt paths for the Halloween login background.
- * @param {() => number} random - returns a value in [0, 1)
  */
 
-function clamp(value, min, max) {
+export type RandomFn = () => number;
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface SegmentChainOptions {
+  start: Point;
+  width: number;
+  maxY: number;
+  segments: number;
+  jag: number;
+  random: RandomFn;
+  biasX?: number;
+}
+
+export interface LightningBoltOptions {
+  width?: number;
+  height?: number;
+  segments?: number;
+  /** Horizontal jitter per segment. */
+  jag?: number;
+  /** 0..1 chance per interior point. */
+  branchChance?: number;
+  /** Returns a value in [0, 1). */
+  random?: RandomFn;
+}
+
+export interface LightningBolt {
+  viewBox: string;
+  main: string;
+  branches: string[];
+}
+
+export interface LightningStrike extends LightningBolt {
+  style: Record<string, string>;
+}
+
+function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function pointsToPath(points) {
+function pointsToPath(points: Point[]): string {
   if (points.length === 0) return "";
   const [first, ...rest] = points;
   let d = `M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`;
@@ -25,8 +63,8 @@ function growSegmentChain({
   jag,
   random,
   biasX = 0,
-}) {
-  const points = [start];
+}: SegmentChainOptions): Point[] {
+  const points: Point[] = [start];
   let x = start.x;
   let y = start.y;
   const drop = Math.max(maxY - start.y, 1);
@@ -39,20 +77,9 @@ function growSegmentChain({
     x = clamp(x + momentum, 6, width - 6);
     points.push({ x, y });
   }
-
   return points;
 }
 
-/**
- * @param {object} [options]
- * @param {number} [options.width]
- * @param {number} [options.height]
- * @param {number} [options.segments]
- * @param {number} [options.jag] - horizontal jitter per segment
- * @param {number} [options.branchChance] - 0..1 chance per interior point
- * @param {() => number} [options.random]
- * @returns {{ viewBox: string, main: string, branches: string[] }}
- */
 export function createLightningBolt({
   width = 90,
   height = 280,
@@ -60,7 +87,7 @@ export function createLightningBolt({
   jag = 24,
   branchChance = 0.28,
   random = Math.random,
-} = {}) {
+}: LightningBoltOptions = {}): LightningBolt {
   const mainPoints = growSegmentChain({
     start: { x: width / 2, y: 0 },
     width,
@@ -70,7 +97,7 @@ export function createLightningBolt({
     random,
   });
 
-  const branches = [];
+  const branches: string[] = [];
   const branchStep = height / segments;
   for (const origin of mainPoints.slice(2, -2)) {
     if (random() > branchChance) continue;
@@ -91,7 +118,6 @@ export function createLightningBolt({
       branches.push(pointsToPath(branchPoints));
     }
   }
-
   return {
     viewBox: `0 0 ${width} ${height}`,
     main: pointsToPath(mainPoints),
@@ -99,11 +125,10 @@ export function createLightningBolt({
   };
 }
 
-/**
- * Random strike layout for the login viewport.
- * @param {() => number} [random]
- */
-export function createLightningStrike(random = Math.random) {
+/** Random strike layout for the login viewport. */
+export function createLightningStrike(
+  random: RandomFn = Math.random,
+): LightningStrike {
   const width = 70 + Math.floor(random() * 50);
   const height = 220 + Math.floor(random() * 120);
   const bolt = createLightningBolt({
@@ -114,12 +139,10 @@ export function createLightningStrike(random = Math.random) {
     branchChance: 0.22 + random() * 0.2,
     random,
   });
-
   const leftPct = 8 + random() * 72;
   const topPct = 2 + random() * 10;
   const heightVh = 32 + random() * 28;
   const rotate = (random() - 0.5) * 14;
-
   return {
     ...bolt,
     style: {
@@ -134,7 +157,7 @@ export function createLightningStrike(random = Math.random) {
   };
 }
 
-export function prefersReducedMotion() {
+export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
