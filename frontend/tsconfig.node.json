@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  "include": [
+    "vite.config.ts",
+    "playwright.config.ts",
+    "playwright.performance.config.ts",
+    "tests/playwright/**/*.ts",
+    "scripts/**/*.js",
+    "scripts/**/*.ts",
+    "eslint.config.js",
+    "stylelint.config.js"
+  ]
+}

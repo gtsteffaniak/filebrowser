@@ -1,43 +1,9 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "allowJs": true,
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "noEmit": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": false,
-    "noImplicitAny": false,
-    "noImplicitThis": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "sourceMap": true,
-    "noImplicitReturns": true,
-    "isolatedModules": true,
-    "esModuleInterop": true,
     "lib": ["ESNext", "DOM"],
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
     "types": ["vite/client", "@intlify/unplugin-vue-i18n/messages"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "paths": { "@/*": ["./src/*"] }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.js",
-    "src/**/*.d.ts",
-    "src/**/*.vue",
-    "tests/playwright/**/*.ts",
-    "tests/playwright/performance/dashboard/**/*.js",
-    "scripts/**/*.js",
-    "vite.config.ts",
-    "eslint.config.js",
-    "stylelint.config.js"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "../_docker/src/proxy/frontend/playwright.config.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.d.ts", "src/**/*.vue"]
 }
