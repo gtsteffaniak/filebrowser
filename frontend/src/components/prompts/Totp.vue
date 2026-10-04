@@ -66,6 +66,10 @@ export default {
       type: String,
       default: "",
     },
+    recaptcha: {
+      type: String,
+      default: "",
+    },
     generate: {
       type: Boolean,
       default: false,
@@ -124,9 +128,11 @@ export default {
       }
       this.verifyInFlight = true;
       try {
-        await authApi.verifyOTP(this.username, this.password, this.code);
+        if (this.generate || this.redirect === "") {
+          await authApi.verifyOTP(this.username, this.password, this.code);
+        }
         if (this.redirect !== "") {
-          await authApi.login(this.username, this.password, this.redirect, this.code);
+          await authApi.login(this.username, this.password, this.recaptcha, this.code);
           await initAuth();
           // Wait for navigation so Layout mounts and registers the toast callback before we toast
           await this.$router.push(this.redirect);
