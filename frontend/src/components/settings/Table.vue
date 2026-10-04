@@ -368,7 +368,7 @@ export default {
   font-family: inherit;
   font-size: 1em;
   margin: 0;
-  background: var(--surfacePrimary);
+  background: color-mix(in srgb, var(--surfacePrimary), transparent 20%);
   border: 1px solid var(--divider);
   outline: 1px solid var(--divider);
   outline-offset: -1px;
@@ -411,7 +411,7 @@ body.rtl .settings-table tr > *:last-child {
 
 .settings-table thead th.settings-table__th {
   color: var(--primaryColor);
-  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
+  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary) 10%);
   cursor: pointer;
   user-select: none;
   position: relative;
@@ -424,18 +424,18 @@ body.rtl .settings-table tr > *:last-child {
 }
 
 .settings-table thead th.settings-table__th:hover {
-  background: color-mix(in srgb, var(--primaryColor) 22%, var(--surfacePrimary));
+  background: color-mix(in srgb, var(--primaryColor) 22%, var(--surfacePrimary) 10%);
 }
 
 .settings-table thead th.settings-table__th--nosort {
   color: var(--primaryColor);
-  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
+  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary) 10%);
   cursor: default;
   user-select: auto;
 }
 
 .settings-table thead th.settings-table__th--nosort:hover {
-  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
+  background: color-mix(in srgb, var(--primaryColor) 15%, var(--surfacePrimary) 10%);
 }
 
 .settings-table thead th.settings-table__th--unified,
@@ -473,7 +473,7 @@ body.rtl .settings-table thead th.settings-table__th--unified {
 }
 
 .settings-table tbody tr:hover td {
-  background-color: var(--surfaceSecondary);
+  background-color: var(--hoverOverlay);
 }
 
 .settings-table__row--clickable {

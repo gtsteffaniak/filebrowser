@@ -23,7 +23,6 @@
     "i18n:cleanup": "node scripts/sync-translations.js --cleanup",
     "icons:sync": "node ./scripts/build-icon-subset.js",
     "icons:check": "node ./scripts/build-icon-subset.js --check",
-    "format": "biome format --write .",
     "test": "vitest run "
   },
   "dependencies": {
@@ -38,7 +37,6 @@
     "mammoth": "^1.9.1",
     "marked": "^15.0.6",
     "marked-katex-extension": "5.1.10",
-    "normalize.css": "^8.0.1",
     "plyr": "^3.8.4",
     "qrcode.vue": "^3.4.1",
     "three": "^0.182.0",
@@ -48,7 +46,7 @@
   },
   "overrides": {
     "minimatch": "^10.2.6",
-    "@xmldom/xmldom": "^0.9.12",
+    "@xmldom/xmldom": "^0.8.15",
     "adm-zip": "^0.6.1",
     "@intlify/vue-i18n-extensions": {
       "vue-i18n": "$vue-i18n"

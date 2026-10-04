@@ -241,7 +241,7 @@ export default {
 }
 
 .shortcut-item:hover {
-  background-color: var(--surfaceSecondary);
+  background-color: var(--hoverOverlay);
 }
 
 .shortcut-item kbd {

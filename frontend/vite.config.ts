@@ -4,6 +4,7 @@ import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
 import { compression } from "vite-plugin-compression2";
+import stripLegacyCSS, { templateSafeParser } from "./scripts/postcss-strip-legacy";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
 const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
@@ -11,6 +12,13 @@ const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
 const resolve = {
   alias: {
     "@": path.resolve(__dirname, "src"),
+  },
+};
+
+const css = {
+  postcss: {
+    plugins: [stripLegacyCSS()],
+    parser: templateSafeParser,
   },
 };
 
@@ -45,6 +53,7 @@ export default defineConfig(({ command }) => {
     return {
       plugins,
       resolve,
+      css,
       base: "/__vite/",
       publicDir: path.resolve(__dirname, "public"),
       server: {
@@ -74,6 +83,7 @@ export default defineConfig(({ command }) => {
   return {
     plugins,
     resolve,
+    css,
     base: "",
     define: {
       __VUE_I18N_LEGACY_API__: JSON.stringify(false),
@@ -87,7 +97,7 @@ export default defineConfig(({ command }) => {
         // Add buildDelay to batch multiple changes
         buildDelay: 500,
       } : null,
-      target: "es2022",
+      target: "es2024",
       sourcemap: false,
       chunkSizeWarningLimit: 5000,
       rollupOptions: {

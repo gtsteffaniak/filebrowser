@@ -52,7 +52,7 @@ export default defineConfig(
       globals: {
         ...globals.node,
         ...globals.browser,
-        ...globals.es2022,
+        ...globals.es2024,
         globalVars: "readonly",
         router: "readonly",
         $t: "readonly",
