@@ -23,6 +23,16 @@
       @keydown.enter.prevent="submit"
     />
     <PasswordRequirementsHint :password="newPassword" :confirm-password="passwordConfirm" />
+    <label for="require-change-otp">{{ $t("otp.codeInputPlaceholder") }}</label>
+    <input
+      id="require-change-otp"
+      class="input"
+      :class="{ 'form-invalid': showFieldInvalid }"
+      type="text"
+      autocomplete="one-time-code"
+      v-model="otp"
+      @keydown.enter.prevent="submit"
+    />
   </div>
 
   <div class="card-actions">
@@ -69,6 +79,7 @@ export default {
       error: "",
       newPassword: "",
       passwordConfirm: "",
+      otp: "",
       submitInFlight: false,
     };
   },
@@ -119,7 +130,7 @@ export default {
       }
       this.submitInFlight = true;
       try {
-        await authApi.changeRequiredPassword(this.username, this.password, this.newPassword);
+        await authApi.changeRequiredPassword(this.username, this.password, this.newPassword, this.otp);
         await initAuth();
         const path = this.redirect !== "" ? this.redirect : "/files/";
         await this.$router.push(path);

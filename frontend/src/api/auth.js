@@ -3,7 +3,10 @@ import { notify } from '@/notify'
 import { getApiPath } from '@/utils/url.js'
 
 // POST /api/auth/password/change-required
-export async function changeRequiredPassword(username, currentPassword, newPassword) {
+export async function changeRequiredPassword(username, currentPassword, newPassword, otp) {
+  if (!otp) {
+    otp = "";
+  }
   const params = { username };
   const apiPath = getApiPath("auth/password/change-required", params);
   const res = await fetch(apiPath, {
@@ -12,6 +15,7 @@ export async function changeRequiredPassword(username, currentPassword, newPassw
     headers: {
       "Content-Type": "application/json",
       "X-Password": encodeURIComponent(currentPassword),
+      "X-Secret": otp,
     },
     body: JSON.stringify({
       password: newPassword,

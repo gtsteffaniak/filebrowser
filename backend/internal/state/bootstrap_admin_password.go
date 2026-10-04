@@ -39,14 +39,26 @@ func generateSpeakableBootstrapPassword() (string, error) {
 	}
 	word := bootstrapWords[wordIdx.Int64()]
 
-	codeRunes := make([]byte, bootstrapSpeakableCodeLen)
+	primary, err := randomSpeakableCode(bootstrapSpeakablePrimaryCodeLen)
+	if err != nil {
+		return "", err
+	}
+	secondary, err := randomSpeakableCode(bootstrapSpeakableSecondaryCodeLen)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s-%s-%s", word, string(primary), string(secondary)), nil
+}
+
+func randomSpeakableCode(n int) ([]byte, error) {
+	codeRunes := make([]byte, n)
 	charsetLen := big.NewInt(int64(len(bootstrapSpeakableCharset)))
 	for i := range codeRunes {
 		idx, err := rand.Int(rand.Reader, charsetLen)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		codeRunes[i] = bootstrapSpeakableCharset[idx.Int64()]
 	}
-	return fmt.Sprintf("%s-%s", word, string(codeRunes)), nil
+	return codeRunes, nil
 }

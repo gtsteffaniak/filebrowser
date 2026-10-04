@@ -31,7 +31,7 @@ func TestBootstrapDefaultAdminPasswordUsesConfigWhenSet(t *testing.T) {
 	}
 }
 
-var speakableBootstrapPasswordPattern = regexp.MustCompile(`^[a-z]+-[abcdefghjkmnpqrstuvwxyz23456789]{5}$`)
+var speakableBootstrapPasswordPattern = regexp.MustCompile(`^[a-z]+-[abcdefghjkmnpqrstuvwxyz23456789]{5}-[abcdefghjkmnpqrstuvwxyz23456789]{2}$`)
 
 func TestBootstrapDefaultAdminPasswordGeneratesWhenDefault(t *testing.T) {
 	orig := settings.Config.Auth.AdminPassword

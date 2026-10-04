@@ -18,5 +18,6 @@ var bootstrapWords = []string{
 // bootstrapSpeakableCharset excludes ambiguous characters for read-aloud (no 0/o, 1/i/l).
 const bootstrapSpeakableCharset = "abcdefghjkmnpqrstuvwxyz23456789"
 
-// bootstrapSpeakableCodeLen is the number of random charset characters after the word (e.g. word-xxxxx).
-const bootstrapSpeakableCodeLen = 5
+// bootstrapSpeakablePrimaryCodeLen and bootstrapSpeakableSecondaryCodeLen form the code after the word (e.g. word-xxxxx-xx).
+const bootstrapSpeakablePrimaryCodeLen = 5
+const bootstrapSpeakableSecondaryCodeLen = 2

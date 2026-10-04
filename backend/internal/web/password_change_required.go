@@ -29,6 +29,7 @@ type changeRequiredPasswordBody struct {
 // @Produce json
 // @Param username query string true "Username"
 // @Param X-Password header string true "URL-encoded current password"
+// @Param X-Secret header string false "TOTP code (if 2FA is enabled)"
 // @Param body body changeRequiredPasswordBody true "New password and confirmation"
 // @Success 200 {string} string "JWT token for authentication"
 // @Failure 400 {object} map[string]string "Bad request"
@@ -36,9 +37,18 @@ type changeRequiredPasswordBody struct {
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Router /api/auth/password/change-required [post]
 func changeRequiredPasswordHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	user, err := auth.AuthenticatePassword(r, true, true)
+	user, err := auth.AuthenticatePassword(r, false, true)
 	if err != nil {
+		if err == errors.ErrNoTotpProvided {
+			return http.StatusForbidden, err
+		}
 		return http.StatusUnauthorized, errors.ErrUnauthorized
+	}
+	if settings.Config.Auth.Methods.PasswordAuth.EnforcedOtp && user.TOTPSecret == "" {
+		return http.StatusForbidden, errors.ErrNoTotpConfigured
+	}
+	if user.HasPasskeyMFA() && user.TOTPSecret == "" {
+		return http.StatusForbidden, errors.ErrPasskeyMFARequired
 	}
 	if user.LoginMethod != users.LoginMethodPassword {
 		return http.StatusBadRequest, fmt.Errorf("password change is only available for password login users")
