@@ -2863,6 +2863,10 @@ paths:
         name: X-Password
         required: true
         type: string
+      - description: TOTP code (if 2FA is enabled)
+        in: header
+        name: X-Secret
+        type: string
       - description: New password and confirmation
         in: body
         name: body

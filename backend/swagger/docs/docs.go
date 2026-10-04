@@ -799,6 +799,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "TOTP code (if 2FA is enabled)",
+                        "name": "X-Secret",
+                        "in": "header"
+                    },
+                    {
                         "description": "New password and confirmation",
                         "name": "body",
                         "in": "body",
