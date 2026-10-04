@@ -31,7 +31,7 @@ export const getters = {
       return ""
     }
     // if date is halloween october 31st, return halloween
-    if (new Date().getMonth() === 9 ) {
+    if (new Date().getMonth() === 9 && new Date().getDate() === 31) {
       return "halloween";
     }
     return "";

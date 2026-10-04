@@ -1,0 +1,3 @@
+frontend:
+  styling:
+    disableEventThemes: true

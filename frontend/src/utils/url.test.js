@@ -126,6 +126,8 @@ describe('extractSourceFromPath', () => {
       { url: "/files/second/root/folder1/file1.txt", expected: { source: "second", path: "/root/folder1/file1.txt" } },
       { url: "/graham/", expected: { source: "graham", path: "/" } },
       { url: "/files/files/graham/docs", expected: { source: "graham", path: "/docs" } },
+      { url: "/files/files/docs", expected: { source: "files", path: "/docs" } },
+      { url: "/files/files/", expected: { source: "files", path: "/" } },
     ];
 
     for (const test of tests) {

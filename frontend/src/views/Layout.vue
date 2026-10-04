@@ -243,6 +243,13 @@ export default {
             body: this.$t("prompts.halloweenBody"),
             buttons: [
               {
+                label: this.$t("general.acknowledge"),
+                action: () => {
+                  localStorage.setItem("seenHalloweenMessage", "true");
+                  mutations.closeTopPrompt();
+                },
+              },
+              {
                 label: this.$t("general.disable"),
                 action: () => {
                   mutations.disableEventThemes();

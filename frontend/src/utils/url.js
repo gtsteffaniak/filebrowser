@@ -226,8 +226,8 @@ export function extractSourceFromPath(url) {
   if (parts[i] === "files") {
     i += 1;
   }
-  // Bad redirects with baseURL can produce /files/files/{source}/...
-  while (parts[i] === "files") {
+  // Bad redirects with baseURL can produce /files/files/{source}/... — not a source named "files".
+  if (parts[i] === "files" && parts.length > i + 2) {
     i += 1;
   }
   const source = parts[i] || "";
