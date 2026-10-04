@@ -1,8 +1,11 @@
 /* Halloween Theme Styles - Only apply when halloween-theme class is present */
 
+:root,
 .halloween-theme {
-  --primaryColor: var(--icon-orange) !important;
+  --primaryColor: var(--icon-orange);
 }
+
+
 
 html.halloween-theme {
   background-color: #000;
@@ -66,7 +69,7 @@ body.halloween-theme,
   /* drop-shadow follows the whole silhouette, including the rounded top */
   filter: drop-shadow(0 8px 28px rgb(255 140 0 / 60%)) drop-shadow(0 0 24px rgb(255 140 0 / 45%));
   padding: 2.5em 2em 2em;
-  z-index: 10;
+  z-index: 1;
 }
 
 /* Tombstone rounded top */
