@@ -168,6 +168,8 @@ export function getSessionJwtExpiresAt() {
 
 export async function validateLogin(isPublicRoute = false) {
 
+  console.trace("[AUTH DEBUG] validateLogin CALL STACK");
+
   authDebug("validateLogin START", {
     isPublicRoute,
     sessionExpiresAt,
@@ -614,6 +616,8 @@ export function sessionExpired() {
  */
 
 export async function initAuth() {
+
+  console.trace("[AUTH DEBUG] initAuth CALL STACK");
 
   authDebug("initAuth() START", {
     isShare: getters.isShare?.(),
