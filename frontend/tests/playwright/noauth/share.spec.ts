@@ -1,5 +1,5 @@
 
-import { checkForNotification, expect, openShareAndExpectPath, test } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup";
 
 test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors }) => {
   await page.goto("/files/exclude/");
@@ -26,10 +26,9 @@ test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors }
 test("root share path is valid", async ({ page, checkForErrors, openContextMenu }) => {
   await page.goto("/files/exclude/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await openShareAndExpectPath(page, "Path: /", async () => {
-    await openContextMenu();
-    await page.locator('button[aria-label="Share"]').click();
-  });
+  await openContextMenu();
+  await page.locator('button[aria-label="Share"]').click();
+  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
   checkForErrors();
 });
 
