@@ -145,7 +145,11 @@
     "wrongCredentials": "Falsche Zugangsdaten",
     "failedLogin": "Anmeldung fehlgeschlagen",
     "invalidCredentials": "Ungültige Anmeldedaten angegeben",
-    "passkeyLogin": "Passkey verwenden"
+    "passkeyLogin": "Passkey verwenden",
+    "requirePasswordChangeTitle": "Passwort ändern",
+    "requirePasswordChangeInstructions": "Sie müssen ein neues Passwort festlegen, bevor Sie fortfahren können.",
+    "requirePasswordChangeSuccess": "Das Passwort wurde aktualisiert. Sie sind nun angemeldet.",
+    "requirePasswordChangeMustDiffer": "Das neue Passwort muss sich von Ihrem aktuellen Passwort unterscheiden."
   },
   "prompts": {
     "deleteMessageSingle": "Sind Sie sicher, dass Sie diesen Ordner/diese Datei löschen möchten?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Standardwerte für Konten",
     "disableUserSettings": "Seite „Benutzereinstellungen“ deaktivieren",
     "userDefaultFieldLockedFromConfig": "Diese Standardeinstellung wird in der Konfigurationsdatei festgelegt und kann hier nicht geändert werden.",
-    "sourceAccessDefaultsHelp": "Standard-Dateiberechtigungen für Quellen und neue Benutzer. Mit „Enforce“ wird ein Wert für alle Benutzer ohne Administratorrechte festgelegt."
+    "sourceAccessDefaultsHelp": "Standard-Dateiberechtigungen für Quellen und neue Benutzer. Mit „Enforce“ wird ein Wert für alle Benutzer ohne Administratorrechte festgelegt.",
+    "passwordRequirementsMatch": "Die Passwörter stimmen überein",
+    "passwordRequirementsMinLength": "Mindestens {min} Zeichen",
+    "requirePasswordChange": "Passwortwechsel bei der nächsten Anmeldung erzwingen"
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",

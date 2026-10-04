@@ -26,6 +26,7 @@
           {{ $t("general.update") }}
         </button>
       </div>
+      <PasswordRequirementsHint :password="passwordRef" :confirm-password="user.password" />
       <div style="display: flex; flex-direction: column">
         <div class="settings-items">
           <ToggleSwitch class="item" v-model="user.otpEnabled" :name="$t('otp.name')" />
@@ -84,6 +85,7 @@
             {{ $t("general.update") }}
           </button>
         </div>
+        <PasswordRequirementsHint :password="passwordRef" :confirm-password="user.password" />
       </div>
 
       <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">
@@ -143,6 +145,7 @@
         :account="editAccount"
         :enforced="enforcedAccount"
         :enforced-permissions="enforcedAccountPermissions"
+        :show-require-password-change="user.loginMethod === 'password'"
         respect-enforced-policy
         @account-change="onEditAccountChange"
       />
@@ -185,7 +188,9 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
+import PasswordRequirementsHint from "@/components/PasswordRequirementsHint.vue";
 import Errors from "@/views/Errors.vue";
+import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
 import { notify } from "@/notify";
 import { validateLogin } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
@@ -239,6 +244,7 @@ export default {
     ToggleSwitch,
     UserDefaultsAccountSection,
     UserProfilePreferences,
+    PasswordRequirementsHint,
     Errors,
   },
   props: {
@@ -280,6 +286,7 @@ export default {
       sourceFilePermissionDefaults: null,
       editAccount: {
         lockPassword: false,
+        requirePasswordChange: false,
         disableSettings: false,
         disableUpdateNotifications: false,
         permissions: {
@@ -323,18 +330,18 @@ export default {
       });
     },
     invalidPassword() {
-      const matching =
-        this.user.password !== this.passwordRef && this.user.password.length > 0;
-      return matching;
-    },
-    /** Update is allowed only when both password fields are non-empty (trimmed) and match. */
-    canUpdatePassword() {
-      const a = String(this.passwordRef ?? "").trim();
-      const b = String(this.user.password ?? "").trim();
-      if (a.length === 0 || b.length === 0) {
+      const p = this.passwordPolicy;
+      if (String(this.passwordRef ?? "").length === 0 && String(this.user.password ?? "").length === 0) {
         return false;
       }
-      return !this.invalidPassword;
+      return !p.valid;
+    },
+    passwordPolicy() {
+      return evaluatePasswordPolicy(this.passwordRef, this.user.password);
+    },
+    /** Update is allowed only when both password fields match and meet server policy. */
+    canUpdatePassword() {
+      return this.passwordPolicy.valid;
     },
     passwordAvailable: () => globalVars.passwordAvailable,
     globalVars: () => globalVars,
@@ -570,6 +577,7 @@ export default {
       if (user.account && typeof user.account === "object") {
         const account = user.account;
         user.lockPassword = !!account.lockPassword;
+        user.requirePasswordChange = !!account.requirePasswordChange;
         user.disableSettings = !!account.disableSettings;
         user.disableUpdateNotifications = !!account.disableUpdateNotifications;
         if (account.loginMethod) {
@@ -771,6 +779,7 @@ export default {
         loginMethod: this.user.loginMethod ?? null,
         otpEnabled: !!this.user.otpEnabled,
         lockPassword: !!this.user.lockPassword,
+        requirePasswordChange: !!this.user.requirePasswordChange,
         disableSettings: !!this.user.disableSettings,
         disableUpdateNotifications: !!this.user.disableUpdateNotifications,
         permissions: {
@@ -800,6 +809,12 @@ export default {
       }
       if (current.lockPassword !== orig.lockPassword && !this.enforcedAccount.lockPassword) {
         fields.push("lockPassword");
+      }
+      if (
+        current.requirePasswordChange !== orig.requirePasswordChange
+        && !this.enforcedAccount.requirePasswordChange
+      ) {
+        fields.push("requirePasswordChange");
       }
       if (current.disableSettings !== orig.disableSettings && !this.enforcedAccount.disableSettings) {
         fields.push("disableSettings");
@@ -835,6 +850,7 @@ export default {
     syncEditAccountForm() {
       const p = this.user.permissions || {};
       this.editAccount.lockPassword = !!this.user.lockPassword;
+      this.editAccount.requirePasswordChange = !!this.user.requirePasswordChange;
       this.editAccount.disableSettings = !!this.user.disableSettings;
       this.editAccount.disableUpdateNotifications = !!this.user.disableUpdateNotifications;
       this.editAccount.permissions = {
@@ -846,6 +862,7 @@ export default {
     },
     applyEditAccountToUser() {
       this.user.lockPassword = this.editAccount.lockPassword;
+      this.user.requirePasswordChange = this.editAccount.requirePasswordChange;
       this.user.disableSettings = this.editAccount.disableSettings;
       this.user.disableUpdateNotifications = this.editAccount.disableUpdateNotifications;
       if (!this.user.permissions) {
@@ -908,6 +925,18 @@ export default {
         if (this.isNew) {
           if (!state.user.permissions.admin) {
             notify.showError(this.$t("settings.userNotAdmin"));
+            return;
+          }
+          if (
+            payload.loginMethod === "password"
+            && this.globalVars.passwordAvailable
+            && !this.passwordPolicy.valid
+          ) {
+            notify.showError(
+              this.$t("settings.passwordRequirementsMinLength", {
+                min: this.passwordPolicy.minLength,
+              }),
+            );
             return;
           }
           await usersApi.create(

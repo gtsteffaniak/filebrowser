@@ -145,7 +145,11 @@
     "wrongCredentials": "بيانات دخول خاطئة",
     "failedLogin": "فشل في تسجيل الدخول",
     "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة",
-    "passkeyLogin": "استخدام مفتاح المرور"
+    "passkeyLogin": "استخدام مفتاح المرور",
+    "requirePasswordChangeTitle": "تغيير كلمة المرور",
+    "requirePasswordChangeInstructions": "يجب عليك تعيين كلمة مرور جديدة قبل المتابعة.",
+    "requirePasswordChangeSuccess": "تم تحديث كلمة المرور. لقد تم تسجيل دخولك الآن.",
+    "requirePasswordChangeMustDiffer": "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور الحالية"
   },
   "prompts": {
     "deleteMessageSingle": "هل تريد بالتأكيد حذف هذا الملف/المجلد؟",
@@ -304,7 +308,10 @@
     "accountDefaults": "التخلف عن سداد الالتزامات المتعلقة بالحساب",
     "disableUserSettings": "تعطيل صفحة إعدادات المستخدم",
     "userDefaultFieldLockedFromConfig": "يتم تعيين هذا الإعداد الافتراضي في ملف التكوين ولا يمكن تغييره هنا.",
-    "sourceAccessDefaultsHelp": "يتم تطبيق أذونات الملفات الافتراضية على المصادر والمستخدمين الجدد. ويؤدي خيار «Enforce» إلى تقييد القيمة لجميع المستخدمين غير الإداريين."
+    "sourceAccessDefaultsHelp": "يتم تطبيق أذونات الملفات الافتراضية على المصادر والمستخدمين الجدد. ويؤدي خيار «Enforce» إلى تقييد القيمة لجميع المستخدمين غير الإداريين.",
+    "passwordRequirementsMatch": "الكلمات المرور متطابقة",
+    "passwordRequirementsMinLength": "{min} حرفًا على الأقل",
+    "requirePasswordChange": "طلب تغيير كلمة المرور عند تسجيل الدخول التالي"
   },
   "sidebar": {
     "updateIsAvailable": "يتوفر تحديث!",

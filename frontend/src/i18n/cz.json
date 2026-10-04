@@ -145,7 +145,11 @@
     "wrongCredentials": "Nesprávné přihlašovací údaje",
     "failedLogin": "Nepodařilo se přihlásit",
     "invalidCredentials": "Neplatné zadané pověření",
-    "passkeyLogin": "Použít Passkey"
+    "passkeyLogin": "Použít Passkey",
+    "requirePasswordChangeTitle": "Změňte si heslo",
+    "requirePasswordChangeInstructions": "Než budete pokračovat, musíte nastavit nové heslo.",
+    "requirePasswordChangeSuccess": "Heslo bylo aktualizováno. Nyní jste přihlášeni.",
+    "requirePasswordChangeMustDiffer": "Nové heslo se nesmí shodovat s vaším současným heslem"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
@@ -454,7 +458,10 @@
     "accountDefaults": "Výchozí nastavení účtu",
     "disableUserSettings": "Zakázat stránku uživatelských nastavení",
     "userDefaultFieldLockedFromConfig": "Toto výchozí nastavení je definováno v konfiguračním souboru a zde jej nelze změnit.",
-    "sourceAccessDefaultsHelp": "Výchozí oprávnění k souborům se vztahují na zdrojové soubory a nové uživatele. Nastavení „Vynutit“ určuje pevnou hodnotu pro všechny uživatele, kteří nejsou správci."
+    "sourceAccessDefaultsHelp": "Výchozí oprávnění k souborům se vztahují na zdrojové soubory a nové uživatele. Nastavení „Vynutit“ určuje pevnou hodnotu pro všechny uživatele, kteří nejsou správci.",
+    "passwordRequirementsMatch": "Hesla se shodují",
+    "passwordRequirementsMinLength": "Nejméně {min} ových znaků",
+    "requirePasswordChange": "Vyžadovat změnu hesla při příštím přihlášení"
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",

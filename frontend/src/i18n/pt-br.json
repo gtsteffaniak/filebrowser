@@ -145,7 +145,11 @@
     "wrongCredentials": "Ops! Dados incorretos.",
     "failedLogin": "Falha no login",
     "invalidCredentials": "Credenciais inválidas fornecidas",
-    "passkeyLogin": "Usar chave de acesso"
+    "passkeyLogin": "Usar chave de acesso",
+    "requirePasswordChangeTitle": "Altere sua senha",
+    "requirePasswordChangeInstructions": "É necessário definir uma nova senha antes de continuar.",
+    "requirePasswordChangeSuccess": "Senha atualizada. Agora você está conectado.",
+    "requirePasswordChangeMustDiffer": "A nova senha deve ser diferente da sua senha atual"
   },
   "prompts": {
     "deleteMessageSingle": "Deseja apagar esta pasta/arquivo?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Configurações padrão da conta",
     "disableUserSettings": "Desativar a página de configurações do usuário",
     "userDefaultFieldLockedFromConfig": "Essa configuração padrão é definida no arquivo de configuração e não pode ser alterada aqui.",
-    "sourceAccessDefaultsHelp": "Permissões padrão de arquivo aplicadas a fontes e novos usuários. A opção “Enforçar” define um valor fixo para todos os usuários que não sejam administradores."
+    "sourceAccessDefaultsHelp": "Permissões padrão de arquivo aplicadas a fontes e novos usuários. A opção “Enforçar” define um valor fixo para todos os usuários que não sejam administradores.",
+    "passwordRequirementsMatch": "As senhas coincidem",
+    "passwordRequirementsMinLength": "Pelo menos {min} caracteres",
+    "requirePasswordChange": "Exigir alteração da senha no próximo login"
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",

@@ -145,7 +145,11 @@
     "wrongCredentials": "Nesprávne prihlasovacie údaje",
     "failedLogin": "Nepodarilo sa prihlásiť",
     "invalidCredentials": "Zadané neplatné poverenia",
-    "passkeyLogin": "Použiť Passkey"
+    "passkeyLogin": "Použiť Passkey",
+    "requirePasswordChangeTitle": "Zmeňte si heslo",
+    "requirePasswordChangeInstructions": "Pred pokračovaním je potrebné nastaviť nové heslo.",
+    "requirePasswordChangeSuccess": "Heslo bolo aktualizované. Teraz ste prihlásení.",
+    "requirePasswordChangeMustDiffer": "Nové heslo sa nesmie zhodovať s vaším súčasným heslom"
   },
   "prompts": {
     "deleteMessageSingle": "Naozaj chcete odstrániť tento súbor/priečinok?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Predvolené nastavenia účtu",
     "disableUserSettings": "Deaktivovať stránku nastavení používateľa",
     "userDefaultFieldLockedFromConfig": "Toto predvolené nastavenie je definované v konfiguračnom súbore a tu ho nie je možné zmeniť.",
-    "sourceAccessDefaultsHelp": "Na zdrojové súbory a nových používateľov sa uplatňujú predvolené oprávnenia súborov. Nastavenie „Enforce“ uzamkne túto hodnotu pre všetkých používateľov, ktorí nie sú správcami."
+    "sourceAccessDefaultsHelp": "Na zdrojové súbory a nových používateľov sa uplatňujú predvolené oprávnenia súborov. Nastavenie „Enforce“ uzamkne túto hodnotu pre všetkých používateľov, ktorí nie sú správcami.",
+    "passwordRequirementsMatch": "Heslá sa zhodujú",
+    "passwordRequirementsMinLength": "Minimálne {min} znakov",
+    "requirePasswordChange": "Vyžadovať zmenu hesla pri nasledujúcom prihlásení"
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",

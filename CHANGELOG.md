@@ -8,15 +8,18 @@ All notable changes to this project will be documented in this file. For commit 
  - [Low] Public share lyrics and subtitle media routes now honor the share's file-viewer setting, download disable flag, and download limits, matching the public download route (GHSA-p7x3-p5jj-9xfh) -- thanks Yves Soete of Blacksight LLC.
 
  **New Features**:
+ - Require password change at next login for password-based users: new user setting `requirePasswordChange` (user defaults + per-user admin toggle), login blocked until the user sets a new password; bootstrap admins with a generated initial password get this automatically ([#2977](https://github.com/gtsteffaniak/filebrowser/issues/2977)). Generated bootstrap passwords use a speakable `word-xxxxx-xx` form (random word from a fixed list plus a 5-character and 2-character code) instead of a long hex string, for easier handoff before the forced change.
  - Config YAML expands `$VAR` and `${VAR}` so values such as `userPassword: "${FILEBROWSER_LDAP_USER_PASSWORD}"` work as documented (#3042).
 
  **Notes**:
  - Sidebar source links can now switch between aggregated usage (default) and a root-filesystem-only view via a new "Limit disk usage to source filesystem" toggle.
 
  **Bugfixes**:
+ - Anonymous visitors on public shares could not play inline video or audio: `GET /public/api/media/stream` returned 403 because view grants were validated before share context was fully hydrated; playback now works when download and the file viewer are allowed ([#3041](https://github.com/gtsteffaniak/filebrowser/issues/3041)).
  - Fixed inflated disk usage for sources spanning multiple ZFS datasets (or btrfs subvolumes): shared-pool filesystems are now grouped by pool and counted once, instead of multiplying capacity by the number of mounted datasets (#3025) (#2997) (#2761).
  - LDAP `userGroups` matching now accepts CN-only config values against full `memberOf` DNs and compares case-insensitively, instead of failing the shared auth helper with strict string equality (#3044).
  - OIDC session expires despite tokenExpirationHours (#3006).
+ - Media playback becomes stuck after opening a failing media file since v2.0.8-beta (#3031)
 
 ## v2.0.9
 

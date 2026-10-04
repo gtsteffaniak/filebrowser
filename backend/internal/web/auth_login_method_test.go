@@ -150,7 +150,7 @@ func TestAuthenticatePasswordRejectsWrongLoginMethod(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/auth/login?username=graham", nil)
 	req.Header.Set("X-Password", url.QueryEscape("secret"))
 
-	_, err := auth.AuthenticatePassword(req, true)
+	_, err := auth.AuthenticatePassword(req, true, false)
 	if !errors.Is(err, fberrors.ErrWrongLoginMethod) {
 		t.Fatalf("AuthenticatePassword() err = %v, want ErrWrongLoginMethod", err)
 	}

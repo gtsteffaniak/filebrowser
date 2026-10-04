@@ -309,7 +309,11 @@
     "wrongCredentials": "Credenziali errate",
     "failedLogin": "Accesso fallito",
     "invalidCredentials": "Credenziali fornite non valide",
-    "passkeyLogin": "Usa Passkey"
+    "passkeyLogin": "Usa Passkey",
+    "requirePasswordChangeTitle": "Cambia la tua password",
+    "requirePasswordChangeInstructions": "È necessario impostare una nuova password prima di continuare.",
+    "requirePasswordChangeSuccess": "La password è stata aggiornata. Ora hai effettuato l'accesso.",
+    "requirePasswordChangeMustDiffer": "La nuova password deve essere diversa da quella attuale"
   },
   "share": {
     "notice": "Nota: quando viene creata una condivisione, essa diventa pubblica e segue regole di accesso diverse. Se non configurata correttamente, chiunque potrebbe accedervi.",
@@ -618,7 +622,10 @@
     "accountDefaults": "Impostazioni predefinite dell'account",
     "disableUserSettings": "Disattiva la pagina delle impostazioni utente",
     "userDefaultFieldLockedFromConfig": "Questa impostazione predefinita è configurata nel file di configurazione e non può essere modificata in questa sede.",
-    "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori."
+    "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori.",
+    "passwordRequirementsMatch": "Le password corrispondono",
+    "passwordRequirementsMinLength": "Almeno {min} caratteri",
+    "requirePasswordChange": "Richiedi la modifica della password al prossimo accesso"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",

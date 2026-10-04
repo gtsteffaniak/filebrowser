@@ -15,6 +15,22 @@ var AuthManagedEnforcementPaths = map[string]struct{}{
 	"account.permissions.admin": {},
 }
 
+// TransientAccountEnforcementPaths are enforced defaults that seed account state but must not
+// block updates when the user satisfies a one-time requirement (e.g. clearing requirePasswordChange).
+var TransientAccountEnforcementPaths = map[string]struct{}{
+	"account.requirePasswordChange": {},
+}
+
+func enforcementPathExcludedFromUserSync(path string) bool {
+	if _, ok := AuthManagedEnforcementPaths[path]; ok {
+		return true
+	}
+	if _, ok := TransientAccountEnforcementPaths[path]; ok {
+		return true
+	}
+	return false
+}
+
 // EnforcementAppliesToUser reports whether user-default enforcement should affect u.
 // Admins are exempt; anonymous and nil users are not subject to enforcement.
 func EnforcementAppliesToUser(u *users.User) bool {
@@ -30,7 +46,7 @@ func withoutAuthManagedEnforcementPaths(paths map[string]struct{}) map[string]st
 	}
 	out := make(map[string]struct{}, len(paths))
 	for path := range paths {
-		if _, authManaged := AuthManagedEnforcementPaths[path]; authManaged {
+		if enforcementPathExcludedFromUserSync(path) {
 			continue
 		}
 		out[path] = struct{}{}

@@ -145,7 +145,11 @@
     "wrongCredentials": "Невірне ім'я користувача або пароль",
     "failedLogin": "Не вдалося увійти в систему",
     "invalidCredentials": "Надано невірні облікові дані",
-    "passkeyLogin": "Використати ключ доступу"
+    "passkeyLogin": "Використати ключ доступу",
+    "requirePasswordChangeTitle": "Змінити пароль",
+    "requirePasswordChangeInstructions": "Перш ніж продовжувати, вам необхідно встановити новий пароль.",
+    "requirePasswordChangeSuccess": "Пароль оновлено. Ви тепер увійшли в систему.",
+    "requirePasswordChangeMustDiffer": "Новий пароль повинен відрізнятися від вашого поточного пароля"
   },
   "prompts": {
     "deleteMessageSingle": "Видалити цей файл/каталог?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Стандартні налаштування облікового запису",
     "disableUserSettings": "Вимкнути сторінку налаштувань користувача",
     "userDefaultFieldLockedFromConfig": "Це значення за замовчуванням задається у файлі конфігурації, і його неможливо змінити тут.",
-    "sourceAccessDefaultsHelp": "Застосовано стандартні права доступу до файлів для джерел та нових користувачів. Параметр «Enforce» фіксує значення для всіх користувачів, які не є адміністраторами."
+    "sourceAccessDefaultsHelp": "Застосовано стандартні права доступу до файлів для джерел та нових користувачів. Параметр «Enforce» фіксує значення для всіх користувачів, які не є адміністраторами.",
+    "passwordRequirementsMatch": "Паролі збігаються",
+    "passwordRequirementsMinLength": "Щонайменше {min} символів",
+    "requirePasswordChange": "Вимагати зміни пароля під час наступного входу в систему"
   },
   "sidebar": {
     "updateIsAvailable": "Доступне оновлення!",

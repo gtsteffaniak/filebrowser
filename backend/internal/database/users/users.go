@@ -106,11 +106,11 @@ type MinimalAuthToken struct {
 }
 
 type Permissions struct {
-	Api      bool `json:"api"`      // allow api access
-	Admin    bool `json:"admin"`    // allow admin access
+	Api      bool `json:"api"`                // allow api access
+	Admin    bool `json:"admin"`              // allow admin access
 	Modify   bool `json:"modify,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	Share    bool `json:"share"`    // allow sharing files
-	Realtime bool `json:"realtime"` // allow realtime updates
+	Share    bool `json:"share"`              // allow sharing files
+	Realtime bool `json:"realtime"`           // allow realtime updates
 	Delete   bool `json:"delete,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
 	Create   bool `json:"create,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
 	Download bool `json:"download,omitempty"` // deprecated: legacy user migration only; not used for API tokens
@@ -119,12 +119,12 @@ type Permissions struct {
 
 // SourceFilePermissions holds per-source file operation permissions (v4+).
 type SourceFilePermissions struct {
-	View        bool `json:"view"`
-	Download    bool `json:"download"`
-	Modify      bool `json:"modify"`
-	Delete      bool `json:"delete"`
-	Create      bool `json:"create"`
-	Configured  bool `json:"configured,omitempty"` // true when explicitly set (allows intentional deny-all)
+	View       bool `json:"view"`
+	Download   bool `json:"download"`
+	Modify     bool `json:"modify"`
+	Delete     bool `json:"delete"`
+	Create     bool `json:"create"`
+	Configured bool `json:"configured,omitempty"` // true when explicitly set (allows intentional deny-all)
 }
 
 // MarkSourceFilePermissionsConfigured marks permissions as explicitly set (including deny-all).
@@ -173,16 +173,17 @@ type Preview struct {
 // FrontendUser holds fields safe to return from user APIs (embedded on User).
 type FrontendUser struct {
 	NonAdminEditable
-	DisableSettings   bool                             `json:"disableSettings"`
-	Username          string                           `json:"username"`
-	FrontendScopes    []FrontendScope                  `json:"scopes"`
-	LockPassword      bool                             `json:"lockPassword"`
-	Permissions       Permissions                      `json:"permissions"` // global: admin, api, share, realtime
-	SourcePermissions map[string]SourceFilePermissions `json:"sourcePermissions,omitempty"` // deprecated: use scopes[].permissions
-	LoginMethod       LoginMethod                      `json:"loginMethod"`
-	OtpEnabled        bool                             `json:"otpEnabled"`
-	ShowFirstLogin       bool             `json:"showFirstLogin"`
-	Perm                 Permissions      `json:"perm,omitzero"`
+	DisableSettings       bool                             `json:"disableSettings"`
+	Username              string                           `json:"username"`
+	FrontendScopes        []FrontendScope                  `json:"scopes"`
+	LockPassword          bool                             `json:"lockPassword"`
+	RequirePasswordChange bool                             `json:"requirePasswordChange"`
+	Permissions           Permissions                      `json:"permissions"`                 // global: admin, api, share, realtime
+	SourcePermissions     map[string]SourceFilePermissions `json:"sourcePermissions,omitempty"` // deprecated: use scopes[].permissions
+	LoginMethod           LoginMethod                      `json:"loginMethod"`
+	OtpEnabled            bool                             `json:"otpEnabled"`
+	ShowFirstLogin        bool                             `json:"showFirstLogin"`
+	Perm                  Permissions                      `json:"perm,omitzero"`
 }
 
 // PinnedItems maps source filesystem path -> index directory path -> pinned item names.
@@ -211,14 +212,14 @@ type User struct {
 }
 
 type FrontendScope struct {
-	Name        string                `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
-	Scope       string                `json:"scope"` // index path within that source
+	Name        string                 `json:"name"`  // Bolt: filesystem path; JSON API: display name after prepForFrontend
+	Scope       string                 `json:"scope"` // index path within that source
 	Permissions *SourceFilePermissions `json:"permissions,omitempty"`
 }
 
 type BackendScope struct {
-	Path        string               `json:"path"`  // real path for the source
-	Scope       string               `json:"scope"` // index path within that source
+	Path        string                `json:"path"`  // real path for the source
+	Scope       string                `json:"scope"` // index path within that source
 	Permissions SourceFilePermissions `json:"permissions,omitempty"`
 }
 

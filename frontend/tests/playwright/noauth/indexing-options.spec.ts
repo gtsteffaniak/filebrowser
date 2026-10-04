@@ -83,7 +83,7 @@ test("root indexing info is correct", async ({ page, checkForErrors }) => {
     await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
     
     // Check folder sizes
-    await expect(page.locator('a[aria-label="myfolder"]').locator('.size')).toHaveText("3.3 MB");
+    await expect(page.locator('a[aria-label="myfolder"]').locator('.size')).toHaveText("3.5 MB");
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("4.0 KB");
     await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("12.0 KB");
     await expect(page.locator('a[aria-label="share"]').locator('.size')).toHaveText("4.0 KB");

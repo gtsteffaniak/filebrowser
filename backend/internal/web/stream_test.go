@@ -801,3 +801,30 @@ func TestViewTokenHandlerExtendsExistingToken(t *testing.T) {
 		t.Fatalf("expected extended expiry, before=%d after=%d", almostExpired, grantAfter.ExpiresAt)
 	}
 }
+
+func TestValidateViewGrantSourceScopedGrantOnPublicShare(t *testing.T) {
+	initStreamTestSources(t)
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+	token, err := utils.RandomHex(16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	utils.ViewGrantsCache.Set(token, utils.ViewGrant{
+		Source:    "srv",
+		ExpiresAt: time.Now().Add(time.Hour).Unix(),
+	})
+	d := &requestContext{
+		User: &users.User{
+			FrontendUser: users.FrontendUser{Username: users.AnonymousUserName},
+		},
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{Hash: "sharehash"},
+			SourcePath:   "/srv",
+		},
+	}
+	if err := ValidateViewGrant(token, d, ""); err != nil {
+		t.Fatalf("ValidateViewGrant: %v", err)
+	}
+}

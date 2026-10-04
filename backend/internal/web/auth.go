@@ -221,6 +221,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, erro
 	if d.User.HasPasskeyMFA() && d.User.TOTPSecret == "" {
 		return http.StatusForbidden, errors.ErrPasskeyMFARequired
 	}
+	if passwordUser && d.User.RequirePasswordChange {
+		return http.StatusForbidden, errors.ErrPasswordChangeRequired
+	}
 	status, err := printToken(w, r, d.User, "")
 	if err != nil || status != 0 {
 		return status, err
@@ -320,6 +323,9 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	// Validate that we have both username and password
 	if username == "" || password == "" {
 		return http.StatusBadRequest, fmt.Errorf("username and password are required")
+	}
+	if err := settings.ValidatePasswordPolicy(password); err != nil {
+		return http.StatusBadRequest, err
 	}
 
 	user := users.User{

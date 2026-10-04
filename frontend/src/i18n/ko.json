@@ -145,7 +145,11 @@
     "wrongCredentials": "사용자 이름 또는 비밀번호를 확인하십시오",
     "failedLogin": "로그인에 실패했습니다.",
     "invalidCredentials": "제공된 자격 증명이 잘못되었습니다.",
-    "passkeyLogin": "패스키 사용"
+    "passkeyLogin": "패스키 사용",
+    "requirePasswordChangeTitle": "비밀번호 변경",
+    "requirePasswordChangeInstructions": "계속 진행하려면 새 비밀번호를 설정해야 합니다.",
+    "requirePasswordChangeSuccess": "비밀번호가 업데이트되었습니다. 이제 로그인이 완료되었습니다.",
+    "requirePasswordChangeMustDiffer": "새 비밀번호는 현재 비밀번호와 달라야 합니다."
   },
   "prompts": {
     "deleteMessageSingle": "파일 혹은 디렉토리를 삭제하시겠습니까?",
@@ -304,7 +308,10 @@
     "accountDefaults": "계정 기본 설정",
     "disableUserSettings": "사용자 설정 페이지 비활성화",
     "userDefaultFieldLockedFromConfig": "이 기본값은 설정 파일에서 지정되며, 여기서는 변경할 수 없습니다.",
-    "sourceAccessDefaultsHelp": "소스 및 신규 사용자에게 기본 파일 권한이 적용됩니다. ‘enforce’는 관리자 권한이 없는 모든 사용자에 대해 해당 값을 강제 적용합니다."
+    "sourceAccessDefaultsHelp": "소스 및 신규 사용자에게 기본 파일 권한이 적용됩니다. ‘enforce’는 관리자 권한이 없는 모든 사용자에 대해 해당 값을 강제 적용합니다.",
+    "passwordRequirementsMatch": "비밀번호가 일치합니다",
+    "passwordRequirementsMinLength": "{min} 자 이상",
+    "requirePasswordChange": "다음 로그인 시 비밀번호 변경을 필수로 설정"
   },
   "sidebar": {
     "updateIsAvailable": "업데이트를 사용할 수 있습니다!",

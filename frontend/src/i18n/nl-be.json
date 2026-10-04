@@ -145,7 +145,11 @@
     "wrongCredentials": "Verkeerde inloggegevens",
     "failedLogin": "Aanmelden mislukt",
     "invalidCredentials": "Ongeldige referenties verstrekt",
-    "passkeyLogin": "Passkey gebruiken"
+    "passkeyLogin": "Passkey gebruiken",
+    "requirePasswordChangeTitle": "Wijzig je wachtwoord",
+    "requirePasswordChangeInstructions": "U moet een nieuw wachtwoord instellen voordat u verder kunt gaan.",
+    "requirePasswordChangeSuccess": "Het wachtwoord is bijgewerkt. Je bent nu ingelogd.",
+    "requirePasswordChangeMustDiffer": "Het nieuwe wachtwoord moet anders zijn dan je huidige wachtwoord"
   },
   "prompts": {
     "deleteMessageSingle": "Weet u zeker dat u dit bestand/map wil verwijderen?",
@@ -304,7 +308,10 @@
     "accountDefaults": "Standaardinstellingen voor accounts",
     "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
     "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd.",
-    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn."
+    "sourceAccessDefaultsHelp": "Standaard bestandsrechten die worden toegepast op bronbestanden en nieuwe gebruikers. Met ‘Enforce’ wordt een waarde vastgelegd voor alle gebruikers die geen beheerder zijn.",
+    "passwordRequirementsMatch": "Wachtwoorden komen overeen",
+    "passwordRequirementsMinLength": "{min} -tekens",
+    "requirePasswordChange": "Vereis dat het wachtwoord bij de volgende aanmelding wordt gewijzigd"
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",
