@@ -46,7 +46,7 @@ import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
 import { globalVars } from "@/utils/constants";
-import { syncDocumentTheme } from "@/utils/theme";
+import { syncDocumentTheme, syncEventTheme } from "@/utils/theme";
 import Search from "@/components/Search.vue";
 
 export default {
@@ -206,6 +206,7 @@ export default {
       }
       const sourceinfo = await settingsApi.sources();
       mutations.updateSourceInfo(sourceinfo);
+      syncEventTheme(getters.eventTheme() === "halloween");
       if (state.user.permissions.realtime) {
         events.startSSE();
       }
@@ -230,6 +231,30 @@ export default {
             },
           });
         }
+      this.$nextTick(() => {
+        if (getters.eventTheme() !== "halloween" || localStorage.getItem("seenHalloweenMessage")) {
+          return;
+        }
+        mutations.showPrompt({
+          name: "generic",
+          pinned: true,
+          props: {
+            title: this.$t("prompts.halloweenTitle"),
+            body: this.$t("prompts.halloweenBody"),
+            buttons: [
+              {
+                label: this.$t("general.disable"),
+                action: () => {
+                  mutations.disableEventThemes();
+                  localStorage.setItem("seenHalloweenMessage", "true");
+                  mutations.closeTopPrompt();
+                },
+                primary: true,
+              },
+            ],
+          },
+        });
+      });
     },
     resetItems() {
       mutations.closeSidebar();

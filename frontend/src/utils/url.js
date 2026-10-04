@@ -219,12 +219,20 @@ export function base64Encode(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
 
-// expect url to include /files/ prefix
+// Expect route paths like /files/{source}/... or, under a subpath baseURL, /{source}/...
 export function extractSourceFromPath(url) {
-  let path = url;
-  const source = path.split('/')[2];
-  path = removePrefix(path, `/files/${source}`);
-  return { source, path };
+  const parts = removeTrailingSlash(url).split("/").filter(Boolean);
+  let i = 0;
+  if (parts[i] === "files") {
+    i += 1;
+  }
+  // Bad redirects with baseURL can produce /files/files/{source}/...
+  while (parts[i] === "files") {
+    i += 1;
+  }
+  const source = parts[i] || "";
+  const rest = parts.slice(i + 1).join("/");
+  return { source, path: rest ? `/${rest}` : "/" };
 }
 
 export function buildItemUrl(source, path, includeBaseURL = false) {
