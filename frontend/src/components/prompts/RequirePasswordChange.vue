@@ -23,16 +23,18 @@
       @keydown.enter.prevent="submit"
     />
     <PasswordRequirementsHint :password="newPassword" :confirm-password="passwordConfirm" />
-    <label for="require-change-otp">{{ $t("otp.codeInputPlaceholder") }}</label>
-    <input
-      id="require-change-otp"
-      class="input"
-      :class="{ 'form-invalid': showFieldInvalid }"
-      type="text"
-      autocomplete="one-time-code"
-      v-model="otp"
-      @keydown.enter.prevent="submit"
-    />
+    <template v-if="needsOtpInput">
+      <label for="require-change-otp">{{ $t("otp.codeInputPlaceholder") }}</label>
+      <input
+        id="require-change-otp"
+        class="input"
+        :class="{ 'form-invalid': showFieldInvalid }"
+        type="text"
+        autocomplete="one-time-code"
+        v-model="otp"
+        @keydown.enter.prevent="submit"
+      />
+    </template>
   </div>
 
   <div class="card-actions">
@@ -73,6 +75,11 @@ export default {
       type: String,
       default: "",
     },
+    /** When true, show the TOTP field immediately (user already uses 2FA). */
+    otpRequired: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -81,9 +88,13 @@ export default {
       passwordConfirm: "",
       otp: "",
       submitInFlight: false,
+      showOtpField: false,
     };
   },
   computed: {
+    needsOtpInput() {
+      return this.otpRequired || this.showOtpField;
+    },
     passwordPolicy() {
       return evaluatePasswordPolicy(this.newPassword, this.passwordConfirm);
     },
@@ -95,11 +106,17 @@ export default {
       return p.showMismatch || (p.showLengthHint && !p.minLengthMet);
     },
     canSubmit() {
-      return (
-        String(this.password ?? "").trim() !== "" &&
-        this.passwordPolicy.valid &&
-        this.newPassword !== this.password
-      );
+      if (
+        String(this.password ?? "").trim() === "" ||
+        !this.passwordPolicy.valid ||
+        this.newPassword === this.password
+      ) {
+        return false;
+      }
+      if (this.needsOtpInput && String(this.otp ?? "").trim() === "") {
+        return false;
+      }
+      return true;
     },
   },
   watch: {
@@ -111,6 +128,10 @@ export default {
     },
   },
   methods: {
+    otpRequiredForMessage(message) {
+      const text = String(message ?? "");
+      return text.includes("OTP code is required for user");
+    },
     async submit(event) {
       event?.preventDefault?.();
       if (this.submitInFlight || !this.canSubmit) {
@@ -137,7 +158,11 @@ export default {
         notify.showSuccessToast(this.$t("login.requirePasswordChangeSuccess"));
         mutations.closeTopPrompt();
       } catch (err) {
-        this.error = err.message || this.$t("login.failedLogin");
+        const message = err.message || this.$t("login.failedLogin");
+        if (this.otpRequiredForMessage(message)) {
+          this.showOtpField = true;
+        }
+        this.error = message;
         notify.showError(this.error);
       } finally {
         this.submitInFlight = false;

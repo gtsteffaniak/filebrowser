@@ -23,6 +23,7 @@ import router from "@/router";
 import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
+import { syncEventTheme } from "@/utils/theme";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 import { invalidateDirMetadataCache } from "@/utils/metadataCache.js";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
@@ -168,37 +169,14 @@ export default {
     },
   },
   created() {
-    if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
-      mutations.showPrompt({
-        name: "generic",
-        pinned: true,
-        props: {
-          title: this.$t("prompts.halloweenTitle"),
-          body: this.$t("prompts.halloweenBody"),
-          buttons: [
-            {
-              label: this.$t("general.close"),
-              action: () => {
-                localStorage.setItem("seenHalloweenMessage", "true");
-              },
-            },
-            {
-              label: this.$t("general.disable"),
-              action: () => {
-                mutations.disableEventThemes();
-                localStorage.setItem("seenHalloweenMessage", "true");
-              },
-              primary: true,
-            },
-          ],
-        },
-      });
-    }
+    syncEventTheme(getters.eventTheme() === "halloween");
     this.fetchData();
-
   },
   watch: {
-    $route: "fetchData",
+    $route() {
+      syncEventTheme(getters.eventTheme() === "halloween");
+      this.fetchData();
+    },
     reload(value) {
       if (value) {
         this.fetchData();
@@ -441,13 +419,13 @@ export default {
 
           // Redirect if multiple sources and user went to /files/
           if (routePath === "/files") {
-            let targetPath = `/files/${state.sources.current}`;
+            let targetPath = `/${state.sources.current}`;
             for (const link of state.user?.sidebarLinks || []) {
               if (link.target.startsWith('/')) {
                 if (!link.category.startsWith('source')) {
                   continue;
                 }
-                targetPath = `/files/${link.sourceName}${link.target}`;
+                targetPath = `/${link.sourceName}${link.target}`;
                 break;
               }
             }
