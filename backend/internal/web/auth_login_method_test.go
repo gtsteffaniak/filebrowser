@@ -81,7 +81,7 @@ func TestGetOrCreateAuthenticatedUserLDAPUserGroupsCNMatch(t *testing.T) {
 	}
 
 	groups := []string{"cn=Employees,ou=groups,dc=example,dc=com"}
-	_, err := getOrCreateAuthenticatedUser("ldap-user", users.LoginMethodLdap, false, groups)
+	_, err := getOrCreateAuthenticatedUser("ldap-user", users.LoginMethodLdap, false, groups, true)
 	if err != nil {
 		t.Fatalf("getOrCreateAuthenticatedUser() with CN-only userGroups: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestGetOrCreateAuthenticatedUserLDAPUserGroupsDenied(t *testing.T) {
 	}
 
 	groups := []string{"cn=Contractors,ou=groups,dc=example,dc=com"}
-	_, err := getOrCreateAuthenticatedUser("ldap-user", users.LoginMethodLdap, false, groups)
+	_, err := getOrCreateAuthenticatedUser("ldap-user", users.LoginMethodLdap, false, groups, true)
 	if err == nil || err.Error() != "user is not in allowed groups" {
 		t.Fatalf("getOrCreateAuthenticatedUser() err = %v, want user is not in allowed groups", err)
 	}
@@ -123,7 +123,7 @@ func TestGetOrCreateAuthenticatedUserLDAPDeniedFirstLoginCreatesNoAccount(t *tes
 	})
 
 	groups := []string{"cn=Contractors,ou=groups,dc=example,dc=com"}
-	_, err := getOrCreateAuthenticatedUser("denied-ldap-user", users.LoginMethodLdap, false, groups)
+	_, err := getOrCreateAuthenticatedUser("denied-ldap-user", users.LoginMethodLdap, false, groups, true)
 	if err == nil || err.Error() != "user is not in allowed groups" {
 		t.Fatalf("getOrCreateAuthenticatedUser() err = %v, want user is not in allowed groups", err)
 	}

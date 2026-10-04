@@ -33,7 +33,6 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
 
 const offsetFromBottomListing = 110;
