@@ -37,7 +37,7 @@ export const getters = {
       return "";
     }
     const now = new Date();
-    if (now.getMonth() === 9 && now.getDate() >= 9) {
+    if (now.getMonth() === 9 && now.getDate() === 31) {
       return "halloween";
     }
     return "";
