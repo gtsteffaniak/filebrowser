@@ -146,7 +146,11 @@
     "failedLogin": "登入失敗",
     "invalidCredentials": "提供的認證資料無效",
     "passkeyLogin": "使用通行密鑰",
-    "recaptchaRequired": "需要 Recaptcha 驗證"
+    "recaptchaRequired": "需要 Recaptcha 驗證",
+    "requirePasswordChangeTitle": "變更您的密碼",
+    "requirePasswordChangeInstructions": "您必須先設定新密碼，才能繼續。",
+    "requirePasswordChangeSuccess": "密碼已更新。您現在已登入。",
+    "requirePasswordChangeMustDiffer": "新密碼必須與您目前的密碼不同"
   },
   "prompts": {
     "noTemplate": "您的模板為空！",
@@ -313,7 +317,10 @@
     "userEditPreferences": "使用者偏好設定",
     "userEditTools": "工具存取",
     "userEditToolsDescription": "設定此使用者可存取哪些工具",
-    "userEditSidebarLinks": "側邊欄連結"
+    "userEditSidebarLinks": "側邊欄連結",
+    "passwordRequirementsMatch": "密碼相符",
+    "passwordRequirementsMinLength": "至少需輸入{min} 個字元",
+    "requirePasswordChange": "要求在下一次登入時變更密碼"
   },
   "sidebar": {
     "updateIsAvailable": "有可用的更新！",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "這些是將為所有新使用者預設新增的連結。若您強制啟用某個連結，該連結將會新增至所有使用者的帳戶中，且非管理員無法移除。",
     "sidebarLinkDefaultSourceHelp": "僅當使用者具有此來源的存取權限時，才適用此規定。",
     "sidebarLinkDefaultsYamlInvalid": "YAML 格式無效。請檢查格式並重新嘗試。",
-    "switchMode": "在連結與導覽樹之間切換"
+    "switchMode": "在連結與導覽樹之間切換",
+    "rootFilesystemOnly": "將磁碟使用量限制在來源檔案系統內",
+    "rootFilesystemOnlyDescription": "若啟用此設定，僅會報告包含來源路徑的檔案系統。若停用此設定（預設值），磁碟總容量亦會包含掛載於來源路徑下的檔案系統，其中如 ZFS 資料集等共用儲存池僅計入一次。"
   },
   "share": {
     "notice": "注意：建立分享後，內容會更容易對外公開，且存取規則也不同。如果未妥善設定安全性，任何人都可能存取。",

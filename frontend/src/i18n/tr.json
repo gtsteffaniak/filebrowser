@@ -146,7 +146,11 @@
     "failedLogin": "Giriş yapılamadı",
     "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı",
     "passkeyLogin": "Geçiş Anahtarını Kullan",
-    "recaptchaRequired": "Recaptcha doğrulaması gerekli"
+    "recaptchaRequired": "Recaptcha doğrulaması gerekli",
+    "requirePasswordChangeTitle": "Şifrenizi değiştirin",
+    "requirePasswordChangeInstructions": "Devam etmeden önce yeni bir şifre belirlemelisiniz.",
+    "requirePasswordChangeSuccess": "Şifre güncellendi. Artık oturum açtınız.",
+    "requirePasswordChangeMustDiffer": "Yeni şifreniz, mevcut şifrenizden farklı olmalıdır"
   },
   "prompts": {
     "noTemplate": "Şablonunuz boş!",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Kullanıcı tercihleri",
     "userEditTools": "Araçlara erişim",
     "userEditToolsDescription": "Bu kullanıcının hangi araçlara erişebileceğini ayarlayın",
-    "userEditSidebarLinks": "Kenar çubuğu bağlantıları"
+    "userEditSidebarLinks": "Kenar çubuğu bağlantıları",
+    "passwordRequirementsMatch": "Şifreler eşleşiyor",
+    "passwordRequirementsMinLength": "En az {min} karakter",
+    "requirePasswordChange": "Bir sonraki oturum açılışında şifre değişikliği zorunluluğu"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Bunlar, tüm yeni kullanıcılar için eklenecek varsayılan bağlantılardır. Bir bağlantıyı zorunlu kılarsanız, bu bağlantı tüm kullanıcılar için eklenecek ve yönetici olmayan kullanıcılar tarafından kaldırılamayacaktır.",
     "sidebarLinkDefaultSourceHelp": "Bu, yalnızca kullanıcının bu kaynağa erişimi olması durumunda geçerlidir.",
     "sidebarLinkDefaultsYamlInvalid": "YAML geçersiz. Biçimi kontrol edin ve tekrar deneyin.",
-    "switchMode": "Bağlantılar ile gezinme ağacı arasında geçiş yap"
+    "switchMode": "Bağlantılar ile gezinme ağacı arasında geçiş yap",
+    "rootFilesystemOnly": "Disk kullanımını kaynak dosya sistemiyle sınırla",
+    "rootFilesystemOnlyDescription": "Etkinleştirildiğinde, yalnızca kaynak yolunu içeren dosya sistemi raporlanır. Devre dışı bırakıldığında (varsayılan), disk toplamına kaynak yolunun altına bağlanmış dosya sistemleri de dahil edilir; ZFS veri kümeleri gibi paylaşımlı havuzlar ise yalnızca bir kez sayılır."
   },
   "share": {
     "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",

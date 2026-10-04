@@ -71,8 +71,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableAnonymous && data.User.Username == "anonymous" {
 			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
 		}
-		// Block anonymous users if per-user download limit is enabled
-		if link.PerUserDownloadLimit && data.User.Username == "anonymous" {
+		// Block anonymous users from download routes when per-user download limits are enabled.
+		// View/stream routes still need view grants so anonymous visitors can play media inline.
+		if link.PerUserDownloadLimit && data.User.Username == "anonymous" && shareRequestAllowsDownload(r) {
 			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
 		}
 		if len(link.AllowedUsernames) > 0 {
@@ -439,10 +440,13 @@ func LoginHelper(disableOtp bool, fn handleFunc) handleFunc {
 			logger.Debug("ldap auth failed, calling password auth", err)
 		}
 		if settings.Config.Auth.Methods.PasswordAuth.Enabled {
-			user, err := auth.AuthenticatePassword(r, disableOtp)
+			user, err := auth.AuthenticatePassword(r, disableOtp, false)
 			if err != nil {
 				logger.Debug("password auth failed, calling handler:", err)
 				if err == errors.ErrNoTotpProvided {
+					return 403, err
+				}
+				if err == errors.ErrPasswordChangeRequired {
 					return 403, err
 				}
 				if status, mapped := loginMethodHTTPStatus(err); status != 0 {
@@ -526,9 +530,14 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		data.User = userValue
 
-		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
+		// Plant the session cookie only when the request didn't already carry
+		// one. Some clients like gvfs rely on it for concurrent uploads, but a
+		// request that presented a stale cookie must not re-emit it or it could
+		// revert the jar to a token retired by a concurrent renew.
 		if tk.RegisteredClaims.ExpiresAt != nil {
-			SetSessionCookie(w, r, data.Token, tk.RegisteredClaims.ExpiresAt.Time)
+			if c, err := r.Cookie(sessionCookieName); err != nil || c.Value == "" || c.Value != data.Token {
+				SetSessionCookie(w, r, data.Token, tk.RegisteredClaims.ExpiresAt.Time)
+			}
 		}
 		SetUserInResponseWriter(w, data.User)
 		if data.User.Username == "" {

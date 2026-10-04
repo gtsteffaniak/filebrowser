@@ -515,3 +515,25 @@ func TestGenerateConfigYaml_defaultPermissionsDocumentsView(t *testing.T) {
 		t.Fatalf("expected defaultPermissions to include view, got excerpt around block")
 	}
 }
+
+func TestGenerateConfigYaml_OmitsEmptyRulesWhenFiltered(t *testing.T) {
+	t.Chdir(".")
+
+	cfg := SetDefaults(true)
+	cfg.Server.Sources = []*Source{{
+		Path: "./",
+		Config: SourceConfig{
+			DefaultPermissions: BuiltinDefaultSourceFilePermissions(),
+		},
+	}}
+	cfg.Server.DatabaseV2.Path = "./filebrowser.sqlite"
+	cfg.Server.Logging = []LogConfig{{Output: "stdout", Levels: "info|warning|error"}}
+
+	out, err := GenerateConfigYamlWithSource(&cfg, true, false, false, ".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out, "rules:") {
+		t.Fatalf("expected empty rules to be omitted from filtered YAML, got:\n%s", out)
+	}
+}

@@ -53,7 +53,7 @@ func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 	which := []string{
 		"preview", "stickySidebar", "darkMode", "locale", "singleClick", "sorting",
 		"showHidden", "dateFormat", "themeColor", "quickDownload", "fileLoading",
-		"sidebarLinks", "deleteAfterArchive", "preferEditorForMarkdown", "showFirstLogin",
+		"sidebarLinks", "deleteAfterArchive", "preferEditorForMarkdown", "showFirstLogin", "requirePasswordChange",
 	}
 
 	changes := UserUpdateChanges(before, &after, which, false)

@@ -201,7 +201,7 @@ export default {
   transform: translateZ(0);
   height: 100%;
   transition: left 0.4s ease, width 0.4s ease, z-index 0s linear 0.2s;
-  top: 4em;
+  top: var(--header-height);
   padding-bottom: 4em;
   background-color: var(--panel-bg);
   backdrop-filter: var(--panel-blur);

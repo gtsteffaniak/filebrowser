@@ -21,6 +21,9 @@ type IndexInfo struct {
 	UsedAsIndexed uint64 `json:"used"`
 	UsedDisk      uint64 `json:"usedAlt"`
 	DiskTotal     uint64 `json:"total"`
+	// Root-filesystem-only view (no nested mount aggregation)
+	UsedDiskRoot  uint64 `json:"usedAltRoot"`
+	DiskTotalRoot uint64 `json:"totalRoot"`
 
 	// Scanner information - map of scanner path to scanner stats
 	Scanners map[string]*PersistedScannerInfo `json:"scanners"`

@@ -146,7 +146,11 @@
     "failedLogin": "Nepodarilo sa prihlásiť",
     "invalidCredentials": "Zadané neplatné poverenia",
     "passkeyLogin": "Použiť Passkey",
-    "recaptchaRequired": "Vyžaduje sa overenie Recaptcha"
+    "recaptchaRequired": "Vyžaduje sa overenie Recaptcha",
+    "requirePasswordChangeTitle": "Zmeňte si heslo",
+    "requirePasswordChangeInstructions": "Pred pokračovaním je potrebné nastaviť nové heslo.",
+    "requirePasswordChangeSuccess": "Heslo bolo aktualizované. Teraz ste prihlásení.",
+    "requirePasswordChangeMustDiffer": "Nové heslo sa nesmie zhodovať s vaším súčasným heslom"
   },
   "prompts": {
     "noTemplate": "Vaša šablóna je prázdna!",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Nastavenia používateľa",
     "userEditTools": "Prístup k nástrojom",
     "userEditToolsDescription": "Nastavte, ku ktorým nástrojom má tento používateľ prístup",
-    "userEditSidebarLinks": "Odkazy v bočnom paneli"
+    "userEditSidebarLinks": "Odkazy v bočnom paneli",
+    "passwordRequirementsMatch": "Heslá sa zhodujú",
+    "passwordRequirementsMinLength": "Minimálne {min} znakov",
+    "requirePasswordChange": "Vyžadovať zmenu hesla pri nasledujúcom prihlásení"
   },
   "sidebar": {
     "updateIsAvailable": "K dispozícii je aktualizácia!",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Toto sú predvolené odkazy, ktoré sa pridajú všetkým novým používateľom. Ak nastavíte odkaz ako povinný, pridá sa všetkým používateľom a používatelia bez správcovských oprávnení ho nebudú môcť odstrániť.",
     "sidebarLinkDefaultSourceHelp": "Platí len v prípade, že má používateľ prístup k tomuto zdroju.",
     "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Skontrolujte formát a skúste to znova.",
-    "switchMode": "Prepínanie medzi odkazmi a navigačným stromom"
+    "switchMode": "Prepínanie medzi odkazmi a navigačným stromom",
+    "rootFilesystemOnly": "Obmedziť využitie disku na zdrojový súborový systém",
+    "rootFilesystemOnlyDescription": "Ak je táto voľba zapnutá, vykazuje sa len súborový systém obsahujúci zdrojovú cestu. Ak je vypnutá (predvolené nastavenie), celková veľkosť disku zahŕňa aj súborové systémy pripojené pod zdrojovou cestou, pričom zdieľané fondy, ako napríklad dátové súbory ZFS, sa počítajú len raz."
   },
   "share": {
     "notice": "Poznámka: po vytvorení zdieľanej zložky sa táto stáva verejne prístupnou a platia pre ňu iné pravidlá prístupu. Ak vaša zdieľaná zložka nie je bezpečne nakonfigurovaná, môže k nej mať prístup ktokoľvek.",
