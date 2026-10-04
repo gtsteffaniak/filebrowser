@@ -1,11 +1,12 @@
 /* Halloween Theme Styles - Only apply when halloween-theme class is present */
 
-:root,
 .halloween-theme {
   --primaryColor: var(--icon-orange);
 }
 
-
+body:has(#login.halloween-theme) {
+  --primaryColor: var(--icon-orange);
+}
 
 html.halloween-theme {
   background-color: #000;
