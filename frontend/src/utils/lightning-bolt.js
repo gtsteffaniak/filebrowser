@@ -72,9 +72,8 @@ export function createLightningBolt({
 
   const branches = [];
   const branchStep = height / segments;
-  for (let i = 2; i < mainPoints.length - 2; i++) {
+  for (const origin of mainPoints.slice(2, -2)) {
     if (random() > branchChance) continue;
-    const origin = mainPoints[i];
     const dir = random() < 0.5 ? -1 : 1;
     const branchSegments = 3 + Math.floor(random() * 4);
     const branchDrop =

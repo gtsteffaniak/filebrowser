@@ -12,7 +12,7 @@
     </div>
 
     <form class="card login-card" :class="{ 'tombstone': eventTheme === 'halloween' }" @submit="submit">
-      <span v-if="eventTheme === 'halloween'" class="tombstone-rip" aria-hidden="true">R.I.P.</span>
+      <span v-if="eventTheme === 'halloween'" class="tombstone-rip" aria-hidden="true">{{ $t("login.tombstoneRip") }}</span>
       <div class="login-brand">
         <img :src="loginIconUrl" alt="Login Icon" class="login-icon" />
       </div>
