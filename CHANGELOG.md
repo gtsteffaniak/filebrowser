@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
  **Security**:
  - [High] TOTP re-enrollment via `POST /api/auth/otp/generate` and `POST /api/auth/otp/verify` no longer allows anonymous callers to replace an existing second factor using only the account password; reset or replace requires an authenticated self or admin session (first-time enrollment without MFA unchanged) (GHSA-qx86-4v5r-26g5) -- thanks @tao0845.
 
+ **Notes**:
+ - [docker] upgraded ffmpeg version from 9.0.1 to 9.0.2
+
 ## v1.5.6
 
  **Security**:
