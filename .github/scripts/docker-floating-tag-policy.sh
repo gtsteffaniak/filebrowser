@@ -18,9 +18,25 @@ write_outputs() {
 
 registry_version() {
   local tag="$1"
-  local ver
-  ver="$(docker buildx imagetools inspect "${IMAGE_REPO}:${tag}" \
-    --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' 2>/dev/null || true)"
+  local ver err err_file
+  err_file="$(mktemp)"
+  if ! ver="$(docker buildx imagetools inspect "${IMAGE_REPO}:${tag}" \
+    --format '{{ with index .Image "linux/amd64" }}{{ index .Config.Labels "org.opencontainers.image.version" }}{{ end }}' 2>"$err_file")"; then
+    err="$(cat "$err_file")"
+    rm -f "$err_file"
+    if grep -qiE 'not found|manifest unknown' <<<"$err"; then
+      ver=""
+    else
+      echo "Failed to inspect ${IMAGE_REPO}:${tag}: ${err}" >&2
+      exit 1
+    fi
+  else
+    rm -f "$err_file"
+    if [[ -z "$ver" ]]; then
+      echo "Missing org.opencontainers.image.version on ${IMAGE_REPO}:${tag} (linux/amd64)" >&2
+      exit 1
+    fi
+  fi
   ver="${ver#v}"
   printf '%s' "$ver"
 }
