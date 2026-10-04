@@ -288,7 +288,7 @@ export default {
         this.destSource = pathOrData.source;
       }
     },
-    performOperation: async function (event) {
+    async performOperation(event) {
       event.preventDefault();
       if (this.isLoading) {
         return;

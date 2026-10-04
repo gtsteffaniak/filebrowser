@@ -75,7 +75,7 @@ export default defineConfig(({ command }) => {
     !isDevBuild && !isServe && checker({
       typescript: false, // Disable redundant check
       vueTsc: {
-        tsconfigPath: "./tsconfig.json",
+        tsconfigPath: "./tsconfig.app.json",
       },
     }),
   ].filter(Boolean);

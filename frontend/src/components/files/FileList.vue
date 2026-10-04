@@ -143,7 +143,7 @@ export default {
       default: true,
     },
   },
-  data: function () {
+  data() {
     const initialSource = this.browseSource || state.req.source;
     // If browsePath is provided, use it; otherwise use current path or root
     let initialPath;
@@ -463,7 +463,7 @@ export default {
       const sorted = this.sortEntries(rest);
       this.items = parentEntry ? [parentEntry, ...sorted] : sorted;
     },
-    next: function (event) {
+    next(event) {
       // Retrieves the URL of the directory the user
       // just clicked in and fill the options with its
       // content.
@@ -588,7 +588,7 @@ export default {
         isValid: !this.requireFileSelection,
       });
     },
-    select: function (event) {
+    select(event) {
       const path = event.currentTarget.dataset.path;
       if (this.selected === path) {
         this.clearSelection();
@@ -607,7 +607,7 @@ export default {
         isValid: !this.requireFileSelection || isFile,
       });
     },
-    createDir: async function () {
+    async createDir() {
       mutations.showPrompt({
         name: "newDir",
         action: null,

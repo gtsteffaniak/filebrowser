@@ -150,7 +150,7 @@ import {
   expandBeforeEnter,
   expandEnter,
   expandLeave,
-} from "@/utils/expandTransition.js";
+} from "@/utils/expandTransition";
 
 let expandDropdownIdCounter = 0;
 const EXPAND_OPEN_MS = 300;

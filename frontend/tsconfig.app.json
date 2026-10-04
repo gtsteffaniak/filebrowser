@@ -10,6 +10,7 @@
       "@/*": ["./src/*"]
     },
     "composite": true,
+    "strict": false,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "noEmit": true,
     "target": "ESNext",
@@ -19,38 +20,28 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "moduleDetection": "force",
-    "stableTypeOrdering": true, // this is always on in 7 from what I've read (remove this line when upgrading to 7)
-    "allowJs": true, // we should remove this once there is no .js left
-    "checkJs": false, // lots of errors (~1037) when enabled for now on off.
-    "strict": false, // the defaults it true, for now off cuz lots of errors too.
+    "stableTypeOrdering": true,
+    "allowJs": true,
+    "checkJs": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-
-    // Required in Vue projects (per official @vue/tsconfig)
     "jsx": "preserve",
     "jsxImportSource": "vue",
-
-    // See <https://github.com/vuejs/vue-cli/pull/5688>
     "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "useUnknownInCatchVariables": true,
 
-    // Any imports or exports without a type modifier are left around. This is important for `<script setup>`.
-    // Anything that uses the type modifier is dropped entirely.
-    //"verbatimModuleSyntax": true,
-
-    // optional
-    // "noImplicitOverride": true,
-    // "noUncheckedIndexedAccess": true, // only after strict
-
-    // we enable this below one by one, later we can remove them when strict is true
+    // we can remove the ones below when strict is true
     "noImplicitThis": true,
     // "noImplicitAny": true,
     // "strictNullChecks": true,
-    // "strictFunctionTypes": true,
-    // "strictBindCallApply": true,
-    // "strictPropertyInitialization": true,
-    // "alwaysStrict": true,
-    // "useUnknownInCatchVariables": true,
-    // "strictBuiltinIteratorReturn": true,
+    //"strictPropertyInitialization": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "alwaysStrict": true,
+    "strictBuiltinIteratorReturn": true,
   },
   "include": [
     "env.d.ts",

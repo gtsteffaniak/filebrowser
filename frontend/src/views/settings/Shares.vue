@@ -249,7 +249,7 @@ export default {
      * @param {any} event
      * @param {any} item
      */
-    deleteLink: async function (_event, item) {
+    async deleteLink(_event, item) {
       mutations.showPrompt({
         name: "generic",
         props: {
