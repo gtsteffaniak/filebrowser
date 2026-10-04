@@ -451,8 +451,6 @@ export function startSessionKeepAlive() {
     "startSessionKeepAlive() STARTING TIMER"
   );
 
-  void ensureSessionFresh();
-
   keepAliveTimer = setInterval(() => {
 
     authDebug(
