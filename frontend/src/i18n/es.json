@@ -828,6 +828,8 @@
       "customScrollbarDescription": "Reemplazar la barra de desplazamiento nativa del navegador por la integrada de Ace",
       "wrapContent": "Ajustar líneas largas en el editor",
       "wrapContentDescription": "Ajusta el contenido del editor para mantener siempre visibles las líneas muy largas",
+      "indentedSoftWrap": "Ajustar lineas largas con sangría",
+      "indentedSoftWrapDescription": "Cuando está habilitado, agrega una sangría al inicio de la línea del texto que fue ajustado",
       "autocompletion": "Autocompletado",
       "autocompletionDescription": "Habilita el autocompletado presionando manualmente las teclas 'ctrl + espacio'",
       "liveAutocompletion": "Autocompletado automático",

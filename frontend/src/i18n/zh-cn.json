@@ -828,6 +828,8 @@
       "customScrollbarDescription": "将浏览器的原生滚动条替换为 Ace 内置滚动条",
       "wrapContent": "在编辑器中换行长行",
       "wrapContentDescription": "换行编辑器内容，使很长的行始终保持可见",
+      "indentedSoftWrap": "缩进软换行",
+      "indentedSoftWrapDescription": "启用后，在换行文本的开头添加缩进",
       "autocompletion": "自动补全",
       "autocompletionDescription": "通过手动按 'ctrl + space' 启用自动补全",
       "liveAutocompletion": "实时自动补全",

@@ -828,6 +828,8 @@
       "customScrollbarDescription": "Nahradit nativní posuvník prohlížeče vestavěným posuvníkem Ace",
       "wrapContent": "Zalamovat dlouhé řádky v editoru",
       "wrapContentDescription": "Zalamuje obsah editoru, aby velmi dlouhé řádky zůstaly vždy viditelné",
+      "indentedSoftWrap": "Měkké zalamování s odsazením",
+      "indentedSoftWrapDescription": "Když je tato možnost povolena, přidá odsazení na začátek zalomeného textu",
       "autocompletion": "Automatické doplňování",
       "autocompletionDescription": "Povolí automatické doplňování ručním stisknutím 'ctrl + space'",
       "liveAutocompletion": "Živé automatické doplňování",

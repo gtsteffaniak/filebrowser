@@ -59,7 +59,9 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { mutations } from "@/store";
 import { editorConfig, saveEditorConfig, resetEditorConfig, type EditorConfig } from "@/utils/editorConfig";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -77,103 +79,103 @@ interface EditorSettingField {
   options?: { value: string | number; label: string }[];
 }
 
-export default {
-  name: "EditorSettings",
-  components: { ExpandDropdown, ToggleSwitch },
-  props: {
-    promptId: { type: [String, Number], default: null },
+defineOptions({ name: "EditorSettings" });
+
+defineProps({
+  promptId: { type: [String, Number], default: null },
+});
+
+const { t } = useI18n();
+const config = editorConfig;
+
+const fields = computed<EditorSettingField[]>(() => [
+  {
+    key: "keybinding",
+    type: "dropdown",
+    label: t("editor.settings.keybinding.label"),
+    desc: t("editor.settings.keybinding.description"),
+    aria: t("editor.settings.keybinding.label"),
+    options: [
+      { value: "", label: t("editor.settings.keybinding.ace") },
+      { value: "ace/keyboard/vim", label: t("editor.settings.keybinding.vim") },
+      { value: "ace/keyboard/emacs", label: t("editor.settings.keybinding.emacs") },
+      { value: "ace/keyboard/sublime", label: t("editor.settings.keybinding.sublime") },
+      { value: "ace/keyboard/vscode", label: t("editor.settings.keybinding.vscode") },
+    ],
   },
-  computed: {
-    config() {
-      return editorConfig;
-    },
-    fields(): EditorSettingField[] {
-      return [
-        {
-          key: "keybinding",
-          type: "dropdown",
-          label: this.$t("editor.settings.keybinding.label"),
-          desc: this.$t("editor.settings.keybinding.description"),
-          aria: this.$t("editor.settings.keybinding.label"),
-          options: [
-            { value: "", label: this.$t("editor.settings.keybinding.ace") },
-            { value: "ace/keyboard/vim", label: this.$t("editor.settings.keybinding.vim") },
-            { value: "ace/keyboard/emacs", label: this.$t("editor.settings.keybinding.emacs") },
-            { value: "ace/keyboard/sublime", label: this.$t("editor.settings.keybinding.sublime") },
-            { value: "ace/keyboard/vscode", label: this.$t("editor.settings.keybinding.vscode") },
-          ],
-        },
-        {
-          key: "tabSize",
-          type: "number",
-          label: this.$t("editor.settings.tabSize.label"),
-          desc: this.$t("editor.settings.tabSize.description"),
-          aria: this.$t("editor.settings.tabSize.label"),
-          min: 1,
-          max: 16,
-        },
-        {
-          key: "overscroll",
-          type: "dropdown",
-          numeric: true,
-          label: this.$t("editor.settings.overscroll.label"),
-          desc: this.$t("editor.settings.overscroll.description"),
-          aria: this.$t("editor.settings.overscroll.label"),
-          options: [
-            { value: 0, label: this.$t("editor.settings.overscroll.none") },
-            { value: 0.5, label: this.$t("editor.settings.overscroll.half") },
-            { value: 1, label: this.$t("editor.settings.overscroll.full") },
-          ],
-        },
-      ];
-    },
-    toggles(): EditorSettingField[] {
-      const items: (EditorSettingField | false)[] = [
-        { key: "wrapEditorContent", label: this.$t("editor.settings.wrapContent"), desc: this.$t("editor.settings.wrapContentDescription") },
-        { key: "showIndentGuides", label: this.$t("editor.settings.showIndentGuides"), desc: this.$t("editor.settings.showIndentGuidesDescription") },
-        { key: "showGutter", label: this.$t("editor.settings.showGutter"), desc: this.$t("editor.settings.showGutterDescription") },
-        { key: "fixedGutterWidth", label: this.$t("editor.settings.fixedGutterWidth"), desc: this.$t("editor.settings.fixedGutterWidthDescription") },
-        { key: "showLineNumbers", label: this.$t("editor.settings.showLineNumbers"), desc: this.$t("editor.settings.showLineNumbersDescription") },
-        { key: "relativeLineNumbers", label: this.$t("editor.settings.relativeLineNumbers"), desc: this.$t("editor.settings.relativeLineNumbersDescription") },
-        { key: "customScrollbar", label: this.$t("editor.settings.customScrollbar"), desc: this.$t("editor.settings.customScrollbarDescription") },
-        { key: "enableAutocompletion", label: this.$t("editor.settings.autocompletion"), desc: this.$t("editor.settings.autocompletionDescription") },
-        this.config.enableAutocompletion && {
-          key: "enableLiveAutocompletion",
-          label: this.$t("editor.settings.liveAutocompletion"),
-          desc: this.$t("editor.settings.liveAutocompletionDescription"),
-        },
-      ];
-      return items.filter((item): item is EditorSettingField => item !== false);
-    },
+  {
+    key: "tabSize",
+    type: "number",
+    label: t("editor.settings.tabSize.label"),
+    desc: t("editor.settings.tabSize.description"),
+    aria: t("editor.settings.tabSize.label"),
+    min: 1,
+    max: 16,
   },
-  methods: {
-    setValue(field: EditorSettingField, value: string | number | boolean) {
-      let val: string | number | boolean = value;
-      if (field.type === "number") {
-        val = Math.min(field.max as number, Math.max(field.min as number, Math.round(Number(value)) || (field.min as number)));
-      } else if (field.numeric) {
-        val = Number(value);
-      }
-      saveEditorConfig({ [field.key]: val } as Partial<EditorConfig>);
-    },
-    closeTopPrompt(): void {
-      mutations.closeTopPrompt();
-    },
-    resetEditorConfig(): void {
-      resetEditorConfig();
-    },
-    showTooltip(event: MouseEvent, text: string): void {
-      mutations.showTooltip({
-        content: text,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    hideTooltip(): void {
-      mutations.hideTooltip();
-    },
+  {
+    key: "overscroll",
+    type: "dropdown",
+    numeric: true,
+    label: t("editor.settings.overscroll.label"),
+    desc: t("editor.settings.overscroll.description"),
+    aria: t("editor.settings.overscroll.label"),
+    options: [
+      { value: 0, label: t("editor.settings.overscroll.none") },
+      { value: 0.5, label: t("editor.settings.overscroll.half") },
+      { value: 1, label: t("editor.settings.overscroll.full") },
+    ],
   },
-};
+]);
+
+const toggles = computed<EditorSettingField[]>(() => {
+  const items: (EditorSettingField | false)[] = [
+    { key: "wrapEditorContent", label: t("editor.settings.wrapContent"), desc: t("editor.settings.wrapContentDescription") },
+    config.wrapEditorContent && {
+      key: "indentedSoftWrap",
+      label: t("editor.settings.indentedSoftWrap"),
+      desc: t("editor.settings.indentedSoftWrapDescription"),
+    },
+    { key: "showIndentGuides", label: t("editor.settings.showIndentGuides"), desc: t("editor.settings.showIndentGuidesDescription") },
+    { key: "showGutter", label: t("editor.settings.showGutter"), desc: t("editor.settings.showGutterDescription") },
+    { key: "fixedGutterWidth", label: t("editor.settings.fixedGutterWidth"), desc: t("editor.settings.fixedGutterWidthDescription") },
+    { key: "showLineNumbers", label: t("editor.settings.showLineNumbers"), desc: t("editor.settings.showLineNumbersDescription") },
+    { key: "relativeLineNumbers", label: t("editor.settings.relativeLineNumbers"), desc: t("editor.settings.relativeLineNumbersDescription") },
+    { key: "customScrollbar", label: t("editor.settings.customScrollbar"), desc: t("editor.settings.customScrollbarDescription") },
+    { key: "enableAutocompletion", label: t("editor.settings.autocompletion"), desc: t("editor.settings.autocompletionDescription") },
+    config.enableAutocompletion && {
+      key: "enableLiveAutocompletion",
+      label: t("editor.settings.liveAutocompletion"),
+      desc: t("editor.settings.liveAutocompletionDescription"),
+    },
+  ];
+  return items.filter((item): item is EditorSettingField => item !== false);
+});
+
+function setValue(field: EditorSettingField, value: string | number | boolean) {
+  let val: string | number | boolean = value;
+  if (field.type === "number") {
+    val = Math.min(field.max as number, Math.max(field.min as number, Math.round(Number(value)) || (field.min as number)));
+  } else if (field.numeric) {
+    val = Number(value);
+  }
+  saveEditorConfig({ [field.key]: val } as Partial<EditorConfig>);
+}
+
+function closeTopPrompt(): void {
+  mutations.closeTopPrompt();
+}
+
+function showTooltip(event: MouseEvent, text: string): void {
+  mutations.showTooltip({
+    content: text,
+    x: event.clientX,
+    y: event.clientY,
+  });
+}
+
+function hideTooltip(): void {
+  mutations.hideTooltip();
+}
 </script>
 
 <style scoped>

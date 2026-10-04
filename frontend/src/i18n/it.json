@@ -837,6 +837,8 @@
       "customScrollbarDescription": "Sostituisce la barra di scorrimento nativa del browser con quella integrata di Ace",
       "wrapContent": "A capo delle righe lunghe nell'editor",
       "wrapContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe",
+      "indentedSoftWrap": "A capo automatico con rientro",
+      "indentedSoftWrapDescription": "Quando è abilitato, aggiunge un rientro all'inizio del testo mandato a capo",
       "autocompletion": "Completamento automatico",
       "autocompletionDescription": "Abilita il completamento automatico premendo manualmente 'ctrl + space'",
       "liveAutocompletion": "Completamento automatico live",

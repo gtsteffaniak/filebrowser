@@ -868,6 +868,8 @@
       "customScrollbarDescription": "Swap the native browser scrollbar by the ace built-in one",
       "wrapContent": "Wrap long lines in the editor",
       "wrapContentDescription": "Wraps the editor content to keep very long lines always visible",
+      "indentedSoftWrap": "Indented soft wrap",
+      "indentedSoftWrapDescription": "When this is enabled, adds indentation to the begin of the wrapped text",
       "autocompletion": "Autocompletion",
       "autocompletionDescription": "Enables autocompletion by manually pressing 'ctrl + space'",
       "liveAutocompletion": "Live autocompletion",

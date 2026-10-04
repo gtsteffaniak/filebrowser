@@ -828,6 +828,8 @@
       "customScrollbarDescription": "החלף את סרגל הגלילה המקורי של הדפדפן בזה המובנה של Ace",
       "wrapContent": "גלישת שורות ארוכות בעורך",
       "wrapContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות",
+      "indentedSoftWrap": "גלישה רכה עם הזחה",
+      "indentedSoftWrapDescription": "כאשר זה מופעל, מוסיף הזחה לתחילת הטקסט הנגלש",
       "autocompletion": "השלמה אוטומטית",
       "autocompletionDescription": "מאפשר השלמה אוטומטית על ידי לחיצה ידנית על 'ctrl + space'",
       "liveAutocompletion": "השלמה אוטומטית חיה",

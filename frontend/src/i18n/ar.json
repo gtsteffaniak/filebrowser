@@ -828,6 +828,8 @@
       "customScrollbarDescription": "استبدال شريط التمرير الأصلي للمتصفح بشريط التمرير المدمج في Ace",
       "wrapContent": "التفاف الأسطر الطويلة في المحرر",
       "wrapContentDescription": "يلتف محتوى المحرر للحفاظ على رؤية الأسطر الطويلة جدًا دائمًا",
+      "indentedSoftWrap": "التفاف ناعم مع مسافة بادئة",
+      "indentedSoftWrapDescription": "عند تمكين هذا، يضيف مسافة بادئة إلى بداية النص الملفوف",
       "autocompletion": "الإكمال التلقائي",
       "autocompletionDescription": "يتيح الإكمال التلقائي بالضغط يدويًا على 'ctrl + space'",
       "liveAutocompletion": "الإكمال التلقائي المباشر",
