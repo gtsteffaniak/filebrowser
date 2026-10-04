@@ -123,6 +123,8 @@ export interface SourceInfo {
   used: number;
   total: number;
   usedAlt: number;
+  totalRoot: number;
+  usedAltRoot: number;
   usedPercentage: number;
   usageScopeMismatch?: boolean;
   status: string;
@@ -144,6 +146,8 @@ export interface SourceInfoUpdate {
   used?: number;
   total?: number;
   usedAlt?: number;
+  totalRoot?: number;
+  usedAltRoot?: number;
   usageScopeMismatch?: boolean;
   status?: string;
   name?: string;
@@ -225,6 +229,7 @@ export interface UserObject {
   scope?: string;
   rules?: unknown[];
   lockPassword?: boolean;
+  requirePasswordChange?: boolean;
   hideDotfiles?: boolean;
   sorting?: {
     by: string;

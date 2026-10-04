@@ -224,6 +224,15 @@ func shareRequestAllowsDownloadToken(r *http.Request) bool {
 	return shareRouteAllowsDownloadToken(r.URL.Path)
 }
 
+// shareRequestAllowsDownload reports metered download routes (not inline view/stream).
+func shareRequestAllowsDownload(r *http.Request) bool {
+	if r == nil {
+		return false
+	}
+	path := r.URL.Path
+	return strings.Contains(path, "/resources/download") || strings.Contains(path, "/raw")
+}
+
 // directDownloadURL builds a public download URL with an ephemeral token query parameter.
 func directDownloadURL(host, scheme, hash, token string) string {
 	tokenParam := ""

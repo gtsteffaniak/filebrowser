@@ -146,7 +146,11 @@
     "failedLogin": "Error al iniciar sesión",
     "invalidCredentials": "Credenciales no válidas",
     "passkeyLogin": "Usar clave de acceso",
-    "recaptchaRequired": "Se requiere verificación de recaptcha"
+    "recaptchaRequired": "Se requiere verificación de recaptcha",
+    "requirePasswordChangeTitle": "Cambia tu contraseña",
+    "requirePasswordChangeInstructions": "Debes establecer una nueva contraseña antes de continuar.",
+    "requirePasswordChangeSuccess": "Se ha actualizado la contraseña. Ya has iniciado sesión.",
+    "requirePasswordChangeMustDiffer": "La nueva contraseña debe ser diferente de tu contraseña actual"
   },
   "prompts": {
     "noTemplate": "¡Tu plantilla está vacía!",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Preferencias del usuario",
     "userEditTools": "Acceso a las herramientas",
     "userEditToolsDescription": "Configurar a qué herramientas puede acceder este usuario",
-    "userEditSidebarLinks": "Enlaces de la barra lateral"
+    "userEditSidebarLinks": "Enlaces de la barra lateral",
+    "passwordRequirementsMatch": "Las contraseñas coinciden",
+    "passwordRequirementsMinLength": "Al menos {min} caracteres",
+    "requirePasswordChange": "Exigir el cambio de contraseña en el próximo inicio de sesión"
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Estos son los enlaces predeterminados que se añadirán para todos los nuevos usuarios. Si se establece un enlace como obligatorio, se añadirá para todos los usuarios y los usuarios que no sean administradores no podrán eliminarlo.",
     "sidebarLinkDefaultSourceHelp": "Solo se aplica cuando el usuario tiene acceso a esta fuente.",
     "sidebarLinkDefaultsYamlInvalid": "YAML no válido. Comprueba el formato e inténtalo de nuevo.",
-    "switchMode": "Alternar entre los enlaces y el árbol de navegación"
+    "switchMode": "Alternar entre los enlaces y el árbol de navegación",
+    "rootFilesystemOnly": "Limitar el uso del disco al sistema de archivos de origen",
+    "rootFilesystemOnlyDescription": "Cuando está activada, solo se incluye en el informe el sistema de archivos que contiene la ruta de origen. Cuando está desactivada (por defecto), el total del disco también incluye los sistemas de archivos montados bajo la ruta de origen, y los conjuntos de datos compartidos, como los de ZFS, se cuentan una sola vez."
   },
   "share": {
     "notice": "Cuando se crea un recurso compartido, este quedará más expuesto al público y tendrá diferentes reglas de acceso. Si no está configurado de forma forma segura, cualquiera podrá acceder a él.",

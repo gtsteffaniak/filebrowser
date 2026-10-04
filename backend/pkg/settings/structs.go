@@ -411,6 +411,7 @@ type UserDefaultsUI struct {
 type UserDefaultsAccount struct {
 	Permissions                UserDefaultsAccountPermissions `json:"permissions"`
 	LockPassword               bool                           `json:"lockPassword"`               // disable the user from changing their password
+	RequirePasswordChange      bool                           `json:"requirePasswordChange"`      // force password change at next password login
 	DisableSettings            bool                           `json:"disableSettings"`            // disable the user from viewing the settings page
 	LoginMethod                string                         `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                           `json:"disableUpdateNotifications"` // disable update notifications banner for admin users

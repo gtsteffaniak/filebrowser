@@ -171,7 +171,7 @@ export default {
   created() {
     const isHalloween = getters.eventTheme() === "halloween";
     syncEventTheme(isHalloween);
-    if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
+    if (isHalloween && !localStorage.getItem("seenHalloweenMessage")) {
       mutations.showPrompt({
         name: "generic",
         pinned: true,
@@ -200,12 +200,10 @@ export default {
       });
     }
     this.fetchData();
-
   },
   watch: {
     $route() {
-      const isHalloween = getters.eventTheme() === "halloween";
-      syncEventTheme(isHalloween);
+      syncEventTheme(getters.eventTheme() === "halloween");
       this.fetchData();
     },
     reload(value) {
@@ -450,13 +448,13 @@ export default {
 
           // Redirect if multiple sources and user went to /files/
           if (routePath === "/files") {
-            let targetPath = `/files/${state.sources.current}`;
+            let targetPath = `/${state.sources.current}`;
             for (const link of state.user?.sidebarLinks || []) {
               if (link.target.startsWith('/')) {
                 if (!link.category.startsWith('source')) {
                   continue;
                 }
-                targetPath = `/files/${link.sourceName}${link.target}`;
+                targetPath = `/${link.sourceName}${link.target}`;
                 break;
               }
             }

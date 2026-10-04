@@ -13,6 +13,7 @@ import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.js";
+import { isSourceSidebarCategory } from "@/utils/sidebarCategory";
 import { updateManifestLink } from "@/utils/pwaManifest";
 import { syncEventTheme } from "@/utils/theme";
 import { emitStateChanged } from './eventBus';
@@ -202,6 +203,8 @@ export const mutations = {
             ...existing,
             used,
             usedAlt: source.usedAlt || 0,
+            totalRoot: source.totalRoot || 0,
+            usedAltRoot: source.usedAltRoot || 0,
             total,
             usedPercentage: total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0,
             usageScopeMismatch:
@@ -269,6 +272,8 @@ export const mutations = {
         used: prev ? prev.used : 0,
         total: prev ? prev.total : 0,
         usedAlt: prev ? prev.usedAlt : 0,
+        totalRoot: prev ? prev.totalRoot : 0,
+        usedAltRoot: prev ? prev.usedAltRoot : 0,
         usedPercentage: prev ? prev.usedPercentage : 0,
         usageScopeMismatch: prev ? prev.usageScopeMismatch : false,
         status: prev ? prev.status : "unknown",
@@ -295,7 +300,7 @@ export const mutations = {
     if (state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
       // Find first source link in user's sidebar links
       const firstSourceLink = state.user.sidebarLinks.find(link =>
-        (link.category === 'source' || link.category === 'source-minimal' || link.category === 'source-alt') && link.sourceName
+        isSourceSidebarCategory(link.category) && link.sourceName
       );
       if (firstSourceLink?.sourceName) {
         targetSource = firstSourceLink.sourceName;

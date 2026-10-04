@@ -822,6 +822,87 @@
                 ]
             }
         },
+        "/api/auth/password/change-required": {
+            "post": {
+                "description": "Verifies the current password and sets a new password when requirePasswordChange is set. Issues a JWT on success.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Change required password at login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL-encoded current password",
+                        "name": "X-Password",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "TOTP code (if 2FA is enabled)",
+                        "name": "X-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "description": "New password and confirmation",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/web.changeRequiredPasswordBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token for authentication",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/renew": {
             "post": {
                 "description": "Refresh the authentication token for a logged-in user.",
@@ -844,6 +925,15 @@
                     },
                     "401": {
                         "description": "Unauthorized - invalid token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - non-session token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -6664,6 +6754,10 @@
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsAccountPermissions"
                 },
+                "requirePasswordChange": {
+                    "description": "force password change at next password login",
+                    "type": "boolean"
+                },
                 "showAdvancedProfile": {
                     "description": "show advanced profile settings in the user profile page",
                     "type": "boolean"
@@ -7630,6 +7724,9 @@
                     "description": "show icon to download in one click",
                     "type": "boolean"
                 },
+                "requirePasswordChange": {
+                    "type": "boolean"
+                },
                 "scopes": {
                     "type": "array",
                     "items": {
@@ -8080,6 +8177,9 @@
                     "description": "show icon to download in one click",
                     "type": "boolean"
                 },
+                "requirePasswordChange": {
+                    "type": "boolean"
+                },
                 "scopes": {
                     "type": "array",
                     "items": {
@@ -8476,6 +8576,17 @@
                 },
                 "toSource": {
                     "description": "Source name where the archive file will be written (optional; default: fromSource). Example: \"backups\"",
+                    "type": "string"
+                }
+            }
+        },
+        "web.changeRequiredPasswordBody": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "passwordConfirm": {
                     "type": "string"
                 }
             }
