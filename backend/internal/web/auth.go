@@ -379,9 +379,30 @@ func parseSignupCredentials(r *http.Request) (username, password string, err err
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/renew [post]
 func renewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	_, isSession, ok := state.HashedTokenOwner(d.Token)
-	if !ok || !isSession {
+	if settings.Config.Auth.Methods.NoAuth {
+		w.Header().Set("Content-Type", "text/plain")
+		if d.Token != "" {
+			if _, err := w.Write([]byte(d.Token)); err != nil {
+				return 401, errors.ErrUnauthorized
+			}
+		}
+		return 0, nil
+	}
+	token := d.Token
+	if token == "" {
+		extracted, err := ExtractToken(r)
+		if err != nil || extracted == "" {
+			return http.StatusUnauthorized, errors.ErrUnauthorized
+		}
+		token = extracted
+		d.Token = token
+	}
+	_, isSession, ok := state.HashedTokenOwner(token)
+	if ok && !isSession {
 		return http.StatusForbidden, fmt.Errorf("renew requires a session token")
+	}
+	if !ok {
+		return http.StatusUnauthorized, errors.ErrUnauthorized
 	}
 	// Renew is idempotent while the presented session token is still fresh:
 	// without this every page load rotates the token (the frontend tracks exp

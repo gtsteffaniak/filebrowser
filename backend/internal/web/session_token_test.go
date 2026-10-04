@@ -109,6 +109,25 @@ func TestWithUserPlantsCookieForBearerClients(t *testing.T) {
 	}
 }
 
+func TestRenewHandlerNoopWhenNoAuth(t *testing.T) {
+	setupTestEnv(t)
+	orig := settings.Config.Auth.Methods.NoAuth
+	settings.Config.Auth.Methods.NoAuth = true
+	t.Cleanup(func() { settings.Config.Auth.Methods.NoAuth = orig })
+
+	user := createTokenAuthUser(t, "noauth-renew", users.Permissions{Admin: true})
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/renew", http.NoBody)
+
+	status, err := renewHandler(recorder, req, &requestContext{User: user, Token: ""})
+	if err != nil {
+		t.Fatalf("renewHandler: %v", err)
+	}
+	if status != 0 && status != http.StatusOK {
+		t.Fatalf("expected success status, got %d", status)
+	}
+}
+
 // Restricted API tokens must not call renew: rotation registers a session hash
 // and would grant the token owner's full permissions (GHSA-6gr6-5qpq-888p).
 func TestRenewHandlerRejectsApiToken(t *testing.T) {
@@ -124,10 +143,10 @@ func TestRenewHandlerRejectsApiToken(t *testing.T) {
 	}
 	tokenMeta.Name = "capped-key"
 	tokenMeta.Token = tokenString
-	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
+	if err = state.AddUserToken(user.Username, tokenMeta); err != nil {
 		t.Fatal(err)
 	}
-	if err := state.AddApiToken(tokenString, user.ID); err != nil {
+	if err = state.AddApiToken(tokenString, user.ID); err != nil {
 		t.Fatal(err)
 	}
 
