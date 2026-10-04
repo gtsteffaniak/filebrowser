@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Security**:
  - [High] Restricted custom API tokens (`minimal=false`) can no longer be upgraded to a full-permission session via `POST /api/auth/renew`; renew accepts only web session tokens registered in `hashed_tokens` (GHSA-6gr6-5qpq-888p) -- thanks @tao0845.
  - [High] TOTP re-enrollment via `POST /api/auth/otp/generate` and `POST /api/auth/otp/verify` no longer allows anonymous callers to replace an existing second factor using only the account password; reset or replace requires an authenticated self or admin session (first-time enrollment without MFA unchanged) (GHSA-qx86-4v5r-26g5) -- thanks @tao0845.
- - [Low] Public share lyrics and subtitle media routes now honor the share's file-viewer setting, download disable flag, and download limits, matching the public download route (GHSA-p7x3-p5jj-9xfh) -- thanks Yves Soete of Blacksight LLC.
+ - [Low] Public share lyrics and subtitle media routes now honor the share's file-viewer setting, download disable flag, and download limits, matching the public download route (GHSA-p7x3-p5jj-9xfh) -- thanks Yves Soete of Blacksight LLC. @yssoe
 
  **New Features**:
  - Require password change at next login for password-based users: new user setting `requirePasswordChange` (user defaults + per-user admin toggle), login blocked until the user sets a new password; bootstrap admins with a generated initial password get this automatically ([#2977](https://github.com/gtsteffaniak/filebrowser/issues/2977)). Generated bootstrap passwords use a speakable `word-xxxxx-xx` form (random word from a fixed list plus a 5-character and 2-character code) instead of a long hex string, for easier handoff before the forced change.
@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Sidebar source links can now switch between aggregated usage (default) and a root-filesystem-only view via a new "Limit disk usage to source filesystem" toggle.
+ - [docker] upgraded ffmpeg from 9.0 to 9.0.2
 
  **Bugfixes**:
  - Anonymous visitors on public shares could not play inline video or audio: `GET /public/api/media/stream` returned 403 because view grants were validated before share context was fully hydrated; playback now works when download and the file viewer are allowed ([#3041](https://github.com/gtsteffaniak/filebrowser/issues/3041)).
