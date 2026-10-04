@@ -17,7 +17,7 @@ func TestAuthenticateShareRequestUISessionCookie(t *testing.T) {
 	settings.Config.Auth.Key = "test-auth-key"
 	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte("secret"), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("secret"), bcrypt.MinCost)
 	if err != nil {
 		t.Fatalf("bcrypt: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestAuthenticateShareRequestDownloadTokenDoesNotMintUISession(t *testing.T)
 	settings.Config.Auth.Key = "test-auth-key"
 	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte("secret"), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("secret"), bcrypt.MinCost)
 	if err != nil {
 		t.Fatalf("bcrypt: %v", err)
 	}
@@ -93,7 +93,7 @@ func TestAuthenticateShareRequestDownloadTokenWrongPasswordNoUISession(t *testin
 	settings.Config.Auth.Key = "test-auth-key"
 	t.Cleanup(func() { settings.Config.Auth.Key = origKey })
 
-	passwordHash, bcryptErr := bcrypt.GenerateFromPassword([]byte("secret"), bcrypt.DefaultCost)
+	passwordHash, bcryptErr := bcrypt.GenerateFromPassword([]byte("secret"), bcrypt.MinCost)
 	if bcryptErr != nil {
 		t.Fatalf("bcrypt: %v", bcryptErr)
 	}

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.0.10
 
  **Security**:
+ - [High] Restricted custom API tokens (`minimal=false`) can no longer be upgraded to a full-permission session via `POST /api/auth/renew`; renew accepts only web session tokens registered in `hashed_tokens` (GHSA-6gr6-5qpq-888p) -- thanks @tao0845.
  - [High] TOTP re-enrollment via `POST /api/auth/otp/generate` and `POST /api/auth/otp/verify` no longer allows anonymous callers to replace an existing second factor using only the account password; reset or replace requires an authenticated self or admin session (first-time enrollment without MFA unchanged) (GHSA-qx86-4v5r-26g5) -- thanks @tao0845.
  - [Low] Public share lyrics and subtitle media routes now honor the share's file-viewer setting, download disable flag, and download limits, matching the public download route (GHSA-p7x3-p5jj-9xfh) -- thanks Yves Soete of Blacksight LLC.
 

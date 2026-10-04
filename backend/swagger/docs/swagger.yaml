@@ -2919,6 +2919,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden - non-session token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:
