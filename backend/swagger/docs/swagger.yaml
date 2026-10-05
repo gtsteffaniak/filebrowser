@@ -1111,6 +1111,9 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/settings.UserDefaultsAccountPermissions'
+      requirePasswordChange:
+        description: force password change at next password login
+        type: boolean
       showAdvancedProfile:
         description: show advanced profile settings in the user profile page
         type: boolean
@@ -1788,6 +1791,8 @@ definitions:
       quickDownload:
         description: show icon to download in one click
         type: boolean
+      requirePasswordChange:
+        type: boolean
       scopes:
         items:
           $ref: '#/definitions/users.FrontendScope'
@@ -2116,6 +2121,8 @@ definitions:
       quickDownload:
         description: show icon to download in one click
         type: boolean
+      requirePasswordChange:
+        type: boolean
       scopes:
         items:
           $ref: '#/definitions/users.FrontendScope'
@@ -2396,6 +2403,13 @@ definitions:
       toSource:
         description: 'Source name where the archive file will be written (optional;
           default: fromSource). Example: "backups"'
+        type: string
+    type: object
+  web.changeRequiredPasswordBody:
+    properties:
+      password:
+        type: string
+      passwordConfirm:
         type: string
     type: object
   web.duplicateGroup:
@@ -3060,6 +3074,61 @@ paths:
       summary: Verify OTP
       tags:
       - Auth
+  /api/auth/password/change-required:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the current password and sets a new password when requirePasswordChange
+        is set. Issues a JWT on success.
+      parameters:
+      - description: Username
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: URL-encoded current password
+        in: header
+        name: X-Password
+        required: true
+        type: string
+      - description: TOTP code (if 2FA is enabled)
+        in: header
+        name: X-Secret
+        type: string
+      - description: New password and confirmation
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/web.changeRequiredPasswordBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token for authentication
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Change required password at login
+      tags:
+      - Auth
   /api/auth/renew:
     post:
       consumes:
@@ -3074,6 +3143,12 @@ paths:
             type: string
         "401":
           description: Unauthorized - invalid token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden - non-session token
           schema:
             additionalProperties:
               type: string

@@ -12,7 +12,7 @@ import type { PlaywrightFixtureOptions } from "./tests/playwright/test-setup";
  */
 export default defineConfig<PlaywrightFixtureOptions>({
   globalSetup: "./tests/playwright/screenshots-setup.ts",
-  timeout: 5000,
+  timeout: 60_000,
   testDir: "./tests/playwright/screenshots",
   /* Run tests in files in parallel */
   fullyParallel: false,

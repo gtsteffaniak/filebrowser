@@ -146,7 +146,11 @@
     "failedLogin": "Misslyckades med att logga in",
     "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts",
     "passkeyLogin": "Använd Passkey",
-    "recaptchaRequired": "Recaptcha-utmaning krävs"
+    "recaptchaRequired": "Recaptcha-utmaning krävs",
+    "requirePasswordChangeTitle": "Byt lösenord",
+    "requirePasswordChangeInstructions": "Du måste ange ett nytt lösenord innan du kan fortsätta.",
+    "requirePasswordChangeSuccess": "Lösenordet har uppdaterats. Du är nu inloggad.",
+    "requirePasswordChangeMustDiffer": "Det nya lösenordet måste skilja sig från ditt nuvarande lösenord"
   },
   "prompts": {
     "noTemplate": "Din mall är tom!",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Användarinställningar",
     "userEditTools": "Åtkomst till verktyg",
     "userEditToolsDescription": "Ställ in vilka verktyg denna användare har åtkomst till",
-    "userEditSidebarLinks": "Länkar i sidomenyn"
+    "userEditSidebarLinks": "Länkar i sidomenyn",
+    "passwordRequirementsMatch": "Lösenorden stämmer överens",
+    "passwordRequirementsMinLength": "Minst {min} tecken",
+    "requirePasswordChange": "Kräv att lösenordet byts vid nästa inloggning"
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Detta är de standardlänkar som läggs till för alla nya användare. Om du gör en länk obligatorisk kommer den att läggas till för alla användare och kan inte tas bort av användare som inte är administratörer.",
     "sidebarLinkDefaultSourceHelp": "Gäller endast om användaren har tillgång till denna källa.",
     "sidebarLinkDefaultsYamlInvalid": "Ogiltig YAML. Kontrollera formatet och försök igen.",
-    "switchMode": "Växla mellan länkar och navigeringsträdet"
+    "switchMode": "Växla mellan länkar och navigeringsträdet",
+    "rootFilesystemOnly": "Begränsa diskanvändningen till källfilsystemet",
+    "rootFilesystemOnlyDescription": "När denna inställning är aktiverad redovisas endast det filsystem som innehåller källsökvägen. När den är inaktiverad (standard) inkluderar den totala diskutrymmet även filsystem som är monterade under källsökvägen, varvid delade pooler som ZFS-datauppsättningar räknas en gång."
   },
   "share": {
     "notice": "Observera: När en andel skapas blir den mer exponerad för allmänheten och har andra regler för åtkomst. Om din andel inte är säkert konfigurerad kan vem som helst komma åt den.",
@@ -828,6 +837,8 @@
       "customScrollbarDescription": "Byt ut webbläsarens inbyggda rullningslist mot Ace:s inbyggda",
       "wrapContent": "Bryt långa rader i redigeraren",
       "wrapContentDescription": "Bryter redigerarens innehåll så att mycket långa rader alltid är synliga",
+      "indentedSoftWrap": "Indragen mjuk radbrytning",
+      "indentedSoftWrapDescription": "När detta är aktiverat läggs en indragning till i början av den radbryta texten",
       "autocompletion": "Autokomplettering",
       "autocompletionDescription": "Aktiverar autokomplettering genom att manuellt trycka på 'ctrl + space'",
       "liveAutocompletion": "Live-autokomplettering",

@@ -146,7 +146,11 @@
     "failedLogin": "Échec de la connexion",
     "invalidCredentials": "Les informations d'identification fournies ne sont pas valides",
     "passkeyLogin": "Utiliser une clé d'accès",
-    "recaptchaRequired": "Défi Recaptcha requis"
+    "recaptchaRequired": "Défi Recaptcha requis",
+    "requirePasswordChangeTitle": "Modifier votre mot de passe",
+    "requirePasswordChangeInstructions": "Vous devez définir un nouveau mot de passe avant de continuer.",
+    "requirePasswordChangeSuccess": "Mot de passe mis à jour. Vous êtes désormais connecté(e).",
+    "requirePasswordChangeMustDiffer": "Le nouveau mot de passe doit être différent de votre mot de passe actuel"
   },
   "prompts": {
     "noTemplate": "Votre modèle est vide !",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Préférences de l'utilisateur",
     "userEditTools": "Accès aux outils",
     "userEditToolsDescription": "Définir les outils auxquels cet utilisateur a accès",
-    "userEditSidebarLinks": "Liens de la barre latérale"
+    "userEditSidebarLinks": "Liens de la barre latérale",
+    "passwordRequirementsMatch": "Les mots de passe correspondent",
+    "passwordRequirementsMinLength": "Au moins {min} caractères",
+    "requirePasswordChange": "Exiger le changement de mot de passe lors de la prochaine connexion"
   },
   "sidebar": {
     "updateIsAvailable": "Une mise à jour est disponible !",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Il s'agit des liens par défaut qui seront ajoutés pour tous les nouveaux utilisateurs. Si vous rendez un lien obligatoire, celui-ci sera ajouté pour tous les utilisateurs et ne pourra pas être supprimé par les utilisateurs n'ayant pas les droits d'administrateur.",
     "sidebarLinkDefaultSourceHelp": "S'applique uniquement lorsque l'utilisateur a accès à cette source.",
     "sidebarLinkDefaultsYamlInvalid": "YAML non valide. Vérifiez le format et réessayez.",
-    "switchMode": "Basculer entre les liens et l'arborescence de navigation"
+    "switchMode": "Basculer entre les liens et l'arborescence de navigation",
+    "rootFilesystemOnly": "Limiter l'utilisation du disque au système de fichiers source",
+    "rootFilesystemOnlyDescription": "Lorsque cette option est activée, seul le système de fichiers contenant le chemin source est pris en compte. Lorsqu'elle est désactivée (par défaut), le total du disque inclut également les systèmes de fichiers montés sous le chemin source, les pools partagés tels que les ensembles de données ZFS n'étant comptés qu'une seule fois."
   },
   "share": {
     "notice": "Remarque : lorsqu'un partage est créé, il est davantage exposé au public et les règles d'accès sont différentes. Si votre partage n'est pas configuré de manière sécurisée, n'importe qui peut y accéder.",
@@ -828,6 +837,8 @@
       "customScrollbarDescription": "Remplacer la barre de défilement native du navigateur par celle intégrée à Ace",
       "wrapContent": "Couper les longues lignes dans l'éditeur",
       "wrapContentDescription": "Coupe le contenu de l'éditeur pour que les très longues lignes restent toujours visibles",
+      "indentedSoftWrap": "Retour à la ligne souple avec indentation",
+      "indentedSoftWrapDescription": "Lorsque cette option est activée, ajoute une indentation au début du texte renvoyé à la ligne",
       "autocompletion": "Autocomplétion",
       "autocompletionDescription": "Active l'autocomplétion en appuyant manuellement sur 'ctrl + space'",
       "liveAutocompletion": "Autocomplétion en direct",

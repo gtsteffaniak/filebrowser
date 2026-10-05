@@ -41,7 +41,7 @@ body.rtl .listing-items {
   padding: 0.5em;
   color: var(--textPrimary);
   border-color: var(--divider);
-  background: var(--surfacePrimary);
+  background: color-mix(in srgb, var(--surfacePrimary) 60%, transparent);
   /* Performance optimizations */
   contain: layout style paint;
   content-visibility: auto;
@@ -601,9 +601,9 @@ body.rtl .listing-items {
 
 .listing-items.list .listing-item.zebra-row:not([aria-selected="true"]),
 .listing-items.compact .listing-item.zebra-row:not([aria-selected="true"]) {
-  background: color-mix(in srgb, var(--surfacePrimary) 20%, var(--background));
+  background: color-mix(in srgb, var(--surfacePrimary) 20%, var(--background) 60%);
 }
 
 .search-entry.zebra-row {
-  background: color-mix(in srgb, var(--surfacePrimary) 80%, var(--background));
+  background: color-mix(in srgb, var(--surfacePrimary) 80%, var(--background) 60%);
 }

@@ -229,6 +229,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
       share: false                        # allow sharing files
       realtime: false                     # allow realtime updates
     lockPassword: false                   # disable the user from changing their password
+    requirePasswordChange: false          # force password change at next password login
     disableSettings: false                # disable the user from viewing the settings page
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users

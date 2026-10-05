@@ -327,9 +327,18 @@ export async function createShareAndGetHash(
   return shareHash;
 }
 
-export type PlaywrightFixtureOptions = {
+export async function disableAndCloseHalloweenPrompt(page: Page): Promise<void> {
+  await page.addLocatorHandler(
+    page.locator('.floating-window[aria-label="generic-prompt"]').filter({ hasText: /halloween/i }),
+    async (prompt) => {
+      await prompt.getByRole("button", { name: /disable/i }).click();
+    },
+  );
+}
+
+export interface PlaywrightFixtureOptions {
   theme: 'light' | 'dark';
-};
+}
 
 export const test = base.extend<
   PlaywrightFixtureOptions & {
@@ -338,6 +347,10 @@ export const test = base.extend<
     checkForNotification: (message: string | RegExp) => Promise<import('@playwright/test').Locator>;
   }
 >({
+  page: async ({ page }, use) => {
+    await disableAndCloseHalloweenPrompt(page);
+    await use(page);
+  },
   checkForErrors: async ({ page }, use) => {
     const { checkForErrors } = setupErrorTracking(page);
     await use(checkForErrors);
@@ -461,6 +474,94 @@ export function setupErrorTracking(page: Page) {
       expect(failedResponses).toHaveLength(expectedApiErrors);
     },
   };
+}
+
+export type ListingViewModeClass = "normal" | "gallery" | "list" | "compact" | "icons";
+
+function listingItemsLocator(page: Page): Locator {
+  return page.locator(".listing-items");
+}
+
+/**
+ * View modes resolved from gallery size (see Default.vue resolveViewModeForFamily).
+ * Screenshot basenames use gallery/list; size ≤4 uses icons, size ≤3 uses compact.
+ */
+export const listingViewModeClassAliases: Partial<
+  Record<ListingViewModeClass, ListingViewModeClass[]>
+> = {
+  gallery: ["gallery", "icons"],
+  list: ["list", "compact"],
+};
+
+function listingMatchesViewMode(
+  classAttr: string | null,
+  mode: ListingViewModeClass,
+): boolean {
+  const classes = classAttr?.split(/\s+/) ?? [];
+  const accepted = listingViewModeClassAliases[mode] ?? [mode];
+  return accepted.some((name) => classes.includes(name));
+}
+
+/** Assert the main file listing is using the given view mode (class on `.listing-items`). */
+export async function expectListingViewMode(
+  page: Page,
+  mode: ListingViewModeClass,
+): Promise<void> {
+  const listing = listingItemsLocator(page);
+  await expect(listing).toBeVisible();
+  const accepted = listingViewModeClassAliases[mode] ?? [mode];
+  await expect(async () => {
+    const classAttr = await listing.getAttribute("class");
+    if (!listingMatchesViewMode(classAttr, mode)) {
+      throw new Error(
+        `expected one of [${accepted.join(", ")}], got "${classAttr ?? ""}"`,
+      );
+    }
+  }).toPass({ timeout: 5000 });
+}
+
+/** Wait for listing 3D thumbnails (2s load delay + WebGL render). */
+export async function waitForListing3dThumbnails(
+  page: Page,
+  options?: { timeout?: number },
+): Promise<void> {
+  const timeout = options?.timeout ?? 20_000;
+  const viewers = page.locator(".listing-items .threejs-viewer");
+  await expect(viewers.first()).toBeVisible({ timeout });
+  const count = await viewers.count();
+  for (let i = 0; i < count; i++) {
+    const viewer = viewers.nth(i);
+    await viewer.scrollIntoViewIfNeeded();
+    await expect(viewer.locator(".loading-overlay")).toBeHidden({ timeout });
+    await expect(viewer.locator("canvas")).toBeVisible({ timeout });
+  }
+}
+
+/** Click Switch view until `.listing-items` has the target view mode class. */
+export async function ensureListingViewMode(
+  page: Page,
+  mode: ListingViewModeClass,
+  options?: { maxClicks?: number },
+): Promise<void> {
+  const maxClicks = options?.maxClicks ?? 6;
+  const switchView = page.locator('button[aria-label="Switch view"]');
+  const listing = listingItemsLocator(page);
+  await listing.waitFor({ state: "visible" });
+
+  for (let i = 0; i <= maxClicks; i++) {
+    const classAttr = await listing.getAttribute("class");
+    if (listingMatchesViewMode(classAttr, mode)) {
+      await expectListingViewMode(page, mode);
+      return;
+    }
+    if (i === maxClicks) {
+      break;
+    }
+    await switchView.click();
+    await page.waitForTimeout(250);
+  }
+
+  await expectListingViewMode(page, mode);
 }
 
 /** Opens settings and lands on the profile page. */

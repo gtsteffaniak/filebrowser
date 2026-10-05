@@ -18,9 +18,11 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func setupTestEnv(t *testing.T) {
+	utils.BcryptCost = bcrypt.MinCost
 	dbPath := filepath.Join(t.TempDir(), "test.sqlite")
 
 	// Initialize state with SQLite database

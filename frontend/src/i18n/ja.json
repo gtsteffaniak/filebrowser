@@ -146,7 +146,11 @@
     "failedLogin": "ログインに失敗しました",
     "invalidCredentials": "無効な認証情報が提供された",
     "passkeyLogin": "パスキーを使用",
-    "recaptchaRequired": "Recaptcha認証が必要です"
+    "recaptchaRequired": "Recaptcha認証が必要です",
+    "requirePasswordChangeTitle": "パスワードを変更する",
+    "requirePasswordChangeInstructions": "続行するには、新しいパスワードを設定する必要があります。",
+    "requirePasswordChangeSuccess": "パスワードが更新されました。これでログインが完了しました。",
+    "requirePasswordChangeMustDiffer": "新しいパスワードは、現在のパスワードとは異なるものにしてください"
   },
   "prompts": {
     "noTemplate": "テンプレートが空です！",
@@ -313,7 +317,10 @@
     "userEditPreferences": "ユーザー設定",
     "userEditTools": "ツールへのアクセス",
     "userEditToolsDescription": "このユーザーがアクセスできるツールを設定する",
-    "userEditSidebarLinks": "サイドバーのリンク"
+    "userEditSidebarLinks": "サイドバーのリンク",
+    "passwordRequirementsMatch": "パスワードが一致しています",
+    "passwordRequirementsMinLength": "{min} 文字以上",
+    "requirePasswordChange": "次回のログイン時にパスワードの変更を必須にする"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "これらは、すべての新規ユーザーに対して追加されるデフォルトのリンクです。リンクを必須設定にすると、すべてのユーザーに追加され、管理者以外のユーザーは削除できなくなります。",
     "sidebarLinkDefaultSourceHelp": "ユーザーがこの情報源にアクセスできる場合にのみ適用されます。",
     "sidebarLinkDefaultsYamlInvalid": "YAMLが不正です。形式を確認して、もう一度試してください。",
-    "switchMode": "リンクとナビゲーションツリーを切り替える"
+    "switchMode": "リンクとナビゲーションツリーを切り替える",
+    "rootFilesystemOnly": "ディスク使用量をソースファイルシステムに制限する",
+    "rootFilesystemOnlyDescription": "有効にすると、ソースパスを含むファイルシステムのみが報告されます。無効（デフォルト）の場合は、ディスクの合計容量にソースパスの下にマウントされたファイルシステムも含まれ、ZFSデータセットなどの共有プールは1回のみカウントされます。"
   },
   "share": {
     "notice": "注意：共有が作成されると、公開されるようになり、アクセスに関するルールが異なります。共有が安全に設定されていない場合、誰でもアクセスできる可能性があります。",
@@ -828,6 +837,8 @@
       "customScrollbarDescription": "ブラウザのネイティブスクロールバーを Ace 組み込みのものに置き換えます",
       "wrapContent": "エディタで長い行を折り返す",
       "wrapContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします",
+      "indentedSoftWrap": "インデント付きソフト折り返し",
+      "indentedSoftWrapDescription": "これが有効な場合、折り返されたテキストの先頭にインデントを追加します",
       "autocompletion": "自動補完",
       "autocompletionDescription": "手動で「ctrl + space」を押して自動補完を有効にします",
       "liveAutocompletion": "ライブ自動補完",

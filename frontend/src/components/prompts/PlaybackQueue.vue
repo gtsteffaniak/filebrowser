@@ -466,7 +466,7 @@ export default {
 }
 
 .clear-queue-btn:hover {
-  background: var(--surfaceSecondary);
+  background: var(--hoverOverlay);
   color: var(--dangerColor, #e74c3c);
 }
 
@@ -500,7 +500,7 @@ export default {
 }
 
 .queue-item:hover {
-  background: var(--surfaceSecondary);
+  background: var(--hoverOverlay);
 }
 
 .queue-item.current {

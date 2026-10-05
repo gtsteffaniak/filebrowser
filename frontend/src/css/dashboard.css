@@ -26,49 +26,6 @@ body.rtl #nav .wrapper {
   list-style: none;
 }
 
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-table tr {
-  border-bottom: 1px solid var(--divider);
-}
-
-table tr:last-child {
-  border: 0;
-}
-
-table th {
-  font-weight: 500;
-  color: var(--textSecondary);
-  text-align: left;
-}
-
-table th,
-table td {
-  padding: .5em 0;
-}
-
-table td.small {
-  width: 1em;
-}
-
-table tr>*:first-child {
-  padding-left: 1em;
-}
-
-table tr>*:last-child {
-  padding-right: 1em;
-}
-
-body.rtl table tr>* {
-  padding-left: unset;
-  padding-right: 1em;
-  text-align: right;
-  direction: ltr;
-}
-
 .card>*>*:first-child {
   margin-top: 0;
 }
@@ -106,12 +63,6 @@ body.rtl .card-title>*:first-child {
 
 .help {
   max-width: 24em;
-}
-
-/*** RTL - Fix disk usage information (in english) ***/
-body.rtl .credits {
-  text-align: right;
-  direction: ltr;
 }
 
 @keyframes show {

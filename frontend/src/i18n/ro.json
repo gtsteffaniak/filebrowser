@@ -146,7 +146,11 @@
     "failedLogin": "A eșuat autentificarea",
     "invalidCredentials": "Acreditări invalide furnizate",
     "passkeyLogin": "Folosește cheie de acces",
-    "recaptchaRequired": "Este necesară verificarea Recaptcha"
+    "recaptchaRequired": "Este necesară verificarea Recaptcha",
+    "requirePasswordChangeTitle": "Schimbă-ți parola",
+    "requirePasswordChangeInstructions": "Trebuie să setați o nouă parolă înainte de a continua.",
+    "requirePasswordChangeSuccess": "Parola a fost actualizată. Acum sunteți conectat.",
+    "requirePasswordChangeMustDiffer": "Noua parolă trebuie să fie diferită de parola actuală"
   },
   "prompts": {
     "noTemplate": "Șablonul tău este gol!",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Preferințele utilizatorului",
     "userEditTools": "Acces la instrumente",
     "userEditToolsDescription": "Configurați instrumentele la care are acces acest utilizator",
-    "userEditSidebarLinks": "Linkuri din bara laterală"
+    "userEditSidebarLinks": "Linkuri din bara laterală",
+    "passwordRequirementsMatch": "Parolele se potrivesc",
+    "passwordRequirementsMinLength": "Cel puțin {min} caractere",
+    "requirePasswordChange": "Solicită schimbarea parolei la următoarea autentificare"
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Acestea sunt linkurile implicite care vor fi adăugate pentru toți utilizatorii noi. Dacă impui un link, acesta va fi adăugat pentru toți utilizatorii și nu poate fi eliminat de către utilizatorii care nu sunt administratori.",
     "sidebarLinkDefaultSourceHelp": "Se aplică numai în cazul în care utilizatorul are acces la această sursă.",
     "sidebarLinkDefaultsYamlInvalid": "YAML nevalid. Verificați formatul și încercați din nou.",
-    "switchMode": "Comutare între linkuri și arborele de navigare"
+    "switchMode": "Comutare între linkuri și arborele de navigare",
+    "rootFilesystemOnly": "Limitează utilizarea spațiului pe disc la sistemul de fișiere sursă",
+    "rootFilesystemOnlyDescription": "Când această opțiune este activată, se raportează doar sistemul de fișiere care conține calea sursă. Când este dezactivată (implicit), capacitatea totală a discului include și sistemele de fișiere montate sub calea sursă, iar spațiile de stocare partajate, precum seturile de date ZFS, sunt luate în calcul o singură dată."
   },
   "share": {
     "notice": "Notă: atunci când este creată o partajare, aceasta devine mai expusă publicului și are reguli diferite de acces. Dacă partajul dvs. nu este configurat în siguranță, acesta poate fi accesat de oricine.",
@@ -828,6 +837,8 @@
       "customScrollbarDescription": "Înlocuiește bara de derulare nativă a browser-ului cu cea integrată a lui Ace",
       "wrapContent": "Împărțirea liniilor lungi în editor",
       "wrapContentDescription": "Împarte conținutul editorului pentru a menține liniile foarte lungi întotdeauna vizibile",
+      "indentedSoftWrap": "Împărțire soft cu indentare",
+      "indentedSoftWrapDescription": "Când este activat, adaugă indentare la începutul textului împărțit",
       "autocompletion": "Completare automată",
       "autocompletionDescription": "Activează completarea automată prin apăsarea manuală a 'ctrl + space'",
       "liveAutocompletion": "Completare automată live",
