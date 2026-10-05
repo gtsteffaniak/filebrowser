@@ -20,7 +20,7 @@
  * and of TypeScript syntax that cannot be serialized by `page.evaluate`.
  */
 
-export type FrameTimingStat = {
+export interface FrameTimingStat {
   /** Number of frames observed. */
   frames: number;
   /** Frame duration percentiles in milliseconds (1000/refreshRate for smooth). */
@@ -38,21 +38,21 @@ export type FrameTimingStat = {
   windowMs: number;
   /** Which API supplied the numbers, so absence is explainable. */
   source: "long-animation-frame" | "paint" | "raf-fallback" | "none";
-};
+}
 
-export type ScenarioWindow = {
+export interface ScenarioWindow {
   /** Mark the start of a measurement window. */
   start: () => void;
   /** Stop measuring and return stats. Never throws. */
   stop: () => Promise<FrameTimingStat>;
-};
+}
 
 /** Install frame collectors. Call once per page, before navigation. */
 export function installFrameTiming(page: {
   addInitScript: (fn: () => void) => Promise<unknown>;
 }): Promise<unknown> {
   return page.addInitScript(() => {
-    type FrameSample = { duration: number; blocking: number; start: number };
+    interface FrameSample { duration: number; blocking: number; start: number }
 
     const state = {
       active: false,
@@ -119,7 +119,9 @@ export function installFrameTiming(page: {
         const durationFrom = (times: number[]): number[] => {
           const out: number[] = [];
           for (let i = 1; i < times.length; i++) {
-            out.push(times[i] - times[i - 1]);
+            const cur = times[i];
+            const prev = times[i - 1];
+            if (cur !== undefined && prev !== undefined) out.push(cur - prev);
           }
           return out;
         };
@@ -156,7 +158,7 @@ export function installFrameTiming(page: {
             sorted.length - 1,
             Math.max(0, Math.ceil((p / 100) * sorted.length) - 1),
           );
-          return sorted[idx];
+          return sorted[idx] ?? 0;
         };
         const median = pct(50);
         const droppedThreshold = Math.max(median * 1.5, 20);
@@ -166,7 +168,7 @@ export function installFrameTiming(page: {
           p50: round2(pct(50)),
           p95: round2(pct(95)),
           p99: round2(pct(99)),
-          max: round2(sorted[sorted.length - 1]),
+          max: round2(sorted[sorted.length - 1] ?? 0),
           droppedFrames: durations.filter((d) => d > droppedThreshold).length,
           longFrameMs: Math.round(state.longFrameMs),
           effectiveFps: round2(durations.length / (windowMs / 1000)),

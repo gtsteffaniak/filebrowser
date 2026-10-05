@@ -30,18 +30,12 @@
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
     "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true,
-    "useUnknownInCatchVariables": true,
-
-    // we can remove the ones below when strict is true
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "alwaysStrict": true,
-    "strictBuiltinIteratorReturn": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "vueCompilerOptions": {
+    "strictTemplates": true,
+    "checkUnknownProps": false,
+    "checkUnknownEvents": false
   },
   "include": [
     "env.d.ts",

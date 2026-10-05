@@ -12,7 +12,7 @@ import { findMetric, metricsForScenario } from "./perf-metrics";
  * single-line change here plus a registry entry.
  */
 
-export type RunMetricBag = {
+export interface RunMetricBag {
   scenarioMs: number;
   domNodes: number;
   listingItems: number;
@@ -31,12 +31,12 @@ export type RunMetricBag = {
   droppedFrames: number;
   effectiveFps: number;
   interactionP95: number;
-};
+}
 
-type RawRun = {
+interface RawRun {
   scenario: string;
   metrics: Record<string, unknown>;
-};
+}
 
 function num(v: unknown, fallback = 0): number {
   const n = typeof v === "number" ? v : Number(v);

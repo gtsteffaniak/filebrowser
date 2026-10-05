@@ -24,7 +24,7 @@ import { findMetric } from "./perf-metrics";
 
 export type ComparisonStatus = "pass" | "regression" | "improvement" | "missing";
 
-export type MetricComparison = {
+export interface MetricComparison {
   key: string;
   label: string;
   unit: string;
@@ -45,16 +45,16 @@ export type MetricComparison = {
   gating: boolean;
   /** Human-readable explanation, e.g. "+29.8% exceeds +25% limit". */
   detail: string;
-};
+}
 
-export type RunComparison = {
+export interface RunComparison {
   scale: number;
   scenario: string;
   status: ComparisonStatus;
   metrics: MetricComparison[];
-};
+}
 
-export type ComparisonReport = {
+export interface ComparisonReport {
   /** False when no baseline file exists yet. */
   hasBaseline: boolean;
   /** Non-fatal environment mismatches; comparisons are still produced. */
@@ -72,7 +72,7 @@ export type ComparisonReport = {
   regressions: MetricComparison[];
   /** Regressions that are allowed to fail the build. */
   gatedRegressions: MetricComparison[];
-};
+}
 
 function toleranceFor(entry: BaselineMetricEntry): number {
   return entry.tolerancePct ?? DEFAULT_TOLERANCE_PCT[entry.toleranceClass] ?? 25;

@@ -1096,7 +1096,7 @@ export function getRawViewURLPublic(share, files, viewToken) {
 
 /**
  * URL for inline viewing. Routes audio/video to /media/stream and other files to /resources/view.
- * @param {{ hash: string, path?: string } | null} [shareInfo] Share context for public routes; null/omitted for authenticated routes.
+ * @param {{ hash: string, path?: string | undefined } | null} [shareInfo] Share context for public routes; null/omitted for authenticated routes.
  */
 export function getViewURL(source, path, viewToken, shareInfo = null, allowDownloadFallback = false, mimeOrName = '') {
   const typeHint = mimeOrName || path

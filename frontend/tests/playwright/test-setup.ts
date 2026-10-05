@@ -344,7 +344,7 @@ export const test = base.extend<
   PlaywrightFixtureOptions & {
     checkForErrors: (expectedConsoleErrors?: number, expectedApiErrors?: number) => void;
     openContextMenu: () => Promise<void>;
-    checkForNotification: (message: string | RegExp) => Promise<import('@playwright/test').Locator>;
+    checkForNotification: (message: string | RegExp) => Promise<Locator>;
   }
 >({
   page: async ({ page }, use) => {
@@ -390,7 +390,8 @@ export function setupErrorTracking(page: Page) {
       if (args.length > 0) {
         try {
           // Get the first argument which usually contains the error object
-          const firstArg = await args[0].jsonValue().catch(() => null);
+          const firstHandle = args[0];
+          const firstArg = firstHandle ? await firstHandle.jsonValue().catch(() => null) : null;
 
           if (firstArg && typeof firstArg === 'object') {
             if (firstArg.stack) {
@@ -596,7 +597,7 @@ export async function openAdvancedProfileSettings(
  * @param message - Expected message text (string or RegExp)
  * @returns Locator for the matching notification or toast message
  */
-export async function checkForNotification(page: Page, message: string | RegExp): Promise<import('@playwright/test').Locator> {
+export async function checkForNotification(page: Page, message: string | RegExp): Promise<Locator> {
   // Check both notifications and toasts
   const notificationMessage = page.locator('.notification-message');
   const toastMessage = page.locator('.toast-message');
@@ -604,7 +605,7 @@ export async function checkForNotification(page: Page, message: string | RegExp)
 
   try {
     // Wait for a notification or toast containing the message to appear
-    let matchingMessage: import('@playwright/test').Locator | null = null;
+    let matchingMessage: Locator | null = null;
 
     if (typeof message === 'string') {
       // For string matching, use text content filter
@@ -710,11 +711,11 @@ export async function selectExpandDropdownOption(
   await page.getByRole("option", { name: optionName }).click();
 }
 
-export async function checkForToast(page: Page, message: string | RegExp): Promise<import('@playwright/test').Locator> {
+export async function checkForToast(page: Page, message: string | RegExp): Promise<Locator> {
   const toastMessage = page.locator('.toast-message');
 
   try {
-    let matchingToast: import('@playwright/test').Locator | null = null;
+    let matchingToast: Locator | null = null;
 
     if (typeof message === 'string') {
       matchingToast = toastMessage.filter({ hasText: message }).first();

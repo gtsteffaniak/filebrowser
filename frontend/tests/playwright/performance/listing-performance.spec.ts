@@ -16,12 +16,17 @@ test.describe.configure({ mode: "parallel" });
 const scales = parsePerfScales();
 const repeats = repeatCount();
 
-type PerfSession = {
+interface PerfSession {
   context: BrowserContext | null;
   page: Page | null;
-};
+}
 
-async function openPerfSession(browser: Browser): Promise<PerfSession> {
+interface OpenedSession {
+  context: BrowserContext;
+  page: Page;
+}
+
+async function openPerfSession(browser: Browser): Promise<OpenedSession> {
   const context = await browser.newContext({
     storageState: path.join(frontendRoot(import.meta.url), "loginAuth.json"),
   });

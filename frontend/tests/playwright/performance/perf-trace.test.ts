@@ -78,8 +78,8 @@ describe("analyzeTrace", () => {
     const names = analysis!.topFunctions.map((f) => f.name);
     expect(names).toContain("renderRows");
     // renderRows had 3 of 4 samples, so it ranks first by self time.
-    expect(analysis!.topFunctions[0].name).toBe("renderRows");
-    expect(analysis!.topFunctions[0].selfMs).toBe(3);
+    expect(analysis!.topFunctions[0]?.name).toBe("renderRows");
+    expect(analysis!.topFunctions[0]?.selfMs).toBe(3);
   });
 
   it("counts GC events", async () => {
@@ -99,7 +99,7 @@ describe("analyzeTrace", () => {
     ]);
     const analysis = await analyzeTrace(file);
     expect(analysis!.longTaskSlices).toHaveLength(1);
-    expect(analysis!.longTaskSlices[0].durationMs).toBe(100);
+    expect(analysis!.longTaskSlices[0]?.durationMs).toBe(100);
   });
 
   it("produces an actionable finding for the hottest function", async () => {

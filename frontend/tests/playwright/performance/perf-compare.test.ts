@@ -212,7 +212,7 @@ describe("compareAgainstBaseline", () => {
       ],
     });
     expect(r.totals.regressions).toBe(1);
-    expect(r.regressions[0].key).toBe("scenarioMs");
+    expect(r.regressions[0]?.key).toBe("scenarioMs");
     const table = renderRegressionTable(r);
     expect(table).toContain("REGRESSIONS");
     expect(table).toContain("FAIL");
@@ -267,7 +267,7 @@ describe("compareAgainstBaseline", () => {
     });
     expect(r.regressions).toHaveLength(2);
     expect(r.gatedRegressions).toHaveLength(1);
-    expect(r.gatedRegressions[0].key).toBe("scenarioMs");
+    expect(r.gatedRegressions[0]?.key).toBe("scenarioMs");
     // The advisory one is still reported, but tagged as non-gating.
     const table = renderRegressionTable(r);
     expect(table).toContain("advisory, not gated");

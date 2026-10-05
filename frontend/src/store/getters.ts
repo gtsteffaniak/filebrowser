@@ -296,7 +296,7 @@ export const getters = {
         dirs.push(item);
       } else {
         // Pre-existing: capitalized "Path" (not FileListItem's "path"), never read elsewhere. Left as-is.
-        (item as FileListItem & { Path?: string }).Path = state.req.path;
+        (item as FileListItem & { Path?: string | undefined }).Path = state.req.path;
         files.push(item);
       }
     }

@@ -41,15 +41,15 @@ const SOURCE_SIDEBAR_URLS: Record<(typeof ADMIN_SOURCE_SIDEBAR_LINKS)[number], R
     access: /\/files\/access\/?$/,
 };
 
-type SourceFilePerms = {
+interface SourceFilePerms {
     view: boolean;
     download: boolean;
     modify: boolean;
     create: boolean;
     delete: boolean;
-};
+}
 
-type UserExpectation = {
+interface UserExpectation {
     username: string;
     global: {
         administrator: boolean;
@@ -62,7 +62,7 @@ type UserExpectation = {
     sources: Record<string, SourceFilePerms>;
     scopePaths: Record<string, string>;
     absentSources?: string[];
-};
+}
 
 const ALL_SOURCES = ["playwright + files", "docker", "access"] as const;
 
@@ -185,11 +185,11 @@ const EXPECTED_USER_DETAILS: UserExpectation[] = [
     },
 ];
 
-type ApiTokenExpectation = {
+interface ApiTokenExpectation {
     name: string;
     minimal: boolean;
     permissions?: Partial<Record<string, boolean>>;
-};
+}
 
 /** Named API tokens from database.db.old (admin user). */
 const EXPECTED_API_TOKENS: ApiTokenExpectation[] = [
@@ -225,14 +225,14 @@ const EXPECTED_ACCESS_RULES: Array<[string, AccessRuleExpectation[]]> = [
     ["access", ACCESS_SOURCE_RULES_AFTER_DOCKER_SETUP],
 ];
 
-type ShareExpectation = {
+interface ShareExpectation {
     hash: string;
     path: string;
     username: string;
     allowModify: boolean;
     allowCreate: boolean;
     allowDelete: boolean;
-};
+}
 
 /** Shares migrated from database.db.old (admin user). */
 const EXPECTED_SHARES: ShareExpectation[] = [
@@ -492,13 +492,14 @@ test.describe("Migration fixture verification", () => {
                 expected.loginMethod,
             );
 
-            for (const sourceName of Object.keys(expected.sources)) {
-                const sourcePerms = expected.sources[sourceName];
+            for (const [sourceName, sourcePerms] of Object.entries(expected.sources)) {
+                const scopePath = expected.scopePaths[sourceName];
+                if (scopePath === undefined) {
+                    throw new Error(`Missing expected scope path for source "${sourceName}"`);
+                }
                 await expandUserEditSourceScope(modal, sourceName);
 
-                await expect(scopePathButton(modal, sourceName)).toHaveText(
-                    expected.scopePaths[sourceName],
-                );
+                await expect(scopePathButton(modal, sourceName)).toHaveText(scopePath);
 
                 await expectCheckboxState(
                     sourcePermissionCheckbox(modal, sourceName, "View and list files"),

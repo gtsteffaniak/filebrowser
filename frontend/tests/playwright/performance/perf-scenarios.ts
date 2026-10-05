@@ -36,10 +36,10 @@ import {
  * the URL being built and the expected row count being read.
  */
 
-export type ScenarioOptions = {
+export interface ScenarioOptions {
   /** Listing already open at the correct scale (skip goto + full mount wait). */
   reuseListing?: boolean;
-};
+}
 
 export function parsePerfScales(): number[] {
   const raw = process.env.PERF_SCALES ?? "100,1000,10000";
@@ -91,7 +91,7 @@ async function openMockListing(page: Page, scale: number): Promise<void> {
 }
 
 /** Per-scenario payload shared by every scenario runner. */
-type ScenarioPayload = {
+interface ScenarioPayload {
   loadListingMs?: number;
   scrollDurationMs?: number;
   resizeDurationMs?: number;
@@ -113,7 +113,7 @@ type ScenarioPayload = {
   vitals?: WebVitals;
   interaction?: InteractionTiming;
   chromeTracePath?: string;
-};
+}
 
 async function save(
   testInfo: TestInfo,
