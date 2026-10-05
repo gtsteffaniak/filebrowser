@@ -18,15 +18,14 @@
       <template v-else>
         <p>{{ $t("prompts.archiveMessage") }}</p>
         <p class="prompts-label">{{ $t("prompts.archiveDestination") }}</p>
-        <div
-          role="button"
-          tabindex="0"
+        <button
+          type="button"
           aria-label="archive-destination"
           class="searchContext clickable button"
           @click="showFileList = true"
         >
           {{ $t("general.path", { suffix: ":" }) }} {{ destPath }}{{ destSource ? ` (${destSource})` : "" }}
-        </div>
+        </button>
         <p class="prompts-label">{{ $t("prompts.archiveName") }}</p>
         <input
           v-model.trim="archiveName"

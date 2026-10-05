@@ -121,7 +121,7 @@
               </div>
               <source-file-permissions
                 :permissions="sourcePermissionsFor(source.name)"
-                @changed="markScopePermissionsExplicit(source.name)"
+                @changed="(key, value) => onSourcePermissionChange(source.name, key, value)"
               />
               <div class="scope-quota-block">
                 <ToggleSwitch
@@ -710,6 +710,14 @@ export default {
         };
       }
     },
+    onSourcePermissionChange(sourceName, key, value) {
+      const scope = this.selectedSources.find((entry) => entry.name === sourceName);
+      if (!scope) {
+        return;
+      }
+      scope.permissions = { ...this.sourcePermissionsFor(sourceName), [key]: value };
+      this.markScopePermissionsExplicit(sourceName);
+    },
     markScopePermissionsExplicit(sourceName) {
       const scope = this.selectedSources.find((entry) => entry.name === sourceName);
       if (scope) {
@@ -1143,7 +1151,22 @@ export default {
       this.user.permissions.api = this.editAccount.permissions.api;
       this.user.permissions.realtime = this.editAccount.permissions.realtime;
     },
-    onEditAccountChange() {
+    applyEditAccountField(field, value) {
+      const fieldStr = String(field ?? "");
+      if (!fieldStr) {
+        return;
+      }
+      if (fieldStr.startsWith("permissions.")) {
+        this.editAccount.permissions = {
+          ...this.editAccount.permissions,
+          [fieldStr.slice("permissions.".length)]: value,
+        };
+        return;
+      }
+      this.editAccount[fieldStr] = value;
+    },
+    onEditAccountChange(field, value) {
+      this.applyEditAccountField(field, value);
       this.applyEditAccountToUser();
       this.emitUpdate();
     },

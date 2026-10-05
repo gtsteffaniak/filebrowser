@@ -6,7 +6,15 @@
   >
     <div v-if="shouldShow" class="button release-banner">
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
-      <i @click="setSeenUpdate" role="button" tabindex="0" aria-label="close-banner" class="material-symbols">close</i>
+      <i
+        @click="setSeenUpdate"
+        @keydown.enter.prevent="setSeenUpdate"
+        @keydown.space.prevent="setSeenUpdate"
+        role="button"
+        tabindex="0"
+        aria-label="close-banner"
+        class="material-symbols"
+      >close</i>
     </div>
     <div v-if="showPwaInstall" class="button release-banner">
       <button type="button" @click="installPwa">{{ $t("pwa.install") }}</button>

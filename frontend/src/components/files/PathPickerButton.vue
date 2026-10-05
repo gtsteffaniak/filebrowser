@@ -1,6 +1,5 @@
 <template>
-  <button
-    type="button"
+  <div
     :aria-label="resolvedAriaLabel"
     class="searchContext clickable button unified-path-picker"
     @click="openPicker"
@@ -8,7 +7,7 @@
     @keydown.space.prevent="openPicker"
   >
     {{ buttonLabel }}
-  </button>
+  </div>
 </template>
 
 <script>

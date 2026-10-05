@@ -272,13 +272,14 @@ export default {
           return null;
       }
     },
-    async onSourceAccessDefaultsChange(flag) {
+    async onSourceAccessDefaultsChange(flag, value) {
       if (!this.canSaveSourceDefaults() || !flag) {
         return;
       }
       if (this.isConfigLockedPermission(flag)) {
         return;
       }
+      this.sourceAccessDefaults = { ...this.sourceAccessDefaults, [flag]: value };
       const patch = this.sourceDefaultPermissionsPatch(flag);
       if (!patch) {
         return;

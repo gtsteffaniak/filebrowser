@@ -17,6 +17,8 @@
         class="settings-card-collapsible-header settings-card clickable"
         :class="{ 'active-settings': isSectionActive(setting) }"
         @click="setView(`${setting.id}-main`)"
+        @keydown.enter.prevent="setView(`${setting.id}-main`)"
+        @keydown.space.prevent="setView(`${setting.id}-main`)"
       >
         <span class="settings-item-content">
           <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
