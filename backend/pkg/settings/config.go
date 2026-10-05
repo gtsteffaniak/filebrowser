@@ -872,7 +872,7 @@ func SetDefaults(generate bool) Settings {
 			BaseURL: "",
 		},
 		Server: Server{
-			SearchResultsLimit: 100,
+			SearchResultsLimit: 1000,
 			MinSearchLength:    defaultMinSearchLength,
 			NumImageProcessors: 4,
 			DatabaseV2: Database{

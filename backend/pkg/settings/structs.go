@@ -61,7 +61,7 @@ type Environment struct {
 }
 
 type Server struct {
-	SearchResultsLimit           int            `json:"searchResultsLimit" yaml:"searchResultsLimit" validate:"gte=1"` // maximum results across all sources for advanced search (default: 100); size viewer remains limited to 200
+	SearchResultsLimit           int            `json:"searchResultsLimit" yaml:"searchResultsLimit" validate:"gte=1"` // maximum requested search results across all sources (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200
 	MinSearchLength              int            `json:"minSearchLength" yaml:"minSearchLength"`                        // minimum length of search query to begin searching (default: 3)
 	DisableUpdateCheck           bool           `json:"disableUpdateCheck"`                                            // disables backend update check service
 	NumImageProcessors           int            `json:"numImageProcessors"`                                            // number of concurrent image processing jobs used to create previews, default is 4.

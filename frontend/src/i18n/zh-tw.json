@@ -995,7 +995,8 @@
       "termTooShort": "每個搜尋字詞必須至少為{minSearchLength} 字元",
       "resultsTitle": "搜尋結果",
       "invalidSources": "開啟至少一個來源。",
-      "noResults": "沒有匹配的檔案或資料夾。"
+      "noResults": "沒有匹配的檔案或資料夾。",
+      "resultLimit": "搜尋結果數量上限"
     },
     "activityViewer": {
       "name": "活動檢視器",

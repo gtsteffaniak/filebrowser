@@ -995,7 +995,8 @@
       "termTooShort": "Każde wyszukiwane hasło musi zawierać co najmniej {minSearchLength} znaków",
       "resultsTitle": "Wyniki wyszukiwania",
       "invalidSources": "Włącz co najmniej jedno źródło.",
-      "noResults": "Brak pasujących plików lub folderów."
+      "noResults": "Brak pasujących plików lub folderów.",
+      "resultLimit": "Maksymalna liczba wyników wyszukiwania"
     },
     "activityViewer": {
       "name": "Przeglądarka aktywności",

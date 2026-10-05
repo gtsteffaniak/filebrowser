@@ -3659,6 +3659,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "Maximum results requested; defaults to 100 and is capped by server.searchResultsLimit (default 1000)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Optional: 'and' to require all repeated 'terms' match; default is OR",
                         "name": "termJoin",
@@ -6462,7 +6468,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "searchResultsLimit": {
-                    "description": "maximum results across all sources for advanced search (default: 100); size viewer remains limited to 200",
+                    "description": "maximum requested search results across all sources (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200",
                     "type": "integer",
                     "minimum": 1
                 },

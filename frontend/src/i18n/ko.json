@@ -995,7 +995,8 @@
       "termTooShort": "각 검색어는 {minSearchLength} 자 이상이어야 합니다.",
       "resultsTitle": "검색 결과",
       "invalidSources": "하나 이상의 소스를 켭니다.",
-      "noResults": "일치하는 파일이나 폴더가 없습니다."
+      "noResults": "일치하는 파일이나 폴더가 없습니다.",
+      "resultLimit": "최대 검색 결과 수"
     },
     "activityViewer": {
       "name": "활동 뷰어",

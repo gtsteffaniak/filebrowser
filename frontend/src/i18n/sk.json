@@ -995,7 +995,8 @@
       "termTooShort": "Každý hľadaný výraz musí mať aspoň {minSearchLength} znakov.",
       "resultsTitle": "Výsledky vyhľadávania",
       "invalidSources": "Zapnite aspoň jeden zdroj.",
-      "noResults": "Žiadne zodpovedajúce súbory alebo priečinky."
+      "noResults": "Žiadne zodpovedajúce súbory alebo priečinky.",
+      "resultLimit": "Maximálny počet výsledkov vyhľadávania"
     },
     "activityViewer": {
       "name": "Prehliadač aktivít",

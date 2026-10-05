@@ -149,7 +149,7 @@ func TestSearchResultsLimitConfig(t *testing.T) {
 		want    int
 		invalid bool
 	}{
-		{name: "default", want: 100},
+		{name: "default", want: 1000},
 		{name: "custom", value: "searchResultsLimit: 250", want: 250},
 		{name: "zero", value: "searchResultsLimit: 0", invalid: true},
 		{name: "negative", value: "searchResultsLimit: -1", invalid: true},

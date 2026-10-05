@@ -995,7 +995,8 @@
       "termTooShort": "يجب ألا يقل حجم كل مصطلح بحث عن {minSearchLength} حرف على الأقل",
       "resultsTitle": "نتائج البحث",
       "invalidSources": "قم بتشغيل مصدر واحد على الأقل.",
-      "noResults": "لا توجد ملفات أو مجلدات مطابقة."
+      "noResults": "لا توجد ملفات أو مجلدات مطابقة.",
+      "resultLimit": "الحد الأقصى لنتائج البحث"
     },
     "activityViewer": {
       "name": "عارض الأنشطة",

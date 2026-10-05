@@ -984,7 +984,8 @@
       "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
       "resultsTitle": "Zoekresultaten",
       "invalidSources": "Zet minstens één bron aan.",
-      "noResults": "Geen overeenkomende bestanden of mappen."
+      "noResults": "Geen overeenkomende bestanden of mappen.",
+      "resultLimit": "Maximumaantal zoekresultaten"
     },
     "materialIconPicker": {
       "name": "Material pictogrammenkiezer",

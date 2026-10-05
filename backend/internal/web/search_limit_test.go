@@ -41,28 +41,33 @@ func TestSearchHandlerConfiguredLimit(t *testing.T) {
 		settings.Config.Server.SourceMap[source.Path] = source
 		user.BackendScopes = append(user.BackendScopes, users.BackendScope{Path: source.Path, Scope: "/"})
 		indexing.Initialize(source, true, false)
-		files := make([]iteminfo.ExtendedItemInfo, 300)
+		files := make([]iteminfo.ExtendedItemInfo, 600)
 		for i := range files {
 			files[i] = iteminfo.ExtendedItemInfo{ItemInfo: iteminfo.ItemInfo{Name: fmt.Sprintf("document-%03d.txt", i), Type: "text", Size: 1024}}
 		}
 		indexing.GetIndex(name).UpdateMetadata(&iteminfo.FileInfo{Path: "/", Files: files}, nil, true)
 	}
 	for _, tc := range []struct {
-		name    string
-		limit   int
-		sources string
-		largest bool
-		want    int
+		name      string
+		limit     int
+		sources   string
+		largest   bool
+		requested string
+		want      int
 	}{
-		{"default", 100, "limit-a", false, 100},
-		{"increased", 250, "limit-a", false, 250},
-		{"decreased", 20, "limit-a", false, 20},
-		{"combined limit", 400, "limit-a,limit-b", false, 400},
-		{"size viewer unchanged", 250, "limit-a", true, 200},
+		{"quick default", 1000, "limit-a", false, "", 100},
+		{"advanced default", 1000, "limit-a", false, "500", 500},
+		{"custom request", 1000, "limit-a", false, "250", 250},
+		{"minimum request", 1000, "limit-a", false, "1", 1},
+		{"server cap", 250, "limit-a", false, "500", 250},
+		{"quick capped", 20, "limit-a", false, "", 20},
+		{"combined limit", 1000, "limit-a,limit-b", false, "1000", 1000},
+		{"combined capped", 400, "limit-a,limit-b", false, "900", 400},
+		{"size viewer unchanged", 10, "limit-a", true, "1", 200},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			settings.Config.Server.SearchResultsLimit = tc.limit
-			req := httptest.NewRequest("GET", fmt.Sprintf("/api/tools/search?query=document&sources=%s&largest=%t", tc.sources, tc.largest), nil)
+			req := httptest.NewRequest("GET", fmt.Sprintf("/api/tools/search?query=document&sources=%s&largest=%t&limit=%s", tc.sources, tc.largest, tc.requested), nil)
 			recorder := httptest.NewRecorder()
 			status, err := searchHandler(recorder, req, &Context{User: user})
 			if err != nil {
@@ -74,6 +79,16 @@ func TestSearchHandlerConfiguredLimit(t *testing.T) {
 			}
 			if len(results) != tc.want {
 				t.Fatalf("want %d results, got %d", tc.want, len(results))
+			}
+		})
+	}
+
+	for _, limit := range []string{"0", "-1", "abc", "1.5", "9999999999999999999999999999"} {
+		t.Run("invalid "+limit, func(t *testing.T) {
+			req := httptest.NewRequest("GET", "/api/tools/search?query=document&sources=limit-a&limit="+limit, nil)
+			status, err := searchHandler(httptest.NewRecorder(), req, &Context{User: user})
+			if status != 400 || err == nil || err.Error() != "limit must be a positive integer" {
+				t.Fatalf("expected invalid limit, got status=%d err=%v", status, err)
 			}
 		})
 	}

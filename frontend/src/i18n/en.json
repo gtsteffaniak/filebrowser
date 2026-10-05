@@ -1019,7 +1019,8 @@
       "termTooShort": "Each search term must be at least {minSearchLength} characters",
       "resultsTitle": "Search results",
       "invalidSources": "Turn on at least one source.",
-      "noResults": "No matching files or folders."
+      "noResults": "No matching files or folders.",
+      "resultLimit": "Maximum search results"
     },
     "materialIconPicker": {
       "name": "Material Icon Picker",
