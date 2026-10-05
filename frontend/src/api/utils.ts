@@ -1,6 +1,6 @@
-import i18n from "@/i18n";
-import { state } from "@/store";
-import type { FileListItem } from "@/store/types";
+import i18n from "@/i18n/index.ts";
+import { state } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
 
 const defaultRequestTimeoutMs = 5000;
 

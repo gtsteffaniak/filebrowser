@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup.ts";
 
 const copyDestLabel = (page: Page) =>
   page.locator('div[aria-label="copy-prompt"] .move-copy-path-picker');

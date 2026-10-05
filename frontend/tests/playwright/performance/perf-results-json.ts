@@ -1,5 +1,5 @@
-import type { PerfConfig } from "./perf-config";
-import { checkResultThresholds, runtimeEnvSnapshot } from "./perf-config";
+import type { PerfConfig } from "./perf-config.ts";
+import { checkResultThresholds, runtimeEnvSnapshot } from "./perf-config.ts";
 import {
   buildContributors,
   buildRootCauseParagraph,
@@ -7,12 +7,12 @@ import {
   type AnalysisTableRow,
   type PerfContributor,
   type PerfResultFile,
-} from "./perf-report";
-import type { ComparisonReport } from "./perf-compare";
-import type { EnvironmentFingerprint } from "./perf-baseline";
-import type { TraceAnalysis } from "./perf-trace";
-import { extractBaselineMetrics, scopedLongTasks } from "./perf-extract";
-import { SCENARIOS } from "./perf-metrics";
+} from "./perf-report.ts";
+import type { ComparisonReport } from "./perf-compare.ts";
+import type { EnvironmentFingerprint } from "./perf-baseline.ts";
+import type { TraceAnalysis } from "./perf-trace.ts";
+import { extractBaselineMetrics, scopedLongTasks } from "./perf-extract.ts";
+import { SCENARIOS } from "./perf-metrics.ts";
 
 export interface HeadlineFinding {
   severity: "critical" | "high" | "medium" | "info";

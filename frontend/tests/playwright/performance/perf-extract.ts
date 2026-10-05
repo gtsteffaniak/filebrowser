@@ -1,8 +1,8 @@
-import type { FrameTimingStat } from "./perf-frames";
-import type { InteractionTiming, WebVitals } from "./perf-vitals";
-import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp";
-import type { LongTask, ProbeSnapshot } from "./perf-helpers";
-import { findMetric, metricsForScenario } from "./perf-metrics";
+import type { FrameTimingStat } from "./perf-frames.ts";
+import type { InteractionTiming, WebVitals } from "./perf-vitals.ts";
+import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp.ts";
+import type { LongTask, ProbeSnapshot } from "./perf-helpers.ts";
+import { findMetric, metricsForScenario } from "./perf-metrics.ts";
 
 /**
  * Projects a raw run result onto the flat metric keys declared in the registry.

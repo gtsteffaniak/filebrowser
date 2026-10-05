@@ -6,11 +6,11 @@
   >
     <div v-if="shouldShow" class="button release-banner">
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
-      <i @click="setSeenUpdate" aria-label="close-banner" class="material-symbols">close</i>
+      <i @click="setSeenUpdate" role="button" tabindex="0" aria-label="close-banner" class="material-symbols">close</i>
     </div>
     <div v-if="showPwaInstall" class="button release-banner">
-      <a href="#" @click.prevent="installPwa">{{ $t("pwa.install") }}</a>
-      <i @click="dismissPwaInstall" aria-label="close-banner" class="material-symbols">close</i>
+      <button type="button" @click="installPwa">{{ $t("pwa.install") }}</button>
+      <i @click="dismissPwaInstall" role="button" tabindex="0" aria-label="close-banner" class="material-symbols">close</i>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
@@ -19,7 +19,7 @@
       <span v-for="item in externalLinks" :key="item.title">
         <a
           v-if="item.url === 'help prompt'"
-          href="#"
+          href="#help"
           @click.prevent="help"
           :title="$t('general.help')"
           >{{ $t("general.help") }}</a

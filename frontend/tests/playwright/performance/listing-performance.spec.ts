@@ -1,14 +1,14 @@
 import { test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import path from "node:path";
-import { installProbes, repeatCount } from "./perf-helpers";
-import { frontendRoot } from "./perf-paths";
+import { installProbes, repeatCount } from "./perf-helpers.ts";
+import { frontendRoot } from "./perf-paths.ts";
 import {
   parsePerfScales,
   runLoadScenario,
   runResizeScenario,
   runScrollScenario,
   runSelectScenario,
-} from "./perf-scenarios";
+} from "./perf-scenarios.ts";
 
 /** Scales run in parallel; scenarios within a scale share one listing mount (serial). */
 test.describe.configure({ mode: "parallel" });

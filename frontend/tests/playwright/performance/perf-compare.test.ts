@@ -3,14 +3,14 @@ import {
   compareAgainstBaseline,
   compareMetric,
   renderRegressionTable,
-} from "./perf-compare";
+} from "./perf-compare.ts";
 import {
   aggregateSamples,
   compareEnvironments,
   median,
   type BaselineMetricEntry,
   type EnvironmentFingerprint,
-} from "./perf-baseline";
+} from "./perf-baseline.ts";
 
 const entry = (
   value: number,

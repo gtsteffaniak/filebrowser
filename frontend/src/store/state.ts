@@ -1,7 +1,7 @@
 import { reactive } from 'vue';
-import { detectLocale } from "@/i18n";
-import { globalVars } from "@/utils/constants";
-import type { StoreState } from "./types";
+import { detectLocale } from "@/i18n/index.ts";
+import { globalVars } from "@/utils/constants.js";
+import type { StoreState } from "./types.ts";
 
 export const state: StoreState = reactive({
   disableEventThemes: eventTheme(),

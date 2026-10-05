@@ -23,6 +23,30 @@ const error = ref("");
 let navigationUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
 let lastNavigationUpdatePath: string | null = null;
 
+async function resolveListing(req: NonNullable<typeof state.req>, directoryPath: string) {
+  // Try to get listing from current request first
+  if (req.items) {
+    return req.items;
+  }
+  // Use pre-fetched parent directory items from Files.vue
+  if (req.parentDirItems) {
+    return req.parentDirItems;
+  }
+  if (directoryPath !== req.path) {
+    // Fetch directory listing (now with '/' for root files)
+    try {
+      const res = getters.isShare()
+        ? await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash)
+        : await resourcesApi.fetchFiles(req.source, directoryPath);
+      return res.items;
+    } catch (err) {
+      console.error("error DocViewer.vue", err);
+      return [req]; // Fallback to current item only
+    }
+  }
+  return [req];
+}
+
 async function updateNavigationForCurrentItem() {
   if (!state.req || state.req.type === 'directory') {
     return;
@@ -34,31 +58,7 @@ async function updateNavigationForCurrentItem() {
     directoryPath = '/';
   }
 
-  let listing;
-
-  // Try to get listing from current request first
-  if (state.req.items) {
-    listing = state.req.items;
-  } else if (state.req.parentDirItems) {
-    // Use pre-fetched parent directory items from Files.vue
-    listing = state.req.parentDirItems;
-  } else if (directoryPath !== state.req.path) {
-    // Fetch directory listing (now with '/' for root files)
-    try {
-      let res;
-      if (getters.isShare()) {
-        res = await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash);
-      } else {
-        res = await resourcesApi.fetchFiles(state.req.source, directoryPath);
-      }
-      listing = res.items;
-    } catch (err) {
-      console.error("error DocViewer.vue", err);
-      listing = [state.req]; // Fallback to current item only
-    }
-  } else {
-    listing = [state.req];
-  }
+  const listing = await resolveListing(state.req, directoryPath);
   mutations.setupNavigation({
     listing: listing,
     currentItem: state.req,

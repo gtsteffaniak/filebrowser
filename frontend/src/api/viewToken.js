@@ -1,10 +1,10 @@
-import { getters, state } from "@/store";
+import { getters, state } from "@/store/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import {
   VIEW_REFRESH_BEFORE_MS,
   msUntilRefresh,
   shouldRefreshBeforeExpiry,
-} from "@/utils/auth";
+} from "@/utils/auth.js";
 
 /** @deprecated use VIEW_REFRESH_BEFORE_MS — kept as alias for clarity in this module */
 const REFRESH_BEFORE_MS = VIEW_REFRESH_BEFORE_MS;

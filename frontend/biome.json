@@ -1,0 +1,138 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!dist/",
+      "!public/config.generated.yaml",
+      "!public/index.html"
+    ]
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "root": "../"
+  },
+  "linter": {
+    "enabled": true,
+    "domains": { "vue": "all", "project": "all", "types": "all" },
+    "rules": {
+      "performance": {
+        "useVueVapor": "off"
+      },
+      "complexity": {
+        "noImportantStyles": "off"
+      },
+      "correctness": {
+        "noUnknownPseudoClass": "off"
+      },
+      "style": {
+        "noDescendingSpecificity": "off",
+        "noVueOptionsApi": "off",
+        "useVueMultiWordComponentNames": "off",
+        "useVueHyphenatedAttributes": "off",
+        "useVueConsistentVBindStyle": "off",
+        "useVueConsistentVOnStyle": "off"
+      },
+      "suspicious": {
+        "noDocumentCookie": "off",
+        "noImportCycles": "off",
+        "noExplicitAny": "warn",
+        "noShadow": "off",
+        "noUnnecessaryConditions": "off",
+        "noParametersOnlyUsedInRecursion": "error",
+        "noNestedPromises": "error",
+        "useArraySortCompare": "error"
+      },
+      "nursery": {
+        "useVueValidVFor": "error",
+        "noVueVOnNumberValues": "error",
+        "noVueRefAsOperand": "error",
+        "noVueImportCompilerMacros": "error",
+        "useVueBaseImport": "error",
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "noImpliedEval": "error"
+      },
+      "a11y": {
+        "useSemanticElements": "off",
+        "useAriaPropsSupportedByRole": "off",
+        "noNoninteractiveElementToInteractiveRole": "off",
+        "noLabelWithoutControl": "off",
+        "useMediaCaption": "off",
+        "useAltText": "off",
+        "noRedundantAlt": "off",
+        "noSvgWithoutTitle": "off",
+        "useAriaPropsForRole": "off",
+        "useGenericFontNames": "off",
+        "noAutofocus": "off",
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "off"
+      }
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": false
+  },
+  "css": {
+    "parser": {
+      "cssModules": true
+    }
+  },
+  "html": {
+    "experimentalFullSupportEnabled": true,
+    "parser": {
+      "interpolation": true
+    },
+    "linter": {
+      "enabled": true
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["tests/playwright/**", "tests/mocks/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noEmptyPattern": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "playwright.config.ts",
+        "playwright.performance.config.ts",
+        "tests/playwright/**",
+        "scripts/postcss-strip-legacy.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnresolvedImports": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["scripts/postcss-strip-legacy.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUndeclaredDependencies": "off"
+          }
+        }
+      }
+    }
+  ]
+}

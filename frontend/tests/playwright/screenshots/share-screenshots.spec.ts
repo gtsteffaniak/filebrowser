@@ -1,5 +1,5 @@
 // import { Page } from "@playwright/test";
-import { test } from "../test-setup";
+import { test } from "../test-setup.ts";
 
 //const jpgQuality = 85;
 

@@ -940,13 +940,13 @@ export default {
           'previoustrack',
           hasPrevious ? () => this.playPrevious() : null
         );
-      } catch (e) { /*ignore*/ }
+      } catch (_e) { /*ignore*/ }
       try {
         navigator.mediaSession.setActionHandler(
           'nexttrack',
           hasNext ? () => this.playNext() : null
         );
-      } catch (e) { /*ignore*/ }
+      } catch (_e) { /*ignore*/ }
     },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
@@ -2962,7 +2962,9 @@ export default {
                 }
                 const newLabel = getModeLabel(value, this.$t);
                 if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
-                this.playbackButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                this.playbackButtons.forEach(b => {
+                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
+                });
               });
             });
             const valueSpan = playbackBtn.querySelector('span .plyr__menu__value');
@@ -3027,7 +3029,9 @@ export default {
                 }
                 const newLabel = getLoopLabel(value, this.$t);
                 if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
-                this.loopButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                this.loopButtons.forEach(b => {
+                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
+                });
               });
             });
             const valueSpan = loopBtn.querySelector('span .plyr__menu__value');
@@ -3085,7 +3089,9 @@ export default {
                 this.setStoredCaptionSize(value);
                 this.applyCaptionSizeClass();
                 // Update checked states and label
-                this.captionSizeButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                this.captionSizeButtons.forEach(b => {
+                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
+                });
                 // Update label in button
                 const label = this.getCaptionSizeLabel(value);
                 if (this.captionSizeValueSpan) this.captionSizeValueSpan.textContent = label;

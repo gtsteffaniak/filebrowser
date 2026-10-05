@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeDocxHtml } from "./docxPreview";
+import { sanitizeDocxHtml } from "./docxPreview.ts";
 
 describe("sanitizeDocxHtml", () => {
   it("strips javascript: hyperlinks", () => {

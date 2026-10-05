@@ -1,5 +1,5 @@
 
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup.ts";
 
 test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors }) => {
   await page.goto("/files/exclude/");

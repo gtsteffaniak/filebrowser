@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import type { ProbeSnapshot } from "./perf-helpers";
-import type { PerfResultFile } from "./perf-report";
+import type { ProbeSnapshot } from "./perf-helpers.ts";
+import type { PerfResultFile } from "./perf-report.ts";
 
 export interface PerfThresholds {
   loadListingMs: number;

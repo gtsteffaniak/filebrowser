@@ -1,7 +1,7 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
 import { nextTick } from 'vue';
-import en from './en.json';
+import en from './en.json' with { type: "json" };
 
 type MessageSchema = typeof en;
 

@@ -1,21 +1,21 @@
-import { notify } from '@/notify'
-import { getters, mutations, state } from '@/store'
-import { globalVars } from '@/utils/constants'
-import { downloadManager } from '@/utils/downloadManager'
+import { notify } from "@/notify/index.ts"
+import { getters, mutations, state } from "@/store/index.ts"
+import { globalVars } from "@/utils/constants.js"
+import { downloadManager } from "@/utils/downloadManager.js"
 import {
   notifyDownloadComplete,
   notifyDownloadError,
-} from '@/utils/appNotifications'
-import { renew } from '@/utils/auth'
+} from "@/utils/appNotifications.js"
+import { renew } from "@/utils/auth.js"
 import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
-import { adjustedData, fetchURL } from './utils'
-import { rememberViewToken } from './viewToken'
-import { isMediaFile } from '@/utils/mediaFile'
-import { getObjectProperty } from '@/utils/object'
-import { getStreamURL, getStreamURLPublic } from './media'
+import { adjustedData, fetchURL } from "./utils.ts"
+import { rememberViewToken } from "./viewToken.js"
+import { isMediaFile } from "@/utils/mediaFile.js"
+import { getObjectProperty } from "@/utils/object.js"
+import { getStreamURL, getStreamURLPublic } from "./media.js"
 import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
 
-export { fetchPreviewImage } from '@/utils/previewRequests'
+export { fetchPreviewImage } from "@/utils/previewRequests.js"
 
 const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
 const MOCK_DATA_SOURCE = 'mockData';
@@ -854,14 +854,10 @@ export function post(
           }
           // Session expired mid-upload: renew once and retry the same body.
           if (request.status === 401 && !isRetry && !getters.isShare()) {
-            void renew()
-              .then(() => {
-                if (rejectIfAborted(reject)) {
-                  return;
-                }
-                return startRequest(true).then(resolve, reject);
-              })
-              .catch(() => {
+            void (async () => {
+              try {
+                await renew();
+              } catch {
                 if (rejectIfAborted(reject)) {
                   return;
                 }
@@ -879,7 +875,17 @@ export function post(
                   notify.showError(errorMessage);
                 }
                 reject(error);
-              });
+                return;
+              }
+              if (rejectIfAborted(reject)) {
+                return;
+              }
+              try {
+                resolve(await startRequest(true));
+              } catch (err) {
+                reject(err);
+              }
+            })();
             return;
           }
           let errorMessage = "Upload failed";

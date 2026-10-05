@@ -4,8 +4,8 @@ import {
   type BaselineMetricEntry,
   type EnvironmentFingerprint,
   type PerfBaseline,
-} from "./perf-baseline";
-import { findMetric } from "./perf-metrics";
+} from "./perf-baseline.ts";
+import { findMetric } from "./perf-metrics.ts";
 
 /**
  * Baseline comparison.

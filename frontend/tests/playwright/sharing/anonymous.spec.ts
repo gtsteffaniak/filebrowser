@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 /**
  * No JWT: `sharePrepStorage.json` from global setup has only localStorage

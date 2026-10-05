@@ -79,11 +79,11 @@ interface EditorSettingField {
   options?: { value: string | number; label: string }[];
 }
 
-defineOptions({ name: "EditorSettings" });
-
 defineProps({
   promptId: { type: [String, Number], default: null },
 });
+
+defineOptions({ name: "EditorSettings" });
 
 const { t } = useI18n();
 const config = editorConfig;

@@ -32,7 +32,7 @@ vi.mock('@/utils/constants', () => {
   };
 });
 
-import { adjustedData } from './utils.js';
+import { adjustedData } from "./utils.ts";
 
 describe('adjustedData', () => {
   it('should append the URL and process directory data correctly', () => {

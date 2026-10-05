@@ -16,10 +16,12 @@ class EventBus extends EventTarget {
     const wrapper = (e: Event) => callback((e as CustomEvent).detail);
 
     // Store the wrapper so we can remove it later
-    if (!this.listeners.has(callback)) {
-      this.listeners.set(callback, new Map());
+    let eventMap = this.listeners.get(callback);
+    if (!eventMap) {
+      eventMap = new Map();
+      this.listeners.set(callback, eventMap);
     }
-    this.listeners.get(callback)!.set(event, wrapper);
+    eventMap.set(event, wrapper);
 
     this.addEventListener(event, wrapper);
   }
@@ -27,8 +29,8 @@ class EventBus extends EventTarget {
   off<T = unknown>(event: string, typedCallback: (data: T) => void) {
     const callback = typedCallback as EventCallback;
     const eventMap = this.listeners.get(callback);
-    if (eventMap?.has(event)) {
-      const wrapper = eventMap.get(event)!;
+    const wrapper = eventMap?.get(event);
+    if (eventMap && wrapper) {
       this.removeEventListener(event, wrapper);
       eventMap.delete(event);
 

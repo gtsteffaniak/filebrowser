@@ -1,11 +1,12 @@
+/** biome-ignore-all lint/correctness/noUnresolvedImports: false positives */
 import type { RouteLocation, RouteRecordRaw } from "vue-router";
 import { createRouter, createWebHistory } from "vue-router";
 
-import i18n from "@/i18n";
-import { getters, mutations, state } from "@/store";
-import { validateLogin } from "@/utils/auth";
+import i18n from "@/i18n/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import { validateLogin } from "@/utils/auth.js";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";

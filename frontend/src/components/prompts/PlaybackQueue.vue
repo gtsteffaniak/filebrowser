@@ -13,6 +13,7 @@
       <!-- Clear queue button -->
       <button
         v-if="queueCount > 1"
+        type="button"
         class="clear-queue-btn"
         @click="clearQueue"
         :title="$t('player.clearQueue')"

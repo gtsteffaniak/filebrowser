@@ -1,17 +1,17 @@
-import { detectLocale } from '@/i18n';
-import { mutations } from './mutations';
-import { state } from './state';
-import { url } from '@/utils';
-import { globalVars, previewViews, tools } from '@/utils/constants';
-import { hasToolAccess, toolIdFromPath } from '@/utils/toolAccess';
+import { detectLocale } from "@/i18n/index.ts";
+import { mutations } from "./mutations.ts";
+import { state } from "./state.ts";
+import { url } from "@/utils/index.ts";
+import { globalVars, previewViews, tools } from "@/utils/constants.js";
+import { hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { getFileExtension } from '@/utils/files.js';
-import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/mimetype';
-import { fromNow } from '@/utils/moment';
+import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from "@/utils/mimetype.js";
+import { fromNow } from "@/utils/moment.js";
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
-import { defaultDarkMode } from '@/utils/theme';
+import { defaultDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
-import type { DisplayPreference, FileListItem } from './types';
+import type { DisplayPreference, FileListItem } from "./types.ts";
 
 export const getters = {
   displayPreferenceFor: (source: string, path: string): DisplayPreference | null => {
@@ -232,7 +232,6 @@ export const getters = {
     Array.isArray(state.selected) ? state.selected.length : 0,
   getFirstSelected: () => {
     const first = state.selected[0];
-    // eslint-disable-next-line security/detect-object-injection -- first is a numeric array index, not a property lookup
     return typeof first === 'number' ? state.req.items[first] : first;
   },
   isSingleFileSelected: () =>
@@ -246,7 +245,6 @@ export const getters = {
       return buildItemUrl(first.source, first.path)
     }
     const first = state.selected[0] as number;
-    // eslint-disable-next-line security/detect-object-injection -- first is a numeric array index, not a property lookup
     const item = state.req.items[first];
     return item ? buildItemUrl(item.source, item.path) : "";
   },

@@ -45,11 +45,6 @@ import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota";
 type Req = typeof state.req;
 interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }
 
-const THEME_DARK = "ace/theme/tomorrow_night_bright";
-const THEME_LIGHT = "ace/theme/chrome";
-
-defineOptions({ name: "editor" });
-
 const props = defineProps({
   viewerMode: {
     type: Boolean,
@@ -68,6 +63,11 @@ const props = defineProps({
     default: null // null means auto-determine
   }
 });
+
+const THEME_DARK = "ace/theme/tomorrow_night_bright";
+const THEME_LIGHT = "ace/theme/chrome";
+
+defineOptions({ name: "editor" });
 
 const route = useRoute();
 const router = useRouter();

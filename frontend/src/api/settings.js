@@ -1,6 +1,6 @@
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils";
+import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils.ts";
 
 const analyticsRequestTimeoutMs = 5000;
 

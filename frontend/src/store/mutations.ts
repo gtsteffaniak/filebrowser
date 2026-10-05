@@ -1,24 +1,24 @@
 import { setActiveViewGrantScope } from "@/api/viewToken.js";
 import { markRaw } from "vue";
-import { resourcesApi, usersApi } from "@/api";
+import { resourcesApi, usersApi } from "@/api/index.js";
 import {
   getEnforcedUserDefaults,
   getShareDefaultsPolicy,
   getSidebarLinkDefaultsPolicy,
   getToolAccessDefaultsPolicy,
-} from "@/api/settings";
-import { detectLocale, setLocale } from "@/i18n";
-import { notify } from "@/notify";
-import { url } from "@/utils";
-import { getTypeInfo } from "@/utils/mimetype";
+} from "@/api/settings.js";
+import { detectLocale, setLocale } from "@/i18n/index.ts";
+import { notify } from "@/notify/index.ts";
+import { url } from "@/utils/index.ts";
+import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.js";
-import { isSourceSidebarCategory } from "@/utils/sidebarCategory";
-import { updateManifestLink } from "@/utils/pwaManifest";
-import { syncEventTheme } from "@/utils/theme";
-import { emitStateChanged } from './eventBus';
-import { getters } from "./getters";
-import { state } from "./state";
+import { isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
+import { updateManifestLink } from "@/utils/pwaManifest.js";
+import { syncEventTheme } from "@/utils/theme.js";
+import { emitStateChanged } from "./eventBus.ts";
+import { getters } from "./getters.ts";
+import { state } from "./state.ts";
 import type {
   DisplayPreference,
   FileListItem,
@@ -31,7 +31,7 @@ import type {
   StoreState,
   UserObject,
   UserScope,
-} from "./types";
+} from "./types.ts";
 
 export const mutations = {
   disableEventThemes: () => {

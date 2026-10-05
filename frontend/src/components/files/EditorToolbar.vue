@@ -425,7 +425,7 @@ export default {
         if (text) {
           editor.execCommand("paste", { text });
         }
-      } catch (e) { /* ignore - probably blocked by browser */ }
+      } catch (_e) { /* ignore - probably blocked by browser */ }
     },
     selectAllText() {
       const editor = this.editor;

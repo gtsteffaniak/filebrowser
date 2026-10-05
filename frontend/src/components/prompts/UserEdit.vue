@@ -109,9 +109,10 @@
               :collapsable="true"
             >
               <div class="scope-path-row">
-                <label class="scope-path-label">{{ $t("settings.scopePath") }}</label>
+                <label class="scope-path-label" :for="`user-edit-scope-path-${source.name}`">{{ $t("settings.scopePath") }}</label>
                 <button
                   type="button"
+                  :id="`user-edit-scope-path-${source.name}`"
                   :aria-label="`user-edit-scope-path-${source.name}`"
                   class="clickable button scope-path-display"
                   @click="onScopePathRowClick(source)"
@@ -577,7 +578,6 @@ export default {
   },
   methods: {
     sourceIndexingDisabled(sourceName) {
-      // eslint-disable-next-line security/detect-object-injection -- source name from configured source list
       return Boolean(state.sources.info?.[sourceName]?.indexingDisabled);
     },
     scopeMeterOptions(source) {

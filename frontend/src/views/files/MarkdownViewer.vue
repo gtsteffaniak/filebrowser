@@ -58,6 +58,22 @@ import {
   rewriteDocumentStyles,
 } from "@/utils/htmlPreview";
 
+const props = defineProps({
+  splitMode: {
+    type: Boolean,
+    default: false,
+  },
+  liveContent: {
+    type: String,
+    default: null,
+  },
+  scrollTarget: {
+    type: Object as PropType<HTMLElement | null>,
+    default: null, // When null, falls back to the components own root (non-split view)
+  },
+});
+
+
 // Lazy load highlight.js -- it was making the viewer bloated, so now is on its own chunk grouped with its theme
 let hljsPromise: Promise<HLJSApi> | null = null;
 function loadHljs(): Promise<HLJSApi> {
@@ -135,9 +151,7 @@ const VOID_ELEMENTS = new Set([
 function htmlTagBalance(raw: string): number {
   const tagPattern = /<\/?([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*>/g;
   let balance = 0;
-  let match: RegExpExecArray | null;
-  while ((match = tagPattern.exec(raw))) {
-    const [full, name = ""] = match;
+  for (const [full, name = ""] of raw.matchAll(tagPattern)) {
     if (VOID_ELEMENTS.has(name.toLowerCase()) || full.endsWith("/>")) {
       continue;
     }
@@ -164,21 +178,6 @@ function rewriteHtmlBlockForMd(html: string, filePath: string, source: string): 
 }
 
 defineOptions({ name: "markdownViewer", inheritAttrs: false });
-
-const props = defineProps({
-  splitMode: {
-    type: Boolean,
-    default: false,
-  },
-  liveContent: {
-    type: String,
-    default: null,
-  },
-  scrollTarget: {
-    type: Object as PropType<HTMLElement | null>,
-    default: null, // When null, falls back to the components own root (non-split view)
-  },
-});
 
 const { t } = useI18n();
 
@@ -800,7 +799,7 @@ function applyScrollRatio(line: number) {
   if (!anchors.length) return;
   const first = anchors.at(0);
   if (!first) return;
-  let top;
+  let top: number;
   if (line <= first.line) {
     top = 0;
   } else if (line >= totalLines()) {
@@ -1185,7 +1184,6 @@ function applyScrollRatio(line: number) {
 /* mark (highlight) tags */
 #markedown-viewer .markdown-content mark {
   background-color: var(--mark-color, var(--primaryColor));
-  color: var(--textPrimary);
   color: contrast-color(var(--mark-color, var(--primaryColor)));
   border-radius: 2px;
   padding: 0 0.2em;

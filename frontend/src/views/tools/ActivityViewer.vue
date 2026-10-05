@@ -1477,8 +1477,7 @@ export default {
             pointStyle: "circle",
             generateLabels(chart) {
               const dataset = chart.data.datasets[0];
-              /* eslint-disable security/detect-object-injection -- Chart.js legend uses numeric dataset indices */
-              return chart.getDatasetMeta(0).data.map((arc, index) => {
+              return chart.getDatasetMeta(0).data.map((_arc, index) => {
                 const value = Number(dataset.data[index] || 0);
                 const text = `${chart.data.labels[index]} (${formatShare(value)})`;
                 return {
@@ -1491,7 +1490,6 @@ export default {
                   index,
                 };
               });
-              /* eslint-enable security/detect-object-injection */
             },
           },
         },
@@ -1499,7 +1497,6 @@ export default {
     },
     stackedBarBorderRadius(ctx, barRadius, stacked) {
       const { chart, datasetIndex, dataIndex } = ctx;
-      /* eslint-disable security/detect-object-injection -- Chart.js bar styling uses numeric bucket indices */
       const value = Number(chart.data.datasets[datasetIndex].data[dataIndex] || 0);
       if (value <= 0) {
         return 0;
@@ -1516,7 +1513,6 @@ export default {
           break;
         }
       }
-      /* eslint-enable security/detect-object-injection */
       return datasetIndex === topIndex ? topOnly : 0;
     },
     axisScaleOptions(theme, { stacked = false, beginAtZero = true, bucketCount = 0 } = {}) {
@@ -1661,7 +1657,7 @@ export default {
     colorForIndex(idx) {
       return CHART_COLORS[idx % CHART_COLORS.length];
     },
-    colorForSeriesKey(seriesKey, idx) {
+    colorForSeriesKey(_seriesKey, idx) {
       return this.colorForIndex(idx);
     },
     bucketSeriesKey(bucket) {

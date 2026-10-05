@@ -29,7 +29,9 @@ function createMockPlayer({ playing = true } = {}) {
       if (idx !== -1) list.splice(idx, 1);
     },
     emit(event) {
-      (listeners.get(event) || []).forEach((fn) => fn());
+      (listeners.get(event) || []).forEach((fn) => {
+        fn();
+      });
     },
   };
 }

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isMobile" role="button" class="card item clickable settings-card" @click="closeSettings">
+  <div v-if="isMobile" role="button" tabindex="0" class="card item clickable settings-card" @click="closeSettings">
     <span class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       {{ $t("general.exit") }}
@@ -13,6 +13,7 @@
     >
       <div
         role="button"
+        tabindex="0"
         class="settings-card-collapsible-header settings-card clickable"
         :class="{ 'active-settings': isSectionActive(setting) }"
         @click="setView(`${setting.id}-main`)"
@@ -24,6 +25,7 @@
         <i
           v-if="canExpand(setting)"
           role="button"
+          tabindex="0"
           class="material-symbols-outlined settings-card-collapsible-chevron"
           :class="{ rotated: expandedSections[setting.id] }"
           :aria-expanded="!!expandedSections[setting.id]"
@@ -38,6 +40,7 @@
             v-for="section in visibleSections(setting)"
             :key="section.id"
             role="button"
+            tabindex="0"
             class="settings-card-collapsible-sub-item settings-card clickable"
             :class="{ 'active-settings': active(`${setting.id}-${section.id}`) }"
             @click.stop="setView(`${setting.id}-${section.id}`)"
@@ -54,6 +57,7 @@
       v-else
       :id="`${setting.id}-sidebar`"
       role="button"
+      tabindex="0"
       class="card item clickable settings-card"
       @click="setView(`${setting.id}-main`)"
       :class="{

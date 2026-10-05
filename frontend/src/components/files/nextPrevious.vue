@@ -29,6 +29,7 @@
     @touchend.prevent="handleTouchEnd"
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
+    @focus="setHoverNav(true)"
     class="nav-button nav-previous"
     :class="{
       disabled: !hasPrevious,
@@ -60,6 +61,7 @@
     @touchend.prevent="handleTouchEnd"
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
+    @focus="setHoverNav(true)"
     class="nav-button nav-next"
     :class="{ dragging: dragState.type === 'next', active: (dragState.atFullExtent && dragState.type === 'next') || (gestureHint === 'next' && gestureHintCommitReady), 'media-mode': isMediaQueueMode, 'nav-button--hidden': !showNav }"
     :style="nextButtonStyle"

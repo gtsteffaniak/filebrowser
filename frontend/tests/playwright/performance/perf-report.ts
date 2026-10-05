@@ -1,12 +1,12 @@
-import type { ProbeSnapshot } from "./perf-helpers";
+import type { ProbeSnapshot } from "./perf-helpers.ts";
 import {
   scopedLongTasks,
   scenarioDuration,
   extractBaselineMetrics,
-} from "./perf-extract";
-import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp";
-import type { FrameTimingStat } from "./perf-frames";
-import type { TraceAnalysis, TraceFunction } from "./perf-trace";
+} from "./perf-extract.ts";
+import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp.ts";
+import type { FrameTimingStat } from "./perf-frames.ts";
+import type { TraceAnalysis, TraceFunction } from "./perf-trace.ts";
 
 export interface PerfResultFile {
   scenario: string;

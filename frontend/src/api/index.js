@@ -10,16 +10,16 @@
 // - /api/media/ -> media.js
 // - /public/api/* -> public functions in respective files (e.g., resourcesApi.fetchFilesPublic)
 
-import * as accessApi from "./access";
-import * as authApi from "./auth";
-import * as mediaApi from "./media";
-import * as officeApi from "./office";
-import * as resourcesApi from "./resources";
-import * as settingsApi from "./settings";
-import * as shareApi from "./share";
-import * as toolsApi from "./tools";
-import * as usersApi from "./users";
-import * as quotasApi from "./quotas";
+import * as accessApi from "./access.js";
+import * as authApi from "./auth.js";
+import * as mediaApi from "./media.js";
+import * as officeApi from "./office.js";
+import * as resourcesApi from "./resources.js";
+import * as settingsApi from "./settings.js";
+import * as shareApi from "./share.js";
+import * as toolsApi from "./tools.js";
+import * as usersApi from "./users.js";
+import * as quotasApi from "./quotas.js";
 
 export {
     accessApi,

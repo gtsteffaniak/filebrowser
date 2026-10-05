@@ -19,6 +19,8 @@
         <p>{{ $t("prompts.archiveMessage") }}</p>
         <p class="prompts-label">{{ $t("prompts.archiveDestination") }}</p>
         <div
+          role="button"
+          tabindex="0"
           aria-label="archive-destination"
           class="searchContext clickable button"
           @click="showFileList = true"
@@ -48,8 +50,8 @@
           max="9"
         />
         <div class="archive-options settings-items">
-          <ToggleSwitch class="item" v-model="deleteAfter" 
-            :name="$t('profileSettings.deleteAfterArchive')" 
+          <ToggleSwitch class="item" v-model="deleteAfter"
+            :name="$t('profileSettings.deleteAfterArchive')"
             :description="$t('profileSettings.deleteAfterArchiveDescription')" />
         </div>
       </template>

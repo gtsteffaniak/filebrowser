@@ -1,6 +1,6 @@
 import type { Browser, Page } from "@playwright/test";
 import { firefox } from "@playwright/test";
-import { loginPlaywrightAdmin } from "./playwright-auth";
+import { loginPlaywrightAdmin } from "./playwright-auth.ts";
 
 // Perform authentication and store auth state
 async function localSetup() {

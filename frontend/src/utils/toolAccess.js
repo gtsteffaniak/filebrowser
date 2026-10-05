@@ -1,6 +1,6 @@
-import { getters, state } from "@/store";
-import { tools } from "@/utils/constants";
-import { getObjectProperty } from "@/utils/object";
+import { getters, state } from "@/store/index.ts";
+import { tools } from "@/utils/constants.js";
+import { getObjectProperty } from "@/utils/object.js";
 
 export function toolIdFromPath(path) {
   const tool = tools().find((entry) => entry.path === path);

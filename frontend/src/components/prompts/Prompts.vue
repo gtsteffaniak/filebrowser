@@ -402,7 +402,6 @@ export default {
           return this.$t("api.createTitle");
         case "actionapi":
           return this.$t("api.title");
-        case "sidebarLinks":
         case "sidebarlinks":
           return this.$t("sidebar.customizeLinks");
         case "password":

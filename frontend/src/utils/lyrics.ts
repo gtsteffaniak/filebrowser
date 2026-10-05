@@ -34,7 +34,7 @@ function isMetadataTag(line: string): boolean {
 function parseTimestamp(str: string): number | null {
   const cleaned = str.trim().replace(",", ".");
   const parts = cleaned.split(":");
-  const secParts = parts.pop()!.split(".");
+  const secParts = (parts.pop() ?? "").split(".");
   const sec = Number(secParts[0]);
   const frac = Number((secParts[1] || "0").padEnd(3, "0").slice(0, 3));
   const min = parts.length ? Number(parts.pop()) : 0;

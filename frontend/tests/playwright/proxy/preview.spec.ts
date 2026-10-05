@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("Create first new file with basic auth", async ({ page, checkForErrors }, testInfo) => {
   // Unique filename per run/retry so retries don't conflict with leftover files

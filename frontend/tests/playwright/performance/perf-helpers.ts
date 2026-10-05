@@ -1,8 +1,7 @@
-// eslint-disable security/detect-object-injection
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Browser, Page, TestInfo } from "@playwright/test";
-import { checkResultThresholds, loadPerfConfig } from "./perf-config";
+import { checkResultThresholds, loadPerfConfig } from "./perf-config.ts";
 import {
   aggregateSamples,
   BASELINE_SCHEMA_VERSION,
@@ -14,14 +13,14 @@ import {
   type BaselineMetricEntry,
   type BaselineRunEntry,
   type PerfBaseline,
-} from "./perf-baseline";
-import { failIfEmptyRunSet, writeFinalArtifacts } from "./perf-finalize";
-import { installFrameTiming } from "./perf-frames";
-import { installWebVitals } from "./perf-vitals";
-import { extractBaselineMetrics } from "./perf-extract";
-import { findMetric } from "./perf-metrics";
-import { frontendRoot, performanceDir } from "./perf-paths";
-import type { PerfResultFile } from "./perf-report";
+} from "./perf-baseline.ts";
+import { failIfEmptyRunSet, writeFinalArtifacts } from "./perf-finalize.ts";
+import { installFrameTiming } from "./perf-frames.ts";
+import { installWebVitals } from "./perf-vitals.ts";
+import { extractBaselineMetrics } from "./perf-extract.ts";
+import { findMetric } from "./perf-metrics.ts";
+import { frontendRoot, performanceDir } from "./perf-paths.ts";
+import type { PerfResultFile } from "./perf-report.ts";
 
 /**
  * Results directory.

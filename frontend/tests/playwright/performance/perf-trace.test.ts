@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { analyzeTrace } from "./perf-trace";
+import { analyzeTrace } from "./perf-trace.ts";
 
 async function writeTrace(events: unknown[]): Promise<string> {
   const dir = await mkdtemp(path.join(tmpdir(), "perf-trace-"));
@@ -36,9 +36,9 @@ describe("analyzeTrace", () => {
     ]);
     const analysis = await analyzeTrace(file);
     expect(analysis).not.toBeNull();
-    expect(analysis!.eventCount).toBe(2);
+    expect(analysis?.eventCount).toBe(2);
     // Earliest start 1.0s to latest end 5.0s => 4000 ms.
-    expect(analysis!.spanMs).toBe(4000);
+    expect(analysis?.spanMs).toBe(4000);
   });
 
   it("extracts CPU profile function attribution", async () => {
@@ -75,11 +75,11 @@ describe("analyzeTrace", () => {
 
     const analysis = await analyzeTrace(file);
     expect(analysis).not.toBeNull();
-    const names = analysis!.topFunctions.map((f) => f.name);
+    const names = analysis?.topFunctions.map((f) => f.name);
     expect(names).toContain("renderRows");
     // renderRows had 3 of 4 samples, so it ranks first by self time.
-    expect(analysis!.topFunctions[0]?.name).toBe("renderRows");
-    expect(analysis!.topFunctions[0]?.selfMs).toBe(3);
+    expect(analysis?.topFunctions[0]?.name).toBe("renderRows");
+    expect(analysis?.topFunctions[0]?.selfMs).toBe(3);
   });
 
   it("counts GC events", async () => {
@@ -88,8 +88,8 @@ describe("analyzeTrace", () => {
       { ph: "X", name: "MinorGC", cat: "v8", ts: 60000, dur: 20000 },
     ]);
     const analysis = await analyzeTrace(file);
-    expect(analysis!.gcEvents).toBe(2);
-    expect(analysis!.gcMs).toBe(70);
+    expect(analysis?.gcEvents).toBe(2);
+    expect(analysis?.gcMs).toBe(70);
   });
 
   it("records long slices over 50ms", async () => {
@@ -98,8 +98,8 @@ describe("analyzeTrace", () => {
       { ph: "X", name: "Small", cat: "devtools.timeline", ts: 200_000, dur: 1_000 },
     ]);
     const analysis = await analyzeTrace(file);
-    expect(analysis!.longTaskSlices).toHaveLength(1);
-    expect(analysis!.longTaskSlices[0]?.durationMs).toBe(100);
+    expect(analysis?.longTaskSlices).toHaveLength(1);
+    expect(analysis?.longTaskSlices[0]?.durationMs).toBe(100);
   });
 
   it("produces an actionable finding for the hottest function", async () => {
@@ -126,7 +126,7 @@ describe("analyzeTrace", () => {
       },
     ]);
     const analysis = await analyzeTrace(file);
-    expect(analysis!.findings.some((f) => f.includes("expensiveSort"))).toBe(true);
+    expect(analysis?.findings.some((f) => f.includes("expensiveSort"))).toBe(true);
   });
 
   it("accepts the {traceEvents:[...]} envelope form", async () => {
@@ -141,6 +141,6 @@ describe("analyzeTrace", () => {
       }),
     );
     const analysis = await analyzeTrace(file);
-    expect(analysis!.eventCount).toBe(1);
+    expect(analysis?.eventCount).toBe(1);
   });
 });

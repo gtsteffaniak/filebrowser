@@ -1,5 +1,5 @@
 import { expect, type Browser, type Page, type TestInfo } from "@playwright/test";
-import { loadPerfConfig, selectCountForScale } from "./perf-config";
+import { loadPerfConfig, selectCountForScale } from "./perf-config.ts";
 import {
   expectedItemCount,
   installProbes,
@@ -11,21 +11,21 @@ import {
   runWithOptionalChromeTracing,
   savePerfResult,
   type DomSnapshot,
-} from "./perf-helpers";
-import { withCdpDelta, flattenCdp, type CdpDelta } from "./perf-cdp";
+} from "./perf-helpers.ts";
+import { withCdpDelta, flattenCdp, type CdpDelta } from "./perf-cdp.ts";
 import {
   startFrameWindow,
   startFrameWindowOnNextNavigation,
   stopFrameWindow,
   type FrameTimingStat,
-} from "./perf-frames";
+} from "./perf-frames.ts";
 import {
   readWebVitals,
   startEventWindow,
   stopEventWindow,
   type InteractionTiming,
   type WebVitals,
-} from "./perf-vitals";
+} from "./perf-vitals.ts";
 
 /**
  * Scenario drivers.

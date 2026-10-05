@@ -504,8 +504,8 @@ export default {
       for (let i = 0; i < halfCount; i++) {
         const t0 = i / halfCount;
         const t1 = (i + 1) / halfCount;
-        const fStart   = Math.pow(10, logMin + t0 * (logMax - logMin));
-        const fEnd     = Math.pow(10, logMin + t1 * (logMax - logMin));
+        const fStart   = 10 ** (logMin + t0 * (logMax - logMin));
+        const fEnd     = 10 ** (logMin + t1 * (logMax - logMin));
         const binStart = Math.max(1, Math.round(fStart / binHz));
         const binEnd   = Math.min(bufferLength - 1, Math.round(fEnd / binHz));
         const centerHz = Math.sqrt(fStart * fEnd);
@@ -581,8 +581,8 @@ export default {
         for (let f = start; f < end; f++) {
           const dbL = dataL.at(f);
           const dbR = dataR.at(f);
-          sumL += Number.isFinite(dbL) ? Math.pow(10, dbL / 10) : 0;
-          sumR += Number.isFinite(dbR) ? Math.pow(10, dbR / 10) : 0;
+          sumL += Number.isFinite(dbL) ? 10 ** (dbL / 10) : 0;
+          sumR += Number.isFinite(dbR) ? 10 ** (dbR / 10) : 0;
           count++;
         }
         const avgDbL = count > 0 && sumL > 0 ? 10 * Math.log10(sumL / count) : minDecibels;

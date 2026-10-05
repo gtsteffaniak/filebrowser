@@ -1,6 +1,6 @@
 import { formatActivityViewerQueryString } from "@/utils/activityViewerQuery.js";
-import { globalVars } from "@/utils/constants";
-import { router } from "@/router";
+import { globalVars } from "@/utils/constants.js";
+import { router } from "@/router/index.ts";
 
 /** @typedef {Record<string, string>} ActivityViewerQuery */
 

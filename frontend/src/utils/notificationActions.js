@@ -1,6 +1,6 @@
-import { getters } from "@/store";
+import { getters } from "@/store/index.ts";
 import { getObjectProperty } from "@/utils/object.js";
-import { goToItem } from "@/utils/url";
+import { goToItem } from "@/utils/url.js";
 
 export const GO_TO_ITEM_ACTION = "goToItem";
 

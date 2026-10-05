@@ -111,7 +111,9 @@ export default {
       const users = await usersApi.getAllUsers();
       const names = new Set(users.map((u) => u.username));
       // Keep members that no longer map to a local user (e.g. OIDC-only) visible.
-      this.members.forEach((m) => names.add(m));
+      for (const m of this.members) {
+        names.add(m);
+      }
       this.allUsers = [...names].sort((a, b) => a.localeCompare(b));
     } catch (e) {
       notify.showError(e);

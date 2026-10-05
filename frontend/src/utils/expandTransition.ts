@@ -2,7 +2,7 @@
 
 export interface ExpandEnterOptions {
   /** Return a max height (px) to make the element scrollable */
-  getMaxHeight?: (fullHeight: number, fullWidth: number) => number | null | void;
+  getMaxHeight?: (fullHeight: number, fullWidth: number) => number | null | undefined;
   /** Called with the measured size before the animation starts */
   onMeasured?: (fullHeight: number, fullWidth: number) => void;
 }

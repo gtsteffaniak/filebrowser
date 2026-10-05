@@ -1,10 +1,10 @@
 import type { Locator, Page } from "@playwright/test";
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 import {
     ACCESS_SOURCE_RULES_AFTER_DOCKER_SETUP,
     sortAccessRules,
     type AccessRuleExpectation,
-} from "./access-behavior-fixture";
+} from "./access-behavior-fixture.ts";
 import {
     closeUserEditPreferences,
     expandUserEditSourceScope,
@@ -12,7 +12,7 @@ import {
     openUserEdit,
     openUserEditPreferences,
     userEditScopeBlock,
-} from "./user-edit-helpers";
+} from "./user-edit-helpers.ts";
 
 /**
  * Snapshot of the settings Playwright docker fixture after BoltDB → SQLite migration.
@@ -554,8 +554,8 @@ test.describe("Migration fixture verification", () => {
             minimal?: boolean;
             Permissions?: Record<string, boolean>;
         }>;
-        expect(apiTokens.map((token) => token.name).sort()).toEqual(
-            EXPECTED_API_TOKENS.map((token) => token.name).sort(),
+        expect(apiTokens.map((token) => token.name).sort((a, b) => a.localeCompare(b))).toEqual(
+            EXPECTED_API_TOKENS.map((token) => token.name).sort((a, b) => a.localeCompare(b)),
         );
 
         const tokenRows = page.locator("table.settings-table tbody tr").filter({
