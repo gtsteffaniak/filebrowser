@@ -269,7 +269,7 @@ test.describe("User Settings Persistence", () => {
 
         await openUserEdit(page, userRow, { username });
         await expandUserEditSourceScope(modal, SETTINGS_TEST_SOURCE);
-        await expect(scopeButton).toHaveText(chosenPath);
+        await expect(scopeButton).toHaveText(chosenPath.replace(/\/$/, ""));
 
         await scopeButton.click();
         await expect(picker).toBeVisible();
