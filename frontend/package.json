@@ -13,7 +13,7 @@
     "dev": "vite",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc --build",
-    "lint": "biome check --unsafe && eslint src/",
+    "lint": "biome check && eslint src/",
     "lint:fix": "biome check --write && eslint --fix src/",
     "lint:biome": "biome check",
     "lint:biome:fix": "biome check --write",
