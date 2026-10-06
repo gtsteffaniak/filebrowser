@@ -60,7 +60,7 @@ func TestSearchHandlerConfiguredLimit(t *testing.T) {
 		{"custom request", 1000, "limit-a", false, "250", 250},
 		{"minimum request", 1000, "limit-a", false, "1", 1},
 		{"server cap", 250, "limit-a", false, "500", 250},
-		{"quick capped", 20, "limit-a", false, "", 20},
+		{"quick unaffected by advanced cap", 20, "limit-a", false, "", 100},
 		{"combined limit", 1000, "limit-a,limit-b", false, "1000", 1000},
 		{"combined capped", 400, "limit-a,limit-b", false, "900", 400},
 		{"size viewer unchanged", 10, "limit-a", true, "1", 200},

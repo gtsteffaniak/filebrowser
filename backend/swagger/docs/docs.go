@@ -3660,7 +3660,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Maximum results requested; defaults to 100 and is capped by server.searchResultsLimit (default 1000)",
+                        "description": "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)",
                         "name": "limit",
                         "in": "query"
                     },
