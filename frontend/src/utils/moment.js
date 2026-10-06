@@ -28,7 +28,7 @@ export function fromNow(date, locale) {
     return 'just now';
 }
 
-export function formatTimestamp(date, locale = 'en-us') {
+export function formatTimestamp(date, locale = 'en-us', { seconds = true } = {}) {
     // Ensure `normalizeDate` returns a valid Date object
     date = normalizeDate(date);
 
@@ -49,7 +49,7 @@ export function formatTimestamp(date, locale = 'en-us') {
     const timeOptions = {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit'
+        ...(seconds && { second: '2-digit' })
     };
 
     // Format date and time using locale
@@ -69,8 +69,10 @@ export function formatTimestamp(date, locale = 'en-us') {
             ? `${dateMap.get('month')}/${dateMap.get('day')}/${dateMap.get('year')}`
             : `${dateMap.get('day')}/${dateMap.get('month')}/${dateMap.get('year')}`;
 
-        // Time formatting: hh:mm:ss
-        const formattedTime = `${timeMap.get('hour')}:${timeMap.get('minute')}:${timeMap.get('second')}`;
+        // Time formatting: hh:mm:ss, or hh:mm when seconds are omitted
+        const formattedTime = seconds
+            ? `${timeMap.get('hour')}:${timeMap.get('minute')}:${timeMap.get('second')}`
+            : `${timeMap.get('hour')}:${timeMap.get('minute')}`;
 
         // Combine date and time
         return `${formattedDate} ${formattedTime}`;
@@ -78,6 +80,19 @@ export function formatTimestamp(date, locale = 'en-us') {
         console.error('Error formatting date:', error);
         return 'Invalid Date';
     }
+}
+
+/**
+ * Exact date and time in the browser's locale, to the minute (no seconds).
+ */
+export function formatDateTimeMinutes(date) {
+    return normalizeDate(date).toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
 }
 
 function normalizeDate(date) {
@@ -122,6 +137,7 @@ export function utcStartOfDaySecondsFromDateInput(isoDate) {
 
 export default {
     formatTimestamp,
+    formatDateTimeMinutes,
     fromNow,
     utcStartOfDaySecondsFromDateInput,
 };

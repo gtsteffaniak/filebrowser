@@ -6766,9 +6766,17 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideDateAddedColumn": {
+                    "description": "hide the Date added column in list and compact views",
+                    "type": "boolean"
+                },
                 "hideFileExt": {
                     "description": "space separated list of file extensions to hide in UI",
                     "type": "string"
+                },
+                "hideTypeColumn": {
+                    "description": "hide the Type column in list and compact views",
+                    "type": "boolean"
                 },
                 "newFileTemplate": {
                     "description": "list of custom filenames that will be used as template for new files",
@@ -7590,6 +7598,10 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideDateAddedColumn": {
+                    "description": "hide the Date added column in list and compact views",
+                    "type": "boolean"
+                },
                 "hideFileExt": {
                     "description": "space separated list of file extensions to hide in UI and API",
                     "type": "string"
@@ -7600,6 +7612,10 @@ const docTemplate = `{
                 },
                 "hideSidebarFileActions": {
                     "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
+                },
+                "hideTypeColumn": {
+                    "description": "hide the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "locale": {
@@ -8034,6 +8050,10 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideDateAddedColumn": {
+                    "description": "hide the Date added column in list and compact views",
+                    "type": "boolean"
+                },
                 "hideFileExt": {
                     "description": "space separated list of file extensions to hide in UI and API",
                     "type": "string"
@@ -8044,6 +8064,10 @@ const docTemplate = `{
                 },
                 "hideSidebarFileActions": {
                     "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
+                },
+                "hideTypeColumn": {
+                    "description": "hide the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "id": {

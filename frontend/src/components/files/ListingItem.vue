@@ -66,10 +66,10 @@
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
-      <p class="created">
+      <p v-if="showKindColumn" class="kind">{{ kindLabel }}</p>
+      <p v-if="showCreatedColumn" class="created" :title="createdTitle">
         <time v-if="created" :datetime="created">{{ formattedCreatedTime }}</time>
       </p>
-      <p class="kind">{{ kindLabel }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -148,10 +148,10 @@
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
-      <p class="created">
+      <p v-if="showKindColumn" class="kind">{{ kindLabel }}</p>
+      <p v-if="showCreatedColumn" class="created" :title="createdTitle">
         <time v-if="created" :datetime="created">{{ formattedCreatedTime }}</time>
       </p>
-      <p class="kind">{{ kindLabel }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -265,7 +265,13 @@ export default {
     modifiedTitle() {
       return state.user?.dateFormat
         ? fromNow(this.modified, state.user?.locale)
-        : formatTimestamp(this.modified, state.user?.locale);
+        : formatTimestamp(this.modified, state.user?.locale, { seconds: false });
+    },
+    createdTitle() {
+      if (!this.created) return "";
+      return state.user?.dateFormat
+        ? fromNow(this.created, state.user?.locale)
+        : formatTimestamp(this.created, state.user?.locale, { seconds: false });
     },
     galleryView() {
       return getters.viewMode() === "gallery";
@@ -413,6 +419,12 @@ export default {
     },
     formattedDuration() {
       return formatDuration(this.metadata?.duration);
+    },
+    showKindColumn() {
+      return !state.user?.hideTypeColumn;
+    },
+    showCreatedColumn() {
+      return !state.user?.hideDateAddedColumn;
     },
     isListMode() {
       const mode = getters.viewMode();

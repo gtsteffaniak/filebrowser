@@ -6,7 +6,7 @@ import { globalVars, previewViews, tools } from '@/utils/constants';
 import { hasToolAccess, toolIdFromPath } from '@/utils/toolAccess';
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/mimetype';
-import { fromNow } from '@/utils/moment';
+import { formatDateTimeMinutes, fromNow } from '@/utils/moment';
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 import { defaultDarkMode } from '@/utils/theme';
@@ -45,7 +45,7 @@ export const getters = {
       )
       // Parse the sanitized string into a Date object
       const date = new Date(sanitizedString)
-      return date.toLocaleString()
+      return formatDateTimeMinutes(date)
     }
     return fromNow(timestamp, state.user?.locale)
   },

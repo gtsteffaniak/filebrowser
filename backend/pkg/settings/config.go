@@ -925,6 +925,8 @@ func SetDefaults(generate bool) Settings {
 				SingleClick:             false,
 				HideFileExt:             "",
 				ShowCopyPath:            false,
+				HideTypeColumn:          false,
+				HideDateAddedColumn:     false,
 				DeleteAfterArchive:      true,
 				ViewMode:                "normal",
 				GallerySize:             3,

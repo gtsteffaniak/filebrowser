@@ -26,6 +26,10 @@
           <strong>{{ $t("files.lastModified") }}</strong>
           <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
+        <div class="info-item" v-if="humanCreatedTime">
+          <strong>{{ $t("files.dateAdded") }}</strong>
+          <span aria-label="info date added" :title="createdTime">{{ humanCreatedTime }}</span>
+        </div>
         <div class="info-item" v-if="source">
           <strong>{{ $t("general.source") }}</strong>
           <span aria-label="info source">{{ source }}</span>
@@ -150,7 +154,7 @@
 </template>
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { formatTimestamp } from "@/utils/moment";
+import { formatTimestamp, formatDateTimeMinutes } from "@/utils/moment";
 import { copyToClipboard } from "@/utils/clipboard";
 import { resourcesApi, quotasApi, accessApi } from "@/api";
 import { getters, mutations, state } from "@/store";
@@ -215,11 +219,19 @@ export default {
     },
     humanTime() {
       if (!this.item?.modified) return "";
-      return formatTimestamp(this.item.modified, state.user.locale);
+      return formatTimestamp(this.item.modified, state.user.locale, { seconds: false });
     },
     modTime() {
       if (!this.item?.modified) return "";
-      return new Date(Date.parse(this.item.modified)).toLocaleString();
+      return formatDateTimeMinutes(this.item.modified);
+    },
+    humanCreatedTime() {
+      if (!this.item?.created) return "";
+      return formatTimestamp(this.item.created, state.user.locale, { seconds: false });
+    },
+    createdTime() {
+      if (!this.item?.created) return "";
+      return formatDateTimeMinutes(this.item.created);
     },
     name() {
       return this.item?.name || "";
