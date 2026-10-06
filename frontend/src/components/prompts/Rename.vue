@@ -122,17 +122,16 @@ export default {
       return this.item.type === 'directory' ? getTypeInfo('directory') : getTypeInfoFromExt(this.name);
     },
   },
-  mounted() {
-    this.$nextTick(() => {
-      // Auto-focus filename input field
-      if (this.item.type !== 'directory') {
-        const filenameInput = this.$refs.filenameInput;
-        filenameInput?.select();
-      } else {
-        const directoryInput = this.$refs.directoryInput;
-        directoryInput?.select();
-      }
-    });
+  async mounted() {
+    await this.$nextTick();
+    // Auto-focus filename input field
+    if (this.item.type !== 'directory') {
+      const filenameInput = this.$refs.filenameInput;
+      filenameInput?.select();
+    } else {
+      const directoryInput = this.$refs.directoryInput;
+      directoryInput?.select();
+    }
   },
   methods: {
     onKeydown(event) {
@@ -153,7 +152,7 @@ export default {
     updateFullName() {
       // Combine filename and extension
       if (this.item.type !== 'directory') {
-        this.name = this.fileExtension 
+        this.name = this.fileExtension
           ? `${this.fileName}.${this.fileExtension}`
           : this.fileName;
       }
@@ -244,12 +243,12 @@ export default {
           // Navigate only if we rename the file that we're currently previewing (eg: from fileTree)
           const currentReqPath = this.normalizePath(state.req?.path);
           const oldItemPath = this.normalizePath(this.item.path);
-          
+
           // For shares compare path and for regulars compare both path and source
           const isCurrentItem = getters.isShare()
             ? currentReqPath === oldItemPath
             : (currentReqPath === oldItemPath && this.item.source === state.req?.source);
-          
+
           if (isCurrentItem) {
             // Navigate to the renamed file
             const source = getters.isShare() ? state.shareInfo.hash : this.item.source;
@@ -264,14 +263,14 @@ export default {
         console.error(error);
         // Parse the error response structure (similar to Delete.vue)
         let errorMessage = this.$t("prompts.renameFailed");
-        
+
         if (error?.failed && error.failed.length > 0) {
           // Get message from first failed item
           errorMessage = error.failed[0].message || errorMessage;
         } else if (error?.message) {
           errorMessage = error.message;
         }
-        
+
         notify.showError(errorMessage);
       } finally {
         this.renaming = false;

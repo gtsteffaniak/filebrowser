@@ -125,7 +125,7 @@ export default {
       }
       return !!val;
     },
-    applyResponse(data) {
+    async applyResponse(data) {
       this.hydrating = true;
       this.lockedFromConfigPaths = Array.isArray(data.lockedFromConfigPaths)
         ? data.lockedFromConfigPaths
@@ -171,9 +171,8 @@ export default {
         },
         fileLoading: { ...(enf.fileLoading || {}) },
       };
-      this.$nextTick(() => {
-        this.hydrating = false;
-      });
+      await this.$nextTick();
+      this.hydrating = false;
     },
     canPatch() {
       return !this.loading && !this.saving && !this.hydrating;
@@ -194,9 +193,8 @@ export default {
         }
       } finally {
         this.loading = false;
-        this.$nextTick(() => {
-          this.hydrating = false;
-        });
+        await this.$nextTick();
+        this.hydrating = false;
       }
     },
     async sendPatch(partial) {

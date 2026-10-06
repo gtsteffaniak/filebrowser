@@ -51,7 +51,11 @@
         "noVueVOnNumberValues": "error",
         "noVueRefAsOperand": "error",
         "noVueImportCompilerMacros": "error",
-        "useVueBaseImport": "error",
+        "noVueDeprecatedScopedSlots": "error",
+        "useVueConsistentDefinePropsDeclaration": "off",
+        "noVueUndeclaredDirectives": "off",
+        "useVueBaseImport": "warn",
+        "useVueNextTickPromise":"warn",
         "noFloatingPromises": "error",
         "noMisusedPromises": "error",
         "noImpliedEval": "error"

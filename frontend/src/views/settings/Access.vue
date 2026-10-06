@@ -194,9 +194,8 @@ export default {
         }
       } finally {
         this.defaultsLoading = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     canSaveSourceDefaults() {
@@ -247,9 +246,8 @@ export default {
         await this.loadSourceAccessDefaults();
       } finally {
         this.savingDefaults = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     isConfigLockedPermission(flag) {
@@ -298,9 +296,8 @@ export default {
         await this.loadSourceAccessDefaults();
       } finally {
         this.savingDefaults = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     async fetchRules() {

@@ -273,42 +273,39 @@ export default {
     }
   },
   watch: {
-    currentView() {
+    async currentView() {
       this.updateNavigationEnabled();
 
       // Also trigger navigation setup if we're now in a preview view
-      this.$nextTick(() => {
-        if (this.enabled && state.req) {
-          this.setupNavigationForCurrentItem();
-        }
-      });
+      await this.$nextTick();
+      if (this.enabled && state.req) {
+        await this.setupNavigationForCurrentItem();
+      }
     },
     'state.req': {
-      handler() {
+      async handler() {
         this.updateNavigationEnabled();
         // Auto-setup navigation when request changes and we're enabled
         if (this.enabled) {
-          this.$nextTick(() => {
-            this.setupNavigationForCurrentItem();
-          });
+          await this.$nextTick();
+          await this.setupNavigationForCurrentItem();
         }
       },
       deep: true,
       immediate: false
     },
-    enabled(newEnabled) {
+    async enabled(newEnabled) {
       if (newEnabled && state.req) {
-        this.$nextTick(() => {
-          this.setupNavigationForCurrentItem();
-        });
+        await this.$nextTick();
+        await this.setupNavigationForCurrentItem();
       }
     },
     '$route'() {
       // Give time for state.req to be updated, then setup navigation
       setTimeout(() => {
-        this.$nextTick(() => {
+        void this.$nextTick().then(() => {
           if (this.enabled && state.req) {
-            this.setupNavigationForCurrentItem();
+            void this.setupNavigationForCurrentItem();
           }
         });
       }, 100);
@@ -325,7 +322,7 @@ export default {
       this.isSidebarResizing = newVal;
     },
   },
-  mounted() {
+  async mounted() {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("mousemove", this.handleDrag);
     window.addEventListener("mouseup", this.endDrag);
@@ -344,13 +341,11 @@ export default {
 
     // Setup navigation if enabled and we have a current item
     if (this.enabled && state.req) {
-      this.$nextTick(() => {
-        this.setupNavigationForCurrentItem();
-      });
+      await this.$nextTick();
+      await this.setupNavigationForCurrentItem();
     } else {
-      this.$nextTick(() => {
-        this.showInitialNavigation();
-      });
+      await this.$nextTick();
+      this.showInitialNavigation();
     }
   },
   beforeUnmount() {

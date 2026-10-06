@@ -94,8 +94,18 @@ export default {
   name: "group-edit",
   components: { SettingsTable },
   props: {
-    group: { type: String, default: "" },
-    members: { type: Array, default: () => [] },
+    promptId: {
+      type: [String, Number],
+      default: null,
+    },
+    group: {
+      type: String,
+      default: ""
+    },
+    members: {
+      type: Array,
+      default: () => []
+    },
   },
   data() {
     return {

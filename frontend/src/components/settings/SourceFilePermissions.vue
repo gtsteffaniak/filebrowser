@@ -90,10 +90,9 @@ export default {
       emitChanges: false,
     };
   },
-  mounted() {
-    this.$nextTick(() => {
-      this.emitChanges = true;
-    });
+  async mounted() {
+    await this.$nextTick();
+    this.emitChanges = true;
   },
   methods: {
     isConfigLocked(flag) {

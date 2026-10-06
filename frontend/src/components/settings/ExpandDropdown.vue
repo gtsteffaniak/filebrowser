@@ -367,28 +367,27 @@ export default {
   },
 
   watch: {
-    open(isOpen) {
+    async open(isOpen) {
       if (isOpen) {
-        this.$nextTick(() => {
-          this.updateOverlayPosition();
-        });
+        await this.$nextTick();
+        this.updateOverlayPosition();
       }
     },
-    panelOpen(isOpen) {
+    async panelOpen(isOpen) {
       if (isOpen) {
-        this.$nextTick(() => {
-          this.observePanelResize();
-          this.updateOverlayPosition();
-        });
+        await this.$nextTick();
+        this.observePanelResize();
+        this.updateOverlayPosition();
       } else {
         this.unobservePanelResize();
       }
     },
     options: {
       deep: true,
-      handler() {
+      async handler() {
         if (this.open) {
-          this.$nextTick(() => this.updateOverlayPosition());
+          await this.$nextTick();
+          this.updateOverlayPosition();
         }
       },
     },
@@ -484,7 +483,7 @@ export default {
       this.syncOverlayContextClasses();
       this.updateOverlayPosition();
       this.open = true;
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         this.panelOpen = true;
         if (this.transparent) {
           this.$refs.overlayTrigger?.focus();
@@ -523,7 +522,7 @@ export default {
       this.dropdownMaxHeight = null;
       this.unobservePanelResize();
       if (this.transparent) {
-        this.$nextTick(() => this.$refs.trigger?.focus());
+        void this.$nextTick().then(() => this.$refs.trigger?.focus());
       }
     },
     onPanelAfterLeave() {

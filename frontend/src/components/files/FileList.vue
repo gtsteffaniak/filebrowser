@@ -278,9 +278,10 @@ export default {
         mutations.setMultiple(true);
       }
     },
-    loading(isLoading) {
+    async loading(isLoading) {
       if (!isLoading && this.fileList) {
-        this.$nextTick(() => this.followCurrentItem());
+        await this.$nextTick();
+        this.followCurrentItem();
       }
     },
     // Re-sort local items when the picker header changes the sort config

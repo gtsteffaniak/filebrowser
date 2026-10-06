@@ -205,7 +205,7 @@ watch(req, (newReq, oldReq) => {
 });
 
 // Update editor content reactively
-watch(editorContent, (newContent) => {
+watch(editorContent, async (newContent) => {
   if (editor.value) {
     const currentValue = editor.value.getValue();
     if (currentValue !== newContent) {
@@ -218,15 +218,14 @@ watch(editorContent, (newContent) => {
     savedContent = newContent;
     isDirty = false;
     mutations.setEditorDirty(false);
-    if (props.viewerMode) {
-      void nextTick(() => {
-        if (editor.value) {
-          editor.value.resize();
-        }
-      });
-    }
     if (isSplitActive.value) {
       splitView.value?.setLiveContent(newContent);
+    }
+    if (props.viewerMode) {
+      await nextTick();
+      if (editor.value) {
+        editor.value.resize();
+      }
     }
   }
 });
@@ -265,10 +264,9 @@ watch(() => state.editor.scrollRatio, () => {
   splitView.value?.applyScrollRatio(state.editor.scrollRatio);
 });
 
-watch(isSplitActive, () => {
-  void nextTick(() => {
-    if (editor.value) editor.value.resize();
-  });
+watch(isSplitActive, async () => {
+  await nextTick();
+  if (editor.value) editor.value.resize();
 });
 
 watch(() => state.editor.fontSize, applyFontSize);
@@ -289,7 +287,7 @@ function scheduleSaveUnlock(delay: number) {
   }, delay);
 }
 
-function setupViewerResizeObserver() {
+async function setupViewerResizeObserver() {
   if (typeof ResizeObserver === "undefined" || !editor.value) {
     return;
   }
@@ -299,11 +297,10 @@ function setupViewerResizeObserver() {
     }
   });
   viewerResizeObserver.observe(editor.value.container);
-  void nextTick(() => {
-    if (editor.value) {
-      editor.value.resize();
-    }
-  });
+  await nextTick();
+  if (editor.value) {
+    editor.value.resize();
+  }
 }
 
 function initializeNavigation() {
@@ -425,7 +422,7 @@ function initializeEditor(initialScrollRatio: number = state.editor.scrollRatio)
     });
     if (!props.viewerMode) {
       if (isMarkdownFile.value) {
-        void nextTick(() => {
+        void nextTick().then(() => {
           if (editor.value !== editorInstance) return;
           if (isSplitActive.value) {
             splitView.value?.setLiveContent(editorInstance.getValue());
@@ -726,17 +723,15 @@ window.addEventListener("keydown", keyEvent, true);
 window.addEventListener("beforeunload", beforeUnloadHandler);
 setupNavigationGuard();
 
-onMounted(() => {
+onMounted(async () => {
   resizeContainerEl.value = editorRoot.value;
   resizeContainerEl.value?.addEventListener("keydown", stopEnterPropagation); // to avoid trigger prompts primary button when the editor is embedded
   if (props.viewerMode) {
-    void nextTick(() => {
-      void nextTick(() => {
-        initializeEditor();
-        applyFontSize();
-        setupViewerResizeObserver();
-      });
-    });
+    await nextTick();
+    await nextTick();
+    initializeEditor();
+    applyFontSize();
+    void setupViewerResizeObserver();
     return;
   }
 
@@ -749,7 +744,7 @@ onMounted(() => {
   // Register save handler so other components can trigger save
   mutations.setEditorSaveHandler(() => handleEditorValueRequest());
   applyFontSize();
-  setupViewerResizeObserver();
+  void setupViewerResizeObserver();
 });
 
 onBeforeUnmount(() => {

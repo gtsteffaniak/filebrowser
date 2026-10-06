@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import type { HLJSApi } from 'highlight.js';
 import type { Token } from "marked";
-import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch, type PropType } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Marked } from "marked";
 import DOMPurify from 'dompurify';
@@ -58,20 +58,19 @@ import {
   rewriteDocumentStyles,
 } from "@/utils/htmlPreview";
 
-const props = defineProps({
-  splitMode: {
-    type: Boolean,
-    default: false,
+const props = withDefaults(
+  defineProps<{
+    splitMode?: boolean;
+    liveContent?: string | null;
+    // When null, falls back to the components own root (non-split view)
+    scrollTarget?: HTMLElement | null;
+  }>(),
+  {
+    splitMode: false,
+    liveContent: null,
+    scrollTarget: null,
   },
-  liveContent: {
-    type: String,
-    default: null,
-  },
-  scrollTarget: {
-    type: Object as PropType<HTMLElement | null>,
-    default: null, // When null, falls back to the components own root (non-split view)
-  },
-});
+);
 
 
 // Lazy load highlight.js -- it was making the viewer bloated, so now is on its own chunk grouped with its theme
@@ -256,7 +255,7 @@ watch(content, () => {
     : (props.splitMode ? null : currentLine());
   isLoadingNewContent = false;
   scrollGuard.suppress();
-  finalizeContentRender(target);
+  void finalizeContentRender(target);
   updateEditorStats();
 });
 
@@ -293,12 +292,11 @@ watch(() => props.scrollTarget, (newEl) => {
   }
 });
 
-onMounted(() => {
+onMounted(async () => {
   reinit();
-  void nextTick(() => {
-    attachScrollListener(getScrollContainer());
-  });
   observeResize();
+  await nextTick();
+  attachScrollListener(getScrollContainer());
 });
 
 onBeforeUnmount(() => {
@@ -687,7 +685,7 @@ function reinit() {
   const newContent = (props.splitMode && props.liveContent !== null) ? props.liveContent : fileContent;
   if (newContent === content.value) {
     scrollGuard.suppress();
-    finalizeContentRender(state.editor.scrollRatio);
+    void finalizeContentRender(state.editor.scrollRatio);
   } else {
     isLoadingNewContent = true;
     content.value = newContent;
@@ -695,16 +693,15 @@ function reinit() {
   updateEditorStats();
 }
 
-function finalizeContentRender(target: number | null) {
+async function finalizeContentRender(target: number | null) {
   invalidateAnchors();
-  void nextTick(async () => {
-    try {
-      await applyHighlighting();
-    } catch (err) {
-      console.error("Failed to apply syntax highlighting:", err);
-    }
-    if (!isHtml.value && target !== null) applyScrollRatio(target);
-  });
+  await nextTick();
+  try {
+    await applyHighlighting();
+  } catch (err) {
+    console.error("Failed to apply syntax highlighting:", err);
+  }
+  if (!isHtml.value && target !== null) applyScrollRatio(target);
 }
 
 function attachScrollListener(el: HTMLElement | null) {

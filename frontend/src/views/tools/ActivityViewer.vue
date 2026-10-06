@@ -1086,7 +1086,7 @@ export default {
     },
     scheduleChartRender() {
       const token = ++this.chartRenderToken;
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         requestAnimationFrame(() => {
           if (!this.isCurrentChartRenderToken(token)) {
             return;
@@ -1271,7 +1271,7 @@ export default {
     updateUrl() {
       if (!this.$route.path.startsWith("/tools/activityViewer")) return;
 
-      this.$nextTick(() => {
+      void this.$nextTick().then(async () => {
         const query = {};
 
         if (this.timePreset !== "24h") {
@@ -1352,12 +1352,14 @@ export default {
 
         if (newQueryString !== currentQueryString) {
           this.skipNextRouteQuerySync = true;
-          this.$router.replace({
-            path: this.$route.path,
-            query: Object.keys(query).length > 0 ? query : undefined,
-          }).catch(() => {
+          try {
+            await this.$router.replace({
+              path: this.$route.path,
+              query: Object.keys(query).length > 0 ? query : undefined,
+            });
+          } catch {
             this.skipNextRouteQuerySync = false;
-          });
+          }
         }
       });
     },
@@ -1991,7 +1993,7 @@ export default {
       const canvas = this.$refs.chartCanvas;
       if (!canvas || typeof canvas.getContext !== "function" || !canvas.isConnected) {
         if (retryCount < 5 && this.isCurrentChartRenderToken(renderToken)) {
-          this.$nextTick(() => {
+          void this.$nextTick().then(() => {
             requestAnimationFrame(() => {
               if (this.isCurrentChartRenderToken(renderToken)) {
                 this.renderChart(retryCount + 1);

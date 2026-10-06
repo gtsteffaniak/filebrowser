@@ -302,10 +302,11 @@ export default {
   }),
   watch: {
     // To render a new captcha whenever the login form is re-created (which can happen with wrong credentials)
-    inProgress(isInProgress, wasInProgress) {
+    async inProgress(isInProgress, wasInProgress) {
       if (!globalVars.recaptcha || !wasInProgress || isInProgress) return;
       this.recaptchaReady = false;
-      this.$nextTick(() => this.renderRecaptcha());
+      await this.$nextTick();
+      this.renderRecaptcha();
     },
   },
   mounted() {

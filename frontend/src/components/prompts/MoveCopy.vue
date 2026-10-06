@@ -209,20 +209,18 @@ export default {
     }
   },
   methods: {
-    syncFileListFromPicker() {
-      this.$nextTick(() => {
-        if (this.$refs.fileList && this.destSource && this.destPath) {
-          this.$refs.fileList.jumpTo(this.destSource, this.destPath);
-        }
-      });
+    async syncFileListFromPicker() {
+      await this.$nextTick();
+      if (this.$refs.fileList && this.destSource && this.destPath) {
+        this.$refs.fileList.jumpTo(this.destSource, this.destPath);
+      }
     },
-    createNewDir() {
+    async createNewDir() {
       this.showNewDirInput = true;
       this.newDirName = "";
       // Focus the new dir input automatically
-      this.$nextTick(() => {
-        this.$refs.newDirInput.focus();
-      });
+      await this.$nextTick();
+      this.$refs.newDirInput.focus();
     },
     validateDirName(value) {
       // Check if a folder with the same name already exists in current directory

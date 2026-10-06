@@ -242,12 +242,11 @@ export default {
         this.destSource = pathOrData.source;
       }
     },
-    createNewDir() {
+    async createNewDir() {
       this.showNewDirInput = true;
       this.newDirName = "";
-      this.$nextTick(() => {
-        this.$refs.newDirInput?.focus();
-      });
+      await this.$nextTick();
+      this.$refs.newDirInput?.focus();
     },
     validateDirName(value) {
       if (this.$refs.fileList?.items) {

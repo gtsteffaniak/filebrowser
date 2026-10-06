@@ -880,7 +880,7 @@ export default {
     populateDefaults() {
       this.applyShareDefaultsFromPolicy();
     },
-    applyShareDefaultsFromPolicy() {
+    async applyShareDefaultsFromPolicy() {
       if (this.isEditMode || this.editingLink) {
         return;
       }
@@ -937,9 +937,8 @@ export default {
       this.sidebarLinks = form.sidebarLinks;
       const policyDescription = form.description;
       if (policyDescription) {
-        this.$nextTick(() => {
-          this.description = policyDescription;
-        });
+        await this.$nextTick();
+        this.description = policyDescription;
       }
     },
     /**

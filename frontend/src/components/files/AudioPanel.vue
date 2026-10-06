@@ -192,7 +192,7 @@ export default {
     },
   },
   watch: {
-    activeTab(val) {
+    async activeTab(val) {
       // Persist to localStorage
       localStorage.setItem(LAST_TAB_KEY, val);
       if (val === "visualizer") {
@@ -205,25 +205,29 @@ export default {
       this.stopVisualizer();
       // Scroll to active line when switching to lyrics
       if (val === 'lyrics') {
-        this.$nextTick(() => this.scrollToActiveLine());
+        await this.$nextTick();
+        this.scrollToActiveLine();
       }
     },
-    activeLyricIndex() {
+    async activeLyricIndex() {
       if (this.activeTab === "lyrics") {
-        this.$nextTick(() => this.scrollToActiveLine());
+        await this.$nextTick();
+        this.scrollToActiveLine();
       }
     },
     lyrics: {
-      handler() {
+      async handler() {
         if (this.activeTab === 'lyrics' && this.lyrics.length) {
-          this.$nextTick(() => this.scrollToActiveLine());
+          await this.$nextTick();
+          this.scrollToActiveLine();
         }
       },
       immediate: true,
     },
-    lyricsScrollLocked(val) {
+    async lyricsScrollLocked(val) {
       if (!val && this.activeTab === 'lyrics' && this.lyrics.length) {
-        this.$nextTick(() => this.scrollToActiveLine());
+        await this.$nextTick();
+        this.scrollToActiveLine();
       }
     },
     visualizerConfig: {
@@ -247,14 +251,10 @@ export default {
       immediate: true,
     },
   },
-  mounted() {
+  async mounted() {
     document.addEventListener('keydown', this.onKeyDown);
     this.resizeObserver = new ResizeObserver(() => {
       if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
-    });
-    this.$nextTick(() => {
-      const container = this.$el?.querySelector('.tab-visualizer');
-      if (container) this.resizeObserver.observe(container);
     });
     this.windowResizeHandler = () => {
       if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
@@ -269,6 +269,9 @@ export default {
       }
     };
     document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+    await this.$nextTick();
+    const container = this.$el?.querySelector('.tab-visualizer');
+    if (container) this.resizeObserver.observe(container);
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.onKeyDown);

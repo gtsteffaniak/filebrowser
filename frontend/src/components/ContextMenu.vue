@@ -727,38 +727,37 @@ export default {
       this.isAnimating = true;
       expandBeforeEnter(el);
     },
-    enter(el, done) {
+    async enter(el, done) {
       const BUFFER = 8;
-      this.$nextTick(() => {
-        expandEnter(el, () => {
-          this.isAnimating = false;
-          done();
-        }, 300, {
-          onMeasured: (fullHeight, fullWidth) => {
-            const screenWidth = window.visualViewport?.width || window.innerWidth;
-            const screenHeight = window.visualViewport?.height || window.innerHeight;
-            let newX = this.posX;
-            let newY = this.posY;
-            if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
-            if (newX < BUFFER) newX = BUFFER;
-            if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
-            if (newY < BUFFER) newY = BUFFER;
-            this.posX = newX;
-            this.posY = newY;
-          },
-          getMaxHeight: () => {
-            const viewportHeight = window.visualViewport?.height || window.innerHeight;
-            if (this.showOverflow) {
-              return Math.max(
-                0,
-                viewportHeight - el.getBoundingClientRect().top - BUFFER,
-              );
-            }
-            return this.centered
-              ? viewportHeight - BUFFER * 2
-              : viewportHeight - this.posY - BUFFER;
-          },
-        });
+      await this.$nextTick();
+      expandEnter(el, () => {
+        this.isAnimating = false;
+        done();
+      }, 300, {
+        onMeasured: (fullHeight, fullWidth) => {
+          const screenWidth = window.visualViewport?.width || window.innerWidth;
+          const screenHeight = window.visualViewport?.height || window.innerHeight;
+          let newX = this.posX;
+          let newY = this.posY;
+          if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
+          if (newX < BUFFER) newX = BUFFER;
+          if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
+          if (newY < BUFFER) newY = BUFFER;
+          this.posX = newX;
+          this.posY = newY;
+        },
+        getMaxHeight: () => {
+          const viewportHeight = window.visualViewport?.height || window.innerHeight;
+          if (this.showOverflow) {
+            return Math.max(
+              0,
+              viewportHeight - el.getBoundingClientRect().top - BUFFER,
+            );
+          }
+          return this.centered
+            ? viewportHeight - BUFFER * 2
+            : viewportHeight - this.posY - BUFFER;
+        },
       });
     },
     leave(el, done) {
