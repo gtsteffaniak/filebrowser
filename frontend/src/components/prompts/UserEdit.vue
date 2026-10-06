@@ -499,6 +499,7 @@ export default {
           this.expandedSourceName = null;
         }
         this.emitUserUpdate();
+        this.syncSessionState();
       },
     },
     loginMethodOptions() {
@@ -961,7 +962,10 @@ export default {
         this.profileLoadKey += 1;
       }
       if (session.selectedSources) {
-        this.selectedSources = JSON.parse(JSON.stringify(session.selectedSources));
+        const sessionSources = JSON.stringify(session.selectedSources);
+        if (sessionSources !== JSON.stringify(this.selectedSources)) {
+          this.selectedSources = JSON.parse(sessionSources);
+        }
       }
     },
     openPreferencesPrompt() {
@@ -1472,6 +1476,7 @@ export default {
         source.name === sourceName ? { ...source, scope: path } : source
       );
       this.emitUserUpdate();
+      this.syncSessionState();
     },
     updateUserField(field, value) {
       this.user = setObjectProperty(this.user, field, value);
