@@ -1,6 +1,6 @@
 <template>
   <div v-if="isMobile" role="button" tabindex="0" class="card item clickable settings-card" @click="closeSettings"
-    @keydown.enter.prevent="closeSettings" @keydown.space.prevent="closeSettings">
+    @keydown.enter.prevent="!$event.repeat && closeSettings()" @keydown.space.prevent @keyup.space="closeSettings">
     <span class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       {{ $t("general.exit") }}
@@ -18,8 +18,9 @@
         class="settings-card-collapsible-header settings-card clickable"
         :class="{ 'active-settings': isSectionActive(setting) }"
         @click="setView(`${setting.id}-main`)"
-        @keydown.enter.prevent="setView(`${setting.id}-main`)"
-        @keydown.space.prevent="setView(`${setting.id}-main`)"
+        @keydown.enter.prevent="!$event.repeat && setView(`${setting.id}-main`)"
+        @keydown.space.prevent
+        @keyup.space="setView(`${setting.id}-main`)"
       >
         <span class="settings-item-content">
           <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
@@ -33,8 +34,9 @@
           :class="{ rotated: expandedSections[setting.id] }"
           :aria-expanded="!!expandedSections[setting.id]"
           @click.stop="expandSection(setting)"
-          @keydown.enter.stop.prevent="expandSection(setting)"
-          @keydown.space.stop.prevent="expandSection(setting)"
+          @keydown.enter.stop.prevent="!$event.repeat && expandSection(setting)"
+          @keydown.space.stop.prevent
+          @keyup.space.stop="expandSection(setting)"
         >
           keyboard_arrow_down
         </i>
@@ -49,8 +51,9 @@
             class="settings-card-collapsible-sub-item settings-card clickable"
             :class="{ 'active-settings': active(`${setting.id}-${section.id}`) }"
             @click.stop="setView(`${setting.id}-${section.id}`)"
-            @keydown.enter.stop.prevent="setView(`${setting.id}-${section.id}`)"
-            @keydown.space.stop.prevent="setView(`${setting.id}-${section.id}`)"
+            @keydown.enter.stop.prevent="!$event.repeat && setView(`${setting.id}-${section.id}`)"
+            @keydown.space.stop.prevent
+            @keyup.space.stop="setView(`${setting.id}-${section.id}`)"
           >
             <span class="settings-item-content">
               <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
@@ -67,8 +70,9 @@
       tabindex="0"
       class="card item clickable settings-card"
       @click="setView(`${setting.id}-main`)"
-      @keydown.enter.prevent="setView(`${setting.id}-main`)"
-      @keydown.space.prevent="setView(`${setting.id}-main`)"
+      @keydown.enter.prevent="!$event.repeat && setView(`${setting.id}-main`)"
+      @keydown.space.prevent
+      @keyup.space="setView(`${setting.id}-main`)"
       :class="{
         hidden: !shouldShow(setting),
         'active-settings': active(`${setting.id}-main`),
