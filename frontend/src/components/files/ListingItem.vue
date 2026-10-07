@@ -421,10 +421,10 @@ export default {
       return formatDuration(this.metadata?.duration);
     },
     showKindColumn() {
-      return !state.user?.hideTypeColumn;
+      return this.isListMode && !state.user?.hideTypeColumn;
     },
     showCreatedColumn() {
-      return !state.user?.hideDateAddedColumn;
+      return this.isListMode && !state.user?.hideDateAddedColumn;
     },
     isListMode() {
       const mode = getters.viewMode();
