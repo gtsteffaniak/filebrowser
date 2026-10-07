@@ -146,7 +146,11 @@
     "failedLogin": "Falha no login",
     "invalidCredentials": "Credenciais inválidas fornecidas",
     "passkeyLogin": "Usar chave de acesso",
-    "recaptchaRequired": "Desafio Recaptcha necessário"
+    "recaptchaRequired": "Desafio Recaptcha necessário",
+    "requirePasswordChangeTitle": "Altere sua senha",
+    "requirePasswordChangeInstructions": "É necessário definir uma nova senha antes de continuar.",
+    "requirePasswordChangeSuccess": "Senha atualizada. Agora você está conectado.",
+    "requirePasswordChangeMustDiffer": "A nova senha deve ser diferente da sua senha atual"
   },
   "prompts": {
     "noTemplate": "Seu modelo está vazio!",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Preferências do usuário",
     "userEditTools": "Acesso às ferramentas",
     "userEditToolsDescription": "Configure quais ferramentas esse usuário pode acessar",
-    "userEditSidebarLinks": "Links da barra lateral"
+    "userEditSidebarLinks": "Links da barra lateral",
+    "passwordRequirementsMatch": "As senhas coincidem",
+    "passwordRequirementsMinLength": "Pelo menos {min} caracteres",
+    "requirePasswordChange": "Exigir alteração da senha no próximo login"
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Esses são os links padrão que serão adicionados para todos os novos usuários. Se você tornar um link obrigatório, ele será adicionado para todos os usuários e não poderá ser removido por usuários que não sejam administradores.",
     "sidebarLinkDefaultSourceHelp": "Aplica-se apenas quando o usuário tem acesso a essa fonte.",
     "sidebarLinkDefaultsYamlInvalid": "YAML inválido. Verifique o formato e tente novamente.",
-    "switchMode": "Alternar entre os links e a árvore de navegação"
+    "switchMode": "Alternar entre os links e a árvore de navegação",
+    "rootFilesystemOnly": "Limitar o uso do disco ao sistema de arquivos de origem",
+    "rootFilesystemOnlyDescription": "Quando ativada, apenas o sistema de arquivos que contém o caminho de origem é relatado. Quando desativada (padrão), o total do disco também inclui os sistemas de arquivos montados no caminho de origem, sendo que os pools compartilhados, como os conjuntos de dados ZFS, são contados uma única vez."
   },
   "share": {
     "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",

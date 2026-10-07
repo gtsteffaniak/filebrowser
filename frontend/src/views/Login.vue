@@ -214,6 +214,7 @@ import { authApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { globalVars } from "@/utils/constants";
+import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
 import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Tooltip from "@/components/Tooltip.vue";
@@ -398,6 +399,12 @@ export default {
           this.inProgress = false;
           return;
         }
+        const policy = evaluatePasswordPolicy(this.password, this.passwordConfirm);
+        if (!policy.valid) {
+          this.error = this.$t("settings.passwordRequirementsMinLength", { min: policy.minLength });
+          this.inProgress = false;
+          return;
+        }
       }
       try {
         if (this.createMode) {
@@ -409,6 +416,18 @@ export default {
       } catch (e) {
         console.log(e);
         this.inProgress = false;
+        if (e.message.includes("password change is required")) {
+          mutations.showPrompt({
+            name: "requirePasswordChange",
+            pinned: true,
+            props: {
+              username: this.username,
+              password: this.password,
+              redirect: redirect,
+            },
+          });
+          return;
+        }
         if (e.message.includes("OTP authentication is enforced")) {
           mutations.showPrompt({
             name: "totp",

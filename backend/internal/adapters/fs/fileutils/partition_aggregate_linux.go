@@ -7,94 +7,64 @@ import (
 	"os"
 	"path/filepath"
 	"syscall"
-
-	"golang.org/x/sys/unix"
 )
 
-// GetAggregatedPartitionUsage returns total and used bytes summed across distinct
-// filesystems mounted at or under root (deduped by major:minor from mountinfo).
-// Falls back to a single-path probe when mountinfo cannot be read.
-func GetAggregatedPartitionUsage(root string) (total, used uint64, err error) {
+// GetPartitionUsageVariants returns two capacity views of root:
+//   - aggregate: total/used summed across distinct capacity groups mounted at or
+//     under root, deduped so shared-pool filesystems (ZFS datasets, btrfs
+//     subvolumes) are counted once per pool.
+//   - rootOnly: a single statfs of root, ignoring nested mounts.
+//
+// Falls back to the single-path probe for both when mountinfo cannot be read.
+func GetPartitionUsageVariants(root string) (aggregate, rootOnly PartitionUsage, err error) {
 	if root == "" {
-		return 0, 0, fmt.Errorf("empty path")
+		return aggregate, rootOnly, fmt.Errorf("empty path")
 	}
 	root = filepath.Clean(root)
 
-	paths, parseErr := distinctMountPathsUnder(root)
-	if parseErr != nil || len(paths) == 0 {
-		return singlePathPartitionUsage(root)
+	rootOnly, rootErr := singlePathPartitionUsage(root)
+
+	groups, parseErr := mountGroupsUnder(root)
+	if parseErr != nil || len(groups) == 0 {
+		if rootErr != nil {
+			return aggregate, rootOnly, rootErr
+		}
+		return rootOnly, rootOnly, nil
 	}
 
 	var firstErr error
-	for _, path := range paths {
-		t, u, stErr := partitionUsageAt(path)
-		if stErr != nil {
-			if firstErr == nil {
-				firstErr = stErr
+	for _, group := range groups {
+		stats := make([]rawUsage, 0, len(group.paths))
+		for _, p := range group.paths {
+			stat, stErr := partitionStatfs(p)
+			if stErr != nil {
+				if firstErr == nil {
+					firstErr = stErr
+				}
+				continue
 			}
-			continue
+			stats = append(stats, stat)
 		}
-		total += t
-		used += u
+		u := combineGroupUsage(stats)
+		aggregate.Total += u.Total
+		aggregate.Used += u.Used
 	}
 
-	if total == 0 && used == 0 {
+	if aggregate.Total == 0 && aggregate.Used == 0 {
 		if firstErr != nil {
-			return 0, 0, firstErr
+			return aggregate, rootOnly, firstErr
 		}
-		return singlePathPartitionUsage(root)
+		aggregate = rootOnly
 	}
-	return total, used, nil
+	return aggregate, rootOnly, rootErr
 }
 
-func singlePathPartitionUsage(root string) (total, used uint64, err error) {
-	total, err = GetPartitionSize(root)
-	if err != nil {
-		return 0, 0, err
-	}
-	used, err = GetPartitionUsed(root)
-	if err != nil {
-		return 0, 0, err
-	}
-	return total, used, nil
-}
-
-func distinctMountPathsUnder(root string) ([]string, error) {
+func mountGroupsUnder(root string) ([]mountGroup, error) {
 	data, err := readMountinfo()
 	if err != nil {
 		return nil, err
 	}
-	paths, err := distinctMountPathsFromMountinfo(data, root)
-	if err != nil {
-		return nil, err
-	}
-	// If mountinfo had no covering mount for root, ensure root is probed.
-	if len(paths) == 0 {
-		return []string{root}, nil
-	}
-	hasRoot := false
-	for _, p := range paths {
-		if p == root {
-			hasRoot = true
-			break
-		}
-	}
-	if !hasRoot {
-		if dev, stErr := deviceIDFromPath(root); stErr == nil {
-			// Avoid duplicating a device already selected under another path.
-			already := false
-			for _, p := range paths {
-				if d, e := deviceIDFromPath(p); e == nil && d == dev {
-					already = true
-					break
-				}
-			}
-			if !already {
-				paths = append(paths, root)
-			}
-		}
-	}
-	return paths, nil
+	return mountGroupsFromMountinfo(data, root)
 }
 
 func readMountinfo() (string, error) {
@@ -107,24 +77,14 @@ func readMountinfo() (string, error) {
 	return "", fmt.Errorf("mountinfo not available")
 }
 
-func deviceIDFromPath(path string) (string, error) {
-	var st unix.Stat_t
-	if err := unix.Stat(path, &st); err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%d:%d", unix.Major(uint64(st.Dev)), unix.Minor(uint64(st.Dev))), nil
-}
-
-func partitionUsageAt(path string) (total, used uint64, err error) {
+func partitionStatfs(path string) (rawUsage, error) {
 	var stat syscall.Statfs_t
 	if err := syscall.Statfs(path, &stat); err != nil {
-		return 0, 0, err
+		return rawUsage{}, err
 	}
 	bsize := blockSize(&stat)
-	total = uint64(stat.Blocks) * bsize
-	free := uint64(stat.Bavail) * bsize
-	if total >= free {
-		used = total - free
-	}
-	return total, used, nil
+	return rawUsage{
+		total: uint64(stat.Blocks) * bsize,
+		avail: uint64(stat.Bavail) * bsize,
+	}, nil
 }

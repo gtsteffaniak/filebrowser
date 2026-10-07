@@ -146,7 +146,11 @@
     "failedLogin": "Anmeldung fehlgeschlagen",
     "invalidCredentials": "Ungültige Anmeldedaten angegeben",
     "passkeyLogin": "Passkey verwenden",
-    "recaptchaRequired": "Recaptcha-Überprüfung erforderlich"
+    "recaptchaRequired": "Recaptcha-Überprüfung erforderlich",
+    "requirePasswordChangeTitle": "Passwort ändern",
+    "requirePasswordChangeInstructions": "Sie müssen ein neues Passwort festlegen, bevor Sie fortfahren können.",
+    "requirePasswordChangeSuccess": "Das Passwort wurde aktualisiert. Sie sind nun angemeldet.",
+    "requirePasswordChangeMustDiffer": "Das neue Passwort muss sich von Ihrem aktuellen Passwort unterscheiden."
   },
   "prompts": {
     "noTemplate": "Ihre Vorlage ist leer!",
@@ -313,7 +317,10 @@
     "userEditPreferences": "Benutzereinstellungen",
     "userEditTools": "Zugriff auf Werkzeuge",
     "userEditToolsDescription": "Legen Sie fest, auf welche Tools dieser Benutzer zugreifen darf",
-    "userEditSidebarLinks": "Links in der Seitenleiste"
+    "userEditSidebarLinks": "Links in der Seitenleiste",
+    "passwordRequirementsMatch": "Die Passwörter stimmen überein",
+    "passwordRequirementsMinLength": "Mindestens {min} Zeichen",
+    "requirePasswordChange": "Passwortwechsel bei der nächsten Anmeldung erzwingen"
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",
@@ -356,7 +363,9 @@
     "sidebarLinkDefaultsHelp": "Dies sind die Standard-Links, die für alle neuen Benutzer hinzugefügt werden. Wenn Sie einen Link als obligatorisch festlegen, wird er für alle Benutzer hinzugefügt und kann von Benutzern ohne Administratorrechte nicht entfernt werden.",
     "sidebarLinkDefaultSourceHelp": "Gilt nur, wenn der Benutzer Zugriff auf diese Quelle hat.",
     "sidebarLinkDefaultsYamlInvalid": "Ungültiges YAML. Überprüfen Sie das Format und versuchen Sie es erneut.",
-    "switchMode": "Zwischen Links und Navigationsbaum umschalten"
+    "switchMode": "Zwischen Links und Navigationsbaum umschalten",
+    "rootFilesystemOnly": "Festplattennutzung auf das Quelldateisystem beschränken",
+    "rootFilesystemOnlyDescription": "Wenn diese Option aktiviert ist, wird nur das Dateisystem gemeldet, das den Quellpfad enthält. Wenn sie deaktiviert ist (Standardeinstellung), umfasst die Gesamtgröße der Festplatte auch die unter dem Quellpfad eingebundenen Dateisysteme, wobei gemeinsam genutzte Pools wie ZFS-Datensätze nur einmal gezählt werden."
   },
   "share": {
     "notice": "Hinweis: Wenn eine Freigabe erstellt wird, ist sie der Öffentlichkeit stärker ausgesetzt und unterliegt anderen Zugriffsregeln. Wenn Ihre Freigabe nicht sicher konfiguriert ist, kann jeder auf sie zugreifen.",
