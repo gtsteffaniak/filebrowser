@@ -12,6 +12,7 @@
   The best free self-hosted web-based file manager.
   <br/><br/>
   <img width="800" alt="FileBrowser Quantum file listing in dark mode" src="https://filebrowserquantum.com/images/generated/listing/view-mode-normal-dark.jpg">
+  <p></p><a href="https://build.demoshell.com/launch?snapshot=demoshell%2Fweb%3Afilebrowser&amp;utm_source=badge"><img src="https://build.demoshell.com/v1/embed/badge.svg" alt="Live demo by Demoshell" align="absmiddle"></a></p>
 </div>
 
 ## Pinned
