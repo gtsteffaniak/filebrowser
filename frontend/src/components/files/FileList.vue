@@ -45,6 +45,7 @@
         :type="item.type"
         :size="item.size ?? item.originalItem?.size ?? 0"
         :modified="item.originalItem?.modified || new Date().toISOString()"
+        :created="item.originalItem?.created"
         :index="index"
         :class="{ 'zebra-row': index % 2 === 1, 'current-item': isCurrentItem(item), 'context-item': isContextItem(item) }"
         :path="item.path"
