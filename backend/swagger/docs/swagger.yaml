@@ -2797,7 +2797,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Creates the group if missing and replaces its member list.
+      description: Creates the group if missing and replaces its member list. When
+        create is true, a group that already exists returns 409.
       parameters:
       - description: Group name and full member list
         in: body
@@ -2805,6 +2806,8 @@ paths:
         required: true
         schema:
           properties:
+            create:
+              type: boolean
             group:
               type: string
             members:
@@ -2816,15 +2819,18 @@ paths:
       - application/json
       responses:
         "200":
-          description: Group saved successfully
+          description: Group saved; unknownMembers lists usernames with no matching
+            local user
+          schema:
+            type: object
         "400":
           description: Bad request
           schema:
             additionalProperties:
               type: string
             type: object
-        "403":
-          description: Forbidden
+        "409":
+          description: Conflict (group already exists when create is true)
           schema:
             additionalProperties:
               type: string
@@ -2860,6 +2866,56 @@ paths:
               type: string
             type: object
       summary: Get all groups or groups for a user
+      tags:
+      - Access
+  /api/access/user-groups:
+    put:
+      consumes:
+      - application/json
+      description: Replaces all of a user's group memberships in one request. Every
+        group in the list must already exist.
+      parameters:
+      - description: Username and full group list
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            groups:
+              items:
+                type: string
+              type: array
+            user:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User groups updated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Replace a user's group memberships
       tags:
       - Access
   /api/auth/login:

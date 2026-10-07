@@ -62,13 +62,27 @@ export async function getGroupsWithMembers() {
  * Creates the group if needed and replaces its full member list.
  * @param {string} group
  * @param {string[]} members
+ * @param {boolean} create when true the server returns 409 if the group exists
  * @returns {Promise<any>}
  */
-export async function saveGroup(group, members) {
+export async function saveGroup(group, members, create = false) {
   const apiPath = getApiPath('access/group', {})
   return fetchJSON(apiPath, {
     method: 'PUT',
-    body: JSON.stringify({ group, members }),
+    body: JSON.stringify({ group, members, create }),
+  })
+}
+/**
+ * Atomically replaces a user's group memberships. All groups must exist.
+ * @param {string} username
+ * @param {string[]} groups
+ * @returns {Promise<any>}
+ */
+export async function saveUserGroups(username, groups) {
+  const apiPath = getApiPath('access/user-groups', {})
+  return fetchJSON(apiPath, {
+    method: 'PUT',
+    body: JSON.stringify({ user: username, groups }),
   })
 }
 /**

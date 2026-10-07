@@ -4,11 +4,20 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.1.1
 
+ **New Features**:
+ - User and group picker with partial, case-insensitive search when creating access rules (#3085), assigning groups on user edit, and choosing members on group edit.
+ - New `PUT /api/access/user-groups` endpoint that atomically replaces a user's group memberships.
+
  **Bug Fixes**:
+ - Groups assigned in the user edit prompt now refresh the Groups settings list.
+ - Creating a group with an existing name now returns a conflict instead of silently overwriting its members.
+ - Access rules can no longer create empty groups from typos; group rules must reference an existing group.
+ - Empty group names are rejected; deleting or renaming a user now updates group memberships.
  - fix(auth): use login endpoint for existing TOTP authentication (#3074)
  - fix: apply theme toggles on anonymous public shares (#3049)
 
  **Notes**:
+ - Group API breaking changes: `POST /api/access` returns 400 when `ruleCategory=group` names a nonexistent group or `ruleCategory=user` names a nonexistent user, group endpoints return 400/409 instead of 500 for client errors, and `PUT /api/access/group` accepts a `create` flag and returns `unknownMembers`. Existing database records are unaffected; no migration is required.
  - update halloween theme (#3055)
  - Add soft wrap option to the editor config (#3063)
  - add better screenshot view handling (#3059)

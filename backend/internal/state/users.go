@@ -6,14 +6,15 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // User operations
@@ -418,6 +419,11 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 		if err := sqlDb.UpdateUserUsername(oldUsername, existingUser); err != nil {
 			return err
 		}
+		if accessDb != nil {
+			if err := accessDb.RenameUserInGroups(oldUsername, existingUser.Username); err != nil {
+				logger.Errorf("failed to rename user %q in groups: %v", oldUsername, err)
+			}
+		}
 		if oldUserID != 0 && oldUserID != existingUser.ID {
 			userRecordCache.Delete(userCacheKeyID(oldUserID))
 		}
@@ -595,6 +601,9 @@ func DeleteUser(id uint64) error {
 
 	if accessDb != nil {
 		_ = accessDb.RemoveHashedTokensForUser(id)
+		if err := accessDb.RemoveUserFromAllGroups(user.Username); err != nil {
+			logger.Errorf("failed to remove deleted user %q from groups: %v", user.Username, err)
+		}
 	}
 
 	return nil
@@ -619,6 +628,11 @@ func DeleteUserByUsername(username string) error {
 
 	if accessDb != nil && uid != 0 {
 		_ = accessDb.RemoveHashedTokensForUser(uid)
+	}
+	if accessDb != nil {
+		if err := accessDb.RemoveUserFromAllGroups(username); err != nil {
+			logger.Errorf("failed to remove deleted user %q from groups: %v", username, err)
+		}
 	}
 
 	return nil

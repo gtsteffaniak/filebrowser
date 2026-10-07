@@ -120,6 +120,7 @@ export default {
         name: "group-edit",
         props: {
           title: this.$t(group ? "access.editGroup" : "access.newGroup"),
+          existingGroups: this.groups,
           ...(group ? { group, members: this.members.get(group) || [] } : {}),
         },
       });
