@@ -677,7 +677,21 @@
     "userGroups": "Gruplar",
     "groupMembers": "Üyeler",
     "deleteGroupConfirm": "\"{name}\" grubu silinsin mi? Tüm erişim kurallarından da kaldırılacaktır.",
-    "groupsOidcNote": "OIDC ile senkronize edilen grupların üyeleri, bu kullanıcılar her oturum açtığında kimlik sağlayıcısından sıfırlanır."
+    "groupsOidcNote": "OIDC ile senkronize edilen grupların üyeleri, bu kullanıcılar her oturum açtığında kimlik sağlayıcısından sıfırlanır.",
+    "userGroupsDescription": "Bu kullanıcının üyesi olduğu gruplar",
+    "membersCount": "Üyeler: {count}",
+    "userGroupsCount": "Gruplar: {count}",
+    "groupNameRequired": "Grup adı zorunludur.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Grup adı en fazla {max} karakterden oluşmalıdır.",
+    "groupNameInvalid": "Grup adı, kontrol karakterleri içermemelidir.",
+    "groupExists": "Bu isimde bir grup zaten mevcut.",
+    "selectEntities": "Seç",
+    "selectUser": "Kullanıcı seçin",
+    "selectUsers": "Kullanıcıları seçin",
+    "selectGroup": "Grubu seçin",
+    "selectGroups": "Grupları seçin",
+    "refineSearch": "{count} 'daki ilk eşleşmeler gösteriliyor. Daha fazlasını görmek için aramanızı daraltın."
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",

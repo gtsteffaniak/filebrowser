@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Groups assigned in the user edit prompt now refresh the Groups settings list.
  - Creating a group with an existing name now returns a conflict instead of silently overwriting its members.
  - Access rules can no longer create empty groups from typos; group rules must reference an existing group.
- - Empty group names are rejected; deleting or renaming a user now updates group memberships.
+ - Empty group names are rejected and new group names must be 2-128 characters without control characters (existing records are unaffected); deleting or renaming a user now updates group memberships.
  - fix(auth): use login endpoint for existing TOTP authentication (#3074)
  - fix: apply theme toggles on anonymous public shares (#3049)
 

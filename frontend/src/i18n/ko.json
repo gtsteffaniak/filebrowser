@@ -677,7 +677,21 @@
     "userGroups": "그룹",
     "groupMembers": "멤버",
     "deleteGroupConfirm": "그룹 \"{name}\"을(를) 삭제하시겠습니까? 모든 접근 규칙에서도 제거됩니다.",
-    "groupsOidcNote": "OIDC로 동기화된 그룹의 멤버는 해당 사용자가 로그인할 때마다 ID 공급자에서 다시 설정됩니다."
+    "groupsOidcNote": "OIDC로 동기화된 그룹의 멤버는 해당 사용자가 로그인할 때마다 ID 공급자에서 다시 설정됩니다.",
+    "userGroupsDescription": "이 사용자가 속한 그룹",
+    "membersCount": "회원: {count}",
+    "userGroupsCount": "그룹: {count}",
+    "groupNameRequired": "그룹 이름은 필수 항목입니다.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "그룹 이름은 최대 {max} 자 이내여야 합니다.",
+    "groupNameInvalid": "그룹 이름에는 제어 문자가 포함되어서는 안 됩니다.",
+    "groupExists": "이 이름의 그룹이 이미 존재합니다.",
+    "selectEntities": "선택",
+    "selectUser": "사용자 선택",
+    "selectUsers": "사용자 선택",
+    "selectGroup": "그룹 선택",
+    "selectGroups": "그룹 선택",
+    "refineSearch": "{count} 에 해당하는 첫 번째 검색 결과를 표시합니다. 더 많은 결과를 보려면 검색 조건을 구체화하세요."
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",

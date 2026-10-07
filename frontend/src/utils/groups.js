@@ -5,6 +5,7 @@
 import i18n from '@/i18n';
 
 export const MAX_GROUP_NAME_LENGTH = 128;
+export const MIN_GROUP_NAME_LENGTH = 2;
 
 // eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\x00-\x1f\x7f-\x9f]/;
@@ -18,6 +19,9 @@ export function groupNameError(name) {
   const trimmed = (name || "").trim();
   if (!trimmed) {
     return "groupNameRequired";
+  }
+  if (trimmed.length < MIN_GROUP_NAME_LENGTH) {
+    return "groupNameTooShort";
   }
   if (trimmed.length > MAX_GROUP_NAME_LENGTH) {
     return "groupNameTooLong";
@@ -38,6 +42,8 @@ export function groupNameErrorText(name) {
   switch (groupNameError(name)) {
     case "groupNameRequired":
       return i18n.global.t("access.groupNameRequired");
+    case "groupNameTooShort":
+      return i18n.global.t("access.groupNameTooShort", { min: MIN_GROUP_NAME_LENGTH });
     case "groupNameTooLong":
       return i18n.global.t("access.groupNameTooLong", { max: MAX_GROUP_NAME_LENGTH });
     case "groupNameInvalid":

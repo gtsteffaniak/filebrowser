@@ -677,7 +677,21 @@
     "userGroups": "Grupuri",
     "groupMembers": "Membri",
     "deleteGroupConfirm": "Ștergeți grupul „{name}”? Va fi eliminat și din toate regulile de acces.",
-    "groupsOidcNote": "Membrii grupurilor sincronizate prin OIDC sunt resetați de la furnizorul de identitate la fiecare autentificare a acestor utilizatori."
+    "groupsOidcNote": "Membrii grupurilor sincronizate prin OIDC sunt resetați de la furnizorul de identitate la fiecare autentificare a acestor utilizatori.",
+    "userGroupsDescription": "Grupurile din care face parte acest utilizator",
+    "membersCount": "Membri: {count}",
+    "userGroupsCount": "Grupuri: {count}",
+    "groupNameRequired": "Numele grupului este obligatoriu.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Numele grupului trebuie să aibă cel mult {max} caractere.",
+    "groupNameInvalid": "Numele grupului nu trebuie să conțină caractere de control.",
+    "groupExists": "Există deja un grup cu acest nume.",
+    "selectEntities": "Selectează",
+    "selectUser": "Selectează utilizatorul",
+    "selectUsers": "Selectați utilizatorii",
+    "selectGroup": "Selectează grupul",
+    "selectGroups": "Selectați grupurile",
+    "refineSearch": "Se afișează primele rezultate pentru „ {count} ”. Rafinați căutarea pentru a vedea mai multe rezultate."
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",

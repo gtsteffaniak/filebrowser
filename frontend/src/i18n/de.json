@@ -677,7 +677,21 @@
     "userGroups": "Gruppen",
     "groupMembers": "Mitglieder",
     "deleteGroupConfirm": "Gruppe „{name}“ löschen? Sie wird auch aus allen Zugriffsregeln entfernt.",
-    "groupsOidcNote": "Mitglieder von OIDC-synchronisierten Gruppen werden bei jeder Anmeldung dieser Benutzer vom Identitätsanbieter zurückgesetzt."
+    "groupsOidcNote": "Mitglieder von OIDC-synchronisierten Gruppen werden bei jeder Anmeldung dieser Benutzer vom Identitätsanbieter zurückgesetzt.",
+    "userGroupsDescription": "Gruppen, denen dieser Benutzer angehört",
+    "membersCount": "Mitglieder: {count}",
+    "userGroupsCount": "Gruppen: {count}",
+    "groupNameRequired": "Der Gruppenname ist erforderlich.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Der Gruppenname darf höchstens {max} Zeichen lang sein.",
+    "groupNameInvalid": "Der Gruppenname darf keine Steuerzeichen enthalten.",
+    "groupExists": "Eine Gruppe mit diesem Namen existiert bereits.",
+    "selectEntities": "Auswählen",
+    "selectUser": "Benutzer auswählen",
+    "selectUsers": "Benutzer auswählen",
+    "selectGroup": "Gruppe auswählen",
+    "selectGroups": "Gruppen auswählen",
+    "refineSearch": "Hier werden die ersten Treffer für „ {count} “ angezeigt. Verfeinern Sie Ihre Suche, um weitere Ergebnisse anzuzeigen."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",

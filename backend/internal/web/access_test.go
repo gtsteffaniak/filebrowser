@@ -412,7 +412,7 @@ func TestGroupPutHandler_CreateFlagAndUnknownMembers(t *testing.T) {
 		Message        string   `json:"message"`
 		UnknownMembers []string `json:"unknownMembers"`
 	}
-	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+	if err = json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatal(err)
 	}
 	if len(resp.UnknownMembers) != 1 || resp.UnknownMembers[0] != "ghost" {
@@ -479,7 +479,7 @@ func TestGroupHandlers_LegacyNamesStillWork(t *testing.T) {
 		t.Fatalf("expected 200, got %d (err=%v)", status, err)
 	}
 	var resp GroupListResponse
-	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+	if err = json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatal(err)
 	}
 	if len(resp.Members[legacy]) != 1 {

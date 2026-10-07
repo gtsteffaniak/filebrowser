@@ -782,7 +782,21 @@
     "userGroups": "群組",
     "groupMembers": "成員",
     "deleteGroupConfirm": "刪除群組「{name}」?它也會從所有存取規則中移除。",
-    "groupsOidcNote": "透過 OIDC 同步的群組成員會在這些使用者每次登入時從身分提供者重設。"
+    "groupsOidcNote": "透過 OIDC 同步的群組成員會在這些使用者每次登入時從身分提供者重設。",
+    "userGroupsDescription": "此使用者所屬的群組",
+    "membersCount": "成員：{count}",
+    "userGroupsCount": "群組：{count}",
+    "groupNameRequired": "必須填寫群組名稱。",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "群組名稱的字元數不得超過{max} 個。",
+    "groupNameInvalid": "群組名稱不得包含控制字元。",
+    "groupExists": "已經有一個同名的群組了。",
+    "selectEntities": "選擇",
+    "selectUser": "選擇使用者",
+    "selectUsers": "選取使用者",
+    "selectGroup": "選擇群組",
+    "selectGroups": "選擇群組",
+    "refineSearch": "顯示前{count} 個搜尋結果。請精確化搜尋條件以查看更多結果。"
   },
   "editor": {
     "uninitialized": "編輯器初始化失敗。請重新載入。",

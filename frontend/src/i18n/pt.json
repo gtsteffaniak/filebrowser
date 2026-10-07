@@ -782,7 +782,21 @@
     "userGroups": "Grupos",
     "groupMembers": "Membros",
     "deleteGroupConfirm": "Eliminar o grupo \"{name}\"? Também será removido de todas as regras de acesso.",
-    "groupsOidcNote": "Os membros dos grupos sincronizados por OIDC são repostos a partir do fornecedor de identidade sempre que esses utilizadores iniciam sessão."
+    "groupsOidcNote": "Os membros dos grupos sincronizados por OIDC são repostos a partir do fornecedor de identidade sempre que esses utilizadores iniciam sessão.",
+    "userGroupsDescription": "Grupos a que este utilizador pertence",
+    "membersCount": "Membros: {count}",
+    "userGroupsCount": "Grupos: {count}",
+    "groupNameRequired": "É obrigatório indicar o nome do grupo.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "O nome do grupo não pode ter mais de {max} caracteres.",
+    "groupNameInvalid": "O nome do grupo não pode conter caracteres de controlo.",
+    "groupExists": "Já existe um grupo com este nome.",
+    "selectEntities": "Selecionar",
+    "selectUser": "Selecionar utilizador",
+    "selectUsers": "Selecionar utilizadores",
+    "selectGroup": "Selecionar grupo",
+    "selectGroups": "Selecionar grupos",
+    "refineSearch": "A apresentar os primeiros resultados para « {count} ». Refine a sua pesquisa para ver mais resultados."
   },
   "editor": {
     "stats": {

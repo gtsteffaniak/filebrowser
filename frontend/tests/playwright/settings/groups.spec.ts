@@ -79,8 +79,10 @@ test.describe("Groups management", () => {
         await expect(groupOption).toHaveAttribute("aria-selected", "false");
         await groupOption.click();
         await picker.locator('button[aria-label="Save"]').click();
+        await expect(picker).not.toBeVisible();
+        // Only group membership changed, so the save skips the user PATCH and
+        // no actor-password challenge appears.
         await modal.locator('button[aria-label="Save"]').click();
-        await confirmActorPasswordPrompt(page);
         await expect(modal).not.toBeVisible();
 
         // Delete the group again from the groups list.

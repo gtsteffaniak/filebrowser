@@ -677,7 +677,21 @@
     "userGroups": "Groupes",
     "groupMembers": "Membres",
     "deleteGroupConfirm": "Supprimer le groupe « {name} » ? Il sera également retiré de toutes les règles d'accès.",
-    "groupsOidcNote": "Les membres des groupes synchronisés par OIDC sont réinitialisés depuis le fournisseur d'identité à chaque connexion de ces utilisateurs."
+    "groupsOidcNote": "Les membres des groupes synchronisés par OIDC sont réinitialisés depuis le fournisseur d'identité à chaque connexion de ces utilisateurs.",
+    "userGroupsDescription": "Groupes auxquels cet utilisateur appartient",
+    "membersCount": "Membres : {count}",
+    "userGroupsCount": "Groupes : {count}",
+    "groupNameRequired": "Le nom du groupe est obligatoire.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Le nom du groupe ne doit pas dépasser {max} caractères.",
+    "groupNameInvalid": "Le nom du groupe ne doit pas contenir de caractères de contrôle.",
+    "groupExists": "Un groupe portant ce nom existe déjà.",
+    "selectEntities": "Sélectionner",
+    "selectUser": "Sélectionner un utilisateur",
+    "selectUsers": "Sélectionner des utilisateurs",
+    "selectGroup": "Sélectionner un groupe",
+    "selectGroups": "Sélectionner des groupes",
+    "refineSearch": "Affichage des premiers résultats pour « {count} ». Affinez votre recherche pour en voir davantage."
   },
   "fileLoading": {
     "title": "Importations et téléchargements",

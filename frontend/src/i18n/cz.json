@@ -782,7 +782,21 @@
     "userGroups": "Skupiny",
     "groupMembers": "Členové",
     "deleteGroupConfirm": "Smazat skupinu „{name}“? Bude také odebrána ze všech pravidel přístupu.",
-    "groupsOidcNote": "Členové skupin synchronizovaných přes OIDC se při každém přihlášení těchto uživatelů obnoví od poskytovatele identity."
+    "groupsOidcNote": "Členové skupin synchronizovaných přes OIDC se při každém přihlášení těchto uživatelů obnoví od poskytovatele identity.",
+    "userGroupsDescription": "Skupiny, do kterých tento uživatel patří",
+    "membersCount": "Členové: {count}",
+    "userGroupsCount": "Skupiny: {count}",
+    "groupNameRequired": "Název skupiny je povinný.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Název skupiny smí mít maximálně {max} znaků.",
+    "groupNameInvalid": "Název skupiny nesmí obsahovat řídicí znaky.",
+    "groupExists": "Skupina s tímto názvem již existuje.",
+    "selectEntities": "Vybrat",
+    "selectUser": "Vyberte uživatele",
+    "selectUsers": "Vybrat uživatele",
+    "selectGroup": "Vyberte skupinu",
+    "selectGroups": "Vybrat skupiny",
+    "refineSearch": "Zobrazují se první výsledky pro „ {count} “. Zúžte vyhledávání a zobrazte další výsledky."
   },
   "editor": {
     "stats": {

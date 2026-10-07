@@ -677,7 +677,21 @@
     "userGroups": "グループ",
     "groupMembers": "メンバー",
     "deleteGroupConfirm": "グループ「{name}」を削除しますか?すべてのアクセスルールからも削除されます。",
-    "groupsOidcNote": "OIDCで同期されたグループのメンバーは、該当ユーザーがログインするたびにIDプロバイダーから再設定されます。"
+    "groupsOidcNote": "OIDCで同期されたグループのメンバーは、該当ユーザーがログインするたびにIDプロバイダーから再設定されます。",
+    "userGroupsDescription": "このユーザーが所属しているグループ",
+    "membersCount": "メンバー：{count}",
+    "userGroupsCount": "グループ：{count}",
+    "groupNameRequired": "グループ名の入力が必須です。",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "グループ名は、{max} 文字以内である必要があります。",
+    "groupNameInvalid": "グループ名には制御文字を含めてはなりません。",
+    "groupExists": "この名前のグループはすでに存在します。",
+    "selectEntities": "選択",
+    "selectUser": "ユーザーを選択してください",
+    "selectUsers": "ユーザーを選択",
+    "selectGroup": "グループを選択してください",
+    "selectGroups": "グループを選択",
+    "refineSearch": "「{count} 」の検索結果のうち、最初のものを表示しています。さらに多くの結果を表示するには、検索条件を絞り込んでください。"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",

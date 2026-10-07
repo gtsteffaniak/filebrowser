@@ -677,7 +677,21 @@
     "userGroups": "Skupiny",
     "groupMembers": "Členovia",
     "deleteGroupConfirm": "Odstrániť skupinu „{name}“? Bude tiež odstránená zo všetkých pravidiel prístupu.",
-    "groupsOidcNote": "Členovia skupín synchronizovaných cez OIDC sa pri každom prihlásení týchto používateľov obnovia od poskytovateľa identity."
+    "groupsOidcNote": "Členovia skupín synchronizovaných cez OIDC sa pri každom prihlásení týchto používateľov obnovia od poskytovateľa identity.",
+    "userGroupsDescription": "Skupiny, do ktorých tento používateľ patrí",
+    "membersCount": "Členovia: {count}",
+    "userGroupsCount": "Skupiny: {count}",
+    "groupNameRequired": "Názov skupiny je povinný.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Názov skupiny nesmie presiahnuť {max} znakov.",
+    "groupNameInvalid": "Názov skupiny nesmie obsahovať riadiace znaky.",
+    "groupExists": "Skupina s týmto názvom už existuje.",
+    "selectEntities": "Vybrať",
+    "selectUser": "Vyberte používateľa",
+    "selectUsers": "Vybrať používateľov",
+    "selectGroup": "Vyberte skupinu",
+    "selectGroups": "Vybrať skupiny",
+    "refineSearch": "Zobrazujú sa prvé výsledky pre „ {count} “. Upresnite vyhľadávanie, ak chcete zobraziť viac výsledkov."
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",

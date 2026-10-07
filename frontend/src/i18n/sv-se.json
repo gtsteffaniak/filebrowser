@@ -782,7 +782,21 @@
     "userGroups": "Grupper",
     "groupMembers": "Medlemmar",
     "deleteGroupConfirm": "Ta bort gruppen \"{name}\"? Den tas även bort från alla åtkomstregler.",
-    "groupsOidcNote": "Medlemmar i OIDC-synkade grupper återställs från identitetsleverantören varje gång dessa användare loggar in."
+    "groupsOidcNote": "Medlemmar i OIDC-synkade grupper återställs från identitetsleverantören varje gång dessa användare loggar in.",
+    "userGroupsDescription": "Grupper som denna användare tillhör",
+    "membersCount": "Medlemmar: {count}",
+    "userGroupsCount": "Grupper: {count}",
+    "groupNameRequired": "Gruppnamn är obligatoriskt.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Gruppnamnet får innehålla högst {max} tecken.",
+    "groupNameInvalid": "Gruppnamnet får inte innehålla specialtecken.",
+    "groupExists": "Det finns redan en grupp med det namnet.",
+    "selectEntities": "Välj",
+    "selectUser": "Välj användare",
+    "selectUsers": "Välj användare",
+    "selectGroup": "Välj grupp",
+    "selectGroups": "Välj grupper",
+    "refineSearch": "Här visas de första träffarna för ” {count} ”. Begränsa din sökning för att se fler resultat."
   },
   "editor": {
     "stats": {

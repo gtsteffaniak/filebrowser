@@ -677,7 +677,21 @@
     "userGroups": "المجموعات",
     "groupMembers": "الأعضاء",
     "deleteGroupConfirm": "هل تريد حذف المجموعة \"{name}\"؟ ستتم إزالتها أيضًا من جميع قواعد الوصول.",
-    "groupsOidcNote": "تتم إعادة تعيين أعضاء المجموعات المتزامنة عبر OIDC من موفّر الهوية في كل مرة يسجّل فيها هؤلاء المستخدمون الدخول."
+    "groupsOidcNote": "تتم إعادة تعيين أعضاء المجموعات المتزامنة عبر OIDC من موفّر الهوية في كل مرة يسجّل فيها هؤلاء المستخدمون الدخول.",
+    "userGroupsDescription": "المجموعات التي ينتمي إليها هذا المستخدم",
+    "membersCount": "الأعضاء: {count}",
+    "userGroupsCount": "المجموعات: {count}",
+    "groupNameRequired": "اسم المجموعة مطلوب.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "يجب ألا يتجاوز عدد أحرف اسم المجموعة {max} حرفًا.",
+    "groupNameInvalid": "يجب ألا يحتوي اسم المجموعة على أحرف تحكم.",
+    "groupExists": "توجد بالفعل مجموعة تحمل هذا الاسم.",
+    "selectEntities": "اختر",
+    "selectUser": "اختر مستخدمًا",
+    "selectUsers": "اختيار المستخدمين",
+    "selectGroup": "اختر مجموعة",
+    "selectGroups": "اختر المجموعات",
+    "refineSearch": "عرض أول النتائج لـ « {count} ». قم بتحديد معايير البحث لرؤية المزيد."
   },
   "fileLoading": {
     "title": "التحميلات والتنزيلات",

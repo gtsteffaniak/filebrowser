@@ -103,13 +103,7 @@ export default {
       if (!this.name || this.nameError || this.saving) return;
       this.saving = true;
       try {
-        const res = await accessApi.saveGroup(this.name.trim(), this.selected, this.isNew);
-        const unknown = res?.unknownMembers;
-        if (Array.isArray(unknown) && unknown.length > 0) {
-          notify.showWarningToast(
-            this.$t("access.unknownMembersNote", { names: unknown.join(", ") }),
-          );
-        }
+        await accessApi.saveGroup(this.name.trim(), this.selected, this.isNew);
         eventBus.emit("groupsChanged");
         mutations.closeTopPrompt(this.promptId ?? undefined);
       } catch (e) {

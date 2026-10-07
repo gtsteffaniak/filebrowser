@@ -677,7 +677,21 @@
     "userGroups": "Grupy",
     "groupMembers": "Członkowie",
     "deleteGroupConfirm": "Usunąć grupę „{name}”? Zostanie ona również usunięta ze wszystkich reguł dostępu.",
-    "groupsOidcNote": "Członkowie grup synchronizowanych przez OIDC są resetowani z dostawcy tożsamości przy każdym logowaniu tych użytkowników."
+    "groupsOidcNote": "Członkowie grup synchronizowanych przez OIDC są resetowani z dostawcy tożsamości przy każdym logowaniu tych użytkowników.",
+    "userGroupsDescription": "Grupy, do których należy ten użytkownik",
+    "membersCount": "Członkowie: {count}",
+    "userGroupsCount": "Grupy: {count}",
+    "groupNameRequired": "Nazwa grupy jest wymagana.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Nazwa grupy może zawierać maksymalnie {max} znaków.",
+    "groupNameInvalid": "Nazwa grupy nie może zawierać znaków sterujących.",
+    "groupExists": "Grupa o tej nazwie już istnieje.",
+    "selectEntities": "Wybierz",
+    "selectUser": "Wybierz użytkownika",
+    "selectUsers": "Wybierz użytkowników",
+    "selectGroup": "Wybierz grupę",
+    "selectGroups": "Wybierz grupy",
+    "refineSearch": "Wyświetlane są pierwsze wyniki z kategorii „ {count} ”. Zawęź wyszukiwanie, aby wyświetlić więcej wyników."
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",

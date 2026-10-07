@@ -677,7 +677,21 @@
     "userGroups": "קבוצות",
     "groupMembers": "חברים",
     "deleteGroupConfirm": "למחוק את הקבוצה \"{name}\"? היא תוסר גם מכל כללי הגישה.",
-    "groupsOidcNote": "חברי קבוצות שמסונכרנות דרך OIDC מאופסים מספק הזהות בכל פעם שמשתמשים אלה מתחברים."
+    "groupsOidcNote": "חברי קבוצות שמסונכרנות דרך OIDC מאופסים מספק הזהות בכל פעם שמשתמשים אלה מתחברים.",
+    "userGroupsDescription": "הקבוצות שאליהן משתייך המשתמש הזה",
+    "membersCount": "חברים: {count}",
+    "userGroupsCount": "קבוצות: {count}",
+    "groupNameRequired": "יש להזין שם לקבוצה.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "שם הקבוצה חייב להכיל לכל היותר {max} תווים.",
+    "groupNameInvalid": "שם הקבוצה אינו רשאי להכיל תווים מיוחדים.",
+    "groupExists": "כבר קיימת קבוצה בשם זה.",
+    "selectEntities": "בחר",
+    "selectUser": "בחר משתמש",
+    "selectUsers": "בחר משתמשים",
+    "selectGroup": "בחר קבוצה",
+    "selectGroups": "בחר קבוצות",
+    "refineSearch": "מוצגים התוצאות הראשונות עבור \" {count} \". צמצם את החיפוש כדי לראות תוצאות נוספות."
   },
   "fileLoading": {
     "title": "העלאות והורדות",

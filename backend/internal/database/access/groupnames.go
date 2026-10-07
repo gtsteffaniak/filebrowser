@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 // MaxGroupNameLength bounds names for manually created groups. Existing names
 // (e.g. LDAP DNs synced from an IdP) may exceed it and are never rejected on read.
 const MaxGroupNameLength = 128
+
+// MinGroupNameLength bounds manually created group names. Existing records are
+// never rejected so legacy single-character names stay usable.
+const MinGroupNameLength = 2
 
 // NormalizeGroupName trims and validates a group name supplied by an admin API.
 // It is only used when manually creating or referencing a group; names that
@@ -18,6 +23,9 @@ func NormalizeGroupName(name string) (string, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return "", fmt.Errorf("group name is required")
+	}
+	if utf8.RuneCountInString(name) < MinGroupNameLength {
+		return "", fmt.Errorf("group name must be at least %d characters", MinGroupNameLength)
 	}
 	if len(name) > MaxGroupNameLength {
 		return "", fmt.Errorf("group name exceeds %d characters", MaxGroupNameLength)

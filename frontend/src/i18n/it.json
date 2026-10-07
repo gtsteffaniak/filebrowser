@@ -771,7 +771,21 @@
     "userGroups": "Gruppi",
     "groupMembers": "Membri",
     "deleteGroupConfirm": "Eliminare il gruppo \"{name}\"? Verrà rimosso anche da tutte le regole di accesso.",
-    "groupsOidcNote": "I membri dei gruppi sincronizzati tramite OIDC vengono reimpostati dal provider di identità a ogni accesso di tali utenti."
+    "groupsOidcNote": "I membri dei gruppi sincronizzati tramite OIDC vengono reimpostati dal provider di identità a ogni accesso di tali utenti.",
+    "userGroupsDescription": "Gruppi di cui fa parte questo utente",
+    "membersCount": "Membri: {count}",
+    "userGroupsCount": "Gruppi: {count}",
+    "groupNameRequired": "Il nome del gruppo è obbligatorio.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Il nome del gruppo deve contenere al massimo {max} caratteri.",
+    "groupNameInvalid": "Il nome del gruppo non deve contenere caratteri di controllo.",
+    "groupExists": "Esiste già un gruppo con questo nome.",
+    "selectEntities": "Seleziona",
+    "selectUser": "Seleziona utente",
+    "selectUsers": "Seleziona gli utenti",
+    "selectGroup": "Seleziona un gruppo",
+    "selectGroups": "Seleziona i gruppi",
+    "refineSearch": "Vengono visualizzati i primi risultati per \" {count} \". Affina la ricerca per visualizzarne altri."
   },
   "fileLoading": {
     "title": "Caricamenti e Download",

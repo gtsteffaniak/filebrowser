@@ -782,7 +782,21 @@
     "userGroups": "Groepen",
     "groupMembers": "Leden",
     "deleteGroupConfirm": "Groep \"{name}\" verwijderen? Deze wordt ook uit alle toegangsregels verwijderd.",
-    "groupsOidcNote": "Leden van OIDC-gesynchroniseerde groepen worden bij elke aanmelding van die gebruikers opnieuw ingesteld vanuit de identiteitsprovider."
+    "groupsOidcNote": "Leden van OIDC-gesynchroniseerde groepen worden bij elke aanmelding van die gebruikers opnieuw ingesteld vanuit de identiteitsprovider.",
+    "userGroupsDescription": "Groepen waarvan deze gebruiker lid is",
+    "membersCount": "Leden: {count}",
+    "userGroupsCount": "Groepen: {count}",
+    "groupNameRequired": "De groepsnaam is verplicht.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "De groepsnaam mag maximaal {max} tekens lang zijn.",
+    "groupNameInvalid": "De groepsnaam mag geen besturingstekens bevatten.",
+    "groupExists": "Er bestaat al een groep met deze naam.",
+    "selectEntities": "Selecteer",
+    "selectUser": "Gebruiker selecteren",
+    "selectUsers": "Gebruikers selecteren",
+    "selectGroup": "Groep selecteren",
+    "selectGroups": "Groepen selecteren",
+    "refineSearch": "De eerste {count} -resultaten worden weergegeven. Verfijn je zoekopdracht om meer resultaten te zien."
   },
   "editor": {
     "stats": {

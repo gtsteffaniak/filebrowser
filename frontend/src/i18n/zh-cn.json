@@ -782,7 +782,21 @@
     "userGroups": "群组",
     "groupMembers": "成员",
     "deleteGroupConfirm": "删除群组“{name}”?它也将从所有访问规则中移除。",
-    "groupsOidcNote": "通过 OIDC 同步的群组成员会在这些用户每次登录时从身份提供商重置。"
+    "groupsOidcNote": "通过 OIDC 同步的群组成员会在这些用户每次登录时从身份提供商重置。",
+    "userGroupsDescription": "该用户所属的组",
+    "membersCount": "成员：{count}",
+    "userGroupsCount": "组：{count}",
+    "groupNameRequired": "必须填写组名。",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "组名长度不得超过{max} 个字符。",
+    "groupNameInvalid": "组名中不得包含控制字符。",
+    "groupExists": "已经有一个同名的群组了。",
+    "selectEntities": "选择",
+    "selectUser": "选择用户",
+    "selectUsers": "选择用户",
+    "selectGroup": "选择组",
+    "selectGroups": "选择组",
+    "refineSearch": "显示前{count} 个匹配结果。缩小搜索范围以查看更多结果。"
   },
   "editor": {
     "stats": {

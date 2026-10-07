@@ -47,7 +47,7 @@
         <LoadingSpinner size="medium" />
       </div>
       <div v-else-if="visibleNames.length === 0" class="entity-picker-empty">
-        {{ filter ? $t("search.noResults") : (kind === "group" ? $t("access.noGroups") : $t("access.noUsers")) }}
+        {{ filter ? $t("search.noResults") : $t("files.lonely") }}
       </div>
       <ul v-else class="entity-picker-list" role="listbox" :aria-multiselectable="multiple">
       <li

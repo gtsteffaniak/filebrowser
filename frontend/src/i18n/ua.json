@@ -782,7 +782,21 @@
     "userGroups": "Групи",
     "groupMembers": "Учасники",
     "deleteGroupConfirm": "Видалити групу «{name}»? Її також буде вилучено з усіх правил доступу.",
-    "groupsOidcNote": "Учасники груп, синхронізованих через OIDC, скидаються з провайдера ідентифікації при кожному вході цих користувачів."
+    "groupsOidcNote": "Учасники груп, синхронізованих через OIDC, скидаються з провайдера ідентифікації при кожному вході цих користувачів.",
+    "userGroupsDescription": "Групи, до яких належить цей користувач",
+    "membersCount": "Учасники: {count}",
+    "userGroupsCount": "Групи: {count}",
+    "groupNameRequired": "Назва групи є обов’язковою.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Назва групи повинна містити не більше {max} символів.",
+    "groupNameInvalid": "Назва групи не повинна містити керуючі символи.",
+    "groupExists": "Група з такою назвою вже існує.",
+    "selectEntities": "Вибрати",
+    "selectUser": "Вибрати користувача",
+    "selectUsers": "Вибрати користувачів",
+    "selectGroup": "Вибрати групу",
+    "selectGroups": "Вибрати групи",
+    "refineSearch": "Показано перші результати за запитом « {count} ». Уточніть пошук, щоб переглянути більше результатів."
   },
   "editor": {
     "stats": {

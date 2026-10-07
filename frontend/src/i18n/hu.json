@@ -677,7 +677,21 @@
     "userGroups": "Csoportok",
     "groupMembers": "Tagok",
     "deleteGroupConfirm": "Törli a(z) „{name}” csoportot? Az összes hozzáférési szabályból is el lesz távolítva.",
-    "groupsOidcNote": "Az OIDC-vel szinkronizált csoportok tagjai minden bejelentkezéskor visszaállnak az identitásszolgáltatótól."
+    "groupsOidcNote": "Az OIDC-vel szinkronizált csoportok tagjai minden bejelentkezéskor visszaállnak az identitásszolgáltatótól.",
+    "userGroupsDescription": "Csoportok, amelyekhez ez a felhasználó tartozik",
+    "membersCount": "Tagok: {count}",
+    "userGroupsCount": "Csoportok: {count}",
+    "groupNameRequired": "A csoport neve kötelező mező.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "A csoport neve legfeljebb {max} karakterből állhat.",
+    "groupNameInvalid": "A csoportnév nem tartalmazhat vezérlő karaktereket.",
+    "groupExists": "Már létezik egy ilyen nevű csoport.",
+    "selectEntities": "Kiválasztás",
+    "selectUser": "Felhasználó kiválasztása",
+    "selectUsers": "Felhasználók kiválasztása",
+    "selectGroup": "Csoport kiválasztása",
+    "selectGroups": "Csoportok kiválasztása",
+    "refineSearch": "Az első „ {count} ” találatok megjelenítése. A keresés szűkítésével további találatokat tekinthet meg."
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",
