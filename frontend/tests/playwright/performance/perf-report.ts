@@ -1,14 +1,14 @@
-import type { ProbeSnapshot } from "./perf-helpers";
+import type { ProbeSnapshot } from "./perf-helpers.ts";
 import {
   scopedLongTasks,
   scenarioDuration,
   extractBaselineMetrics,
-} from "./perf-extract";
-import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp";
-import type { FrameTimingStat } from "./perf-frames";
-import type { TraceAnalysis, TraceFunction } from "./perf-trace";
+} from "./perf-extract.ts";
+import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp.ts";
+import type { FrameTimingStat } from "./perf-frames.ts";
+import type { TraceAnalysis, TraceFunction } from "./perf-trace.ts";
 
-export type PerfResultFile = {
+export interface PerfResultFile {
   scenario: string;
   browser: string;
   scale: number;
@@ -16,12 +16,12 @@ export type PerfResultFile = {
   metrics: Record<string, unknown>;
   /** Number of iterations aggregated into this result. */
   iteration?: number;
-};
+}
 
-export type ScenarioTiming = {
+export interface ScenarioTiming {
   scenario: string;
   ms: number;
-};
+}
 
 function domFrom(metrics: Record<string, unknown>) {
   return metrics.dom as
@@ -100,9 +100,9 @@ function traceContributors(
     out.push({
       factor: `Chrome trace: ${fn.name}`,
       detail:
-        `Self time ${fn.selfMs} ms in captured trace` +
-        (fn.location ? ` (${fn.location})` : "") +
-        ".",
+        `Self time ${fn.selfMs} ms in captured trace${
+        fn.location ? ` (${fn.location})` : ""
+        }.`,
       source,
       severity: fn.selfMs > scenarioMs * 0.15 ? "high" : "medium",
       contributionMs: Math.round(fn.selfMs),
@@ -158,7 +158,7 @@ function hottestAppTraceFunction(
   );
 }
 
-export type PerfContributor = {
+export interface PerfContributor {
   rank: number;
   factor: string;
   detail: string;
@@ -168,9 +168,9 @@ export type PerfContributor = {
   /** Where in the source this originates, when known. */
   source?: { file: string; line?: number; symbol?: string };
   evidence: Record<string, number | string | boolean | null>;
-};
+}
 
-export type RunProfiling = {
+export interface RunProfiling {
   interactionMs: number;
   dom: ReturnType<typeof domFrom>;
   probe: ProbeSnapshot | undefined;
@@ -180,16 +180,16 @@ export type RunProfiling = {
   frames?: FrameTimingStat;
   chromeTracePath: string | null;
   listenerDelta?: number;
-};
+}
 
-export type AnalysisTableRow = {
+export interface AnalysisTableRow {
   browser: string;
   scale: number;
   scenario: string;
   metric: string;
   /** Typed so consumers can compare numerically. */
   value: number | string | boolean | null;
-};
+}
 
 export function buildRunProfiling(result: PerfResultFile): RunProfiling {
   const { scenario, metrics } = result;
@@ -298,9 +298,9 @@ export function buildContributors(
         factor: "Renderer main-thread attribution",
         detail:
           `Script ${scriptMs} ms, layout ${layoutMs} ms, ` +
-          `style recalc ${styleMs} ms across the scenario window` +
-          (cdpWindowMs !== undefined ? ` (${cdpWindowMs} ms wall)` : "") +
-          ` (${delta.LayoutCount ?? 0} layouts).`,
+          `style recalc ${styleMs} ms across the scenario window${
+          cdpWindowMs !== undefined ? ` (${cdpWindowMs} ms wall)` : ""
+          } (${delta.LayoutCount ?? 0} layouts).`,
         severity: totalMs > ms * 0.5 ? "high" : "medium",
         contributionMs: totalMs,
         evidence: {

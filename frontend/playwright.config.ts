@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import type { PlaywrightFixtureOptions } from "./tests/playwright/test-setup";
+import type { PlaywrightFixtureOptions } from "./tests/playwright/test-setup.ts";
 
 /**
  * Read environment variables from file.

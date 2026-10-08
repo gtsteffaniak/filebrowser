@@ -1,6 +1,6 @@
-import { resourcesApi } from "@/api";
-import { notify } from "@/notify";
-import { getters, mutations, state } from "@/store";
+import { resourcesApi } from "@/api/index.js";
+import { notify } from "@/notify/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
 
 export default function downloadFiles(items) {
   if (items.length === 0) {

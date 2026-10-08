@@ -45,7 +45,15 @@
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
             <input class="button button--block" type="submit" :disabled="globalVars.recaptcha && !recaptchaReady"
               :value="createMode ? $t('general.signup') : getLoginButtonValue()" />
-            <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
+            <p
+              v-if="signup"
+              @click="toggleMode"
+              @keydown.enter.prevent="toggleMode"
+              @keydown.space.prevent="toggleMode"
+              role="button"
+              tabindex="0"
+              aria-label="sign up toggle"
+            >
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
             </p>
           </div>
@@ -294,10 +302,11 @@ export default {
   }),
   watch: {
     // To render a new captcha whenever the login form is re-created (which can happen with wrong credentials)
-    inProgress(isInProgress, wasInProgress) {
+    async inProgress(isInProgress, wasInProgress) {
       if (!globalVars.recaptcha || !wasInProgress || isInProgress) return;
       this.recaptchaReady = false;
-      this.$nextTick(() => this.renderRecaptcha());
+      await this.$nextTick();
+      this.renderRecaptcha();
     },
   },
   mounted() {

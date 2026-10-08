@@ -9,7 +9,7 @@ import {
   clampActivityChartInterval,
   activityChartIntervalAllowed,
   ACTIVITY_MAX_MINUTE_RANGE_SECS,
-} from "./activityChartTime";
+} from "./activityChartTime.js";
 
 describe("activityChartTime", () => {
   it("floors timestamps to interval boundaries", () => {

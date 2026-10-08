@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("indexing disabled still shows files", async ({ page, checkForErrors }) => {
     await page.goto("/files/docker");

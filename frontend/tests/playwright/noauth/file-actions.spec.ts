@@ -1,4 +1,4 @@
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup.ts";
 
 /** Move/Copy prompt path line: PathPickerButton shows `/path (source)`; noauth config names the tree `exclude`. */
 const copyDestLabel = (page: import("@playwright/test").Page) =>

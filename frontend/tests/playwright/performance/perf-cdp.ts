@@ -48,12 +48,12 @@ export const GAUGE_CDP_METRICS = [
 
 export type CdpMetricMap = Record<string, number>;
 
-export type CdpSample = {
+export interface CdpSample {
   cumulative: CdpMetricMap;
   gauge: CdpMetricMap;
-};
+}
 
-export type CdpDelta = {
+export interface CdpDelta {
   /** Differences of cumulative counters over the scenario window. */
   delta: CdpMetricMap;
   /** Absolute gauge readings taken after the scenario. */
@@ -63,7 +63,7 @@ export type CdpDelta = {
   after: CdpMetricMap;
   /** Wall-clock duration of the CDP window, for rate calculations. */
   windowMs: number;
-};
+}
 
 export function isChromiumPage(page: Page): boolean {
   return page.context().browser()?.browserType().name() === "chromium";
@@ -105,8 +105,8 @@ export async function withCdpDelta<T>(
     return { result: await fn(), cdp: null };
   }
 
-  let session: Awaited<ReturnType<typeof newCdpSession>> | null = null;
-  let before: ReturnType<typeof splitMetrics> | null = null;
+  let session: Awaited<ReturnType<typeof newCdpSession>>;
+  let before: ReturnType<typeof splitMetrics>;
   try {
     session = await newCdpSession(page);
     before = splitMetrics(
@@ -122,12 +122,12 @@ export async function withCdpDelta<T>(
     const windowMs = Date.now() - startedAt;
 
     const after = splitMetrics(
-      (await session!.send("Performance.getMetrics")).metrics,
+      (await session.send("Performance.getMetrics")).metrics,
     );
 
     const delta: CdpMetricMap = {};
     for (const key of CUMULATIVE_CDP_METRICS) {
-      const b = before!.cumulative[key];
+      const b = before.cumulative[key];
       const a = after.cumulative[key];
       if (typeof a === "number" && typeof b === "number") {
         // Counters can reset if the renderer navigated; clamp at 0 rather than
@@ -141,14 +141,14 @@ export async function withCdpDelta<T>(
       cdp: {
         delta,
         gauge: after.gauge,
-        before: before!.cumulative,
+        before: before.cumulative,
         after: after.cumulative,
         windowMs,
       },
     };
   } finally {
     try {
-      await session?.detach();
+      await session.detach();
     } catch {
       /* session already gone */
     }

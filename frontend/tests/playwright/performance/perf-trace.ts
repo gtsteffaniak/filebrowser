@@ -14,7 +14,7 @@ import { readFile } from "node:fs/promises";
  *  - major GC events, which explain frame drops without a hot function.
  */
 
-export type TraceFunction = {
+export interface TraceFunction {
   name: string;
   selfMs: number;
   totalMs: number;
@@ -22,9 +22,9 @@ export type TraceFunction = {
   samples: number;
   /** Source location when the trace carried one. */
   location: string | null;
-};
+}
 
-export type TraceAnalysis = {
+export interface TraceAnalysis {
   tracePath: string;
   eventCount: number;
   totalMs: number;
@@ -39,9 +39,9 @@ export type TraceAnalysis = {
   categories: Record<string, number>;
   /** Human-readable one-liners derived from the aggregates. */
   findings: string[];
-};
+}
 
-type RawTraceEvent = {
+interface RawTraceEvent {
   ph?: string;
   name?: string;
   cat?: string;
@@ -50,7 +50,7 @@ type RawTraceEvent = {
   pid?: number;
   tid?: number;
   args?: Record<string, unknown>;
-};
+}
 
 /** Read and aggregate a trace file. Never throws on malformed input. */
 export async function analyzeTrace(
@@ -106,7 +106,7 @@ export async function analyzeTrace(
     if (e.ph === "X" && typeof e.dur === "number") {
       totalMs += e.dur;
       if (e.cat) {
-        const primary = e.cat.split(",")[0];
+        const primary = e.cat.split(",")[0] ?? e.cat;
         categories[primary] = (categories[primary] ?? 0) + e.dur;
       }
 

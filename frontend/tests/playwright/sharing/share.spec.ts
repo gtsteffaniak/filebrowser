@@ -1,4 +1,4 @@
-import { checkForNotification, expect, openShareFromFileActions, test } from "../test-setup";
+import { checkForNotification, expect, openShareFromFileActions, test } from "../test-setup.ts";
 
 test("root share path is valid", async ({ page, checkForErrors }) => {
   await page.goto("/files/");

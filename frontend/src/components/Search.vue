@@ -629,7 +629,7 @@ export default {
         return "";
       }
     },
-    open() {
+    async open() {
       if (state.isSearchActive) return;
       if (getters.currentPromptName()) return;
 
@@ -638,16 +638,15 @@ export default {
       mutations.resetSelected();
       mutations.setSearch(true);
 
-      this.$nextTick(() => {
-        const input = this.$refs.input;
-        if (input) {
-          input.focus();
-        }
-        const resultList = document.getElementById("result-list");
-        if (resultList) {
-          resultList.classList.add("active");
-        }
-      });
+      await this.$nextTick();
+      const input = this.$refs.input;
+      if (input) {
+        input.focus();
+      }
+      const resultList = document.getElementById("result-list");
+      if (resultList) {
+        resultList.classList.add("active");
+      }
     },
     openInAdvancedSearch() {
       let sourcesToSearch;

@@ -1,17 +1,57 @@
 import path from "node:path";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import vue from "@vitejs/plugin-vue";
-import { defineConfig } from "vite";
+import { defineConfig, type Rolldown } from "vite";
 import checker from "vite-plugin-checker";
 import { compression } from "vite-plugin-compression2";
+import stripLegacyCSS from "./scripts/postcss-strip-legacy.ts";
+import protectTemplateStyles from "./scripts/vite-protect-template-styles.ts";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
-const backendWebDist = path.resolve(__dirname, "../backend/internal/web/dist");
+const backendWebDist = path.resolve(import.meta.dirname, "../backend/internal/web/dist");
 
 const resolve = {
   alias: {
-    "@": path.resolve(__dirname, "src"),
+    "@": path.resolve(import.meta.dirname, "src"),
   },
+};
+
+const css = {
+  postcss: {
+    plugins: [stripLegacyCSS()],
+  },
+};
+
+const define = {
+  __VUE_I18N_LEGACY_API__: JSON.stringify(false),
+  __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
+};
+
+const test = {
+  globals: true,
+  include: [
+    "src/**/*.test.{js,ts}",
+    "tests/playwright/performance/**/*.test.ts",
+  ],
+  exclude: ["src/**/*.vue"],
+  environment: "jsdom",
+  setupFiles: "tests/mocks/setup.js",
+};
+
+const chunks: Record<string, string[]> = {
+  store: ["/src/store/"],
+  highlightjs: ["node_modules/highlight.js"],
+  mammoth: ["node_modules/mammoth"],
+  epubjs: ["node_modules/jszip", "node_modules/epubjs"],
+  katex: ["node_modules/katex", "node_modules/marked-katex-extension"],
+};
+
+// Better error handling in watch mode: suppress certain warnings in dev builds.
+const onwarn: NonNullable<Rolldown.InputOptions["onwarn"]> = (warning, warn) => {
+  if (isDevBuild && warning.code === "UNUSED_EXTERNAL_IMPORT") {
+    return;
+  }
+  warn(warning);
 };
 
 // https://vitejs.dev/config/
@@ -19,13 +59,15 @@ export default defineConfig(({ command }) => {
   const isServe = command === "serve";
 
   const plugins = [
+    ...protectTemplateStyles(),
     vue(),
     VueI18nPlugin({
       runtimeOnly: false,
-      include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
+      include: [path.resolve(import.meta.dirname, "./src/i18n/**/*.json")],
     }),
     // Only compress in production builds
     !isDevBuild && !isServe && compression({
+      algorithms: ["gzip"],
       include: /\.(js|woff2|woff)(\?|$)/i,
       deleteOriginalAssets: true,
     }),
@@ -33,7 +75,7 @@ export default defineConfig(({ command }) => {
     !isDevBuild && !isServe && checker({
       typescript: false, // Disable redundant check
       vueTsc: {
-        tsconfigPath: "./tsconfig.json",
+        tsconfigPath: "./tsconfig.app.json",
       },
     }),
   ].filter(Boolean);
@@ -45,8 +87,9 @@ export default defineConfig(({ command }) => {
     return {
       plugins,
       resolve,
+      css,
       base: "/__vite/",
-      publicDir: path.resolve(__dirname, "public"),
+      publicDir: path.resolve(import.meta.dirname, "public"),
       server: {
         host: "127.0.0.1",
         port: devPort,
@@ -57,28 +100,17 @@ export default defineConfig(({ command }) => {
           clientPort: Number.parseInt(process.env.VITE_DEV_CLIENT_PORT || "8080", 10),
         },
       },
-      define: {
-        __VUE_I18N_LEGACY_API__: JSON.stringify(false),
-        __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
-      },
-      test: {
-        globals: true,
-        include: ["src/**/*.test.js"],
-        exclude: ["src/**/*.vue"],
-        environment: "jsdom",
-        setupFiles: "tests/mocks/setup.js",
-      },
+      define,
+      test,
     };
   }
 
   return {
     plugins,
     resolve,
+    css,
     base: "",
-    define: {
-      __VUE_I18N_LEGACY_API__: JSON.stringify(false),
-      __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
-    },
+    define,
     build: {
       outDir: backendWebDist,
       emptyOutDir: true,
@@ -90,38 +122,31 @@ export default defineConfig(({ command }) => {
       target: "es2024",
       sourcemap: false,
       chunkSizeWarningLimit: 5000,
-      rollupOptions: {
+      rolldownOptions: {
+        // vue-tsc and compression run after the bundle is built
+        checks: { pluginTimings: false },
         input: {
-          index: path.resolve(__dirname, "./public/index.html"),
+          index: path.resolve(import.meta.dirname, "./public/index.html"),
         },
         output: {
-          manualChunks(id) {
-            if (id.includes("/src/store/")) {
-              return "store";
-            }
-            if (id.includes("node_modules/highlight.js")) {
-              return "highlightjs";
-            }
-            if (id.includes("node_modules/mammoth")) {
-              return "mammoth";
-            }
-            if (id.includes("node_modules/jszip") || id.includes("node_modules/epubjs")) {
-              return "epubjs";
-            }
-            if (id.includes("node_modules/katex") || id.includes("node_modules/marked-katex-extension")) {
-              return "katex";
-            }
-            return undefined;
+          strictExecutionOrder: true,
+          codeSplitting: {
+            groups: [
+              {
+                debugName: "manual-chunks",
+                name(id: string) {
+                  for (const [name, needles] of Object.entries(chunks)) {
+                    if (needles.some((n) => id.includes(n))) {
+                      return name;
+                    }
+                  }
+                  return null;
+                },
+              },
+            ],
           },
         },
-        // Better error handling in watch mode
-        onwarn(warning, warn) {
-          // Suppress certain warnings in dev mode
-          if (isDevBuild && warning.code === "UNUSED_EXTERNAL_IMPORT") {
-            return;
-          }
-          warn(warning);
-        },
+        onwarn,
       },
     },
     experimental: {
@@ -136,12 +161,6 @@ export default defineConfig(({ command }) => {
         }
       },
     },
-    test: {
-      globals: true,
-      include: ["src/**/*.test.js"],
-      exclude: ["src/**/*.vue"],
-      environment: "jsdom",
-      setupFiles: "tests/mocks/setup.js",
-    },
+    test,
   };
 });

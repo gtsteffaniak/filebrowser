@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("admin user jwt works", async({ page, checkForErrors }) => {
     test.skip(test.info().project.name !== "admin-user", "Only run on admin-user project");

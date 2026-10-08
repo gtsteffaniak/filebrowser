@@ -1,9 +1,9 @@
 import DOMPurify from "dompurify";
-import { getters, state } from "@/store";
-import { getCachedViewToken } from "@/api/viewToken";
-import { getViewURL } from "@/api/resources";
-import { getParentDir, resolveRelativePath } from "@/utils/url";
-import { globalVars } from "./constants";
+import { getters, state } from "@/store/index.ts";
+import { getCachedViewToken } from "@/api/viewToken.js";
+import { getViewURL } from "@/api/resources.js";
+import { getParentDir, resolveRelativePath } from "@/utils/url.js";
+import { globalVars } from "./constants.js";
 
 export const HTML_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true, svg: true, svgFilters: true },
@@ -131,22 +131,19 @@ export function buildPreviewResourceUrl(
     getCachedViewToken(source);
 
   try {
-    let viewUrl;
-    if (getters.isShare()) {
-      viewUrl = getViewURL(
-        source,
-        resolvedPath,
-        viewToken,
-        {
-          path: state.shareInfo.subPath,
-          hash: state.shareInfo.hash,
-        },
-        false,
-        resolvedPath,
-      );
-    } else {
-      viewUrl = getViewURL(source, resolvedPath, viewToken, null, false, resolvedPath);
-    }
+    const viewUrl = getters.isShare()
+      ? getViewURL(
+          source,
+          resolvedPath,
+          viewToken,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+          },
+          false,
+          resolvedPath,
+        )
+      : getViewURL(source, resolvedPath, viewToken, null, false, resolvedPath);
     return viewUrl ?? href;
   } catch {
     return href;

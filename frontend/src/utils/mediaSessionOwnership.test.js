@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ownsMediaSession } from "./mediaSessionOwnership";
+import { ownsMediaSession } from "./mediaSessionOwnership.js";
 
 describe("ownsMediaSession", () => {
   it("rejects uninitialized viewers", () => {

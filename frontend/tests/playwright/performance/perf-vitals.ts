@@ -8,7 +8,7 @@
  * the report instead of looking like a zero.
  */
 
-export type WebVitals = {
+export interface WebVitals {
   navigation: {
     domInteractive: number | null;
     domContentLoaded: number | null;
@@ -35,9 +35,9 @@ export type WebVitals = {
   };
   /** Metrics this engine does not expose, so absence is explainable. */
   unsupported: string[];
-};
+}
 
-export type InteractionTiming = {
+export interface InteractionTiming {
   /** Raw event-timing durations observed for the scenario. */
   samples: number;
   p50: number;
@@ -45,7 +45,7 @@ export type InteractionTiming = {
   max: number;
   /** Processing (script) time, the INP-relevant component. */
   processingP95: number;
-};
+}
 
 /** Install observers for web-vitals style entries. Call before navigation. */
 export function installWebVitals(page: {
@@ -135,7 +135,7 @@ export function installWebVitals(page: {
           sorted.length - 1,
           Math.max(0, Math.ceil((p / 100) * sorted.length) - 1),
         );
-        return Math.round(sorted[idx] * 100) / 100;
+        return Math.round((sorted[idx] ?? 0) * 100) / 100;
       };
       return {
         samples: state.eventTimings.length,

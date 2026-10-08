@@ -93,8 +93,8 @@ watch(() => getters.isDarkMode(), () => { applyTheme() }, { flush: "post" });
 onMounted(async () => {
   mutations.resetSelected();
   mutations.addSelected({
-    name: state.req.name,
-    path: state.req.path,
+    name: state.req.name ?? "",
+    path: state.req.path ?? "",
     size: state.req.size,
     type: state.req.type,
     source: state.req.source,

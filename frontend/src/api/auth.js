@@ -1,5 +1,5 @@
-import { fetchJSON, fetchURL } from '@/api/utils'
-import { notify } from '@/notify'
+import { fetchJSON, fetchURL } from "@/api/utils.ts"
+import { notify } from "@/notify/index.ts"
 import { getApiPath } from '@/utils/url.js'
 
 // POST /api/auth/password/change-required

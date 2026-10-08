@@ -22,7 +22,7 @@ vi.mock("@/api/media", () => ({
   getStreamURLPublic: () => "http://localhost/public/stream",
 }));
 
-import { getViewURL, getOpenFileURL } from "@/api/resources";
+import { getViewURL, getOpenFileURL } from "@/api/resources.js";
 
 describe("getViewURL", () => {
   it("routes audio to media stream with viewToken", () => {

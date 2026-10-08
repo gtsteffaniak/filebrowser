@@ -1,6 +1,7 @@
-import { checkForNotification, expect, test } from "../test-setup";
+import type { Page } from "@playwright/test";
+import { checkForNotification, expect, test } from "../test-setup.ts";
 
-const copyDestLabel = (page: import("@playwright/test").Page) =>
+const copyDestLabel = (page: Page) =>
   page.locator('div[aria-label="copy-prompt"] .move-copy-path-picker');
 
 /** Matches `_docker/src/general/backend/server-config.yaml` source name. */
@@ -116,14 +117,14 @@ test("2x copy from listing to new folder", async({ page, checkForErrors }) => {
 test("copy 'text-files' to 'folder#hash' verify folder size is updated", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  
+
   // Find folder#hash and get its size before copy
   await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
   const folderHashLink = page.locator('a[aria-label="folder#hash"]');
   const textFilesLink = page.locator('a[aria-label="text-files"]');
   const textFilesSizeBefore = await textFilesLink.locator('.size').textContent();
   const folderHashSizeBefore = await folderHashLink.locator('.size').textContent();
-  
+
   // Copy myfotext-filesder
   await textFilesLink.click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
@@ -208,8 +209,12 @@ test("copy destination dialog is sortable and remembers sort order", async ({ pa
   // Click the Name column header to sort descending
   await header.locator('.name').click();
   const descendingLabels = [...ascendingLabels].reverse();
+  const topLabel = descendingLabels[0];
+  if (topLabel === undefined) {
+    throw new Error("copy destination dialog listed no items to sort");
+  }
   expect(await itemLabels()).toEqual(descendingLabels);
-  await expect(firstItem()).toHaveAttribute("aria-label", descendingLabels[0]);
+  await expect(firstItem()).toHaveAttribute("aria-label", topLabel);
   await expect(header.locator('.name')).toHaveClass(/active/);
 
   // Close and reopen the dialog: the sort order is remembered in-session
@@ -217,7 +222,7 @@ test("copy destination dialog is sortable and remembers sort order", async ({ pa
   await page.locator('a[aria-label="copyme.txt"]').click({ button: "right" });
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(copyPrompt).toBeVisible();
-  await expect(firstItem()).toHaveAttribute("aria-label", descendingLabels[0]);
+  await expect(firstItem()).toHaveAttribute("aria-label", topLabel);
 
   // Reload the page: the sort order is persisted in localStorage
   await page.reload();
@@ -226,7 +231,7 @@ test("copy destination dialog is sortable and remembers sort order", async ({ pa
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(copyPrompt).toBeVisible();
-  await expect(firstItem()).toHaveAttribute("aria-label", descendingLabels[0]);
+  await expect(firstItem()).toHaveAttribute("aria-label", topLabel);
 
   // Sorting by Size also works and toggles the active column
   await copyPrompt.locator('.listing-item-header .size').click();

@@ -169,31 +169,29 @@ export default {
     },
   },
   watch: {
-    filePath() {
+    async filePath() {
       if (!this.isInitializing) {
-        this.updateUrl();
+        void this.updateUrl();
         // If watching, restart with new path
         if (this.watching) {
           this.stopWatch();
-          this.$nextTick(() => {
-            this.startWatch();
-          });
+          await this.$nextTick();
+          await this.startWatch();
         }
       }
     },
-    selectedSource() {
+    async selectedSource() {
       if (!this.isInitializing) {
-        this.updateUrl();
+        void this.updateUrl();
         // If watching, restart with new source
         if (this.watching) {
           this.stopWatch();
-          this.$nextTick(() => {
-            this.startWatch();
-          });
+          await this.$nextTick();
+          await this.startWatch();
         }
       }
     },
-    selectedInterval(newVal) {
+    async selectedInterval(newVal) {
       // Validate interval - if user doesn't have realtime and selected 1 or 2, change to 5
       const validated = this.validateInterval(newVal);
       if (validated !== newVal) {
@@ -201,20 +199,20 @@ export default {
         return; // Don't proceed with update, let the watcher fire again with corrected value
       }
 
+      if (!this.isInitializing) {
+        void this.updateUrl();
+      }
+
       // If watching and interval changed, restart watching
       if (this.watching) {
         this.stopWatch();
-        this.$nextTick(() => {
-          this.startWatch();
-        });
-      }
-      if (!this.isInitializing) {
-        this.updateUrl();
+        await this.$nextTick();
+        await this.startWatch();
       }
     },
     selectedLines() {
       if (!this.isInitializing) {
-        this.updateUrl();
+        void this.updateUrl();
       }
     },
     '$route.query'() {
@@ -314,41 +312,40 @@ export default {
         }
       }
     },
-    updateUrl() {
+    async updateUrl() {
       if (!this.$route.path.startsWith('/tools/fileWatcher')) return;
-      this.$nextTick(() => {
-        const query = {};
+      await this.$nextTick();
+      const query = {};
 
-        if (this.filePath && this.filePath !== "/") {
-          query.path = this.filePath;
-        }
+      if (this.filePath && this.filePath !== "/") {
+        query.path = this.filePath;
+      }
 
-        if (this.selectedSource) {
-          query.source = this.selectedSource;
-        }
+      if (this.selectedSource) {
+        query.source = this.selectedSource;
+      }
 
-        if (this.selectedInterval !== 5) {
-          query.interval = String(this.selectedInterval);
-        }
+      if (this.selectedInterval !== 5) {
+        query.interval = String(this.selectedInterval);
+      }
 
-        if (this.selectedLines !== 10) {
-          query.lines = String(this.selectedLines);
-        }
+      if (this.selectedLines !== 10) {
+        query.lines = String(this.selectedLines);
+      }
 
-        const newQueryString = new URLSearchParams(query).toString();
-        const currentQuery = this.$route.query || {};
-        const filteredEntries = Object.entries(currentQuery)
-          .filter(([_, value]) => value !== null && value !== undefined)
-          .map(([key, value]) => [key, String(value)]);
-        const currentQueryString = new URLSearchParams(Object.fromEntries(filteredEntries)).toString();
+      const newQueryString = new URLSearchParams(query).toString();
+      const currentQuery = this.$route.query || {};
+      const filteredEntries = Object.entries(currentQuery)
+        .filter(([_, value]) => value !== null && value !== undefined)
+        .map(([key, value]) => [key, String(value)]);
+      const currentQueryString = new URLSearchParams(Object.fromEntries(filteredEntries)).toString();
 
-        if (newQueryString !== currentQueryString) {
-          this.$router.replace({
-            path: this.$route.path,
-            query: Object.keys(query).length > 0 ? query : undefined,
-          }).catch(() => {});
-        }
-      });
+      if (newQueryString !== currentQueryString) {
+        this.$router.replace({
+          path: this.$route.path,
+          query: Object.keys(query).length > 0 ? query : undefined,
+        }).catch(() => {});
+      }
     },
     async toggleWatch() {
       if (this.watching) {
@@ -506,7 +503,7 @@ export default {
       }
 
       // Scroll to bottom
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         this.scrollToBottom();
       });
     },

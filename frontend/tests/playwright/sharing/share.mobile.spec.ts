@@ -1,4 +1,4 @@
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup.ts";
 
 test.use({viewport: { width: 750, height: 750 }}); // mobile viewport
 test("share download multiple files", async ({ page, checkForErrors }) => {

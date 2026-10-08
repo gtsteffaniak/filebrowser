@@ -1,5 +1,5 @@
-import { router } from "@/router";
-import { getters, mutations, state } from "@/store";
+import { router } from "@/router/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.js";
 
 export default {

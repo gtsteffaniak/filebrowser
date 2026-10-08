@@ -36,7 +36,7 @@ vi.mock("./utils", async (importOriginal) => {
   };
 });
 
-import { fetchFiles } from "@/api/resources";
+import { fetchFiles } from "@/api/resources.js";
 
 function mockListingResponse(numDirs, numFiles) {
   return {

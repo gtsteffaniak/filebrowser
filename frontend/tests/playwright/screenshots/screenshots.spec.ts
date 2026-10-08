@@ -4,7 +4,7 @@ import {
   expect,
   test,
   waitForListing3dThumbnails,
-} from "../test-setup";
+} from "../test-setup.ts";
 
 const jpgQuality = 85;
 

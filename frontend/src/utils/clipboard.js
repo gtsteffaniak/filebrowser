@@ -1,8 +1,8 @@
 // Copy to clipboard.
 // Uses clipboard API when available, and will fallback to execCommand (which is deprecated, but will make it work on insecure connections)
 
-import i18n from '@/i18n';
-import { notify } from '@/notify';
+import i18n from "@/i18n/index.ts";
+import { notify } from "@/notify/index.ts";
 
 /**
  * @param {string} text - Text to copy.

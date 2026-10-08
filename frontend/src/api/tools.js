@@ -1,6 +1,6 @@
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import { getApiPath } from "@/utils/url.js";
-import { fetchURL, fetchJSON } from "./utils";
+import { fetchURL, fetchJSON } from "./utils.ts";
 
 // GET /api/tools/search
 // extraParams: optional { olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }

@@ -1,4 +1,4 @@
-import { toStandardLocale } from "../i18n";
+import { toStandardLocale } from "../i18n/index.ts";
 
 export function fromNow(date, locale) {
     date = normalizeDate(date);

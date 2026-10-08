@@ -45,11 +45,6 @@ import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota";
 type Req = typeof state.req;
 interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }
 
-const THEME_DARK = "ace/theme/tomorrow_night_bright";
-const THEME_LIGHT = "ace/theme/chrome";
-
-defineOptions({ name: "editor" });
-
 const props = defineProps({
   viewerMode: {
     type: Boolean,
@@ -68,6 +63,11 @@ const props = defineProps({
     default: null // null means auto-determine
   }
 });
+
+const THEME_DARK = "ace/theme/tomorrow_night_bright";
+const THEME_LIGHT = "ace/theme/chrome";
+
+defineOptions({ name: "editor" });
 
 const route = useRoute();
 const router = useRouter();
@@ -135,7 +135,7 @@ const editorLanguageMode = computed(() => {
     return "ace/mode/text";
   }
 
-  return modelist.getModeForPath(req.value.name).mode;
+  return modelist.getModeForPath(req.value.name ?? "").mode;
 });
 // Editor read-only state
 const editorReadOnly = computed(() => {
@@ -195,17 +195,17 @@ watch(req, (newReq, oldReq) => {
     isDirty = false; // Reset dirty flag for new file
     mutations.setEditorDirty(false);
     mutations.setEditorJsonFormatted(false);
-    mutations.resetEditorScrollRatio(newReq.path);
+    mutations.resetEditorScrollRatio(newReq.path ?? "");
     // Lock saves temporarily
     saveLocked = true;
-    currentReqPath = newReq.path;
+    currentReqPath = newReq.path ?? null;
     // Unlock after content loads
     scheduleSaveUnlock(500);
   }
 });
 
 // Update editor content reactively
-watch(editorContent, (newContent) => {
+watch(editorContent, async (newContent) => {
   if (editor.value) {
     const currentValue = editor.value.getValue();
     if (currentValue !== newContent) {
@@ -218,15 +218,14 @@ watch(editorContent, (newContent) => {
     savedContent = newContent;
     isDirty = false;
     mutations.setEditorDirty(false);
-    if (props.viewerMode) {
-      void nextTick(() => {
-        if (editor.value) {
-          editor.value.resize();
-        }
-      });
-    }
     if (isSplitActive.value) {
       splitView.value?.setLiveContent(newContent);
+    }
+    if (props.viewerMode) {
+      await nextTick();
+      if (editor.value) {
+        editor.value.resize();
+      }
     }
   }
 });
@@ -265,10 +264,9 @@ watch(() => state.editor.scrollRatio, () => {
   splitView.value?.applyScrollRatio(state.editor.scrollRatio);
 });
 
-watch(isSplitActive, () => {
-  void nextTick(() => {
-    if (editor.value) editor.value.resize();
-  });
+watch(isSplitActive, async () => {
+  await nextTick();
+  if (editor.value) editor.value.resize();
 });
 
 watch(() => state.editor.fontSize, applyFontSize);
@@ -289,7 +287,7 @@ function scheduleSaveUnlock(delay: number) {
   }, delay);
 }
 
-function setupViewerResizeObserver() {
+async function setupViewerResizeObserver() {
   if (typeof ResizeObserver === "undefined" || !editor.value) {
     return;
   }
@@ -299,11 +297,10 @@ function setupViewerResizeObserver() {
     }
   });
   viewerResizeObserver.observe(editor.value.container);
-  void nextTick(() => {
-    if (editor.value) {
-      editor.value.resize();
-    }
-  });
+  await nextTick();
+  if (editor.value) {
+    editor.value.resize();
+  }
 }
 
 function initializeNavigation() {
@@ -313,8 +310,8 @@ function initializeNavigation() {
 
   mutations.resetSelected();
   mutations.addSelected({
-    name: req.value.name,
-    path: req.value.path,
+    name: req.value.name ?? "",
+    path: req.value.path ?? "",
     size: req.value.size,
     type: req.value.type,
     source: req.value.source,
@@ -425,7 +422,7 @@ function initializeEditor(initialScrollRatio: number = state.editor.scrollRatio)
     });
     if (!props.viewerMode) {
       if (isMarkdownFile.value) {
-        void nextTick(() => {
+        void nextTick().then(() => {
           if (editor.value !== editorInstance) return;
           if (isSplitActive.value) {
             splitView.value?.setLiveContent(editorInstance.getValue());
@@ -484,9 +481,10 @@ async function handleEditorValueRequest() {
     throw new Error(errorMsg);
   }
   // Filename protection - ensure state is synced before saving
-  if (!isStateSynced.value) {
+  const original = originalReq.value;
+  if (!isStateSynced.value || !original) {
     const errorMsg = t("editor.saveAbortedMessage", {
-      activeFile: originalReq.value?.name || "unknown",
+      activeFile: original?.name || "unknown",
       tryingToSave: routeFilename.value || "unknown"
     });
     notify.showError(errorMsg);
@@ -500,21 +498,21 @@ async function handleEditorValueRequest() {
 
   const content = editor.value.getValue();
   const newBytes = new TextEncoder().encode(content).length;
-  const oldBytes = originalReq.value?.size ?? 0;
-  const quotaPath = removeLastDir(originalReq.value.path) || "/";
+  const oldBytes = original.size ?? 0;
+  const quotaPath = removeLastDir(original.path) || "/";
   if (await rejectPutIfQuotaExceeded(quotaPath, newBytes, oldBytes)) {
     const errorMsg = t("quotas.errors.exceeded");
     throw new Error(errorMsg);
   }
   if (getters.isShare()) {
     // Save the file
-    await resourcesApi.putPublic(state.shareInfo.hash, originalReq.value.path, content);
+    await resourcesApi.putPublic(state.shareInfo.hash, original.path, content);
   } else {
     // Save the file
-    await resourcesApi.put(originalReq.value.source, originalReq.value.path, content);
+    await resourcesApi.put(original.source, original.path, content);
   }
 
-  notify.showSuccessToast(`${originalReq.value.name} saved successfully.`);
+  notify.showSuccessToast(`${original.name} saved successfully.`);
   savedContent = editor.value.getValue();
   mutations.setRequestContent(savedContent);
   isDirty = false;
@@ -725,17 +723,15 @@ window.addEventListener("keydown", keyEvent, true);
 window.addEventListener("beforeunload", beforeUnloadHandler);
 setupNavigationGuard();
 
-onMounted(() => {
+onMounted(async () => {
   resizeContainerEl.value = editorRoot.value;
   resizeContainerEl.value?.addEventListener("keydown", stopEnterPropagation); // to avoid trigger prompts primary button when the editor is embedded
   if (props.viewerMode) {
-    void nextTick(() => {
-      void nextTick(() => {
-        initializeEditor();
-        applyFontSize();
-        setupViewerResizeObserver();
-      });
-    });
+    await nextTick();
+    await nextTick();
+    initializeEditor();
+    applyFontSize();
+    void setupViewerResizeObserver();
     return;
   }
 
@@ -748,7 +744,7 @@ onMounted(() => {
   // Register save handler so other components can trigger save
   mutations.setEditorSaveHandler(() => handleEditorValueRequest());
   applyFontSize();
-  setupViewerResizeObserver();
+  void setupViewerResizeObserver();
 });
 
 onBeforeUnmount(() => {

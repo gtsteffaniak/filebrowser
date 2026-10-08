@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginPlaywrightAdmin } from "../playwright-auth";
+import { loginPlaywrightAdmin } from "../playwright-auth.ts";
 
 test("redirect to login from root", async ({ page, context }) => {
   await context.clearCookies();

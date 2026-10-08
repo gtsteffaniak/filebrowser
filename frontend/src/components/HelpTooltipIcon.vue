@@ -1,8 +1,6 @@
 <template>
   <i
     :class="[iconClasses, { 'tooltip-info-icon--pressed': pressed }]"
-    role="button"
-    tabindex="0"
     :aria-label="ariaLabel || undefined"
     @click.stop="onClick"
     @touchstart.stop="onTouchStart"

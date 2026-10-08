@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("navigate with hash in file name", async({ page, checkForErrors }) => {
   await page.goto("/files/");

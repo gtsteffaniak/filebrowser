@@ -1,6 +1,6 @@
 // src/utils/playbackQueue.js
-import { getters, mutations, state } from '@/store';
-import { url } from '@/utils';
+import { getters, mutations, state } from "@/store/index.ts";
+import { url } from "@/utils/index.ts";
 
 /**
  * Shuffles an array -- this is used for playback queue shuffle mode

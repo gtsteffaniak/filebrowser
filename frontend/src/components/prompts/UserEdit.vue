@@ -109,9 +109,10 @@
               :collapsable="true"
             >
               <div class="scope-path-row">
-                <label class="scope-path-label">{{ $t("settings.scopePath") }}</label>
+                <label class="scope-path-label" :for="`user-edit-scope-path-${source.name}`">{{ $t("settings.scopePath") }}</label>
                 <button
                   type="button"
+                  :id="`user-edit-scope-path-${source.name}`"
                   :aria-label="`user-edit-scope-path-${source.name}`"
                   class="clickable button scope-path-display"
                   @click="onScopePathRowClick(source)"
@@ -120,7 +121,7 @@
               </div>
               <source-file-permissions
                 :permissions="sourcePermissionsFor(source.name)"
-                @changed="markScopePermissionsExplicit(source.name)"
+                @changed="(key, value) => onSourcePermissionChange(source.name, key, value)"
               />
               <div class="scope-quota-block">
                 <ToggleSwitch
@@ -578,7 +579,6 @@ export default {
   },
   methods: {
     sourceIndexingDisabled(sourceName) {
-      // eslint-disable-next-line security/detect-object-injection -- source name from configured source list
       return Boolean(state.sources.info?.[sourceName]?.indexingDisabled);
     },
     scopeMeterOptions(source) {
@@ -710,6 +710,14 @@ export default {
           delete: false,
         };
       }
+    },
+    onSourcePermissionChange(sourceName, key, value) {
+      const scope = this.selectedSources.find((entry) => entry.name === sourceName);
+      if (!scope) {
+        return;
+      }
+      scope.permissions = { ...this.sourcePermissionsFor(sourceName), [key]: value };
+      this.markScopePermissionsExplicit(sourceName);
     },
     markScopePermissionsExplicit(sourceName) {
       const scope = this.selectedSources.find((entry) => entry.name === sourceName);
@@ -1147,7 +1155,22 @@ export default {
       this.user.permissions.api = this.editAccount.permissions.api;
       this.user.permissions.realtime = this.editAccount.permissions.realtime;
     },
-    onEditAccountChange() {
+    applyEditAccountField(field, value) {
+      const fieldStr = String(field ?? "");
+      if (!fieldStr) {
+        return;
+      }
+      if (fieldStr.startsWith("permissions.")) {
+        this.editAccount.permissions = {
+          ...this.editAccount.permissions,
+          [fieldStr.slice("permissions.".length)]: value,
+        };
+        return;
+      }
+      this.editAccount[fieldStr] = value;
+    },
+    onEditAccountChange(field, value) {
+      this.applyEditAccountField(field, value);
       this.applyEditAccountToUser();
       this.emitUpdate();
     },

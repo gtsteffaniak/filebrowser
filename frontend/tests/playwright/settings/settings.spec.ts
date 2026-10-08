@@ -1,4 +1,4 @@
-import { checkForNotification, expect, openProfileSettings, selectExpandDropdownOption, test } from '../test-setup'
+import { checkForNotification, expect, openProfileSettings, selectExpandDropdownOption, test } from "../test-setup.ts"
 import type { Page } from '@playwright/test';
 
 async function openSystemAdminSettings(page: Page) {

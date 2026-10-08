@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
-import { fillPlaywrightAdminPasswordPrompt } from "../playwright-auth";
-import { expect, test } from "../test-setup";
+import { fillPlaywrightAdminPasswordPrompt } from "../playwright-auth.ts";
+import { expect, test } from "../test-setup.ts";
 import {
     SETTINGS_TEST_SOURCE,
     closeUserEditPreferences,
@@ -13,7 +13,7 @@ import {
     userEditSourcePermissionCheckbox,
     userEditSourcePermissionToggle,
     userRowInSettingsUsersTable,
-} from "./user-edit-helpers";
+} from "./user-edit-helpers.ts";
 
 test("create, check settings, and delete user (retry-safe name)", async ({
     page,

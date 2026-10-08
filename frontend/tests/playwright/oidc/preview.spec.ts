@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("Create first new file", async ({  page, checkForErrors }) => {
   await page.goto("/");

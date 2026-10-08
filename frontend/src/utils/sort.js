@@ -1,4 +1,4 @@
-import { getObjectProperty } from '@/utils/object';
+import { getObjectProperty } from "@/utils/object.js";
 
 export function sortedItems(items = [], sortby = "name", asc = true) {
   return items.sort((a, b) => {

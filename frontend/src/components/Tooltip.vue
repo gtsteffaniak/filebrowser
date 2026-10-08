@@ -77,35 +77,34 @@ export default {
      * @param {number} x - X coordinate
      * @param {number} y - Y coordinate
      */
-    updatePosition(x, y) {
-      this.$nextTick(() => {
-        const tooltipEl = this.$refs.tooltipRef;
-        if (!tooltipEl) return;
+    async updatePosition(x, y) {
+      await this.$nextTick();
+      const tooltipEl = this.$refs.tooltipRef;
+      if (!tooltipEl) return;
 
-        const tooltipRect = tooltipEl.getBoundingClientRect();
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
+      const tooltipRect = tooltipEl.getBoundingClientRect();
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
 
-        if (x + this.margin + tooltipRect.width > windowWidth) {
-          this.adjustedX = x - this.margin - tooltipRect.width;
-        } else {
-          this.adjustedX = x + this.margin;
-        }
+      if (x + this.margin + tooltipRect.width > windowWidth) {
+        this.adjustedX = x - this.margin - tooltipRect.width;
+      } else {
+        this.adjustedX = x + this.margin;
+      }
 
-        if (this.adjustedX < 0) {
-          this.adjustedX = this.margin;
-        }
+      if (this.adjustedX < 0) {
+        this.adjustedX = this.margin;
+      }
 
-        if (y + this.margin + tooltipRect.height > windowHeight) {
-          this.adjustedY = y - this.margin - tooltipRect.height;
-        } else {
-          this.adjustedY = y + this.margin;
-        }
+      if (y + this.margin + tooltipRect.height > windowHeight) {
+        this.adjustedY = y - this.margin - tooltipRect.height;
+      } else {
+        this.adjustedY = y + this.margin;
+      }
 
-        if (this.adjustedY < 0) {
-          this.adjustedY = this.margin;
-        }
-      });
+      if (this.adjustedY < 0) {
+        this.adjustedY = this.margin;
+      }
     },
   },
 };
