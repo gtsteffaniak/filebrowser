@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import type { PlaywrightFixtureOptions } from "./tests/playwright/test-setup.ts";
 
 /**
  * Read environment variables from file.
@@ -9,7 +10,7 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-export default defineConfig({
+export default defineConfig<PlaywrightFixtureOptions>({
   globalSetup: "./tests/playwright/global-setup",
   timeout: 5000,
   testDir: "./tests/playwright/settings",
@@ -40,8 +41,23 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      name: "dark-screenshots",
+      use: {
+        ...devices["Desktop Chrome"],
+        theme: 'dark',
+      },
+      /* Include every spec under testDir (prompts.spec.ts, settings-screenshots, etc.) */
+      testMatch: /\.spec\.ts$/,
+      retries: 0,
+    },
+    {
+      name: "light-screenshots",
+      use: {
+        ...devices["Desktop Chrome"],
+        theme: 'light',
+      },
+      testMatch: /\.spec\.ts$/,
+      retries: 0,
     },
   ],
 });
