@@ -1,14 +1,14 @@
 import { reactive } from "vue";
-import { resourcesApi } from "@/api";
-import { getters, mutations, state } from "@/store";
-import { notify } from "@/notify";
-import i18n from "@/i18n";
+import { resourcesApi } from "@/api/index.js";
+import { getters, mutations, state } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import i18n from "@/i18n/index.ts";
 import {
   notifyUploadComplete,
   notifyUploadError,
   notifyOperationError,
-} from "@/utils/appNotifications";
-import { rejectUploadIfQuotaExceeded, isQuotaExceededError, extractQuotaErrorMessage } from "@/utils/uploadQuota";
+} from "@/utils/appNotifications.js";
+import { rejectUploadIfQuotaExceeded, isQuotaExceededError, extractQuotaErrorMessage } from "@/utils/uploadQuota.js";
 
 /**
  * Upload session token for isolating concurrent uploads to the same path.

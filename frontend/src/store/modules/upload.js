@@ -1,7 +1,8 @@
+// biome-ignore lint/correctness/noUnresolvedImports: disabled temporarily
 import Vue from "vue";
-import { resourcesApi } from "@/api";
-import buttons from "@/utils/buttons";
-import throttle from "@/utils/throttle";
+import { resourcesApi } from "@/api/index.js";
+import buttons from "@/utils/buttons.js";
+import throttle from "@/utils/throttle.js";
 
 const UPLOADS_LIMIT = 5;
 

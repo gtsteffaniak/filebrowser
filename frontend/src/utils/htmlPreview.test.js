@@ -53,8 +53,8 @@ import {
   isLocalResourceReference,
   rewriteCssContent,
   rewriteSrcset,
-} from "./htmlPreview";
-import { state } from "@/store";
+} from "./htmlPreview.ts";
+import { state } from "@/store/index.ts";
 
 describe("isLocalResourceReference", () => {
   it("treats relative paths as local", () => {

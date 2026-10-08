@@ -2,7 +2,7 @@ import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import type { Browser } from "@playwright/test";
-import { loadPerfConfig, perfConfigPath } from "./perf-config";
+import { loadPerfConfig, perfConfigPath } from "./perf-config.ts";
 import {
   aggregateIterations,
   baselinePath,
@@ -11,19 +11,19 @@ import {
   perfResultsDir,
   readAllResults,
   type ParsedResult,
-} from "./perf-helpers";
+} from "./perf-helpers.ts";
 import {
   environmentFingerprint,
   loadBaseline,
   writeBaseline,
-} from "./perf-baseline";
-import { compareAgainstBaseline, renderRegressionTable } from "./perf-compare";
-import { buildPerfResultsDocument } from "./perf-results-json";
-import { buildAnalysisTable } from "./perf-report";
-import { analyzeTrace, type TraceAnalysis } from "./perf-trace";
-import { readPlaywrightVersion } from "./perf-baseline";
-import { parsePerfScales } from "./perf-scenarios";
-import { repoRoot } from "./perf-paths";
+} from "./perf-baseline.ts";
+import { compareAgainstBaseline, renderRegressionTable } from "./perf-compare.ts";
+import { buildPerfResultsDocument } from "./perf-results-json.ts";
+import { buildAnalysisTable } from "./perf-report.ts";
+import { analyzeTrace, type TraceAnalysis } from "./perf-trace.ts";
+import { readPlaywrightVersion } from "./perf-baseline.ts";
+import { parsePerfScales } from "./perf-scenarios.ts";
+import { repoRoot } from "./perf-paths.ts";
 
 const EXPECTED_SCENARIOS = ["load", "scroll", "resize", "select"] as const;
 const EXPECTED_BROWSERS = ["chromium", "firefox", "webkit"] as const;
@@ -166,7 +166,7 @@ export async function writeFinalArtifacts(opts: {
   }
 
   // ---- Baseline comparison ----------------------------------------------
-  const { extractBaselineMetrics } = await import("./perf-extract");
+  const { extractBaselineMetrics } = await import("./perf-extract.ts");
   const currentRuns = aggregated
     .filter((r) => r.browser === "chromium")
     .map((r) => ({

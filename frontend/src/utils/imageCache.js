@@ -1,4 +1,4 @@
-import { removeTrailingSlash } from "@/utils/url";
+import { removeTrailingSlash } from "@/utils/url.js";
 
 /**
  * Image Cache Utility

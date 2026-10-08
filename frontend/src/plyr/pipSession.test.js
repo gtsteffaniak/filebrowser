@@ -178,7 +178,7 @@ describe('pipSession', () => {
     Object.defineProperty(media, 'paused', { value: true, writable: true });
     mod.registerSession(media, { source: 'src', path: '/a.mp4' });
 
-    const { state } = await import('@/store');
+    const { state } = await import("@/store/index.ts");
     state.route.path = '/files/source/';
 
     dispatchLeavePip(media);
@@ -204,7 +204,7 @@ describe('pipSession', () => {
     Object.defineProperty(media, 'paused', { value: false, writable: true });
     mod.registerSession(media, { source: 'src', path: '/a.mp4' });
 
-    const { state } = await import('@/store');
+    const { state } = await import("@/store/index.ts");
     state.route.path = '/files/src/b.mp4';
     state.req = { source: 'src', path: '/b.mp4', type: 'video/mp4' };
 
@@ -259,7 +259,7 @@ describe('pipSession', () => {
     Object.defineProperty(media, 'paused', { value: false, writable: true });
     mod.registerSession(media, { source: 'src', path: '/a.mp4' });
 
-    const { state } = await import('@/store');
+    const { state } = await import("@/store/index.ts");
     state.route.path = '/files/source/';
 
     dispatchLeavePip(media);
@@ -300,7 +300,7 @@ describe('pipSession', () => {
     const mod = await loadModule();
     mod.initPipSession();
 
-    const { state } = await import('@/store');
+    const { state } = await import("@/store/index.ts");
     state.route.path = '/files/src/a.mp4';
 
     const media = document.createElement('video');
@@ -327,7 +327,7 @@ describe('pipSession', () => {
     const mod = await loadModule();
     mod.initPipSession();
 
-    const { state } = await import('@/store');
+    const { state } = await import("@/store/index.ts");
     state.route.path = '/files/src/b.mp4';
 
     const media = document.createElement('video');
@@ -355,7 +355,7 @@ describe('pipSession', () => {
     const mod = await loadModule();
     mod.initPipSession();
 
-    const { state } = await import('@/store');
+    const { state } = await import("@/store/index.ts");
     state.route.path = '/files/src/a.mp4';
 
     const media = document.createElement('video');

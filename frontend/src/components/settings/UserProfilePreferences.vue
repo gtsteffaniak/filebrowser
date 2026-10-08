@@ -1040,7 +1040,7 @@ export default {
     fieldDisabled(section, field) {
       return this.valueDisabled(section, field);
     },
-    helpText(section, field, description) {
+    helpText(_section, _field, description) {
       return description || "";
     },
     configLockTooltip(section, field) {
@@ -1078,7 +1078,7 @@ export default {
           const perms = getObjectProperty(getObjectProperty(this.sections, "account"), "permissions");
           const val = getObjectProperty(perms, key);
           if (val === undefined || val === null) {
-            return key === "download" ? true : false;
+            return key === "download";
           }
           return !!val;
         }

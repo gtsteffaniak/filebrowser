@@ -1,4 +1,4 @@
-import { globalVars } from '@/utils/constants';
+import { globalVars } from "@/utils/constants.js";
 
 export function defaultDarkMode() {
   return globalVars.darkMode === true;

@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("share folder breadcrumbs navigation checks", async ({ page, checkForErrors }) => {
     await page.goto("/files/playwright%20+%20files/share");

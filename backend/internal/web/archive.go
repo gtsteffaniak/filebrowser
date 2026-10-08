@@ -22,15 +22,15 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/archiveencoding"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-
 )
 
 // archiveMultiRequestIdle is how long without another Range/HEAD on the same archiveToken before
@@ -391,11 +391,13 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 // @Description - **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `"/downloads/data.zip"`
 // @Description - **destination** (string, required): Directory path (on toSource) to extract into. Example: `"/projects/imported"`
 // @Description - **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`
+// @Description - **filenameEncoding** (string, optional): Fallback ZIP filename encoding: utf-8, cp932, gb18030, big5, euc-kr, cp437, windows-1252. Unicode metadata takes precedence. Omit to use a suggestion; ambiguous encodings require a selection.
+// @Description - **preview** (boolean, optional): Return ZIP encoding candidates and sample filenames without extracting or deleting anything. Requires the same source/destination permissions as extraction.
 // @Tags Resources
 // @Accept json
 // @Produce json
 // @Param body body unarchiveRequest true "Request body: fromSource, toSource (optional), path, destination, deleteAfter (optional)"
-// @Success 200 {object} map[string]string "Extracted; returns {\"path\": \"<destination path>\", \"source\": \"<toSource>\"}"
+// @Success 200 {object} map[string]interface{} "Preview returns suggested and candidates; extraction returns path and source. Extracted; returns {\"path\": \"<destination path>\", \"source\": \"<toSource>\"}"
 // @Failure 400 {object} map[string]string "Invalid request (e.g. missing required field, unsupported format)"
 // @Failure 403 {object} map[string]string "Forbidden (create permission or access denied)"
 // @Failure 404 {object} map[string]string "Source or archive file not found"
@@ -431,7 +433,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if !fromPerms.Download {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to download archive source")
 	}
-	if req.DeleteAfter && !fromPerms.Delete {
+	if req.DeleteAfter && !req.Preview && !fromPerms.Delete {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete archive source")
 	}
 
@@ -508,15 +510,29 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	lower := strings.ToLower(archiveReal)
+	if req.Preview {
+		if !strings.HasSuffix(lower, ".zip") {
+			return http.StatusBadRequest, fmt.Errorf("encoding preview requires a ZIP archive")
+		}
+		zr, openErr := zip.OpenReader(archiveReal)
+		if openErr != nil {
+			return http.StatusBadRequest, openErr
+		}
+		defer zr.Close()
+		return RenderJSON(w, r, archiveencoding.Inspect(zr.File), http.StatusOK)
+	}
 	var extractErr error
 	if strings.HasSuffix(lower, ".zip") {
-		extractErr = extractZip(archiveReal, destReal)
+		extractErr = extractZipWithEncoding(archiveReal, destReal, req.FilenameEncoding)
 	} else if strings.HasSuffix(lower, ".tar.gz") || (strings.HasSuffix(lower, ".tgz")) {
 		extractErr = extractTarGz(archiveReal, destReal)
 	} else {
 		return http.StatusBadRequest, fmt.Errorf("unsupported archive format (use .zip or .tar.gz)")
 	}
 	if extractErr != nil {
+		if errors.Is(extractErr, archiveencoding.ErrEncoding) {
+			return http.StatusBadRequest, extractErr
+		}
 		return http.StatusInternalServerError, extractErr
 	}
 
@@ -937,6 +953,10 @@ type unarchiveRequest struct {
 	Destination string `json:"destination"`
 	// If true, delete the archive file after successful extraction (optional; default: false). Example: true
 	DeleteAfter bool `json:"deleteAfter"`
+	// Fallback ZIP filename encoding; explicit Unicode metadata takes precedence.
+	FilenameEncoding string `json:"filenameEncoding,omitempty"`
+	// Inspect ZIP names without writing or deleting files.
+	Preview bool `json:"preview,omitempty"`
 }
 
 // normalizeArchiveEntryName turns a raw zip/tar name into a safe relative path (slash-separated).
@@ -1119,11 +1139,32 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 }
 
 func extractZip(archivePath, destDir string) error {
+	return extractZipWithEncoding(archivePath, destDir, "")
+}
+
+func extractZipWithEncoding(archivePath, destDir, charset string) error {
 	r, err := zip.OpenReader(archivePath)
 	if err != nil {
 		return err
 	}
 	defer r.Close()
+	names, err := archiveencoding.DecodeNames(r.File, charset)
+	if err != nil {
+		return err
+	}
+	// Decode before interpreting separators: CP932 characters can contain byte 0x5c.
+	// Validate every name before creating any files, including normalized collisions.
+	destinations := make(map[string]string, len(names))
+	for i, name := range names {
+		dest, pathErr := safeExtractPath(destDir, name)
+		if pathErr != nil {
+			return pathErr
+		}
+		if original, exists := destinations[dest]; exists && original != r.File[i].Name {
+			return fmt.Errorf("ZIP filenames resolve to the same destination: %q", name)
+		}
+		destinations[dest] = r.File[i].Name
+	}
 
 	// Central directory order is arbitrary. Some zips (e.g. Windows driver packs) use names that
 	// are similar length at different tree depths, so byte length is a poor order key. Use the
@@ -1131,20 +1172,22 @@ func extractZip(archivePath, destDir string) error {
 	// lexicographic, so parent dirs exist before shorter entries that might be mis-tagged.
 	type orderedName struct {
 		f     *zip.File
+		name  string
 		rel   string
 		depth int
 	}
 	ordered := make([]orderedName, 0, len(r.File))
-	for _, f := range r.File {
-		rel, nerr := normalizeArchiveEntryName(f.Name)
+	for i, f := range r.File {
+		name := names[i]
+		rel, nerr := normalizeArchiveEntryName(name)
 		if nerr != nil {
-			rel = strings.TrimLeft(strings.ReplaceAll(strings.TrimSpace(f.Name), "\\", "/"), "/")
+			rel = strings.TrimLeft(strings.ReplaceAll(strings.TrimSpace(name), "\\", "/"), "/")
 		}
 		depth := 0
 		if rel != "" {
 			depth = strings.Count(rel, "/") + 1
 		}
-		ordered = append(ordered, orderedName{f: f, rel: rel, depth: depth})
+		ordered = append(ordered, orderedName{f: f, name: name, rel: rel, depth: depth})
 	}
 	sort.Slice(ordered, func(i, j int) bool {
 		if ordered[i].depth != ordered[j].depth {
@@ -1159,14 +1202,14 @@ func extractZip(archivePath, destDir string) error {
 	for _, o := range ordered {
 		f := o.f
 		var destPath string
-		destPath, err = safeExtractPath(destDir, f.Name)
+		destPath, err = safeExtractPath(destDir, o.name)
 		if err != nil {
 			return err
 		}
 
 		fi := f.FileInfo()
 		mode := fi.Mode()
-		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(f.Name, "/") || strings.HasSuffix(f.Name, "\\")
+		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(o.name, "/") || strings.HasSuffix(o.name, "\\")
 		if isDirEntry {
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
 				return err

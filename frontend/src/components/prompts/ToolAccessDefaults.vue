@@ -63,7 +63,7 @@ export default {
     canPatch() {
       return !this.loading && !this.saving && !this.hydrating;
     },
-    applyItems(data) {
+    async applyItems(data) {
       this.hydrating = true;
       this.items = Array.isArray(data.items)
         ? data.items.map((item) => ({
@@ -72,9 +72,8 @@ export default {
             enforced: !!item.enforced,
           }))
         : [];
-      this.$nextTick(() => {
-        this.hydrating = false;
-      });
+      await this.$nextTick();
+      this.hydrating = false;
     },
     onItemsUpdate(items) {
       if (this.hydrating) {
@@ -93,9 +92,8 @@ export default {
         console.error(e);
       } finally {
         this.loading = false;
-        this.$nextTick(() => {
-          this.hydrating = false;
-        });
+        await this.$nextTick();
+        this.hydrating = false;
       }
     },
     closeTopPrompt() {

@@ -1,5 +1,5 @@
-import i18n from '@/i18n';
-import { getIconClass } from './material-symbols';
+import i18n from "@/i18n/index.ts";
+import { getIconClass } from "./material-symbols.js";
 
 function readAppConfig() {
   const el = document.getElementById('app-config');

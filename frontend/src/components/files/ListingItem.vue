@@ -377,7 +377,7 @@ export default {
       return mode === 'list' || mode === 'compact';
     },
   },
-  mounted() {
+  async mounted() {
     // Note: dragend listener moved to parent ListingView for better performance
     if (!this.hasPreview) return;
 
@@ -387,11 +387,10 @@ export default {
       threshold: 0,
     });
 
-    this.$nextTick(() => {
-      if (this.$el && this.$el instanceof Element) {
-        this.observer.observe(this.$el);
-      }
-    });
+    await this.$nextTick();
+    if (this.$el && this.$el instanceof Element) {
+      this.observer?.observe(this.$el);
+    }
   },
   beforeUnmount() {
     // Clean up observer

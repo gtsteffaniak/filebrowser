@@ -47,11 +47,12 @@ export default {
     this.$emit("update:modelValue", "");
   },
   methods: {
-    toggle() {
+    async toggle() {
       this.open = !this.open;
       this.$emit("update:modelValue", "");
       if (this.open) {
-        this.$nextTick(() => this.$refs.input?.focus());
+        await this.$nextTick();
+        this.$refs.input?.focus();
       }
     },
   },

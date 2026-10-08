@@ -1,4 +1,4 @@
-// frontend/src/utils/asyncComponent.js
+/** biome-ignore-all lint/correctness/noUnresolvedImports: false positives */
 import { defineAsyncComponent } from 'vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import LoadFailed from '@/components/LoadFailed.vue';

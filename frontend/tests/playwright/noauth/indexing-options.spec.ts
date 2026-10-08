@@ -1,4 +1,4 @@
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup.ts";
 
 test("navigate folder -- item should not be visible", async ({ page, checkForErrors }) => {
     await page.goto("/files/");

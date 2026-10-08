@@ -1,6 +1,6 @@
 import type { Browser, Page } from "@playwright/test";
 import { expect, firefox } from "@playwright/test";
-import { createShareAndGetHash, openContextMenuHelper } from "./test-setup";
+import { createShareAndGetHash, openContextMenuHelper } from "./test-setup.ts";
 
 // Perform authentication and store auth state
 async function globalSetup() {

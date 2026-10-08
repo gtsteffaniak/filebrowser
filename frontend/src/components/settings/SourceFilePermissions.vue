@@ -90,10 +90,9 @@ export default {
       emitChanges: false,
     };
   },
-  mounted() {
-    this.$nextTick(() => {
-      this.emitChanges = true;
-    });
+  async mounted() {
+    await this.$nextTick();
+    this.emitChanges = true;
   },
   methods: {
     isConfigLocked(flag) {
@@ -129,27 +128,8 @@ export default {
       if (current === undefined || current === value) {
         return;
       }
-      switch (key) {
-        case "view":
-          this.permissions.view = value;
-          break;
-        case "download":
-          this.permissions.download = value;
-          break;
-        case "modify":
-          this.permissions.modify = value;
-          break;
-        case "create":
-          this.permissions.create = value;
-          break;
-        case "delete":
-          this.permissions.delete = value;
-          break;
-        default:
-          return;
-      }
       if (this.emitChanges) {
-        this.$emit("changed", key);
+        this.$emit("changed", key, value);
       }
     },
     permissionValue(key) {

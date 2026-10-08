@@ -33,11 +33,10 @@ export default {
     };
   },
   watch: {
-    sourceInfo(newVal) {
+    async sourceInfo(newVal) {
       if (newVal) {
-        this.$nextTick(() => {
-          this.positionPopup();
-        });
+        await this.$nextTick();
+        this.positionPopup();
       }
     },
   },
@@ -56,12 +55,13 @@ export default {
     window.removeEventListener("mousemove", this.updateCursorPosition);
   },
   methods: {
-    onImageLoad() {
+    async onImageLoad() {
       if (!this.sourceInfo || this.sourceInfo.type === "3d") return;
       const { source, path, size, url, modified } = this.sourceInfo;
       setImageLoaded(source, path, size, modified, url);
       if (!getters.isMobile()) {
-        this.$nextTick(() => this.positionPopup());
+        await this.$nextTick();
+        this.positionPopup();
       }
     },
     updateCursorPosition(event) {

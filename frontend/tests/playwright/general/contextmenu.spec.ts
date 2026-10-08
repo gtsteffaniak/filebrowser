@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("info from listing - archive item", async({ page, checkForErrors }) => {
     await page.goto("/files/");

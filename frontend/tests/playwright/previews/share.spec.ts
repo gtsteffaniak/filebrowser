@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 // 3d file thumbnails work
 test("3d file preview thumbnails in share", async({ page, checkForErrors }) => {

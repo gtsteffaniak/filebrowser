@@ -4,7 +4,7 @@ import {
   isRootOnlySidebarCategory,
   isSourceSidebarCategory,
   withRootOnlySuffix,
-} from "./sidebarCategory";
+} from "./sidebarCategory.ts";
 
 describe("sidebarCategory", () => {
   it("strips the -root suffix", () => {

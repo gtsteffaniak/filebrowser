@@ -1,6 +1,6 @@
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils";
+import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils.ts";
 
 const analyticsRequestTimeoutMs = 5000;
 
@@ -62,12 +62,18 @@ export function getUserDefaults() {
   return fetchJSON(getApiPath("settings/user-defaults"));
 }
 
-/** Enforcement flags for profile UI (works on public routes behind proxy basic auth). */
+/**
+ * Enforcement flags for profile UI (works on public routes behind proxy basic auth).
+ * @returns {Promise<{ enforced?: import('@/store/types').StoreState['enforcedUserDefaults'] }>}
+ */
 export function getEnforcedUserDefaults() {
   return fetchJSON(getPublicApiPath("settings/user-defaults"));
 }
 
-/** Sidebar link defaults policy for the current user (enforcement UI). */
+/**
+ * Sidebar link defaults policy for the current user (enforcement UI).
+ * @returns {Promise<import('@/store/types').StoreState['sidebarLinkDefaultsPolicy']>}
+ */
 export function getSidebarLinkDefaultsPolicy() {
   return fetchJSON(getPublicApiPath("settings/sidebar-link-defaults"));
 }
@@ -92,7 +98,10 @@ export async function patchSidebarLinkDefaults(doc) {
   });
 }
 
-/** Tool access defaults policy for the current user (enforcement UI). */
+/**
+ * Tool access defaults policy for the current user (enforcement UI).
+ * @returns {Promise<import('@/store/types').StoreState['toolAccessDefaultsPolicy']>}
+ */
 export function getToolAccessDefaultsPolicy() {
   return fetchJSON(getPublicApiPath("settings/tool-access-defaults"));
 }
@@ -124,7 +133,10 @@ export function getShareDefaults() {
   return fetchJSON(getApiPath("settings/share-defaults"));
 }
 
-/** Share defaults and enforcement policy (works on public routes behind proxy basic auth). */
+/**
+ * Share defaults and enforcement policy (works on public routes behind proxy basic auth).
+ * @returns {Promise<import('@/store/types').StoreState['shareDefaultsPolicy']>}
+ */
 export function getShareDefaultsPolicy() {
   return fetchJSON(getPublicApiPath("settings/share-defaults"));
 }

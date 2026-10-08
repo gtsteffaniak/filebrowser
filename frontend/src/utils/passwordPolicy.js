@@ -1,4 +1,4 @@
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 
 const DEFAULT_PASSWORD_MIN_LENGTH = 5;
 

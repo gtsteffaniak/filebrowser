@@ -3,7 +3,7 @@ import {
   test,
   expectLockTooltipOnRowHover,
   isExactSettingsApiResponse,
-} from "../test-setup";
+} from "../test-setup.ts";
 
 async function openAccessSettings(page: import("@playwright/test").Page) {
   await page.goto("/settings#profile-main");

@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { getObjectProperty } from './object';
+import { getObjectProperty } from "./object.js";
 
 const STORAGE_KEY = 'editorConfig';
 

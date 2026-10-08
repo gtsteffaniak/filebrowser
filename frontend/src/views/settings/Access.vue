@@ -196,9 +196,8 @@ export default {
         }
       } finally {
         this.defaultsLoading = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     canSaveSourceDefaults() {
@@ -249,9 +248,8 @@ export default {
         await this.loadSourceAccessDefaults();
       } finally {
         this.savingDefaults = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     isConfigLockedPermission(flag) {
@@ -274,13 +272,14 @@ export default {
           return null;
       }
     },
-    async onSourceAccessDefaultsChange(flag) {
+    async onSourceAccessDefaultsChange(flag, value) {
       if (!this.canSaveSourceDefaults() || !flag) {
         return;
       }
       if (this.isConfigLockedPermission(flag)) {
         return;
       }
+      this.sourceAccessDefaults = { ...this.sourceAccessDefaults, [flag]: value };
       const patch = this.sourceDefaultPermissionsPatch(flag);
       if (!patch) {
         return;
@@ -299,9 +298,8 @@ export default {
         await this.loadSourceAccessDefaults();
       } finally {
         this.savingDefaults = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     async fetchRules() {

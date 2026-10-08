@@ -1,4 +1,4 @@
-import { bytesFromCustomAmount, customAmountFromBytes } from "@/utils/quotaUnits";
+import { bytesFromCustomAmount, customAmountFromBytes } from "@/utils/quotaUnits.js";
 
 export function emptyShareDefaultsEnforced() {
   return {

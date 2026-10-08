@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { loginPlaywrightAdmin } from "../playwright-auth";
-import { disableAndCloseHalloweenPrompt } from "../test-setup";
+import { loginPlaywrightAdmin } from "../playwright-auth.ts";
+import { disableAndCloseHalloweenPrompt } from "../test-setup.ts";
 
 test("redirect to login from root", async ({ page, context }) => {
   await context.clearCookies();

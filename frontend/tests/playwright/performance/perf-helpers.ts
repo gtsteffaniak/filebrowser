@@ -1,7 +1,7 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Browser, Page, TestInfo } from "@playwright/test";
-import { checkResultThresholds, loadPerfConfig } from "./perf-config";
+import { checkResultThresholds, loadPerfConfig } from "./perf-config.ts";
 import {
   aggregateSamples,
   BASELINE_SCHEMA_VERSION,
@@ -13,14 +13,14 @@ import {
   type BaselineMetricEntry,
   type BaselineRunEntry,
   type PerfBaseline,
-} from "./perf-baseline";
-import { failIfEmptyRunSet, writeFinalArtifacts } from "./perf-finalize";
-import { installFrameTiming } from "./perf-frames";
-import { installWebVitals } from "./perf-vitals";
-import { extractBaselineMetrics } from "./perf-extract";
-import { findMetric } from "./perf-metrics";
-import { frontendRoot, performanceDir } from "./perf-paths";
-import type { PerfResultFile } from "./perf-report";
+} from "./perf-baseline.ts";
+import { failIfEmptyRunSet, writeFinalArtifacts } from "./perf-finalize.ts";
+import { installFrameTiming } from "./perf-frames.ts";
+import { installWebVitals } from "./perf-vitals.ts";
+import { extractBaselineMetrics } from "./perf-extract.ts";
+import { findMetric } from "./perf-metrics.ts";
+import { frontendRoot, performanceDir } from "./perf-paths.ts";
+import type { PerfResultFile } from "./perf-report.ts";
 
 /**
  * Results directory.
@@ -85,11 +85,11 @@ export function expectedItemCount(scale: number): number {
   return scale * 2;
 }
 
-export type DomSnapshot = {
+export interface DomSnapshot {
   listingItemCount: number;
   documentElementCount: number;
   bodyDescendantCount: number;
-};
+}
 
 export async function readDomSnapshot(page: Page): Promise<DomSnapshot> {
   return page.evaluate(() => ({
@@ -164,14 +164,14 @@ export async function installProbes(page: Page): Promise<void> {
   });
 }
 
-export type LongTask = { duration: number; startTime: number };
+export interface LongTask { duration: number; startTime: number }
 
-export type ProbeSnapshot = {
+export interface ProbeSnapshot {
   addListenerCalls: number;
   removeListenerCalls: number;
   intersectionObservers: number;
   longTasks: LongTask[];
-};
+}
 
 export async function readProbe(page: Page): Promise<ProbeSnapshot> {
   return page.evaluate(() => {
@@ -375,8 +375,10 @@ export function aggregateIterations(results: ParsedResult[]): ParsedResult[] {
   const out: ParsedResult[] = [];
   for (const list of groups.values()) {
     list.sort((a, b) => a.iteration - b.iteration);
+    const first = list[0];
+    if (!first) continue;
     if (list.length === 1) {
-      out.push({ ...list[0], file: baseFileName(list[0]) });
+      out.push({ ...first, file: baseFileName(first) });
       continue;
     }
     // Merge metric bags by taking the median of each numeric leaf.
@@ -385,7 +387,7 @@ export function aggregateIterations(results: ParsedResult[]): ParsedResult[] {
     // which lets the report show how noisy each metric actually is.
     // Sample arrays follow iteration order (repeat 1 = iteration 0).
     const samples: Record<string, number[]> = {};
-    const keys = Object.keys(extractBaselineMetrics(list[0]));
+    const keys = Object.keys(extractBaselineMetrics(first));
     for (const key of keys) {
       const values: number[] = [];
       for (const r of list) {
@@ -396,10 +398,10 @@ export function aggregateIterations(results: ParsedResult[]): ParsedResult[] {
       if (values.length > 1) samples[key] = values;
     }
     out.push({
-      ...list[0],
+      ...first,
       iteration: list.length,
       metrics: { ...merged, __samples: samples },
-      file: baseFileName(list[0]),
+      file: baseFileName(first),
     });
   }
   return out;

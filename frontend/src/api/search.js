@@ -1,12 +1,12 @@
-import { notify } from "@/notify";  // Import notify for error handling
+import { notify } from "@/notify/index.ts";
 import { getApiPath } from "@/utils/url.js";
-import { fetchURL } from "./utils";
+import { fetchURL } from "./utils.ts";
 
 export default async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
     // Ensure sources is an array
     const sourcesArray = Array.isArray(sources) ? sources : [sources];
-    
+
     const params = {
       query: query,
       sources: sourcesArray.join(",")

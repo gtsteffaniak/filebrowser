@@ -88,14 +88,12 @@ export default {
     ActivityViewerButton,
     FloatingActionButton,
   },
-  data: function () {
-    return {
+  data: () => ({
       error: null,
       users: [],
       /** Local fetch state; avoids global Settings overlay spinner (table shows its own). */
       loading: true,
-    };
-  },
+    }),
   async created() {
     await this.reloadUsers();
   },

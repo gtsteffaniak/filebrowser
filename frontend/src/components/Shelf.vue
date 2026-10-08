@@ -94,12 +94,11 @@ export default {
       return {};
     },
   },
-  mounted() {
-    this.$nextTick(() => {
-      this.attachScrollListener();
-    });
+  async mounted() {
     eventBus.on('duplicateFinderSelectionChanged', this.handleDuplicateFinderSelectionChanged);
     eventBus.on('duplicateFinderDeletingChanged', this.handleDuplicateFinderDeletingChanged);
+    await this.$nextTick();
+    this.attachScrollListener();
   },
   beforeUnmount() {
     this.detachScrollListener();
@@ -109,13 +108,12 @@ export default {
     eventBus.off('duplicateFinderDeletingChanged', this.handleDuplicateFinderDeletingChanged);
   },
   watch: {
-    $route() {
+    async $route() {
       this.isHidden = false;
       this.lastScrollTop = 0;
-      this.$nextTick(() => {
-        this.detachScrollListener();
-        this.attachScrollListener();
-      });
+      await this.$nextTick();
+      this.detachScrollListener();
+      this.attachScrollListener();
     },
     showShelf(newValue, oldValue) {
       // When shelf content appears (false -> true), always show it regardless of scroll position

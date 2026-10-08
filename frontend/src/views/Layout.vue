@@ -238,36 +238,35 @@ export default {
             },
           });
         }
-      this.$nextTick(() => {
-        if (getters.eventTheme() !== "halloween" || localStorage.getItem("seenHalloweenMessage")) {
-          return;
-        }
-        mutations.showPrompt({
-          name: "generic",
-          pinned: true,
-          props: {
-            title: this.$t("prompts.halloweenTitle"),
-            body: this.$t("prompts.halloweenBody"),
-            buttons: [
-              {
-                label: this.$t("general.acknowledge"),
-                action: () => {
-                  localStorage.setItem("seenHalloweenMessage", "true");
-                  mutations.closeTopPrompt();
-                },
+      await this.$nextTick();
+      if (getters.eventTheme() !== "halloween" || localStorage.getItem("seenHalloweenMessage")) {
+        return;
+      }
+      mutations.showPrompt({
+        name: "generic",
+        pinned: true,
+        props: {
+          title: this.$t("prompts.halloweenTitle"),
+          body: this.$t("prompts.halloweenBody"),
+          buttons: [
+            {
+              label: this.$t("general.acknowledge"),
+              action: () => {
+                localStorage.setItem("seenHalloweenMessage", "true");
+                mutations.closeTopPrompt();
               },
-              {
-                label: this.$t("general.disable"),
-                action: () => {
-                  mutations.disableEventThemes();
-                  localStorage.setItem("seenHalloweenMessage", "true");
-                  mutations.closeTopPrompt();
-                },
-                primary: true,
+            },
+            {
+              label: this.$t("general.disable"),
+              action: () => {
+                mutations.disableEventThemes();
+                localStorage.setItem("seenHalloweenMessage", "true");
+                mutations.closeTopPrompt();
               },
-            ],
-          },
-        });
+              primary: true,
+            },
+          ],
+        },
       });
     },
     resetItems() {

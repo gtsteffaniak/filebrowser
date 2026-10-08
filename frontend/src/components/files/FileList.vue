@@ -143,7 +143,7 @@ export default {
       default: true,
     },
   },
-  data: function () {
+  data() {
     const initialSource = this.browseSource || state.req.source;
     // If browsePath is provided, use it; otherwise use current path or root
     let initialPath;
@@ -270,15 +270,18 @@ export default {
       this.selectionBeforeMenu = null;
       mutations.resetSelected();
       if (previous?.entries?.length) {
-        previous.entries.forEach((entry) => mutations.addSelected(entry));
+        previous.entries.forEach((entry) => {
+          mutations.addSelected(entry);
+        });
       }
       if (previous?.multiple) {
         mutations.setMultiple(true);
       }
     },
-    loading(isLoading) {
+    async loading(isLoading) {
       if (!isLoading && this.fileList) {
-        this.$nextTick(() => this.followCurrentItem());
+        await this.$nextTick();
+        this.followCurrentItem();
       }
     },
     // Re-sort local items when the picker header changes the sort config
@@ -463,7 +466,7 @@ export default {
       const sorted = this.sortEntries(rest);
       this.items = parentEntry ? [parentEntry, ...sorted] : sorted;
     },
-    next: function (event) {
+    next(event) {
       // Retrieves the URL of the directory the user
       // just clicked in and fill the options with its
       // content.
@@ -588,7 +591,7 @@ export default {
         isValid: !this.requireFileSelection,
       });
     },
-    select: function (event) {
+    select(event) {
       const path = event.currentTarget.dataset.path;
       if (this.selected === path) {
         this.clearSelection();
@@ -607,7 +610,7 @@ export default {
         isValid: !this.requireFileSelection || isFile,
       });
     },
-    createDir: async function () {
+    async createDir() {
       mutations.showPrompt({
         name: "newDir",
         action: null,
@@ -705,12 +708,14 @@ export default {
       this.stopFollowingCurrentItem = () => {
         observer.disconnect();
         clearTimeout(timer);
-        events.forEach((name) => container.removeEventListener(name, this.stopFollowingCurrentItem));
+        events.forEach((name) => {
+          container.removeEventListener(name, this.stopFollowingCurrentItem);
+        });
         this.stopFollowingCurrentItem = null;
       };
-      events.forEach((name) =>
-        container.addEventListener(name, this.stopFollowingCurrentItem, { passive: true })
-      );
+      events.forEach((name) => {
+        container.addEventListener(name, this.stopFollowingCurrentItem, { passive: true });
+      });
     },
     navigateToItem(item) {
       mutations.closeTopPrompt();
