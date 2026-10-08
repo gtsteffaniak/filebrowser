@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("blob file preview", async({ page, checkForErrors }) => {
   await page.goto("/files/");

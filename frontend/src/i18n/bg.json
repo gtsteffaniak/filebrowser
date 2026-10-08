@@ -322,7 +322,11 @@
     "failedLogin": "Неуспешно вписване",
     "invalidCredentials": "Предоставени са невалидни данни за вход",
     "passkeyLogin": "Използване на Passkey",
-    "recaptchaRequired": "Изисква се предизвикателство Recaptcha"
+    "recaptchaRequired": "Изисква се предизвикателство Recaptcha",
+    "requirePasswordChangeTitle": "Променете паролата си",
+    "requirePasswordChangeInstructions": "Трябва да зададете нова парола, преди да продължите.",
+    "requirePasswordChangeSuccess": "Паролата е актуализирана. Вече сте влезли в системата.",
+    "requirePasswordChangeMustDiffer": "Новата парола трябва да е различна от настоящата ви парола"
   },
   "share": {
     "notice": "Забележка: когато споделянето е създадено, то става по-достъпно за обществеността и има различни правила за достъп. Ако вашето споделяне не е сигурно конфигурирано, всеки може да получи достъп до него.",
@@ -429,6 +433,15 @@
     "unarchiveMessage": "Изберете къде да бъде извлечен архивът.",
     "unarchiveDestination": "Извличане в:",
     "unarchiveSuccess": "Архивът беше извлечен успешно!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "dragAndDrop": "Плъзнете и пуснете файлове тук",
     "error": "Възникна грешка",
     "completed": "Завършено",
@@ -650,7 +663,10 @@
     "userEditPreferences": "Потребителски настройки",
     "userEditTools": "Достъп до инструменти",
     "userEditToolsDescription": "Настройте до кои инструменти този потребител има достъп",
-    "userEditSidebarLinks": "Връзки в страничната лента"
+    "userEditSidebarLinks": "Връзки в страничната лента",
+    "passwordRequirementsMatch": "Паролите съвпадат",
+    "passwordRequirementsMinLength": "Най-малко {min} символа",
+    "requirePasswordChange": "Да се изисква промяна на паролата при следващото влизане"
   },
   "time": {
     "time": "{prefix}Време{suffix}",
@@ -704,7 +720,9 @@
     "sidebarLinkDefaultsHelp": "Това са връзките по подразбиране, които ще бъдат добавени за всички нови потребители. Ако наложите дадена връзка, тя ще бъде добавена за всички потребители и няма да може да бъде премахната от потребители, които не са администратори.",
     "sidebarLinkDefaultSourceHelp": "Приложимо е само когато потребителят има достъп до този източник.",
     "sidebarLinkDefaultsYamlInvalid": "Невалиден YAML. Проверете формата и опитайте отново.",
-    "switchMode": "Превключване между връзките и дървото за навигация"
+    "switchMode": "Смяна на режима на страничната лента",
+    "rootFilesystemOnly": "Ограничаване на използването на дисково пространство до изходната файлова система",
+    "rootFilesystemOnlyDescription": "Когато тази опция е активирана, се отчита само файловата система, съдържаща изходния път. Когато е деактивирана (по подразбиране), общият обем на диска включва и файловите системи, монтирани под изходния път, като споделените пулове, например набори от данни в ZFS, се отчитат само веднъж."
   },
   "api": {
     "title": "API токени",
@@ -855,6 +873,8 @@
       "customScrollbarDescription": "Замяна на родната лента за превъртане на браузъра с вградената на Ace",
       "wrapContent": "Пренасяне на дългите редове в редактора",
       "wrapContentDescription": "Пренася съдържанието на редактора, за да поддържа много дългите редове винаги видими",
+      "indentedSoftWrap": "Меко пренасяне с отстъп",
+      "indentedSoftWrapDescription": "Когато това е включено, добавя отстъп в началото на пренесения текст",
       "autocompletion": "Автоматично довършване",
       "autocompletionDescription": "Включва автоматично довършване чрез ръчно натискане на 'ctrl + space'",
       "liveAutocompletion": "Живо автоматично довършване",

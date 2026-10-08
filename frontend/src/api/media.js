@@ -1,7 +1,7 @@
-import { notify } from "@/notify";
-import { state } from "@/store";
+import { notify } from "@/notify/index.ts";
+import { state } from "@/store/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { adjustedData, fetchURL } from "./utils";
+import { adjustedData, fetchURL } from "./utils.ts";
 import { getCachedDirMetadata, setCachedDirMetadata } from "@/utils/metadataCache.js";
 
 // GET /api/media/subtitles or /public/api/media/subtitles

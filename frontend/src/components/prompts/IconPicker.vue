@@ -151,11 +151,10 @@ export default {
       return this.searchQuery.trim();
     },
   },
-  mounted() {
+  async mounted() {
     // Focus the search input when the picker opens
-    this.$nextTick(() => {
-      this.$refs.searchInput?.focus();
-    });
+    await this.$nextTick();
+    this.$refs.searchInput?.focus();
   },
   methods: {
     getIconClass,
@@ -320,4 +319,3 @@ export default {
   font-size: 1em;
 }
 </style>
-

@@ -7,7 +7,7 @@
   >
     <iframe
       v-if="isHtml"
-      ref="viewer"
+      ref="viewerEl"
       :key="req.path"
       class="html-content"
       :srcdoc="htmlPreview.srcdoc"
@@ -17,7 +17,7 @@
       @load="applyHtmlPreviewHeight"
     ></iframe>
     <div v-else class="markdown-content-container">
-      <div ref="viewer" class="markdown-content">
+      <div ref="viewerEl" class="markdown-content">
         <div
           v-for="block in renderedContent"
           :key="block.key"
@@ -38,10 +38,12 @@
   />
 </template>
 
-<script lang="ts">
-import type { PropType } from "vue";
+<script setup lang="ts">
 import type { HLJSApi } from 'highlight.js';
-import { Marked, Token } from "marked";
+import type { Token } from "marked";
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { Marked } from "marked";
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store";
 import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
@@ -55,6 +57,21 @@ import {
   rewriteHtmlResources,
   rewriteDocumentStyles,
 } from "@/utils/htmlPreview";
+
+const props = withDefaults(
+  defineProps<{
+    splitMode?: boolean;
+    liveContent?: string | null;
+    // When null, falls back to the components own root (non-split view)
+    scrollTarget?: HTMLElement | null;
+  }>(),
+  {
+    splitMode: false,
+    liveContent: null,
+    scrollTarget: null,
+  },
+);
+
 
 // Lazy load highlight.js -- it was making the viewer bloated, so now is on its own chunk grouped with its theme
 let hljsPromise: Promise<HLJSApi> | null = null;
@@ -133,9 +150,7 @@ const VOID_ELEMENTS = new Set([
 function htmlTagBalance(raw: string): number {
   const tagPattern = /<\/?([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*>/g;
   let balance = 0;
-  let match: RegExpExecArray | null;
-  while ((match = tagPattern.exec(raw))) {
-    const [full, name] = match;
+  for (const [full, name = ""] of raw.matchAll(tagPattern)) {
     if (VOID_ELEMENTS.has(name.toLowerCase()) || full.endsWith("/>")) {
       continue;
     }
@@ -161,619 +176,640 @@ function rewriteHtmlBlockForMd(html: string, filePath: string, source: string): 
   return doc.body.innerHTML;
 }
 
-export default {
-  name: "markdownViewer",
-  inheritAttrs: false,
-  components: {
-    FloatingActionButton,
-  },
-  props: {
-    splitMode: {
-      type: Boolean,
-      default: false,
-    },
-    liveContent: {
-      type: String,
-      default: null,
-    },
-    scrollTarget: {
-      type: Object as PropType<HTMLElement | null>,
-      default: null, // When null, falls back to the components own root (non-split view)
-    },
-  },
-  data() {
-    return {
-      content: "",
-      scrollGuard: createScrollSyncGuard(),
-      boundScrollEl: null as HTMLElement | null,
-      isLoadingNewContent: false,
-      katexReady: false,
-      resizeObserver: null as ResizeObserver | null,
-      anchorCache: null as { line: number; top: number }[] | null,
-    };
-  },
-  methods: {
-    toggleSplitView() {
-      mutations.toggleSplitView();
-    },
-    applyHtmlPreviewHeight() {
-      const iframe = this.$refs.viewer as HTMLIFrameElement | undefined;
-      if (!iframe || !this.isHtml) return;
-      const available = window.innerHeight - iframe.getBoundingClientRect().top;
-      iframe.style.height = `${available}px`;
-    },
-    observeResize() {
-      if (this.resizeObserver) return;
-      const target = this.$refs.scrollContainer as HTMLElement | undefined;
-      if (!target) return;
-      window.addEventListener("resize", this.handleContainerResize);
-      this.resizeObserver = new ResizeObserver(() => this.handleContainerResize());
-      this.resizeObserver.observe(target);
-    },
-    unobserveResize() {
-      if (!this.resizeObserver) return;
-      window.removeEventListener("resize", this.handleContainerResize);
-      this.resizeObserver.disconnect();
-      this.resizeObserver = null;
-    },
-    handleContainerResize() {
-      if (this.isHtml) {
-        this.applyHtmlPreviewHeight();
-      } else {
-        this.invalidateAnchors();
-      }
-    },
-    async setHighlightTheme(isDark: boolean) {
-      const THEME_STYLE_ID = "highlight-theme-style";
-      const themeMode = await loadHighlightCss(isDark ? "dark" : "light");
-      const nonce =
-        typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== ""
-          ? globalVars.cspNonce
-          : "";
-      let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
-      if (!style) {
-        style = document.createElement("style");
-        style.id = THEME_STYLE_ID;
-        if (nonce) {
-          style.setAttribute("nonce", nonce);
-        }
-        document.head.appendChild(style);
-      } else if (nonce) {
-        style.setAttribute("nonce", nonce);
-      }
-      style.textContent = themeMode;
-    },
-    // Highlights code blocks and adds line numbers
-    async applyHighlighting() {
-      const viewer = this.$refs.viewer as HTMLElement;
-      if (!viewer?.querySelector('pre code')) return;
-      void this.setHighlightTheme(getters.isDarkMode());
-      let hljs: HLJSApi | null = null;
-      try {
-        hljs = await loadHljs();
-      } catch (err) {
-        console.error("Failed to load highlight.js:", err);
-      }
-      // Re-query in case content changed while highlight.js was loading
-      viewer.querySelectorAll('pre code').forEach((block) => {
-        const codeBlock = block as HTMLElement;
-        if (codeBlock.classList.contains("line-numbers-added")) return;
-        const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
-        const lang = langClass ? langClass.split('-')[1] : null;
+defineOptions({ name: "markdownViewer", inheritAttrs: false });
 
-        if (hljs && lang && hljs.getLanguage(lang)) {
-          hljs.highlightElement(codeBlock);
-        } else {
-          codeBlock.classList.add('hljs');
-        }
-        this.addLineNumbers(codeBlock);
-      });
-    },
-    // Manual line numbers implementation
-    addLineNumbers(codeBlock: HTMLElement) {
-      const code = codeBlock.textContent || '';
-      const lines = code.split('\n');
+const { t } = useI18n();
 
-      // Remove trailing empty lines
-      if (lines[lines.length - 1] === '') {
-        lines.pop();
-      }
+const scrollContainer = ref<HTMLElement | null>(null);
+const viewerEl = ref<HTMLElement | null>(null);
 
-      // Don't add line numbers if already added
-      if (codeBlock.classList.contains('line-numbers-added')) {
-        return;
-      }
+const content = ref("");
+const katexReady = ref(false);
 
-      // Create a wrapper div
-      const wrapper = document.createElement('div');
-      wrapper.className = 'code-block-wrapper';
+const scrollGuard = createScrollSyncGuard();
+let boundScrollEl: HTMLElement | null = null;
+let isLoadingNewContent = false;
+let resizeObserver: ResizeObserver | null = null;
+let anchorCache: { line: number; top: number }[] | null = null;
 
-      // Create copy button
-      const copyButton = document.createElement('button');
-      copyButton.className = 'copy-code-button';
-      copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
-      copyButton.setAttribute('aria-label', 'Copy code to clipboard');
-      copyButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const text = codeBlock.textContent || '';
-        const showFeedback = (success: boolean) => {
-          copyButton.innerHTML = success
-            ? '<span class="material-symbols-outlined">check</span>'
-            : '<span class="material-symbols-outlined">error</span>';
-          setTimeout(() => {
-            copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
-          }, 1500);
-        };
-        void copyToClipboard(text)
-          .then((success) => {
-            showFeedback(success);
-          })
-          .catch((err) => {
-            console.error('Copy failed:', err);
-            showFeedback(false);
-          });
-      });
-      wrapper.appendChild(copyButton);
+const req = computed(() => {
+  return state.req;
+});
 
-      // Create line numbers container
-      const lineNumbers = document.createElement('div');
-      lineNumbers.className = 'line-numbers';
+const darkMode = computed(() => {
+  // This computed property returns the current dark mode state.
+  return getters.isDarkMode();
+});
 
-      // Create code content container
-      const codeContent = document.createElement('div');
-      codeContent.className = 'code-content';
+const showSplitViewToggle = computed(() => {
+  return getters.showSplitViewToggle();
+});
 
-      // Get the highlighted HTML content and split it into lines
-      const highlightedHTML = codeBlock.innerHTML;
-      const htmlLines = this.splitHighlightedHTML(highlightedHTML, lines.length);
+const splitViewActionLabel = computed(() => {
+  return getters.isSplitViewActive() ? t("editor.exitSplitView") : t("editor.splitView");
+});
 
-      // Absolute source line the code content starts on, gives each line its own anchor
-      const blockEl = codeBlock.closest<HTMLElement>('.md-block');
-      const parsedStart = Number(blockEl?.dataset.codeLine);
-      const codeStartLine = Number.isFinite(parsedStart) ? parsedStart : null;
+const isHtml = computed(() => {
+  return isHtmlMimeType(state.req.type);
+});
 
-      // Create code lines with preserved highlighting
-      const codeLines = htmlLines.map((lineHTML, index) => {
-        const lineElement = document.createElement('div');
-        lineElement.className = 'code-line';
-        lineElement.setAttribute('data-line', (index + 1).toString());
-        if (codeStartLine !== null) {
-          lineElement.dataset.sourceLine = String(codeStartLine + index);
-        }
-        lineElement.innerHTML = lineHTML;
-        return lineElement;
-      });
+const htmlPreview = computed(() => {
+  if (!isHtml.value) {
+    return { srcdoc: "" };
+  }
+  return buildHtmlPreview(content.value, state.req.path ?? "", state.req.source ?? "");
+});
 
-      // Generate line numbers with click handlers
-      for (let i = 1; i <= lines.length; i++) {
-        const lineNumber = document.createElement('span');
-        lineNumber.className = 'line-number';
-        lineNumber.textContent = i.toString();
-        lineNumber.setAttribute('data-line', i.toString());
+const renderedContent = computed(() => {
+  void katexReady.value;
+  return parseMarkdown(content.value, state.req.path ?? "", state.req.source ?? "");
+});
 
-        // Add click handler for line highlighting
-        lineNumber.addEventListener('click', () => {
-          // Check if this line is already active
-          const isCurrentlyActive = lineNumber.classList.contains('active');
+const spaceForStatusBar = computed(() => {
+  return getters.isMobile() ? 3.1 : 3.5;
+});
 
-          // Remove previous highlights
-          wrapper.querySelectorAll('.code-line.highlighted').forEach(el => {
-            el.classList.remove('highlighted');
-          });
-          wrapper.querySelectorAll('.line-number.active').forEach(el => {
-            el.classList.remove('active');
-          });
+const editorScrollRatio = computed(() => {
+  return state.editor.scrollRatio;
+});
 
-          // If the line wasn't already active, highlight it
-          if (!isCurrentlyActive) {
-            const targetLine = wrapper.querySelector(`.code-line[data-line="${i}"]`);
-            if (targetLine) {
-              targetLine.classList.add('highlighted');
-              lineNumber.classList.add('active');
-            }
-          }
-          // If it was already active, we've already cleared it above
-        });
+const htmlViewerStyle = computed(() => {
+  if (!isHtml.value) {
+    return undefined;
+  }
+  const statusBar = spaceForStatusBar.value;
+  const height = `calc(100vh - 4em - ${statusBar}em - 0.5em)`;
+  return {
+    height,
+    minHeight: height,
+  };
+});
 
-        lineNumbers.appendChild(lineNumber);
-      }
+// We now watch the `content` property.
+watch(content, () => {
+  if (!katexLoaded && contentHasMath(content.value)) {
+    void loadKatex().then(() => { katexReady.value = true; }).catch(() => { /* logged inside loadKatex above */ });
+  }
+  const target = isLoadingNewContent
+    ? state.editor.scrollRatio
+    : (props.splitMode ? null : currentLine());
+  isLoadingNewContent = false;
+  scrollGuard.suppress();
+  void finalizeContentRender(target);
+  updateEditorStats();
+});
 
-      // Create new code block with individual lines
-      const newCodeBlock = document.createElement('code');
-      newCodeBlock.className = codeBlock.className;
-      newCodeBlock.classList.add('line-numbers-added');
+// Watch for changes in state.req.content and update local content
+watch(req, () => {
+  if (props.splitMode) return; // since we prefer the live content
+  reinit();
+});
 
-      // Add all code lines to the new code block
-      codeLines.forEach(line => {
-        newCodeBlock.appendChild(line);
-      });
+watch(darkMode, () => {
+  const viewer = viewerEl.value;
+  if (viewer?.querySelector('pre code')) {
+    void setHighlightTheme(getters.isDarkMode());
+  }
+});
 
-      // Create new pre element
-      const newPre = document.createElement('pre');
-      newPre.appendChild(newCodeBlock);
-      codeContent.appendChild(newPre);
+watch(editorScrollRatio, () => {
+  if (isHtml.value || state.editor.scrollSource === 'viewer') return;
+  applyScrollRatio(state.editor.scrollRatio);
+});
 
-      // Insert wrapper before the original code block
-      codeBlock.parentNode?.insertBefore(wrapper, codeBlock);
+watch(() => props.liveContent, (newVal) => {
+  if (!props.splitMode || newVal === null) return;
+  if (content.value === "") isLoadingNewContent = true;
+  content.value = newVal;
+});
 
-      // Add line numbers and code content to wrapper
-      wrapper.appendChild(lineNumbers);
-      wrapper.appendChild(codeContent);
+watch(() => props.scrollTarget, (newEl) => {
+  attachScrollListener(newEl);
+  const container = getScrollContainer();
+  attachScrollListener(container);
+  if (container && !isHtml.value) {
+    applyScrollRatio(state.editor.scrollRatio);
+  }
+});
 
-      // Remove the original code block
-      codeBlock.remove();
-    },
+onMounted(async () => {
+  reinit();
+  observeResize();
+  await nextTick();
+  attachScrollListener(getScrollContainer());
+});
 
-    // Helper method to split highlighted HTML while preserving syntax highlighting
-    splitHighlightedHTML(html: string, expectedLines: number): string[] {
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
-      const textContent = temp.textContent || '';
-      const textLines = textContent.split('\n');
+onBeforeUnmount(() => {
+  if (scrollGuard.cancel()) {
+    syncScrollRatio();
+  }
+});
 
-      // Remove trailing empty line from textLines if present
-      if (textLines[textLines.length - 1] === '') {
-        textLines.pop();
-      }
+onUnmounted(() => {
+  attachScrollListener(null);
+  unobserveResize();
 
-      if (textLines.length !== expectedLines) {
-        return textLines.map(line => this.escapeHtml(line));
-      }
+  if (!props.splitMode) {
+    mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
+  }
+});
 
-      const htmlLines = [];
-      let currentHTML = html;
+function toggleSplitView() {
+  mutations.toggleSplitView();
+}
 
-      for (let i = 0; i < textLines.length; i++) {
-        const lineText = textLines.at(i);
-        if (i === textLines.length - 1) {
-          htmlLines.push(currentHTML);
-        } else {
-          const lineBreakIndex = currentHTML.indexOf('\n');
-          if (lineBreakIndex !== -1) {
-            htmlLines.push(currentHTML.substring(0, lineBreakIndex));
-            currentHTML = currentHTML.substring(lineBreakIndex + 1);
-          } else {
-            htmlLines.push(this.escapeHtml(lineText));
-          }
-        }
-      }
+function applyHtmlPreviewHeight() {
+  const iframe = viewerEl.value as HTMLIFrameElement | null;
+  if (!iframe || !isHtml.value) return;
+  const available = window.innerHeight - iframe.getBoundingClientRect().top;
+  iframe.style.height = `${available}px`;
+}
 
-      return htmlLines;
-    },
+function observeResize() {
+  if (resizeObserver) return;
+  const target = scrollContainer.value;
+  if (!target) return;
+  window.addEventListener("resize", handleContainerResize);
+  resizeObserver = new ResizeObserver(() => handleContainerResize());
+  resizeObserver.observe(target);
+}
 
-    // Helper method to escape HTML
-    escapeHtml(text: string): string {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    },
-    parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
-      const parser = marked;
-      // Tag each top level block with its source line for scroll-sync
-      let tokens: Token[] | null;
-      try {
-        tokens = parser.lexer(content);
-      } catch (err) {
-        console.error("Failed to lex markdown:", err);
-        tokens = null;
-      }
-      if (!tokens) {
-        return [{ key: "loading", line: 0, html: DOMPurify.sanitize(this.$t("general.loading"), MD_SANITIZE_CONFIG) }];
-      }
-      void parser.walkTokens(tokens, (token) => {
-        if (token.type === "image" && token.href) {
-          token.href = buildPreviewResourceUrl(token.href, filePath, source);
-        } else if (token.type === "html" && token.block === false && htmlTagBalance(token.raw) === 0 && /\s(?:src|href|style)=/i.test(token.raw)) {
-          const rewritten = rewriteHtmlBlockForMd(token.raw, filePath, source);
-          token.raw = rewritten;
-          token.text = rewritten;
-        }
-      });
-      // Blocks are keyed off a hash of their own source, so Vue can move it in the DOM
-      // instead of rendering it again.
-      const keyCounts = new Map<string, number>();
-      const nextKey = (raw: string): string => {
-        const base = hashText(raw);
-        const occurrence = keyCounts.get(base) ?? 0;
-        keyCounts.set(base, occurrence + 1);
-        return occurrence === 0 ? base : `${base}-${occurrence}`;
-      };
-      let line = 0;
-      const parts: { key: string; line: number; html: string; codeLine?: number }[] = [];
-      let group: { needsRewrite: unknown; html: string; raw: string; line: number; depth: number } | null = null;
-      for (const token of tokens) {
-        let html: string;
-        try {
-          const single = [token as never] as Token[] & { links?: Record<string, unknown> };
-          single.links = (tokens as Token[] & { links?: Record<string, unknown> }).links ?? {};
-          html = parser.parser(single as never);
-        } catch (_e) {
-          html = "";
-        }
-        const needsRewrite = !!html && (token.type === "html" || /<(?:video|audio|source|track)\b/i.test(token.raw));
-        const lineCount = (token.raw.match(/\n/g) || []).length;
-        const depth = token.type === "html" ? htmlTagBalance(token.raw) : 0;
-        // For code blocks, work out the exact line the code content starts, from the token own raw/text offset,so
-        // the scroll anchors can be placed correctly
-        let codeLine: number | null = null;
-        if (token.type === "code" && typeof (token as { text?: unknown }).text === "string") {
-          const codeText = (token as { text: string }).text;
-          const offset = token.raw.indexOf(codeText);
-          if (offset !== -1) {
-            codeLine = line + (token.raw.slice(0, offset).match(/\n/g) || []).length;
-          }
-        }
-        if (group) {
-          group.html += html;
-          group.raw += token.raw;
-          group.depth += depth;
-          group.needsRewrite = group.needsRewrite || needsRewrite;
-          if (group.depth <= 0) {
-            const finalHtml = group.needsRewrite ? rewriteHtmlBlockForMd(group.html, filePath, source) : group.html;
-            parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG) });
-            group = null;
-          }
-        } else if (depth > 0) {
-          group = { html, raw: token.raw, line, depth, needsRewrite };
-        } else {
-          const finalHtml = needsRewrite ? rewriteHtmlBlockForMd(html, filePath, source) : html;
-          parts.push({ key: nextKey(token.raw), line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG), codeLine: codeLine ?? undefined });
-        }
-        line += lineCount;
-      }
-      if (group) {
-        // Reached the end with tags still unclosed (maybe malformed HTML), so flush them rather than dropping.
-        const finalHtml = group.needsRewrite ? rewriteHtmlBlockForMd(group.html, filePath, source) : group.html;
-        parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG) });
-      }
-      return parts;
-    },
-    updateEditorStats() {
-      if (this.splitMode) return;
-      const text = this.content.trim();
-      const validWord = text.split(/\s+/).filter(t => /[a-zA-Z0-9]/.test(t));
-      const words = validWord.length;
-      const chars = text.length;
-      mutations.setEditorStats({ lines: null, words, chars });
-    },
-    reinit() {
-      mutations.resetEditorScrollRatio(state.req.path);
-      mutations.resetSelected();
-      mutations.addSelected({
-        name: state.req.name,
-        path: state.req.path,
-        size: state.req.size,
-        type: state.req.type,
-        source: state.req.source,
-        modified: state.req.modified,
-        hasPreview: state.req.hasPreview,
-      });
-      // Set initial content. The `watch` will trigger the first highlight.
-      // In split mode, prefer the editor live buffer over the file.
-      const fileContent = state.req.content === "empty-file-x6OlSil" ? "" : state.req.content || "";
-      const newContent = (this.splitMode && this.liveContent !== null) ? this.liveContent : fileContent;
-      if (newContent === this.content) {
-        this.scrollGuard.suppress();
-        this.finalizeContentRender(state.editor.scrollRatio);
-      } else {
-        this.isLoadingNewContent = true;
-        this.content = newContent;
-      }
-      this.updateEditorStats();
-    },
-    finalizeContentRender(target: number | null) {
-      this.invalidateAnchors();
-      this.$nextTick(async () => {
-        try {
-          await this.applyHighlighting();
-        } catch (err) {
-          console.error("Failed to apply syntax highlighting:", err);
-        }
-        if (!this.isHtml && target !== null) this.applyScrollRatio(target);
-      });
-    },
-    attachScrollListener(el: HTMLElement | null) {
-      if (this.boundScrollEl === el) return;
-      this.boundScrollEl?.removeEventListener("scroll", this.handleScroll);
-      this.boundScrollEl = el;
-      el?.addEventListener("scroll", this.handleScroll, { passive: true });
-    },
-    getScrollContainer(): HTMLElement | null {
-      return this.splitMode
-        ? (this.scrollTarget as HTMLElement | null) || (this.$refs.scrollContainer as HTMLElement | null)
-        : document.getElementById("main");
-    },
-    getLineAnchors(): { line: number; top: number }[] {
-      if (this.anchorCache) return this.anchorCache;
-      const viewer = this.$refs.viewer as HTMLElement | null;
-      const container = this.getScrollContainer();
-      if (!viewer || !container) return [];
-      const containerTop = container.getBoundingClientRect().top - container.scrollTop;
-      const topOf = (el: HTMLElement) => el.getBoundingClientRect().top - containerTop;
-      const anchors = Array.from(viewer.querySelectorAll<HTMLElement>(".md-block")).map((el) => ({
-        line: Number(el.dataset.line),
-        top: topOf(el),
-      }));
-      // per-line anchors to keep the interpolation
-      viewer.querySelectorAll<HTMLElement>(".code-line[data-source-line]").forEach((el) => {
-        anchors.push({ line: Number(el.dataset.sourceLine), top: topOf(el) });
-      });
-      anchors.sort((a, b) => a.line - b.line);
-      this.anchorCache = anchors;
-      return anchors;
-    },
-    invalidateAnchors() {
-      this.anchorCache = null;
-    },
-    totalLines(): number {
-      return Math.max(0, this.content.split('\n').length - 1);
-    },
-    // Finds the pair of adjacent anchors 'value' along whatever axis 'getValue' reads off each anchor (top or line).
-    bracketAnchors(
-      anchors: { line: number; top: number }[],
-      getValue: (anchor: { line: number; top: number }) => number,
-      value: number,
-    ): [{ line: number; top: number }, { line: number; top: number }] {
-      for (let i = 0; i < anchors.length - 1; i++) {
-        if (getValue(anchors.at(i)) <= value && getValue(anchors.at(i + 1)) > value) {
-          return [anchors.at(i), anchors.at(i + 1)];
-        }
-      }
-      return [anchors.at(0), anchors.at(-1)];
-    },
-    // The line currently at the top of the viewport by interpolating between the near block anchors.
-    currentLine() {
-      const el = this.getScrollContainer();
-      if (!el) return 0;
-      const anchors = this.getLineAnchors();
-      if (!anchors.length) return 0;
-      const scrollTop = el.scrollTop;
-      const maxScrollTop = el.scrollHeight - el.clientHeight;
-      if (maxScrollTop > 0 && scrollTop >= maxScrollTop - 1) {
-        return this.totalLines();
-      }
-      const [a, b] = this.bracketAnchors(anchors, (anchor) => anchor.top, scrollTop);
-      const topSpan = b.top - a.top;
-      const frac = topSpan > 0 ? Math.min(1, Math.max(0, (scrollTop - a.top) / topSpan)) : 0;
-      return a.line + frac * (b.line - a.line);
-    },
-    syncScrollRatio() {
-      mutations.setEditorScrollRatio(this.currentLine(), "viewer");
-    },
-    handleScroll() {
-      if (this.isHtml) return;
-      this.scrollGuard.schedule(() => this.syncScrollRatio());
-    },
-    applyScrollRatio(line: number) {
-      const el = this.getScrollContainer();
-      if (!el) return;
-      const anchors = this.getLineAnchors();
-      if (!anchors.length) return;
-      const first = anchors.at(0);
-      let top;
-      if (line <= first.line) {
-        top = 0;
-      } else if (line >= this.totalLines()) {
-        top = el.scrollHeight - el.clientHeight;
-      } else {
-        const [a, b] = this.bracketAnchors(anchors, (anchor) => anchor.line, line);
-        const lineSpan = b.line - a.line;
-        top = lineSpan > 0
-          ? a.top + ((line - a.line) / lineSpan) * (b.top - a.top)
-          : a.top;
-      }
-      this.scrollGuard.applyRemote(() => { el.scrollTop = top; });
-    },
-  },
-  watch: {
-    // We now watch the `content` property.
-    content() {
-      if (!katexLoaded && contentHasMath(this.content)) {
-        void loadKatex().then(() => { this.katexReady = true; }).catch(() => { /* logged inside loadKatex above */ });
-      }
-      const target = this.isLoadingNewContent
-        ? state.editor.scrollRatio
-        : (this.splitMode ? null : this.currentLine());
-      this.isLoadingNewContent = false;
-      this.scrollGuard.suppress();
-      this.finalizeContentRender(target);
-      this.updateEditorStats();
-    },
-    // Watch for changes in state.req.content and update local content
-    req() {
-      if (this.splitMode) return; // since we prefer the live content
-      this.reinit()
-    },
-    darkMode() {
-      const viewer = this.$refs.viewer as HTMLElement | null;
-      if (viewer?.querySelector('pre code')) {
-        void this.setHighlightTheme(getters.isDarkMode());
-      }
-    },
-    editorScrollRatio() {
-      if (this.isHtml || state.editor.scrollSource === 'viewer') return;
-      this.applyScrollRatio(state.editor.scrollRatio);
-    },
-    liveContent(newVal) {
-      if (!this.splitMode || newVal === null) return;
-      if (this.content === "") this.isLoadingNewContent = true;
-      this.content = newVal;
-    },
-    scrollTarget(newEl) {
-      this.attachScrollListener(newEl);
-      const container = this.getScrollContainer();
-      this.attachScrollListener(container);
-      if (container && !this.isHtml) {
-        this.applyScrollRatio(state.editor.scrollRatio);
-      }
-    },
-  },
-  computed: {
-    req() {
-      return state.req;
-    },
-    darkMode() {
-      // This computed property returns the current dark mode state.
-      return getters.isDarkMode();
-    },
-    showSplitViewToggle() {
-      return getters.showSplitViewToggle();
-    },
-    splitViewActionLabel() {
-      return getters.isSplitViewActive() ? this.$t("editor.exitSplitView") : this.$t("editor.splitView");
-    },
-    isHtml() {
-      return isHtmlMimeType(state.req.type);
-    },
-    htmlPreview() {
-      if (!this.isHtml) {
-        return { srcdoc: "" };
-      }
-      return buildHtmlPreview(this.content, state.req.path, state.req.source);
-    },
-    renderedContent() {
-      void this.katexReady;
-      return this.parseMarkdown(this.content, state.req.path, state.req.source);
-    },
-    spaceForStatusBar() {
-      return getters.isMobile() ? 3.1 : 3.5;
-    },
-    editorScrollRatio() {
-      return state.editor.scrollRatio;
-    },
-    htmlViewerStyle() {
-      if (!this.isHtml) {
-        return undefined;
-      }
-      const statusBar = this.spaceForStatusBar;
-      const height = `calc(100vh - 4em - ${statusBar}em - 0.5em)`;
-      return {
-        height,
-        minHeight: height,
-      };
-    },
-  },
-  mounted() {
-    this.reinit();
-    this.$nextTick(() => {
-      this.attachScrollListener(this.getScrollContainer());
-    });
-    this.observeResize();
-  },
-  beforeUnmount() {
-    if (this.scrollGuard.cancel()) {
-      this.syncScrollRatio();
+function unobserveResize() {
+  if (!resizeObserver) return;
+  window.removeEventListener("resize", handleContainerResize);
+  resizeObserver.disconnect();
+  resizeObserver = null;
+}
+
+function handleContainerResize() {
+  if (isHtml.value) {
+    applyHtmlPreviewHeight();
+  } else {
+    invalidateAnchors();
+  }
+}
+
+async function setHighlightTheme(isDark: boolean) {
+  const THEME_STYLE_ID = "highlight-theme-style";
+  const themeMode = await loadHighlightCss(isDark ? "dark" : "light");
+  const nonce =
+    typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== ""
+      ? globalVars.cspNonce
+      : "";
+  let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
+  if (!style) {
+    style = document.createElement("style");
+    style.id = THEME_STYLE_ID;
+    if (nonce) {
+      style.setAttribute("nonce", nonce);
     }
-  },
-  unmounted() {
-    this.attachScrollListener(null);
-    this.unobserveResize();
+    document.head.appendChild(style);
+  } else if (nonce) {
+    style.setAttribute("nonce", nonce);
+  }
+  style.textContent = themeMode;
+}
 
-    if (!this.splitMode) {
-      mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
+// Highlights code blocks and adds line numbers
+async function applyHighlighting() {
+  const viewer = viewerEl.value;
+  if (!viewer?.querySelector('pre code')) return;
+  void setHighlightTheme(getters.isDarkMode());
+  let hljs: HLJSApi | null = null;
+  try {
+    hljs = await loadHljs();
+  } catch (err) {
+    console.error("Failed to load highlight.js:", err);
+  }
+  // Re-query in case content changed while highlight.js was loading
+  viewer.querySelectorAll('pre code').forEach((block) => {
+    const codeBlock = block as HTMLElement;
+    if (codeBlock.classList.contains("line-numbers-added")) return;
+    const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
+    const lang = langClass ? langClass.split('-')[1] : null;
+
+    if (hljs && lang && hljs.getLanguage(lang)) {
+      hljs.highlightElement(codeBlock);
+    } else {
+      codeBlock.classList.add('hljs');
+    }
+    addLineNumbers(codeBlock);
+  });
+}
+
+// Manual line numbers implementation
+function addLineNumbers(codeBlock: HTMLElement) {
+  const code = codeBlock.textContent || '';
+  const lines = code.split('\n');
+
+  // Remove trailing empty lines
+  if (lines[lines.length - 1] === '') {
+    lines.pop();
+  }
+
+  // Don't add line numbers if already added
+  if (codeBlock.classList.contains('line-numbers-added')) {
+    return;
+  }
+
+  // Create a wrapper div
+  const wrapper = document.createElement('div');
+  wrapper.className = 'code-block-wrapper';
+
+  // Create copy button
+  const copyButton = document.createElement('button');
+  copyButton.className = 'copy-code-button';
+  copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
+  copyButton.setAttribute('aria-label', 'Copy code to clipboard');
+  copyButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const text = codeBlock.textContent || '';
+    const showFeedback = (success: boolean) => {
+      copyButton.innerHTML = success
+        ? '<span class="material-symbols-outlined">check</span>'
+        : '<span class="material-symbols-outlined">error</span>';
+      setTimeout(() => {
+        copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
+      }, 1500);
+    };
+    void copyToClipboard(text)
+      .then((success) => {
+        showFeedback(success);
+      })
+      .catch((err) => {
+        console.error('Copy failed:', err);
+        showFeedback(false);
+      });
+  });
+  wrapper.appendChild(copyButton);
+
+  // Create line numbers container
+  const lineNumbers = document.createElement('div');
+  lineNumbers.className = 'line-numbers';
+
+  // Create code content container
+  const codeContent = document.createElement('div');
+  codeContent.className = 'code-content';
+
+  // Get the highlighted HTML content and split it into lines
+  const highlightedHTML = codeBlock.innerHTML;
+  const htmlLines = splitHighlightedHTML(highlightedHTML, lines.length);
+
+  // Absolute source line the code content starts on, gives each line its own anchor
+  const blockEl = codeBlock.closest<HTMLElement>('.md-block');
+  const parsedStart = Number(blockEl?.dataset.codeLine);
+  const codeStartLine = Number.isFinite(parsedStart) ? parsedStart : null;
+
+  // Create code lines with preserved highlighting
+  const codeLines = htmlLines.map((lineHTML, index) => {
+    const lineElement = document.createElement('div');
+    lineElement.className = 'code-line';
+    lineElement.setAttribute('data-line', (index + 1).toString());
+    if (codeStartLine !== null) {
+      lineElement.dataset.sourceLine = String(codeStartLine + index);
+    }
+    lineElement.innerHTML = lineHTML;
+    return lineElement;
+  });
+
+  // Generate line numbers with click handlers
+  for (let i = 1; i <= lines.length; i++) {
+    const lineNumber = document.createElement('span');
+    lineNumber.className = 'line-number';
+    lineNumber.textContent = i.toString();
+    lineNumber.setAttribute('data-line', i.toString());
+
+    // Add click handler for line highlighting
+    lineNumber.addEventListener('click', () => {
+      // Check if this line is already active
+      const isCurrentlyActive = lineNumber.classList.contains('active');
+
+      // Remove previous highlights
+      wrapper.querySelectorAll('.code-line.highlighted').forEach(el => {
+        el.classList.remove('highlighted');
+      });
+      wrapper.querySelectorAll('.line-number.active').forEach(el => {
+        el.classList.remove('active');
+      });
+
+      // If the line wasn't already active, highlight it
+      if (!isCurrentlyActive) {
+        const targetLine = wrapper.querySelector(`.code-line[data-line="${i}"]`);
+        if (targetLine) {
+          targetLine.classList.add('highlighted');
+          lineNumber.classList.add('active');
+        }
+      }
+      // If it was already active, we've already cleared it above
+    });
+
+    lineNumbers.appendChild(lineNumber);
+  }
+
+  // Create new code block with individual lines
+  const newCodeBlock = document.createElement('code');
+  newCodeBlock.className = codeBlock.className;
+  newCodeBlock.classList.add('line-numbers-added');
+
+  // Add all code lines to the new code block
+  codeLines.forEach(line => {
+    newCodeBlock.appendChild(line);
+  });
+
+  // Create new pre element
+  const newPre = document.createElement('pre');
+  newPre.appendChild(newCodeBlock);
+  codeContent.appendChild(newPre);
+
+  // Insert wrapper before the original code block
+  codeBlock.parentNode?.insertBefore(wrapper, codeBlock);
+
+  // Add line numbers and code content to wrapper
+  wrapper.appendChild(lineNumbers);
+  wrapper.appendChild(codeContent);
+
+  // Remove the original code block
+  codeBlock.remove();
+}
+
+// Helper method to split highlighted HTML while preserving syntax highlighting
+function splitHighlightedHTML(html: string, expectedLines: number): string[] {
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  const textContent = temp.textContent || '';
+  const textLines = textContent.split('\n');
+
+  // Remove trailing empty line from textLines if present
+  if (textLines[textLines.length - 1] === '') {
+    textLines.pop();
+  }
+
+  if (textLines.length !== expectedLines) {
+    return textLines.map(line => escapeHtml(line));
+  }
+
+  const htmlLines = [];
+  let currentHTML = html;
+
+  for (let i = 0; i < textLines.length; i++) {
+    const lineText = textLines.at(i) ?? "";
+    if (i === textLines.length - 1) {
+      htmlLines.push(currentHTML);
+    } else {
+      const lineBreakIndex = currentHTML.indexOf('\n');
+      if (lineBreakIndex !== -1) {
+        htmlLines.push(currentHTML.substring(0, lineBreakIndex));
+        currentHTML = currentHTML.substring(lineBreakIndex + 1);
+      } else {
+        htmlLines.push(escapeHtml(lineText));
+      }
     }
   }
-};
+
+  return htmlLines;
+}
+
+// Helper method to escape HTML
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
+  const parser = marked;
+  // Tag each top level block with its source line for scroll-sync
+  let tokens: Token[] | null;
+  try {
+    tokens = parser.lexer(content);
+  } catch (err) {
+    console.error("Failed to lex markdown:", err);
+    tokens = null;
+  }
+  if (!tokens) {
+    return [{ key: "loading", line: 0, html: DOMPurify.sanitize(t("general.loading"), MD_SANITIZE_CONFIG) }];
+  }
+  void parser.walkTokens(tokens, (token) => {
+    if (token.type === "image" && token.href) {
+      token.href = buildPreviewResourceUrl(token.href, filePath, source);
+    } else if (token.type === "html" && token.block === false && htmlTagBalance(token.raw) === 0 && /\s(?:src|href|style)=/i.test(token.raw)) {
+      const rewritten = rewriteHtmlBlockForMd(token.raw, filePath, source);
+      token.raw = rewritten;
+      token.text = rewritten;
+    }
+  });
+  // Blocks are keyed off a hash of their own source, so Vue can move it in the DOM
+  // instead of rendering it again.
+  const keyCounts = new Map<string, number>();
+  const nextKey = (raw: string): string => {
+    const base = hashText(raw);
+    const occurrence = keyCounts.get(base) ?? 0;
+    keyCounts.set(base, occurrence + 1);
+    return occurrence === 0 ? base : `${base}-${occurrence}`;
+  };
+  let line = 0;
+  const parts: { key: string; line: number; html: string; codeLine?: number }[] = [];
+  let group: { needsRewrite: unknown; html: string; raw: string; line: number; depth: number } | null = null;
+  for (const token of tokens) {
+    let html: string;
+    try {
+      const single = [token as never] as Token[] & { links?: Record<string, unknown> };
+      single.links = (tokens as Token[] & { links?: Record<string, unknown> }).links ?? {};
+      html = parser.parser(single as never);
+    } catch (_e) {
+      html = "";
+    }
+    const needsRewrite = !!html && (token.type === "html" || /<(?:video|audio|source|track)\b/i.test(token.raw));
+    const lineCount = (token.raw.match(/\n/g) || []).length;
+    const depth = token.type === "html" ? htmlTagBalance(token.raw) : 0;
+    // For code blocks, work out the exact line the code content starts, from the token own raw/text offset,so
+    // the scroll anchors can be placed correctly
+    let codeLine: number | null = null;
+    if (token.type === "code" && typeof (token as { text?: unknown }).text === "string") {
+      const codeText = (token as { text: string }).text;
+      const offset = token.raw.indexOf(codeText);
+      if (offset !== -1) {
+        codeLine = line + (token.raw.slice(0, offset).match(/\n/g) || []).length;
+      }
+    }
+    if (group) {
+      group.html += html;
+      group.raw += token.raw;
+      group.depth += depth;
+      group.needsRewrite = group.needsRewrite || needsRewrite;
+      if (group.depth <= 0) {
+        const finalHtml = group.needsRewrite ? rewriteHtmlBlockForMd(group.html, filePath, source) : group.html;
+        parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG) });
+        group = null;
+      }
+    } else if (depth > 0) {
+      group = { html, raw: token.raw, line, depth, needsRewrite };
+    } else {
+      const finalHtml = needsRewrite ? rewriteHtmlBlockForMd(html, filePath, source) : html;
+      parts.push({ key: nextKey(token.raw), line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG), codeLine: codeLine ?? undefined });
+    }
+    line += lineCount;
+  }
+  if (group) {
+    // Reached the end with tags still unclosed (maybe malformed HTML), so flush them rather than dropping.
+    const finalHtml = group.needsRewrite ? rewriteHtmlBlockForMd(group.html, filePath, source) : group.html;
+    parts.push({ key: nextKey(group.raw), line: group.line, html: DOMPurify.sanitize(finalHtml, MD_SANITIZE_CONFIG) });
+  }
+  return parts;
+}
+
+function updateEditorStats() {
+  if (props.splitMode) return;
+  const text = content.value.trim();
+  const validWord = text.split(/\s+/).filter(word => /[a-zA-Z0-9]/.test(word));
+  const words = validWord.length;
+  const chars = text.length;
+  mutations.setEditorStats({ lines: null, words, chars });
+}
+
+function reinit() {
+  mutations.resetEditorScrollRatio(state.req.path ?? "");
+  mutations.resetSelected();
+  mutations.addSelected({
+    name: state.req.name ?? "",
+    path: state.req.path ?? "",
+    size: state.req.size,
+    type: state.req.type,
+    source: state.req.source,
+    modified: state.req.modified,
+    hasPreview: state.req.hasPreview,
+  });
+  // Set initial content. The `watch` will trigger the first highlight.
+  // In split mode, prefer the editor live buffer over the file.
+  const fileContent = state.req.content === "empty-file-x6OlSil" ? "" : state.req.content || "";
+  const newContent = (props.splitMode && props.liveContent !== null) ? props.liveContent : fileContent;
+  if (newContent === content.value) {
+    scrollGuard.suppress();
+    void finalizeContentRender(state.editor.scrollRatio);
+  } else {
+    isLoadingNewContent = true;
+    content.value = newContent;
+  }
+  updateEditorStats();
+}
+
+async function finalizeContentRender(target: number | null) {
+  invalidateAnchors();
+  await nextTick();
+  try {
+    await applyHighlighting();
+  } catch (err) {
+    console.error("Failed to apply syntax highlighting:", err);
+  }
+  if (!isHtml.value && target !== null) applyScrollRatio(target);
+}
+
+function attachScrollListener(el: HTMLElement | null) {
+  if (boundScrollEl === el) return;
+  boundScrollEl?.removeEventListener("scroll", handleScroll);
+  boundScrollEl = el;
+  el?.addEventListener("scroll", handleScroll, { passive: true });
+}
+
+function getScrollContainer(): HTMLElement | null {
+  return props.splitMode
+    ? (props.scrollTarget as HTMLElement | null) || scrollContainer.value
+    : document.getElementById("main");
+}
+
+function getLineAnchors(): { line: number; top: number }[] {
+  if (anchorCache) return anchorCache;
+  const viewer = viewerEl.value;
+  const container = getScrollContainer();
+  if (!viewer || !container) return [];
+  const containerTop = container.getBoundingClientRect().top - container.scrollTop;
+  const topOf = (el: HTMLElement) => el.getBoundingClientRect().top - containerTop;
+  const anchors = Array.from(viewer.querySelectorAll<HTMLElement>(".md-block")).map((el) => ({
+    line: Number(el.dataset.line),
+    top: topOf(el),
+  }));
+  // per-line anchors to keep the interpolation
+  viewer.querySelectorAll<HTMLElement>(".code-line[data-source-line]").forEach((el) => {
+    anchors.push({ line: Number(el.dataset.sourceLine), top: topOf(el) });
+  });
+  anchors.sort((a, b) => a.line - b.line);
+  anchorCache = anchors;
+  return anchors;
+}
+
+function invalidateAnchors() {
+  anchorCache = null;
+}
+
+function totalLines(): number {
+  return Math.max(0, content.value.split('\n').length - 1);
+}
+
+// Finds the pair of adjacent anchors 'value' along whatever axis 'getValue' reads off each anchor (top or line).
+function bracketAnchors(
+  anchors: { line: number; top: number }[],
+  getValue: (anchor: { line: number; top: number }) => number,
+  value: number,
+): [{ line: number; top: number }, { line: number; top: number }] {
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const current = anchors.at(i);
+    const next = anchors.at(i + 1);
+    if (current && next && getValue(current) <= value && getValue(next) > value) {
+      return [current, next];
+    }
+  }
+  // the fallback is just to satisfy the types
+  const empty = { line: 0, top: 0 };
+  return [anchors.at(0) ?? empty, anchors.at(-1) ?? empty];
+}
+
+// The line currently at the top of the viewport by interpolating between the near block anchors.
+function currentLine() {
+  const el = getScrollContainer();
+  if (!el) return 0;
+  const anchors = getLineAnchors();
+  if (!anchors.length) return 0;
+  const scrollTop = el.scrollTop;
+  const maxScrollTop = el.scrollHeight - el.clientHeight;
+  if (maxScrollTop > 0 && scrollTop >= maxScrollTop - 1) {
+    return totalLines();
+  }
+  const [a, b] = bracketAnchors(anchors, (anchor) => anchor.top, scrollTop);
+  const topSpan = b.top - a.top;
+  const frac = topSpan > 0 ? Math.min(1, Math.max(0, (scrollTop - a.top) / topSpan)) : 0;
+  return a.line + frac * (b.line - a.line);
+}
+
+function syncScrollRatio() {
+  mutations.setEditorScrollRatio(currentLine(), "viewer");
+}
+
+function handleScroll() {
+  if (isHtml.value) return;
+  scrollGuard.schedule(() => syncScrollRatio());
+}
+
+function applyScrollRatio(line: number) {
+  const el = getScrollContainer();
+  if (!el) return;
+  const anchors = getLineAnchors();
+  if (!anchors.length) return;
+  const first = anchors.at(0);
+  if (!first) return;
+  let top: number;
+  if (line <= first.line) {
+    top = 0;
+  } else if (line >= totalLines()) {
+    top = el.scrollHeight - el.clientHeight;
+  } else {
+    const [a, b] = bracketAnchors(anchors, (anchor) => anchor.line, line);
+    const lineSpan = b.line - a.line;
+    top = lineSpan > 0
+      ? a.top + ((line - a.line) / lineSpan) * (b.top - a.top)
+      : a.top;
+  }
+  scrollGuard.applyRemote(() => { el.scrollTop = top; });
+}
 </script>
 
 <style>
@@ -1145,7 +1181,6 @@ export default {
 /* mark (highlight) tags */
 #markedown-viewer .markdown-content mark {
   background-color: var(--mark-color, var(--primaryColor));
-  color: var(--textPrimary);
   color: contrast-color(var(--mark-color, var(--primaryColor)));
   border-radius: 2px;
   padding: 0 0.2em;

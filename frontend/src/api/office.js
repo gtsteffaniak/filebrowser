@@ -1,6 +1,6 @@
-import { notify } from '@/notify'
+import { notify } from "@/notify/index.ts"
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
-import { fetchURL } from './utils'
+import { fetchURL } from "./utils.ts"
 
 // GET /api/office/config or /public/api/office/config
 export async function getConfig(req) {
@@ -18,14 +18,14 @@ export async function getConfig(req) {
         headers['X-SHARE-PASSWORD'] = encodeURIComponent(sharePassword)
       }
     }
-    
+
     let apiPath
     if (req.hash) {
       apiPath = getPublicApiPath('office/config', params)
     } else {
       apiPath = getApiPath('office/config', params)
     }
-    
+
     const res = await fetchURL(apiPath, { headers })
     return await res.json()
   } catch (err) {
@@ -43,7 +43,7 @@ export async function callback(params, hash) {
     } else {
       apiPath = getApiPath('office/callback', params)
     }
-    
+
     const res = await fetchURL(apiPath, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

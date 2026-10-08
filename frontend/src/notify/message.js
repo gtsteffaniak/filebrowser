@@ -1,6 +1,6 @@
-import i18n from '@/i18n'
-import { mutations, state } from '@/store'
-import { resolveHistoryNotificationButtons } from '@/utils/notificationActions'
+import i18n from "@/i18n/index.ts"
+import { mutations, state } from "@/store/index.ts"
+import { resolveHistoryNotificationButtons } from "@/utils/notificationActions.js"
 
 /**
  * @typedef {Object} NotificationButton

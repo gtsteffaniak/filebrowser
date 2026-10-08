@@ -149,7 +149,11 @@
     "failedLogin": "Nepodařilo se přihlásit",
     "invalidCredentials": "Neplatné zadané pověření",
     "passkeyLogin": "Použít Passkey",
-    "recaptchaRequired": "Je vyžadováno ověření Recaptcha"
+    "recaptchaRequired": "Je vyžadováno ověření Recaptcha",
+    "requirePasswordChangeTitle": "Změňte si heslo",
+    "requirePasswordChangeInstructions": "Než budete pokračovat, musíte nastavit nové heslo.",
+    "requirePasswordChangeSuccess": "Heslo bylo aktualizováno. Nyní jste přihlášeni.",
+    "requirePasswordChangeMustDiffer": "Nové heslo se nesmí shodovat s vaším současným heslem"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
@@ -310,6 +314,15 @@
     "unarchiveMessage": "Vyberte, kam se má archiv rozbalit.",
     "unarchiveDestination": "Výpis na:",
     "unarchiveSuccess": "Archiv úspěšně extrahován!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Stahování po částech se nezdařilo - pokud se tato situace opakuje, zkuste zmenšit velikost části: {message}",
     "confirmPasswordToSaveUser": "Pro uložení těchto uživatelských změn zadejte své aktuální heslo."
   },
@@ -477,7 +490,10 @@
     "userEditPreferences": "Nastavení uživatele",
     "userEditTools": "Přístup k nástrojům",
     "userEditToolsDescription": "Nastavte, ke kterým nástrojům má tento uživatel přístup",
-    "userEditSidebarLinks": "Odkazy v postranním panelu"
+    "userEditSidebarLinks": "Odkazy v postranním panelu",
+    "passwordRequirementsMatch": "Hesla se shodují",
+    "passwordRequirementsMinLength": "Nejméně {min} ových znaků",
+    "requirePasswordChange": "Vyžadovat změnu hesla při příštím přihlášení"
   },
   "sidebar": {
     "updateIsAvailable": "Je dostupná aktualizace!",
@@ -520,7 +536,9 @@
     "sidebarLinkDefaultsHelp": "Toto jsou výchozí odkazy, které budou přidány všem novým uživatelům. Pokud nastavíte odkaz jako povinný, bude přidán všem uživatelům a uživatelé bez oprávnění správce jej nebudou moci odstranit.",
     "sidebarLinkDefaultSourceHelp": "Platí pouze v případě, že má uživatel přístup k tomuto zdroji.",
     "sidebarLinkDefaultsYamlInvalid": "Neplatný formát YAML. Zkontrolujte formát a zkuste to znovu.",
-    "switchMode": "Přepínat mezi odkazy a navigačním stromem"
+    "switchMode": "Přepínat mezi odkazy a navigačním stromem",
+    "rootFilesystemOnly": "Omezit využití disku na zdrojový souborový systém",
+    "rootFilesystemOnlyDescription": "Je-li tato možnost zapnutá, vykazuje se pouze souborový systém obsahující zdrojovou cestu. Je-li vypnutá (výchozí nastavení), celková velikost disku zahrnuje také souborové systémy připojené pod zdrojovou cestou, přičemž sdílené fondy, jako jsou datové sady ZFS, se počítají pouze jednou."
   },
   "api": {
     "createdAt": "Vytvořeno:",
@@ -835,6 +853,8 @@
       "customScrollbarDescription": "Nahradit nativní posuvník prohlížeče vestavěným posuvníkem Ace",
       "wrapContent": "Zalamovat dlouhé řádky v editoru",
       "wrapContentDescription": "Zalamuje obsah editoru, aby velmi dlouhé řádky zůstaly vždy viditelné",
+      "indentedSoftWrap": "Měkké zalamování s odsazením",
+      "indentedSoftWrapDescription": "Když je tato možnost povolena, přidá odsazení na začátek zalomeného textu",
       "autocompletion": "Automatické doplňování",
       "autocompletionDescription": "Povolí automatické doplňování ručním stisknutím 'ctrl + space'",
       "liveAutocompletion": "Živé automatické doplňování",

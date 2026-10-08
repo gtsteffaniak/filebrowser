@@ -1,7 +1,7 @@
 // store/index.ts
-import { getters } from "./getters";
-import { mutations } from "./mutations";
-import { state } from "./state";
+import { getters } from "./getters.ts";
+import { mutations } from "./mutations.ts";
+import { state } from "./state.ts";
 
 export {
   getters,

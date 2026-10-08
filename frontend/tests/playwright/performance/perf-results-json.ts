@@ -1,5 +1,5 @@
-import type { PerfConfig } from "./perf-config";
-import { checkResultThresholds, runtimeEnvSnapshot } from "./perf-config";
+import type { PerfConfig } from "./perf-config.ts";
+import { checkResultThresholds, runtimeEnvSnapshot } from "./perf-config.ts";
 import {
   buildContributors,
   buildRootCauseParagraph,
@@ -7,21 +7,21 @@ import {
   type AnalysisTableRow,
   type PerfContributor,
   type PerfResultFile,
-} from "./perf-report";
-import type { ComparisonReport } from "./perf-compare";
-import type { EnvironmentFingerprint } from "./perf-baseline";
-import type { TraceAnalysis } from "./perf-trace";
-import { extractBaselineMetrics, scopedLongTasks } from "./perf-extract";
-import { SCENARIOS } from "./perf-metrics";
+} from "./perf-report.ts";
+import type { ComparisonReport } from "./perf-compare.ts";
+import type { EnvironmentFingerprint } from "./perf-baseline.ts";
+import type { TraceAnalysis } from "./perf-trace.ts";
+import { extractBaselineMetrics, scopedLongTasks } from "./perf-extract.ts";
+import { SCENARIOS } from "./perf-metrics.ts";
 
-export type HeadlineFinding = {
+export interface HeadlineFinding {
   severity: "critical" | "high" | "medium" | "info";
   category: "cross-browser" | "scaling" | "regression" | "structure" | "trace";
   summary: string;
   evidence: Record<string, number | string | null>;
-};
+}
 
-export type PerfResultsDocument = {
+export interface PerfResultsDocument {
   schemaVersion: number;
   generatedAt: string;
   /** Reproducibility header. */
@@ -95,7 +95,7 @@ export type PerfResultsDocument = {
       superlinearity: number | null;
     }[];
   };
-};
+}
 
 export const REPORT_SCHEMA_VERSION = 2;
 
@@ -127,8 +127,20 @@ export function superlinearity(
 ): number | null {
   if (scales.length < 2 || durations.length < 2) return null;
   const i = scales.length - 1;
-  const scaleRatio = scales[i] / scales[0];
-  const timeRatio = durations[i] / Math.max(durations[0], 1);
+  const firstScale = scales[0];
+  const lastScale = scales[i];
+  const firstMs = durations[0];
+  const lastMs = durations[i];
+  if (
+    firstScale === undefined ||
+    lastScale === undefined ||
+    firstMs === undefined ||
+    lastMs === undefined
+  ) {
+    return null;
+  }
+  const scaleRatio = lastScale / firstScale;
+  const timeRatio = lastMs / Math.max(firstMs, 1);
   if (!Number.isFinite(timeRatio) || scaleRatio <= 0) return null;
   return Math.round((timeRatio / scaleRatio) * 100) / 100;
 }
@@ -152,7 +164,7 @@ export function buildHeadlines(input: {
   };
 
   // --- Cross-browser comparison at the largest scale ----------------------
-  const maxScale = scales[scales.length - 1];
+  const maxScale = scales[scales.length - 1] ?? 0;
   for (const scenario of SCENARIOS) {
     const values = browsers
       .map((b) => ({ browser: b, ms: durationOf(b, maxScale, scenario) }))
@@ -191,13 +203,17 @@ export function buildHeadlines(input: {
       if (durations.some((d) => d <= 0)) continue;
       const ratio = superlinearity(scales, durations);
       if (ratio !== null && ratio > 1.5) {
+        const firstScale = scales[0] ?? 0;
+        const lastScale = scales[scales.length - 1] ?? 0;
+        const firstMs = durations[0] ?? 0;
+        const lastMs = durations[durations.length - 1] ?? 0;
         findings.push({
           severity: ratio > 3 ? "high" : "medium",
           category: "scaling",
           summary:
-            `${browser} ${scenario} scales superlinearly: ${scales[0]}→${maxScale} rows ` +
-            `(${scales[scales.length - 1] / scales[0]}x) costs ` +
-            `${(durations[durations.length - 1] / Math.max(durations[0], 1)).toFixed(1)}x time`,
+            `${browser} ${scenario} scales superlinearly: ${firstScale}→${maxScale} rows ` +
+            `(${lastScale / firstScale}x) costs ` +
+            `${(lastMs / Math.max(firstMs, 1)).toFixed(1)}x time`,
           evidence: {
             browser,
             scenario,
@@ -347,8 +363,8 @@ export function buildPerfResultsDocument(input: {
       const subset = parsed.filter(
         (r) => r.browser === browser && r.scale === scale,
       );
-      if (subset.length === 0) continue;
       let slowest = subset[0];
+      if (!slowest) continue;
       for (const r of subset) {
         if (durationMs(r.metrics, r.scenario) > durationMs(slowest.metrics, slowest.scenario)) {
           slowest = r;

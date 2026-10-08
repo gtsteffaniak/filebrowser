@@ -213,7 +213,6 @@ export default {
         v /= 1024;
         i += 1;
       } while (v >= 1024 && i < units.length - 1);
-      // eslint-disable-next-line security/detect-object-injection -- units index is bounded by loop
       return `${v.toFixed(1)} ${units[i]}`;
     },
     async copyToClipboard(text) {
@@ -249,7 +248,7 @@ export default {
      * @param {any} event
      * @param {any} item
      */
-    deleteLink: async function (_event, item) {
+    async deleteLink(_event, item) {
       mutations.showPrompt({
         name: "generic",
         props: {

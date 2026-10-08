@@ -7,7 +7,8 @@ class EventBus extends EventTarget {
     this.dispatchEvent(new CustomEvent(event, { detail: data }));
   }
 
-  on(event: string, callback: EventCallback) {
+  on<T = unknown>(event: string, typedCallback: (data: T) => void) {
+    const callback = typedCallback as EventCallback;
     if (this.listeners.get(callback)?.has(event)) {
       return;
     }
@@ -15,18 +16,21 @@ class EventBus extends EventTarget {
     const wrapper = (e: Event) => callback((e as CustomEvent).detail);
 
     // Store the wrapper so we can remove it later
-    if (!this.listeners.has(callback)) {
-      this.listeners.set(callback, new Map());
+    let eventMap = this.listeners.get(callback);
+    if (!eventMap) {
+      eventMap = new Map();
+      this.listeners.set(callback, eventMap);
     }
-    this.listeners.get(callback)!.set(event, wrapper);
+    eventMap.set(event, wrapper);
 
     this.addEventListener(event, wrapper);
   }
 
-  off(event: string, callback: EventCallback) {
+  off<T = unknown>(event: string, typedCallback: (data: T) => void) {
+    const callback = typedCallback as EventCallback;
     const eventMap = this.listeners.get(callback);
-    if (eventMap?.has(event)) {
-      const wrapper = eventMap.get(event)!;
+    const wrapper = eventMap?.get(event);
+    if (eventMap && wrapper) {
       this.removeEventListener(event, wrapper);
       eventMap.delete(event);
 

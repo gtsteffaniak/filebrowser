@@ -322,7 +322,11 @@
     "failedLogin": "Accesso fallito",
     "invalidCredentials": "Credenziali fornite non valide",
     "passkeyLogin": "Usa Passkey",
-    "recaptchaRequired": "Richiesta verifica Recaptcha"
+    "recaptchaRequired": "Richiesta verifica Recaptcha",
+    "requirePasswordChangeTitle": "Cambia la tua password",
+    "requirePasswordChangeInstructions": "È necessario impostare una nuova password prima di continuare.",
+    "requirePasswordChangeSuccess": "La password è stata aggiornata. Ora hai effettuato l'accesso.",
+    "requirePasswordChangeMustDiffer": "La nuova password deve essere diversa da quella attuale"
   },
   "share": {
     "notice": "Nota: quando viene creata una condivisione, essa diventa pubblica e segue regole di accesso diverse. Se non configurata correttamente, chiunque potrebbe accedervi.",
@@ -428,6 +432,15 @@
     "unarchiveMessage": "Scegli dove estrarre l'archivio.",
     "unarchiveDestination": "Estrai in:",
     "unarchiveSuccess": "Archivio estratto con successo!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "dragAndDrop": "Trascina i file qui",
     "error": "Qualcosa è andato storto",
     "completed": "Completato",
@@ -650,7 +663,10 @@
     "userEditPreferences": "Preferenze utente",
     "userEditTools": "Accesso agli strumenti",
     "userEditToolsDescription": "Configurare a quali strumenti questo utente può accedere",
-    "userEditSidebarLinks": "Link nella barra laterale"
+    "userEditSidebarLinks": "Link nella barra laterale",
+    "passwordRequirementsMatch": "Le password corrispondono",
+    "passwordRequirementsMinLength": "Almeno {min} caratteri",
+    "requirePasswordChange": "Richiedi la modifica della password al prossimo accesso"
   },
   "sidebar": {
     "dividerNamePlaceholder": "Testo divisore (vuoto per una linea)",
@@ -693,7 +709,9 @@
     "sidebarLinkDefaultsHelp": "Questi sono i link predefiniti che verranno aggiunti per tutti i nuovi utenti. Se si imposta un link come obbligatorio, questo verrà aggiunto per tutti gli utenti e non potrà essere rimosso dagli utenti che non sono amministratori.",
     "sidebarLinkDefaultSourceHelp": "Si applica solo se l'utente ha accesso a questa fonte.",
     "sidebarLinkDefaultsYamlInvalid": "YAML non valido. Controlla il formato e riprova.",
-    "switchMode": "Passa dai link all'albero di navigazione e viceversa"
+    "switchMode": "Passa dai link all'albero di navigazione e viceversa",
+    "rootFilesystemOnly": "Limita l'utilizzo del disco al filesystem di origine",
+    "rootFilesystemOnlyDescription": "Se abilitata, viene segnalato solo il filesystem contenente il percorso di origine. Se disabilitata (impostazione predefinita), il totale del disco include anche i filesystem montati sotto il percorso di origine, con i pool condivisi come i dataset ZFS conteggiati una sola volta."
   },
   "api": {
     "title": "Token API",
@@ -844,6 +862,8 @@
       "customScrollbarDescription": "Sostituisce la barra di scorrimento nativa del browser con quella integrata di Ace",
       "wrapContent": "A capo delle righe lunghe nell'editor",
       "wrapContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe",
+      "indentedSoftWrap": "A capo automatico con rientro",
+      "indentedSoftWrapDescription": "Quando è abilitato, aggiunge un rientro all'inizio del testo mandato a capo",
       "autocompletion": "Completamento automatico",
       "autocompletionDescription": "Abilita il completamento automatico premendo manualmente 'ctrl + space'",
       "liveAutocompletion": "Completamento automatico live",

@@ -14,5 +14,5 @@ type JSONAuth struct {
 
 // Auth authenticates the user via a json in content body (legacy method for compatibility).
 func (auther JSONAuth) Auth(r *http.Request, _ *users.Storage) (*users.User, error) {
-	return AuthenticatePassword(r, auther.ReCaptcha)
+	return AuthenticatePassword(r, auther.ReCaptcha, false)
 }

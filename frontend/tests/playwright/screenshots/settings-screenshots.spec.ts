@@ -1,5 +1,5 @@
 //import { Page } from "@playwright/test";
-import { openAdvancedProfileSettings, test } from "../test-setup";
+import { openAdvancedProfileSettings, test } from "../test-setup.ts";
 
 const jpgQuality = 85;
 

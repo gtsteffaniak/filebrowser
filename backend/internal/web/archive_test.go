@@ -287,3 +287,59 @@ func BenchmarkNormalizeArchiveEntryName(b *testing.B) {
 		_, _ = normalizeArchiveEntryName(name)
 	}
 }
+
+func TestExtractZipFilenameEncoding(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name, raw, charset, want string
+		invalid                  bool
+	}{
+		{name: "cp932 trail byte", raw: "\x83\x65\x83\x58\x83\x67/\x83\x5c.txt", charset: "cp932", want: "テスト/ソ.txt"},
+		{name: "automatic cp932", raw: "\x83\x65\x83\x58\x83\x67/\x83\x5c.txt", want: "テスト/ソ.txt"},
+		{name: "traversal after decoding", raw: "../\x83\x5c.txt", charset: "cp932", invalid: true},
+		{name: "invalid encoding", raw: "file.txt", charset: "unknown", invalid: true},
+		{name: "ambiguous", raw: "caf\x82.txt", invalid: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			archivePath := filepath.Join(t.TempDir(), "test.zip")
+			f, err := os.Create(archivePath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			zw := zip.NewWriter(f)
+			w, err := zw.CreateHeader(&zip.FileHeader{Name: tc.raw, NonUTF8: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err = w.Write([]byte("test content")); err != nil {
+				t.Fatal(err)
+			}
+			if err = zw.Close(); err != nil {
+				t.Fatal(err)
+			}
+			if err = f.Close(); err != nil {
+				t.Fatal(err)
+			}
+			out := t.TempDir()
+			err = extractZipWithEncoding(archivePath, out, tc.charset)
+			if tc.invalid {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				entries, readErr := os.ReadDir(out)
+				if readErr != nil || len(entries) != 0 {
+					t.Fatal("failed validation wrote files")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			content, err := os.ReadFile(filepath.Join(out, tc.want))
+			if err != nil || string(content) != "test content" {
+				t.Fatalf("content=%q err=%v", content, err)
+			}
+		})
+	}
+}

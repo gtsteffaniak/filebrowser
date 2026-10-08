@@ -1,5 +1,5 @@
 import { expect, type Browser, type Page, type TestInfo } from "@playwright/test";
-import { loadPerfConfig, selectCountForScale } from "./perf-config";
+import { loadPerfConfig, selectCountForScale } from "./perf-config.ts";
 import {
   expectedItemCount,
   installProbes,
@@ -11,21 +11,21 @@ import {
   runWithOptionalChromeTracing,
   savePerfResult,
   type DomSnapshot,
-} from "./perf-helpers";
-import { withCdpDelta, flattenCdp, type CdpDelta } from "./perf-cdp";
+} from "./perf-helpers.ts";
+import { withCdpDelta, flattenCdp, type CdpDelta } from "./perf-cdp.ts";
 import {
   startFrameWindow,
   startFrameWindowOnNextNavigation,
   stopFrameWindow,
   type FrameTimingStat,
-} from "./perf-frames";
+} from "./perf-frames.ts";
 import {
   readWebVitals,
   startEventWindow,
   stopEventWindow,
   type InteractionTiming,
   type WebVitals,
-} from "./perf-vitals";
+} from "./perf-vitals.ts";
 
 /**
  * Scenario drivers.
@@ -36,10 +36,10 @@ import {
  * the URL being built and the expected row count being read.
  */
 
-export type ScenarioOptions = {
+export interface ScenarioOptions {
   /** Listing already open at the correct scale (skip goto + full mount wait). */
   reuseListing?: boolean;
-};
+}
 
 export function parsePerfScales(): number[] {
   const raw = process.env.PERF_SCALES ?? "100,1000,10000";
@@ -91,7 +91,7 @@ async function openMockListing(page: Page, scale: number): Promise<void> {
 }
 
 /** Per-scenario payload shared by every scenario runner. */
-type ScenarioPayload = {
+interface ScenarioPayload {
   loadListingMs?: number;
   scrollDurationMs?: number;
   resizeDurationMs?: number;
@@ -113,7 +113,7 @@ type ScenarioPayload = {
   vitals?: WebVitals;
   interaction?: InteractionTiming;
   chromeTracePath?: string;
-};
+}
 
 async function save(
   testInfo: TestInfo,

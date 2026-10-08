@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
-import { fillPlaywrightAdminPasswordPrompt } from "../playwright-auth";
-import { expect } from "../test-setup";
+import { fillPlaywrightAdminPasswordPrompt } from "../playwright-auth.ts";
+import { expect } from "../test-setup.ts";
 
 /** Users tab uses SettingsTable; scoped to `.settings-table` body rows only. */
 export function userRowInSettingsUsersTable(page: Page, usernameText: string): Locator {

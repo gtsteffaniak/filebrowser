@@ -1,4 +1,4 @@
-import { checkForNotification, expect, getOrCreateShareViaApi, selectExpandDropdownOption, test } from '../test-setup'
+import { checkForNotification, expect, getOrCreateShareViaApi, selectExpandDropdownOption, test } from "../test-setup.ts"
 
 // Access behavior rules are seeded at image build time in Dockerfile.playwright-settings
 // (see access-behavior-fixture.ts for the expected rule set).

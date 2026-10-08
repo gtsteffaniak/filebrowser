@@ -149,7 +149,11 @@
     "failedLogin": "Sikertelen bejelentkezés",
     "invalidCredentials": "Érvénytelen hitelesítő adatok megadása",
     "passkeyLogin": "Jelszókulcs használata",
-    "recaptchaRequired": "Recaptcha-ellenőrzés szükséges"
+    "recaptchaRequired": "Recaptcha-ellenőrzés szükséges",
+    "requirePasswordChangeTitle": "Jelszó módosítása",
+    "requirePasswordChangeInstructions": "A folytatáshoz új jelszót kell beállítania.",
+    "requirePasswordChangeSuccess": "A jelszó frissítve. Most már be van jelentkezve.",
+    "requirePasswordChangeMustDiffer": "Az új jelszónak különböznie kell a jelenlegi jelszótól"
   },
   "prompts": {
     "noTemplate": "A sablon üres!",
@@ -238,6 +242,15 @@
     "unarchiveMessage": "Válassza ki, hová szeretné kinyomtatni az archívumot.",
     "unarchiveDestination": "Kivonat a következő címre:",
     "unarchiveSuccess": "Az archívum sikeresen kinyomtatva!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "A darabos letöltés sikertelen - ha ez ismétlődik, próbálja meg csökkenteni a darabos letöltés méretét: {message}",
     "confirmPasswordToSaveUser": "A felhasználói módosítások mentéséhez adja meg az aktuális jelszavát."
   },
@@ -316,7 +329,10 @@
     "userEditPreferences": "Felhasználói beállítások",
     "userEditTools": "Eszközök elérése",
     "userEditToolsDescription": "Állítsa be, hogy a felhasználó mely eszközökhöz férhessen hozzá",
-    "userEditSidebarLinks": "Oldalsávon található linkek"
+    "userEditSidebarLinks": "Oldalsávon található linkek",
+    "passwordRequirementsMatch": "A jelszavak egyeznek",
+    "passwordRequirementsMinLength": "Legalább {min} karakter",
+    "requirePasswordChange": "A következő bejelentkezéskor jelszóváltás szükséges"
   },
   "sidebar": {
     "updateIsAvailable": "Elérhető a frissítés!",
@@ -359,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Ezek azok az alapértelmezett linkek, amelyek minden új felhasználóhoz hozzáadódnak. Ha egy linket kötelezővé teszel, az minden felhasználóhoz hozzáadódik, és a rendszergazdák kivételével senki sem tudja eltávolítani.",
     "sidebarLinkDefaultSourceHelp": "Ez csak akkor érvényes, ha a felhasználónak hozzáférése van ehhez a forráshoz.",
     "sidebarLinkDefaultsYamlInvalid": "Érvénytelen YAML. Ellenőrizze a formátumot, majd próbálja meg újra.",
-    "switchMode": "Váltás a linkek és a navigációs fa között"
+    "switchMode": "Váltás a linkek és a navigációs fa között",
+    "rootFilesystemOnly": "A lemezhasználat korlátozása a forrásfájlrendszerre",
+    "rootFilesystemOnlyDescription": "Ha engedélyezve van, akkor csak a forrásútvonalat tartalmazó fájlrendszer kerül jelentésre. Ha letiltva van (alapértelmezett), akkor a lemez teljes mérete magában foglalja a forrásútvonal alá csatlakoztatott fájlrendszereket is, wobei a megosztott tárolók, például a ZFS-adatállományok, csak egyszer kerülnek beszámításra."
   },
   "share": {
     "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",
@@ -835,6 +853,8 @@
       "customScrollbarDescription": "A böngésző natív görgetősávjának cseréje az Ace beépítettjére",
       "wrapContent": "Hosszú sorok tördelése a szerkesztőben",
       "wrapContentDescription": "Tördeli a szerkesztő tartalmát, hogy a nagyon hosszú sorok mindig láthatóak maradjanak",
+      "indentedSoftWrap": "Behúzott lágy tördelés",
+      "indentedSoftWrapDescription": "Ha ez engedélyezve van, behúzást ad a tördelt szöveg elejéhez",
       "autocompletion": "Automatikus kiegészítés",
       "autocompletionDescription": "Engedélyezi az automatikus kiegészítést a 'ctrl + space' manuális megnyomásával",
       "liveAutocompletion": "Élő automatikus kiegészítés",

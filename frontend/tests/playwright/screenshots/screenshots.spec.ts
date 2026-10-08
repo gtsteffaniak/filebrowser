@@ -1,5 +1,10 @@
 //import { Page } from "@playwright/test";
-import { expect, test } from "../test-setup";
+import {
+  ensureListingViewMode,
+  expect,
+  test,
+  waitForListing3dThumbnails,
+} from "../test-setup.ts";
 
 const jpgQuality = 85;
 
@@ -17,23 +22,27 @@ test("setup theme", async ({ page, theme }) => {
 
 // run npx playwright test --ui to run these tests locally in ui mode
 test("each view mode", async ({ page, theme }) => {
+  test.setTimeout(30_000);
   if (theme === 'light') {
     return;
   }
   await page.goto("/files/");
+  await ensureListingViewMode(page, "normal");
   await page.waitForTimeout(250);
   await page.screenshot({ path: `./generated/listing/view-mode-normal-${theme}.jpg`, quality: jpgQuality });
-  await page.locator('button[aria-label="Switch view"]').click();
+  await ensureListingViewMode(page, "gallery");
   await page.waitForTimeout(250);
   await page.screenshot({ path: `./generated/listing/view-mode-gallery-${theme}.jpg`, quality: jpgQuality });
-  await page.locator('button[aria-label="Switch view"]').click();
+  await ensureListingViewMode(page, "list");
   await page.waitForTimeout(250);
   await page.screenshot({ path: `./generated/listing/view-mode-list-${theme}.jpg`, quality: jpgQuality });
+  await ensureListingViewMode(page, "normal");
 });
 
 // run npx playwright test --ui to run these tests locally in ui mode
 test("context menu", async ({ page, theme }) => {
   await page.goto("/files/");
+  await ensureListingViewMode(page, "normal");
   await page.locator('a[aria-label="file.tar.gz"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="file.tar.gz"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
@@ -64,6 +73,7 @@ test("info from search", async ({ page, theme }) => {
     return;
   }
   await page.goto("/files/");
+  await ensureListingViewMode(page, "normal");
   await page.locator('#search-bar-input').click()
   await page.locator('#search-input').fill('file.tar.gz');
   await expect(page.locator('#result-list')).toHaveCount(1);
@@ -108,6 +118,8 @@ test("copy from listing to new folder", async ({ page, theme }) => {
 })
 
 test("breadcrumbs navigation checks", async ({ page, theme }) => {
+  await page.goto("/files/");
+  await ensureListingViewMode(page, "normal");
   await page.goto("/files/playwright/myfolder");
   await page.waitForSelector('#breadcrumbs');
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
@@ -120,6 +132,7 @@ test("breadcrumbs navigation checks", async ({ page, theme }) => {
   expect(spanChildrenCount).toBe(2);
   breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-testdata"]')
   await expect(breadCrumbLink).toHaveText("testdata");
+  await ensureListingViewMode(page, "normal");
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./generated/listing/breadcrumbs-navigation-${theme}.jpg`, quality: jpgQuality });
 })
@@ -166,6 +179,7 @@ test("text file editor -- bash", async ({ page,theme }) => {
 });
 
 test("3d file preview thumbnails", async ({ page, checkForErrors, theme }) => {
+  test.setTimeout(60_000);
   if (theme === 'light') {
     return;
   }
@@ -176,8 +190,9 @@ test("3d file preview thumbnails", async ({ page, checkForErrors, theme }) => {
   await expect(page).toHaveTitle("FileBrowser Quantum - Files - myfolder");
   await page.locator('a[aria-label="3dmodels"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="3dmodels"]').dblclick();
-  await expect(page).toHaveTitle("FileBrowser Quantum - Files - 3dmodels");  
-  await page.waitForTimeout(2000); // wait for thumbnails to load
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - 3dmodels");
+  await waitForListing3dThumbnails(page);
+  await page.waitForTimeout(250);
   await page.screenshot({ path: `./generated/thumbnails/3d-model-${theme}.jpg`, quality: jpgQuality });
   checkForErrors();
 });

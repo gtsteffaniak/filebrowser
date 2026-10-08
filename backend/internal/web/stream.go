@@ -232,24 +232,88 @@ func ValidateViewGrant(token string, d *Context, sourceName string) error {
 		utils.ViewGrantsCache.Delete(token)
 		return fmt.Errorf("view token expired")
 	}
-	if grant.Source != viewGrantScope(d, sourceName) {
+	viewCtx := contextForViewGrantValidation(d, grant.Source)
+	if !viewGrantScopeMatches(viewCtx, grant.Source, sourceName) {
 		return fmt.Errorf("view token scope mismatch")
 	}
 	internalSource := sourceName
-	if d.Share.Hash != "" {
+	if viewCtx.Share.Hash != "" {
 		var err error
-		internalSource, err = shareSourceName(d)
+		internalSource, err = shareSourceName(viewCtx)
 		if err != nil {
 			return err
 		}
 	}
-	perms, err := effectiveFilePerms(d, internalSource)
+	perms, err := effectiveFilePerms(viewCtx, internalSource)
 	if err != nil || !perms.View {
 		return fmt.Errorf("view permission required")
 	}
 	grant.ExpiresAt = time.Now().Add(viewGrantTTL).Unix()
 	utils.ViewGrantsCache.Set(token, grant)
 	return nil
+}
+
+// contextForViewGrantValidation hydrates share metadata when optional-auth middleware
+// left only a hash stub on the context (anonymous public share visitors).
+func contextForViewGrantValidation(d *Context, grantSource string) *Context {
+	if d == nil {
+		return d
+	}
+	if d.Share.Hash != "" {
+		return d
+	}
+	hash := strings.TrimSpace(grantSource)
+	if hash == "" {
+		return d
+	}
+	link, err := state.GetShare(hash)
+	if err != nil || link.Hash == "" {
+		return d
+	}
+	out := *d
+	out.Share = link
+	if out.ShareUser == nil {
+		if u, err := state.UserForShareOwner(link); err == nil {
+			out.ShareUser = &u
+		}
+	}
+	return &out
+}
+
+func viewGrantScopeMatches(d *Context, grantSource, sourceName string) bool {
+	expected := viewGrantScope(d, sourceName)
+	if grantSource == expected {
+		return true
+	}
+	if d == nil || d.Share.Hash == "" {
+		return false
+	}
+	internalSource, err := shareSourceName(d)
+	if err != nil {
+		return false
+	}
+	// Accept source-scoped grants on share routes (e.g. minted before share context was hydrated).
+	return grantSource == internalSource && expected == d.Share.Hash
+}
+
+// hydratePublicShareContext ensures public share handlers have full share + owner context.
+func hydratePublicShareContext(d *Context, r *http.Request) {
+	if d == nil || r == nil {
+		return
+	}
+	if d.Share.Hash == "" {
+		hash := strings.TrimSpace(r.URL.Query().Get("hash"))
+		if hash != "" {
+			if link, err := state.GetShare(hash); err == nil {
+				d.Share = link
+			}
+		}
+	}
+	if d.Share.Hash != "" && d.ShareUser == nil {
+		if u, err := state.UserForShareOwner(d.Share); err == nil {
+			d.ShareUser = &u
+		}
+	}
 }
 
 func canMintViewToken(d *Context, source string) bool {
@@ -583,6 +647,7 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/api/media/stream [get]
 func publicStreamHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	hydratePublicShareContext(d, r)
 	if d.Share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("streaming is disabled for upload shares")
 	}

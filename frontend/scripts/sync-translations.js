@@ -1,4 +1,3 @@
-/* eslint-disable security/detect-object-injection */
 // scripts/sync-translations.js
 import path from 'node:path';
 import { globSync } from 'node:fs';
@@ -93,7 +92,7 @@ async function translateText(text, targetLanguage, keyPath = '') {
     return translatedText;
 
   } catch (err) {
-    console.error(`⚠️ Translation failed for "${text}" (${keyPath}):`, err?.message || err);
+    console.error(`⚠️ Translation failed for "${text}" (${keyPath}):`, err.message || err);
     return ``;
   }
 }

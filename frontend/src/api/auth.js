@@ -1,6 +1,40 @@
-import { fetchJSON, fetchURL } from '@/api/utils'
-import { notify } from '@/notify'
+import { fetchJSON, fetchURL } from "@/api/utils.ts"
+import { notify } from "@/notify/index.ts"
 import { getApiPath } from '@/utils/url.js'
+
+// POST /api/auth/password/change-required
+export async function changeRequiredPassword(username, currentPassword, newPassword, otp) {
+  if (!otp) {
+    otp = "";
+  }
+  const params = { username };
+  const apiPath = getApiPath("auth/password/change-required", params);
+  const res = await fetch(apiPath, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Password": encodeURIComponent(currentPassword),
+      "X-Secret": otp,
+    },
+    body: JSON.stringify({
+      password: newPassword,
+      passwordConfirm: newPassword,
+    }),
+  });
+
+  const bodyText = await res.text();
+  let body;
+  try {
+    body = JSON.parse(bodyText);
+  } catch {
+    body = { message: bodyText };
+  }
+  if (res.status !== 200) {
+    const msg = body.message || "Forbidden";
+    throw new Error(msg);
+  }
+}
 
 // POST /api/auth/login
 export async function login(username, password, recaptcha, otp) {

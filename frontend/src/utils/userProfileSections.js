@@ -85,6 +85,7 @@ export function sectionsFromFlatUser(user) {
     },
     account: {
       lockPassword: !!u.lockPassword,
+      requirePasswordChange: !!u.requirePasswordChange,
       disableSettings: !!u.disableSettings,
       disableUpdateNotifications: !!u.disableUpdateNotifications,
       showAdvancedProfile: !!u.showAdvancedProfile,
@@ -168,6 +169,9 @@ export function applySectionsToFlatUser(user, sections) {
 
   if (account.lockPassword !== undefined) {
     user.lockPassword = !!account.lockPassword;
+  }
+  if (account.requirePasswordChange !== undefined) {
+    user.requirePasswordChange = !!account.requirePasswordChange;
   }
   if (account.disableSettings !== undefined) {
     user.disableSettings = !!account.disableSettings;

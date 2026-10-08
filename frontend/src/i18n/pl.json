@@ -149,7 +149,11 @@
     "failedLogin": "Logowanie nie powiodło się",
     "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające",
     "passkeyLogin": "Użyj klucza dostępu",
-    "recaptchaRequired": "Wymagane jest sprawdzenie Recaptcha"
+    "recaptchaRequired": "Wymagane jest sprawdzenie Recaptcha",
+    "requirePasswordChangeTitle": "Zmień hasło",
+    "requirePasswordChangeInstructions": "Przed kontynuowaniem należy ustawić nowe hasło.",
+    "requirePasswordChangeSuccess": "Hasło zostało zaktualizowane. Jesteś teraz zalogowany.",
+    "requirePasswordChangeMustDiffer": "Nowe hasło musi różnić się od obecnego hasła"
   },
   "prompts": {
     "noTemplate": "Twój szablon jest pusty!",
@@ -238,6 +242,15 @@
     "unarchiveMessage": "Wybierz miejsce rozpakowania archiwum.",
     "unarchiveDestination": "Wyciąg do:",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}",
     "confirmPasswordToSaveUser": "Wprowadź aktualne hasło, aby zapisać zmiany użytkownika."
   },
@@ -316,7 +329,10 @@
     "userEditPreferences": "Preferencje użytkownika",
     "userEditTools": "Dostęp do narzędzi",
     "userEditToolsDescription": "Skonfiguruj, do których narzędzi ten użytkownik ma dostęp",
-    "userEditSidebarLinks": "Linki w pasku bocznym"
+    "userEditSidebarLinks": "Linki w pasku bocznym",
+    "passwordRequirementsMatch": "Hasła są zgodne",
+    "passwordRequirementsMinLength": "Co najmniej {min} znaków",
+    "requirePasswordChange": "Wymagaj zmiany hasła przy następnym logowaniu"
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",
@@ -359,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Są to domyślne linki, które zostaną dodane dla wszystkich nowych użytkowników. Jeśli ustawisz link jako obowiązkowy, zostanie on dodany dla wszystkich użytkowników i nie będzie można go usunąć, jeśli nie jest się administratorem.",
     "sidebarLinkDefaultSourceHelp": "Ma zastosowanie wyłącznie wtedy, gdy użytkownik ma dostęp do tego źródła.",
     "sidebarLinkDefaultsYamlInvalid": "Nieprawidłowy plik YAML. Sprawdź format i spróbuj ponownie.",
-    "switchMode": "Przełączanie między linkami a drzewem nawigacyjnym"
+    "switchMode": "Przełączanie między linkami a drzewem nawigacyjnym",
+    "rootFilesystemOnly": "Ogranicz wykorzystanie miejsca na dysku do rozmiarów systemu plików źródłowego",
+    "rootFilesystemOnlyDescription": "Gdy opcja jest włączona, uwzględniane są wyłącznie systemy plików zawierające ścieżkę źródłową. Gdy opcja jest wyłączona (ustawienie domyślne), całkowita pojemność dysku obejmuje również systemy plików zamontowane w ramach ścieżki źródłowej, przy czym wspólne pule, takie jak zbiory danych ZFS, są liczone tylko raz."
   },
   "share": {
     "notice": "Uwaga: po utworzeniu folderu udostępnionego staje się on bardziej dostępny publicznie i ma inne zasady dostępu. Jeśli udział nie jest bezpiecznie skonfigurowany, może być dostępny dla każdego.",
@@ -835,6 +853,8 @@
       "customScrollbarDescription": "Zamień natywny pasek przewijania przeglądarki na wbudowany pasek Ace",
       "wrapContent": "Zawijanie długich wierszy w edytorze",
       "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
+      "indentedSoftWrap": "Miękkie zawijanie z wcięciem",
+      "indentedSoftWrapDescription": "Gdy jest włączone, dodaje wcięcie na początku zawiniętego tekstu",
       "autocompletion": "Autouzupełnianie",
       "autocompletionDescription": "Włącza autouzupełnianie poprzez ręczne naciśnięcie 'ctrl + space'",
       "liveAutocompletion": "Autouzupełnianie na żywo",

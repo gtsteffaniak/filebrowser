@@ -23,7 +23,7 @@ export type LyricLines = LyricLine[] & { lrcMeta?: LyricsMeta };
 
 const INLINE_TAG_RE = /<[^>]*>/g;
 
-// Lines that have brackets like [ti: Title] - unlike the timestamps that are like 
+// Lines that have brackets like [ti: Title] - unlike the timestamps that are like
 // [00:12.34] (starting with digits) are treated as lyric metadata.
 const META_LINE_RE = /^\[[a-zA-Z]+:[^\]]*\]$/;
 
@@ -34,7 +34,7 @@ function isMetadataTag(line: string): boolean {
 function parseTimestamp(str: string): number | null {
   const cleaned = str.trim().replace(",", ".");
   const parts = cleaned.split(":");
-  const secParts = parts.pop()!.split(".");
+  const secParts = (parts.pop() ?? "").split(".");
   const sec = Number(secParts[0]);
   const frac = Number((secParts[1] || "0").padEnd(3, "0").slice(0, 3));
   const min = parts.length ? Number(parts.pop()) : 0;
@@ -123,7 +123,7 @@ function parseBlock(raw: string): LyricLine[] {
     const blockLines = block.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     const timeLine = blockLines.find((l) => l.includes("-->"));
     if (!timeLine) continue;
-    const timestamp = parseTimestamp(timeLine.split("-->")[0]);
+    const timestamp = parseTimestamp(timeLine.split("-->")[0] ?? "");
     if (timestamp === null) continue;
     const text = blockLines
       .slice(blockLines.indexOf(timeLine) + 1)

@@ -41,5 +41,8 @@ export default {
     "color-no-invalid-hex": true,
     "selector-no-invalid": true,
     "function-linear-gradient-no-nonstandard-direction": true,
+    "selector-pseudo-element-disallowed-list": [/^-ms-/, /^-moz-focus-/],
+    "selector-pseudo-class-disallowed-list": [/^-ms-/],
+    "property-disallowed-list": [/^-ms-/, "-moz-osx-font-smoothing"],
   },
 };

@@ -64,6 +64,7 @@
         <div
           v-if="numPinned > 0"
           class="pinned-items"
+          role="group"
           aria-label="Pinned Items"
           :class="{ lastGroup: numDirs === 0 && numFiles === 0, firstGroup: true }"
         >
@@ -73,7 +74,7 @@
             :class="{ 'zebra-row': idx % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'"
+            v-bind:isDir="item.type === 'directory'"
             v-bind:source="req.source"
             v-bind:modified="item.modified"
             v-bind:created="item.created"
@@ -98,6 +99,7 @@
         <div
           v-if="numDirs > 0"
           class="folder-items"
+          role="group"
           aria-label="Folder Items"
           :class="{ lastGroup: numFiles === 0, firstGroup: numPinned === 0 }"
         >
@@ -132,6 +134,7 @@
           v-if="numFiles > 0"
           class="file-items"
           :class="{ lastGroup: numFiles > 0, firstGroup: numPinned === 0 && numDirs === 0 }"
+          role="group"
           aria-label="File Items"
         >
           <item
@@ -423,9 +426,9 @@ export default {
       if (isEmpty) {
         return { 'padding-top': '4.1em' }; // Empty - no files or folders
       } else if (isRootPath) {
-        return { 'padding-top': '4.28em' }; // Root - no breadcrumbs showing
+        return { 'padding-top': '4.29em' }; // Root - no breadcrumbs showing
       } else {
-        return { 'padding-top': '7.50em' }; // Non-root - breadcrumbs + listing header
+        return { 'padding-top': '7.51em' }; // Non-root - breadcrumbs + listing header
       }
     },
     itemStyles() {
@@ -819,8 +822,6 @@ export default {
 
       switch (shortcut) {
         case "Alt+ArrowUp":
-          event.preventDefault();
-          // fall through
         case "Backspace": {
           event.preventDefault();
           // get current path and its parent
@@ -836,8 +837,6 @@ export default {
         }
 
         case "Alt+ArrowDown":
-          event.preventDefault();
-          // fall through
         case "Enter": {
           event.preventDefault();
           if (this.selectedCount === 1) {

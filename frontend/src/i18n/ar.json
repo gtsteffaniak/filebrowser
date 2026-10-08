@@ -149,7 +149,11 @@
     "failedLogin": "فشل في تسجيل الدخول",
     "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة",
     "passkeyLogin": "استخدام مفتاح المرور",
-    "recaptchaRequired": "تحدي Recaptcha مطلوب"
+    "recaptchaRequired": "تحدي Recaptcha مطلوب",
+    "requirePasswordChangeTitle": "تغيير كلمة المرور",
+    "requirePasswordChangeInstructions": "يجب عليك تعيين كلمة مرور جديدة قبل المتابعة.",
+    "requirePasswordChangeSuccess": "تم تحديث كلمة المرور. لقد تم تسجيل دخولك الآن.",
+    "requirePasswordChangeMustDiffer": "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور الحالية"
   },
   "prompts": {
     "noTemplate": "قالبك فارغ!",
@@ -238,6 +242,15 @@
     "unarchiveMessage": "اختر مكان استخراج الأرشيف.",
     "unarchiveDestination": "مقتطف إلى:",
     "unarchiveSuccess": "تم استخراج الأرشيف بنجاح!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "فشل التحميل المقطوع - إذا تكرر ذلك، حاول تقليل حجم القطعة: {message}",
     "confirmPasswordToSaveUser": "أدخل كلمة المرور الحالية لحفظ تغييرات المستخدم هذه."
   },
@@ -316,7 +329,10 @@
     "userEditPreferences": "تفضيلات المستخدم",
     "userEditTools": "الوصول إلى الأدوات",
     "userEditToolsDescription": "تحديد الأدوات التي يمكن لهذا المستخدم الوصول إليها",
-    "userEditSidebarLinks": "روابط الشريط الجانبي"
+    "userEditSidebarLinks": "روابط الشريط الجانبي",
+    "passwordRequirementsMatch": "الكلمات المرور متطابقة",
+    "passwordRequirementsMinLength": "{min} حرفًا على الأقل",
+    "requirePasswordChange": "طلب تغيير كلمة المرور عند تسجيل الدخول التالي"
   },
   "sidebar": {
     "updateIsAvailable": "يتوفر تحديث!",
@@ -359,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "هذه هي الروابط الافتراضية التي ستُضاف لجميع المستخدمين الجدد. إذا قمت بتفعيل رابط ما، فسيتم إضافته لجميع المستخدمين ولن يتمكن المستخدمون غير الإداريين من إزالته.",
     "sidebarLinkDefaultSourceHelp": "ينطبق هذا فقط عندما يكون لدى المستخدم حق الوصول إلى هذا المصدر.",
     "sidebarLinkDefaultsYamlInvalid": "صيغة YAML غير صالحة. تحقق من التنسيق وحاول مرة أخرى.",
-    "switchMode": "التبديل بين الروابط وشجرة التنقل"
+    "switchMode": "التبديل بين الروابط وشجرة التنقل",
+    "rootFilesystemOnly": "تقييد استخدام القرص بنظام الملفات المصدر",
+    "rootFilesystemOnlyDescription": "عند تمكين هذه الميزة، يتم الإبلاغ فقط عن نظام الملفات الذي يحتوي على مسار المصدر. وعند تعطيلها (الإعداد الافتراضي)، يشمل إجمالي سعة القرص أيضًا أنظمة الملفات المثبتة تحت مسار المصدر، مع احتساب المجموعات المشتركة مثل مجموعات بيانات ZFS مرة واحدة فقط."
   },
   "share": {
     "notice": "ملاحظة: عندما يتم إنشاء مشاركة، تصبح أكثر انكشافًا للجمهور ولها قواعد مختلفة للوصول إليها. إذا لم يتم تهيئة مشاركتك بشكل آمن، فيمكن لأي شخص الوصول إليها.",
@@ -835,6 +853,8 @@
       "customScrollbarDescription": "استبدال شريط التمرير الأصلي للمتصفح بشريط التمرير المدمج في Ace",
       "wrapContent": "التفاف الأسطر الطويلة في المحرر",
       "wrapContentDescription": "يلتف محتوى المحرر للحفاظ على رؤية الأسطر الطويلة جدًا دائمًا",
+      "indentedSoftWrap": "التفاف ناعم مع مسافة بادئة",
+      "indentedSoftWrapDescription": "عند تمكين هذا، يضيف مسافة بادئة إلى بداية النص الملفوف",
       "autocompletion": "الإكمال التلقائي",
       "autocompletionDescription": "يتيح الإكمال التلقائي بالضغط يدويًا على 'ctrl + space'",
       "liveAutocompletion": "الإكمال التلقائي المباشر",

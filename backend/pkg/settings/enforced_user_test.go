@@ -83,6 +83,39 @@ func TestValidateUserAgainstEnforcedDefaults_skipsAdmin(t *testing.T) {
 	}
 }
 
+func TestValidateUserAgainstEnforcedDefaults_skipsRequirePasswordChange(t *testing.T) {
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:              "alice",
+			RequirePasswordChange: false,
+		},
+	}
+	defaults := UserDefaults{Account: UserDefaultsAccount{RequirePasswordChange: true}}
+	enforced := UserDefaultsEnforcement{
+		Account: UserDefaultsAccountEnforcement{RequirePasswordChange: true},
+	}
+	if err := ValidateUserAgainstEnforcedDefaults(u, defaults, enforced); err != nil {
+		t.Fatalf("cleared requirePasswordChange should not fail enforced validation: %v", err)
+	}
+}
+
+func TestApplyEnforcedDefaultsFrom_skipsRequirePasswordChange(t *testing.T) {
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:              "alice",
+			RequirePasswordChange: false,
+		},
+	}
+	defaults := UserDefaults{Account: UserDefaultsAccount{RequirePasswordChange: true}}
+	enforced := UserDefaultsEnforcement{
+		Account: UserDefaultsAccountEnforcement{RequirePasswordChange: true},
+	}
+	ApplyEnforcedDefaultsFrom(u, defaults, enforced)
+	if u.RequirePasswordChange {
+		t.Fatal("expected requirePasswordChange not re-applied after user cleared it")
+	}
+}
+
 func TestApplyEnforcedDefaultsFrom_onlyEnforcedSubset(t *testing.T) {
 	u := &users.User{
 		FrontendUser: users.FrontendUser{

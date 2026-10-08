@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { cdpDurationSecondsToMs } from "./perf-cdp";
-import { buildContributors, buildRootCauseParagraph } from "./perf-report";
-import type { TraceAnalysis } from "./perf-trace";
+import { cdpDurationSecondsToMs } from "./perf-cdp.ts";
+import { buildContributors, buildRootCauseParagraph } from "./perf-report.ts";
+import type { TraceAnalysis } from "./perf-trace.ts";
 
 describe("cdpDurationSecondsToMs", () => {
   it("converts fractional seconds to rounded milliseconds", () => {

@@ -1,5 +1,5 @@
-import router from '@/router';
-import { state } from '@/store';
+import router from "@/router/index.ts";
+import { state } from "@/store/index.ts";
 import { buildItemUrl } from '@/utils/url.js';
 
 /** @typedef {{ source: string, path: string, media: HTMLMediaElement, wasInlineFullscreen?: boolean, wasPlaying?: boolean }} PipSession */

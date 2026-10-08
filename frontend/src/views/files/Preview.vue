@@ -535,7 +535,8 @@ export default {
       switch (shortcut) {
         case "Alt+ArrowUp":
           event.preventDefault();
-          // fall through
+          this.close();
+          break;
         case "Escape":
         case "Backspace":
           this.close();

@@ -602,7 +602,7 @@ export default {
         this.sourceScopedPaths = nextPaths;
 
         if (selected.length === 0) {
-          this.$nextTick(() => this.applyDefaultCurrentSourceIfNone());
+          void this.$nextTick().then(() => this.applyDefaultCurrentSourceIfNone());
         }
       },
     },
@@ -792,7 +792,9 @@ export default {
 
         this.applyQueryFromRoute();
         if (hasAnyAdvancedSearchRouteParams(this.$route.query)) {
-          this.$nextTick(() => void this.runSearch());
+          void this.$nextTick().then(() => {
+            void this.runSearch();
+          });
         }
         this.scheduleAdvancedSearchUrlUpdate();
       },
@@ -916,7 +918,7 @@ export default {
         return;
       }
       this.refreshQueued = true;
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         this.refreshQueued = false;
         mutations.resetSelected();
         void this.runSearch();
@@ -998,12 +1000,12 @@ export default {
           this.$route.query,
         )
       ) {
-        this.$nextTick(() => {
+        void this.$nextTick().then(() => {
           void this.runSearch();
         });
       }
       this.isInitializing = false;
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         this.updateAdvancedSearchUrl();
       });
     },
@@ -1248,7 +1250,7 @@ export default {
         })
         .catch(() => {})
         .finally(() => {
-          this.$nextTick(() => {
+          void this.$nextTick().then(() => {
             this.suppressRouteQueryNavigation = false;
           });
         });
@@ -1257,7 +1259,7 @@ export default {
       if (!this.isAdvancedSearchRoute || this.isInitializing) {
         return;
       }
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         this.updateAdvancedSearchUrl();
       });
     },

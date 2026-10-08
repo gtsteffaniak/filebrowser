@@ -192,6 +192,9 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 	// Hash password if provided
 	if plaintextPassword != "" {
+		if err := settings.ValidatePasswordPolicy(plaintextPassword); err != nil {
+			return err
+		}
 		hashedPassword, err := utils.HashPwd(plaintextPassword)
 		if err != nil {
 			return fmt.Errorf("failed to hash password: %w", err)
@@ -205,7 +208,11 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
+	preserveRequirePasswordChange := user.RequirePasswordChange
 	applyUserSettingsDefaults(user)
+	if preserveRequirePasswordChange {
+		user.RequirePasswordChange = true
+	}
 	defaults := EffectiveUserDefaults()
 	enforced := EffectiveEnforced()
 	settings.ApplyEnforcedDefaultsFrom(user, defaults, enforced)
@@ -295,6 +302,9 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		if strings.EqualFold(jsonFieldName, "password") {
 			if plaintextPassword == "" {
 				return fmt.Errorf("password field requires a non-empty plaintext password")
+			}
+			if err := settings.ValidatePasswordPolicy(plaintextPassword); err != nil {
+				return err
 			}
 			hashedPassword, hashErr := utils.HashPwd(plaintextPassword)
 			if hashErr != nil {

@@ -1,4 +1,4 @@
-import { checkForNotification, expect, openProfileSettings, test } from "../test-setup";
+import { checkForNotification, expect, openProfileSettings, test } from "../test-setup.ts";
 
 test("sidebar links", async({ page, checkForErrors }) => {
   await page.goto("/files/");

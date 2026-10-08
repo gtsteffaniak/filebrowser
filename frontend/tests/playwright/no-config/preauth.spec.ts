@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { loginPlaywrightAdmin } from "../playwright-auth";
+import { loginPlaywrightAdmin } from "../playwright-auth.ts";
+import { disableAndCloseHalloweenPrompt } from "../test-setup.ts";
 
 test("redirect to login from root", async ({ page, context }) => {
   await context.clearCookies();
@@ -19,6 +20,7 @@ test("logout", async ({ browser }) => {
     baseURL: "http://127.0.0.1/",
   });
   const page = await context.newPage();
+  await disableAndCloseHalloweenPrompt(page);
 
   await page.goto("/login");
   await loginPlaywrightAdmin(page);

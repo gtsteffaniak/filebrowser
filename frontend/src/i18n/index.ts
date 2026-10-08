@@ -1,7 +1,7 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
 import { nextTick } from 'vue';
-import en from './en.json';
+import en from './en.json' with { type: "json" };
 
 type MessageSchema = typeof en;
 
@@ -70,7 +70,7 @@ export function detectLocale(): string {
   if (mappedLocale !== undefined) {
     return mappedLocale;
   }
-  const prefix = browserLocale.split('-')[0];
+  const prefix = browserLocale.split('-')[0] ?? '';
   return availableLocalesMap.get(prefix) ?? 'en';
 }
 
@@ -118,7 +118,12 @@ export async function setLocale(locale: string) {
       setLanguage('en');
       return;
     }
-    const messages = (await localeModules[`./${fileName}.json`]()).default;
+    const loadMessages = localeModules[`./${fileName}.json`];
+    if (!loadMessages) {
+      setLanguage('en');
+      return;
+    }
+    const messages = (await loadMessages()).default;
     i18n.global.setLocaleMessage(locale, messages);
     setLanguage(locale);
     await nextTick();

@@ -149,7 +149,11 @@
     "failedLogin": "登录失败",
     "invalidCredentials": "提供的证书无效",
     "passkeyLogin": "使用通行密钥",
-    "recaptchaRequired": "需要 Recaptcha 验证"
+    "recaptchaRequired": "需要 Recaptcha 验证",
+    "requirePasswordChangeTitle": "更改密码",
+    "requirePasswordChangeInstructions": "在继续之前，您必须设置一个新密码。",
+    "requirePasswordChangeSuccess": "密码已更新。您现已登录。",
+    "requirePasswordChangeMustDiffer": "新密码必须与您当前的密码不同"
   },
   "prompts": {
     "noTemplate": "您的模板为空！",
@@ -238,6 +242,15 @@
     "unarchiveMessage": "选择提取存档的位置。",
     "unarchiveDestination": "摘录至",
     "unarchiveSuccess": "档案提取成功！",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "分块下载失败 - 如果重复出现这种情况，请尝试减小分块大小：{message}",
     "confirmPasswordToSaveUser": "输入您当前的密码以保存这些用户更改。"
   },
@@ -316,7 +329,10 @@
     "userEditPreferences": "用户偏好设置",
     "userEditTools": "工具访问",
     "userEditToolsDescription": "配置该用户可以访问的工具",
-    "userEditSidebarLinks": "侧边栏链接"
+    "userEditSidebarLinks": "侧边栏链接",
+    "passwordRequirementsMatch": "密码一致",
+    "passwordRequirementsMinLength": "至少{min} 个字符",
+    "requirePasswordChange": "要求在下一次登录时更改密码"
   },
   "sidebar": {
     "updateIsAvailable": "有了最新进展！",
@@ -359,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "这些是将为所有新用户添加的默认链接。如果您强制启用某个链接，该链接将添加给所有用户，且非管理员无法将其删除。",
     "sidebarLinkDefaultSourceHelp": "仅当用户有权访问此来源时才适用。",
     "sidebarLinkDefaultsYamlInvalid": "YAML 格式无效。请检查格式后重试。",
-    "switchMode": "在链接和导航树之间切换"
+    "switchMode": "在链接和导航树之间切换",
+    "rootFilesystemOnly": "将磁盘使用量限制在源文件系统内",
+    "rootFilesystemOnlyDescription": "启用此选项时，仅报告包含源路径的文件系统。禁用此选项（默认设置）时，磁盘总容量还包括源路径下挂载的文件系统，其中 ZFS 数据集等共享池仅计数一次。"
   },
   "share": {
     "notice": "注意：创建共享后，它将更多地向公众开放，并有不同的访问规则。如果未对共享进行安全配置，任何人都可以访问它。",
@@ -835,6 +853,8 @@
       "customScrollbarDescription": "将浏览器的原生滚动条替换为 Ace 内置滚动条",
       "wrapContent": "在编辑器中换行长行",
       "wrapContentDescription": "换行编辑器内容，使很长的行始终保持可见",
+      "indentedSoftWrap": "缩进软换行",
+      "indentedSoftWrapDescription": "启用后，在换行文本的开头添加缩进",
       "autocompletion": "自动补全",
       "autocompletionDescription": "通过手动按 'ctrl + space' 启用自动补全",
       "liveAutocompletion": "实时自动补全",

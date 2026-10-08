@@ -149,7 +149,11 @@
     "failedLogin": "נכשל בכניסה",
     "invalidCredentials": "פרטי הזדהות לא חוקיים",
     "passkeyLogin": "השתמש במפתח גישה",
-    "recaptchaRequired": "נדרש אתגר Recaptcha"
+    "recaptchaRequired": "נדרש אתגר Recaptcha",
+    "requirePasswordChangeTitle": "שנה את הסיסמה שלך",
+    "requirePasswordChangeInstructions": "עליך להגדיר סיסמה חדשה לפני שתמשיך.",
+    "requirePasswordChangeSuccess": "הסיסמה עודכנה. כעת אתה מחובר.",
+    "requirePasswordChangeMustDiffer": "הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית שלך"
   },
   "prompts": {
     "noTemplate": "התבנית שלך ריקה!",
@@ -238,6 +242,15 @@
     "unarchiveMessage": "בחר היכן לחלץ את הארכיון.",
     "unarchiveDestination": "חלץ אל:",
     "unarchiveSuccess": "הארכיון חולץ בהצלחה!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "ההורדה המקוטעת נכשלה - אם הבעיה חוזרת על עצמה, נסה להקטין את גודל החלקים: {message}",
     "confirmPasswordToSaveUser": "הזן את הסיסמה הנוכחית שלך כדי לשמור את שינויי המשתמש."
   },
@@ -316,7 +329,10 @@
     "userEditPreferences": "העדפות המשתמש",
     "userEditTools": "גישה לכלים",
     "userEditToolsDescription": "הגדר לאילו כלים המשתמש הזה יכול לגשת",
-    "userEditSidebarLinks": "קישורים בסרגל הצדדי"
+    "userEditSidebarLinks": "קישורים בסרגל הצדדי",
+    "passwordRequirementsMatch": "הסיסמאות תואמות",
+    "passwordRequirementsMinLength": "לפחות {min} תווים",
+    "requirePasswordChange": "דרוש שינוי סיסמה בכניסה הבאה"
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",
@@ -359,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "אלה הם הקישורים המוגדרים כברירת מחדל שייתווספו לכל המשתמשים החדשים. אם תגדיר קישור כמחויב, הוא יתווסף לכל המשתמשים ולא ניתן יהיה להסיר אותו על ידי משתמשים שאינם מנהלים.",
     "sidebarLinkDefaultSourceHelp": "חל רק כאשר למשתמש יש גישה למקור זה.",
     "sidebarLinkDefaultsYamlInvalid": "YAML לא תקין. בדוק את הפורמט ונסה שוב.",
-    "switchMode": "החלפה בין קישורים לעץ הניווט"
+    "switchMode": "החלפה בין קישורים לעץ הניווט",
+    "rootFilesystemOnly": "הגבל את השימוש בדיסק למערכת הקבצים המקורית",
+    "rootFilesystemOnlyDescription": "כאשר האפשרות מופעלת, מדווחת רק מערכת הקבצים המכילה את נתיב המקור. כאשר האפשרות מושבתת (ברירת מחדל), סך נפח הדיסק כולל גם את מערכות הקבצים שעברו התקנה תחת נתיב המקור, כאשר מאגרים משותפים כגון מערכי נתונים של ZFS נספרים פעם אחת בלבד."
   },
   "share": {
     "notice": "הערה: כאשר נוצר שיתוף, הוא הופך לחשוף יותר לציבור וחל עליו כללים שונים לגבי גישה. אם השיתוף שלך אינו מוגדר בצורה מאובטחת, כל אחד יכול לגשת אליו.",
@@ -835,6 +853,8 @@
       "customScrollbarDescription": "החלף את סרגל הגלילה המקורי של הדפדפן בזה המובנה של Ace",
       "wrapContent": "גלישת שורות ארוכות בעורך",
       "wrapContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות",
+      "indentedSoftWrap": "גלישה רכה עם הזחה",
+      "indentedSoftWrapDescription": "כאשר זה מופעל, מוסיף הזחה לתחילת הטקסט הנגלש",
       "autocompletion": "השלמה אוטומטית",
       "autocompletionDescription": "מאפשר השלמה אוטומטית על ידי לחיצה ידנית על 'ctrl + space'",
       "liveAutocompletion": "השלמה אוטומטית חיה",

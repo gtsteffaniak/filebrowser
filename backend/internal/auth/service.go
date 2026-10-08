@@ -30,7 +30,8 @@ func SetDefault(s *Service) {
 }
 
 // AuthenticatePassword authenticates the user via password in request headers.
-func (s *Service) AuthenticatePassword(r *http.Request, disableOtp bool) (*users.User, error) {
+// When skipRequirePasswordChange is true, a valid password is accepted even if RequirePasswordChange is set (change-required flow).
+func (s *Service) AuthenticatePassword(r *http.Request, disableOtp bool, skipRequirePasswordChange bool) (*users.User, error) {
 	if s == nil || s.users == nil {
 		return nil, fmt.Errorf("auth service not configured")
 	}
@@ -63,6 +64,9 @@ func (s *Service) AuthenticatePassword(r *http.Request, disableOtp bool) (*users
 	if getErr != nil {
 		return nil, fmt.Errorf("unable to get user from store: %v", err)
 	}
+	if user.RequirePasswordChange && user.LoginMethod == users.LoginMethodPassword && !skipRequirePasswordChange {
+		return nil, errors.ErrPasswordChangeRequired
+	}
 	if user.TOTPSecret != "" && !disableOtp {
 		if totpCode == "" {
 			return nil, errors.ErrNoTotpProvided
@@ -80,9 +84,9 @@ func (s *Service) AuthenticatePassword(r *http.Request, disableOtp bool) (*users
 }
 
 // AuthenticatePassword authenticates via the default service.
-func AuthenticatePassword(r *http.Request, disableOtp bool) (*users.User, error) {
+func AuthenticatePassword(r *http.Request, disableOtp bool, skipRequirePasswordChange bool) (*users.User, error) {
 	if defaultService != nil {
-		return defaultService.AuthenticatePassword(r, disableOtp)
+		return defaultService.AuthenticatePassword(r, disableOtp, skipRequirePasswordChange)
 	}
 	return nil, fmt.Errorf("auth service not configured")
 }

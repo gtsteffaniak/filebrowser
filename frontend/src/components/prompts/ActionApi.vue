@@ -210,7 +210,7 @@ export default {
 }
 
 .info-item:hover {
-  background-color: var(--surfaceSecondary);
+  background-color: var(--hoverOverlay);
 }
 
 .info-label {
@@ -255,7 +255,7 @@ export default {
 }
 
 .permission-item:hover {
-  background-color: var(--surfacePrimary);
+  background-color: var(--hoverOverlay);
 }
 
 .permission-name {

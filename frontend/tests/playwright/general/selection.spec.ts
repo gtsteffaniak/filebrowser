@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 const LISTING_TITLE = "Graham's Filebrowser - Files - playwright-files";
 const DOUBLE_CLICK_WINDOW_MS = 600;
