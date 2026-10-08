@@ -284,6 +284,19 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
+
+	// For non-share downloads, enforce path-level access before building any archive.
+	// addFile silently skips denied paths which would yield an empty archive with 200;
+	// ServeSingleFile already gates single-file downloads with the same check.
+	if d.Share.Hash == "" {
+		permUser := accessCheckUsername(d)
+		for _, filePath := range fileList {
+			if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(filePath, true), permUser) {
+				return http.StatusForbidden, fmt.Errorf("access denied to source %q", source)
+			}
+		}
+	}
+
 	var isDir bool
 	if d.Share.Hash != "" {
 		if d.Share.Path == "" {

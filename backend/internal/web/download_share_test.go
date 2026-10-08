@@ -217,6 +217,67 @@ func TestRawFilesHandlerShareDirectoryDownloadNotEmptyZip(t *testing.T) {
 	}
 }
 
+// TestRawFilesHandler_DeniedSourceReturns403 verifies that a user who is denied
+// access to a source by path-level access rules receives 403 from the zip
+// download endpoint instead of 200 with an empty archive (issue #3098).
+// An allowed user (owner, who has an explicit allow rule) must still get 200.
+func TestRawFilesHandler_DeniedSourceReturns403(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+	// The source is configured with DenyByDefault: true (see setupShareArchiveDownloadTest).
+	// owner has an explicit allow for /shared, so they are allowed.
+	// denied user has no allow rule, so they are denied.
+
+	// --- denied user ---
+	deniedUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "denied"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&deniedUser)
+
+	dDenied := &Context{User: &deniedUser}
+	reqDenied := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared&algo=zip", nil)
+	recDenied := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(recDenied, reqDenied, dDenied, sourceName, []string{"/shared"})
+	if err == nil {
+		t.Fatal("expected error for denied user")
+	}
+	if status != http.StatusForbidden {
+		t.Fatalf("denied user: expected 403, got status=%d err=%v", status, err)
+	}
+
+	// --- allowed user ---
+	allowedUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&allowedUser)
+
+	dAllowed := &Context{User: &allowedUser}
+	reqAllowed := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared&algo=zip", nil)
+	recAllowed := httptest.NewRecorder()
+
+	statusAllowed, errAllowed := RawFilesHandler(recAllowed, reqAllowed, dAllowed, sourceName, []string{"/shared"})
+	if errAllowed != nil {
+		t.Fatalf("allowed user: unexpected error: status=%d err=%v", statusAllowed, errAllowed)
+	}
+	if statusAllowed != http.StatusOK && statusAllowed != 0 {
+		t.Fatalf("allowed user: expected 200, got status=%d", statusAllowed)
+	}
+}
+
 func TestRawFilesHandler_MissingFileReturns404(t *testing.T) {
 	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
 	ownerUser := users.User{
