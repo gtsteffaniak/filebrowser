@@ -7,7 +7,7 @@ import i18n from '@/i18n';
 export const MAX_GROUP_NAME_LENGTH = 128;
 export const MIN_GROUP_NAME_LENGTH = 2;
 
-// eslint-disable-next-line no-control-regex
+// biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are exactly what we reject
 const CONTROL_CHARS = /[\x00-\x1f\x7f-\x9f]/;
 
 /**
