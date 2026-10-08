@@ -2492,6 +2492,10 @@ definitions:
         description: 'Directory path on toSource to extract into (required). Example:
           "/projects/imported"'
         type: string
+      filenameEncoding:
+        description: Fallback ZIP filename encoding; explicit Unicode metadata takes
+          precedence.
+        type: string
       fromSource:
         description: 'Source name where the archive file lives (required). Example:
           "default"'
@@ -2500,6 +2504,9 @@ definitions:
         description: 'Path to the archive file on fromSource; .zip, .tar.gz, or .tgz
           (required). Example: "/downloads/data.zip"'
         type: string
+      preview:
+        description: Inspect ZIP names without writing or deleting files.
+        type: boolean
       toSource:
         description: 'Source name where contents will be extracted (optional; default:
           fromSource). Example: "restored"'
@@ -4421,6 +4428,8 @@ paths:
         - **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `"/downloads/data.zip"`
         - **destination** (string, required): Directory path (on toSource) to extract into. Example: `"/projects/imported"`
         - **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`
+        - **filenameEncoding** (string, optional): Fallback ZIP filename encoding: utf-8, cp932, gb18030, big5, euc-kr, cp437, windows-1252. Unicode metadata takes precedence. Omit to use a suggestion; ambiguous encodings require a selection.
+        - **preview** (boolean, optional): Return ZIP encoding candidates and sample filenames without extracting or deleting anything. Requires the same source/destination permissions as extraction.
       parameters:
       - description: 'Request body: fromSource, toSource (optional), path, destination,
           deleteAfter (optional)'
@@ -4433,11 +4442,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: 'Extracted; returns {\"path\": \"<destination path>\", \"source\":
-            \"<toSource>\"}'
+          description: 'Preview returns suggested and candidates; extraction returns
+            path and source. Extracted; returns {\"path\": \"<destination path>\",
+            \"source\": \"<toSource>\"}'
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "400":
           description: Invalid request (e.g. missing required field, unsupported format)
