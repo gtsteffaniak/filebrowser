@@ -317,6 +317,10 @@ span {
   text-align: left;
 }
 
+.desktop-view .kind span {
+  flex-shrink: 0;
+}
+
 .desktop-view .created {
   width: var(--listing-col-created);
 }
@@ -327,9 +331,9 @@ span {
 /* stylelint-enable no-unknown-custom-properties */
 
 i {
-  font-size: 1.5em;
+  font-size: 1.2em;
   vertical-align: middle;
-  margin-left: .2em;
+  margin-left: .1em;
   opacity: 0;
   transition: opacity 0.1s ease;
   flex-shrink: 0;

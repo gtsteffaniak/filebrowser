@@ -731,6 +731,27 @@ export default {
 </script>
 
 <style scoped>
+.card-content {
+  --listing-col-gap: 0.5rem;
+  --listing-col-size: 5rem;
+  --listing-col-modified: 8.5rem;
+}
+
+.card-content :deep(.kind),
+.card-content :deep(.created) {
+  display: none !important;
+}
+
+/* a bit of padding after the column inset */
+.sticky-header :deep(.listing-item-header.desktop-view) {
+  padding-right: calc(var(--listing-col-gap) + 0.5em);
+}
+
+.sticky-header :deep(.listing-item-header i) {
+  font-size: 1.2em;
+  margin-left: 0.1em;
+}
+
 /* File picker specific: make non-link items interactive */
 .listing-items :deep(.listing-item.clickable) {
   cursor: pointer;

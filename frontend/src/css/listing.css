@@ -3,9 +3,9 @@
 :root {
   --listing-col-gap: 1rem;
   --listing-col-size: 6.5rem;
-  --listing-col-modified: 10.5rem;
-  --listing-col-kind: 5.5rem;
-  --listing-col-created: 10.5rem;
+  --listing-col-modified: 10rem;
+  --listing-col-kind: 4.8rem;
+  --listing-col-created: 8.35rem;
   --listing-col-duration: 6.75rem;
 }
 
