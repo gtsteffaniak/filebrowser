@@ -255,9 +255,9 @@ export async function bulkDelete(items) {
     const data = await response.json()
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
-      items.forEach((item) => {
+      for (const item of items) {
         invalidateDirMetadataCache({ source: item.source, path: getParentDir(item.path) })
-      })
+      }
       return data
     }
     const error = new Error(data.message || response.statusText)
@@ -823,9 +823,9 @@ export function post(
         const resolvedPath = chunkUploadApiPath(apiPath, headers);
         request.open("POST", resolvedPath, true);
 
-        Object.entries(headers).forEach(([header, value]) => {
+        for (const [header, value] of Object.entries(headers)) {
           request.setRequestHeader(header, value);
-        });
+        }
         if (headers["X-File-Chunk-Offset"] !== undefined) {
           request.setRequestHeader("Connection", "close");
         }
@@ -992,10 +992,10 @@ export async function moveCopy(
 
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
-      items.forEach((item) => {
+      for (const item of items) {
         invalidateDirMetadataCache({ source: item.fromSource, path: getParentDir(item.from) })
         invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
-      })
+      }
       return data
     }
 
@@ -1347,9 +1347,9 @@ export function postPublic(
     const request = new XMLHttpRequest();
     request.open("POST", chunkUploadApiPath(apiPath, headers), true);
 
-    Object.entries(headers).forEach(([header, value]) => {
+    for (const [header, value] of Object.entries(headers)) {
       request.setRequestHeader(header, value);
-    });
+    }
     if (headers["X-File-Chunk-Offset"] !== undefined) {
       request.setRequestHeader("Connection", "close");
     }
@@ -1496,9 +1496,9 @@ export async function bulkDeletePublic(items) {
     const data = await response.json()
 
     if (response.status === 200 || response.status === 207) {
-      items.forEach((item) => {
+      for (const item of items) {
         invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.path) })
-      })
+      }
       return data
     }
 
@@ -1555,10 +1555,10 @@ export async function moveCopyPublic(
     const data = await response.json()
 
     if (response.status === 200 || response.status === 207) {
-      items.forEach((item) => {
+      for (const item of items) {
         invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.from) })
         invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
-      })
+      }
       return data
     }
 

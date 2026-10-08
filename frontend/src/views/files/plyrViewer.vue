@@ -859,14 +859,14 @@ export default {
   },
   beforeUnmount() {
     // Cleanup timeouts
-    [this.toastTimeout,
+    for (const timeout of [this.toastTimeout,
     this.skipFeedbackTimer,
     this.videoDismissCloseTimer,
     this.videoDismissHintTimer,
     this.skipNextTapTimer,
-  ].forEach(timeout => {
+  ]) {
       if (timeout) clearTimeout(timeout);
-    });
+    }
     // Cleanup Plyr
     this.destroyPlyr();
     this.clearMediaSession();
@@ -968,9 +968,9 @@ export default {
       navigator.mediaSession.metadata = null;
       // Clear all action handlers
       const actions = [ 'play', 'pause', 'previoustrack', 'nexttrack', 'seekbackward', 'seekforward', 'seekto', 'stop' ];
-      actions.forEach(action => {
+      for (const action of actions) {
         navigator.mediaSession.setActionHandler(action, null);
-      });
+      }
       // Clear position state
       if (navigator.mediaSession.setPositionState) {
         navigator.mediaSession.setPositionState(null);
@@ -1207,9 +1207,9 @@ export default {
         return;
       }
       const el = this.player.elements.container;
-      PLYR_CAPTION_SIZE_IDS.forEach((id) => {
+      for (const id of PLYR_CAPTION_SIZE_IDS) {
         el.classList.remove(`plyr-caption-size--${id}`);
-      });
+      }
       el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
@@ -2005,9 +2005,9 @@ export default {
         ratechange: this.updateMediaSessionPlaybackState,
         canplay: this.updateMediaSessionPlaybackState,
       };
-      Object.entries(eventMap).forEach(([evt, fn]) => {
+      for (const [evt, fn] of Object.entries(eventMap)) {
         this.player.on(evt, fn);
-      });
+      }
       if ((this.previewType === 'video' || this.previewType === 'audio')) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
         this.player.on('exitfullscreen', this.onFullscreenExit);
@@ -2938,11 +2938,11 @@ export default {
             `;
             this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
             // Set initial checked state
-            this.playbackButtons.forEach(btn => {
+            for (const btn of this.playbackButtons) {
               btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
-            });
+            }
             // Add click listeners
-            this.playbackButtons.forEach(btn => {
+            for (const btn of this.playbackButtons) {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
                 if (value === 'single') {
@@ -2957,11 +2957,11 @@ export default {
                 }
                 const newLabel = getModeLabel(value, this.$t);
                 if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
-                this.playbackButtons.forEach(b => {
+                for (const b of this.playbackButtons) {
                   b.setAttribute('aria-checked', b.getAttribute('value') === value);
-                });
+                }
               });
-            });
+            }
             const valueSpan = playbackBtn.querySelector('span .plyr__menu__value');
             if (valueSpan) {
               valueSpan.textContent = currentLabel;
@@ -2975,9 +2975,9 @@ export default {
           } else {
             // Just update checked states and label
             if (this.playbackButtons) {
-              this.playbackButtons.forEach(btn => {
+              for (const btn of this.playbackButtons) {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
-              });
+              }
             }
             if (this.playbackValueSpan) {
               this.playbackValueSpan.textContent = currentLabel;
@@ -3007,11 +3007,11 @@ export default {
             `;
             this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
             // Set initial checked state
-            this.loopButtons.forEach(btn => {
+            for (const btn of this.loopButtons) {
               btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
-            });
+            }
             // Add click listeners
-            this.loopButtons.forEach(btn => {
+            for (const btn of this.loopButtons) {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
                 if (value !== this.loop) {
@@ -3024,11 +3024,11 @@ export default {
                 }
                 const newLabel = getLoopLabel(value, this.$t);
                 if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
-                this.loopButtons.forEach(b => {
+                for (const b of this.loopButtons) {
                   b.setAttribute('aria-checked', b.getAttribute('value') === value);
-                });
+                }
               });
-            });
+            }
             const valueSpan = loopBtn.querySelector('span .plyr__menu__value');
             if (valueSpan) {
               valueSpan.textContent = currentLoopLabel;
@@ -3041,9 +3041,9 @@ export default {
           } else {
             // Update checked states and label
             if (this.loopButtons) {
-              this.loopButtons.forEach(btn => {
+              for (const btn of this.loopButtons) {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
-              });
+              }
             }
             if (this.loopValueSpan) {
               this.loopValueSpan.textContent = currentLoopLabel;
@@ -3073,25 +3073,25 @@ export default {
 
             this.captionSizeButtons = menu.querySelectorAll('button[data-plyr="caption-size"]');
             // Set initial checked state
-            this.captionSizeButtons.forEach(btn => {
+            for (const btn of this.captionSizeButtons) {
               btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
-            });
+            }
             // Add click listeners
-            this.captionSizeButtons.forEach(btn => {
+            for (const btn of this.captionSizeButtons) {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
                 if (!PLYR_CAPTION_SIZE_IDS.includes(value)) return;
                 this.setStoredCaptionSize(value);
                 this.applyCaptionSizeClass();
                 // Update checked states and label
-                this.captionSizeButtons.forEach(b => {
+                for (const b of this.captionSizeButtons) {
                   b.setAttribute('aria-checked', b.getAttribute('value') === value);
-                });
+                }
                 // Update label in button
                 const label = this.getCaptionSizeLabel(value);
                 if (this.captionSizeValueSpan) this.captionSizeValueSpan.textContent = label;
               });
-            });
+            }
             const valueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
             if (valueSpan) {
               valueSpan.textContent = currentSizeLabel;
@@ -3104,9 +3104,9 @@ export default {
           } else {
             // Update checked states and label
             if (this.captionSizeButtons) {
-              this.captionSizeButtons.forEach(btn => {
+              for (const btn of this.captionSizeButtons) {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
-              });
+              }
             }
             if (this.captionSizeValueSpan) {
               this.captionSizeValueSpan.textContent = currentSizeLabel;

@@ -91,11 +91,11 @@ export default {
   beforeUnmount() {
     if (window.DocsAPI) delete window.DocsAPI;
     const iframes = document.querySelectorAll('iframe');
-    iframes.forEach(iframe => {
+    for (const iframe of iframes) {
       if (iframe.src.includes('onlyoffice')) {
         iframe.remove();
       }
-    });
+    }
   },
   methods: {
     close() {

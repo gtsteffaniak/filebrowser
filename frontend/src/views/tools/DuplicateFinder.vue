@@ -213,17 +213,17 @@ export default {
     handleItemsDeleted(data) {
       // Update local state when items are deleted from the delete prompt
       if (data?.succeeded) {
-        data.succeeded.forEach(item => {
+        for (const item of data.succeeded) {
           const key = `${item.source}::${item.path}`;
           this.deletedFiles.add(key);
           this.failedFiles.delete(key);
-        });
+        }
       }
       if (data?.failed) {
-        data.failed.forEach(item => {
+        for (const item of data.failed) {
           const key = `${item.source}::${item.path}`;
           this.failedFiles.set(key, item.message || 'Unknown error');
-        });
+        }
       }
       // Clear selection after processing
       this.selectedIndices.clear();
@@ -473,19 +473,19 @@ export default {
 
         // Process succeeded items
         if (response.succeeded && response.succeeded.length > 0) {
-          response.succeeded.forEach(item => {
+          for (const item of response.succeeded) {
             const key = `${item.source}::${item.path}`;
             this.deletedFiles.add(key);
             this.failedFiles.delete(key);
-          });
+          }
         }
 
         // Process failed items
         if (response.failed && response.failed.length > 0) {
-          response.failed.forEach(item => {
+          for (const item of response.failed) {
             const key = `${item.source}::${item.path}`;
             this.failedFiles.set(key, item.message || 'Unknown error');
-          });
+          }
         }
 
         // Clear selection after deletion attempt

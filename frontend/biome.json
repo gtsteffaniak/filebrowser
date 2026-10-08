@@ -44,13 +44,9 @@
       },
       "a11y": {
         "noAutofocus": "off",
-        "noLabelWithoutControl": "on",
         "noNoninteractiveElementToInteractiveRole": "off",
-        "noRedundantAlt": "off",
         "noStaticElementInteractions": "off",
         "noSvgWithoutTitle": "off",
-        "useAltText": "on",
-        "useAriaPropsForRole": "off",
         "useAriaPropsSupportedByRole": "off",
         "useGenericFontNames": "off",
         "useKeyWithClickEvents": "off",
@@ -58,7 +54,7 @@
         "useSemanticElements": "off"
       },
       "complexity": {
-        "noForEach": "off",
+        "noForEach": "on",
         "noImportantStyles": "off",
         "noRedundantDefaultExport": "warn"
       },

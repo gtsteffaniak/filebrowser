@@ -232,29 +232,29 @@ export function rewriteHtmlResources(
   source: string,
 ): void {
   for (const [tag, attribute] of RESOURCE_ATTRIBUTES) {
-    doc.querySelectorAll(tag).forEach((element) => {
+    for (const element of doc.querySelectorAll(tag)) {
       if (!element.hasAttribute(attribute)) {
-        return;
+        continue;
       }
       if (tag === "link" && !shouldRewriteLinkHref(element)) {
-        return;
+        continue;
       }
       if (tag === "a") {
         const href = element.getAttribute("href");
         if (!href || !isLocalResourceReference(href)) {
-          return;
+          continue;
         }
       }
       rewriteAttribute(element, attribute, baseFilePath, source);
-    });
+    }
   }
 
-  doc.querySelectorAll("img[srcset], source[srcset]").forEach((element) => {
+  for (const element of doc.querySelectorAll("img[srcset], source[srcset]")) {
     const srcset = element.getAttribute("srcset");
     if (srcset) {
       element.setAttribute("srcset", rewriteSrcset(srcset, baseFilePath, source));
     }
-  });
+  }
 }
 
 export function rewriteDocumentStyles(
@@ -262,19 +262,19 @@ export function rewriteDocumentStyles(
   baseFilePath: string,
   source: string,
 ): void {
-  doc.querySelectorAll("style").forEach((styleEl) => {
+  for (const styleEl of doc.querySelectorAll("style")) {
     const css = styleEl.textContent;
     if (css) {
       styleEl.textContent = rewriteCssContent(css, baseFilePath, source);
     }
-  });
+  }
 
-  doc.querySelectorAll("[style]").forEach((element) => {
+  for (const element of doc.querySelectorAll("[style]")) {
     const style = element.getAttribute("style");
     if (style) {
       element.setAttribute("style", rewriteCssContent(style, baseFilePath, source));
     }
-  });
+  }
 }
 
 function navigationGuard(htmlEl: HTMLElement): string {

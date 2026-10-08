@@ -184,9 +184,9 @@ export default {
     }
 
     const container = this.$refs.container;
-    this.classList.forEach((className) => {
+    for (const className of this.classList) {
       container.classList.add(className);
-    });
+    }
     if (getComputedStyle(container).width === "0px") {
       container.style.width = "100%";
     }
