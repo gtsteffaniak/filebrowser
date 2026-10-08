@@ -127,6 +127,22 @@ func RenameUserInGroups(oldName, newName string) error {
 	return accessDb.RenameUserInGroups(oldName, newName)
 }
 
+// RenameUserInRules replaces one username with another in all path access allow/deny lists.
+func RenameUserInRules(oldName, newName string) error {
+	if accessDb == nil {
+		return nil
+	}
+	return accessDb.RenameUserInRules(oldName, newName)
+}
+
+// RemoveAllRulesForUser removes a username from every path access allow and deny list.
+func RemoveAllRulesForUser(username string) error {
+	if accessDb == nil {
+		return nil
+	}
+	return accessDb.RemoveAllRulesForUser(username)
+}
+
 // SetAccessSQLStoreForTest replaces the SQL persister used by access control (tests only).
 func SetAccessSQLStoreForTest(store access.SQLPersister) {
 	if accessDb != nil {

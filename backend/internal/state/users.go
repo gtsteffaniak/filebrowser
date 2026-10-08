@@ -423,6 +423,9 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 			if err := accessDb.RenameUserInGroups(oldUsername, existingUser.Username); err != nil {
 				logger.Errorf("failed to rename user %q in groups: %v", oldUsername, err)
 			}
+			if err := accessDb.RenameUserInRules(oldUsername, existingUser.Username); err != nil {
+				logger.Errorf("failed to rename user %q in access rules: %v", oldUsername, err)
+			}
 		}
 		if oldUserID != 0 && oldUserID != existingUser.ID {
 			userRecordCache.Delete(userCacheKeyID(oldUserID))
@@ -604,6 +607,9 @@ func DeleteUser(id uint64) error {
 		if err := accessDb.RemoveUserFromAllGroups(user.Username); err != nil {
 			logger.Errorf("failed to remove deleted user %q from groups: %v", user.Username, err)
 		}
+		if err := accessDb.RemoveAllRulesForUser(user.Username); err != nil {
+			logger.Errorf("failed to remove access rules for deleted user %q: %v", user.Username, err)
+		}
 	}
 
 	return nil
@@ -632,6 +638,9 @@ func DeleteUserByUsername(username string) error {
 	if accessDb != nil {
 		if err := accessDb.RemoveUserFromAllGroups(username); err != nil {
 			logger.Errorf("failed to remove deleted user %q from groups: %v", username, err)
+		}
+		if err := accessDb.RemoveAllRulesForUser(username); err != nil {
+			logger.Errorf("failed to remove access rules for deleted user %q: %v", username, err)
 		}
 	}
 

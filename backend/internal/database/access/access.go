@@ -221,8 +221,14 @@ func accessRuleHasPayload(rule *AccessRule) bool {
 // persistRuleSQLNL upserts or deletes one access_rules row to match in-memory state.
 // Caller must hold s.mux (write lock). normalizedPath must match rule map keys (see getOrCreateRuleNL).
 func (s *Storage) persistRuleSQLNL(sourcePath, normalizedPath string) {
+	if err := s.persistRuleSQLErrorNL(sourcePath, normalizedPath); err != nil {
+		logger.Warningf("%v", err)
+	}
+}
+
+func (s *Storage) persistRuleSQLErrorNL(sourcePath, normalizedPath string) error {
 	if s.sqlStore == nil {
-		return
+		return nil
 	}
 	var rule *AccessRule
 	if bySrc, ok := s.AllRules[sourcePath]; ok {
@@ -230,13 +236,30 @@ func (s *Storage) persistRuleSQLNL(sourcePath, normalizedPath string) {
 	}
 	if !accessRuleHasPayload(rule) {
 		if err := s.sqlStore.DeleteAccessRule(sourcePath, normalizedPath); err != nil {
-			logger.Warningf("access rules SQL delete (source=%s path=%s): %v", sourcePath, normalizedPath, err)
+			return fmt.Errorf("access rules SQL delete (source=%s path=%s): %w", sourcePath, normalizedPath, err)
 		}
-		return
+		return nil
 	}
 	if err := s.sqlStore.SaveAccessRule(sourcePath, normalizedPath, rule); err != nil {
-		logger.Warningf("access rules SQL save (source=%s path=%s): %v", sourcePath, normalizedPath, err)
+		return fmt.Errorf("access rules SQL save (source=%s path=%s): %w", sourcePath, normalizedPath, err)
 	}
+	return nil
+}
+
+func (s *Storage) restoreRuleSQLNL(key RuleKey, rule *AccessRule) error {
+	if s.sqlStore == nil {
+		return nil
+	}
+	if !accessRuleHasPayload(rule) {
+		if err := s.sqlStore.DeleteAccessRule(key.Source, key.Path); err != nil {
+			return fmt.Errorf("access rules SQL delete (source=%s path=%s): %w", key.Source, key.Path, err)
+		}
+		return nil
+	}
+	if err := s.sqlStore.SaveAccessRule(key.Source, key.Path, rule); err != nil {
+		return fmt.Errorf("access rules SQL save (source=%s path=%s): %w", key.Source, key.Path, err)
+	}
+	return nil
 }
 
 // RemoveRuleByPath removes a rule by normalized index path.
@@ -927,6 +950,67 @@ func (s *Storage) RenameUserInGroups(oldName, newName string) error {
 			return err
 		}
 		persisted = append(persisted, group)
+	}
+	s.clearAllCaches()
+	return nil
+}
+
+// RenameUserInRules replaces one username with another in every allow and deny user list.
+// Used when a user's username changes so path access rules follow the rename.
+func (s *Storage) RenameUserInRules(oldName, newName string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	if oldName == newName {
+		return nil
+	}
+	affected := make(map[RuleKey]*AccessRule)
+	var keys []RuleKey
+	for sourcePath, rulesBySource := range s.AllRules {
+		for indexPath, rule := range rulesBySource {
+			_, inAllow := rule.Allow.Users[oldName]
+			_, inDeny := rule.Deny.Users[oldName]
+			if !inAllow && !inDeny {
+				continue
+			}
+			key := RuleKey{Source: sourcePath, Path: indexPath}
+			affected[key] = cloneAccessRule(rule)
+			if inAllow {
+				delete(rule.Allow.Users, oldName)
+				rule.Allow.Users[newName] = struct{}{}
+			}
+			if inDeny {
+				delete(rule.Deny.Users, oldName)
+				rule.Deny.Users[newName] = struct{}{}
+			}
+			keys = append(keys, key)
+		}
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	slices.SortFunc(keys, func(a, b RuleKey) int {
+		if c := strings.Compare(a.Source, b.Source); c != 0 {
+			return c
+		}
+		return strings.Compare(a.Path, b.Path)
+	})
+	var persisted []RuleKey
+	for _, key := range keys {
+		if err := s.persistRuleSQLErrorNL(key.Source, key.Path); err != nil {
+			for _, pk := range persisted {
+				if restoreErr := s.restoreRuleSQLNL(pk, affected[pk]); restoreErr != nil {
+					logger.Errorf("failed to restore access rule %q/%q in sql after failure: %v", pk.Source, pk.Path, restoreErr)
+				}
+			}
+			for key, snap := range affected {
+				if s.AllRules[key.Source] == nil {
+					s.AllRules[key.Source] = make(RuleMap)
+				}
+				s.AllRules[key.Source][key.Path] = snap
+			}
+			return err
+		}
+		persisted = append(persisted, key)
 	}
 	s.clearAllCaches()
 	return nil
