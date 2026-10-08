@@ -340,6 +340,12 @@ function sharesTable(page: Page) {
     return page.getByRole("table", { name: "Share management" });
 }
 
+/** Access table renders "-" for a zero count. */
+function parseRuleTotal(text: string): number {
+    const trimmed = text.trim();
+    return trimmed === "-" ? 0 : Number(trimmed);
+}
+
 async function readAccessRuleRows(page: Page): Promise<AccessRuleExpectation[]> {
     const rows = accessRulesTable(page).locator(
         "tbody tr:not(.settings-table__loading-row):not(:has(.settings-table__empty-cell))",
@@ -350,8 +356,8 @@ async function readAccessRuleRows(page: Page): Promise<AccessRuleExpectation[]> 
         const row = rows.nth(i);
         result.push({
             path: (await row.locator("td").nth(0).innerText()).trim(),
-            denyTotal: Number((await row.locator("td").nth(1).innerText()).trim()),
-            allowTotal: Number((await row.locator("td").nth(2).innerText()).trim()),
+            denyTotal: parseRuleTotal(await row.locator("td").nth(1).innerText()),
+            allowTotal: parseRuleTotal(await row.locator("td").nth(2).innerText()),
         });
     }
     return result;

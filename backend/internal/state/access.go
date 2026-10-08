@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -100,6 +101,46 @@ func RemoveUserFromGroup(group, username string) error {
 
 func SyncUserGroups(username string, newGroups []string) error {
 	return accessDb.SyncUserGroups(username, newGroups)
+}
+
+// GroupExists reports whether a group name is already registered.
+func GroupExists(groupname string) bool {
+	if accessDb == nil {
+		return false
+	}
+	return slices.Contains(accessDb.GetAllGroups(), groupname)
+}
+
+// RemoveUserFromAllGroups removes a username from every group's member list.
+func RemoveUserFromAllGroups(username string) error {
+	if accessDb == nil {
+		return nil
+	}
+	return accessDb.RemoveUserFromAllGroups(username)
+}
+
+// RenameUserInGroups replaces one username with another in all group member lists.
+func RenameUserInGroups(oldName, newName string) error {
+	if accessDb == nil {
+		return nil
+	}
+	return accessDb.RenameUserInGroups(oldName, newName)
+}
+
+// RenameUserInRules replaces one username with another in all path access allow/deny lists.
+func RenameUserInRules(oldName, newName string) error {
+	if accessDb == nil {
+		return nil
+	}
+	return accessDb.RenameUserInRules(oldName, newName)
+}
+
+// RemoveAllRulesForUser removes a username from every path access allow and deny list.
+func RemoveAllRulesForUser(username string) error {
+	if accessDb == nil {
+		return nil
+	}
+	return accessDb.RemoveAllRulesForUser(username)
 }
 
 // SetAccessSQLStoreForTest replaces the SQL persister used by access control (tests only).

@@ -225,7 +225,7 @@ export function base64Encode(str) {
 export function extractSourceFromPath(url, knownSources = []) {
   const parts = removeTrailingSlash(url).split("/").filter(Boolean);
   let i = 0;
-  if (parts[i] === "files") {
+  if (parts.at(i) === "files") {
     i += 1;
   }
   // Bad redirects with baseURL can produce /files/files/{source}/... — not a source named "files".
@@ -233,7 +233,7 @@ export function extractSourceFromPath(url, knownSources = []) {
   if (parts[i] === "files" && !knownSources.includes("files") && parts.length > i + 2) {
     i += 1;
   }
-  const source = parts[i] || "";
+  const source = parts.at(i) || "";
   const rest = parts.slice(i + 1).join("/");
   return { source, path: rest ? `/${rest}` : "/" };
 }
