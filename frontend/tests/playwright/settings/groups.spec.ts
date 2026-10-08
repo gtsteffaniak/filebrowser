@@ -110,6 +110,8 @@ test.describe("Groups management", () => {
         await genericModal.locator('button[aria-label="Delete"]').click();
         await confirmActorPasswordPrompt(page);
         await expect(userRowInSettingsUsersTable(page, username)).not.toBeVisible();
-        checkForErrors();
+        // The 401s are the expected actor-password challenges before the
+        // user create and delete retries succeed (group APIs don't challenge).
+        checkForErrors(0, 2);
     });
 });
