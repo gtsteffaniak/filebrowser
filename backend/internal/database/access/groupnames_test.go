@@ -19,8 +19,10 @@ func TestNormalizeGroupName(t *testing.T) {
 		{"blank", "   ", "", true},
 		{"newline", "a\nb", "", true},
 		{"too short", "a", "", true},
-		{"single wide char", "界", "", true},
+		{"single wide char", "界", "界", false},
 		{"two chars", "ab", "ab", false},
+		{"single CJK char", "组", "组", false},
+		{"single non-letter non-ascii", "€", "", true},
 		{"too long", string(make([]byte, access.MaxGroupNameLength+1)), "", true},
 	} {
 		got, err := access.NormalizeGroupName(tc.in)

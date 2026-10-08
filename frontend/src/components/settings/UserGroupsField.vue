@@ -5,6 +5,7 @@
     :label="$t('access.userGroups')"
     :description="description"
     :username="username"
+    :disabled="disabled"
     :initial-selected="modelValue"
     @select="update"
   />
@@ -30,6 +31,10 @@ export default {
     description: {
       type: String,
       default: "",
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ["update:modelValue"],

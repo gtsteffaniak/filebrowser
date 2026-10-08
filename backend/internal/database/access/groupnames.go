@@ -24,10 +24,10 @@ func NormalizeGroupName(name string) (string, error) {
 	if name == "" {
 		return "", fmt.Errorf("group name is required")
 	}
-	if utf8.RuneCountInString(name) < MinGroupNameLength {
+	if utf8.RuneCountInString(name) < MinGroupNameLength && !isSingleLetterName(name) {
 		return "", fmt.Errorf("group name must be at least %d characters", MinGroupNameLength)
 	}
-	if len(name) > MaxGroupNameLength {
+	if utf8.RuneCountInString(name) > MaxGroupNameLength {
 		return "", fmt.Errorf("group name exceeds %d characters", MaxGroupNameLength)
 	}
 	for _, r := range name {
@@ -36,6 +36,13 @@ func NormalizeGroupName(name string) (string, error) {
 		}
 	}
 	return name, nil
+}
+
+// isSingleLetterName reports whether name is one non-ASCII letter (e.g. a CJK ideograph),
+// which is a meaningful group name on its own.
+func isSingleLetterName(name string) bool {
+	r, size := utf8.DecodeRuneInString(name)
+	return size == len(name) && r > unicode.MaxASCII && unicode.IsLetter(r)
 }
 
 // NormalizeMembers trims, dedupes and drops empty usernames while preserving order.

@@ -228,10 +228,10 @@ export default {
         { key: "edit", label: this.$t("general.edit"), narrow: true, align: "right" },
       ];
     },
-    /** Names already present in the rule for the selected category (excluded from the picker). */
+    /** Names already present on the selected allow/deny list for the category (excluded from the picker). */
     existingNames() {
       return this.entries
-        .filter((e) => e.type === this.addType)
+        .filter((e) => e.type === this.addType && e.allow === (this.addListType === "allow"))
         .map((e) => e.name);
     },
     tableRows() {

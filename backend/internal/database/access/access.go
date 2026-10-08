@@ -1162,46 +1162,61 @@ func (s *Storage) RemoveDenyAll(sourcePath string, indexPath utils.IndexPath) (b
 }
 
 // RemoveAllRulesForUser removes a user from all allow and deny lists.
+// On a persistence failure the in-memory and already-persisted rules are restored and the error is returned.
 func (s *Storage) RemoveAllRulesForUser(username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	changed := false
-	dirty := make(map[string]map[string]struct{})
-	touch := func(sp, ip string) {
-		if dirty[sp] == nil {
-			dirty[sp] = make(map[string]struct{})
-		}
-		dirty[sp][ip] = struct{}{}
-	}
+	affected := make(map[RuleKey]*AccessRule)
 	for sourcePath, rulesBySource := range s.AllRules {
 		for indexPath, rule := range rulesBySource {
-			if _, exists := rule.Allow.Users[username]; exists {
-				delete(rule.Allow.Users, username)
-				touch(sourcePath, indexPath)
-				changed = true
+			_, inAllow := rule.Allow.Users[username]
+			_, inDeny := rule.Deny.Users[username]
+			if !inAllow && !inDeny {
+				continue
 			}
-			if _, exists := rule.Deny.Users[username]; exists {
-				delete(rule.Deny.Users, username)
-				touch(sourcePath, indexPath)
-				changed = true
-			}
-			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
-				delete(s.AllRules[sourcePath], indexPath)
-				if len(s.AllRules[sourcePath]) == 0 {
-					delete(s.AllRules, sourcePath)
+			affected[RuleKey{Source: sourcePath, Path: indexPath}] = cloneAccessRule(rule)
+			delete(rule.Allow.Users, username)
+			delete(rule.Deny.Users, username)
+		}
+	}
+	if len(affected) == 0 {
+		return nil
+	}
+	keys := slices.SortedFunc(maps.Keys(affected), func(a, b RuleKey) int {
+		if c := strings.Compare(a.Source, b.Source); c != 0 {
+			return c
+		}
+		return strings.Compare(a.Path, b.Path)
+	})
+	for _, key := range keys {
+		rule := s.AllRules[key.Source][key.Path]
+		if rule.DenyAll || len(rule.Allow.Users) > 0 || len(rule.Allow.Groups) > 0 || len(rule.Deny.Users) > 0 || len(rule.Deny.Groups) > 0 {
+			continue
+		}
+		delete(s.AllRules[key.Source], key.Path)
+		if len(s.AllRules[key.Source]) == 0 {
+			delete(s.AllRules, key.Source)
+		}
+	}
+	var persisted []RuleKey
+	for _, key := range keys {
+		if err := s.persistRuleSQLErrorNL(key.Source, key.Path); err != nil {
+			for _, pk := range persisted {
+				if restoreErr := s.restoreRuleSQLNL(pk, affected[pk]); restoreErr != nil {
+					logger.Errorf("failed to restore access rule %q/%q in sql after failure: %v", pk.Source, pk.Path, restoreErr)
 				}
-				touch(sourcePath, indexPath)
 			}
-		}
-	}
-	if changed {
-		s.clearAllCaches()
-		for sp, paths := range dirty {
-			for ip := range paths {
-				s.persistRuleSQLNL(sp, ip)
+			for k, snap := range affected {
+				if s.AllRules[k.Source] == nil {
+					s.AllRules[k.Source] = make(RuleMap)
+				}
+				s.AllRules[k.Source][k.Path] = snap
 			}
+			return err
 		}
+		persisted = append(persisted, key)
 	}
+	s.clearAllCaches()
 	return nil
 }
 

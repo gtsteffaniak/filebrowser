@@ -189,6 +189,7 @@
         <UserGroupsField
           class="item"
           v-model="groups"
+          :disabled="!groupsReady"
           :username="user.username"
           :description="$t('access.userGroupsDescription')"
         />
@@ -361,6 +362,8 @@ export default {
       pendingScopeSourceName: null,
       addingPasskey: false,
       groups: [],
+      originalGroups: [],
+      groupsReady: false,
       createdUser: false,
       sourceFilePermissionDefaults: null,
       sessionUnsubscribe: null,
@@ -1186,20 +1189,29 @@ export default {
       });
     },
     async loadGroups() {
-      if (!state.user.permissions.admin || this.isNew) return;
+      if (!state.user.permissions.admin || this.isNew) {
+        this.groupsReady = true;
+        return;
+      }
       try {
         this.groups = (await accessApi.getUserGroups(this.user.username)).groups || [];
+        this.originalGroups = [...this.groups];
+        this.groupsReady = true;
       } catch (e) {
         notify.showError(e);
       }
     },
     async saveGroups(username) {
       if (!state.user.permissions.admin) return;
+      const norm = (g) => JSON.stringify([...(g || [])].sort());
+      if (norm(this.groups) === norm(this.originalGroups)) return;
       await accessApi.saveUserGroups(username, this.groups);
+      this.originalGroups = [...this.groups];
       eventBus.emit("groupsChanged");
     },
     async save(event) {
       event.preventDefault();
+      if (!this.groupsReady) return;
       try {
         const session = getUserEditSession();
         if (session) {

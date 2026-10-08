@@ -420,11 +420,8 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 			return err
 		}
 		if accessDb != nil {
-			if err := accessDb.RenameUserInGroups(oldUsername, existingUser.Username); err != nil {
-				logger.Errorf("failed to rename user %q in groups: %v", oldUsername, err)
-			}
-			if err := accessDb.RenameUserInRules(oldUsername, existingUser.Username); err != nil {
-				logger.Errorf("failed to rename user %q in access rules: %v", oldUsername, err)
+			if err := renameUserInAccess(oldUsername, existingUser); err != nil {
+				return err
 			}
 		}
 		if oldUserID != 0 && oldUserID != existingUser.ID {
@@ -447,6 +444,31 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 	}
 
 	putUserInCache(existingUser)
+	return nil
+}
+
+// renameUserInAccess renames the user in group memberships and path rules after the SQL rename
+// has been written. On failure every earlier step is reverted (keeping the other updated fields)
+// so the stores never disagree about which username owns the memberships.
+func renameUserInAccess(oldUsername string, updated *users.User) error {
+	revertSQL := func() {
+		reverted := *updated
+		reverted.Username = oldUsername
+		if err := sqlDb.UpdateUser(&reverted); err != nil {
+			logger.Errorf("failed to revert username %q to %q after rename failure: %v", updated.Username, oldUsername, err)
+		}
+	}
+	if err := accessDb.RenameUserInGroups(oldUsername, updated.Username); err != nil {
+		revertSQL()
+		return fmt.Errorf("failed to rename user in groups: %w", err)
+	}
+	if err := accessDb.RenameUserInRules(oldUsername, updated.Username); err != nil {
+		if revErr := accessDb.RenameUserInGroups(updated.Username, oldUsername); revErr != nil {
+			logger.Errorf("failed to revert group memberships for %q after rename failure: %v", oldUsername, revErr)
+		}
+		revertSQL()
+		return fmt.Errorf("failed to rename user in access rules: %w", err)
+	}
 	return nil
 }
 
@@ -596,6 +618,9 @@ func DeleteUser(id uint64) error {
 		return fmt.Errorf("user not found in state")
 	}
 
+	if err := removeUserAccess(user.Username); err != nil {
+		return err
+	}
 	if err := sqlDb.DeleteUserByID(id); err != nil {
 		return err
 	}
@@ -604,12 +629,6 @@ func DeleteUser(id uint64) error {
 
 	if accessDb != nil {
 		_ = accessDb.RemoveHashedTokensForUser(id)
-		if err := accessDb.RemoveUserFromAllGroups(user.Username); err != nil {
-			logger.Errorf("failed to remove deleted user %q from groups: %v", user.Username, err)
-		}
-		if err := accessDb.RemoveAllRulesForUser(user.Username); err != nil {
-			logger.Errorf("failed to remove access rules for deleted user %q: %v", user.Username, err)
-		}
 	}
 
 	return nil
@@ -626,6 +645,9 @@ func DeleteUserByUsername(username string) error {
 	}
 
 	uid := user.ID
+	if err := removeUserAccess(username); err != nil {
+		return err
+	}
 	if err := sqlDb.DeleteUserByUsername(username); err != nil {
 		return err
 	}
@@ -635,15 +657,23 @@ func DeleteUserByUsername(username string) error {
 	if accessDb != nil && uid != 0 {
 		_ = accessDb.RemoveHashedTokensForUser(uid)
 	}
-	if accessDb != nil {
-		if err := accessDb.RemoveUserFromAllGroups(username); err != nil {
-			logger.Errorf("failed to remove deleted user %q from groups: %v", username, err)
-		}
-		if err := accessDb.RemoveAllRulesForUser(username); err != nil {
-			logger.Errorf("failed to remove access rules for deleted user %q: %v", username, err)
-		}
-	}
+	return nil
+}
 
+// removeUserAccess strips a username from group memberships and path rules before the user row is
+// deleted. Each step rolls itself back on failure and any error aborts the delete, so a reused
+// username can never inherit leftovers. The failure mode is fail-safe: if the later SQL delete
+// fails the user only loses access, and a retry is idempotent.
+func removeUserAccess(username string) error {
+	if accessDb == nil {
+		return nil
+	}
+	if err := accessDb.RemoveUserFromAllGroups(username); err != nil {
+		return fmt.Errorf("failed to remove user from groups: %w", err)
+	}
+	if err := accessDb.RemoveAllRulesForUser(username); err != nil {
+		return fmt.Errorf("failed to remove user from access rules: %w", err)
+	}
 	return nil
 }
 

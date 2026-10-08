@@ -10,6 +10,9 @@ export const MIN_GROUP_NAME_LENGTH = 2;
 // biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are exactly what we reject
 const CONTROL_CHARS = /[\x00-\x1f\x7f-\x9f]/;
 
+// A single non-ASCII letter (e.g. a CJK ideograph) is a meaningful group name.
+const SINGLE_CHAR_OK = /^[\u0080-\u{10FFFF}]$/u;
+
 /**
  * Returns an i18n error key for a new group name, or null when valid.
  * @param {string} name
@@ -20,10 +23,11 @@ export function groupNameError(name) {
   if (!trimmed) {
     return "groupNameRequired";
   }
-  if (trimmed.length < MIN_GROUP_NAME_LENGTH) {
+  const length = [...trimmed].length;
+  if (length < MIN_GROUP_NAME_LENGTH && !SINGLE_CHAR_OK.test(trimmed)) {
     return "groupNameTooShort";
   }
-  if (trimmed.length > MAX_GROUP_NAME_LENGTH) {
+  if (length > MAX_GROUP_NAME_LENGTH) {
     return "groupNameTooLong";
   }
   if (CONTROL_CHARS.test(trimmed)) {

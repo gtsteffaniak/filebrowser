@@ -131,10 +131,10 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		return http.StatusBadRequest, fmt.Errorf("invalid request body: %w", err)
 	}
 
+	body.Value = strings.TrimSpace(body.Value)
 	if indexPath == "" || body.RuleCategory == "" || (body.RuleCategory != "all" && body.Value == "") {
 		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
-	body.Value = strings.TrimSpace(body.Value)
 	parsedPath, status, err := parseAccessQueryPathOrBadRequest(indexPath)
 	if err != nil {
 		return status, err
@@ -209,7 +209,7 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 
 	ruleType := r.URL.Query().Get("ruleType")
 	ruleCategory := r.URL.Query().Get("ruleCategory")
-	value := r.URL.Query().Get("value")
+	value := strings.TrimSpace(r.URL.Query().Get("value"))
 	cascade := r.URL.Query().Get("cascade") == "true"
 	allow := ruleType == "allow"
 
