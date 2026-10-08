@@ -44,7 +44,7 @@
       },
       "a11y": {
         "noAutofocus": "off",
-        "noLabelWithoutControl": "off",
+        "noLabelWithoutControl": "on",
         "noNoninteractiveElementToInteractiveRole": "off",
         "noRedundantAlt": "off",
         "noStaticElementInteractions": "off",
@@ -124,12 +124,6 @@
             "usePlaywrightValidDescribeCallback": "error"
           }
         }
-      }
-    },
-    {
-      "includes": ["tests/mocks/**"],
-      "linter": {
-        "rules": { "correctness": { "noEmptyPattern": "off" } }
       }
     },
     {

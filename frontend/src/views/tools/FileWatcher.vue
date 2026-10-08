@@ -23,8 +23,8 @@
             />
           </div>
           <div class="config-item lines-input">
-            <label class="lines-label">{{ $t('general.lines',{suffix: ':'}) }}</label>
-            <input class="sizeInput input" v-model.number="selectedLines" type="number" min="1" max="50"
+            <label class="lines-label" for="file-watcher-lines">{{ $t('general.lines',{suffix: ':'}) }}</label>
+            <input id="file-watcher-lines" class="sizeInput input" v-model.number="selectedLines" type="number" min="1" max="50"
               :placeholder="$t('general.number')" :disabled="watching" />
           </div>
           <div class="config-item play-button">
