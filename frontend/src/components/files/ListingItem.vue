@@ -123,6 +123,7 @@
         :filename="name"
         :hasPreview="hasPreview"
         :modified="modified"
+        :created="created"
         :path="path"
         :source="source"
         :size="size"

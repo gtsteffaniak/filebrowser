@@ -206,6 +206,7 @@ export default {
           type: item.type,
           source: item.source,
           modified: item.modified,
+          created: item.created,
           size: item.size,
           hasPreview: item.hasPreview,
           thumbnailUrl: this.getThumbnailUrl(item),

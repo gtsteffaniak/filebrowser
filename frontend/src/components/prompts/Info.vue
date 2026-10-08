@@ -154,7 +154,7 @@
 </template>
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { formatTimestamp, formatDateTimeMinutes } from "@/utils/moment";
+import { formatTimestamp, fromNow } from "@/utils/moment";
 import { copyToClipboard } from "@/utils/clipboard";
 import { resourcesApi, quotasApi, accessApi } from "@/api";
 import { getters, mutations, state } from "@/store";
@@ -219,19 +219,19 @@ export default {
     },
     humanTime() {
       if (!this.item?.modified) return "";
-      return formatTimestamp(this.item.modified, state.user.locale, { seconds: false });
+      return formatTimestamp(this.item.modified, state.user.locale);
     },
     modTime() {
       if (!this.item?.modified) return "";
-      return formatDateTimeMinutes(this.item.modified);
+      return fromNow(this.item.modified, state.user.locale);
     },
     humanCreatedTime() {
       if (!this.item?.created) return "";
-      return formatTimestamp(this.item.created, state.user.locale, { seconds: false });
+      return formatTimestamp(this.item.created, state.user.locale);
     },
     createdTime() {
       if (!this.item?.created) return "";
-      return formatDateTimeMinutes(this.item.created);
+      return fromNow(this.item.created, state.user.locale);
     },
     name() {
       return this.item?.name || "";

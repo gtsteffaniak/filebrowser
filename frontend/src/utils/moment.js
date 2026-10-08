@@ -37,62 +37,23 @@ export function formatTimestamp(date, locale = 'en-us', { seconds = true } = {})
         return 'Invalid Date';
     }
 
-    const standardLocale = toStandardLocale(locale);
-
-    // Define options for formatting
-    const dateOptions = {
+    const options = {
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
-    };
-
-    const timeOptions = {
+        year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        ...(seconds && { second: '2-digit' })
     };
-
-    // Format date and time using locale
-    const dateFormatter = new Intl.DateTimeFormat(standardLocale, dateOptions);
-    const timeFormatter = new Intl.DateTimeFormat(standardLocale, timeOptions);
+    if (seconds) {
+        options.second = '2-digit';
+    }
 
     try {
-        // Extract date and time components
-        const dateParts = dateFormatter.formatToParts(date);
-        const timeParts = timeFormatter.formatToParts(date);
-
-        // Construct formatted timestamp
-        const dateMap = new Map(dateParts.map(part => [part.type, part.value]));
-        const timeMap = new Map(timeParts.map(part => [part.type, part.value]));
-
-        const formattedDate = standardLocale.includes('en')
-            ? `${dateMap.get('month')}/${dateMap.get('day')}/${dateMap.get('year')}`
-            : `${dateMap.get('day')}/${dateMap.get('month')}/${dateMap.get('year')}`;
-
-        // Time formatting: hh:mm:ss, or hh:mm when seconds are omitted
-        const formattedTime = seconds
-            ? `${timeMap.get('hour')}:${timeMap.get('minute')}:${timeMap.get('second')}`
-            : `${timeMap.get('hour')}:${timeMap.get('minute')}`;
-
-        // Combine date and time
-        return `${formattedDate} ${formattedTime}`;
+        return new Intl.DateTimeFormat(toStandardLocale(locale), options).format(date);
     } catch (error) {
         console.error('Error formatting date:', error);
         return 'Invalid Date';
     }
-}
-
-/**
- * Exact date and time in the browser's locale, to the minute (no seconds).
- */
-export function formatDateTimeMinutes(date) {
-    return normalizeDate(date).toLocaleString(undefined, {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
 }
 
 function normalizeDate(date) {
@@ -137,7 +98,6 @@ export function utcStartOfDaySecondsFromDateInput(isoDate) {
 
 export default {
     formatTimestamp,
-    formatDateTimeMinutes,
     fromNow,
     utcStartOfDaySecondsFromDateInput,
 };

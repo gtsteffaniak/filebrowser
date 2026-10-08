@@ -609,6 +609,7 @@ export default {
         type: item.type,
         size: item.size,
         modified: item.modified,
+        created: item.created,
         path: fullPath,
         url: fullPath,
         index: 0,

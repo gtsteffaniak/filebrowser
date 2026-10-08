@@ -130,6 +130,7 @@ export default {
           type: item.type,
           size: item.size,
           modified: item.modified,
+          created: item.created,
           previewUrl: previewUrl,
           hasPreview: item.hasPreview,
         });
@@ -142,6 +143,7 @@ export default {
           type: item.type,
           size: item.size,
           modified: item.modified,
+          created: item.created,
           previewUrl: previewUrl,
           hasPreview: item.hasPreview,
         });
@@ -155,6 +157,7 @@ export default {
             type: item.type,
             size: item.size,
             modified: item.modified,
+            created: item.created,
             previewUrl: previewUrl,
             hasPreview: item.hasPreview,
           });
@@ -281,7 +284,7 @@ export default {
           if (!this.items) {
             mutations.resetSelected();
           }
-          
+
           // If we delete a item while in a preview
           if (getters.isPreviewView() && this.itemsToDelete.length === 1) {
             const deletedItem = this.itemsToDelete[0];

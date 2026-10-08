@@ -436,6 +436,7 @@ export default {
             pinned: !!item.pinned,
             size: item.size,
             modified: item.modified,
+            created: item.created,
             metadata: item.metadata,
             originalItem: item,
           });

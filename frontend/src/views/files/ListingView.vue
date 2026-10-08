@@ -630,6 +630,7 @@ export default {
           type: item.type,
           size: item.size,
           modified: item.modified,
+          created: item.created,
           hasPreview: item.hasPreview,
           previewUrl: previewUrl,
         });
