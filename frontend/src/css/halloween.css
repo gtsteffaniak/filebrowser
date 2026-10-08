@@ -43,7 +43,7 @@ body.halloween-theme,
 /* Tombstone Shape for Login Card */
 .login-card.tombstone {
   /* Updated background for more subtle levels of detail/texture */
-  background:
+  background-image:
     linear-gradient(45deg, transparent 30%, rgb(0 0 0 / 15%) 30.2%, transparent 30.5%),
     linear-gradient(135deg, transparent 60%, rgb(0 0 0 / 12%) 60.3%, transparent 60.6%),
     linear-gradient(75deg, transparent 45%, rgb(0 0 0 / 10%) 45.1%, transparent 45.2%),

@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -130,6 +131,7 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		return http.StatusBadRequest, fmt.Errorf("invalid request body: %w", err)
 	}
 
+	body.Value = strings.TrimSpace(body.Value)
 	if indexPath == "" || body.RuleCategory == "" || (body.RuleCategory != "all" && body.Value == "") {
 		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
@@ -144,6 +146,9 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 			}
 			return http.StatusInternalServerError, fmt.Errorf("failed to look up user: %w", err)
 		}
+	}
+	if body.RuleCategory == "group" && !state.GroupExists(body.Value) {
+		return http.StatusBadRequest, fmt.Errorf("group not found: %s", body.Value)
 	}
 	if body.Allow {
 		switch body.RuleCategory {
@@ -167,6 +172,9 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		}
 	}
 	if err != nil {
+		if err == errors.ErrExist {
+			return http.StatusConflict, fmt.Errorf("rule already contains this entry")
+		}
 		logger.Errorf("failed to add or update rule: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to add or update rule: %w", err)
 	}
@@ -196,12 +204,12 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	indexPath := r.URL.Query().Get("path")
 	index := indexing.GetIndex(sourceName)
 	if index == nil {
-		return 500, fmt.Errorf("source not found: %s", sourceName)
+		return http.StatusBadRequest, fmt.Errorf("source not found: %s", sourceName)
 	}
 
 	ruleType := r.URL.Query().Get("ruleType")
 	ruleCategory := r.URL.Query().Get("ruleCategory")
-	value := r.URL.Query().Get("value")
+	value := strings.TrimSpace(r.URL.Query().Get("value"))
 	cascade := r.URL.Query().Get("cascade") == "true"
 	allow := ruleType == "allow"
 
@@ -254,6 +262,8 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			found, err = state.RemoveAllowUser(index.Path, parsedPath, value)
 		case "group":
 			found, err = state.RemoveAllowGroup(index.Path, parsedPath, value)
+		default:
+			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory for allow list: must be 'user' or 'group'")
 		}
 	} else {
 		switch ruleCategory {
@@ -263,6 +273,8 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			found, err = state.RemoveDenyGroup(index.Path, parsedPath, value)
 		case "all":
 			found, err = state.RemoveDenyAll(index.Path, parsedPath)
+		default:
+			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
 		}
 	}
 	if err != nil {
@@ -294,6 +306,12 @@ func groupGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 	}
 	user := r.URL.Query().Get("user")
 	if user != "" {
+		if _, err := state.GetUserByUsername(user); err != nil {
+			if err == errors.ErrNotExist {
+				return http.StatusNotFound, fmt.Errorf("user not found: %s", user)
+			}
+			return http.StatusInternalServerError, fmt.Errorf("failed to look up user: %w", err)
+		}
 		groups := state.GetUserGroups(user)
 		return RenderJSON(w, r, &GroupListResponse{Groups: groups})
 	}
@@ -321,10 +339,27 @@ func groupPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if !d.User.Permissions.Admin {
 		return http.StatusForbidden, nil
 	}
-	group := r.URL.Query().Get("group")
-	user := r.URL.Query().Get("user")
-	err := state.AddUserToGroup(group, user)
-	if err != nil {
+	group := strings.TrimSpace(r.URL.Query().Get("group"))
+	if group == "" {
+		return http.StatusBadRequest, fmt.Errorf("group is required")
+	}
+	// Strict naming applies only to newly created groups; existing names always work.
+	if !state.GroupExists(group) {
+		if _, err := access.NormalizeGroupName(group); err != nil {
+			return http.StatusBadRequest, err
+		}
+	}
+	user := strings.TrimSpace(r.URL.Query().Get("user"))
+	if user == "" {
+		return http.StatusBadRequest, fmt.Errorf("user is required")
+	}
+	if _, err := state.GetUserByUsername(user); err != nil {
+		if err == errors.ErrNotExist {
+			return http.StatusBadRequest, fmt.Errorf("user not found: %s", user)
+		}
+		return http.StatusInternalServerError, fmt.Errorf("failed to look up user: %w", err)
+	}
+	if err := state.AddUserToGroup(group, user); err != nil {
 		return http.StatusInternalServerError, err
 	}
 	return RenderJSON(w, r, map[string]string{"message": "user added to group"})
@@ -332,14 +367,14 @@ func groupPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 // groupPutHandler creates a group or replaces its membership.
 // @Summary Create or update a group
-// @Description Creates the group if missing and replaces its member list.
+// @Description Creates the group if missing and replaces its member list. When create is true, a group that already exists returns 409.
 // @Tags Access
 // @Accept json
 // @Produce json
-// @Param body body object{group=string,members=[]string} true "Group name and full member list"
-// @Success 200 "Group saved successfully"
+// @Param body body object{group=string,members=[]string,create=bool} true "Group name and full member list"
+// @Success 200 {object} object "Group saved; unknownMembers lists usernames with no matching local user"
 // @Failure 400 {object} map[string]string "Bad request"
-// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 409 {object} map[string]string "Conflict (group already exists when create is true)"
 // @Router /api/access/group [put]
 func groupPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if !d.User.Permissions.Admin {
@@ -348,19 +383,43 @@ func groupPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 	var body struct {
 		Group   string   `json:"group"`
 		Members []string `json:"members"`
+		Create  bool     `json:"create"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
 	}
 	defer r.Body.Close()
-	body.Group = strings.TrimSpace(body.Group)
-	if body.Group == "" {
+	name := strings.TrimSpace(body.Group)
+	if name == "" {
 		return http.StatusBadRequest, fmt.Errorf("group is required")
 	}
-	if err := state.SetGroupMembers(body.Group, body.Members); err != nil {
+	// Strict naming applies only to newly created groups; existing names always work.
+	if !state.GroupExists(name) {
+		if _, err := access.NormalizeGroupName(name); err != nil {
+			return http.StatusBadRequest, err
+		}
+	}
+	if body.Create && state.GroupExists(name) {
+		return http.StatusConflict, fmt.Errorf("group already exists: %s", name)
+	}
+	members := access.NormalizeMembers(body.Members)
+	var unknownMembers []string
+	for _, member := range members {
+		if _, err := state.GetUserByUsername(member); err != nil {
+			if err != errors.ErrNotExist {
+				return http.StatusInternalServerError, fmt.Errorf("failed to look up user: %w", err)
+			}
+			unknownMembers = append(unknownMembers, member)
+		}
+	}
+	if err := state.SetGroupMembers(name, members); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return RenderJSON(w, r, map[string]string{"message": "group saved"})
+	resp := map[string]interface{}{"message": "group saved"}
+	if len(unknownMembers) > 0 {
+		resp["unknownMembers"] = unknownMembers
+	}
+	return RenderJSON(w, r, resp)
 }
 
 // groupDeleteHandler removes a user from a group, or deletes the group when no user is given.
@@ -379,8 +438,8 @@ func groupDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	if !d.User.Permissions.Admin {
 		return http.StatusForbidden, nil
 	}
-	group := r.URL.Query().Get("group")
-	user := r.URL.Query().Get("user")
+	group := strings.TrimSpace(r.URL.Query().Get("group"))
+	user := strings.TrimSpace(r.URL.Query().Get("user"))
 	if group == "" {
 		return http.StatusBadRequest, fmt.Errorf("group is required")
 	}
@@ -396,6 +455,56 @@ func groupDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusInternalServerError, err
 	}
 	return RenderJSON(w, r, map[string]string{"message": "user removed from group"})
+}
+
+// userGroupsPutHandler atomically replaces a user's group memberships.
+// @Summary Replace a user's group memberships
+// @Description Replaces all of a user's group memberships in one request. Every group in the list must already exist.
+// @Tags Access
+// @Accept json
+// @Produce json
+// @Param body body object{user=string,groups=[]string} true "Username and full group list"
+// @Success 200 {object} map[string]string "User groups updated"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "User not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/access/user-groups [put]
+func userGroupsPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !d.User.Permissions.Admin {
+		return http.StatusForbidden, nil
+	}
+	var body struct {
+		User   string   `json:"user"`
+		Groups []string `json:"groups"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+	}
+	defer r.Body.Close()
+	user := strings.TrimSpace(body.User)
+	if user == "" {
+		return http.StatusBadRequest, fmt.Errorf("user is required")
+	}
+	if _, err := state.GetUserByUsername(user); err != nil {
+		if err == errors.ErrNotExist {
+			return http.StatusNotFound, fmt.Errorf("user not found: %s", user)
+		}
+		return http.StatusInternalServerError, fmt.Errorf("failed to look up user: %w", err)
+	}
+	groups := access.NormalizeMembers(body.Groups)
+	var unknown []string
+	for _, g := range groups {
+		if !state.GroupExists(g) {
+			unknown = append(unknown, g)
+		}
+	}
+	if len(unknown) > 0 {
+		return http.StatusBadRequest, fmt.Errorf("unknown groups: %s", strings.Join(unknown, ", "))
+	}
+	if err := state.SyncUserGroups(user, groups); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to update user groups: %w", err)
+	}
+	return RenderJSON(w, r, map[string]string{"message": "user groups updated"})
 }
 
 // accessPatchHandler updates an access rule's path.
