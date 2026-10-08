@@ -276,6 +276,13 @@ integrations:
     internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
     secret: ""                            # secret: authentication key for OnlyOffice integration  validate:required
     viewOnly: false                       # view only mode for OnlyOffice
+  wopi:                                   #  validate:omitempty
+    url: ""                               # public URL of the WOPI editor (e.g. Collabora Online), loaded by the browser in an iframe
+    internalUrl: ""                       # optional address filebrowser uses to fetch the editor's discovery document, could be useful to bypass proxy
+    secret: ""                            # key signing WOPI access tokens; derived from the server auth key when empty
+    product: ""                           # editor flavour, detected from discovery when empty: collabora, onlyoffice or generic  validate:omitempty,oneof=collabora onlyoffice generic
+    tokenExpirationHours: 10              # lifetime of an editing session's access token, in hours (default: 10)
+    viewOnly: false                       # open every document read-only
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
     convert:                              # config for ffmpeg conversion settings

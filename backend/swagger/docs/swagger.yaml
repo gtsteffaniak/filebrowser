@@ -517,6 +517,8 @@ definitions:
         $ref: '#/definitions/settings.Media'
       office:
         $ref: '#/definitions/settings.OnlyOffice'
+      wopi:
+        $ref: '#/definitions/settings.Wopi'
     type: object
   settings.JwtAuthConfig:
     properties:
@@ -1300,6 +1302,36 @@ definitions:
         description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
           etc'
         type: string
+    type: object
+  settings.Wopi:
+    properties:
+      internalUrl:
+        description: optional address filebrowser uses to fetch the editor's discovery
+          document, could be useful to bypass proxy
+        type: string
+      product:
+        description: 'editor flavour, detected from discovery when empty: collabora,
+          onlyoffice or generic'
+        enum:
+        - collabora
+        - onlyoffice
+        - generic
+        type: string
+      secret:
+        description: key signing WOPI access tokens; derived from the server auth
+          key when empty
+        type: string
+      tokenExpirationHours:
+        description: 'lifetime of an editing session''s access token, in hours (default:
+          10)'
+        type: integer
+      url:
+        description: public URL of the WOPI editor (e.g. Collabora Online), loaded
+          by the browser in an iframe
+        type: string
+      viewOnly:
+        description: open every document read-only
+        type: boolean
     type: object
   share.PinnedItems:
     additionalProperties:
@@ -2555,6 +2587,24 @@ definitions:
       expiresAt:
         type: integer
       viewToken:
+        type: string
+    type: object
+  web.wopiSessionResponse:
+    properties:
+      accessToken:
+        description: posted as access_token
+        type: string
+      accessTokenTtl:
+        description: 'posted as access_token_ttl: absolute expiry, epoch milliseconds'
+        type: integer
+      actionUrl:
+        description: editor URL the iframe form posts to
+        type: string
+      mode:
+        description: '"edit" or "view"'
+        type: string
+      product:
+        description: collabora, onlyoffice or generic
         type: string
     type: object
 info:
@@ -5383,6 +5433,57 @@ paths:
       summary: Add or remove a pinned item
       tags:
       - Users
+  /api/wopi/session:
+    get:
+      description: Returns the editor URL and the access token the browser posts to
+        it.
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.wopiSessionResponse'
+        "400":
+          description: Missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: No view permission
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: The editor does not handle this file type
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Editor discovery unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Open a file in the WOPI editor
+      tags:
+      - Office
   /public/api/media/lyrics:
     get:
       parameters:

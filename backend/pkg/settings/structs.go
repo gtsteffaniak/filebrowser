@@ -125,7 +125,20 @@ type IndexSqlConfig struct {
 
 type Integrations struct {
 	OnlyOffice OnlyOffice `json:"office" validate:"omitempty"`
+	Wopi       Wopi       `json:"wopi" validate:"omitempty"`
 	Media      Media      `json:"media" validate:"omitempty"`
+}
+
+// Wopi configures an editor that speaks WOPI, such as Collabora Online. Office
+// files whose extension the editor declares in its discovery document open in
+// it; the OnlyOffice integration keeps serving the others.
+type Wopi struct {
+	Url                  string `json:"url"`                                                             // public URL of the WOPI editor (e.g. Collabora Online), loaded by the browser in an iframe
+	InternalUrl          string `json:"internalUrl"`                                                     // optional address filebrowser uses to fetch the editor's discovery document, could be useful to bypass proxy
+	Secret               string `json:"secret"`                                                          // key signing WOPI access tokens; derived from the server auth key when empty
+	Product              string `json:"product" validate:"omitempty,oneof=collabora onlyoffice generic"` // editor flavour, detected from discovery when empty: collabora, onlyoffice or generic
+	TokenExpirationHours int    `json:"tokenExpirationHours"`                                            // lifetime of an editing session's access token, in hours (default: 10)
+	ViewOnly             bool   `json:"viewOnly"`                                                        // open every document read-only
 }
 
 // onlyoffice secret is stored in the local.json file

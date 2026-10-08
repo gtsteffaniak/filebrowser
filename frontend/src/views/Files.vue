@@ -121,6 +121,7 @@ export default {
     LoadingSpinner,
     Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
     OnlyOfficeEditor: createAsyncComponent(() => import('@/views/files/OnlyOfficeEditor.vue')),
+    WopiEditor: createAsyncComponent(() => import('@/views/files/WopiEditor.vue')),
     EpubViewer: createAsyncComponent(() => import('@/views/files/EpubViewer.vue')),
     DocViewer: createAsyncComponent(() => import('@/views/files/DocViewer.vue')),
     MarkdownViewer: createAsyncComponent(() => import('@/views/files/MarkdownViewer.vue')),
