@@ -49,7 +49,7 @@
         "noRedundantAlt": "off",
         "noStaticElementInteractions": "off",
         "noSvgWithoutTitle": "off",
-        "useAltText": "off",
+        "useAltText": "on",
         "useAriaPropsForRole": "off",
         "useAriaPropsSupportedByRole": "off",
         "useGenericFontNames": "off",

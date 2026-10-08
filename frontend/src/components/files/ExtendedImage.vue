@@ -7,6 +7,7 @@
       :src="cachedThumbnailUrl"
       class="image-ex-img"
       ref="thumbnail"
+      aria-hidden="true"
     />
 
     <!-- Loading spinner overlay (shown while full image loads) -->
@@ -24,6 +25,7 @@
       @load="onLoad"
       @error="onImageError"
       :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+      aria-hidden="true"
     />
     <canvas
       v-else

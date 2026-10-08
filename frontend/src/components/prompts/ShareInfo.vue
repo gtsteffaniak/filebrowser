@@ -2,7 +2,7 @@
   <div class="card-content">
     <div class="share-info-content">
       <div v-if="shareInfo.banner" class="banner">
-        <img :src="getShareBanner" />
+        <img :src="getShareBanner" aria-hidden="true" />
       </div>
       <div v-if="shareInfo.title" class="share-info-element">
         <h3>{{ shareInfo.title }}</h3>
@@ -134,4 +134,3 @@ export default {
   border: var(--borderWidth) solid white;
 }
 </style>
-
