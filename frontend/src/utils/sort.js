@@ -1,5 +1,5 @@
-import { getObjectProperty } from '@/utils/object';
-import { KIND_ORDER, getKindKey } from '@/utils/mimetype';
+import { getObjectProperty } from "@/utils/object.js";
+import { KIND_ORDER, getKindKey } from "@/utils/mimetype.js";
 
 export function sortedItems(items = [], sortby = "name", asc = true) {
   return items.sort((a, b) => {

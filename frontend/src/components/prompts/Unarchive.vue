@@ -370,9 +370,20 @@ export default {
 </script>
 
 <style scoped>
-.encoding-options { margin-top: 1em; }
-.encoding-options label { display: block; }
-.filename-preview { max-height: 10em; overflow: auto; overflow-wrap: anywhere; }
+.encoding-options {
+  margin-top: 1em;
+}
+
+.encoding-options label {
+  display: block;
+}
+
+.filename-preview {
+  max-height: 10em;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+
 .loading-content {
   text-align: center;
   display: flex;

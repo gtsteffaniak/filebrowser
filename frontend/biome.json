@@ -118,7 +118,9 @@
         "playwright.config.ts",
         "playwright.performance.config.ts",
         "tests/playwright/**",
-        "scripts/postcss-strip-legacy.ts"
+        "scripts/postcss-strip-legacy.ts",
+        "**/*.test.js",
+        "**/*.test.ts"
       ],
       "linter": {
         "rules": {
