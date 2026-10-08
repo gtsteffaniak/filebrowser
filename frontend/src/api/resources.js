@@ -1202,7 +1202,7 @@ export async function createArchive(opts) {
 }
 
 // Shared extraction client, including ZIP filename previews.
-export { unarchive } from "./archive";
+export { unarchive } from "./archive.js";
 
 // ============================================================================
 // PUBLIC API ENDPOINTS (hash-based authentication)

@@ -1,9 +1,9 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 import {
     confirmActorPasswordPrompt,
     openUserEdit,
     userRowInSettingsUsersTable,
-} from "./user-edit-helpers";
+} from "./user-edit-helpers.ts";
 
 test.describe("Groups management", () => {
     test("create group with member picker, assign via user edit, delete", async ({

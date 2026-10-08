@@ -1,4 +1,4 @@
-import router from "@/router/index.ts";
+import { router } from "@/router/index.ts";
 import { state } from "@/store/index.ts";
 import { buildItemUrl } from '@/utils/url.js';
 

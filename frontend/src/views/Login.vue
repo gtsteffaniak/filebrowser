@@ -215,7 +215,7 @@
 </template>
 
 <script>
-import router from "@/router";
+import { router } from "@/router";
 import { mutations, state, getters } from "@/store";
 import Prompts from "@/components/prompts/Prompts.vue";
 import { authApi } from "@/api";

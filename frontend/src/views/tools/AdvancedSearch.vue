@@ -245,7 +245,7 @@
 
 <script>
 import { toolsApi } from "@/api";
-import router from "@/router";
+import { router } from "@/router";
 import { state, getters, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { globalVars } from "@/utils/constants";

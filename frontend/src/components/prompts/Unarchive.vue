@@ -370,8 +370,13 @@ export default {
 </script>
 
 <style scoped>
-.encoding-options { margin-top: 1em; }
-.encoding-options label { display: block; }
+.encoding-options {
+  margin-top: 1em;
+}
+
+.encoding-options label {
+  display: block;
+}
 
 .filename-preview {
   max-height: 10em;

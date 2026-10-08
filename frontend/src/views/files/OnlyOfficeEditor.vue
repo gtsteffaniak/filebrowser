@@ -22,7 +22,7 @@
 <script>
 import { DocumentEditor } from "@onlyoffice/document-editor-vue";
 import { globalVars } from "@/utils/constants";
-import router from "@/router";
+import { router } from "@/router";
 import { state, mutations, getters } from "@/store";
 import { removeLastDir } from "@/utils/url";
 import { officeApi } from "@/api";

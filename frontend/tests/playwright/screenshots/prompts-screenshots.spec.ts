@@ -22,12 +22,12 @@ test("upload prompt", async ({ page, checkForErrors, openContextMenu, theme }) =
   // Prompt shell sets aria-label="upload-prompt" (see Prompts.vue: prompt.name + '-prompt').
   const uploadPrompt = page.locator('.floating-window[aria-label="upload-prompt"]');
   await uploadPrompt.waitFor({ state: "visible", timeout: 15_000 });
-  await page.waitForTimeout(400);
 
   await uploadPrompt.screenshot({
     path: `./generated/prompts/upload-${theme}.jpg`,
     type: "jpeg",
     quality: jpgQuality,
+    animations: "disabled",
   });
   checkForErrors();
 });
