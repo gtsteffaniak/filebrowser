@@ -372,7 +372,13 @@ export default {
 <style scoped>
 .encoding-options { margin-top: 1em; }
 .encoding-options label { display: block; }
-.filename-preview { max-height: 10em; overflow: auto; overflow-wrap: anywhere; }
+
+.filename-preview {
+  max-height: 10em;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+
 .loading-content {
   text-align: center;
   display: flex;

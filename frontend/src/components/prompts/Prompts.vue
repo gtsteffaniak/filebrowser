@@ -113,6 +113,7 @@ import VisualizerSettings from "./VisualizerSettings.vue";
 import EditorSettings from "./EditorSettings.vue";
 import SharePicker from "./SharePicker.vue";
 import PathPicker from "./PathPicker.vue";
+import EntityPicker from "./EntityPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
@@ -170,6 +171,7 @@ export default {
     VisualizerSettings,
     EditorSettings,
     PathPicker,
+    EntityPicker,
     SharePicker,
     SaveBeforeExit,
     CopyPasteConfirm,
@@ -349,6 +351,8 @@ export default {
       // convert to lowercase
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
+        case "entitypicker":
+          return this.$t("access.selectEntities");
         case "group-edit":
           return this.$t("access.editGroup");
         case "user-edit":

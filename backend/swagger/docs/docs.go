@@ -320,7 +320,7 @@ const docTemplate = `{
         },
         "/api/access/group": {
             "put": {
-                "description": "Creates the group if missing and replaces its member list.",
+                "description": "Creates the group if missing and replaces its member list. When create is true, a group that already exists returns 409.",
                 "consumes": [
                     "application/json"
                 ],
@@ -340,6 +340,9 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
+                                "create": {
+                                    "type": "boolean"
+                                },
                                 "group": {
                                     "type": "string"
                                 },
@@ -355,7 +358,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Group saved successfully"
+                        "description": "Group saved; unknownMembers lists usernames with no matching local user",
+                        "schema": {
+                            "type": "object"
+                        }
                     },
                     "400": {
                         "description": "Bad request",
@@ -366,8 +372,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "409": {
+                        "description": "Conflict (group already exists when create is true)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -517,6 +523,81 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/access/user-groups": {
+            "put": {
+                "description": "Replaces all of a user's group memberships in one request. Every group in the list must already exist.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Replace a user's group memberships",
+                "parameters": [
+                    {
+                        "description": "Username and full group list",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "groups": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "user": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User groups updated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
