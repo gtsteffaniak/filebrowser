@@ -10,7 +10,7 @@
     <div
       v-if="setting.sections"
       class="card item settings-card-collapsible"
-      :class="{ hidden: !shouldShow(setting), 'settings-card-collapsible--active': canExpand(setting) && isSectionActive(setting) }"
+      :class="{ hidden: !shouldShow(setting), 'settings-card-collapsible--active': canExpand(setting) && isSectionActive(setting) && expandedSections[setting.id] }"
     >
       <div
         role="button"
@@ -31,6 +31,12 @@
           class="material-symbols-outlined settings-card-collapsible-chevron"
           :class="{ rotated: expandedSections[setting.id] }"
           :aria-expanded="!!expandedSections[setting.id]"
+          role="button"
+          tabindex="0"
+          @click.stop="expandSection(setting)"
+          @keydown.enter.stop.prevent="!$event.repeat && expandSection(setting)"
+          @keydown.space.stop.prevent
+          @keyup.space.stop="expandSection(setting)"
         >
           keyboard_arrow_down
         </i>
@@ -122,11 +128,15 @@ export default {
       });
     },
     isHeaderActive(setting) {
-      return !this.canExpand(setting) && this.isSectionActive(setting);
+      return this.isSectionActive(setting) && (!this.canExpand(setting) || !this.expandedSections[setting.id]);
     },
     headerClick(setting) {
       if (!this.canExpand(setting)) return this.setView(`${setting.id}-main`);
-      if (!this.isSectionActive(setting)) this.setView(`${setting.id}-${this.visibleSections(setting)[0].id}`);
+      if (this.isSectionActive(setting)) return this.expandSection(setting);
+      this.setView(`${setting.id}-${this.visibleSections(setting)[0].id}`);
+    },
+    expandSection(setting) {
+      this.expandedSections[setting.id] = !this.expandedSections[setting.id];
     },
     isSectionActive(setting) {
       return this.activeView.startsWith(`${setting.id}-`);
