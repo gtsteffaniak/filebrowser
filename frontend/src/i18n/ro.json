@@ -1007,7 +1007,8 @@
       "termTooShort": "Fiecare termen de căutare trebuie să aibă cel puțin {minSearchLength} caractere",
       "resultsTitle": "Rezultatele căutării",
       "invalidSources": "Porniți cel puțin o sursă.",
-      "noResults": "Nu există fișiere sau foldere corespunzătoare."
+      "noResults": "Nu există fișiere sau foldere corespunzătoare.",
+      "resultLimit": "Numărul maxim de rezultate ale căutării"
     },
     "activityViewer": {
       "name": "Vizualizator de activități",

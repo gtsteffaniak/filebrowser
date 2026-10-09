@@ -1007,7 +1007,8 @@
       "termTooShort": "Cada término de búsqueda debe tener al menos {minSearchLength} caracteres",
       "resultsTitle": "Resultados de la búsqueda",
       "invalidSources": "Enciende al menos una fuente.",
-      "noResults": "No hay archivos o carpetas coincidentes."
+      "noResults": "No hay archivos o carpetas coincidentes.",
+      "resultLimit": "Máximo de resultados de búsqueda"
     },
     "activityViewer": {
       "name": "Visor de actividades",

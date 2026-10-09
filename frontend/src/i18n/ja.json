@@ -1007,7 +1007,8 @@
       "termTooShort": "各検索語は{minSearchLength} 文字以上でなければなりません。",
       "resultsTitle": "検索結果",
       "invalidSources": "少なくとも1つのソースをオンにする。",
-      "noResults": "一致するファイルやフォルダがありません。"
+      "noResults": "一致するファイルやフォルダがありません。",
+      "resultLimit": "検索結果の最大件数"
     },
     "activityViewer": {
       "name": "アクティビティビューア",

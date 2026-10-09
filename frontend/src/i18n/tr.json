@@ -1007,7 +1007,8 @@
       "termTooShort": "Her bir arama terimi en az {minSearchLength} karakter olmalıdır",
       "resultsTitle": "Arama sonuçları",
       "invalidSources": "En az bir kaynağı açın.",
-      "noResults": "Eşleşen dosya veya klasör yok."
+      "noResults": "Eşleşen dosya veya klasör yok.",
+      "resultLimit": "En fazla arama sonucu"
     },
     "activityViewer": {
       "name": "Etkinlik Görüntüleyici",

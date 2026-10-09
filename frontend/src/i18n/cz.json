@@ -1007,7 +1007,8 @@
       "termTooShort": "Každý hledaný výraz musí mít alespoň {minSearchLength} znaků.",
       "resultsTitle": "Výsledky vyhledávání",
       "invalidSources": "Zapněte alespoň jeden zdroj.",
-      "noResults": "Žádné odpovídající soubory nebo složky."
+      "noResults": "Žádné odpovídající soubory nebo složky.",
+      "resultLimit": "Maximální počet výsledků hledání"
     },
     "activityViewer": {
       "name": "Prohlížeč aktivit",
