@@ -123,9 +123,9 @@ export default {
   },
   methods: {
     syncExpanded() {
-      this.expandableSettings.forEach((setting) => {
+      for (const setting of this.expandableSettings) {
         this.expandedSections[setting.id] = this.isSectionActive(setting) && this.canExpand(setting);
-      });
+      }
     },
     isHeaderActive(setting) {
       return this.isSectionActive(setting) && (!this.canExpand(setting) || !this.expandedSections[setting.id]);

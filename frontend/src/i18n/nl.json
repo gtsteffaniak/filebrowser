@@ -216,6 +216,8 @@
     "requestTimedOut": "De tijdlimiet voor het verzoek is verstreken. Controleer je netwerk- of reverse-proxy-instellingen."
   },
   "files": {
+    "sortByCreationTime": "Sorteren op aanmaaktijd",
+    "creationTime": "Aanmaaktijd",
     "emptyFile": "Leeg bestand",
     "lastModified": "Laatst gewijzigd{suffix}",
     "duration": "Duur{suffix}",
@@ -224,9 +226,7 @@
     "sortByLastModified": "Sorteren op laatst gewijzigd",
     "sortByName": "Sorteren op naam",
     "sortBySize": "Sorteren op grootte",
-    "sortByDateAdded": "Sorteren op datum toegevoegd",
     "sortByType": "Sorteren op type",
-    "dateAdded": "Datum toegevoegd",
     "sortByDuration": "Sorteren op duur",
     "noPreview": "Voorbeeld is niet beschikbaar voor dit bestand.",
     "noDownloadAccess": "Download is niet beschikbaar.",
@@ -523,6 +523,10 @@
     "allFileTypes": "Alle bestandstypen"
   },
   "profileSettings": {
+    "showTypeColumn": "Type-kolom tonen",
+    "showTypeColumnDescription": "Toon de Type-kolom in lijst- en compacte weergaven in de hoofdlijst.",
+    "showCreationDateColumn": "Aanmaakdatum-kolom tonen",
+    "showCreationDateColumnDescription": "Toon de Aanmaakdatum-kolom in lijst- en compacte weergaven in de hoofdlijst.",
     "promptRightCloseButton": "Toon sluitknop van prompts rechts",
     "promptRightCloseButtonDescription": "Toon de sluitknop van de prompts aan de rechterkant in plaats van aan de linkerkant",
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
@@ -566,10 +570,6 @@
     "showToolsInSidebarDescription": "Toon altijd de link naar de hulpmiddelen in de zijbalk.",
     "showCopyPath": "Pad kopiëren tonen in contextmenu",
     "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
-    "hideTypeColumn": "Kolom Type verbergen",
-    "hideTypeColumnDescription": "De kolom Type verbergen in de lijst- en compacte weergave.",
-    "hideDateAddedColumn": "Kolom Datum toegevoegd verbergen",
-    "hideDateAddedColumnDescription": "De kolom Datum toegevoegd verbergen in de lijst- en compacte weergave.",
     "deleteWithoutConfirming": "Bestanden verwijderen zonder bevestigingsvenster",
     "deleteWithoutConfirmingDescription": "Bestanden verwijderen zonder bevestigingsvenster. Dit werkt alleen als het bestand een mediabestand is.",
     "previewOfficeDescription": "Toon miniaturen voor Office-bestandstypen in de listingweergave",

@@ -70,11 +70,11 @@
       @click="sort('created')"
       @keydown.enter.prevent.stop="sort('created')"
       @keydown.space.prevent.stop="sort('created')"
-      :title="$t('files.sortByDateAdded')"
-      :aria-label="$t('files.sortByDateAdded')"
+      :title="$t('files.sortByCreationTime')"
+      :aria-label="$t('files.sortByCreationTime')"
     >
       <i class="material-symbols">{{ createdIcon }}</i>
-      <span>{{ $t("files.dateAdded") }}</span>
+      <span>{{ $t("files.creationTime") }}</span>
     </p>
 
     <p
