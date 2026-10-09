@@ -32,14 +32,18 @@
             </div>
             <div class="field-wrap" :class="{ 'tombstone-field': eventTheme === 'halloween', born: eventTheme === 'halloween' }">
               <span v-if="eventTheme === 'halloween'" class="tombstone-label" aria-hidden="true"></span>
-              <input autofocus class="input" type="text" autocapitalize="off" v-model="username"
+              <input autofocus class="input" type="text" id="username" name="username" autocomplete="username"
+                autocapitalize="off" :spellcheck="false" v-model="username"
                 :placeholder="$t('general.username')" />
             </div>
             <div class="field-wrap" :class="{ 'tombstone-field': eventTheme === 'halloween', died: eventTheme === 'halloween' }">
               <span v-if="eventTheme === 'halloween'" class="tombstone-label" aria-hidden="true"></span>
-              <input class="input" type="password" v-model="password" :placeholder="$t('general.password')" />
+              <input class="input" type="password" id="password" name="password"
+                :autocomplete="createMode ? 'new-password' : 'current-password'"
+                v-model="password" :placeholder="$t('general.password')" />
             </div>
-            <input class="input" v-if="createMode" type="password" v-model="passwordConfirm"
+            <input class="input" v-if="createMode" type="password" id="password-confirm" name="password-confirm"
+              autocomplete="new-password" v-model="passwordConfirm"
               :placeholder="$t('login.passwordConfirm')" />
 
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
