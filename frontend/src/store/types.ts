@@ -9,6 +9,7 @@ export interface FileListItem {
   type?: string;
   source?: string;
   modified?: string;
+  created?: string;
   hasPreview?: boolean;
   viewToken?: string;
   isShared?: boolean;
@@ -35,6 +36,7 @@ export interface ReqObject {
   source?: string;
   content?: string;
   modified?: string;
+  created?: string;
   hasPreview?: boolean;
   subtitles?: unknown[];
   viewToken?: string;
@@ -209,6 +211,8 @@ export interface UserObject {
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
+  hideTypeColumn?: boolean;
+  hideDateAddedColumn?: boolean;
   hideFileExt?: string;
   newFileTemplate?: string[];
   themeColor?: string;

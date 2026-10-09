@@ -958,6 +958,7 @@ export default {
         isDirectory: item.type === 'directory',
         size: item.size,
         modified: item.modified,
+        created: item.created,
         originalItem: item
       }));
     },

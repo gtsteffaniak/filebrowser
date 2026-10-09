@@ -364,6 +364,8 @@ type UserDefaultsListing struct {
 	SingleClick             bool     `json:"singleClick"`             // open directory on single click, also enables middle click to open in new tab
 	HideFileExt             string   `json:"hideFileExt"`             // space separated list of file extensions to hide in UI
 	ShowCopyPath            bool     `json:"showCopyPath"`            // show copy path button in the context menu
+	HideTypeColumn          bool     `json:"hideTypeColumn"`          // hide the Type column in list and compact views
+	HideDateAddedColumn     bool     `json:"hideDateAddedColumn"`     // hide the Date added column in list and compact views
 	DeleteAfterArchive      bool     `json:"deleteAfterArchive"`      // delete source files after successful creation/extraction of archives
 	ViewMode                string   `json:"viewMode"`                // view mode to use: eg. normal, list, grid, or compact
 	GallerySize             int      `json:"gallerySize"`             // 0-9 - the size of the gallery thumbnails

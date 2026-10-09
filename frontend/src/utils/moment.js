@@ -28,7 +28,7 @@ export function fromNow(date, locale) {
     return 'just now';
 }
 
-export function formatTimestamp(date, locale = 'en-us') {
+export function formatTimestamp(date, locale = 'en-us', { seconds = true } = {}) {
     // Ensure `normalizeDate` returns a valid Date object
     date = normalizeDate(date);
 
@@ -37,43 +37,19 @@ export function formatTimestamp(date, locale = 'en-us') {
         return 'Invalid Date';
     }
 
-    const standardLocale = toStandardLocale(locale);
-
-    // Define options for formatting
-    const dateOptions = {
+    const options = {
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
-    };
-
-    const timeOptions = {
+        year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit'
     };
-
-    // Format date and time using locale
-    const dateFormatter = new Intl.DateTimeFormat(standardLocale, dateOptions);
-    const timeFormatter = new Intl.DateTimeFormat(standardLocale, timeOptions);
+    if (seconds) {
+        options.second = '2-digit';
+    }
 
     try {
-        // Extract date and time components
-        const dateParts = dateFormatter.formatToParts(date);
-        const timeParts = timeFormatter.formatToParts(date);
-
-        // Construct formatted timestamp
-        const dateMap = new Map(dateParts.map(part => [part.type, part.value]));
-        const timeMap = new Map(timeParts.map(part => [part.type, part.value]));
-
-        const formattedDate = standardLocale.includes('en')
-            ? `${dateMap.get('month')}/${dateMap.get('day')}/${dateMap.get('year')}`
-            : `${dateMap.get('day')}/${dateMap.get('month')}/${dateMap.get('year')}`;
-
-        // Time formatting: hh:mm:ss
-        const formattedTime = `${timeMap.get('hour')}:${timeMap.get('minute')}:${timeMap.get('second')}`;
-
-        // Combine date and time
-        return `${formattedDate} ${formattedTime}`;
+        return new Intl.DateTimeFormat(toStandardLocale(locale), options).format(date);
     } catch (error) {
         console.error('Error formatting date:', error);
         return 'Invalid Date';

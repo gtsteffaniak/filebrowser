@@ -77,6 +77,7 @@
             v-bind:isDir="item.type === 'directory'"
             v-bind:source="req.source"
             v-bind:modified="item.modified"
+            v-bind:created="item.created"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -111,6 +112,7 @@
             v-bind:isDir="item.type === 'directory'"
             v-bind:source="req.source"
             v-bind:modified="item.modified"
+            v-bind:created="item.created"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -143,6 +145,7 @@
             v-bind:name="item.name"
             v-bind:isDir="item.type === 'directory'"
             v-bind:modified="item.modified"
+            v-bind:created="item.created"
             v-bind:source="req.source"
             v-bind:type="item.type"
             v-bind:size="item.size"
@@ -627,6 +630,7 @@ export default {
           type: item.type,
           size: item.size,
           modified: item.modified,
+          created: item.created,
           hasPreview: item.hasPreview,
           previewUrl: previewUrl,
         });

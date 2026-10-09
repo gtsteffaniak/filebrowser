@@ -30,6 +30,8 @@ func ProfileFromUser(u *users.User) UserProfile {
 			SingleClick:             u.SingleClick,
 			HideFileExt:             u.HideFileExt,
 			ShowCopyPath:            u.ShowCopyPath,
+			HideTypeColumn:          u.HideTypeColumn,
+			HideDateAddedColumn:     u.HideDateAddedColumn,
 			DeleteAfterArchive:      u.DeleteAfterArchive,
 			ViewMode:                u.ViewMode,
 			GallerySize:             u.GallerySize,
@@ -109,6 +111,8 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.SingleClick = p.Listing.SingleClick
 	u.HideFileExt = p.Listing.HideFileExt
 	u.ShowCopyPath = p.Listing.ShowCopyPath
+	u.HideTypeColumn = p.Listing.HideTypeColumn
+	u.HideDateAddedColumn = p.Listing.HideDateAddedColumn
 	u.DeleteAfterArchive = p.Listing.DeleteAfterArchive
 	u.ViewMode = p.Listing.ViewMode
 	u.GallerySize = p.Listing.GallerySize

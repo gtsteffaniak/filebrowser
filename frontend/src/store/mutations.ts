@@ -778,6 +778,8 @@ export const mutations = {
         "disableSearchOptions",
         "hideSidebarFileActions",
         "showCopyPath",
+        "hideTypeColumn",
+        "hideDateAddedColumn",
         "hideFilesInTree",
         "editorQuickSave",
         "showSelectMultiple",

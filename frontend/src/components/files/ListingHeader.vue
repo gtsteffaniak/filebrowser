@@ -46,6 +46,38 @@
     </p>
 
     <p
+      v-if="showKindColumn"
+      :class="{ active: kindSorted }"
+      class="kind"
+      role="button"
+      tabindex="0"
+      @click="sort('kind')"
+      @keydown.enter.prevent.stop="sort('kind')"
+      @keydown.space.prevent.stop="sort('kind')"
+      :title="$t('files.sortByType')"
+      :aria-label="$t('files.sortByType')"
+    >
+      <span>{{ $t("general.type") }}</span>
+      <i class="material-symbols">{{ kindIcon }}</i>
+    </p>
+
+    <p
+      v-if="showCreatedColumn"
+      :class="{ active: createdSorted }"
+      class="created"
+      role="button"
+      tabindex="0"
+      @click="sort('created')"
+      @keydown.enter.prevent.stop="sort('created')"
+      @keydown.space.prevent.stop="sort('created')"
+      :title="$t('files.sortByDateAdded')"
+      :aria-label="$t('files.sortByDateAdded')"
+    >
+      <i class="material-symbols">{{ createdIcon }}</i>
+      <span>{{ $t("files.dateAdded") }}</span>
+    </p>
+
+    <p
       v-if="hasDuration"
       :class="{ active: durationSorted }"
       class="duration"
@@ -96,6 +128,12 @@ export default {
     modifiedSorted() {
       return this.sortConfig.by === "modified";
     },
+    createdSorted() {
+      return this.sortConfig.by === "created";
+    },
+    kindSorted() {
+      return this.sortConfig.by === "kind";
+    },
     durationSorted() {
       return this.sortConfig.by === "duration";
     },
@@ -104,6 +142,16 @@ export default {
     },
     galleryView() {
       return getters.viewMode() === "gallery";
+    },
+    isListMode() {
+      const mode = getters.viewMode();
+      return mode === "list" || mode === "compact";
+    },
+    showKindColumn() {
+      return this.isListMode && !state.user?.hideTypeColumn;
+    },
+    showCreatedColumn() {
+      return this.isListMode && !state.user?.hideDateAddedColumn;
     },
     nameIcon() {
       if (this.nameSorted && !this.ascOrdered) {
@@ -119,6 +167,18 @@ export default {
     },
     modifiedIcon() {
       if (this.modifiedSorted && this.ascOrdered) {
+        return "arrow_downward";
+      }
+      return "arrow_upward";
+    },
+    createdIcon() {
+      if (this.createdSorted && this.ascOrdered) {
+        return "arrow_downward";
+      }
+      return "arrow_upward";
+    },
+    kindIcon() {
+      if (this.kindSorted && this.ascOrdered) {
         return "arrow_downward";
       }
       return "arrow_upward";
@@ -149,6 +209,8 @@ export default {
         (field === "name" && this.nameIcon === "arrow_upward") ||
         (field === "size" && this.sizeIcon === "arrow_upward") ||
         (field === "modified" && this.modifiedIcon === "arrow_upward") ||
+        (field === "created" && this.createdIcon === "arrow_upward") ||
+        (field === "kind" && this.kindIcon === "arrow_upward") ||
         (field === "duration" && this.durationIcon === "arrow_upward")
       ) {
         asc = true;
@@ -200,6 +262,7 @@ span {
 
 .name {
   flex: 1;
+  min-width: 0;
 }
 
 .size,
@@ -210,27 +273,67 @@ span {
   text-align: end;
 }
 
-.desktop-view .size,
-.desktop-view .duration {
-  width: 12%;
-  min-width: 80px;
+/* Column widths are shared with the list/compact rows (see listing.css) so the
+   header lines up with the items and the name column gets the remaining space. */
+/* stylelint-disable no-unknown-custom-properties -- defined in css/listing.css */
+.desktop-view {
+  /* same right inset as the list/compact rows */
+  padding-right: var(--listing-col-gap);
+}
+
+/* With quick download the rows end in a ~2.4rem download icon after the inset */
+.desktop-view:has(> .placeholder) {
+  padding-right: 0;
+}
+
+.desktop-view > .placeholder {
   flex: 0 0 auto;
+  width: calc(var(--listing-col-gap) + 2.4rem);
+}
+
+.desktop-view .size,
+.desktop-view .modified,
+.desktop-view .kind,
+.desktop-view .created,
+.desktop-view .duration {
+  flex: 0 0 auto;
+  padding-left: var(--listing-col-gap);
   justify-content: flex-end;
   text-align: right;
+}
+
+.desktop-view .size {
+  width: var(--listing-col-size);
 }
 
 .desktop-view .modified {
-  width: 18%;
-  min-width: fit-content;
-  flex: 0 0 auto;
-  justify-content: flex-end;
-  text-align: right;
+  width: var(--listing-col-modified);
 }
 
+.desktop-view .kind {
+  width: var(--listing-col-kind);
+  padding-left: calc(var(--listing-col-gap) + 0.5rem);
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.desktop-view .kind span {
+  flex-shrink: 0;
+}
+
+.desktop-view .created {
+  width: var(--listing-col-created);
+}
+
+.desktop-view .duration {
+  width: var(--listing-col-duration);
+}
+/* stylelint-enable no-unknown-custom-properties */
+
 i {
-  font-size: 1.5em;
+  font-size: 1.2em;
   vertical-align: middle;
-  margin-left: .2em;
+  margin-left: .1em;
   opacity: 0;
   transition: opacity 0.1s ease;
   flex-shrink: 0;

@@ -288,6 +288,8 @@ const PROFILE_SNAPSHOT_FIELDS = [
   "disableSearchOptions",
   "hideSidebarFileActions",
   "showCopyPath",
+  "hideTypeColumn",
+  "hideDateAddedColumn",
   "hideFilesInTree",
   "editorQuickSave",
   "showSelectMultiple",
