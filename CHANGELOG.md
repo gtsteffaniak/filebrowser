@@ -11,6 +11,7 @@ Note: this release also contains all changes from v2.0.10-beta changelog
  - New `PUT /api/access/user-groups` endpoint that atomically replaces a user's group memberships.
  - feat(search): configure the advanced search result limit (#3058) @beemines
  - feat(listing): add sortable Date added and Type columns (#3052) @dweebzxx
+ - feat(archive): suggest and preview ZIP filename encodings (#3024) @AnaTofuZ
 
  **Notes**:
  - Group API breaking changes: `POST /api/access` returns 400 when `ruleCategory=group` names a nonexistent group or `ruleCategory=user` names a nonexistent user, group endpoints return 400/409 instead of 500 for client errors, and `PUT /api/access/group` accepts a `create` flag and returns `unknownMembers`. Existing database records are unaffected; no migration is required.
@@ -19,6 +20,8 @@ Note: this release also contains all changes from v2.0.10-beta changelog
  - add better screenshot view handling (#3059)
  - Update nl.json (#3089) @Stephan-P
  - update german translations (#3062) @fehnomenal
+ - Update dev dependencies, add biome, fix types and linting (#3075) @Kurami32
+ - update halloween theme (#3055)
 
  **Bug Fixes**:
  - Groups assigned in the user edit prompt now refresh the Groups settings list.
@@ -30,6 +33,8 @@ Note: this release also contains all changes from v2.0.10-beta changelog
  - fix(frontend): keep source named files in extractSourceFromPath (#3099) (#3095)
  - fix(auth): identify login fields for password autofill (#3077)
  - fix(backend): skip denied paths in multi-file downloads, 404 when none remain (#3100) @hippi345
+ - fix: persist the user scope path chosen in the edit dialog (#3065) @mvanhorn
+
 
 ## v2.1.0
 
