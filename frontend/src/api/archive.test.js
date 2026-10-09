@@ -3,7 +3,7 @@ const { fetchMock } = vi.hoisted(() => ({ fetchMock: vi.fn() }));
 vi.mock("./utils", () => ({ fetchURL: fetchMock }));
 vi.mock("@/utils/url.js", () => ({ getApiPath: (path) => `/api/${path}` }));
 vi.mock("@/notify", () => ({ notify: { showError: vi.fn() } }));
-import { unarchive } from "./archive";
+import { unarchive } from "./archive.js";
 
 describe("ZIP encoding requests", () => {
   beforeEach(() => fetchMock.mockReset());

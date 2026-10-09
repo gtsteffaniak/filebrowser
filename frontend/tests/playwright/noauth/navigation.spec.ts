@@ -15,14 +15,14 @@ test("navigate with hash in file name", async({ page, checkForErrors }) => {
 
 test("breadcrumbs navigation checks", async({ page, checkForErrors }) => {
   await page.goto("/files/exclude/myfolder");
-  await page.waitForSelector('#breadcrumbs');
+  await expect(page.locator('#breadcrumbs')).toBeVisible();
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
   let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-myfolder"]')
   await expect(breadCrumbLink).toHaveText("myfolder");
 
   await page.goto("/files/exclude/myfolder/testdata");
-  await page.waitForSelector('#breadcrumbs');
+  await expect(page.locator('#breadcrumbs')).toBeVisible();
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(2);
   breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-testdata"]')

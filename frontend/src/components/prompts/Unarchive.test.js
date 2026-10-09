@@ -12,7 +12,6 @@ vi.mock("@/utils/notificationActions", () => ({ goToItemNotificationButton: vi.f
 vi.mock("@/components/files/FileList.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/LoadingSpinner.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/settings/ToggleSwitch.vue", () => ({ default: { render: () => null } }));
-// biome-ignore lint/correctness/noUnresolvedImports: biome cannot see a .vue SFC's default export
 import Unarchive from "./Unarchive.vue";
 
 let app, root;

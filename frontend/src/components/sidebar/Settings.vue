@@ -112,11 +112,11 @@ export default {
   },
   watch: {
     activeView() {
-      this.expandableSettings.forEach((setting) => {
+      for (const setting of this.expandableSettings) {
         if (!this.isSectionActive(setting)) this.expandedSections[setting.id] = false;
         else if (this.isSubSectionActive(setting)) this.expandedSections[setting.id] = true;
         else if (setting.id === 'users') this.expandedSections[setting.id] = false;
-      });
+      }
     },
     showAdvancedProfile(val) {
       this.expandedSections.profile = val && this.activeView.startsWith("profile-");
@@ -124,11 +124,11 @@ export default {
   },
   mounted() {
     requestAnimationFrame(() => {
-      this.expandableSettings.forEach((setting) => {
+      for (const setting of this.expandableSettings) {
         if (this.isSectionActive(setting) && (this.isSubSectionActive(setting) || (setting.id === "profile" && this.showAdvancedProfile))) {
           this.expandedSections[setting.id] = true;
         }
-      });
+      }
     });
   },
   methods: {

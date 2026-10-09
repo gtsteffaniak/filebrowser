@@ -188,18 +188,18 @@ export default {
       if (this.rule.denyAll) {
         entries.push({ allow: false, type: "all", name: this.$t("access.all") });
       }
-      (this.rule.deny?.users || []).forEach(name => {
+      for (const name of this.rule.deny?.users || []) {
         entries.push({ allow: false, type: "user", name });
-      });
-      (this.rule.deny?.groups || []).forEach(name => {
+      }
+      for (const name of this.rule.deny?.groups || []) {
         entries.push({ allow: false, type: "group", name });
-      });
-      (this.rule.allow?.users || []).forEach(name => {
+      }
+      for (const name of this.rule.allow?.users || []) {
         entries.push({ allow: true, type: "user", name });
-      });
-      (this.rule.allow?.groups || []).forEach(name => {
+      }
+      for (const name of this.rule.allow?.groups || []) {
         entries.push({ allow: true, type: "group", name });
-      });
+      }
       return entries;
     },
     /** What the rule will look like once Save applies the staged edits. */

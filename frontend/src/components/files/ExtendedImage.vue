@@ -7,6 +7,7 @@
       :src="cachedThumbnailUrl"
       class="image-ex-img"
       ref="thumbnail"
+      aria-hidden="true"
     />
 
     <!-- Loading spinner overlay (shown while full image loads) -->
@@ -24,6 +25,7 @@
       @load="onLoad"
       @error="onImageError"
       :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+      aria-hidden="true"
     />
     <canvas
       v-else
@@ -182,9 +184,9 @@ export default {
     }
 
     const container = this.$refs.container;
-    this.classList.forEach((className) => {
+    for (const className of this.classList) {
       container.classList.add(className);
-    });
+    }
     if (getComputedStyle(container).width === "0px") {
       container.style.width = "100%";
     }

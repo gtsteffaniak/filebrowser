@@ -18,7 +18,7 @@
       <strong>{{ $t("access.groupName") }}</strong>
       <span aria-label="group name">{{ name }}</span>
     </div>
-    <label class="members-label">{{ membersLabel }}</label>
+    <span class="members-label">{{ membersLabel }}</span>
     <EntityPickerList
       kind="user"
       multiple

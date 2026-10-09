@@ -2,7 +2,7 @@
   <div class="card-content view-defaults settings-items">
     <div class="setting-row item">
       <div class="label">
-        <label id="default-view-mode-label">{{ $t('profileSettings.defaultViewMode') }}</label>
+        <span id="default-view-mode-label">{{ $t('profileSettings.defaultViewMode') }}</span>
         <HelpTooltipIcon :text="$t('profileSettings.defaultViewModeDescription')" />
       </div>
       <ExpandDropdown
