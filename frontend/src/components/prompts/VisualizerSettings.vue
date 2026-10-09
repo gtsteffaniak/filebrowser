@@ -19,7 +19,7 @@
     </div>
     <div class="setting-row item">
       <div class="setting-label">
-        <label id="vis-fft-size-label">{{ $t("player.visualizer.fftSize") }}</label>
+        <span id="vis-fft-size-label">{{ $t("player.visualizer.fftSize") }}</span>
         <HelpTooltipIcon :text="$t('player.visualizer.fftSizeDescription')" />
       </div>
       <div class="setting-control">
@@ -32,7 +32,7 @@
     </div>
     <div class="setting-row item">
       <div class="setting-label">
-        <label id="vis-min-freq-label">{{ $t("player.visualizer.minFrequency") }}</label>
+        <span id="vis-min-freq-label">{{ $t("player.visualizer.minFrequency") }}</span>
         <HelpTooltipIcon :text="$t('player.visualizer.minFrequencyDescription')" />
       </div>
       <div class="setting-control">
@@ -45,7 +45,7 @@
     </div>
     <div class="setting-row item">
       <div class="setting-label">
-        <label id="vis-max-freq-label">{{ $t("player.visualizer.maxFrequency") }}</label>
+        <span id="vis-max-freq-label">{{ $t("player.visualizer.maxFrequency") }}</span>
         <HelpTooltipIcon :text="$t('player.visualizer.maxFrequencyDescription')" />
       </div>
       <div class="setting-control">
@@ -216,7 +216,8 @@ export default {
   min-width: 0;
 }
 
-.setting-row label {
+.setting-row label,
+.setting-row span[id$="-label"] {
   color: var(--textPrimary);
   font-size: 0.95em;
   flex-shrink: 1;

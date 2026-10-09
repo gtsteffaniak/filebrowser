@@ -253,13 +253,13 @@ export const getters = {
     if (!state.req.items) {
       return 0
     }
-    state.req.items.forEach(item => {
+    for (const item of state.req.items) {
       // Check if the item is a directory
       if (item.type === 'directory') {
         // Otherwise, count this directory
         dirCount++
       }
-    })
+    }
     // Return the directory count
     return dirCount
   },
@@ -268,13 +268,13 @@ export const getters = {
     if (!state.req.items) {
       return 0
     }
-    state.req.items.forEach(item => {
+    for (const item of state.req.items) {
       // Check if the item is a directory
       if (item.type !== 'directory') {
         // Otherwise, count this directory
         fileCount++
       }
-    })
+    }
     // Return the directory count
     return fileCount
   },

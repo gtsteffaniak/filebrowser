@@ -271,9 +271,9 @@ export default {
       this.selectionBeforeMenu = null;
       mutations.resetSelected();
       if (previous?.entries?.length) {
-        previous.entries.forEach((entry) => {
+        for (const entry of previous.entries) {
           mutations.addSelected(entry);
-        });
+        }
       }
       if (previous?.multiple) {
         mutations.setMultiple(true);
@@ -710,14 +710,14 @@ export default {
       this.stopFollowingCurrentItem = () => {
         observer.disconnect();
         clearTimeout(timer);
-        events.forEach((name) => {
+        for (const name of events) {
           container.removeEventListener(name, this.stopFollowingCurrentItem);
-        });
+        }
         this.stopFollowingCurrentItem = null;
       };
-      events.forEach((name) => {
+      for (const name of events) {
         container.addEventListener(name, this.stopFollowingCurrentItem, { passive: true });
-      });
+      }
     },
     navigateToItem(item) {
       mutations.closeTopPrompt();

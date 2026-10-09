@@ -220,14 +220,17 @@ export function base64Encode(str) {
 }
 
 // Expect route paths like /files/{source}/... or, under a subpath baseURL, /{source}/...
-export function extractSourceFromPath(url) {
+// knownSources: optional list of configured source names used to distinguish a source
+// literally named "files" from a doubled route-prefix produced by misconfigured redirects.
+export function extractSourceFromPath(url, knownSources = []) {
   const parts = removeTrailingSlash(url).split("/").filter(Boolean);
   let i = 0;
   if (parts.at(i) === "files") {
     i += 1;
   }
   // Bad redirects with baseURL can produce /files/files/{source}/... — not a source named "files".
-  if (parts.at(i) === "files" && parts.length > i + 2) {
+  // Only strip the extra segment when "files" is not a configured source name.
+  if (parts[i] === "files" && !knownSources.includes("files") && parts.length > i + 2) {
     i += 1;
   }
   const source = parts.at(i) || "";

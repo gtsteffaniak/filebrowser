@@ -8,12 +8,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-
 )
 
 type searchOptions struct {
@@ -70,6 +69,7 @@ type scopedSourcePath struct {
 // @Param olderThan query int false "Unix seconds; only results modified strictly before this time"
 // @Param newerThan query int false "Unix seconds; only results modified on or after this time"
 // @Param useWildcard query bool false "When true, match indexed file names with SQLite GLOB (wildcard patterns)"
+// @Param limit query int false "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)"
 // @Param termJoin query string false "Optional: 'and' to require all repeated 'terms' match; default is OR"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -83,6 +83,15 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	searchSize := indexing.DefaultSearchResults
 	if searchOptions.largest {
 		searchSize = 200
+	} else if rawLimit := r.URL.Query().Get("limit"); rawLimit != "" {
+		requested, err := strconv.Atoi(rawLimit)
+		if err != nil || requested < 1 {
+			return http.StatusBadRequest, fmt.Errorf("limit must be a positive integer")
+		}
+		searchSize = requested
+		if searchSize > settings.Config.Server.SearchResultsLimit {
+			searchSize = settings.Config.Server.SearchResultsLimit
+		}
 	}
 
 	var response []*indexing.SearchResult

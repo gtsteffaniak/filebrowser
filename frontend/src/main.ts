@@ -3,7 +3,7 @@ import i18n from "@/i18n/index.ts";
 import { state } from "@/store/index.ts";
 // biome-ignore lint/correctness/noUnresolvedImports: disabled temporarily
 import App from "./App.vue";
-import router from "./router/index.ts";
+import { router } from "./router/index.ts";
 
 import "./css/styles.css";
 import { initPwaInstall } from "@/utils/pwaInstall.js";

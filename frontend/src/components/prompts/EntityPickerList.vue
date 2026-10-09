@@ -249,13 +249,14 @@ export default {
       }
       this.$emit("enter");
     },
-    startCreate() {
+    async startCreate() {
       if (!this.allowCreate || this.kind !== "group") {
         return;
       }
       this.creatingGroup = true;
       this.createError = null;
-      this.$nextTick(() => this.$refs.createInput?.focus());
+      await this.$nextTick();
+      this.$refs.createInput?.focus();
     },
     cancelCreateGroup() {
       this.creatingGroup = false;

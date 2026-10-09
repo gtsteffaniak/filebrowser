@@ -1019,7 +1019,8 @@
       "termTooShort": "Jeder Suchbegriff muss mindestens {minSearchLength} Zeichen umfassen.",
       "resultsTitle": "Suchergebnisse",
       "invalidSources": "Schalten Sie mindestens eine Quelle ein.",
-      "noResults": "Keine passenden Dateien oder Ordner."
+      "noResults": "Keine passenden Dateien oder Ordner.",
+      "resultLimit": "Maximale Suchergebnisse"
     },
     "activityViewer": {
       "name": "Aktivitätsanzeige",

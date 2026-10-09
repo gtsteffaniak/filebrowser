@@ -125,6 +125,20 @@
                     </div>
                   </div>
                   <div class="settings-items">
+                    <div class="settings-number-input item">
+                      <label for="advanced-search-limit">{{ $t('tools.advancedSearch.resultLimit') }}</label>
+                      <div>
+                        <input
+                          id="advanced-search-limit"
+                          v-model.number="resultLimit"
+                          type="range"
+                          min="1"
+                          :max="maxSearchResults"
+                          :disabled="loading"
+                        />
+                        <output for="advanced-search-limit" class="range-value">{{ resultLimit }}</output>
+                      </div>
+                    </div>
                     <ToggleSwitch
                       v-model="useWildcardSearch"
                       class="item"
@@ -245,7 +259,7 @@
 
 <script>
 import { toolsApi } from "@/api";
-import router from "@/router";
+import { router } from "@/router";
 import { state, getters, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { globalVars } from "@/utils/constants";
@@ -361,6 +375,7 @@ function hasFilterOrTermSignalsForImplicitSources(q) {
     nonempty("types") ||
     nonempty("largerThan") ||
     nonempty("smallerThan") ||
+    nonempty("limit") ||
     nonempty("dateOlder") ||
     nonempty("dateNewer")
   ) {
@@ -485,6 +500,7 @@ export default {
   },
   data() {
     return {
+      resultLimit: Math.min(500, globalVars.searchResultsLimit || 1000),
       termInputs: [""],
       termsJoinAnd: false,
       sourceEnabledFlags: {},
@@ -516,6 +532,9 @@ export default {
     };
   },
   computed: {
+    maxSearchResults() {
+      return globalVars.searchResultsLimit || 1000;
+    },
     isAdvancedSearchRoute() {
       return (this.$route.path || "") === "/tools/advancedSearch";
     },
@@ -743,6 +762,9 @@ export default {
       },
     },
     largerThan() {
+      this.scheduleAdvancedSearchUrlUpdate();
+    },
+    resultLimit() {
       this.scheduleAdvancedSearchUrlUpdate();
     },
     smallerThan() {
@@ -1058,6 +1080,9 @@ export default {
       if (this.largerThan !== "") {
         query.largerThan = String(this.largerThan);
       }
+      if (this.resultLimit !== Math.min(500, this.maxSearchResults)) {
+        query.limit = String(this.resultLimit);
+      }
       if (this.smallerThan !== "") {
         query.smallerThan = String(this.smallerThan);
       }
@@ -1177,6 +1202,11 @@ export default {
       this.largerThan = largerThanRaw !== undefined && largerThanRaw !== null
         ? String(largerThanRaw).trim()
         : "";
+
+      const requestedLimit = Number(q.limit);
+      this.resultLimit = Number.isSafeInteger(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, this.maxSearchResults)
+        : Math.min(500, this.maxSearchResults);
 
       const smallerThanRaw = q.smallerThan;
       this.smallerThan = smallerThanRaw !== undefined && smallerThanRaw !== null
@@ -1378,6 +1408,7 @@ export default {
           false,
           {
             ...dateParams,
+            limit: this.resultLimit,
             terms,
             termJoin: this.termsJoinAnd ? "and" : undefined,
             perSourceScopes,
@@ -1437,6 +1468,23 @@ export default {
 </script>
 
 <style scoped>
+.settings-number-input,
+.settings-number-input > div {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.settings-number-input {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.range-value {
+  min-width: 4ch;
+  text-align: center;
+}
+
 .advanced-search-root {
   display: flex;
   flex-direction: column;

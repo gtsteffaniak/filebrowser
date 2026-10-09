@@ -269,11 +269,11 @@ export default {
     sourceLinkMap() {
       const map = {};
       if (this.user?.sidebarLinks) {
-        this.user.sidebarLinks.forEach(link => {
+        for (const link of this.user.sidebarLinks) {
           if (this.isSourceCategory(link.category) && link.sourceName && !map[link.sourceName]) {
             map[link.sourceName] = link;
           }
-        });
+        }
       }
       return map;
     },
@@ -369,9 +369,9 @@ export default {
       const limitToScopes = scopedSourceNames.size > 0;
 
       if (this.sourceInfo) {
-        Object.keys(this.sourceInfo).forEach((sourceName) => {
+        for (const sourceName of Object.keys(this.sourceInfo)) {
           if (limitToScopes && !scopedSourceNames.has(sourceName)) {
-            return;
+            continue;
           }
           defaultLinks.push({
             name: sourceName,
@@ -380,7 +380,7 @@ export default {
             icon: "",
             sourceName: sourceName,
           });
-        });
+        }
       }
 
       return defaultLinks;

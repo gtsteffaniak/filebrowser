@@ -1019,7 +1019,8 @@
       "termTooShort": "Chaque terme de recherche doit comporter au moins {minSearchLength} caractères.",
       "resultsTitle": "Résultats de la recherche",
       "invalidSources": "Allumez au moins une source.",
-      "noResults": "Aucun fichier ou dossier correspondant."
+      "noResults": "Aucun fichier ou dossier correspondant.",
+      "resultLimit": "Nombre maximal de résultats de recherche"
     },
     "activityViewer": {
       "name": "Aperçu des activités",

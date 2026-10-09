@@ -61,7 +61,7 @@ test("view analytics diagnostic", async({ page, checkForErrors }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await openSystemAdminSettings(page);
 
-  await expect(page.getByText("Send deployment analytics")).toBeVisible();
+  await expect(page.locator(".toggle-name", { hasText: "Send deployment analytics" })).toBeVisible();
   await expect(page.getByRole("button", { name: "View analytics" })).toBeVisible();
 
   const previewResponsePromise = page.waitForResponse(

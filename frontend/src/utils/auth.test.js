@@ -165,6 +165,7 @@ describe('session JWT keep-alive', () => {
   });
 
   it('ensureSessionFresh returns false for joined callers when renew fails', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const exp = Math.floor(Date.now() / 1000) + 60;
     global.fetch = vi.fn().mockResolvedValue({
       status: 200,
@@ -186,6 +187,7 @@ describe('session JWT keep-alive', () => {
     expect(await first).toBe(false);
     expect(await second).toBe(false);
     expect(global.fetch).toHaveBeenCalledTimes(1);
+    warnSpy.mockRestore();
   });
 
   it('renew single-flights concurrent callers', async () => {

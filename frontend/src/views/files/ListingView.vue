@@ -246,13 +246,13 @@ export default {
       // Find the first item near the top of the viewport
       let topItem = null;
       let minTop = Infinity;
-      itemNodes.forEach((el) => {
+      for (const el of itemNodes) {
         const rect = el.getBoundingClientRect();
         if (rect.top >= 0 && rect.top < minTop) {
           minTop = rect.top;
           topItem = el;
         }
-      });
+      }
 
       // Decide category by checking which section is above
       let letter = "A";
@@ -567,9 +567,9 @@ export default {
       // Reset drag state for all items (replaces per-item dragend listeners)
       const items = this.$el?.querySelectorAll('.listing-item.drag-hover, .listing-item.half-selected');
       if (items) {
-        items.forEach(el => {
+        for (const el of items) {
           el.classList.remove('drag-hover', 'half-selected');
-        });
+        }
       }
       this.dragTargets.clear();
     },
@@ -1356,7 +1356,7 @@ export default {
       // Get all item elements - use querySelectorAll with specific selector for better performance
       const itemElements = this.$el.querySelectorAll('.listing-item[data-index]');
 
-      itemElements.forEach((element) => {
+      for (const element of itemElements) {
         const elementRect = element.getBoundingClientRect();
 
         // Convert element position to be relative to listing view, this allows selection while scrolling
@@ -1379,25 +1379,25 @@ export default {
             rectangleSelectedIndexes.push(index);
           }
         }
-      });
+      }
 
       // Batch DOM updates to minimize reflows
       if (isAdditive) {
         // only add more items to the current selection without reset selection
         const newSelection = [...state.selected];
-        rectangleSelectedIndexes.forEach(index => {
+        for (const index of rectangleSelectedIndexes) {
           if (!newSelection.includes(index)) {
             newSelection.push(index);
           }
-        });
+        }
 
         mutations.resetSelected();
-        newSelection.forEach(index => { mutations.addSelected(index); });
+        for (const index of newSelection) { mutations.addSelected(index); }
       } else {
         // Select only the items in the rectangle and reset initial selection
         // PS: If you don't want that just hold ctrl, the selection will not be reset, allowing multi select.
         mutations.resetSelected();
-        rectangleSelectedIndexes.forEach(index => { mutations.addSelected(index); });
+        for (const index of rectangleSelectedIndexes) { mutations.addSelected(index); }
       }
     },
     handleDoubleClick(event) {

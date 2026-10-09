@@ -296,18 +296,18 @@ export default {
       if (this.accessRule.denyAll) {
         entries.push({ allow: false, type: "all", name: this.$t("access.all") });
       }
-      (this.accessRule.deny?.users || []).forEach((name) => {
+      for (const name of this.accessRule.deny?.users || []) {
         entries.push({ allow: false, type: "user", name });
-      });
-      (this.accessRule.deny?.groups || []).forEach((name) => {
+      }
+      for (const name of this.accessRule.deny?.groups || []) {
         entries.push({ allow: false, type: "group", name });
-      });
-      (this.accessRule.allow?.users || []).forEach((name) => {
+      }
+      for (const name of this.accessRule.allow?.users || []) {
         entries.push({ allow: true, type: "user", name });
-      });
-      (this.accessRule.allow?.groups || []).forEach((name) => {
+      }
+      for (const name of this.accessRule.allow?.groups || []) {
         entries.push({ allow: true, type: "group", name });
-      });
+      }
       return entries;
     },
     hasAccessRules() {

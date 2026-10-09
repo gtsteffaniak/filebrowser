@@ -153,7 +153,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import router from "@/router";
+import { router } from "@/router";
 import { getters, mutations, state } from "@/store";
 import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
@@ -422,7 +422,7 @@ export default {
       if (this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources)) {
         return "/";
       }
-      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
+      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path), Object.keys(state.sources.info));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
       } else {

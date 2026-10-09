@@ -1019,7 +1019,8 @@
       "termTooShort": "Minden keresési kifejezésnek legalább {minSearchLength} karakterből kell állnia.",
       "resultsTitle": "Keresési eredmények",
       "invalidSources": "Kapcsoljon be legalább egy forrást.",
-      "noResults": "Nincsenek megfelelő fájlok vagy mappák."
+      "noResults": "Nincsenek megfelelő fájlok vagy mappák.",
+      "resultLimit": "Keresési találatok maximális száma"
     },
     "activityViewer": {
       "name": "Tevékenység-megjelenítő",

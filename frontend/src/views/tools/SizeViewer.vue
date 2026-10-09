@@ -455,7 +455,7 @@ export default {
         const rowWidth = total / height;
         let y = container.y;
 
-        row.forEach(item => {
+        for (const item of row) {
           const itemHeight = item.value / rowWidth;
           rects.push({
             item: item.item,
@@ -465,13 +465,13 @@ export default {
             height: itemHeight
           });
           y += itemHeight;
-        });
+        }
       } else {
         // Vertical layout
         const rowHeight = total / width;
         let x = container.x;
 
-        row.forEach(item => {
+        for (const item of row) {
           const itemWidth = item.value / rowHeight;
           rects.push({
             item: item.item,
@@ -481,7 +481,7 @@ export default {
             height: rowHeight
           });
           x += itemWidth;
-        });
+        }
       }
     },
     cutArea(row, container) {

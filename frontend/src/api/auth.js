@@ -229,9 +229,9 @@ export async function deleteApiKey(params) {
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer)
   let binary = ''
-  bytes.forEach(b => {
-    binary += String.fromCharCode(b);
-  })
+  for (const b of bytes) {
+    binary += String.fromCharCode(b)
+  }
   return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
 }
 
