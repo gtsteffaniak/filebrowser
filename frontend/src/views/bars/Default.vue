@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import router from "@/router";
+import { router } from "@/router";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { getters, state, mutations } from "@/store";

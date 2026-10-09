@@ -62,6 +62,7 @@
             :disabled="disabled"
           />
           <span class="slider round"></span>
+          <span class="hidden">{{ effectiveAriaLabel }}</span>
         </label>
       </template>
     </div>
@@ -81,6 +82,7 @@
           @change="updateEnforced"
         />
         <span class="slider round"></span>
+        <span class="hidden">{{ enforcedLabelText }}</span>
       </label>
     </div>
   </div>

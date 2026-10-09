@@ -15,21 +15,21 @@ test("navigate with hash in file name", async({ page, checkForErrors }) => {
 
 test("breadcrumbs navigation checks", async({ page, checkForErrors }) => {
   await page.goto("/files/playwright%20+%20files/myfolder");
-  await page.waitForSelector('#breadcrumbs');
+  await page.locator('#breadcrumbs').waitFor();
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
   let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-myfolder"]')
   await expect(breadCrumbLink).toHaveText("myfolder");
 
   await page.goto("/files/playwright%20+%20files/myfolder/testdata");
-  await page.waitForSelector('#breadcrumbs');
+  await page.locator('#breadcrumbs').waitFor();
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(2);
   breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-testdata"]')
   await expect(breadCrumbLink).toHaveText("testdata");
 
   await page.goto("/files/playwright%20+%20files/files");
-  await page.waitForSelector('#breadcrumbs');
+  await page.locator('#breadcrumbs').waitFor();
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
   breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-files"]')

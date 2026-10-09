@@ -969,7 +969,7 @@ export default {
       const defaultLinks = [];
 
       if (this.availableSources) {
-        Object.keys(this.availableSources).forEach(sourceName => {
+        for (const sourceName of Object.keys(this.availableSources)) {
           defaultLinks.push({
             name: sourceName,
             category: 'source',
@@ -977,7 +977,7 @@ export default {
             icon: '', // No icon by default - will show animated status indicator
             sourceName: sourceName,
           });
-        });
+        }
       }
 
       return defaultLinks;

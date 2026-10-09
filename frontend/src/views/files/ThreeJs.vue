@@ -225,7 +225,7 @@ export default {
     },
 
     handleIntersect(entries) {
-      entries.forEach(entry => {
+      for (const entry of entries) {
         if (entry.isIntersecting) {
           this.isInView = true;
           if (!this.hasInitialized && !this.loadTimer) {
@@ -253,7 +253,7 @@ export default {
             this.error = null;
           }
         }
-      });
+      }
     },
 
     initScene() {
@@ -734,10 +734,10 @@ export default {
           child.receiveShadow = true;
           if (child.material) {
              const mats = Array.isArray(child.material) ? child.material : [child.material];
-             mats.forEach(m => {
+             for (const m of mats) {
                 m.side = DoubleSide;
                 if (child.isSkinnedMesh) m.skinning = true;
-             });
+             }
           }
         }
       });
@@ -756,9 +756,9 @@ export default {
     setupAnimations(root, animations) {
         this.animations = animations;
         this.animationMixer = markRaw(new AnimationMixer(root));
-        this.animations.forEach(clip => {
+        for (const clip of this.animations) {
             this.animationMixer.clipAction(clip).play();
-        });
+        }
         this.isAnimationPlaying = true;
     },
 
@@ -850,7 +850,7 @@ export default {
         this.model.traverse((c) => {
           if (c.geometry) c.geometry.dispose();
           if (c.material) {
-            [].concat(c.material).forEach(m => { m.dispose(); });
+            for (const m of [].concat(c.material)) { m.dispose(); }
           }
         });
         this.model = null;

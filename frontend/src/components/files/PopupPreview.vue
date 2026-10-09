@@ -8,7 +8,7 @@
         :is-thumbnail="true"
       />
     </div>
-    <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" alt="Popup image" @load="onImageLoad" />
+    <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" alt="Popup img" @load="onImageLoad" />
   </div>
 </template>
 

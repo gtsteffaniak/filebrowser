@@ -246,4 +246,4 @@ router.afterEach((to) => {
   }
 });
 
-export { router, router as default };
+export { router };

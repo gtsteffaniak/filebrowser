@@ -679,11 +679,11 @@ class UploadManager {
 
   resumeAll() {
     this.isOverallPaused = false;
-    this.queue.forEach((upload) => {
+    for (const upload of this.queue) {
       if (upload.status === "paused") {
         this.resume(upload.id);
       }
-    });
+    }
   }
 
   activeXhr(upload) {

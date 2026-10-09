@@ -305,12 +305,12 @@ export default {
         prev.maxDecibels !== config.maxDecibels;
       if (analyserL && analyserR && audioRelevantChanged) {
         try {
-          [analyserL, analyserR].forEach((analyser) => {
+          for (const analyser of [analyserL, analyserR]) {
             analyser.fftSize = config.fftSize;
             analyser.smoothingTimeConstant = config.smoothing;
             analyser.minDecibels = config.minDecibels;
             analyser.maxDecibels = config.maxDecibels;
-          });
+          }
           const binCount = analyserL.frequencyBinCount;
           this.fftDataLeft = new Float32Array(binCount);
           this.fftDataRight = new Float32Array(binCount);
@@ -432,12 +432,12 @@ export default {
     fullCleanup() {
       this.stopVisualizer();
       const analysers = [this.visualizerAnalyserLeft, this.visualizerAnalyserRight];
-      analysers.forEach((analyser) => {
+      for (const analyser of analysers) {
         if (analyser) {
           try { this.audioSource?.disconnect(analyser); } catch (_) { /* ignore */ }
           try { analyser.disconnect(); } catch (_) { /* ignore */ }
         }
-      });
+      }
       if (this.visualizerSplitter) {
         try { this.audioSource?.disconnect(this.visualizerSplitter); } catch (_) { /* ignore */ }
         try { this.visualizerSplitter.disconnect(); } catch (_) { /* ignore */ }
@@ -684,25 +684,25 @@ export default {
 
       // right half - ascending hz means x increases (center to right edge)
       let lastXRight = -Infinity;
-      visibleTicks.forEach(({ hz, label }) => {
+      for (const { hz, label } of visibleTicks) {
         const x = hzToBarX(hz, halfCount);
-        if (x === null || x - lastXRight < 20) return; // if too near on this side, skip
-        if (!shouldDraw(x)) return; // also skip if is too close to a label from the other side
+        if (x === null || x - lastXRight < 20) continue; // if too near on this side, skip
+        if (!shouldDraw(x)) continue; // also skip if is too close to a label from the other side
         drawnPositions.push(x);
         lastXRight = x;
         ctx.fillText(label, x, xAxisY);
-      });
+      }
 
       // left half - ascending hz means x decreases (center to left edge)
       let lastXLeft = Infinity;
-      visibleTicks.forEach(({ hz, label }) => {
+      for (const { hz, label } of visibleTicks) {
         const x = hzToBarX(hz, 0);
-        if (x === null || lastXLeft - x < 20) return;
-        if (!shouldDraw(x)) return;
+        if (x === null || lastXLeft - x < 20) continue;
+        if (!shouldDraw(x)) continue;
         drawnPositions.push(x);
         lastXLeft = x;
         ctx.fillText(label, x, xAxisY);
-      });
+      }
 
       ctx.restore();
     },

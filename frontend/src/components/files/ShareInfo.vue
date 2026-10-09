@@ -2,7 +2,7 @@
   <div class="share-info">
     <div class="share-info__box">
       <div v-if="shareInfo.banner" class="banner">
-        <img :src="shareInfo.bannerUrl" />
+        <img :src="shareInfo.bannerUrl" aria-hidden="true" />
       </div>
       <div v-if="shareInfo.title" class="share-info__box__element">
         <h3>{{ shareInfo.title }}</h3>

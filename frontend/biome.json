@@ -4,16 +4,28 @@
     "ignoreUnknown": true,
     "includes": [
       "**",
-      "!dist/",
+      "!dist",
       "!public/config.generated.yaml",
-      "!public/index.html"
+      "!public/index.html",
+      "!node_modules"
     ]
   },
-  "vcs": {
+  "formatter": {
+    "enabled": false
+  },
+  "assist": {
     "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true,
-    "root": "../"
+    "actions": { "source": { "organizeImports": "off" } }
+  },
+  "css": {
+    "linter": { "enabled": false },
+    "formatter": { "enabled": false },
+    "assist": { "enabled": false }
+  },
+  "html": {
+    "experimentalFullSupportEnabled": true,
+    "parser": { "interpolation": true },
+    "linter": { "enabled": true }
   },
   "linter": {
     "enabled": true,
@@ -22,117 +34,101 @@
       "performance": {
         "useVueVapor": "off"
       },
+      "security": {
+        "preset": "recommended"
+      },
+      "a11y": {
+        "noAutofocus": "off",
+        "noNoninteractiveElementToInteractiveRole": "off",
+        "noStaticElementInteractions": "off",
+        "noSvgWithoutTitle": "off",
+        "useAriaPropsSupportedByRole": "off",
+        "useGenericFontNames": "off",
+        "useKeyWithClickEvents": "off",
+        "useMediaCaption": "off",
+        "useSemanticElements": "off"
+      },
       "complexity": {
-        "noImportantStyles": "off"
+        "noForEach": "on",
+        "noImportantStyles": "off",
+        "noRedundantDefaultExport": "warn"
       },
       "correctness": {
         "noUnknownPseudoClass": "off"
       },
+      "nursery": {
+        "noEmptyObjectKeys": "error",
+        "noFloatingPromises": "error",
+        "noImpliedEval": "error",
+        "noJsonUnsafeValues": "error",
+        "noMisusedPromises": "error",
+        "noTopLevelLiterals": "error",
+        "noVueDeprecatedScopedSlots": "error",
+        "noVueImportCompilerMacros": "error",
+        "noVueRefAsOperand": "error",
+        "noVueUndeclaredDirectives": "off",
+        "noVueVOnNumberValues": "error",
+        "useConsistentObjectKeys": "error",
+        "useVueBaseImport": "warn",
+        "useVueConsistentDefinePropsDeclaration": "off",
+        "useVueNextTickPromise": "warn",
+        "useVueValidVFor": "error"
+      },
       "style": {
         "noDescendingSpecificity": "off",
         "noVueOptionsApi": "off",
-        "useVueMultiWordComponentNames": "off",
-        "useVueHyphenatedAttributes": "off",
         "useVueConsistentVBindStyle": "off",
-        "useVueConsistentVOnStyle": "off"
+        "useVueHyphenatedAttributes": "off",
+        "useVueMultiWordComponentNames": "off"
       },
       "suspicious": {
-        "noDocumentCookie": "off",
-        "noImportCycles": "off",
         "noExplicitAny": "warn",
+        "noImportCycles": "off",
+        "noNestedPromises": "error",
+        "noParametersOnlyUsedInRecursion": "error",
         "noShadow": "off",
         "noUnnecessaryConditions": "off",
-        "noParametersOnlyUsedInRecursion": "error",
-        "noNestedPromises": "error",
         "useArraySortCompare": "error"
-      },
-      "nursery": {
-        "useVueValidVFor": "error",
-        "noVueVOnNumberValues": "error",
-        "noVueRefAsOperand": "error",
-        "noVueImportCompilerMacros": "error",
-        "noVueDeprecatedScopedSlots": "error",
-        "useVueConsistentDefinePropsDeclaration": "off",
-        "noVueUndeclaredDirectives": "off",
-        "useVueBaseImport": "warn",
-        "useVueNextTickPromise":"warn",
-        "noFloatingPromises": "error",
-        "noMisusedPromises": "error",
-        "noImpliedEval": "error"
-      },
-      "a11y": {
-        "useSemanticElements": "off",
-        "useAriaPropsSupportedByRole": "off",
-        "noNoninteractiveElementToInteractiveRole": "off",
-        "noLabelWithoutControl": "off",
-        "useMediaCaption": "off",
-        "useAltText": "off",
-        "noRedundantAlt": "off",
-        "noSvgWithoutTitle": "off",
-        "useAriaPropsForRole": "off",
-        "useGenericFontNames": "off",
-        "noAutofocus": "off",
-        "noStaticElementInteractions": "off",
-        "useKeyWithClickEvents": "off"
       }
-    }
-  },
-  "assist": {
-    "enabled": true,
-    "actions": {
-      "source": {
-        "organizeImports": "off"
-      }
-    }
-  },
-  "formatter": {
-    "enabled": false
-  },
-  "css": {
-    "parser": {
-      "cssModules": true
-    }
-  },
-  "html": {
-    "experimentalFullSupportEnabled": true,
-    "parser": {
-      "interpolation": true
-    },
-    "linter": {
-      "enabled": true
     }
   },
   "overrides": [
     {
-      "includes": ["tests/playwright/**", "tests/mocks/**"],
+      "includes": ["tests/playwright/**"],
       "linter": {
         "rules": {
           "correctness": {
-            "noEmptyPattern": "off"
+            "noEmptyPattern": "off",
+            "noUnresolvedImports": "off"
+          },
+          "nursery": {
+            "noPlaywrightElementHandle": "error",
+            "noPlaywrightEval": "error",
+            "noPlaywrightForceOption": "error",
+            "noPlaywrightMissingAwait": "error",
+            "noPlaywrightNetworkidle": "error",
+            "noPlaywrightPagePause": "error",
+            "noPlaywrightUselessAwait": "error",
+            "noPlaywrightWaitForNavigation": "error",
+            "noPlaywrightWaitForSelector": "error",
+            "noPlaywrightWaitForTimeout": "warn",
+            "usePlaywrightValidDescribeCallback": "error"
           }
         }
       }
     },
     {
       "includes": [
+        "scripts/postcss-strip-legacy.ts",
         "playwright.config.ts",
         "playwright.performance.config.ts",
-        "tests/playwright/**",
-        "scripts/postcss-strip-legacy.ts"
+        "**/*.test.js",
+        "**/*.test.ts"
       ],
       "linter": {
         "rules": {
           "correctness": {
-            "noUnresolvedImports": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["scripts/postcss-strip-legacy.ts"],
-      "linter": {
-        "rules": {
-          "correctness": {
+            "noUnresolvedImports": "off",
             "noUndeclaredDependencies": "off"
           }
         }

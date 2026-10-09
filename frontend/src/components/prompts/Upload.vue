@@ -592,7 +592,7 @@ export default {
       });
 
       const allFiles = await Promise.all(promises);
-      allFiles.forEach(files => { filesToUpload.push(...files); });
+      for (const files of allFiles) { filesToUpload.push(...files); }
 
       if (filesToUpload.length > 0) {
         void uploadManager.add(destination, filesToUpload);

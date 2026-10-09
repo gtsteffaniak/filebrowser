@@ -6,7 +6,7 @@
     <i v-else-if="hasPreviewImage && !isFile" class="material-symbols overlay-icon">folder</i>
     <i v-if="isShared" class="material-symbols overlay-icon">group</i>
     <!-- Preview content: image, 3D, or fallback -->
-    <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" />
+    <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" aria-hidden="true" />
     <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError"
       :key="`3d-${path}-${gallerySizeKey}`"
       :fbdata="{

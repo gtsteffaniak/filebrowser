@@ -209,7 +209,9 @@ export default {
   },
   beforeUnmount() {
     // Clear all expand timeouts
-    this.expandTimeouts.forEach(timeout => { clearTimeout(timeout); });
+    for (const timeout of this.expandTimeouts.values()) {
+      clearTimeout(timeout);
+    }
     this.expandTimeouts.clear();
     if (this.unwatchReload) {
       this.unwatchReload();
@@ -507,7 +509,9 @@ export default {
       this.rootNodes.forEach(clearNode);
 
       // Clear all pending expand timeouts
-      this.expandTimeouts.forEach(timeout => { clearTimeout(timeout); });
+      for (const timeout of this.expandTimeouts.values()) {
+        clearTimeout(timeout);
+      }
       this.expandTimeouts.clear();
     },
 

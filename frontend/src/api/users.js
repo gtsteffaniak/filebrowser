@@ -114,12 +114,12 @@ export async function update(user, which, options = {}) {
   const mergedHeaders = { ...(options.headers || {}) }
 
   let userData = {}
-  which.forEach(key => {
+  for (const key of which) {
     const value = getObjectProperty(user, key)
     if (value !== undefined) {
       userData = setObjectProperty(userData, key, value)
     }
-  })
+  }
 
   const apiPath = getApiPath('users', { username: user.username })
   const body = JSON.stringify({
@@ -237,4 +237,3 @@ export async function deleteUser(username, options = {}) {
     })
   }
 }
-

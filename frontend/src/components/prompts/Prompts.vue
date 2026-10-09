@@ -257,7 +257,7 @@ export default {
   beforeUnmount() {
     window.removeEventListener('resize', this.handleWindowResize);
     window.removeEventListener('keydown', this.onDocumentKeydown);
-    Object.values(this.flashBorderTimers).forEach((tid) => { clearTimeout(tid); });
+    for (const tid of Object.values(this.flashBorderTimers)) { clearTimeout(tid); }
   },
   methods: {
     triggerPromptBorderFlash(id) {
@@ -276,7 +276,7 @@ export default {
       const maxWidth = window.innerWidth * 0.9;
       const maxHeight = window.innerHeight * 0.9;
 
-      this.prompts.forEach(prompt => {
+      for (const prompt of this.prompts) {
         const size = this.sizes[prompt.id];
         if (size) {
           if (size.width > maxWidth || size.height > maxHeight) {
@@ -291,7 +291,7 @@ export default {
         if (el) {
           this.clampDragOffset(prompt.id, el);
         }
-      });
+      }
     },
     isTopmost(id) {
       const allPrompts = this.prompts;
