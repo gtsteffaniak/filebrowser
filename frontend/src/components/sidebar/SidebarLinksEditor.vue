@@ -431,7 +431,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import YamlEditorPanel from "@/components/prompts/YamlEditorPanel.vue";
 import { sidebarLinkKey } from "@/utils/sidebarLinkKeys.js";
 import { createDragReorder } from "@/utils/dragAndDropReorder.js";
-import { dump, load } from "js-yaml";
+import { CORE_SCHEMA, dump, load, mergeTag } from "js-yaml";
 import {
   baseSidebarCategory,
   isRootOnlySidebarCategory,
@@ -884,7 +884,7 @@ export default {
     },
     applyYamlLinks(text) {
       try {
-        const parsed = load(text);
+        const parsed = load(text, { schema: CORE_SCHEMA.withTags(mergeTag) });
         if (!Array.isArray(parsed)) {
           throw new Error("expected array");
         }
