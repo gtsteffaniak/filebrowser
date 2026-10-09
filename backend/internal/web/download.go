@@ -285,16 +285,26 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
 
-	// For non-share downloads, enforce path-level access before building any archive.
-	// addFile silently skips denied paths which would yield an empty archive with 200;
-	// ServeSingleFile already gates single-file downloads with the same check.
+	// For non-share downloads, silently filter out paths the user is denied access to.
+	// Users should only download what they can see in the UI; a denied path must not
+	// block the rest of the selection. If nothing remains after filtering, return 404
+	// (same as a missing file) so that denied and nonexistent paths look identical.
 	if d.Share.Hash == "" {
 		permUser := accessCheckUsername(d)
+		allowed := fileList[:0]
 		for _, filePath := range fileList {
-			if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(filePath, true), permUser) {
-				return http.StatusForbidden, fmt.Errorf("access denied to source %q", source)
+			if state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(filePath, true), permUser) {
+				allowed = append(allowed, filePath)
+			} else {
+				logger.Debugf("download: skipping denied path for user %q", permUser)
 			}
 		}
+		if len(allowed) == 0 {
+			return realPathErrStatus(errors.ErrNotExist), errors.ErrNotExist
+		}
+		fileList = allowed
+		firstFilePath = fileList[0]
+		fileName = filepath.Base(firstFilePath)
 	}
 
 	var isDir bool
@@ -307,7 +317,11 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		_, isDir, err = idx.GetRealPath(firstFilePath)
 	}
 	if err != nil {
-		return realPathErrStatus(err), err
+		s := realPathErrStatus(err)
+		if s == http.StatusNotFound {
+			return s, errors.ErrNotExist
+		}
+		return s, err
 	}
 
 	if len(fileList) == 1 && !isDir {
