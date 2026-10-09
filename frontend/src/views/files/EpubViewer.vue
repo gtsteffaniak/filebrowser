@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import type { Book, Rendition } from "epubjs";
+import type { Book, Rendition } from "@likecoin/epub-ts";
 import { state, mutations, getters } from "@/store";
 import { resourcesApi } from "@/api";
 import { ensureViewToken, requestViewIdentity, getCachedViewToken, getRequestViewToken } from "@/api/viewToken.js";
@@ -71,8 +71,8 @@ function applyTheme() {
   const link = rootStyle.getPropertyValue("--primaryColor").trim();
   rendition.themes.default({
     "html, body": { background: `${background} !important`, color: `${text} !important` },
-    a: { color: `${link} !important` },
-    "p, h1, h2, h3, h4, h5, h6, li": { color: `${text} !important` },
+    "body *": { color: `${text} !important` },
+    "body a, body a *": { color: `${link} !important` },
   });
 }
 
@@ -139,7 +139,7 @@ onMounted(async () => {
         );
 
     // Initialize the EPUB book (async)
-    const { default: ePub } = await import("epubjs");
+    const { default: ePub } = await import("@likecoin/epub-ts");
     if (isUnmounted) return;
     const newBook = ePub(epubUrl, { openAs: "epub" });
     book = newBook;
@@ -157,15 +157,18 @@ onMounted(async () => {
     Object.defineProperty(newRendition, "manager", {
       configurable: true,
       get: () => manager,
-      set: (value: object) => {
+      set: (value?: object) => {
         manager = value;
+        if (!value) return;
         let stage: { size: (width?: string | number | null, height?: string | number | null) => unknown } | undefined;
         Object.defineProperty(value, "stage", {
           configurable: true,
           get: () => stage,
-          set: (created: NonNullable<typeof stage>) => {
-            const size = created.size.bind(created);
-            created.size = (width, height) => size(width ?? "100%", height ?? "100%");
+          set: (created: typeof stage) => {
+            if (created) {
+              const size = created.size.bind(created);
+              created.size = (width, height) => size(width ?? "100%", height ?? "100%");
+            }
             stage = created;
           },
         });

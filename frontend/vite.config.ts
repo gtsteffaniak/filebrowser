@@ -42,7 +42,7 @@ const chunks: Record<string, string[]> = {
   store: ["/src/store/"],
   highlightjs: ["node_modules/highlight.js"],
   mammoth: ["node_modules/mammoth"],
-  epubjs: ["node_modules/jszip", "node_modules/epubjs"],
+  epubts: ["node_modules/jszip", "node_modules/@likecoin/epub-ts"],
   katex: ["node_modules/katex", "node_modules/marked-katex-extension"],
 };
 

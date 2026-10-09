@@ -171,11 +171,10 @@ function isSameRoute(to: RouteLocation, from: RouteLocation) {
     toQuery === fromQuery;
 }
 
-router.beforeResolve(async (to, from, next) => {
+router.beforeResolve(async (to, from) => {
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
-    next(false);
-    return;
+    return false;
   }
 
   // Clear any popup previews when navigating
@@ -206,31 +205,27 @@ router.beforeResolve(async (to, from, next) => {
       // Validation failed - clear state and redirect to login
       void mutations.setCurrentUser(null);
       const safeRedirect = sanitizePostLoginRedirect(to.fullPath);
-      next({ path: "/login", query: { redirect: safeRedirect } });
-      return;
+      return { path: "/login", query: { redirect: safeRedirect } };
     }
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
       if (!getters.isAdmin()) {
-        next({ path: "/403" });
-        return;
+        return { path: "/403" };
       }
     }
 
     if (to.matched.some((record) => record.meta.requireSettingsEnabled)) {
       if (state.user?.disableSettings) {
-        next({ path: "/files/" });
-        return;
+        return { path: "/files/" };
       }
     }
   }
 
   if (to.path.endsWith("/login") && getters.isLoggedIn()) {
-    next({ path: "/files/" });
-    return;
+    return { path: "/files/" };
   }
 
-  next();
+  return true;
 });
 
 router.afterEach((to) => {
