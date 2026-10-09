@@ -250,10 +250,8 @@ type wopiCheckFileInfo struct {
 	SupportsRename          bool   `json:"SupportsRename"`
 	SupportsDeleteFile      bool   `json:"SupportsDeleteFile"`
 	PostMessageOrigin       string `json:"PostMessageOrigin,omitempty"`
-	DisablePrint            bool   `json:"DisablePrint,omitempty"`
 	DisableExport           bool   `json:"DisableExport,omitempty"`
 	DisableCopy             bool   `json:"DisableCopy,omitempty"`
-	HidePrintOption         bool   `json:"HidePrintOption,omitempty"`
 	HideExportOption        bool   `json:"HideExportOption,omitempty"`
 	EnableOwnerTermination  bool   `json:"EnableOwnerTermination"`
 }
@@ -290,12 +288,12 @@ func buildWopiCheckFileInfo(req *wopiRequest, stat os.FileInfo) wopiCheckFileInf
 		SupportsRename:          false,
 		SupportsDeleteFile:      false,
 		PostMessageOrigin:       req.claims.Origin,
-		DisablePrint:            !req.download,
-		DisableExport:           !req.download,
-		DisableCopy:             !req.download,
-		HidePrintOption:         !req.download,
-		HideExportOption:        !req.download,
-		EnableOwnerTermination:  false,
+		// Like the OnlyOffice integration: printing needs View only, exporting
+		// and copying the content out need Download.
+		DisableExport:          !req.download,
+		DisableCopy:            !req.download,
+		HideExportOption:       !req.download,
+		EnableOwnerTermination: false,
 	}
 }
 

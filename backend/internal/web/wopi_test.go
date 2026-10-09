@@ -583,8 +583,11 @@ func TestWopiHostRejections(t *testing.T) {
 	rec := f.do(http.MethodGet, "", tok, nil, nil)
 	var info wopiCheckFileInfo
 	_ = json.Unmarshal(rec.Body.Bytes(), &info)
-	if info.UserCanWrite || !info.DisableExport || !info.DisablePrint {
+	if info.UserCanWrite || !info.DisableExport || !info.DisableCopy {
 		t.Errorf("view-only user without download: %+v", info)
+	}
+	if strings.Contains(rec.Body.String(), "Print") {
+		t.Errorf("printing needs View only, as with OnlyOffice; got %s", rec.Body.String())
 	}
 	if rec := f.do(http.MethodPost, "/contents", tok, []byte("x"), map[string]string{"X-WOPI-Override": "PUT"}); rec.Code != http.StatusUnauthorized {
 		t.Errorf("PutFile without modify = %d, want 401", rec.Code)
