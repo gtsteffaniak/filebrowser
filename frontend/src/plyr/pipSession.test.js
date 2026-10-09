@@ -3,7 +3,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 const pushMock = vi.fn(() => Promise.resolve());
 
 vi.mock('@/router', () => ({
-  default: { push: (...args) => pushMock(...args) },
+  router: { push: (...args) => pushMock(...args) },
 }));
 
 vi.mock('@/store', () => ({

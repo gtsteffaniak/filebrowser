@@ -87,12 +87,12 @@ export default {
       const reqItems = Array.isArray(state.req?.items) ? state.req.items : [];
       let total = 0;
       const selected = state.selected.find((entry) => typeof entry !== 'number')?.heldSelected ?? state.selected;
-      selected.forEach(entry => {
+      for (const entry of selected) {
         const item = typeof entry === 'number' ? reqItems.at(entry) : entry;
         if (item?.size) {
           total += item.size;
         }
-      });
+      }
       return total;
     },
     // Total size

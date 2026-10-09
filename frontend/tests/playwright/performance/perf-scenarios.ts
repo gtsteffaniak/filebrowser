@@ -1,3 +1,4 @@
+import { setTimeout } from "node:timers/promises";
 import { expect, type Browser, type Page, type TestInfo } from "@playwright/test";
 import { loadPerfConfig, selectCountForScale } from "./perf-config.ts";
 import {
@@ -382,7 +383,7 @@ export async function runResizeScenario(
             : scenarios.resize.settleMs;
         for (const size of sizes) {
           await page.setViewportSize(size);
-          await page.waitForTimeout(settleMs);
+          await setTimeout(settleMs);
         }
       },
     );
@@ -511,7 +512,7 @@ async function scrollListing(page: Page, steps: number): Promise<void> {
       el.scrollTop += 800;
       void (el as HTMLElement).offsetHeight;
     });
-    await page.waitForTimeout(8);
+    await setTimeout(8);
   }
 }
 

@@ -6,8 +6,8 @@ vi.mock("@/utils/url.js", () => ({
 }));
 vi.mock("./utils", () => ({ fetchURL: vi.fn(), fetchJSON: vi.fn() }));
 
-import { fetchURL } from "./utils";
-import { search } from "./tools";
+import { fetchURL } from "./utils.ts";
+import { search } from "./tools.js";
 
 describe("search result limit", () => {
   beforeEach(() => {

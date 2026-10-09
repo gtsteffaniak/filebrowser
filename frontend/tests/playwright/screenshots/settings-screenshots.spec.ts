@@ -1,5 +1,5 @@
 //import { Page } from "@playwright/test";
-import { openAdvancedProfileSettings, test } from "../test-setup.ts";
+import { expect, openAdvancedProfileSettings, test } from "../test-setup.ts";
 
 const jpgQuality = 85;
 
@@ -18,8 +18,7 @@ test("setup theme", async ({ page, theme }) => {
 // run npx playwright test --ui to run these tests locally in ui mode
 test("profile settings", async ({ page, theme }) => {
   await openAdvancedProfileSettings(page, "listingOptions");
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `./generated/settings/profile-listing-options-${theme}.jpg`, quality: jpgQuality });
+  await page.screenshot({ path: `./generated/settings/profile-listing-options-${theme}.jpg`, quality: jpgQuality, animations: "disabled" });
   if (theme === 'light') {
     return;
   }
@@ -38,10 +37,11 @@ test("profile settings", async ({ page, theme }) => {
     await page.locator(`div[aria-label="${section.id}"]`).evaluate((el) => {
       el.scrollIntoView({ block: "center", behavior: "instant" });
     });
-    await page.waitForTimeout(300);
+    await expect(page.locator(`div[aria-label="${section.id}"]`)).toBeInViewport();
     await page.screenshot({
       path: `./generated/settings/${section.file}-${theme}.jpg`,
       quality: jpgQuality,
+      animations: "disabled",
     });
   }
 });
@@ -52,7 +52,6 @@ test("Uploads & Downloads settings", async ({ page, theme }) => {
     return;
   }
   await page.goto("/files/settings#fileLoading-main");
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `./generated/settings/uploads-downloads-options-${theme}.jpg`, quality: jpgQuality });
+  await page.screenshot({ path: `./generated/settings/uploads-downloads-options-${theme}.jpg`, quality: jpgQuality, animations: "disabled" });
 
 });

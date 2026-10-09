@@ -382,9 +382,9 @@ async function applyHighlighting() {
     console.error("Failed to load highlight.js:", err);
   }
   // Re-query in case content changed while highlight.js was loading
-  viewer.querySelectorAll('pre code').forEach((block) => {
+  for (const block of viewer.querySelectorAll('pre code')) {
     const codeBlock = block as HTMLElement;
-    if (codeBlock.classList.contains("line-numbers-added")) return;
+    if (codeBlock.classList.contains("line-numbers-added")) continue;
     const langClass = codeBlock.className.split(/\s+/).find(c => c.startsWith('language-'));
     const lang = langClass ? langClass.split('-')[1] : null;
 
@@ -394,7 +394,7 @@ async function applyHighlighting() {
       codeBlock.classList.add('hljs');
     }
     addLineNumbers(codeBlock);
-  });
+  }
 }
 
 // Manual line numbers implementation
@@ -485,12 +485,12 @@ function addLineNumbers(codeBlock: HTMLElement) {
       const isCurrentlyActive = lineNumber.classList.contains('active');
 
       // Remove previous highlights
-      wrapper.querySelectorAll('.code-line.highlighted').forEach(el => {
+      for (const el of wrapper.querySelectorAll('.code-line.highlighted')) {
         el.classList.remove('highlighted');
-      });
-      wrapper.querySelectorAll('.line-number.active').forEach(el => {
+      }
+      for (const el of wrapper.querySelectorAll('.line-number.active')) {
         el.classList.remove('active');
-      });
+      }
 
       // If the line wasn't already active, highlight it
       if (!isCurrentlyActive) {
@@ -512,9 +512,9 @@ function addLineNumbers(codeBlock: HTMLElement) {
   newCodeBlock.classList.add('line-numbers-added');
 
   // Add all code lines to the new code block
-  codeLines.forEach(line => {
+  for (const line of codeLines) {
     newCodeBlock.appendChild(line);
-  });
+  }
 
   // Create new pre element
   const newPre = document.createElement('pre');
@@ -729,9 +729,9 @@ function getLineAnchors(): { line: number; top: number }[] {
     top: topOf(el),
   }));
   // per-line anchors to keep the interpolation
-  viewer.querySelectorAll<HTMLElement>(".code-line[data-source-line]").forEach((el) => {
+  for (const el of viewer.querySelectorAll<HTMLElement>(".code-line[data-source-line]")) {
     anchors.push({ line: Number(el.dataset.sourceLine), top: topOf(el) });
-  });
+  }
   anchors.sort((a, b) => a.line - b.line);
   anchorCache = anchors;
   return anchors;

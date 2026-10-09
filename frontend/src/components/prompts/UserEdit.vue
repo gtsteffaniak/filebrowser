@@ -38,7 +38,7 @@
       <hr />
     </div>
     <div v-if="globalVars.passkeyAvailable" style="margin-top: 0.5em;">
-      <label>{{ $t("profileSettings.passkeys") }}</label>
+      <span>{{ $t("profileSettings.passkeys") }}</span>
       <div v-if="user.passkeyCredentials && user.passkeyCredentials.length > 0" class="passkey-list">
         <div v-for="pk in user.passkeyCredentials" :key="pk.id" class="passkey-item">
           <div class="passkey-info">

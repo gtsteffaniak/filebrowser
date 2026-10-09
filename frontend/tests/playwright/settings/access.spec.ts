@@ -57,7 +57,7 @@ test.describe("Access rules behavior", () => {
   test("share access controls exist", async ({ page, checkForErrors }) => {
     // localStorage is not available on about:blank; Firefox throws "The operation is insecure."
     await page.goto("/files/");
-    await page.waitForLoadState("networkidle");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     const rootShareHash = await getOrCreateShareViaApi(page, {
       path: "/",
       source: "playwright + files",

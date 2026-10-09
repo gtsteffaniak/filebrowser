@@ -559,7 +559,7 @@ export async function ensureListingViewMode(
       break;
     }
     await switchView.click();
-    await page.waitForTimeout(250);
+    await expect(listing).not.toHaveAttribute("class", classAttr ?? "");
   }
 
   await expectListingViewMode(page, mode);

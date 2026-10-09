@@ -2,7 +2,7 @@
  * Client-side group name rules mirroring backend access.NormalizeGroupName.
  * They apply only to manually created groups; existing names are always valid.
  */
-import i18n from '@/i18n';
+import i18n from "@/i18n/index.ts";
 
 export const MAX_GROUP_NAME_LENGTH = 128;
 export const MIN_GROUP_NAME_LENGTH = 2;

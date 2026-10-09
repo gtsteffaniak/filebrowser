@@ -43,7 +43,7 @@ body.halloween-theme,
 /* Tombstone Shape for Login Card */
 .login-card.tombstone {
   /* Updated background for more subtle levels of detail/texture */
-  background-image:
+  --tombstone-bg:
     linear-gradient(45deg, transparent 30%, rgb(0 0 0 / 15%) 30.2%, transparent 30.5%),
     linear-gradient(135deg, transparent 60%, rgb(0 0 0 / 12%) 60.3%, transparent 60.6%),
     linear-gradient(75deg, transparent 45%, rgb(0 0 0 / 10%) 45.1%, transparent 45.2%),
@@ -58,6 +58,7 @@ body.halloween-theme,
     linear-gradient(135deg, rgb(0 0 0 / 10%) 0%, transparent 100%),
     linear-gradient(225deg, rgb(0 0 0 / 10%) 0%, transparent 100%),
     linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 50%, #a8a8a8 100%);
+  background: var(--tombstone-bg);
   border: 4px solid #888;
   border-radius: 0 0 20px 20px;
   box-shadow:
