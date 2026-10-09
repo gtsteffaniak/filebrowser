@@ -67,9 +67,7 @@
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="showKindColumn" class="kind">{{ kindLabel }}</p>
-      <p v-if="showCreatedColumn" class="created" :title="createdTitle">
-        <time v-if="created" :datetime="created">{{ formattedCreatedTime }}</time>
-      </p>
+      <p v-if="showCreatedColumn" class="created" :title="createdTitle">{{ formattedCreatedTime }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -150,9 +148,7 @@
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="showKindColumn" class="kind">{{ kindLabel }}</p>
-      <p v-if="showCreatedColumn" class="created" :title="createdTitle">
-        <time v-if="created" :datetime="created">{{ formattedCreatedTime }}</time>
-      </p>
+      <p v-if="showCreatedColumn" class="created" :title="createdTitle">{{ formattedCreatedTime }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
