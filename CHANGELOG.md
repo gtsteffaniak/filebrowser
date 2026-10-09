@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
 This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions, [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) for a full summary.
 
+Also, consider enabling "analytics" in admin settings which will help me populate an anonymous public dashboard for everyone to see. Currently, theres 60 deployments details populated from beta, so after a percentage of you enable this in staging there should be plenty to make the dashboard useful and available. No private information is used, you can see exactly what data is sent in the UI.
+
  **Breaking Changes**:
  - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
  - Removed: `/share/…` URL redirect to `/public/share/…` — use `/public/share/…` directly.
