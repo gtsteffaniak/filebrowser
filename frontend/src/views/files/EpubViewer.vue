@@ -71,8 +71,8 @@ function applyTheme() {
   const link = rootStyle.getPropertyValue("--primaryColor").trim();
   rendition.themes.default({
     "html, body": { background: `${background} !important`, color: `${text} !important` },
-    a: { color: `${link} !important` },
-    "p, h1, h2, h3, h4, h5, h6, li": { color: `${text} !important` },
+    "body *": { color: `${text} !important` },
+    "body a, body a *": { color: `${link} !important` },
   });
 }
 
