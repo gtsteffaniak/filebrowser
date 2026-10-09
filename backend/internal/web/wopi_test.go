@@ -601,11 +601,12 @@ func TestWopiHostRejections(t *testing.T) {
 	}
 }
 
-func TestWopiHostRejectsReplacedFile(t *testing.T) {
-	// The session opened on a file that is no longer the one at its path.
+func TestWopiHostRejectsMovedFile(t *testing.T) {
+	// The session opened on a file whose real path is no longer the one at
+	// the token's path: it was moved, and another file took its name.
 	f := newWopiHostFixture(t, users.SourceFilePermissions{View: true})
 	f.fileID = wopiFileID("srv", "/somewhere/else.docx")
 	if rec := f.do(http.MethodGet, "", f.token(false), nil, nil); rec.Code != http.StatusNotFound {
-		t.Errorf("replaced file: %d, want 404", rec.Code)
+		t.Errorf("moved file: %d, want 404", rec.Code)
 	}
 }

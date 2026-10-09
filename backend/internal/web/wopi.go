@@ -211,8 +211,10 @@ func serveWopi(w http.ResponseWriter, r *http.Request, fn wopiHandlerFunc) int {
 	if err != nil {
 		return http.StatusNotFound
 	}
-	// The token names a path; the id pins the file that was there when the
-	// session opened. A file moved or replaced since is not the same document.
+	// The token names a path; the id pins where the file was when the session
+	// opened. A file moved since is not the same document. A file replaced in
+	// place is: PutFile reports it as changed in storage and the editor lets
+	// the user resolve it.
 	if wopiFileID(claims.Source, fi.RealPath) != fileID {
 		return http.StatusNotFound
 	}

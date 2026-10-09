@@ -55,6 +55,12 @@ describe('getters.isWopiFile', () => {
     expect(getters.isWopiFile('README')).toBe(false);
   });
 
+  it('ignores names that match inherited object properties', () => {
+    expect(getters.isWopiFile('report.constructor')).toBe(false);
+    expect(getters.isWopiFile('notes.toString')).toBe(false);
+    expect(getters.isWopiFile('x.__proto__')).toBe(false);
+  });
+
   it('is off unless the office editor is Collabora', () => {
     globalVarsMock.officeProduct = '';
     expect(getters.isWopiFile('report.docx')).toBe(false);

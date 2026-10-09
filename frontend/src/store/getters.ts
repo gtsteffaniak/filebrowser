@@ -543,7 +543,7 @@ export const getters = {
     if (dot === -1) return false
     const ext = name.slice(dot + 1).toLowerCase()
     const extensions: Record<string, string> = globalVars.officeExtensions || {}
-    if (!(ext in extensions)) return false
+    if (!Object.hasOwn(extensions, ext)) return false
     return !getters.officeViewingDisabled(name)
   },
   officeViewingDisabled: (filename: string) => {
