@@ -148,10 +148,10 @@ export default {
       return mode === "list" || mode === "compact";
     },
     showKindColumn() {
-      return this.isListMode && state.user?.showTypeColumn;
+      return this.isListMode && !this.usePickerSorting && state.user?.showTypeColumn;
     },
     showCreatedColumn() {
-      return this.isListMode && state.user?.showCreationDateColumn;
+      return this.isListMode && !this.usePickerSorting && state.user?.showCreationDateColumn;
     },
     nameIcon() {
       if (this.nameSorted && !this.ascOrdered) {

@@ -131,7 +131,12 @@ export const getters = {
     return state.user?.viewMode || "normal";
   },
   sorting: () => {
-    return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
+    const sorting = getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
+    if ((sorting.by === "kind" && !state.user?.showTypeColumn) ||
+        (sorting.by === "created" && !state.user?.showCreationDateColumn)) {
+      return { by: "name", asc: sorting.asc };
+    }
+    return sorting;
   },
   /** Sort config for destination picker dialogs (copy/move/archive), independent of the main listing sort. */
   pickerSorting: () => {

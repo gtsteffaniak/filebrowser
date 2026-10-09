@@ -422,10 +422,10 @@ export default {
       return formatDuration(this.metadata?.duration);
     },
     showKindColumn() {
-      return this.isListMode && state.user?.showTypeColumn;
+      return this.isListMode && !this.showLimitedOptions && state.user?.showTypeColumn;
     },
     showCreatedColumn() {
-      return this.isListMode && state.user?.showCreationDateColumn;
+      return this.isListMode && !this.showLimitedOptions && state.user?.showCreationDateColumn;
     },
     isListMode() {
       const mode = getters.viewMode();
