@@ -462,7 +462,7 @@ export default {
             return;
           }
 
-          const result = extractSourceFromPath(getters.routePath());
+          const result = extractSourceFromPath(getters.routePath(), Object.keys(state.sources.info));
 
           if (result.source === "") {
             // No sources available - show a more graceful message instead of error popup

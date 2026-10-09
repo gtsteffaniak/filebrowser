@@ -422,7 +422,7 @@ export default {
       if (this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources)) {
         return "/";
       }
-      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
+      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path), Object.keys(state.sources.info));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
       } else {

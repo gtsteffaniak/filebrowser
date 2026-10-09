@@ -1007,7 +1007,8 @@
       "termTooShort": "Varje sökterm måste innehålla minst {minSearchLength} tecken",
       "resultsTitle": "Sökresultat",
       "invalidSources": "Slå på minst en källa.",
-      "noResults": "Inga matchande filer eller mappar."
+      "noResults": "Inga matchande filer eller mappar.",
+      "resultLimit": "Maximalt antal sökresultat"
     },
     "activityViewer": {
       "name": "Aktivitetsvisare",

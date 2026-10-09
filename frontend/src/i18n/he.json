@@ -1007,7 +1007,8 @@
       "termTooShort": "כל מונח חיפוש חייב להכיל לפחות {minSearchLength} תווים",
       "resultsTitle": "תוצאות החיפוש",
       "invalidSources": "הפעל לפחות מקור אחד.",
-      "noResults": "אין קבצים או תיקיות תואמים."
+      "noResults": "אין קבצים או תיקיות תואמים.",
+      "resultLimit": "מספר מרבי של תוצאות חיפוש"
     },
     "activityViewer": {
       "name": "מציג הפעילויות",

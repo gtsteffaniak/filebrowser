@@ -889,6 +889,12 @@ definitions:
         description: number of concurrent image processing jobs used to create previews,
           default is 4.
         type: integer
+      searchResultsLimit:
+        description: 'maximum requested search results across all sources (default:
+          1000); quick search defaults to 100, advanced search to 500; size viewer
+          remains limited to 200'
+        minimum: 1
+        type: integer
       sources:
         items:
           $ref: '#/definitions/settings.Source'
@@ -5095,6 +5101,11 @@ paths:
         in: query
         name: useWildcard
         type: boolean
+      - description: Requested advanced search limit, capped by server.searchResultsLimit
+          (default 1000); omitted for quick search (100)
+        in: query
+        name: limit
+        type: integer
       - description: 'Optional: ''and'' to require all repeated ''terms'' match; default
           is OR'
         in: query
