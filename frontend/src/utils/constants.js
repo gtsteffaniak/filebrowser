@@ -27,6 +27,7 @@ const settings = [
       { id: 'searchOptions', label: 'settings.searchOptions', icon: 'search' },
       { id: 'fileViewerOptions', label: 'profileSettings.fileViewerOptions', icon: 'play_circle' },
       { id: 'themeLanguage', label: 'profileSettings.themeAndLanguage', icon: 'palette' },
+      { id: 'accountOptions', label: 'profileSettings.accountOptions', icon: 'person' },
     ],
   },
   { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading', icon: 'cloud_download' },
@@ -38,6 +39,7 @@ const settings = [
     component: 'UserManagement',
     icon: 'group',
     sections: [
+      { id: 'main', label: 'general.users', permissions: { admin: true }, icon: 'person' },
       { id: 'access', label: 'access.access', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
       { id: 'groups', label: 'access.groups', component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
     ],

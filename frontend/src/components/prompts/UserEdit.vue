@@ -207,18 +207,6 @@
         respect-enforced-policy
         @account-change="onEditAccountChange"
       />
-
-      <UserProfilePreferences
-        v-if="stateUser.permissions.admin && loaded"
-        :key="profileLoadKey"
-        v-model="profileSections"
-        :enforced="enforcedPreferences"
-        :default-expanded-section="null"
-        respect-enforced-policy
-        show-extension-inputs
-        :show-thumbnail-master="false"
-        @change="onPreferenceChange"
-      />
     </div>
   </div>
 
@@ -248,7 +236,6 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
-import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import PasswordRequirementsHint from "@/components/PasswordRequirementsHint.vue";
 import UserGroupsField from "@/components/settings/UserGroupsField.vue";
 import Errors from "@/views/Errors.vue";
@@ -320,7 +307,6 @@ export default {
     QuotaCustomLimitInput,
     SettingsButton,
     UserDefaultsAccountSection,
-    UserProfilePreferences,
     PasswordRequirementsHint,
     UserGroupsField,
     Errors,
@@ -526,14 +512,6 @@ export default {
       if (this.globalVars.proxyAvailable) return "proxy";
       if (this.globalVars.ldapAvailable) return "ldap";
       return "password"; // fallback
-    },
-    profileSections: {
-      get() {
-        return sectionsFromFlatUser(this.profileUser);
-      },
-      set(sections) {
-        applySectionsToFlatUser(this.profileUser, sections);
-      },
     },
     enforcedPreferences() {
       return state.enforcedUserDefaults || {};
@@ -1155,9 +1133,6 @@ export default {
     onEditAccountChange(field, value) {
       this.applyEditAccountField(field, value);
       this.applyEditAccountToUser();
-      this.emitUpdate();
-    },
-    onPreferenceChange() {
       this.emitUpdate();
     },
     deletePrompt() {
