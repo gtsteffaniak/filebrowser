@@ -131,7 +131,8 @@ export default {
     },
     initializeActiveSettingFromHash() {
       // Get the current hash from the URL
-      const hash = window.location.hash.replace('#', '');
+      let hash = window.location.hash.replace('#', '');
+      if (hash === 'profile-main' && state.user?.showAdvancedProfile) hash = 'profile-listingOptions';
 
       if (hash) {
         // Check if the hash corresponds to a valid setting
