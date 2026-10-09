@@ -27,7 +27,7 @@
           <span role="group" aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
         <div class="info-item" v-if="humanCreatedTime">
-          <strong>{{ $t("files.dateAdded") }}</strong>
+          <strong>{{ $t("files.creationTime") }}</strong>
           <span aria-label="info date added" :title="createdTime">{{ humanCreatedTime }}</span>
         </div>
         <div class="info-item" v-if="source">

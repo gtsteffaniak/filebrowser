@@ -209,6 +209,7 @@
                     :is-dir="entry.type === 'directory'"
                     :source="entry.source"
                     :modified="entry.modified"
+                    :created="entry.created"
                     :type="entry.type"
                     :size="entry.size"
                     :path="entry.path"
@@ -234,6 +235,7 @@
                     :name="entry.name"
                     :is-dir="entry.type === 'directory'"
                     :modified="entry.modified"
+                    :created="entry.created"
                     :source="entry.source"
                     :type="entry.type"
                     :size="entry.size"
@@ -1434,6 +1436,7 @@ export default {
             type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
             size: typeof searchResult.size === "number" ? searchResult.size : 0,
             modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
+            created: typeof searchResult.created === "string" ? searchResult.created : "",
             hasPreview: !!(searchResult.hasPreview || searchResult.HasPreview),
             source: resultSource,
             isShared: false,

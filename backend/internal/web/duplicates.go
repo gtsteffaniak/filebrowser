@@ -14,13 +14,12 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-
 )
 
 // duplicateSearchMutex serializes duplicate searches to run one at a time
@@ -417,14 +416,18 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 						for _, fileInfo := range checksumGroup.Files {
 							// Remove the user scope from path
 							adjustedPath := "/" + strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
-							resultGroup = append(resultGroup, &indexing.SearchResult{
+							result := &indexing.SearchResult{
 								Path:       adjustedPath,
 								Source:     opts.source,
 								Type:       fileInfo.Type,
 								Size:       fileInfo.Size,
 								Modified:   fileInfo.ModTime.Format(time.RFC3339),
 								HasPreview: fileInfo.HasPreview,
-							})
+							}
+							if fileInfo.Created != nil {
+								result.Created = fileInfo.Created.Format(time.RFC3339)
+							}
+							resultGroup = append(resultGroup, result)
 						}
 
 						if len(resultGroup) >= 2 {

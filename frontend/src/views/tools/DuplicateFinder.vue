@@ -83,6 +83,7 @@
                           :type="file.type"
                           :size="file.size"
                           :modified="file.modified"
+                          :created="file.created"
                           :index="getUniqueIndex(index, fileIndex)"
                           :path="getFullPath(file.path)"
                           :hasPreview="shouldHavePreview(file)"

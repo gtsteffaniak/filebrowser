@@ -190,16 +190,16 @@
           :description="$t('profileSettings.showCopyPathDescription')"
         />
         <ProfilePreferenceToggle
-          field="hideTypeColumn"
+          field="showTypeColumn"
           section="listing"
-          :name="$t('profileSettings.hideTypeColumn')"
-          :description="$t('profileSettings.hideTypeColumnDescription')"
+          :name="$t('profileSettings.showTypeColumn')"
+          :description="$t('profileSettings.showTypeColumnDescription')"
         />
         <ProfilePreferenceToggle
-          field="hideDateAddedColumn"
+          field="showCreationDateColumn"
           section="listing"
-          :name="$t('profileSettings.hideDateAddedColumn')"
-          :description="$t('profileSettings.hideDateAddedColumnDescription')"
+          :name="$t('profileSettings.showCreationDateColumn')"
+          :description="$t('profileSettings.showCreationDateColumnDescription')"
         />
         <ProfilePreferenceToggle
           field="deleteAfterArchive"

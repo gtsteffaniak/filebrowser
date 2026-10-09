@@ -5387,6 +5387,9 @@ const docTemplate = `{
         "indexing.SearchResult": {
             "type": "object",
             "properties": {
+                "created": {
+                    "type": "string"
+                },
                 "hasPreview": {
                     "type": "boolean"
                 },
@@ -6950,17 +6953,9 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
-                "hideDateAddedColumn": {
-                    "description": "hide the Date added column in list and compact views",
-                    "type": "boolean"
-                },
                 "hideFileExt": {
                     "description": "space separated list of file extensions to hide in UI",
                     "type": "string"
-                },
-                "hideTypeColumn": {
-                    "description": "hide the Type column in list and compact views",
-                    "type": "boolean"
                 },
                 "newFileTemplate": {
                     "description": "list of custom filenames that will be used as template for new files",
@@ -6981,12 +6976,20 @@ const docTemplate = `{
                     "description": "show copy path button in the context menu",
                     "type": "boolean"
                 },
+                "showCreationDateColumn": {
+                    "description": "show the Creation date column in list and compact views",
+                    "type": "boolean"
+                },
                 "showHidden": {
                     "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
                 "showSelectMultiple": {
                     "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
+                "showTypeColumn": {
+                    "description": "show the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "singleClick": {
@@ -7782,10 +7785,6 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
-                "hideDateAddedColumn": {
-                    "description": "hide the Date added column in list and compact views",
-                    "type": "boolean"
-                },
                 "hideFileExt": {
                     "description": "space separated list of file extensions to hide in UI and API",
                     "type": "string"
@@ -7796,10 +7795,6 @@ const docTemplate = `{
                 },
                 "hideSidebarFileActions": {
                     "description": "hide the file actions in the sidebar",
-                    "type": "boolean"
-                },
-                "hideTypeColumn": {
-                    "description": "hide the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "locale": {
@@ -7873,6 +7868,10 @@ const docTemplate = `{
                     "description": "show copy path action in the context menu",
                     "type": "boolean"
                 },
+                "showCreationDateColumn": {
+                    "description": "show the Creation date column in list and compact views",
+                    "type": "boolean"
+                },
                 "showFirstLogin": {
                     "type": "boolean"
                 },
@@ -7886,6 +7885,10 @@ const docTemplate = `{
                 },
                 "showToolsInSidebar": {
                     "description": "when false, sidebar hides links with category \"tool\" (default: true)",
+                    "type": "boolean"
+                },
+                "showTypeColumn": {
+                    "description": "show the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "sidebarLinks": {
@@ -8237,10 +8240,6 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
-                "hideDateAddedColumn": {
-                    "description": "hide the Date added column in list and compact views",
-                    "type": "boolean"
-                },
                 "hideFileExt": {
                     "description": "space separated list of file extensions to hide in UI and API",
                     "type": "string"
@@ -8251,10 +8250,6 @@ const docTemplate = `{
                 },
                 "hideSidebarFileActions": {
                     "description": "hide the file actions in the sidebar",
-                    "type": "boolean"
-                },
-                "hideTypeColumn": {
-                    "description": "hide the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "id": {
@@ -8334,6 +8329,10 @@ const docTemplate = `{
                     "description": "show copy path action in the context menu",
                     "type": "boolean"
                 },
+                "showCreationDateColumn": {
+                    "description": "show the Creation date column in list and compact views",
+                    "type": "boolean"
+                },
                 "showFirstLogin": {
                     "type": "boolean"
                 },
@@ -8347,6 +8346,10 @@ const docTemplate = `{
                 },
                 "showToolsInSidebar": {
                     "description": "when false, sidebar hides links with category \"tool\" (default: true)",
+                    "type": "boolean"
+                },
+                "showTypeColumn": {
+                    "description": "show the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "sidebarLinks": {

@@ -6,7 +6,7 @@ import { globalVars, previewViews, tools } from "@/utils/constants.js";
 import { hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from "@/utils/mimetype.js";
-import { formatTimestamp, fromNow } from "@/utils/moment.js";
+import { formatTimestamp, fromNow } from "@/utils/moment.ts";
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 import { defaultDarkMode } from "@/utils/theme.js";
@@ -131,7 +131,12 @@ export const getters = {
     return state.user?.viewMode || "normal";
   },
   sorting: () => {
-    return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
+    const sorting = getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
+    if ((sorting.by === "kind" && !state.user?.showTypeColumn) ||
+        (sorting.by === "created" && !state.user?.showCreationDateColumn)) {
+      return { by: "name", asc: sorting.asc };
+    }
+    return sorting;
   },
   /** Sort config for destination picker dialogs (copy/move/archive), independent of the main listing sort. */
   pickerSorting: () => {
