@@ -21,7 +21,6 @@ Note: this release also contains all changes from v2.0.10-beta changelog
  - Update nl.json (#3089) @Stephan-P
  - update german translations (#3062) @fehnomenal
  - Update dev dependencies, add biome, fix types and linting (#3075) @Kurami32
- - update halloween theme (#3055)
 
  **Bug Fixes**:
  - Groups assigned in the user edit prompt now refresh the Groups settings list.
