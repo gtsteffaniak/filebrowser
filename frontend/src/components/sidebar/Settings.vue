@@ -10,7 +10,7 @@
     <div
       v-if="setting.sections"
       class="card item settings-card-collapsible"
-      :class="{ hidden: !shouldShow(setting) }"
+      :class="{ hidden: !shouldShow(setting), 'settings-card-collapsible--active': canExpand(setting) && isSectionActive(setting) }"
     >
       <div
         role="button"
@@ -28,15 +28,9 @@
         </span>
         <i
           v-if="canExpand(setting)"
-          role="button"
-          tabindex="0"
           class="material-symbols-outlined settings-card-collapsible-chevron"
           :class="{ rotated: expandedSections[setting.id] }"
           :aria-expanded="!!expandedSections[setting.id]"
-          @click.stop="expandSection(setting)"
-          @keydown.enter.stop.prevent="!$event.repeat && expandSection(setting)"
-          @keydown.space.stop.prevent
-          @keyup.space.stop="expandSection(setting)"
         >
           keyboard_arrow_down
         </i>
@@ -132,11 +126,7 @@ export default {
     },
     headerClick(setting) {
       if (!this.canExpand(setting)) return this.setView(`${setting.id}-main`);
-      this.expandedSections[setting.id] = true;
       if (!this.isSectionActive(setting)) this.setView(`${setting.id}-${this.visibleSections(setting)[0].id}`);
-    },
-    expandSection(setting) {
-      this.expandedSections[setting.id] = !this.expandedSections[setting.id];
     },
     isSectionActive(setting) {
       return this.activeView.startsWith(`${setting.id}-`);
@@ -215,6 +205,10 @@ export default {
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+}
+
+.settings-card-collapsible--active {
+  outline: 2px solid var(--primaryColor);
 }
 
 .settings-card-collapsible-chevron {

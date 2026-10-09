@@ -35,6 +35,7 @@ import SystemAdmin from "@/views/settings/SystemAdmin.vue";
 import NotificationsSettings from "@/views/settings/Notifications.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { getObjectProperty } from '@/utils/object.js';
+import { router } from "@/router";
 
 export default {
   name: "settings",
@@ -131,8 +132,13 @@ export default {
     },
     initializeActiveSettingFromHash() {
       // Get the current hash from the URL
-      let hash = window.location.hash.replace('#', '');
-      if (hash === 'profile-main' && state.user?.showAdvancedProfile) hash = 'profile-listingOptions';
+      const originalHash = window.location.hash.replace('#', '');
+      let hash = originalHash;
+      const advancedProfile = !!state.user?.showAdvancedProfile;
+      if (hash === 'profile-main' && advancedProfile) {
+        hash = 'profile-listingOptions';
+        void router.replace({ path: "/settings", hash: `#${hash}` }, () => {});
+      }
 
       if (hash) {
         // Check if the hash corresponds to a valid setting
@@ -160,7 +166,7 @@ export default {
       );
 
       if (defaultSetting) {
-        mutations.setActiveSettingsView('profile-main');
+        mutations.setActiveSettingsView(advancedProfile ? 'profile-listingOptions' : 'profile-main');
       } else {
         // Fallback to first allowed setting if profile is not available
         const firstAllowed = this.settings.find((setting) => this.shouldShow(setting));
