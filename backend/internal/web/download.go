@@ -263,7 +263,6 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 
 	firstFilePath := fileList[0]
-	displayFileList := ResolveDisplayFileList(d, source, fileList)
 	var err error
 	var status int
 	var userscope string
@@ -284,6 +283,38 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
+
+	// Remember how many paths the caller originally requested. After the access filter
+	// below shrinks the list, this count decides whether to serve raw vs. archive:
+	// a multi-path request must always yield an archive even if only one path survives.
+	originalCount := len(fileList)
+
+	// For non-share downloads, silently filter out paths the user is denied access to.
+	// Users should only download what they can see in the UI; a denied path must not
+	// block the rest of the selection. If nothing remains after filtering, return 404
+	// (same as a missing file) so that denied and nonexistent paths look identical.
+	if d.Share.Hash == "" {
+		permUser := accessCheckUsername(d)
+		allowed := fileList[:0]
+		for _, filePath := range fileList {
+			if state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(filePath, true), permUser) {
+				allowed = append(allowed, filePath)
+			} else {
+				logger.Debugf("download: skipping denied path for user %q", permUser)
+			}
+		}
+		if len(allowed) == 0 {
+			return realPathErrStatus(errors.ErrNotExist), errors.ErrNotExist
+		}
+		fileList = allowed
+		firstFilePath = fileList[0]
+		fileName = filepath.Base(firstFilePath)
+	}
+
+	// Build the display list from the filtered fileList so denied paths are never
+	// recorded in the download activity log.
+	displayFileList := ResolveDisplayFileList(d, source, fileList)
+
 	var isDir bool
 	if d.Share.Hash != "" {
 		if d.Share.Path == "" {
@@ -294,10 +325,14 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		_, isDir, err = idx.GetRealPath(firstFilePath)
 	}
 	if err != nil {
-		return realPathErrStatus(err), err
+		s := realPathErrStatus(err)
+		if s == http.StatusNotFound {
+			return s, errors.ErrNotExist
+		}
+		return s, err
 	}
 
-	if len(fileList) == 1 && !isDir {
+	if len(fileList) == 1 && !isDir && originalCount == 1 {
 		forceInline := false
 		forceInline, err = resolveDownloadInlineDisposition(fileName, r.URL.Query().Get("inline") == "true")
 		if err != nil {
